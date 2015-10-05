@@ -19,9 +19,9 @@ package com.netflix.spinnaker.orca.clouddriver.tasks
 import org.springframework.stereotype.Component
 
 @Component
-class WaitForClusterShrinkTask extends AbstractWaitForClusterWideClouddriverTask {
+class WaitForScaleDownClusterTask extends AbstractWaitForClusterWideClouddriverTask {
   @Override
   boolean isServerGroupOperationInProgress(Optional<Map> currentServerGroup) {
-    currentServerGroup.isPresent()
+    !(currentServerGroup.orElse([instances: []]).instances ?: []).isEmpty()
   }
 }

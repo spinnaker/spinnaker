@@ -19,9 +19,10 @@ package com.netflix.spinnaker.orca.clouddriver.tasks
 import org.springframework.stereotype.Component
 
 @Component
-class WaitForClusterShrinkTask extends AbstractWaitForClusterWideClouddriverTask {
+class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTask {
   @Override
-  boolean isServerGroupOperationInProgress(Optional<Map> currentServerGroup) {
-    currentServerGroup.isPresent()
+  boolean isServerGroupOperationInProgress(Optional<Map> serverGroup) {
+    //assume a missing cluster is disabled
+    !serverGroup.orElse([disabled: true]).disabled
   }
 }

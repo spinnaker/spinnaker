@@ -20,13 +20,15 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
-import com.netflix.spinnaker.orca.clouddriver.tasks.ShrinkClusterTask.CompositeComparitor
-import com.netflix.spinnaker.orca.clouddriver.tasks.ShrinkClusterTask.CreatedTime
-import com.netflix.spinnaker.orca.clouddriver.tasks.ShrinkClusterTask.InstanceCount
-import com.netflix.spinnaker.orca.clouddriver.tasks.ShrinkClusterTask.IsActive
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractClusterWideClouddriverTask.CompositeComparitor
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractClusterWideClouddriverTask.CreatedTime
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractClusterWideClouddriverTask.InstanceCount
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractClusterWideClouddriverTask.IsActive
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
@@ -89,9 +91,16 @@ class ShrinkClusterTaskSpec extends Specification {
 
   @Unroll
   def "deletion priority #desc"() {
+    setup:
+    def context = [
+      allowDeleteActive: allowDeleteActive,
+      shrinkToSize: shrinkToSize,
+      retainLargerOverNewer: retainLargerOverNewer
+    ]
+    def stage = new PipelineStage(new Pipeline(), 'shrinkCluster', context)
 
     when:
-    def toDelete = task.getDeletionServerGroups(serverGroups, retainLargerOverNewer, allowDeleteActive, shrinkToSize)
+    def toDelete = task.filterServerGroups(stage, account, region, serverGroups)
 
     then:
     toDelete == expected
@@ -110,6 +119,10 @@ class ShrinkClusterTaskSpec extends Specification {
     true              | 4            | true                  | [mkSG(), mkSG(), mkSG()]                                        | []            | 'deletes nothing if less serverGroups than shrinkToSize'
 
     expected = expectedItems.collect { serverGroups[it] }
+    account = 'test'
+    region = 'us-east-1'
+    cloudProvider = 'aws'
+
   }
 
   def 'instanceCount prefers larger'() {

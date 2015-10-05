@@ -21,17 +21,17 @@ import groovy.transform.Canonical
 import org.springframework.stereotype.Component
 
 @Component
-class ShrinkClusterTask extends AbstractClusterWideClouddriverTask {
-  @Canonical
-  static class ShrinkConfig {
-    boolean allowDeleteActive = false
-    int shrinkToSize = 1
-    boolean retainLargerOverNewer = false
-  }
-
+class ScaleDownClusterTask extends AbstractClusterWideClouddriverTask {
   @Override
   String getClouddriverOperation() {
-    "destroyServerGroup"
+    'resizeServerGroup'
+  }
+
+  @Canonical
+  private static class ScaleDownClusterConfig {
+    int remainingFullSizeServerGroups = 1
+    boolean preferLargerOverNewer = false
+    boolean allowScaleDownActive = false
   }
 
   List<Map> filterActiveGroups(boolean includeActive, List<Map> serverGroups) {
@@ -42,20 +42,31 @@ class ShrinkClusterTask extends AbstractClusterWideClouddriverTask {
   }
 
   @Override
+  protected List<Map> buildOperationPayloads(ClusterSelection config, Map serverGroup) {
+    List<Map> ops = []
+    if (config.cloudProvider == 'aws') {
+      ops << [resumeAsgProcessesDescription:[
+        credentials: config.credentials,
+        asgName: serverGroup.name,
+        regions: [serverGroup.region],
+        processes: ['Terminate']
+      ]]
+    }
+    ops + super.buildOperationPayload(config, serverGroup)
+  }
+
+  @Override
   List<Map> filterServerGroups(Stage stage, String account, String region, List<Map> serverGroups) {
     List<Map> filteredGroups = super.filterServerGroups(stage, account, region, serverGroups)
-    if (!filteredGroups) {
-      return []
-    }
+    def config = stage.mapTo(ScaleDownClusterConfig)
+    filteredGroups = filterActiveGroups(config.allowScaleDownActive, filteredGroups)
 
-    def config = stage.mapTo(ShrinkConfig)
-    filteredGroups = filterActiveGroups(config.allowDeleteActive, filteredGroups)
     def comparators = []
-    int dropCount = config.shrinkToSize - (serverGroups.size() - filteredGroups.size())
-    if (config.allowDeleteActive) {
+    int dropCount = Math.max(0, config.remainingFullSizeServerGroups - (serverGroups.size() - filteredGroups.size()))
+    if (config.allowScaleDownActive) {
       comparators << new IsActive()
     }
-    if (config.retainLargerOverNewer) {
+    if (config.preferLargerOverNewer) {
       comparators << new InstanceCount()
     }
     comparators << new CreatedTime()
@@ -65,4 +76,5 @@ class ShrinkClusterTask extends AbstractClusterWideClouddriverTask {
 
     return prioritized.drop(dropCount)
   }
+
 }

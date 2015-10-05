@@ -51,11 +51,11 @@ class StageData {
 
   @Deprecated
   List<String> getRegions() {
-    availabilityZones ? availabilityZones.keySet().toList() : region ? [region] : []
+    availabilityZones?.keySet()?.toList() ?: (region ? [region] : [])
   }
 
   String getRegion() {
-    region ?: availabilityZones ? availabilityZones.keySet().toList().get(0): null
+    region ?: availabilityZones?.keySet()?.getAt(0)
   }
 
   static class Source {
