@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.instanceArc
     var wizard = modalWizardService.getWizard();
 
     $scope.$watch('command.viewState.instanceProfile', function() {
-      if ($scope.command.viewState.instanceProfile === 'custom') {
+      if (!$scope.command.viewState.instanceProfile || $scope.command.viewState.instanceProfile === 'custom') {
         wizard.excludePage('instance-type');
       } else {
         wizard.includePage('instance-type');

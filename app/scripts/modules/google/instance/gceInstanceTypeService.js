@@ -248,30 +248,98 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
       {
         type: 'general',
         label: 'General Purpose',
+        description: 'Instances that provide a balance of compute, memory, and network resources',
         families: [ n1standard ],
         icon: 'hdd'
       },
       {
         type: 'memory',
         label: 'High Memory',
+        description: 'Instances that provide more memory relative to virtual cores',
         families: [ n1highmem ],
         icon: 'hdd'
       },
       {
         type: 'cpu',
         label: 'High CPU',
+        description: 'Instances that provide more virtual cores relative to memory',
         families: [ n1highcpu ],
         icon: 'hdd'
       },
       {
         type: 'micro',
         label: 'Micro Utility',
-        families: [f1micro],
+        description: 'Instances that provide relatively small amounts of memory and CPU power',
+        families: [ f1micro ],
         icon: 'hdd'
+      },
+      {
+        type: 'custom',
+        label: 'Custom Type',
+        description: 'Select the instance type below.',
+        families: [],
+        icon: 'asterisk'
       }
     ];
 
+    function calculateStorage(type) {
+      if (!type || !type.storage) {
+        return 0;
+      }
+      return type.storage.count * type.storage.size;
+    }
+
+    function buildStats(category) {
+      var stats = {
+        cpu: {
+          min: Number.MAX_VALUE,
+          max: -Number.MAX_VALUE
+        },
+        memory: {
+          min: Number.MAX_VALUE,
+          max: -Number.MAX_VALUE
+        },
+        storage: {
+          min: Number.MAX_VALUE,
+          max: -Number.MAX_VALUE
+        },
+        costFactor: {
+          min: Number.MAX_VALUE,
+          max: -Number.MAX_VALUE
+        },
+        families: []
+      };
+
+      if (category.families && category.families.length) {
+        category.families.forEach(function(family) {
+          stats.families.push(family.type);
+          var cpuMin = _.min(family.instanceTypes, 'cpu').cpu || Number.MAX_VALUE,
+              cpuMax = _.max(family.instanceTypes, 'cpu').cpu || -Number.MAX_VALUE,
+              memoryMin = _.min(family.instanceTypes, 'memory').memory || Number.MAX_VALUE,
+              memoryMax = _.max(family.instanceTypes, 'memory').memory || -Number.MAX_VALUE,
+              storageMin = calculateStorage(_.min(family.instanceTypes, calculateStorage)) || Number.MAX_VALUE,
+              storageMax = calculateStorage(_.max(family.instanceTypes, calculateStorage)) || -Number.MAX_VALUE,
+              costFactorMin = _.min(family.instanceTypes, 'costFactor').costFactor || Number.MAX_VALUE,
+              costFactorMax = _.max(family.instanceTypes, 'costFactor').costFactor || -Number.MAX_VALUE;
+
+          stats.cpu.min = Math.min(stats.cpu.min, cpuMin);
+          stats.cpu.max = Math.max(stats.cpu.max, cpuMax);
+          stats.memory.min = Math.min(stats.memory.min, memoryMin);
+          stats.memory.max = Math.max(stats.memory.max, memoryMax);
+          stats.storage.min = Math.min(stats.storage.min, storageMin);
+          stats.storage.max = Math.max(stats.storage.max, storageMax);
+          stats.costFactor.min = Math.min(stats.costFactor.min, costFactorMin);
+          stats.costFactor.max = Math.max(stats.costFactor.max, costFactorMax);
+        });
+      }
+
+      return stats;
+    }
+
     function getCategories() {
+      categories.map(function(category) {
+        category.stats = buildStats(category);
+      });
       return $q.when(categories);
     }
 
