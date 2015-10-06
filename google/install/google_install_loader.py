@@ -59,8 +59,8 @@ import sys
 import urllib2
 
 
-METADATA_URL = 'http://metadata.google.internal/computeMetadata/v1'
-INSTANCE_METADATA_URL = '{url}/instance'.format(url=METADATA_URL)
+GOOGLE_METADATA_URL = 'http://metadata.google.internal/computeMetadata/v1'
+GOOGLE_INSTANCE_METADATA_URL = '{url}/instance'.format(url=GOOGLE_METADATA_URL)
 _MY_ZONE = None
 
 
@@ -81,7 +81,7 @@ def get_zone():
     global _MY_ZONE
     if _MY_ZONE != None:
         return _MY_ZONE
-    code, output = fetch('{url}/zone'.format(url=INSTANCE_METADATA_URL),
+    code, output = fetch('{url}/zone'.format(url=GOOGLE_INSTANCE_METADATA_URL),
                          google=True)
     if code == 200:
        _MY_ZONE = os.path.basename(output)
@@ -96,7 +96,8 @@ def running_on_gce():
 
 def get_instance_metadata_attribute(name):
     code, output = fetch(
-        '{url}/attributes/{name}'.format(url=INSTANCE_METADATA_URL, name=name),
+        '{url}/attributes/{name}'.format(url=GOOGLE_INSTANCE_METADATA_URL,
+                                         name=name),
         google=True)
     if code == 200:
         return output

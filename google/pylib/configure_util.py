@@ -22,16 +22,40 @@ from install.install_utils import fetch
 from install.install_utils import run
 from validate_configuration import ValidateConfig
 
-METADATA_URL = 'http://metadata.google.internal/computeMetadata/v1'
+GOOGLE_METADATA_URL = 'http://metadata.google.internal/computeMetadata/v1'
+AWS_METADATA_URL = 'http://169.254.169.254/latest/meta-data/'
 
-def fetch_my_project_or_die(error_msg):
-    code, project = fetch(
-      METADATA_URL + '/project/project-id',
-      google=True)
-    if code != 200:
-      if not error_msg:
-        raise SystemExit(error_msg)
-    return project
+
+def is_google_instance():
+  """Determine if we are running on a Google Cloud Platform instance."""
+  code, data = fetch(GOOGLE_METADATA_URL, google=True)
+  return code == 200
+
+
+def is_aws_instance():
+  """Determine if we are running on an Amazon Web Services instance."""
+  code, data = fetch(AWS_METADATA_URL)
+  return code == 200
+
+
+def fetch_my_google_project_or_die(error_msg):
+  code, project = fetch(
+    GOOGLE_METADATA_URL + '/project/project-id',
+    google=True)
+  if code != 200:
+    if error_msg:
+      raise SystemExit(error_msg)
+  return project
+
+
+def normalize_path(path):
+  if path.startswith('~/'):
+    return os.path.join(os.environ['HOME'], path[2:])
+
+  if path.startswith('$HOME/'):
+    return os.path.join(os.environ['HOME'], path[6:])
+
+  return path
 
 
 class Bindings(dict):
@@ -49,11 +73,17 @@ class Bindings(dict):
     copy.__yaml_bindings.update(self.__yaml_bindings)
     return copy
 
-  def get_variable(self, name, default):
-    return self.__variable_bindings.get(name, default)
+  def get_variable(self, name, default=None):
+    value = self.__variable_bindings.get(name, default)
+    if value is None:
+      raise KeyError(name)
+    return value
 
-  def get_yaml(self, name, default):
-    return self.__yaml_bindings.get(name, default)
+  def get_yaml(self, name, default=None):
+    value = self.__yaml_bindings.get(name, default)
+    if value is None:
+      raise KeyError(name)
+    return value
 
   def set_variable(self, name, value):
     self.__variable_bindings[name] = value
@@ -70,10 +100,10 @@ class Bindings(dict):
     with open(config_path, 'r') as f:
       content = f.read()
 
-    for match in re.findall(r'^([A-Za-z]\w*)=(.*)', content, re.M):
+    for match in re.findall(r'^([A-Za-z]\w*)[ \t]*=[ \t]*(.*)', content, re.M):
       self.__variable_bindings[match[0]] = match[1]
 
-    for match in re.findall(r'^@([A-Za-z]\w*)=(.*)', content, re.M):
+    for match in re.findall(r'^@([A-Za-z]\w*)[ \t]*=[ \t]*(.*)', content, re.M):
       self.__add_yaml_variable(match[0], match[1])
 
   def __add_yaml_variable(self, name, value):
@@ -98,16 +128,12 @@ class Bindings(dict):
       error_msg = (
         'An account must be associated with a Google Cloud Platform'
         ' project id if you are not running on Google Compute Engine.')
-      parts[1] = fetch_my_project_or_die(error_msg)
+      parts[1] = fetch_my_google_project_or_die(error_msg)
 
     account_info_decl = {'name': parts[0], 'project': parts[1]}
     account_info_ref  = dict(account_info_decl)
     if parts[2]:
-      if parts[2].startswith('~/'):
-          parts[2] = os.path.join(os.environ['HOME'], parts[2][2:])
-      elif parts[2].startswith('$HOME/'):
-          parts[2] = os.path.join(os.environ['HOME'], parts[2][6:])
-      account_info_decl['jsonPath'] = parts[2]
+      account_info_decl['jsonPath'] = normalize_path(parts[2])
 
     if not 'GOOGLE_CREDENTIALS_DECLARATION' in self.__yaml_bindings:
       self.__yaml_bindings['GOOGLE_CREDENTIALS_REFERENCE'] = []
@@ -307,15 +333,40 @@ class ConfigureUtil(object):
           'true' if bindings.get_variable('JENKINS_ADDRESS', '') != ''
                  else 'false')
 
-    managed_project = bindings.get_variable('GOOGLE_PRIMARY_MANAGED_PROJECT_ID',
-                                            '')
-    if not managed_project:
-      error_msg = ('GOOGLE_PRIMARY_MANAGED_PROJECT_ID is required if you are'
-                   ' not running on Google Compute Engine.')
-      bindings.set_variable('GOOGLE_PRIMARY_MANAGED_PROJECT_ID',
-                            fetch_my_project_or_die(error_msg))
+    # Auto-define AWS_ENABLED.
+    if bindings.get_variable('AWS_ENABLED', '') == '':
+      bindings.set_variable(
+          'AWS_ENABLED',
+          'true' if bindings.get_variable('AWS_ACCESS_KEY', '') != ''
+                 else 'false')
 
-    bindings.maybe_inject_primary_google_credentials()
+    # Auto-define GOOGLE_ENABLED.
+    if bindings.get_variable('GOOGLE_ENABLED', '') == '':
+      bindings.set_variable(
+          'GOOGLE_ENABLED',
+          'true' if (is_google_instance()
+              or bindings.get_variable('GOOGLE_PRIMARY_MANAGED_PROJECT_ID',
+                                       '') != '')
+              else 'false')
+
+    if bindings.get_variable('GOOGLE_ENABLED').lower() == 'true':
+      managed_project = bindings.get_variable(
+        'GOOGLE_PRIMARY_MANAGED_PROJECT_ID', '')
+
+      if not managed_project:
+        error_msg = ('GOOGLE_PRIMARY_MANAGED_PROJECT_ID is required since you'
+                     ' have GOOGLE_ENABLED=true and are not running on'
+                     ' Google Cloud Platform.')
+        bindings.set_variable('GOOGLE_PRIMARY_MANAGED_PROJECT_ID',
+                              fetch_my_google_project_or_die(error_msg))
+
+      bindings.maybe_inject_primary_google_credentials()
+
+    path = bindings.get_variable('GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH', '')
+    normalized = normalize_path(path)
+    if path != normalized:
+      bindings.set_variable('GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH', normalized)
+
     return bindings
 
   @staticmethod

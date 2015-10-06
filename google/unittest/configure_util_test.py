@@ -19,21 +19,30 @@ import unittest
 
 from pylib import configure_util
 
-
+# This is a config file defining VARIABLE_A and VARIABLE_B.
+# The 'B1' denotes that B has the value 1 here (other files will redefine it)
 A_B1_CONFIG_DATA="""
-# Comment
 VARIABLE_A=value for a
-
 VARIABLE_B=1
 """
 
+# This is a config file defining VARIABLE_B and VARIABLE_C.
+# The 'B2' denotes that B has the value 2 here (other files will redefine it).
 B2_C_CONFIG_DATA="""
 VARIABLE_B=2
 VARIABLE_C=value for c
 """
 
-CREDENTIALS_CONFIG_DATA="""
+# This is a config file defining credentials assuming we are deployed on Google
+# where we are implicitly specifying the project that deploeyd Spinnaker.
+GOOGLE_PROVIDER_CREDENTIALS_CONFIG_DATA="""
 @GOOGLE_CREDENTIALS=test-default-account::
+@GOOGLE_CREDENTIALS=test-full-account:test-project:/test/path/credentials
+"""
+
+# This is a config file defining google credentials.
+GOOGLE_GENERIC_CREDENTIALS_CONFIG_DATA="""
+@GOOGLE_CREDENTIALS=test-default-account:default-project:/default/path/credentials
 @GOOGLE_CREDENTIALS=test-full-account:test-project:/test/path/credentials
 """
 
@@ -47,17 +56,42 @@ CREDENTIALS_CONFIG_DATA="""
 # The string here is used for both input to load YAML and output to dump it.
 # This might be fixable configuring the yaml dumper, but it isnt clear.
 # So this string reflects what the yaml.dump will produce for the dicts we want.
-CREDENTIALS_YAML = """- name: test-default-account
+if configure_util.is_google_instance():
+  # We're explicitly naming the current project where additional credentials
+  # are not required. We can only do this when running on Google Cloud Platform.
+  GOOGLE_PROVIDER_CREDENTIALS_YAML = """- name: test-default-account
   project: {my_project}
 - jsonPath: /test/path/credentials
   name: test-full-account
   project: test-project
 """.format(
-    my_project=configure_util.fetch_my_project_or_die('Must test on GCE'))
+    my_project=configure_util.fetch_my_google_project_or_die(
+        'Must test on GCE'))
 
-CREDENTIALS_LIST = [
+if configure_util.is_google_instance():
+  # The credentials expected from GOOGLE_PROVIDER_CREDENTIALS_YAML.
+  GOOGLE_PROVIDER_CREDENTIALS_LIST = [
     {'name': 'test-default-account',
-     'project': configure_util.fetch_my_project_or_die('Must test on GCE')},
+     'project': configure_util.fetch_my_google_project_or_die(
+         'Must test on GCE')},
+
+    {'name': 'test-full-account',
+     'project': 'test-project',
+     'jsonPath': '/test/path/credentials'}]
+
+
+GOOGLE_GENERIC_CREDENTIALS_YAML = """- jsonPath: /default/path/credentials
+  name: test-default-account
+  project: default-project
+- jsonPath: /test/path/credentials
+  name: test-full-account
+  project: test-project
+"""
+
+GOOGLE_GENERIC_CREDENTIALS_LIST = [
+    {'name': 'test-default-account',
+     'project': 'default-project',
+     'jsonPath': '/default/path/credentials'},
 
     {'name': 'test-full-account',
      'project': 'test-project',
@@ -105,15 +139,37 @@ class TestInstallationParameters(configure_util.InstallationParameters):
 class ConfigureUtilTest(unittest.TestCase):
   # Show we can construct the binding variables from a file.
   def test_construct_variable_bindings(self):
+    typical_file="""
+# Comments and blank lines are ignored.
+VALUE_ABC_DEF = abc def
+VALUE_EXTRA_SPACES =   abc  xyz
+
+VALUE_1 = 1
+VALUE_XYZ=xyz
+VALUE_TRUE = true
+
+EMPTY=
+# The previous was empty.
+
+VALUE_QUOTES = "abc"
+VALUE_HASH = # Keep
+"""
     fd,path = tempfile.mkstemp()
-    os.write(fd, A_B1_CONFIG_DATA)
+    os.write(fd, typical_file)
     os.close(fd)
     bindings = configure_util.Bindings()
     bindings.update_from_config(path)
     os.remove(path)
-    self.assertEqual(2, len(bindings.variables))
-    self.assertEqual('value for a', bindings.get_variable('VARIABLE_A', None))
-    self.assertEqual('1', bindings.get_variable('VARIABLE_B', None))
+    self.assertEqual(8, len(bindings.variables))
+    self.assertEqual('abc def', bindings.get_variable('VALUE_ABC_DEF', None))
+    self.assertEqual('abc  xyz',
+                     bindings.get_variable('VALUE_EXTRA_SPACES', None))
+    self.assertEqual('1', bindings.get_variable('VALUE_1', None))
+    self.assertEqual('xyz', bindings.get_variable('VALUE_XYZ', None))
+    self.assertEqual('true', bindings.get_variable('VALUE_TRUE', None))
+    self.assertEqual('', bindings.get_variable('EMPTY', 'testing'))
+    self.assertEqual('"abc"', bindings.get_variable('VALUE_QUOTES', None))
+    self.assertEqual('# Keep', bindings.get_variable('VALUE_HASH', None))
 
   # Show we can inherit data across files with correct precedence.
   def test_update_variable_bindings(self):
@@ -131,15 +187,28 @@ class ConfigureUtilTest(unittest.TestCase):
     self.assertEqual('2', bindings.get_variable('VARIABLE_B', None))
     self.assertEqual('value for c', bindings.get_variable('VARIABLE_C', None))
 
-  def test_parse_credentials(self):
+  @unittest.skipUnless(configure_util.is_google_instance(),
+                       'This test only runs on Google')
+  def test_parse_google_provider_credentials(self):
     bindings = configure_util.Bindings()
     fd,path = tempfile.mkstemp()
-    os.write(fd, CREDENTIALS_CONFIG_DATA)
+    os.write(fd, GOOGLE_PROVIDER_CREDENTIALS_CONFIG_DATA)
     os.close(fd)
     bindings.update_from_config(path)
     os.remove(path)
     self.assertEqual(
-        CREDENTIALS_LIST,
+        GOOGLE_PROVIDER_CREDENTIALS_LIST,
+        bindings.get_yaml('GOOGLE_CREDENTIALS_DECLARATION', None))
+
+  def test_parse_google_credentials(self):
+    bindings = configure_util.Bindings()
+    fd,path = tempfile.mkstemp()
+    os.write(fd, GOOGLE_GENERIC_CREDENTIALS_CONFIG_DATA)
+    os.close(fd)
+    bindings.update_from_config(path)
+    os.remove(path)
+    self.assertEqual(
+        GOOGLE_GENERIC_CREDENTIALS_LIST,
         bindings.get_yaml('GOOGLE_CREDENTIALS_DECLARATION', None))
 
   def test_parse_constrained_credentials(self):
@@ -153,10 +222,12 @@ class ConfigureUtilTest(unittest.TestCase):
         CONSTRAINED_CREDENTIALS_LIST,
         bindings.get_yaml('GOOGLE_CREDENTIALS_DECLARATION', None))
 
-  def test_render_credentials(self):
+  @unittest.skipUnless(configure_util.is_google_instance(),
+                       'This test only runs on Google')
+  def test_render_google_provider_credentials(self):
     bindings = configure_util.Bindings()
     fd,path = tempfile.mkstemp()
-    os.write(fd, CREDENTIALS_CONFIG_DATA)
+    os.write(fd, GOOGLE_PROVIDER_CREDENTIALS_CONFIG_DATA)
     os.close(fd)
     bindings.update_from_config(path)
     os.remove(path)
@@ -168,9 +239,33 @@ class ConfigureUtilTest(unittest.TestCase):
   # after
 """
 
-    original = template_data.format(credentials='$GOOGLE_CREDENTIALS_DECLARATION')
+    original = template_data.format(
+        credentials='$GOOGLE_CREDENTIALS_DECLARATION')
     expect = template_data.format(
-          credentials=CREDENTIALS_YAML.replace('\n', '\n      '))
+        credentials=GOOGLE_PROVIDER_CREDENTIALS_YAML.replace('\n', '\n      '))
+    got = bindings.replace_variables(original)
+    self.assertEqual(expect, got)
+
+
+  def test_render_google_generic_credentials(self):
+    bindings = configure_util.Bindings()
+    fd,path = tempfile.mkstemp()
+    os.write(fd, GOOGLE_GENERIC_CREDENTIALS_CONFIG_DATA)
+    os.close(fd)
+    bindings.update_from_config(path)
+    os.remove(path)
+
+    template_data="""
+  # before
+  credentials:
+      {credentials}
+  # after
+"""
+
+    original = template_data.format(
+        credentials='$GOOGLE_CREDENTIALS_DECLARATION')
+    expect = template_data.format(
+        credentials=GOOGLE_GENERIC_CREDENTIALS_YAML.replace('\n', '\n      '))
     got = bindings.replace_variables(original)
     self.assertEqual(expect, got)
 
@@ -244,12 +339,23 @@ declaration_c={c}
     finally:
       shutil.rmtree(root)
 
-    # VARIABLE_[A|B|C] + 2 dynamically injected bindings
-    self.assertEqual(5, len(bindings.variables))
+    default_google_enabled = 'false'
+    platform_variables = []
+    if configure_util.is_google_instance():
+      my_project = configure_util.fetch_my_google_project_or_die('FAILED')
+      platform_variables = [('GOOGLE_PRIMARY_MANAGED_PROJECT_ID', my_project)]
+      default_google_enabled = 'true'
+
+    # VARIABLE_[A|B|C] + 3 dynamically injected bindings
+    self.assertEqual(3 + 3 + len(platform_variables),
+                     len(bindings.variables))
     self.assertEqual('1', bindings.get_variable('VARIABLE_B', ''))
     self.assertEqual('false', bindings.get_variable('IGOR_ENABLED', ''))
-    self.assertNotEqual(
-        '', bindings.get_variable('GOOGLE_PRIMARY_MANAGED_PROJECT_ID', ''))
+    self.assertEqual('false', bindings.get_variable('AWS_ENABLED', ''))
+    self.assertEqual(default_google_enabled,
+                     bindings.get_variable('GOOGLE_ENABLED', ''))
+    for platform in platform_variables:
+      self.assertEqual(platform[1], bindings.get_variable(platform[0], ''))
 
 
 if __name__ == '__main__':
