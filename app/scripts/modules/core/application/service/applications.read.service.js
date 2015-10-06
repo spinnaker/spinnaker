@@ -80,8 +80,8 @@ module.exports = angular
         }
 
         function reloadExecutions() {
-          return executionService.getAll(application).then(function(execution) {
-            addExecutionsToApplication(application, execution);
+          return executionService.getAll(application).then(function(executions) {
+            addExecutionsToApplication(application, executions);
             if (!application.executionsLoaded) {
               application.executionsLoaded = true;
               $rootScope.$broadcast('executions-loaded', application);
@@ -142,7 +142,11 @@ module.exports = angular
     }
 
     function addExecutionsToApplication(application, executions=[]) {
-      if (application.executions) {
+      // only add executions if we actually got some executions back
+      // this will fail if there was just one execution and someone just deleted it
+      // but that is much less likely at this point than orca falling over under load,
+      // resulting in an empty list of executions coming back
+      if (application.executions && application.executions.length && executions.length) {
 
         // remove any that have dropped off, update any that have changed
         let toRemove = [];
