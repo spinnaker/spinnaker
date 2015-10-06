@@ -18,8 +18,10 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.PipelineService
+import com.netflix.spinnaker.gate.services.PipelineService.PipelineConfigNotFoundException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -32,9 +34,10 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
+@Slf4j
 @CompileStatic
-@RequestMapping("/pipelines")
 @RestController
+@RequestMapping("/pipelines")
 class PipelineController {
   @Autowired
   PipelineService pipelineService
@@ -85,25 +88,20 @@ class PipelineController {
     pipelineService.startPipeline(map, authenticatedUser)
   }
 
-  @RequestMapping(value = "/{applicationName}/{pipelineName:.+}", method = RequestMethod.POST)
-  HttpEntity invokePipelineConfig(@PathVariable("applicationName") String application,
+  @RequestMapping(value = "/{application}/{pipelineName:.+}", method = RequestMethod.POST)
+  HttpEntity invokePipelineConfig(@PathVariable("application") String application,
                                   @PathVariable("pipelineName") String pipelineName,
-                                  @RequestBody(required = false) Map trigger,
-                                  @RequestParam(value = "user", required = false) String user) {
-
-    //TODO(cfieber) - remove the request param and make the body required once this is rolled all the way
-    if (trigger == null) {
-      trigger = [:]
-    }
-
-    if (!trigger.user) {
-      trigger.user = (user ?: 'anonymous')
-    }
+                                  @RequestBody(required = false) Map trigger) {
+    trigger = trigger ?: [:]
+    trigger.user = trigger.user ?: AuthenticatedRequest.getSpinnakerUser().orElse('anonymous')
 
     try {
       def body = pipelineService.trigger(application, pipelineName, trigger)
       new ResponseEntity(body, HttpStatus.ACCEPTED)
+    } catch (PipelineConfigNotFoundException e) {
+      throw e
     } catch (e) {
+      log.error("Unable to trigger pipeline (application: ${application}, pipelineName: ${pipelineName})", e)
       new ResponseEntity([message: e.message], new HttpHeaders(), HttpStatus.UNPROCESSABLE_ENTITY)
     }
   }

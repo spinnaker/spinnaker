@@ -18,12 +18,13 @@ package com.netflix.spinnaker.gate
 
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.controllers.ApplicationController
+import com.netflix.spinnaker.gate.controllers.PipelineController
 import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.ExecutionHistoryService
-import com.netflix.spinnaker.internal.services.TagService
+import com.netflix.spinnaker.gate.services.PipelineService
 import com.netflix.spinnaker.gate.services.TaskService
-import com.netflix.spinnaker.internal.services.internal.FlapJackService
+import com.netflix.spinnaker.gate.services.ThrottledRequestException
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.KatoService
 import com.netflix.spinnaker.gate.services.internal.MortService
@@ -59,13 +60,14 @@ class FunctionalSpec extends Specification {
   static OrcaService orcaService
   static CredentialsService credentialsService
   static KatoService katoService
+  static PipelineService pipelineService
   static ServiceConfiguration serviceConfiguration
 
   ConfigurableApplicationContext ctx
 
   void setup() {
     applicationService = Mock(ApplicationService)
-    executionHistoryService = Mock(ExecutionHistoryService)
+    executionHistoryService = new ExecutionHistoryService(orcaService: orcaService)
     executorService = Mock(ExecutorService)
     taskService = Mock(TaskService)
     oortService = Mock(OortService)
@@ -73,6 +75,7 @@ class FunctionalSpec extends Specification {
     mortService = Mock(MortService)
     credentialsService = Mock(CredentialsService)
     katoService = Mock(KatoService)
+    pipelineService = Mock(PipelineService)
     serviceConfiguration = new ServiceConfiguration()
 
     def sock = new ServerSocket(0)
@@ -136,7 +139,7 @@ class FunctionalSpec extends Specification {
       api.getTasks(name)
 
     then:
-      1 * executionHistoryService.getTasks(name) >> []
+      1 * orcaService.getTasks(name) >> []
 
     where:
       name = "foo"
@@ -152,6 +155,29 @@ class FunctionalSpec extends Specification {
     where:
       name = "foo"
       task = [type: "deploy"]
+  }
+
+  void "should throw ThrottledRequestException if result served from hystrix fallback"() {
+    when:
+    def tasks = executionHistoryService.getTasks("app")
+
+    then:
+    1 * orcaService.getTasks("app") >> { return ["1"] }
+    tasks == ["1"]
+
+    when:
+      executionHistoryService.getTasks("app")
+
+    then:
+      1 * orcaService.getTasks("app") >> { throw new IllegalStateException() }
+      thrown(ThrottledRequestException)
+
+    when:
+    executionHistoryService.getPipelines("app", 5)
+
+    then:
+    1 * orcaService.getPipelinesV2("app", 5) >> { throw new IllegalStateException() }
+    thrown(ThrottledRequestException)
   }
 
   @EnableAutoConfiguration(exclude = [SecurityAutoConfiguration, GroovyTemplateAutoConfiguration])
@@ -209,8 +235,18 @@ class FunctionalSpec extends Specification {
     }
 
     @Bean
+    PipelineService pipelineService() {
+      pipelineService
+    }
+
+    @Bean
     ServiceConfiguration serviceConfiguration() {
       serviceConfiguration
+    }
+
+    @Bean
+    PipelineController pipelineController() {
+      new PipelineController()
     }
 
     @Bean
