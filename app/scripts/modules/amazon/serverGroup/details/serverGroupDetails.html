@@ -197,7 +197,10 @@
         <li ng-repeat="process in autoScalingProcesses">
           <span is-visible="process.enabled" class="glyphicon glyphicon-ok small"></span>
           <span ng-class="{'text-disabled': !process.enabled}">{{process.name}}</span>
-          <help-field content="{{process.description}}" placement="right"></help-field>
+          <help-field content="{{process.description}}" placement="bottom"></help-field>
+          <div ng-if="process.suspensionDate" class="text-disabled small" style="margin-left: 35px">
+            Suspended {{process.suspensionDate | timestamp}}
+          </div>
         </li>
       </ul>
       <a href ng-click="ctrl.toggleScalingProcesses()">Edit Scaling Processes</a>
