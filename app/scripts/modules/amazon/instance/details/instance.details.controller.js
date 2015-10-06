@@ -370,6 +370,18 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
 
     retrieveInstance().then(() => app.registerAutoRefreshHandler(retrieveInstance, $scope));
 
+
+    this.getBastionAddressForAccount = function(account) {
+      let accountBastions = {
+        'prod': 'aws.prod.netflix.net',
+        'test': 'aws.test.netflix.net',
+        'mgmt': 'aws.mgmt.netflix.net',
+        'mcetest': 'awsmce.test.netflix.net',
+        'mceprod': 'awsmce.prod.netflix.net',
+      };
+      return accountBastions[account] || 'unknown';
+    };
+
     $scope.account = instance.account;
 
   }
