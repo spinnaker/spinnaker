@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.DetermineTargetServerGroupStage
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response

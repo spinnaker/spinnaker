@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.pipeline
+package com.netflix.spinnaker.orca.clouddriver.pipeline
 
 import com.netflix.spinnaker.orca.kato.tasks.DetermineTargetReferenceTask
 import com.netflix.spinnaker.orca.kato.tasks.DetermineTargetServerGroupTask

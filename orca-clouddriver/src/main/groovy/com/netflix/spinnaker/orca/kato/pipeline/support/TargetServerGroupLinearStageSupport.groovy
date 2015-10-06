@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.netflix.spinnaker.orca.batch.StageBuilder
-import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.DetermineTargetServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.Nameable
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
