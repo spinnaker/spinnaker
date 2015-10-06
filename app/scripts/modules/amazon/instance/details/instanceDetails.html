@@ -27,7 +27,7 @@
       <copy-to-clipboard
           ng-if="instance.provider === 'aws'"
           class="copy-to-clipboard"
-          text="ssh -t aws.{{instance.account}}.netflix.net 'oq-ssh --region {{instance.region}} {{instance.instanceId}}'"
+          text="ssh -t {{ctrl.getBastionAddressForAccount(instance.account)}} 'oq-ssh --region {{instance.region}} {{instance.instanceId}}'"
           tool-tip="Copy SSH command to clipboard">
       </copy-to-clipboard>
 
