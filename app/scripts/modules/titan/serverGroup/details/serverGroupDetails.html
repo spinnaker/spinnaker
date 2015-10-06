@@ -19,7 +19,7 @@
       </a>
     </div>
     <div class="header-text">
-      <span class="glyphicon glyphicon-th"></span>
+      <span class="glyphicon glyphicon-text-size"></span>
       <h3 select-on-dbl-click>
         {{serverGroup.name}}
       </h3>
@@ -31,9 +31,11 @@
             Titan Job Actions <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" role="menu">
-            <li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>
-            <li><a href ng-if="!serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable</a></li>
-            <li><a href ng-if="serverGroup.isDisabled && serverGroup.loadBalancers.length" ng-click="ctrl.enableServerGroup()">Enable</a></li>
+            <!-- TODO: Uncomment below line when titus job can be resized manually through API-->
+            <!--<li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>-->
+            <!-- TODO: Uncomment below two lines when we have discovery integrated for titus containers-->
+            <!--<li><a href ng-if="!serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable</a></li>-->
+            <!--<li><a href ng-if="serverGroup.isDisabled" ng-click="ctrl.enableServerGroup()">Enable</a></li>-->
             <li><a href ng-click="ctrl.destroyServerGroup()">Destroy</a></li>
             <li><a href ng-click="ctrl.cloneServerGroup(serverGroup)">Clone</a></li>
           </ul>
@@ -137,7 +139,7 @@
       <dl class="dl-horizontal"
           ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
           ng-if="serverGroup">
-        <dt>Instances:</dt>
+        <dt>Tasks:</dt>
         <dd>
           <health-counts container="serverGroup" class="pull-left"></health-counts>
         </dd>

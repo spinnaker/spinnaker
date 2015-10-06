@@ -7,9 +7,14 @@
       <account-select-field component="command" field="credentials" accounts="command.backingData.accounts" provider="'titan'"></account-select-field>
     </div>
   </div>
-  <titan-region-select-field label-columns="2" component="command" field="region" account="command.credentials" regions="command.backingData.filtered.regions"></titan-region-select-field>
-  <titan-zone-select-field label-columns="2" component="command" field="zone" account="command.credentials" zones="command.backingData.filtered.zones"></titan-zone-select-field>
-  <titan-network-select-field label-columns="2" component="command" field="network" account="command.credentials" networks="command.backingData.filtered.networks"></titan-network-select-field>
+  <region-select-field label-columns="2"
+                       component="command"
+                       field="region"
+                       account="command.credentials"
+                       regions="command.backingData.filtered.regions"
+                       provider="'titan'"></region-select-field>
+  <!--<titan-zone-select-field label-columns="2" component="command" field="zone" account="command.credentials" zones="command.backingData.filtered.zones"></titan-zone-select-field>-->
+  <!--<titan-network-select-field label-columns="2" component="command" field="network" account="command.credentials" networks="command.backingData.filtered.networks"></titan-network-select-field>-->
   <div class="form-group">
     <div class="col-md-2 sm-label-left">
       <b>Stack</b>
@@ -44,7 +49,7 @@
   <div class="form-group" ng-if="!command.viewState.disableImageSelection">
     <div class="col-md-2 sm-label-left"><b>Image</b></div>
     <div class="col-md-7">
-      <input type="text" class="form-control input-sm" name="image" ng-model="command.image" required/>
+      <input type="text" class="form-control input-sm" name="image" ng-model="command.dockerImageId" required/>
     </div>
   </div>
   <deployment-strategy-selector ng-if="!command.viewState.disableStrategySelection && command.selectedProvider" command="command"></deployment-strategy-selector>
@@ -53,17 +58,10 @@
       <div class="well-compact" ng-class="basicSettingsCtrl.showPreviewAsWarning() ? 'alert alert-warning' : 'well'">
         <h5 class="text-center">
 
-          <p>Your server group will be in the cluster:</p>
-          <p>
-            <strong>
-              {{basicSettingsCtrl.getNamePreview()}}<span ng-if="basicSettingsCtrl.createsNewCluster()"></span>
-            </strong>
-          </p>
-
           <p>Your Titan Job name will be:</p>
           <p>
             <strong>{{basicSettingsCtrl.getNamePreview()}}-vN<span ng-if="basicSettingsCtrl.createsNewCluster()"></span></strong>
-            (where NNN is the next prefix)
+            (where N is the next suffix)
           </p>
 
           <div ng-if="!basicSettingsCtrl.createsNewCluster() && command.viewState.mode === 'create' && latestServerGroup">

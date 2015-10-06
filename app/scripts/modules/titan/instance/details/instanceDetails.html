@@ -100,11 +100,10 @@
         <dt ng-repeat-start="metric in healthMetrics | orderBy: 'type'">{{metric.type | robotToHuman}}</dt>
         <dd ng-repeat-end>
           <span tooltip="{{metric.state.toLowerCase() === 'down' ? metric.description : ''}}" tooltip-placement="left">
-            <span class="glyphicon glyphicon-{{metric.state}}-triangle"></span>{{metric.state | robotToHuman}}
+            <span class="glyphicon glyphicon-{{metric.state}}-triangle"></span>
           </span>
-          <span class="pad-left small">
-            (<span ng-if="instance.state"><strong>Task State:  </strong></span>{{instance.state | uppercase }})
-          </span>
+          <span ng-if="instance.state">{{instance.state | uppercase}}</span>
+          <span ng-if="!instance.state">{{metric.state | robotToHuman}}</span>
         </dd>
       </dl>
     </collapsible-section>
@@ -124,11 +123,11 @@
         <li>Console Output (TBD)</li>
       </ul>
     </collapsible-section>
-    <collapsible-section heading="Netflix Configuration" ng-if="baseIpAddress">
-      <ul>
-        <li>Properties Console (TBD)</li>
-        <li>Machine Readable Properties (TBD)</li>
-      </ul>
-    </collapsible-section>
+    <!--<collapsible-section heading="Netflix Configuration" ng-if="baseIpAddress">-->
+      <!--<ul>-->
+        <!--<li>Properties Console (TBD)</li>-->
+        <!--<li>Machine Readable Properties (TBD)</li>-->
+      <!--</ul>-->
+    <!--</collapsible-section>-->
   </div>
 </div>
