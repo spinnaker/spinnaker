@@ -18,16 +18,13 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.ExecutionHistoryService
-import com.netflix.spinnaker.gate.services.PipelineService
 import com.netflix.spinnaker.gate.services.TaskService
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @CompileStatic
@@ -45,8 +42,8 @@ class ApplicationController {
   @Autowired
   TaskService taskService
 
-  @Autowired(required = false)
-  PipelineService pipelineService
+  @Autowired
+  PipelineController pipelineController
 
   @RequestMapping(method = RequestMethod.GET)
   List<Map> all() {
@@ -108,21 +105,7 @@ class ApplicationController {
                                   @PathVariable("pipelineName") String pipelineName,
                                   @RequestBody(required = false) Map trigger,
                                   @RequestParam(required = false, value = "user") String user) {
-    //TODO(cfieber) - remove the request param and make the body required once this is rolled all the way
-    if (trigger == null) {
-      trigger = [:]
-    }
-
-    if (!trigger.user) {
-      trigger.user = (user ?: 'anonymous')
-    }
-
-    try {
-      def body = pipelineService.trigger(application, pipelineName, trigger)
-      new ResponseEntity(body, HttpStatus.ACCEPTED)
-    } catch (e) {
-      new ResponseEntity([message: e.message], new HttpHeaders(), HttpStatus.UNPROCESSABLE_ENTITY)
-    }
+    return pipelineController.invokePipelineConfig(application, pipelineName, trigger)
   }
 
   /**

@@ -34,15 +34,33 @@ class ExecutionHistoryService {
 
   List getTasks(String app) {
     Preconditions.checkNotNull(app)
-    HystrixFactory.newListCommand("taskExecutionHistory", "getTasksForApp", true) {
+
+    def command = HystrixFactory.newListCommand("taskExecutionHistory", "getTasksForApp", true) {
       orcaService.getTasks(app)
-    } execute()
+    }
+    try {
+     return command.execute()
+    } finally {
+      if (command.isResponseFromFallback()) {
+        log.warn("Fallback encoutered for ExecutionHistoryService.getTasks(${app})")
+        throw new ThrottledRequestException("Unable to retrieve orchestration history for '${app}'")
+      }
+    }
   }
 
   List getPipelines(String app, int limit) {
     Preconditions.checkNotNull(app)
-    HystrixFactory.newListCommand("pipelineExecutionHistory", "getPipelinesForApp", true) {
+    def command = HystrixFactory.newListCommand("pipelineExecutionHistory", "getPipelinesForApp", true) {
       orcaService.getPipelinesV2(app, limit)
-    } execute()
+    }
+
+    try {
+      return command.execute()
+    } finally {
+      if (command.isResponseFromFallback()) {
+        log.warn("Fallback encoutered for ExecutionHistoryService.getPipelines(${app})")
+        throw new ThrottledRequestException("Unable to retrieve pipeline history for '${app}'")
+      }
+    }
   }
 }

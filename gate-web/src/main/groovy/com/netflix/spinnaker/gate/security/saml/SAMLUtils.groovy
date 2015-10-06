@@ -69,8 +69,6 @@ class SAMLUtils {
     authnRequest.setDestination(destinationUrl)
     authnRequest.setIssuer(buildIssuer(issuerId))
 
-    logSAMLObject(authnRequest)
-
     return authnRequest
   }
 
@@ -123,8 +121,6 @@ class SAMLUtils {
     if (!response.assertions) {
       throw new IllegalStateException("No assertions found in response (samlResponse: ${new String(base64DecodedResponse)})")
     }
-
-    logSAMLObject(response)
 
     if (certificate) {
       response.getDOM().getOwnerDocument().getDocumentElement().setIdAttribute("ID", true)
