@@ -36,6 +36,9 @@
           </div>
         </form>
       </div>
+      <div class="col-md-8 col-sm-12" ng-if="query && query.length && query.length < viewState.minCharactersToSearch">
+        <p style="margin: 10px 20px 0">Please enter at least {{viewState.minCharactersToSearch}} characters to begin searching.</p>
+      </div>
     </div>
   </div>
   <div ng-if="ctrl.hasResults()">
