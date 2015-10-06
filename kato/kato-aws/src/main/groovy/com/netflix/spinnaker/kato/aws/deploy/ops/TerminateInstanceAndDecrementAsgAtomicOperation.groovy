@@ -58,8 +58,9 @@ class TerminateInstanceAndDecrementAsgAtomicOperation implements AtomicOperation
         int newMin = asg.minSize - 1
         if (newMin < 0) {
           task.updateStatus BASE_PHASE, "Cannot adjust min size below 0"
+        } else {
+          autoScaling.updateAutoScalingGroup(new UpdateAutoScalingGroupRequest().withAutoScalingGroupName(asg.autoScalingGroupName).withMinSize(newMin))
         }
-        autoScaling.updateAutoScalingGroup(new UpdateAutoScalingGroupRequest().withAutoScalingGroupName(asg.autoScalingGroupName).withMinSize(newMin))
       } else {
         task.updateStatus BASE_PHASE, "Cannot decrement ASG below minSize - set adjustMinIfNecessary to resize down minSize before terminating"
         throw new IllegalStateException("Invalid ASG capacity for terminateAndDecrementAsg: min: $asg.minSize, max: $asg.maxSize, desired: $asg.desiredCapacity")
