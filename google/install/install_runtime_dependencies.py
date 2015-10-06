@@ -25,10 +25,11 @@ from install_utils import fetch_or_die
 from install_utils import run_or_die
 
 
-APACHE2_VERSION=None   # Whatever is in the current release
-CASSANDRA_VERSION='2.1.9'
-OPENJDK_8_VERSION='8u45-b14-1~14.04'
-REDIS_SERVER_VERSION='2:2.8.4-2'
+# These explicit versions are only applicable when not using the
+# package manager. When using the package manager, the version will
+# be determined by the package manager itself (i.e. latest version).
+EXPLICIT_CASSANDRA_VERSION='2.1.9'
+EXPLICIT_OPENJDK_8_VERSION='8u45-b14-1~14.04'
 
 DECK_PORT=9000
 
@@ -189,7 +190,7 @@ def install_java(options, which='jre'):
     run_or_die('sudo apt-get -y update', echo=True)
 
     install_package_or_die('openjdk-8-{which}'.format(which=which),
-                           version=OPENJDK_8_VERSION)
+                           version=EXPLICIT_OPENJDK_8_VERSION)
     cmd =  ['sudo', 'update-java-alternatives']
     if which == 'jre':
         cmd.append('--jre')
@@ -209,6 +210,7 @@ def install_cassandra(options):
 
     print 'Installing Cassandra...'
     check_options(options)
+    preferred_version = None
     if not options.package_manager:
         root = 'https://archive.apache.org/dist/cassandra/debian/pool/main/c'
         try:
@@ -216,8 +218,9 @@ def install_cassandra(options):
         except OSError:
           pass
 
-        cassandra = 'cassandra_{ver}_all.deb'.format(ver=CASSANDRA_VERSION)
-        tools = 'cassandra-tools_{ver}_all.deb'.format(ver=CASSANDRA_VERSION)
+        preferred_version = EXPLICIT_CASSANDRA_VERSION
+        cassandra = 'cassandra_{ver}_all.deb'.format(ver=preferred_version)
+        tools = 'cassandra-tools_{ver}_all.deb'.format(ver=preferred_version)
 
         content = fetch_or_die(
             '{root}/cassandra/{cassandra}'
@@ -241,7 +244,7 @@ def install_cassandra(options):
                  echo=True)
 
     run_or_die('sudo apt-get -q -y update', echo=True)
-    install_package_or_die('cassandra', version=CASSANDRA_VERSION,
+    install_package_or_die('cassandra', version=preferred_version,
                            options=['--force-yes'])
 
 
@@ -255,7 +258,7 @@ def install_redis(options):
         print '--noredis skips Redis install.'
         return
     print 'Installing Redis...'
-    install_package_or_die('redis-server', version=REDIS_SERVER_VERSION)
+    install_package_or_die('redis-server', version=None)
 
 
 def install_apache(options):
@@ -272,7 +275,7 @@ def install_apache(options):
         return
 
     print 'Installing apache2...'
-    install_package_or_die('apache2', version=APACHE2_VERSION)
+    install_package_or_die('apache2', version=None)
 
     # Change apache to run on port $DECK_PORT by default.
     # We're writing back with cat so we can sudo.
