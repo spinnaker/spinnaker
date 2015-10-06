@@ -38,14 +38,20 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
       if (!$scope.serverGroup.asg || !$scope.serverGroup.asg.suspendedProcesses) {
         return;
       }
-      var disabled = _.pluck($scope.serverGroup.asg.suspendedProcesses, 'processName');
+      var disabled = $scope.serverGroup.asg.suspendedProcesses;
       var allProcesses = autoScalingProcessService.listProcesses();
       allProcesses.forEach(function(process) {
-        $scope.autoScalingProcesses.push({
+        let disabledProcess = _.find(disabled, {processName: process.name});
+        let scalingProcess = {
           name: process.name,
-          enabled: disabled.indexOf(process.name) === -1,
+          enabled: !disabledProcess,
           description: process.description,
-        });
+        };
+        if (disabledProcess) {
+          let suspensionDate = disabledProcess.suspensionReason.replace('User suspended at ', '');
+          scalingProcess.suspensionDate = new Date(suspensionDate).getTime();
+        }
+        $scope.autoScalingProcesses.push(scalingProcess);
       });
     }
 
