@@ -17,6 +17,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
 
     $scope.viewState = {
       searching: false,
+      minCharactersToSearch: 3,
     };
 
     this.loadRecentItems = () => {
@@ -43,12 +44,23 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
       });
     };
 
+    function updateLocation() {
+      $location.search('q', $scope.query || null);
+      $location.replace();
+    }
+
     $scope.pageSize = searchService.defaultPageSize;
 
     if (angular.isDefined($location.search().q)) {
       $scope.query = $location.search().q;
     }
     $scope.$watch('query', function(query) {
+      if (query && query.length < $scope.viewState.minCharactersToSearch) {
+        $scope.categories = null;
+        $scope.viewState.searching = false;
+        updateLocation();
+        return;
+      }
       $scope.viewState.searching = true;
       $scope.categories = null;
       search.query(query).then(function(result) {
@@ -57,8 +69,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
         $scope.moreResults = _.sum(result, function(resultSet) {
           return resultSet.results.length;
         }) === $scope.pageSize;
-        $location.search('q', query || null);
-        $location.replace();
+        updateLocation();
         pageTitleService.handleRoutingSuccess(
           {
             pageTitleMain: {
