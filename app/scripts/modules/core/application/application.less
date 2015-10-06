@@ -26,6 +26,9 @@
     display: inline-block;
   }
   h2 {
+    @media (min-width: 708px) and (max-width: 992px) {
+      float: left;
+    }
     min-width: 200px;
     margin-right: 50px;
     a {
@@ -37,6 +40,12 @@
     display: inline-block;
   }
   ul {
+    @media (min-width: 708px) and (max-width: 992px) {
+      display: block;
+      li {
+        margin-top: 10px;
+      }
+    }
     display: inline-block;
     vertical-align: bottom;
     text-transform: uppercase;

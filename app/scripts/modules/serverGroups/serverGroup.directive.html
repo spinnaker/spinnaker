@@ -10,7 +10,7 @@
          sticky-if="headerIsSticky()">
       <div class="container-fluid no-padding">
         <div class="row">
-          <div class="col-md-8 section-title">
+          <div class="col-md-8 col-sm-6 section-title">
             <span class="icon icon-server-group icon-{{viewModel.serverGroup.type}} small"></span>
             <span class="server-group-sequence">{{ viewModel.serverGroupSequence }}</span><span ng-if="viewModel.jenkins">:</span>
             <a ng-if="viewModel.jenkins"
@@ -22,7 +22,7 @@
               (No build info)
             </span>
           </div>
-          <div class="col-md-4 text-right">
+          <div class="col-md-4 col-sm-6 text-right">
             <health-counts container="viewModel.serverGroup"></health-counts>
             <running-tasks-tag application="application" tasks="viewModel.serverGroup.runningTasks" executions="viewModel.serverGroup.executions"></running-tasks-tag>
             <load-balancers-tag server-group="viewModel.serverGroup" max-display="1"></load-balancers-tag>
