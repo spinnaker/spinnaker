@@ -73,7 +73,7 @@ def init_argument_parser(parser):
     parser.add_argument('--zone', default='us-central1-f')
     parser.add_argument('--disk_size', default='200GB',
                         help='Warnings appear if disk size < 200GB')
-    parser.add_argument('--machine_type', default='n1-standard-8')
+    parser.add_argument('--machine_type', default='n1-highmem-8')
     parser.add_argument(
         '--nopersonal', default=False, action='store_true',
         help='Do not copy personal files (.gitconfig, etc.)')
@@ -251,7 +251,7 @@ def copy_master_config(options):
     copy_file(options, actual_path,
               '{instance}:.spinnaker/spinnaker_config.cfg'.format(
                     instance=options.instance))
-    
+
     print 'Fixing credentials.'
     # Ideally this should be a parameter to copy-files so it is always
     # protected, but there doesnt seem to be an API for it.
