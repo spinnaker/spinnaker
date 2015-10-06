@@ -7,7 +7,8 @@ module.exports = angular.module('spinnaker.application.controller', [
   require('angular-ui-router'),
   require('../history/recentHistory.service.js'),
 ])
-  .controller('ApplicationCtrl', function($scope, $state, hotkeys, app, recentHistoryService) {
+  .controller('ApplicationCtrl', function($scope, $state, hotkeys, app, recentHistoryService, $window) {
+    $scope.$window = $window;
     $scope.application = app;
     $scope.insightTarget = app;
     if (app.notFound) {

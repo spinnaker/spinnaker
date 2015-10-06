@@ -91,7 +91,6 @@ body {
   }
   .nav {
     margin-left: -15px;
-    width: 40px;
     overflow-x: hidden;
     transition: width 0.25s ease-in-out;
     position: relative;
@@ -184,7 +183,7 @@ body {
     }
 
     @media(min-width: 768px) and (max-width: 992px) {
-      width: 500px;
+      width: 450px;
     }
 
     @media(min-width: 992px) {
@@ -913,6 +912,10 @@ whats-new {
   .navbar-nav > li > a {
     &.unread {
       padding: 4px 12px;
+      @media (min-width: 768px) and (max-width: 992px) {
+        padding: 15px 0;
+        line-height: 20px;
+      }
       font-weight: 400;
       .timestamp {
         color: @code-yellow;
@@ -961,6 +964,10 @@ body, html {
       flex-direction: column;
       -webkit-flex-direction: column;
       padding: 0;
+      @media (min-width: 768px) and (max-width: 992px) {
+        margin: 0;
+        width: 100%;
+      }
     }
     .scrollable-columns {
       flex: 1 1 auto;
