@@ -142,11 +142,17 @@ class DevRunner(spinnaker_runner.Runner):
     ignore_tail_jobs = self.tail_error_logs()
     super(DevRunner, self).start_all(options)
 
-    ignore_tail_jobs.append(
-        self.start_tail(os.path.join(self.__installation.LOG_DIR, 'deck.log')))
-
     deck_port = self.__installation.DECK_PORT
     print 'Waiting for deck to start on port {port}'.format(port=deck_port)
+
+    # Tail the log file while we wait and run.
+    # But the log file might not yet exist if deck hasnt started yet.
+    # So wait for the log file to exist before starting to tail it.
+    # Deck cant be ready yet if it hasnt started yet anyawy.
+    deck_log_path = os.path.join(self.__installation.LOG_DIR, 'deck.log')
+    while not os.path.exists(deck_log_path):
+      time.sleep(0.1)
+    ignore_tail_jobs.append(self.start_tail(deck_log_path))
 
     # Dont just wait for port to be ready,  but for deck to respond
     # because it takes a long time to startup once port is ready.
