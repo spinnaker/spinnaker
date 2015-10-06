@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline
 
-import com.netflix.spinnaker.orca.kato.tasks.DetermineTargetReferenceTask
-import com.netflix.spinnaker.orca.kato.tasks.DetermineTargetServerGroupTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineTargetServerGroupTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
