@@ -67,10 +67,7 @@ class DestroyServerGroupTask extends AbstractCloudProviderAwareTask implements T
     context.serverGroupName = (context.serverGroupName ?: context.asgName) as String
 
     if (TargetServerGroup.isDynamicallyBound(stage)) {
-      def tsg = TargetServerGroupResolver.fromPreviousStage(stage).find {
-        (context.regions && context.regions.contains(it.location)) ||
-          (context.zones && context.zones.contains(it.location))
-      }
+      def tsg = TargetServerGroupResolver.fromPreviousStage(stage)
       context.asgName = tsg.cluster
       context.serverGroupName = tsg.cluster
 

@@ -100,7 +100,7 @@ class AbstractAwsScalingProcessTaskSpec extends Specification {
 
     then:
       TargetServerGroup.isDynamicallyBound(stage) >> true
-      TargetServerGroupResolver.fromPreviousStage(stage) >> [tSG("targetAsg", ["Launch"])]
+      TargetServerGroupResolver.fromPreviousStage(stage) >> tSG("targetAsg", ["Launch"])
   }
 
   def "should send asg name to kato when dynamic references configured"() {
@@ -119,7 +119,7 @@ class AbstractAwsScalingProcessTaskSpec extends Specification {
 
     then:
       TargetServerGroup.isDynamicallyBound(stage) >> true
-      TargetServerGroupResolver.fromPreviousStage(stage) >> [tSG("targetAsg", ["Launch"])]
+      TargetServerGroupResolver.fromPreviousStage(stage) >> tSG("targetAsg", ["Launch"])
       katoService.requestOperations("abc", { Map m -> m.resumeAsgProcessesDescription.asgName == "targetAsg" }) >> {
         return rx.Observable.from([new TaskId(id: "1")])
       }
