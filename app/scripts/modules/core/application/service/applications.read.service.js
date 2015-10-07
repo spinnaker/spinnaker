@@ -69,24 +69,28 @@ module.exports = angular
 
         function reloadTasks() {
           return tasksReader.listAllTasksForApplication(application.name).then(function(tasks) {
-            addTasksToApplication(application, tasks);
-            if (!application.tasksLoaded) {
-              application.tasksLoaded = true;
-              $rootScope.$broadcast('tasks-loaded', application);
-            } else {
-              $rootScope.$broadcast('tasks-reloaded', application);
+            if(!_.isEmpty(tasks)) {
+              addTasksToApplication(application, tasks);
+              if (!application.tasksLoaded) {
+                application.tasksLoaded = true;
+                $rootScope.$broadcast('tasks-loaded', application);
+              } else {
+                $rootScope.$broadcast('tasks-reloaded', application);
+              }
             }
           });
         }
 
         function reloadExecutions() {
           return executionService.getAll(application).then(function(executions) {
-            addExecutionsToApplication(application, executions);
-            if (!application.executionsLoaded) {
-              application.executionsLoaded = true;
-              $rootScope.$broadcast('executions-loaded', application);
-            } else {
-              $rootScope.$broadcast('executions-reloaded', application);
+            if(!_.isEmpty(executions)) {
+              addExecutionsToApplication(application, executions);
+              if (!application.executionsLoaded) {
+                application.executionsLoaded = true;
+                $rootScope.$broadcast('executions-loaded', application);
+              } else {
+                $rootScope.$broadcast('executions-reloaded', application);
+              }
             }
           });
         }
