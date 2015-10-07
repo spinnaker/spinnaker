@@ -51,11 +51,11 @@ describe('Controller: gceCreateLoadBalancerCtrl', function () {
     expect(lb.name).toBeUndefined();
 
     this.ctrl.updateName();
-    expect(lb.name).toBe('testApp--frontend');
+    expect(lb.name).toBe('testApp');
 
     this.$scope.loadBalancer.stack = 'testStack'
     this.ctrl.updateName();
-    expect(lb.name).toBe('testApp-testStack-frontend');
+    expect(lb.name).toBe('testApp-testStack');
   });
 
   it('should make the health check tab invisible then visible again', function() {
