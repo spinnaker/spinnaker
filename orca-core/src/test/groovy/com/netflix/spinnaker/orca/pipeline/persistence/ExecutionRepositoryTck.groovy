@@ -55,6 +55,9 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
   }
 
   def "if an execution already has an id it is not re-assigned when stored"() {
+    given:
+    repository.store(execution)
+
     when:
     repository.store(execution)
 
@@ -62,7 +65,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     execution.id == old(execution.id)
 
     where:
-    execution << [new Pipeline(id: "a-preassigned-id", buildTime: 0), new Orchestration(id: "a-preassigned-id")]
+    execution << [new Pipeline(buildTime: 0), new Orchestration(id: "a-preassigned-id")]
   }
 
   def "a pipeline can be retrieved after being stored"() {
