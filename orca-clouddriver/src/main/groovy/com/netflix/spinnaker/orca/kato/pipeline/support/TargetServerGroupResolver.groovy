@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.DetermineTargetServerGroupStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -82,6 +82,7 @@ class TargetServerGroupResolver {
         null /* region */, // TODO(ttomsu): Add zonal support to this op.
         params.cloudProvider)
     }
+    // Without zonal support in the getServerGroup call above, we have to do the filtering here.
     def tsg = tsgList?.find { Map tsg -> tsg.region == location || tsg.zones.contains(location) }
     if (!tsg) {
       throw new TargetServerGroup.NotFoundException("Unable to locate $params.asgName in $params.credentials/$location/$params.cluster")
