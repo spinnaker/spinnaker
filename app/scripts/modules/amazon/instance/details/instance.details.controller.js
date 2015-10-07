@@ -13,8 +13,9 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
   require('../../../insight/insightFilterState.model.js'),
   require('../../../core/history/recentHistory.service.js'),
   require('../../../utils/selectOnDblClick.directive.js'),
+  require('../../../core/config/settings.js')
 ])
-  .controller('awsInstanceDetailsCtrl', function ($scope, $state, $modal, InsightFilterStateModel,
+  .controller('awsInstanceDetailsCtrl', function ($scope, $state, $modal, InsightFilterStateModel, settings,
                                                instanceWriter, confirmationModalService, recentHistoryService,
                                                instanceReader, _, instance, app, $q) {
 
@@ -372,13 +373,7 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
 
 
     this.getBastionAddressForAccount = function(account) {
-      let accountBastions = {
-        'prod': 'aws.prod.netflix.net',
-        'test': 'aws.test.netflix.net',
-        'mgmt': 'aws.mgmt.netflix.net',
-        'mcetest': 'awsmce.test.netflix.net',
-        'mceprod': 'awsmce.prod.netflix.net',
-      };
+      let accountBastions = settings.providers.aws.accountBastions;
       return accountBastions[account] || 'unknown';
     };
 
