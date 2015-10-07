@@ -22,6 +22,12 @@ HOME=${HOME:-"/root"}
 SPINNAKER_INSTALL_DIR=/opt/spinnaker
 CONFIG_DIR=$HOME/.spinnaker
 
+# This status prefix provides a hook to inject output signals with status
+# messages for consumers like the Google Deployment Manager Coordinator.
+# Normally this isnt needed. Callers will populate it as they need
+# using --status_prefix.
+STATUS_PREFIX="*"
+
 METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
 INSTANCE_METADATA_URL="$METADATA_URL/instance"
 if full_zone=$(curl -s -H "Metadata-Flavor: Google" "$INSTANCE_METADATA_URL/zone"); then
@@ -136,16 +142,43 @@ function extract_spinnaker_credentials() {
       >> "$CONFIG_DIR/spinnaker_config.cfg"
 }
 
+function process_args() {
+  while [[ $# > 0 ]]
+  do
+    local key="$1"
+    case $key in
+    --status_prefix)
+      STATUS_PREFIX="$2"
+      shift
+      ;;
+
+    *)
+      echo "ERROR: unknown option '$key'."
+      exit -1
+      ;;
+    esac
+    shift
+  done
+}
+
+process_args
+
+echo "$STATUS_PREFIX  Extracting Configuration Info"
 extract_spinnaker_config
+
+echo "$STATUS_PREFIX  Extracting Credentials"
 extract_spinnaker_credentials
 
 # Reconfigure the instance before replacing the script so that
 # if it fails, and we reboot, we'll continue where we left off.
+echo "$STATUS_PREFIX  Configuring Spinnaker"
 $SPINNAKER_INSTALL_DIR/scripts/reconfigure_spinnaker.sh
 
 # Replace this first time boot with the normal startup script
 # that just starts spinnaker (and its dependencies) without configuring anymore.
+echo "$STATUS_PREFIX  Cleaning Up"
 replace_startup_script
 
-echo "STARTING"
+echo "$STATUS_PREFIX  Starting Spinnaker"
 $SPINNAKER_INSTALL_DIR/scripts/start_spinnaker.sh
+echo "$STATUS_PREFIX  Spinnaker is now ready"
