@@ -132,7 +132,7 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', [
       return {
         provider: 'gce',
         stack: '',
-        detail: 'frontend',
+        detail: '',
         credentials: settings.providers.gce ? settings.providers.gce.defaults.account : null,
         region: settings.providers.gce ? settings.providers.gce.defaults.region : null,
         healthCheckProtocol: 'HTTP',
