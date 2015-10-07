@@ -100,10 +100,10 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
 
   private void composeDynamicTargets(Stage stage, TargetServerGroup.Params params) {
     if (stage.parentStageId) {
-      // We only want to determine the target ASGs once per stage, so only inject if this is the root stage, i.e.
-      // the one the user configured
+      // We only want to determine the target server groups once per stage, so only inject if this is the root stage,
+      // i.e. the one the user configured.
       // This may become a bad assumption, or a limiting one, in that we cannot inject a dynamic stage ourselves
-      // as part of some other stage that is not itself injecting a determineTargetReferences stage
+      // as part of some other stage that is not itself injecting a determineTargetReferences stage.
       return
     }
 
