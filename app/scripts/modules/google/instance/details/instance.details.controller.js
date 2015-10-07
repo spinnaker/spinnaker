@@ -141,6 +141,8 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
             'https://console.developers.google.com/project/' + projectId + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + $scope.instance.instanceId;
 
           $scope.instance.gcloudSSHCommand = 'gcloud compute ssh --project ' + projectId + ' --zone ' + $scope.instance.placement.availabilityZone + ' ' + instance.instanceId;
+
+          augmentTagsWithHelp();
         },
         function() {
           // When an instance is first starting up, we may not have the details cached in oort yet, but we still
@@ -154,6 +156,29 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       }
 
       return $q.when(null);
+    }
+
+    function augmentTagsWithHelp() {
+      if ($scope.instance.tags && $scope.instance.securityGroups) {
+        let securityGroups = _($scope.instance.securityGroups).map(securityGroup => {
+          return _.find(app.securityGroups, { accountName: $scope.instance.account, region: 'global', id: securityGroup.groupdId });
+        }).compact().value();
+
+        let helpMap = {};
+
+        $scope.instance.tags.items.forEach(tag => {
+          let securityGroupsMatches = _.filter(securityGroups, securityGroup => _.includes(securityGroup.targetTags, tag));
+          let securityGroupMatchNames = _.pluck(securityGroupsMatches, 'name');
+
+          if (!_.isEmpty(securityGroupMatchNames)) {
+            let groupOrGroups = securityGroupMatchNames.length > 1 ? 'groups' : 'group';
+
+            helpMap[tag] = 'This tag associates this instance with security ' + groupOrGroups + ' <em>' + securityGroupMatchNames.join(', ') + '</em>.';
+          }
+        });
+
+        $scope.instance.tags.helpMap = helpMap;
+      }
     }
 
     function getNetwork() {
