@@ -41,7 +41,6 @@
 # Standard python modules.
 import json
 import sys
-import time
 
 # citest modules.
 import citest.gcp_testing as gcp
@@ -55,39 +54,25 @@ import spinnaker_testing as sk
 import spinnaker_testing.gate as gate
 
 
-_TEST_DECORATOR = time.strftime('%H%M%S')
-
-
 class SmokeTestScenario(sk.SpinnakerTestScenario):
   @classmethod
   def new_agent(cls, bindings):
     return gate.new_agent(bindings)
 
   @classmethod
-  def initArgumentParser(cls, parser):
+  def initArgumentParser(cls, parser, defaults=None):
     """Initialize command line argument parser.
 
     Args:
       parser: argparse.ArgumentParser
     """
-    super(SmokeTestScenario, cls).initArgumentParser(parser, 'gate')
+    super(SmokeTestScenario, cls).initArgumentParser(parser, defaults=defaults)
 
-    parser.add_argument(
-        '--test_stack',
-        default='smoke',
-        help='Spinnaker application stack for resources created by this test.')
-    parser.add_argument(
-        '--test_app_name',
-        default='smoketestapp%s' % _TEST_DECORATOR,
-        help='Spinnaker application name created by this test.')
+    defaults = defaults or {}
     parser.add_argument(
         '--test_component_detail',
         default='fe',
         help='Refinement for component name to create.')
-    parser.add_argument(
-        '--test_email',
-        default='test-spinnaker@google.com',
-        help='EMail address for creating test applications.')
 
   def __init__(self, bindings, agent):
     super(SmokeTestScenario, self).__init__(bindings, agent)
@@ -95,26 +80,26 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
     bindings = self.bindings
     bindings['TEST_APP_COMPONENT_NAME'] = (
         '{app}-{stack}-{detail}'.format(
-            app=bindings['TEST_APP_NAME'],
+            app=bindings['TEST_APP'],
             stack=bindings['TEST_STACK'],
             detail=bindings['TEST_COMPONENT_DETAIL']))
 
     # We'll call out the app name because it is widely used
     # because it scopes the context of our activities.
-    self.TEST_APP_NAME = bindings['TEST_APP_NAME']
+    self.TEST_APP = bindings['TEST_APP']
 
   def create_app(self):
     contract = jc.Contract()
     return st.OperationContract(
         self.agent.make_create_app_operation(
-            bindings=self._bindings, application=self.TEST_APP_NAME),
+            bindings=self._bindings, application=self.TEST_APP),
         contract=contract)
 
   def delete_app(self):
     contract = jc.Contract()
     return st.OperationContract(
         self.agent.make_delete_app_operation(
-            bindings=self._bindings, application=self.TEST_APP_NAME),
+            bindings=self._bindings, application=self.TEST_APP),
         contract=contract)
 
   def create_load_balancer(self):
@@ -157,7 +142,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
           'user': '[anonymous]'
       }],
       description='Create Load Balancer: ' + load_balancer_name,
-      application=self.TEST_APP_NAME)
+      application=self.TEST_APP)
 
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Health Check Added',
@@ -198,7 +183,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
           load_balancer_name,
           bindings['GCE_CREDENTIALS'],
           bindings['TEST_GCE_REGION']),
-      application=self.TEST_APP_NAME)
+      application=self.TEST_APP)
 
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Health Check Removed', retryable_for_secs=30)
@@ -221,20 +206,20 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
     # Spinnaker determines the group name created,
     # which will be the following:
     group_name = '{app}-{stack}-v000'.format(
-        app=self.TEST_APP_NAME,
+        app=self.TEST_APP,
         stack=self._bindings['TEST_STACK'])
 
     bindings=self.bindings
     payload = self.agent.make_payload(
       job=[{
           'cloudProvider': 'gce',
-          'application': self.TEST_APP_NAME,
+          'application': self.TEST_APP,
           'credentials': bindings['GCE_CREDENTIALS'],
           'strategy':'',
           'capacity': {'min':2, 'max':2, 'desired':2},
           'targetSize': 2,
           'providerType': 'gce',
-          'image': 'ubuntu-1404-trusty-v20150909a',
+          'image': bindings['TEST_GCE_IMAGE_NAME'],
           'zone': bindings['TEST_GCE_ZONE'], 'stack': bindings['TEST_STACK'],
           'instanceType': 'f1-micro',
           'type': 'linearDeploy',
@@ -249,7 +234,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
           'user': '[anonymous]'
           }],
       description='Create Server Group in ' + group_name,
-      application=self.TEST_APP_NAME)
+      application=self.TEST_APP)
 
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Managed Instance Group Added',
@@ -265,7 +250,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
   def delete_server_group(self):
     bindings = self._bindings
     group_name = '{app}-{stack}-v000'.format(
-        app=self.TEST_APP_NAME,
+        app=self.TEST_APP,
         stack=bindings['TEST_STACK'])
 
     # TODO(ttomsu): Change this back from asgName to serverGroupName once it is fixed in orca.
@@ -282,7 +267,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
           'credentials': bindings['GCE_CREDENTIALS'],
           'user': '[anonymous]'
           }],
-      application=bindings['TEST_APP_NAME'],
+      application=self.TEST_APP,
       description='DestroyServerGroup: ' + group_name)
 
     builder = gcp.GceContractBuilder(self.gce_observer)
@@ -331,7 +316,11 @@ class SmokeTest(st.AgentTestCase):
 
 
 def main():
-  return SmokeTest.main(SmokeTestScenario)
+  defaults = {
+    'TEST_STACK': 'smoketest' + SmokeTest.DEFAULT_TEST_ID,
+    'TEST_APP': 'smoketest' + SmokeTest.DEFAULT_TEST_ID
+  }
+  return SmokeTest.main(SmokeTestScenario, default_binding_overrides=defaults)
 
 
 if __name__ == '__main__':
