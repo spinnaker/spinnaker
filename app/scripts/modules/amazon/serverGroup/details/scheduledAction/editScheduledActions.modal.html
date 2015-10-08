@@ -39,7 +39,7 @@
                          min="{{command.minSize || 0}}"
                          max="{{command.maxSize || Infinity}}"
                          /></td>
-              <td><a href class="sm-label" ng-click="ctrl.removeScheduledAction()"><span
+              <td><a href class="sm-label" ng-click="ctrl.removeScheduledAction($index)"><span
                   class="glyphicon glyphicon-trash"></span></a></td>
             </tr>
             </tbody>
