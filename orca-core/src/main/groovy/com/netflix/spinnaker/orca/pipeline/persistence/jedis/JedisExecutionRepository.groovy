@@ -77,7 +77,7 @@ class JedisExecutionRepository implements ExecutionRepository {
         def existing = mapper.readValue(json, Pipeline)
         def stages = pipeline.stages
         pipeline.stages.each {
-          Stage<Pipeline> stage -> ((PipelineStage) stage).context = existing.stages.find { it.id == stage.id }.context
+          Stage<Pipeline> stage -> ((PipelineStage) stage).context = existing.stages.find { it.id == stage.id }?.context
         }
         storeExecutionInternal(jedis, pipeline)
         pipeline.stages = stages
