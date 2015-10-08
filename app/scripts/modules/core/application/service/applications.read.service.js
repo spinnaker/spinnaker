@@ -68,27 +68,41 @@ module.exports = angular
         }
 
         function reloadTasks() {
-          return tasksReader.listAllTasksForApplication(application.name).then(function(tasks) {
-            addTasksToApplication(application, tasks);
-            if (!application.tasksLoaded) {
-              application.tasksLoaded = true;
-              $rootScope.$broadcast('tasks-loaded', application);
-            } else {
-              $rootScope.$broadcast('tasks-reloaded', application);
-            }
-          });
+          return tasksReader.listAllTasksForApplication(application.name)
+            .then(function(tasks) {
+              addTasksToApplication(application, tasks);
+              if (!application.tasksLoaded) {
+                application.tasksLoaded = true;
+                $rootScope.$broadcast('tasks-loaded', application);
+              } else {
+                $rootScope.$broadcast('tasks-reloaded', application);
+              }
+            })
+            .catch(function(rejection) {
+              // Gate will send back a 429 error code (TOO_MANY_REQUESTS) and will be caught here
+              // As a quick fix we are just adding an empty list to of tasks to the
+              // application, which will let the user know that no tasks where found for the app.
+              addTasksToApplication(application, []);
+              $log.warn('Error retrieving [tasks]', rejection);
+            });
         }
 
         function reloadExecutions() {
-          return executionService.getAll(application).then(function(executions) {
-            addExecutionsToApplication(application, executions);
-            if (!application.executionsLoaded) {
-              application.executionsLoaded = true;
-              $rootScope.$broadcast('executions-loaded', application);
-            } else {
-              $rootScope.$broadcast('executions-reloaded', application);
-            }
-          });
+          return executionService.getAll(application)
+            .then(function(executions) {
+              addExecutionsToApplication(application, executions);
+              if (!application.executionsLoaded) {
+                application.executionsLoaded = true;
+                $rootScope.$broadcast('executions-loaded', application);
+              } else {
+                $rootScope.$broadcast('executions-reloaded', application);
+              }
+            })
+            .catch(function(rejection) {
+              // Gate will send back a 429 error code (TOO_MANY_REQUESTS) and will be caught here.
+              $log.warn('Error retrieving [executions]', rejection);
+              $rootScope.$broadcast('executions-load-failure', application);
+            });
         }
 
 
