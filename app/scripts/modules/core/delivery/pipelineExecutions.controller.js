@@ -88,6 +88,7 @@ module.exports = angular.module('spinnaker.core.delivery.pipelineExecutions.cont
     function dataInitializationSuccess() {
       updateExecutions();
       $scope.viewState.loading = false;
+      $scope.viewState.initializationError = false;
       // if we detected the loading of a details section, scroll it into view
       if ($scope.detailsTarget) {
         // make sure it's expanded
@@ -128,6 +129,7 @@ module.exports = angular.module('spinnaker.core.delivery.pipelineExecutions.cont
       })
       .catch(dataInitializationFailure);
 
+    $scope.$on('executions-load-failure', dataInitializationFailure);
     $scope.$on('executions-reloaded', updateExecutions);
     $scope.$watch('filter', cacheViewState, true);
 
