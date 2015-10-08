@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.pipeline.support
+package com.netflix.spinnaker.orca.clouddriver.pipeline.support
 
-import com.netflix.spinnaker.orca.kato.pipeline.ResizeServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.pipeline.support
+package com.netflix.spinnaker.orca.clouddriver.pipeline.support
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.pipeline.model.Stage

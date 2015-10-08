@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.pipeline.support
+package com.netflix.spinnaker.orca.clouddriver.pipeline.support
 
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.clouddriver.pipeline.DetermineTargetServerGroupStage

@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.pipeline.support
+package com.netflix.spinnaker.orca.clouddriver.pipeline.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.DetermineTargetServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response

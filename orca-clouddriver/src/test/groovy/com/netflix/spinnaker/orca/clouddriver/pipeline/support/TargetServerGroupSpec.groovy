@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.pipeline.support
+package com.netflix.spinnaker.orca.clouddriver.pipeline.support
 
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import spock.lang.Specification
 import spock.lang.Unroll

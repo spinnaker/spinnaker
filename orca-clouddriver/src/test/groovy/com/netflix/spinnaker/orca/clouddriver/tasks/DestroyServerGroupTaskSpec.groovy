@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroup
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroupResolver
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification

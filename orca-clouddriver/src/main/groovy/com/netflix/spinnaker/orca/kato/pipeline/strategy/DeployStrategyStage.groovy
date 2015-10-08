@@ -21,10 +21,10 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.deprecation.DeprecationRegistry
 import com.netflix.spinnaker.orca.clouddriver.pipeline.AbstractCloudProviderAwareStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.DestroyServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyAsgLaunchConfigurationStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyScalingProcessStage
-import com.netflix.spinnaker.orca.kato.pipeline.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.RollingPushStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
