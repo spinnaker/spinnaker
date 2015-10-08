@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.pipeline
+package com.netflix.spinnaker.orca.clouddriver.pipeline.aws
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroupLinearStageSupport
-import com.netflix.spinnaker.orca.kato.tasks.scalingprocess.ResumeAwsScalingProcessTask
-import com.netflix.spinnaker.orca.kato.tasks.scalingprocess.SuspendAwsScalingProcessTask
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroupLinearStageSupport
+import com.netflix.spinnaker.orca.clouddriver.tasks.aws.scalingprocess.ResumeAwsScalingProcessTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.aws.scalingprocess.SuspendAwsScalingProcessTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.orca.kato.tasks.scalingprocess
+package com.netflix.spinnaker.orca.clouddriver.tasks.aws.scalingprocess
 
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroup
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import org.springframework.stereotype.Component
 
 @Component
-class SuspendAwsScalingProcessTask extends AbstractAwsScalingProcessTask {
-  String type = "suspendAsgProcessesDescription"
+class ResumeAwsScalingProcessTask extends AbstractAwsScalingProcessTask {
+  String type = "resumeAsgProcessesDescription"
 
   @Override
   List<String> filterProcesses(TargetServerGroup targetServerGroup, List<String> processes) {
@@ -31,9 +31,9 @@ class SuspendAwsScalingProcessTask extends AbstractAwsScalingProcessTask {
     def targetAsgConfiguration = targetServerGroup.serverGroup.asg as Map<String, Object>
     if (targetAsgConfiguration.suspendedProcesses) {
       def suspendedProcesses = targetAsgConfiguration.suspendedProcesses*.processName as List<String>
-      return processes - suspendedProcesses
+      return suspendedProcesses.intersect(processes) ?: []
     }
 
-    return processes
+    return []
   }
 }
