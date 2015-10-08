@@ -1,6 +1,6 @@
 'use strict';
 
-fdescribe('Service: executionService', function () {
+describe('Service: executionService', function () {
 
   //NOTE: This is only testing the service dependencies. Please add more tests.
 
