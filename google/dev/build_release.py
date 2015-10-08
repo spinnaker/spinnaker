@@ -412,8 +412,8 @@ if __name__ == '__main__':
     options = parser.parse_args()
 
     builder = cls(options)
-    if options.refresh_from_origin:
-        builder.refresher.refresh_all_from_origin()
+    if options.pull_origin:
+        builder.refresher.pull_all_from_origin()
 
     builder.build_packages()
     builder.copy_dependency_files()
