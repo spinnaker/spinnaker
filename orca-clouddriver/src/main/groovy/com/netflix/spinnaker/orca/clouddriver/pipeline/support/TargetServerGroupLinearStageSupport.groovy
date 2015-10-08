@@ -83,16 +83,15 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
   protected List<Map<String, Object>> buildStaticTargetDescriptions(Stage stage, List<TargetServerGroup> targets) {
     Map<String, Map<String, Object>> descriptions = [:]
     for (target in targets) {
-      def location = target.location
-      def serverGroup = target.serverGroup
+      def location = target.getLocation()
 
       def description = new HashMap(stage.context)
-      if (descriptions.containsKey(serverGroup.name)) {
-        ((List<String>) descriptions.get(serverGroup.name).regions) << location
+      if (descriptions.containsKey(target.name)) {
+        ((List<String>) descriptions.get(target.name).locations) << location.value
       } else {
-        description.asgName = serverGroup.name
-        description.regions = [location]
-        descriptions[serverGroup.name as String] = description
+        description.asgName = target.name
+        description.locations = [location.value]
+        descriptions[target.name as String] = description
       }
     }
     descriptions.values().toList()
@@ -107,10 +106,13 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
       return
     }
 
-    def configuredLocations = params.locations
+    def locationValues = params.locations.collect { it.value }
     Map dtsgContext = new HashMap(stage.context)
-    dtsgContext.regions = new ArrayList(configuredLocations)
-    stage.context.regions = [configuredLocations.remove(0)]
+    dtsgContext.regions = new ArrayList(locationValues)
+
+    // The original stage.context object is reused here because concrete subclasses must actually perform the requested
+    // operation. All future copies of the subclass (operating on different regions/zones) use a copy of the context.
+    stage.context.regions = [locationValues.remove(0)]
 
     preDynamic(stage.context).each {
       injectBefore(stage, it.name, it.stage, it.context)
@@ -119,11 +121,11 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
       injectAfter(stage, it.name, it.stage, it.context)
     }
 
-    for (location in configuredLocations) {
+    for (location in locationValues) {
       def ctx = new HashMap(stage.context)
       ctx.regions = [location]
       preDynamic(ctx).each {
-        // Operations done after the first iteration must all be added with injectAfter.
+        // Operations done after the first pre-postDynamic injection must all be added with injectAfter.
         injectAfter(stage, it.name, it.stage, it.context)
       }
       injectAfter(stage, name, this, ctx)

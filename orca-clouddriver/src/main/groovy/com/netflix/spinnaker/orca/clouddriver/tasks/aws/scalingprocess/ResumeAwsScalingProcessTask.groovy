@@ -28,7 +28,7 @@ class ResumeAwsScalingProcessTask extends AbstractAwsScalingProcessTask {
       return []
     }
 
-    def targetAsgConfiguration = targetServerGroup.serverGroup.asg as Map<String, Object>
+    def targetAsgConfiguration = targetServerGroup.asg as Map<String, Object>
     if (targetAsgConfiguration.suspendedProcesses) {
       def suspendedProcesses = targetAsgConfiguration.suspendedProcesses*.processName as List<String>
       return suspendedProcesses.intersect(processes) ?: []

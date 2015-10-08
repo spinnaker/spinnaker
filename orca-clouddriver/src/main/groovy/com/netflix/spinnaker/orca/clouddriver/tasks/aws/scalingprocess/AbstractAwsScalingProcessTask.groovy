@@ -57,7 +57,7 @@ abstract class AbstractAwsScalingProcessTask extends AbstractCloudProviderAwareT
       // because each region desired should have been spun off its own ScalingProcess for that region.
       targetServerGroup = resolver.resolve(stage)[0]
     }
-    def asgName = targetServerGroup.serverGroup.name
+    def asgName = targetServerGroup.name
 
     /*
      * If scaling processes have been explicitly supplied (context.processes), use them.

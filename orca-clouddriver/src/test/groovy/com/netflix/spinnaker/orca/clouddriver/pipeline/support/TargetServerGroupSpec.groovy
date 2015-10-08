@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.support
 
-import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -24,6 +23,20 @@ import spock.lang.Unroll
 class TargetServerGroupSpec extends Specification {
 
   static class TestStage extends AbstractStage {}
+
+  def "get location"() {
+    given:
+      TargetServerGroup tsg = new TargetServerGroup(serverGroup: [region: "north-pole", otherProp: "abc"])
+
+    when:
+      Location got = tsg.getLocation()
+
+    then:
+      got
+      got.type == Location.Type.REGION
+      got.value == "north-pole"
+      tsg.otherProp == "abc"
+  }
 
   @Unroll
   def "dynamically bound stage"() {
@@ -42,6 +55,7 @@ class TargetServerGroupSpec extends Specification {
       [target: "current_asg_dynamic"] || true
   }
 
+  @Unroll
   def "params from stage"() {
     when:
       def context = [
@@ -63,10 +77,10 @@ class TargetServerGroupSpec extends Specification {
 
     where:
       asgName         | target        | cluster    | zones            | regions        | provider || locations
-      "test-app-v001" | null          | null       | ["north-pole-1"] | null           | null     || ["north-pole-1"]
-      null            | "current_asg" | "test-app" | null             | ["north-pole"] | null     || ["north-pole"]
-      null            | "current_asg" | "test-app" | ["north-pole-1"] | ["north-pole"] | "gce"    || ["north-pole-1"]
-      null            | "current_asg" | "test-app" | ["north-pole-1"] | ["north-pole"] | "aws"    || ["north-pole"]
+      "test-app-v001" | null          | null       | ["north-pole-1"] | null           | null     || [new Location(type: Location.Type.ZONE, value:"north-pole-1")]
+      null            | "current_asg" | "test-app" | null             | ["north-pole"] | null     || [new Location(type: Location.Type.REGION, value:"north-pole")]
+      null            | "current_asg" | "test-app" | ["north-pole-1"] | ["north-pole"] | "gce"    || [new Location(type: Location.Type.ZONE, value:"north-pole-1")]
+      null            | "current_asg" | "test-app" | ["north-pole-1"] | ["north-pole"] | "aws"    || [new Location(type: Location.Type.REGION, value:"north-pole")]
 
   }
 }

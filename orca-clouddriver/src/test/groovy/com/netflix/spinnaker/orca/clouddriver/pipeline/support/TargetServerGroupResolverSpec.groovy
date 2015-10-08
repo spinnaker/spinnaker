@@ -19,8 +19,6 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.support
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.DetermineTargetServerGroupStage
-import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
-import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
@@ -42,40 +40,44 @@ class TargetServerGroupResolverSpec extends Specification {
         cloudProvider: "abc",
         cluster: "test-app",
         credentials: "testCreds",
-        locations: ["north-pole"],
+        locations: [new Location(type: Location.Type.REGION, value: "north-pole")],
         target: TargetServerGroup.Params.Target.current_asg,
       ))
 
     then:
       1 * oort.getTargetServerGroup("test", "testCreds", "test-app", "abc", "north-pole", "current_asg") >>
         new Response("clouddriver", 200, 'ok', [], new TypedString(mapper.writeValueAsString([
-          name: "test-app-v010",
-          data: 123,
+          name  : "test-app-v010",
+          region: "north-pole",
+          data  : 123,
         ])))
       tsgs.size() == 1
-      tsgs[0].location == "north-pole"
-      tsgs[0].cluster == "test-app-v010"
-      tsgs[0].serverGroup.data == 123
+      tsgs[0].data == 123
+      tsgs[0].getLocation()
+      tsgs[0].getLocation().type == Location.Type.REGION
+      tsgs[0].getLocation().value == "north-pole"
 
     when:
       tsgs = subject.resolveByParams(new TargetServerGroup.Params(
-        cloudProvider: "abc",
+        cloudProvider: "gce",
         asgName: "test-app-v010",
         credentials: "testCreds",
-        locations: ["north-pole"],
+        locations: [new Location(type: Location.Type.REGION, value: "north-pole")]
       ))
 
     then:
-      1 * oort.getServerGroup("test", "testCreds", "test-app", "test-app-v010", null, "abc") >>
+      1 * oort.getServerGroup("test", "testCreds", "test-app", "test-app-v010", null, "gce") >>
         new Response("clouddriver", 200, 'ok', [], new TypedString(mapper.writeValueAsString([[
                                                                                                 name : "test-app-v010",
                                                                                                 zones: ["north-pole"],
                                                                                                 data : 123,
+                                                                                                type : "gce",
                                                                                               ]])))
       tsgs.size() == 1
-      tsgs[0].location == "north-pole"
-      tsgs[0].cluster == "test-app-v010"
-      tsgs[0].serverGroup.data == 123
+      tsgs[0].data == 123
+      tsgs[0].getLocation()
+      tsgs[0].getLocation().type == Location.Type.ZONE
+      tsgs[0].getLocation().value == "north-pole"
 
     when: "null params returns empty list"
       tsgs = subject.resolveByParams(null)
@@ -90,8 +92,8 @@ class TargetServerGroupResolverSpec extends Specification {
 
   def "should resolve target refs from previous DTSG stage"() {
     setup:
-      TargetServerGroup want = new TargetServerGroup(cluster: "testTSG", location: "north-pole")
-      TargetServerGroup decoy = new TargetServerGroup(cluster: "testTSG", location: "south-pole")
+      TargetServerGroup want = new TargetServerGroup(serverGroup: [name: "testTSG", region: "north-pole"])
+      TargetServerGroup decoy = new TargetServerGroup(serverGroup: [name: "testTSG", region: "south-pole"])
 
       Stage commonParent = Mock(Stage) {
         getId() >> "1"
