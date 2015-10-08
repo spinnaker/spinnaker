@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,7 +94,8 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
                                                                                                instanceGroupsCallback)
 
         def localInstanceTemplateName = Utils.getLocalName(instanceGroupManager.instanceTemplate)
-        def instanceTemplatesCallback = new InstanceTemplatesCallback(googleServerGroup,
+        def instanceTemplatesCallback = new InstanceTemplatesCallback(instanceGroupManager,
+                                                                      googleServerGroup,
                                                                       cluster,
                                                                       googleSecurityGroups,
                                                                       imageMap,
@@ -102,12 +103,6 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
         compute.instanceTemplates().get(project,
                                         localInstanceTemplateName).queue(instanceGroupsBatch,
                                                                          instanceTemplatesCallback)
-
-        // The isDisabled property of a server group is set based on whether there are associated target pools.
-        def targetPoolLoadBalancerNames =
-          Utils.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(instanceGroupManager.getTargetPools())
-
-        googleServerGroup.setDisabled(targetPoolLoadBalancerNames.empty)
 
         // oort.aws puts a com.amazonaws.services.autoscaling.model.AutoScalingGroup here. More importantly, deck expects it.
         googleServerGroup.setProperty("asg", [minSize          : instanceGroupManager.targetSize,
