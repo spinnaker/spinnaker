@@ -31,6 +31,7 @@ final class AtomicOperations {
   public static final String RESIZE_SERVER_GROUP = "resizeServerGroup"
 
   // Instance operations
+  public static final String REBOOT_INSTANCES = "rebootInstances"
   public static final String TERMINATE_INSTANCES = "terminateInstances"
   public static final String TERMINATE_INSTANCE_AND_DECREMENT = "terminateInstanceAndDecrementServerGroup"
 

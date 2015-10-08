@@ -34,7 +34,7 @@ class AmazonInstanceSpec extends Specification {
 
   def "getHealthState for ALL UP health states"() {
     given:
-      instance.health = [[type: "Amazon", state: "Unknown"], [type: "Discovery", state: 'Up'], [type: "LoadBalancer", state: "Up"]]
+      instance.health = [[type: "Amazon", healthClass: 'platform', state: "Unknown"], [type: "Discovery", state: 'Up'], [type: "LoadBalancer", state: "Up"]]
     when:
       HealthState healthState = instance.getHealthState()
     then:
@@ -43,7 +43,7 @@ class AmazonInstanceSpec extends Specification {
 
   def "getHealthState for ONE DOWN & ONE UP health state"() {
     given:
-      instance.health = [[type: "Amazon", state: "Unknown"], [type: "Discovery", state: "Up"], [type: "LoadBalancer", state: "Down"]]
+      instance.health = [[type: "Amazon", healthClass: 'platform', state: "Unknown"], [type: "Discovery", state: "Up"], [type: "LoadBalancer", state: "Down"]]
     when:
       HealthState heathState = instance.getHealthState()
     then:
@@ -52,7 +52,7 @@ class AmazonInstanceSpec extends Specification {
 
   def "getHealthState for ALL DOWN health state"() {
     given:
-    instance.health = [[type: "Amazon", state: "Unknown"], [type: "Discovery", state: "Down"], [type: "LoadBalancer", state: "Down"]]
+    instance.health = [[type: "Amazon", healthClass: 'platform', state: "Unknown"], [type: "Discovery", state: "Down"], [type: "LoadBalancer", state: "Down"]]
     when:
     HealthState heathState = instance.getHealthState()
     then:
@@ -61,7 +61,7 @@ class AmazonInstanceSpec extends Specification {
 
   def "getHealthState for unhealthy with no UP or DOWN health status"() {
     given:
-      instance.health = [[type: "Amazon", state: "Unknown"]]
+      instance.health = [[type: "Amazon", healthClass: 'platform', state: "Unknown"]]
 
     when:
       HealthState heathState = instance.getHealthState()
@@ -83,7 +83,7 @@ class AmazonInstanceSpec extends Specification {
 
   def "getHealthState for ONE STARTING"() {
     given:
-      instance.health = [[type: "Amazon", state: "Unknown"], [type: "Discovery", state: "Starting"]]
+      instance.health = [[type: "Amazon", healthClass: 'platform', state: "Unknown"], [type: "Discovery", state: "Starting"]]
     when:
       HealthState heathState = instance.getHealthState()
     then:
@@ -92,7 +92,7 @@ class AmazonInstanceSpec extends Specification {
 
   def "getHealthState for ONE STARTING and ONE DOWN"() {
     given:
-      instance.health = [[type: "Amazon", state: "Unknown"], [type: "Discovery", state: "Starting"], [type: "LoadBalancer", state: "Down"]]
+      instance.health = [[type: "Amazon", healthClass: 'platform', state: "Unknown"], [type: "Discovery", state: "Starting"], [type: "LoadBalancer", state: "Down"]]
     when:
       HealthState heathState = instance.getHealthState()
     then:
@@ -101,7 +101,7 @@ class AmazonInstanceSpec extends Specification {
 
   def "getHealthState for ONE STARTING and ONE OUTOFSERVICE"() {
     given:
-      instance.health = [[type: "Amazon", state: "Unknown"], [type: "Discovery", state: "Starting"], [type: "LoadBalancer", state: "OutOfService"]]
+      instance.health = [[type: "Amazon", healthClass: 'platform', state: "Unknown"], [type: "Discovery", state: "Starting"], [type: "LoadBalancer", state: "OutOfService"]]
     when:
       HealthState heathState = instance.getHealthState()
     then:
@@ -111,7 +111,7 @@ class AmazonInstanceSpec extends Specification {
   def "getHealthState for ONE OUTOFSERVICE, and ONE DOWN"() {
     given:
     instance.health = [
-      [type: "Amazon", state: "Unknown"],
+      [type: "Amazon", healthClass: 'platform', state: "Unknown"],
       [type: "LoadBalancer", state: "OutOfService"],
       [type: "HowDoWeHaveFourHealthIndicators?", state: "Down"]
     ]

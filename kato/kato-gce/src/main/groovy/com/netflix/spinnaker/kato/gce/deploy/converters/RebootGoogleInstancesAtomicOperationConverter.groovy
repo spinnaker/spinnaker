@@ -16,13 +16,16 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.converters
 
+import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.kato.gce.deploy.description.RebootGoogleInstancesDescription
 import com.netflix.spinnaker.kato.gce.deploy.ops.RebootGoogleInstancesAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
-@Component("rebootGoogleInstancesDescription")
+@GoogleOperation(AtomicOperations.REBOOT_INSTANCES)
+@Component
 class RebootGoogleInstancesAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override
   AtomicOperation convertOperation(Map input) {
