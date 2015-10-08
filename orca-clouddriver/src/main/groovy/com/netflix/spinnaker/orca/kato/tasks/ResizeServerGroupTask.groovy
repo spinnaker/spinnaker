@@ -60,8 +60,8 @@ class ResizeServerGroupTask extends AbstractCloudProviderAwareTask implements Ta
 
   Map convert(Stage stage) {
     if (TargetServerGroup.isDynamicallyBound(stage)) {
-      List<TargetServerGroup> tsgs = TargetServerGroupResolver.fromPreviousStage(stage)
-      def descriptors = ResizeSupport.createResizeDescriptors(stage, tsgs)
+      def tsg = TargetServerGroupResolver.fromPreviousStage(stage)
+      def descriptors = ResizeSupport.createResizeDescriptors(stage, [tsg])
       return descriptors?.get(0)
     }
 

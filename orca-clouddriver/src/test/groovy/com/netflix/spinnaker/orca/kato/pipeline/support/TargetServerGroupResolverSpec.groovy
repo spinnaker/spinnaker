@@ -88,7 +88,8 @@ class TargetServerGroupResolverSpec extends Specification {
 
   def "should resolve target refs from previous DTSG stage"() {
     setup:
-      TargetServerGroup tsg = new TargetServerGroup(cluster: "testTSG")
+      TargetServerGroup want = new TargetServerGroup(cluster: "testTSG", location: "north-pole")
+      TargetServerGroup decoy = new TargetServerGroup(cluster: "testTSG", location: "south-pole")
 
       Stage commonParent = Mock(Stage) {
         getId() >> "1"
@@ -98,22 +99,36 @@ class TargetServerGroupResolverSpec extends Specification {
         getType() >> DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE
         getId() >> "2"
         getParentStageId() >> "1"
-        getContext() >> [targetReferences: [tsg]]
+        getContext() >> [targetReferences: [decoy, want]]
       }
 
       Stage stageLookingForRefs = Mock(Stage) {
         getId() >> "3"
         getParentStageId() >> "1"
+        getContext() >> [regions: ["north-pole"]]
         Execution e = Spy(Execution)
         getExecution() >> e
         e.stages >> [commonParent, dtsgStage, it]
       }
 
     when:
-      def tsgs = TargetServerGroupResolver.fromPreviousStage(stageLookingForRefs)
+      def got = TargetServerGroupResolver.fromPreviousStage(stageLookingForRefs)
 
     then:
-      tsgs.size() == 1
-      tsgs[0] == tsg
+      got == want
+
+    when:
+      stageLookingForRefs = Mock(Stage) {
+        getId() >> "3"
+        getParentStageId() >> "1"
+        getContext() >> [regions: ["east-1"]] // doesn't exist.
+        Execution e = Spy(Execution)
+        getExecution() >> e
+        e.stages >> [commonParent, dtsgStage, it]
+      }
+      TargetServerGroupResolver.fromPreviousStage(stageLookingForRefs)
+
+    then:
+      thrown(TargetServerGroup.NotFoundException)
   }
 }

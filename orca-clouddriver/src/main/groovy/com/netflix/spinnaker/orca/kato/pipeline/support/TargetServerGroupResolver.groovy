@@ -94,7 +94,7 @@ class TargetServerGroupResolver {
    * fromPreviousStage looks back at this execution's stages to find the stage at which the TargetServerGroups were
    * resolved.
    */
-  static List<TargetServerGroup> fromPreviousStage(Stage stage) {
+  static TargetServerGroup fromPreviousStage(Stage stage) {
     // The DetermineTargetServerGroupStage has all the TargetServerGroups we want - go find it!
     def dtsgStage = stage.execution.stages.find {
       isDTSGStage(it) && (sameParent(stage, it) || isParentOf(stage, it))
@@ -105,8 +105,24 @@ class TargetServerGroupResolver {
     } else if (!dtsgStage.context.targetReferences){
       throw new TargetServerGroup.NotFoundException("No TargetServerGroups found for stage ${stage}")
     }
+    def tsgs = dtsgStage.context.targetReferences
+    if (!tsgs) {
+      throw new TargetServerGroup.NotFoundException("No targetReferences found on DetermineTargetServerGroup stage " +
+        "${stage}")
+    }
 
-    dtsgStage.context.targetReferences
+    def tsg = tsgs.find {
+      (stage.context.regions && stage.context.regions.contains(it.location)) ||
+        (stage.context.zones && stage.context.zones.contains(it.location))
+    }
+    if (!tsg) {
+      def locations = []
+      stage.context.regions && locations << stage.context.regions
+      stage.context.zones && locations << stage.context.zones
+      throw new TargetServerGroup.NotFoundException("No targets found on matching any location in ${locations} in " +
+        "target server groups: ${tsgs}")
+    }
+    return tsg
   }
 
   private static boolean isDTSGStage(Stage stage) {

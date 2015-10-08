@@ -51,9 +51,7 @@ abstract class AbstractAwsScalingProcessTask extends AbstractCloudProviderAwareT
     if (TargetServerGroup.isDynamicallyBound(stage)) {
       // Dynamically resolved server groups look back at previous stages to find the name
       // of the server group based on *this task's region*
-      targetServerGroup = TargetServerGroupResolver.fromPreviousStage(stage).find {
-        it.location == stage.context.regions[0]
-      }
+      targetServerGroup = TargetServerGroupResolver.fromPreviousStage(stage)
     } else {
       // Statically resolved server groups should only resolve to a single server group at all times,
       // because each region desired should have been spun off its own ScalingProcess for that region.
