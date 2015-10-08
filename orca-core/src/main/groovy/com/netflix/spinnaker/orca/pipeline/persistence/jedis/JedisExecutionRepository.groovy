@@ -71,19 +71,7 @@ class JedisExecutionRepository implements ExecutionRepository {
   @Override
   void store(Pipeline pipeline) {
     withJedis { Jedis jedis ->
-
-      if (pipeline.id) {
-        def json = jedis.hget("pipeline:$pipeline.id", "config")
-        def existing = mapper.readValue(json, Pipeline)
-        def stages = pipeline.stages
-        pipeline.stages.each {
-          Stage<Pipeline> stage -> ((PipelineStage) stage).context = existing.stages.find { it.id == stage.id }.context
-        }
-        storeExecutionInternal(jedis, pipeline)
-        pipeline.stages = stages
-      } else {
-        storeExecutionInternal(jedis, pipeline)
-      }
+      storeExecutionInternal(jedis, pipeline)
       jedis.zadd(executionsByPipelineKey(pipeline.pipelineConfigId), pipeline.buildTime, pipeline.id)
     }
   }
