@@ -71,6 +71,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
           var projectId = pathSegments[pathSegments.indexOf('projects') + 1];
           $scope.serverGroup.logsLink =
             'https://console.developers.google.com/project/' + projectId + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + $scope.serverGroup.name;
+
+          augmentTagsWithHelp();
         } else {
           $state.go('^');
         }
@@ -79,6 +81,25 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
     function cancelLoader() {
       $scope.state.loading = false;
+    }
+
+    function augmentTagsWithHelp() {
+      if (_.has($scope.serverGroup, 'launchConfig.instanceTemplate.properties.tags.items') && $scope.securityGroups) {
+        let helpMap = {};
+
+        $scope.serverGroup.launchConfig.instanceTemplate.properties.tags.items.forEach(tag => {
+          let securityGroupsMatches = _.filter($scope.securityGroups, securityGroup => _.includes(securityGroup.targetTags, tag));
+          let securityGroupMatchNames = _.pluck(securityGroupsMatches, 'name');
+
+          if (!_.isEmpty(securityGroupMatchNames)) {
+            let groupOrGroups = securityGroupMatchNames.length > 1 ? 'groups' : 'group';
+
+            helpMap[tag] = 'This tag associates this server group with security ' + groupOrGroups + ' <em>' + securityGroupMatchNames.join(', ') + '</em>.';
+          }
+        });
+
+        $scope.serverGroup.launchConfig.instanceTemplate.properties.tags.helpMap = helpMap;
+      }
     }
 
     retrieveServerGroup().then(() => application.registerAutoRefreshHandler(retrieveServerGroup, $scope));

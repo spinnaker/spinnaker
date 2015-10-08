@@ -176,13 +176,19 @@
     <collapsible-section heading="Tags">
       <div ng-if="!serverGroup.launchConfig.instanceTemplate.properties.tags.items.length">No tags associated with this server group</div>
       <dl ng-if="serverGroup.launchConfig.instanceTemplate.properties.tags.items.length">
-        <dd ng-repeat="tag in serverGroup.launchConfig.instanceTemplate.properties.tags.items">{{tag}}</dd>
+        <dd ng-repeat="tag in serverGroup.launchConfig.instanceTemplate.properties.tags.items">
+          {{tag}}
+          <help-field content="{{serverGroup.launchConfig.instanceTemplate.properties.tags.helpMap[tag]}}"></help-field>
+        </dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Custom Metadata">
       <div ng-if="!serverGroup.launchConfig.instanceTemplate.properties.metadata.items.length">No custom metadata associated with this server group</div>
       <dl ng-if="serverGroup.launchConfig.instanceTemplate.properties.metadata.items.length">
-        <dt ng-repeat-start="metadata in serverGroup.launchConfig.instanceTemplate.properties.metadata.items">{{metadata.key}}</dt>
+        <dt ng-repeat-start="metadata in serverGroup.launchConfig.instanceTemplate.properties.metadata.items">
+          {{metadata.key}}
+          <help-field key="gce.serverGroup.customMetadata.{{metadata.key}}"></help-field>
+        </dt>
         <dd ng-repeat-end>{{metadata.value}}</dd>
       </dl>
     </collapsible-section>
