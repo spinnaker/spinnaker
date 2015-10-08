@@ -22,8 +22,8 @@ import configure_util
 
 from install.install_utils import fetch
 from install.google_install_loader import running_on_gce
-from install.google_install_loader import INSTANCE_METADATA_URL
-from install.google_install_loader import METADATA_URL
+from install.google_install_loader import GOOGLE_INSTANCE_METADATA_URL
+from install.google_install_loader import GOOGLE_METADATA_URL
 
 class ValidateConfig(object):
   def __init__(self, parameters=None):
@@ -35,8 +35,8 @@ class ValidateConfig(object):
 
   def validate(self):
     config_path = os.path.join(self.__config_dir, 'spinnaker_config.cfg')
-    self.verify_gce_scopes()
-    self.verify_gce_provider()
+    self.verify_google_scopes()
+    self.verify_google_provider()
     self.verify_aws_provider()
     self.verify_docker()
     self.verify_jenkins()
@@ -111,13 +111,15 @@ class ValidateConfig(object):
        .format(name=name, value=value))
     return False
 
-  def verify_gce_scopes(self):
+  def verify_google_scopes(self):
     if not running_on_gce():
+      return
+    if self.__bindings.get_variable('GOOGLE_ENABLED', '').lower() != 'true':
       return
 
     auth_url_path = 'https://www.googleapis.com/auth'
-    code, service_accounts = fetch(INSTANCE_METADATA_URL + '/service-accounts/',
-                           google=True)
+    code, service_accounts = fetch(
+        GOOGLE_INSTANCE_METADATA_URL + '/service-accounts/', google=True)
     if code != 200:
       service_accounts = ''
 
@@ -130,7 +132,7 @@ class ValidateConfig(object):
         account = account[0:-1]
 
       code, have = fetch(
-        os.path.join(INSTANCE_METADATA_URL, 'service-accounts',
+        os.path.join(GOOGLE_INSTANCE_METADATA_URL, 'service-accounts',
                      os.path.basename(account), 'scopes'),
         google=True)
 
@@ -175,8 +177,11 @@ class ValidateConfig(object):
 
     return ok
 
-  def verify_gce_provider(self):
-    code, project_id = fetch(METADATA_URL + '/project/project-id',
+  def verify_google_provider(self):
+    if self.__bindings.get_variable('GOOGLE_ENABLED', '').lower() != 'true':
+      return
+
+    code, project_id = fetch(GOOGLE_METADATA_URL + '/project/project-id',
                              google=True)
     if code != 200:
       project_id = None
@@ -193,6 +198,7 @@ class ValidateConfig(object):
                                      ':[a-z]([-a-z0-9]{0,61}[a-z0-9])?$')
     managed_project_id = self.__bindings.get_variable(
         'GOOGLE_PRIMARY_MANAGED_PROJECT_ID', '')
+
     ok = True
     if not managed_project_id:
       if not project_id:
@@ -212,12 +218,17 @@ class ValidateConfig(object):
         path = self.__bindings.get_variable('GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH',
                                             '')
         if not path:
-          ok = False
-          self.__errors.append(
-              'GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH is required because'
-              ' GOOGLE_PRIMARY_MANAGED_PROJECT_ID="{mid}"'
-              ' is not this project "{pid}".'
-              .format(mid=managed_project_id, pid=project_id))
+            ok = False
+            if project_id is None:
+              self.__errors.append(
+                  'GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH is required because'
+                  ' you are not running on Google Cloud Platform.')
+            else:
+              self.__errors.append(
+                  'GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH is required because'
+                  ' GOOGLE_PRIMARY_MANAGED_PROJECT_ID="{mid}"'
+                  ' is not this project "{pid}".'
+                  .format(mid=managed_project_id, pid=project_id))
         elif not os.path.exists(path):
           ok = False
           self.__errors.append(

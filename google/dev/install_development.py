@@ -107,7 +107,7 @@ def install_nvm(options):
 #  curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.26.0/install.sh | NVM_DIR=/usr/local/nvm bash
 
 
-  run_or_die('sudo cat > /etc/profile.d/nvm.sh', input=__NVM_SCRIPT)
+  run_or_die('sudo bash -c "cat > /etc/profile.d/nvm.sh"', input=__NVM_SCRIPT)
 
   print '---------- Installing Node {version} ---------'.format(
     version=NODE_VERSION)

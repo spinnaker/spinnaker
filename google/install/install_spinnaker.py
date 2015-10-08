@@ -79,7 +79,7 @@ def get_spinnaker_dir(options):
     path = options.spinnaker_dir or '/opt/spinnaker'
     if not os.path.exists(path):
         print 'Creating spinnaker_dir=' + path
-        os.makedirs(path)
+        safe_mkdir(path)
     return path
 
 
@@ -122,22 +122,28 @@ def init_argument_parser(parser):
         help='Nonstandard place to keep *-local.yml templates'
              ' to restore from when reconfiguring.')
 
+
 def safe_mkdir(dir):
-    try:
-      os.makedirs(dir)
-    except OSError:
-      pass
+    process = subprocess.Popen('sudo mkdir -p {dir}'.format(dir=dir),
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT, shell=True)
+    stdout, stderr = process.communicate()
+    if process.returncode:
+        raise RuntimeError('Could not create directory "{dir}": {error}'.format(
+            dir=dir, error=stdout))
 
 
 def start_copy_file(source, target):
    if source[0:3] == 'gs:':
-     args = ['gsutil', '-m', '-q', 'cp', source, target]
+     command = ('sudo bash -c'
+                ' "PATH=$PATH gsutil -m -q cp \"{source}\" \"{target}\""'
+                .format(source=source, target=target))
    else:
      # Use a shell to copy here to handle wildcard expansion.
-     args = ['bash', '-c', 'cp {source} {target}'.format(
-         source=source, target=target)]
+     command = 'sudo cp "{source}" "{target}"'.format(
+         source=source, target=target)
 
-   process = subprocess.Popen(args, stderr=subprocess.PIPE)
+   process = subprocess.Popen(command, stderr=subprocess.PIPE, shell=True)
    return process
 
 
@@ -171,7 +177,7 @@ def check_release_dir(options):
              ' Either specify a --release or a --release_path.')
     sys.stderr.write(error)
     raise ValueError(error)
-      
+
   if os.path.exists(options.release_path):
       return
 
@@ -319,9 +325,9 @@ def install_spinnaker(options):
 
   # Use chmod since +x is convienent.
   # Fork a shell to do the wildcard expansion.
-  run_or_die('bash -c "sudo chmod +x {files}"'
+  run_or_die('sudo chmod +x {files}'
              .format(files=os.path.join(spinnaker_dir, 'scripts/*.sh')))
-  run_or_die('bash -c "sudo chmod +x {files}"'
+  run_or_die('sudo chmod +x {files}'
              .format(files=os.path.join(spinnaker_dir, 'install/*.sh')))
 
 

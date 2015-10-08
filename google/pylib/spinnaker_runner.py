@@ -41,6 +41,43 @@ class Runner(object):
   # These are additional, optional subsystems.
   OPTIONAL_SUBSYSTEM_LIST=['rush', 'igor']
 
+  @property
+  def global_config_path(self):
+    return '{config_dir}/spinnaker_config.cfg'.format(
+        config_dir=self.__installation.CONFIG_DIR)
+
+  @property
+  def _first_time_use_instructions(self):
+    optional_defaults_if_on_gce = ''
+    if configure_util.is_google_instance():
+      optional_defaults_if_on_gce = """    #   NOTE: Since you are deployed on GCE:
+    #      * You do not need JSON credentials to manage project id "{gce_project}".
+""".format(gce_project=configure_util.fetch_my_google_project_or_die(None))
+
+    return """
+    {sudo}mkdir -p {config_dir}
+    {sudo}cp {template_dir}/default_spinnaker_config.cfg \\
+       {config_dir}/spinnaker_config.cfg
+    {sudo}chmod 600 {config_dir}/spinnaker_config.cfg
+
+    # edit {config_dir}/spinnaker_config.cfg to your liking:
+    #   If you want to deploy to Amazon Web Services:
+    #      * Add your AWS_ACCESS_KEY and AWS_SECRET_KEY.
+    #
+    #   If you want to deploy to Google Cloud Platform:
+    #      * Add your GOOGLE_PRIMARY_MANAGED_PROJECT_ID.
+    #      * Add your GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH.
+{optional_defaults_if_on_gce}
+    {sudo}{script_dir}/stop_spinnaker.sh
+    {sudo}{script_dir}/reconfigure_spinnaker.sh
+    {sudo}{script_dir}/start_spinnaker.sh
+""".format(
+  sudo='' if os.geteuid() else 'sudo ',
+  template_dir=self.__installation.CONFIG_TEMPLATE_DIR,
+  config_dir=self.__installation.CONFIG_DIR,
+  script_dir=self.__installation.UTILITY_SCRIPT_DIR,
+  optional_defaults_if_on_gce=optional_defaults_if_on_gce)
+
   def __init__(self, installation_parameters=None):
     self.__installation = (installation_parameters
                            or configure_util.InstallationParameters())
@@ -218,6 +255,13 @@ class Runner(object):
   def find_port(self, subsystem):
     path = os.path.join(self.__installation.CONFIG_DIR,
                         subsystem + '-local.yml')
+    if not os.path.exists(path):
+      raise SystemExit('ERROR: Expected configuration file {path}.\n'
+                       '       Run {sudo}{dir}/reconfigure_spinnaker.sh'
+                       .format(path=path,
+                               sudo='' if os.geteuid() else 'sudo ',
+                               dir=self.__installation.UTILITY_SCRIPT_DIR))
+
     with open(path, 'r') as f:
       data = yaml.load(f, Loader=yaml.Loader)
     return data['server']['port']
@@ -277,9 +321,7 @@ class Runner(object):
 
 
   def warn_if_configuration_looks_old(self):
-      global_config = '{config_dir}/spinnaker_config.cfg'.format(
-          config_dir=self.__installation.CONFIG_DIR)
-      global_stat = os.stat(global_config)
+      global_stat = os.stat(self.global_config_path)
       errors = 0
 
       for subsys in self.get_all_subsystem_names():
@@ -291,7 +333,7 @@ class Runner(object):
               errors += 1
               sys.stderr.write('WARNING: {config} is older than {baseline}\n'
                                .format(config=config_path,
-                               baseline=global_config))
+                                       baseline=self.global_config_path))
       if errors > 0:
          sys.stderr.write("""
 To fix this run the following:
@@ -312,7 +354,7 @@ Proceeding anyway.
     run('service apache2 start', echo=True)
 
   def start_all(self, options):
-    self.warn_if_configuration_looks_old()
+    self.check_configuration(options)
 
     self.stop_deck()
     try:
@@ -322,8 +364,12 @@ Proceeding anyway.
     self.start_dependencies()
 
     jobs = self.get_all_java_subsystem_jobs()
-    pid = self.maybe_start_job(jobs, 'gce-kms')
-    self.wait_for_service('gce-kms', pid)
+    if self.__bindings.get_variable(
+         'GOOGLE_ENABLED', 'false').lower() == 'false':
+      print 'Not using gce-kms because GOOGLE_ENABLED=false'
+    else:
+      pid = self.maybe_start_job(jobs, 'gce-kms')
+      self.wait_for_service('gce-kms', pid)
 
     self.start_spinnaker_subsystems(jobs)
     self.start_deck()
@@ -402,6 +448,19 @@ Proceeding anyway.
     parser.add_argument('component',
                         help='Name of component to start or stop, or ALL')
 
+  def check_configuration(self, options):
+    if not os.path.exists(self.global_config_path):
+      sys.stderr.write(
+          'ERROR: {path} does not exist.\n'
+          '       Spinnaker is probably not properly configured.\n\n'
+          'To configure spinnaker do the following: {first_time_use}\n'
+          .format(path=self.global_config_path,
+                  first_time_use=self._first_time_use_instructions))
+      sys.exit(-1)
+
+    self.warn_if_configuration_looks_old()
+
+
   @classmethod
   def main(cls):
     cls.check_java_version_or_die()
@@ -457,4 +516,8 @@ Proceeding anyway.
 
 
 if __name__ == '__main__':
+  if os.geteuid():
+    sys.stderr.write('ERROR: This script must be run with sudo.\n')
+    sys.exit(-1)
+
   Runner.main()
