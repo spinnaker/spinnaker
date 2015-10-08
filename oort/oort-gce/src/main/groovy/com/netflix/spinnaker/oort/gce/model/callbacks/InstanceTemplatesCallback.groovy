@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.netflix.spinnaker.oort.gce.model.callbacks
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
+import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceTemplate
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.mort.gce.model.GoogleSecurityGroup
@@ -32,17 +33,20 @@ class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<Inst
 
   private static final String LOAD_BALANCER_NAMES = "load-balancer-names"
 
+  private InstanceGroupManager instanceGroupManager
   private GoogleServerGroup googleServerGroup
   private GoogleCluster googleCluster
   private Set<GoogleSecurityGroup> googleSecurityGroups
   private Map<String, List<Map>> imageMap
   private String defaultBuildHost
 
-  public InstanceTemplatesCallback(GoogleServerGroup googleServerGroup,
+  public InstanceTemplatesCallback(InstanceGroupManager instanceGroupManager,
+                                   GoogleServerGroup googleServerGroup,
                                    GoogleCluster googleCluster,
                                    Set<GoogleSecurityGroup> googleSecurityGroups,
                                    Map<String, List<Map>> imageMap,
                                    String defaultBuildHost) {
+    this.instanceGroupManager = instanceGroupManager
     this.googleServerGroup = googleServerGroup
     this.googleCluster = googleCluster
     this.googleSecurityGroups = googleSecurityGroups
@@ -90,6 +94,12 @@ class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<Inst
               }
             }
           }
+
+          // The isDisabled property of a server group is set based on whether there are associated target pools.
+          def targetPoolLoadBalancerNames =
+            Utils.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(instanceGroupManager.getTargetPools())
+
+          googleServerGroup.setDisabled(targetPoolLoadBalancerNames.empty)
         }
       }
     }

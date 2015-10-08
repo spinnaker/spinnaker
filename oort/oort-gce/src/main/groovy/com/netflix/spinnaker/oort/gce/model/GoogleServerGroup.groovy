@@ -36,7 +36,7 @@ class GoogleServerGroup implements ServerGroup, Serializable {
   Map<String, Object> asg
   Set<String> securityGroups
   Map buildInfo
-  Boolean disabled = true
+  Boolean disabled = false
 
   private Map<String, Object> dynamicProperties = new HashMap<String, Object>()
 
