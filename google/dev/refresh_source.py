@@ -116,13 +116,22 @@ class Refresher(object):
                                .format(dir=name, url=upstream_url),
                                echo=False)
 
+      if self.__options.disable_upstream_push:
+          which = 'upstream' if origin_url != upstream_url else 'origin'
+          print '  Disabling git pushes to {which}'.format(which=which)
+          run_or_die_no_result(
+              'git -C {dir} remote set-url --push {which} disabled'
+              .format(dir=name, which=which),
+              echo=False)
+
   def pull_from_origin(self, repository):
       name = repository.name
+      owner = repository.owner
       if not os.path.exists(name):
           self.git_clone(repository)
           return
 
-      print 'Updating {name}'.format(name=name)
+      print 'Updating {name} from origin'.format(name=name)
       branch = self.get_branch_name(name)
       if branch != 'master':
           sys.stderr.write(
@@ -141,6 +150,8 @@ class Refresher(object):
           sys.stderr.write('Skipping {name} because it is in branch={branch}.\n'
                            .format(name=name, branch=branch))
           return
+
+      print 'Pulling master {name} from upstream'.format(name=name)
       run_or_die_no_result('git -C {name} pull upstream master'
                            .format(name=name),
                            echo=True)
@@ -157,6 +168,8 @@ class Refresher(object):
           sys.stderr.write('Skipping {name} because it is in branch={branch}.\n'
                            .format(name=name, branch=branch))
           return
+
+      print 'Pushing {name} to origin'.format(name=name)
       run_or_die_no_result('git -C {dir} push origin master'.format(dir=name),
                            echo=True)
 
@@ -165,12 +178,12 @@ class Refresher(object):
     for repository in all_repos:
         self.push_to_origin_if_master(repository)
 
-  def refresh_all_from_upstream_if_master(self):
+  def pull_all_from_upstream_if_master(self):
     all_repos = self.__REQUIRED_REPOSITORIES + self.__OPTIONAL_REPOSITORIES
     for repository in all_repos:
         self.pull_from_upstream_if_master(repository)
 
-  def refresh_all_from_origin(self):
+  def pull_all_from_origin(self):
     all_repos = self.__REQUIRED_REPOSITORIES + self.__OPTIONAL_REPOSITORIES
     for repository in all_repos:
         self.pull_from_origin(repository)
@@ -207,10 +220,8 @@ bash -c "(npm start >> $LOG_DIR/{name}.log) 2>&1\
   def update_spinnaker_run_scripts(self):
     for repository in self.__REQUIRED_REPOSITORIES:
       name = repository.name
-      try:
-        os.makedirs(name)
-      except OSError:
-        pass
+      if not os.path.exists(name):
+        continue
 
       if name == 'deck':
         self.write_deck_run_script(repository)
@@ -219,20 +230,57 @@ bash -c "(npm start >> $LOG_DIR/{name}.log) 2>&1\
 
   @classmethod
   def init_extra_argument_parser(cls, parser):
-      parser.add_argument('--refresh_master_from_upstream', default=False,
+      """Initialize additional arguments for managing remote repositories.
+
+      This is to sync the origin and upstream repositories. The intent
+      is to ultimately sync the origin from the upstream repository, but
+      this might be in two steps so the upstream can be verified [again]
+      before pushing the changes to the origin.
+      """
+
+      # Note that we only pull the master branch from upstream.
+      # Pulling other branches dont normally make sense.
+      parser.add_argument('--pull_upstream', default=False,
                           action='store_true',
                           help='If the local branch is master, then refresh it'
                                ' from the upstream repository.'
                                ' Otherwise leave as is.')
-      parser.add_argument('--norefresh_master_from_upstream',
-                          dest='Refresh_master_from_upstream',
+      parser.add_argument('--nopull_upstream',
+                          dest='pull_upstream',
                           action='store_false')
 
-      parser.add_argument('--push_master_to_origin', default=False,
+      parser.add_argument('--refresh_master_from_upstream',
+                          dest='pull_upstream',
+                          help='DEPRECATED '
+                               'If the local branch is master, then refresh it'
+                               ' from the upstream repository.'
+                               ' Otherwise leave as is.')
+      parser.add_argument('--norefresh_master_from_upstream',
+                          help='DEPRECATED',
+                          dest='pull_upstream',
+                          action='store_false')
+
+      # Note we only push master branches to origin.
+      # To push another branch, you must explicitly push it with git.
+      # Perhaps it could make sense to coordinate branches with a common name
+      # across multiple repositories to push a conceptual change touching
+      # multiple repositories, but for now we are being conservative with
+      # what we push.
+      parser.add_argument('--push_master', default=False,
                           action='store_true',
                           help='If the local branch is master then push it to'
                                ' the origin repository. Otherwise do not.')
+      parser.add_argument('--nopush_master',
+                          dest='push_master')
+
+      parser.add_argument('--push_master_to_origin', default=False,
+                          dest='push_master',
+                          action='store_true',
+                          help='DEPRECATED '
+                               'If the local branch is master then push it to'
+                               ' the origin repository. Otherwise do not.')
       parser.add_argument('--nopush_master_to_origin',
+                          help='DEPRECATED',
                           dest='push_master_to_origin')
 
   @classmethod
@@ -248,10 +296,26 @@ bash -c "(npm start >> $LOG_DIR/{name}.log) 2>&1\
       parser.add_argument('--noadd_upstream', dest='add_upstream',
                           action='store_false')
 
-      parser.add_argument('--refresh_from_origin', default=True,
+      parser.add_argument('--disable_upstream_push', default=True,
+                          action='store_true',
+                          help='Disable future pushes to the upstream'
+                               ' repository when cloning a repository.')
+      parser.add_argument('--nodisable_upstream_push',
+                          dest='disable_upstream_push',
+                          action='store_false')
+
+      parser.add_argument('--pull_origin', default=False,
                           action='store_true',
                           help='Refresh the local branch from the origin.')
-      parser.add_argument('--norefresh_from_origin', dest='refresh_from_origin',
+      parser.add_argument('--nopull_origin', dest='pull_origin',
+                          action='store_false')
+
+      parser.add_argument('--refresh_from_origin',
+                          dest='pull', action='store_true',
+                          help='DEPRECATED '
+                               'Refresh the local branch from the origin.')
+      parser.add_argument('--norefresh_from_origin', dest='pull',
+                          help='DEPRECATED',
                           action='store_false')
 
       parser.add_argument('--github_user', default=None,
@@ -267,15 +331,22 @@ bash -c "(npm start >> $LOG_DIR/{name}.log) 2>&1\
     options = parser.parse_args()
 
     builder = cls(options)
-    if options.refresh_master_from_upstream:
-        builder.refresh_all_from_upstream_if_master()
-    if options.push_master_to_origin:
+    nothing = True
+    if options.pull_upstream:
+        nothing = False
+        builder.pull_all_from_upstream_if_master()
+    if options.push_master:
+        nothing = False
         builder.push_all_to_origin_if_master()
-    if options.refresh_from_origin:
-        builder.refresh_all_from_origin()
-
+    if options.pull_origin:
+        nothing = False
+        builder.pull_all_from_origin()
     builder.update_spinnaker_run_scripts()
-    print 'DONE'
+
+    if nothing:
+      sys.stderr.write('No pull/push options were specified.\n')
+    else:
+      print 'DONE'
 
 
 if __name__ == '__main__':
