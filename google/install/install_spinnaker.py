@@ -200,11 +200,13 @@ ERROR: gsutil is required to retrieve the spinnaker release from GCS.
       sys.stderr.write(error)
       raise RuntimeError(error)
 
-  code = subprocess.Popen('gsutil ls ' + options.release_path, shell=True,
-                          stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
-  if code:
-      error = ('--release={dir} does not seem to exist within GCS.'
-               ' Check the permissions.\n'.format(dir=options.release_path))
+  process = subprocess.Popen('gsutil ls ' + options.release_path, shell=True,
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+  stdout, stderr = process.communicate()
+  if process.returncode:
+      error = ('--release_path={dir} does not seem to exist within GCS.\n'
+               'gsutil ls returned "{stdout}"\n'.format(
+                   dir=options.release_path, stdout=stdout.strip()))
       sys.stderr.write(error)
       raise RuntimeError(error)
 

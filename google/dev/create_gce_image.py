@@ -142,6 +142,14 @@ def init_argument_parser(parser):
     parser.add_argument('--image', default='', help='Name of image to create.')
     parser.add_argument('--image_project', default=default_project,
                         help='GCE project to write image to.')
+
+    # Would be nice to add --prototype_project separate from --target_project
+    # so you can build in a different project that might be more friendly
+    # to access control. However to create the image you need to specify a
+    # --source-disk which is in the same project as the target image. Therefore,
+    # the prototype instance being put on the source disk should be in the same
+    # project.
+
     parser.add_argument('--source_image_project', default='ubuntu-os-cloud')
     parser.add_argument('--source_image_family', default='ubuntu-1404',
                         help='Used to discover a specific source image if'
@@ -398,7 +406,7 @@ def make_image_tarball(options):
 def create_image(options):
   """Creates a GCE image or .tar.gz that can be used to create one later.
 
-  If --wreite_tarball_path was specified then this will produce the specified
+  If --write_tarball_path was specified then this will produce the specified
   tarball. That tarball can then be used later as the --source-uri parameter
   to "gcloud compute images create".
 
@@ -409,7 +417,7 @@ def create_image(options):
   if not options.release_path:
     error = ('--release_path cannot be empty.'
              ' Either specify a --release or a --release_path.')
-    raise ValueError(error)      
+    raise ValueError(error)
 
   if (options.write_tarball_path
       and not options.write_tarball_path.startswith('gs://')):
