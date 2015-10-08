@@ -11,18 +11,8 @@ import citest.service_testing as st
 import spinnaker_testing as sk
 import spinnaker_testing.gate as gate
 
-_TEST_DECORATOR = time.strftime('%Y%m%d%H%M%S')
-_IMAGE = 'ubuntu-1404-trusty-v20150909a'
 
 class ServerGroupTestScenario(sk.SpinnakerTestScenario):
-  app = 'servergrouptests%s' % _TEST_DECORATOR
-  stack = 'sg'
-  cluster_name = '%s-%s' % (app, stack)
-  server_group_name = '%s-v000' % cluster_name
-  cloned_server_group_name = '%s-v001' % cluster_name
-  lb_name = '%s-%s-frontend' % (app, stack)
-
-  path = 'applications/%s/tasks' % app
 
   @classmethod
   def new_agent(cls, bindings):
@@ -41,46 +31,68 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
     '''
     return gate.new_agent(bindings)
 
+  def __init__(self, bindings, agent):
+    super(ServerGroupTestScenario, self).__init__(bindings, agent)
+
+    # Our application name and path to post events to.
+    self.TEST_APP = bindings['TEST_APP']
+    self.__path = 'applications/%s/tasks' % self.TEST_APP
+
+    # The spinnaker stack decorator for our resources.
+    self.TEST_STACK = bindings['TEST_STACK']
+
+    self.TEST_REGION = bindings['TEST_GCE_REGION']
+    self.TEST_ZONE = bindings['TEST_GCE_ZONE']
+
+    # Resource names used among tests.
+    self.__cluster_name = '%s-%s' % (self.TEST_APP, self.TEST_STACK)
+    self.__server_group_name = '%s-v000' % self.__cluster_name
+    self.__cloned_server_group_name = '%s-v001' % self.__cluster_name
+    self.__lb_name = '%s-%s-fe' % (self.TEST_APP, self.TEST_STACK)
+
   def create_load_balancer(self):
     job = [{
       'cloudProvider': 'gce',
-      'loadBalancerName': self.lb_name,
+      'loadBalancerName': self.__lb_name,
       'ipProtocol': 'TCP',
       'portRange': '8080',
       'provider': 'gce',
-      'stack': self.stack,
+      'stack': self.TEST_STACK,
       'detail': 'frontend',
       'credentials': self.bindings['GCE_CREDENTIALS'],
-      'region': self.bindings['TEST_GCE_REGION'],
+      'region': self.TEST_REGION,
       'listeners': [{
         'protocol': 'TCP',
         'portRange': '8080',
         'healthCheck': False
       }],
-      'name': self.lb_name,
+      'name': self.__lb_name,
       'providerType': 'gce',
       'type': 'upsertAmazonLoadBalancer',
-      'availabilityZones': {self.bindings['TEST_GCE_REGION']: []},
+      'availabilityZones': {self.TEST_REGION: []},
       'user': 'integration-tests'
     }]
 
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Load Balancer Created', retryable_for_secs=30)
      .list_resources('forwarding-rules')
-     .contains('name', self.lb_name))
+     .contains('name', self.__lb_name))
 
-    payload = self.agent.make_payload(job, description='Server Group Tests - create load balancer', application=self.app)
+    payload = self.agent.make_payload(
+        job, description='Server Group Tests - create load balancer',
+        application=self.TEST_APP)
 
     return st.OperationContract(
-      self.new_post_operation(title='create_load_balancer', data=payload, path=self.path),
+      self.new_post_operation(
+          title='create_load_balancer', data=payload, path=self.__path),
       contract=builder.build())
 
   def create_instances(self):
     job = [{
-      'application': self.app,
-      'stack': self.stack,
+      'application': self.TEST_APP,
+      'stack': self.TEST_STACK,
       'credentials': self.bindings['GCE_CREDENTIALS'],
-      'zone': self.bindings['TEST_GCE_ZONE'],
+      'zone': self.TEST_ZONE,
       'network': 'default',
       'capacity': {
         'min': 1,
@@ -88,15 +100,15 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
         'desired': 1
       },
       'availabilityZones': {
-        self.bindings['TEST_GCE_REGION']: [self.bindings['TEST_GCE_ZONE']]
+        self.TEST_REGION: [self.TEST_ZONE]
       },
-      'loadBalancers': [self.lb_name],
+      'loadBalancers': [self.__lb_name],
       'instanceMetadata': {
-        'load-balancer-names': self.lb_name
+        'load-balancer-names': self.__lb_name
       },
       'cloudProvider': 'gce',
       'providerType': 'gce',
-      'image': _IMAGE,
+      'image': self.bindings['TEST_GCE_IMAGE_NAME'],
       'instanceType': 'f1-micro',
       'initialNumReplicas': 1,
       'type': 'linearDeploy',
@@ -107,12 +119,15 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Instance Created', retryable_for_secs=150)
      .list_resources('instance-groups')
-     .contains('name', self.server_group_name))
+     .contains('name', self.__server_group_name))
 
-    payload = self.agent.make_payload(job, description='Server Group Tests - create initial server group', application=self.app)
+    payload = self.agent.make_payload(
+        job, description='Server Group Tests - create initial server group',
+        application=self.TEST_APP)
 
     return st.OperationContract(
-      self.new_post_operation(title='create_instances', data=payload, path=self.path),
+      self.new_post_operation(
+          title='create_instances', data=payload, path=self.__path),
       contract=builder.build())
 
   def resize_server_group(self):
@@ -122,14 +137,14 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
         'max': 2,
         'desired': 2
       },
-      'replicaPoolName': self.server_group_name,
+      'replicaPoolName': self.__server_group_name,
       'numReplicas': 2,
-      'region': self.bindings['TEST_GCE_REGION'],
-      'zone': self.bindings['TEST_GCE_ZONE'],
-      'asgName': self.server_group_name,
+      'region': self.TEST_REGION,
+      'zone': self.TEST_ZONE,
+      'asgName': self.__server_group_name,
       'type': 'resizeServerGroup',
-      'regions': [self.bindings['TEST_GCE_REGION']],
-      'zones': [self.bindings['TEST_GCE_ZONE']],
+      'regions': [self.TEST_REGION],
+      'zones': [self.TEST_ZONE],
       'credentials': self.bindings['GCE_CREDENTIALS'],
       'cloudProvider': 'gce',
       'user': 'integration-tests'
@@ -137,43 +152,48 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
 
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Server Group Resized', retryable_for_secs=90)
-     .inspect_resource('instance-groups', self.server_group_name, ['--zone', self.bindings['TEST_GCE_ZONE']])
+     .inspect_resource('instance-groups',
+                       self.__server_group_name,
+                       ['--zone', self.TEST_ZONE])
      .contains_eq('size', 2))
 
-    payload = self.agent.make_payload(job, description='Server Group Tests - resize to 2 instances', application=self.app)
+    payload = self.agent.make_payload(
+        job, description='Server Group Tests - resize to 2 instances',
+        application=self.TEST_APP)
 
     return st.OperationContract(
-      self.new_post_operation(title='resize_instances', data=payload, path=self.path),
+      self.new_post_operation(
+          title='resize_instances', data=payload, path=self.__path),
       contract=builder.build())
 
   def clone_server_group(self):
     job = [{
-      'application': self.app,
-      'stack': self.stack,
+      'application': self.TEST_APP,
+      'stack': self.TEST_STACK,
       'credentials': self.bindings['GCE_CREDENTIALS'],
-      'loadBalancers': [self.lb_name],
+      'loadBalancers': [self.__lb_name],
       'capacity': {
         'min': 1,
         'max': 1,
         'desired': 1
       },
-      'zone': self.bindings['TEST_GCE_ZONE'],
+      'zone': self.TEST_ZONE,
       'network': 'default',
-      'instanceMetadata': {'load-balancer-names': self.lb_name},
-      'availabilityZones': {self.bindings['TEST_GCE_REGION']: [self.bindings['TEST_GCE_ZONE']]},
+      'instanceMetadata': {'load-balancer-names': self.__lb_name},
+      'availabilityZones': {self.TEST_REGION: [self.TEST_ZONE]},
       'cloudProvider': 'gce',
       'providerType': 'gce',
       'source': {
         'account': self.bindings['GCE_CREDENTIALS'],
-        'region': self.bindings['TEST_GCE_REGION'],
-        'zone': self.bindings['TEST_GCE_ZONE'],
-        'serverGroupName': self.server_group_name,
-        'asgName': self.server_group_name
+        'region': self.TEST_REGION,
+        'zone': self.TEST_ZONE,
+        'serverGroupName': self.__server_group_name,
+        'asgName': self.__server_group_name
       },
       'instanceType': 'f1-micro',
-      'image': 'ubuntu-1404-trusty-v20150909a',
+      'image': self.bindings['TEST_GCE_IMAGE_NAME'],
       'initialNumReplicas': 1,
-      'loadBalancers': [self.lb_name],
+      'loadBalancers': [self.__lb_name],
       'type': 'copyLastAsg',
       'account': self.bindings['GCE_CREDENTIALS'],
       'user': 'integration-tests'
@@ -182,24 +202,27 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Server Group Cloned', retryable_for_secs=90)
      .list_resources('managed-instance-groups')
-     .contains('baseInstanceName', self.cloned_server_group_name))
+     .contains('baseInstanceName', self.__cloned_server_group_name))
 
-    payload = self.agent.make_payload(job, description='Server Group Tests - clone server group', application=self.app)
+    payload = self.agent.make_payload(
+        job, description='Server Group Tests - clone server group',
+        application=self.TEST_APP)
 
     return st.OperationContract(
-      self.new_post_operation(title='clone_server_group', data=payload, path=self.path),
+      self.new_post_operation(
+          title='clone_server_group', data=payload, path=self.__path),
       contract=builder.build())
 
   def disable_server_group(self):
     job = [{
       'cloudProvider': 'gce',
-      'asgName': self.server_group_name,
-      'serverGroupName': self.server_group_name,
-      'region': self.bindings['TEST_GCE_REGION'],
-      'zone': self.bindings['TEST_GCE_ZONE'],
+      'asgName': self.__server_group_name,
+      'serverGroupName': self.__server_group_name,
+      'region': self.TEST_REGION,
+      'zone': self.TEST_ZONE,
       'type': 'disableServerGroup',
-      'regions': [self.bindings['TEST_GCE_REGION']],
-      'zones': [self.bindings['TEST_GCE_ZONE']],
+      'regions': [self.TEST_REGION],
+      'zones': [self.TEST_ZONE],
       'credentials': self.bindings['GCE_CREDENTIALS'],
       'user': 'integration-tests'
     }]
@@ -207,26 +230,30 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Server Group Disabled', retryable_for_secs=90)
      .list_resources('managed-instance-groups')
-     .contains('baseInstanceName', self.server_group_name)
-     .excludes_group([jc.PathContainsPredicate('baseInstanceName', self.server_group_name),
-                      jc.PathContainsPredicate('targetPools', 'https')]))
+     .contains('baseInstanceName', self.__server_group_name)
+     .excludes_group([
+         jc.PathContainsPredicate('baseInstanceName', self.__server_group_name),
+         jc.PathContainsPredicate('targetPools', 'https')]))
 
-    payload = self.agent.make_payload(job, description='Server Group Tests - disable server group', application=self.app)
+    payload = self.agent.make_payload(
+        job, description='Server Group Tests - disable server group',
+        application=self.TEST_APP)
 
     return st.OperationContract(
-      self.new_post_operation(title='disable_server_group', data=payload, path=self.path),
+      self.new_post_operation(
+          title='disable_server_group', data=payload, path=self.__path),
       contract=builder.build())
 
   def enable_server_group(self):
     job = [{
       'cloudProvider': 'gce',
-      'asgName': self.server_group_name,
-      'serverGroupName': self.server_group_name,
-      'region': self.bindings['TEST_GCE_REGION'],
-      'zone': self.bindings['TEST_GCE_ZONE'],
+      'asgName': self.__server_group_name,
+      'serverGroupName': self.__server_group_name,
+      'region': self.TEST_REGION,
+      'zone': self.TEST_ZONE,
       'type': 'enableServerGroup',
-      'regions': [self.bindings['TEST_GCE_REGION']],
-      'zones': [self.bindings['TEST_GCE_ZONE']],
+      'regions': [self.TEST_REGION],
+      'zones': [self.TEST_ZONE],
       'credentials': self.bindings['GCE_CREDENTIALS'],
       'user': 'integration-tests'
     }]
@@ -234,26 +261,30 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Server Group Enabled', retryable_for_secs=90)
      .list_resources('managed-instance-groups')
-     .contains_group([jc.PathContainsPredicate('baseInstanceName', self.server_group_name),
-                      jc.PathContainsPredicate('targetPools', 'https')]))
+     .contains_group([
+         jc.PathContainsPredicate('baseInstanceName', self.__server_group_name),
+         jc.PathContainsPredicate('targetPools', 'https')]))
 
-    payload = self.agent.make_payload(job, description='Server Group Tests - enable server group', application=self.app)
+    payload = self.agent.make_payload(
+        job, description='Server Group Tests - enable server group',
+        application=self.TEST_APP)
 
     return st.OperationContract(
-      self.new_post_operation(title='enable_server_group', data=payload, path=self.path),
+      self.new_post_operation(
+          title='enable_server_group', data=payload, path=self.__path),
       contract=builder.build())
 
   def destroy_server_group(self, version):
-    serverGroupName = '%s-%s' % (self.cluster_name, version)
+    serverGroupName = '%s-%s' % (self.__cluster_name, version)
     job = [{
       'cloudProvider': 'gce',
       'asgName': serverGroupName,
       'serverGroupName': serverGroupName,
-      'region': self.bindings['TEST_GCE_REGION'],
-      'zone': self.bindings['TEST_GCE_ZONE'],
+      'region': self.TEST_REGION,
+      'zone': self.TEST_ZONE,
       'type': 'destroyServerGroup',
-      'regions': [self.bindings['TEST_GCE_REGION']],
-      'zones': [self.bindings['TEST_GCE_ZONE']],
+      'regions': [self.TEST_REGION],
+      'zones': [self.TEST_ZONE],
       'credentials': self.bindings['GCE_CREDENTIALS'],
       'user': 'integration-tests'
     }]
@@ -263,16 +294,19 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
      .list_resources('managed-instance-groups')
      .excludes('baseInstanceName', serverGroupName))
 
-    payload = self.agent.make_payload(job, description='Server Group Tests - destroy server group', application=self.app)
+    payload = self.agent.make_payload(
+        job, description='Server Group Tests - destroy server group',
+        application=self.TEST_APP)
 
     return st.OperationContract(
-      self.new_post_operation(title='destroy_server_group', data=payload, path=self.path),
+      self.new_post_operation(
+          title='destroy_server_group', data=payload, path=self.__path),
       contract=builder.build())
 
   def delete_load_balancer(self):
     job = [{
-      "loadBalancerName": self.lb_name,
-      "networkLoadBalancerName": self.lb_name,
+      "loadBalancerName": self.__lb_name,
+      "networkLoadBalancerName": self.__lb_name,
       "region": "us-central1",
       "type": "deleteLoadBalancer",
       "regions": ["us-central1"],
@@ -284,16 +318,19 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Load Balancer Created', retryable_for_secs=30)
      .list_resources('forwarding-rules')
-     .excludes('name', self.lb_name))
+     .excludes('name', self.__lb_name))
 
-    payload = self.agent.make_payload(job, description='Server Group Tests - delete load balancer', application=self.app)
+    payload = self.agent.make_payload(
+        job, description='Server Group Tests - delete load balancer',
+        application=self.TEST_APP)
 
     return st.OperationContract(
-      self.new_post_operation(title='delete_load_balancer', data=payload, path=self.path),
+      self.new_post_operation(
+          title='delete_load_balancer', data=payload, path=self.__path),
       contract=builder.build())
 
 
-class ServerGroupIntegrationTest(st.AgentTestCase):
+class ServerGroupTest(st.AgentTestCase):
   def test_a_create_load_balancer(self):
     self.run_test_case(self.scenario.create_load_balancer())
 
@@ -323,9 +360,14 @@ class ServerGroupIntegrationTest(st.AgentTestCase):
 
 
 def main():
-  ServerGroupIntegrationTest.main(ServerGroupTestScenario)
+  defaults = {
+    'TEST_STACK': 'svrgrptst' + ServerGroupTest.DEFAULT_TEST_ID,
+    'TEST_APP': 'servergrouptest' + ServerGroupTest.DEFAULT_TEST_ID
+  }
+  return ServerGroupTest.main(
+      ServerGroupTestScenario, default_binding_overrides=defaults)
 
 
 if __name__ == '__main__':
-  main()
-  sys.exit(0)
+  result = main()
+  sys.exit(result)
