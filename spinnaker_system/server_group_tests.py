@@ -22,7 +22,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
   cloned_server_group_name = '%s-v001' % cluster_name
   lb_name = '%s-%s-frontend' % (app, stack)
 
-  path = 'applications/intg/tasks'
+  path = 'applications/%s/tasks' % app
 
   @classmethod
   def new_agent(cls, bindings):
@@ -44,7 +44,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
   def create_load_balancer(self):
     job = [{
       'cloudProvider': 'gce',
-      'networkLoadBalancerName': self.lb_name,
+      'loadBalancerName': self.lb_name,
       'ipProtocol': 'TCP',
       'portRange': '8080',
       'provider': 'gce',
@@ -91,7 +91,6 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
         self.bindings['TEST_GCE_REGION']: [self.bindings['TEST_GCE_ZONE']]
       },
       'loadBalancers': [self.lb_name],
-      'networkLoadBalancers': [self.lb_name],
       'instanceMetadata': {
         'load-balancer-names': self.lb_name
       },
@@ -174,7 +173,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
       'instanceType': 'f1-micro',
       'image': 'ubuntu-1404-trusty-v20150909a',
       'initialNumReplicas': 1,
-      'networkLoadBalancers': [self.lb_name],
+      'loadBalancers': [self.lb_name],
       'type': 'copyLastAsg',
       'account': self.bindings['GCE_CREDENTIALS'],
       'user': 'integration-tests'
@@ -194,8 +193,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
   def disable_server_group(self):
     job = [{
       'cloudProvider': 'gce',
-      'replicaPoolName': self.server_group_name,
-      'asgName': self.server_group_name,
+      'serverGroupName': self.server_group_name,
       'region': self.bindings['TEST_GCE_REGION'],
       'zone': self.bindings['TEST_GCE_ZONE'],
       'type': 'disableAsg',
@@ -222,8 +220,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
   def enable_server_group(self):
     job = [{
       'cloudProvider': 'gce',
-      'replicaPoolName': self.server_group_name,
-      'asgName': self.server_group_name,
+      'serverGroupName': self.server_group_name,
       'region': self.bindings['TEST_GCE_REGION'],
       'zone': self.bindings['TEST_GCE_ZONE'],
       'type': 'enableAsg',
