@@ -83,8 +83,10 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
       new TargetServerGroup(serverGroup: [name: "asg-v003", region: "eu-west-2"]),
     ]
     stage.beforeStages.size() == 0
-    stage.afterStages.size() == 2
-    stage.afterStages*.name == ["testSupportStage", "testSupportStage"]
+    stage.afterStages.size() == 3 // one for each region
+    stage.afterStages*.name == ["testSupportStage", "testSupportStage", "testSupportStage"]
+    stage.context.regions == ["us-east-1"]
+    stage.afterStages*.context.regions.flatten() == ["us-west-1", "us-west-2", "eu-west-2"]
   }
 
   @Unroll

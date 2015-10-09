@@ -81,20 +81,23 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
   }
 
   protected List<Map<String, Object>> buildStaticTargetDescriptions(Stage stage, List<TargetServerGroup> targets) {
-    Map<String, Map<String, Object>> descriptions = [:]
+    List<Map<String, Object>> descriptions = []
     for (target in targets) {
-      def location = target.getLocation()
-
       def description = new HashMap(stage.context)
-      if (descriptions.containsKey(target.name)) {
-        ((List<String>) descriptions.get(target.name).locations) << location.value
-      } else {
-        description.asgName = target.name
-        description.locations = [location.value]
-        descriptions[target.name as String] = description
+      description.asgName = target.name
+      description.serverGroupName = target.name
+
+      def location = target.getLocation()
+      if (location.type == Location.Type.ZONE) {
+        description.zone = location.value
+      } else if (location.type == Location.Type.REGION) {
+        // Clouddriver operations work with multiple values here, but we're choosing to only use 1 per operation.
+        description.regions = [location.value]
       }
+
+      descriptions << description
     }
-    descriptions.values().toList()
+    descriptions
   }
 
   private void composeDynamicTargets(Stage stage, TargetServerGroup.Params params) {
