@@ -39,7 +39,7 @@ describe('Service: executionService', function () {
           'applications',
           'deck',
           'pipelines',
-        ].join('/') + '?limit=5';
+        ].join('/') + '?limit=2';
 
       $httpBackend.expectGET(url).respond(200, []);
 
@@ -63,7 +63,7 @@ describe('Service: executionService', function () {
         'applications',
         'deck',
         'pipelines',
-      ].join('/') + '?limit=5';
+      ].join('/') + '?limit=2';
 
       $httpBackend.expectGET(url).respond(429, []);
 

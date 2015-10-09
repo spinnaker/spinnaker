@@ -36,7 +36,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
           'applications',
           application.name,
           'pipelines',
-        ].join('/') + '?limit=5',  //TODO: Oct 7, 2015: This is a temp fix to limit the amt of data coming back form orca.
+        ].join('/') + '?limit=2',  //TODO: Oct 7, 2015: This is a temp fix to limit the amt of data coming back form orca.
       }).then(
         function(resp) {
           deferred.resolve(resp.data);
