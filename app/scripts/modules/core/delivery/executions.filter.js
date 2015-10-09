@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.filter', [
   require('./timeBoundaries.service.js')
 ])
   .filter('executions', function(timeBoundaries) {
-    return function(executions, filter, grouping) {
+    return function(executions = [], filter, grouping) {
       return executions
         .filter(function(execution) {
           return [
