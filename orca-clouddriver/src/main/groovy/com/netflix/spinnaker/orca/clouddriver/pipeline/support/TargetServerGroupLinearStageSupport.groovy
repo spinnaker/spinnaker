@@ -88,10 +88,10 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
 
       def description = new HashMap(stage.context)
       if (descriptions.containsKey(serverGroup.name)) {
-        ((List<String>) descriptions.get(serverGroup.name).locations) << location
+        ((List<String>) descriptions.get(serverGroup.name).regions) << location
       } else {
         description.asgName = serverGroup.name
-        description.locations = [location]
+        description.regions = [location]
         descriptions[serverGroup.name as String] = description
       }
     }
