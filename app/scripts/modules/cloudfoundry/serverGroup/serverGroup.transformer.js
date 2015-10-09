@@ -18,6 +18,8 @@ module.exports = angular
       if (base.viewState.mode !== 'clone') {
         delete command.source;
       }
+      command.availabilityZones = {};
+      command.availabilityZones[command.region] = [base.zone];
       command.account = command.credentials;
       delete command.region;
       delete command.viewState;
