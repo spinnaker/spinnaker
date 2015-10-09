@@ -15,20 +15,23 @@ module.exports = angular.module('spinnaker.instance.instances.directive', [
       },
       link: function (scope, elem) {
         var $state = scope.$parent.$state;
-        scope.activeInstance = null;
+        let lastRender = '';
 
         var base = elem.parent().inheritedData('$uiView').state;
 
         function renderInstances() {
-          $('[data-toggle="tooltip"]', elem).tooltip('destroy').removeData();
+          scope.activeInstance = null;
           var instances = _.sortBy(scope.instances, 'launchTime');
-          elem.get(0).innerHTML = '<div class="instances">' + instances.map(function(instance) {
+          let innerHtml = '<div class="instances">' + instances.map(function(instance) {
               var id = instance.id,
                 activeClass = '';
               var params = {instanceId: instance.id, provider: instance.provider };
               if ($state.includes('**.instanceDetails', params)) {
                 activeClass = ' active';
                 scope.activeInstance = params;
+              }
+              if (scope.highlight === id) {
+                activeClass += ' highlighted';
               }
 
               return '<a title="' + id +
@@ -37,7 +40,12 @@ module.exports = angular.module('spinnaker.instance.instances.directive', [
                 '" class="instance health-status-' + instance.healthState + activeClass + '"></a>';
             }).join('') + '</div>';
 
-          $('[data-toggle="tooltip"]', elem).tooltip({placement: 'top', container: 'body'});
+          if (innerHtml !== lastRender) {
+            $('[data-toggle="tooltip"]', elem).tooltip('destroy');
+            elem.get(0).innerHTML = innerHtml;
+            $('[data-toggle="tooltip"]', elem).tooltip({placement: 'top', container: 'body', animation: false});
+            lastRender = innerHtml;
+          }
         }
 
         elem.click(function(event) {
@@ -73,11 +81,12 @@ module.exports = angular.module('spinnaker.instance.instances.directive', [
         scope.$on('$locationChangeSuccess', clearActiveState);
 
         scope.$on('$destroy', function() {
-          $('[data-toggle="tooltip"]', elem).tooltip('destroy').removeData();
+          $('[data-toggle="tooltip"]', elem).tooltip('destroy');
           elem.unbind('click');
         });
 
         scope.$watch('instances', renderInstances);
+        scope.$watch('highlight', renderInstances);
       }
     };
 }).name;

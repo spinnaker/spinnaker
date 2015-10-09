@@ -32,7 +32,7 @@
     </div>
     <div class="instance-list" ng-if="sortFilter.showAllInstances">
       <div ng-if="!sortFilter.listInstances">
-        <instances highlight="displayOptions.filter" instances="viewModel.instances"></instances>
+        <instances highlight="sortFilter.filter" instances="viewModel.instances"></instances>
       </div>
       <div ng-if="sortFilter.listInstances">
         <instance-list instances="viewModel.instances" sort-filter="sortFilter"></instance-list>
