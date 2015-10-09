@@ -70,7 +70,7 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
 
   void "should inject a stage after for each extra target when target is not dynamically bound"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "test", [:])
+    def stage = new PipelineStage(new Pipeline(), "test", ['regions':['should', 'be', 'overridden']])
 
     when:
     supportStage.composeTargets(stage)

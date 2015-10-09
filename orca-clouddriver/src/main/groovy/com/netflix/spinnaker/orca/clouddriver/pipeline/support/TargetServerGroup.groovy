@@ -30,9 +30,11 @@ class TargetServerGroup {
   // Delegates all Map interface calls to this object.
   @Delegate Map<String, Object> serverGroup
 
-  // All invocations of this method should use the full 'getLocations()' signature, instead of the shorthand dot way
-  // (i.e. "serverGroup.location"). Otherwise, the property 'location' is looked for in the serverGroup map, which is
-  // very likely not there.
+  /**
+   * All invocations of this method should use the full 'getLocation()' signature, instead of the shorthand dot way
+   * (i.e. "serverGroup.location"). Otherwise, the property 'location' is looked for in the serverGroup map, which is
+   * very likely not there.
+   */
   Location getLocation() {
     // All Google server group operations currently work with zones, not regions.
     if (serverGroup.type == "gce") {
