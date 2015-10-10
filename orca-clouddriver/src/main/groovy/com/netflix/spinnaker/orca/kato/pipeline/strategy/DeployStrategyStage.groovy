@@ -198,7 +198,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
     if (existingServerGroups) {
       if (stageData.regions?.size() > 1) {
         deprecationRegistry.logDeprecatedUsage("multiRegionHighlander", stageData.application)
-        log.warn("Pipeline uses more than 1 regions for the same cluster in a highlander deployment")
+        logger.warn("Pipeline uses more than 1 regions for the same cluster in a highlander deployment")
       }
       for (String region in stageData.regions) {
 
