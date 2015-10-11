@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForCapacityMatchTask
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeSupport
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
-import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.ResizeAsgTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.kato.tasks.WaitForCapacityMatchTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic

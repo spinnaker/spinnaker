@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
@@ -120,7 +120,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
 
     expect:
     !task.hasSucceeded(new PipelineStage(new Pipeline(), "", "", [:]), serverGroup, instances, null)
-    
+
     where:
     serverGroup << [null, [:], [asg: [], capacity : [],]]
 
@@ -299,11 +299,14 @@ class WaitForUpInstancesTaskSpec extends Specification {
     true         || 1               | ['a']               | [ [ health: [ [ type: 'a', state : "Up"] ] ] ]
     false        || 1               | ['b']               | [ [ health: [ [ type: 'a', state : "Down"] ] ] ]
     false        || 1               | ['b']               | [ [ health: [ [ type: 'a', state : "Up"] ] ] ]
-    true         || 1               | ['Amazon']          | [ [ health: [ [ type: 'Amazon', statue: "Unknown"] ] ] ]
+    true         || 1               | ['Amazon']          | [ [ health: [ [ type: 'Amazon', healthClass: 'platform', state: "Unknown"] ] ] ]
     false        || 1               | ['Amazon']          | [ [ health: [ [ type: 'Amazon', state: "Down"] ] ] ]
+    true         || 1               | ['GCE']             | [ [ health: [ [ type: 'GCE', healthClass: 'platform', state: "Unknown"] ] ] ]
+    false        || 1               | ['GCE']             | [ [ health: [ [ type: 'GCE', state: "Down"] ] ] ]
 
     // multiple health providers
-    true         || 1               | ['Amazon']          | [ [ health: [ [ type: 'Amazon', statue: "Unknown"], [ type: 'b', state : "Down"] ] ] ]
+    true         || 1               | ['Amazon']          | [ [ health: [ [ type: 'Amazon', healthClass: 'platform', state: "Unknown"], [ type: 'b', state : "Down"] ] ] ]
+    true         || 1               | ['GCE']             | [ [ health: [ [ type: 'GCE', healthClass: 'platform', state: "Unknown"], [ type: 'b', state : "Down"] ] ] ]
     true         || 1               | null                | [ [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Up"] ] ] ]
     false        || 1               | null                | [ [ health: [ [ type: 'a', state : "Down"], [ type: 'b', state : "Down"] ] ] ]
     false        || 1               | null                | [ [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Down"] ] ] ]

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceLinearStageSupport
@@ -23,12 +24,16 @@ import com.netflix.spinnaker.orca.kato.tasks.*
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
 class DisableAsgStage extends TargetReferenceLinearStageSupport {
   static final String PIPELINE_CONFIG_TYPE = "disableAsg"
+
+  @Autowired
+  Class<? extends Task> waitForAllInstancesDownOnDisableTaskType
 
   DisableAsgStage() {
     super(PIPELINE_CONFIG_TYPE)
@@ -40,7 +45,7 @@ class DisableAsgStage extends TargetReferenceLinearStageSupport {
 
     def step1 = buildStep(stage, "disableAsg", DisableAsgTask)
     def step2 = buildStep(stage, "monitorAsg", MonitorKatoTask)
-    def step3 = buildStep(stage, "waitForDownInstances", WaitForAllInstancesDownTask)
+    def step3 = buildStep(stage, "waitForDownInstances", waitForAllInstancesDownOnDisableTaskType)
     def step4 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     [step1, step2, step3, step4]
   }

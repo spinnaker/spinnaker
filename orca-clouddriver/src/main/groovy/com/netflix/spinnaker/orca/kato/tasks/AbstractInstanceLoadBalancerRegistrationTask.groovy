@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,10 +44,9 @@ abstract class AbstractInstanceLoadBalancerRegistrationTask implements Task {
       .toBlocking()
       .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-      "notification.type"        : getAction().toLowerCase(),
-      "kato.last.task.id"        : taskId,
-      "kato.task.id"             : taskId, // TODO retire this.
-      "relevant.health.providers": ["LoadBalancer"]
+      "notification.type"           : getAction().toLowerCase(),
+      "kato.last.task.id"           : taskId,
+      interestingHealthProviderNames: HealthHelper.getInterestingHealthProviderNames(stage, ["LoadBalancer"])
     ])
   }
 }

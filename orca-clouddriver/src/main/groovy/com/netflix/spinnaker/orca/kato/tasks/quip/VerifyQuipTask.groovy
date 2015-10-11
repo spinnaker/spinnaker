@@ -30,8 +30,8 @@ class VerifyQuipTask extends AbstractQuipTask implements Task {
     ArrayList healthProviders = stage.context?.healthProviders
     Map stageOutputs = [:]
     ExecutionStatus executionStatus = ExecutionStatus.SUCCEEDED
-    if (cluster && region && account && healthProviders && app && instances) {
-      stageOutputs.put("relevant.health.providers", healthProviders) // for waitForUpInstanceHealthTask
+    if (cluster && region && account && healthProviders != null && app && instances) {
+      stageOutputs.put("interestingHealthProviderNames", healthProviders) // for waitForUpInstanceHealthTask
 
       if(!checkInstancesForQuip(instances)) {
         throw new RuntimeException("quip is not running on all instances : ${instances}")

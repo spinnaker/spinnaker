@@ -18,9 +18,9 @@ package com.netflix.spinnaker.orca.kato.pipeline.gce
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.kato.tasks.WaitForDownInstanceHealthTask
-import com.netflix.spinnaker.orca.kato.tasks.gce.DeregisterInstancesFromGoogleLoadBalancerTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForDownInstanceHealthTask
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.kato.tasks.gce.DeregisterInstancesFromGoogleLoadBalancerTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic

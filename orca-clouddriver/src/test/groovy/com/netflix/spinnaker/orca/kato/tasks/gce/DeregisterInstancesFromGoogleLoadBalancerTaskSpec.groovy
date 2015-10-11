@@ -75,6 +75,6 @@ class DeregisterInstancesFromGoogleLoadBalancerTaskSpec extends Specification {
     then:
       result.status == ExecutionStatus.SUCCEEDED
       result.outputs."kato.last.task.id" == taskId
-      result.outputs."relevant.health.providers" == ["LoadBalancer"]
+      result.outputs.interestingHealthProviderNames == ["LoadBalancer"]
   }
 }

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
@@ -71,7 +72,7 @@ class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task {
 
     def suspendedProcesses = stage.context.suspendedProcesses as Set<String>
     if (suspendedProcesses?.contains("AddToLoadBalancer")) {
-      outputs.interestingHealthProviderNames = ["Amazon"]
+      outputs.interestingHealthProviderNames = HealthHelper.getInterestingHealthProviderNames(stage, ["Amazon"])
     }
 
     return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)

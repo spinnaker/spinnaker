@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,20 +29,26 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class RebootInstancesTask implements Task {
+class RebootInstancesTask extends AbstractCloudProviderAwareTask implements Task {
+  static final String CLOUD_OPERATION_TYPE = "rebootInstances"
+
   @Autowired
   KatoService kato
 
   @Override
   TaskResult execute(Stage stage) {
-    def taskId = kato.requestOperations([[rebootInstancesDescription: stage.context]])
-      .toBlocking()
-      .first()
+    String cloudProvider = getCloudProvider(stage)
+    String account = getCredentials(stage)
+
+    def taskId = kato.requestOperations(cloudProvider, [[(CLOUD_OPERATION_TYPE): stage.context]])
+                     .toBlocking()
+                     .first()
+
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-      "notification.type"        : "rebootinstances",
-      "kato.last.task.id"        : taskId,
-      "kato.task.id"             : taskId, // TODO retire this.
-      "relevant.health.providers": ["Discovery"]
+      "notification.type"           : "rebootinstances",
+      "reboot.account.name"         : account,
+      "kato.last.task.id"           : taskId,
+      interestingHealthProviderNames: HealthHelper.getInterestingHealthProviderNames(stage, ["Discovery"])
     ])
   }
 }
