@@ -80,6 +80,12 @@ module.exports = angular.module('spinnaker.pipelines.config.stage', [
       }
       $scope.stage = $scope.pipeline.stages[$scope.viewState.stageIndex];
 
+      if (!$scope.stage.type) {
+        $scope.options.selectedStageType = null;
+      } else {
+        $scope.options.selectedStageType = $scope.stage.type;
+      }
+
       $scope.updateAvailableDependencyStages();
       var type = $scope.stage.type,
           stageScope = $scope.$new();
@@ -146,7 +152,7 @@ module.exports = angular.module('spinnaker.pipelines.config.stage', [
     $scope.$watch('stage.type', this.selectStage);
     $scope.$watch('viewState.stageIndex', this.selectStage);
   })
-  .controller('RestartStageCtrl', function($scope, $stateParams, $http, Restangular, confirmationModalService, settings) {
+  .controller('RestartStageCtrl', function($scope, $stateParams, $http, Restangular, confirmationModalService) {
     var restartStage = function () {
       return Restangular.one('pipelines', $stateParams.executionId).one('stages', $scope.stage.id).one('restart')
         .customPUT({skip: false})
