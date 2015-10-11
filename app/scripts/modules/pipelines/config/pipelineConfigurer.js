@@ -148,6 +148,10 @@ module.exports = angular.module('spinnaker.pipelines.config.pipelineConfigurer',
     };
 
     this.navigateToStage = function(index, event) {
+      if (index < 0 || !$scope.pipeline.stages || $scope.pipeline.stages.length <= index) {
+        $scope.viewState.section = 'triggers';
+        return;
+      }
       $scope.viewState.section = 'stage';
       $scope.viewState.stageIndex = index;
       if (event && event.target && event.target.focus) {
@@ -291,5 +295,7 @@ module.exports = angular.module('spinnaker.pipelines.config.pipelineConfigurer',
     $scope.$watch('viewState.original', markDirty, true);
     $scope.$watch('viewState', cacheViewState, true);
     $scope.$watch('pipeline.name', cacheViewState);
+
+    this.navigateTo($scope.viewState.section, $scope.viewState.stageIndex);
 
   }).name;
