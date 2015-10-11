@@ -67,7 +67,7 @@ module.exports = angular.module('spinnaker.scheduler', [
         var deferred = $q.defer();
         promise.then(
           function(result) {
-            scheduler.onNext();
+            scheduleImmediate();
             deferred.resolve(result);
           },
           function(error) {
