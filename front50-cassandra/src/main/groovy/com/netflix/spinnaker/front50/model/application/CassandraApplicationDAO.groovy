@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component
 class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<ContextRefreshedEvent> {
   private static final MapSerializer<String, String> mapSerializer = new MapSerializer<String, String>(UTF8Type.instance, UTF8Type.instance)
   private static final ListSerializer<String> listSerializer = new ListSerializer(UTF8Type.instance)
-  private static final Set<String> BUILT_IN_FIELDS = ["name", "description", "email", "updatets", "createts"]
+  private static final Set<String> BUILT_IN_FIELDS = ["name", "description", "email", "updatets", "createts", "cloudproviders"]
 
   private static final String CF_NAME = 'application'
   private static final String TEST_QUERY = '''select * from application;'''
@@ -75,6 +75,7 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
                 createts varchar,
                 accounts list<text>,
                 details map<text,text>,
+                cloudproviders list<text>,
                 PRIMARY KEY (name)
              ) with compression={};''').execute()
     }
@@ -84,6 +85,13 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
       runQuery("select accounts from application")
     } catch (BadRequestException ignored) {
       runQuery("ALTER TABLE application ADD accounts list<text>")
+    }
+
+    try {
+      // migrate schema on the fly, will be removed once all environments are done.
+      runQuery("select cloudproviders from application")
+    } catch (BadRequestException ignored) {
+      runQuery("ALTER TABLE application ADD cloudproviders list<text>")
     }
   }
 
@@ -209,6 +217,12 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
         accounts.addAll(accountsColumn.getValue(listSerializer))
       }
 
+      def cloudProvidersColumn = columns.getColumnByName("cloudproviders")
+      def cloudProviders = []
+      if (cloudProvidersColumn?.hasValue()) {
+        cloudProviders.addAll(cloudProvidersColumn.getValue(listSerializer))
+      }
+
       return new Application(
           name: getStringValue('name'),
           description: getStringValue('description'),
@@ -223,6 +237,7 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
           repoType: details.repoType ?: null,
           tags: details.tags ?: null,
           regions: details.regions ?: null,
+          cloudProviders: cloudProviders ? cloudProviders.join(",") : null,
           accounts: accounts ? accounts.join(",") : null,
           updateTs: getStringValue('updatets'),
           createTs: getStringValue('createts')
@@ -273,6 +288,12 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
     if (detailFields) {
       fields << "details"
       values << attributes.subMap(detailFields)
+    }
+
+    def cloudProviders = insertAttributes.remove("cloudproviders")
+    if (cloudProviders) {
+      fields << "cloudproviders"
+      values << cloudProviders.split(",").collect { it.trim().toLowerCase() }
     }
 
     def cql = """INSERT INTO application (${fields.join(",")}) VALUES (${fields.collect { "?" }.join(",")});"""
