@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks.aws
+
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
@@ -32,8 +33,8 @@ import java.util.concurrent.TimeUnit
 /**
  * Created by aglover on 7/10/14.
  */
-class WaitForAllInstancesDownTaskSpec extends Specification {
-  @Subject task = new WaitForAllInstancesDownTask()
+class WaitForAllNetflixAWSInstancesDownTaskSpec extends Specification {
+  @Subject task = new WaitForAllNetflixAWSInstancesDownTask()
 
   @Shared
   def oneHourAgo = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(1)

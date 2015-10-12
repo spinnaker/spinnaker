@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -23,11 +22,10 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 
-@CompileStatic
 abstract class AbstractWaitForInstanceHealthChangeTask implements RetryableTask {
   long backoffPeriod = 5000
   long timeout = 3600000
@@ -40,9 +38,13 @@ abstract class AbstractWaitForInstanceHealthChangeTask implements RetryableTask 
 
   @Override
   TaskResult execute(Stage stage) {
+    if (stage.context.interestingHealthProviderNames != null && ((List)stage.context.interestingHealthProviderNames).isEmpty()) {
+      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    }
+
     String region = stage.context.region as String
     String account = (stage.context.account ?: stage.context.credentials) as String
-    List<String> healthProviderTypesToCheck = (stage.context."relevant.health.providers" ?: []) as List<String>
+    List<String> healthProviderTypesToCheck = stage.context.interestingHealthProviderNames as List<String>
 
     def instanceIds = getInstanceIds(stage)
     if (!instanceIds) {
@@ -51,10 +53,8 @@ abstract class AbstractWaitForInstanceHealthChangeTask implements RetryableTask 
 
     def stillRunning = instanceIds.find {
       def instance = getInstance(account, region, it)
+      def healths = HealthHelper.filterHealths(instance, healthProviderTypesToCheck)
 
-      def healths = instance.health.findAll { Map health ->
-        return healthProviderTypesToCheck ? healthProviderTypesToCheck.contains(health.type) : true
-      } as List<Map>
       return !hasSucceeded(healths)
     }
 

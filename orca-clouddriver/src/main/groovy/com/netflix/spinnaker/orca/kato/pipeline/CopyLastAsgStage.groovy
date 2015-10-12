@@ -15,12 +15,12 @@
  */
 
 package com.netflix.spinnaker.orca.kato.pipeline
+import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForUpInstancesTask
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.DeployStrategyStage
 import com.netflix.spinnaker.orca.kato.tasks.CreateCopyLastAsgTask
 import com.netflix.spinnaker.orca.kato.tasks.DiffTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.kato.tasks.WaitForUpInstancesTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step

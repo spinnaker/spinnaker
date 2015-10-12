@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import groovy.transform.CompileStatic
 import org.springframework.stereotype.Component

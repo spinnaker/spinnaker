@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.orca.kato.tasks
+
+package com.netflix.spinnaker.orca.clouddriver.tasks
+
 import spock.lang.Specification
 import spock.lang.Subject
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.kato.tasks.WaitForUpInstanceHealthTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForUpInstanceHealthTask
 import com.netflix.spinnaker.orca.kato.tasks.quip.InstanceHealthCheckTask
 import com.netflix.spinnaker.orca.kato.tasks.quip.MonitorQuipTask
 import com.netflix.spinnaker.orca.kato.tasks.quip.TriggerQuipTask

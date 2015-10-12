@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,43 +14,35 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
+import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
-
-import java.util.concurrent.TimeUnit
 
 @Component
 class WaitForAllInstancesDownTask extends AbstractWaitingForInstancesTask {
   @Override
   protected boolean hasSucceeded(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
-    def oneHourAgo = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(1)
-
     if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
       return true
     }
 
-    def maximumNumberOfHealthProviders = (instances.health*.type).unique().size()
-    instances.every {
-      def healths = interestingHealthProviderNames ? it.health.findAll { health ->
-        health.type in interestingHealthProviderNames
-      } : it.health
+    instances.every { instance ->
+      List<Map> healths = HealthHelper.filterHealths(instance, interestingHealthProviderNames)
 
       if (!interestingHealthProviderNames && !healths) {
-        // no health indications (and no specific providers to check), consider instance to be down
+        // No health indications (and no specific providers to check), consider instance to be down.
         return true
       }
 
-      if (healths.size() == 1 && maximumNumberOfHealthProviders > 1) {
-        if (healths[0].type == "Amazon" && healths[0].state == "Unknown" && it.launchTime <= oneHourAgo) {
-          // Consider an instance down if it's > 1hr old and only has an Amazon health provider (and there are > 1 configured health providers)
-          return true
-        }
+      if (HealthHelper.isDownConsideringPlatformHealth(healths)) {
+        return true
       }
 
       boolean someAreDown = healths.any { it.state == 'Down' || it.state == 'OutOfService' }
       boolean noneAreUp = !healths.any { it.state == 'Up' }
+
       return someAreDown && noneAreUp
     }
   }

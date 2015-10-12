@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names

@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
+import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
 @Component
-@CompileStatic
 @Slf4j
 class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
 
@@ -55,14 +54,10 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
     }
 
     def healthyCount = instances.count { Map instance ->
-      def healths = interestingHealthProviderNames ? instance.health.findAll { Map health ->
-        health.type in interestingHealthProviderNames
-      } : instance.health
+      List<Map> healths = HealthHelper.filterHealths(instance, interestingHealthProviderNames)
       boolean someAreUp = healths.any { Map health -> health.state == 'Up' }
-      if (interestingHealthProviderNames?.contains("Amazon")) {
-        // given that Amazon health never reports as 'Up' (only 'Unknown') we can only verify it isn't 'Down'.
-        someAreUp = someAreUp || healths.any { Map health -> health.type == 'Amazon' && health.state != 'Down' }
-      }
+      someAreUp = HealthHelper.areSomeUpConsideringPlatformHealth(healths, interestingHealthProviderNames, someAreUp)
+
       boolean noneAreDown = !healths.any { Map health -> health.state == 'Down' }
       someAreUp && noneAreDown
     }
@@ -71,15 +66,15 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
   }
 
   private static int calculateTargetDesiredSize(Stage stage, Map serverGroup) {
-    // favor using configured target capacity whenever available (rather than in-progress asg's desiredCapacity)
+    // favor using configured target capacity whenever available (rather than in-progress server group's desiredCapacity)
     Map capacity = (Map) serverGroup.capacity
     Integer targetDesiredSize = capacity.desired as Integer
 
     if (stage.context.capacitySnapshot) {
       Integer snapshotCapacity = ((Map) stage.context.capacitySnapshot).desiredCapacity as Integer
-      // if the ASG is being actively scaled down, this operation might never complete,
-      // so take the min of the latest capacity from the ASG and the snapshot
-      log.info("${serverGroup.name}: Calculating target desired size from snapshot (${snapshotCapacity}) and ASG (${targetDesiredSize})")
+      // if the server group is being actively scaled down, this operation might never complete,
+      // so take the min of the latest capacity from the server group and the snapshot
+      log.info("${serverGroup.name}: Calculating target desired size from snapshot (${snapshotCapacity}) and server group (${targetDesiredSize})")
       targetDesiredSize = Math.min(targetDesiredSize, snapshotCapacity)
     }
 

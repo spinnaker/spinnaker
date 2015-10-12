@@ -6,6 +6,8 @@ import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForDownInstanceHealthTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForUpInstanceHealthTask
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.config.OrcaPersistenceConfiguration

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Google, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.pipeline.gce
+package com.netflix.spinnaker.orca.clouddriver.pipeline
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.kato.tasks.gce.ResetGoogleInstancesTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.RebootInstancesTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForDownInstanceHealthTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForUpInstanceHealthTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
@@ -26,20 +28,19 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class RebootGoogleInstancesStage extends LinearStage {
+class RebootInstancesStage extends LinearStage {
+  public static final String PIPELINE_CONFIG_TYPE = "rebootInstances"
 
-  public static final String PIPELINE_CONFIG_TYPE = "rebootInstances_gce"
-
-  RebootGoogleInstancesStage() {
+  RebootInstancesStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "rebootInstances", ResetGoogleInstancesTask)
-    def step2 = buildStep(stage, "monitorReset", MonitorKatoTask)
-    // TODO(ewiseblatt): 20150322
-    // Determine if there is a way to verify that a GCE instance has been reset
-    [step1, step2]
+    def step1 = buildStep(stage, "rebootInstances", RebootInstancesTask)
+    def step2 = buildStep(stage, "monitorReboot", MonitorKatoTask)
+    def step3 = buildStep(stage, "waitForDownInstances", WaitForDownInstanceHealthTask)
+    def step4 = buildStep(stage, "waitForUpInstances", WaitForUpInstanceHealthTask)
+    [step1, step2, step3, step4]
   }
 }
