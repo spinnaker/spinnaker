@@ -31,7 +31,7 @@ describe('Service: executionService', function () {
     expect(executionService).toBeDefined();
   });
 
-  describe('when fetching piplines', function () {
+  describe('when fetching pipelines', function () {
 
     it('should resolve the promise if a 200 response is received with empty array', function(){
       let url = [
@@ -39,7 +39,7 @@ describe('Service: executionService', function () {
           'applications',
           'deck',
           'pipelines',
-        ].join('/') + '?limit=2';
+        ].join('/');
 
       $httpBackend.expectGET(url).respond(200, []);
 
@@ -63,7 +63,7 @@ describe('Service: executionService', function () {
         'applications',
         'deck',
         'pipelines',
-      ].join('/') + '?limit=2';
+      ].join('/');
 
       $httpBackend.expectGET(url).respond(429, []);
 
