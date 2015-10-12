@@ -31,12 +31,12 @@ class HealthHelper {
   }
 
   /**
-   * If interestingHealthProviderNames is a non-empty list, return all matching healths (that is, return the
-   * intersection of the health providers deemed interesting and the healths defined on the instance). Otherwise,
-   * return all healths defined on the instance.
+   * If interestingHealthProviderNames is not null, return all matching healths (that is, return the intersection of the
+   * health providers deemed interesting and the healths defined on the instance). Otherwise, return all healths defined
+   * on the instance.
    */
   static List<Map> filterHealths(Map instance, Collection<String> interestingHealthProviderNames) {
-    return interestingHealthProviderNames ? instance.health.findAll { health ->
+    return interestingHealthProviderNames != null ? instance.health.findAll { health ->
       health.type in interestingHealthProviderNames
     } : instance.health
   }
@@ -54,7 +54,7 @@ class HealthHelper {
    if (platformHealth && interestingHealthProviderNames?.contains(platformHealth.type)) {
      // Given that platform health (e.g. 'Amazon' or 'GCE') never reports as 'Up' (only 'Unknown') we can only verify it
      // isn't 'Down'.
-     someAreUp = someAreUp || healths.any { Map health -> health.type == platformHealth.type && health.state != 'Down' }
+     someAreUp = someAreUp || platformHealth.state != 'Down'
    }
 
    return someAreUp
