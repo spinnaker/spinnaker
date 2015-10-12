@@ -16,18 +16,18 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
+import com.netflix.spinnaker.orca.DebugSupport
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 
 abstract class AbstractWaitingForInstancesTask extends AbstractInstancesCheckTask {
   @Override
   protected Map<String, List<String>> getServerGroups(Stage stage) {
-    def key = "disableAsg"
     Map<String, List<String>> serverGroups = [:]
 
-    if (stage.context.containsKey("targetop.asg.enableAsg.name")) {
-      key = "enableAsg"
+    def keys = ["disableAsg", "enableAsg", "enableServerGroup", "disableServerGroup"]
+    def key = keys.find { String k ->
+      return stage.context.containsKey("targetop.asg.${k}.name".toString()) // stoopud gstrings.
     }
-
     String asgName = stage.context."targetop.asg.${key}.name".toString()
     List<String> regions = stage.context."targetop.asg.${key}.regions"
 
@@ -38,7 +38,7 @@ abstract class AbstractWaitingForInstancesTask extends AbstractInstancesCheckTas
     } else {
       regions.each { region ->
         if (!serverGroups.containsKey(region)) {
-          serverGroups[region] = [asgName]
+          serverGroups[region] = []
         }
         serverGroups[region] << asgName
       }
