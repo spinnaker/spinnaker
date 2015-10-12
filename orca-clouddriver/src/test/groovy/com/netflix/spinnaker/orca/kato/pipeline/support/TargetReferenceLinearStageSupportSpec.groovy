@@ -84,10 +84,10 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
     stage.afterStages*.name == ["targetReferenceLinearStageSupportStage", "targetReferenceLinearStageSupportStage"]
     1 * targetReferenceSupport.isDynamicallyBound(stage) >> false
     1 * targetReferenceSupport.getTargetAsgReferences(stage) >> [
-      new TargetReference(region: "us-east-1", asg: [ name: "asg-v001" ]),
-      new TargetReference(region: "us-west-1", asg: [ name: "asg-v001" ]),
-      new TargetReference(region: "us-west-2", asg: [ name: "asg-v002" ]),
-      new TargetReference(region: "eu-west-2", asg: [ name: "asg-v003" ]),
+      new TargetReference(region: "us-east-1", asg: [name: "asg-v001"]),
+      new TargetReference(region: "us-west-1", asg: [name: "asg-v001"]),
+      new TargetReference(region: "us-west-2", asg: [name: "asg-v002"]),
+      new TargetReference(region: "eu-west-2", asg: [name: "asg-v003"]),
     ]
   }
 
@@ -105,6 +105,30 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
     thrown TargetReferenceNotFoundException
     1 * targetReferenceSupport.isDynamicallyBound(stage) >> false
     1 * targetReferenceSupport.getTargetAsgReferences(stage) >> []
+  }
+
+  void "should be able to resolve parameters from strategy configuration"() {
+    given:
+    def targetReferenceSupport = Mock(TargetReferenceSupport)
+    def supportStage = new TargetReferenceLinearStageSupportStage()
+    def stage = new PipelineStage(new Pipeline(), "test", [:])
+    supportStage.targetReferenceSupport = targetReferenceSupport
+
+    stage.execution.appConfig.strategy = true
+    stage.execution.appConfig.strategyConfig = [
+      regions    : ['us-west-1'],
+      credentials: 'test',
+      cluster    : 'myappcluster'
+    ]
+
+    when:
+    supportStage.composeTargets(stage)
+
+    then:
+    thrown TargetReferenceNotFoundException
+    stage.context.regions == ['us-west-1']
+    stage.context.credentials == 'test'
+    stage.context.cluster == 'myappcluster'
   }
 
   class TargetReferenceLinearStageSupportStage extends TargetReferenceLinearStageSupport {
