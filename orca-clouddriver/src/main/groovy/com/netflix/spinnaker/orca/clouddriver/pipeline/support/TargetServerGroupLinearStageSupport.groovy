@@ -81,21 +81,23 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
   }
 
   protected List<Map<String, Object>> buildStaticTargetDescriptions(Stage stage, List<TargetServerGroup> targets) {
-    Map<String, Map<String, Object>> descriptions = [:]
+    List<Map<String, Object>> descriptions = []
     for (target in targets) {
-      def location = target.location
-      def serverGroup = target.serverGroup
-
       def description = new HashMap(stage.context)
-      if (descriptions.containsKey(serverGroup.name)) {
-        ((List<String>) descriptions.get(serverGroup.name).regions) << location
-      } else {
-        description.asgName = serverGroup.name
-        description.regions = [location]
-        descriptions[serverGroup.name as String] = description
+      description.asgName = target.name
+      description.serverGroupName = target.name
+
+      def location = target.getLocation()
+      if (location.type == Location.Type.ZONE) {
+        description.zone = location.value
+      } else if (location.type == Location.Type.REGION) {
+        // Clouddriver operations work with multiple values here, but we're choosing to only use 1 per operation.
+        description.regions = [location.value]
       }
+
+      descriptions << description
     }
-    descriptions.values().toList()
+    descriptions
   }
 
   private void composeDynamicTargets(Stage stage, TargetServerGroup.Params params) {
@@ -107,10 +109,13 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
       return
     }
 
-    def configuredLocations = params.locations
+    def locationValues = params.locations.collect { it.value }
     Map dtsgContext = new HashMap(stage.context)
-    dtsgContext.regions = new ArrayList(configuredLocations)
-    stage.context.regions = [configuredLocations.remove(0)]
+    dtsgContext.regions = new ArrayList(locationValues)
+
+    // The original stage.context object is reused here because concrete subclasses must actually perform the requested
+    // operation. All future copies of the subclass (operating on different regions/zones) use a copy of the context.
+    stage.context.regions = [locationValues.remove(0)]
 
     preDynamic(stage.context).each {
       injectBefore(stage, it.name, it.stage, it.context)
@@ -119,11 +124,11 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
       injectAfter(stage, it.name, it.stage, it.context)
     }
 
-    for (location in configuredLocations) {
+    for (location in locationValues) {
       def ctx = new HashMap(stage.context)
       ctx.regions = [location]
       preDynamic(ctx).each {
-        // Operations done after the first iteration must all be added with injectAfter.
+        // Operations done after the first pre-postDynamic injection must all be added with injectAfter.
         injectAfter(stage, it.name, it.stage, it.context)
       }
       injectAfter(stage, name, this, ctx)

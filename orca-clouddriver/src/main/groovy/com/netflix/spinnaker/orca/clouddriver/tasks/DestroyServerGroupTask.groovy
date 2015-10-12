@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -66,11 +67,12 @@ class DestroyServerGroupTask extends AbstractCloudProviderAwareTask implements T
 
     if (TargetServerGroup.isDynamicallyBound(stage)) {
       def tsg = TargetServerGroupResolver.fromPreviousStage(stage)
-      context.asgName = tsg.cluster
-      context.serverGroupName = tsg.cluster
+      context.asgName = tsg.name
+      context.serverGroupName = tsg.name
 
-      if (context.zones && context.zones.contains(tsg.location)) {
-        context.zone = tsg.location
+      def location = tsg.getLocation()
+      if (location.type == Location.Type.ZONE) {
+        context.zone = location.value
         context.remove("zones")
       }
     }

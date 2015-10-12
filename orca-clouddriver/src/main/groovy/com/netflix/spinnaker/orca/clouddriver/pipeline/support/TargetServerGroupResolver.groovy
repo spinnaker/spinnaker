@@ -48,7 +48,7 @@ class TargetServerGroupResolver {
       return []
     }
 
-    return params.locations.collect { String location ->
+    return params.locations.collect { Location location ->
       if (params.target) {
         return resolveByTarget(params, location)
       } else if (params.asgName) {
@@ -58,22 +58,22 @@ class TargetServerGroupResolver {
     }
   }
 
-  private TargetServerGroup resolveByTarget(TargetServerGroup.Params params, String location) {
+  private TargetServerGroup resolveByTarget(TargetServerGroup.Params params, Location location) {
     Map tsgMap = fetchWithRetries(Map) {
       oortService.getTargetServerGroup(params.app,
         params.credentials,
         params.cluster,
         params.cloudProvider,
-        location,
+        location.value,
         params.target.name())
     }
     if (!tsgMap) {
       throw new TargetServerGroup.NotFoundException("Unable to locate ${params.target.name()} in $params.credentials/$location/$params.cluster")
     }
-    return new TargetServerGroup(cluster: tsgMap.name, location: location, serverGroup: tsgMap)
+    return new TargetServerGroup(serverGroup: tsgMap)
   }
 
-  private TargetServerGroup resolveByAsgName(TargetServerGroup.Params params, String location) {
+  private TargetServerGroup resolveByAsgName(TargetServerGroup.Params params, Location location) {
     List<Map> tsgList = fetchWithRetries(List) {
       oortService.getServerGroup(params.app,
         params.credentials,
@@ -83,11 +83,11 @@ class TargetServerGroupResolver {
         params.cloudProvider)
     }
     // Without zonal support in the getServerGroup call above, we have to do the filtering here.
-    def tsg = tsgList?.find { Map tsg -> tsg.region == location || tsg.zones.contains(location) }
+    def tsg = tsgList?.find { Map tsg -> tsg.region == location.value || tsg.zones.contains(location.value) }
     if (!tsg) {
       throw new TargetServerGroup.NotFoundException("Unable to locate $params.asgName in $params.credentials/$location/$params.cluster")
     }
-    return new TargetServerGroup(cluster: tsg.name, location: location, serverGroup: tsg)
+    return new TargetServerGroup(serverGroup: tsg)
   }
 
   /**
@@ -105,15 +105,17 @@ class TargetServerGroupResolver {
     } else if (!dtsgStage.context.targetReferences){
       throw new TargetServerGroup.NotFoundException("No TargetServerGroups found for stage ${stage}")
     }
-    def tsgs = dtsgStage.context.targetReferences
+    List<TargetServerGroup> tsgs = dtsgStage.context.targetReferences.collect {
+      return new TargetServerGroup(serverGroup: it)
+    }
     if (!tsgs) {
       throw new TargetServerGroup.NotFoundException("No targetReferences found on DetermineTargetServerGroup stage " +
         "${stage}")
     }
 
     def tsg = tsgs.find {
-      (stage.context.regions && stage.context.regions.contains(it.location)) ||
-        (stage.context.zones && stage.context.zones.contains(it.location))
+      (stage.context.regions && stage.context.regions.contains(it.getLocation().value)) ||
+        (stage.context.zones && stage.context.zones.contains(it.getLocation().value))
     }
     if (!tsg) {
       def locations = []

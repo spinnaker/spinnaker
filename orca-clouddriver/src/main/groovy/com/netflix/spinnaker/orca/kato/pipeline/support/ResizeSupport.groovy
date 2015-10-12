@@ -101,21 +101,20 @@ class ResizeSupport {
     Map<String, Map<String, Object>> operations = [:]
 
     for (TargetServerGroup tsg : targetServerGroups) {
-      def location = tsg.location
-      def serverGroup = tsg.serverGroup
+      def location = tsg.getLocation()
 
       def operation = new HashMap(stage.context)
-      if (operations.containsKey(serverGroup.name)) {
+      if (operations.containsKey(tsg.name)) {
         // TODO(ttomsu): Multi-zone resizing for GCE, which means this 'regions' attribute will have to change, too.
-        operations[serverGroup.name as String].regions.add(location)
+        operations[tsg.name as String].regions.add(location.value)
         continue
       }
-      operation.asgName = serverGroup.name
-      operation.regions = [serverGroup.region]
+      operation.asgName = tsg.name
+      operation.regions = [tsg.region]
 
-      def currentMin = Integer.parseInt(serverGroup.capacity.min.toString())
-      def currentDesired = Integer.parseInt(serverGroup.capacity.desired.toString())
-      def currentMax = Integer.parseInt(serverGroup.capacity.max.toString())
+      def currentMin = Integer.parseInt(tsg.capacity.min.toString())
+      def currentDesired = Integer.parseInt(tsg.capacity.desired.toString())
+      def currentMax = Integer.parseInt(tsg.capacity.max.toString())
 
       Integer newMin, newDesired, newMax
       if (optionalConfig.scalePct) {
@@ -155,7 +154,7 @@ class ResizeSupport {
       if (operation.provider == "gce" || operation.cloudProvider == "gce") {
         augmentDescriptionForGCE(operation, tsg)
       }
-      operations[serverGroup.name as String] = operation
+      operations[tsg.name as String] = operation
     }
     operations.values().flatten()
   }
@@ -190,7 +189,7 @@ class ResizeSupport {
 
   private static augmentDescriptionForGCE(Map description, TargetServerGroup tsg) {
     // TODO(ttomsu): Make clouddriver op support specifying multiple zones.
-    description.zone = tsg.location
+    description.zone = tsg.getLocation().value
     description.targetSize = description.capacity.desired
     description.serverGroupName = description.asgName
   }

@@ -77,8 +77,9 @@ class AbstractAwsScalingProcessTaskSpec extends Specification {
   }
 
   private TargetServerGroup tSG(String name, List<String> suspendedProcesses, String region = "us-west-1") {
-    return new TargetServerGroup(location: region, serverGroup: [
+    return new TargetServerGroup(serverGroup: [
       name: name,
+      region: region,
       asg : [
         suspendedProcesses: suspendedProcesses.collect {
           [processName: it]
@@ -89,8 +90,9 @@ class AbstractAwsScalingProcessTaskSpec extends Specification {
 
   def "should get target reference dynamically when stage is dynamic"() {
     given:
-      GroovySpy(TargetServerGroup, global: true)
+      def tsg = tSG("targetAsg", ["Launch"])
       def resolver = GroovySpy(TargetServerGroupResolver, global: true)
+      GroovySpy(TargetServerGroup, global: true)
 
       def stage = new PipelineStage(new Pipeline(), null, sD("targetAsg", ["Launch"]))
       def task = new ResumeAwsScalingProcessTask(resolver: resolver, katoService: katoService)
@@ -100,11 +102,12 @@ class AbstractAwsScalingProcessTaskSpec extends Specification {
 
     then:
       TargetServerGroup.isDynamicallyBound(stage) >> true
-      TargetServerGroupResolver.fromPreviousStage(stage) >> tSG("targetAsg", ["Launch"])
+      TargetServerGroupResolver.fromPreviousStage(stage) >> tsg
   }
 
   def "should send asg name to kato when dynamic references configured"() {
     given:
+      def tsg = tSG("targetAsg", ["Launch"])
       GroovySpy(TargetServerGroup, global: true)
       def resolver = GroovySpy(TargetServerGroupResolver, global: true)
       KatoService katoService = Mock(KatoService)
@@ -119,7 +122,7 @@ class AbstractAwsScalingProcessTaskSpec extends Specification {
 
     then:
       TargetServerGroup.isDynamicallyBound(stage) >> true
-      TargetServerGroupResolver.fromPreviousStage(stage) >> tSG("targetAsg", ["Launch"])
+      TargetServerGroupResolver.fromPreviousStage(stage) >> tsg
       katoService.requestOperations("abc", { Map m -> m.resumeAsgProcessesDescription.asgName == "targetAsg" }) >> {
         return rx.Observable.from([new TaskId(id: "1")])
       }

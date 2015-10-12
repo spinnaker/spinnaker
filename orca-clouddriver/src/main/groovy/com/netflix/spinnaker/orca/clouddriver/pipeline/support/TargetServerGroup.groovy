@@ -27,15 +27,21 @@ import groovy.util.logging.Slf4j
  */
 @ToString(includeNames = true)
 class TargetServerGroup {
-  String cluster
-  String location
+  // Delegates all Map interface calls to this object.
+  @Delegate Map<String, Object> serverGroup
 
   /**
-   * serverGroup is here to enable any need to reach into the ServerGroup for a specific property. It is strongly
-   * recommended to pull properties from this object into a top level field to help with code readability and reduce
-   * brittleness.
+   * All invocations of this method should use the full 'getLocation()' signature, instead of the shorthand dot way
+   * (i.e. "serverGroup.location"). Otherwise, the property 'location' is looked for in the serverGroup map, which is
+   * very likely not there.
    */
-  Map<String, Object> serverGroup
+  Location getLocation() {
+    // All Google server group operations currently work with zones, not regions.
+    if (serverGroup.type == "gce") {
+      return new Location(type: Location.Type.ZONE, value: serverGroup.zones[0])
+    }
+    return new Location(type: Location.Type.REGION, value: serverGroup.region)
+  }
 
   static boolean isDynamicallyBound(Stage stage) {
     Params.fromStage(stage).target?.isDynamic()
@@ -72,7 +78,7 @@ class TargetServerGroup {
     String cluster
 
     String credentials
-    List<String> locations // regions or zones.
+    List<Location> locations
     String cloudProvider = "aws"
 
     String getApp() {
@@ -85,18 +91,25 @@ class TargetServerGroup {
 
     static Params fromStage(Stage stage) {
       Params p = stage.mapTo(Params)
-      def loc
-      // TODO(ttomsu): Remove this condition when Deck no longer sends both zones and regions for both GCE & AWS
-      if (stage.context.regions && stage.context.zones) {
-        if (stage.context.cloudProvider == "gce") {
-          loc = stage.context.zones
+
+      def toZones = { String z ->
+        return new Location(type: Location.Type.ZONE, value: z)
+      }
+      def toRegions = { String r ->
+        return new Location(type: Location.Type.REGION, value: r)
+      }
+
+      if (stage.context.zones) {
+        if (stage.context.regions && stage.context.cloudProvider != "gce") {
+          // Prefer regions if both are specified, except for GCE.
+          p.locations = stage.context.regions.collect(toRegions)
         } else {
-          loc = stage.context.regions
+          p.locations = stage.context.zones.collect(toZones)
         }
       } else {
-        loc = (List) (stage.context.zones ?: stage.context.regions ?: [])
+        // Default to regions.
+        p.locations = stage.context.regions.collect(toRegions)
       }
-      p.locations = loc
       p
     }
   }

@@ -70,21 +70,23 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
 
   void "should inject a stage after for each extra target when target is not dynamically bound"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "test", [:])
+    def stage = new PipelineStage(new Pipeline(), "test", ['regions':['should', 'be', 'overridden']])
 
     when:
     supportStage.composeTargets(stage)
 
     then:
     1 * resolver.resolveByParams(_) >> [
-      new TargetServerGroup(location: "us-east-1", serverGroup: [name: "asg-v001"]),
-      new TargetServerGroup(location: "us-west-1", serverGroup: [name: "asg-v001"]),
-      new TargetServerGroup(location: "us-west-2", serverGroup: [name: "asg-v002"]),
-      new TargetServerGroup(location: "eu-west-2", serverGroup: [name: "asg-v003"]),
+      new TargetServerGroup(serverGroup: [name: "asg-v001", region: "us-east-1"]),
+      new TargetServerGroup(serverGroup: [name: "asg-v001", region: "us-west-1"]),
+      new TargetServerGroup(serverGroup: [name: "asg-v002", region: "us-west-2"]),
+      new TargetServerGroup(serverGroup: [name: "asg-v003", region: "eu-west-2"]),
     ]
     stage.beforeStages.size() == 0
-    stage.afterStages.size() == 2
-    stage.afterStages*.name == ["testSupportStage", "testSupportStage"]
+    stage.afterStages.size() == 3 // one for each region
+    stage.afterStages*.name == ["testSupportStage", "testSupportStage", "testSupportStage"]
+    stage.context.regions == ["us-east-1"]
+    stage.afterStages*.context.regions.flatten() == ["us-west-1", "us-west-2", "eu-west-2"]
   }
 
   @Unroll
@@ -108,8 +110,8 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
 
     then:
     (shouldResolve ? 1 : 0) * resolver.resolveByParams(_) >> [
-      new TargetServerGroup(location: "us-east-1", serverGroup: [name: "asg-v001"]),
-      new TargetServerGroup(location: "us-west-1", serverGroup: [name: "asg-v002"]),
+      new TargetServerGroup(serverGroup: [name: "asg-v001", region: "us-east-1"]),
+      new TargetServerGroup(serverGroup: [name: "asg-v002", region: "us-west-1"]),
     ]
     stage.beforeStages*.name == beforeNames
     stage.afterStages*.name == ["testPostInjectable", "testPreInjectable", "testSupportStage", "testPostInjectable"]
