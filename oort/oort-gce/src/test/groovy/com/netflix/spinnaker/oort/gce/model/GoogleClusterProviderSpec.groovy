@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,6 @@ package com.netflix.spinnaker.oort.gce.model
 
 import com.netflix.spectator.api.Spectator
 import com.netflix.spectator.api.Timer
-import com.netflix.spinnaker.oort.gce.model.GoogleApplication
-import com.netflix.spinnaker.oort.gce.model.GoogleCluster
-import com.netflix.spinnaker.oort.gce.model.GoogleClusterProvider
-import com.netflix.spinnaker.oort.gce.model.GoogleResourceRetriever
 import spock.lang.Specification
 
 class GoogleClusterProviderSpec extends Specification {
@@ -29,7 +25,7 @@ class GoogleClusterProviderSpec extends Specification {
 
   GoogleClusterProvider clusterProvider
 
-  Timer timer = Spectator.registry().timer('spec')
+  Timer timer = Spectator.globalRegistry().timer('spec')
 
   def setup() {
     clusterProvider = new GoogleClusterProvider()
