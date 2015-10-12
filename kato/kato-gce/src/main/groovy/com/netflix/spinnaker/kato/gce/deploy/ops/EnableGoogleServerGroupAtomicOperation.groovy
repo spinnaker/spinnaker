@@ -19,7 +19,7 @@ package com.netflix.spinnaker.kato.gce.deploy.ops
 import com.netflix.spinnaker.kato.gce.deploy.description.EnableDisableGoogleServerGroupDescription
 
 /**
- * curl -X POST -H "Content-Type: application/json" -d '[ { "enableGoogleServerGroupDescription": { "serverGroupName": "myapp-dev-v000", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
+ * curl -X POST -H "Content-Type: application/json" -d '[ { "enableServerGroup": { "serverGroupName": "myapp-dev-v000", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
  */
 class EnableGoogleServerGroupAtomicOperation extends AbstractEnableDisableAtomicOperation {
   final String phaseName = "ENABLE_SERVER_GROUP"
