@@ -30,6 +30,7 @@ class InstanceAggregatedListCallbackSpec extends Specification {
 
     then:
       gceHealthState.type == "GCE"
+      gceHealthState.healthClass == "platform"
       gceHealthState.state == spinnakerHealthState
 
     where:

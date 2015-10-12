@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -187,7 +187,11 @@ class InstanceCachingAgent implements CachingAgent {
     InstanceState state = instance.state
     StateReason stateReason = instance.stateReason
     HealthState amazonState = state?.code == 16 ? HealthState.Unknown : HealthState.Down
-    Map<String, String> awsInstanceHealth = [type: 'Amazon', state: amazonState.toString()]
+    Map<String, String> awsInstanceHealth = [
+      type: 'Amazon',
+      healthClass: 'platform',
+      state: amazonState.toString()
+    ]
     if (stateReason) {
       awsInstanceHealth.description = stateReason.message
     }

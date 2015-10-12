@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,15 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.converters
 
+import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.kato.aws.deploy.description.RebootInstancesDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.RebootInstancesAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
+@AmazonOperation(AtomicOperations.REBOOT_INSTANCES)
 @Component("rebootInstancesDescription")
 class RebootInstancesAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override
