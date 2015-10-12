@@ -56,7 +56,7 @@ class OrchestrationStarter extends ExecutionStarter<Orchestration> {
     for (context in ((List<Map<String, Object>>) config.stages)) {
       def type = context.remove("type").toString()
 
-      if (context.providerType) {
+      if (context.providerType && context.providerType == 'gce') {
         type += "_$context.providerType"
       }
 
