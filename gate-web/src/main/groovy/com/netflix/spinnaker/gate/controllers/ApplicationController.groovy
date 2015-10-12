@@ -75,9 +75,8 @@ class ApplicationController {
   @RequestMapping(value = "/{application}/pipelines", method = RequestMethod.GET)
   List getPipelines(@PathVariable("application") String application,
                     @RequestParam(value = "limit", required = false) Integer limit) {
-    log.warn("ececuiton limit: ${executionLimit.get()}")
     def listLimit = limit ?: executionLimit.get()
-    log.warn("set limit: ${listLimit}")
+    log.info("execution fetch limit: ${listLimit}")
     executionHistoryService.getPipelines(application, listLimit)
   }
 
