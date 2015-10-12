@@ -17,12 +17,15 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.converters
 
+import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.DisableAsgAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
+@AmazonOperation(AtomicOperations.DISABLE_SERVER_GROUP)
 @Component("disableAsgDescription")
 class DisableAsgAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override
