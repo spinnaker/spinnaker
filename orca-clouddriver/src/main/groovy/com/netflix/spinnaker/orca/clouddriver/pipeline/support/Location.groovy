@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.support
 
+import groovy.transform.Immutable
 import groovy.transform.ToString
 
 @ToString(includeNames = true)
+@Immutable
 class Location {
   enum Type {
     REGION,
@@ -26,23 +28,4 @@ class Location {
   }
   Type type
   String value
-
-  boolean equals(o) {
-    if (this.is(o)) return true
-    if (getClass() != o.class) return false
-
-    Location location = (Location) o
-
-    if (type != location.type) return false
-    if (value != location.value) return false
-
-    return true
-  }
-
-  int hashCode() {
-    int result
-    result = (type != null ? type.hashCode() : 0)
-    result = 31 * result + (value != null ? value.hashCode() : 0)
-    return result
-  }
 }
