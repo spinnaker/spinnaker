@@ -99,12 +99,10 @@ function prepare_git() {
 https://$GITHUB_USER:$ACCESS_TOKEN@github.com
 EOF
     chmod 600 ~/.git-credentials
-  fi
 
-  if [[ ! -f $HOME/.git-credentials ]]; then
-     if prompt_YN "Cache git credentials?"; then
-        git config --global credential.helper store
-     fi
+    if prompt_YN "Cache git credentials?"; then
+      git config --global credential.helper store
+    fi
   fi
 
   # If specified then use this as the user owning github repositories when
@@ -115,21 +113,40 @@ EOF
 
   # Select repository
   # Inform that "upstream" is a choice
-
-    cat <<EOF
+  cat <<EOF
 
 When selecting a repository owner, you can use "upstream" to use
 each of the authoritative repositories rather than your own forks.
 However, you will not be able to push any changes "upstream".
 This selection is only used if this script will be cloning repositories.
-EOF
 
-  read -p "Github repository owner ["$GITHUB_REPOSITORY_OWNER"] " \
+EOF
+  read -p "Github repository owner [$GITHUB_REPOSITORY_OWNER] " \
     CONFIRMED_GITHUB_REPOSITORY_OWNER
   if [[ "$CONFIRMED_GITHUB_REPOSITORY_OWNER" == "" ]]; then
     CONFIRMED_GITHUB_REPOSITORY_OWNER=$GITHUB_REPOSITORY_OWNER
   fi
 }
+
+have_packer=$(which packer)
+if [[ ! $have_packer ]]; then
+  echo "Getting packer"
+  url=https://dl.bintray.com/mitchellh/packer/packer_0.8.6_linux_amd64.zip
+  pushd $HOME
+  if ! curl -s --location -O "$url"; then
+     popd
+     echo "Failed downloading $url"
+     exit -1
+  fi
+  unzip $(basename $url) -d packer > /dev/null
+  rm -f $(basename $url)
+  popd
+
+  export PATH=$PATH:$HOME/packer
+  if prompt_YN "Update .bash_profile to add $HOME/packer to your PATH?"; then
+     echo "PATH=\$PATH:\$HOME/packer" >> $HOME/.bash_profile
+  fi
+fi
 
 prepare_git
 

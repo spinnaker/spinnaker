@@ -14,10 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-echo "***************************************************************"
-echo "** This script is deprecated"
-echo "** Running $(dirname $0)/build_google_image.sh instead"
-echo "***************************************************************\n"
 PYTHONPATH=$(dirname $0)/.. \
 python \
-$(dirname $0)/create_gce_image.py "$@"
+$(dirname $0)/build_google_image.py "$@"
