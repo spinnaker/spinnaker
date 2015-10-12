@@ -4,9 +4,12 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.cf', [
     require('../core/cloudProvider/cloudProvider.registry.js'),
-    require('../pipelines/config/stages/bake/cf/cfBakeStage.js'),
+    require('../pipelines/config/stages/deploy/cf/cfDeployStage.js'),
     require('./instance/cfInstanceTypeService.js'),
     require('./serverGroup/details/serverGroupDetails.cf.controller.js'),
+    require('./serverGroup/configure/ServerGroupCommandBuilder.js'),
+    require('./serverGroup/configure/wizard/CloneServerGroupCtrl.js'),
+    require('./serverGroup/configure/serverGroup.configure.cf.module.js'),
     require('./serverGroup/serverGroup.transformer.js'),
     require('./loadBalancer/loadBalancer.transformer.js'),
     require('./securityGroup/details/SecurityGroupDetailsCtrl.js'),
@@ -29,9 +32,9 @@ module.exports = angular.module('spinnaker.cf', [
                 transformer: 'cfServerGroupTransformer',
                 detailsTemplateUrl: require('./serverGroup/details/serverGroupDetails.html'),
                 detailsController: 'cfServerGroupDetailsCtrl',
-            //    cloneServerGroupTemplateUrl: require('./serverGroup/configure/wizard/serverGroupWizard.html'),
-            //    cloneServerGroupController: 'cfCloneServerGroupCtrl',
-            //    commandBuilder: 'cfServerGroupCommandBuilder',
+                cloneServerGroupTemplateUrl: require('./serverGroup/configure/wizard/serverGroupWizard.html'),
+                cloneServerGroupController: 'cfCloneServerGroupCtrl',
+                commandBuilder: 'cfServerGroupCommandBuilder',
             //    configurationService: 'cfServerGroupConfigurationService',
             },
             instance: {
@@ -56,4 +59,3 @@ module.exports = angular.module('spinnaker.cf', [
             },
         });
     }).name;
-
