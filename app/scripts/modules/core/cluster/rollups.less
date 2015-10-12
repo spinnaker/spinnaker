@@ -62,46 +62,58 @@
 
 .instance-list {
   clear: both;
-  padding: 0 10px 0 23px;
+  padding: 0 10px 0 25px;
 }
 
+@instance-width: 12px;
+@instance-height: 18px;
+
 .instances {
+  border: none;
+  line-height: 10px;
+  border-radius: 2px;
+  padding-bottom: 5px;
   a.instance {
-    border: 1px solid @healthy_green_border;
-    border-radius: 2px;
-    margin: 0 2px;
+    margin: 0;
     display: inline-block;
-    width: 7px;
-    height: 15px;
+    width: @instance-width;
+    border-right: 1px solid #ffffff;
+    border-bottom: 1px solid #ffffff;
+    height: @instance-height;
     background-color: @healthy_green;
 
     &.health-status-Up {
       background-color: @healthy_green;
-      border-color: @healthy_green_border;
     }
     &.health-status-Down {
       background-color: @unhealthy_red;
-      border-color: @unhealthy_red_border;
     }
     &.health-status-OutOfService {
       background-color: @light_grey;
-      border-color: @mid_grey;
     }
 
     &.health-status-Unknown {
       background-color: @missing_health;
-      border-color: @missing_health_border;
     }
 
     &.health-status-Starting {
       background-color: @missing_health;
-      border-color: @missing_health_border;
       .pulsing(1.0);
     }
 
+    &:hover, &.active, &.highlighted {
+      height: @instance-height - 1;
+      margin-top: 0;
+      margin-bottom: 1px;
+      border: 1px solid @dark_grey;
+      box-shadow: 0 0 3px 1px #999999;
+      z-index: 2;
+    }
+
     &.active {
-      border-color: @dark_grey;
-      box-shadow: 0 0 4px 2px #999999;
+      &.health-status-Up {
+        background-color: @healthy_green_border;
+      }
       &.health-status-Down {
         background-color: @unhealthy_red_border;
       }
@@ -113,11 +125,6 @@
       &.health-status-Unknown, &.health-status-Starting {
         background-color: @missing_health_border;
       }
-    }
-
-    &.highlighted {
-      border-color: @dark_grey;
-      box-shadow: 0 0 3px 0px #999999;
     }
   }
 }
@@ -430,10 +437,6 @@ load-balancers-tag {
     .instances {
       padding: 0;
     }
-  }
-
-  .instances {
-    padding: 0 10px 5px 0;
   }
 
   &.instances-only {
