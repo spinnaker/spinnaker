@@ -17,6 +17,13 @@ module.exports = angular.module('spinnaker.pipelines.config.actions.editJson', [
       delete obj.stageCounter;
     }
 
+    function updateStageCounter() {
+      if (pipeline.parallel) {
+        let stageIds = pipeline.stages.map((stage) => Number(stage.refId));
+        stageIds.forEach((stageId) => pipeline.stageCounter = Math.max(pipeline.stageCounter, stageId + 1));
+      }
+    }
+
     this.initialize = function() {
       var toCopy = pipeline.hasOwnProperty('plain') ? pipeline.plain() : pipeline;
       var pipelineCopy = _.cloneDeep(toCopy, function (value) {
@@ -38,6 +45,7 @@ module.exports = angular.module('spinnaker.pipelines.config.actions.editJson', [
 
         removeImmutableFields(parsed);
         angular.extend(pipeline, parsed);
+        updateStageCounter();
 
         $modalInstance.close();
       } catch (e) {
