@@ -86,7 +86,7 @@ module.exports = angular.module('spinnaker', [
 
     require('./modules/amazon/aws.module.js'),
     require('./modules/google/gce.module.js'),
-    require('./modules/cloudfoundry/cf.module.js'),
+    //require('./modules/cloudfoundry/cf.module.js'),
     require('./modules/utils/utils.module.js'),
     require('./modules/core/cache/caches.module.js'),
     require('./modules/core/naming/naming.service.js'),
