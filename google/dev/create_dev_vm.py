@@ -86,7 +86,8 @@ def init_argument_parser(parser):
         help='If specified, the path to the master config file.')
     parser.add_argument(
         '--address', default=None,
-        help='The IP address to assign to the new instance.')
+        help='The IP address to assign to the new instance. The address may'
+             ' be an IP address or the name or URI of an address resource.')
 
 
 def copy_file(options, source, target):
