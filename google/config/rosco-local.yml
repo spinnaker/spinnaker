@@ -1,5 +1,6 @@
 server:
-  port: 8087
+  port: ${ROSCO_PORT:8087}
+  address: $ROSCO_HOST
 
 redis:
   host: $REDIS_HOST

@@ -18,47 +18,27 @@ import re
 import sys
 import yaml
 
-from install.install_utils import fetch
-from install.install_utils import run
+from fetch import AWS_METADATA_URL
+from fetch import GOOGLE_METADATA_URL
+from fetch import fetch
+from fetch import get_google_project
+from fetch import is_aws_instance
+from fetch import is_google_instance
+
 from validate_configuration import ValidateConfig
-
-GOOGLE_METADATA_URL = 'http://metadata.google.internal/computeMetadata/v1'
-AWS_METADATA_URL = 'http://169.254.169.254/latest/meta-data/'
-
-
-def is_google_instance():
-  """Determine if we are running on a Google Cloud Platform instance."""
-  code, data = fetch(GOOGLE_METADATA_URL, google=True)
-  return code == 200
-
-
-def is_aws_instance():
-  """Determine if we are running on an Amazon Web Services instance."""
-  code, data = fetch(AWS_METADATA_URL)
-  return code == 200
-
-
-def fetch_my_google_project_or_die(error_msg):
-  code, project = fetch(
-    GOOGLE_METADATA_URL + '/project/project-id',
-    google=True)
-  if code != 200:
-    if error_msg:
-      raise SystemExit(error_msg)
-  return project
 
 
 def normalize_path(path):
-  if path.startswith('~/'):
-    return os.path.join(os.environ['HOME'], path[2:])
+  """Explicitly populate $HOME and ~ in the path."""
 
-  if path.startswith('$HOME/'):
-    return os.path.join(os.environ['HOME'], path[6:])
-
-  return path
+  return os.path.expandvars(os.path.expanduser(path))
 
 
 class Bindings(dict):
+  """Manages the bindings of configuration variables.
+
+  Bindings are either name/string variable pairs or name/dict yaml pairs.
+  """
   @property
   def variables(self):
     return self.__variable_bindings
@@ -74,9 +54,17 @@ class Bindings(dict):
     return copy
 
   def get_variable(self, name, default=None):
-    value = self.__variable_bindings.get(name, default)
+    """Get the variable binding for the given name.
+
+    Existing environment variables have the highest precedence.
+    Then config values from the loaded config files.
+    Then the default value.
+    """
+    config_value = self.__variable_bindings.get(name, default)
+    value = os.environ.get(name, config_value)
     if value is None:
       raise KeyError(name)
+
     return value
 
   def get_yaml(self, name, default=None):
@@ -125,10 +113,11 @@ class Bindings(dict):
       raise ValueError('@{0}={1} is not in the form <account>:<project>:<path>'
                        .format(name, value))
     if not parts[1]:
-      error_msg = (
-        'An account must be associated with a Google Cloud Platform'
-        ' project id if you are not running on Google Compute Engine.')
-      parts[1] = fetch_my_google_project_or_die(error_msg)
+      parts[1] = get_google_project()
+      if parts[1] is None:
+          raise ValueError(
+              'An account must be associated with a Google Cloud Platform'
+              ' project id if you are not running on Google Compute Engine.')
 
     account_info_decl = {'name': parts[0], 'project': parts[1]}
     account_info_ref  = dict(account_info_decl)
@@ -142,6 +131,23 @@ class Bindings(dict):
         account_info_decl)
     self.__yaml_bindings['GOOGLE_CREDENTIALS_REFERENCE'].append(
         account_info_ref)
+
+  def resolve_inner_variables(self):
+    """Resolve variable values that are in themselves variable references.
+
+    This should not be called until the very end or the variables will be
+    resolved with lower precedence variables should a higher level source
+    that overrides the variable be added later.
+    """
+    for name,value in self.__variable_bindings.items():
+       if not value.startswith('$'):
+         continue
+       while value.startswith('$'):
+          indirect = self.__just_replace_variables(value)
+          if indirect == value:
+             break
+          value = indirect
+       self.__variable_bindings[name] = indirect
 
   def __rotate_yaml_bindings(self, key):
     value = self.__yaml_bindings[key]
@@ -319,11 +325,14 @@ class ConfigureUtil(object):
 
     custom_config_path = installation.CONFIG_DIR + '/spinnaker_config.cfg'
     if not os.path.exists(custom_config_path):
-      sys.stderr.write('WARNING: {path} does not exist.'
-                       ' There is no personal master configuration file.'
-                       .format(path=custom_config_path))
+      sys.stderr.write(
+          'WARNING: {path} does not exist.\n'
+          '         There is no personal master configuration file.\n'
+          .format(path=custom_config_path))
     else:
       bindings.update_from_config(custom_config_path)
+
+    bindings.resolve_inner_variables()
 
     # Auto-define IGOR_ENABLED.
     # It is unfortunate that we need this, but seems to be used internally.
@@ -333,6 +342,11 @@ class ConfigureUtil(object):
           'true' if bindings.get_variable('JENKINS_ADDRESS', '') != ''
                  else 'false')
 
+    self.__init_aws_bindings(bindings)
+    self.__init_google_bindings(bindings)
+    return bindings
+
+  def __init_aws_bindings(self, bindings):
     # Auto-define AWS_ENABLED.
     if bindings.get_variable('AWS_ENABLED', '') == '':
       bindings.set_variable(
@@ -340,6 +354,7 @@ class ConfigureUtil(object):
           'true' if bindings.get_variable('AWS_ACCESS_KEY', '') != ''
                  else 'false')
 
+  def __init_google_bindings(self, bindings):
     # Auto-define GOOGLE_ENABLED.
     if bindings.get_variable('GOOGLE_ENABLED', '') == '':
       bindings.set_variable(
@@ -354,20 +369,18 @@ class ConfigureUtil(object):
         'GOOGLE_PRIMARY_MANAGED_PROJECT_ID', '')
 
       if not managed_project:
-        error_msg = ('GOOGLE_PRIMARY_MANAGED_PROJECT_ID is required since you'
-                     ' have GOOGLE_ENABLED=true and are not running on'
-                     ' Google Cloud Platform.')
-        bindings.set_variable('GOOGLE_PRIMARY_MANAGED_PROJECT_ID',
-                              fetch_my_google_project_or_die(error_msg))
-
+        project_id = get_google_project()
+        if project_id is None:
+            raise ValueError('GOOGLE_PRIMARY_MANAGED_PROJECT_ID is required'
+                             ' since you have GOOGLE_ENABLED=true and are not'
+                             ' running on Google Cloud Platform.')
+        bindings.set_variable('GOOGLE_PRIMARY_MANAGED_PROJECT_ID', project_id)
       bindings.maybe_inject_primary_google_credentials()
 
     path = bindings.get_variable('GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH', '')
     normalized = normalize_path(path)
     if path != normalized:
       bindings.set_variable('GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH', normalized)
-
-    return bindings
 
   @staticmethod
   def replace_variables_in_file(source_path, target_path, bindings):

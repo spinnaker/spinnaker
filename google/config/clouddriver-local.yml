@@ -1,9 +1,10 @@
 server:
-  port: 7002
+  port: ${CLOUDDRIVER_PORT:7002}
+  address: $CLOUDDRIVER_HOST
 
 services:
   front50:
-    baseUrl: http://localhost:8080
+    baseUrl: http://$FRONT50_HOST:$FRONT50_PORT
 
 redis:
   connection: redis://$REDIS_HOST:6379
@@ -14,7 +15,7 @@ aws:
 google:
   enabled: ${GOOGLE_ENABLED:false}
 
-  kmsServer: http://localhost:7909
+  kmsServer: http://$KMS_HOST:$KMS_PORT
   accounts:
     $GOOGLE_CREDENTIALS_REFERENCE
 

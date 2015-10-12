@@ -1,5 +1,6 @@
 server:
-  port: 7909
+  port: ${KMS_PORT:7909}
+  address: $KMS_HOST
 
 credentials:
   accounts:

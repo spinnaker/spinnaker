@@ -1,5 +1,6 @@
 server:
-  port: 8085
+  port: ${RUSH_PORT:8085}
+  address: $RUSH_HOST
 
 cassandra:
   embedded: false
@@ -9,4 +10,4 @@ docker:
   accounts:
     - name: $GOOGLE_PRIMARY_ACCOUNT_NAME
       url: http://$DOCKER_ADDRESS
-      registry: http://localhost:5000
+      registry: http://$DOCKER_REGISTRY_HOST:$DOCKER_REGISTRY_PORT

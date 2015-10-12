@@ -1,24 +1,25 @@
 server:
-  port: 8083
+  port: ${ORCA_PORT:8083}
+  address: $ORCA_HOST
 
 oort:
-  baseUrl: http://localhost:7002
+  baseUrl: http://$OORT_HOST:$OORT_PORT
 front50:
-  baseUrl: http://localhost:8080
+  baseUrl: http://$FRONT50_HOST:$FRONT50_PORT
 mort:
-  baseUrl: http://localhost:7002
+  baseUrl: http://$MORT_HOST:$MORT_PORT
 kato:
-  baseUrl: http://localhost:7002
+  baseUrl: http://$KATO_HOST:$KATO_PORT
 rush:
-  baseUrl: http://localhost:8085
+  baseUrl: http://$RUSH_HOST:$RUSH_PORT
 bakery:
-  baseUrl: http://localhost:8087
+  baseUrl: http://$BAKERY_HOST:$BAKERY_PORT
   extractBuildDetails: true
   propagateCloudProviderType: true
 echo:
-  baseUrl: http://localhost:8089
+  baseUrl: http://$ECHO_HOST:$ECHO_PORT
 igor:
-  baseUrl: http://localhost:8088
+  baseUrl: http://$IGOR_HOST:$IGOR_PORT
 
 # TODO(duftler): Remove this once flex is conditionally-enabled in orca.
 flex:
@@ -32,5 +33,5 @@ default:
     securityGroups:
 
 redis:
-  connection: redis://$REDIS_HOST:6379
+  connection: redis://$REDIS_HOST:$REDIS_PORT
 
