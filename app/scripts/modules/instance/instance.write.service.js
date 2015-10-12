@@ -46,19 +46,16 @@ module.exports = angular
         });
     }
 
-    function rebootInstance(instance, application) {
+    function rebootInstance(instance, application, params={}) {
+      params.type = 'rebootInstances';
+      params.instanceIds = [instance.instanceId];
+      params.region = instance.region;
+      params.zone = instance.placement.availabilityZone;
+      params.credentials = instance.account;
+      params.cloudProvider = instance.providerType;
+
       return taskExecutor.executeTask({
-        job: [
-          {
-            type: 'rebootInstances',
-            instanceIds: [instance.instanceId],
-            region: instance.region,
-            zone: instance.placement.availabilityZone,
-            credentials: instance.account,
-            cloudProvider: instance.providerType,
-            providerType: instance.providerType
-          }
-        ],
+        job: [params],
         application: application,
         description: 'Reboot instance: ' + instance.instanceId
       });

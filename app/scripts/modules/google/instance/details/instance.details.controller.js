@@ -300,7 +300,9 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       };
 
       var submitMethod = function () {
-        return instanceWriter.rebootInstance(instance, app);
+        return instanceWriter.rebootInstance(instance, app, {
+          interestingHealthProviderNames: [],
+        });
       };
 
       confirmationModalService.confirm({
