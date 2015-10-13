@@ -152,17 +152,6 @@ module.exports = angular.module('spinnaker', [
     // and we have to use ng-class. It's gross.
     //
     cacheInitializer.initialize();
-    $rootScope.subscribeTo = function(observable) {
-      this.subscribed = {
-        data: undefined
-      };
-
-      observable.subscribe(function(data) {
-        this.subscribed.data = data;
-      }.bind(this), function(err) {
-        $exceptionHandler(err, 'Failed to load data into the view.');
-      });
-    };
 
     $rootScope.$state = $state;
     $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
