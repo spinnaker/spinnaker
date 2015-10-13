@@ -3,10 +3,20 @@
     <div class="col-md-8">
       <h2>
         <span class="project-name">{{project.name}} /</span>
-        <select class="input input-lg no-border"
-                ng-model="viewState.navSelection"
-                ng-options="option as option.title for option in navOptions" ng-change="ctrl.navigate()">
-        </select>
+        <div class="project-view">
+          <a href class="project-view-current"
+             ng-click="viewState.showMenu = !viewState.showMenu"
+             ng-blur="ctrl.hideNavigationMenu()">
+            {{viewState.navSelection.title}}
+            <span class="small glyphicon glyphicon-chevron-{{viewState.showMenu ? 'up' : 'down'}}"></span>
+          </a>
+          <div class="project-view-menu list-group" ng-show="viewState.showMenu">
+            <a href
+               class="list-group-item"
+               ng-repeat="option in navOptions"
+               ng-click="ctrl.navigate(option)">{{option.title}}</a>
+          </div>
+        </div>
       </h2>
     </div>
     <div class="col-md-4 text-right" ng-if="viewState.dashboard">
