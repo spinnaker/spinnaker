@@ -22,6 +22,8 @@ module.exports = angular
     accountService.listProviders().then((providers) => vm.cloudProviders = providers);
 
     function closeModal() {
+      vm.cloudProviders = null; // wha? prevents a fight with the ui-select directive trying to invalidate the selections
+      vm.applicationAttributes.cloudProviders = vm.applicationAttributes.cloudProviders.join(',');
       $modalInstance.close(vm.applicationAttributes);
     }
 

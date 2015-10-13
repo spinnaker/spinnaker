@@ -145,7 +145,7 @@
         </div>
       </div>
 
-      <div class="form-group row" ng-if="newAppModal.cloudProviders.length">
+      <div class="form-group row" ng-if="newAppModal.cloudProviders.length > 1">
         <div class="col-md-3 sm-label-left">Cloud Providers</div>
         <div class="col-md-5">
           <ui-select multiple ng-model="newAppModal.application.cloudProviders" class="form-control input-sm">

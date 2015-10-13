@@ -26,7 +26,9 @@ module.exports = angular
 
     vm.initializing = true;
     vm.submitting = false;
-    vm.application = {};
+    vm.application = {
+      cloudProviders: [],
+    };
     vm.errorMsgs = [];
     vm.emailErrorMsg = [];
 
