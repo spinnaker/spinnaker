@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.igor.config
 
-import cz.jirutka.spring.exhandler.RestHandlerExceptionResolver
-import cz.jirutka.spring.exhandler.support.HttpMessageConverterUtils
 import groovy.transform.CompileStatic
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -34,28 +32,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExc
 @Configuration
 @CompileStatic
 class IgorConfig extends WebMvcConfigurerAdapter {
-
-    @Override
-    void configureHandlerExceptionResolvers(List<HandlerExceptionResolver> resolvers) {
-        resolvers.add(exceptionHandlerExceptionResolver()) // resolves @ExceptionHandler
-        resolvers.add(restExceptionResolver())
-    }
-
-    @Bean
-    RestHandlerExceptionResolver restExceptionResolver() {
-        RestHandlerExceptionResolver.builder()
-            .defaultContentType(MediaType.APPLICATION_JSON)
-            .withDefaultHandlers(true)
-            .build()
-    }
-
-    @Bean
-    ExceptionHandlerExceptionResolver exceptionHandlerExceptionResolver() {
-        ExceptionHandlerExceptionResolver resolver = new ExceptionHandlerExceptionResolver()
-        resolver.setMessageConverters(HttpMessageConverterUtils.defaultHttpMessageConverters)
-        resolver
-    }
-
     @Bean
     ExecutorService executorService() {
         Executors.newCachedThreadPool()
