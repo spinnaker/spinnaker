@@ -124,7 +124,7 @@ describe('Controller: renamePipelineModal', function() {
     this.$scope.command = {pipelineJSON: JSON.stringify(pipeline)};
     this.controller.updatePipeline();
 
-    expect(pipeline.stageCounter).toBe(14);
+    expect(pipeline.stageCounter).toBe(13);
   });
 
 });
