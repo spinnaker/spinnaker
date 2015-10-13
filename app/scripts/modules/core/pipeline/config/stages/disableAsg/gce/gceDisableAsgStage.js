@@ -1,0 +1,73 @@
+'use strict';
+
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableAsgStage', [
+  require('../../../../../utils/lodash.js'),
+  require('../../stageConstants.js'),
+  require('./disableAsgExecutionDetails.controller.js')
+])
+  .config(function(pipelineConfigProvider) {
+    pipelineConfigProvider.registerStage({
+      provides: 'disableServerGroup',
+      cloudProvider: 'gce',
+      templateUrl: require('./disableAsgStage.html'),
+      executionDetailsUrl: require('./disableAsgExecutionDetails.html'),
+      executionStepLabelUrl: require('./disableAsgStepLabel.html'),
+      validators: [
+        {
+          type: 'targetImpedance',
+          message: 'This pipeline will attempt to disable a server group without deploying a new version into the same cluster.'
+        },
+        { type: 'requiredField', fieldName: 'cluster' },
+        { type: 'requiredField', fieldName: 'target', },
+        { type: 'requiredField', fieldName: 'regions', },
+        { type: 'requiredField', fieldName: 'credentials', },
+      ],
+    });
+  }).controller('gceDisableAsgStageCtrl', function($scope, accountService, stageConstants, _) {
+    var ctrl = this;
+
+    let stage = $scope.stage;
+
+    $scope.state = {
+      accounts: false,
+      zonesLoaded: false
+    };
+
+    accountService.listAccounts('gce').then(function (accounts) {
+      $scope.accounts = accounts;
+      $scope.state.accounts = true;
+    });
+
+    $scope.zones = ['us-central1-a', 'us-central1-b', 'us-central1-c'];
+
+    ctrl.accountUpdated = function() {
+      accountService.getRegionsForAccount(stage.credentials).then(function(regions) {
+        $scope.zones = _.flatten(_.map(regions, (zones) => { return zones; } ));
+        $scope.zonesLoaded = true;
+      });
+    };
+
+    $scope.targets = stageConstants.targetList;
+
+    stage.zones = stage.zones || [];
+    stage.cloudProvider = 'gce';
+
+    if (!stage.credentials && $scope.application.defaultCredentials) {
+      stage.credentials = $scope.application.defaultCredentials;
+    }
+    if (!stage.zones.length && $scope.application.defaultRegion) {
+      stage.zones.push($scope.application.defaultRegion);
+    }
+
+    if (stage.credentials) {
+      ctrl.accountUpdated();
+    }
+    if (!stage.target) {
+      stage.target = $scope.targets[0].val;
+    }
+
+  })
+  .name;
+
