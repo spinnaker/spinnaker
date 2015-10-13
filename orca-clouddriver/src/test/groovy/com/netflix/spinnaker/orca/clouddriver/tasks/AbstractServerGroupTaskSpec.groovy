@@ -16,27 +16,30 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
-import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroupResolver
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceConfiguration
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 
-class DisableServerGroupTaskSpec extends Specification {
+class AbstractServerGroupTaskSpec extends Specification {
+
+  static testAction = "testAction"
+
+  static class TestServerGroupTask extends AbstractServerGroupTask {
+    String serverGroupAction = testAction
+  }
+
   @Subject
-    task = new DisableServerGroupTask()
-  def stage = new PipelineStage(type: "whatever")
-  def mapper = new OrcaObjectMapper()
+    task = new TestServerGroupTask()
+  def stage = new PipelineStage(new Pipeline(), "whatever")
   def taskId = new TaskId(UUID.randomUUID().toString())
 
-  def disableASGConfig = [
+  def stageContext = [
     asgName      : "test-asg",
     regions      : ["us-west-1", "us-east-1"],
     credentials  : "fzlem",
@@ -44,11 +47,10 @@ class DisableServerGroupTaskSpec extends Specification {
   ]
 
   def setup() {
-    mapper.registerModule(new GuavaModule())
-    stage.context.putAll(disableASGConfig)
+    stage.context = stageContext
   }
 
-  def "creates a disable ASG task based on job parameters"() {
+  def "creates an enable ASG task based on job parameters"() {
     given:
       def operations
       task.kato = Mock(KatoService) {
@@ -63,12 +65,12 @@ class DisableServerGroupTaskSpec extends Specification {
 
     then:
       operations.size() == 1
-      with(operations[0].disableServerGroup) {
+      with(operations[0].testAction) {
         it instanceof Map
-        asgName == this.disableASGConfig.asgName
-        serverGroupName == this.disableASGConfig.asgName
-        regions == this.disableASGConfig.regions
-        credentials == this.disableASGConfig.credentials
+        asgName == this.stageContext.asgName
+        serverGroupName == this.stageContext.asgName
+        regions == this.stageContext.regions
+        credentials == this.stageContext.credentials
       }
   }
 
@@ -84,7 +86,7 @@ class DisableServerGroupTaskSpec extends Specification {
     then:
       result.status == ExecutionStatus.SUCCEEDED
       result.stageOutputs."kato.last.task.id" == taskId
-      result.stageOutputs."deploy.account.name" == disableASGConfig.credentials
+      result.stageOutputs."deploy.account.name" == stageContext.credentials
   }
 
   void "should get target dynamically when configured"() {
@@ -99,10 +101,12 @@ class DisableServerGroupTaskSpec extends Specification {
       def result = task.execute(stage.asImmutable())
 
     then:
-      TargetServerGroupResolver.fromPreviousStage(stage) >> new TargetServerGroup(
+      1 * TargetServerGroupResolver.fromPreviousStage(stage) >> new TargetServerGroup(
         serverGroup: [name: "foo-v001", region: "us-east-1"]
       )
       result.stageOutputs.asgName == "foo-v001"
+      result.stageOutputs.serverGroupName == "foo-v001"
       result.stageOutputs."deploy.server.groups" == ["us-west-1": ["foo-v001"], "us-east-1": ["foo-v001"]]
   }
+
 }

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
-import com.netflix.spinnaker.orca.DebugSupport
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 
 abstract class AbstractWaitingForInstancesTask extends AbstractInstancesCheckTask {
@@ -33,7 +32,7 @@ abstract class AbstractWaitingForInstancesTask extends AbstractInstancesCheckTas
 
     if (!asgName || !regions) {
       if (stage.context.containsKey("deploy.server.groups")) {
-        serverGroups = (Map<String, List<String>>)stage.context."deploy.server.groups"
+        serverGroups = (Map<String, List<String>>) stage.context."deploy.server.groups"
       }
     } else {
       regions.each { region ->
