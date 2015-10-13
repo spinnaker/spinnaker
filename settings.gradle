@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-include 'echo-core', 'echo-model', 'echo-cassandra', 'echo-web', 'echo-elasticsearch', 'echo-kafka', 'echo-notifications', 'echo-pipelinetriggers', 'echo-scheduler', 'echo-rest'
+include 'echo-core', 'echo-model', 'echo-cassandra', 'echo-web', 'echo-notifications', 'echo-pipelinetriggers', 'echo-scheduler', 'echo-rest'
 
 rootProject.name = 'echo'
 
