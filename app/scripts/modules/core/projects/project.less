@@ -36,6 +36,53 @@
   .project-name {
     font-weight: 700;
   }
+  .project-view {
+    position: relative;
+    display: inline-block;
+    .project-view-current {
+      font-weight: 600;
+      color: @text-color;
+      .small {
+        color: @text-color;
+      }
+      &:hover, &:active, &:focus {
+        text-decoration: none;
+      }
+    }
+    .project-view-menu {
+      top: 45px;
+      font-size: 60%;
+      position: absolute;
+      min-width: 200px;
+      z-index: 12;
+      border: 1px solid @mid_grey;
+      background-color: #ffffff;
+      &::before, &::after {
+        width: 0;
+        height: 0;
+        content: ' ';
+        left: 30%;
+        position: absolute;
+        border: 10px solid transparent;
+        border-top-width: 0;
+        margin-left: -10px;
+      }
+      &::after {
+        margin-left: -10px;
+        border-width: 10px;
+        top: -18px;
+        border-bottom-color: #ffffff;
+      }
+      &::before {
+        top: -10px;
+        border-bottom-color: @mid_grey;
+      }
+      .list-group-item {
+        border-radius: 0;
+      }
+    }
+  }
+
   .configure-project-link {
     margin: 20px 0 5px;
     color: @configure-link-color;

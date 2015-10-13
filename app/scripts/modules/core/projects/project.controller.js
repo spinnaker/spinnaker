@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.core.projects.project.controller', [
   require('../history/recentHistory.service.js'),
   require('../../utils/lodash.js'),
 ])
-  .controller('ProjectCtrl', function ($scope, $modal, projectReader, $state, projectConfiguration, recentHistoryService, _) {
+  .controller('ProjectCtrl', function ($scope, $modal, $timeout, projectReader, $state, projectConfiguration, recentHistoryService, _) {
 
     $scope.project = projectConfiguration;
 
@@ -41,6 +41,7 @@ module.exports = angular.module('spinnaker.core.projects.project.controller', [
 
     $scope.viewState = {
       projectLoaded: false,
+      showMenu: false,
     };
 
     $scope.navOptions = [
@@ -66,9 +67,17 @@ module.exports = angular.module('spinnaker.core.projects.project.controller', [
     }
     $scope.viewState.dashboard = !selectedApplication;
 
-    this.navigate = () => {
-      var selection = $scope.viewState.navSelection;
-      $state.go(selection.view, selection.params);
+    this.hideNavigationMenu = () => {
+      // give the navigate method a chance to fire before hiding the menu
+      $timeout(() => {
+        $scope.viewState.showMenu = false;
+      }, 50 );
+    };
+
+    this.navigate = (option) => {
+      $scope.viewState.navSelection = option;
+      $scope.viewState.showMenu = false;
+      $state.go(option.view, option.params);
     };
 
     this.configureProject = () => {
