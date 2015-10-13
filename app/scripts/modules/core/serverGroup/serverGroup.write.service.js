@@ -46,12 +46,12 @@ module.exports = angular
     function enableServerGroup(serverGroup, application, params={}) {
       params.asgName = serverGroup.name;
       params.serverGroupName = serverGroup.name;
-      params.type = 'enableAsg';
+      params.type = 'enableServerGroup';
       params.regions = [serverGroup.region];
       params.region = serverGroup.region;
       params.zones = serverGroup.zones;
       params.credentials = serverGroup.account;
-      params.providerType = serverGroup.type;
+      params.cloudProvider = serverGroup.type;
 
       return taskExecutor.executeTask({
         job: [params],

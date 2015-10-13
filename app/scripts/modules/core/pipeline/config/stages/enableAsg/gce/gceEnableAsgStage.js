@@ -1,0 +1,72 @@
+'use strict';
+
+//BEN_TODO: where is this defined?
+
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.core.pipeline.stage.gce.enableAsgStage', [
+  require('../../../../../utils/lodash.js'),
+  require('../../stageConstants.js'),
+  require('./enableAsgExecutionDetails.controller.js')
+])
+  .config(function(pipelineConfigProvider) {
+    pipelineConfigProvider.registerStage({
+      provides: 'enableServerGroup',
+      cloudProvider: 'gce',
+      templateUrl: require('./enableAsgStage.html'),
+      executionDetailsUrl: require('./enableAsgExecutionDetails.html'),
+      executionStepLabelUrl: require('./enableAsgStepLabel.html'),
+      validators: [
+        { type: 'requiredField', fieldName: 'cluster' },
+        { type: 'requiredField', fieldName: 'target' },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials' }
+      ]
+    });
+  }).controller('gceEnableAsgStageCtrl', function($scope, accountService, stageConstants, _) {
+    var ctrl = this;
+
+    let stage = $scope.stage;
+
+    $scope.state = {
+      accounts: false,
+      zonesLoaded: false
+    };
+
+    accountService.listAccounts('gce').then(function (accounts) {
+      $scope.accounts = accounts;
+      $scope.state.accounts = true;
+    });
+
+    $scope.zones = ['us-central1-a', 'us-central1-b', 'us-central1-c'];
+
+    ctrl.accountUpdated = function() {
+      accountService.getRegionsForAccount(stage.credentials).then(function(regions) {
+        $scope.zones = _.flatten(_.map(regions, (zones) => { return zones; } ));
+        $scope.zonesLoaded = true;
+      });
+    };
+
+    $scope.targets = stageConstants.targetList;
+
+    stage.zones = stage.zones || [];
+    stage.cloudProvider = 'gce';
+
+    if (!stage.credentials && $scope.application.defaultCredentials) {
+      stage.credentials = $scope.application.defaultCredentials;
+    }
+    if (!stage.zones.length && $scope.application.defaultRegion) {
+      stage.zones.push($scope.application.defaultRegion);
+    }
+
+    if (stage.credentials) {
+      ctrl.accountUpdated();
+    }
+    if (!stage.target) {
+      stage.target = $scope.targets[0].val;
+    }
+
+    $scope.$watch('stage.credentials', $scope.accountUpdated);
+  })
+  .name;
+

@@ -1,32 +1,30 @@
 'use strict';
 
+//BEN_TODO: where is this defined?
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.aws.disableAsgStage', [
+module.exports = angular.module('spinnaker.core.pipeline.stage.aws.enableAsgStage', [
   require('../../../../../utils/lodash.js'),
   require('../../stageConstants.js'),
-  require('./disableAsgExecutionDetails.controller.js')
+  require('./enableAsgExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
-      provides: 'disableServerGroup',
-      alias: 'disableAsg',
+      provides: 'enableServerGroup',
+      alias: 'enableAsg',
       cloudProvider: 'aws',
-      templateUrl: require('./disableAsgStage.html'),
-      executionDetailsUrl: require('./disableAsgExecutionDetails.html'),
-      executionStepLabelUrl: require('./disableAsgStepLabel.html'),
+      templateUrl: require('./enableAsgStage.html'),
+      executionDetailsUrl: require('./enableAsgExecutionDetails.html'),
+      executionStepLabelUrl: require('./enableAsgStepLabel.html'),
       validators: [
-        {
-          type: 'targetImpedance',
-          message: 'This pipeline will attempt to disable a server group without deploying a new version into the same cluster.'
-        },
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'target', },
         { type: 'requiredField', fieldName: 'regions', },
         { type: 'requiredField', fieldName: 'credentials', },
       ],
     });
-  }).controller('awsDisableAsgStageCtrl', function($scope, accountService, stageConstants, _) {
+  }).controller('awsEnableAsgStageCtrl', function($scope, accountService, stageConstants, _) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -69,6 +67,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.disableAsgSta
       stage.target = $scope.targets[0].val;
     }
 
+    $scope.$watch('stage.credentials', $scope.accountUpdated);
   })
   .name;
 
