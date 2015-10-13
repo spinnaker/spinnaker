@@ -1,15 +1,16 @@
 server:
-  port: 8089
+  port: ${ECHO_PORT:8089}
+  address: $ECHO_HOST
 
 cassandra:
   embedded: false
   host: $CASSANDRA_HOST
 
 front50:
-  baseUrl: http://localhost:8080
+  baseUrl: http://$FRONT50_HOST:$FRONT50_PORT
 
 orca:
-  baseUrl: http://localhost:8083
+  baseUrl: http://$ORCA_HOST:$ORCA_PORT
   enabled: true
 
 endpoints.health.sensitive: false

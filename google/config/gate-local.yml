@@ -1,27 +1,28 @@
 server:
-  port: 8084
+  port: ${GATE_PORT:8084}
+  address: $GATE_HOST
 
 services:
   oort:
-    baseUrl: http://localhost:7002
+    baseUrl: http://$OORT_HOST:$OORT_PORT
   orca:
-    baseUrl: http://localhost:8083
+    baseUrl: http://$ORCA_HOST:$ORCA_PORT
   front50:
-    baseUrl: http://localhost:8080
+    baseUrl: http://$FRONT50_HOST:$FRONT50_PORT
   mort:
-    baseUrl: http://localhost:7002
+    baseUrl: http://$MORT_HOST:$MORT_PORT
   kato:
-    baseUrl: http://localhost:7002
+    baseUrl: http://$KATO_HOST:$KATO_PORT
 #optional services:
   echo:
     enabled: true
-    baseUrl: http://localhost:8089
+    baseUrl: http://$ECHO_HOST:$ECHO_PORT
   flapjack:
     enabled: false
   igor:
     enabled: ${IGOR_ENABLED:false}
-    baseUrl: http://localhost:8088
+    baseUrl: http://$IGOR_HOST:$IGOR_PORT
 
 redis:
-  connection: redis://$REDIS_HOST:6379      
+  connection: redis://$REDIS_HOST:$REDIS_PORT
 

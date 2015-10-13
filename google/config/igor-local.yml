@@ -1,13 +1,14 @@
 server:
-  port: 8088
+  port: ${IGOR_PORT:8088}
+  address: $IGOR_HOST
 
 jenkins:
   masters:
-    - name: jenkins1
+    - name: $JENKINS_MASTER_NAME
       address: http://$JENKINS_ADDRESS
       username: $JENKINS_USERNAME
       password: $JENKINS_PASSWORD
 
 services:
   echo:
-    baseUrl: http://localhost:8089
+    baseUrl: http://$ECHO_HOST:$ECHO_PORT

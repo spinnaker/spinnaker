@@ -20,10 +20,12 @@ import sys
 
 import configure_util
 
-from install.install_utils import fetch
-from install.google_install_loader import running_on_gce
-from install.google_install_loader import GOOGLE_INSTANCE_METADATA_URL
-from install.google_install_loader import GOOGLE_METADATA_URL
+from fetch import fetch
+from fetch import is_google_instance
+from fetch import GOOGLE_INSTANCE_METADATA_URL
+from fetch import GOOGLE_METADATA_URL
+from fetch import GOOGLE_OAUTH_URL
+
 
 class ValidateConfig(object):
   def __init__(self, parameters=None):
@@ -34,6 +36,11 @@ class ValidateConfig(object):
     self.__config_dir = parameters.CONFIG_DIR
 
   def validate(self):
+    """Validate the configuration.
+
+    Returns:
+      True or False after print result to stdout
+    """
     config_path = os.path.join(self.__config_dir, 'spinnaker_config.cfg')
     self.verify_google_scopes()
     self.verify_google_provider()
@@ -52,6 +59,11 @@ class ValidateConfig(object):
       return False
 
   def verify_true_false(self, name):
+    """Verify name has a True or False value.
+
+    Args:
+      name [string]: variable name.
+    """
     value = self.__bindings.get_variable(name, None)
     if value is None:
       self.__errors.append('Missing "{name}".'.format(name=name))
@@ -66,6 +78,12 @@ class ValidateConfig(object):
     return False
 
   def verify_host(self, name, required):
+    """Verify name is a valid hostname.
+
+    Args:
+      name [string]: variable name.
+      required [bool]: If True value cannot be empty.
+    """
     value = self.__bindings.get_variable(name, None)
     if value is None:
       self.__errors.append('Missing "{name}".'.format(name=name))
@@ -89,6 +107,14 @@ class ValidateConfig(object):
 
 
   def verify_host_port(self, name, required):
+    """Verify name is a valid host/port value.
+
+    Host/port values also permit a path, but do not include a URL protocol.
+
+    Args:
+      name [string]: variable name.
+      required [bool]: If True value cannot be empty.
+    """
     value = self.__bindings.get_variable(name, None)
     if value is None:
       self.__errors.append('Missing "{name}".'.format(name=name))
@@ -112,18 +138,17 @@ class ValidateConfig(object):
     return False
 
   def verify_google_scopes(self):
-    if not running_on_gce():
+    """Verify that if we are running on Google that our scopes are valid."""
+    if not is_google_instance():
       return
     if self.__bindings.get_variable('GOOGLE_ENABLED', '').lower() != 'true':
       return
 
-    auth_url_path = 'https://www.googleapis.com/auth'
-    code, service_accounts = fetch(
+    result = fetch(
         GOOGLE_INSTANCE_METADATA_URL + '/service-accounts/', google=True)
-    if code != 200:
-      service_accounts = ''
+    service_accounts = result.content if result.ok() else ''
 
-    required_scopes = [auth_url_path + '/compute']
+    required_scopes = [GOOGLE_OAUTH_URL + '/compute']
     found_scopes = []
 
     for account in filter(bool, service_accounts.split('\n')):
@@ -131,12 +156,13 @@ class ValidateConfig(object):
         # Strip off trailing '/' so we can take the basename.
         account = account[0:-1]
 
-      code, have = fetch(
-        os.path.join(GOOGLE_INSTANCE_METADATA_URL, 'service-accounts',
-                     os.path.basename(account), 'scopes'),
-        google=True)
+      result = fetch(
+          os.path.join(GOOGLE_INSTANCE_METADATA_URL, 'service-accounts',
+                       os.path.basename(account), 'scopes'),
+          google=True)
 
       # cloud-platform scope implies all the other scopes.
+      have = str(result.content)
       if have.find('https://www.googleapis.com/auth/cloud-platform') >= 0:
         found_scopes.extend(required_scopes)
 
@@ -150,6 +176,7 @@ class ValidateConfig(object):
             'Missing required scope "{scope}".'.format(scope=scope))
 
   def verify_aws_provider(self):
+    """Verify that the AWS credentials make sense."""
     if not self.verify_true_false('AWS_ENABLED'):
       return False
 
@@ -178,13 +205,12 @@ class ValidateConfig(object):
     return ok
 
   def verify_google_provider(self):
+    """Verify that the Google credentials make sense."""
     if self.__bindings.get_variable('GOOGLE_ENABLED', '').lower() != 'true':
       return
 
-    code, project_id = fetch(GOOGLE_METADATA_URL + '/project/project-id',
-                             google=True)
-    if code != 200:
-      project_id = None
+    result = fetch(GOOGLE_METADATA_URL + '/project/project-id', google=True)
+    project_id = result.content if result.ok() else None
 
     # https://cloud.google.com/compute/docs/reference/latest/instances
     # The * here could be further restricted to {0,61} because length
@@ -247,6 +273,7 @@ class ValidateConfig(object):
     return ok
 
   def verify_docker(self):
+    """Verify that the Docker configuration makes sense."""
     ok = self.verify_host_port('DOCKER_ADDRESS', required=False)
     ok = (self.verify_host_port('DOCKER_TARGET_REPOSITORY', required=False)
           and ok)
@@ -260,6 +287,7 @@ class ValidateConfig(object):
     return ok
 
   def verify_jenkins(self):
+    """Verify that the Jenkins configuration makes sense."""
     ok = self.verify_host_port('JENKINS_ADDRESS', required=False)
     if self.__bindings.get_variable('JENKINS_ADDRESS', ''):
         # TODO(ewiseblatt): 20140925
@@ -287,13 +315,18 @@ class ValidateConfig(object):
             self.__errors.append('JENKINS_ADDRESS is provided,'
                                  ' but not JENKINS_PASSWORD.')
 
-
   def verify_external_dependencies(self):
+    """Verify that the external dependency references make sense."""
     ok = self.verify_host('CASSANDRA_HOST', required=False)
     ok = self.verify_host('REDIS_HOST', required=False) and ok
     return ok
 
   def verify_user_access_only(self, path):
+    """Verify only the user has permissions to operate on the supplied path.
+
+    Args:
+      path [string]: Path to local file.
+    """
     if not os.path.exists(path):
       return True
     stat = os.stat(path)
@@ -306,6 +339,7 @@ class ValidateConfig(object):
     return True
 
   def verify_security(self):
+    """Verify the permissions on the sensitive configuration files."""
     ok = self.verify_user_access_only(
       self.__bindings.get_variable('GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH', ''))
     ok = self.verify_user_access_only(

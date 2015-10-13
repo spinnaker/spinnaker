@@ -1,32 +1,32 @@
 'use strict';
 
-let gateHost = 'localhost:8084';
+let gateHost = '$GATE_HOST:$GATE_PORT';
 
 window.spinnakerSettings = {
   gateUrl: `http://${gateHost}`,
-  bakeryDetailUrl: 'http://localhost:8087/api/v1/global/logs/{{context.status.id}}?html=true',
+  bakeryDetailUrl: 'http://$BAKERY_HOST:$BAKERY_PORT/api/v1/global/logs/{{context.status.id}}?html=true',
   pollSchedule: 30000,
   defaultTimeZone: 'America/New_York', // see http://momentjs.com/timezone/docs/#/data-utilities/
   providers: {
     gce: {
       defaults: {
         account: '$GOOGLE_PRIMARY_ACCOUNT_NAME',
-        region: 'us-central1',
-        zone: 'us-central1-f',
+        region: '$GOOGLE_DEFAULT_REGION',
+        zone: '$GOOGLE_DEFAULT_ZONE',
       },
       primaryAccounts: ['$GOOGLE_PRIMARY_ACCOUNT_NAME'],
       challengeDestructiveActions: ['$GOOGLE_PRIMARY_ACCOUNT_NAME'],
     },
     aws: {
       defaults: {
-        account: 'default',
-        region: 'us-east-1'
+        account: '$AWS_PRIMARY_ACCOUNT_NAME',
+        region: '$AWS_DEFAULT_REGION'
       },
-      primaryAccounts: ['default'],
+      primaryAccounts: ['$AWS_PRIMARY_ACCOUNT_NAME'],
       primaryRegions: ['eu-west-1', 'us-east-1', 'us-west-1', 'us-west-2'],
-      challengeDestructiveActions: ['default'],
+      challengeDestructiveActions: ['$AWS_PRIMARY_ACCOUNT_NAME'],
       preferredZonesByAccount: {
-        default: {
+        $AWS_PRIMARY_ACCOUNT_NAME: {
           'us-east-1': ['us-east-1a', 'us-east-1b', 'us-east-1d', 'us-east-1e'],
           'us-west-1': ['us-west-1a', 'us-west-1b', 'us-west-1c'],
           'us-west-2': ['us-west-2a', 'us-west-2b', 'us-west-2c'],

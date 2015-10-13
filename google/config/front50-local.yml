@@ -1,5 +1,6 @@
 server:
-  port: 8080
+  port: ${FRONT50_PORT:8080}
+  address: $FRONT50_HOST
 
 cassandra:
   embedded: false

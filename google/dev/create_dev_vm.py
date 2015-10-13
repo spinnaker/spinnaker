@@ -145,6 +145,7 @@ def create_instance(options):
         # the things it is importing (no need for PYTHONPATH)
         content = f.read()
         content = content.replace('install.install', 'install')
+        content = content.replace('pylib.', '')
 
     fd, temp_install_development = tempfile.mkstemp()
     os.write(fd, content)
@@ -156,13 +157,15 @@ def create_instance(options):
     metadata_files = [
         'startup-script={install_dir}/google_install_loader.py'
         ',py_install_utils={install_dir}/install_utils.py'
+        ',py_fetch={pylib_dir}/fetch.py'
+        ',py_run={pylib_dir}/run.py'
         ',py_install_development={temp_install_development}'
         ',py_install_spinnaker={install_dir}/install_spinnaker.py'
         ',sh_bootstrap_vm={dev_dir}/bootstrap_vm.sh'
         ',py_install_runtime_dependencies='
         '{install_dir}/install_runtime_dependencies.py'
         .format(install_dir=install_dir,
-                dev_dir=dev_dir,
+                dev_dir=dev_dir, pylib_dir=pylib_dir,
                 temp_install_development=temp_install_development)]
 
     metadata = ','.join([
@@ -170,6 +173,8 @@ def create_instance(options):
             startup_command='+'.join(startup_command)),
         'startup_loader_files='
         'py_install_utils'
+        '+py_fetch'
+        '+py_run'
         '+py_install_development'
         '+py_install_spinnaker'
         '+py_install_runtime_dependencies'

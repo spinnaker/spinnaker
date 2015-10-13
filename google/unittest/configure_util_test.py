@@ -18,6 +18,8 @@ import tempfile
 import unittest
 
 from pylib import configure_util
+from pylib.fetch import get_google_project
+from pylib.fetch import is_google_instance
 
 # This is a config file defining VARIABLE_A and VARIABLE_B.
 # The 'B1' denotes that B has the value 1 here (other files will redefine it)
@@ -31,6 +33,11 @@ VARIABLE_B=1
 B2_C_CONFIG_DATA="""
 VARIABLE_B=2
 VARIABLE_C=value for c
+"""
+
+TRANSITIVE_CONFIG_DATA="""
+LEVEL_2 = $LEVEL_1
+LEVEL_1 = $VARIABLE_B
 """
 
 # This is a config file defining credentials assuming we are deployed on Google
@@ -56,7 +63,7 @@ GOOGLE_GENERIC_CREDENTIALS_CONFIG_DATA="""
 # The string here is used for both input to load YAML and output to dump it.
 # This might be fixable configuring the yaml dumper, but it isnt clear.
 # So this string reflects what the yaml.dump will produce for the dicts we want.
-if configure_util.is_google_instance():
+if is_google_instance():
   # We're explicitly naming the current project where additional credentials
   # are not required. We can only do this when running on Google Cloud Platform.
   GOOGLE_PROVIDER_CREDENTIALS_YAML = """- name: test-default-account
@@ -65,15 +72,13 @@ if configure_util.is_google_instance():
   name: test-full-account
   project: test-project
 """.format(
-    my_project=configure_util.fetch_my_google_project_or_die(
-        'Must test on GCE'))
+    my_project=get_google_project())
 
-if configure_util.is_google_instance():
+if is_google_instance():
   # The credentials expected from GOOGLE_PROVIDER_CREDENTIALS_YAML.
   GOOGLE_PROVIDER_CREDENTIALS_LIST = [
     {'name': 'test-default-account',
-     'project': configure_util.fetch_my_google_project_or_die(
-         'Must test on GCE')},
+     'project': get_google_project()},
 
     {'name': 'test-full-account',
      'project': 'test-project',
@@ -187,7 +192,7 @@ VALUE_HASH = # Keep
     self.assertEqual('2', bindings.get_variable('VARIABLE_B', None))
     self.assertEqual('value for c', bindings.get_variable('VARIABLE_C', None))
 
-  @unittest.skipUnless(configure_util.is_google_instance(),
+  @unittest.skipUnless(is_google_instance(),
                        'This test only runs on Google')
   def test_parse_google_provider_credentials(self):
     bindings = configure_util.Bindings()
@@ -222,7 +227,7 @@ VALUE_HASH = # Keep
         CONSTRAINED_CREDENTIALS_LIST,
         bindings.get_yaml('GOOGLE_CREDENTIALS_DECLARATION', None))
 
-  @unittest.skipUnless(configure_util.is_google_instance(),
+  @unittest.skipUnless(is_google_instance(),
                        'This test only runs on Google')
   def test_render_google_provider_credentials(self):
     bindings = configure_util.Bindings()
@@ -330,6 +335,7 @@ declaration_c={c}
       os.mkdir(config_template_dir)
       with open(os.path.join(config_dir, 'spinnaker_config.cfg'), 'w') as f:
           f.write(A_B1_CONFIG_DATA)
+          f.write(TRANSITIVE_CONFIG_DATA)
       with open(os.path.join(config_template_dir,
                              'default_spinnaker_config.cfg'), 'w') as f:
           f.write(B2_C_CONFIG_DATA)
@@ -341,17 +347,21 @@ declaration_c={c}
 
     default_google_enabled = 'false'
     platform_variables = []
-    if configure_util.is_google_instance():
-      my_project = configure_util.fetch_my_google_project_or_die('FAILED')
+    if is_google_instance():
+      my_project = get_google_project()
       platform_variables = [('GOOGLE_PRIMARY_MANAGED_PROJECT_ID', my_project)]
       default_google_enabled = 'true'
 
-    # VARIABLE_[A|B|C] + 3 dynamically injected bindings
-    self.assertEqual(3 + 3 + len(platform_variables),
+    # LEVEL_[1|1]
+    # + VARIABLE_[A|B|C]
+    # + 3 dynamically injected bindings
+    self.assertEqual(2 + 3 + 3 + len(platform_variables),
                      len(bindings.variables))
     self.assertEqual('1', bindings.get_variable('VARIABLE_B', ''))
     self.assertEqual('false', bindings.get_variable('IGOR_ENABLED', ''))
     self.assertEqual('false', bindings.get_variable('AWS_ENABLED', ''))
+    self.assertEqual('1', bindings.get_variable('LEVEL_1', ''))
+    self.assertEqual('1', bindings.get_variable('LEVEL_2', ''))
     self.assertEqual(default_google_enabled,
                      bindings.get_variable('GOOGLE_ENABLED', ''))
     for platform in platform_variables:

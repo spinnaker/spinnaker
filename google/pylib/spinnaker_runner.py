@@ -26,11 +26,17 @@ import time
 import yaml
 
 import configure_util
-from install.install_utils import run
-from install.install_utils import run_or_die
+from fetch import check_fetch
+from fetch import is_google_instance
+from fetch import GOOGLE_METADATA_URL
+from run import check_run_quick
+from run import run_quick
 
 
 class Runner(object):
+  """Provides routines for starting / stopping Spinnaker subsystems."""
+
+  # Denotes we are operating on all the subsystems
   __SPINNAKER_COMPONENT = 'all'
 
   # These are all the standard spinnaker subsystems that can be started
@@ -38,21 +44,26 @@ class Runner(object):
   INDEPENDENT_SUBSYSTEM_LIST=['clouddriver', 'front50', 'orca', 'rosco',
                               'echo']
 
-  # These are additional, optional subsystems.
-  OPTIONAL_SUBSYSTEM_LIST=['rush', 'igor']
-
   @property
-  def global_config_path(self):
+  def master_config_path(self):
+    """Path to the master configuration file."""
     return '{config_dir}/spinnaker_config.cfg'.format(
         config_dir=self.__installation.CONFIG_DIR)
 
   @property
   def _first_time_use_instructions(self):
-    optional_defaults_if_on_gce = ''
-    if configure_util.is_google_instance():
-      optional_defaults_if_on_gce = """    #   NOTE: Since you are deployed on GCE:
-    #      * You do not need JSON credentials to manage project id "{gce_project}".
-""".format(gce_project=configure_util.fetch_my_google_project_or_die(None))
+    """Instructions for configuring Spinnaker for the first time.
+
+    Google Cloud Platform is treated as a special case because some
+    configuration parameters have defaults implied by the runtime environment.
+    """
+    optional_defaults_if_on_google = ''
+
+    if is_google_instance():
+      google_project = get_google_project()
+      optional_defaults_if_on_google = """    #   NOTE: Since you are deployed on GCE:
+    #      * You do not need JSON credentials to manage project id "{google_project}".
+""".format(google_project=google_project)
 
     return """
     {sudo}mkdir -p {config_dir}
@@ -67,7 +78,7 @@ class Runner(object):
     #   If you want to deploy to Google Cloud Platform:
     #      * Add your GOOGLE_PRIMARY_MANAGED_PROJECT_ID.
     #      * Add your GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH.
-{optional_defaults_if_on_gce}
+{optional_defaults_if_on_google}
     {sudo}{script_dir}/stop_spinnaker.sh
     {sudo}{script_dir}/reconfigure_spinnaker.sh
     {sudo}{script_dir}/start_spinnaker.sh
@@ -76,7 +87,7 @@ class Runner(object):
   template_dir=self.__installation.CONFIG_TEMPLATE_DIR,
   config_dir=self.__installation.CONFIG_DIR,
   script_dir=self.__installation.UTILITY_SCRIPT_DIR,
-  optional_defaults_if_on_gce=optional_defaults_if_on_gce)
+  optional_defaults_if_on_google=optional_defaults_if_on_google)
 
   def __init__(self, installation_parameters=None):
     self.__installation = (installation_parameters
@@ -89,20 +100,40 @@ class Runner(object):
       # embedded YML files and maybe internally within the implementation
       # (e.g. amos needs the AWS_*_KEY but isnt clear if that could be
       # injected through a yaml).
-      os.environ[name] = value
+      if not name in os.environ:
+        os.environ[name] = value
 
   # These are all the spinnaker subsystems in total.
   @classmethod
   def get_all_subsystem_names(cls):
+    # Currently this must start first.
+    # TODO: Group this into the optional subsystem list when it is fixed.
     result = ['gce-kms']
+
+    # These are always started. Order doesnt matter other
+    # than after gce-kms
     result.extend(cls.INDEPENDENT_SUBSYSTEM_LIST)
-    result.extend(cls.OPTIONAL_SUBSYSTEM_LIST)
+
+    # These are additional, optional subsystems.
+    result.extend(['rush', 'igor'])
+
+    # Gate is started after everything else is up and available.
     result.append('gate')
 
+    # deck is not included here because it is run within apache.
+    # which is managed separately.
     return result
 
   @staticmethod
   def run_daemon(path, args, detach=True):
+    """Run a program as a long-running background process.
+
+    Args:
+      path [string]: Path to the program to run.
+      args [list of string]: Arguments to pass to program
+      detch [bool]: True if we're running it in separate process group.
+         A seprate process group will continue after we exit.
+    """
     pid = os.fork()
     if pid == 0:
       if detach:
@@ -124,9 +155,23 @@ class Runner(object):
     os.execv(path, args)
 
   def stop_subsystem(self, subsystem, pid):
+    """Stop the specified subsystem.
+
+    Args:
+      subsystem [string]: The name of the subsystem.
+      pid [int]: The process id of the runningn subsystem.
+    """
     os.kill(pid, signal.SIGTERM)
 
   def start_subsystem(self, subsystem):
+    """Start the specified subsystem.
+
+    Args:
+      subsystem [string]: The name of the subsystem.
+
+    Returns:
+      The pid of the subsystem once running.
+    """
     program = self.subsystem_to_program(subsystem)
 
     if program == subsystem:
@@ -147,9 +192,10 @@ class Runner(object):
                      .format(command=command, log=base_log_path)])
 
   def start_dependencies(self):
+    """Start all the external dependencies running on this host."""
     run_dir = self.__installation.EXTERNAL_DEPENDENCY_SCRIPT_DIR
 
-    run_or_die(
+    check_run_quick(
         'REDIS_HOST={host}'
         ' LOG_DIR={log_dir}'
         ' {run_dir}/start_redis.sh'
@@ -158,7 +204,7 @@ class Runner(object):
                 run_dir=run_dir),
         echo=True)
 
-    run_or_die(
+    check_run_quick(
         'CASSANDRA_HOST={host}'
         ' CASSANDRA_DIR={install_dir}/cassandra'
         ' {run_dir}/start_cassandra.sh'
@@ -252,7 +298,7 @@ class Runner(object):
 
     return job_map
 
-  def find_port(self, subsystem):
+  def find_port_and_address(self, subsystem):
     path = os.path.join(self.__installation.CONFIG_DIR,
                         subsystem + '-local.yml')
     if not os.path.exists(path):
@@ -264,7 +310,7 @@ class Runner(object):
 
     with open(path, 'r') as f:
       data = yaml.load(f, Loader=yaml.Loader)
-    return data['server']['port']
+    return data['server']['port'], data['server'].get('address', None)
 
   @staticmethod
   def start_tail(path):
@@ -273,7 +319,7 @@ class Runner(object):
 
   def wait_for_service(self, subsystem, pid, show_log_while_waiting=True):
     try:
-      port = self.find_port(subsystem)
+      port, address = self.find_port_and_address(subsystem)
     except KeyError:
       error = ('A port for {subsystem} is not explicit in the configuration.'
                ' Assuming it is up since it isnt clear how to test for it.'
@@ -289,8 +335,14 @@ class Runner(object):
     tail_process = None
     wait_msg_retries = 5 # Give half a second before showing log/warning.
     while True:
+      if address:
+        host_colon = address.find(':')
+        host = address if host_colon < 0 else address[:host_colon]
+      else:
+        host = 'localhost'
+        
       try:
-        sock.connect(('localhost', port))
+        sock.connect((host, port))
         break
       except IOError:
         try:
@@ -321,7 +373,7 @@ class Runner(object):
 
 
   def warn_if_configuration_looks_old(self):
-      global_stat = os.stat(self.global_config_path)
+      global_stat = os.stat(self.master_config_path)
       errors = 0
 
       for subsys in self.get_all_subsystem_names():
@@ -333,7 +385,7 @@ class Runner(object):
               errors += 1
               sys.stderr.write('WARNING: {config} is older than {baseline}\n'
                                .format(config=config_path,
-                                       baseline=self.global_config_path))
+                                       baseline=self.master_config_path))
       if errors > 0:
          sys.stderr.write("""
 To fix this run the following:
@@ -347,11 +399,11 @@ Proceeding anyway.
 
   def stop_deck(self):
     print 'Stopping apache server while starting Spinnaker.'
-    run('service apache2 stop', echo=True)
+    run_quick('service apache2 stop', echo=True)
 
   def start_deck(self):
     print 'Starting apache server.'
-    run('service apache2 start', echo=True)
+    run_quick('service apache2 start', echo=True)
 
   def start_all(self, options):
     self.check_configuration(options)
@@ -449,12 +501,12 @@ Proceeding anyway.
                         help='Name of component to start or stop, or ALL')
 
   def check_configuration(self, options):
-    if not os.path.exists(self.global_config_path):
+    if not os.path.exists(self.master_config_path):
       sys.stderr.write(
           'ERROR: {path} does not exist.\n'
           '       Spinnaker is probably not properly configured.\n\n'
           'To configure spinnaker do the following: {first_time_use}\n'
-          .format(path=self.global_config_path,
+          .format(path=self.master_config_path,
                   first_time_use=self._first_time_use_instructions))
       sys.exit(-1)
 
@@ -463,7 +515,7 @@ Proceeding anyway.
 
   @classmethod
   def main(cls):
-    cls.check_java_version_or_die()
+    cls.check_java_version()
     runner = cls()
     parser = argparse.ArgumentParser()
     runner.init_argument_parser(parser)
@@ -483,7 +535,7 @@ Proceeding anyway.
       return subsystem
 
   @staticmethod
-  def check_java_version_or_die():
+  def check_java_version():
     """Ensure that we will be running the right version of Java.
 
     The point here is to fail quickly with a concise message if not. Otherwise,
