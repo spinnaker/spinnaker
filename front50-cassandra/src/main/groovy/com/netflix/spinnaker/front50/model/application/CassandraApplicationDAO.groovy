@@ -224,6 +224,8 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
           tags: details.tags ?: null,
           regions: details.regions ?: null,
           cloudProviders: details.cloudProviders ?: null,
+          platformHealthOnly: details.platformHealthOnly ?: null,
+          platformHealthOnlyShowOverride: details.platformHealthOnlyShowOverride ?: null,
           accounts: accounts ? accounts.join(",") : null,
           updateTs: getStringValue('updatets'),
           createTs: getStringValue('createts')

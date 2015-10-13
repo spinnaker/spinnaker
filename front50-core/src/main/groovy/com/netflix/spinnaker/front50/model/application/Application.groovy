@@ -55,6 +55,8 @@ class Application {
   String repoSlug
   String repoType
   String cloudProviders
+  String platformHealthOnly
+  String platformHealthOnlyShowOverride
 
   @JsonIgnore
   ApplicationDAO dao
@@ -84,7 +86,9 @@ class Application {
               @JsonProperty("repoProjectKey") String repoProjectKey,
               @JsonProperty("repoSlug") String repoSlug,
               @JsonProperty("repoType") String repoType,
-              @JsonProperty("cloudProviders") String cloudProviders
+              @JsonProperty("cloudProviders") String cloudProviders,
+              @JsonProperty("platformHealthOnly") String platformHealthOnly,
+              @JsonProperty("platformHealthOnlyShowOverride") String platformHealthOnlyShowOverride
 
   ) {
     this.group = group
@@ -104,6 +108,8 @@ class Application {
     this.repoSlug = repoSlug
     this.repoType = repoType
     this.cloudProviders = cloudProviders
+    this.platformHealthOnly = platformHealthOnly
+    this.platformHealthOnlyShowOverride = platformHealthOnlyShowOverride
   }
 
   void update(Application updatedApplication) {
