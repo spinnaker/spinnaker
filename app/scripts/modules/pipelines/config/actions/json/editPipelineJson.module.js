@@ -20,7 +20,7 @@ module.exports = angular.module('spinnaker.pipelines.config.actions.editJson', [
     function updateStageCounter() {
       if (pipeline.parallel) {
         let stageIds = pipeline.stages.map((stage) => Number(stage.refId));
-        stageIds.forEach((stageId) => pipeline.stageCounter = Math.max(pipeline.stageCounter, stageId + 1));
+        stageIds.forEach((stageId) => pipeline.stageCounter = Math.max(pipeline.stageCounter, stageId));
       }
     }
 
