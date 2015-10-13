@@ -50,10 +50,10 @@ class GooglePackerBuilder(AbstractPackerBuilder):
         'target_image',
         os.path.basename(self.options.release_uri).replace('_', '-'))
 
-    # image_project isnt passed through to packer
+    # image_project isnt passed through to packer.
     self.remove_raw_arg('image_project')
 
-    # The default project_id maybe overriden by a commandline argument later.
+    # The default project_id may be overriden by a commandline argument later.
     self.add_packer_variable('project_id', self.options.image_project)
 
   def _do_get_next_steps(self):
