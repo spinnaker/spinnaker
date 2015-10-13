@@ -38,9 +38,10 @@ class TitanInstanceProvider implements InstanceProvider<TitanInstance> {
   private final TitanCloudProvider titanCloudProvider
 
   @Autowired
-  TitanInstanceProvider(Cache cacheView, TitanCloudProvider titanCloudProvider) {
+  TitanInstanceProvider(Cache cacheView, TitanCloudProvider titanCloudProvider, ObjectMapper objectMapper) {
     this.cacheView = cacheView
     this.titanCloudProvider = titanCloudProvider
+    this.objectMapper = objectMapper
   }
 
   @Override
@@ -52,6 +53,7 @@ class TitanInstanceProvider implements InstanceProvider<TitanInstance> {
     String json = objectMapper.writeValueAsString(instanceEntry.attributes.task)
     Task task = objectMapper.readValue(json, Task)
     TitanInstance instance = new TitanInstance(task)
+    instance.health = instanceEntry.attributes[HEALTH.ns]
     if (instanceEntry.relationships[HEALTH.ns]) {
       instance.health = instance.health ?: []
       instance.health.addAll(cacheView.getAll(HEALTH.ns, instanceEntry.relationships[HEALTH.ns])*.attributes)
