@@ -17,11 +17,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.jenkinsStage', [])
       executionLabelTemplateUrl: require('./jenkinsExecutionLabel.html'),
       defaultTimeoutMs: 2 * 60 * 60 * 1000, // 2 hours
       validators: [
-        {
-          type: 'requiredField',
-          fieldName: 'job',
-          message: '<strong>Job</strong> is a required field on Jenkins stages.',
-        },
+        { type: 'requiredField', fieldName: 'job', },
       ],
     });
   }).controller('JenkinsStageCtrl', function($scope, stage, igorService, $filter, infrastructureCaches, _) {

@@ -13,6 +13,14 @@ module.exports = angular.module('spinnaker.pipelines.stage.modifyScalingProcessS
       controlelrAs: 'modifyScalingProcessStageCtrl',
       templateUrl: require('./modifyScalingProcessStage.html'),
       executionDetailsUrl: require('./modifyScalingProcessExecutionDetails.html'),
+      validators: [
+        { type: 'requiredField', fieldName: 'cluster' },
+        { type: 'requiredField', fieldName: 'target', },
+        { type: 'requiredField', fieldName: 'action', },
+        { type: 'requiredField', fieldName: 'regions', },
+        { type: 'requiredField', fieldName: 'processes', },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+      ],
       cloudProvider: 'aws',
     });
   }).controller('ModifyScalingProcessStageCtrl', function($scope, stage, accountService, stageConstants, _) {

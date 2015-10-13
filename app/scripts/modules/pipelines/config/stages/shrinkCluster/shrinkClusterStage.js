@@ -19,11 +19,10 @@ module.exports = angular.module('spinnaker.pipelines.stage.shrinkClusterStage', 
       templateUrl: require('./shrinkClusterStage.html'),
       executionDetailsUrl: require('./shrinkClusterExecutionDetails.html'),
       validators: [
-        {
-          type: 'requiredField',
-          fieldName: 'cluster',
-          message: '<strong>Cluster</strong> is a required field on Shrink Cluster stages.',
-        },
+        { type: 'requiredField', fieldName: 'cluster' },
+        { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups'},
+        { type: 'requiredField', fieldName: 'regions', },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
   }).controller('ShrinkClusterStageCtrl', function($scope, stage, accountService, stageConstants, _) {

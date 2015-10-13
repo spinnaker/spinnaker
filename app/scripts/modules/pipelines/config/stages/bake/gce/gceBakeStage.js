@@ -18,11 +18,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.gce.bakeStage', [
       executionDetailsUrl: require('./bakeExecutionDetails.html'),
       defaultTimeoutMs: 60 * 60 * 1000, // 60 minutes
       validators: [
-        {
-          type: 'requiredField',
-          fieldName: 'package',
-          message: '<strong>Package</strong> is a required field on bake stages.',
-        },
+        { type: 'requiredField', fieldName: 'package', },
       ],
     });
   })

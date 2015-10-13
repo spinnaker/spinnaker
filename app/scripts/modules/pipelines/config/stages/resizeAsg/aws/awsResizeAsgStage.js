@@ -18,11 +18,11 @@ module.exports = angular.module('spinnaker.pipelines.stage.aws.resizeAsgStage', 
           type: 'targetImpedance',
           message: 'This pipeline will attempt to resize a server group without deploying a new version into the same cluster.'
         },
-        {
-          type: 'requiredField',
-          fieldName: 'cluster',
-          message: '<strong>Cluster</strong> is a required field on Resize Server Group stages.',
-        },
+        { type: 'requiredField', fieldName: 'cluster' },
+        { type: 'requiredField', fieldName: 'target', },
+        { type: 'requiredField', fieldName: 'action', },
+        { type: 'requiredField', fieldName: 'regions', },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
   }).controller('awsResizeAsgStageCtrl', function($scope, accountService, stageConstants, _) {
