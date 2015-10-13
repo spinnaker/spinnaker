@@ -23,14 +23,6 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-aws:before {
-  content: "\e010";
-}
-
-.icon-gce:before {
-  content: "\e601";
-}
-
 .icon-bubbles:before {
   content: "\e96d";
 }

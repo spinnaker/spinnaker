@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./logo/titan.logo.less');
+
 module.exports = angular.module('spinnaker.titan', [
   require('../core/cloudProvider/cloudProvider.registry.js'),
   require('./serverGroup/details/serverGroupDetails.titan.controller.js'),
@@ -18,7 +20,7 @@ module.exports = angular.module('spinnaker.titan', [
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('titan', {
       logo: {
-        path: require('./logo_titan.png')
+        path: require('./logo/titan.logo.png')
       },
       serverGroup: {
         transformer: 'titanServerGroupTransformer',
