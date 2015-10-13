@@ -75,7 +75,6 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
                 createts varchar,
                 accounts list<text>,
                 details map<text,text>,
-                cloudproviders list<text>,
                 PRIMARY KEY (name)
              ) with compression={};''').execute()
     }
