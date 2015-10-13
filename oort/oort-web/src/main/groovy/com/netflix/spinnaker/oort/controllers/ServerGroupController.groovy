@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
@@ -53,8 +54,15 @@ class ServerGroupController {
     matches.first()
   }
 
-  @RequestMapping(method = RequestMethod.GET)
-  List<ServerGroupViewModel> list(@PathVariable String application) {
+  List<ServerGroup> expandedList(String application) {
+    return clusterProviders
+      .findResults { ClusterProvider cp -> cp.getClusterDetails(application)?.values() }
+      .collectNested { Cluster c -> c.serverGroups }
+      .flatten()
+  }
+
+  List<ServerGroupViewModel> summaryList(String application) {
+
     List<ServerGroupViewModel> serverGroupViews = []
 
     def clusters = (Set<Cluster>) clusterProviders.findResults {
@@ -67,6 +75,14 @@ class ServerGroupController {
     }
 
     serverGroupViews
+  }
+
+  @RequestMapping(method = RequestMethod.GET)
+  List list(@PathVariable String application, @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand) {
+    if (Boolean.valueOf(expand)) {
+      return expandedList(application)
+    }
+    return summaryList(application)
   }
 
   @ExceptionHandler
