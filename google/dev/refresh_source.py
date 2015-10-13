@@ -66,7 +66,7 @@ class Refresher(object):
       if not user:
           raise ValueError('No --github_user specified.')
 
-      if user == 'default':
+      if user == 'default' or user == 'upstream':
           user = repository.owner
       url_pattern = ('https://github.com/{user}/{name}.git'
                      if self.__options.use_https

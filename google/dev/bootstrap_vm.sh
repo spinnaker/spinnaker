@@ -32,17 +32,15 @@
 #   * Creates a build/ directory as a subdirectory of $PWD.
 #
 #   * Clone each of the spinnaker subsystem github repositories into build/
-#       If there is a .ssh/id_rsa file then it will clone the repositories
-#       using ssh. Otherwise it will clone the repositories using https.
 #
 #       When a repository is cloned, an upstream remote will be added to
 #       reference the authoritative repository for the given repository.
 #       (e.g. the spinnaker github repository corresponding to your origin).
 #
-#       If the environment variable SPINNAKER_REPOSITORY_OWNER is set then
+#       If the environment variable GIHUB_REPOSITORY_OWNER is set then
 #       the repositories will be cloned from that github user. Otherwise it
 #       will be cloned from the user in your .git-credentials. If the owner
-#       is "default" then it will clone the authoritative repository for each
+#       is "upstream" then it will clone the authoritative repository for each
 #       repository cloned (e.g. all the 'spinnaker' repositories).
 #
 #    * Print out next step instructions.
@@ -51,20 +49,23 @@
 # Running the script:
 # -------------------
 # Rather than executing the script, you can source it to leave some side
-# effects in the current shell. Mainly changing the directory and starting
-# an ssh-agent if ssh (as opposed to https) is used to clone the github
-# repositories. These are trivial effects that would be part of a normal
-# future session after logout (e.g. changing directory and starting an
-# ssh agent if one were desired), but is convienent to have here on first
-# time usage and source. If the GITHUB_REPOSITORY_OWNER was used, it wont
-# be needed once the repositories are cloned since the clone repositories
-# know their origin.
-#
-#
-# This is optional, if you want to use the spinnaker repositories
-# rather than your own.
-# GITHUB_REPOSITORY_OWNER="default"
-# source spinnaker/google/dev/bootstrap_vm.sh
+# effects in the current shell, such as path changes for new installed
+# components.
+
+
+function prompt_YN() {
+  msg=$1
+  while true; do
+      got=""
+      read -p "$msg [Y/n]: " got
+      if [[ "$got" == "" || "$got" == "y" || "$got" == "Y" ]]; then
+        return 0
+      fi
+      if [[ "$got" == "n" || "$got" == "N" ]]; then
+        return 1
+      fi
+  done
+}
 
 
 function git_clone() {
@@ -72,72 +73,96 @@ function git_clone() {
   local git_project="$2"
   local upstream_user="$3"
 
-  if [[ "$git_user" == "default" ]]; then
+  if [[ "$git_user" == "default" || "$git_user" == "upstream" ]]; then
       git_user="$upstream_user"
   fi
+  git clone https://github.com/$git_user/$git_project.git
 
-  # Use SSH if the rsa key was defined, otherwise use HTTPS.
-  if [[ -f ~/.ssh/id_rsa ]]; then
-    git clone git@github.com:$git_user/$git_project.git
+  if [[ "$github_user" == "$upstream_user" ]]; then
+    git -C $git_project remote set-url --push origin disabled
   else
-    git clone https://github.com/$git_user/$git_project.git
-  fi
-
-  if [[ "$upstream_user" ]]; then
-    # Always use https for upstream.
-    cd $git_project
-    git remote add upstream https://github.com/$upstream_user/${git_project}.git
-    cd ..
+    git -C $git_project remote add upstream \
+        https://github.com/$upstream_user/${git_project}.git
   fi
 }
 
-
-# This script can be used to populate a new development vm with the
-# initial build environment and source code.
-#
-# It is put into /opt/spinnaker/install of development VMs
-# (created with dev/create_dev.sh).
-
-# If you do not have a .git-credentials file, you might want to create one.
-# You were better off doing this on your original machine because then
-# it would have been copied here (and to future VMs created by this script).
-if [[ -f ~/.git-credentials ]]; then
-  GITHUB_USER=$(sed 's/https:\/\/\([^:]\+\):.*@github.com/\1/' ~/.git-credentials)
-else
-  read -p 'Please enter your GitHub User ID: ' GITHUB_USER
-  read -p 'Please enter your GitHub Access Token: ' ACCESS_TOKEN
-  cat <<EOF > ~/.git-credentials
+function prepare_git() {
+  # If you do not have a .git-credentials file, you might want to create one.
+  # You were better off doing this on your original machine because then
+  # it would have been copied here (and to future VMs created by this script).
+  if [[ -f ~/.git-credentials ]]; then
+    GITHUB_USER=$(sed 's/https:\/\/\([^:]\+\):.*@github.com/\1/' ~/.git-credentials)
+  else
+    read -p 'Please enter your GitHub User ID: ' GITHUB_USER
+    read -p 'Please enter your GitHub Access Token: ' ACCESS_TOKEN
+    cat <<EOF > ~/.git-credentials
 https://$GITHUB_USER:$ACCESS_TOKEN@github.com
 EOF
-  chmod 600 ~/.git-credentials
-fi
+    chmod 600 ~/.git-credentials
+  fi
 
-export GITHUB_USER
+  if [[ ! -f $HOME/.git-credentials ]]; then
+     if prompt_YN "Cache git credentials?"; then
+        git config --global credential.helper store
+     fi
+  fi
 
-# If specified then use this as the user owning github repositories when
-# cloning them. If the owner is "default" then use the default owner for the
-# given repository. If this is not defined, then use GITHUB_USER which is
-# intended to be the github user account for the user running this script.
-GITHUB_REPOSITORY_OWNER=${GITHUB_REPOSITORY_OWNER:-"$GITHUB_USER"}
+  # If specified then use this as the user owning github repositories when
+  # cloning them. If the owner is "default" then use the default owner for the
+  # given repository. If this is not defined, then use GITHUB_USER which is
+  # intended to be the github user account for the user running this script.
+  GITHUB_REPOSITORY_OWNER=${GITHUB_REPOSITORY_OWNER:-"$GITHUB_USER"}
 
+  # Select repository
+  # Inform that "upstream" is a choice
 
-# Configure git to remember these credentials.
-git config --global credential.helper store
+    cat <<EOF
 
-# If you chose to copy the rsa keys (which is off by default for security),
-# then start it up here to avoid lots of passphrase prompting.
-# You'll need to run this again in future sessions in other shells.
-if [[ -f ~/.ssh/id_rsa ]]; then
-  eval "$(ssh-agent -s&)"; ssh-add ~/.ssh/id_rsa
+When selecting a repository owner, you can use "upstream" to use
+each of the authoritative repositories rather than your own forks.
+However, you will not be able to push any changes "upstream".
+This selection is only used if this script will be cloning repositories.
+EOF
+
+  read -p "Github repository owner ["$GITHUB_REPOSITORY_OWNER"] " \
+    CONFIRMED_GITHUB_REPOSITORY_OWNER
+  if [[ "$CONFIRMED_GITHUB_REPOSITORY_OWNER" == "" ]]; then
+    CONFIRMED_GITHUB_REPOSITORY_OWNER=$GITHUB_REPOSITORY_OWNER
+  fi
+}
+
+prepare_git
+
+if prompt_YN "Install (or update) Google Cloud Platform SDK?"; then
+   # Download gcloud to ensure it is a recent version.
+   # Note that this is in this script because the gcloud install method isn't
+   # system-wide. The awscli is installed in the install_development.py script.
+   pushd $HOME
+   echo "*** BEGIN installing gcloud..."
+   curl https://sdk.cloud.google.com | bash
+   if ! $(gcloud auth list 2>&1 | grep "No credential"); then
+      echo "Running gcloud authentication..."
+      gcloud auth login
+   else
+      echo "*** Using existing gcloud authentication:"
+      gcloud auth list
+   fi
+   echo "*** FINISHED installing gcloud..."
+   popd
 fi
 
 # This is a bootstrap pull of the development scripts.
-git_clone "$GITHUB_REPOSITORY_OWNER" "spinnaker" "spinnaker"
+if [[ ! -e "spinnaker" ]]; then
+  git_clone $CONFIRMED_GITHUB_REPOSITORY_OWNER "spinnaker" "spinnaker"
+else
+  echo "spinnaker/ already exists. Don't clone it."
+fi
 
 # Pull the spinnaker source into a fresh build directory.
-mkdir build
+mkdir -p build
 cd build
-../spinnaker/google/dev/refresh_source.sh --github_user $GITHUB_REPOSITORY_OWNER
+../spinnaker/google/dev/refresh_source.sh --pull_origin \
+    --github_user $CONFIRMED_GITHUB_REPOSITORY_OWNER
 
 # Some dependencies of Deck rely on Bower to manage their dependencies. Bower
 # annoyingly prompts the user to collect some stats, so this disables that.
