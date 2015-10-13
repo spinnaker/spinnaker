@@ -1,0 +1,10 @@
+<div class="form-group">
+  <div class="col-md-4 sm-label-left">
+      <b>Number of Instances</b>
+      <help-field key="titan.serverGroup.capacity"></help-field>
+  </div>
+  <div class="col-md-2"><input type="number" ng-change="setMinMax(command.capacity.desired)"
+                               class="form-control input-sm"
+                               ng-model="command.capacity.desired"
+                               min="0"/></div>
+</div>

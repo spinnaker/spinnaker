@@ -208,6 +208,61 @@ describe('Service: accountService ', function () {
     });
 
   });
+
+  describe('listProviders', function () {
+
+    beforeEach(function() {
+      $http.whenGET('/credentials').respond(200,
+        [ { type: 'aws' }, { type: 'gce' }, { type: 'cf' }]
+      );
+    });
+
+    it('should list all providers when no application provided', function () {
+
+      let test = (result) => expect(result).toEqual(['aws', 'gce', 'cf']);
+
+      accountService.listProviders().then(test);
+
+      $http.flush();
+    });
+
+    it('should fall back to the defaultProvider if none configured for the application', function () {
+      let application = { attributes: {} };
+
+      let test = (result) => expect(result).toEqual(['cf']);
+
+      settings.defaultProvider = 'cf';
+
+      accountService.listProviders(application).then(test);
+
+      $http.flush();
+    });
+
+    it('should return the intersection of those configured for the application and those available from the server', function () {
+      let application = { attributes: { cloudProviders: 'gce,cf,unicron' } };
+
+      let test = (result) => expect(result).toEqual(['gce', 'cf']);
+
+      settings.defaultProvider = 'aws';
+
+      accountService.listProviders(application).then(test);
+
+      $http.flush();
+    });
+
+    it('should sadly return an empty array if none of the app providers are available from the server', function () {
+      let application = { attributes: { cloudProviders: 'lamp,ceiling fan' } };
+
+      let test = (result) => expect(result).toEqual([]);
+
+      settings.defaultProvider = 'aws';
+
+      accountService.listProviders(application).then(test);
+
+      $http.flush();
+    });
+
+  });
 });
 
 

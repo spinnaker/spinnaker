@@ -51,7 +51,7 @@ module.exports = angular.module('spinnaker.securityGroup.all.controller', [
     }
 
     this.createSecurityGroup = function createSecurityGroup() {
-      providerSelectionService.selectProvider().then(function(selectedProvider) {
+      providerSelectionService.selectProvider(app).then(function(selectedProvider) {
         let provider = cloudProviderRegistry.getValue(selectedProvider, 'securityGroup');
         var defaultCredentials = app.defaultCredentials || settings.providers[selectedProvider].defaults.account,
             defaultRegion = app.defaultRegion || settings.providers[selectedProvider].defaults.region;

@@ -8,6 +8,7 @@ let authEndpoint = process.env.AUTH_ENDPOINT || 'spinnaker-api-prestaging.prod.n
 let protocol = process.env.PROTOCOL || 'https';
 
 window.spinnakerSettings = {
+  defaultProvider: 'aws',
   feedbackUrl: feedbackUrl,
   gateUrl: `${protocol}://${gateHost}`,
   bakeryDetailUrl: bakeryDetailUrl,
@@ -102,6 +103,14 @@ window.spinnakerSettings = {
           'sa-east-1': ['sa-east-1a', 'sa-east-1b']
         }
       }
+    },
+    titan: {
+      defaults: {
+        account: 'titantest',
+        region: 'us-east-1'
+      },
+      primaryAccounts: ['test'],
+      primaryRegions: ['us-east-1'],
     }
   },
   whatsNew: {

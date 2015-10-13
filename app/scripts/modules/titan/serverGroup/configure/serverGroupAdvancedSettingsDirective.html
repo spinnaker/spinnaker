@@ -1,0 +1,56 @@
+<div class="form-group">
+  <div class="col-md-12">
+    <table class="table table-condensed packed metadata">
+      <thead>
+      <tr>
+        <th style="width: 25%">Key</th>
+        <th style="width: 75%">Value</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr ng-repeat="instanceMetadataPair in command.instanceMetadata">
+        <td><input class="form-control input-sm" type="text" ng-model="instanceMetadataPair.key" required/></td>
+        <td><input class="form-control input-sm" type="text" ng-model="instanceMetadataPair.value" required/></td>
+        <td><a class="btn btn-link sm-label"
+               ng-click="advancedSettingsCtrl.removeInstanceMetadata($index)"><span
+          class="glyphicon glyphicon-trash"></span></a></td>
+      </tr>
+      </tbody>
+      <tfoot>
+      <tr>
+        <td colspan="2">
+          <button class="add-new col-md-12" ng-click="advancedSettingsCtrl.addInstanceMetadata()"><span
+            class="glyphicon glyphicon-plus-sign"></span> Add New Metadata
+          </button>
+        </td>
+      </tr>
+      </tfoot>
+    </table>
+
+    <table class="table table-condensed packed tags">
+      <thead>
+      <tr>
+        <th style="width: 100%">Tag</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr ng-repeat="tag in command.tags">
+        <td><input class="form-control input-sm" type="text" ng-model="tag.value" required/></td>
+        <td><a class="btn btn-link sm-label"
+               ng-click="advancedSettingsCtrl.removeTag($index)"><span
+          class="glyphicon glyphicon-trash"></span></a></td>
+      </tr>
+      </tbody>
+      <tfoot>
+      <tr>
+        <td colspan="1">
+          <button class="add-new col-md-12" ng-click="advancedSettingsCtrl.addTag()"><span
+            class="glyphicon glyphicon-plus-sign"></span> Add New Tag
+          </button>
+        </td>
+      </tr>
+      </tfoot>
+    </table>
+
+  </div>
+</div>

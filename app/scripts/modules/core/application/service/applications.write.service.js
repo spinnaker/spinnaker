@@ -64,7 +64,8 @@ module.exports = angular
                 tags: app.tags,
                 repoProjectKey: app.repoProjectKey,
                 repoSlug: app.repoSlug,
-                repoType: app.repoType
+                repoType: app.repoType,
+                cloudProviders: app.cloudProviders ? app.cloudProviders.join(',') : '',
               }
             }
           ],

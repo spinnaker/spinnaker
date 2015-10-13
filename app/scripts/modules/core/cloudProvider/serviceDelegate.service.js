@@ -7,6 +7,11 @@ module.exports = angular.module('spinnaker.delegation', [
 ])
   .factory('serviceDelegate', function($injector, cloudProviderRegistry, _) {
 
+    let hasDelegate = _.memoize((provider, serviceKey) => {
+      let service = cloudProviderRegistry.getValue(provider, serviceKey);
+      return $injector.has(service);
+    }, (provider, serviceKey) => { return provider + '#' + serviceKey; });
+
     let getDelegate = _.memoize((provider, serviceKey) => {
       let service = cloudProviderRegistry.getValue(provider, serviceKey);
       if ($injector.has(service)) {
@@ -17,6 +22,7 @@ module.exports = angular.module('spinnaker.delegation', [
     }, (provider, serviceKey) => { return provider + '#' + serviceKey; });
 
     return {
+      hasDelegate: hasDelegate,
       getDelegate: getDelegate,
     };
   })

@@ -1,6 +1,6 @@
 'use strict';
 
-describe('Controller: awsResizeServerGroupCtrl', function () {
+describe('Controller: gceResizeServerGroupCtrl', function () {
 
   //NOTE: This is only testing the controllers dependencies. Please add more tests.
 

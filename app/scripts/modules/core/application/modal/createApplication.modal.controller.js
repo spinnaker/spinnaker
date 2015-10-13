@@ -19,7 +19,10 @@ module.exports = angular
     let accountLoader = accountService.listAccounts();
     accountLoader.then((accounts) => vm.accounts = accounts);
 
-    $q.all([accountLoader, applicationLoader]).then(() => vm.initializing = false);
+    let providerLoader = accountService.listProviders();
+    providerLoader.then((providers) => vm.cloudProviders = providers);
+
+    $q.all([accountLoader, applicationLoader, providerLoader]).then(() => vm.initializing = false);
 
     vm.initializing = true;
     vm.submitting = false;

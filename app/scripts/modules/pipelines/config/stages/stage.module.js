@@ -8,6 +8,7 @@ module.exports = angular.module('spinnaker.pipelines.config.stage', [
   require('../services/pipelineConfigService.js'),
   require('./overrideTimeout/overrideTimeout.directive.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
+  require('../../../core/account/account.service.js'),
 ])
   .directive('pipelineConfigStage', function() {
     return {
@@ -26,7 +27,7 @@ module.exports = angular.module('spinnaker.pipelines.config.stage', [
     };
   })
   .controller('StageConfigCtrl', function($scope, $element, $compile, $controller, $templateCache,
-                                          pipelineConfigService, pipelineConfig, _) {
+                                          pipelineConfigService, pipelineConfig, _, accountService) {
 
     var stageTypes = pipelineConfig.getConfigurableStageTypes(),
         lastStageScope;
@@ -36,6 +37,12 @@ module.exports = angular.module('spinnaker.pipelines.config.stage', [
       }),
       selectedStageType: null,
     };
+
+    accountService.listProviders($scope.application).then((providers) => {
+      $scope.options.stageTypes = $scope.options.stageTypes.filter((stageType) => {
+        return !stageType.cloudProvider || _.contains(providers, stageType.cloudProvider);
+      });
+    });
 
     function getConfig(type) {
       return pipelineConfig.getStageConfig({type: type});

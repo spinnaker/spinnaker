@@ -51,9 +51,18 @@ module.exports = angular.module('spinnaker.core.account.service', [
         .getList();
     }
 
-    function listProviders() {
+    function listProviders(application) {
       return listAccounts().then(function(accounts) {
-        return _.uniq(_.pluck(accounts, 'type'));
+        let allProviders = _.uniq(_.pluck(accounts, 'type'));
+        if (application) {
+          let appProviders = application.attributes.cloudProviders ?
+            application.attributes.cloudProviders.split(',') :
+            settings.defaultProvider ?
+              [settings.defaultProvider] :
+              ['aws'];
+          return _.intersection(allProviders, appProviders);
+        }
+        return allProviders;
       });
     }
 
