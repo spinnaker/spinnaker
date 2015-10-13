@@ -2,9 +2,7 @@
 
 describe('Service: accountService ', function () {
 
-  //NOTE: This is only testing the service dependencies. Please add more tests.
-
-  var $rootScope, accountService, $http, $q, settings;
+  var $rootScope, accountService, $http, $q, settings, cloudProviderRegistry;
 
   beforeEach(
     window.module(
@@ -13,12 +11,14 @@ describe('Service: accountService ', function () {
   );
 
   beforeEach(
-    window.inject(function (_$rootScope_, _accountService_, $httpBackend, infrastructureCaches, _$q_, _settings_) {
+    window.inject(function (_$rootScope_, _accountService_, $httpBackend, infrastructureCaches, _$q_, _settings_,
+                            _cloudProviderRegistry_) {
       $rootScope = _$rootScope_;
       accountService = _accountService_;
       $http = $httpBackend;
       $q = _$q_;
       settings = _settings_;
+      cloudProviderRegistry = _cloudProviderRegistry_;
 
       if (infrastructureCaches.credentials) {
         infrastructureCaches.credentials.removeAll();
@@ -212,9 +212,12 @@ describe('Service: accountService ', function () {
   describe('listProviders', function () {
 
     beforeEach(function() {
+      this.registeredProviders = ['aws', 'gce', 'cf'];
       $http.whenGET('/credentials').respond(200,
         [ { type: 'aws' }, { type: 'gce' }, { type: 'cf' }]
       );
+
+      spyOn(cloudProviderRegistry, 'listRegisteredProviders').and.returnValue(this.registeredProviders);
     });
 
     it('should list all providers when no application provided', function () {
@@ -226,12 +229,22 @@ describe('Service: accountService ', function () {
       $http.flush();
     });
 
-    it('should fall back to the defaultProvider if none configured for the application', function () {
+    it('should filter out providers not registered', function () {
+      this.registeredProviders.pop();
+
+      let test = (result) => expect(result).toEqual(['aws', 'gce']);
+
+      accountService.listProviders().then(test);
+
+      $http.flush();
+    });
+
+    it('should fall back to the defaultProviders if none configured for the application', function () {
       let application = { attributes: {} };
 
-      let test = (result) => expect(result).toEqual(['cf']);
+      let test = (result) => expect(result).toEqual(['gce', 'cf']);
 
-      settings.defaultProvider = 'cf';
+      settings.defaultProviders = ['gce', 'cf'];
 
       accountService.listProviders(application).then(test);
 
@@ -243,19 +256,31 @@ describe('Service: accountService ', function () {
 
       let test = (result) => expect(result).toEqual(['gce', 'cf']);
 
-      settings.defaultProvider = 'aws';
+      settings.defaultProviders = ['aws'];
 
       accountService.listProviders(application).then(test);
 
       $http.flush();
     });
 
-    it('should sadly return an empty array if none of the app providers are available from the server', function () {
+    it('should return an empty array if none of the app providers are available from the server', function () {
       let application = { attributes: { cloudProviders: 'lamp,ceiling fan' } };
 
       let test = (result) => expect(result).toEqual([]);
 
-      settings.defaultProvider = 'aws';
+      settings.defaultProviders = 'aws';
+
+      accountService.listProviders(application).then(test);
+
+      $http.flush();
+    });
+
+    it('should fall back to all registered available providers if no defaults configured and none configured on app', function () {
+      let application = { attributes: {} };
+
+      let test = (result) => expect(result).toEqual(['aws', 'gce', 'cf']);
+
+      delete settings.defaultProviders;
 
       accountService.listProviders(application).then(test);
 

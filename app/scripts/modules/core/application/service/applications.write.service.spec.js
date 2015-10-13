@@ -29,7 +29,8 @@ describe('Servcie: applicationWriter', function () {
           email: 'foo@netflix.com',
           owner: 'jojo',
           type: 'test',
-          pdApiKey: '229293'
+          pdApiKey: '229293',
+          cloudProviders: [],
       };
 
       applicationWriter.updateApplication(application);
@@ -48,7 +49,8 @@ describe('Servcie: applicationWriter', function () {
         email: 'foo@netflix.com',
         owner: 'jojo',
         type: 'test',
-        pdApiKey: '229293'
+        pdApiKey: '229293',
+        cloudProviders: [],
       };
 
       applicationWriter.updateApplication(application);
