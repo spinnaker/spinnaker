@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.pipeline.persistence
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
@@ -107,10 +108,10 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     def pipeline = Pipeline
       .builder()
       .withStage("one", "one", [:])
-      .withStage("two", "two", [:])
       .withStage("one-a", "one-1", [:])
-      .withStage("one-b", "one-1", [:])
       .withStage("one-a-a", "three", [:])
+      .withStage("one-b", "one-1", [:])
+      .withStage("two", "two", [:])
       .build()
 
     def one = pipeline.stages.find { it.type == "one" }
@@ -177,6 +178,32 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     and:
     repository.retrievePipelines().toList().toBlocking().first() == []
+  }
+
+  def "cancelling works for #type"() {
+    given:
+    repository.store(entity)
+
+    when:
+    repository.cancel(entity.id)
+
+    then:
+    with(repository."retrieve$type"(entity.id)) {
+      status == ExecutionStatus.CANCELED
+      canceled
+    }
+
+    where:
+    entity << [Pipeline.builder().build(), new Orchestration()]
+    type = entity.getClass().simpleName
+  }
+
+  def "canceling a non-existent execution throws an error"() {
+    when:
+    repository.cancel("somenonexistentid")
+
+    then:
+    thrown ExecutionNotFoundException
   }
 }
 

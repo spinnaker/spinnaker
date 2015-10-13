@@ -22,6 +22,8 @@ interface ExecutionRepository {
   void store(Orchestration orchestration)
   void store(Pipeline pipeline)
 
+  void cancel(String id)
+
   void storeStage(Stage stage)
   void storeStage(OrchestrationStage stage)
   void storeStage(PipelineStage stage)
