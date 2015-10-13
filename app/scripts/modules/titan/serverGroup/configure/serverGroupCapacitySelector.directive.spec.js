@@ -3,7 +3,7 @@
 let angular = require('angular');
 require('./serverGroupCapacityDirective.html');
 
-describe('Directive: GCE Group Capacity Selector', function() {
+describe('Directive: Titan Server Group Group Capacity Selector', function() {
 
   beforeEach(
     window.module(

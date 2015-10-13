@@ -10,24 +10,7 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
   require('../../../utils/lodash.js'),
 ])
   .factory('titanServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q,
-                                                     accountService, instanceTypeService, namingService, _) {
-
-    // Two assumptions here:
-    //   1) All GCE machine types are represented in the tree of choices.
-    //   2) Each machine type appears in exactly one category.
-    function determineInstanceCategoryFromInstanceType(command) {
-      return instanceTypeService.getCategories('titan').then(function(categories) {
-        categories.forEach(function(category) {
-          category.families.forEach(function(family) {
-            family.instanceTypes.forEach(function(instanceType) {
-              if (instanceType.name === command.instanceType) {
-                command.viewState.instanceProfile = category.type;
-              }
-            });
-          });
-        });
-      });
-    }
+                                                     accountService, namingService, _) {
 
     function extractNetworkName(serverGroup) {
       if (_.has(serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces')) {
@@ -182,15 +165,13 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
       var pipelineCluster = _.cloneDeep(originalCluster);
       var region = Object.keys(pipelineCluster.availabilityZones)[0];
       var zone = pipelineCluster.zone;
-      var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('titan', pipelineCluster.instanceType);
       var commandOptions = { account: pipelineCluster.account, region: region, zone: zone };
-      var asyncLoader = $q.all({command: buildNewServerGroupCommand(application, commandOptions), instanceProfile: instanceTypeCategoryLoader});
+      var asyncLoader = $q.all({command: buildNewServerGroupCommand(application, commandOptions)});
 
       return asyncLoader.then(function(asyncData) {
         var command = asyncData.command;
 
         var viewState = {
-          instanceProfile: asyncData.instanceProfile,
           disableImageSelection: true,
           useSimpleCapacity: true,
           mode: 'editPipeline',

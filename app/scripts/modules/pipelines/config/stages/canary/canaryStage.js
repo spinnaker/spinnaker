@@ -97,7 +97,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.canaryStage', [
 
     this.addClusterPair = function() {
       $scope.stage.clusterPairs = $scope.stage.clusterPairs || [];
-      providerSelectionService.selectProvider().then(function(selectedProvider) {
+      providerSelectionService.selectProvider($scope.application).then(function(selectedProvider) {
         let config = cloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
         $modal.open({
           templateUrl: config.cloneServerGroupTemplateUrl,

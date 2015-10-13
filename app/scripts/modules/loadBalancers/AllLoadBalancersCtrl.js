@@ -50,7 +50,7 @@ module.exports = angular.module('spinnaker.loadBalancer.controller', [
     }
 
     this.createLoadBalancer = function createLoadBalancer() {
-      providerSelectionService.selectProvider().then(function(selectedProvider) {
+      providerSelectionService.selectProvider(app).then(function(selectedProvider) {
         let provider = cloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
         $modal.open({
           templateUrl: provider.createLoadBalancerTemplateUrl,

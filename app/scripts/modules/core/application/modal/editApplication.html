@@ -113,6 +113,21 @@
           <p class="form-control-static">{{editApp.applicationAttributes.accounts}}</p>
         </div>
       </div>
+
+      <div class="form-group row" ng-if="editApp.cloudProviders.length">
+        <div class="col-md-3 sm-label-left">Cloud Provider</div>
+        <div class="col-md-9">
+          <ui-select multiple ng-model="editApp.applicationAttributes.cloudProviders" class="form-control input-sm">
+            <ui-select-match>
+              {{$item}}
+            </ui-select-match>
+            <ui-select-choices repeat="provider in editApp.cloudProviders | filter: $select.search">
+              {{provider}}
+            </ui-select-choices>
+          </ui-select>
+        </div>
+      </div>
+
     </div>
 
 

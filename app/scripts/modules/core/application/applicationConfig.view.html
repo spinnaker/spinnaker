@@ -21,6 +21,8 @@
             <dd ng-if="application.attributes.repoProjectKey">{{application.attributes.repoProjectKey}}</dd>
             <dt ng-if="application.attributes.repoSlug">Source Repo</dt>
             <dd ng-if="application.attributes.repoSlug">{{application.attributes.repoSlug}}</dd>
+            <dt ng-if="application.attributes.cloudProviders">Cloud Provider(s)</dt>
+            <dd ng-if="application.attributes.cloudProviders">{{application.attributes.cloudProviders}}</dd>
           </dl>
           <button class="btn btn-link" ng-click="config.editApplication()"><span class="glyphicon glyphicon-cog"></span>
             Edit Application Attributes

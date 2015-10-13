@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.google.serverGroup.capacity.selector.directive', [])
+module.exports = angular.module('spinnaker.titan.serverGroup.capacity.selector.directive', [])
   .directive('titanServerGroupCapacitySelector', function() {
     return {
       restrict: 'E',

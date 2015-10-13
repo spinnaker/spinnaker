@@ -6,13 +6,17 @@ module.exports = angular
   .module('spinnaker.editApplication.modal.controller', [
     require('../service/applications.write.service.js'),
     require('../../../utils/lodash.js'),
+    require('../../account/account.service.js')
   ])
-  .controller('EditApplicationController', function ($window, $state, $modalInstance, application, applicationWriter, _) {
+  .controller('EditApplicationController', function ($window, $state, $modalInstance, application, applicationWriter,
+                                                     _, accountService) {
     var vm = this;
     vm.submitting = false;
     vm.errorMsgs = [];
     vm.application = application;
     vm.applicationAttributes = _.cloneDeep(application.attributes);
+
+    accountService.listProviders().then((providers) => vm.cloudProviders = providers);
 
     function closeModal() {
       $modalInstance.close(vm.applicationAttributes);

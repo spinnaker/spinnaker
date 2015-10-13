@@ -3,25 +3,30 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.providerSelection.service', [
-  require('../../../core/account/account.service.js'),
+  require('../../../account/account.service.js'),
+  require('../../../config/settings.js'),
+  require('../../../utils/lodash.js'),
 ])
-  .factory('providerSelectionService', function($modal, $q, accountService) {
-    function selectProvider() {
+  .factory('providerSelectionService', function($modal, $q, _, accountService, settings) {
+    function selectProvider(application) {
       return accountService.listProviders().then(function(providers) {
         var provider;
 
-        if (providers.length > 1) {
+        let availableProviders = application && application.attributes.cloudProviders ?
+          _.intersection(providers, application.attributes.cloudProviders.split(',')) : providers;
+
+        if (availableProviders.length > 1) {
           provider = $modal.open({
             templateUrl: require('./providerSelection.html'),
             controller: 'ProviderSelectCtrl as ctrl',
             resolve: {
-              providerOptions: function() { return providers; }
+              providerOptions: function() { return availableProviders; }
             }
           }).result;
-        } else if (providers.length === 1) {
-          provider = $q.when(providers[0]);
+        } else if (availableProviders.length === 1) {
+          provider = $q.when(availableProviders[0]);
         } else {
-          provider = $q.when('aws');
+          provider = $q.when(settings.defaultProvider || 'aws');
         }
         return provider;
       });

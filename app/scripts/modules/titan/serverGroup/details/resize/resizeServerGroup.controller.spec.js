@@ -1,6 +1,6 @@
 'use strict';
 
-describe('Controller: awsResizeServerGroupCtrl', function () {
+describe('Controller: titanResizeServerGroupCtrl', function () {
 
   //NOTE: This is only testing the controllers dependencies. Please add more tests.
 
@@ -21,8 +21,10 @@ describe('Controller: awsResizeServerGroupCtrl', function () {
         $modalInstance: {},
         application: {},
         serverGroup: {
-          asg:{
-            minSize:0
+          capacity:{
+            min:0,
+            max:0,
+            desired:0
           }
         }
       });
