@@ -158,7 +158,7 @@ class BuildController {
         map
     }
 
-    @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Jenkins master not found!")
+    @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Jenkins master not found!")
     @InheritConstructors
     static class MasterNotFoundException extends RuntimeException {}
 
