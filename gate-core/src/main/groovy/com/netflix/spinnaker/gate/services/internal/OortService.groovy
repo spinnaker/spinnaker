@@ -69,7 +69,7 @@ interface OortService {
 
   @Headers("Accept: application/json")
   @GET("/applications/{name}/serverGroups")
-  List getServerGroups(@Path("name") String name)
+  List getServerGroups(@Path("name") String name, @Query("expand") String expand)
 
   @Headers("Accept: application/json")
   @GET("/applications/{name}/serverGroups/{account}/{region}/{serverGroupName}")

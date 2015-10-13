@@ -36,9 +36,10 @@ class ServerGroupService {
   @Autowired
   InsightConfiguration insightConfiguration
 
-  List getForApplication(String applicationName) {
-    HystrixFactory.newListCommand(GROUP, "getServerGroupsForApplication", true) {
-      oortService.getServerGroups(applicationName)
+  List getForApplication(String applicationName, String expand) {
+    String commandKey = Boolean.valueOf(expand) ? "getExpandedServerGroupsForApplication" : "getServerGroupsForApplication"
+    HystrixFactory.newListCommand(GROUP, commandKey, true) {
+      oortService.getServerGroups(applicationName, expand)
     } execute()
   }
 
