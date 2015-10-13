@@ -185,14 +185,15 @@ class CassandraApplicationDAOSpec extends Specification {
     "repoProjectKey"  | "project-key"
     "repoSlug"        | "repo"
     "repoType"        | "github"
+    "cloudProviders"  | "aws,titan"
   }
 
   void "application updates should merge with existing details"() {
     given:
-    cassandraApplicationDAO.create(name, [name: name, email: email, owner: owner, repoType: repoType, repoSlug: repoSlug, cloudProviders: ["aws", "titan"]])
+    cassandraApplicationDAO.create(name, [name: name, email: email, owner: owner, repoType: repoType, repoSlug: repoSlug, cloudProviders: "aws,titan"])
 
     when:
-    cassandraApplicationDAO.update(name, [pdApiKey: pdApiKey, repoProjectKey: "project-key", repoSlug: "repo", repoType: "stash", cloudProviders: ["titan"]])
+    cassandraApplicationDAO.update(name, [pdApiKey: pdApiKey, repoProjectKey: "project-key", repoSlug: "repo", repoType: "stash", cloudProviders: "titan"])
 
     then:
     def foundApplication = cassandraApplicationDAO.findByName(name)
