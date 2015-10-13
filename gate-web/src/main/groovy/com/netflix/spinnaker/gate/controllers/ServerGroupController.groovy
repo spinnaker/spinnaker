@@ -25,6 +25,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
@@ -35,8 +36,8 @@ class ServerGroupController {
   ServerGroupService serverGroupService
 
   @RequestMapping(value = "/applications/{applicationName}/serverGroups", method = RequestMethod.GET)
-  List getServerGroups(@PathVariable String applicationName) {
-    serverGroupService.getForApplication(applicationName)
+  List getServerGroups(@PathVariable String applicationName, @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand) {
+    serverGroupService.getForApplication(applicationName, expand)
   }
 
   @RequestMapping(value = "/applications/{applicationName}/serverGroups/{account}/{region}/{serverGroupName:.+}", method = RequestMethod.GET)
