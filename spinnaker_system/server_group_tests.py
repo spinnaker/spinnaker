@@ -193,14 +193,14 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
   def disable_server_group(self):
     job = [{
       'cloudProvider': 'gce',
+      'asgName': self.server_group_name,
       'serverGroupName': self.server_group_name,
       'region': self.bindings['TEST_GCE_REGION'],
       'zone': self.bindings['TEST_GCE_ZONE'],
-      'type': 'disableAsg',
+      'type': 'disableServerGroup',
       'regions': [self.bindings['TEST_GCE_REGION']],
       'zones': [self.bindings['TEST_GCE_ZONE']],
       'credentials': self.bindings['GCE_CREDENTIALS'],
-      'providerType': 'gce',
       'user': 'integration-tests'
     }]
 
@@ -220,14 +220,14 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
   def enable_server_group(self):
     job = [{
       'cloudProvider': 'gce',
+      'asgName': self.server_group_name,
       'serverGroupName': self.server_group_name,
       'region': self.bindings['TEST_GCE_REGION'],
       'zone': self.bindings['TEST_GCE_ZONE'],
-      'type': 'enableAsg',
+      'type': 'enableServerGroup',
       'regions': [self.bindings['TEST_GCE_REGION']],
       'zones': [self.bindings['TEST_GCE_ZONE']],
       'credentials': self.bindings['GCE_CREDENTIALS'],
-      'providerType': 'gce',
       'user': 'integration-tests'
     }]
 
@@ -242,8 +242,6 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
     return st.OperationContract(
       self.new_post_operation(title='enable_server_group', data=payload, path=self.path),
       contract=builder.build())
-
-  # destroyServerGroup
 
   def destroy_server_group(self, version):
     serverGroupName = '%s-%s' % (self.cluster_name, version)
