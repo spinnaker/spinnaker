@@ -21,6 +21,7 @@ import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.clouddriver.pipeline.DestroyServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.clouddriver.OortService

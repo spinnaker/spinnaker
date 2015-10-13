@@ -67,7 +67,7 @@ class Pipeline extends Execution<Pipeline> {
     }
 
     Builder withStage(String type, String name = type, Map<String, Object> context = [:]) {
-      if (context.providerType) {
+      if (context.providerType && !(context.providerType in ['aws', 'titan'])) {
         type += "_$context.providerType"
       }
 

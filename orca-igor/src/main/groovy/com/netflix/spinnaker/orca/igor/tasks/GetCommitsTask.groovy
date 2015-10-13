@@ -36,10 +36,10 @@ import java.util.concurrent.TimeUnit
 @Slf4j
 @Component
 class GetCommitsTask implements DiffTask {
-  private static final int MAX_RETRIES = 10
+  private static final int MAX_RETRIES = 3
 
-  long backoffPeriod = 1000
-  long timeout = TimeUnit.SECONDS.toMillis(30) // always set this higher than retries * backoffPeriod would take
+  long backoffPeriod = 3000
+  long timeout = TimeUnit.SECONDS.toMillis(60) // always set this higher than retries * backoffPeriod would take
 
   @Autowired
   OortService oortService

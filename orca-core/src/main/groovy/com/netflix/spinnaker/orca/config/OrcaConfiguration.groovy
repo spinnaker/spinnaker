@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.config
 import com.netflix.spinnaker.orca.batch.ExecutionStatusPropagationListener
 import com.netflix.spinnaker.orca.libdiffs.ComparableLooseVersion
 import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion
+import org.springframework.batch.core.JobExecution
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 
 import java.time.Clock
@@ -155,7 +156,17 @@ class OrcaConfiguration {
 
   @Bean
   ExecutionStatusPropagationListener pipelineStatusPropagationListener(ExecutionRepository executionRepository) {
-    new ExecutionStatusPropagationListener(executionRepository)
+    new ExecutionStatusPropagationListener(executionRepository) {
+      @Override
+      void beforeJob(JobExecution jobExecution) {
+        // do nothing, temporarily disabled
+      }
+
+      @Override
+      void afterJob(JobExecution jobExecution) {
+        // do nothing, temporarily disabled
+      }
+    }
   }
 
   @Bean

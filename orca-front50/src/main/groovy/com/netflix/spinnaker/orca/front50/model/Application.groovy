@@ -37,6 +37,7 @@ class Application {
   String repoProjectKey
   String repoSlug
   String repoType
+  String cloudProviders
 
   @JsonIgnore
   Set<String> listAccounts() {

@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
+@Deprecated
 class TerminateInstanceAndDecrementAsgTask implements Task {
   @Autowired
   KatoService kato

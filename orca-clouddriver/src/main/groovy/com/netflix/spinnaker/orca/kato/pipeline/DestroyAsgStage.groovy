@@ -17,13 +17,12 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.DestroyServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForDestroyedServerGroupTask
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceLinearStageSupport
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.kato.tasks.DestroyAwsServerGroupTask
-import com.netflix.spinnaker.orca.kato.tasks.DestroyServerGroupTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step

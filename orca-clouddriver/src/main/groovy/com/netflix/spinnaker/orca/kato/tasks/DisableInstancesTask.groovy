@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -37,10 +38,9 @@ class DisableInstancesTask implements Task {
       .toBlocking()
       .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-      "notification.type"        : 'disableinstances',
-      "kato.last.task.id"        : taskId,
-      "kato.task.id"             : taskId, // TODO retire this.
-      "relevant.health.providers": ["Discovery", "LoadBalancer"]
+      "notification.type"           : 'disableinstances',
+      "kato.last.task.id"           : taskId,
+      interestingHealthProviderNames: HealthHelper.getInterestingHealthProviderNames(stage, ["Discovery", "LoadBalancer"])
     ])
   }
 }

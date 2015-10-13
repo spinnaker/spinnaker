@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -57,7 +58,7 @@ class CreateCopyLastAsgTask implements Task {
 
     def suspendedProcesses = stage.context.suspendedProcesses as Set<String>
     if (suspendedProcesses?.contains("AddToLoadBalancer")) {
-      outputs.interestingHealthProviderNames = ["Amazon"]
+      outputs.interestingHealthProviderNames = HealthHelper.getInterestingHealthProviderNames(stage, ["Amazon"])
     }
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)

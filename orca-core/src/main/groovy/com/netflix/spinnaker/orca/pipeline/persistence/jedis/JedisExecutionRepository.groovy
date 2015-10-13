@@ -1,12 +1,9 @@
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
-import com.netflix.spectator.api.ExtendedRegistry
-import com.netflix.spinnaker.orca.config.OrcaConfiguration
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
-import rx.functions.Func1
-
 import java.util.function.Function
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
@@ -16,12 +13,14 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.stereotype.Component
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCommands
 import redis.clients.util.Pool
 import rx.Observable
 import rx.Scheduler
+import rx.functions.Func1
 import rx.schedulers.Schedulers
 
 @Component

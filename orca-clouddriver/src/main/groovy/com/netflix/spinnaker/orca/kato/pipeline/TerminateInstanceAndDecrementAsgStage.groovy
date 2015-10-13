@@ -25,6 +25,7 @@ import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
+@Deprecated
 class TerminateInstanceAndDecrementAsgStage extends LinearStage {
 
   public static final String PIPELINE_CONFIG_TYPE = "terminateInstanceAndDecrementAsg"

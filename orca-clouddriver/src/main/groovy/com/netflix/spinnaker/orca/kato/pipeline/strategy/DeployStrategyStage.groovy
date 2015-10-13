@@ -21,10 +21,10 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.deprecation.DeprecationRegistry
 import com.netflix.spinnaker.orca.clouddriver.pipeline.AbstractCloudProviderAwareStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.DestroyServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyAsgLaunchConfigurationStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyScalingProcessStage
-import com.netflix.spinnaker.orca.kato.pipeline.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.RollingPushStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
@@ -224,7 +224,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
     if (existingServerGroups) {
       if (stageData.regions?.size() > 1) {
         deprecationRegistry.logDeprecatedUsage("multiRegionHighlander", stageData.application)
-        log.warn("Pipeline uses more than 1 regions for the same cluster in a highlander deployment")
+        logger.warn("Pipeline uses more than 1 regions for the same cluster in a highlander deployment")
       }
       for (String region in stageData.regions) {
 

@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.gce
 
-import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForAllInstancesDownTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.gce.DisableGoogleServerGroupTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -38,9 +40,9 @@ class DisableGoogleServerGroupStage extends LinearStage {
   public List<Step> buildSteps(Stage stage) {
     def step1 = buildStep(stage, "disableServerGroup", DisableGoogleServerGroupTask)
     def step2 = buildStep(stage, "monitorServerGroup", MonitorKatoTask)
-    // TODO(duftler): Since we don't have a GCE health indicator for load balancer association, can't wait on 'down' yet.
-//    def step3 = buildStep("waitForDownInstances", WaitForDownInstancesTask)
-    [step1, step2]
+    def step3 = buildStep(stage, "waitForDownInstances", WaitForAllInstancesDownTask)
+    def step4 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    [step1, step2, step3, step4]
   }
 
 }

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.kato.pipeline.gce
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.kato.tasks.WaitForUpInstancesTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForUpInstancesTask
 import com.netflix.spinnaker.orca.kato.tasks.gce.CreateCopyLastGoogleServerGroupTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
