@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titan.configuration.service', [
-  require('../../../account/account.service'),
+  require('../../../core/account/account.service'),
 ])
   .factory('titanServerGroupConfigurationService', function(accountService, $q, _) {
 

@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.baseProviderStage', [
 
     var stageProviders = pipelineConfig.getProvidersFor(stage.type);
 
-    accountService.listProviders().then(function (providers) {
+    accountService.listProviders($scope.application).then(function (providers) {
       $scope.viewState.loading = false;
       var availableProviders = _.intersection(providers, _.pluck(stageProviders, 'cloudProvider'));
       if (availableProviders.length === 1) {

@@ -4,9 +4,9 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.service', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
-  require('../../../caches/deckCacheFactory.js'),
-  require('../../../account/account.service.js'),
-  require('../../../naming/naming.service.js'),
+  require('../../../core/cache/deckCacheFactory.js'),
+  require('../../../core/account/account.service.js'),
+  require('../../../core/naming/naming.service.js'),
   require('../../../utils/lodash.js'),
 ])
   .factory('titanServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q,

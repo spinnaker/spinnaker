@@ -15,6 +15,9 @@ module.exports = angular
     vm.errorMsgs = [];
     vm.application = application;
     vm.applicationAttributes = _.cloneDeep(application.attributes);
+    vm.applicationAttributes.cloudProviders = application.attributes.cloudProviders ?
+      application.attributes.cloudProviders.split(',') :
+      [];
 
     accountService.listProviders().then((providers) => vm.cloudProviders = providers);
 
