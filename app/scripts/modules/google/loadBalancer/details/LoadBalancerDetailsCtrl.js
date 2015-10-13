@@ -48,10 +48,12 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
             $scope.loadBalancer.logsLink =
               'https://console.developers.google.com/project/' + accountDetails.projectName + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + $scope.loadBalancer.name;
           });
-        });
+        },
+          () => $state.go('^', null, {location: 'replace'})
+        );
       }
       if (!$scope.loadBalancer) {
-        $state.go('^');
+        $state.go('^', null, {location: 'replace'});
       }
       return $q.when(null);
     }

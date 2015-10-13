@@ -121,9 +121,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
           applyAutoScalingProcesses();
 
         } else {
-          $state.go('^');
+          $state.go('^', null, {location: 'replace'});
         }
-      });
+      },
+        () => $state.go('^', null, {location: 'replace'})
+      );
     }
 
     function cancelLoader() {

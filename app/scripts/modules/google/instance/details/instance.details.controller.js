@@ -144,15 +144,12 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
           augmentTagsWithHelp();
         },
-        function() {
-          // When an instance is first starting up, we may not have the details cached in oort yet, but we still
-          // want to let the user see what details we have
-          $scope.state.loading = false;
-        });
+          () => $state.go('^', null, {location: 'replace'})
+        );
       }
 
       if (!instanceSummary) {
-        $state.go('^');
+        $state.go('^', null, {location: 'replace'});
       }
 
       return $q.when(null);

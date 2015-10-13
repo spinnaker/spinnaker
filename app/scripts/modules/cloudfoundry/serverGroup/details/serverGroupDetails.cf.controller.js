@@ -73,9 +73,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
             $scope.serverGroup.logsLink =
                 'https://console.developers.google.com/project/' + projectId + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + $scope.serverGroup.name;
           } else {
-            $state.go('^');
+            $state.go('^', null, {location: 'replace'});
           }
-        });
+        },
+          () => $state.go('^', null, {location: 'replace'})
+        );
       }
 
       function cancelLoader() {

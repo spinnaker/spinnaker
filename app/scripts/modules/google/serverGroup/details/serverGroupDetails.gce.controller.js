@@ -74,9 +74,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
           augmentTagsWithHelp();
         } else {
-          $state.go('^');
+          $state.go('^', null, {location: 'replace'});
         }
-      });
+      },
+        () => $state.go('^', null, {location: 'replace'})
+      );
     }
 
     function cancelLoader() {
