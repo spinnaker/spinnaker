@@ -140,15 +140,12 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
           $scope.instance.logsLink =
             'https://console.developers.google.com/project/' + projectId + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + $scope.instance.instanceId;
         },
-        function() {
-          // When an instance is first starting up, we may not have the details cached in oort yet, but we still
-          // want to let the user see what details we have
-          $scope.state.loading = false;
-        });
+          () => $state.go('^', null, {location: 'replace'})
+        );
       }
 
       if (!instanceSummary) {
-        $state.go('^');
+        $state.go('^', null, {location: 'replace'});
       }
     }
 

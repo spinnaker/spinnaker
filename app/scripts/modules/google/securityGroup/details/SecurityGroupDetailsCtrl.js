@@ -99,13 +99,12 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
           });
         }
       },
-      function() {
-        fourOhFour();
-      });
+        fourOhFour
+      );
     }
 
     function fourOhFour() {
-      $state.go('^');
+      $state.go('^', null, {location: 'replace'});
     }
 
     extractSecurityGroup().then(() => application.registerAutoRefreshHandler(extractSecurityGroup, $scope));

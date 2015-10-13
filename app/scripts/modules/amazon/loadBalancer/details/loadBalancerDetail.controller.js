@@ -55,10 +55,12 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
             });
             $scope.securityGroups = _.sortBy(securityGroups, 'name');
           }
-        });
+        },
+          () => $state.go('^', null, {location: 'replace'})
+        );
       }
       if (!$scope.loadBalancer) {
-        $state.go('^');
+        $state.go('^', null, {location: 'replace'});
       }
 
       return $q.when(null);

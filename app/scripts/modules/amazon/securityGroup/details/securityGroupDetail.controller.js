@@ -35,13 +35,12 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
           $scope.securityGroup = details;
         }
       },
-      function() {
-        fourOhFour();
-      });
+        fourOhFour
+      );
     }
 
     function fourOhFour() {
-      $state.go('^');
+      $state.go('^', null, {location: 'replace'});
     }
 
     extractSecurityGroup().then(() => application.registerAutoRefreshHandler(extractSecurityGroup, $scope));
