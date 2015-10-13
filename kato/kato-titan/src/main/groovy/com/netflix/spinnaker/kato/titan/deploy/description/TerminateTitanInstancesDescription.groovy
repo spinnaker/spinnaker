@@ -16,37 +16,11 @@
 
 package com.netflix.spinnaker.kato.titan.deploy.description
 
-import com.netflix.spinnaker.kato.deploy.DeployDescription
-import groovy.transform.Canonical
-
 /**
+ *
  * @author sthadeshwar
  */
-class TitanDeployDescription extends AbstractTitanCredentialsDescription implements DeployDescription {
-  String application
-  String stack
-  String freeFormDetails
-  String dockerImageId
-  Capacity capacity = new Capacity()
-  String account
+class TerminateTitanInstancesDescription extends AbstractTitanCredentialsDescription {
   String region
-  String subnet
-  List<String> zones
-  Resources resources = new Resources()
-  Map env
-
-  @Canonical
-  static class Capacity {
-    int min
-    int max
-    int desired
-  }
-
-  @Canonical
-  static class Resources {
-    int cpu
-    int memory
-    int disk
-    int[] ports
-  }
+  List<String> instanceIds
 }

@@ -57,8 +57,7 @@ class TitanDeployHandler implements DeployHandler<TitanDeployDescription> {
     DockerImage dockerImage = new DockerImage(description.dockerImageId)
 
     TitanServerGroupNameResolver serverGroupNameResolver = new TitanServerGroupNameResolver(titanClient)
-    String nextServerGroupName = serverGroupNameResolver.resolveNextServerGroupName(
-      description.application, description.stack, description.details, false)
+    String nextServerGroupName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.freeFormDetails, false)
     task.updateStatus BASE_PHASE, "Resolved server group name to ${nextServerGroupName}"
 
     if (!description.env) description.env = [:]
