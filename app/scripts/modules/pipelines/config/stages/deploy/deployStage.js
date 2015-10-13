@@ -44,6 +44,9 @@ module.exports = angular.module('spinnaker.pipelines.stage.deployStage', [
     }
 
     this.getRegion = function(cluster) {
+      if (cluster.region) {
+        return cluster.region;
+      }
       var availabilityZones = cluster.availabilityZones;
       if (availabilityZones) {
         var regions = Object.keys(availabilityZones);

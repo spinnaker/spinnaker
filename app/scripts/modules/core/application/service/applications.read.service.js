@@ -43,14 +43,22 @@ module.exports = angular
           application.reloadExecutions();
           return getApplication(application.name).then(function (newApplication) {
             deepCopyApplication(application, newApplication);
-            application.autoRefreshHandlers.forEach(function (handler) {
-              handler.call();
-            });
+            application.autoRefreshHandlers.forEach((handler) => handler.call());
+            application.oneTimeRefreshHandlers.forEach((handler) => handler.call());
+            application.oneTimeRefreshHandlers = [];
             newApplication = null;
             application.refreshing = false;
           });
         }
 
+
+        function deregisterAutoRefreshHandler(method) {
+          application.autoRefreshHandlers = application.autoRefreshHandlers.filter((handler) => handler !== method);
+        }
+
+        function registerOneTimeRefreshHandler(handler) {
+          application.oneTimeRefreshHandlers.push(handler);
+        }
 
         function registerAutoRefreshHandler(method, scope) {
           if (scope.$$destroyed) {
@@ -107,7 +115,10 @@ module.exports = angular
 
 
         application.registerAutoRefreshHandler = registerAutoRefreshHandler;
+        application.deregisterAutoRefreshHandler = deregisterAutoRefreshHandler;
+        application.registerOneTimeRefreshHandler = registerOneTimeRefreshHandler;
         application.autoRefreshHandlers = [];
+        application.oneTimeRefreshHandlers = [];
         application.refreshImmediately = scheduler.scheduleImmediate;
         application.enableAutoRefresh = enableAutoRefresh;
         application.reloadTasks = reloadTasks;

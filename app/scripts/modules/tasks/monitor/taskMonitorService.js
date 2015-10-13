@@ -103,7 +103,8 @@ module.exports = angular.module('spinnaker.tasks.monitor.service', [
 
       function handleForceRefreshComplete() {
         monitor.startForceRefresh();
-        monitor.application.refreshImmediately(true).then(handleApplicationRefreshComplete);
+        monitor.application.registerOneTimeRefreshHandler(handleApplicationRefreshComplete);
+        monitor.application.refreshImmediately();
       }
 
       function handleApplicationRefreshComplete() {

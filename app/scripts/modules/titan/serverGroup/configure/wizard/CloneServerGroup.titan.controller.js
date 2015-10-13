@@ -4,10 +4,11 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titan.cloneServerGroup', [
   require('angular-ui-router'),
+  require('../../../../utils/dataConverter.service.js')
 ])
   .controller('titanCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,
                                                   serverGroupWriter, modalWizardService, taskMonitorService,
-                                                  titanServerGroupConfigurationService,
+                                                  titanServerGroupConfigurationService, dataConverterService,
                                                   serverGroupCommand, application, title) {
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
@@ -93,12 +94,14 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.cloneServ
     this.clone = function () {
       $scope.command.capacity.min = $scope.command.capacity.desired;  // We want min/max set to the same value as desired
       $scope.command.capacity.max = $scope.command.capacity.desired;
+      let command = angular.copy($scope.command);
+      command.env = dataConverterService.equalListToKeyValue(command.env);
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
-        return $modalInstance.close($scope.command);
+        return $modalInstance.close(command);
       }
       $scope.taskMonitor.submit(
         function() {
-          return serverGroupWriter.cloneServerGroup(angular.copy($scope.command), application);
+          return serverGroupWriter.cloneServerGroup(command, application);
         }
       );
     };
