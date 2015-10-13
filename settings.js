@@ -8,7 +8,7 @@ let authEndpoint = process.env.AUTH_ENDPOINT || 'spinnaker-api-prestaging.prod.n
 let protocol = process.env.PROTOCOL || 'https';
 
 window.spinnakerSettings = {
-  defaultProvider: 'aws',
+  defaultProviders: ['aws'],
   feedbackUrl: feedbackUrl,
   gateUrl: `${protocol}://${gateHost}`,
   bakeryDetailUrl: bakeryDetailUrl,

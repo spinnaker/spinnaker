@@ -7,8 +7,9 @@ module.exports = angular.module('spinnaker.core.account.service', [
   require('../../utils/lodash.js'),
   require('../cache/infrastructureCaches.js'),
   require('../../core/config/settings.js'),
+  require('../cloudProvider/cloudProvider.registry.js'),
 ])
-  .factory('accountService', function(settings, _, Restangular, $q, infrastructureCaches) {
+  .factory('accountService', function(settings, _, Restangular, $q, infrastructureCaches, cloudProviderRegistry) {
 
     function getPreferredZonesByAccount(providerName='aws') {
       return $q.when(settings.providers[providerName].preferredZonesByAccount);
@@ -54,15 +55,16 @@ module.exports = angular.module('spinnaker.core.account.service', [
     function listProviders(application) {
       return listAccounts().then(function(accounts) {
         let allProviders = _.uniq(_.pluck(accounts, 'type'));
+        let availableRegisteredProviders = _.intersection(allProviders, cloudProviderRegistry.listRegisteredProviders());
         if (application) {
           let appProviders = application.attributes.cloudProviders ?
             application.attributes.cloudProviders.split(',') :
-            settings.defaultProvider ?
-              [settings.defaultProvider] :
-              ['aws'];
-          return _.intersection(allProviders, appProviders);
+            settings.defaultProviders ?
+              settings.defaultProviders :
+              availableRegisteredProviders;
+          return _.intersection(availableRegisteredProviders, appProviders);
         }
-        return allProviders;
+        return availableRegisteredProviders;
       });
     }
 
