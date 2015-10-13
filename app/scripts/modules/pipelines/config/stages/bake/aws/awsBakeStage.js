@@ -18,16 +18,8 @@ module.exports = angular.module('spinnaker.pipelines.stage.aws.bakeStage', [
       executionDetailsUrl: require('./bakeExecutionDetails.html'),
       defaultTimeoutMs: 60 * 60 * 1000, // 60 minutes
       validators: [
-        {
-          type: 'requiredField',
-          fieldName: 'package',
-          message: '<strong>Package</strong> is a required field on bake stages.',
-        },
-        {
-          type: 'requiredField',
-          fieldName: 'regions',
-          message: 'You must select at least one region on bake stages.',
-        }
+        { type: 'requiredField', fieldName: 'package', },
+        { type: 'requiredField', fieldName: 'regions', }
       ],
     });
   })

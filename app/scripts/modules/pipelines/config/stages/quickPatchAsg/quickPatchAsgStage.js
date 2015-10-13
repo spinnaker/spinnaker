@@ -13,11 +13,11 @@ module.exports = angular.module('spinnaker.pipelines.stage.quickPatchAsgStage', 
       templateUrl: require('./quickPatchAsgStage.html'),
       executionDetailsUrl: require('./quickPatchAsgExecutionDetails.html'),
       validators: [
-        {
-          type: 'requiredField',
-          fieldName: 'clusterName',
-          message: '<strong>Cluster</strong> is a required field on Quick Patch stages.',
-        },
+        { type: 'requiredField', fieldName: 'clusterName', fieldLabel: 'cluster' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
+        { type: 'requiredField', fieldName: 'region', },
+        { type: 'requiredField', fieldName: 'package', },
+        { type: 'requiredField', fieldName: 'baseOs', },
       ]
     });
   }).controller('QuickPatchAsgStageCtrl', function($scope, stage, bakeryService, accountService) {

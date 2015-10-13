@@ -13,11 +13,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.pipelineStage', [])
       templateUrl: require('./pipelineStage.html'),
       executionDetailsUrl: require('./pipelineExecutionDetails.html'),
       validators: [
-        {
-          type: 'requiredField',
-          fieldName: 'pipeline',
-          message: '<strong>Pipeline</strong> is a required field on pipeline stages.',
-        },
+        { type: 'requiredField', fieldName: 'pipeline', },
       ],
     });
   }).controller('pipelineStageCtrl', function($scope, stage, pipelineConfigService, applicationReader, _) {

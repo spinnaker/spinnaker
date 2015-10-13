@@ -20,6 +20,10 @@ module.exports = angular.module('spinnaker.pipelines.stage.disableAsgStage', [
           type: 'targetImpedance',
           message: 'This pipeline will attempt to disable a server group without deploying a new version into the same cluster.'
         },
+        { type: 'requiredField', fieldName: 'cluster' },
+        { type: 'requiredField', fieldName: 'target', },
+        { type: 'requiredField', fieldName: 'regions', },
+        { type: 'requiredField', fieldName: 'credentials', },
         {
           type: 'requiredField',
           fieldName: 'cluster',

@@ -17,11 +17,10 @@ module.exports = angular.module('spinnaker.pipelines.stage.enableAsgStage', [
       executionDetailsUrl: require('./enableAsgExecutionDetails.html'),
       executionStepLabelUrl: require('./enableAsgStepLabel.html'),
       validators: [
-        {
-          type: 'requiredField',
-          fieldName: 'cluster',
-          message: '<strong>Cluster</strong> is a required field on Enable Server Group stages.',
-        },
+        { type: 'requiredField', fieldName: 'cluster' },
+        { type: 'requiredField', fieldName: 'target', },
+        { type: 'requiredField', fieldName: 'regions', },
+        { type: 'requiredField', fieldName: 'credentials', },
       ],
     });
   }).controller('EnableAsgStageCtrl', function($scope, stage, accountService, stageConstants, _) {
