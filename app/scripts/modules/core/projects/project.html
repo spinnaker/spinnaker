@@ -10,7 +10,7 @@
             {{viewState.navSelection.title}}
             <span class="small glyphicon glyphicon-chevron-{{viewState.showMenu ? 'up' : 'down'}}"></span>
           </a>
-          <div class="project-view-menu list-group" ng-show="viewState.showMenu">
+          <div class="project-view-menu list-group" ng-if="viewState.showMenu">
             <a href
                class="list-group-item"
                ng-repeat="option in navOptions"
