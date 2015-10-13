@@ -163,9 +163,8 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
     function buildServerGroupCommandFromPipeline(application, originalCluster) {
 
       var pipelineCluster = _.cloneDeep(originalCluster);
-      var region = Object.keys(pipelineCluster.availabilityZones)[0];
       var zone = pipelineCluster.zone;
-      var commandOptions = { account: pipelineCluster.account, region: region, zone: zone };
+      var commandOptions = { account: pipelineCluster.account, region: pipelineCluster.region };
       var asyncLoader = $q.all({command: buildNewServerGroupCommand(application, commandOptions)});
 
       return asyncLoader.then(function(asyncData) {
@@ -179,7 +178,7 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
         };
 
         var viewOverrides = {
-          region: region,
+          region: pipelineCluster.region,
           credentials: pipelineCluster.account,
           viewState: viewState,
         };
