@@ -2,8 +2,8 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.loadBalancer.transformer', [
-  require('../core/cloudProvider/serviceDelegate.service.js'),
+module.exports = angular.module('spinnaker.core.loadBalancer.transformer', [
+  require('../cloudProvider/serviceDelegate.service.js'),
 ])
   .factory('loadBalancerTransformer', function ( settings, _, serviceDelegate) {
 

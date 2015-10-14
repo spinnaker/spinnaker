@@ -2,8 +2,8 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.loadBalancer.nav.controller', [
- require('../utils/lodash.js')
+module.exports = angular.module('spinnaker.core.loadBalancer.nav.controller', [
+ require('../../utils/lodash.js')
 ])
   .controller('LoadBalancersNavCtrl', function ($scope, app, _) {
 

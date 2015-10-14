@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.loadBalancer', [
+  .module('spinnaker.core.loadBalancer', [
     require('./AllLoadBalancersCtrl.js'),
     require('./loadBalancerServerGroup.directive.js'),
     require('./loadBalancersTag.directive.js'),

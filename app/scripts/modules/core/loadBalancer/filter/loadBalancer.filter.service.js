@@ -3,12 +3,12 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('loadBalancer.filter.service', [
+  .module('spinnaker.core.loadBalancer.filter.service', [
     require('./loadBalancer.filter.model.js'),
-    require('../../utils/lodash.js'),
+    require('../../../utils/lodash.js'),
     require('exports?"debounce"!angular-debounce'),
-    require('../../utils/waypoints/waypoint.service.js'),
-    require('../../core/filterModel/filter.model.service.js'),
+    require('../../../utils/waypoints/waypoint.service.js'),
+    require('../../filterModel/filter.model.service.js'),
   ])
   .factory('loadBalancerFilterService', function (LoadBalancerFilterModel, _, waypointService, filterModelService,
                                                   $log, debounce) {

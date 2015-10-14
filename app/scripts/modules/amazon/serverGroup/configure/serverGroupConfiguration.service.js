@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   require('../../../amazon/instance/awsInstanceType.service.js'),
   require('../../subnet/subnet.read.service.js'),
   require('../../keyPairs/keyPairs.read.service.js'),
-  require('../../../loadBalancers/loadBalancer.read.service.js'),
+  require('../../../core/loadBalancer/loadBalancer.read.service.js'),
   require('../../../core/cache/cacheInitializer.js'),
   require('../../../utils/lodash.js'),
 ])

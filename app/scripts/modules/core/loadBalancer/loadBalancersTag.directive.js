@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.loadBalancer.tag', [])
+module.exports = angular.module('spinnaker.core.loadBalancer.tag.directive', [])
   .directive('loadBalancersTag', function () {
     return {
       restrict: 'E',
