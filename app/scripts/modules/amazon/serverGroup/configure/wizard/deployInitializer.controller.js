@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.aws.deployInitialization.controller', [
-  require('../../../../serverGroups/serverGroup.read.service.js'),
+  require('../../../../core/serverGroup/serverGroup.read.service.js'),
   require('../../../../utils/lodash.js'),
   require('../serverGroupCommandBuilder.service.js'),
 ])

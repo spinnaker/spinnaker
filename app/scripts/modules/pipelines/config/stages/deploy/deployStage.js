@@ -3,8 +3,8 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.stage.deployStage', [
-  require('../../../../serverGroups/serverGroup.read.service.js'),
-  require('../../../../serverGroups/configure/common/serverGroupCommandBuilder.js'),
+  require('../../../../core/serverGroup/serverGroup.read.service.js'),
+  require('../../../../core/serverGroup/configure/common/serverGroupCommandBuilder.js'),
   require('../../../../core/cloudProvider/cloudProvider.registry.js'),
 ])
   .config(function (pipelineConfigProvider) {

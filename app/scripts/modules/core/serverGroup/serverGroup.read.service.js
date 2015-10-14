@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.serverGroup.read.service', [
+  .module('spinnaker.core.serverGroup.read.service', [
     require('exports?"restangular"!imports?_=lodash!restangular'),
   ])
   .factory('serverGroupReader', function (Restangular, $exceptionHandler) {

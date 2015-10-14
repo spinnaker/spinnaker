@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.common.costFactor', [])
+module.exports = angular.module('spinnaker.core.serverGroup.configure.common.costFactor', [])
   .directive('costFactor', function() {
     return {
       restrict: 'E',

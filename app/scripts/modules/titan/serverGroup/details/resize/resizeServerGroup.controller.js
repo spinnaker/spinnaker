@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.titan.serverGroup.details.resize.controller', [
   require('../../../../core/account/account.service.js'),
-  require('../../../../serverGroups/serverGroup.write.service.js'),
+  require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../tasks/monitor/taskMonitorService.js')
 ])
   .controller('titanResizeServerGroupCtrl', function($scope, $modalInstance, accountService, serverGroupWriter, taskMonitorService,
