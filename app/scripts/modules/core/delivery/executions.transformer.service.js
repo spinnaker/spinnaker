@@ -2,12 +2,12 @@
 
 let angular = require('angular');
 
-let executionBarLabelTemplate =  require('../../core/pipeline/config/stages/core/executionBarLabel.html');
+let executionBarLabelTemplate =  require('../pipeline/config/stages/core/executionBarLabel.html');
 
 module.exports = angular.module('spinnaker.core.delivery.executionTransformer.service', [
   require('../orchestratedItem/orchestratedItem.transformer.js'),
-  require('../../utils/lodash.js'),
-  require('../../core/pipeline/config/pipelineConfigProvider.js'),
+  require('../utils/lodash.js'),
+  require('../pipeline/config/pipelineConfigProvider.js'),
 ])
   .factory('executionsTransformer', function(orchestratedItemTransformer, _, pipelineConfig) {
 

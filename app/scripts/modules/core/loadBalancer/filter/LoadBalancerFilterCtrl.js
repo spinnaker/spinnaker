@@ -7,7 +7,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.loadBalancer.filter.controller', [
   require('./loadBalancer.filter.service.js'),
   require('./loadBalancer.filter.model.js'),
-  require('../../../utils/lodash.js'),
+  require('../../utils/lodash.js'),
 ])
   .controller('LoadBalancerFilterCtrl', function ($scope, app, _, $log, loadBalancerFilterService, LoadBalancerFilterModel, $rootScope) {
 

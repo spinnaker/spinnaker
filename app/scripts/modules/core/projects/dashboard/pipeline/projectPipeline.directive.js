@@ -5,7 +5,7 @@ let angular = require('angular');
 require('./projectPipeline.less');
 
 module.exports = angular.module('spinnaker.core.projects.dashboard.pipelines.projectPipeline.directive', [
-  require('../../../../utils/lodash.js'),
+  require('../../../utils/lodash.js'),
 ])
   .directive('projectPipeline', function () {
     return {

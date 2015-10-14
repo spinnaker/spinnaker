@@ -10,11 +10,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../core/serverGroup/configure/common/runningExecutions.service.js'),
-  require('../../../utils/lodash.js'),
+  require('../../../core/utils/lodash.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('./resize/resizeServerGroup.controller'),
   require('../../../core/modal/closeable/closeable.modal.controller.js'),
-  require('../../../utils/selectOnDblClick.directive.js'),
+  require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('titanServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
                                                      titanServerGroupCommandBuilder, serverGroupReader, $modal, confirmationModalService, _, serverGroupWriter,

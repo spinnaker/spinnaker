@@ -6,7 +6,7 @@ describe('Controller: deploymentStrategySelector', function() {
   beforeEach(
     window.module(
       require('./deploymentStrategySelector.controller.js'),
-      require('../../utils/lodash.js')
+      require('../utils/lodash.js')
     )
   );
 

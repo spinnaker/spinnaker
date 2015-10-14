@@ -6,8 +6,8 @@ module.exports = angular
   .module('spinnaker.core.serverGroup.basicSettings.controller', [
     require('angular-ui-bootstrap'),
     require('angular-ui-router'),
-    require('../../../../utils/rx.js'),
-    require('../../../../utils/lodash.js'),
+    require('../../../utils/rx.js'),
+    require('../../../utils/lodash.js'),
     require('../../../naming/naming.service.js'),
     require('../../../image/image.reader.js')
   ])

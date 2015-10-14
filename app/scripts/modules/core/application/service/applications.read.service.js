@@ -6,7 +6,7 @@ module.exports = angular
   .module('spinnaker.applications.read.service', [
     require('exports?"restangular"!imports?_=lodash!restangular'),
     require('../../cluster/cluster.service.js'),
-    require('../../../core/task/task.read.service.js'),
+    require('../../task/task.read.service.js'),
     require('../../loadBalancer/loadBalancer.read.service.js'),
     require('../../loadBalancer/loadBalancer.transformer.js'),
     require('../../securityGroup/securityGroup.read.service.js'),

@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.securityGroup.write.service', [
-    require('../../utils/lodash.js'),
+    require('../utils/lodash.js'),
     require('../cache/infrastructureCaches.js'),
     require('../task/taskExecutor.js')
   ])

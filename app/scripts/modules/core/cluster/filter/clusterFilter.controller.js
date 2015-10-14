@@ -8,7 +8,7 @@ module.exports = angular.module('cluster', [
   require('./collapsibleFilterSection.directive.js'),
   require('./clusterFilter.service.js'),
   require('./clusterFilter.model.js'),
-  require('../../../utils/lodash.js'),
+  require('../../utils/lodash.js'),
 ])
   .controller('ClusterFilterCtrl', function ($scope, app, _, $log, clusterFilterService, ClusterFilterModel, $rootScope) {
 

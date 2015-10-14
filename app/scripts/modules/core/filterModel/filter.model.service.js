@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.filterModel.service', [
-    require('../../utils/lodash.js'),
+    require('../utils/lodash.js'),
     require('angular-ui-router'),
   ])
 .factory('filterModelService', function (_, $location, $state, $stateParams, $timeout) {

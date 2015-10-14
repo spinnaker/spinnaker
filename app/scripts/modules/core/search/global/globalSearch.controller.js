@@ -5,7 +5,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.search.global.controller', [
-  require('../../../utils/jQuery.js'),
+  require('../../utils/jQuery.js'),
   require('../searchResult/searchResult.directive.js'),
   require('../searchRank.filter.js'),
 ])

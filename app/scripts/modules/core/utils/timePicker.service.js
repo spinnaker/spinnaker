@@ -2,8 +2,8 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.utils.timePicker.service', [
-  require('../utils/lodash.js'),
+module.exports = angular.module('spinnaker.core.utils.timePicker.service', [
+  require('./lodash.js'),
 ])
   .factory('timePickerService', function(_) {
 

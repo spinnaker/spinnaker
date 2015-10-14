@@ -7,11 +7,11 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
   require('../../../core/securityGroup/securityGroup.read.service.js'),
   require('../../../core/loadBalancer/loadBalancer.write.service.js'),
   require('../../../core/loadBalancer/loadBalancer.read.service.js'),
-  require('../../../utils/lodash.js'),
+  require('../../../core/utils/lodash.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/presentation/collapsibleSection/collapsibleSection.directive.js'),
-  require('../../../utils/selectOnDblClick.directive.js'),
+  require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, app, InsightFilterStateModel,
                                                    securityGroupReader, _, confirmationModalService, loadBalancerWriter, loadBalancerReader, $q) {

@@ -8,10 +8,10 @@ module.exports = angular.module('spinnaker.instance.detail.titan.controller', [
   require('../../../core/instance/instance.write.service.js'),
   require('../../../core/instance/instance.read.service.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
-  require('../../../utils/lodash.js'),
+  require('../../../core/utils/lodash.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/history/recentHistory.service.js'),
-  require('../../../utils/selectOnDblClick.directive.js')
+  require('../../../core/utils/selectOnDblClick.directive.js')
 ])
   .controller('titanInstanceDetailsCtrl', function ($scope, $state, $modal, InsightFilterStateModel,
                                                instanceWriter, confirmationModalService, recentHistoryService,

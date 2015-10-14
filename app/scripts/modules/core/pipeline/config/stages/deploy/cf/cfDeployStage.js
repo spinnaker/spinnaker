@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cf.deploy', [
-    require('../../../../../../utils/lodash.js'),
+    require('../../../../../utils/lodash.js'),
     require('../../stageConstants.js'),
     require('../deployExecutionDetails.controller.js')
 ])

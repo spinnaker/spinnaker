@@ -7,5 +7,5 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.destroyAsg', [
   require('../stage.module.js'),
   require('../core/stage.core.module.js'),
   require('../../../../account/account.module.js'),
-  require('../../../../../utils/lodash.js'),
+  require('../../../../utils/lodash.js'),
 ]).name;

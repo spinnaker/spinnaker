@@ -7,7 +7,7 @@ describe('recent history service', function() {
   beforeEach(
     window.module(
       require('./recentHistory.service.js'),
-      require('../../utils/lodash.js')
+      require('../utils/lodash.js')
     )
   );
 

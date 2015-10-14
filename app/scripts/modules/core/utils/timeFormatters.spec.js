@@ -3,7 +3,7 @@
 describe('Filter: timeFormatters', function() {
 
   beforeEach(
-    window.module('spinnaker.utils.timeFormatters')
+    window.module('spinnaker.core.utils.timeFormatters')
   );
 
   describe('timePickerTime', function() {

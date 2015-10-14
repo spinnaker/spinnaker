@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.fastProperty.progressBar.directive', [
-  require('../utils/lodash.js'),
+  require('../core/utils/lodash.js'),
 ])
   .directive('fastPropertyProgressBar', function(_) {
     return {

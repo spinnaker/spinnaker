@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.core.network.read.service', [
     require('exports?"restangular"!imports?_=lodash!restangular'),
-    require('../../utils/lodash.js'),
+    require('../utils/lodash.js'),
     require('../cache/infrastructureCaches.js')
   ])
   .factory('networkReader', function (Restangular, infrastructureCaches ) {

@@ -8,7 +8,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', [
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/serverGroup/serverGroup.write.service.js'),
-  require('../../../utils/lodash.js'),
+  require('../../../core/utils/lodash.js'),
   require('../../vpc/vpcTag.directive.js'),
   require('./scalingProcesses/autoScalingProcess.service.js'),
   require('../../../core/serverGroup/serverGroup.read.service.js'),
@@ -21,7 +21,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('./scalingActivities/scalingActivities.controller.js'),
   require('./networking/networking.module.js'),
   require('./resize/resizeServerGroup.controller'),
-  require('../../../utils/selectOnDblClick.directive.js'),
+  require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $modal, confirmationModalService, _, serverGroupWriter,

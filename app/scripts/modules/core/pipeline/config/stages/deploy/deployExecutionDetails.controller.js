@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.details.controller', [
-  require('../../../../../utils/lodash.js'),
+  require('../../../../utils/lodash.js'),
   require('angular-ui-router'),
   require('../../../../cluster/filter/clusterFilter.service.js'),
   require('../../../../delivery/details/executionDetailsSection.service.js'),

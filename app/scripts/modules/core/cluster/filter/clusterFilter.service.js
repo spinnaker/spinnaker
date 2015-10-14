@@ -7,8 +7,8 @@ module.exports = angular
     require('angular-ui-router'),
     require('exports?"debounce"!angular-debounce'),
     require('./clusterFilter.model.js'),
-    require('../../../utils/lodash.js'),
-    require('../../../utils/waypoints/waypoint.service.js'),
+    require('../../utils/lodash.js'),
+    require('../../utils/waypoints/waypoint.service.js'),
     require('../../filterModel/filter.model.service.js'),
   ])
   .factory('clusterFilterService', function (ClusterFilterModel, _, waypointService, $log, $stateParams, filterModelService, debounce) {

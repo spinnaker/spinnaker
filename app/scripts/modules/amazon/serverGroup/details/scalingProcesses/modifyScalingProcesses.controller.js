@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.process.controller', [
-  require('../../../../utils/lodash.js'),
+  require('../../../../core/utils/lodash.js'),
   require('../../../../core/task/monitor/taskMonitor.module.js'),
   require('../../../../core/task/taskExecutor.js'),
 ])

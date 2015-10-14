@@ -35,7 +35,6 @@ require('./modules/core/instance/instanceSelection.less');
 require('./modules/core/presentation/main.less');
 require('./modules/core/modal/modals.less');
 require('./modules/core/application/newapplication.less');
-require('./modules/utils/stickyHeader/stickyHeader.less');
 
 require('../fonts/spinnaker/icons.css');
 
@@ -82,7 +81,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/google/gce.module.js'),
     require('./modules/cloudfoundry/cf.module.js'),
     require('./modules/titan/titan.module.js'),
-    require('./modules/utils/utils.module.js'),
+    require('./modules/core/utils/utils.module.js'),
     require('./modules/core/cache/caches.module.js'),
     require('./modules/core/naming/naming.service.js'),
     require('./modules/core/cloudProvider/serviceDelegate.service.js'),

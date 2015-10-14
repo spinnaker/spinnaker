@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.fastPropertyScope.service', [
     require('../core/naming/naming.service.js'),
-    require('../utils/lodash.js'),
+    require('../core/utils/lodash.js'),
   ])
   .factory('FastPropertyScopeService', function ($q, namingService, _) {
 

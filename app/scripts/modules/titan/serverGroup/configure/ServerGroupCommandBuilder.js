@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
   require('../../../core/cache/deckCacheFactory.js'),
   require('../../../core/account/account.service.js'),
   require('../../../core/naming/naming.service.js'),
-  require('../../../utils/lodash.js'),
+  require('../../../core/utils/lodash.js'),
 ])
   .factory('titanServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q,
                                                      accountService, namingService, _) {

@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins'
   require('../../../../cache/cacheInitializer.js'),
   require('../../../../cache/infrastructureCaches.js'),
   require('../../pipelineConfigProvider.js'),
-  require('../../../../../utils/timeFormatters.js')
+  require('../../../../utils/timeFormatters.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerTrigger({

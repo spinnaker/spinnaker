@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
   require('./filter/securityGroup.filter.service.js'),
   require('./filter/securityGroup.filter.model.js'),
-  require('../../utils/lodash.js'),
+  require('../utils/lodash.js'),
   require('../cloudProvider/providerSelection/providerSelection.service.js'),
   require('../config/settings.js'),
   require('angular-ui-bootstrap'),

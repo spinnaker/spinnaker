@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.utils.dataConverter.service', [])
+  .module('spinnaker.core.utils.dataConverter.service', [])
   .factory('dataConverterService', function () {
 
     function keyValueToEqualList(obj={}) {
