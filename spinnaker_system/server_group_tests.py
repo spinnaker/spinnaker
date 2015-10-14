@@ -276,7 +276,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
       "region": "us-central1",
       "type": "deleteLoadBalancer",
       "regions": ["us-central1"],
-      "credentials": "my-account-name",
+      "credentials": self.bindings['GCE_CREDENTIALS'],
       "cloudProvider": "gce",
       "user": "integration-tests"
     }]
