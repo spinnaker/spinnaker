@@ -30,7 +30,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 @Component
-class CreateCopyLastAsgTask extends AbstractCloudProviderAwareTask implements Task {
+class CloneLastServerGroupTask extends AbstractCloudProviderAwareTask implements Task {
 
   @Autowired
   KatoService kato

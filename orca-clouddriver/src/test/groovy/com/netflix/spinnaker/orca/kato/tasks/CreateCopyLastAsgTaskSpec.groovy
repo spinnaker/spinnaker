@@ -27,7 +27,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class CreateCopyLastAsgTaskSpec extends Specification {
-  @Subject task = new CreateCopyLastAsgTask()
+  @Subject task = new CloneLastServerGroupTask()
   def stage = new PipelineStage(new Pipeline(), "copyLastAsg")
   def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
