@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.canaryStage', [
-  require('../../../../../amazon/serverGroup/configure/serverGroupCommandBuilder.service.js'),
+  require('../../../../serverGroup/configure/common/serverGroupCommandBuilder.js'),
   require('../../../../cloudProvider/cloudProvider.registry.js'),
 ])
   .config(function (pipelineConfigProvider, settings) {
