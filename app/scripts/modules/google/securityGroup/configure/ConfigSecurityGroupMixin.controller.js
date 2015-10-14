@@ -9,7 +9,7 @@ module.exports = angular
     require('../../../securityGroups/securityGroup.write.service.js'),
     require('../../../core/account/account.service.js'),
     require('../../../core/modal/wizard/modalWizard.service.js'),
-    require('../../../network/network.read.service.js'),
+    require('../../../core/network/network.read.service.js'),
     require('../../../utils/lodash.js'),
   ])
   .controller('gceConfigSecurityGroupMixin', function ($scope,
