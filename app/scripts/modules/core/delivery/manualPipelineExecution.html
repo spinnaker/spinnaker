@@ -44,17 +44,7 @@
           </div>
         </div>
       </div>
-      <div class="form-group" ng-if="pipeline.parameterConfig !== undefined && pipeline.parameterConfig.length">
-        <div class="form-group" ng-repeat="parameter in pipeline.parameterConfig | orderBy:'name' ">
-          <div class="col-md-offset-1 col-md-2 sm-label-left">
-            <b>{{parameter.name}}</b>
-            <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
-          </div>
-          <div class="col-md-6">
-            <input type="text" class="form-control input-sm" ng-model="parameters[parameter.name]"/>
-          </div>
-        </div>
-      </div>
+
       <div class="form-group" ng-if="triggers.length">
         <div class="form-group">
           <label class="col-md-2 col-md-offset-1 sm-label-left">Trigger</label>
@@ -76,7 +66,7 @@
               <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
             </p>
           </div>
-          <div class="col-md-8" ng-if="!viewState.buildsLoading">
+          <div class="col-md-9" ng-if="!viewState.buildsLoading">
             <ui-select class="form-control input-sm"
                        ng-model="selectedBuild"
                        on-select="updateSelectedBuild($item)">
@@ -95,6 +85,21 @@
                 </span>
               </ui-select-choices>
             </ui-select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group" ng-if="pipeline.parameterConfig !== undefined && pipeline.parameterConfig.length">
+        <div class="col-md-10">
+          <h4>Parameters</h4>
+        </div>
+        <div class="form-group" ng-repeat="parameter in pipeline.parameterConfig | orderBy:'name' ">
+          <div class="col-md-offset-1 col-md-4 sm-label-left break-word">
+            <b>{{parameter.name}}</b>
+            <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
+          </div>
+          <div class="col-md-6">
+            <input type="text" class="form-control input-sm" ng-model="parameters[parameter.name]"/>
           </div>
         </div>
       </div>
