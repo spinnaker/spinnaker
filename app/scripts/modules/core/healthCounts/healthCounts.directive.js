@@ -2,7 +2,9 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.healthCounts.directive', [
+require('./healthCounts.less');
+
+module.exports = angular.module('spinnaker.core.healthCounts.directive', [
 ])
   .directive('healthCounts', function ($templateCache) {
     return {

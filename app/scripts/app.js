@@ -28,7 +28,6 @@ let Clipboard = require('clipboard');
 
 // likely that some of these can be moved to the modules that support them
 require('./modules/core/application/application.less');
-require('./modules/healthCounts/counters.less');
 require('./modules/core/delivery/delivery.less');
 require('./modules/core/presentation/details.less');
 require('./modules/fastProperties/fastProperties.less');
@@ -92,7 +91,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/core/cache/caches.module.js'),
     require('./modules/core/naming/naming.service.js'),
     require('./modules/core/cloudProvider/serviceDelegate.service.js'),
-    require('./modules/healthCounts/healthCounts.directive.js'),
+    require('./modules/core/healthCounts/healthCounts.directive.js'),
     require('./modules/core/config/settings.js'),
     require('./modules/scheduler/scheduler.service.js'),
     require('./modules/core/confirmationModal/confirmationModal.service.js'),
