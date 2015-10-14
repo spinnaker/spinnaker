@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.validation.trigger', [])
+module.exports = angular.module('spinnaker.core.validation.trigger.directive', [])
   .directive('triggerValidation', function () {
     return {
       restrict: 'A',
