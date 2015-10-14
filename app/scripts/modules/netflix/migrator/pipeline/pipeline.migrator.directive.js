@@ -13,7 +13,7 @@ module.exports = angular
     require('../migrator.service.js'),
     require('../../../utils/lodash.js'),
     require('../../../core/presentation/autoScroll/autoScroll.directive.js'),
-    require('../../../pipelines/config/services/pipelineConfigService.js'),
+    require('../../../core/pipeline/config/services/pipelineConfigService.js'),
     require('../../../utils/scrollTo/scrollTo.service.js'),
     require('../../../core/cache/cacheInitializer.js'),
   ])

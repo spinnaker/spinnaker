@@ -1,0 +1,40 @@
+@import "../../../../presentation/less/imports/commonImports.less";
+
+canary-score {
+  .score {
+    font-size: 110%;
+    padding: 3px 6px;
+    display: inline-block;
+    height: 20px;
+    line-height: 14px;
+    &.label-failing {
+      background-color: @unhealthy_orange;
+      &.inverse {
+        color: @unhealthy_orange;
+      }
+    }
+    &.label-healthy {
+      background-color: @healthy_green_border;
+      &.inverse {
+        color: @healthy_green_border;
+      }
+    }
+    &.label-unhealthy {
+      background-color: @unhealthy_red;
+      &.inverse {
+        color: @unhealthy_red;
+      }
+    }
+    &.label-unknown {
+      background-color: @unknown-label-color;
+      &.inverse {
+        color: @unknown-label-color;
+      }
+    }
+    &.inverse {
+      background-color: transparent;
+      font-size: 100%;
+      padding: 0;
+    }
+  }
+}

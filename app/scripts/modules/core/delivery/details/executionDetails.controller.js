@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.executionDetails.controller', [
   require('angular-ui-router'),
-  require('../../../pipelines/config/pipelineConfigProvider.js')
+  require('../../../core/pipeline/config/pipelineConfigProvider.js')
 ])
   .controller('executionDetails', function($scope, $stateParams, $state, pipelineConfig) {
     var controller = this;
@@ -84,8 +84,7 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
           }
         }
       }
-      // BEN_TODO
-      return 'app/scripts/modules/pipelines/config/stages/core/executionSummary.html';
+      return require('../../../core/pipeline/config/stages/core/executionSummary.html');
 
     };
 
@@ -94,7 +93,7 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
       if (stageConfig && stageConfig.executionStepLabelUrl) {
         return stageConfig.executionStepLabelUrl;
       } else {
-        return 'app/scripts/modules/pipelines/config/stages/core/stepLabel.html';
+        return require('../../../core/pipeline/config/stages/core/stepLabel.html');
       }
     };
 

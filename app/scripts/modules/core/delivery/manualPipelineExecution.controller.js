@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution.controller', [
   require('../../utils/lodash.js'),
-  require('../../pipelines/config/triggers/jenkins/jenkinsTrigger.module.js'),
+  require('../../core/pipeline/config/triggers/jenkins/jenkinsTrigger.module.js'),
 ])
   .controller('ManualPipelineExecutionCtrl', function($scope, $filter, _, igorService, $modalInstance, pipeline, currentlyRunningExecutions) {
 
