@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary', [
   require('../core/stage.core.module.js'),
   require('../../../../core/deploymentStrategy/deploymentStrategy.module.js'),
   require('../../../../utils/lodash.js'),
-  require('../../../../serverGroups/serverGroup.read.service.js'),
+  require('../../../../core/serverGroup/serverGroup.read.service.js'),
   require('./canaryDeployment/canaryDeployment.module.js'),
   require('./canaryStage.transformer.js'),
   require('./canaryScore.directive.js'),

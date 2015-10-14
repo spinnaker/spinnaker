@@ -6,10 +6,10 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
   require('angular-ui-router'),
   //require('../configure/ServerGroupCommandBuilder.js'),
-  require('../../../serverGroups/serverGroup.read.service.js'),
+  require('../../../core/serverGroup/serverGroup.read.service.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
-  require('../../../serverGroups/serverGroup.write.service.js'),
-  require('../../../serverGroups/configure/common/runningExecutions.service.js'),
+  require('../../../core/serverGroup/serverGroup.write.service.js'),
+  require('../../../core/serverGroup/configure/common/runningExecutions.service.js'),
   require('../../../utils/lodash.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   //require('./resize/resizeServerGroup.controller'),
@@ -138,7 +138,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
 
       this.getBodyTemplate = function(serverGroup, application) {
         if(this.isLastServerGroupInRegion(serverGroup, application)){
-          var template = $templateCache.get(require('../../../serverGroups/details/deleteLastServerGroupWarning.html'));
+          var template = $templateCache.get(require('../../../core/serverGroup/details/deleteLastServerGroupWarning.html'));
           $scope.deletingServerGroup = serverGroup;
           return $compile(template)($scope);
         }
@@ -214,7 +214,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
       this.showUserData = function showScalingActivities() {
         $scope.userData = window.atob($scope.serverGroup.launchConfig.userData);
         $modal.open({
-          templateUrl: require('../../../serverGroups/details/userData.html'),
+          templateUrl: require('../../../core/serverGroup/details/userData.html'),
           controller: 'CloseableModalCtrl',
           scope: $scope
         });

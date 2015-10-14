@@ -2,11 +2,11 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.serverGroup.directive', [
-  require('../core/cluster/filter/clusterFilter.service.js'),
-  require('../core/cluster/filter/clusterFilter.model.js'),
-  require('../core/instance/instances.directive.js'),
-  require('../core/instance/instanceList.directive.js'),
+module.exports = angular.module('spinnaker.core.serverGroup.serverGroup.directive', [
+  require('../cluster/filter/clusterFilter.service.js'),
+  require('../cluster/filter/clusterFilter.model.js'),
+  require('../instance/instances.directive.js'),
+  require('../instance/instanceList.directive.js'),
   require('./serverGroup.transformer.js'),
 ])
   .directive('serverGroup', function ($rootScope, $timeout, $filter, _, clusterFilterService, ClusterFilterModel, serverGroupTransformer) {

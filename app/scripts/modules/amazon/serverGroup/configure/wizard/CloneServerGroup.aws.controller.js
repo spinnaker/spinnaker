@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
   require('angular-ui-router'),
   require('../../../../utils/lodash.js'),
   require('../serverGroupConfiguration.service.js'),
-  require('../../../../serverGroups/serverGroup.write.service.js'),
+  require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../tasks/monitor/taskMonitorService.js'),
   require('../../../../core/modal/wizard/modalWizard.service.js'),
 ])

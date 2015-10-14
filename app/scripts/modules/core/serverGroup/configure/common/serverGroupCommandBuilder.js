@@ -2,11 +2,11 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.common.service', [
+module.exports = angular.module('spinnaker.core.serverGroup.configure.common.service', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
-  require('../../../core/cache/deckCacheFactory.js'),
-  require('../../../core/cloudProvider/serviceDelegate.service.js'),
-  require('../../../core/config/settings.js')
+  require('../../../cache/deckCacheFactory.js'),
+  require('../../../cloudProvider/serviceDelegate.service.js'),
+  require('../../../config/settings.js')
 ])
   .factory('serverGroupCommandBuilder', function (settings, Restangular, serviceDelegate) {
 

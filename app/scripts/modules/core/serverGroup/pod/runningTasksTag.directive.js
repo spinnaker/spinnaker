@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.display.tasks.tag', [
+module.exports = angular.module('spinnaker.core.serverGroup.display.tasks.tag', [
   require('../configure/common/runningExecutions.service.js'),
 ])
   .directive('runningTasksTag', function() {

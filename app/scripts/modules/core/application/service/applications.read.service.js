@@ -9,11 +9,11 @@ module.exports = angular
     require('../../../tasks/tasks.read.service.js'),
     require('../../loadBalancer/loadBalancer.read.service.js'),
     require('../../loadBalancer/loadBalancer.transformer.js'),
-    require('../../../core/securityGroup/securityGroup.read.service.js'),
+    require('../../securityGroup/securityGroup.read.service.js'),
     require('../../cache/infrastructureCaches.js'),
     require('../../scheduler/scheduler.service.js'),
     require('../../delivery/execution.service.js'),
-    require('../../../serverGroups/serverGroup.transformer.js'),
+    require('../../serverGroup/serverGroup.transformer.js'),
   ])
   .factory('applicationReader', function ($q, $log, $window,  $exceptionHandler, $rootScope, Restangular, _, clusterService, tasksReader,
                                           loadBalancerReader, loadBalancerTransformer, securityGroupReader, scheduler,
