@@ -24,7 +24,7 @@ import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.ExecutionHistoryService
 import com.netflix.spinnaker.gate.services.PipelineService
 import com.netflix.spinnaker.gate.services.TaskService
-import com.netflix.spinnaker.gate.services.ThrottledRequestException
+import com.netflix.spinnaker.gate.services.commands.ThrottledRequestException
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.KatoService
 import com.netflix.spinnaker.gate.services.internal.MortService

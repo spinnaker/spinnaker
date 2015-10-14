@@ -15,7 +15,7 @@
  */
 
 
-package com.netflix.spinnaker.gate.services
+package com.netflix.spinnaker.gate.services.commands
 
 import groovy.transform.InheritConstructors
 import org.springframework.http.HttpStatus

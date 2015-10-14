@@ -31,19 +31,19 @@ class FastPropertyService {
   MaheService maheService
 
   Map getByAppName(String appName) {
-    HystrixFactory.newMapCommand(GROUP, "getByAppName", true) {
+    HystrixFactory.newMapCommand(GROUP, "getByAppName") {
       maheService.getFastPropertiesByApplication(appName)
     } execute()
   }
 
   Map getAll() {
-    HystrixFactory.newMapCommand(GROUP, "getAll", true) {
+    HystrixFactory.newMapCommand(GROUP, "getAll") {
       maheService.getAll()
     } execute()
   }
 
   Map create(Map fastProperty) {
-    HystrixFactory.newMapCommand(GROUP, "create", true) {
+    HystrixFactory.newMapCommand(GROUP, "create") {
       maheService.create(fastProperty)
     } execute()
   }
@@ -70,20 +70,20 @@ class FastPropertyService {
 
 
   Map delete(String propId, String cmcTicket, String env) {
-    HystrixFactory.newMapCommand(GROUP, "delete", true)  {
+    HystrixFactory.newMapCommand(GROUP, "delete")  {
       maheService.delete(propId, cmcTicket, env)
     } execute()
   }
 
 
   Map queryByScope(Map scope) {
-    HystrixFactory.newMapCommand(GROUP, "queryByScope", true) {
+    HystrixFactory.newMapCommand(GROUP, "queryByScope") {
       maheService.queryScope(scope)
     } execute()
   }
 
   Map getImpact(Map scope) {
-    HystrixFactory.newMapCommand(GROUP, "getImpact", true) {
+    HystrixFactory.newMapCommand(GROUP, "getImpact") {
       maheService.getImpact(scope)
     } execute()
   }

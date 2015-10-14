@@ -40,7 +40,7 @@ class BuildService {
     if (!igorService) {
       return []
     }
-    HystrixFactory.newListCommand(GROUP, "masters", true) {
+    HystrixFactory.newListCommand(GROUP, "masters") {
       igorService.getBuildMasters()
     } execute()
   }
@@ -50,7 +50,7 @@ class BuildService {
     if (!igorService) {
       return []
     }
-    HystrixFactory.newListCommand(GROUP, "jobsForBuildMaster",true) {
+    HystrixFactory.newListCommand(GROUP, "jobsForBuildMaster") {
       try {
         igorService.getJobsForBuildMaster(buildMaster)
       } catch (RetrofitError e) {
@@ -67,7 +67,7 @@ class BuildService {
     if (!igorService) {
       return [:]
     }
-    HystrixFactory.newMapCommand(GROUP, "jobConfig",true) {
+    HystrixFactory.newMapCommand(GROUP, "jobConfig") {
       try {
         igorService.getJobConfig(buildMaster, job)
       } catch (RetrofitError e) {
@@ -84,7 +84,7 @@ class BuildService {
     if (!igorService) {
       return []
     }
-    HystrixFactory.newListCommand(GROUP, "buildsForJob",true) {
+    HystrixFactory.newListCommand(GROUP, "buildsForJob") {
       try {
         igorService.getBuilds(buildMaster, job)
       } catch (RetrofitError e) {
@@ -101,7 +101,7 @@ class BuildService {
     if (!igorService) {
       return [:]
     }
-    HystrixFactory.newMapCommand(GROUP, "buildDetails",true) {
+    HystrixFactory.newMapCommand(GROUP, "buildDetails") {
       try {
         igorService.getBuild(buildMaster, job, number)
       } catch (RetrofitError e) {

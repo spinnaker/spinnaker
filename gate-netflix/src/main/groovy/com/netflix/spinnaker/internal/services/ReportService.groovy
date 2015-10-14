@@ -31,7 +31,7 @@ class ReportService {
   OortService oortService
 
   List<Map> getReservationReports() {
-    HystrixFactory.newListCommand(GROUP, "getReservationReports", true) {
+    HystrixFactory.newListCommand(GROUP, "getReservationReports") {
       oortService.getReservationReports()
     } execute()
   }

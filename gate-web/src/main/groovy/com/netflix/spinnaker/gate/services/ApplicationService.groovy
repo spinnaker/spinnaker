@@ -59,7 +59,7 @@ class ApplicationService {
   List<Map> getAll() {
     def applicationListRetrievers = buildApplicationListRetrievers()
 
-    HystrixFactory.newListCommand(GROUP, "getAll", true, {
+    HystrixFactory.newListCommand(GROUP, "getAll", {
       List<Future<List<Map>>> futures = executorService.invokeAll(applicationListRetrievers)
       List<List<Map>> all = futures.collect { it.get() } // spread operator doesn't work here; no clue why.
       List<Map> flat = (List<Map>) all?.flatten()?.toList()
@@ -76,12 +76,12 @@ class ApplicationService {
   Map get(String name) {
     def applicationRetrievers = buildApplicationRetrievers(name)
 
-    HystrixFactory.newMapCommand(GROUP, "getAppByName", true, {
+    HystrixFactory.newMapCommand(GROUP, "getAppByName", {
       try {
         def futures = executorService.invokeAll(applicationRetrievers)
         List<Map> applications = (List<Map>) futures.collect { it.get() }
 
-        def mergedApps = mergeApps(applications, serviceConfiguration.getService('front50'))
+        List<Map> mergedApps = mergeApps(applications, serviceConfiguration.getService('front50'))
         return mergedApps ? mergedApps[0] : null
       } catch (Exception e) {
         log.error("Unable to retrieve application '${name}'", e)
@@ -95,7 +95,7 @@ class ApplicationService {
       return []
     }
 
-    HystrixFactory.newListCommand(GROUP, "getPipelineConfigsForApplication", true) {
+    HystrixFactory.newListCommand(GROUP, "getPipelineConfigsForApplication") {
       front50Service.getPipelineConfigs(app)
     } execute()
   }
@@ -104,7 +104,7 @@ class ApplicationService {
     if (!front50Service) {
       return null
     }
-    HystrixFactory.newMapCommand(GROUP, "getPipelineConfigForApplicationAndPipeline", true) {
+    HystrixFactory.newMapCommand(GROUP, "getPipelineConfigForApplicationAndPipeline") {
       front50Service.getPipelineConfigs(app).find { it.name == pipelineName }
     } execute()
   }

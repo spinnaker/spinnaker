@@ -31,33 +31,33 @@ class LoadBalancerService {
   OortService oortService
 
   List<Map> getAll(String provider = "aws") {
-    HystrixFactory.newListCommand(GROUP, "getAllLoadBalancersForProvider", true) {
+    HystrixFactory.newListCommand(GROUP, "getAllLoadBalancersForProvider") {
       oortService.getLoadBalancers(provider)
     } execute()
   }
 
   Map get(String name, String provider = "aws") {
-    HystrixFactory.newMapCommand(GROUP, "getLoadBalancer", true) {
+    HystrixFactory.newMapCommand(GROUP, "getLoadBalancer") {
       oortService.getLoadBalancer(provider, name)
     } execute()
   }
 
   List<Map> getDetailsForAccountAndRegion(String account, String region, String name, String provider = "aws") {
-    HystrixFactory.newListCommand(GROUP, "getLoadBalancerDetails", true) {
+    HystrixFactory.newListCommand(GROUP, "getLoadBalancerDetails") {
       oortService.getLoadBalancerDetails(provider, account, region, name)
     } execute()
   }
 
   List getClusterLoadBalancers(String appName, String account, String provider, String clusterName) {
     HystrixFactory.newListCommand(GROUP,
-        "getClusterLoadBalancers", true) {
+        "getClusterLoadBalancers") {
       oortService.getClusterLoadBalancers(appName, account, clusterName, provider)
     } execute()
   }
 
   List getApplicationLoadBalancers(String appName) {
     HystrixFactory.newListCommand(GROUP,
-      "getApplicationLoadBalancers", true) {
+      "getApplicationLoadBalancers") {
       oortService.getApplicationLoadBalancers(appName)
     } execute()
   }

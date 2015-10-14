@@ -19,51 +19,53 @@ package com.netflix.spinnaker.gate.services.commands
 import com.netflix.hystrix.HystrixCommand
 import com.netflix.hystrix.HystrixCommandKey
 import groovy.transform.CompileStatic
-
+import groovy.util.logging.Slf4j
 
 import static HystrixFactory.createHystrixCommandPropertiesSetter
 import static HystrixFactory.toGroupKey
 
+@Slf4j
 @CompileStatic
 abstract class AbstractHystrixCommand<T> extends HystrixCommand<T> {
 
-  protected final boolean withLastKnownGoodFallback
+  private final String groupKey
+  private final String commandKey
+
   protected final Closure work
   protected final Closure fallback
-  protected T lastKnownGood
 
   public AbstractHystrixCommand(String groupKey,
                                 String commandKey,
-                                boolean withLastKnownGoodFallback,
-                                T defaultValue,
                                 Closure work,
                                 Closure fallback) {
     super(HystrixCommand.Setter.withGroupKey(toGroupKey(groupKey))
         .andCommandKey(HystrixCommandKey.Factory.asKey(commandKey))
         .andCommandPropertiesDefaults(createHystrixCommandPropertiesSetter()
         .withExecutionIsolationThreadTimeoutInMilliseconds(60000)))
-    this.withLastKnownGoodFallback = withLastKnownGoodFallback
-    this.lastKnownGood = defaultValue
+    this.groupKey = groupKey
+    this.commandKey = commandKey
     this.work = work
     this.fallback = fallback ?: { null }
   }
 
   @Override
   protected T run() throws Exception {
-    def result = work()
-    if (withLastKnownGoodFallback) {
-      lastKnownGood = result
-    }
-    result
+    return work()
   }
 
   protected T getFallback() {
-    def lastKnownGoodValue = withLastKnownGoodFallback ? lastKnownGood : null
-    if (!lastKnownGoodValue) {
-      def fallback = fallback.call() as T
-      return fallback ?: lastKnownGoodValue
+    return (fallback.call() as T) ?: null
+  }
+
+  @Override
+  T execute() {
+    def result = super.execute() as T
+    if (result == null && isResponseFromFallback()) {
+      def e = getFailedExecutionException()
+      def eMessage = e?.toString() ?: ""
+      throw new ThrottledRequestException("No fallback available (group: '${groupKey}', command: '${commandKey}', exception: '${eMessage}')", e)
     }
 
-    return lastKnownGoodValue
+    return result
   }
 }

@@ -34,7 +34,7 @@ class EventService {
     if (echoService == null) {
       return [:]
     }
-    HystrixFactory.newMapCommand(GROUP, "getAllEvents", true) {
+    HystrixFactory.newMapCommand(GROUP, "getAllEvents") {
       echoService.getAllEvents(offset, size, true)
     } execute()
   }
@@ -43,7 +43,7 @@ class EventService {
     if (echoService == null) {
       return [:]
     }
-    HystrixFactory.newMapCommand(GROUP, "getEventsForApplication", true) {
+    HystrixFactory.newMapCommand(GROUP, "getEventsForApplication") {
       echoService.getEvents(app, 0, Integer.MAX_VALUE, true)
     } execute()
   }

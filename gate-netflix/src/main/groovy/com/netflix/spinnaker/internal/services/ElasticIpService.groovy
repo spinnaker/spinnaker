@@ -31,25 +31,25 @@ class ElasticIpService {
   FlexService flexService
 
   List<Map> getForCluster(String application, String account, String cluster) {
-    HystrixFactory.newListCommand(GROUP, "getElasticIpsForCluster", true) {
+    HystrixFactory.newListCommand(GROUP, "getElasticIpsForCluster") {
       flexService.getForCluster(application, account, cluster)
     } execute()
   }
 
   List<Map> getForClusterAndRegion(String application, String account, String cluster, String region) {
-    HystrixFactory.newListCommand(GROUP, "getElasticIpsForClusterAndRegion", true) {
+    HystrixFactory.newListCommand(GROUP, "getElasticIpsForClusterAndRegion") {
       flexService.getForClusterAndRegion(application, account, cluster, region)
     } execute()
   }
 
   List<Map> getForAccount(String account) {
-    HystrixFactory.newListCommand(GROUP, "getElasticIpsForAccount", true) {
+    HystrixFactory.newListCommand(GROUP, "getElasticIpsForAccount") {
       return flexService.getForAccount(account)
     } execute()
   }
 
   List<Map> getForAccountAndRegion(String account, String region) {
-    HystrixFactory.newListCommand(GROUP, "getElasticIpsForAccountAndRegion", true) {
+    HystrixFactory.newListCommand(GROUP, "getElasticIpsForAccountAndRegion") {
       return flexService.getForAccountAndRegion(account, region)
     } execute()
   }

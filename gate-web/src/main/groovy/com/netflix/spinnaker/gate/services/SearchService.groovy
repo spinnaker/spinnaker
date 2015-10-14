@@ -36,7 +36,7 @@ class SearchService {
   MortService mortService
 
   List<Map> search(String query, String type, String platform, int pageSize = 10000, int page = 1) {
-    HystrixFactory.newListCommand(GROUP, "search-${type}", true) {
+    HystrixFactory.newListCommand(GROUP, "search-${type}") {
       def oortResults = oortService.search(query, type, platform, pageSize, page)
       def hasOortMatches = oortResults?.get(0)?.totalMatches ? true : false
       return hasOortMatches ? oortResults : mortService.search(query, type, platform, pageSize, page)

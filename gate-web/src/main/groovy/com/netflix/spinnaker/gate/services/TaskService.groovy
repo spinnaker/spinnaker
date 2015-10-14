@@ -48,25 +48,25 @@ class TaskService {
   }
 
   Map getTask(String id) {
-    HystrixFactory.newMapCommand(GROUP, "getTask", true) {
+    HystrixFactory.newMapCommand(GROUP, "getTask") {
       orcaService.getTask(id)
     } execute()
   }
 
   Map deleteTask(String id) {
-    HystrixFactory.newMapCommand(GROUP, "deleteTask", true) {
+    HystrixFactory.newMapCommand(GROUP, "deleteTask") {
       orcaService.deleteTask(id)
     } execute()
   }
 
   Map getTaskDetails(String taskDetailsId) {
-    HystrixFactory.newMapCommand(GROUP, "getTaskDetails", true) {
+    HystrixFactory.newMapCommand(GROUP, "getTaskDetails") {
       katoService.getTaskDetails(taskDetailsId)
     } execute()
   }
 
   Map cancelTask(String id) {
-    HystrixFactory.newMapCommand(GROUP, "cancelTask", true) {
+    HystrixFactory.newMapCommand(GROUP, "cancelTask") {
       orcaService.cancelTask(id)
     } execute()
   }
@@ -76,7 +76,7 @@ class TaskService {
    */
   @Deprecated
   Map cancelPipeline(String id) {
-    HystrixFactory.newMapCommand(GROUP, "cancelPipeline", true) {
+    HystrixFactory.newMapCommand(GROUP, "cancelPipeline") {
       orcaService.cancelPipeline(id)
     } execute()
   }
