@@ -247,7 +247,7 @@ Try something like:
         --machine-type n1-standard-8 \\
         --zone {zone} \\
         --scopes=compute-rw \\
-        --metadata=startup-script=/opt/spinnaker/install/first_time_boot.sh \\
+        --metadata=startup-script=/opt/spinnaker/install/first_google_boot.sh \\
         --metadata-from-file=\\
   spinnaker_config=$SPINNAKER_CONFIG_PATH,\\
   managed_project_credentials=$GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH

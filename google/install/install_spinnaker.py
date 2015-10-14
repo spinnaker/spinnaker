@@ -325,7 +325,10 @@ def install_spinnaker(options):
 
   wait_for_copy_complete(jobs)
 
-  # Use chmod since +x is convienent.
+  # TODO: This is backward compatibility for deprecated path.
+  run_or_die('sudo ln -s /opt/spinnaker/install/first_google_boot.sh'
+             ' /opt/spinnaker/install/first_time_boot.sh')
+  # Use chmod since +x is convenient.
   # Fork a shell to do the wildcard expansion.
   run_or_die('sudo chmod +x {files}'
              .format(files=os.path.join(spinnaker_dir, 'scripts/*.sh')))
