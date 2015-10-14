@@ -129,6 +129,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/pipelines/config/stages/wait/waitStage.module.js'),
     require('./modules/pipelines/config/stages/determineTargetReference/determineTargetReference.module.js'),
     require('./modules/core/authentication/authentication.module.js'),
+    require('./modules/core/cloudProvider/cloudProviderLogo.directive.js'),
     require('./modules/search/search.module.js'),
     require('./modules/notifications/notifications.module.js'),
     require('./modules/notifications/types/email/email.notification.type.module.js'),

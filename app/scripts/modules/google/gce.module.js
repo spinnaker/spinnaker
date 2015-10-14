@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./logo/gce.logo.less');
+
 module.exports = angular.module('spinnaker.gce', [
   require('../core/cloudProvider/cloudProvider.registry.js'),
   require('./serverGroup/details/serverGroupDetails.gce.controller.js'),
@@ -30,7 +32,7 @@ module.exports = angular.module('spinnaker.gce', [
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('gce', {
       logo: {
-        path: require('./logo_gce.png'),
+        path: require('./logo/gce.logo.png'),
       },
       cache: {
         configurer: 'gceCacheConfigurer',

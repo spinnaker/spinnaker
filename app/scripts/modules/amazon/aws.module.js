@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./logo/aws.logo.less');
+
 module.exports = angular.module('spinnaker.aws', [
   require('../core/cloudProvider/cloudProvider.registry.js'),
   require('./serverGroup/details/serverGroup.details.module.js'),
@@ -30,7 +32,7 @@ module.exports = angular.module('spinnaker.aws', [
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('aws', {
       logo: {
-        path: require('./logo_aws.png'),
+        path: require('./logo/aws.logo.png'),
       },
       cache: {
         configurer: 'awsCacheConfigurer',

@@ -1,0 +1,19 @@
+@import "../presentation/less/imports/commonImports.less";
+
+cloud-provider-logo {
+  display: inline-block;
+  margin-right: 3px;
+  .icon {
+    display: inline-block;
+    vertical-align: sub;
+    background-color: @healthy_green_icon;
+  }
+}
+
+.disabled {
+  cloud-provider-logo {
+    .icon {
+      background-color: @mid_grey;
+    }
+  }
+}
