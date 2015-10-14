@@ -11,10 +11,10 @@ module.exports = angular.module('spinnaker.titan', [
   require('./serverGroup/configure/wizard/CloneServerGroup.titan.controller.js'),
   require('./serverGroup/configure/serverGroup.configure.titan.module.js'),
   require('./serverGroup/serverGroup.transformer.js'),
-//  require('../pipelines/config/stages/bake/docker/dockerBakeStage.js'),
-//  require('../pipelines/config/stages/bake/titan/titanBakeStage.js'),
-//  require('../pipelines/config/stages/destroyAsg/titan/titanDestroyAsgStage.js'),
-//  require('../pipelines/config/stages/resizeAsg/titan/titanResizeAsgStage.js'),
+//  require('../core/pipeline/config/stages/bake/docker/dockerBakeStage.js'),
+//  require('../core/pipeline/config/stages/bake/titan/titanBakeStage.js'),
+//  require('../core/pipeline/config/stages/destroyAsg/titan/titanDestroyAsgStage.js'),
+//  require('../core/pipeline/config/stages/resizeAsg/titan/titanResizeAsgStage.js'),
   require('./instance/details/instance.details.controller.js'),
 ])
   .config(function(cloudProviderRegistryProvider) {

@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.delivery.pipelineExecutions.controller', [
   require('./execution.service.js'),
-  require('../../pipelines/config/services/pipelineConfigService.js'),
+  require('../../core/pipeline/config/services/pipelineConfigService.js'),
   require('../../utils/scrollTo/scrollTo.service.js'),
   require('../cache/collapsibleSectionStateCache.js'),
   require('../cache/viewStateCache.js'),

@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.delivery.execution.triggers.toggle.modal.controller', [
-  require('../../../pipelines/config/services/pipelineConfigService.js'),
+  require('../../../core/pipeline/config/services/pipelineConfigService.js'),
 ])
   .controller('ToggleTriggerModalCtrl', function($scope, pipeline, trigger, $modalInstance, pipelineConfig, pipelineConfigService) {
 
