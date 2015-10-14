@@ -17,10 +17,10 @@ function selectScopeDirective() {
 }
 
 module.exports = angular
-  .module('spinnaker.fastPropertyScope.selection.directive', [
+  .module('spinnaker.netflix.fastProperties.scope.selection.directive', [
     require('./fastPropertyScope.service.js'),
     require('./fastProperty.read.service.js'),
-    require('../core/utils/lodash.js'),
+    require('../../core/utils/lodash.js'),
   ])
   .directive('scopeSelect', selectScopeDirective)
   .controller('ScopeSelectController', function ($scope, FastPropertyScopeService, fastPropertyReader, _) {

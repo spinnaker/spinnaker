@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.fastProperty.constraints.directive', [])
+  .module('spinnaker.netflix.fastProperties.constraints.directive', [])
   .directive('fastPropertyConstraints', function() {
     return {
       restrict: 'E',

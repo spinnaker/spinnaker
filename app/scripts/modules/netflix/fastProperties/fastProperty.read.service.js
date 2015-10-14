@@ -3,9 +3,9 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.fastProperty.read.service', [
+  .module('spinnaker.netflix.fastProperties.read.service', [
     require('exports?"restangular"!imports?_=lodash!restangular'),
-    require('../core/cache/deckCacheFactory.js')
+    require('../../core/cache/deckCacheFactory.js')
   ])
   .factory('fastPropertyReader', function (Restangular) {
 

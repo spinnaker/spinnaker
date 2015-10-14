@@ -4,7 +4,7 @@ let angular = require('angular');
 let scopedLadderStrategyTemplate = require('./scopeLadder.html');
 
 module.exports = angular
-  .module('spinnaker.fastProperties.scopeLadder.config', [
+  .module('spinnaker.netflix.fastProperties.scopeLadder.config', [
     require('../../fastProperty.strategy.provider.js')
   ])
   .config((fastPropertyStrategyProvider) => {

@@ -4,7 +4,7 @@ let angular = require('angular');
 require('./fastProperties.less');
 
 module.exports = angular
-  .module('spinnaker.fastproperties', [
+  .module('spinnaker.netflix.fastProperties', [
     require('./fastProperties.controller.js'),
     require('./modal/fastPropertyUpsert.controller.js'),
     require('./applicationProperties.controller.js'),

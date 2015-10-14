@@ -5,8 +5,8 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.fastProperty.transformer.service', [
-    require('../core/utils/lodash.js'),
+  .module('spinnaker.netflix.fastProperties.transformer.service', [
+    require('../../core/utils/lodash.js'),
   ])
   .factory('fastPropertyTransformer', function(_) {
 

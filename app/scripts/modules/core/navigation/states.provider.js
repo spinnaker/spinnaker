@@ -328,7 +328,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
         url: '/rollouts',
         views: {
           'master': {
-            templateUrl: require('../../fastProperties/fastPropertyRollouts.html'),
+            templateUrl: require('../../netflix/fastProperties/fastPropertyRollouts.html'),
             controller: 'FastPropertyRolloutController',
             controllerAs: 'rollout'
           }
@@ -345,7 +345,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
         url: '/properties',
         views: {
           'insight': {
-            templateUrl: require('../../fastProperties/applicationProperties.html'),
+            templateUrl: require('../../netflix/fastProperties/applicationProperties.html'),
             controller: 'ApplicationPropertiesController',
             controllerAs: 'fp'
           }
@@ -425,7 +425,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
         reloadOnSearch: false,
         views: {
           'master': {
-            templateUrl: require('../../fastProperties/properties.html'),
+            templateUrl: require('../../netflix/fastProperties/properties.html'),
             controller: 'FastPropertiesController',
             controllerAs: 'fp'
           }
@@ -438,7 +438,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
         reloadOnSearch: false,
         views: {
           'main@': {
-            templateUrl: require('../../fastProperties/main.html'),
+            templateUrl: require('../../netflix/fastProperties/main.html'),
             controller: 'FastPropertyDataController',
             controllerAs: 'data'
           }

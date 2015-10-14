@@ -3,8 +3,8 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.fastProperty.promotion.directive', [
-    require('../core/utils/lodash.js'),
+  .module('spinnaker.netflix.fastProperties.promotion.directive', [
+    require('../../core/utils/lodash.js'),
     require('./fastProperty.write.service.js'),
   ])
   .directive('fastPropertyPromotion', () => {

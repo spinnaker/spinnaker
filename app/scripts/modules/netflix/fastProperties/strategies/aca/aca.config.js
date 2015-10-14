@@ -4,7 +4,7 @@ let angular = require('angular');
 let acaSrategyTemplate = require('./aca.html');
 
 module.exports = angular
-  .module('spinnaker.fastProperties.aca.config', [
+  .module('spinnaker.netflix.fastProperties.aca.config', [
     require('../../fastProperty.strategy.provider.js')
   ])
   .config((fastPropertyStrategyProvider) => {

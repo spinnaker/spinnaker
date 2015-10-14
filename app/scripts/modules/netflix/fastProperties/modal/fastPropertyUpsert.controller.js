@@ -3,13 +3,13 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.fastProperty.strategySelector.controller', [
+  .module('spinnaker.netflix.fastProperties.strategySelector.controller', [
     require('../fastProperty.strategy.provider.js'),
     require('../fastProperty.read.service.js'),
-    require('../../core/config/settings.js'),
-    require('../../core/application/service/applications.read.service.js'),
-    require('../../core/utils/lodash.js'),
-    require('../../core/application/listExtractor/listExtractor.service')
+    require('../../../core/config/settings.js'),
+    require('../../../core/application/service/applications.read.service.js'),
+    require('../../../core/utils/lodash.js'),
+    require('../../../core/application/listExtractor/listExtractor.service')
   ])
   .controller('FastPropertyUpsertController', function ($scope, $controller, $templateCache, $compile, $modalInstance, $q, _,
                                                         settings, applicationList, applicationReader, fastPropertyReader,
