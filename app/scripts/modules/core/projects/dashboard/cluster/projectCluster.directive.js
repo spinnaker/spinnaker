@@ -5,13 +5,13 @@ let angular = require('angular');
 require('./projectCluster.less');
 
 module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.projectCluster.directive', [
-  require('../../..//account/collapsibleAccountTag.directive.js'),
+  require('../../../account/collapsibleAccountTag.directive.js'),
   require('../../../navigation/urlBuilder.service.js'),
-  require('../../..//cluster/cluster.service.js'),
+  require('../../../cluster/cluster.service.js'),
   require('../../../../utils/lodash.js'),
-  require('../../..//cache/collapsibleSectionStateCache.js'),
-  require('../../../../scheduler/scheduler.service.js'),
-  require('../../..//naming/naming.service.js'),
+  require('../../../cache/collapsibleSectionStateCache.js'),
+  require('../../../scheduler/scheduler.service.js'),
+  require('../../../naming/naming.service.js'),
 ])
   .directive('projectCluster', function () {
     return {

@@ -7,8 +7,8 @@ require('./dashboard.less');
 module.exports = angular.module('spinnaker.core.projects.dashboard.controller', [
   require('./cluster/projectCluster.directive.js'),
   require('./pipeline/projectPipeline.directive.js'),
-  require('../../../core/delivery/execution.service.js'),
-  require('../../../scheduler/scheduler.service.js'),
+  require('../../delivery/execution.service.js'),
+  require('../../scheduler/scheduler.service.js'),
 ])
   .controller('ProjectDashboardCtrl', function ($scope, projectConfiguration, executionService, scheduler) {
 
