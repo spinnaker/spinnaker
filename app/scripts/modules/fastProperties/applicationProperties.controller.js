@@ -7,19 +7,22 @@ module.exports = angular
     require('angular-ui-router'),
     require('./fastProperty.read.service.js'),
     require('./fastProperty.write.service.js'),
-    require('./modal/createNewFastProperty.controller.js'),
     require('../core/confirmationModal/confirmationModal.service.js'),
     require('./fastPropertyTransformer.service.js'),
+    require('../core/application/service/applications.read.service'),
     require('../core/utils/lodash.js'),
   ])
-  .controller('ApplicationPropertiesController', function ($scope, $filter, $modal, $state, app, fastPropertyReader, fastPropertyWriter, fastPropertyTransformer, _) {
+  .controller('ApplicationPropertiesController', function ($scope, $filter, $modal, $state, app, applicationReader,
+                                                           fastPropertyReader, fastPropertyWriter, fastPropertyTransformer, _) {
     var vm = this;
     const application = app;
+
 
     let refreshApp = () => {
       app.refreshImmediately(true);
     };
 
+    vm.application = app;
     vm.app = application.name;
     vm.itemsPerPage = 25;
     vm.filterString = '';
@@ -29,16 +32,8 @@ module.exports = angular
       maxSize: 10,
       itemsPerPage : vm.itemsPerPage,
     };
+
     vm.promotionPaneOpen = true;
-
-
-    vm.getToggleButtonName = function() {
-      if(vm.promotionPaneOpen) {
-        return 'Close';
-      } else {
-        return 'Open';
-      }
-    };
 
     vm.openRolloutDetailsList = [];
 
@@ -114,19 +109,26 @@ module.exports = angular
 
     vm.editFastProperty = function(property) {
       $modal.open({
-        templateUrl: require('./modal/newFastProperty.html'),
-        controller: 'CreateFastPropertyModalController',
+        templateUrl: require('./modal/fastPropertyWizard.html'),
+        controller: 'FastPropertyUpsertController',
         controllerAs: 'newFP',
         resolve: {
           clusters: function() {return application.clusters; },
           appName: function() {return application.name; },
           isEditing: function() {return true; },
+          applicationList: function(applicationReader) {
+            return applicationReader.listApplications();
+          },
           fastProperty: function() {
             var propertyWithScope = fastPropertyWriter.extractScopeIntoSelectedScope(property);
-            return fastPropertyReader.fetchImpactCountForScope(propertyWithScope.selectedScope).then(function(impact) {
-              propertyWithScope.impactCount = impact.count || 0;
-              return propertyWithScope;
-            });
+            return fastPropertyReader.fetchImpactCountForScope(propertyWithScope.selectedScope)
+              .then( function(impact) {
+                propertyWithScope.impactCount = impact.count;
+                return propertyWithScope;
+              }, function() {
+                propertyWithScope.impactCount = '?';
+                return propertyWithScope;
+              });
           },
         }
 
@@ -136,47 +138,107 @@ module.exports = angular
 
     vm.newFastPropertyModal = function() {
       $modal.open({
-        templateUrl: require('./modal/newFastProperty.html'),
-        controller: 'CreateFastPropertyModalController',
+        templateUrl: require('./modal/fastPropertyWizard.html'),
+        controller: 'FastPropertyUpsertController',
         controllerAs: 'newFP',
         resolve: {
           clusters: function() {return application.clusters; },
           appName: function() {return application.name; },
           isEditing: function() {return false; },
           fastProperty: function() {return {}; },
+          applicationList: function(applicationReader) {
+            return applicationReader.listApplications();
+          }
         }
       }).result.then(routeToApplication);
     };
 
-    vm.continue = function($event, promotion) {
-      $event.stopPropagation();
-      promotion.isPromoting = true;
-      fastPropertyWriter.continuePromotion(promotion.id)
-        .then(refreshApp, refreshApp);
+
+    vm.appInstanceList = [];
+    vm.getAppInstnaceList = () => {
+      if(vm.appInstanceList.length > 0) {
+        return vm.appInstanceList;
+      }
+      vm.appInstanceList = _.chain(app)
+                            .get('clusters').flatten()
+                            .map('serverGroups').flatten()
+                            .map('instances').flatten()
+                            .map('id').flatten()
+                            .value();
+      return vm.appInstanceList;
     };
 
-    vm.stop= function($event, promotion) {
-      $event.stopPropagation();
-      promotion.isPromoting = true;
-      fastPropertyWriter.stopPromotion(promotion.id);
+    vm.appAsgList = [];
+    vm.getAppAsgList = () => {
+      if(vm.appAsgList.length > 0) {
+        return vm.appAsgList;
+      }
+
+      vm.appAsgList = _.chain(app)
+                      .get('clusters').flatten()
+                      .map('serverGroups').flatten()
+                      .value();
+
+      return vm.appAsgList;
     };
 
-    vm.getLastMessage = function(promotion) {
-      if(promotion.history.length > 0) {
-        return _(promotion.history).last().message;
+    vm.appClusterList = [];
+    vm.getAppClusterList = () => {
+      console.log(vm.appClusterList);
+      if (vm.appClusterList.length > 0) {
+        return vm.appClusterList;
+      }
+
+      vm.appClusterList = _.chain(app)
+                          .get('clusters').flatten()
+                          .map('name').flatten()
+                          .value();
+
+      return vm.appClusterList;
+
+    };
+
+
+    let validateScopeProperty = (property, propName, getListFn) => {
+      console.log(property, property[propName]);
+      if(property[propName])  {
+        let list = getListFn();
+        let inList = list.some( (i) => {
+          return i === property[propName];
+        });
+        property.isValid = _.has(property.isValid) && !property.isValid ? false : inList;
+
+        if( !inList ) {
+          if(Array.isArray(property.errors)) {
+            property.errors.push(propName);
+          } else {
+            property.errors = [propName];
+          }
+        }
       } else {
-        return 'no history';
+        property.isValid = _.has(property.isValid) ? property.isValid : true;
       }
     };
 
+    vm.auditFastPropertyList = (fpList) => {
+      fpList.forEach( (prop) => {
+        validateScopeProperty(prop, 'serverId', vm.getAppInstnaceList);
+        validateScopeProperty(prop, 'asg', vm.getAppAsgList);
+        validateScopeProperty(prop, 'cluster', vm.getAppClusterList);
+      });
+
+      return fpList;
+    };
+
+
     function fetchFastProperties() {
       fastPropertyReader.fetchForAppName(application.name)
-        .then(
-        function(data) {
+        .then( (data) => {
           var list = data.propertiesList || [];
           vm.properties = sortProperties(list);
-        }
-      )
+          return vm.properties;
+        })
+        .then(vm.auditFastPropertyList)
         .then(vm.setFilteredProperties);
     }
 

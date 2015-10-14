@@ -7,10 +7,6 @@ module.exports = angular
   .directive('fastPropertyConstraints', function() {
     return {
       restrict: 'E',
-      //scope: {},
       templateUrl: require('./fastPropertyConstraint.directive.html'),
-      //link: function (scope) {
-      //
-      //}
     };
   }).name;

@@ -20,11 +20,12 @@ module.exports = angular.module('spinnaker.fastProperty.progressBar.directive', 
         scope.isSuccessful = task.state === 'Successful';
         scope.isPending = task.state === 'Pending';
 
+        var currentStep = task.scopes.currentStep;
 
-        var currentStep = task.scopes.stepNo;
-        var totalSteps = task.scopes.steps;
+        var totalSteps = task.scopes.totalSteps;
+        console.log(currentStep, totalSteps, task.scopes);
 
-        scope.progressStyle = { width: currentStep / task.scopes.steps * 100 + '%' };
+        scope.progressStyle = { width: currentStep / task.scopes.totalSteps * 100 + '%' };
 
         scope.tooltip = currentStep;
 

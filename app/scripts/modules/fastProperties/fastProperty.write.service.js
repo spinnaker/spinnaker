@@ -11,11 +11,14 @@ module.exports = angular
   .factory('fastPropertyWriter', function (Restangular, authenticationService, _) {
 
     function upsertFastProperty(fastProperty) {
-      var payload = createPromotedPayload(fastProperty);
+      //var payload = createPromotedPayload(fastProperty);
+      fastProperty.updatedBy = authenticationService.getAuthenticatedUser().name;
+      fastProperty.sourceOfUpdate = 'spinnaker';
+      console.log('FP Payload', fastProperty);
       return Restangular
         .all('fastproperties')
         .all('promote')
-        .post(payload);
+        .post(fastProperty);
     }
 
     function deleteFastProperty(fastProperty) {

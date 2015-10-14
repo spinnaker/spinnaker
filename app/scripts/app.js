@@ -53,6 +53,7 @@ templates.keys().forEach(function(key) {
 module.exports = angular.module('spinnaker', [
     require('angular-sanitize'),
     require('angular-messages'),
+    require('./modules/core/utils/timeFormatters.js'),
     require('exports?"ui.select"!ui-select'),
     require('exports?"cfp.hotkeys"!angular-hotkeys'),
     require('angular-animate'),

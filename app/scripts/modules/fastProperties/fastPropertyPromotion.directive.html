@@ -1,0 +1,80 @@
+
+<div class="row" ng-show="fp.promotionPaneOpen && fp.promotions.length === 0">
+  <div class="col-md-4 col-md-offset-4">
+    <h4>
+      No promotions have been created.
+    </h4>
+  </div>
+</div>
+
+<div class="row" ng-show="fpPromotion.promotionPaneOpen && fpPromotion.promotions.length > 0">
+  <div class="col-md-12">
+
+
+    <table ng-if="fpPromotion.promotions" class="table table-hover">
+      <thead>
+      <tr>
+        <th width="2%"><!-- arrow --></th>
+        <th width="10%" key="property" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Property</th>
+        <th width="10%" key="property"  sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Strategy</th>
+        <th width="10%" key="property"  sort-model="fp.sortModel" on-change="ctrl.filterApplications()">User</th>
+        <th width="8%" key="rolloutStarted" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Rollout Started</th>
+        <th width="50%" key="status" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Status</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr class="clickable"
+          ng-repeat-start="promotion in fpPromotion.filteredPromotions"
+          ng-click="fpPromotion.toggleRolloutDetails(promotion)">
+        <td>
+          <span class="pull-left glyphicon glyphicon-chevron-{{fpPromotion.isRolloutDetailsOpen(promotion.id) ? 'down' : 'up'}}"></span>
+        </td>
+        <td>
+          {{ promotion.key }}
+        </td>
+        <td>
+          {{ promotion.strategyName }}
+        </td>
+        <td>
+          {{ promotion.email }}
+        </td>
+        <td>
+          {{ promotion.history[0].when | fastPropertyTime}}
+        </td>
+        <td>
+          <div class="row">
+            <div class="col-md-2">
+              <div class="rollout-status pull-left">{{promotion.state}}</div>
+            </div>
+            <div class="col-md-7">
+              <fast-property-progress-bar task="promotion"></fast-property-progress-bar>
+              <div>{{fpPromotion.getLastMessage(promotion)}}</div>
+            </div>
+            <div class="col-md-3" ng-if="!fpPromotion.readOnly">
+              <span class="icon" ng-if="promotion.isPromoting"><span class="glyphicon icon-spinner glyphicon-spinning"></span></span>
+              <!--<div ng-if="!promotion.isPromoting && promotion.state == 'Running'">-->
+              <!--<div>Continue?</div>-->
+              <!--<span>-->
+
+              <button class="btn btn-primary btn-xs" ng-if="promotion.state == 'Running'" ng-click="fpPromotion.continue($event, promotion)" ng-disabled="promotion.isPromoting">continue</button>
+              <button class="btn btn-danger btn-xs" ng-if="promotion.state == 'Running'" ng-click="fpPromotion.stop($event, promotion)" ng-disabled="promotion.isPromoting">rollback</button>
+              </span>
+            </div>
+          </div>
+        </td>
+      </tr>
+
+      <tr class="history" ng-repeat-end
+          ng-repeat="history in promotion.history"
+          ng-if="fpPromotion.isRolloutDetailsOpen(promotion.id)" >
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>{{history.when | fastPropertyTime}}</td>
+        <td colspan="2">{{history.message}}</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

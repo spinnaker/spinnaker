@@ -26,7 +26,7 @@ module.exports = angular
     };
 
     vm.continue = function(promotionId) {
-      fastPropertyWriter.continuePromotion(promotionId).then(loadPromotions);
+      fastPropertyWriter.continuePromotion(promotionId).then(vm.loadPromotions);
     };
 
     vm.stop= function(promotionId) {
@@ -47,7 +47,8 @@ module.exports = angular
       }
     };
 
-    function loadPromotions() {
+    vm.loadPromotions = function loadPromotions() {
+      console.log('loading promotions');
       fastPropertyReader.loadPromotions()
         .then(function(promotionList) {
           vm.promotions = vm.filteredPromotions = promotionList;
@@ -64,8 +65,8 @@ module.exports = angular
         }).catch(function(error) {
           console.warn(error);
         });
-    }
+    };
 
-    loadPromotions();
+    vm.loadPromotions();
     return vm;
   }).name;
