@@ -41,20 +41,16 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
   @Autowired
   ObjectMapper objectMapper
 
-  abstract
-  protected Map<String, List<String>> getServerGroups(Stage stage)
+  /**
+   * @return A map of location (region or zone) --> list of serverGroup properties.
+   */
+  abstract protected Map<String, List<String>> getServerGroups(Stage stage)
 
   abstract protected boolean hasSucceeded(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames)
 
   @Override
   TaskResult execute(Stage stage) {
-    String account = stage.context."account.name"
-    if (stage.context.account && !account) {
-      account = stage.context.account
-    } else if (stage.context.credentials && !account) {
-      account = stage.context.credentials
-    }
-
+    String account = getCredentials(stage)
     Map<String, List<String>> serverGroups = getServerGroups(stage)
 
     if (!serverGroups || !serverGroups?.values()?.flatten()) {
@@ -74,12 +70,13 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
       Map<String, Boolean> seenServerGroup = serverGroups.values().flatten().collectEntries { [(it): false] }
       for (Map serverGroup in cluster.serverGroups) {
         String region = serverGroup.region
+        String zones = serverGroup.zones ?: []
         String name = serverGroup.name
 
-        List instances = serverGroup.instances ?: []
-
-        // Look across ASGs in Cluster for specified ones to exist.
-        if (!serverGroups.containsKey(region) || !serverGroups[region].contains(name)) {
+        def matches = serverGroups.find {String location, List<String> sgName ->
+          return (region == location || zones.contains(location)) && sgName.contains(name)
+        }
+        if (!matches) {
           continue
         }
 
@@ -88,7 +85,7 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
         if (interestingHealthProviderNames == null) {
           interestingHealthProviderNames = stage.context?.appConfig?.interestingHealthProviderNames as Collection
         }
-        def isComplete = hasSucceeded(stage, serverGroup, instances, interestingHealthProviderNames)
+        def isComplete = hasSucceeded(stage, serverGroup, serverGroup.instances ?: [], interestingHealthProviderNames)
         if (!isComplete) {
           Map newContext = [:]
           if (seenServerGroup && !stage.context.capacitySnapshot) {
