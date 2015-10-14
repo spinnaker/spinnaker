@@ -17,14 +17,24 @@
 import argparse
 import collections
 import os
-import subprocess
 import sys
 
-from install.install_utils import run
-from install.install_utils import run_or_die_no_result
+from pylib.run import run_and_monitor
+from pylib.run import run_quick
+from pylib.run import check_run_quick
 
 
-SourceRepository = collections.namedtuple('SourceRepository', ['name', 'owner'])
+class SourceRepository(
+          collections.namedtuple('SourceRepository', ['name', 'owner'])):
+  """Denotes a github repository.
+
+  Attributes:
+    name:  The [short] name of the repository.
+    owner: The github user name owning the repository
+  """
+  pass
+
+
 class Refresher(object):
   __OPTIONAL_REPOSITORIES = [SourceRepository('citest', 'google')]
   __REQUIRED_REPOSITORIES = [
@@ -41,25 +51,39 @@ class Refresher(object):
 
   def __init__(self, options):
       self.__options = options
+      self.__extra_repositories = self.__OPTIONAL_REPOSITORIES
+      if options.extra_repos:
+        for extra in options.extra_repos.split(','):
+          pair = extra.split('=')
+          if len(pair) != 2:
+            raise ValueError(
+                'Invalid --extra_repos value "{extra}"'.format(extra=extra))
+          self.__extra_repositories.append(SourceRepository(pair[0], pair[1]))
 
   def get_branch_name(self, name):
-    p = subprocess.Popen('git -C {dir} rev-parse --abbrev-ref HEAD'
+      """Determine which git branch a local repository is in.
+
+      Args:
+        name [string]: The repository name.
+
+      Returns:
+        The name of the branch.
+      """
+      result = run_quick('git -C {dir} rev-parse --abbrev-ref HEAD'
                          .format(dir=name),
-                         shell=True,
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = p.communicate()
-    if p.returncode:
-      sys.stderr.write('Could not determine branch: ' + stderr + '\n')
-      raise RuntimeError(stderr)
-    return stdout.strip()
+                         echo=True)
+      if result.returncode:
+        error = 'Could not determine branch: ' + result.stdout
+        raise RuntimeError(error)
+      return result.stdout.strip()
 
   def get_github_repository_url(self, repository, owner=None):
       """Determine the URL for a given github repository.
 
       Args:
-        respository: The upstream SourceRepository.
-        owner: The explicit owner for the repository we want. If not provided
-               then use the github_user in the bound options.
+        respository [string]: The upstream SourceRepository.
+        owner [string]: The explicit owner for the repository we want.
+               If not provided then use the github_user in the bound options.
       """
 
       user = owner or self.__options.github_user
@@ -67,7 +91,7 @@ class Refresher(object):
           raise ValueError('No --github_user specified.')
 
       if user == 'default' or user == 'upstream':
-          user = repository.owner
+            user = repository.owner
       url_pattern = ('https://github.com/{user}/{name}.git'
                      if self.__options.use_https
                      else 'git@github.com:{user}/{name}.git')
@@ -77,9 +101,9 @@ class Refresher(object):
       """Clone the specified repository
 
       Args:
-        repository: The name of the github repository (without owner).
-        required: Whether the clone must succeed or not.
-        owner: An explicit repository owner.
+        repository [string]: The name of the github repository (without owner).
+        required [bool]: Whether the clone must succeed or not.
+        owner [string]: An explicit repository owner.
                If not provided use the configured options.
       """
       name = repository.name
@@ -91,17 +115,17 @@ class Refresher(object):
       # Dont echo because we're going to hide some failure.
       print 'Cloning {name} from {origin_url}.'.format(
           name=name, origin_url=origin_url)
-      code, stdout, stderr = run('git clone ' + origin_url, echo=False)
-      if not code:
-          if stdout:
-              print stdout
+      shell_result = run_and_monitor('git clone ' + origin_url, echo=False)
+      if not shell_result.returncode:
+          if shell_result.stdout:
+              print shell_result.stdout
       else:
-          if repository in self.__OPTIONAL_REPOSITORIES:
+          if repository in self.__extra_repositories:
              sys.stderr.write('WARNING: Missing optional repository {name}.\n'
                               .format(name=name))
              sys.stderr.write('         Continue on without it.\n')
              return
-          sys.stderr.write(stderr or stdout)
+          sys.stderr.write(shell_result.stderr or shell_result.stdout)
           sys.stderr.write(
               'FATAL: Cannot continue without required'
               ' repository {name}.\n'
@@ -110,21 +134,27 @@ class Refresher(object):
           raise SystemExit('Repository {url} not found.'.format(url=origin_url))
 
       if self.__options.add_upstream and origin_url != upstream_url:
-          print '  Adding upstream repository for {origin}.'.format(
-              origin=origin_url)
-          run_or_die_no_result('git -C {dir} remote add upstream {url}'
-                               .format(dir=name, url=upstream_url),
-                               echo=False)
+          print '  Adding upstream repository {upstream}.'.format(
+              upstream=upstream_url)
+          check_run_quick('git -C {dir} remote add upstream {url}'
+                          .format(dir=name, url=upstream_url),
+                          echo=False)
 
       if self.__options.disable_upstream_push:
           which = 'upstream' if origin_url != upstream_url else 'origin'
-          print '  Disabling git pushes to {which}'.format(which=which)
-          run_or_die_no_result(
+          print '  Disabling git pushes to {which} {upstream}'.format(
+              which=which, upstream=upstream_url)
+          check_run_quick(
               'git -C {dir} remote set-url --push {which} disabled'
               .format(dir=name, which=which),
               echo=False)
 
   def pull_from_origin(self, repository):
+      """Pulls the current branch from the git origin.
+
+      Args:
+        repository [string]: The local repository to update.
+      """
       name = repository.name
       owner = repository.owner
       if not os.path.exists(name):
@@ -137,11 +167,19 @@ class Refresher(object):
           sys.stderr.write(
               'WARNING: Updating {name} branch={branch}, *NOT* "master"\n'
               .format(name=name, branch=branch))
-      run_or_die_no_result('git -C {dir} pull origin {branch}'
-                           .format(dir=name, branch=branch),
-                           echo=True)
+      check_run_quick('git -C {dir} pull origin {branch}'
+                      .format(dir=name, branch=branch),
+                      echo=True)
 
   def pull_from_upstream_if_master(self, repository):
+      """Pulls the master branch fromthe upstream repository.
+
+      This will only have effect if the local repository exists
+      and is currently in the master branch.
+
+      Args:
+        repository [string]: The name of the local repository to update.
+      """
       name = repository.name
       if not os.path.exists(name):
           self.pull_from_origin(repository)
@@ -152,11 +190,19 @@ class Refresher(object):
           return
 
       print 'Pulling master {name} from upstream'.format(name=name)
-      run_or_die_no_result('git -C {name} pull upstream master'
-                           .format(name=name),
-                           echo=True)
+      check_run_quick('git -C {name} pull upstream master'
+                      .format(name=name),
+                      echo=True)
 
   def push_to_origin_if_master(self, repository):
+      """Pushes the current master branch of the local repository to the origin.
+
+      This will only have effect if the local repository exists
+      and is currently in the master branch.
+
+      Args:
+        repository [string]: The name of the local repository to push from.
+      """
       name = repository.name
       if not os.path.exists(name):
           sys.stderr.write('Skipping {name} because it does not yet exist.\n'
@@ -170,25 +216,45 @@ class Refresher(object):
           return
 
       print 'Pushing {name} to origin'.format(name=name)
-      run_or_die_no_result('git -C {dir} push origin master'.format(dir=name),
-                           echo=True)
+      check_run_quick('git -C {dir} push origin master'.format(dir=name),
+                      echo=True)
 
   def push_all_to_origin_if_master(self):
-    all_repos = self.__REQUIRED_REPOSITORIES + self.__OPTIONAL_REPOSITORIES
+    """Push all the local repositories current master branch to origin.
+
+    This will skip any local repositories that are not currently in the master
+    branch.
+    """
+    all_repos = self.__REQUIRED_REPOSITORIES + self.__extra_repositories
     for repository in all_repos:
         self.push_to_origin_if_master(repository)
 
   def pull_all_from_upstream_if_master(self):
-    all_repos = self.__REQUIRED_REPOSITORIES + self.__OPTIONAL_REPOSITORIES
+    """Pull all the upstream master branches into their local repository.
+
+    This will skip any local repositories that are not currently in the master
+    branch.
+    """
+    all_repos = self.__REQUIRED_REPOSITORIES + self.__extra_repositories
     for repository in all_repos:
         self.pull_from_upstream_if_master(repository)
 
   def pull_all_from_origin(self):
-    all_repos = self.__REQUIRED_REPOSITORIES + self.__OPTIONAL_REPOSITORIES
+    """Pull all the origin master branches into their local repository.
+
+    This will skip any local repositories that are not currently in the master
+    branch.
+    """
+    all_repos = self.__REQUIRED_REPOSITORIES + self.__extra_repositories
     for repository in all_repos:
         self.pull_from_origin(repository)
 
   def write_gradle_run_script(self, repository):
+      """Generate a dev_run.sh script for the local repository.
+
+      Args:
+         repository [string]: The name of the local repository to generate in.
+      """
       name = repository.name
       path = '{name}/start_dev.sh'.format(name=name)
       with open(path, 'w') as f:
@@ -202,6 +268,11 @@ bash -c "(./gradlew > $LOG_DIR/{name}.log) 2>&1\
       os.chmod(path, 0777)
 
   def write_deck_run_script(self, repository):
+      """Generate a dev_run.sh script for running deck locally.
+
+      Args:
+        repository [string]: The name of the local repository to generate in.
+      """
       name = repository.name
       path = '{name}/start_dev.sh'.format(name=name)
       with open(path, 'w') as f:
@@ -218,6 +289,7 @@ bash -c "(npm start >> $LOG_DIR/{name}.log) 2>&1\
       os.chmod(path, 0777)
 
   def update_spinnaker_run_scripts(self):
+    """Regenerate the local dev_run.sh script for each local repository."""
     for repository in self.__REQUIRED_REPOSITORIES:
       name = repository.name
       if not os.path.exists(name):
@@ -310,13 +382,12 @@ bash -c "(npm start >> $LOG_DIR/{name}.log) 2>&1\
       parser.add_argument('--nopull_origin', dest='pull_origin',
                           action='store_false')
 
-      parser.add_argument('--refresh_from_origin',
-                          dest='pull', action='store_true',
-                          help='DEPRECATED '
-                               'Refresh the local branch from the origin.')
-      parser.add_argument('--norefresh_from_origin', dest='pull',
-                          help='DEPRECATED',
-                          action='store_false')
+      parser.add_argument(
+        '--extra_repos', default=None,
+        help='A comma-delimited list of name=owner optional repositories.'
+             'name is the repository name,'
+             ' owner is the authoritative github user name owning it.'
+             ' The --github_user will still be used to determine the origin.')
 
       parser.add_argument('--github_user', default=None,
                           help='Pull from this github user\'s repositories.'

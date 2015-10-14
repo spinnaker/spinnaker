@@ -23,23 +23,35 @@ import subprocess
 import sys
 import time
 
-from install.install_utils import fetch
+from pylib.fetch import fetch
 from pylib import configure_util
 from pylib import spinnaker_runner
 
 
 class DevInstallationParameters(configure_util.InstallationParameters):
-  DEV_SCRIPT_DIR = os.path.dirname(sys.argv[0])
+  """Specialization of the normal production InstallationParameters.
+
+  This is a developer deployment where the paths are setup to run directly
+  out of this repository rather than a standard system installation.
+
+  Also, custom configuration parameters come from the $HOME/.spinnaker
+  rather than the normal installation location.
+  """
+  DEV_SCRIPT_DIR = os.path.abspath(os.path.dirname(sys.argv[0]))
   SUBSYSTEM_ROOT_DIR = os.getcwd()
 
   CONFIG_DIR = os.path.join(os.environ['HOME'], '.spinnaker')
   LOG_DIR = os.path.join(SUBSYSTEM_ROOT_DIR, 'logs')
 
-  SPINNAKER_INSTALL_DIR = os.path.join(DEV_SCRIPT_DIR, '..')
-  CONFIG_TEMPLATE_DIR = os.path.join(DEV_SCRIPT_DIR, '../config')
+  SPINNAKER_INSTALL_DIR = os.path.abspath(
+      os.path.join(DEV_SCRIPT_DIR, '..'))
+  CONFIG_TEMPLATE_DIR = os.path.abspath(
+      os.path.join(DEV_SCRIPT_DIR, '../config'))
 
-  UTILITY_SCRIPT_DIR = os.path.join(DEV_SCRIPT_DIR, '../runtime')
-  EXTERNAL_DEPENDENCY_SCRIPT_DIR = os.path.join(DEV_SCRIPT_DIR, '../runtime')
+  UTILITY_SCRIPT_DIR = os.path.abspath(
+      os.path.join(DEV_SCRIPT_DIR, '../runtime'))
+  EXTERNAL_DEPENDENCY_SCRIPT_DIR = os.path.abspath(
+      os.path.join(DEV_SCRIPT_DIR, '../runtime'))
 
   DECK_INSTALL_DIR = os.path.join(SUBSYSTEM_ROOT_DIR, 'deck')
   HACK_DECK_SETTINGS_FILENAME = 'settings.js'
@@ -47,11 +59,33 @@ class DevInstallationParameters(configure_util.InstallationParameters):
 
 
 class DevRunner(spinnaker_runner.Runner):
+  """Specialization of the normal spinnaker runner for development use.
+
+  This class has different behaviors than the normal runner.
+  It follows similar heuristics for launching and stopping jobs,
+  however, the details differ in fundamental ways.
+
+    * The subsystems are run from their source (using gradle)
+      and will attempt to rebuild before running.
+
+    * Spinnaker will be reconfigured on each invocation.
+
+  The runner will display all the events to the subsystem error logs
+  to the console for as long as this script is running. When the script
+  terminates, the console will no longer show the error log, but the processes
+  will remain running, and continue logging to the logs directory.
+  """
+
   def __init__(self, installation_parameters=None):
     self.__installation = installation_parameters or DevInstallationParameters
     super(DevRunner, self).__init__(self.__installation)
 
   def start_subsystem(self, subsystem):
+    """Starts the specified subsystem.
+
+    Args:
+      subsystem [string]: The repository name of the subsystem to run.
+    """
     print 'Starting {subsystem}'.format(subsystem=subsystem)
     command = os.path.join(
         self.__installation.SUBSYSTEM_ROOT_DIR,
@@ -60,6 +94,7 @@ class DevRunner(spinnaker_runner.Runner):
     return self.run_daemon(command, [command])
 
   def tail_error_logs(self):
+    """Start a background tail job of all the component error logs."""
     log_dir = self.__installation.LOG_DIR
     try:
       os.makedirs(log_dir)
@@ -75,15 +110,17 @@ class DevRunner(spinnaker_runner.Runner):
     return tail_jobs
 
   def get_deck_pid(self):
+    """Return the process id for deck, or None."""
     program='node ./node_modules/webpack-dev-server/bin/webpack-dev-server.js'
     stdout, stderr = subprocess.Popen(
         'ps -fwwwC node', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         shell=True, close_fds=True).communicate()
     match = re.search('(?m)^[^ ]+ +([0-9]+) .* {program}'.format(
         program=program), stdout)
-    return int(match.groups()[0]) if match else None
+    return int(match.group(1)) if match else None
 
   def start_deck(self):
+    """Start subprocess for deck."""
     pid = self.get_deck_pid()
     if pid:
       print 'Deck is already running as pid={pid}'.format(pid=pid)
@@ -94,12 +131,17 @@ class DevRunner(spinnaker_runner.Runner):
     return self.run_daemon(path, [path])
 
   def stop_deck(self):
+    """Stop subprocess for deck."""
     pid = self.get_deck_pid()
     if pid:
       print 'Terminating deck in pid={pid}'.format(pid=pid)
       os.kill(pid, signal.SIGTERM)
 
   def reconfigure_subsystems(self, options):
+    """Reconfigure all the subsystem config files.
+
+    The subsystems are not neither stopped nor restarted.
+    """
     installation = self.__installation
     try:
       os.makedirs(installation.CONFIG_DIR)
@@ -186,4 +228,3 @@ if __name__ == '__main__':
      sys.exit(-1)
 
   DevRunner.main()
-
