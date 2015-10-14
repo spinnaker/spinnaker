@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.filterModel.filterTags.directive', [
+  .module('spinnaker.core.filterModel.filterTags.directive', [
   ])
   .directive('filterTags', function () {
     return {
