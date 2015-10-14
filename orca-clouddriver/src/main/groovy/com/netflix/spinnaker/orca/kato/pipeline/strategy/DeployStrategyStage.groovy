@@ -206,10 +206,9 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
         strategy: true,
         strategyConfig: [
           application: stage.context.application,
-          account: cleanupConfig.account,
+          credentials: cleanupConfig.account,
           cluster: cleanupConfig.cluster,
-          regions: cleanupConfig.regions,
-          amiName: stage.context.amiName
+          regions: cleanupConfig.regions
         ]
       ]
     ]

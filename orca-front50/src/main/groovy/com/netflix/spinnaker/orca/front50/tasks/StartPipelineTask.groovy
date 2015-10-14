@@ -47,7 +47,9 @@ class StartPipelineTask implements Task {
     Map pipelineConfig = pipelines.find { it.id == pipelineId }
 
     if (stage.context.pipelineConfig) {
-      pipelineConfig.appConfig = (pipelineConfig.appConfig ?: [:]) + stage.context.pipelineConfig
+      pipelineConfig.appConfig = (pipelineConfig.appConfig ?: [:]) + stage.context.pipelineConfig + [
+        currentPipelineStageId: stage.id
+      ]
     }
 
     def pipeline = dependentPipelineStarter.trigger(pipelineConfig, stage.context.user, stage.execution, stage.context.pipelineParameters)

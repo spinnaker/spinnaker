@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.ParallelStage
 import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
@@ -95,9 +95,26 @@ class ParallelDeployStage extends ParallelStage {
   @Override
   @CompileDynamic
   List<Map<String, Object>> parallelContexts(Stage stage) {
+
+    if(stage.execution.appConfig?.strategy == true){
+      Map trigger = ((Pipeline) stage.execution).trigger
+      Map parentStage = trigger.parentExecution.stages.find{
+        it.id == stage.execution.appConfig.parentStageId
+      }
+      Map cluster = parentStage.context as Map
+      cluster.strategy = 'none'
+      stage.context.clusters = [cluster as Map<String, Object>]
+
+      Map currentStage = trigger.parentExecution.stages.find{
+        it.id == stage.execution.appConfig.currentPipelineStageId
+      }
+      stage.context.deploymentDetails = currentStage.context.deploymentDetails
+    }
+
     def defaultStageContext = new HashMap(stage.context)
 
     List<Map<String, Object>> clusters = []
+
     if (stage.context.cluster) {
       clusters.add(stage.context.cluster as Map<String, Object>)
       defaultStageContext.remove("cluster")
