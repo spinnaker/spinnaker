@@ -15,7 +15,7 @@
 # limitations under the License.
 
 # Creates an image in the default project named with the release name.
-# python create_google_image.py --release_uri $RELEASE_URI
+# python create_google_image.py --release_path $RELEASE_PATH
 
 import argparse
 import os
@@ -48,7 +48,7 @@ class GooglePackerBuilder(AbstractPackerBuilder):
     # later when the commandline vars are added.
     self.add_packer_variable(
         'target_image',
-        os.path.basename(self.options.release_uri).replace('_', '-'))
+        os.path.basename(self.options.release_path).replace('_', '-'))
 
     # image_project isnt passed through to packer.
     self.remove_raw_arg('image_project')
