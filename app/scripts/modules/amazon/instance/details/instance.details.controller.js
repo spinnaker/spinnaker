@@ -369,7 +369,7 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
 
 
     this.getBastionAddressForAccount = function(account) {
-      let accountBastions = settings.providers.aws.accountBastions;
+      let accountBastions = settings.providers.aws.accountBastions || {};
       return accountBastions[account] || 'unknown';
     };
 
