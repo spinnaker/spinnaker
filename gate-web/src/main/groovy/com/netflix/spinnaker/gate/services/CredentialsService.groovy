@@ -30,7 +30,7 @@ class CredentialsService {
   KatoService katoService
 
   List<KatoService.Account> getAccounts() {
-    HystrixFactory.newListCommand(GROUP, "getAccounts", true) {
+    HystrixFactory.newListCommand(GROUP, "getAccounts") {
       def allAccounts = katoService.accounts
 
       if (!AuthenticatedRequest.getSpinnakerUser().present) {
@@ -47,7 +47,7 @@ class CredentialsService {
   }
 
   Map getAccount(String account) {
-    HystrixFactory.newMapCommand(GROUP, "getAccount", true) {
+    HystrixFactory.newMapCommand(GROUP, "getAccount") {
       katoService.getAccount(account)
     } execute()
   }

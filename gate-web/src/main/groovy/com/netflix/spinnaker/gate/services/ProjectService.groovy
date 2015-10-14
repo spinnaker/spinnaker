@@ -38,19 +38,19 @@ class ProjectService {
   OrcaService orcaService
 
   List<Map> getAll() {
-    HystrixFactory.newListCommand(GROUP, "getAll", true) {
+    HystrixFactory.newListCommand(GROUP, "getAll") {
       return front50Service.getAllProjects().embedded.projects ?: []
     } execute()
   }
 
   Map get(String id) {
-    HystrixFactory.newMapCommand(GROUP, "get", true) {
+    HystrixFactory.newMapCommand(GROUP, "get") {
       front50Service.getProject(id)
     } execute()
   }
 
   List<Map> getAllPipelines(String projectId, int limit) {
-    HystrixFactory.newListCommand(GROUP, "getAllPipelines", true) {
+    HystrixFactory.newListCommand(GROUP, "getAllPipelines") {
       return orcaService.getPipelinesForProject(projectId, limit)
     } execute()
   }

@@ -14,7 +14,7 @@ class AttributeDiffService {
   @Autowired TideService tideService
 
   Map getServerGroupDiff(String account, String clusterName) {
-    HystrixFactory.newMapCommand(GROUP, "getServerGroupDiff", true) {
+    HystrixFactory.newMapCommand(GROUP, "getServerGroupDiff") {
       tideService.getServerGroupDiff(account, clusterName)
     } execute()
   }

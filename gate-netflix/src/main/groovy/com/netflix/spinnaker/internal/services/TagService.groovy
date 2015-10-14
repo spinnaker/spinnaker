@@ -35,7 +35,7 @@ class TagService {
       return []
     }
 
-    HystrixFactory.newListCommand(GROUP, "getTagsForApplication", true) {
+    HystrixFactory.newListCommand(GROUP, "getTagsForApplication") {
       flapJackService.getTags(application)
     } execute()
   }

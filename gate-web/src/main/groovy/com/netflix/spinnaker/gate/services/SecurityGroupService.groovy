@@ -38,7 +38,7 @@ class SecurityGroupService {
    * Keyed by account
    */
   Map getAll() {
-    HystrixFactory.newMapCommand(GROUP, "getAllSecurityGroups", true) {
+    HystrixFactory.newMapCommand(GROUP, "getAllSecurityGroups") {
       mortService.securityGroups
     } execute()
   }
@@ -50,7 +50,7 @@ class SecurityGroupService {
    * @return
    */
   Map getById(String id) {
-    HystrixFactory.newMapCommand(GROUP, "getSecurityGroupById".toString(), false) {
+    HystrixFactory.newMapCommand(GROUP, "getSecurityGroupById".toString()) {
       def result = mortService.search(id, "securityGroups", null, 10000, 1)[0]
       if (result.results) {
         String uriString = ((List<Map>)result.results)[0].url
@@ -75,7 +75,7 @@ class SecurityGroupService {
    * @param region optional. nullable
    */
   Map getForAccountAndProviderAndRegion(String account, String provider, String region) {
-    HystrixFactory.newMapCommand(GROUP, "getSecurityGroupsForAccountAndProvider", true) {
+    HystrixFactory.newMapCommand(GROUP, "getSecurityGroupsForAccountAndProvider") {
       mortService.getSecurityGroups(account, provider, region)
     } execute()
   }
@@ -87,7 +87,7 @@ class SecurityGroupService {
    * @param region optional. nullable
    */
   Map getSecurityGroup(String account, String provider, String name, String region, String vpcId = null) {
-    HystrixFactory.newMapCommand(GROUP, "getSecurityGroupByIdentifiers", true) {
+    HystrixFactory.newMapCommand(GROUP, "getSecurityGroupByIdentifiers") {
       mortService.getSecurityGroup(account, provider, name, region, vpcId)
     } execute()
   }

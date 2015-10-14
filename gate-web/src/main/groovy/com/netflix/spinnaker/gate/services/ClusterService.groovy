@@ -31,19 +31,19 @@ class ClusterService {
   OortService oortService
 
   Map getClusters(String app) {
-    HystrixFactory.newMapCommand(GROUP, "getClustersForApplication", true) {
+    HystrixFactory.newMapCommand(GROUP, "getClustersForApplication") {
       oortService.getClusters(app)
     } execute()
   }
 
   List<Map> getClustersForAccount(String app, String account) {
-    HystrixFactory.newListCommand(GROUP, "getClustersForApplicationInAccount", true) {
+    HystrixFactory.newListCommand(GROUP, "getClustersForApplicationInAccount") {
       oortService.getClustersForAccount(app, account)
     } execute()
   }
 
   Map getCluster(String app, String account, String clusterName) {
-    HystrixFactory.newMapCommand(GROUP, "getCluster", true) {
+    HystrixFactory.newMapCommand(GROUP, "getCluster") {
       try {
         oortService.getCluster(app, account, clusterName)?.getAt(0) as Map
       } catch (RetrofitError e) {
@@ -61,7 +61,7 @@ class ClusterService {
   }
 
   List<Map> getScalingActivities(String app, String account, String clusterName, String serverGroupName, String provider, String region) {
-    HystrixFactory.newListCommand(GROUP, "getScalingActivitiesForCluster", true) {
+    HystrixFactory.newListCommand(GROUP, "getScalingActivitiesForCluster") {
       oortService.getScalingActivities(app, account, clusterName, provider, serverGroupName, region)
     } execute()
   }

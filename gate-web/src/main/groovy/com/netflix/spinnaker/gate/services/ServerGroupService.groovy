@@ -38,13 +38,13 @@ class ServerGroupService {
 
   List getForApplication(String applicationName, String expand) {
     String commandKey = Boolean.valueOf(expand) ? "getExpandedServerGroupsForApplication" : "getServerGroupsForApplication"
-    HystrixFactory.newListCommand(GROUP, commandKey, true) {
+    HystrixFactory.newListCommand(GROUP, commandKey) {
       oortService.getServerGroups(applicationName, expand)
     } execute()
   }
 
   Map getForApplicationAndAccountAndRegion(String applicationName, String account, String region, String serverGroupName) {
-    HystrixFactory.newMapCommand(GROUP, "getServerGroupsForApplicationAccountAndRegion", true) {
+    HystrixFactory.newMapCommand(GROUP, "getServerGroupsForApplicationAccountAndRegion") {
       try {
         def context = getContext(applicationName, account, region, serverGroupName)
         return oortService.getServerGroupDetails(applicationName, account, region, serverGroupName) + [

@@ -33,7 +33,7 @@ class InfrastructureService {
   MortService mortService
 
   private static <T extends List> HystrixCommand<T> command(String type, Closure<T> work) {
-    (HystrixCommand<T>)HystrixFactory.newListCommand(GROUP, type, true, work)
+    (HystrixCommand<T>)HystrixFactory.newListCommand(GROUP, type, work)
   }
 
   List<Map> getInstanceTypes() {
