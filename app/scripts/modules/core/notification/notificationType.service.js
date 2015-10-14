@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.notifications.service', [
+module.exports = angular.module('spinnaker.core.notifications.service', [
   require('./notificationTypeConfig.provider.js'),
 ])
   .factory('notificationTypeService', function (notificationTypeConfig, _) {

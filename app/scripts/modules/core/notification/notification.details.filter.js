@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.notification.details.filter', [])
+module.exports = angular.module('spinnaker.core.notification.details.filter', [])
   .filter('notificationWhen', function() {
     return function(input, level) {
 

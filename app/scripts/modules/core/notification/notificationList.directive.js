@@ -5,7 +5,7 @@ let angular = require('angular');
 require('./notificationList.directive.html');
 require('./modal/editNotification.html');
 
-module.exports = angular.module('spinnaker.notifications.notificationList', [])
+module.exports = angular.module('spinnaker.core.notifications.notificationList', [])
     .directive('notificationList', function () {
         return {
             restrict: 'E',

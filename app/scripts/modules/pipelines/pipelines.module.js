@@ -9,6 +9,6 @@ module.exports = angular.module('spinnaker.pipelines', [
   require('./config/pipelineConfig.module.js'),
   require('../core/cache/viewStateCache.js'),
   require('../core/authentication/authentication.module.js'),
-  require('../notifications/notifications.module.js'),
+  require('../core/notification/notifications.module.js'),
   require('../core/cache/deckCacheFactory.js'),
 ]).name;
