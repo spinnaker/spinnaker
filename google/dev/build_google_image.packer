@@ -1,6 +1,6 @@
 {
  "variables": {
-    "release_uri": null,
+    "release_path": null,
     "project_id": null,
     "installer_path": null,
     "json_credentials":  "",
@@ -27,7 +27,7 @@
   },
   {
     "type": "shell",
-    "inline": ["python /tmp/install_spinnaker.py.zip --package_manager --release_path={{user `release_uri`}} {{user `install_args`}}"]
+    "inline": ["python /tmp/install_spinnaker.py.zip --package_manager --release_path={{user `release_path`}} {{user `install_args`}}"]
   }
  ]
 }

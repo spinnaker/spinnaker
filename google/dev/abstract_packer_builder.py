@@ -15,7 +15,7 @@
 # limitations under the License.
 
 # Creates an image in the default project named with the release name.
-# python create_google_image.py --release_uri $RELEASE_URI
+# python create_google_image.py --release_path $RELEASE_PATH
 
 import argparse
 import os
@@ -115,19 +115,19 @@ class AbstractPackerBuilder(object):
     os.close(fd)
     self.__var_map['installer_path'] = self.__installer_path
 
-    if self.options.release_uri.startswith('gs://'):
+    if self.options.release_path.startswith('gs://'):
       program = 'gsutil'
-    elif self.options.release_uri.startswith('s3://'):
+    elif self.options.release_path.startswith('s3://'):
       program = 'aws s3'
     else:
-      raise ValueError('--release_uri must be either GCS or S3, not "{uri}".'
-                       .format(uri=self.options.release_uri))
+      raise ValueError('--release_path must be either GCS or S3, not "{path}".'
+                       .format(path=self.options.release_path))
 
     self.__in_subprocess = True
     check_run_quick(
         '{program} cp {release}/install/install_spinnaker.py.zip {path}'
         .format(program=program,
-                release=self.options.release_uri,
+                release=self.options.release_path,
                 path=self.__installer_path))
     self.__in_subprocess = False
 
@@ -171,7 +171,7 @@ class AbstractPackerBuilder(object):
     """Initialize the command-line parameters."""
 
     parser.add_argument(
-          '--release_uri', required=True,
+          '--release_path', required=True,
           help='URI to the release to install on a storage service.')
 
   @classmethod
