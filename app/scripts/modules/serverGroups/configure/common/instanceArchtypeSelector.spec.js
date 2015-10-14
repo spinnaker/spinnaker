@@ -15,7 +15,7 @@ describe('Controller: Instance Archetype Selector', function() {
     window.module(
       require('./instanceArchetypeSelector.js'),
       require('../../../core/cache/infrastructureCaches.js'),
-      require('../../../instance/instanceTypeService.js'),
+      require('../../../core/instance/instanceTypeService.js'),
       require('../../../serverGroups/configure/common/serverGroupConfiguration.service.js')
     )
   );

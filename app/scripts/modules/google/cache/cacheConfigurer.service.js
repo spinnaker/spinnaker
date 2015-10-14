@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.gce.cache.initializer', [
   require('../../core/account/account.service.js'),
   require('../../loadBalancers/loadBalancer.read.service.js'),
-  require('../../instance/instanceTypeService.js'),
+  require('../../core/instance/instanceTypeService.js'),
   require('../../securityGroups/securityGroup.read.service.js'),
 ])
   .factory('gceCacheConfigurer', function ($q,
