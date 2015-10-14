@@ -2,8 +2,8 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.image.service', [
-  require('../core/cloudProvider/serviceDelegate.service.js'),
+module.exports = angular.module('spinnaker.core.image.read.service', [
+  require('../cloudProvider/serviceDelegate.service.js'),
 ])
   .factory('imageReader', function (serviceDelegate) {
 

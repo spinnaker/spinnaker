@@ -9,7 +9,7 @@ module.exports = angular
     require('../../../utils/rx.js'),
     require('../../../utils/lodash.js'),
     require('../../../core/naming/naming.service.js'),
-    require('../../../image/image.reader.js')
+    require('../../../core/image/image.reader.js')
   ])
   .controller('BasicSettingsMixin', function ($scope, RxService, imageReader, namingService, $modalStack, $state, _) {
     function searchImages(q) {
