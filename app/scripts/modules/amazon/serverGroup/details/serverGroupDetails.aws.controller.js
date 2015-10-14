@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('../../../netflix/migrator/serverGroup/serverGroup.migrator.directive.js'), // TODO: make actions pluggable
   require('./scalingPolicy/scalingPolicy.directive.js'),
   require('./scheduledAction/scheduledAction.directive.js'),
-  require('../../../insight/insightFilterState.model.js'),
+  require('../../../core/insight/insightFilterState.model.js'),
   require('./scalingActivities/scalingActivities.controller.js'),
   require('./networking/networking.module.js'),
   require('./resize/resizeServerGroup.controller'),

@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
   require('../../../loadBalancers/loadBalancer.read.service.js'),
   require('../../../utils/lodash.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
-  require('../../../insight/insightFilterState.model.js'),
+  require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/presentation/collapsibleSection/collapsibleSection.directive.js'),
   require('../../../utils/selectOnDblClick.directive.js'),
 ])

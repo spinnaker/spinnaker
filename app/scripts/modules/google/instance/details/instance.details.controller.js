@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
   require('../../../instance/instance.read.service.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../utils/lodash.js'),
-  require('../../../insight/insightFilterState.model.js'),
+  require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/history/recentHistory.service.js'),
   require('../../../utils/selectOnDblClick.directive.js'),
 ])

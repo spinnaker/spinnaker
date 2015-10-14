@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
   require('../../../securityGroups/securityGroup.write.service.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../utils/lodash.js'),
-  require('../../../insight/insightFilterState.model.js'),
+  require('../../../core/insight/insightFilterState.model.js'),
   require('../clone/cloneSecurityGroup.controller.js'),
   require('../../../utils/selectOnDblClick.directive.js'),
 ])

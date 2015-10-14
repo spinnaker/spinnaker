@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
   require('../../../serverGroups/serverGroup.write.service.js'),
   require('../../../serverGroups/configure/common/runningExecutions.service.js'),
   require('../../../utils/lodash.js'),
-  require('../../../insight/insightFilterState.model.js'),
+  require('../../../core/insight/insightFilterState.model.js'),
   require('./resize/resizeServerGroup.controller'),
   require('../../../core/modal/closeable/closeable.modal.controller.js'),
   require('../../../utils/selectOnDblClick.directive.js'),
