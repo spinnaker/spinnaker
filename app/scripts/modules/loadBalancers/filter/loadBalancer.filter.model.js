@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('loadBalancer.filter.model', [
-    require('../../filterModel/filter.model.service.js'),
+    require('../../core/filterModel/filter.model.service.js'),
     require('../../navigation/urlParser.service.js'),
   ])
   .factory('LoadBalancerFilterModel', function($rootScope, filterModelService, urlParser) {

@@ -8,7 +8,7 @@ module.exports = angular
     require('../../utils/lodash.js'),
     require('exports?"debounce"!angular-debounce'),
     require('../../utils/waypoints/waypoint.service.js'),
-    require('../../filterModel/filter.model.service.js'),
+    require('../../core/filterModel/filter.model.service.js'),
   ])
   .factory('securityGroupFilterService', function (SecurityGroupFilterModel, _, waypointService, filterModelService,
                                                   $log, debounce) {
