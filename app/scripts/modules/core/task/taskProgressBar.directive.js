@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.tasks.progressBar.directive', [])
+module.exports = angular.module('spinnaker.core.task.progressBar.directive', [])
   .directive('taskProgressBar', function($filter) {
     return {
       restrict: 'E',

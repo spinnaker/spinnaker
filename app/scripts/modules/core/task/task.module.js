@@ -2,13 +2,15 @@
 
 let angular = require('angular');
 
+require('./tasks.less');
+
 module.exports = angular
-  .module('spinnaker.tasks', [
+  .module('spinnaker.core.task', [
     require('./monitor/taskMonitor.module.js'),
-    require('./tasks.api.config.js'),
+    require('./tasks.api.js'),
     require('./tasks.controller.js'),
     require('./taskDetails.controller.js'),
-    require('../tasks/tasks.read.service.js'),
-    require('../tasks/tasks.write.service.js'),
+    require('./task.read.service.js'),
+    require('./task.write.service.js'),
     require('./statusGlyph.directive.js'),
   ]).name;

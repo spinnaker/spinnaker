@@ -3,10 +3,10 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.tasks.write.service', [
+  .module('spinnaker.core.task.write.service', [
     require('exports?"restangular"!imports?_=lodash!restangular'),
   ])
-  .factory('tasksWriter', function(Restangular) {
+  .factory('taskWriter', function(Restangular) {
 
     var endpoint = Restangular.all('applications');
 

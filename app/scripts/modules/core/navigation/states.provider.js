@@ -293,7 +293,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
         url: '/tasks',
         views: {
           'insight': {
-            templateUrl: require('../../tasks/tasks.html'),
+            templateUrl: require('../task/tasks.html'),
             controller: 'TasksCtrl',
             controllerAs: 'tasks'
           },

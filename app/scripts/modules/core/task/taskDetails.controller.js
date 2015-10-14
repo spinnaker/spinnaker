@@ -2,9 +2,9 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.tasks.detail.controller', [])
+module.exports = angular.module('spinnaker.core.task.details.controller', [])
   .controller('TaskDetailsCtrl', function($scope, $log, $state,
-                                          tasksReader, tasksWriter,
+                                          taskReader, taskWriter,
                                           taskId, application) {
 
     var vm = this;
@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.tasks.detail.controller', [])
         return task.id === taskId;
       });
       if (!filtered.length) {
-        tasksReader.getOneTaskForApplication(application.name, taskId).then(
+        taskReader.getOneTaskForApplication(application.name, taskId).then(
           function(result) {
             vm.task = result;
           },
@@ -34,7 +34,7 @@ module.exports = angular.module('spinnaker.tasks.detail.controller', [])
 
     vm.retry = angular.noop;
     vm.cancel = function() {
-      tasksWriter.cancelTask(application.name, taskId).then(application.reloadTasks);
+      taskWriter.cancelTask(application.name, taskId).then(application.reloadTasks);
     };
 
     return vm;

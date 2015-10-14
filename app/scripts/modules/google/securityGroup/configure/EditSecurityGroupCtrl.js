@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
   require('../../../core/account/account.service.js'),
   require('../../../core/cache/infrastructureCaches.js'),
   require('../../../core/cache/cacheInitializer.js'),
-  require('../../../tasks/monitor/taskMonitorService.js'),
+  require('../../../core/task/monitor/taskMonitorService.js'),
   require('../../../core/securityGroup/securityGroup.write.service.js'),
 ])
   .controller('gceEditSecurityGroupCtrl', function($scope, $modalInstance, $exceptionHandler, $state,

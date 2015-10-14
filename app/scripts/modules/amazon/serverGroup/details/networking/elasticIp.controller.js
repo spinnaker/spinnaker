@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.aws.serverGroup.details.elasticIp.controller', [
   require('../../../../core/account/account.service.js'),
   require('./elasticIp.write.service.js'),
-  require('../../../../tasks/monitor/taskMonitorService.js')
+  require('../../../../core/task/monitor/taskMonitorService.js')
 ])
   .controller('ElasticIpCtrl', function($scope, $modalInstance, accountService, elasticIpWriter, taskMonitorService,
                                                 application, serverGroup, elasticIp, onTaskComplete) {

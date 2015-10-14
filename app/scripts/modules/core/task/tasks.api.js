@@ -2,13 +2,13 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.tasks.api', [
+module.exports = angular.module('spinnaker.core.tasks.api', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
   require('./kato.js'),
-  require('../core/config/settings.js'),
-  require('../core/cache/deckCacheFactory.js'),
-  require('../core/navigation/urlBuilder.service.js'),
-  require('../core/orchestratedItem/orchestratedItem.transformer.js')
+  require('../config/settings.js'),
+  require('../cache/deckCacheFactory.js'),
+  require('../navigation/urlBuilder.service.js'),
+  require('../orchestratedItem/orchestratedItem.transformer.js')
 ])
   .factory('tasksApi', function(settings, Restangular, urlBuilderService, $timeout, $q, kato, $exceptionHandler, orchestratedItemTransformer) {
 

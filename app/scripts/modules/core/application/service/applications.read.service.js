@@ -6,7 +6,7 @@ module.exports = angular
   .module('spinnaker.applications.read.service', [
     require('exports?"restangular"!imports?_=lodash!restangular'),
     require('../../cluster/cluster.service.js'),
-    require('../../../tasks/tasks.read.service.js'),
+    require('../../../core/task/task.read.service.js'),
     require('../../loadBalancer/loadBalancer.read.service.js'),
     require('../../loadBalancer/loadBalancer.transformer.js'),
     require('../../securityGroup/securityGroup.read.service.js'),
@@ -15,7 +15,7 @@ module.exports = angular
     require('../../delivery/execution.service.js'),
     require('../../serverGroup/serverGroup.transformer.js'),
   ])
-  .factory('applicationReader', function ($q, $log, $window,  $exceptionHandler, $rootScope, Restangular, _, clusterService, tasksReader,
+  .factory('applicationReader', function ($q, $log, $window,  $exceptionHandler, $rootScope, Restangular, _, clusterService, taskReader,
                                           loadBalancerReader, loadBalancerTransformer, securityGroupReader, scheduler,
                                           infrastructureCaches, settings, executionService, serverGroupTransformer) {
 
@@ -76,7 +76,7 @@ module.exports = angular
         }
 
         function reloadTasks() {
-          return tasksReader.listAllTasksForApplication(application.name)
+          return taskReader.listAllTasksForApplication(application.name)
             .then(function(tasks) {
               addTasksToApplication(application, tasks);
               if (!application.tasksLoaded) {

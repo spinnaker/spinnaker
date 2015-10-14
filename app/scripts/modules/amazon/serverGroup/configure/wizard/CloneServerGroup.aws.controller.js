@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
   require('../../../../utils/lodash.js'),
   require('../serverGroupConfiguration.service.js'),
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
-  require('../../../../tasks/monitor/taskMonitorService.js'),
+  require('../../../../core/task/monitor/taskMonitorService.js'),
   require('../../../../core/modal/wizard/modalWizard.service.js'),
 ])
   .controller('awsCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,

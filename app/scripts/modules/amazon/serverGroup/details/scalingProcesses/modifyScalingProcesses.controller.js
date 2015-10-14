@@ -4,8 +4,8 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.process.controller', [
   require('../../../../utils/lodash.js'),
-  require('../../../../tasks/monitor/taskMonitor.module.js'),
-  require('../../../../tasks/taskExecutor.js'),
+  require('../../../../core/task/monitor/taskMonitor.module.js'),
+  require('../../../../core/task/taskExecutor.js'),
 ])
   .controller('ModifyScalingProcessesCtrl', function($scope, $modalInstance, taskMonitorService, taskExecutor, application, serverGroup, processes, _) {
     $scope.command = angular.copy(processes);

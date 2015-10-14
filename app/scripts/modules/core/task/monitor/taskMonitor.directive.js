@@ -3,9 +3,9 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.tasks.monitor.directive', [
-  require('../../core/presentation/autoScroll/autoScroll.directive.js'),
-  require('../../core/modal/modalOverlay.directive.js'),
-  require('../../core/modal/buttons/modalClose.directive.js'),
+  require('../../presentation/autoScroll/autoScroll.directive.js'),
+  require('../../modal/modalOverlay.directive.js'),
+  require('../../modal/buttons/modalClose.directive.js'),
 ])
   .directive('taskMonitor', function () {
     return {

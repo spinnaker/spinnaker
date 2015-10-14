@@ -2,16 +2,16 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.taskExecutor.service', [
+module.exports = angular.module('spinnaker.core.taskExecutor', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
-  require('../core/cache/deckCacheFactory.js'),
-  require('../core/scheduler/scheduler.service.js'),
-  require('../core/authentication/authentication.service.js'),
-  require('../core/cache/infrastructureCaches.js'),
-  require('./tasks.read.service.js'),
-  require('./tasks.write.service.js'),
+  require('../cache/deckCacheFactory.js'),
+  require('../scheduler/scheduler.service.js'),
+  require('../authentication/authentication.service.js'),
+  require('../cache/infrastructureCaches.js'),
+  require('./task.read.service.js'),
+  require('./task.write.service.js'),
 ])
-  .factory('taskExecutor', function(Restangular, scheduler, $q, authenticationService, tasksReader, tasksWriter) {
+  .factory('taskExecutor', function(Restangular, scheduler, $q, authenticationService, taskReader, taskWriter) {
 
 
     function executeTask(taskCommand) {
@@ -31,14 +31,14 @@ module.exports = angular.module('spinnaker.taskExecutor.service', [
         job.user = authenticationService.getAuthenticatedUser().name;
       });
 
-      var op = tasksWriter.postTaskCommand(taskCommand).then(
+      var op = taskWriter.postTaskCommand(taskCommand).then(
         function(task) {
           var taskId = task.ref.substring(task.ref.lastIndexOf('/')+1);
 
           if (owner.reloadTasks) {
             owner.reloadTasks();
           }
-          return tasksReader.getOneTaskForApplication(owner.name, taskId);
+          return taskReader.getOneTaskForApplication(owner.name, taskId);
         },
         function(response) {
           var error = {

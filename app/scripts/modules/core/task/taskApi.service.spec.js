@@ -26,7 +26,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
 
   beforeEach(
     window.module(
-      require('./tasks.api.config.js')
+      require('./tasks.api.js')
     )
   );
 

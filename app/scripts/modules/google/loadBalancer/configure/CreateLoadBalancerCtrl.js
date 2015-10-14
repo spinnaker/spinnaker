@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
   require('../../../core/account/account.service.js'),
   require('../loadBalancer.transformer.js'),
   require('../../../core/modal/wizard/modalWizard.service.js'),
-  require('../../../tasks/monitor/taskMonitorService.js'),
+  require('../../../core/task/monitor/taskMonitorService.js'),
   require('../../../google/gceRegionSelectField.directive.js'),
   require('../../../core/search/search.service.js'),
 ])
