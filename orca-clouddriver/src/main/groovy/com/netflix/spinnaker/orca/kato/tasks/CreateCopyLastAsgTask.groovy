@@ -82,7 +82,7 @@ class CreateCopyLastAsgTask extends AbstractCloudProviderAwareTask implements Ta
       }
       descriptions.addAll(allowLaunchDescriptions)
     }
-    descriptions.add([copyLastServerGroup: operation])
+    descriptions.add([cloneServerGroup: operation])
     descriptions
   }
 }
