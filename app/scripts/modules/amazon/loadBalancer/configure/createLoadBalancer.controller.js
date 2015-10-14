@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
   require('../../../core/cache/infrastructureCaches.js'),
   require('../../../core/naming/naming.service.js'),
   require('./loadBalancerAvailabilityZoneSelector.directive.js'),
-  require('../../../region/regionSelectField.directive.js'),
+  require('../../../core/region/regionSelectField.directive.js'),
   require('../../../core/account/accountSelectField.directive.js'),
   require('../../subnet/subnetSelectField.directive.js'),
 ])
