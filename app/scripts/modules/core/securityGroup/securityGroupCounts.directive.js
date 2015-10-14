@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.securityGroup.counts', [])
+module.exports = angular.module('spinnaker.core.securityGroup.counts.directive', [])
   .directive('securityGroupCounts', function () {
     return {
       templateUrl: require('./securityGroupCounts.html'),

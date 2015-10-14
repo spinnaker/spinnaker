@@ -2,14 +2,14 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.securityGroup.all.controller', [
+module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
   require('./filter/securityGroup.filter.service.js'),
   require('./filter/securityGroup.filter.model.js'),
-  require('../utils/lodash.js'),
-  require('../core/cloudProvider/providerSelection/providerSelection.service.js'),
-  require('../core/config/settings.js'),
+  require('../../utils/lodash.js'),
+  require('../cloudProvider/providerSelection/providerSelection.service.js'),
+  require('../config/settings.js'),
   require('angular-ui-bootstrap'),
-  require('../core/cloudProvider/cloudProvider.registry.js'),
+  require('../cloudProvider/cloudProvider.registry.js'),
 ])
   .controller('AllSecurityGroupsCtrl', function($scope, app, $modal, _, providerSelectionService, settings,
                                                 cloudProviderRegistry,
@@ -20,6 +20,8 @@ module.exports = angular.module('spinnaker.securityGroup.all.controller', [
     $scope.application = app;
 
     $scope.sortFilter = SecurityGroupFilterModel.sortFilter;
+
+    this.groupingsTemplate = require('./groupings.html');
 
     function addSearchFields() {
       app.securityGroups.forEach(function(securityGroup) {

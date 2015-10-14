@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuration.service', [
   require('../../../core/account/account.service.js'),
-  require('../../../securityGroups/securityGroup.read.service.js'),
+  require('../../../core/securityGroup/securityGroup.read.service.js'),
   require('../../../core/cache/cacheInitializer.js'),
   require('../../image/image.reader.js'),
   require('../../instance/cfInstanceTypeService.js'),

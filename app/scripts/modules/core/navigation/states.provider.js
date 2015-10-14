@@ -264,12 +264,12 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
           name: 'securityGroups',
           views: {
             'nav': {
-              templateUrl: require('../../securityGroups/filter/filterNav.html'),
+              templateUrl: require('../securityGroup/filter/filterNav.html'),
               controller: 'SecurityGroupFilterCtrl',
               controllerAs: 'securityGroupFilters'
             },
             'master': {
-              templateUrl: require('../../securityGroups/all.html'),
+              templateUrl: require('../securityGroup/all.html'),
               controller: 'AllSecurityGroupsCtrl',
               controllerAs: 'ctrl'
             }

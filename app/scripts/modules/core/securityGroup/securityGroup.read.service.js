@@ -2,15 +2,15 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.securityGroup.read.service', [
+module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
-  require('../core/cache/deckCacheFactory.js'),
-  require('../core/search/search.service.js'),
-  require('../core/naming/naming.service.js'),
-  require('../utils/lodash.js'),
-  require('../core/cache/infrastructureCaches.js'),
+  require('../cache/deckCacheFactory.js'),
+  require('../search/search.service.js'),
+  require('../naming/naming.service.js'),
+  require('../../utils/lodash.js'),
+  require('../cache/infrastructureCaches.js'),
   require('./securityGroup.transformer.js'),
-  require('../core/cloudProvider/serviceDelegate.service.js'),
+  require('../cloudProvider/serviceDelegate.service.js'),
 ])
   .factory('securityGroupReader', function ($q, $exceptionHandler, $log, Restangular, searchService, _, namingService,
                                             infrastructureCaches, securityGroupTransformer, serviceDelegate) {
