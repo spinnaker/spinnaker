@@ -7,7 +7,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.cluster.service', [
   require('../naming/naming.service.js'),
   require('exports?"restangular"!imports?_=lodash!restangular'),
-  require('../../utils/lodash.js'),
+  require('../utils/lodash.js'),
   require('../serverGroup/serverGroup.transformer.js'),
 ])
   .factory('clusterService', function ($q, Restangular, _, serverGroupTransformer, namingService) {

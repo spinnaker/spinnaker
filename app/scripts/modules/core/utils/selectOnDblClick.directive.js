@@ -3,7 +3,7 @@
 /** based on http://jsfiddle.net/epinapala/WdeTM/4/  **/
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.utils.selectOnDblClick', [])
+module.exports = angular.module('spinnaker.core.utils.selectOnDblClick', [])
   .directive('selectOnDblClick', function($window, $document) {
     return {
       restrict: 'A',

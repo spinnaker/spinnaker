@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 // Source: https://github.com/daniellmb/angular-uuid-service/blob/master/angular-uuid-service.js
-module.exports = angular.module('spinnaker.utils.uuid.service', [])
+module.exports = angular.module('spinnaker.core.utils.uuid.service', [])
   .factory('uuidService', function() {
     function getRandom(max) {
       return Math.random() * max;

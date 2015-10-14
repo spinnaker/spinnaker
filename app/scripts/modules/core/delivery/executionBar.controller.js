@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.delivery.executionBar.controller', [
-  require('../../core/pipeline/config/pipelineConfigProvider.js'),
+  require('../pipeline/config/pipelineConfigProvider.js'),
   require('angular-ui-router'),
 ])
   .controller('executionBar', function($scope, $filter, $stateParams, pipelineConfig, $state) {

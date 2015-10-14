@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.aws.instanceType.service', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../../core/cache/deckCacheFactory.js'),
-  require('../../utils/lodash.js'),
+  require('../../core/utils/lodash.js'),
   require('../../core/config/settings.js'),
   require('../../core/cache/infrastructureCaches.js'),
 ])

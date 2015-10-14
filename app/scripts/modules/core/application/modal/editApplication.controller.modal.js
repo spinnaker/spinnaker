@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.editApplication.modal.controller', [
     require('../service/applications.write.service.js'),
-    require('../../../utils/lodash.js'),
+    require('../../utils/lodash.js'),
     require('../../account/account.service.js')
   ])
   .controller('EditApplicationController', function ($window, $state, $modalInstance, application, applicationWriter,

@@ -7,7 +7,7 @@ let angular = require('angular');
 module.exports = angular.module('securityGroup.filter.controller', [
   require('./securityGroup.filter.service.js'),
   require('./securityGroup.filter.model.js'),
-  require('../../../utils/lodash.js'),
+  require('../../utils/lodash.js'),
 ])
   .controller('SecurityGroupFilterCtrl', function ($scope, app, _, $log, securityGroupFilterService, SecurityGroupFilterModel, $rootScope) {
 

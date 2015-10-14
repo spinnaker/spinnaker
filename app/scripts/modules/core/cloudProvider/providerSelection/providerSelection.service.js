@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.providerSelection.service', [
   require('../../account/account.service.js'),
   require('../../config/settings.js'),
-  require('../../../utils/lodash.js'),
+  require('../../utils/lodash.js'),
 ])
   .factory('providerSelectionService', function($modal, $q, _, accountService, settings) {
     function selectProvider(application) {

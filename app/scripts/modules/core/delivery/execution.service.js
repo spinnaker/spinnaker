@@ -5,7 +5,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
   require('angular-ui-router'),
   require('../scheduler/scheduler.service.js'),
   require('../cache/deckCacheFactory.js'),
-  require('../../utils/appendTransform.js'),
+  require('../utils/appendTransform.js'),
   require('./executions.transformer.service.js')
 ])
   .factory('executionService', function($stateParams, $http, $timeout, $q, $log,

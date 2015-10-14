@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.infrastructure.search.service', [
-  require('../../../utils/rx.js'),
+  require('../../utils/rx.js'),
   require('../../navigation/urlBuilder.service.js'),
   require('../../application/service/applications.read.service.js'),
   require('../../../amazon/vpc/vpc.read.service.js'),

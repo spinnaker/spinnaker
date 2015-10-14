@@ -4,9 +4,9 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.delivery.execution.triggers', [
   require('../execution.service.js'),
-  require('../../../core/pipeline/config/pipelineConfigProvider.js'),
+  require('../../pipeline/config/pipelineConfigProvider.js'),
   require('./ToggleTrigger.modal.controller.js'),
-  require('../../../utils/lodash.js'),
+  require('../../utils/lodash.js'),
 ])
   .directive('triggersTag', function() {
     return {

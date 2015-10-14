@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.core.projects.project.controller', [
   require('./configure/configureProject.modal.controller.js'),
   require('./service/project.read.service.js'),
   require('../history/recentHistory.service.js'),
-  require('../../utils/lodash.js'),
+  require('../utils/lodash.js'),
 ])
   .controller('ProjectCtrl', function ($scope, $modal, $timeout, projectReader, $state, projectConfiguration, recentHistoryService, _) {
 

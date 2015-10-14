@@ -45,7 +45,7 @@ module.exports = angular.module('spinnaker.core.delivery.states', [])
       url: '/pipelines',
       views: {
         'insight': {
-          templateUrl: require('../../core/pipeline/config/pipelineConfig.html'),
+          templateUrl: require('../pipeline/config/pipelineConfig.html'),
           controller: 'PipelineConfigCtrl as pipelineConfigCtrl'
         },
       },

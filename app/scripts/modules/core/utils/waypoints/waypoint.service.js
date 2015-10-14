@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.utils.waypoints.service', [
+module.exports = angular.module('spinnaker.core.utils.waypoints.service', [
   require('../jQuery.js'),
   require('../lodash.js'),
 ])

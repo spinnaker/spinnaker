@@ -4,7 +4,7 @@
 let d3 = require('d3');
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.utils.d3', [])
+module.exports = angular.module('spinnaker.core.utils.d3', [])
   .factory('d3Service', function() {
     return d3;
   }).name;

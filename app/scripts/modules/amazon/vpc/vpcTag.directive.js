@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports =  angular.module('spinnaker.vpc.tag.directive', [
   require('./vpc.read.service.js'),
-  require('../../utils/lodash.js'),
+  require('../../core/utils/lodash.js'),
 ])
   .directive('vpcTag', function(vpcReader, _) {
     return {

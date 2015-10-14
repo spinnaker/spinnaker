@@ -5,7 +5,7 @@ describe('Controller: jenkinsTrigger', function() {
   beforeEach(
     window.module(
       require('./jenkinsTrigger.module.js'),
-      require('../../../../../utils/lodash.js')
+      require('../../../../utils/lodash.js')
     )
   );
 

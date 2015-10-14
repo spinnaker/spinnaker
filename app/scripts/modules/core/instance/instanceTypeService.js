@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.instanceType.service', [
   require('../cache/deckCacheFactory.js'),
-  require('../../utils/lodash.js'),
+  require('../utils/lodash.js'),
   require('../cloudProvider/serviceDelegate.service.js'),
 ])
   .factory('instanceTypeService', function ($http, $q, _, $window, serviceDelegate) {

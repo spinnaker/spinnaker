@@ -8,7 +8,7 @@ require('./stickyHeader.less');
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.utils.stickyHeader', [
+module.exports = angular.module('spinnaker.core.utils.stickyHeader', [
   require('../jQuery.js'),
   require('../lodash.js'),
 ])

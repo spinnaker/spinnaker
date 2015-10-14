@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.gce.serverGroup.transformer', [
-    require('../../utils/lodash.js'),
+    require('../../core/utils/lodash.js'),
   ])
   .factory('gceServerGroupTransformer', function ($q, _) {
 

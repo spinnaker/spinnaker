@@ -5,14 +5,14 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
-  require('../../../utils/lodash.js'),
+  require('../../../core/utils/lodash.js'),
   require('../../../core/instance/instance.write.service.js'),
   require('../../../core/instance/instance.read.service.js'),
   require('../../vpc/vpcTag.directive.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/history/recentHistory.service.js'),
-  require('../../../utils/selectOnDblClick.directive.js'),
+  require('../../../core/utils/selectOnDblClick.directive.js'),
   require('../../../core/config/settings.js')
 ])
   .controller('awsInstanceDetailsCtrl', function ($scope, $state, $modal, InsightFilterStateModel, settings,

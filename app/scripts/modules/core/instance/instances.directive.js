@@ -3,8 +3,8 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.instance.instances.directive', [
-  require('../../utils/jQuery.js'),
-  require('../../utils/lodash.js'),
+  require('../utils/jQuery.js'),
+  require('../utils/lodash.js'),
 ])
   .directive('instances', function ($timeout, $, _) {
     return {

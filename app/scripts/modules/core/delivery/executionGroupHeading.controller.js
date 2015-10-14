@@ -3,8 +3,8 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.delivery.executionGroupHeading.controller', [
-  require('../../utils/lodash.js'),
-  require('../../core/pipeline/config/services/pipelineConfigService.js'),
+  require('../utils/lodash.js'),
+  require('../pipeline/config/services/pipelineConfigService.js'),
   require('./execution.service.js'),
   require('../cache/collapsibleSectionStateCache.js'),
   require('./manualPipelineExecution.controller.js'),

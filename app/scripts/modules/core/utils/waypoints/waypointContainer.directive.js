@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.utils.waypoints.container.directive', [
+module.exports = angular.module('spinnaker.core.utils.waypoints.container.directive', [
   require('./waypoint.service.js'),
 ])
   .directive('waypointContainer', function (waypointService) {

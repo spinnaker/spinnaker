@@ -8,7 +8,7 @@ let angular = require('angular');
   execution details.
  */
 module.exports = angular.module('spinnaker.core.pipeline.stage.docker.bakeStage', [
-  require('../../../../../../utils/lodash.js'),
+  require('../../../../../utils/lodash.js'),
   require('../../../pipelineConfigProvider.js'),
   require('./bakeExecutionDetails.controller.js'),
   require('./../bakery.service.js'),

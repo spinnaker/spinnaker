@@ -8,7 +8,7 @@ module.exports = angular
     require('../../../core/task/monitor/taskMonitorService.js'),
     require('../../../core/securityGroup/securityGroup.write.service.js'),
     require('../../../amazon/vpc/vpc.read.service.js'),
-    require('../../../utils/lodash.js'),
+    require('../../../core/utils/lodash.js'),
     require('../configure/ConfigSecurityGroupMixin.controller.js')
   ])
   .controller('gceCloneSecurityGroupController', function($scope, $modalInstance, $controller, taskMonitorService, accountService, securityGroupWriter, vpcReader, securityGroup, application, _) {

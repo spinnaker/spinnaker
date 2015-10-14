@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
   require('../cloudProvider/providerSelection/providerSelection.service.js'),
   require('../serverGroup/configure/common/serverGroupCommandBuilder.js'),
   require('../filterModel/filter.tags.directive.js'),
-  require('../../utils/waypoints/waypointContainer.directive.js'),
+  require('../utils/waypoints/waypointContainer.directive.js'),
   require('angular-ui-bootstrap'),
   require('../cloudProvider/cloudProvider.registry.js'),
 ])

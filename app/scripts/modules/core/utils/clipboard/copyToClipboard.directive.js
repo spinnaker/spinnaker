@@ -6,7 +6,7 @@ let angular = require('angular');
 require('./copyToClipboard.directive.less');
 
 module.exports = angular
-  .module('spinnaker.copyToClipboard.directive', [])
+  .module('spinnaker.core.utils.copyToClipboard.directive', [])
   .directive('copyToClipboard', function($timeout) {
     return {
       restrict: 'E',

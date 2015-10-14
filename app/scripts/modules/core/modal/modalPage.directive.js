@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.modal.modalPage.directive', [
-  require('../../utils/jQuery.js'),
+  require('../utils/jQuery.js'),
 ])
   .directive('modalPage', function ($) {
     return {

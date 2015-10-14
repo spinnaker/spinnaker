@@ -11,10 +11,10 @@ module.exports = angular
     require('../../../amazon/subnet/subnet.read.service.js'),
     require('../../../core/config/settings.js'),
     require('../migrator.service.js'),
-    require('../../../utils/lodash.js'),
+    require('../../../core/utils/lodash.js'),
     require('../../../core/presentation/autoScroll/autoScroll.directive.js'),
     require('../../../core/pipeline/config/services/pipelineConfigService.js'),
-    require('../../../utils/scrollTo/scrollTo.service.js'),
+    require('../../../core/utils/scrollTo/scrollTo.service.js'),
     require('../../../core/cache/cacheInitializer.js'),
   ])
   .directive('pipelineMigrator', function () {

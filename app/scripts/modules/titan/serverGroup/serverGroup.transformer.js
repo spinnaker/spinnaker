@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.titan.serverGroup.transformer', [
-    require('../../utils/lodash.js'),
+    require('../../core/utils/lodash.js'),
   ])
   .factory('titanServerGroupTransformer', function ($q, _) {
 

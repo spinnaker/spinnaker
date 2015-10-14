@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.pipeline.config.controller', [
   require('angular-ui-router'),
   require('./services/pipelineConfigService.js'),
-  require('../../../utils/lodash.js'),
+  require('../../utils/lodash.js'),
   require('../../pageTitle/pageTitle.service.js'),
   require('./services/dirtyPipelineTracker.service.js'),
 ])
