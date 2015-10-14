@@ -98,7 +98,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/core/deploymentStrategy/strategies/highlander/highlander.strategy.module.js'),
     require('./modules/core/deploymentStrategy/strategies/rollingPush/rollingPush.strategy.module.js'),
     require('./modules/serverGroups/serverGroup.module.js'),
-    require('./modules/securityGroups/securityGroup.module.js'),
+    require('./modules/core/securityGroup/securityGroup.module.js'),
     require('./modules/core/instance/instance.module.js'),
     require('./modules/core/pageTitle/pageTitle.service.js'),
     require('./modules/core/help/help.module.js'),

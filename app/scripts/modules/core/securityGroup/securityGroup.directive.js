@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.securityGroup.rollup', [])
+module.exports = angular.module('spinnaker.core.securityGroup.directive', [])
   .directive('securityGroup', function ($rootScope, $timeout, SecurityGroupFilterModel) {
     return {
       restrict: 'E',

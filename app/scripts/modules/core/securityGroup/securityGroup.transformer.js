@@ -2,8 +2,8 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.securityGroup.transformer.service', [
-  require('../core/cloudProvider/serviceDelegate.service.js'),
+module.exports = angular.module('spinnaker.core.securityGroup.transformer.service', [
+  require('../cloudProvider/serviceDelegate.service.js'),
 ])
   .factory('securityGroupTransformer', function (serviceDelegate) {
 

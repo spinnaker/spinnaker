@@ -6,7 +6,7 @@ module.exports = angular
   .module('spinnaker.amazon.securityGroup.baseConfig.controller', [
     require('angular-ui-router'),
     require('../../../tasks/monitor/taskMonitorService.js'),
-    require('../../../securityGroups/securityGroup.write.service.js'),
+    require('../../../core/securityGroup/securityGroup.write.service.js'),
     require('../../../core/account/account.service.js'),
     require('../../vpc/vpc.read.service.js'),
     require('../../../core/modal/wizard/modalWizard.service.js'),

@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   require('../../../core/account/account.service.js'),
   require('../../../core/diff/diff.service.js'),
   require('../../../core/naming/naming.service.js'),
-  require('../../../securityGroups/securityGroup.read.service.js'),
+  require('../../../core/securityGroup/securityGroup.read.service.js'),
   require('../../../amazon/instance/awsInstanceType.service.js'),
   require('../../subnet/subnet.read.service.js'),
   require('../../keyPairs/keyPairs.read.service.js'),

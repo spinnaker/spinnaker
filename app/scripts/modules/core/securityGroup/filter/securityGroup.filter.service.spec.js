@@ -14,7 +14,7 @@ describe('Service: securityGroupFilterService', function () {
 
   beforeEach(
     window.module(
-      require('../../utils/lodash.js'),
+      require('../../../utils/lodash.js'),
       require('./securityGroup.filter.service.js'),
       require('./securityGroup.filter.model.js')
     )

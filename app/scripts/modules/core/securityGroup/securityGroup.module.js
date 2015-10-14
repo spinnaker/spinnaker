@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.securityGroup', [
+  .module('spinnaker.core.securityGroup', [
     require('./AllSecurityGroupsCtrl.js'),
     require('./filter/SecurityGroupFilterCtrl.js'),
     require('./securityGroup.pod.directive.js'),
