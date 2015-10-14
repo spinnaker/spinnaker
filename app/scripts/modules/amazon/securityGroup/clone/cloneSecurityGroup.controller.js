@@ -7,7 +7,7 @@ module.exports = angular
     require('../../../core/account/account.service.js'),
     require('../../../core/task/monitor/taskMonitorService.js'),
     require('../../../core/securityGroup/securityGroup.write.service.js'),
-    require('../../../amazon/vpc/vpc.read.service.js'),
+    require('../../vpc/vpc.read.service.js'),
     require('../../../core/utils/lodash.js'),
     require('../configure/configSecurityGroup.mixin.controller.js')
   ])
