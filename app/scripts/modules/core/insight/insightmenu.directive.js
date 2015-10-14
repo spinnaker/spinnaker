@@ -1,15 +1,8 @@
 'use strict';
 
-/**
- * @ngdoc directive
- * @name spinnaker.directive:insightMenu
- * @description
- * # insightMenu
- */
-
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.insightMenu.directive', [])
+module.exports = angular.module('spinnaker.core.insightMenu.directive', [])
   .directive('insightMenu', function () {
     return {
       templateUrl: require('./insightmenu.directive.html'),

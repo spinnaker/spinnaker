@@ -3,8 +3,8 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('insight.filter.state.model', [
-    require('../core/cache/collapsibleSectionStateCache.js'),
+  .module('spinnaker.core.insight.filter.state.model', [
+    require('../cache/collapsibleSectionStateCache.js'),
   ])
   .factory('InsightFilterStateModel', function($rootScope, $timeout, collapsibleSectionStateCache) {
 

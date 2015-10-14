@@ -3,6 +3,6 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.insight', [
+  .module('spinnaker.core.insight', [
     require('./insight.controller.js')
   ]).name;

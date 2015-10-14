@@ -197,7 +197,7 @@ module.exports = angular.module('spinnaker.states', [
         abstract: true,
         views: {
           'insight': {
-            templateUrl: require('../insight/insight.html'),
+            templateUrl: require('../core/insight/insight.html'),
             controller: 'InsightCtrl',
             controllerAs: 'insight'
           }
