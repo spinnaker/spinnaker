@@ -31,7 +31,7 @@ require('./modules/core/application/application.less');
 require('./modules/core/delivery/delivery.less');
 require('./modules/core/presentation/details.less');
 require('./modules/fastProperties/fastProperties.less');
-require('./modules/instance/instanceSelection.less');
+require('./modules/core/instance/instanceSelection.less');
 require('./modules/core/presentation/main.less');
 require('./modules/core/modal/modals.less');
 require('./modules/core/application/newapplication.less');
@@ -99,7 +99,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/core/deploymentStrategy/strategies/rollingPush/rollingPush.strategy.module.js'),
     require('./modules/serverGroups/serverGroup.module.js'),
     require('./modules/securityGroups/securityGroup.module.js'),
-    require('./modules/instance/instance.module.js'),
+    require('./modules/core/instance/instance.module.js'),
     require('./modules/core/pageTitle/pageTitle.service.js'),
     require('./modules/core/help/help.module.js'),
     require('./modules/core/delivery/delivery.module.js'),

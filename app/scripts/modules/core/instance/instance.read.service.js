@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.instance.read.service', [
+  .module('spinnaker.core.instance.read.service', [
     require('exports?"restangular"!imports?_=lodash!restangular')
   ])
   .factory('instanceReader', function (Restangular) {

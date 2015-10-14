@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
   require('../../../core/account/account.service.js'),
   require('../../../core/diff/diff.service.js'),
   require('../../subnet/subnet.read.service.js'),
-  require('../../../instance/instanceTypeService.js'),
+  require('../../../core/instance/instanceTypeService.js'),
   require('../../../core/naming/naming.service.js'),
   require('./serverGroupConfiguration.service.js'),
   require('../../../utils/lodash.js'),

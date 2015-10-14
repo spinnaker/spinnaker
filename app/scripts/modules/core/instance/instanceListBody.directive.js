@@ -2,8 +2,8 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.instance.instanceListBody.directive', [
-  require('../core/cluster/filter/clusterFilter.service.js'),
+module.exports = angular.module('spinnaker.core.instance.instanceListBody.directive', [
+  require('../cluster/filter/clusterFilter.service.js'),
 ])
   .directive('instanceListBody', function ($timeout, $filter, $rootScope, $state, $, _, clusterFilterService) {
     return {

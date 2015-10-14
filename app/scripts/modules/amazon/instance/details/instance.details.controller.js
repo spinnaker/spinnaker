@@ -6,8 +6,8 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
   require('../../../utils/lodash.js'),
-  require('../../../instance/instance.write.service.js'),
-  require('../../../instance/instance.read.service.js'),
+  require('../../../core/instance/instance.write.service.js'),
+  require('../../../core/instance/instance.read.service.js'),
   require('../../vpc/vpcTag.directive.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/insight/insightFilterState.model.js'),
@@ -348,7 +348,7 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
 
     this.showConsoleOutput = function  () {
       $modal.open({
-        templateUrl: require('../../../instance/details/console/consoleOutput.modal.html'),
+        templateUrl: require('../../../core/instance/details/console/consoleOutput.modal.html'),
         controller: 'ConsoleOutputCtrl as ctrl',
         size: 'lg',
         resolve: {

@@ -545,7 +545,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
         url: '/instance/:provider/:account/:region/:instanceId',
         views: {
           'main@': {
-            templateUrl: require('../../instance/standalone.html'),
+            templateUrl: require('../instance/standalone.html'),
             controllerProvider: ['$stateParams', 'cloudProviderRegistry', function($stateParams, cloudProviderRegistry) {
               return cloudProviderRegistry.getValue($stateParams.provider, 'instance.detailsController');
             }],
