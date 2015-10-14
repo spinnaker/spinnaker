@@ -237,12 +237,12 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
           name: 'loadBalancers',
           views: {
             'nav': {
-              templateUrl: require('../../loadBalancers/filter/filterNav.html'),
+              templateUrl: require('../loadBalancer/filter/filterNav.html'),
               controller: 'LoadBalancerFilterCtrl',
               controllerAs: 'loadBalancerFilters'
             },
             'master': {
-              templateUrl: require('../../loadBalancers/all.html'),
+              templateUrl: require('../loadBalancer/all.html'),
               controller: 'AllLoadBalancersCtrl',
               controllerAs: 'ctrl'
             }

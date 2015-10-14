@@ -2,15 +2,15 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.loadBalancer.controller', [
-  require('../core/cloudProvider/providerSelection/providerSelection.service.js'),
+module.exports = angular.module('spinnaker.core.loadBalancer.controller', [
+  require('angular-ui-bootstrap'),
+  require('../cloudProvider/providerSelection/providerSelection.service.js'),
   require('./filter/loadBalancer.filter.service.js'),
   require('./filter/loadBalancer.filter.model.js'),
-  require('../utils/lodash.js'),
-  require('../core/cache/deckCacheFactory.js'),
-  require('../core/filterModel/filter.tags.directive.js'),
-  require('angular-ui-bootstrap'),
-  require('../core/cloudProvider/cloudProvider.registry.js'),
+  require('../../utils/lodash.js'),
+  require('../cache/deckCacheFactory.js'),
+  require('../filterModel/filter.tags.directive.js'),
+  require('../cloudProvider/cloudProvider.registry.js'),
 ])
   .controller('AllLoadBalancersCtrl', function($scope, $modal, _, providerSelectionService, cloudProviderRegistry,
                                                LoadBalancerFilterModel, loadBalancerFilterService, app ) {
@@ -20,6 +20,8 @@ module.exports = angular.module('spinnaker.loadBalancer.controller', [
     $scope.application = app;
 
     $scope.sortFilter = LoadBalancerFilterModel.sortFilter;
+
+    this.groupingsTemplate = require('./groupings.html');
 
     function addSearchFields() {
       app.loadBalancers.forEach(function(loadBalancer) {

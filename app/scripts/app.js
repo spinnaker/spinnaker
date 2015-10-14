@@ -134,7 +134,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/tasks/tasks.module.js'),
     require('./modules/tasks/monitor/taskMonitor.module.js'),
     require('./modules/core/validation/validation.module.js'),
-    require('./modules/loadBalancers/loadBalancers.module.js'),
+    require('./modules/core/loadBalancer/loadBalancer.module.js'),
     require('./modules/core/cluster/cluster.module.js'),
     require('./modules/netflix/whatsNew/whatsNew.directive.js'),
     require('./modules/netflix/blesk/blesk.module.js'),

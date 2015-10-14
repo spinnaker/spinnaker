@@ -3,10 +3,10 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.loadBalancer.write.service', [
-    require('../utils/lodash.js'),
-    require('../tasks/taskExecutor.js'),
-    require('../core/cache/infrastructureCaches.js'),
+  .module('spinnaker.core.loadBalancer.write.service', [
+    require('../../utils/lodash.js'),
+    require('../../tasks/taskExecutor.js'),
+    require('../cache/infrastructureCaches.js'),
   ])
   .factory('loadBalancerWriter', function(_, infrastructureCaches, taskExecutor) {
 

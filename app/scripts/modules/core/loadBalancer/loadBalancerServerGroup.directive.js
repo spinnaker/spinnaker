@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.loadBalancer.serverGroup', [
+module.exports = angular.module('spinnaker.core.loadBalancer.serverGroup', [
   require('./filter/loadBalancer.filter.service.js'),
   require('./filter/loadBalancer.filter.model.js'),
 ])
