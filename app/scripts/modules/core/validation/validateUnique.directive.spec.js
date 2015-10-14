@@ -4,7 +4,7 @@ describe('Validator: validateUnique', function () {
 
   beforeEach(
     window.module(
-      require('./validateUnique.js')
+      require('./validateUnique.directive.js')
     )
   );
 

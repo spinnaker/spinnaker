@@ -135,7 +135,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/core/notification/types/sms/sms.notification.type.module.js'),
     require('./modules/tasks/tasks.module.js'),
     require('./modules/tasks/monitor/taskMonitor.module.js'),
-    require('./modules/validation/validation.module.js'),
+    require('./modules/core/validation/validation.module.js'),
     require('./modules/loadBalancers/loadBalancers.module.js'),
     require('./modules/core/cluster/cluster.module.js'),
     require('./modules/whatsNew/whatsNew.directive.js'),

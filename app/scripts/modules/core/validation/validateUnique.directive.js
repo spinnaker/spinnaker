@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.validation.unique', [])
+module.exports = angular.module('spinnaker.core.validation.unique.directive', [])
   .directive('validateUnique', function () {
     return {
       restrict: 'A',
