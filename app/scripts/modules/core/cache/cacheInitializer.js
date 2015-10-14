@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.core.cache.initializer', [
   require('../../core/network/network.read.service.js'),
   require('../../securityGroups/securityGroup.read.service.js'),
   require('../../core/application/service/applications.read.service.js'),
-  require('../../jenkins/igor.service.js'),
+  require('../../core/ci/jenkins/igor.service.js'),
   require('./infrastructureCaches.js'),
   require('./infrastructureCacheConfig.js'),
   require('../../utils/lodash.js'),

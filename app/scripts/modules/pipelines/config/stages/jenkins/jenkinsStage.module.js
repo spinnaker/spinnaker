@@ -9,6 +9,6 @@ module.exports = angular.module('spinnaker.pipelines.stage.jenkins', [
   require('../../../../core/cache/cacheInitializer.js'),
   require('../../../../core/cache/infrastructureCaches.js'),
   require('../../../../utils/timeFormatters.js'),
-  require('../../../../jenkins/igor.service.js'),
+  require('../../../../core/ci/jenkins/igor.service.js'),
   require('./jenkinsExecutionDetails.controller.js'),
 ]).name;
