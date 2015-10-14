@@ -41,5 +41,5 @@ module.exports = angular
   .config(function($animateProvider) {
     $animateProvider.classNameFilter(/animated/);
   })
-  .config(require('./modules/core/uiSelect.decorator.js'))
+  .config(require('./modules/core/forms/uiSelect.decorator.js'))
   .name;
