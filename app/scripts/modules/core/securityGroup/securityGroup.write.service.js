@@ -6,7 +6,7 @@ module.exports = angular
   .module('spinnaker.core.securityGroup.write.service', [
     require('../../utils/lodash.js'),
     require('../cache/infrastructureCaches.js'),
-    require('../../tasks/taskExecutor.js')
+    require('../task/taskExecutor.js')
   ])
   .factory('securityGroupWriter', function (_, taskExecutor, infrastructureCaches) {
 

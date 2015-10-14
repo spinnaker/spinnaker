@@ -2,17 +2,17 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.tasks.main', [
-  require('../utils/lodash.js'),
+module.exports = angular.module('spinnaker.core.task.controller', [
+  require('../../utils/lodash.js'),
   require('./taskProgressBar.directive.js'),
-  require('../core/cache/viewStateCache.js'),
-  require('../tasks/tasks.write.service.js'),
-  require('../core/confirmationModal/confirmationModal.service.js'),
-  require('../pipelines/config/stages/core/displayableTasks.filter.js'),
+  require('../cache/viewStateCache.js'),
+  require('./task.write.service.js'),
+  require('../confirmationModal/confirmationModal.service.js'),
+  require('./displayableTasks.filter.js'),
   require('angular-ui-router'),
-  require('../core/cache/deckCacheFactory.js'),
+  require('../cache/deckCacheFactory.js'),
 ])
-  .controller('TasksCtrl', function ($scope, $state, settings, app, _, viewStateCache, tasksWriter, confirmationModalService) {
+  .controller('TasksCtrl', function ($scope, $state, settings, app, _, viewStateCache, taskWriter, confirmationModalService) {
     var controller = this;
     const application = app;
 
@@ -101,7 +101,7 @@ module.exports = angular.module('spinnaker.tasks.main', [
     controller.cancelTask = function(taskId) {
       var task = application.tasks.filter(function(task) { return task.id === taskId; })[0];
       var submitMethod = function () {
-        return tasksWriter.cancelTask(application.name, taskId).then(application.reloadTasks);
+        return taskWriter.cancelTask(application.name, taskId).then(application.reloadTasks);
       };
 
       confirmationModalService.confirm({
@@ -115,7 +115,7 @@ module.exports = angular.module('spinnaker.tasks.main', [
     controller.deleteTask = function(taskId) {
       var task = application.tasks.filter(function(task) { return task.id === taskId; })[0];
       var submitMethod = function () {
-        return tasksWriter.deleteTask(taskId).then(application.reloadTasks);
+        return taskWriter.deleteTask(taskId).then(application.reloadTasks);
       };
 
       confirmationModalService.confirm({

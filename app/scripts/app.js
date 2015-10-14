@@ -36,7 +36,6 @@ require('./modules/core/presentation/main.less');
 require('./modules/core/modal/modals.less');
 require('./modules/core/application/newapplication.less');
 require('./modules/pipelines/pipelines.less');
-require('./modules/tasks/tasks.less');
 require('./modules/utils/stickyHeader/stickyHeader.less');
 
 require('../fonts/spinnaker/icons.css');
@@ -131,8 +130,8 @@ module.exports = angular.module('spinnaker', [
     require('./modules/core/notification/types/email/email.notification.type.module.js'),
     require('./modules/core/notification/types/hipchat/hipchat.notification.type.module.js'),
     require('./modules/core/notification/types/sms/sms.notification.type.module.js'),
-    require('./modules/tasks/tasks.module.js'),
-    require('./modules/tasks/monitor/taskMonitor.module.js'),
+    require('./modules/core/task/task.module.js'),
+    require('./modules/core/task/monitor/taskMonitor.module.js'),
     require('./modules/core/validation/validation.module.js'),
     require('./modules/core/loadBalancer/loadBalancer.module.js'),
     require('./modules/core/cluster/cluster.module.js'),

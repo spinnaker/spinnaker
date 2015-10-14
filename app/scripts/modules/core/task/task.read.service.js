@@ -3,10 +3,10 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.tasks.read.service', [
-    require('./tasks.api.config.js'),
+  .module('spinnaker.core.task.read.service', [
+    require('./tasks.api.js'),
   ])
-  .factory('tasksReader', function(tasksApi) {
+  .factory('taskReader', function(tasksApi) {
 
     function listAllTasksForApplication(applicationName) {
       return tasksApi.one('applications', applicationName).all('tasks').getList()

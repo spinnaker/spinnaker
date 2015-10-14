@@ -5,7 +5,7 @@ let angular = require('angular');
 require('./confirmationModal.less');
 
 module.exports = angular.module('spinnaker.core.confirmationModal.service', [
-  require('../../tasks/monitor/taskMonitor.module.js'),
+  require('../../core/task/monitor/taskMonitor.module.js'),
   require('../account/account.module.js'),
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
