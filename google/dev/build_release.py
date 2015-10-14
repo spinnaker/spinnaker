@@ -484,6 +484,7 @@ if __name__ == '__main__':
      self.add_python_test_zip('aws_kato_test')
      self.add_python_test_zip('kato_test')
      self.add_python_test_zip('smoke_test')
+     self.add_python_test_zip('server_group_tests')
 
   @classmethod
   def init_argument_parser(cls, parser):
