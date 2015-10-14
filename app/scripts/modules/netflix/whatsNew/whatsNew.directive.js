@@ -3,11 +3,11 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.whatsNew.directive', [
+  .module('spinnaker.netflix.whatsNew.directive', [
     require('angular-marked'),
-    require('../core/cache/viewStateCache.js'),
+    require('../../core/cache/viewStateCache.js'),
     require('./whatsNew.read.service.js'),
-    require('../utils/timeFormatters.js'),
+    require('../../utils/timeFormatters.js'),
   ])
   .config(function (markedProvider) {
     markedProvider.setOptions(
