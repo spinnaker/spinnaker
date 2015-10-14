@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.notifications.selector', [
+module.exports = angular.module('spinnaker.core.notification.selector.directive', [
 ])
   .directive('notificationSelector', function() {
     return {
