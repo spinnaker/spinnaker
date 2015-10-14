@@ -82,7 +82,7 @@ module.exports = angular.module('spinnaker', [
 
     require('./modules/insight/insight.module.js'),
     require('./modules/core/application/application.module.js'),
-    require('./modules/feedback/feedback.module.js'),
+    require('./modules/netflix/feedback/feedback.module.js'),
 
     require('./modules/amazon/aws.module.js'),
     require('./modules/google/gce.module.js'),

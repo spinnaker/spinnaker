@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.feedback.directive', [
+module.exports = angular.module('spinnaker.netflix.feedback.directive', [
 ])
   .directive('feedback', function($location) {
     return {
