@@ -17,14 +17,13 @@
 import argparse
 import os
 import re
-import subprocess
 import sys
 import tempfile
 import time
 
-from install.install_utils import run
-from install.install_utils import run_or_die
-from install.install_utils import run_or_die_no_result
+from pylib.run import run_quick
+from pylib.run import check_run_quick
+
 
 __NEXT_STEP_INSTRUCTIONS = """
 To finish the installation, do the following (with or without tunnel):
@@ -59,8 +58,8 @@ def get_project(options):
     The default project name is the gcloud configured default project.
     """
     if not options.project:
-      stdout, stderr = run_or_die('gcloud config list', echo=False)
-      options.project = re.search('project = (.*)\n', stdout).group(1)
+      result = check_run_quick('gcloud config list', echo=False)
+      options.project = re.search('project = (.*)\n', result.stdout).group(1)
     return options.project
 
 
@@ -88,6 +87,9 @@ def init_argument_parser(parser):
         '--address', default=None,
         help='The IP address to assign to the new instance. The address may'
              ' be an IP address or the name or URI of an address resource.')
+    parser.add_argument(
+        '--scopes', default='compute-rw,storage-rw',
+        help='Create the instance with these scopes.')
 
 
 def copy_file(options, source, target):
@@ -100,8 +102,8 @@ def copy_file(options, source, target):
             source, target])
 
         while True:
-            code, stdout, stderr = run(command, echo=False)
-            if not code:
+            result = run_quick(command, echo=False)
+            if not result.returncode:
                 break
             print 'New instance does not seem ready yet...retry in 5s.'
             time.sleep(5)
@@ -120,7 +122,9 @@ def copy_home_files(options, type, file_list, source_dir=None):
 
 
 def copy_private_files(options):
-   copy_home_files(options, 'private', ['.ssh/id_rsa', '.git-credentials'])
+   copy_home_files(options, 'private',
+                   ['.ssh/id_rsa', '.ssh/google_compute_engine',
+                    '.git-credentials'])
 
 
 def copy_personal_files(options):
@@ -129,6 +133,7 @@ def copy_personal_files(options):
 
 
 def create_instance(options):
+    """Creates new GCE VM instance for development."""
     project = get_project(options)
     print 'Creating instance {project}/{zone}/{instance}'.format(
         project=project, zone=options.zone, instance=options.instance)
@@ -150,6 +155,14 @@ def create_instance(options):
     fd, temp_install_development = tempfile.mkstemp()
     os.write(fd, content)
     os.close(fd)
+    with open('{dir}/install_runtime_dependencies.py'.format(dir=install_dir),
+              'r') as f:
+        content = f.read()
+        content = content.replace('install.install', 'install')
+        content = content.replace('pylib.', '')
+    fd, temp_install_runtime = tempfile.mkstemp()
+    os.write(fd, content)
+    os.close(fd)
 
     startup_command = ['install_development.py',
                        '--package_manager']
@@ -160,12 +173,11 @@ def create_instance(options):
         ',py_fetch={pylib_dir}/fetch.py'
         ',py_run={pylib_dir}/run.py'
         ',py_install_development={temp_install_development}'
-        ',py_install_spinnaker={install_dir}/install_spinnaker.py'
         ',sh_bootstrap_vm={dev_dir}/bootstrap_vm.sh'
-        ',py_install_runtime_dependencies='
-        '{install_dir}/install_runtime_dependencies.py'
+        ',py_install_runtime_dependencies={temp_install_runtime}'
         .format(install_dir=install_dir,
                 dev_dir=dev_dir, pylib_dir=pylib_dir,
+                temp_install_runtime=temp_install_runtime,
                 temp_install_development=temp_install_development)]
 
     metadata = ','.join([
@@ -176,7 +188,6 @@ def create_instance(options):
         '+py_fetch'
         '+py_run'
         '+py_install_development'
-        '+py_install_spinnaker'
         '+py_install_runtime_dependencies'
         '+sh_bootstrap_vm'])
 
@@ -195,21 +206,32 @@ def create_instance(options):
         command.extend(['--address', options.address])
 
     try:
-      run_or_die_no_result(' '.join(command), echo=True)
+      check_run_quick(' '.join(command), echo=True)
     finally:
       os.remove(temp_install_development)
+      os.remove(temp_install_runtime)
 
 
 def copy_master_config(options):
+    """Copy the specified master spinnaker_config.cfg file, and credentials.
+
+    This will look for paths to credentials within the master config, and
+    copy those as well. The paths to the credentials (and the reference
+    in the config file) will be changed to reflect the filesystem on the
+    new instance, which may be different than on this instance.
+
+    Args:
+      options [Namespace]: The parser namespace options contain information
+        about the instance we're going to copy to, as well as the source
+        of the master spinnaker_config.cfg file.
+    """
     print 'Creating .spinnaker directory...'
-    p = subprocess.Popen('gcloud compute ssh --command "mkdir -p .spinnaker"'
-                         ' --project={project} --zone={zone} {instance}'
-                         .format(project=get_project(options),
-                                 zone=options.zone,
-                                 instance=options.instance),
-                         shell=True, close_fds=True,
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    p.communicate()
+    check_run_quick('gcloud compute ssh --command "mkdir -p .spinnaker"'
+                    ' --project={project} --zone={zone} {instance}'
+                    .format(project=get_project(options),
+                            zone=options.zone,
+                            instance=options.instance),
+                    echo=False)
 
     # Extract out right hand side of GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH if any.
     # Replace ~ with $HOME to get the actual path.
@@ -218,7 +240,7 @@ def copy_master_config(options):
 
     match = re.search(r'(?m)^GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH=(.*)$', content)
     if match:
-       json_credential_path = match.groups()[0].replace('~', os.environ['HOME'])
+       json_credential_path = match.group(1).replace('~', os.environ['HOME'])
        json_credential_path = json_credential_path.replace(
            '$HOME', os.environ['HOME'])
     else:
@@ -261,16 +283,13 @@ def copy_master_config(options):
     print 'Fixing credentials.'
     # Ideally this should be a parameter to copy-files so it is always
     # protected, but there doesnt seem to be an API for it.
-    p = subprocess.Popen('gcloud compute ssh --command "{fix_permissions}"'
-                         ' --project={project} --zone={zone} {instance}'
-                         .format(fix_permissions=';'.join(fix_permissions),
-                                 project=get_project(options),
-                                 zone=options.zone,
-                                 instance=options.instance),
-                         shell=True, close_fds=True,
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    print p.communicate()
-
+    check_run_quick('gcloud compute ssh --command "{fix_permissions}"'
+                    ' --project={project} --zone={zone} {instance}'
+                    .format(fix_permissions=';'.join(fix_permissions),
+                            project=get_project(options),
+                            zone=options.zone,
+                            instance=options.instance),
+                    echo=False)
     if temp_path:
       os.remove(temp_path)
 

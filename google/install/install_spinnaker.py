@@ -17,34 +17,12 @@
 """
 Installs spinnaker onto the local machine.
 
-If running this on a machine without GCS access (either because it does not
-have a scope or does not have gsutil configured) you can load from an
-existing directory containing the release. Otherwise you must load from a
-gcs bucket containing the release
-    --release       specifies thename of a release to install from the
-                    standard spinnaker release repository. The standard
-                    repository is currently gs:// (i.e. release is any bucket)
-
-    --release_path  specifies an explicit path to the release instead of
-                    using --release.
+--release_path must be specified using either a path or storage service URI
+   (either Google Compute Storage or Amazon S3).
 
 Spinnaker depends on openjdk-8-jre. If this isnt installed but some other
-equivalent JDK 1.8 is installed, then you can do something like the following
-to satisfy the package manager:
-
-cat > ignore-openjdk-8-jre.txt <<EOF
-Section: misc
-Priority: optional
-Standards-Version: 3.9.2
-
-Package: ignore-openjdk-8-jre
-Version: 1.0
-Provides: openjdk-8-jre
-Description: Ignore openjdk-8-jre dependency
-EOF
-
-equivs-build ignore-openjdk-8-jre.txt
-sudo dkg -i ignore-openjdk-8-jre_1.0_all.deb
+equivalent JDK 1.8 is installed, then you can run install_fake_openjdk8.sh
+to fake out the package manager. That script is included with this script.
 """
 
 import argparse
@@ -53,43 +31,38 @@ import re
 import subprocess
 import sys
 
-import google_install_loader
 import install_runtime_dependencies
 
-from install_utils import fetch_or_die
-from install_utils import run
-from install_utils import run_or_die
-
-
-# The root path to look up standard releases by name.
-RELEASE_REPOSITORY = 'gs://'
+from pylib.run import run_and_monitor
+from pylib.run import check_run_and_monitor
+from pylib.run import check_run_quick
+from pylib.run import run_quick
+from pylib.fetch import is_google_instance
+from pylib.fetch import check_write_instance_metadata
 
 
 HOME = os.environ['HOME'] if 'HOME' in os.environ else '/root'
 def get_config_dir(options):
+    """Returns the directory used to hold deployment configuration info."""
     return os.path.join(HOME, '.spinnaker')
 
 
 def get_config_template_dir(options):
+    """Returns the directory used to hold configuration templates.
+
+    These templates are used as the basis when running the reconfigure script.
+    """
     return (options.config_template_dir
             or os.path.join(get_spinnaker_dir(options), 'config_templates'))
 
 
 def get_spinnaker_dir(options):
+    """Returns the spinnaker installation directory."""
     path = options.spinnaker_dir or '/opt/spinnaker'
     if not os.path.exists(path):
         print 'Creating spinnaker_dir=' + path
         safe_mkdir(path)
     return path
-
-
-class SetReleaseName(argparse.Action):
-    def __call__(self, parser, namespace, values, options_string=None):
-        if isinstance(values, list):
-          raise ValueError(
-              'Did not expect multiple arguments for "--release"')
-        setattr(namespace, self.dest, '{release_root}{name}'.format(
-            release_root=RELEASE_REPOSITORY, name=values))
 
 
 def init_argument_parser(parser):
@@ -111,9 +84,6 @@ def init_argument_parser(parser):
         help='Nonstandard path to install spinnaker files into.')
 
     parser.add_argument(
-        '--release', action=SetReleaseName, dest='release_path',
-        help='A named release is implied to be a GCS bucket.')
-    parser.add_argument(
         '--release_path', default=None,
         help='The path to the release being installed.')
 
@@ -124,42 +94,89 @@ def init_argument_parser(parser):
 
 
 def safe_mkdir(dir):
-    process = subprocess.Popen('sudo mkdir -p {dir}'.format(dir=dir),
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT, shell=True)
-    stdout, stderr = process.communicate()
-    if process.returncode:
-        raise RuntimeError('Could not create directory "{dir}": {error}'.format(
-            dir=dir, error=stdout))
+    """Create a local directory if it does not already exist.
+
+    Args:
+      dir [string]: The path to the directory to create.
+    """
+    result = run_quick('sudo mkdir -p "{dir}"'.format(dir=dir), echo=False)
+    if result.returncode:
+      raise RuntimeError('Could not create directory "{dir}": {error}'.format(
+          dir=dir, error=result.stdout))
 
 
-def start_copy_file(source, target):
-   if source[0:3] == 'gs:':
+def start_copy_file(options, source, target, dir=False):
+   """Copy a file.
+
+   Args:
+     source [string]: The path to copy from is either local or the URI for
+        a storage service (Amazon S3 or Google Cloud Storage).
+     target [string]: A local path to copy to.
+
+   Returns:
+     A subprocess instance performing the copy.
+   """
+   if source.startswith('gs://'):
+     if dir:
+       safe_mkdir(target)
      command = ('sudo bash -c'
-                ' "PATH=$PATH gsutil -m -q cp \"{source}\" \"{target}\""'
-                .format(source=source, target=target))
+                ' "PATH=$PATH gsutil -m -q cp {R} \"{source}\"{X} \"{target}\""'
+                .format(source=source, target=target,
+                        R='-R' if dir else '',
+                        X='/*' if dir else ''))
+   elif source.startswith('s3://'):
+     command = ('sudo bash -c'
+                ' "PATH=$PATH aws s3 cp {R} --region {region}'
+                ' \"{source}\" \"{target}\""'
+                .format(source=source, target=target, region=options.region,
+                        R='--recursive' if dir else ''))
    else:
      # Use a shell to copy here to handle wildcard expansion.
      command = 'sudo cp "{source}" "{target}"'.format(
-         source=source, target=target)
+        source=source, target=target)
 
    process = subprocess.Popen(command, stderr=subprocess.PIPE, shell=True)
    return process
 
 
-def wait_for_copy_complete(jobs):
+def start_copy_dir(options, source, target):
+  return start_copy_file(options, source, target, dir=True)
+
+
+def check_wait_for_copy_complete(jobs):
+  """Waits for each of the subprocesses to finish.
+
+  Args:
+    jobs [list of subprocess]: Jobs we are waiting on.
+
+  Raises:
+    RuntimeError if any of the copies failed.
+  """
   for j in jobs:
-      stdout, stderr = j.communicate()
-      if j.returncode != 0:
-          sys.stderr.write('COPY FAILED with {0}\n'.format(stderr))
+    stdout, stderr = j.communicate()
+
+    if j.returncode != 0:
+        output = stdout or stderr or ''
+        error = 'COPY FAILED with {0}: {1}'.format(j.returncode, output.strip())
+        raise RuntimeError(error)
 
 
 def get_release_metadata(options, bucket):
+  """Gets metadata files from the release.
+
+  This sets the global PACKAGE_LIST and CONFIG_LIST variables
+  telling us specifically what we'll need to install.
+
+  Args:
+    options [namespace]: The argparse namespace with options.
+    bucket [string]: The path or storage service URI to pull from.
+  """
   spinnaker_dir = get_spinnaker_dir(options)
   safe_mkdir(spinnaker_dir)
-  job = start_copy_file(os.path.join(bucket, 'config/release_config.cfg'),
+  job = start_copy_file(options,
+                        os.path.join(bucket, 'config/release_config.cfg'),
                         spinnaker_dir)
-  wait_for_copy_complete([job])
+  check_wait_for_copy_complete([job])
 
   with open(os.path.join(spinnaker_dir, 'release_config.cfg'), 'r') as f:
     content = f.read()
@@ -171,24 +188,9 @@ def get_release_metadata(options, bucket):
                   .group(1).split())
 
 
-def check_release_dir(options):
-  if not options.release_path:
-    error = ('--release_path cannot be empty.'
-             ' Either specify a --release or a --release_path.')
-    sys.stderr.write(error)
-    raise ValueError(error)
-
-  if os.path.exists(options.release_path):
-      return
-
-  if not options.release_path[0:3] == 'gs:':
-      error = 'Unknown path --release_path={dir}\n'.format(dir=options.release_path)
-      sys.stderr.write(error)
-      raise ValueError(error)
-
-  code = subprocess.Popen('gsutil v', shell=True,
-                          stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
-  if not code:
+def check_google_path(path):
+  check_result = run_quick('gsutil --version', echo=False)
+  if check_result.returncode:
       error = """
 ERROR: gsutil is required to retrieve the spinnaker release from GCS.
        If you already have gsutil, fix your path.
@@ -197,25 +199,78 @@ ERROR: gsutil is required to retrieve the spinnaker release from GCS.
        and be sure you run gsutil config.
        Then run again.
 """
-      sys.stderr.write(error)
       raise RuntimeError(error)
 
-  process = subprocess.Popen('gsutil ls ' + options.release_path, shell=True,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-  stdout, stderr = process.communicate()
-  if process.returncode:
-      error = ('--release_path={dir} does not seem to exist within GCS.\n'
-               'gsutil ls returned "{stdout}"\n'.format(
-                   dir=options.release_path, stdout=stdout.strip()))
-      sys.stderr.write(error)
+  result = run_quick('gsutil ls ' + path, echo=False)
+  if result.returncode:
+      error = ('The path "{dir}" does not seem to exist within GCS.'
+               ' gsutil ls returned "{stdout}"\n'.format(
+                    dir=path,  stdout=result.stdout.strip()))
       raise RuntimeError(error)
+
+
+def check_s3_path(path):
+  check_result = run_quick('aws --version', echo=False)
+  if check_result.returncode:
+    error = """
+ERROR: aws is required to retrieve the spinnaker release from S3.
+       If you already have aws, fix your path.
+       Otherwise install awscli with "sudo apt-get install awscli".
+       Then run again.
+"""
+    raise RuntimeError(error)
+
+  result = run_quick('aws s3 ls ' + path, echo=False)
+  if result.returncode:
+      error = ('The path "{dir}" does not seem to exist within S3.'
+               ' aws s3 ls returned "{stdout}"\n'.format(
+                    dir=path,  stdout=result.stdout.strip()))
+      raise RuntimeError(error)
+
+
+def check_release_dir(options):
+  """Verify the options specify a release_path we can read.
+
+  Args:
+    options [namespace]: The argparse namespace
+  """
+  if not options.release_path:
+    error = ('--release_path cannot be empty.'
+             ' Either specify a --release or a --release_path.')
+    raise ValueError(error)
+
+  if os.path.exists(options.release_path):
+      return
+
+  if options.release_path.startswith('gs://'):
+      check_google_path(options.release_path)
+  elif options.release_path.startswith('s3://'):
+      check_s3_path(options.release_path)
+  else:
+      error = 'Unknown path --release_path={dir}\n'.format(
+          dir=options.release_path)
+      raise ValueError(error)
+
 
 def check_options(options):
+  """Verify the options make sense.
+
+  Args:
+    options [namespace]: The options from argparser.
+  """
   install_runtime_dependencies.check_options(options)
   check_release_dir(options)
+  if (options.release_path.startswith('s3://')
+      and not options.region):
+    raise ValueError('--region is required with an S3 release-uri.')
 
 
 def install_spinnaker_packages(options, bucket):
+  """Install the spinnaker packages from the specified path.
+
+  Args:
+    bucket [string]: The path to install from, or a storage service URI.
+  """
   if not options.spinnaker:
       return
 
@@ -234,16 +289,20 @@ def install_spinnaker_packages(options, bucket):
   safe_mkdir(config_dir)
   safe_mkdir(template_dir)
   for cfg in CONFIG_LIST:
-    jobs.append(start_copy_file(os.path.join(bucket, 'config', cfg),
+    jobs.append(start_copy_file(options,
+                                os.path.join(bucket, 'config', cfg),
                                 config_dir))
-    jobs.append(start_copy_file(os.path.join(bucket, 'config', cfg),
+    jobs.append(start_copy_file(options,
+                                os.path.join(bucket, 'config', cfg),
                                 template_dir))
 
   jobs.append(
-      start_copy_file(os.path.join(bucket, 'config/deck_settings.js'),
+      start_copy_file(options,
+                      os.path.join(bucket, 'config/deck_settings.js'),
                       template_dir))
   jobs.append(
         start_copy_file(
+            options,
             os.path.join(bucket, 'config/default_spinnaker_config.cfg'),
             template_dir))
 
@@ -252,8 +311,10 @@ def install_spinnaker_packages(options, bucket):
   #############
   print 'Copying tests.'
   tests_dir = os.path.join(spinnaker_dir, 'tests')
-  safe_mkdir(tests_dir)
-  jobs.append(start_copy_file(os.path.join(bucket, 'tests/*'), tests_dir))
+  jobs.append(
+      start_copy_dir(options,
+                     os.path.join(bucket, 'tests'),
+                     tests_dir))
 
   ###########################
   # Copy Subsystem Packages
@@ -262,27 +323,33 @@ def install_spinnaker_packages(options, bucket):
   package_dir = os.path.join(spinnaker_dir, 'install')
   safe_mkdir(package_dir)
   for pkg in PACKAGE_LIST:
-    jobs.append(start_copy_file(os.path.join(bucket, pkg), package_dir))
+    jobs.append(start_copy_file(options,
+                                os.path.join(bucket, pkg), package_dir))
 
-  wait_for_copy_complete(jobs)
+  check_wait_for_copy_complete(jobs)
 
   for pkg in PACKAGE_LIST:
     print 'Installing {0}.'.format(pkg)
 
     # Let this fail because it may have dependencies
     # that we'll pick up below.
-    run('sudo dpkg -i ' + os.path.join(package_dir, pkg))
-    run_or_die('sudo apt-get install -f -y')
+    run_and_monitor('sudo dpkg -i ' + os.path.join(package_dir, pkg))
+    check_run_and_monitor('sudo apt-get install -f -y')
 
   # Install package dependencies
-  run_or_die('sudo apt-get install -f -y')
+  check_run_and_monitor('sudo apt-get install -f -y')
 
-  run_or_die('sudo cp {source} {target}'.format(
+  check_run_quick('sudo cp {source} {target}'.format(
       source=os.path.join(template_dir, 'deck_settings.js'),
       target='/var/www/settings.js'))
 
 
 def install_spinnaker(options):
+  """Install the spinnaker packages.
+
+  Args:
+    options [namespace]: The argparse options.
+  """
   if not (options.spinnaker or options.dependencies):
       return
 
@@ -310,30 +377,29 @@ def install_spinnaker(options):
   # depending on when this script is being run. The files in the release
   # may be different, but they are the release we are installing.
   # If this is an issue, we can look into copy without overwriting.
-  safe_mkdir(install_dir)
-  jobs.append(start_copy_file(os.path.join(bucket, 'install/*'),
-                              install_dir))
-  safe_mkdir(script_dir)
-  jobs.append(start_copy_file(os.path.join(bucket, 'scripts/*'), script_dir))
-  safe_mkdir(pylib_dir)
-  jobs.append(start_copy_file(os.path.join(bucket, 'pylib/*'), pylib_dir))
+  jobs.append(start_copy_dir(options,
+                             os.path.join(bucket, 'install'),
+                             install_dir))
+  jobs.append(start_copy_dir(options,
+                             os.path.join(bucket, 'scripts'), script_dir))
+  jobs.append(start_copy_dir(options,
+                             os.path.join(bucket, 'pylib'), pylib_dir))
 
   print 'Installing cassandra schemas.'
-  safe_mkdir(cassandra_dir)
-  jobs.append(start_copy_file(os.path.join(bucket, 'cassandra/*'),
-                              cassandra_dir))
-
-  wait_for_copy_complete(jobs)
+  jobs.append(start_copy_dir(options,
+                             os.path.join(bucket, 'cassandra'), cassandra_dir))
+  check_wait_for_copy_complete(jobs)
 
   # TODO: This is backward compatibility for deprecated path.
-  run_or_die('sudo ln -s /opt/spinnaker/install/first_google_boot.sh'
-             ' /opt/spinnaker/install/first_time_boot.sh')
-  # Use chmod since +x is convenient.
+  check_run_quick('sudo ln -s /opt/spinnaker/install/first_google_boot.sh'
+                  ' /opt/spinnaker/install/first_time_boot.sh')
+
+  # Use chmod since +x is convienent.
   # Fork a shell to do the wildcard expansion.
-  run_or_die('sudo chmod +x {files}'
-             .format(files=os.path.join(spinnaker_dir, 'scripts/*.sh')))
-  run_or_die('sudo chmod +x {files}'
-             .format(files=os.path.join(spinnaker_dir, 'install/*.sh')))
+  check_run_quick('sudo chmod +x {files}'
+                  .format(files=os.path.join(spinnaker_dir, 'scripts/*.sh')))
+  check_run_quick('sudo chmod +x {files}'
+                  .format(files=os.path.join(spinnaker_dir, 'install/*.sh')))
 
 
 def main():
@@ -356,9 +422,9 @@ def main():
   install_spinnaker(options)
 
   # This is really just a signal
-  if google_install_loader.running_on_gce():
-    google_install_loader.write_instance_metadata(
-          'spinnaker-sentinal', 'READY')
+  # DEPRECATED for old image build script
+  if is_google_instance():
+      check_write_instance_metadata('spinnaker-sentinal', 'READY')
 
 if __name__ == '__main__':
-   main()
+     main()

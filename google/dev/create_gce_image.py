@@ -185,20 +185,43 @@ def create_prototype_instance(options):
 
     script_dir = os.path.dirname(sys.argv[0])
     install_dir = os.path.join(script_dir, '../install')
+    pylib_dir = os.path.join(script_dir, '../pylib')
     metadata = ','.join(['startup_py_command={startup_command}'.format(
                              startup_command='+'.join(startup_command)),
                          'startup_loader_files='
-                            'py_install_utils'
+                            'py_fetch'
+                            '+py_run'
                             '+py_install_spinnaker'
                             '+py_install_runtime_dependencies'])
 
+    fd,temp_install_spinnaker = tempfile.mkstemp()
+    with open(os.path.join(install_dir, 'install_spinnaker.py'), 'r') as f:
+        content = f.read()
+        content = content.replace('install.install', 'install')
+        content = content.replace('pylib.', '')
+    os.write(fd, content)
+    os.close(fd)
+
+    fd,temp_install_dependencies = tempfile.mkstemp()
+    with open(os.path.join(install_dir, 'install_runtime_dependencies.py'),
+              'r') as f:
+        content = f.read()
+        content = content.replace('install.install', 'install')
+        content = content.replace('pylib.', '')
+    os.write(fd, content)
+    os.close(fd)
+
     file_list = (
         'startup-script={install_dir}/google_install_loader.py'
-        ',py_install_utils={install_dir}/install_utils.py'
-        ',py_install_spinnaker={install_dir}/install_spinnaker.py'
+        ',py_fetch={pylib_dir}/fetch.py'
+        ',py_run={pylib_dir}/run.py'
+        ',py_install_spinnaker={temp_install_spinnaker}'
         ',py_install_runtime_dependencies='
-        '{install_dir}/install_runtime_dependencies.py'
-        .format(install_dir=install_dir))
+        '{temp_install_dependencies}'
+        .format(install_dir=install_dir,
+                pylib_dir=pylib_dir,
+                temp_install_dependencies=temp_install_dependencies,
+                temp_install_spinnaker=temp_install_spinnaker))
 
     command = ['gcloud compute instances',
                'create', options.tmp_instance_name,
@@ -210,7 +233,11 @@ def create_prototype_instance(options):
                '--scopes', 'compute-rw,storage-rw',
                '--metadata', metadata,
                '--metadata-from-file', file_list]
-    run_or_die(' '.join(command), echo=False)
+    try:
+      run_or_die(' '.join(command), echo=False)
+    finally:
+      os.remove(temp_install_spinnaker)
+      os.remove(temp_install_dependencies)
 
 
 def extract_image_from_instance(options):

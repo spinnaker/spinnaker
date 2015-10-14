@@ -17,12 +17,12 @@
 import argparse
 import os
 import re
-import subprocess
 import sys
 import tempfile
 
-from install_utils import fetch_or_die
-from install_utils import run_or_die
+from pylib.run import check_run_and_monitor
+from pylib.run import run_quick
+from pylib.fetch import check_fetch
 
 
 # These explicit versions are only applicable when not using the
@@ -41,8 +41,7 @@ def check_options(options):
 
 
 def init_argument_parser(parser, default_values={}):
-    """Initialize ArgumentParser with commandline arguments for this module.
-    """
+    """Initialize ArgumentParser with commandline arguments for this module."""
     parser.add_argument('--apache',
                         default=default_values.get('apache', True),
                         action='store_true',
@@ -87,7 +86,7 @@ def init_argument_parser(parser, default_values={}):
         '--noupdate_os', dest='update_os', action='store_false')
 
 
-def install_package_or_die(name, version=None, options=[]):
+def check_install_package(name, version=None, options=[]):
   """Install the specified package, with specific version if provide.
 
   Args:
@@ -102,7 +101,7 @@ def install_package_or_die(name, version=None, options=[]):
   command = ['sudo apt-get -q -y']
   command.extend(options)
   command.extend(['install', package_name])
-  run_or_die(' '.join(command), echo=True)
+  check_run_and_monitor(' '.join(command), echo=True)
 
 
 def install_os_updates(options):
@@ -111,8 +110,8 @@ def install_os_updates(options):
       return
 
   print 'Upgrading packages...'
-  run_or_die('sudo apt-get -y update', echo=True)
-  run_or_die('sudo apt-get -y upgrade', echo=True)
+  check_run_and_monitor('sudo apt-get -y update', echo=True)
+  check_run_and_monitor('sudo apt-get -y upgrade', echo=True)
 
 
 def install_runtime_dependencies(options):
@@ -131,15 +130,12 @@ def install_runtime_dependencies(options):
 
 def check_java_version():
     try:
-      p = subprocess.Popen('java -version', shell=True,
-                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-      stdout, stderr = p.communicate()
-      code = p.returncode
+      result = run_quick('java -version', echo=False)
     except OSError as error:
       return str(error)
 
-    info = stdout
-    if code != 0:
+    info = result.stdout
+    if result.returncode != 0:
       return 'Java does not appear to be installed.'
 
     m = re.search(r'(?m)^openjdk version "(.*)"', info)
@@ -186,16 +182,17 @@ def install_java(options, which='jre'):
           return
 
     print 'Installing OpenJdk...'
-    run_or_die('sudo add-apt-repository -y ppa:openjdk-r/ppa', echo=True)
-    run_or_die('sudo apt-get -y update', echo=True)
+    check_run_and_monitor('sudo add-apt-repository -y ppa:openjdk-r/ppa',
+                          echo=True)
+    check_run_and_monitor('sudo apt-get -y update', echo=True)
 
-    install_package_or_die('openjdk-8-{which}'.format(which=which),
-                           version=EXPLICIT_OPENJDK_8_VERSION)
+    check_install_package('openjdk-8-{which}'.format(which=which),
+                          version=EXPLICIT_OPENJDK_8_VERSION)
     cmd =  ['sudo', 'update-java-alternatives']
     if which == 'jre':
         cmd.append('--jre')
     cmd.extend(['-s', '/usr/lib/jvm/java-1.8.0-openjdk-amd64'])
-    run_or_die(' '.join(cmd), echo=True)
+    check_run_and_monitor(' '.join(cmd), echo=True)
 
 
 def install_cassandra(options):
@@ -222,30 +219,31 @@ def install_cassandra(options):
         cassandra = 'cassandra_{ver}_all.deb'.format(ver=preferred_version)
         tools = 'cassandra-tools_{ver}_all.deb'.format(ver=preferred_version)
 
-        content = fetch_or_die(
-            '{root}/cassandra/{cassandra}'
-            .format(root=root, cassandra=cassandra))
+        fetch_result = check_fetch(
+            '{root}/cassandra/{cassandra}'.format(root=root, cassandra=cassandra))
+
         with open('downloads/{cassandra}'
                   .format(cassandra=cassandra), 'w') as f:
-            f.write(content)
+            f.write(fetch_result.content)
 
-        content = fetch_or_die(
+        fetch_result = check_fetch(
             '{root}/cassandra/{tools}'
             .format(root=root, tools=tools))
         with open('downloads/{tools}'
                   .format(tools=tools), 'w') as f:
-            f.write(content)
+            f.write(fetch_result.content)
 
-        run_or_die('sudo dpkg -i downloads/' + cassandra, echo=True)
-        run_or_die('sudo dpkg -i downloads/' + tools, echo=True)
+        check_run_and_monitor('sudo dpkg -i downloads/' + cassandra, echo=True)
+        check_run_and_monitor('sudo dpkg -i downloads/' + tools, echo=True)
     else:
-      run_or_die('sudo add-apt-repository -s'
-                 ' "deb http://www.apache.org/dist/cassandra/debian 21x main"',
-                 echo=True)
+      check_run_and_monitor(
+          'sudo add-apt-repository -s'
+          ' "deb http://www.apache.org/dist/cassandra/debian 21x main"',
+          echo=True)
 
-    run_or_die('sudo apt-get -q -y update', echo=True)
-    install_package_or_die('cassandra', version=preferred_version,
-                           options=['--force-yes'])
+    check_run_and_monitor('sudo apt-get -q -y update', echo=True)
+    check_install_package('cassandra', version=preferred_version,
+                          options=['--force-yes'])
 
 
 def install_redis(options):
@@ -258,7 +256,7 @@ def install_redis(options):
         print '--noredis skips Redis install.'
         return
     print 'Installing Redis...'
-    install_package_or_die('redis-server', version=None)
+    check_install_package('redis-server', version=None)
 
 
 def install_apache(options):
@@ -275,7 +273,7 @@ def install_apache(options):
         return
 
     print 'Installing apache2...'
-    install_package_or_die('apache2', version=None)
+    check_install_package('apache2', version=None)
 
     # Change apache to run on port $DECK_PORT by default.
     # We're writing back with cat so we can sudo.
@@ -289,13 +287,13 @@ def install_apache(options):
     os.close(fd)
 
     # Replace the file while preserving the original owner and protection bits.
-    run_or_die('sudo bash -c "'
-               'chmod --reference={etc} {temp}'
-               '; chown --reference={etc} {temp}'
-               '; mv {temp} {etc}"'
-               .format(etc='/etc/apache2/ports.conf', temp=temp_path),
-               echo=False)
-    run_or_die('sudo apt-get install -f -y', echo=True)
+    check_run_and_monitor('sudo bash -c "'
+                          'chmod --reference={etc} {temp}'
+                          '; chown --reference={etc} {temp}'
+                          '; mv {temp} {etc}"'
+                          .format(etc='/etc/apache2/ports.conf', temp=temp_path),
+                          echo=False)
+    check_run_and_monitor('sudo apt-get install -f -y', echo=True)
 
 
 if __name__ == '__main__':

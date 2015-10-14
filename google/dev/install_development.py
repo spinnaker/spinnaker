@@ -33,7 +33,7 @@ NVM_VERSION = 'v0.26.0'
 
 __LOCAL_INVOCATION_NEXT_STEPS = """
 To finish the personal developer workspace installation, do the following:
-   source ${dev}/bootstrap_vm.sh
+   source ${dev}/bootstrap_dev.sh
 
 This will leave you in a 'build' subdirectory. To run Spinnaker:
    ../spinnaker/google/dev/run_dev.sh
@@ -43,7 +43,7 @@ __STARTUP_SCRIPT_INVOCATION_NEXT_STEPS = """
 To finish the personal developer workspace installation, do the following:
    Log into this vm as your development user.
 
-   source /opt/spinnaker/install/bootstrap_vm.sh
+   source /opt/spinnaker/install/bootstrap_dev.sh
 
 This will leave you in a 'build' subdirectory. To run Spinnaker:
    ../spinnaker/google/dev/run_dev.sh
@@ -72,6 +72,19 @@ def init_argument_parser(parser, default_values={}):
                       action='store_true',
                       help='Install gcloud')
   parser.add_argument('--nogcloud', dest='gcloud', action='store_false')
+
+  parser.add_argument('--awscli',
+                      default=default_values.get('awscli', True),
+                      action='store_true',
+                      help='Install AWS CLI')
+  parser.add_argument('--noawscli', dest='awscli', action='store_false')
+
+
+def install_awscli(options):
+  if not options.awscli:
+      return
+  print 'Installing AWS CLI'
+  check_run_and_monitor('sudo apt-get install -y awscli', echo=True)
 
 
 def install_gcloud(options):
@@ -129,7 +142,6 @@ def add_gcevm_to_etc_hosts(options):
   modified = content.replace('127.0.0.1 localhost',
                              '127.0.0.1 localhost gcevm')
 
-  # Run tee so we can sudo to write to the file.
   fd, tmp = tempfile.mkstemp()
   os.write(fd, modified)
   os.close(fd)
@@ -158,6 +170,7 @@ def main():
   options = parser.parse_args()
 
   install_build_tools(options)
+  install_awscli(options)
   install_gcloud(options)
   add_gcevm_to_etc_hosts(options)
 
