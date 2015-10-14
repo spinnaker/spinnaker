@@ -43,8 +43,8 @@ class TerminateInstancesTaskSpec extends Specification {
     given:
     def operations
     task.kato = Mock(KatoService) {
-      1 * requestOperations(*_) >> {
-        operations = it[0]
+      1 * requestOperations(_, _) >> {
+        operations = it[1]
         rx.Observable.from(taskId)
       }
     }
@@ -54,7 +54,7 @@ class TerminateInstancesTaskSpec extends Specification {
 
     then:
     operations.size() == 1
-    with(operations[0].terminateInstancesDescription) {
+    with(operations[0].terminateInstances) {
       it instanceof Map
       region == this.terminateInstancesConfig.region
       credentials == this.terminateInstancesConfig.credentials
@@ -65,7 +65,7 @@ class TerminateInstancesTaskSpec extends Specification {
   def "returns a success status with the kato task id"() {
     given:
     task.kato = Stub(KatoService) {
-      requestOperations(*_) >> rx.Observable.from(taskId)
+      requestOperations(_, _) >> rx.Observable.from(taskId)
     }
 
     when:

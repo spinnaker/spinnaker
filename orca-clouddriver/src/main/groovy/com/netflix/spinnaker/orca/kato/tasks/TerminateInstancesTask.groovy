@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.clouddriver.model.TaskId
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -28,18 +30,20 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class TerminateInstancesTask implements Task {
+class TerminateInstancesTask extends AbstractCloudProviderAwareTask implements Task {
   @Autowired
   KatoService kato
 
   @Override
   TaskResult execute(Stage stage) {
-    def taskId = kato.requestOperations([[terminateInstancesDescription: stage.context]])
+    String cloudProvider = getCloudProvider(stage)
+    String account = getCredentials(stage)
+    TaskId taskId = kato.requestOperations(cloudProvider, [[terminateInstances: stage.context]])
                      .toBlocking()
                      .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
         "notification.type"     : "terminateinstances",
-        "terminate.account.name": stage.context.credentials,
+        "terminate.account.name": account,
         "terminate.region"      : stage.context.region,
         "kato.last.task.id"     : taskId,
         "kato.task.id"          : taskId, // TODO retire this.
