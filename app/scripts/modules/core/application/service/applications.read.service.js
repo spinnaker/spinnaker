@@ -5,14 +5,14 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.applications.read.service', [
     require('exports?"restangular"!imports?_=lodash!restangular'),
-    require('../../../core/cluster/cluster.service.js'),
+    require('../../cluster/cluster.service.js'),
     require('../../../tasks/tasks.read.service.js'),
     require('../../../loadBalancers/loadBalancer.read.service.js'),
     require('../../../loadBalancers/loadBalancer.transformer.js'),
     require('../../../securityGroups/securityGroup.read.service.js'),
     require('../../cache/infrastructureCaches.js'),
-    require('../../../scheduler/scheduler.service.js'),
-    require('../../../core/delivery/execution.service.js'),
+    require('../../scheduler/scheduler.service.js'),
+    require('../../delivery/execution.service.js'),
     require('../../../serverGroups/serverGroup.transformer.js'),
   ])
   .factory('applicationReader', function ($q, $log, $window,  $exceptionHandler, $rootScope, Restangular, _, clusterService, tasksReader,

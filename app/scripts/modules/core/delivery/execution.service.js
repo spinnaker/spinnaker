@@ -3,7 +3,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.delivery.executions.service', [
   require('angular-ui-router'),
-  require('../../scheduler/scheduler.service.js'),
+  require('../scheduler/scheduler.service.js'),
   require('../cache/deckCacheFactory.js'),
   require('../../utils/appendTransform.js'),
   require('./executions.transformer.service.js')

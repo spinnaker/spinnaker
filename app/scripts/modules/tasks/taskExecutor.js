@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.taskExecutor.service', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../core/cache/deckCacheFactory.js'),
-  require('../scheduler/scheduler.service.js'),
+  require('../core/scheduler/scheduler.service.js'),
   require('../core/authentication/authentication.service.js'),
   require('../core/cache/infrastructureCaches.js'),
   require('./tasks.read.service.js'),
