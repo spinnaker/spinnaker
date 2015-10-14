@@ -34,7 +34,6 @@ require('./modules/fastProperties/fastProperties.less');
 require('./modules/instance/instanceSelection.less');
 require('./modules/core/presentation/main.less');
 require('./modules/core/modal/modals.less');
-require('./modules/navigation/navigation.less');
 require('./modules/core/application/newapplication.less');
 require('./modules/pipelines/pipelines.less');
 require('./modules/tasks/tasks.less');
@@ -75,7 +74,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/core/modal/modal.module.js'),
 
     require('exports?"angular.filter"!angular-filter'),
-    require('./modules/navigation/states.provider.js'),
+    require('./modules/core/navigation/states.provider.js'),
     require('./modules/core/delivery/states.js'),
     require('exports?"infinite-scroll"!ng-infinite-scroll/build/ng-infinite-scroll.js'),
 

@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.deploy.details.contro
   require('../../../../core/cluster/filter/clusterFilter.service.js'),
   require('../../../../core/delivery/details/executionDetailsSection.service.js'),
   require('../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
-  require('../../../../navigation/urlBuilder.service.js'),
+  require('../../../../core/navigation/urlBuilder.service.js'),
 ])
   .controller('DeployExecutionDetailsCtrl', function ($scope, _, $stateParams, executionDetailsSectionService, $timeout, urlBuilderService, clusterFilterService) {
 

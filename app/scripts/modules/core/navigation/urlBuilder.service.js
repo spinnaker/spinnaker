@@ -3,7 +3,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.urlBuilder', [
+module.exports = angular.module('spinnaker.core.navigation.urlBuilder.service', [
   require('angular-ui-router'),
 ])
   .factory('urlBuilderService', function($state) {
