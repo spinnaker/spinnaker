@@ -18,9 +18,11 @@ package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
 @Component
+@Slf4j
 class WaitForAllInstancesDownTask extends AbstractWaitingForInstancesTask {
   @Override
   protected boolean hasSucceeded(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
