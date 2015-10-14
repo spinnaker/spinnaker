@@ -4,11 +4,12 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
   require('../../../../utils/lodash.js'),
+  require('../../../../utils/uuid.service.js'),
   require('../../services/pipelineConfigService.js'),
   require('../../../../utils/scrollTo/scrollTo.service.js'),
 ])
   .controller('CreatePipelineModalCtrl', function($scope, application, target, reinitialize,
-                                                  _, pipelineConfigService, $modalInstance, $log) {
+                                                  _, pipelineConfigService, $modalInstance, $log, uuidService) {
 
     var noTemplate = {name: 'None', stages: [], triggers: [], application: application.name};
 
@@ -36,6 +37,11 @@ module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
       if ($scope.command.template === noTemplate && $scope.command.parallel) {
         pipelineConfigService.enableParallelExecution(template);
       }
+      let triggers = template.triggers || [];
+      triggers
+        .filter((trigger) => trigger.id)
+        .forEach((trigger) => trigger.id = uuidService.generateUuid());
+
       template.name = $scope.command.name;
       if (target === 'top') {
         template.index = application.pipelines.length ? application.pipelines[0].index - 1 : 0;
