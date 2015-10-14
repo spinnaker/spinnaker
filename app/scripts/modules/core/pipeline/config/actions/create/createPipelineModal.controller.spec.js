@@ -23,7 +23,10 @@ describe('Controller: createPipelineModal', function() {
         $modalInstance: this.$modalInstance,
         target: null,
         _: _,
-        $log: $log
+        $log: $log,
+        uuidService: {
+          generateUuid: () => 'new id'
+        },
       });
     };
   }));
@@ -174,6 +177,34 @@ describe('Controller: createPipelineModal', function() {
 
       expect(this.$scope.viewState.saveError).toBe(true);
       expect(this.$scope.viewState.errorMessage).toBe('No message provided');
+    });
+
+    fit('replaces trigger ids if found', function() {
+      var submitted = null,
+          $q = this.$q;
+
+      var toCopy = {
+        application: 'the_app',
+        name: 'old_name',
+        stages: [ { name: 'the_stage' } ],
+        triggers: [ { name: 'no_id' }, { name: 'with_id', id: 'old id'} ],
+      };
+
+      this.initializeController({name:'the_app', pipelines: [toCopy]});
+      spyOn(this.pipelineConfigService, 'savePipeline').and.callFake(function (pipeline) {
+        submitted = pipeline;
+        return $q.when(null);
+      });
+      spyOn(this.$modalInstance, 'close');
+
+      this.$scope.command.name = 'new pipeline';
+      this.$scope.command.template = toCopy;
+
+      this.controller.createPipeline();
+      this.$scope.$digest();
+
+      expect(submitted.triggers[0].id).toBeUndefined();
+      expect(submitted.triggers[1].id).toBe('new id');
     });
   });
 
