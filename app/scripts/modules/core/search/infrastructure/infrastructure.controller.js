@@ -4,9 +4,9 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   require('./infrastructureSearch.service.js'),
-  require('../../core/history/recentHistory.service.js'),
+  require('../../history/recentHistory.service.js'),
   require('../searchResult/searchResult.directive.js'),
-  require('../../core/pageTitle/pageTitle.service.js'),
+  require('../../pageTitle/pageTitle.service.js'),
   require('./project/infrastructureProject.directive.js'),
   require('../searchRank.filter.js'),
 ])
@@ -84,7 +84,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
     this.createProject = () => {
       $modal.open({
         scope: $scope,
-        templateUrl: require('../../core/projects/configure/configureProject.modal.html'),
+        templateUrl: require('../../projects/configure/configureProject.modal.html'),
         controller: 'ConfigureProjectModalCtrl',
         controllerAs: 'ctrl',
         resolve: {
@@ -104,7 +104,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
     this.createApplication = () => {
       $modal.open({
         scope: $scope,
-        templateUrl: require('../../core/application/modal/newapplication.html'),
+        templateUrl: require('../../application/modal/newapplication.html'),
         controller: 'CreateApplicationModalCtrl',
         controllerAs: 'newAppModal'
       }).result.then(routeToApplication);

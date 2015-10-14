@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.securityGroup.read.service', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../core/cache/deckCacheFactory.js'),
-  require('../search/search.service.js'),
+  require('../core/search/search.service.js'),
   require('../core/naming/naming.service.js'),
   require('../utils/lodash.js'),
   require('../core/cache/infrastructureCaches.js'),

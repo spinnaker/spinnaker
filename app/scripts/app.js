@@ -39,8 +39,6 @@ require('./modules/pipelines/pipelines.less');
 require('./modules/tasks/tasks.less');
 require('./modules/utils/stickyHeader/stickyHeader.less');
 
-require('./modules/search/global/globalSearch.less');
-
 require('../fonts/spinnaker/icons.css');
 
 require('Select2');
@@ -128,7 +126,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/pipelines/config/stages/determineTargetReference/determineTargetReference.module.js'),
     require('./modules/core/authentication/authentication.module.js'),
     require('./modules/core/cloudProvider/cloudProviderLogo.directive.js'),
-    require('./modules/search/search.module.js'),
+    require('./modules/core/search/search.module.js'),
     require('./modules/core/notification/notifications.module.js'),
     require('./modules/core/notification/types/email/email.notification.type.module.js'),
     require('./modules/core/notification/types/hipchat/hipchat.notification.type.module.js'),

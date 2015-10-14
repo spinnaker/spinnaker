@@ -3,10 +3,10 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.infrastructure.search.service', [
-  require('../../utils/rx.js'),
-  require('../../core/navigation/urlBuilder.service.js'),
-  require('../../core/application/service/applications.read.service.js'),
-  require('../../amazon/vpc/vpc.read.service.js'),
+  require('../../../utils/rx.js'),
+  require('../../navigation/urlBuilder.service.js'),
+  require('../../application/service/applications.read.service.js'),
+  require('../../../amazon/vpc/vpc.read.service.js'),
 ])
   .factory('infrastructureSearchService', function(RxService, $q, searchService, urlBuilderService, applicationReader, vpcReader) {
     return function() {
