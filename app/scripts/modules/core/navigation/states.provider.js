@@ -528,7 +528,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
         reloadOnSearch: false,
         views: {
           'main@': {
-            templateUrl: require('../../search/infrastructure/infrastructure.html'),
+            templateUrl: require('../search/infrastructure/infrastructure.html'),
             controller: 'InfrastructureCtrl',
             controllerAs: 'ctrl'
           }

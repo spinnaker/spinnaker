@@ -4,7 +4,7 @@ let angular = require('angular');
 
 require('./infrastructureProject.directive.less');
 
-module.exports = angular.module('spinnaker.search.infrastructure.project.infrastructureProject.directive', [])
+module.exports = angular.module('spinnaker.core.search.infrastructure.project.infrastructureProject.directive', [])
   .directive('infrastructureProject', function() {
     return {
       restrict: 'E',

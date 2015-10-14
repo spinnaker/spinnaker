@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.search.searchResult.searchRank.filter', [])
+  .module('spinnaker.core.search.searchResult.searchRank.filter', [])
   .filter('searchRank', function() {
     return (input, query) => {
       query = query.toLowerCase();

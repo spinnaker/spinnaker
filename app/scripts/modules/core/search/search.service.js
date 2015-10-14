@@ -2,8 +2,8 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.search.service', [
-  require('../core/cache/deckCacheFactory.js')
+module.exports = angular.module('spinnaker.core.search.service', [
+  require('../cache/deckCacheFactory.js')
 ])
   .factory('searchService', function($q, $http, $log, settings) {
 
