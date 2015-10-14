@@ -2,12 +2,11 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.notification.types.hipchat', [])
-  //BEN_TODO: what is addressTemplateUrl?
+module.exports = angular.module('spinnaker.core.notification.types.hipchat', [])
   .config(function(notificationTypeConfigProvider) {
     notificationTypeConfigProvider.registerNotificationType({
       label: 'HipChat',
       key: 'hipchat',
-      addressTemplateUrl: 'app/scripts/modules/notifications/types/hipchat/additionalFields.html',
+      addressTemplateUrl: require('./additionalFields.html')
     });
   }).name;

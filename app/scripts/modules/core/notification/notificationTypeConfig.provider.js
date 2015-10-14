@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.notifications.config', [])
+module.exports = angular.module('spinnaker.core.notification.type.config', [])
   .provider('notificationTypeConfig', function() {
 
     var notificationTypes = [];

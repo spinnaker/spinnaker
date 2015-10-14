@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.notification.service', [
+module.exports = angular.module('spinnaker.core.notification.service', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
 ])
   .factory('notificationService', function (settings, Restangular) {
