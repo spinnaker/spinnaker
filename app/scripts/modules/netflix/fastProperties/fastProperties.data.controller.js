@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.fastProperties.data.controller', [])
+  .module('spinnaker.netflix.fastProperties.data.controller', [])
   .controller('FastPropertyDataController', function () {
 
   })

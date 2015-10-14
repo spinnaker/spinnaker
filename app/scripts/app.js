@@ -30,7 +30,6 @@ let Clipboard = require('clipboard');
 require('./modules/core/application/application.less');
 require('./modules/core/delivery/delivery.less');
 require('./modules/core/presentation/details.less');
-require('./modules/fastProperties/fastProperties.less');
 require('./modules/core/instance/instanceSelection.less');
 require('./modules/core/presentation/main.less');
 require('./modules/core/modal/modals.less');
@@ -136,7 +135,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/core/cluster/cluster.module.js'),
     require('./modules/netflix/whatsNew/whatsNew.directive.js'),
     require('./modules/netflix/blesk/blesk.module.js'),
-    require('./modules/fastProperties/fastProperties.module.js'),
+    require('./modules/netflix/fastProperties/fastProperties.module.js'),
     require('./modules/core/account/accountLabelColor.directive.js'),
     require('./modules/core/history/recentHistory.service.js'),
     require('./config.js'),

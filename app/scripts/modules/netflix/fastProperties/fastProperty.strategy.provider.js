@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.fastProperty.strategy.provider', [])
+  .module('spinnaker.netflix.fastProperties.strategy.provider', [])
   .provider('fastPropertyStrategy', function () {
 
     var strategies = [];

@@ -3,14 +3,14 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.applicationProperties.controller', [
+  .module('spinnaker.netflix.applicationProperties.controller', [
     require('angular-ui-router'),
     require('./fastProperty.read.service.js'),
     require('./fastProperty.write.service.js'),
-    require('../core/confirmationModal/confirmationModal.service.js'),
+    require('../../core/confirmationModal/confirmationModal.service.js'),
     require('./fastPropertyTransformer.service.js'),
-    require('../core/application/service/applications.read.service'),
-    require('../core/utils/lodash.js'),
+    require('../../core/application/service/applications.read.service'),
+    require('../../core/utils/lodash.js'),
   ])
   .controller('ApplicationPropertiesController', function ($scope, $filter, $modal, $state, app, applicationReader,
                                                            fastPropertyReader, fastPropertyWriter, fastPropertyTransformer, _) {

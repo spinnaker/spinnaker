@@ -3,9 +3,9 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.fastProperties.controller', [
-    require('../core/application/service/applications.read.service.js'),
-    require('../core/cache/deckCacheFactory.js'),
+  .module('spinnaker.netflix.fastProperties.controller', [
+    require('../../core/application/service/applications.read.service.js'),
+    require('../../core/cache/deckCacheFactory.js'),
   ])
   .controller('FastPropertiesController', function ($filter, applicationReader, settings) {
     var vm = this;

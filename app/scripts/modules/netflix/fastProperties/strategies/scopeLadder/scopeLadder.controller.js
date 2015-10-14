@@ -4,8 +4,8 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.fastProperty.scopeLadder.strategy.controller', [
-    require('../../../core/utils/lodash'),
+  .module('spinnaker.netflix.fastProperties.scopeLadder.strategy.controller', [
+    require('../../../../core/utils/lodash'),
     require('../../fastProperty.write.service.js')
   ])
   .controller('ScopeLadderStrategyController', function($scope, fastPropertyWriter, _) {

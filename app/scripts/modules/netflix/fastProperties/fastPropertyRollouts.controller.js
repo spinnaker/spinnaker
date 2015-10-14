@@ -3,11 +3,11 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.fastProperties.rollouts.controller', [
+  .module('spinnaker.netflix.fastProperties.rollouts.controller', [
     require('./fastProperty.read.service.js'),
     require('./fastProperty.write.service.js'),
     require('./fastPropertyTransformer.service.js'),
-    require('../core/utils/lodash.js'),
+    require('../../core/utils/lodash.js'),
   ])
   .controller('FastPropertyRolloutController', function ($scope, fastPropertyReader, fastPropertyWriter, fastPropertyTransformer, _) {
     var vm = this;

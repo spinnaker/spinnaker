@@ -3,8 +3,8 @@
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.fastProperty.selector.directive', [])
-  .directive('fastPropertySelector', ($templateCache, $compile) => {
+  .module('spinnaker.netflix.fastProperties.selector.directive', [])
+  .directive('fastPropertySelector', () => {
     return {
       restrict: 'E',
       template: '<ng-include src="getTemplateUrl()"/>',
