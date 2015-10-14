@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.tasks.api', [
   require('../core/config/settings.js'),
   require('../core/cache/deckCacheFactory.js'),
   require('../core/navigation/urlBuilder.service.js'),
-  require('../orchestratedItem/orchestratedItem.transformer.js')
+  require('../core/orchestratedItem/orchestratedItem.transformer.js')
 ])
   .factory('tasksApi', function(settings, Restangular, urlBuilderService, $timeout, $q, kato, $exceptionHandler, orchestratedItemTransformer) {
 

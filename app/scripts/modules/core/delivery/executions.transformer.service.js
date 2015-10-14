@@ -5,7 +5,7 @@ let angular = require('angular');
 let executionBarLabelTemplate =  require('../../pipelines/config/stages/core/executionBarLabel.html');
 
 module.exports = angular.module('spinnaker.core.delivery.executionTransformer.service', [
-  require('../../orchestratedItem/orchestratedItem.transformer.js'),
+  require('../orchestratedItem/orchestratedItem.transformer.js'),
   require('../../utils/lodash.js'),
   require('../../pipelines/config/pipelineConfigProvider.js'),
 ])
