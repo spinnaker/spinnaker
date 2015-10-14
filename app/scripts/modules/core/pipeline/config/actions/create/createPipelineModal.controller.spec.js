@@ -179,7 +179,7 @@ describe('Controller: createPipelineModal', function() {
       expect(this.$scope.viewState.errorMessage).toBe('No message provided');
     });
 
-    fit('replaces trigger ids if found', function() {
+    it('replaces trigger ids if found', function() {
       var submitted = null,
           $q = this.$q;
 
