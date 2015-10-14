@@ -79,7 +79,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/core/delivery/states.js'),
     require('exports?"infinite-scroll"!ng-infinite-scroll/build/ng-infinite-scroll.js'),
 
-    require('./modules/insight/insight.module.js'),
+    require('./modules/core/insight/insight.module.js'),
     require('./modules/core/application/application.module.js'),
     require('./modules/netflix/feedback/feedback.module.js'),
 
