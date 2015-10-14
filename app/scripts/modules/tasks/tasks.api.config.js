@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.tasks.api', [
   require('./kato.js'),
   require('../core/config/settings.js'),
   require('../core/cache/deckCacheFactory.js'),
-  require('../navigation/urlBuilder.service.js'),
+  require('../core/navigation/urlBuilder.service.js'),
   require('../orchestratedItem/orchestratedItem.transformer.js')
 ])
   .factory('tasksApi', function(settings, Restangular, urlBuilderService, $timeout, $q, kato, $exceptionHandler, orchestratedItemTransformer) {

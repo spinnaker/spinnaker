@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular
   .module('securityGroup.filter.model', [
     require('../../core/filterModel/filter.model.service.js'),
-    require('../../navigation/urlParser.service.js'),
+    require('../../core/navigation/urlParser.service.js'),
   ])
   .factory('SecurityGroupFilterModel', function($rootScope, filterModelService, urlParser) {
 

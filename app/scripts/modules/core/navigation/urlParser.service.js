@@ -5,7 +5,7 @@ let angular = require('angular');
 /**
  * Lifted literally 100% from Angular internals
  */
-module.exports = angular.module('spinnaker.navigation.urlParser.service', [])
+module.exports = angular.module('spinnaker.core.navigation.urlParser.service', [])
   .factory('urlParser', function () {
     /**
      * Tries to decode the URI component without throwing an exception.

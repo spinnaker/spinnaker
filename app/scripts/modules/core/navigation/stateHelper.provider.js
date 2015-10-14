@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.stateHelper', [
+module.exports = angular.module('spinnaker.core.navigation.stateHelper.provider', [
   require('angular-ui-router')
 ])
   .provider('stateHelper', function($stateProvider) {

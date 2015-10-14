@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary.canaryDeployme
   require('../../../../../utils/lodash.js'),
   require('../../../../../core/delivery/details/executionDetailsSection.service.js'),
   require('../../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
-  require('../../../../../navigation/urlBuilder.service.js'),
+  require('../../../../../core/navigation/urlBuilder.service.js'),
   require('./canaryDeploymentHistory.service.js')
 ])
   .controller('CanaryDeploymentExecutionDetailsCtrl', function ($scope, _, $stateParams, $timeout,

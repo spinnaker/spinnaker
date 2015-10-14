@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.cluster.pod.directive', [
   require('./serverGroup.sequence.filter.js'),
-  require('../../navigation/urlBuilder.service.js'),
+  require('../navigation/urlBuilder.service.js'),
   require('../../serverGroups/serverGroup.directive.js'),
   require('../../utils/stickyHeader/stickyHeader.directive.js'),
 ])
