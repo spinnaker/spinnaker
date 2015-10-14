@@ -48,7 +48,7 @@ class WaitForTerminatedInstancesTask extends AbstractCloudProviderAwareTask impl
 
     String cloudProvider = getCloudProvider(stage)
     def notAllTerminated = instanceIds.find { String instanceId ->
-      def response = oortService.getSearchResults(instanceId, "serverGroupInstances", cloudProvider)
+      def response = oortService.getSearchResults(instanceId, "instances", cloudProvider)
       if (response.status != 200) {
         return true
       }
