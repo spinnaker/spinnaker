@@ -63,26 +63,6 @@
             <div class="col-md-1 text-center"><strong>Refresh</strong></div>
           </div>
           <div class="row">
-            <div class="col-md-3 col-md-offset-1">Accounts</div>
-            <div class="col-md-3">{{config.getCacheInfo('credentials').ageMax | timestamp}}</div>
-            <div class="col-md-1 text-center">
-              <a href ng-click="config.refreshCache('credentials')">
-              <span ng-class="{'glyphicon-spinning':config.clearingCache['credentials']}"
-                    class="glyphicon glyphicon-refresh"></span>
-              </a>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-3 col-md-offset-1">Applications</div>
-            <div class="col-md-3">{{config.getCacheInfo('applications').ageMax | timestamp}}</div>
-            <div class="col-md-1 text-center">
-              <a href ng-click="config.refreshCache('applications')">
-              <span ng-class="{'glyphicon-spinning':config.clearingCache['applications']}"
-                    class="glyphicon glyphicon-refresh"></span>
-              </a>
-            </div>
-          </div>
-          <div class="row">
             <div class="col-md-3 col-md-offset-1">Instance Types</div>
             <div class="col-md-3">{{config.getCacheInfo('instanceTypes').ageMax | timestamp}}</div>
             <div class="col-md-1 text-center">

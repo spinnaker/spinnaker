@@ -19,19 +19,12 @@ module.exports = angular
                                           loadBalancerReader, loadBalancerTransformer, securityGroupReader, scheduler,
                                           infrastructureCaches, settings, executionService, serverGroupTransformer) {
 
-    function listApplications(forceRemoteCall) {
-      var endpoint = Restangular
+    function listApplications() {
+      return Restangular
         .all('applications')
-        .withHttpConfig({cache: infrastructureCaches.applications});
-
-      if (forceRemoteCall) {
-        infrastructureCaches.applications.remove(endpoint.getRestangularUrl());
-      }
-
-      return endpoint.getList();
+        .withHttpConfig({cache: true})
+        .getList();
     }
-
-
 
     var gateEndpoint = Restangular.withConfig(function(RestangularConfigurer) {
 

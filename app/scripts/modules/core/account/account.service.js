@@ -48,7 +48,7 @@ module.exports = angular.module('spinnaker.core.account.service', [
       }
       return Restangular
         .all('credentials')
-        .withHttpConfig({cache: infrastructureCaches.credentials})
+        .withHttpConfig({cache: true})
         .getList();
     }
 
@@ -75,7 +75,7 @@ module.exports = angular.module('spinnaker.core.account.service', [
           acc[account.name] = Restangular
             .all('credentials')
             .one(account.name)
-            .withHttpConfig({cache: infrastructureCaches.credentials})
+            .withHttpConfig({cache: true})
             .get();
           return acc;
         }, {})).then(function(result) {
@@ -87,7 +87,7 @@ module.exports = angular.module('spinnaker.core.account.service', [
 
     function getAccountDetails(accountName) {
       return Restangular.one('credentials', accountName)
-        .withHttpConfig({cache: infrastructureCaches.credentials})
+        .withHttpConfig({cache: true})
         .get();
     }
 
