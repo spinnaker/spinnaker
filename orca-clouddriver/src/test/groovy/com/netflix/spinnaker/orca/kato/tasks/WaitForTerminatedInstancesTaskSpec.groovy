@@ -41,7 +41,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     def instanceId = 'i-123456'
     task.objectMapper = mapper
     task.oortService = Stub(OortService) {
-      getSearchResults(instanceId, 'serverGroupInstances', 'aws') >> { new Response('oort', 200, 'ok', [], new TypedString(mapper.writeValueAsString([[totalMatches: matches]]))) }
+      getSearchResults(instanceId, 'instances', 'aws') >> { new Response('oort', 200, 'ok', [], new TypedString(mapper.writeValueAsString([[totalMatches: matches]]))) }
     }
 
     and:
@@ -67,7 +67,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     response.getStatus() >> 500
 
     task.oortService = Stub(OortService) {
-      getSearchResults(instanceId, 'serverGroupInstances', 'aws') >> response
+      getSearchResults(instanceId, 'instances', 'aws') >> response
     }
 
     and:
@@ -95,7 +95,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
       input
     }
     task.oortService = Stub(OortService) {
-      getSearchResults(instanceId, 'serverGroupInstances', 'aws') >> response
+      getSearchResults(instanceId, 'instances', 'aws') >> response
     }
 
     and:
@@ -114,8 +114,8 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     def emptyResult = new Response('oort', 200, 'ok', [], new TypedString('[{"totalMatches":0}]'))
     task.objectMapper = mapper
     task.oortService = Stub(OortService) {
-      getSearchResults(instanceIds[0], 'serverGroupInstances', 'aws') >> emptyResult
-      getSearchResults(instanceIds[1], 'serverGroupInstances', 'aws') >> emptyResult
+      getSearchResults(instanceIds[0], 'instances', 'aws') >> emptyResult
+      getSearchResults(instanceIds[1], 'instances', 'aws') >> emptyResult
     }
 
     and:
@@ -145,7 +145,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
       input
     }
     task.oortService = Stub(OortService) {
-      getSearchResults(instanceIds[0], 'serverGroupInstances', 'aws') >> response
+      getSearchResults(instanceIds[0], 'instances', 'aws') >> response
     }
 
     and:
