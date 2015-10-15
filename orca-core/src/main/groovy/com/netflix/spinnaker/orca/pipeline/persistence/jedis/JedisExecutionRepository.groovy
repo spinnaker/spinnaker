@@ -1,9 +1,8 @@
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
 import java.util.function.Function
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.common.base.Predicates
-import com.google.common.collect.Maps
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
@@ -25,12 +24,17 @@ import rx.Observable
 import rx.Scheduler
 import rx.functions.Func1
 import rx.schedulers.Schedulers
+import static com.google.common.base.Predicates.notNull
+import static com.google.common.collect.Maps.filterValues
 
 @Component
 @Slf4j
 @CompileStatic
 class JedisExecutionRepository implements ExecutionRepository {
 
+  private static final TypeReference<List<Task>> LIST_OF_TASKS = new TypeReference<List<Task>>() {}
+  private static final TypeReference<Map<String, Object>> MAP_STRING_TO_OBJECT = new TypeReference<Map<String, Object>>() {
+  }
   private final Pool<Jedis> jedisPool
   private final ObjectMapper mapper = new OrcaObjectMapper()
   private final int chunkSize
@@ -203,10 +207,10 @@ class JedisExecutionRepository implements ExecutionRepository {
       executionStatus  : execution.executionStatus?.name(),
       authentication   : mapper.writeValueAsString(execution.authentication)
     ]
-    map.stageIndex = execution.stages.id.join(",")
     // TODO: store separately? Seems crazy to be using a hash rather than a set
+    map.stageIndex = execution.stages.id.join(",")
     execution.stages.each { stage ->
-      map["stage.$stage.id".toString()] = mapper.writeValueAsString(stage)
+      map.putAll(serializeStage(stage))
     }
     if (execution instanceof Pipeline) {
       map.name = execution.name
@@ -219,14 +223,31 @@ class JedisExecutionRepository implements ExecutionRepository {
     }
 
     jedis.hdel(key, "config")
-    jedis.hmset(key, Maps.filterValues(map, Predicates.notNull()))
+    jedis.hmset(key, filterValues(map, notNull()))
+  }
+
+  private Map<String, String> serializeStage(Stage stage) {
+    Map<String, String> map = [:]
+    map["stage.${stage.id}.refId".toString()] = stage.refId
+    map["stage.${stage.id}.type".toString()] = stage.type
+    map["stage.${stage.id}.name".toString()] = stage.name
+    map["stage.${stage.id}.startTime".toString()] = stage.startTime?.toString()
+    map["stage.${stage.id}.endTime".toString()] = stage.endTime?.toString()
+    map["stage.${stage.id}.status".toString()] = stage.status.name()
+    map["stage.${stage.id}.initializationStage".toString()] = String.valueOf(stage.initializationStage)
+    map["stage.${stage.id}.syntheticStageOwner".toString()] = stage.syntheticStageOwner?.name()
+    map["stage.${stage.id}.parentStageId".toString()] = stage.parentStageId
+    map["stage.${stage.id}.requisiteStageRefIds".toString()] = stage.requisiteStageRefIds?.join(",")
+    map["stage.${stage.id}.scheduledTime".toString()] = String.valueOf(stage.scheduledTime)
+    map["stage.${stage.id}.context".toString()] = mapper.writeValueAsString(stage.context)
+    map["stage.${stage.id}.tasks".toString()] = mapper.writeValueAsString(stage.tasks)
+    return map
   }
 
   private <T extends Execution> void storeStageInternal(Jedis jedis, Class<T> type, Stage<T> stage) {
     def prefix = type.simpleName.toLowerCase()
     def key = "$prefix:$stage.execution.id"
-    def json = mapper.writeValueAsString(stage)
-    jedis.hset(key, "stage.$stage.id", json)
+    jedis.hmset(key, filterValues(serializeStage(stage), notNull()))
   }
 
   @CompileDynamic
@@ -260,8 +281,22 @@ class JedisExecutionRepository implements ExecutionRepository {
       execution.executionStatus = map.executionStatus ? ExecutionStatus.valueOf(map.executionStatus) : null
       execution.authentication = mapper.readValue(map.authentication, Execution.AuthenticationDetails)
       def stageIds = map.stageIndex.tokenize(",")
-      stageIds.each {
-        def stage = mapper.readValue(map["stage.$it".toString()], Stage)
+      stageIds.each { stageId ->
+        def stage = execution instanceof Pipeline ? new PipelineStage() : new OrchestrationStage()
+        stage.id = stageId
+        stage.refId = map["stage.${stageId}.refId".toString()]
+        stage.type = map["stage.${stageId}.type".toString()]
+        stage.name = map["stage.${stageId}.name".toString()]
+        stage.startTime = map["stage.${stageId}.startTime".toString()]?.toLong()
+        stage.endTime = map["stage.${stageId}.endTime".toString()]?.toLong()
+        stage.status = ExecutionStatus.valueOf(map["stage.${stageId}.status".toString()])
+        stage.initializationStage = map["stage.${stageId}.initializationStage".toString()].toBoolean()
+        stage.syntheticStageOwner = map["stage.${stageId}.syntheticStageOwner".toString()] ? Stage.SyntheticStageOwner.valueOf(map["stage.${stageId}.syntheticStageOwner".toString()]) : null
+        stage.parentStageId = map["stage.${stageId}.parentStageId".toString()]
+        stage.requisiteStageRefIds = map["stage.${stageId}.requisiteStageRefIds".toString()]?.tokenize(",")
+        stage.scheduledTime = map["stage.${stageId}.scheduledTime".toString()]?.toLong()
+        stage.context = mapper.readValue(map["stage.${stageId}.context".toString()], MAP_STRING_TO_OBJECT)
+        stage.tasks = mapper.readValue(map["stage.${stageId}.tasks".toString()], LIST_OF_TASKS)
         stage.execution = execution
         execution.stages << stage
       }
