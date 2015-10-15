@@ -49,7 +49,7 @@
   <div class="form-group" ng-if="!command.viewState.disableImageSelection">
     <div class="col-md-2 sm-label-left"><b>Image</b></div>
     <div class="col-md-7">
-      <input type="text" class="form-control input-sm" name="image" ng-model="command.dockerImageId" required/>
+      <input type="text" class="form-control input-sm" name="image" ng-model="command.imageId" required/>
     </div>
   </div>
   <deployment-strategy-selector ng-if="!command.viewState.disableStrategySelection && command.selectedProvider" command="command"></deployment-strategy-selector>
