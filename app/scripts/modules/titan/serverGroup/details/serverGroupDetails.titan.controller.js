@@ -230,45 +230,5 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
       });
     };
 
-    this.showUserData = function showScalingActivities() {
-      $scope.userData = window.atob($scope.serverGroup.launchConfig.userData);
-      $modal.open({
-        templateUrl: require('../../../core/serverGroup/details/userData.html'),
-        controller: 'CloseableModalCtrl',
-        scope: $scope
-      });
-    };
-
-    this.buildJenkinsLink = function() {
-      if ($scope.serverGroup && $scope.serverGroup.buildInfo && $scope.serverGroup.buildInfo.jenkins) {
-        var jenkins = $scope.serverGroup.buildInfo.jenkins;
-        return jenkins.host + 'job/' + jenkins.name + '/' + jenkins.number;
-      }
-      return null;
-    };
-
-    this.truncateCommitHash = function() {
-      if ($scope.serverGroup && $scope.serverGroup.buildInfo && $scope.serverGroup.buildInfo.commit) {
-        return $scope.serverGroup.buildInfo.commit.substring(0, 8);
-      }
-      return null;
-    };
-
-    this.getNetwork = function() {
-      if ($scope.serverGroup &&
-          $scope.serverGroup.launchConfig &&
-          $scope.serverGroup.launchConfig.instanceTemplate &&
-          $scope.serverGroup.launchConfig.instanceTemplate.properties &&
-          $scope.serverGroup.launchConfig.instanceTemplate.properties.networkInterfaces) {
-        var networkInterfaces = $scope.serverGroup.launchConfig.instanceTemplate.properties.networkInterfaces;
-
-        if (networkInterfaces.length === 1) {
-          var networkUrl = networkInterfaces[0].network;
-
-          return _.last(networkUrl.split('/'));
-        }
-      }
-      return null;
-    };
   }
 ).name;
