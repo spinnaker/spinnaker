@@ -45,8 +45,10 @@ class DevInstallationParameters(configure_util.InstallationParameters):
 
   SPINNAKER_INSTALL_DIR = os.path.abspath(
       os.path.join(DEV_SCRIPT_DIR, '..'))
-  CONFIG_TEMPLATE_DIR = os.path.abspath(
+  CONFIG_MASTER_DIR = os.path.abspath(
       os.path.join(DEV_SCRIPT_DIR, '../config'))
+  CONFIG_TEMPLATE_DIR = os.path.abspath(
+      os.path.join(DEV_SCRIPT_DIR, '../config/deprecated'))
 
   UTILITY_SCRIPT_DIR = os.path.abspath(
       os.path.join(DEV_SCRIPT_DIR, '../runtime'))

@@ -48,12 +48,20 @@ def get_config_dir(options):
 
 
 def get_config_template_dir(options):
-    """Returns the directory used to hold configuration templates.
+    """Returns the directory used to hold [deprecated] configuration templates.
 
     These templates are used as the basis when running the reconfigure script.
     """
     return (options.config_template_dir
             or os.path.join(get_spinnaker_dir(options), 'config_templates'))
+
+
+def get_config_master_dir(options):
+    """Returns the directory used to hold the installation master config.
+
+    These are not intended to be overriden, but -local variants can be added.
+    """
+    return (os.path.join(get_spinnaker_dir(options), 'config'))
 
 
 def get_spinnaker_dir(options):
@@ -277,6 +285,7 @@ def install_spinnaker_packages(options, bucket):
   print 'Installing Spinnaker components from {0}.'.format(bucket)
 
   config_dir = get_config_dir(options)
+  master_dir = get_config_master_dir(options)
   template_dir = get_config_template_dir(options)
   spinnaker_dir = get_spinnaker_dir(options)
 
@@ -286,15 +295,37 @@ def install_spinnaker_packages(options, bucket):
   # Copy Configuration files
   ###########################
   print 'Copying configuration files.'
-  safe_mkdir(config_dir)
-  safe_mkdir(template_dir)
+  safe_mkdir(master_dir)
+
+  # For now we are copying both the old configuration files
+  # and the new ones.
+  # The new ones are not yet fully working so we are keeping
+  # the old ones around. It's particularly messy because the two
+  # cohabitate the same directory in the bucket. We separate them
+  # out in the installation so that the old -local files arent
+  # intercepted (with precedence) when using the new files.
+  # The new files are not enabled by default.
+
   for cfg in CONFIG_LIST:
+    # Copy everything into the [new] master directory.
+    # Then we'll move out all the old local files.
     jobs.append(start_copy_file(options,
                                 os.path.join(bucket, 'config', cfg),
-                                config_dir))
-    jobs.append(start_copy_file(options,
-                                os.path.join(bucket, 'config', cfg),
-                                template_dir))
+                                master_dir))
+  jobs.append(
+      start_copy_file(
+          options,
+          os.path.join(bucket, 'config/new_settings.js'),
+          os.path.join(bucket, master_dir + '/settings.js')))
+  check_wait_for_copy_complete(jobs)
+  jobs = []
+
+  # This will also move the new local sample, but dont
+  # worry about that since eventually the old stuff will go away
+  # and we wont need this mv.
+  safe_mkdir(template_dir)
+  run_quick('mv {master}/*-local.yml {template}'.format(
+      master=master_dir, template=template_dir))
 
   jobs.append(
       start_copy_file(options,

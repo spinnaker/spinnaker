@@ -241,8 +241,12 @@ class InstallationParameters(object):
     EXTERNAL_DEPENDENCY_SCRIPT_DIR: Path to directory containing maintainence
         and utility scripts for managing dependencies outside spinnaker itself.
 
+    CONFIG_MASTER_DIR: Path to directory containing the master configuration
+       files for the release. These are intended to be read-only.
+
     CONFIG_TEMPLATE_DIR: Path to directory containing the master configuration
        template files used as the basis for reconfiguring an installation.
+       This is deprecated.
 
     DECK_INSTALL_DIR: Path to directory where deck is installed, which is
         typically different from the other spinnaker subsystems.
@@ -260,6 +264,7 @@ class InstallationParameters(object):
   EXTERNAL_DEPENDENCY_SCRIPT_DIR = '/opt/spinnaker/scripts'
 
   CONFIG_TEMPLATE_DIR = SPINNAKER_INSTALL_DIR + '/config_templates'
+  CONFIG_MASTER_DIR = SPINNAKER_INSTALL_DIR + '/config'
 
   DECK_INSTALL_DIR = '/var/www'
   HACK_DECK_SETTINGS_FILENAME = 'deck_settings.js'
