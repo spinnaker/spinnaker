@@ -85,11 +85,8 @@ module.exports = angular.module('spinnaker.instance.detail.titan.controller', [
           $scope.baseIpAddress = $scope.instance.placement.host;
           $scope.instance.externalIpAddress = $scope.instance.placement.host;
         },
-        function() {
-          // When an instance is first starting up, we may not have the details cached in oort yet, but we still
-          // want to let the user see what details we have
-          $scope.state.loading = false;
-        });
+          () => $state.go('^', null, {location: 'replace'})
+        );
       }
 
       if (!instanceSummary) {

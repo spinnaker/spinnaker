@@ -11,69 +11,6 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
 ])
   .factory('titanServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q,
                                                      accountService, namingService, _) {
-
-    function extractNetworkName(serverGroup) {
-      if (_.has(serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces')) {
-        var networkInterfaces = serverGroup.launchConfig.instanceTemplate.properties.networkInterfaces;
-        if (networkInterfaces.length === 1) {
-          var networkUrl = networkInterfaces[0].network;
-          return _.last(networkUrl.split('/'));
-        }
-      }
-      return null;
-    }
-
-    function populateCustomMetadata(metadataItems, command) {
-      if (metadataItems) {
-        if (angular.isArray(metadataItems)) {
-          metadataItems.forEach(function (metadataItem) {
-            // Don't show 'load-balancer-names' key/value pair in the wizard.
-            if (metadataItem.key !== 'load-balancer-names') {
-              // The 'key' and 'value' attributes are used to enable the Add/Remove behavior in the wizard.
-              command.instanceMetadata.push(metadataItem);
-            }
-          });
-        } else {
-          for (var property in metadataItems) {
-            // Don't show 'load-balancer-names' key/value pair in the wizard.
-            if (property !== 'load-balancer-names') {
-              // The 'key' and 'value' attributes are used to enable the Add/Remove behavior in the wizard.
-              command.instanceMetadata.push({
-                key: property,
-                value: metadataItems[property],
-              });
-            }
-          }
-        }
-      }
-    }
-
-    function populateTags(instanceTemplateTags, command) {
-      if (instanceTemplateTags && instanceTemplateTags.items) {
-        _.map(instanceTemplateTags.items, function(tag) {
-          command.tags.push({value: tag});
-        });
-      }
-    }
-
-    function attemptToSetValidCredentials(application, defaultCredentials, command) {
-      return accountService.listAccounts('titan').then(function(titanAccounts) {
-        var titanAccountNames = _.pluck(titanAccounts, 'name');
-        var firstGCEAccount = null;
-
-        if (application.accounts.length) {
-          firstGCEAccount = _.find(application.accounts, function (applicationAccount) {
-            return titanAccountNames.indexOf(applicationAccount) !== -1;
-          });
-        }
-
-        var defaultCredentialsAreValid = defaultCredentials && titanAccountNames.indexOf(defaultCredentials) !== -1;
-
-        command.credentials =
-          defaultCredentialsAreValid ? defaultCredentials : (firstGCEAccount ? firstGCEAccount : 'my-account-name');
-      });
-    }
-
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
 
@@ -109,8 +46,6 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
           mode: defaults.mode || 'create',
         }
       };
-
-      attemptToSetValidCredentials(application, defaultCredentials, command);
 
       return $q.when(command);
   }
@@ -168,7 +103,6 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
     function buildServerGroupCommandFromPipeline(application, originalCluster) {
 
       var pipelineCluster = _.cloneDeep(originalCluster);
-      var zone = pipelineCluster.zone;
       var commandOptions = { account: pipelineCluster.account, region: pipelineCluster.region };
       var asyncLoader = $q.all({command: buildNewServerGroupCommand(application, commandOptions)});
 
@@ -191,14 +125,6 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
         pipelineCluster.strategy = pipelineCluster.strategy || '';
 
         var extendedCommand = angular.extend({}, command, pipelineCluster, viewOverrides);
-
-        var instanceMetadata = extendedCommand.instanceMetadata;
-        extendedCommand.instanceMetadata = [];
-        populateCustomMetadata(instanceMetadata, extendedCommand);
-
-        var instanceTemplateTags = {items: extendedCommand.tags};
-        extendedCommand.tags = [];
-        populateTags(instanceTemplateTags, extendedCommand);
 
         return extendedCommand;
       });
