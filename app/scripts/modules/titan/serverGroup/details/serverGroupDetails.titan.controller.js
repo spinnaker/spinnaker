@@ -69,9 +69,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
           }
 
         } else {
-          $state.go('^');
+          $state.go('^', null, {location: 'replace'});
         }
-      });
+      },
+        () => $state.go('^', null, {location: 'replace'})
+      );
     }
 
     function cancelLoader() {
