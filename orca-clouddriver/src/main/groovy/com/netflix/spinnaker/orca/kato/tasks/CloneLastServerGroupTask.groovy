@@ -46,7 +46,7 @@ class CloneLastServerGroupTask extends AbstractCloudProviderAwareTask implements
     def operation = [:]
     operation.putAll(stage.context)
     operation.amiName = operation.amiName ?: stage.preceding("bake")?.context?.amiName as String
-    operation.dockerImageId = operation.dockerImageId ?: stage.preceding("bake")?.context?.imageId as String
+    operation.imageId = operation.imageId ?: stage.preceding("bake")?.context?.imageId as String
     String cloudProvider = getCloudProvider(stage)
     def taskId = kato.requestOperations(cloudProvider, getDescriptions(operation)).toBlocking().first()
 
