@@ -18,6 +18,7 @@ import argparse
 import os
 import re
 import resource
+import shutil
 import signal
 import socket
 import subprocess
@@ -26,7 +27,10 @@ import time
 import yaml
 
 import configure_util
+from yaml_util import YamlBindings
+
 from fetch import check_fetch
+from fetch import get_google_project
 from fetch import is_google_instance
 from fetch import GOOGLE_METADATA_URL
 from run import check_run_quick
@@ -46,7 +50,7 @@ class Runner(object):
 
   @property
   def master_config_path(self):
-    """Path to the master configuration file."""
+    """DEPRECATED Path to the master configuration file."""
     return '{config_dir}/spinnaker_config.cfg'.format(
         config_dir=self.__installation.CONFIG_DIR)
 
@@ -89,19 +93,37 @@ class Runner(object):
   script_dir=self.__installation.UTILITY_SCRIPT_DIR,
   optional_defaults_if_on_google=optional_defaults_if_on_google)
 
+  @property
+  def using_deprecated_config(self):
+    return self.__old_bindings != None
+
   def __init__(self, installation_parameters=None):
     self.__installation = (installation_parameters
                            or configure_util.InstallationParameters())
-    self.__bindings = configure_util.ConfigureUtil(
-        self.__installation).load_bindings()
+    self.__new_config_dir = os.path.join(
+      self.__installation.SPINNAKER_INSTALL_DIR, 'config')
 
-    for name,value in self.__bindings.variables.items():
-      # Add bindings as environment variables so they can be picked up by
-      # embedded YML files and maybe internally within the implementation
-      # (e.g. amos needs the AWS_*_KEY but isnt clear if that could be
-      # injected through a yaml).
-      if not name in os.environ:
-        os.environ[name] = value
+    self.__old_bindings = None
+    self.__new_bindings = None
+
+    yml_path = os.path.join(os.environ.get('HOME', '/root'),
+                            '.spinnaker/spinnaker-local.yml')
+    if os.path.exists(yml_path):
+      self.__new_bindings = YamlBindings()
+      self.__new_bindings.import_path(
+          os.path.join(self.__new_config_dir, 'spinnaker.yml'))
+      self.__new_bindings.import_path(yml_path)
+    else:
+      self.__old_bindings = configure_util.ConfigureUtil(
+          self.__installation).load_bindings()
+
+      for name,value in self.__old_bindings.variables.items():
+        # Add bindings as environment variables so they can be picked up by
+        # embedded YML files and maybe internally within the implementation
+        # (e.g. amos needs the AWS_*_KEY but isnt clear if that could be
+        # injected through a yaml).
+        if not name in os.environ:
+          os.environ[name] = value
 
   # These are all the spinnaker subsystems in total.
   @classmethod
@@ -195,11 +217,19 @@ class Runner(object):
     """Start all the external dependencies running on this host."""
     run_dir = self.__installation.EXTERNAL_DEPENDENCY_SCRIPT_DIR
 
+    if self.__new_bindings:
+      cassandra_host = self.__new_bindings.get('services.cassandra.host')
+      redis_host = self.__new_bindings.get('services.redis.host')
+    else:
+      cassandra_host = self.__old_bindings.get_variable('CASSANDRA_HOST',
+                                                        'localhost')
+      redis_host = self.__old_bindings.get_variable('REDIS_HOST', 'localhost')
+
     check_run_quick(
         'REDIS_HOST={host}'
         ' LOG_DIR={log_dir}'
         ' {run_dir}/start_redis.sh'
-        .format(host=self.__bindings.get_variable('REDIS_HOST', 'localhost'),
+        .format(host=redis_host,
                 log_dir=self.__installation.LOG_DIR,
                 run_dir=run_dir),
         echo=True)
@@ -208,7 +238,7 @@ class Runner(object):
         'CASSANDRA_HOST={host}'
         ' CASSANDRA_DIR={install_dir}/cassandra'
         ' {run_dir}/start_cassandra.sh'
-        .format(host=self.__bindings.get_variable('CASSANDRA_HOST', 'localhost'),
+        .format(host=cassandra_host,
                 install_dir=self.__installation.SPINNAKER_INSTALL_DIR,
                 run_dir=run_dir),
          echo=True)
@@ -228,20 +258,29 @@ class Runner(object):
         if pid:
           started_list.append((subsys, pid))
 
-    if self.__bindings.get_variable('DOCKER_ADDRESS', ''):
+    if self.__new_bindings:
+      docker_address = self.__new_bindings.get('services.docker.baseUrl')
+      jenkins_address = self.__new_bindings.get('services.jenkins.baseUrl')
+      igor_enabled = self.__new_bindings.get('services.igor.enabled')
+    else:
+      docker_address = self.__old_bindings.get_variable('DOCKER_ADDRESS', '')
+      jenkins_address = self.__old_bindings.get_variable('JENKINS_ADDRESS', '')
+      igor_enabled = self.__old_bindings.get_variable('IGOR_ENABLED',
+                                                    'false').lower() != 'false'
+
+    if docker_address:
       pid = self.maybe_start_job(jobs, 'rush')
       if pid:
          started_list.append(('rush', pid))
     else:
       print 'Not using rush because docker is not configured.'
 
-    if self.__bindings.get_variable('JENKINS_ADDRESS', ''):
-        if self.__bindings.get_variable('IGOR_ENABLED',
-                                        'false').lower() == 'false':
+    if jenkins_address:
+        if not igor_enabled:
             sys.stderr.write(
                 'WARNING: Not starting igor because IGOR_ENABLED=false'
                 ' even though JENKINS_ADDRESS="{address}"'.format(
-                      address=self.__bindings.get_variable('JENKINS_ADDRESS')))
+                      address=jenkins_address))
         else:
             pid = self.maybe_start_job(jobs, 'igor')
             if pid:
@@ -298,7 +337,33 @@ class Runner(object):
 
     return job_map
 
+  def find_new_port_and_address(self, subsystem):
+    """This is assuming a specific configuration practice.
+
+    Overrides for default ports only occur in ~/<subsystem>-local.yml
+    or in ~/spinnaker-local.yml or in <install>/config/spinnnaker.yml
+
+    The actual runtime uses spring, which can be overriden for additional
+    search locations.
+    """
+    path = os.path.join(self.__installation.CONFIG_DIR,
+                        subsystem + '-local.yml')
+    if os.path.exists(path):
+       bindings = YamlBindings()
+       bindings.import_dict(self.__new_bindings.map)
+       bindings.import_path(path)
+    else:
+       bindings = self.__new_bindings
+
+    subsystem = subsystem.replace('-', '_')
+    return (bindings.get('services.{subsys}.port'.format(subsys=subsystem)),
+            bindings.get('services.{subsys}.host'.format(subsys=subsystem)))
+
+
   def find_port_and_address(self, subsystem):
+    if self.__new_bindings:
+      return self.find_new_port_and_address(subsystem)
+
     path = os.path.join(self.__installation.CONFIG_DIR,
                         subsystem + '-local.yml')
     if not os.path.exists(path):
@@ -340,7 +405,7 @@ class Runner(object):
         host = address if host_colon < 0 else address[:host_colon]
       else:
         host = 'localhost'
-        
+
       try:
         sock.connect((host, port))
         break
@@ -373,6 +438,10 @@ class Runner(object):
 
 
   def warn_if_configuration_looks_old(self):
+      if self.__new_bindings:
+        return
+
+      # DEPRECATED
       global_stat = os.stat(self.master_config_path)
       errors = 0
 
@@ -415,9 +484,14 @@ Proceeding anyway.
       pass
     self.start_dependencies()
 
+    if self.__new_bindings:
+      google_enabled = self.__new_bindings.get('providers.google.enabled')
+    else:
+      google_enabled = self.__old_bindings.get_variable(
+            'GOOGLE_ENABLED', 'false').lower() != 'false'
+
     jobs = self.get_all_java_subsystem_jobs()
-    if self.__bindings.get_variable(
-         'GOOGLE_ENABLED', 'false').lower() == 'false':
+    if not google_enabled:
       print 'Not using gce-kms because GOOGLE_ENABLED=false'
     else:
       pid = self.maybe_start_job(jobs, 'gce-kms')
@@ -501,6 +575,21 @@ Proceeding anyway.
                         help='Name of component to start or stop, or ALL')
 
   def check_configuration(self, options):
+    if os.path.exists(
+        os.path.join(self.__installation.CONFIG_DIR, 'spinnaker-local.yml')):
+      # Rush is non-standard and wont find the rush.yml file, so move the
+      # normal system one here. It doesnt normally need to be overriden, and if
+      # so then just override whatever is here anyway.
+      local_rush = os.path.join(self.__installation.CONFIG_DIR,
+                                'rush-local.yml')
+      if not os.path.exists(local_rush):
+         rush = self.__installation.SPINNAKER_INSTALL_DIR + '/config/rush.yml'
+         if os.path.exists(rush):
+            shutil.copyfile(rush, local_rush)
+      return
+
+    # DEPRECATED, but this is currently the reliable way to use it
+    # so we're leaving this as the default.
     if not os.path.exists(self.master_config_path):
       sys.stderr.write(
           'ERROR: {path} does not exist.\n'

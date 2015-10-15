@@ -406,5 +406,8 @@ class ConfigureUtil(object):
     with open(source_path, 'r') as f:
       content = f.read()
     content = bindings.replace_variables(content)
+
+    if not os.path.exists(os.path.dirname(target_path)):
+      os.makedirs(target_path)
     with open(target_path, 'w') as f:
       f.write(content)

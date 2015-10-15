@@ -30,6 +30,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 
 import install_runtime_dependencies
 
@@ -273,6 +274,54 @@ def check_options(options):
     raise ValueError('--region is required with an S3 release-uri.')
 
 
+def inject_spring_config_location(options, subsystem):
+  """Add spinnaker.yml to the spring config location path.
+
+  This might be temporary. Once this is standardized perhaps the packages will
+  already be shipped with this.
+  """
+  if subsystem == "deck":
+    return
+
+  path = os.path.join('/opt', subsystem, 'bin', subsystem)
+  with open(path, 'r') as f:
+      content = f.read()
+  match = re.search('\nDEFAULT_JVM_OPTS=(.+)\n', content)
+  if not match:
+      raise ValueError('Expected DEFAULT_JVM_OPTS in ' + path)
+  value = match.group(1)
+
+  if value.find('-Dspring.config.location=') >= 0:
+      sys.stderr.write(
+          'WARNING: spring.config.location was already explicitly defined.'
+          '\nLeaving ' + match.group(0) + '\n')  # Show whole thing.
+      return
+
+  new_content = [content[0:match.start(1)]]
+
+  offset = 1 if value[0] == '\'' or value[0] == '"' else 0
+  quote = '"' if value[0] == '\'' else '\''
+  root = '/opt/spinnaker/config'
+  home = '/root/.spinnaker'
+  new_content.append(value[0:offset])
+  new_content.append('{quote}-Dspring.config.location='
+                     '{root}/spinnaker.yml'
+                     ',{home}/spinnaker-local.yml'
+                     ',{root}/'
+                     ',{home}/{quote}'
+                     .format(quote=quote, home=home, root=root))
+  new_content.append(' ')
+
+  new_content.append(content[match.start(1) + 1:])
+  fd,temp = tempfile.mkstemp()
+  os.write(fd, ''.join(new_content))
+  os.close(fd)
+
+  check_run_quick(
+        'chmod --reference={path} {temp}'.format(path=path, temp=temp))
+  check_run_quick('sudo mv {temp} {path}'.format(temp=temp, path=path))
+
+
 def install_spinnaker_packages(options, bucket):
   """Install the spinnaker packages from the specified path.
 
@@ -366,6 +415,8 @@ def install_spinnaker_packages(options, bucket):
     # that we'll pick up below.
     run_and_monitor('sudo dpkg -i ' + os.path.join(package_dir, pkg))
     check_run_and_monitor('sudo apt-get install -f -y')
+    # Convert package name to install directory name.
+    inject_spring_config_location(options, pkg[0:pkg.find('_')])
 
   # Install package dependencies
   check_run_and_monitor('sudo apt-get install -f -y')
@@ -422,7 +473,8 @@ def install_spinnaker(options):
   check_wait_for_copy_complete(jobs)
 
   # TODO: This is backward compatibility for deprecated path.
-  check_run_quick('sudo ln -s /opt/spinnaker/install/first_google_boot.sh'
+  check_run_quick('sudo rm -f /opt/spinnaker/install/first_time_boot.sh'
+                  '; sudo ln -s /opt/spinnaker/install/first_google_boot.sh'
                   ' /opt/spinnaker/install/first_time_boot.sh')
 
   # Use chmod since +x is convienent.

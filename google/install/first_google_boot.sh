@@ -61,11 +61,11 @@ function clear_metadata_to_file() {
   local value=$(get_instance_metadata_attribute "$key")
 
   if [[ "$value" != "" ]]; then
+     echo "$value" > $path
      clear_instance_metadata "$key"
      if [[ $? -ne 0 ]]; then
        die "Could not clear metadata from $key"
      fi
-     echo "$value" > $path
      return 0
   fi
 
@@ -88,29 +88,44 @@ function replace_startup_script() {
       "startup-script=$SPINNAKER_INSTALL_DIR/scripts/start_spinnaker.sh"
 }
 
+# This is to support old style configuration only
+# (which is still the default)
 function extract_spinnaker_config() {
   local config="$CONFIG_DIR/spinnaker_config.cfg"
-  mkdir -p $(dirname $config)
-  touch $config
-  chmod 600 $config
-  if clear_metadata_to_file "spinnaker_config" $config; then
-    # This is a workaround for difficulties using the Google Deployment Manager
-    # to express no value. We'll use the value "None". But we dont want
-    # to officially support this, so we'll just strip it out of this first
-    # time boot if we happen to see it, and assume the Google Deployment Manager
-    # got in the way.
-    sed -i s/=None$/=$/g $config
-    echo "Wrote spinnaker_config"
-  else
+  local value=$(get_instance_metadata_attribute "spinnaker_config")
+  if [[ "$value" == "" ]]; then
     echo "WARNING: Failed to write $config. Using defaults."
     cp "$SPINNAKER_INSTALL_DIR/config_templates/default_spinnaker_config.cfg" \
-       "$config"
+        "$config"
+    return
   fi
 
-  local extracted_bindings=$( \
-      egrep -e '^[_A-Za-z0-9]*=(\"[^\"]*\"|[[:alnum:]]*)[[:space:]]*(\#.*)?$' \
-               $config)
-  local statements=$(echo "$extracted_bindings" | sed 's/^\(.*\)$/export \1/g')
+  mkdir -p $(dirname $config)
+
+  # This is a workaround for difficulties using the Google Deployment Manager
+  # to express no value. We'll use the value "None". But we dont want
+  # to officially support this, so we'll just strip it out of this first
+  # time boot if we happen to see it, and assume the Google Deployment Manager
+  echo "${value//=None/=}" > $config
+  chmod 600 $config
+
+  clear_instance_metadata "spinnaker_config"
+  echo "Wrote spinnaker_config"
+}
+
+function extract_spinnaker_local_yaml() {
+  local value=$(get_instance_metadata_attribute "spinnaker_local")
+  if [[ "$value" == "" ]]; then
+    return 1
+  fi
+
+  local config="$CONFIG_DIR/spinnaker-local.yml"
+  mkdir -p $(dirname $config)
+  echo "$value" > $config
+  chmod 600 $config
+
+  clear_instance_metadata "spinnaker_local"
+  return 0
 }
 
 function extract_spinnaker_credentials() {
@@ -138,10 +153,17 @@ function extract_spinnaker_credentials() {
   # Remove the old line, if one existed, and replace it with a new one.
   # This way it does not matter whether the user supplied it or not
   # (and might have had it point to something client side).
-  sed -i -e '/^GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH=/d' \
-      "$CONFIG_DIR/spinnaker_config.cfg"
-  echo "GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH=$json_path" \
-      >> "$CONFIG_DIR/spinnaker_config.cfg"
+  if [[ -f "$CONFIG_DIR/spinnaker-local.yml" ]]; then
+      sed -i "s/\( \+jsonPath:\).\+/\1 ${json_path//\//\\\/}/g" \
+          $CONFIG_DIR/spinnaker-local.yml
+  fi
+  if [[ -f "$CONFIG_DIR/spinnaker_config.cfg" ]]; then
+      # DEPRECATED
+      sed -i -e '/^GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH=/d' \
+          "$CONFIG_DIR/spinnaker_config.cfg"
+      echo "GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH=$json_path" \
+          >> "$CONFIG_DIR/spinnaker_config.cfg"
+  fi
 }
 
 function process_args() {
@@ -164,17 +186,24 @@ function process_args() {
 }
 
 process_args
+mkdir -p /root/.spinnaker
 
 echo "$STATUS_PREFIX  Extracting Configuration Info"
-extract_spinnaker_config
+if ! extract_spinnaker_local_yaml; then
+  # DEPRECATED
+  extract_spinnaker_config
+fi
 
 echo "$STATUS_PREFIX  Extracting Credentials"
 extract_spinnaker_credentials
 
-# Reconfigure the instance before replacing the script so that
-# if it fails, and we reboot, we'll continue where we left off.
-echo "$STATUS_PREFIX  Configuring Spinnaker"
-$SPINNAKER_INSTALL_DIR/scripts/reconfigure_spinnaker.sh
+if [[ ! -f /root/.spinnaker/spinnaker-local.yml ]]; then
+  # DEPRECATED
+  # Reconfigure the instance before replacing the script so that
+  # if it fails, and we reboot, we'll continue where we left off.
+  echo "$STATUS_PREFIX  Configuring Spinnaker"
+  $SPINNAKER_INSTALL_DIR/scripts/reconfigure_spinnaker.sh
+fi
 
 # Replace this first time boot with the normal startup script
 # that just starts spinnaker (and its dependencies) without configuring anymore.

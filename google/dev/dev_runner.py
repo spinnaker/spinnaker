@@ -181,7 +181,8 @@ class DevRunner(spinnaker_runner.Runner):
     to console will stop once this process is terminated. However, the
     logging will still continue into the LOG_DIR.
     """
-    self.reconfigure_subsystems(options)
+    if self.using_deprecated_config:
+      self.reconfigure_subsystems(options)
 
     ignore_tail_jobs = self.tail_error_logs()
     super(DevRunner, self).start_all(options)
