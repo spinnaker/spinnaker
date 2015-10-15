@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
+@Deprecated
 class DisableAsgStage extends TargetReferenceLinearStageSupport {
   static final String PIPELINE_CONFIG_TYPE = "disableAsg"
 

@@ -22,12 +22,13 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class WaitForTerminatedInstancesTask implements RetryableTask {
+class WaitForTerminatedInstancesTask extends AbstractCloudProviderAwareTask implements RetryableTask {
   long backoffPeriod = 1000
   long timeout = 3600000
 
@@ -44,8 +45,10 @@ class WaitForTerminatedInstancesTask implements RetryableTask {
     if (!instanceIds || !instanceIds.size()) {
       return new DefaultTaskResult(ExecutionStatus.FAILED)
     }
+
+    String cloudProvider = getCloudProvider(stage)
     def notAllTerminated = instanceIds.find { String instanceId ->
-      def response = oortService.getSearchResults(instanceId, "serverGroupInstances", "aws")
+      def response = oortService.getSearchResults(instanceId, "instances", cloudProvider)
       if (response.status != 200) {
         return true
       }

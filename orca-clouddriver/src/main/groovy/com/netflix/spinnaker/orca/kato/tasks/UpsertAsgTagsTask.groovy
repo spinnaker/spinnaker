@@ -35,12 +35,22 @@ class UpsertAsgTagsTask implements Task {
     def taskId = kato.requestOperations([[upsertAsgTagsDescription: stage.context]])
       .toBlocking()
       .first()
+
+    def deployServerGroups = []
+    if (stage.context.regions && stage.context.asgName) {
+      deployServerGroups = (stage.context.regions as Collection<String>).collectEntries {
+        [(it): [stage.context.asgName]]
+      }
+    } else if (stage.context.asgs) {
+      deployServerGroups = (stage.context.asgs as Collection<Map>).collectEntries {
+        [(it.region): [it.asgName]]
+      }
+    }
+
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
       "notification.type"   : "upsertasgtags",
       "kato.last.task.id"   : taskId,
-      "deploy.server.groups": (stage.context.regions as Collection<String>).collectEntries {
-        [(it): [stage.context.asgName]]
-      }
+      "deploy.server.groups": deployServerGroups
     ])
   }
 }

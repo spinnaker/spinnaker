@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,35 +14,35 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.pipeline.gce
+package com.netflix.spinnaker.orca.clouddriver.pipeline
 
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroupLinearStageSupport
+import com.netflix.spinnaker.orca.clouddriver.tasks.EnableServerGroupTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForUpInstancesTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.kato.tasks.gce.EnableGoogleServerGroupTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
-@CompileStatic
-class EnableGoogleServerGroupStage extends LinearStage {
+class EnableServerGroupStage extends TargetServerGroupLinearStageSupport {
 
-  public static final String PIPELINE_CONFIG_TYPE = "enableAsg_gce"
+  public static final String PIPELINE_CONFIG_TYPE = "enableServerGroup"
 
-  EnableGoogleServerGroupStage() {
+  EnableServerGroupStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "enableServerGroup", EnableGoogleServerGroupTask)
-    def step2 = buildStep(stage, "monitorServerGroup", MonitorKatoTask)
-    def step3 = buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask)
-    def step4 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    [step1, step2, step3, step4]
-  }
+    composeTargets(stage)
 
+    [
+      buildStep(stage, "enableServerGroup", EnableServerGroupTask),
+      buildStep(stage, "monitorServerGroup", MonitorKatoTask),
+      buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask),
+      buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    ]
+  }
 }

@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
+@Deprecated
 class DisableAsgTask extends AbstractAsgTask {
   String asgAction = DisableAsgStage.PIPELINE_CONFIG_TYPE
 }
