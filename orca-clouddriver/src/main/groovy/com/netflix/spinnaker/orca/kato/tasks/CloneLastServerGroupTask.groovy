@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,7 +30,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 @Component
-class CreateCopyLastAsgTask implements Task {
+class CloneLastServerGroupTask extends AbstractCloudProviderAwareTask implements Task {
 
   @Autowired
   KatoService kato
@@ -45,9 +46,9 @@ class CreateCopyLastAsgTask implements Task {
     def operation = [:]
     operation.putAll(stage.context)
     operation.amiName = operation.amiName ?: stage.preceding("bake")?.context?.amiName as String
-    def taskId = kato.requestOperations(getDescriptions(operation))
-      .toBlocking()
-      .first()
+    operation.imageId = operation.imageId ?: stage.preceding("bake")?.context?.imageId as String
+    String cloudProvider = getCloudProvider(stage)
+    def taskId = kato.requestOperations(cloudProvider, getDescriptions(operation)).toBlocking().first()
 
     def outputs = [
       "notification.type"   : "createcopylastasg",
@@ -56,9 +57,11 @@ class CreateCopyLastAsgTask implements Task {
       "deploy.account.name" : operation.credentials,
     ]
 
-    def suspendedProcesses = stage.context.suspendedProcesses as Set<String>
-    if (suspendedProcesses?.contains("AddToLoadBalancer")) {
-      outputs.interestingHealthProviderNames = HealthHelper.getInterestingHealthProviderNames(stage, ["Amazon"])
+    if (stage.context.suspendedProcesses) {
+      def suspendedProcesses = stage.context.suspendedProcesses as Set<String>
+      if (suspendedProcesses?.contains("AddToLoadBalancer")) {
+        outputs.interestingHealthProviderNames = HealthHelper.getInterestingHealthProviderNames(stage, ["Amazon"])
+      }
     }
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
@@ -66,7 +69,7 @@ class CreateCopyLastAsgTask implements Task {
 
   private List<Map<String, Object>> getDescriptions(Map operation) {
     List<Map<String, Object>> descriptions = []
-    if (operation.credentials != defaultBakeAccount) {
+    if (operation.credentials != defaultBakeAccount && operation.availabilityZones) {
       def allowLaunchDescriptions = operation.availabilityZones.collect { String region, List<String> azs ->
         [
           allowLaunchDescription: [
@@ -79,7 +82,7 @@ class CreateCopyLastAsgTask implements Task {
       }
       descriptions.addAll(allowLaunchDescriptions)
     }
-    descriptions.add([copyLastAsgDescription: operation])
+    descriptions.add([cloneServerGroup: operation])
     descriptions
   }
 }

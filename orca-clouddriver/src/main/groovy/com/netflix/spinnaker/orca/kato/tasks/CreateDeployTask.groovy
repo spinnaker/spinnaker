@@ -93,11 +93,11 @@ class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task {
     if (!operation.amiName && deploymentDetails) {
       operation.amiName = deploymentDetails.find { it.region == targetRegion }?.ami
     }
-    if (!operation.dockerImageId && deploymentDetails) {
-      operation.dockerImageId = deploymentDetails.find { it.cloudProvider == cloudProvider }?.imageId
+    if (!operation.imageId && deploymentDetails) {
+      operation.imageId = deploymentDetails.find { it.cloudProvider == cloudProvider }?.imageId
     }
 
-    log.info("Deploying ${operation.amiName ?: operation.dockerImageId} to ${targetRegion}")
+    log.info("Deploying ${operation.amiName ?: operation.imageId} to ${targetRegion}")
 
     if (context.account && !operation.credentials) {
       operation.credentials = context.account
