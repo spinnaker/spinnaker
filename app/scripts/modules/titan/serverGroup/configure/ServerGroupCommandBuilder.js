@@ -137,6 +137,11 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
         account: serverGroup.account,
         credentials: serverGroup.account,
         region: serverGroup.region,
+        source: {
+          account: serverGroup.account,
+          region: serverGroup.region,
+          asgName: serverGroup.name,
+        },
         resources: {
           cpu: serverGroup.resources.cpu,
           memory: serverGroup.resources.memory,

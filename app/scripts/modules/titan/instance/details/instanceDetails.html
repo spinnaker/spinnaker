@@ -33,7 +33,7 @@
             <li><a href ng-click="ctrl.disableInstanceInDiscovery()" ng-if="ctrl.hasHealthState('Discovery', 'Up')">Disable in Discovery</a></li>
             <!--<li><a href ng-click="ctrl.registerInstanceWithLoadBalancer()" ng-if="ctrl.canRegisterWithLoadBalancer()">Register with Load Balancer</a></li>-->
             <!--<li><a href ng-click="ctrl.deregisterInstanceFromLoadBalancer()" ng-if="ctrl.canDeregisterFromLoadBalancer()">Deregister from Load Balancer</a></li>-->
-            <li role="presentation" class="divider" ng-if="instance.health.length > 0"></li>
+            <!--<li role="presentation" class="divider" ng-if="instance.health.length > 0"></li>-->
             <li><a href ng-click="ctrl.terminateInstance()">Terminate</a></li>
           </ul>
         </div>

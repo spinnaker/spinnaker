@@ -115,13 +115,14 @@ module.exports = angular.module('spinnaker.instance.detail.titan.controller', [
 
     this.terminateInstance = function terminateInstance() {
       var instance = $scope.instance;
+      instance.instanceId = instance.id;
       var taskMonitor = {
         application: app,
-        title: 'Terminating ' + instance.id,
+        title: 'Terminating ' + instance.instanceId,
         forceRefreshMessage: 'Refreshing application...',
         forceRefreshEnabled: true,
         onApplicationRefresh: function() {
-          if ($state.includes('**.instanceDetails', {id: instance.id})) {
+          if ($state.includes('**.instanceDetails', {id: instance.instanceId})) {
             $state.go('^');
           }
         }
@@ -136,8 +137,8 @@ module.exports = angular.module('spinnaker.instance.detail.titan.controller', [
       };
 
       confirmationModalService.confirm({
-        header: 'Really terminate ' + instance.instanceId + '?',
-        buttonText: 'Terminate ' + instance.instanceId,
+        header: 'Really terminate ' + instance.id + '?',
+        buttonText: 'Terminate ' + instance.id,
         destructive: true,
         account: instance.account,
         provider: 'titan',
