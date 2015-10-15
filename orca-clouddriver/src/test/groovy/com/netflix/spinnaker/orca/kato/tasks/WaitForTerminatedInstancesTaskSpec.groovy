@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedInput
 import retrofit.mime.TypedString
@@ -67,7 +68,7 @@ class WaitForTerminatedInstancesTaskSpec extends Specification {
     response.getStatus() >> 500
 
     task.oortService = Stub(OortService) {
-      getSearchResults(instanceId, 'instances', 'aws') >> response
+      getSearchResults(instanceId, 'instances', 'aws') >> { throw RetrofitError.networkError("url", new IOException())}
     }
 
     and:

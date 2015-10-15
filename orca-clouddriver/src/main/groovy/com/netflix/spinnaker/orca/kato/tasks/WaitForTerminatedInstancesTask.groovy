@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTa
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 
 @Component
 class WaitForTerminatedInstancesTask extends AbstractCloudProviderAwareTask implements RetryableTask {
@@ -48,19 +49,20 @@ class WaitForTerminatedInstancesTask extends AbstractCloudProviderAwareTask impl
 
     String cloudProvider = getCloudProvider(stage)
     def notAllTerminated = instanceIds.find { String instanceId ->
-      def response = oortService.getSearchResults(instanceId, "instances", cloudProvider)
-      if (response.status != 200) {
+      try {
+        def response = oortService.getSearchResults(instanceId, "instances", cloudProvider)
+        def searchResult = objectMapper.readValue(response.body.in().text, List)
+        if (!searchResult || searchResult.size() != 1) {
+          return true
+        }
+        Map searchResultSet = (Map) searchResult[0]
+        if (searchResultSet.totalMatches != 0) {
+          return true
+        }
+        return false
+      } catch (RetrofitError ignored) {
         return true
       }
-      def searchResult = objectMapper.readValue(response.body.in().text, List)
-      if (!searchResult || searchResult.size() != 1) {
-        return true
-      }
-      Map searchResultSet = (Map) searchResult[0]
-      if (searchResultSet.totalMatches != 0) {
-        return true
-      }
-      return false
     }
 
     def status = notAllTerminated ? ExecutionStatus.RUNNING : ExecutionStatus.SUCCEEDED
