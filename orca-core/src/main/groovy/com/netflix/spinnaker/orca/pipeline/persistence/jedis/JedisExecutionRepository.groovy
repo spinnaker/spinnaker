@@ -200,7 +200,7 @@ class JedisExecutionRepository implements ExecutionRepository {
       limitConcurrent  : String.valueOf(execution.limitConcurrent),
       buildTime        : Long.toString(execution.buildTime ?: 0L),
       executingInstance: execution.executingInstance,
-      executionStatus  : execution.executionStatus.name(),
+      executionStatus  : execution.executionStatus?.name(),
       authentication   : mapper.writeValueAsString(execution.authentication)
     ]
     map.stageIndex = execution.stages.id.join(",")
@@ -257,7 +257,7 @@ class JedisExecutionRepository implements ExecutionRepository {
       execution.limitConcurrent = Boolean.parseBoolean(map.limitConcurrent)
       execution.buildTime = Long.parseLong(map.buildTime) ?: 0
       execution.executingInstance = map.executingInstance
-      execution.executionStatus = ExecutionStatus.valueOf(map.executionStatus)
+      execution.executionStatus = map.executionStatus ? ExecutionStatus.valueOf(map.executionStatus) : null
       execution.authentication = mapper.readValue(map.authentication, Execution.AuthenticationDetails)
       def stageIds = map.stageIndex.tokenize(",")
       stageIds.each {
