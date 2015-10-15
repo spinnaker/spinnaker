@@ -16,19 +16,19 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import java.time.Clock
-import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.security.AuthenticatedRequest
+
+import java.time.Clock
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
@@ -85,9 +85,11 @@ class TaskController {
   }
 
   @RequestMapping(value = "/tasks/{id}/cancel", method = RequestMethod.PUT)
-  @ResponseStatus(HttpStatus.ACCEPTED)
-  void cancelTask(@PathVariable String id) {
-    executionRepository.cancel(id, ExecutionStatus.CANCELED)
+  OrchestrationViewModel cancelTask(@PathVariable String id) {
+    def orchestration = executionRepository.retrieveOrchestration(id)
+    orchestration.canceled = true
+    executionRepository.store(orchestration)
+    convert orchestration
   }
 
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.GET)
@@ -101,9 +103,11 @@ class TaskController {
   }
 
   @RequestMapping(value = "/pipelines/{id}/cancel", method = RequestMethod.PUT)
-  @ResponseStatus(HttpStatus.ACCEPTED)
-  void cancel(@PathVariable String id) {
-    executionRepository.cancel(id, ExecutionStatus.CANCELED)
+  Pipeline cancel(@PathVariable String id) {
+    def pipeline = executionRepository.retrievePipeline(id)
+    pipeline.canceled = true
+    executionRepository.store(pipeline)
+    pipeline
   }
 
   @RequestMapping(value = "/pipelines/running", method = RequestMethod.GET)

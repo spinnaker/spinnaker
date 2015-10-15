@@ -2,10 +2,7 @@ package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
 import java.util.function.Function
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.common.base.Predicates
-import com.google.common.collect.Maps
 import com.netflix.spectator.api.ExtendedRegistry
-import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.*
@@ -76,21 +73,6 @@ class JedisExecutionRepository implements ExecutionRepository {
     withJedis { Jedis jedis ->
       storeExecutionInternal(jedis, pipeline)
       jedis.zadd(executionsByPipelineKey(pipeline.pipelineConfigId), pipeline.buildTime, pipeline.id)
-    }
-  }
-
-  @Override
-  void cancel(String id) {
-    withJedis { Jedis jedis ->
-      String key
-      if (jedis.exists("pipeline:$id")) {
-        key = "pipeline:$id"
-      } else if (jedis.exists("orchestration:$id")) {
-        key = "orchestration:$id"
-      } else {
-        throw new ExecutionNotFoundException("No execution found with id $id")
-      }
-      jedis.hset(key, "canceled", "true")
     }
   }
 
@@ -191,50 +173,18 @@ class JedisExecutionRepository implements ExecutionRepository {
 
     def key = "${prefix}:$execution.id"
     jedis.hset(key, "config", json)
-
-    Map<String, String> map = [
-      application      : execution.application,
-      appConfig        : mapper.writeValueAsString(execution.appConfig),
-      canceled         : String.valueOf(execution.canceled),
-      parallel         : String.valueOf(execution.parallel),
-      limitConcurrent  : String.valueOf(execution.limitConcurrent),
-      buildTime        : Long.toString(execution.buildTime ?: 0L),
-      executingInstance: execution.executingInstance,
-      executionStatus  : execution.executionStatus.name(),
-      authentication   : mapper.writeValueAsString(execution.authentication)
-    ]
-    map.stageIndex = execution.stages.id.join(",")
-    // TODO: store separately? Seems crazy to be using a hash rather than a set
-    execution.stages.each { stage ->
-      map["stage.$stage.id".toString()] = mapper.writeValueAsString(stage)
-    }
-    if (execution instanceof Pipeline) {
-      map.name = execution.name
-      map.pipelineConfigId = execution.pipelineConfigId
-      map.trigger = mapper.writeValueAsString(execution.trigger)
-      map.notifications = mapper.writeValueAsString(execution.notifications)
-      map.initialConfig = mapper.writeValueAsString(execution.initialConfig)
-    } else if (execution instanceof Orchestration) {
-      map.description = execution.description
-    }
-
-    jedis.hdel(key, "config")
-    jedis.hmset(key, Maps.filterValues(map, Predicates.notNull()))
   }
 
   private <T extends Execution> void storeStageInternal(Jedis jedis, Class<T> type, Stage<T> stage) {
-    def prefix = type.simpleName.toLowerCase()
-    def key = "$prefix:$stage.execution.id"
     def json = mapper.writeValueAsString(stage)
-    jedis.hset(key, "stage.$stage.id", json)
+    def key = "${type.simpleName.toLowerCase()}:stage:${stage.id}"
+    jedis.hset(key, "config", json)
   }
 
   @CompileDynamic
   private <T extends Execution> T retrieveInternal(Jedis jedis, Class<T> type, String id) throws ExecutionNotFoundException {
-    def prefix = type.simpleName.toLowerCase()
-    def key = "$prefix:$id"
-    if (jedis.hexists(key, "config")) {
-      log.warn("Reading {} {} with legacy format", type.simpleName, id)
+    def key = "${type.simpleName.toLowerCase()}:$id"
+    if (jedis.exists(key)) {
       def json = jedis.hget(key, "config")
       def execution = mapper.readValue(json, type)
       // PATCH to handle https://jira.netflix.com/browse/SPIN-784
@@ -245,42 +195,11 @@ class JedisExecutionRepository implements ExecutionRepository {
           "Pipeline ${id} has duplicate stages (original count: ${originalStageCount}, unique count: ${execution.stages.size()})")
       }
       return sortStages(jedis, execution, type)
-    } else if (jedis.exists(key)) {
-      log.warn("Reading {} {} with new format", type.simpleName, id)
-      Map<String, String> map = jedis.hgetAll(key)
-      def execution = type.newInstance()
-      execution.id = id
-      execution.application = map.application
-      execution.appConfig.putAll(mapper.readValue(map.appConfig, Map))
-      execution.canceled = Boolean.parseBoolean(map.canceled)
-      execution.parallel = Boolean.parseBoolean(map.parallel)
-      execution.limitConcurrent = Boolean.parseBoolean(map.limitConcurrent)
-      execution.buildTime = Long.parseLong(map.buildTime) ?: 0
-      execution.executingInstance = map.executingInstance
-      execution.executionStatus = ExecutionStatus.valueOf(map.executionStatus)
-      execution.authentication = mapper.readValue(map.authentication, Execution.AuthenticationDetails)
-      def stageIds = map.stageIndex.tokenize(",")
-      stageIds.each {
-        def stage = mapper.readValue(map["stage.$it".toString()], Stage)
-        stage.execution = execution
-        execution.stages << stage
-      }
-      if (execution instanceof Pipeline) {
-        execution.name = map.name
-        execution.pipelineConfigId = map.pipelineConfigId
-        execution.trigger.putAll(mapper.readValue(map.trigger, Map))
-        execution.notifications.addAll(mapper.readValue(map.notifications, List))
-        execution.initialConfig.putAll(mapper.readValue(map.initialConfig, Map))
-      } else if (execution instanceof Orchestration) {
-        execution.description = map.description
-      }
-      return execution
     } else {
       throw new ExecutionNotFoundException("No ${type.simpleName} found for $id")
     }
   }
 
-  @Deprecated
   @CompileDynamic
   private <T extends Execution> T sortStages(Jedis jedis, T execution, Class<T> type) {
     List<Stage<T>> reorderedStages = []
@@ -307,7 +226,6 @@ class JedisExecutionRepository implements ExecutionRepository {
     return execution
   }
 
-  @Deprecated
   private <T extends Execution> List<Stage<T>> retrieveStages(Jedis jedis, Class<T> type, List<String> ids) {
     def pipeline = jedis.pipelined()
     ids.each { id ->
@@ -318,21 +236,26 @@ class JedisExecutionRepository implements ExecutionRepository {
   }
 
   private <T extends Execution> void deleteInternal(Jedis jedis, Class<T> type, String id) {
-    def prefix = type.simpleName.toLowerCase()
-    def key = "$prefix:$id"
+    def key = "${type.simpleName.toLowerCase()}:$id"
     try {
-      def application = jedis.hget(key, "application")
-      def appKey = appKey(type, application)
+      T item = retrieveInternal(jedis, type, id)
+      def appKey = appKey(type, item.application)
       jedis.srem(appKey, id)
 
-      if (type == Pipeline) {
-        def pipelineConfigId = jedis.hget(key, "pipelineConfigId")
-        jedis.zrem(executionsByPipelineKey(pipelineConfigId), id)
+      if (item instanceof Pipeline) {
+        ((Pipeline) item).with {
+          jedis.zrem(executionsByPipelineKey(pipelineConfigId), item.id)
+        }
+      }
+
+      item.stages.each { Stage stage ->
+        def stageKey = "${type.simpleName.toLowerCase()}:stage:${stage.id}"
+        jedis.hdel(stageKey, "config")
       }
     } catch (ExecutionNotFoundException ignored) {
       // do nothing
     } finally {
-      jedis.del(key)
+      jedis.hdel(key, "config")
       jedis.srem(alljobsKey(type), id)
     }
   }
