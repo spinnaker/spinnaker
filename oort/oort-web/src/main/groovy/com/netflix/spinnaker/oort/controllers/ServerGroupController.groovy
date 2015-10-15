@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.oort.controllers
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.oort.aws.model.edda.InstanceLoadBalancers
 import com.netflix.spinnaker.oort.model.Cluster
 import com.netflix.spinnaker.oort.model.ClusterProvider
@@ -41,6 +43,9 @@ class ServerGroupController {
   List<ClusterProvider> clusterProviders
 
   @Autowired
+  ObjectMapper objectMapper
+
+  @Autowired
   MessageSource messageSource
 
   @RequestMapping(value="/{account}/{region}/{name:.+}", method = RequestMethod.GET)
@@ -54,11 +59,21 @@ class ServerGroupController {
     matches.first()
   }
 
-  List<ServerGroup> expandedList(String application) {
+  List<Map> expandedList(String application) {
     return clusterProviders
       .findResults { ClusterProvider cp -> cp.getClusterDetails(application)?.values() }
-      .collectNested { Cluster c -> c.serverGroups }
-      .flatten()
+      .collectNested { Cluster c ->
+        c.serverGroups?.collect {
+          Map sg = objectMapper.convertValue(it, Map)
+          sg.accountName = c.accountName
+          def name = Names.parseName(c.name)
+          sg.cluster = name.cluster
+          sg.application = name.app
+          sg.stack = name.stack
+          sg.freeFormDetail = name.detail
+          return sg
+        } ?: []
+      }.flatten()
   }
 
   List<ServerGroupViewModel> summaryList(String application) {
