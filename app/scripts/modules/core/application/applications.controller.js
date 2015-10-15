@@ -96,20 +96,11 @@ module.exports = angular.module('spinnaker.applications.controller', [
       }
     }
 
-    // Get from cache first
     applicationReader.listApplications().then(function(applications) {
       applications.forEach(fixAccount);
       $scope.applications = applications;
       ctrl.filterApplications();
       $scope.applicationsLoaded = true;
-
-      // Then get from server
-      applicationReader.listApplications(true).then(function(applications) {
-        applications.forEach(fixAccount);
-        $scope.applications = applications;
-        ctrl.filterApplications();
-      });
-
     });
 
     $scope.$watch('viewState', cacheViewState, true);
