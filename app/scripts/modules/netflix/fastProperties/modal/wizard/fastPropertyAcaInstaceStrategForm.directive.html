@@ -1,0 +1,72 @@
+<form role="form" class="container-fluid" novalidate name="newFastPropertyForm" ng-init="newFP.setFormScope(this)">
+  <div class="modal-body">
+
+    <h2>Select your instance selection strategy</h2>
+
+
+    <div class="form-horizontal fp-canary-config-view">
+      <div class="form-group">
+
+        <div class="small-label-left col-md-3">
+          <b>Strategy Option</b>
+        </div>
+
+        <div class="col-md-9">
+          <select 
+              name="strategyOption"
+              class="form-control input-sm"
+              required
+              ng-model="newFP.property.strategy.option"
+              >
+            <option value="number">number</option>
+            <option value="percentage">percentage</option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+
+
+    <div class="form-horizontal fp-canary-config-view">
+      <div class="form-group">
+
+        <div class="small-label-left col-md-3">
+          <b>Rollout {{newFP.property.strategy.option}}</b>
+          <help-field key="pipeline.config.canary.combinedCanaryResultStrategy"></help-field>
+        </div>
+
+        <div class="col-md-9">
+          <input
+              type="text"
+              class="form-control input-sm"
+              required
+              ng-model="newFP.property.strategy.rolloutListString"
+              />
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!--
+    FOOTER BUTTONS
+  -->
+  <div class="modal-footer">
+    <button ng-disabled="taskMonitor.submitting" class="btn btn-default pull-left"
+            ng-click="$dismiss()">Cancel
+    </button>
+
+    <button class="btn btn-default"
+            ng-click="wizard.previousPage()">
+      <span class="glyphicon glyphicon-chevron-left"></span> Back
+    </button>
+
+    <button class="btn btn-primary"
+            ng-disabled="newFastPropertyForm.$invalid"
+            ng-click="wizard.markComplete('ACAInstanceSelector'); wizard.nextPage()">
+      Next <span class="glyphicon glyphicon-chevron-right"></span>
+    </button>
+  </div>
+
+</form>

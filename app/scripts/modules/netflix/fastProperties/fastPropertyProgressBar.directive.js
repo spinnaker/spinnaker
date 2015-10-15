@@ -15,19 +15,28 @@ module.exports = angular.module('spinnaker.netflix.fastProperties.progressBar.di
       link: function(scope) {
         var task = scope.task;
 
+
+        let extractScopeFromHistoryMessage = (messageString) => {
+          let regex = /(?:Scope\()(.+?)\)/;
+          let prefexRegex = /.+?(?=Selection)/;
+          let prefixResult = prefexRegex.exec(messageString);
+          let resultArray = regex.exec(messageString) || [];
+          return prefixResult && resultArray.length > 1 ? `${prefixResult}: ${resultArray[1].split(',').join(', ')}` : messageString;
+        };
+
         scope.isRunning = task.state === 'Running';
         scope.isFailed = task.state === 'Failed';
         scope.isSuccessful = task.state === 'Successful';
         scope.isPending = task.state === 'Pending';
 
-        var currentStep = task.scopes.currentStep;
+        var currentStep = task.range.currentStep;
 
-        var totalSteps = task.scopes.totalSteps;
-        console.log(currentStep, totalSteps, task.scopes);
+        var totalSteps = task.range.totalSteps;
 
-        scope.progressStyle = { width: currentStep / task.scopes.totalSteps * 100 + '%' };
+        scope.progressStyle = { width: currentStep / task.range.totalSteps * 100 + '%' };
 
         scope.tooltip = currentStep;
+
 
         if (scope.isRunning) {
           scope.tooltip = 'Step ' + currentStep + ' of ' + totalSteps;
@@ -43,8 +52,22 @@ module.exports = angular.module('spinnaker.netflix.fastProperties.progressBar.di
           scope.progressStyle = { width: '100%' };
           // XSS_TODO
           scope.tooltip = 'Failed on Step ' + currentStep + ' of ' + totalSteps +
-            '<br><br><strong>Exception:</strong><p>' + lastHistory.message +'</p>';
+            '<br><br><strong>Exception:</strong><p>' + extractScopeFromHistoryMessage( lastHistory.message )+'</p>';
         }
-      }
+      },
+      controller: function() {
+        const vm = this;
+
+        vm.extractScopeFromHistoryMessage = (messageString) => {
+          let regex = /(?:Scope\()(.+?)\)/;
+          let prefexRegex = /.+?(?=Selection)/;
+          let prefixResult = prefexRegex.exec(messageString);
+          let resultArray = regex.exec(messageString) || [];
+          return prefixResult && resultArray.length > 1 ? `${prefixResult}: ${resultArray[1].split(',').join(', ')}` : messageString;
+        };
+
+        return vm;
+      },
+      controllerAs:'ctrl'
     };
   }).name;

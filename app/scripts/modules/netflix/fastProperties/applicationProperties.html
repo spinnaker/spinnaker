@@ -18,6 +18,7 @@
             <!--<div class="col-md-12">-->
             <label >Filter </label>
             <input type="search"
+                   style="width: 500px"
                    placeholder="Search properties"
                    class="form-control input-md search"
                    focus
@@ -97,9 +98,7 @@
              <tbody>
              <tr class="" ng-repeat="property in fp.filteredPage">
                <td style="word-wrap: break-word">
-                 <a >
-                   {{ property.key }}
-                 </a>
+                 {{ property.key }}
                </td>
                <td style="word-wrap: break-word">
                  {{ property.value}}
@@ -159,6 +158,7 @@
                        </i>
                    </dd>
                  </dl>
+                 <!--{{property}}-->
                </td>
                <td>
                  {{ property.ttl }}

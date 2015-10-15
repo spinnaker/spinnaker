@@ -1,0 +1,107 @@
+<form role="form" class="container-fluid" novalidate name="newFastPropertyForm">
+  <div class="modal-body">
+
+
+    <h3>Naive</h3>
+    <div class="row">
+      <div class="col-sm-6">
+        <b>Strategy:</b>{{newFP.selectedStrategy.selected.label}}
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-12">
+        Discription: {{newFP.selectedStrategy.selected.description}}
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-12">
+        <p>Select the cluster you would like to ACA this Fast Property against.</p>
+      </div>
+    </div>
+
+
+    <div class="form-horizontal fp-canary-config-view">
+      <scope-app-selector
+          model="newFP.property.startScope.appIdList"
+          applications="newFP.applicationList"
+          on-app-remove="newFP.startApplicationRemoved(item)"
+          on-app-selected="newFP.startApplicationSelected(item)"
+          on-refresh-list="newFP.refreshAppList(query)"
+          >
+      </scope-app-selector>
+
+      <scope-region-selector
+          model="newFP.property.startScope.region"
+          regions="newFP.startLists.region"
+          on-change="newFP.startRegionChange(region)"
+          >
+      </scope-region-selector>
+
+      <scope-stack-selector
+          model="newFP.property.startScope.stack"
+          stacks="newFP.startLists.stack"
+          show-if="newFP.property.startScope.region"
+          on-change="newFP.startStackChange(stack)"
+          >
+      </scope-stack-selector>
+
+      <scope-cluster-selector
+          model="newFP.property.startScope.cluster"
+          clusters="newFP.startLists.cluster"
+          show-if="newFP.property.startScope.stack"
+          on-change="newFP.startClusterChange(cluster)"
+          >
+      </scope-cluster-selector>
+
+
+      <scope-asg-selector
+          model="newFP.property.startScope.asg"
+          asgs="newFP.startLists.asg"
+          show-if="newFP.property.startScope.cluster"
+          on-change="newFP.startAsgChange(asg)"
+          >
+      </scope-asg-selector>
+
+      <scope-availability-zone-selector
+          model="newFP.property.startScope.zone"
+          zones="newFP.startLists.zone"
+          show-if="newFP.property.startScope.asg"
+          on-change="newFP.startAvailabilityZoneChange(zone)"
+          >
+      </scope-availability-zone-selector>
+
+      <scope-instance-selector
+          model="newFP.property.startScope.serverId"
+          instances="newFP.startLists.instance"
+          show-if="newFP.property.startScope.zone"
+          on-change="newFP.startInstanceChange(instance)"
+          >
+      </scope-instance-selector>
+    </div>
+
+  </div>
+
+  <!--
+    FOOTER BUTTONS
+  -->
+  <div class="modal-footer">
+    <button ng-disabled="taskMonitor.submitting" class="btn btn-default pull-left"
+            ng-click="$dismiss()">Cancel
+    </button>
+
+    <button class="btn btn-default"
+            ng-click="wizard.previousPage()">
+      <span class="glyphicon glyphicon-chevron-left"></span> Back
+    </button>
+
+    <button class="btn btn-primary"
+            ng-disabled="newFastPropertyForm.$invalid"
+            ng-click="wizard.markComplete('Target'); wizard.nextPage()">
+      Next <span class="glyphicon glyphicon-chevron-right"></span>
+    </button>
+  </div>
+
+
+</form>

@@ -109,7 +109,7 @@ module.exports = angular
 
     vm.editFastProperty = function(property) {
       $uibModal.open({
-        templateUrl: require('./modal/fastPropertyWizard.html'),
+        templateUrl: require('./modal/wizard/fastPropertyWizard.html'),
         controller: 'FastPropertyUpsertController',
         controllerAs: 'newFP',
         resolve: {
@@ -138,7 +138,7 @@ module.exports = angular
 
     vm.newFastPropertyModal = function() {
       $uibModal.open({
-        templateUrl: require('./modal/fastPropertyWizard.html'),
+        templateUrl: require('./modal/wizard/fastPropertyWizard.html'),
         controller: 'FastPropertyUpsertController',
         controllerAs: 'newFP',
         resolve: {
@@ -184,7 +184,6 @@ module.exports = angular
 
     vm.appClusterList = [];
     vm.getAppClusterList = () => {
-      console.log(vm.appClusterList);
       if (vm.appClusterList.length > 0) {
         return vm.appClusterList;
       }
@@ -200,7 +199,6 @@ module.exports = angular
 
 
     let validateScopeProperty = (property, propName, getListFn) => {
-      console.log(property, property[propName]);
       if(property[propName])  {
         let list = getListFn();
         let inList = list.some( (i) => {
