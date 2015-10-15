@@ -63,6 +63,7 @@ abstract class AbstractHystrixCommand<T> extends HystrixCommand<T> {
     if (result == null && isResponseFromFallback()) {
       def e = getFailedExecutionException()
       def eMessage = e?.toString() ?: ""
+      log.error("Fallback encountered", e)
       throw new ThrottledRequestException("No fallback available (group: '${groupKey}', command: '${commandKey}', exception: '${eMessage}')", e)
     }
 

@@ -47,7 +47,7 @@ class ClusterService {
       try {
         oortService.getCluster(app, account, clusterName)?.getAt(0) as Map
       } catch (RetrofitError e) {
-        if (e.response.status == 404) {
+        if (e.response?.status == 404) {
           return [:]
         } else {
           throw e

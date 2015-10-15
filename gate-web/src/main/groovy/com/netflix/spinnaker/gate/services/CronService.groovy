@@ -39,7 +39,7 @@ class CronService {
       echoService.validateCronExpression(cronExpression)
       return [ valid: true ]
     } catch (RetrofitError e) {
-      if (e.response.status == 400) {
+      if (e.response?.status == 400) {
         Map responseBody = e.getBodyAs(Map) as Map
         return [ valid: false, message: responseBody.message ]
       }

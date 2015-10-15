@@ -305,7 +305,7 @@ class ApplicationService {
         try {
           return oort.getApplication(name)
         } catch (RetrofitError e) {
-          if (e.response.status == 404) {
+          if (e.response?.status == 404) {
             return [:]
           } else {
             throw e

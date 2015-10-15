@@ -51,7 +51,7 @@ class ServerGroupService {
           "insightActions": insightConfiguration.serverGroup.collect { it.applyContext(context) }
         ]
       } catch (RetrofitError e) {
-        if (e.response.status == 404) {
+        if (e.response?.status == 404) {
           return [:]
         }
         throw e
