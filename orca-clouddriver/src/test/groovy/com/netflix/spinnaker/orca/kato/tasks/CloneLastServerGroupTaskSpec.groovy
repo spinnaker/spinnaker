@@ -26,7 +26,7 @@ import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 
-class CreateCopyLastAsgTaskSpec extends Specification {
+class CloneLastServerGroupTaskSpec extends Specification {
   @Subject task = new CloneLastServerGroupTask()
   def stage = new PipelineStage(new Pipeline(), "copyLastAsg")
   def mapper = new OrcaObjectMapper()
