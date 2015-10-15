@@ -54,7 +54,7 @@ class TitanDeployHandlerSpec extends Specification {
     TitanDeployDescription titanDeployDescription = new TitanDeployDescription(
       application: 'api',
       stack: 'test',
-      details: '',
+      freeFormDetails: '',
       account: 'test',
       region: 'us-east-1',
       subnet: 'vpc0',
