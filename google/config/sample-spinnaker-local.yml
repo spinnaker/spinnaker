@@ -1,6 +1,16 @@
 providers:
+  aws:
+    enabled: false
+    defaultRegion: us-east-1
+    primaryCredentials:
+      name: my-aws-account
+      aws_access_key:
+      aws_secret_key:
+
   google:
     enabled: true
+    defaultRegion: us-central1
+    defaultZone: us-central1-f
     primaryCredentials:
       name: my-account-name
       project: ewiseblatt-spinnaker-0000

@@ -17,5 +17,5 @@ google:
 
   kmsServer: http://$KMS_HOST:$KMS_PORT
   accounts:
-    $GOOGLE_CREDENTIALS_REFERENCE
+    $GOOGLE_CREDENTIALS_DECLARATION
 

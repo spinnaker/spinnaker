@@ -250,6 +250,16 @@ class Refresher(object):
     for repository in all_repos:
         self.pull_from_origin(repository)
 
+  def __determine_spring_config_location(self):
+    root = '{dir}/config'.format(
+        dir=os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), '..')))
+    home = os.path.join(os.environ['HOME'] + '/.spinnaker')
+    return ('{root}/spinnaker.yml'
+            ',{home}/spinnaker-local.yml'
+            ',{root}/'
+            ',{home}/'
+            .format(home=home, root=root))
+
   def write_gradle_run_script(self, repository):
       """Generate a dev_run.sh script for the local repository.
 
@@ -258,14 +268,22 @@ class Refresher(object):
       """
       name = repository.name
       path = '{name}/start_dev.sh'.format(name=name)
+
       with open(path, 'w') as f:
           f.write("""#!/bin/bash
 cd $(dirname $0)
 LOG_DIR=${{LOG_DIR:-../logs}}
 
+if [[ -f $HOME/.spinnaker/spinnaker-local.yml ]]; then
+   if [[ "$SPRING_CONFIG_LOCATION" != "" ]]; then
+     echo "WARNING: SPRING_CONFIG_LOCATION is overriden as $SPRING_CONFIG_LOCATION"
+   else
+     export SPRING_CONFIG_LOCATION="{spring_location}"
+   fi
+fi
 bash -c "(./gradlew $@ > $LOG_DIR/{name}.log) 2>&1\
  | tee -a $LOG_DIR/{name}.log >& $LOG_DIR/{name}.err &"
-""".format(name=name))
+""".format(name=name, spring_location=self.__determine_spring_config_location()))
       os.chmod(path, 0777)
 
   def write_deck_run_script(self, repository):
@@ -300,56 +318,6 @@ bash -c "(npm start >> $LOG_DIR/{name}.log) 2>&1\
         self.write_deck_run_script(repository)
       else:
         self.write_gradle_run_script(repository)
-        if self.__options.hack_gradle:
-            self.update_build_gradle(repository)
-
-  def update_build_gradle(self, repository):
-    """Add the spring.config.location override to the repository build.gradle.
-
-    Args:
-      repository [string]: The name of the local repository to generate in.
-    """
-    name = repository.name
-    search = [ '{name}/build.gradle'.format(name=name),
-               '{name}/{name}-web/{name}-web.gradle'.format(name=name)
-    ]
-    for path in search:
-      if not os.path.exists(path):
-        continue
-      if self.__update_build_gradle_helper(path):
-        return True
-    raise ValueError('Could not find gradle file for ' + name)
-
-  def __update_build_gradle_helper(self, path):
-    with open(path, 'r') as f:
-      content = f.read()
-
-    match = re.search('\napplicationDefaultJvmArgs *= *\[(.+)\]', content)
-    if not match:
-      return False
-
-    value = match.group(1)
-    if value.find('-Dspring.config.location=') >= 0:
-      return True
-
-    new_content = [content[0:match.start(1)]]
-    root = '{dir}/config'.format(
-        dir=os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), '..')))
-    home = os.path.join(os.environ['HOME'] + '/.spinnaker')
-    new_content.append('"-Dspring.config.location='
-                       '{root}/spinnaker.yml'
-                       ',{home}/spinnaker-local.yml'
-                       ',{root}/'
-                       ',{home}/"'
-                       .format(home=home, root=root))
-    if match.group(1).strip():
-      new_content.append(', ')
-    new_content.append(content[match.start(1):])
-
-    with open(path, 'w') as f:
-      f.write(''.join(new_content))
-
-    return True
 
   @classmethod
   def init_extra_argument_parser(cls, parser):
@@ -444,13 +412,6 @@ bash -c "(npm start >> $LOG_DIR/{name}.log) 2>&1\
                           help='Pull from this github user\'s repositories.'
                                ' If the user is "default" then use the'
                                ' authoritative (upstream) repository.')
-
-      parser.add_argument(
-        '--hack_gradle',  default=False, action='store_true',
-        help='Enable experiment to change the spring.config.location for'
-             ' using the new config files.\n'
-             'WARNING: This will make local changes to the build.gradle files'
-             ' that should not be submitted.')
 
   @classmethod
   def main(cls):

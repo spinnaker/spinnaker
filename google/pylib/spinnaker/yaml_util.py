@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import re
 import yaml
 
@@ -33,8 +34,8 @@ class YamlBindings(object):
     for name,value in d.items():
       self.__update_field(name, value, self.__map)
 
-  def import_string(self, str):
-    self.import_dict(yaml.load(str, Loader=yaml.Loader))
+  def import_string(self, s):
+    self.import_dict(yaml.load(s, Loader=yaml.Loader))
 
   def import_path(self, path):
     with open(path, 'r') as f:
@@ -70,24 +71,60 @@ class YamlBindings(object):
     if not isinstance(value, basestring) or not value.startswith('$'):
       return value
 
-    result = ''
-    offset = 0
     if field in saw:
       raise ValueError('Cycle looking up variable ' + original)
-    saw.append(field)
+    saw = saw + [field]
 
-    re_variable = re.compile('\${([a-zA-Z_][a-zA-Z0-0_\.]+)(:.+)?}')
-    for match in re_variable.finditer(value) or []:
-        result += value[offset:match.pos]
-        offset = match.endpos
-        match_value = match.group(1)
+    result = []
+    offset = 0
+
+    # Look for fragments of ${key} or ${key:default} then resolve them.
+    text = value
+    for match in re.finditer('\${([\._a-zA-Z0-9]+)(:.+?)?}', text):
+        result.append(text[offset:match.start()])
         try:
-          result += self.__get_value(match_value, saw, original)
+          got = self.__get_value(match.group(1), saw, original)
+          result.append(str(got))
         except KeyError:
-          def_value = match.group(2)
-          if def_value:
-            result += def_value[1:]  # stream leading ':'
+          if match.group(2):
+            result.append(str(match.group(2)[1:]))
           else:
-            result += value
-    result += value[offset:]
-    return result
+            result.append(match.group(0))
+        offset = match.end()  # skip trailing '}'
+    result.append(text[offset:])
+
+    return ''.join(result)
+
+  def replace(self, text):
+    result = []
+    offset = 0
+
+    # Look for fragments of ${key} or ${key:default} then resolve them.
+    for match in re.finditer('\${([\._a-zA-Z0-9]+)(:.+?)?}', text):
+        result.append(text[offset:match.start()])
+        try:
+          result.append(self.get(match.group(1)))
+        except KeyError:
+          if match.group(2):
+            result.append(str(match.group(2)[1:]))
+          else:
+            raise
+        offset = match.end()  # skip trailing '}'
+    result.append(text[offset:])
+
+    return ''.join(result)
+
+def load_new_bindings(config_dir, only_if_local=True):
+    yml_path = os.path.join(os.environ.get('HOME', '/root'),
+                            '.spinnaker/spinnaker-local.yml')
+    have_local = os.path.exists(yml_path)
+    if only_if_local and not have_local:
+      return None
+
+    bindings = YamlBindings()
+    bindings.import_path(os.path.join(config_dir, 'spinnaker.yml'))
+    if have_local:
+      bindings.import_path(yml_path)
+    return bindings
+
+  

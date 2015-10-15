@@ -463,7 +463,7 @@ def install_spinnaker(options):
                              os.path.join(bucket, 'install'),
                              install_dir))
   jobs.append(start_copy_dir(options,
-                             os.path.join(bucket, 'scripts'), script_dir))
+                             os.path.join(bucket, 'runtime'), script_dir))
   jobs.append(start_copy_dir(options,
                              os.path.join(bucket, 'pylib'), pylib_dir))
 

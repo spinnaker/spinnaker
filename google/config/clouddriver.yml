@@ -20,3 +20,4 @@ google:
   accounts:
     - name: ${providers.google.primaryCredentials.name}
       project: ${providers.google.primaryCredentials.project}
+      jsonPath: ${providers.google.primaryCredentials.jsonPath}

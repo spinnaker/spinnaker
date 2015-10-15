@@ -27,7 +27,7 @@ import time
 import yaml
 
 import configure_util
-from yaml_util import YamlBindings
+import yaml_util
 
 from fetch import check_fetch
 from fetch import get_google_project
@@ -97,6 +97,10 @@ class Runner(object):
   def using_deprecated_config(self):
     return self.__old_bindings != None
 
+  @property
+  def new_bindings(self):
+    return self.__new_bindings
+
   def __init__(self, installation_parameters=None):
     self.__installation = (installation_parameters
                            or configure_util.InstallationParameters())
@@ -104,16 +108,10 @@ class Runner(object):
       self.__installation.SPINNAKER_INSTALL_DIR, 'config')
 
     self.__old_bindings = None
-    self.__new_bindings = None
+    self.__new_bindings = yaml_util.load_new_bindings(
+      self.__new_config_dir, only_if_local=True)
 
-    yml_path = os.path.join(os.environ.get('HOME', '/root'),
-                            '.spinnaker/spinnaker-local.yml')
-    if os.path.exists(yml_path):
-      self.__new_bindings = YamlBindings()
-      self.__new_bindings.import_path(
-          os.path.join(self.__new_config_dir, 'spinnaker.yml'))
-      self.__new_bindings.import_path(yml_path)
-    else:
+    if not self.__new_bindings:
       self.__old_bindings = configure_util.ConfigureUtil(
           self.__installation).load_bindings()
 
@@ -349,7 +347,7 @@ class Runner(object):
     path = os.path.join(self.__installation.CONFIG_DIR,
                         subsystem + '-local.yml')
     if os.path.exists(path):
-       bindings = YamlBindings()
+       bindings = yaml_util.YamlBindings()
        bindings.import_dict(self.__new_bindings.map)
        bindings.import_path(path)
     else:

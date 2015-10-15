@@ -113,6 +113,8 @@ services:
 providers:
   google:
     enabled: false
+    defaultRegion: us-central1
+    defaultZone: us-central1-f
     primaryCredentials:
       name: my-account
       project: 
@@ -125,6 +127,9 @@ providers:
   aws:
     enabled: false
     simpleDBEnabled: false
+    defaultRegion: us-east-1
     defaultSimpleDBDomain: CLOUD_APPLICATIONS
-    # aws_access_key:
-    # aws_secret_key: 
+    primaryCredentials:
+      name: my-account
+      aws_access_key:
+      aws_secret_key: 
