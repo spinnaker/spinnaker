@@ -25,12 +25,6 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
         zone: defaultZone,
         network: 'default',
         strategy: '',
-        resources: {
-          cpu: 1,
-          memory: 1000,
-          disk: 1000,
-          ports: 7001,
-        },
         capacity: {
           min: 0,
           max: 0,
