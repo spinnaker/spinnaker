@@ -35,11 +35,13 @@ module.exports = angular
           application.reloadTasks();
           application.reloadExecutions();
           return getApplication(application.name).then(function (newApplication) {
-            deepCopyApplication(application, newApplication);
-            application.autoRefreshHandlers.forEach((handler) => handler.call());
-            application.oneTimeRefreshHandlers.forEach((handler) => handler.call());
-            application.oneTimeRefreshHandlers = [];
-            newApplication = null;
+            if (newApplication) {
+              deepCopyApplication(application, newApplication);
+              application.autoRefreshHandlers.forEach((handler) => handler.call());
+              application.oneTimeRefreshHandlers.forEach((handler) => handler.call());
+              application.oneTimeRefreshHandlers = [];
+              newApplication = null;
+            }
             application.refreshing = false;
           });
         }
