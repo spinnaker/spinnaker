@@ -86,8 +86,9 @@ module.exports = angular.module('spinnaker.core.orchestratedItem.transformer', [
           return 'RUNNING';
         case 'FAILED':
         case 'TERMINAL':
-        case 'STOPPED':
           return 'FAILED';
+        case 'STOPPED':
+          return 'STOPPED';
         case 'SUSPENDED':
         case 'DISABLED':
           return 'SUSPENDED';
