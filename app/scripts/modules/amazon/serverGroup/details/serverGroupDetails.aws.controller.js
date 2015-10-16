@@ -121,11 +121,19 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
           applyAutoScalingProcesses();
 
         } else {
-          $state.go('^', null, {location: 'replace'});
+          autoClose();
         }
       },
-        () => $state.go('^', null, {location: 'replace'})
+        autoClose
       );
+    }
+
+    function autoClose() {
+      if ($scope.$$destroyed) {
+        return;
+      }
+      $state.params.allowModalToStayOpen = true;
+      $state.go('^', null, {location: 'replace'});
     }
 
     function cancelLoader() {

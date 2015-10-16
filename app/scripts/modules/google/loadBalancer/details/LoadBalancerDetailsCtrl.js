@@ -49,13 +49,21 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
               'https://console.developers.google.com/project/' + accountDetails.projectName + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + $scope.loadBalancer.name;
           });
         },
-          () => $state.go('^', null, {location: 'replace'})
+          autoClose
         );
       }
       if (!$scope.loadBalancer) {
-        $state.go('^', null, {location: 'replace'});
+        autoClose();
       }
       return $q.when(null);
+    }
+
+    function autoClose() {
+      if ($scope.$$destroyed) {
+        return;
+      }
+      $state.params.allowModalToStayOpen = true;
+      $state.go('^', null, {location: 'replace'});
     }
 
     extractLoadBalancer().then(() => application.registerAutoRefreshHandler(extractLoadBalancer, $scope));

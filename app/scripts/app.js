@@ -150,7 +150,9 @@ module.exports = angular.module('spinnaker', [
 
     $rootScope.$state = $state;
     $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
-      $modalStack.dismissAll();
+      if (!fromParams.allowModalToStayOpen) {
+        $modalStack.dismissAll();
+      }
       $log.debug(event.name, {
         event: event,
         toState: toState,

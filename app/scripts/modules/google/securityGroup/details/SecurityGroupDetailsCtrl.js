@@ -104,6 +104,10 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
     }
 
     function fourOhFour() {
+      if ($scope.$$destroyed) {
+        return;
+      }
+      $state.params.allowModalToStayOpen = true;
       $state.go('^', null, {location: 'replace'});
     }
 

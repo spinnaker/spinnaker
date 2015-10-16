@@ -56,21 +56,27 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
             $scope.securityGroups = _.sortBy(securityGroups, 'name');
           }
         },
-          () => $state.go('^', null, {location: 'replace'})
+          autoClose
         );
       }
       if (!$scope.loadBalancer) {
-        $state.go('^', null, {location: 'replace'});
+        autoClose();
       }
 
       return $q.when(null);
     }
 
+    function autoClose() {
+      if ($scope.$$destroyed) {
+        return;
+      }
+      $state.params.allowModalToStayOpen = true;
+      $state.go('^', null, {location: 'replace'});
+    }
+
     extractLoadBalancer();
 
     app.registerAutoRefreshHandler(extractLoadBalancer, $scope);
-
-    //BEN_TODO
 
     this.editLoadBalancer = function editLoadBalancer() {
       $modal.open({
