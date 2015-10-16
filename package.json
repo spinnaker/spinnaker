@@ -15,7 +15,7 @@
     "angular-messages": "^1.4.5",
     "angular-sanitize": "^1.4.1",
     "angular-spinner": "^0.5.1",
-    "angular-ui-bootstrap": "0.13.4",
+    "angular-ui-bootstrap": "0.14.2",
     "angular-ui-router": "=0.2.13",
     "angular-ui-select2": "0.0.5",
     "angular-ui-sortable": "^0.13.4",
