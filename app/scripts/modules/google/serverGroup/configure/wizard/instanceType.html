@@ -3,10 +3,6 @@
     <instance-type-selector command="command"></instance-type-selector>
   </div>
   <div class="modal-footer">
-    <platform-health-override ng-if="application.attributes.platformHealthOnlyShowOverride && ctrl.showSubmitButton()"
-                              command="command"
-                              platform-health-type="'GCE'">
-    </platform-health-override>
     <button class="btn btn-default pull-left"
             ng-click="wizard.previousPage(form.$valid)">
       <span class="glyphicon glyphicon-chevron-left"></span> Back

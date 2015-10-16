@@ -4,10 +4,6 @@
   </div>
 
   <div class="modal-footer">
-    <platform-health-override ng-if="application.attributes.platformHealthOnlyShowOverride && ctrl.showSubmitButton()"
-                              command="command"
-                              platform-health-type="'GCE'">
-    </platform-health-override>
     <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
     <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="form.$invalid || !ctrl.isValid() || taskMonitor.submitting"
                    label="command.viewState.submitButtonLabel"

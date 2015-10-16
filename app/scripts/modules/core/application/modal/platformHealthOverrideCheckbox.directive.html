@@ -1,13 +1,12 @@
-<div class="form-group row">
-  <div class="col-sm-8 {{divOffset}}">
-    <div class="checkbox">
-      <label>
-        <input type="checkbox"
-               init-platform-health
-               ng-click="clicked($event)">
-        </input>
-        <strong>Consider only platform health</strong>
-      </label>
-    </div>
+<div class="form-group">
+  <label ng-if="labelText" class="col-md-{{labelColumns}} {{labelOffset}} sm-label-left">{{labelText}}</label>
+  <div class="col-md-6 checkbox">
+    <label>
+      <input type="checkbox"
+             init-platform-health
+             ng-click="clicked($event)"/>
+      Consider only platform health
+      <help-field key="application.platformHealthOnly"></help-field>
+    </label>
   </div>
 </div>
