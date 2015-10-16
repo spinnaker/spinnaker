@@ -39,13 +39,15 @@ class ManualJudgmentStageSpec extends Specification {
     result.stageOutputs.isEmpty()
 
     where:
-    context                      || expectedStatus
-    [:]                          || ExecutionStatus.RUNNING
-    [judgmentStatus: "continue"] || ExecutionStatus.SUCCEEDED
-    [judgmentStatus: "Continue"] || ExecutionStatus.SUCCEEDED
-    [judgmentStatus: "stop"]     || ExecutionStatus.TERMINAL
-    [judgmentStatus: "STOP"]     || ExecutionStatus.TERMINAL
-    [judgmentStatus: "unknown"]  || ExecutionStatus.RUNNING
+    context                                                    || expectedStatus
+    [:]                                                        || ExecutionStatus.RUNNING
+    [judgmentStatus: "continue"]                               || ExecutionStatus.SUCCEEDED
+    [judgmentStatus: "Continue"]                               || ExecutionStatus.SUCCEEDED
+    [judgmentStatus: "stop"]                                   || ExecutionStatus.TERMINAL
+    [judgmentStatus: "STOP"]                                   || ExecutionStatus.TERMINAL
+    [judgmentStatus: "unknown"]                                || ExecutionStatus.RUNNING
+    [judgmentStatus: "STOP", failPipeline: true]    || ExecutionStatus.TERMINAL
+    [judgmentStatus: "STOP", failPipeline: false]   || ExecutionStatus.STOPPED
   }
 
   void "should only send notifications for supported types"() {

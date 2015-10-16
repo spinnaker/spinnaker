@@ -109,7 +109,7 @@ class TaskTaskletSpec extends Specification {
     then:
     0 * task.execute(_)
     chunkContext.stepContext.stepExecution.terminateOnly == taskStatus.halt
-    chunkContext.stepContext.stepExecution.exitStatus == (taskStatus.halt ? ExitStatus.FAILED : ExitStatus.EXECUTING)
+    chunkContext.stepContext.stepExecution.exitStatus == (taskStatus.halt ? taskStatus.exitStatus : ExitStatus.EXECUTING)
 
     where:
     taskStatus << ExecutionStatus.values().findAll { it.complete }

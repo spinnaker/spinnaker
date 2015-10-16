@@ -76,7 +76,7 @@ class TaskTasklet implements Tasklet {
         chunkContext.stepContext.stepExecution.executionContext.put("orcaTaskStatus", task.status)
 
         if (task.status.halt) {
-          setStopStatus(chunkContext, ExitStatus.FAILED, task.status)
+          setStopStatus(chunkContext, task.status.exitStatus, task.status)
         }
 
         return RepeatStatus.FINISHED

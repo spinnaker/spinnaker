@@ -25,16 +25,20 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
 @CompileStatic
 abstract class Execution<T> implements Serializable {
+  Integer version
   String id
   Integer version
   String application
-  final Map<String, Object> appConfig = [:]
-  List<Stage<T>> stages = []
+  String executingInstance
+
+  Long buildTime
+
   boolean canceled
   boolean parallel
   boolean limitConcurrent = false
-  Long buildTime
-  String executingInstance
+
+  final Map<String, Object> appConfig = [:]
+  List<Stage<T>> stages = []
 
   Long executionStartTime
   Long executionEndTime
@@ -90,6 +94,11 @@ abstract class Execution<T> implements Serializable {
 
     if (canceled) {
       return CANCELED
+    }
+
+    def currentVersion = version ?: 1
+    if (currentVersion > 1) {
+      return executionStatus
     }
 
     if (stages.status.any { it == TERMINAL }) {
