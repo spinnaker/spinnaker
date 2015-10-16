@@ -22,8 +22,8 @@
         <tbody>
         <tr ng-repeat="cluster in stage.clusters">
           <td if-multiple-providers>
-            <span class="icon icon-server-group icon-{{cluster.providerType || 'aws'}}"></span>
-            {{cluster.providerType || 'aws'}}
+            <span class="icon icon-server-group icon-{{cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws'}}"></span>
+            {{cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws' }}
           </td>
           <td>
             <account-tag account="cluster.account"></account-tag>
