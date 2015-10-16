@@ -74,7 +74,10 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
 
     controller.getSummarySourceUrl = function() {
       if ($stateParams.stage !== undefined) {
-        var stageSummary = $scope.execution.stageSummaries[getCurrentStage()];
+        let currentStage = getCurrentStage();
+        let stageSummary = $scope.execution.stageSummaries.length > currentStage ?
+          $scope.execution.stageSummaries[currentStage] :
+          null;
         if (stageSummary) {
           $scope.stageSummary = stageSummary;
           $scope.stage = stageSummary.stages[0];

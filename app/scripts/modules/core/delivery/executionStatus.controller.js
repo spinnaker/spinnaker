@@ -9,7 +9,8 @@ module.exports = angular.module('spinnaker.core.delivery.executionStatus.control
     var controller = this;
 
     controller.getFailedStage = function(execution) {
-      var failed = execution.stageSummaries.filter(function(stage) {
+      let stages = execution.stageSummaries || [];
+      var failed = stages.filter(function(stage) {
         return stage.isFailed;
       });
       if (failed && failed.length) {

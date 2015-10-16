@@ -8,8 +8,10 @@ module.exports = angular.module('spinnaker.core.delivery.executionBar.controller
 ])
   .controller('executionBar', function($scope, $filter, $stateParams, pipelineConfig, $state) {
     function updateDetails(params) {
-      var param = params.stage ? parseInt(params.stage) : 0;
-      $scope.execution.stageSummaries.forEach(function(stage) {
+      let param = params.stage ? parseInt(params.stage) : 0,
+          summaries = $scope.execution.stageSummaries || [];
+
+      summaries.forEach(function(stage) {
         stage.showingDetails = $scope.execution.id === params.executionId && $scope.execution.stageSummaries.indexOf(stage) === param;
       });
     }
