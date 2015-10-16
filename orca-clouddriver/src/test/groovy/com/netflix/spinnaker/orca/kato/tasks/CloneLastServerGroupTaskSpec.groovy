@@ -26,8 +26,8 @@ import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 
-class CreateCopyLastAsgTaskSpec extends Specification {
-  @Subject task = new CreateCopyLastAsgTask()
+class CloneLastServerGroupTaskSpec extends Specification {
+  @Subject task = new CloneLastServerGroupTask()
   def stage = new PipelineStage(new Pipeline(), "copyLastAsg")
   def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
@@ -52,8 +52,8 @@ class CreateCopyLastAsgTaskSpec extends Specification {
     given:
     def operations
     task.kato = Mock(KatoService) {
-      1 * requestOperations(*_) >> {
-        operations = it[0]
+      1 * requestOperations(_, _) >> {
+        operations = it[1]
         Observable.from(taskId)
       }
     }
@@ -63,10 +63,10 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
     then:
     operations.size() == 3
-    operations[2].copyLastAsgDescription.amiName == null
-    operations[2].copyLastAsgDescription.application == "hodor"
-    operations[2].copyLastAsgDescription.availabilityZones == ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]]
-    operations[2].copyLastAsgDescription.credentials == "fzlem"
+    operations[2].cloneServerGroup.amiName == null
+    operations[2].cloneServerGroup.application == "hodor"
+    operations[2].cloneServerGroup.availabilityZones == ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]]
+    operations[2].cloneServerGroup.credentials == "fzlem"
   }
 
   def "can include optional parameters"() {
@@ -76,8 +76,8 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
     def operations
     task.kato = Mock(KatoService) {
-      1 * requestOperations(*_) >> {
-        operations = it[0]
+      1 * requestOperations(_, _) >> {
+        operations = it[1]
         Observable.from(taskId)
       }
     }
@@ -87,7 +87,7 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
     then:
     operations.size() == 3
-    with(operations[2].copyLastAsgDescription) {
+    with(operations[2].cloneServerGroup) {
       amiName == null
       application == "hodor"
       availabilityZones == ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]]
@@ -105,8 +105,8 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
     def operations
     task.kato = Mock(KatoService) {
-      1 * requestOperations(*_) >> {
-        operations = it[0]
+      1 * requestOperations(_, _) >> {
+        operations = it[1]
         Observable.from(taskId)
       }
     }
@@ -116,7 +116,7 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
     then:
     operations.size() == 3
-    with(operations[2].copyLastAsgDescription) {
+    with(operations[2].cloneServerGroup) {
       amiName == "ami-696969"
       application == "hodor"
       availabilityZones == ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]]
@@ -133,8 +133,8 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
     def operations
     task.kato = Mock(KatoService) {
-      1 * requestOperations(*_) >> {
-        operations = it[0]
+      1 * requestOperations(_, _) >> {
+        operations = it[1]
         Observable.from(taskId)
       }
     }
@@ -144,7 +144,7 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
     then:
     operations.size() == 3
-    with(operations[2].copyLastAsgDescription) {
+    with(operations[2].cloneServerGroup) {
       amiName == amiName
       application == "hodor"
       availabilityZones == ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]]
@@ -162,8 +162,8 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
     def operations
     task.kato = Mock(KatoService) {
-      1 * requestOperations(*_) >> {
-        operations = it[0]
+      1 * requestOperations(_, _) >> {
+        operations = it[1]
         Observable.from(taskId)
       }
     }
@@ -177,7 +177,7 @@ class CreateCopyLastAsgTaskSpec extends Specification {
     operations[0].allowLaunchDescription.region == "us-east-1"
     operations[1].allowLaunchDescription.amiName == amiName
     operations[1].allowLaunchDescription.region == "us-west-1"
-    operations[2].copyLastAsgDescription.amiName == amiName
+    operations[2].cloneServerGroup.amiName == amiName
 
     where:
     amiName = "ami-soixante-neuf"

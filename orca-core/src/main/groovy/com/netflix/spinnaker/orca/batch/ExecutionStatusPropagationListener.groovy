@@ -36,8 +36,8 @@ class ExecutionStatusPropagationListener extends JobExecutionListenerSupport {
   @Override
   void afterJob(JobExecution jobExecution) {
     def stepExecutions = new ArrayList<StepExecution>(jobExecution.stepExecutions).sort { it.lastUpdated }.reverse()
-    def stepExecution = stepExecutions.find { it.status == jobExecution.status }
-    def orcaTaskStatus = stepExecution ? stepExecution.executionContext.get("orcaTaskStatus") as ExecutionStatus : ExecutionStatus.TERMINAL
+    def stepExecution = stepExecutions.find { it.status == jobExecution.status } ?: stepExecutions[0]
+    def orcaTaskStatus = stepExecution?.executionContext?.get("orcaTaskStatus") as ExecutionStatus ?: ExecutionStatus.TERMINAL
 
     def execution = fetchExecution(executionRepository, jobExecution)
     execution.executionStatus = orcaTaskStatus
@@ -57,9 +57,9 @@ class ExecutionStatusPropagationListener extends JobExecutionListenerSupport {
 
   private static Execution fetchExecution(ExecutionRepository executionRepository, JobExecution jobExecution) {
     if (jobExecution.jobParameters.getString("pipeline")) {
-      return executionRepository.retrievePipeline(jobExecution.jobParameters.getString("pipeline"))
+      return executionRepository.retrievePipeline(jobExecution.jobParameters.getString("pipeline"), false)
     }
 
-    return executionRepository.retrieveOrchestration(jobExecution.jobParameters.getString("orchestration"))
+    return executionRepository.retrieveOrchestration(jobExecution.jobParameters.getString("orchestration"), false)
   }
 }

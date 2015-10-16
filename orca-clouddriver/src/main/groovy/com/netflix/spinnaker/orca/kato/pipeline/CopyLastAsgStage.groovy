@@ -15,55 +15,19 @@
  */
 
 package com.netflix.spinnaker.orca.kato.pipeline
-import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForUpInstancesTask
-import com.netflix.spinnaker.orca.kato.pipeline.strategy.DeployStrategyStage
-import com.netflix.spinnaker.orca.kato.tasks.CreateCopyLastAsgTask
-import com.netflix.spinnaker.orca.kato.tasks.DiffTask
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.CloneLastServerGroupStage
 import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class CopyLastAsgStage extends DeployStrategyStage {
+@Deprecated
+class CopyLastAsgStage extends CloneLastServerGroupStage {
 
   public static final String PIPELINE_CONFIG_TYPE = "copyLastAsg"
-
-  @Autowired(required = false)
-  List<DiffTask> diffTasks
 
   CopyLastAsgStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
-  @Override
-  List<Step> basicSteps(Stage stage) {
-    def steps = []
-
-    steps << buildStep(stage, "createCopyLastAsg", CreateCopyLastAsgTask)
-    steps << buildStep(stage, "monitorDeploy", MonitorKatoTask)
-    steps << buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    steps << buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask)
-    steps << buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-
-    if (diffTasks) {
-      diffTasks.each { DiffTask diffTask ->
-        steps << buildStep(stage, getDiffTaskName(diffTask.class.simpleName), diffTask.class)
-      }
-    }
-
-    return steps
-  }
-
-  private String getDiffTaskName(String className) {
-    try {
-      className = className[0].toLowerCase() + className.substring(1)
-      className = className.replaceAll("Task", "")
-    } catch (e) {}
-    return className
-  }
 }

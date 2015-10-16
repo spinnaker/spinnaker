@@ -156,17 +156,7 @@ class OrcaConfiguration {
 
   @Bean
   ExecutionStatusPropagationListener pipelineStatusPropagationListener(ExecutionRepository executionRepository) {
-    new ExecutionStatusPropagationListener(executionRepository) {
-      @Override
-      void beforeJob(JobExecution jobExecution) {
-        // do nothing, temporarily disabled
-      }
-
-      @Override
-      void afterJob(JobExecution jobExecution) {
-        // do nothing, temporarily disabled
-      }
-    }
+    new ExecutionStatusPropagationListener(executionRepository)
   }
 
   @Bean
