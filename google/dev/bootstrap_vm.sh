@@ -54,11 +54,21 @@
 
 
 function prompt_YN() {
-  msg=$1
+  def=$1
+  msg=$2
+  if [[ "$def" == "Y" ]]; then
+      local choice="Y/n"
+  else
+      local choice="y/N"
+  fi
+
   while true; do
       got=""
-      read -p "$msg [Y/n]: " got
-      if [[ "$got" == "" || "$got" == "y" || "$got" == "Y" ]]; then
+      read -p "$msg [$choice]: " got
+      if [[ "$got" == "" ]]; then
+          got=$def
+      fi
+      if [[ "$got" == "y" || "$got" == "Y" ]]; then
         return 0
       fi
       if [[ "$got" == "n" || "$got" == "N" ]]; then
@@ -100,7 +110,7 @@ https://$GITHUB_USER:$ACCESS_TOKEN@github.com
 EOF
     chmod 600 ~/.git-credentials
 
-    if prompt_YN "Cache git credentials?"; then
+    if prompt_YN "Y" "Cache git credentials?"; then
       git config --global credential.helper store
     fi
   fi
@@ -129,7 +139,8 @@ EOF
 }
 
 have_packer=$(which packer)
-if [[ ! $have_packer ]] && prompt_YN "Install packer (to build images)?"; then
+if [[ ! $have_packer ]] \
+    && prompt_YN "N" "Install packer (to build images)?"; then
   echo "Getting packer"
   url=https://dl.bintray.com/mitchellh/packer/packer_0.8.6_linux_amd64.zip
   pushd $HOME
@@ -143,14 +154,14 @@ if [[ ! $have_packer ]] && prompt_YN "Install packer (to build images)?"; then
   popd
 
   export PATH=$PATH:$HOME/packer
-  if prompt_YN "Update .bash_profile to add $HOME/packer to your PATH?"; then
+  if prompt_YN "Y" "Update .bash_profile to add $HOME/packer to your PATH?"; then
      echo "PATH=\$PATH:\$HOME/packer" >> $HOME/.bash_profile
   fi
 fi
 
 prepare_git
 
-if prompt_YN "Install (or update) Google Cloud Platform SDK?"; then
+if prompt_YN "Y" "Install (or update) Google Cloud Platform SDK?"; then
    # Download gcloud to ensure it is a recent version.
    # Note that this is in this script because the gcloud install method isn't
    # system-wide. The awscli is installed in the install_development.py script.
