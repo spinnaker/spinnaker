@@ -59,13 +59,13 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
     }
     $scope.$watch('query', function(query) {
       if (query && query.length < $scope.viewState.minCharactersToSearch) {
-        $scope.categories = null;
+        $scope.categories = [];
         $scope.viewState.searching = false;
         updateLocation();
         return;
       }
       $scope.viewState.searching = true;
-      $scope.categories = null;
+      $scope.categories = [];
       search.query(query).then(function(result) {
         $scope.categories = result.filter((category) => category.category !== 'Projects' && category.results.length);
         $scope.projects = result.filter((category) => category.category === 'Projects');
@@ -132,20 +132,22 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
       }
     ];
 
-    this.hasResults = () => angular.isObject($scope.categories) && Object.keys($scope.categories).length > 0 && $scope.query && $scope.query.length > 0;
+    this.hasResults = () => angular.isObject($scope.categories) && $scope.categories.length > 0 && $scope.query && $scope.query.length > 0;
 
-    this.noMatches = () => angular.isObject($scope.categories) && Object.keys($scope.categories).length === 0 && $scope.query && $scope.query.length > 0;
+    this.noMatches = () => angular.isObject($scope.categories) && $scope.categories.length === 0 && $scope.query && $scope.query.length > 0;
 
     this.showRecentResults = () => this.hasRecentItems && !$scope.viewState.searching && $scope.categories.every((category) => !category.results.length);
 
     this.removeRecentItem = (category, id, index) => {
       recentHistoryService.removeItem(category, id);
       $scope.recentItems.find((test) => test.category === category).results.splice(index, 1);
+      this.loadRecentItems();
     };
 
     this.removeRecentProject = (id, index) => {
       recentHistoryService.removeItem('projects', id);
       $scope.recentProjects.splice(index, 1);
+      this.loadRecentItems();
     };
 
     this.loadRecentItems();
