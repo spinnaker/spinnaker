@@ -57,7 +57,7 @@ class ClusterController {
 
   @RequestMapping(value = "/{account:.+}")
   Set<ClusterViewModel> getForAccount(@PathVariable String application, @PathVariable String account) {
-    def clusters = (Set<ClusterViewModel>) clusterProviders.collect {
+    def clusters = clusterProviders.collect {
       def clusters = (Set<Cluster>) it.getClusters(application, account)
       def clusterViews = []
       for (cluster in clusters) {
@@ -68,7 +68,7 @@ class ClusterController {
         })
       }
       clusterViews
-    }?.flatten() as Set
+    }?.flatten() as Set<ClusterViewModel>
     if (!clusters) {
       throw new AccountClustersNotFoundException(application: application, account: account)
     }
@@ -136,12 +136,15 @@ class ClusterController {
    * @return A dynamically determined server group using a {@code TargetServerGroup} specifier.
    */
   @RequestMapping(value = "/{account:.+}/{clusterName:.+}/{cloudProvider}/{scope}/serverGroups/target/{target:.+}", method = RequestMethod.GET)
-  ServerGroup getTargetServerGroup(@PathVariable String application,
-                                   @PathVariable String account,
-                                   @PathVariable String clusterName,
-                                   @PathVariable String cloudProvider,
-                                   @PathVariable String scope,
-                                   @PathVariable String target) {
+  ServerGroup getTargetServerGroup(
+      @PathVariable String application,
+      @PathVariable String account,
+      @PathVariable String clusterName,
+      @PathVariable String cloudProvider,
+      @PathVariable String scope,
+      @PathVariable String target,
+      @RequestParam(value = "onlyEnabled", required = false, defaultValue = "false") String onlyEnabled,
+      @RequestParam(value = "validateOldest", required = false, defaultValue = "true") String validateOldest) {
     TargetServerGroup tsg
     try {
       tsg = TargetServerGroup.fromString(target)
@@ -149,8 +152,18 @@ class ClusterController {
       throw new TargetNotFoundException(target: target)
     }
 
+
     def sortedServerGroups = getServerGroups(application, account, clusterName, cloudProvider, null /* region */).findAll {
-      it.region == scope || it.zones.contains(scope)
+      def scopeMatch = it.region == scope || it.zones.contains(scope)
+
+      def enableMatch
+      if (Boolean.valueOf(onlyEnabled)) {
+        enableMatch = !it.isDisabled()
+      } else {
+        enableMatch = true
+      }
+
+      return scopeMatch && enableMatch
     }.sort { a, b -> b.createdTime <=> a.createdTime }
 
     if (!sortedServerGroups) {
@@ -161,17 +174,52 @@ class ClusterController {
       case TargetServerGroup.CURRENT:
         return sortedServerGroups.get(0)
       case TargetServerGroup.PREVIOUS:
-        // At least two expected
         if (sortedServerGroups.size() == 1) {
           throw new TargetNotFoundException(target: target)
         }
         return sortedServerGroups.get(1)
       case TargetServerGroup.OLDEST:
-        // At least two expected
-        if (sortedServerGroups.size() == 1) {
+        // At least two expected, but some cases just want the oldest no matter what.
+        if (Boolean.valueOf(validateOldest) && sortedServerGroups.size() == 1) {
           throw new TargetNotFoundException(target: target)
         }
         return sortedServerGroups.last()
+      case TargetServerGroup.LARGEST:
+        // Choose the server group with the most instances, falling back to newest in the case of a tie
+        return sortedServerGroups.sort { lhs, rhs ->
+          rhs.instances.size() <=> lhs.instances.size() ?:
+              rhs.createdTime <=> lhs.createdTime
+        }.get(0)
+      case TargetServerGroup.FAIL:
+        if (sortedServerGroups.size() > 1) {
+          throw new TargetFailException(scope: scope, serverGroupNames: sortedServerGroups.name)
+        }
+        return sortedServerGroups.get(0)
+    }
+  }
+
+  @RequestMapping(value = "/{account:.+}/{clusterName:.+}/{cloudProvider}/{scope}/serverGroups/target/{target:.+}/{summaryType:.+}", method = RequestMethod.GET)
+  Summary getServerGroupSummary(
+      @PathVariable String application,
+      @PathVariable String account,
+      @PathVariable String clusterName,
+      @PathVariable String cloudProvider,
+      @PathVariable String scope,
+      @PathVariable String target,
+      @PathVariable String summaryType,
+      @RequestParam(value = "onlyEnabled", required = false, defaultValue = "false") String onlyEnabled) {
+    ServerGroup sg = getTargetServerGroup(application,
+        account,
+        clusterName,
+        cloudProvider,
+        scope,
+        target,
+        onlyEnabled,
+        "false" /* validateOldest */)
+    try {
+      return (Summary) sg.invokeMethod("get${summaryType.capitalize()}Summary".toString(), null /* args */)
+    } catch (MissingMethodException e) {
+      throw new SummaryNotFoundException(summaryType: summaryType)
     }
   }
 
@@ -203,6 +251,20 @@ class ClusterController {
     [error: "target.not.found", message: message, status: HttpStatus.NOT_FOUND]
   }
 
+  @ExceptionHandler
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  Map handleTargetFailException(TargetFailException ex) {
+    def message = messageSource.getMessage("target.fail.strategy", [ex.scope, ex.serverGroupNames.join(",")] as String[], "target.fail.strategy", LocaleContextHolder.locale)
+    [error: "target.fail.strategy", message: message, status: HttpStatus.NOT_FOUND]
+  }
+
+  @ExceptionHandler
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  Map handleSummaryNotFoundException(SummaryNotFoundException ex) {
+    def message = messageSource.getMessage("summary.not.found", [ex.summaryType] as String[], "summary.not.found", LocaleContextHolder.locale)
+    [error: "summary.not.found", message: message, status: HttpStatus.NOT_FOUND]
+  }
+
   static class AccountClustersNotFoundException extends RuntimeException {
     String application
     String account
@@ -218,6 +280,15 @@ class ClusterController {
 
   static class TargetNotFoundException extends RuntimeException {
     String target
+  }
+
+  static class TargetFailException extends RuntimeException {
+    String scope
+    List<String> serverGroupNames
+  }
+
+  static class SummaryNotFoundException extends RuntimeException {
+    String summaryType
   }
 
   @Canonical

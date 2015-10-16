@@ -101,6 +101,26 @@ class CloudFoundryServerGroup implements ServerGroup, Serializable {
     return null
   }
 
+  @Override
+  ServerGroup.ImageSummary getImageSummary() {
+    // TODO(gturnquist): Implement
+    return new ServerGroup.ImageSummary() {
+      String serverGroupName = name
+      String imageName
+      String imageId
+
+      @Override
+      Map<String, Object> getBuildInfo() {
+        return null
+      }
+
+      @Override
+      Map<String, Object> getImage() {
+        return null
+      }
+    }
+  }
+
   static Collection<Instance> filterInstancesByHealthState(Set<CloudFoundryApplicationInstance> instances,
                                                            HealthState healthState) {
     instances.findAll { CloudFoundryApplicationInstance it -> it.getHealthState() == healthState }

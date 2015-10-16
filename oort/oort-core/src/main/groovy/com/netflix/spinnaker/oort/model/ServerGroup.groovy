@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.oort.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.netflix.spinnaker.oort.documentation.Empty
 
 /**
@@ -113,6 +115,13 @@ interface ServerGroup {
    */
   Capacity getCapacity()
 
+  /**
+   * An ImageSummary is collection of data related to the build and VM image of the server group. This is merely a view
+   * of data from others parts of this object.
+   */
+  @JsonIgnore
+  ImageSummary getImageSummary()
+
   static class InstanceCounts {
     /**
      * Total number of instances in the server group
@@ -162,5 +171,20 @@ interface ServerGroup {
      * Desired number of instances required in this server group
      */
     Integer desired
+  }
+
+  /**
+   * Cloud provider-specific data related to the build and VM image of the server group.
+   */
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  interface ImageSummary extends Summary {
+    String getServerGroupName()
+    String getImageId()
+    String getImageName()
+
+    Map<String, Object> getImage()
+
+    @Empty
+    Map<String, Object> getBuildInfo()
   }
 }

@@ -108,6 +108,28 @@ class TitanServerGroup implements ServerGroup, Serializable {
       outOfService: filterInstancesByHealthState(instances, HealthState.OutOfService)?.size() ?: 0)
   }
 
+  @Override
+  ServerGroup.ImageSummary getImageSummary() {
+    def i = image
+    return new ServerGroup.ImageSummary() {
+      String serverGroupName = name
+      // TODO(sthadeshwar): Give these values
+      String imageName
+      String imageId
+
+      @Override
+      Map<String, Object> getBuildInfo() {
+        // TODO(sthadeshwar): Where to get build info?
+        return null
+      }
+
+      @Override
+      Map<String, Object> getImage() {
+        return i
+      }
+    }
+  }
+
   static Set filterInstancesByHealthState(Set instances, HealthState healthState) {
     instances.findAll { Instance it -> it.getHealthState() == healthState }
   }
