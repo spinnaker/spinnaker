@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
   require('../../../core/naming/naming.service.js'),
   require('../../../core/utils/lodash.js'),
 ])
-  .factory('titanServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q,
+  .factory('titanServerGroupCommandBuilder', function (settings, Restangular, $q,
                                                      accountService, namingService, _) {
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};

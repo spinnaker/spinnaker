@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.core.tasks.api', [
   require('../navigation/urlBuilder.service.js'),
   require('../orchestratedItem/orchestratedItem.transformer.js')
 ])
-  .factory('tasksApi', function(settings, Restangular, urlBuilderService, $timeout, $q, kato, $exceptionHandler, orchestratedItemTransformer) {
+  .factory('tasksApi', function(settings, Restangular, urlBuilderService, $timeout, $q, kato, $log, orchestratedItemTransformer) {
 
     function getKatoTasks(task) {
       return task.getValueFor('kato.tasks');
@@ -33,7 +33,7 @@ module.exports = angular.module('spinnaker.core.tasks.api', [
 
       task.updateKatoTask = function(katoTask) {
         if (!katoTask) {
-          $exceptionHandler('Error - no kato task found:', task.plain());
+          $log.error('Error - no kato task found:', task.plain());
           return;
         }
         var katoTasks = task.getValueFor('kato.tasks');

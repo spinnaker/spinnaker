@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
-  .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, app, InsightFilterStateModel,
+  .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $modal, loadBalancer, app, InsightFilterStateModel,
                                                       _, confirmationModalService, accountService, loadBalancerWriter, loadBalancerReader, $q) {
 
     let application = app;

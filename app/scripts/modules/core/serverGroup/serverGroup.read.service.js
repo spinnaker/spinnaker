@@ -6,7 +6,7 @@ module.exports = angular
   .module('spinnaker.core.serverGroup.read.service', [
     require('exports?"restangular"!imports?_=lodash!restangular'),
   ])
-  .factory('serverGroupReader', function (Restangular, $exceptionHandler) {
+  .factory('serverGroupReader', function (Restangular, $log) {
 
     function getServerGroup(application, account, region, serverGroupName) {
       return Restangular.one('applications', application).all('serverGroups').all(account).all(region).one(serverGroupName).get();
@@ -24,7 +24,7 @@ module.exports = angular
           return activities;
         },
         function(error) {
-          $exceptionHandler(error, 'error retrieving scaling activities');
+          $log.error(error, 'error retrieving scaling activities');
           return [];
         });
     }

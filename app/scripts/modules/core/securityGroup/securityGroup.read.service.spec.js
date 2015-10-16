@@ -5,7 +5,6 @@ describe('Service: securityGroupReader', function () {
   var securityGroupReader,
     infrastructureCaches,
     $http,
-    $exceptionHandler,
     $scope;
 
   beforeEach(
@@ -16,11 +15,10 @@ describe('Service: securityGroupReader', function () {
 
   beforeEach(
     window.inject(function (_securityGroupReader_, _infrastructureCaches_, $httpBackend,
-                            _$exceptionHandler_, $rootScope, $q, securityGroupTransformer, _serviceDelegate_) {
+                            $rootScope, $q, securityGroupTransformer, _serviceDelegate_) {
       securityGroupReader = _securityGroupReader_;
       infrastructureCaches = _infrastructureCaches_;
       $http = $httpBackend;
-      $exceptionHandler = _$exceptionHandler_;
       $scope = $rootScope.$new();
       spyOn(securityGroupTransformer, 'normalizeSecurityGroup').and.callFake((securityGroup) => {
         return $q.when(securityGroup);
