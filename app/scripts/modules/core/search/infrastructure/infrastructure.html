@@ -12,19 +12,14 @@
       </div>
     </div>
     <div class="row">
-      <div class="col-md-12 no-padding">
-        <h4>You may search for Projects, Applications, Clusters, Load Balancers, Security Groups, and Server Groups.</h4>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-4 col-sm-12 no-padding">
+      <div class="col-md-7 col-sm-12 no-padding">
         <form class="form form-horizontal">
           <div class="form-group">
             <div class="col-md-12">
               <div class="input-group">
               <input type="search"
                      class="form-control input-lg"
-                     placeholder="Search infrastructure"
+                     placeholder="Search for: projects, applications, clusters, load balancers, server groups, security groups"
                      autofocus
                      ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
                      ng-model="query">
@@ -36,7 +31,7 @@
           </div>
         </form>
       </div>
-      <div class="col-md-8 col-sm-12" ng-if="query && query.length && query.length < viewState.minCharactersToSearch">
+      <div class="col-md-5 col-sm-12" ng-if="query && query.length && query.length < viewState.minCharactersToSearch">
         <p style="margin: 10px 20px 0">Please enter at least {{viewState.minCharactersToSearch}} characters to begin searching.</p>
       </div>
     </div>
@@ -67,7 +62,7 @@
           </div>
         </div>
       </div>
-      <div class="col-md-9">
+      <div class="col-md-{{projects.length ? 9 : 12}}">
         <div class="row">
           <div class="col-md-12">
             <h3>Infrastructure matching "{{query}}"</h3>
@@ -120,9 +115,9 @@
           </div>
         </div>
       </div>
-      <div class="col-md-9">
+      <div class="col-md-{{recentProjects.length ? 9 : 12}}">
         <div class="row">
-          <div class="col-md-4 category-container" ng-repeat="category in recentItems | orderBy:'category'">
+          <div class="col-md-{{recentProjects.length ? 4 : 3}} category-container" ng-repeat="category in recentItems | orderBy:'category'">
             <div class="panel category row">
               <div class="summary">{{ category.category | robotToHuman }} ({{category.results.length}})</div>
               <div class="details-container list-group">
