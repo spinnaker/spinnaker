@@ -132,7 +132,8 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
           var discoveryMetric = _.find($scope.healthMetrics, function(metric){ return metric.type === 'Discovery'; });
           if( discoveryMetric && discoveryMetric.vipAddress) {
             var vipList = discoveryMetric.vipAddress;
-            $scope.instance.vipAddress = vipList.contains(',') ? vipList.split(',') : [vipList];
+            let vipAddress = vipList.contains(',') ? vipList.split(',') : [vipList];
+            $scope.instance.vipAddress = _.uniq(vipAddress);
           }
           $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
         },
