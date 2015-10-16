@@ -1,0 +1,29 @@
+providers:
+  google:
+    enabled: true
+    primaryCredentials:
+      name: my-account-name
+      project: ewiseblatt-spinnaker-0000
+      jsonPath: /root/.spinnaker/ManagedProjectCredentials.json
+
+services:
+  redis:
+    host: 10.240.0.3
+
+  cassandra:
+    host: 10.240.0.3
+
+  jenkins:
+    host:
+    port:
+    username:
+    password;
+
+  docker:
+    host:
+    port:
+    primaryAccount:
+       name: ${providers.google.primaryCredentials.name}
+
+  rush:
+    primaryAccount: ${providers.google.primaryCredentials.name}

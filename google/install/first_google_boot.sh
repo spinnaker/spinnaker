@@ -90,6 +90,7 @@ function replace_startup_script() {
 
 function extract_spinnaker_config() {
   local config="$CONFIG_DIR/spinnaker_config.cfg"
+  mkdir -p $(dirname $config)
   touch $config
   chmod 600 $config
   if clear_metadata_to_file "spinnaker_config" $config; then
@@ -114,6 +115,7 @@ function extract_spinnaker_config() {
 
 function extract_spinnaker_credentials() {
   local json_path="$CONFIG_DIR/ManagedProjectCredentials.json"
+  mkdir -p $(dirname $json_path)
   if clear_metadata_to_file "managed_project_credentials" $json_path; then
     # This is a workaround for difficulties using the Google Deployment Manager
     # to express no value. We'll use the value "None". But we dont want

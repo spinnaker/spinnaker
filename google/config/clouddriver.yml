@@ -1,0 +1,22 @@
+server:
+  port: ${services.clouddriver.port:7002}
+  address: ${services.clouddriver.host:localhost}
+
+#circular
+#services:
+#  front50:
+#    baseUrl: ${services.front50.baseUrl:localhost:8080}
+
+redis:
+  connection: ${services.redis.connection:redis://localhost:6379}
+
+aws:
+  enabled: ${providers.aws.enabled:false}
+
+google:
+  enabled: ${providers.google.enabled:false}
+
+  kmsServer: ${services.gce_kms.baseUrl:http://localhost:7909}
+  accounts:
+    - name: ${providers.google.primaryCredentials.name}
+      project: ${providers.google.primaryCredentials.project}

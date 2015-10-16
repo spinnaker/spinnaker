@@ -1,0 +1,130 @@
+global:
+  spinnaker:
+    environment: test
+
+serviceProtocol: http
+services:
+  clouddriver:
+    host: localhost
+    port: 7002
+    baseUrl: ${serviceProtocol}://${services.clouddriver.host}:${services.clouddriver.port}
+
+  echo:
+    enabled: true
+    host: localhost
+    port: 8089
+    baseUrl: ${serviceProtocol}://${services.echo.host}:${services.echo.port}
+
+  front50:
+    host: localhost
+    port: 8080
+    baseUrl: ${serviceProtocol}://${services.front50.host}:${services.front50.port}
+
+  gate:
+    host: localhost
+    port: 8084
+    baseUrl: ${serviceProtocol}://${services.gate.host}:${services.gate.port}
+
+  igor:
+    enabled: false
+    host: localhost
+    port: 8088
+    baseUrl: ${serviceProtocol}://${services.igor.host}:${services.igor.port}
+
+  kato:
+    host: ${services.clouddriver.host}
+    port: ${services.clouddriver.port}
+    baseUrl: ${services.clouddriver.baseUrl}
+
+  gce_kms:
+    host: localhost
+    port: 7909
+    baseUrl: ${serviceProtocol}://${services.gce_kms.host}:${services.gce_kms.port}
+
+  mort:
+    host: ${services.clouddriver.host}
+    port: ${services.clouddriver.port}
+    baseUrl: ${services.clouddriver.baseUrl}
+
+  orca:
+    host: localhost
+    port: 8083
+    baseUrl: ${serviceProtocol}://${services.orca.host}:${services.orca.port}
+    enabled: true
+
+  oort:
+    host: ${services.clouddriver.host}
+    port: ${services.clouddriver.port}
+    baseUrl: ${services.clouddriver.baseUrl}
+
+  rosco:
+    host: localhost
+    port: 8087
+    baseUrl: ${serviceProtocol}://${services.rosco.host}:${services.rosco.port}
+
+  rush:
+    host: localhost
+    port: 8085
+    baseUrl: ${serviceProtocol}://${services.rush.host}:${services.rush.port}
+    primaryAccount: # Expected in spinnaker-local.yml
+
+  bakery:
+    host: ${services.rosco.host}
+    port: ${services.rosco.port}
+    baseUrl: ${services.rosco.baseUrl}
+    extractBuildDetails: true
+    propagateCloudProviderType: true
+
+  docker:
+    enabled: false
+    host: # Expected in spinnaker-local.yaml
+    port: # Expected in spinnaker-local.yaml
+    baseUrl: http://${services.docker.host}:${services.docker.port}
+
+    primaryAccount:
+      - name: docker-name-not-set # Expected in spinnaker-local.yml
+        url:  ${services.docker.baseUrl}
+        registry: ${services.dockerRegistry.baseUrl}
+
+  dockerRegistry:
+    host: localhost
+    port: 5000
+    baseUrl: http://${services.dockerRegistry.host}:${services.dockerRegistry.port}
+
+  jenkins:
+    host:  # Expected in spinnaker-local.yml
+    port:  # Expected in spinnaker-local.yml
+    username:  # Expected in spinnaker-local.yml
+    password:  # Expected in spinnaker-local.yml
+    baseUrl: http://${services.jenkins.host}:${services.jenkins.port}
+
+  redis:
+    host: localhost
+    port: 6379
+    connection: redis://${services.redis.host}:${services.redis.port}
+
+  cassandra:
+    host: localhost
+    port: 9042
+    embedded: false
+    cluster: CASS_SPINNAKER
+
+
+providers:
+  google:
+    enabled: false
+    primaryCredentials:
+      name: my-account
+      project: 
+      jsonPath:
+    credentials:
+      name: ${providers.google.primaryCredentials.name}
+      project: ${providers.google.primaryCredentials.project}
+      jsonPath: ${providers.google.primaryCredentials.jsonPath}
+
+  aws:
+    enabled: false
+    simpleDBEnabled: false
+    defaultSimpleDBDomain: CLOUD_APPLICATIONS
+    # aws_access_key:
+    # aws_secret_key: 

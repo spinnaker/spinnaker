@@ -88,7 +88,7 @@ def ensure_gcs_bucket(name, project=''):
 
       project = match.group(1)
 
-  list_result = run_quick('gsutil list -p ' +  project)
+  list_result = run_quick('gsutil list -p ' +  project, echo=False)
   if list_result.returncode:
     error = ('Could not create Google Cloud Storage bucket'
              '"{name}" in project "{project}":\n{error}'
@@ -292,20 +292,43 @@ class Builder(object):
                         self.__options.cpu_ratio * multiprocessing.cpu_count()))
         pool.map(self.__do_build, SUBSYSTEM_LIST)
 
-      processes = []
       source_config_dir = self.__options.config_source
+      processes = []
+
+      # Copy global spinnaker config (and sample showing customization).
+      for yml in [ 'sample-spinnaker-local.yml', 'spinnaker.yml']:
+          source_config = os.path.join(source_config_dir, yml)
+          target_config = os.path.join(self.__release_dir, 'config', yml)
+          self.__config_list.append(yml)
+          processes.append(self.start_copy_file(source_config, target_config))
+      
+      # Copy subsystem configuration files.
       for subsys in SUBSYSTEM_LIST:
           processes.append(self.start_copy_debian_target(subsys))
           if subsys == 'deck':
-              source_config = os.path.join(source_config_dir, 'settings.js')
-              target_config = os.path.join(
-                  self.__release_dir, 'config/deck_settings.js')
+            # For the time being this is the deprecated google/ variable config.
+            source_config = os.path.join(source_config_dir,
+                                         'deprecated/settings.js')
+            target_config = os.path.join(
+                self.__release_dir, 'config/deck_settings.js')
+            processes.append(self.start_copy_file(source_config, target_config))
+
+            # For the time being add a second variation with the new proposed
+            # standard config. Rename this later; avoid confusion for now.
+            source_config = os.path.join(source_config_dir, 'settings.js')
+            target_config = os.path.join(
+                self.__release_dir, 'config/new_settings.js')
+            processes.append(self.start_copy_file(source_config, target_config))
           else:
-              yml = '{name}-local.yml'.format(name=subsys)
-              source_config = os.path.join(source_config_dir, yml)
+            for source_config in [
+                os.path.join(source_config_dir, subsys + '.yml'),
+                os.path.join(source_config_dir,
+                             'deprecated', subsys + '-local.yml')]:
+              yml = os.path.basename(source_config)
               target_config = os.path.join(self.__release_dir, 'config', yml)
               self.__config_list.append(yml)
-          processes.append(self.start_copy_file(source_config, target_config))
+              processes.append(
+                  self.start_copy_file(source_config, target_config))
 
       print 'Waiting for package copying to finish....'
       for p in processes:
@@ -382,7 +405,7 @@ class Builder(object):
 
     try:
       self.start_copy_file(
-        os.path.join(source_dir, 'default_spinnaker_config.cfg'),
+        os.path.join(source_dir, 'deprecated/default_spinnaker_config.cfg'),
         os.path.join(target_dir, 'default_spinnaker_config.cfg')).check_wait()
 
       self.start_copy_file(
