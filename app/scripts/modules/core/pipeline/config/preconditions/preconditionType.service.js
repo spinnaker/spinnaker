@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.preconditions.service', [
+module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.service', [
   require('./preconditionTypeConfig.provider.js'),
 ])
   .factory('preconditionTypeService', function (preconditionTypeConfig, _) {

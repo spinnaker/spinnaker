@@ -5,13 +5,11 @@ let angular = require('angular');
 require('./preconditionList.directive.html');
 require('./modal/editPrecondition.html');
 
-module.exports = angular.module('spinnaker.preconditions.preconditionList', [])
+module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.preconditionList', [])
     .directive('preconditionList', function () {
         return {
             restrict: 'E',
             scope: {
-                application: '=',
-                level: '@',
                 preconditions: '=',
                 parent: '='
             },

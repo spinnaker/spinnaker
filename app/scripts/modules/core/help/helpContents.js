@@ -96,6 +96,9 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'gce.serverGroup.customMetadata.load-balancer-names': 'This field is used to "remember" what load balancers this server group is associated with, even if the instances are deregistered.',
     'gce.serverGroup.customMetadata.startup-script': 'This script will run automatically on every boot.',
     'gce.serverGroup.securityGroups.implicit': 'Firewall rules with no target tags defined will permit incoming connections that match the ingress rules to all instances in the network.',
+    'pipeline.config.checkPreconditions.failPipeline': '' +
+      '<p><strong>Checked</strong> - the overall pipeline will fail whenever this precondition is false.</p>' +
+      '<p><strong>Unchecked</strong> - the overall pipeline will continue executing but this particular branch will stop.</p>',
     'pipeline.config.deploy.template': '<p>Select an existing cluster to use as a template for this deployment, and we\'ll pre-fill ' +
       'the configuration based on the newest server group in the cluster.</p>' +
       '<p>If you want to start from scratch, select "None".</p>' +
