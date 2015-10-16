@@ -100,9 +100,9 @@ class JedisExecutionRepository implements ExecutionRepository {
   }
 
   @Override
-  Pipeline retrievePipeline(String id) {
+  Pipeline retrievePipeline(String id, boolean expandStages = true) {
     withJedis { Jedis jedis ->
-      retrieveInternal(jedis, Pipeline, id)
+      retrieveInternal(jedis, Pipeline, id, expandStages)
     }
   }
 
@@ -137,9 +137,9 @@ class JedisExecutionRepository implements ExecutionRepository {
   }
 
   @Override
-  Orchestration retrieveOrchestration(String id) {
+  Orchestration retrieveOrchestration(String id, boolean expandStages = true) {
     withJedis { Jedis jedis ->
-      retrieveInternal(jedis, Orchestration, id)
+      retrieveInternal(jedis, Orchestration, id, expandStages)
     }
   }
 
@@ -182,7 +182,7 @@ class JedisExecutionRepository implements ExecutionRepository {
   }
 
   @CompileDynamic
-  private <T extends Execution> T retrieveInternal(Jedis jedis, Class<T> type, String id) throws ExecutionNotFoundException {
+  private <T extends Execution> T retrieveInternal(Jedis jedis, Class<T> type, String id, boolean expandStages = true) throws ExecutionNotFoundException {
     def key = "${type.simpleName.toLowerCase()}:$id"
     if (jedis.exists(key)) {
       def json = jedis.hget(key, "config")
@@ -194,7 +194,7 @@ class JedisExecutionRepository implements ExecutionRepository {
         log.warn(
           "Pipeline ${id} has duplicate stages (original count: ${originalStageCount}, unique count: ${execution.stages.size()})")
       }
-      return sortStages(jedis, execution, type)
+      return expandStages ? sortStages(jedis, execution, type) : execution
     } else {
       throw new ExecutionNotFoundException("No ${type.simpleName} found for $id")
     }
