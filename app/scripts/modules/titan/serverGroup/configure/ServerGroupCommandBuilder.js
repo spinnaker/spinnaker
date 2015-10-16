@@ -38,7 +38,6 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
         },
         tags: [],
         cloudProvider: 'titan',
-        providerType: 'titan',
         selectedProvider: 'titan',
         viewState: {
           useSimpleCapacity: true,
@@ -89,7 +88,6 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
           desired: serverGroup.capacity.desired
         },
         cloudProvider: 'titan',
-        providerType: 'titan',
         selectedProvider: 'titan',
         viewState: {
           useSimpleCapacity: true,

@@ -32,18 +32,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
       var summary = _.find(application.serverGroups, function (toCheck) {
         return toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region;
       });
-      if (!summary) {
-        application.loadBalancers.some(function (loadBalancer) {
-          if (loadBalancer.account === serverGroup.accountId && loadBalancer.region === serverGroup.region) {
-            return loadBalancer.serverGroups.some(function (possibleServerGroup) {
-              if (possibleServerGroup.name === serverGroup.name) {
-                summary = possibleServerGroup;
-                return true;
-              }
-            });
-          }
-        });
-      }
       return summary;
     }
 
