@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
   require('../../../core/presentation/collapsibleSection/collapsibleSection.directive.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
-  .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, app, InsightFilterStateModel,
+  .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $modal, loadBalancer, app, InsightFilterStateModel,
                                                    securityGroupReader, _, confirmationModalService, loadBalancerWriter, loadBalancerReader, $q) {
 
     $scope.state = {

@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.applications.controller', [
   require('../presentation/sortToggle/sorttoggle.directive.js'),
   require('../insight/insightmenu.directive.js'),
 ])
-  .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, accountService,
+  .controller('ApplicationsCtrl', function($scope, $modal, $log, $filter, accountService,
                                            $state, applicationReader, viewStateCache) {
 
     var applicationsViewStateCache = viewStateCache.applications || viewStateCache.createCache('applications', { version: 1 });

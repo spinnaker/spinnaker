@@ -15,7 +15,7 @@ module.exports = angular
     require('../../delivery/execution.service.js'),
     require('../../serverGroup/serverGroup.transformer.js'),
   ])
-  .factory('applicationReader', function ($q, $log, $window,  $exceptionHandler, $rootScope, Restangular, _, clusterService, taskReader,
+  .factory('applicationReader', function ($q, $log, $window,  $rootScope, Restangular, _, clusterService, taskReader,
                                           loadBalancerReader, loadBalancerTransformer, securityGroupReader, scheduler,
                                           infrastructureCaches, settings, executionService, serverGroupTransformer) {
 
@@ -276,11 +276,11 @@ module.exports = angular
                     return application;
                   },
                   function(err) {
-                    $exceptionHandler(err, 'Failed to load application');
+                    $log.error(err, 'Failed to load application');
                   }
                 );
             }, function(err) {
-              $exceptionHandler(err, 'Failed to load application');
+              $log.error(err, 'Failed to load application');
             });
         });
     }

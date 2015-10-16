@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
   require('../../../core/naming/naming.service.js'),
   require('../../../core/utils/lodash.js'),
 ])
-  .factory('cfServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q,
+  .factory('cfServerGroupCommandBuilder', function (settings, Restangular, $q,
                                                      accountService, instanceTypeService, namingService, _) {
 
       function populateCustomMetadata(metadataItems, command) {

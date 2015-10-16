@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.cloneServ
   require('angular-ui-router'),
   require('../../../../core/utils/dataConverter.service.js')
 ])
-  .controller('titanCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,
+  .controller('titanCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $state,
                                                   serverGroupWriter, modalWizardService, taskMonitorService,
                                                   titanServerGroupConfigurationService, dataConverterService,
                                                   serverGroupCommand, application, title) {

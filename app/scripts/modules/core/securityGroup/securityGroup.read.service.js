@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
   require('./securityGroup.transformer.js'),
   require('../cloudProvider/serviceDelegate.service.js'),
 ])
-  .factory('securityGroupReader', function ($q, $exceptionHandler, $log, Restangular, searchService, _, namingService,
+  .factory('securityGroupReader', function ($q, $log, Restangular, searchService, _, namingService,
                                             infrastructureCaches, securityGroupTransformer, serviceDelegate) {
 
     function loadSecurityGroups() {
@@ -41,7 +41,7 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
     function loadSecurityGroupsByApplicationName(applicationName) {
       return searchService.search({q: applicationName, type: 'securityGroups', pageSize: 1000}).then(function(searchResults) {
         if (!searchResults || !searchResults.results) {
-          $exceptionHandler('WARNING: Gate security group endpoint appears to be down.');
+          $log.warn('WARNING: Gate security group endpoint appears to be down.');
           return [];
         }
         return _.filter(searchResults.results, {application: applicationName});

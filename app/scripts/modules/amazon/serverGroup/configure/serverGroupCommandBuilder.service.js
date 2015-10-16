@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
   require('./serverGroupConfiguration.service.js'),
   require('../../../core/utils/lodash.js'),
 ])
-  .factory('awsServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q,
+  .factory('awsServerGroupCommandBuilder', function (settings, Restangular, $q,
                                                      accountService, subnetReader, namingService, instanceTypeService,
                                                      awsServerGroupConfigurationService, _) {
 
