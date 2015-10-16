@@ -99,7 +99,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
 
     # Spinnaker Stuff
     parser.add_argument(
-        '--managed_gce_project',
+        '--managed_gce_project', dest='google_primary_managed_project_id',
         help='GCE project to test instances in'
              ' if not determined by {system}.'.format(system=subsystem_name))
 
