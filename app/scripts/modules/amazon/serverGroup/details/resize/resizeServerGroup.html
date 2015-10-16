@@ -104,6 +104,10 @@
       </div>
     </div>
     <div class="modal-footer">
+      <platform-health-override ng-if="command.platformHealthOnlyShowOverride"
+                                command="command"
+                                platform-health-type="'Amazon'">
+      </platform-health-override>
       <button type="submit" ng-click="ctrl.resize()" style="display:none"></button> <!-- Allows form submission via enter keypress-->
       <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
       <button type="submit"

@@ -29,6 +29,10 @@
     </div>
   </div>
   <div class="modal-footer">
+    <platform-health-override ng-if="params.platformHealthOnlyShowOverride"
+                              command="params"
+                              platform-health-type="params.platformHealthType">
+    </platform-health-override>
     <button class="btn btn-default" ng-click="ctrl.cancel()">{{params.cancelButtonText}}</button>
     <button class="btn btn-primary"
             ng-disabled="ctrl.formDisabled()"

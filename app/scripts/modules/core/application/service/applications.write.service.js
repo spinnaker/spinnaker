@@ -32,6 +32,8 @@ module.exports = angular
               repoSlug: app.repoSlug,
               repoType: app.repoType,
               cloudProviders: app.cloudProviders.join(','),
+              platformHealthOnly: app.platformHealthOnly,
+              platformHealthOnlyShowOverride: app.platformHealthOnlyShowOverride,
             }
           }
         ],
@@ -67,6 +69,8 @@ module.exports = angular
                 repoSlug: app.repoSlug,
                 repoType: app.repoType,
                 cloudProviders: app.cloudProviders.join(','),
+                platformHealthOnly: app.platformHealthOnly,
+                platformHealthOnlyShowOverride: app.platformHealthOnlyShowOverride,
               }
             }
           ],

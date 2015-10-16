@@ -3,6 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.resizeAsgStage', [
+  require('../../../../../application/modal/platformHealthOverride.directive.js'),
   require('./resizeAsgExecutionDetails.controller.js'),
 ])
   .config(function(pipelineConfigProvider) {
@@ -85,6 +86,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.resizeAsgStag
     stage.action = stage.action || $scope.scaleActions[0].val;
     stage.resizeType = stage.resizeType || $scope.resizeTypes[0].val;
     stage.cloudProvider = 'aws';
+
+    if (stage.isNew && $scope.application.attributes.platformHealthOnly) {
+      stage.interestingHealthProviderNames = ['Amazon'];
+    }
 
     if (!stage.credentials && $scope.application.defaultCredentials) {
       stage.credentials = $scope.application.defaultCredentials;

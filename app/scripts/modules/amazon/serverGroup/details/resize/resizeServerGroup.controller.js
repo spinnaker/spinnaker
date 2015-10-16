@@ -4,11 +4,12 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.controller', [
   require('../../../../core/account/account.service.js'),
+  require('../../../../core/application/modal/platformHealthOverride.directive.js'),
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js'),
 ])
   .controller('awsResizeServerGroupCtrl', function($scope, $modalInstance, accountService, serverGroupWriter, taskMonitorService,
-                                                application, serverGroup) {
+                                                   application, serverGroup) {
     $scope.serverGroup = serverGroup;
     $scope.currentSize = {
       min: serverGroup.asg.minSize,
@@ -23,6 +24,14 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
 
     $scope.command = angular.copy($scope.currentSize);
     $scope.command.advancedMode = serverGroup.asg.minSize !== serverGroup.asg.maxSize;
+
+    if (application && application.attributes) {
+      if (application.attributes.platformHealthOnly) {
+        $scope.command.interestingHealthProviderNames = ["Amazon"];
+      }
+
+      $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
+    }
 
     this.isValid = function () {
       var command = $scope.command;
@@ -44,7 +53,10 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
       }
 
       var submitMethod = function() {
-        return serverGroupWriter.resizeServerGroup(serverGroup, application, {capacity: capacity});
+        return serverGroupWriter.resizeServerGroup(serverGroup, application, {
+          capacity: capacity,
+          interestingHealthProviderNames: $scope.command.interestingHealthProviderNames,
+        });
       };
 
       var taskMonitorConfig = {

@@ -117,5 +117,10 @@
         <em class="subinput-note">This is the exact amount to which the target server group will be scaled</em>
       </div>
     </div>
+    <platform-health-override ng-if="application.attributes.platformHealthOnlyShowOverride"
+                              command="stage"
+                              platform-health-type="'Amazon'"
+                              div-offset="col-md-offset-1">
+    </platform-health-override>
   </div>
 </div>

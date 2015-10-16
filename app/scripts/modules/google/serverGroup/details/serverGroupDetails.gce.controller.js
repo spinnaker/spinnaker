@@ -6,6 +6,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', [
   require('angular-ui-router'),
   require('../configure/ServerGroupCommandBuilder.js'),
+  require('../../../core/application/modal/platformHealthOverride.directive.js'),
   require('../../../core/serverGroup/serverGroup.read.service.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/serverGroup/serverGroup.write.service.js'),
@@ -179,25 +180,33 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         title: 'Disabling ' + serverGroup.name
       };
 
-      var submitMethod = function () {
+      var submitMethod = function(interestingHealthProviderNames) {
         return serverGroupWriter.disableServerGroup(serverGroup, application, {
           cloudProvider: 'gce',
           serverGroupName: serverGroup.name,
           region: serverGroup.region,
           zone: serverGroup.zones[0],
+          interestingHealthProviderNames: interestingHealthProviderNames,
         });
       };
 
-      confirmationModalService.confirm({
+      var confirmationModalParams = {
         header: 'Really disable ' + serverGroup.name + '?',
         buttonText: 'Disable ' + serverGroup.name,
         destructive: true,
         provider: 'gce',
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
-      });
+        platformHealthOnlyShowOverride: application.attributes.platformHealthOnlyShowOverride,
+        platformHealthType: 'GCE',
+        submitMethod: submitMethod,
+      };
 
+      if (application.attributes.platformHealthOnly) {
+        confirmationModalParams.interestingHealthProviderNames = ['GCE'];
+      }
+
+      confirmationModalService.confirm(confirmationModalParams);
     };
 
     this.enableServerGroup = function enableServerGroup() {
@@ -209,24 +218,32 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         forceRefreshMessage: 'Refreshing application...',
       };
 
-      var submitMethod = function () {
+      var submitMethod = function(interestingHealthProviderNames) {
         return serverGroupWriter.enableServerGroup(serverGroup, application, {
           cloudProvider: 'gce',
           serverGroupName: serverGroup.name,
           region: serverGroup.region,
           zone: serverGroup.zones[0],
+          interestingHealthProviderNames: interestingHealthProviderNames,
         });
       };
 
-      confirmationModalService.confirm({
+      var confirmationModalParams = {
         header: 'Really enable ' + serverGroup.name + '?',
         buttonText: 'Enable ' + serverGroup.name,
         destructive: false,
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
-      });
+        platformHealthOnlyShowOverride: application.attributes.platformHealthOnlyShowOverride,
+        platformHealthType: 'GCE',
+        submitMethod: submitMethod,
+      };
 
+      if (application.attributes.platformHealthOnly) {
+        confirmationModalParams.interestingHealthProviderNames = ['GCE'];
+      }
+
+      confirmationModalService.confirm(confirmationModalParams);
     };
 
     this.resizeServerGroup = function resizeServerGroup() {

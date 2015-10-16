@@ -6,6 +6,7 @@ require('../configure/serverGroup.configure.aws.module.js');
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', [
+  require('../../../core/application/modal/platformHealthOverride.directive.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../core/utils/lodash.js'),
@@ -203,20 +204,29 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         title: 'Disabling ' + serverGroup.name
       };
 
-      var submitMethod = function () {
-        return serverGroupWriter.disableServerGroup(serverGroup, app);
+      var submitMethod = function(interestingHealthProviderNames) {
+        return serverGroupWriter.disableServerGroup(serverGroup, app, {
+          interestingHealthProviderNames: interestingHealthProviderNames,
+        });
       };
 
-      confirmationModalService.confirm({
+      var confirmationModalParams = {
         header: 'Really disable ' + serverGroup.name + '?',
         buttonText: 'Disable ' + serverGroup.name,
         destructive: true,
         account: serverGroup.account,
         provider: 'aws',
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
-      });
+        platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
+        platformHealthType: 'Amazon',
+        submitMethod: submitMethod,
+      };
 
+      if (app.attributes.platformHealthOnly) {
+        confirmationModalParams.interestingHealthProviderNames = ['Amazon'];
+      }
+
+      confirmationModalService.confirm(confirmationModalParams);
     };
 
     this.enableServerGroup = function enableServerGroup() {
@@ -227,19 +237,28 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         title: 'Enabling ' + serverGroup.name,
       };
 
-      var submitMethod = function () {
-        return serverGroupWriter.enableServerGroup(serverGroup, app);
+      var submitMethod = function(interestingHealthProviderNames) {
+        return serverGroupWriter.enableServerGroup(serverGroup, app, {
+          interestingHealthProviderNames: interestingHealthProviderNames,
+        });
       };
 
-      confirmationModalService.confirm({
+      var confirmationModalParams = {
         header: 'Really enable ' + serverGroup.name + '?',
         buttonText: 'Enable ' + serverGroup.name,
         destructive: false,
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
-      });
+        platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
+        platformHealthType: 'Amazon',
+        submitMethod: submitMethod,
+      };
 
+      if (app.attributes.platformHealthOnly) {
+        confirmationModalParams.interestingHealthProviderNames = ['Amazon'];
+      }
+
+      confirmationModalService.confirm(confirmationModalParams);
     };
 
     this.toggleScalingProcesses = function toggleScalingProcesses() {

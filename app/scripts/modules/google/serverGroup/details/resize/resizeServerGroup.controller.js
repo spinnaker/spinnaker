@@ -4,11 +4,12 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.google.serverGroup.details.resize.controller', [
   require('../../../../core/account/account.service.js'),
+  require('../../../../core/application/modal/platformHealthOverride.directive.js'),
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js')
 ])
   .controller('gceResizeServerGroupCtrl', function($scope, $modalInstance, accountService, serverGroupWriter, taskMonitorService,
-                                                application, serverGroup) {
+                                                   application, serverGroup) {
     $scope.serverGroup = serverGroup;
     $scope.currentSize = {
       min: serverGroup.asg.minSize,
@@ -23,6 +24,14 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.resize.con
 
     $scope.command = angular.copy($scope.currentSize);
     $scope.command.advancedMode = serverGroup.asg.minSize !== serverGroup.asg.maxSize;
+
+    if (application && application.attributes) {
+      if (application.attributes.platformHealthOnly) {
+        $scope.command.interestingHealthProviderNames = ["GCE"];
+      }
+
+      $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
+    }
 
     this.isValid = function () {
       var command = $scope.command;
@@ -50,6 +59,7 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.resize.con
           targetSize: capacity.desired,
           region: serverGroup.region,
           zone: serverGroup.zones[0],
+          interestingHealthProviderNames: $scope.command.interestingHealthProviderNames,
         });
       };
 

@@ -156,7 +156,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
     }
 
     function augmentTagsWithHelp() {
-      if ($scope.instance.tags && $scope.instance.securityGroups) {
+      if (_.has($scope, 'instance.tags.items') && _.has($scope, 'instance.securityGroups')) {
         let securityGroups = _($scope.instance.securityGroups).map(securityGroup => {
           return _.find(app.securityGroups, { accountName: $scope.instance.account, region: 'global', id: securityGroup.groupdId });
         }).compact().value();
@@ -298,6 +298,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
       var submitMethod = function () {
         return instanceWriter.rebootInstance(instance, app, {
+          // We can't really reliably do anything other than ignore health here.
           interestingHealthProviderNames: [],
         });
       };
