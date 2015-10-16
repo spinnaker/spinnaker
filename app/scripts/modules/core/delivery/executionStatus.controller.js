@@ -20,12 +20,13 @@ module.exports = angular.module('spinnaker.core.delivery.executionStatus.control
     };
 
     controller.getRunningStage = function(execution) {
-      var currentStages = execution.stageSummaries.filter(function(stage) {
+      let stages = execution.stageSummaries || [];
+      var currentStages = stages.filter(function(stage) {
         return stage.isRunning;
       });
       // if there are no running stages, find the first enqueued stage
       if (!currentStages.length) {
-        var enqueued = execution.stageSummaries.filter(function(stage) {
+        var enqueued = stages.filter(function(stage) {
           return stage.hasNotStarted;
         });
         if (enqueued && enqueued.length) {
@@ -39,7 +40,8 @@ module.exports = angular.module('spinnaker.core.delivery.executionStatus.control
     };
 
     controller.getSuspendedStage = function(execution) {
-      var suspended = execution.stageSummaries.filter(function(stage) {
+      let stages = execution.stageSummaries || [];
+      var suspended = stages.filter(function(stage) {
         return stage.isSuspended;
       });
       if (suspended && suspended.length) {
