@@ -9,13 +9,22 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
   require('./pipeline/projectPipeline.directive.js'),
   require('../../delivery/execution.service.js'),
   require('../../scheduler/scheduler.service.js'),
+  require('../../history/recentHistory.service.js'),
 ])
-  .controller('ProjectDashboardCtrl', function ($scope, projectConfiguration, executionService, scheduler) {
+  .controller('ProjectDashboardCtrl', function ($scope, projectConfiguration, executionService, scheduler, recentHistoryService) {
 
     $scope.project = projectConfiguration;
 
     if (projectConfiguration.notFound) {
+      recentHistoryService.removeLastItem('projects');
       return;
+    } else {
+      recentHistoryService.addExtraDataToLatest('projects',
+        {
+          config: {
+            applications: projectConfiguration.config.applications
+          }
+        });
     }
 
     this.state = {

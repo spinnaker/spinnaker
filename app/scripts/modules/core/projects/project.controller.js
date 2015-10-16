@@ -6,25 +6,11 @@ require('./project.less');
 
 module.exports = angular.module('spinnaker.core.projects.project.controller', [
   require('./configure/configureProject.modal.controller.js'),
-  require('./service/project.read.service.js'),
-  require('../history/recentHistory.service.js'),
   require('../utils/lodash.js'),
 ])
-  .controller('ProjectCtrl', function ($scope, $modal, $timeout, projectReader, $state, projectConfiguration, recentHistoryService, _) {
+  .controller('ProjectCtrl', function ($scope, $modal, $timeout, $state, projectConfiguration, _) {
 
     $scope.project = projectConfiguration;
-
-    if (projectConfiguration.notFound) {
-      recentHistoryService.removeLastItem('projects');
-      return;
-    } else {
-      recentHistoryService.addExtraDataToLatest('projects',
-        {
-          config: {
-            applications: projectConfiguration.config.applications
-          }
-        });
-    }
 
     projectConfiguration.config.applications = projectConfiguration.config.applications || [];
 
