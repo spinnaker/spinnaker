@@ -27,11 +27,13 @@ interface ExecutionRepository {
   void storeStage(PipelineStage stage)
 
   Pipeline retrievePipeline(String id)
+  Pipeline retrievePipeline(String id, boolean expandStages)
   void deletePipeline(String id)
   rx.Observable<Pipeline> retrievePipelines()
   rx.Observable<Pipeline> retrievePipelinesForApplication(String application)
   rx.Observable<Pipeline> retrievePipelinesForPipelineConfigId(String pipelineConfigId, int limit)
   Orchestration retrieveOrchestration(String id)
+  Orchestration retrieveOrchestration(String id, boolean expandStages)
   void deleteOrchestration(String id)
   rx.Observable<Orchestration> retrieveOrchestrations()
   rx.Observable<Orchestration> retrieveOrchestrationsForApplication(String application)

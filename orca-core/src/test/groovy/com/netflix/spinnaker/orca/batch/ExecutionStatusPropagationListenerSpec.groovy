@@ -50,12 +50,12 @@ class ExecutionStatusPropagationListenerSpec extends Specification {
     listener.beforeJob(orchestrationJobExecution)
 
     then:
-    1 * executionRepository.retrievePipeline(pipeline.id) >> { return pipeline }
+    1 * executionRepository.retrievePipeline(pipeline.id, false) >> { return pipeline }
     1 * executionRepository.store({ Pipeline p ->
       p.id == "PIPELINE-1" && p.executionStatus == ExecutionStatus.RUNNING
     } as Pipeline)
 
-    1 * executionRepository.retrieveOrchestration(orchestration.id) >> { return orchestration }
+    1 * executionRepository.retrieveOrchestration(orchestration.id, false) >> { return orchestration }
     1 * executionRepository.store({ Orchestration o ->
       o.id == "ORCHESTRATION-1" && o.executionStatus == ExecutionStatus.RUNNING
     } as Orchestration)
@@ -76,7 +76,7 @@ class ExecutionStatusPropagationListenerSpec extends Specification {
     listener.afterJob(pipelineJobExecution)
 
     then:
-    1 * executionRepository.retrievePipeline(pipeline.id) >> { return pipeline }
+    1 * executionRepository.retrievePipeline(pipeline.id, false) >> { return pipeline }
     1 * executionRepository.store({ Pipeline p ->
       p.id == "PIPELINE-1" && p.executionStatus == executionStatus
     } as Pipeline)
