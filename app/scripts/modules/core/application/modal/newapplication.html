@@ -3,7 +3,9 @@
   <div class="modal-header">
     <h3 data-purpose="modal-header">New Application</h3>
   </div>
-
+  <div ng-if="newAppModal.initializing" style="height: 200px">
+    <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
+  </div>
   <form role="form" class="container-fluid" novalidate name="newApplicationForm" ng-if="!newAppModal.initializing">
     <div class="modal-body">
       <div class="form-group row">
@@ -18,6 +20,7 @@
                  ng-model="newAppModal.application.name"
                  placeholder="Enter an application name"
                  validate-unique="newAppModal.appNameList"
+                 required
                  id="applicationName">
           </input>
         </div>
