@@ -2,7 +2,7 @@
   <div class="modal-body">
     <gce-server-group-advanced-settings-selector command="command"></gce-server-group-advanced-settings-selector>
     <div style="padding-left: 5px">
-      <platform-health-override ng-if="application.attributes.platformHealthOnlyShowOverride && ctrl.showSubmitButton()"
+      <platform-health-override ng-if="application.attributes.platformHealthOnlyShowOverride"
                                 command="command"
                                 platform-health-type="'GCE'"
                                 label-text="Task Completion"
