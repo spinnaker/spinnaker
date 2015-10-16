@@ -85,13 +85,21 @@ module.exports = angular.module('spinnaker.instance.detail.titan.controller', [
           $scope.baseIpAddress = $scope.instance.placement.host;
           $scope.instance.externalIpAddress = $scope.instance.placement.host;
         },
-          () => $state.go('^', null, {location: 'replace'})
+          autoClose
         );
       }
 
       if (!instanceSummary) {
-        $state.go('^');
+        autoClose();
       }
+    }
+
+    function autoClose() {
+      if ($scope.$$destroyed) {
+        return;
+      }
+      $state.params.allowModalToStayOpen = true;
+      $state.go('^', null, {location: 'replace'});
     }
 
     this.canRegisterWithLoadBalancer = function() {

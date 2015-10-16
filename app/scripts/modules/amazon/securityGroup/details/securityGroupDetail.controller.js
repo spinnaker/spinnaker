@@ -40,6 +40,10 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
     }
 
     function fourOhFour() {
+      if ($scope.$$destroyed) {
+        return;
+      }
+      $state.params.allowModalToStayOpen = true;
       $state.go('^', null, {location: 'replace'});
     }
 

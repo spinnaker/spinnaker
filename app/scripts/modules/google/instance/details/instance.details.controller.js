@@ -144,15 +144,23 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
           augmentTagsWithHelp();
         },
-          () => $state.go('^', null, {location: 'replace'})
+          autoClose
         );
       }
 
       if (!instanceSummary) {
-        $state.go('^', null, {location: 'replace'});
+        autoClose();
       }
 
       return $q.when(null);
+    }
+
+    function autoClose() {
+      if ($scope.$$destroyed) {
+        return;
+      }
+      $state.params.allowModalToStayOpen = true;
+      $state.go('^', null, {location: 'replace'});
     }
 
     function augmentTagsWithHelp() {

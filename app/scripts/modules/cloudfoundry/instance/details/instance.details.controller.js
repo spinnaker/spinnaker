@@ -140,13 +140,21 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
           $scope.instance.logsLink =
             'https://console.developers.google.com/project/' + projectId + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + $scope.instance.instanceId;
         },
-          () => $state.go('^', null, {location: 'replace'})
+          autoClose
         );
       }
 
       if (!instanceSummary) {
-        $state.go('^', null, {location: 'replace'});
+        autoClose();
       }
+    }
+
+    function autoClose() {
+      if ($scope.$$destroyed) {
+        return;
+      }
+      $state.params.allowModalToStayOpen = true;
+      $state.go('^', null, {location: 'replace'});
     }
 
     function getNetwork() {
