@@ -144,11 +144,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.cron.expression': '<strong>Format (Year is optional)</strong><p><samp>Seconds  Minutes  Hour  DayOfMonth  Month  DayOfWeek  (Year)</samp></p>' +
     '<p><strong>Example: every 30 minutes</strong></p><samp>0 0/30 * * * ?</samp>',
 
-    'serverGroup.description': '<p>A server group is a collection of instances managed together. </p>' +
-      '<ul>' +
-      '<li>For <b>AWS</b>, a server group is an <b>Auto Scaling Group</b>.</li>' +
-      '<li>For <b>GCE</b>, a server group is an <b>Instance Group</b>.</li>' +
-      '</ul>',
+    'cluster.description': '<p>A cluster is a collection of server groups with the same name (stack + detail) in the same account.</p>',
 
     'pipeline.config.findAmi.cluster': 'The cluster to look at when selecting the AMI to use in this pipeline.',
     'pipeline.config.dependsOn': 'Declares which stages must be run <em>before</em> this stage begins.',
