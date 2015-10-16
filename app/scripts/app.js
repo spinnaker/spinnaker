@@ -136,6 +136,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/netflix/whatsNew/whatsNew.directive.js'),
     require('./modules/netflix/blesk/blesk.module.js'),
     require('./modules/netflix/fastProperties/fastProperties.module.js'),
+    require('./modules/netflix/alert/alertHandler.js'),
     require('./modules/core/account/accountLabelColor.directive.js'),
     require('./modules/core/history/recentHistory.service.js'),
     require('./config.js'),
