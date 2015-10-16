@@ -12,6 +12,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
   require('../../../cache/collapsibleSectionStateCache.js'),
   require('../../../scheduler/scheduler.service.js'),
   require('../../../naming/naming.service.js'),
+  require('../../../cluster/filter/clusterFilter.service.js'),
 ])
   .directive('projectCluster', function () {
     return {
@@ -28,11 +29,14 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
     };
   })
   .controller('ProjectClusterCtrl', function($scope, urlBuilderService, clusterService, $q, _,
-                                             collapsibleSectionStateCache, namingService, scheduler) {
+                                             collapsibleSectionStateCache, namingService, scheduler,
+                                             clusterFilterService) {
 
     let stateCache = collapsibleSectionStateCache;
 
     let getCacheKey = () => [this.project.name, this.cluster.account, this.cluster.stack].join(':');
+
+    this.clearFilters = clusterFilterService.overrideFiltersForUrl;
 
     this.state = {
       loaded: false,
@@ -54,7 +58,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
           stackParam = stack && stack !== '*' ? stack : null,
           detailParam = detail && detail !== '*' ? detail : null;
 
-      return {
+      let metadata = {
         type: 'clusters',
         project: this.project.name,
         application: application.name,
@@ -63,6 +67,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
         detail: detailParam,
         account: this.cluster.account,
       };
+      return metadata;
     };
 
     let addMetadata = () => {
@@ -70,7 +75,8 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
         let baseMetadata = getMetadata(application);
         Object.keys(application.regions).forEach((region) => {
           baseMetadata.region = region;
-          application.regions[region].url = urlBuilderService.buildFromMetadata(baseMetadata);
+          baseMetadata.href = urlBuilderService.buildFromMetadata(baseMetadata);
+          application.regions[region].metadata = baseMetadata;
         });
       });
     };
@@ -111,10 +117,12 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
     let initializeClusterData = () => {
       this.clusterData = {
         applications: this.project.config.applications.map((application) => {
+          let metadata = getMetadata({name: application});
+          metadata.href = urlBuilderService.buildFromMetadata(metadata);
           return {
             name: application,
             regions: {},
-            url: urlBuilderService.buildFromMetadata(getMetadata({name: application})),
+            metadata: metadata,
           };
         }),
         regions: [],

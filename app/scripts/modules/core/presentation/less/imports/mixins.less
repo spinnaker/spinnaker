@@ -23,3 +23,15 @@
     opacity: 1;
   }
 }
+
+.slide-down(@duration:0.25) {
+  &.ng-enter {
+    transition: height ~"@{duration}s" 0s ease-in;
+  }
+  &.ng-enter, &.ng-leave.ng-leave-active {
+    height: 1%;
+  }
+  &.ng-leave, &.ng-enter.ng-enter-active {
+    height: 100%;
+  }
+}

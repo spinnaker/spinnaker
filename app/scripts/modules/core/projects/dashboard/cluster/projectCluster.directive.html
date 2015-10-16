@@ -54,7 +54,7 @@
       <tbody>
       <tr ng-repeat="application in vm.clusterData.applications | orderBy: 'name'">
         <td>
-          <a class="heavy" href="{{application.url}}" ng-class="application.inconsistentBuilds ? 'text-warning' : ''">
+          <a class="heavy" ng-click="vm.clearFilters(application.metadata)" ng-href="{{application.metadata.href}}" ng-class="application.inconsistentBuilds ? 'text-warning' : ''">
             {{application.name | uppercase}}
           </a>
         </td>
@@ -73,7 +73,7 @@
         </td>
         <td ng-repeat="region in vm.clusterData.regions">
           <span ng-if="application.regions[region]">
-            <a ng-href="{{application.regions[region].url}}">
+            <a  ng-click="vm.clearFilters(application.regions[region].metadata)" ng-href="{{application.regions[region].metadata.href}}">
               <health-counts container="application.regions[region].instanceCounts"
                              additional-legend-text="(Click to view cluster in this region)"
                              legend-placement="right"></health-counts>

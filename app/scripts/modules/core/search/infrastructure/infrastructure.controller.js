@@ -9,9 +9,10 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   require('../../pageTitle/pageTitle.service.js'),
   require('./project/infrastructureProject.directive.js'),
   require('../searchRank.filter.js'),
+  require('../../cluster/filter/clusterFilter.service.js'),
 ])
   .controller('InfrastructureCtrl', function($scope, infrastructureSearchService, $stateParams, $location, searchService,
-                                             pageTitleService, _, recentHistoryService, $modal, $state) {
+                                             pageTitleService, _, recentHistoryService, $modal, $state, clusterFilterService) {
 
     var search = infrastructureSearchService();
 
@@ -19,6 +20,8 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
       searching: false,
       minCharactersToSearch: 3,
     };
+
+    this.clearFilters = clusterFilterService.overrideFiltersForUrl;
 
     this.loadRecentItems = () => {
       $scope.recentProjects = recentHistoryService.getItems('projects');

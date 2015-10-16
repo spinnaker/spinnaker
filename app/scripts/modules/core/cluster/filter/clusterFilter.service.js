@@ -257,6 +257,16 @@ module.exports = angular
           reg[result.region] = true;
           ClusterFilterModel.sortFilter.region = reg;
         }
+        if (result.stack) {
+          var stack = {};
+          stack[result.stack] = true;
+          ClusterFilterModel.sortFilter.stack = stack;
+        }
+        if (result.detail) {
+          var detail = {};
+          detail[result.detail] = true;
+          ClusterFilterModel.sortFilter.detail = detail;
+        }
         if ($stateParams.application === result.application) {
           updateClusterGroups();
         }

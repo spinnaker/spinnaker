@@ -7,11 +7,10 @@ describe('Service: InstanceType', function () {
     )
   );
 
-  var clusterService, $http, $q, $scope;
+  var clusterService, $q, $scope;
 
-  beforeEach(window.inject(function (_clusterService_, $httpBackend, _$q_, $rootScope) {
+  beforeEach(window.inject(function (_clusterService_, _$q_, $rootScope) {
     clusterService = _clusterService_;
-    $http = $httpBackend;
     $q = _$q_;
     $scope = $rootScope.$new();
 
