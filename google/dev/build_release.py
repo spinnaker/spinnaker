@@ -460,6 +460,35 @@ if __name__ == '__main__':
       if zip is not None:
         zip.close()
 
+  @staticmethod
+  def __zip_dir(zip_file, source_path, arcname=''):
+    """Zip the contents of a directory.
+
+    Args:
+      zip_file: [ZipFile] The zip file to write into.
+      source_path: [string] The directory to add.
+      arcname: [string] Optional name for the source to appear as in the zip.
+    """
+    if arcname:
+      # Effectively replace os.path.basename(parent_path) with arcname.
+      arcbase = arcname + '/'
+      parent_path = source_path
+    else:
+      # Will start relative paths from os.path.basename(source_path).
+      arcbase = ''
+      parent_path = os.path.dirname(source_path)
+
+    # Copy the tree at source_path adding relative paths into the zip.
+    rel_offset = len(parent_path) + 1
+    entries = os.walk(source_path)
+    for root, dirs, files in entries:
+      for dirname in dirs:
+        abs_path = os.path.join(root, dirname)
+        zip_file.write(abs_path, arcbase + abs_path[rel_offset:])
+      for filename in files:
+        abs_path = os.path.join(root, filename)
+        zip_file.write(abs_path, arcbase + abs_path[rel_offset:])
+
   def add_python_test_zip(self, test_name):
     """Build encapsulated python zip file for the given test test_name.
 
@@ -486,8 +515,10 @@ if __name__ == '__main__':
       # TODO(ewiseblatt): 20150810
       # Eventually this needs to be the transitive closure,
       # but there are currently no other dependencies.
-      zip.write('citest/citest', 'citest')
-      zip.write('citest/spinnaker/spinnaker_testing', 'spinnaker_testing')
+      zip.writestr('__init__.py', '')
+      self.__zip_dir(zip, 'citest/citest', 'citest')
+      self.__zip_dir(zip,
+                     'citest/spinnaker/spinnaker_testing', 'spinnaker_testing')
       test_py = '{test_name}.py'.format(test_name=test_name)
       zip.write('citest/spinnaker/spinnaker_system/' + test_py, test_py)
       zip.close()
@@ -544,7 +575,6 @@ if __name__ == '__main__':
         '--aws_region', default='',
         help='If release repository is a S3 bucket then this is the AWS'
         ' region to add the bucket to if the bucket did not already exist.')
-
 
   @classmethod
   def main(cls):
