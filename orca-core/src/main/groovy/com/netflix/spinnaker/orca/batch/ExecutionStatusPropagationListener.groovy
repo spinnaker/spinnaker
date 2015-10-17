@@ -35,12 +35,18 @@ class ExecutionStatusPropagationListener extends JobExecutionListenerSupport {
 
   @Override
   void afterJob(JobExecution jobExecution) {
-    def stepExecutions = new ArrayList<StepExecution>(jobExecution.stepExecutions).sort { it.lastUpdated }.reverse()
-    def stepExecution = stepExecutions.find { it.status == jobExecution.status } ?: stepExecutions[0]
-    def orcaTaskStatus = stepExecution?.executionContext?.get("orcaTaskStatus") as ExecutionStatus ?: ExecutionStatus.TERMINAL
+    def orcaTaskStatus
+    if (jobExecution.failureExceptions) {
+      orcaTaskStatus = ExecutionStatus.TERMINAL
+    } else {
+      def stepExecutions = new ArrayList<StepExecution>(jobExecution.stepExecutions).sort { it.lastUpdated }.reverse()
+      def stepExecution = stepExecutions.find { it.status == jobExecution.status } ?: stepExecutions[0]
+      orcaTaskStatus = stepExecution?.executionContext?.get("orcaTaskStatus") as ExecutionStatus ?: ExecutionStatus.TERMINAL
+    }
 
     def execution = fetchExecution(executionRepository, jobExecution)
     execution.executionStatus = orcaTaskStatus
+    execution.executionEndTime = System.currentTimeMillis()
     executionRepository.store(execution)
 
     log.info("Marked ${execution.class.simpleName} ${execution.id} as ${execution.executionStatus} (afterJob)")
@@ -50,6 +56,7 @@ class ExecutionStatusPropagationListener extends JobExecutionListenerSupport {
   void beforeJob(JobExecution jobExecution) {
     def execution = fetchExecution(executionRepository, jobExecution)
     execution.executionStatus = ExecutionStatus.RUNNING
+    execution.executionStartTime = System.currentTimeMillis()
     executionRepository.store(execution)
 
     log.info("Marked ${execution.class.simpleName} ${execution.id} as ${execution.executionStatus} (beforeJob)")
