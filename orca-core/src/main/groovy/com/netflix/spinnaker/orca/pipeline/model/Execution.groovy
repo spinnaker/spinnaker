@@ -35,6 +35,8 @@ abstract class Execution<T> implements Serializable {
   Long buildTime
   String executingInstance
 
+  Long executionStartTime
+  Long executionEndTime
   ExecutionStatus executionStatus = NOT_STARTED
 
   AuthenticationDetails authentication
