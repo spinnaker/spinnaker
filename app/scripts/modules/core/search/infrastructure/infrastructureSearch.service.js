@@ -87,18 +87,17 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
         return categories;
       };
 
-      let formatResult = (entry, fromRoute) => {
-        var cat = entry.type,
-            config = searchConfig[cat],
+      let formatResult = (category, entry, fromRoute) => {
+        var config = searchConfig[category],
             formatter = config.displayFormatter;
 
         if (serviceDelegate.hasDelegate(entry.provider, 'search.resultFormatter')) {
           let providerFormatter = serviceDelegate.getDelegate(entry.provider, 'search.resultFormatter');
-          if (providerFormatter[cat]) {
-            formatter = providerFormatter[cat];
+          if (providerFormatter[category]) {
+            formatter = providerFormatter[category];
           }
         }
-        return formatter(entry, fromRoute).then((name) => { entry.displayName = name; });
+        return formatter(entry, fromRoute);
       };
 
       querySubject
@@ -114,7 +113,7 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
         })
         .subscribe(function(result) {
           var tmp = result.results.reduce(function(categories, entry) {
-            formatResult(entry);
+            formatResult(entry.type, entry).then((name) => entry.displayName = name);
             entry.href = urlBuilderService.buildFromMetadata(entry);
             categories[entry.type].push(entry);
             return categories;
@@ -137,9 +136,7 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
           return deferred.promise;
         },
         formatRouteResult: function(type, params) {
-          let entry = angular.copy(params);
-          entry.type = type;
-          return formatResult(entry, true);
+          return formatResult(type, params, true);
         },
       };
     };
