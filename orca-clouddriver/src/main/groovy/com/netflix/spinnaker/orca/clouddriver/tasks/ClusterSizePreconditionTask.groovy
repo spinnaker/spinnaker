@@ -50,6 +50,7 @@ class ClusterSizePreconditionTask extends AbstractCloudProviderAwareTask impleme
     String cluster
     String comparison = '=='
     int expected = 1
+    String credentials
     Set<String> regions
 
     public String getApplication() {
@@ -104,12 +105,11 @@ class ClusterSizePreconditionTask extends AbstractCloudProviderAwareTask impleme
 
   @Override
   TaskResult execute(Stage stage) {
-    String credentials = getCredentials(stage)
     String cloudProvider = getCloudProvider(stage)
-    ComparisonConfig config = stage.mapTo(ComparisonConfig)
+    ComparisonConfig config = stage.mapTo("/context", ComparisonConfig)
     config.validate()
 
-    Map cluster = readCluster(config, credentials, cloudProvider)
+    Map cluster = readCluster(config, config.credentials, cloudProvider)
     Map<String, List<Map>> serverGroupsByRegion = ((cluster.serverGroups as List<Map>) ?: []).groupBy { it.region }
 
     def failures = []

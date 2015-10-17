@@ -74,8 +74,11 @@ class CheckPreconditionsStage extends ParallelStage implements StepProvider {
     def baseContext = new HashMap(stage.context)
     List<Map> preconditions = baseContext.remove('preconditions') as List<Map>
     return preconditions.collect { preconditionConfig ->
-      def context = baseContext + preconditionConfig + [type: PIPELINE_CONFIG_TYPE]
-      context.name = context.name ?: "Check precondition $context.preconditionType".toString()
+      def context = baseContext + preconditionConfig + [
+        type: PIPELINE_CONFIG_TYPE,
+        preconditionType: preconditionConfig.type
+      ]
+      context.name = context.name ?: "Check precondition (${context.preconditionType})".toString()
       return context
     }
   }

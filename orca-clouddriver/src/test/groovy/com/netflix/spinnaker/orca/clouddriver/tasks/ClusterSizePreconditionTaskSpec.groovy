@@ -64,9 +64,11 @@ class ClusterSizePreconditionTaskSpec extends Specification {
     ]))
     def response = new Response('http://foo', 200, 'OK', [], body)
     def stage = new PipelineStage(new Pipeline(), 'checkCluster', [
-      credentials: credentials,
-      cluster    : cluster,
-      regions    : regions
+      context: [
+        credentials: credentials,
+        cluster    : cluster,
+        regions    : regions
+      ]
     ])
 
     when:
@@ -95,9 +97,11 @@ class ClusterSizePreconditionTaskSpec extends Specification {
     ]))
     def response = new Response('http://foo', 200, 'OK', [], body)
     def stage = new PipelineStage(new Pipeline(), 'checkCluster', [
-      credentials: credentials,
-      cluster    : cluster,
-      regions    : regions
+      context: [
+        credentials: credentials,
+        cluster    : cluster,
+        regions    : regions
+      ]
     ])
 
     when:
