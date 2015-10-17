@@ -61,7 +61,7 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
     };
 
     this.addCluster = () => {
-      $scope.command.config.clusters.push({});
+      $scope.command.config.clusters.push({ stack: '*', detail: '*'});
     };
 
     this.removePipeline = (index) => {
