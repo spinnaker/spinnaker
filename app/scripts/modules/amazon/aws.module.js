@@ -30,6 +30,7 @@ module.exports = angular.module('spinnaker.aws', [
   require('./vpc/vpc.module.js'),
   require('./image/image.reader.js'),
   require('./cache/cacheConfigurer.service.js'),
+  require('./search/searchResultFormatter.js'),
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('aws', {
@@ -70,6 +71,9 @@ module.exports = angular.module('spinnaker.aws', [
         detailsController: 'awsSecurityGroupDetailsCtrl',
         createSecurityGroupTemplateUrl: require('./securityGroup/configure/createSecurityGroup.html'),
         createSecurityGroupController: 'awsCreateSecurityGroupCtrl',
+      },
+      search: {
+        resultFormatter: 'awsSearchResultFormatter',
       }
     });
   }).name;

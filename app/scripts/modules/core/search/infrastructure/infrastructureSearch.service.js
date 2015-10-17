@@ -6,9 +6,9 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
   require('../../utils/rx.js'),
   require('../../navigation/urlBuilder.service.js'),
   require('../../application/service/applications.read.service.js'),
-  require('../../../amazon/vpc/vpc.read.service.js'), // TODO: this is a problem
+  require('../../cloudProvider/serviceDelegate.service.js'),
 ])
-  .factory('infrastructureSearchService', function(RxService, $q, searchService, urlBuilderService, applicationReader, vpcReader) {
+  .factory('infrastructureSearchService', function(RxService, $q, searchService, urlBuilderService, applicationReader, serviceDelegate) {
     return function() {
       var deferred;
 
@@ -47,7 +47,7 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
           displayName: 'Instances',
           displayFormatter: function(entry) {
             let serverGroup = entry.serverGroup || 'standalone instance';
-            return $q.when(entry.instanceId + ' (' + entry.region + ' - ' + serverGroup + ')');
+            return $q.when(entry.instanceId + ' (' + serverGroup + ' - ' + entry.region + ')');
           },
           order: 4,
           hideIfEmpty: true,
@@ -64,10 +64,7 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
         securityGroups: {
           displayName: 'Security Groups',
           displayFormatter: function(entry) {
-            return vpcReader.getVpcName(entry.vpcId).then(function (vpcName) {
-              let region = vpcName ? entry.region + ' - ' + vpcName.toLowerCase() : entry.region;
-              return entry.name + ' (' + region + ')';
-            });
+            return $q.when(entry.name + ' (' + entry.region + ')');
           },
           order: 6,
           hideIfEmpty: true,
@@ -80,13 +77,6 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
         };
       }
 
-      function applySublinks(entry) {
-        if (searchConfig[entry.type].sublinks) {
-          entry.sublinks = searchConfig[entry.type].sublinks;
-          entry.href += entry.sublinks[0].href;
-        }
-      }
-
       var querySubject = new RxService.Subject();
 
       let initializeCategories = () => {
@@ -95,6 +85,20 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
           categories[searchType] = [];
         });
         return categories;
+      };
+
+      let formatResult = (entry, fromRoute) => {
+        var cat = entry.type,
+            config = searchConfig[cat],
+            formatter = config.displayFormatter;
+
+        if (serviceDelegate.hasDelegate(entry.provider, 'search.resultFormatter')) {
+          let providerFormatter = serviceDelegate.getDelegate(entry.provider, 'search.resultFormatter');
+          if (providerFormatter[cat]) {
+            formatter = providerFormatter[cat];
+          }
+        }
+        return formatter(entry, fromRoute).then((name) => { entry.displayName = name; });
       };
 
       querySubject
@@ -110,12 +114,9 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
         })
         .subscribe(function(result) {
           var tmp = result.results.reduce(function(categories, entry) {
-            var cat = entry.type,
-                config = searchConfig[cat];
-            config.displayFormatter(entry).then((name) => { entry.displayName = name; });
+            formatResult(entry);
             entry.href = urlBuilderService.buildFromMetadata(entry);
-            applySublinks(entry);
-            categories[cat].push(entry);
+            categories[entry.type].push(entry);
             return categories;
           }, initializeCategories());
           deferred.resolve(Object.keys(tmp).map(function(cat) {
@@ -136,7 +137,9 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
           return deferred.promise;
         },
         formatRouteResult: function(type, params) {
-          return searchConfig[type].displayFormatter(params, true);
+          let entry = angular.copy(params);
+          entry.type = type;
+          return formatResult(entry, true);
         },
       };
     };
