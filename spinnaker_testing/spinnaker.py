@@ -58,10 +58,11 @@ import os
 import os.path
 import re
 
-# Our modules.
 import citest.gcp_testing.gce_util as gce_util
 import citest.service_testing as service_testing
 import citest.gcp_testing as gcp
+
+import spinnaker_testing.yaml_util as yaml_util
 
 
 class SpinnakerStatus(service_testing.HttpOperationStatus):
@@ -353,7 +354,7 @@ class SpinnakerAgent(service_testing.HttpAgent):
       try:
         with open(config_file, 'r') as f:
           return '\n'.join(f.readlines())
-      except IOException as e:
+      except IOError as e:
         logger.error('Failed to load from %s: %s', config_file, e)
         return None
 
@@ -377,6 +378,55 @@ class SpinnakerAgent(service_testing.HttpAgent):
 
 
   @staticmethod
+  def _get_deployed_local_yaml_bindings(gcloud, instance):
+    """Return the contents of the spinnaker-local.yml configuration file.
+
+    Args:
+      gcloud: Specifies project and zone. Capable of remote fetching if needed.
+      instance: The GCE instance name containing the configuration file.
+
+    Returns:
+      None or the configuration file contents.
+    """
+    logger = logging.getLogger(__name__)
+    if gce_util.am_i(gcloud.project, gcloud.zone, instance):
+      yaml_file = os.path.expanduser('~/.spinnaker/spinnaker-local.yml')
+      logger.debug('We are the instance. Config from %s', yaml_file)
+
+      if not os.path.exists(yaml_file):
+        logger.debug('%s does not exist', yaml_file)
+        return None
+
+      try:
+        bindings = yaml_config.YamlBindings()
+        bindings.import_path(yaml_file)
+        return bindings
+      except IOError as e:
+        logger.error('Failed to load from %s: %s', yaml_file, e)
+        return None
+
+      logger.debug('Load spinnaker-local.yml from instance %s', instance)
+
+    # If this is a production installation, look in /root/.spinnaker
+    # Otherwise look in ~/.spinnaker for a development installation.
+    response = gcloud.remote_command(
+        instance,
+        'if sudo stat /root/.spinnaker/spinnaker-local.yml >& /dev/null; then'
+        ' sudo cat /root/.spinnaker/spinnaker-local.yml; '
+        'elif sudo stat ~/.spinnaker/spinnaker-local.yml >& /dev/null; then'
+        ' cat ~/.spinnaker/spinnaker-local.yml; '
+        'fi')
+    if response.retcode != 0:
+      logger.error(
+        'Could not determine configuration:\n%s', response.error)
+      return None
+
+    bindings = yaml_util.YamlBindings()
+    bindings.import_string(response.output)
+    return bindings
+
+
+  @staticmethod
   def _determine_spinnaker_configuration(gcloud, instance):
     """Connect to the actual spinnaker instance and grab its configuration.
 
@@ -387,10 +437,7 @@ class SpinnakerAgent(service_testing.HttpAgent):
     Returns:
       Dictionary with upper-case keys (as they appear in spinnaker)
     """
-    contents = SpinnakerAgent._get_gce_config_file_contents(gcloud, instance)
-    if contents == None:
-      return None
-
+    logger = logging.getLogger(__name__)
     spinnaker_config = {
       # Assume the default name.
       'GOOGLE_PRIMARY_ACCOUNT_NAME': 'my-account-name',
@@ -398,7 +445,28 @@ class SpinnakerAgent(service_testing.HttpAgent):
       'GOOGLE_PRIMARY_MANAGED_PROJECT_ID': gcloud.project
     }
 
-    logger = logging.getLogger(__name__)
+    bindings = SpinnakerAgent._get_deployed_local_yaml_bindings(
+        gcloud, instance)
+
+    if bindings:
+      try:
+        spinnaker_config['GOOGLE_PRIMARY_ACCOUNT_NAME'] = (
+              bindings.get('providers.google.primaryCredentials.name'))
+      except KeyError:
+          pass
+      try:
+        spinnaker_config['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'] = (
+              bindings.get('providers.google.primaryCredentials.project'))
+      except KeyError:
+          pass
+
+      logger.debug('Collected configuration from bindings %s', spinnaker_config)
+      return spinnaker_config
+
+    contents = SpinnakerAgent._get_gce_config_file_contents(gcloud, instance)
+    if contents == None:
+      return None
+
     for key in ['GOOGLE_PRIMARY_MANAGED_PROJECT_ID',
                 'GOOGLE_PRIMARY_ACCOUNT_NAME']:
       m = re.search(key + '=([-\w]+)', contents)
@@ -408,5 +476,5 @@ class SpinnakerAgent(service_testing.HttpAgent):
         logger.debug(
           'Seems to be using the default %s=%s', key, spinnaker_config[key])
 
-    logger.debug('Collected configuration %s', spinnaker_config)
+    logger.debug('Collected old-style configuration %s', spinnaker_config)
     return spinnaker_config
