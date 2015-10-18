@@ -422,7 +422,16 @@ class SpinnakerAgent(service_testing.HttpAgent):
       return None
 
     bindings = yaml_util.YamlBindings()
-    bindings.import_string(response.output)
+
+    got = response.output
+    eoln = got.find('\n')
+    if eoln > 0 and re.match('^Warning: .+$', got[0:eoln]):
+      got = got[eoln + 1:]
+
+    if not got:
+      return None
+
+    bindings.import_string(got)
     return bindings
 
 
