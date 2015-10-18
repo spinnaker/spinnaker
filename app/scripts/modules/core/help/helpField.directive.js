@@ -30,7 +30,8 @@ module.exports = angular
         key: '@',
         fallback: '@',
         content: '@',
-        placement: '@'
+        placement: '@',
+        expand: '='
       },
       link: {
         pre: function (scope) {

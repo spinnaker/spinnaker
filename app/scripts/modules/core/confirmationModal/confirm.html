@@ -18,12 +18,16 @@
           </div>
         </div>
       </div>
-      <platform-health-override ng-if="params.platformHealthOnlyShowOverride"
-                                command="params"
-                                platform-health-type="params.platformHealthType"
-                                label-columns="3"
-                                label-offset="col-sm-offset-1">
-      </platform-health-override>
+      <div class="row" ng-if="params.platformHealthOnlyShowOverride">
+        <div class="col-sm-offset-1 col-sm-10">
+          <platform-health-override command="params"
+                                    platform-health-type="params.platformHealthType"
+                                    field-columns="12"
+                                    show-help-details="true"
+                                    label-offset="col-sm-offset-1">
+          </platform-health-override>
+        </div>
+      </div>
     </form>
     <div ng-if="state.error">
       <div class="alert alert-danger">

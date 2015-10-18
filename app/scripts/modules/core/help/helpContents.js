@@ -4,9 +4,10 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.help.contents', [])
   .constant('helpContents', {
-    'application.platformHealthOnly': 'When this option is enabled, instance status as reported by the cloud platform will be considered sufficient to ' +
+    'application.platformHealthOnly': 'When this option is enabled, instance status as reported by the cloud provider will be considered sufficient to ' +
       'determine task completion. When this option is disabled, tasks will normally need health status reported by some other health provider (e.g. a ' +
       'load balancer or discovery service) to determine task completion.',
+    'application.showPlatformHealthOverride': 'When this option is enabled, users will be able to toggle the option above on a task-by-task basis.',
     'aws.associateElasticIp.elasticIp': '<p>(Optional) <b>Elastic IP</b> is an IP address that Spinnaker will associate with this cluster.' +
       '<p>If specified, this elastic IP must exist and not already be attached to an instance or cluster.</p>' +
       '<p>If left blank, Spinnaker will make a selection from the list of available elastic IPs in the provided account and region.</p>',

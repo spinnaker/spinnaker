@@ -1,4 +1,7 @@
-<a href class="help-field" ng-if="contents.content"
+<div ng-if="expand && contents.content" class="help-contents small">
+  {{contents.content}}
+</div>
+<a href class="help-field" ng-if="!expand && contents.content"
         popover="{{contents.content}}"
         popover-placement="{{contents.placement}}"
         popover-trigger="mouseenter focus">
