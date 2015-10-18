@@ -11,7 +11,7 @@ module.exports = angular
     require('../../../core/utils/lodash.js'),
     require('../configure/configSecurityGroup.mixin.controller.js')
   ])
-  .controller('awsCloneSecurityGroupController', function($scope, $modalInstance, $controller, taskMonitorService, accountService, securityGroupWriter, vpcReader, securityGroup, application, _) {
+  .controller('awsCloneSecurityGroupController', function($scope, $modalInstance, $controller, taskMonitorService, accountService, securityGroupWriter, securityGroup, application, _) {
     var vm = this;
 
     $scope.pages = {

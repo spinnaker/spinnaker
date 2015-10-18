@@ -113,21 +113,11 @@
             </div>
           </div>
           <div class="row">
-            <div class="col-md-3 col-md-offset-1">Networks</div>
+            <div class="col-md-3 col-md-offset-1">VPCs/Networks</div>
             <div class="col-md-3">{{config.getCacheInfo('networks').ageMax | timestamp}}</div>
             <div class="col-md-1 text-center">
               <a href ng-click="config.refreshCache('networks')">
               <span ng-class="{'glyphicon-spinning':config.clearingCache['networks']}"
-                    class="glyphicon glyphicon-refresh"></span>
-              </a>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-3 col-md-offset-1">VPCs</div>
-            <div class="col-md-3">{{config.getCacheInfo('vpcs').ageMax | timestamp}}</div>
-            <div class="col-md-1 text-center">
-              <a href ng-click="config.refreshCache('vpcs')">
-              <span ng-class="{'glyphicon-spinning':config.clearingCache['vpcs']}"
                     class="glyphicon glyphicon-refresh"></span>
               </a>
             </div>
