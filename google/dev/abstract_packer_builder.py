@@ -163,7 +163,7 @@ class AbstractPackerBuilder(object):
       if eq > 0:
          self.__var_map[arg[0:eq]] = arg[eq + 1:]
       else:
-         self.__var_map[arg] = a[i + 1]
+         self.__var_map[arg] = arg[i + 1]
          i += 1
 
   @classmethod

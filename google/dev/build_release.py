@@ -301,7 +301,7 @@ class Builder(object):
           target_config = os.path.join(self.__release_dir, 'config', yml)
           self.__config_list.append(yml)
           processes.append(self.start_copy_file(source_config, target_config))
-      
+
       # Copy subsystem configuration files.
       for subsys in SUBSYSTEM_LIST:
           processes.append(self.start_copy_debian_target(subsys))
