@@ -5,6 +5,8 @@ let angular = require('angular');
 require('./confirmationModal.less');
 
 module.exports = angular.module('spinnaker.core.confirmationModal.service', [
+  require('../utils/lodash.js'),
+  require('../application/modal/platformHealthOverride.directive.js'),
   require('../task/monitor/taskMonitor.module.js'),
   require('../account/account.module.js'),
   require('angular-ui-router'),
@@ -39,7 +41,7 @@ module.exports = angular.module('spinnaker.core.confirmationModal.service', [
       confirm: confirm
     };
   })
-  .controller('ConfirmationModalCtrl', function($scope, $state, $modalInstance, accountService, params, taskMonitorService) {
+  .controller('ConfirmationModalCtrl', function($scope, $state, $modalInstance, accountService, params, taskMonitorService, _) {
     $scope.params = params;
 
     $scope.state = {
@@ -70,11 +72,11 @@ module.exports = angular.module('spinnaker.core.confirmationModal.service', [
     this.confirm = function () {
       if (!this.formDisabled()) {
         if ($scope.taskMonitor) {
-          $scope.taskMonitor.submit(params.submitMethod);
+          $scope.taskMonitor.submit(() => { return params.submitMethod(params.interestingHealthProviderNames); });
         } else {
           if (params.submitMethod) {
             $scope.state.submitting = true;
-            params.submitMethod().then($modalInstance.close, showError);
+            params.submitMethod(params.interestingHealthProviderNames).then($modalInstance.close, showError);
           } else {
             $modalInstance.close();
           }

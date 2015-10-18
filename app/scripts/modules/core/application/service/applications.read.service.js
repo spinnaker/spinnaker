@@ -233,6 +233,11 @@ module.exports = angular
       })
         .then(function(applicationLoader) {
           application = applicationLoader.application;
+
+          // These attributes are stored as strings.
+          application.attributes.platformHealthOnly = (application.attributes.platformHealthOnly === "true");
+          application.attributes.platformHealthOnlyShowOverride = (application.attributes.platformHealthOnlyShowOverride === "true");
+
           application.lastRefresh = new Date().getTime();
           securityGroupAccounts = _(applicationLoader.securityGroups).pluck('account').unique().value();
           loadBalancerAccounts = _(applicationLoader.loadBalancers).pluck('account').unique().value();

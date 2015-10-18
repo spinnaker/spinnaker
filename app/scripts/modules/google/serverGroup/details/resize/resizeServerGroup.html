@@ -102,6 +102,12 @@
           </div>
         </div>
       </div>
+      <platform-health-override ng-if="command.platformHealthOnlyShowOverride"
+                                command="command"
+                                platform-health-type="'GCE'"
+                                label-columns="3"
+                                label-offset="col-sm-offset-1">
+      </platform-health-override>
     </div>
     <div class="modal-footer">
       <button type="submit" ng-click="ctrl.resize()" style="display:none"></button> <!-- Allows form submission via enter keypress-->

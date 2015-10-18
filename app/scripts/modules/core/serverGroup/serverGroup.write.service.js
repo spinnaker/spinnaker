@@ -77,7 +77,6 @@ module.exports = angular
     }
 
     function cloneServerGroup(command, application) {
-
       var description;
       if (command.viewState.mode === 'clone') {
         description = 'Create Cloned Server Group from ' + command.source.asgName;

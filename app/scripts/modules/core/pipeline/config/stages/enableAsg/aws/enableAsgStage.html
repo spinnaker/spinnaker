@@ -32,4 +32,11 @@
       <checklist items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
     </div>
   </div>
+  <platform-health-override ng-if="application.attributes.platformHealthOnlyShowOverride"
+                            command="stage"
+                            platform-health-type="'Amazon'"
+                            label-text="Task Completion"
+                            label-columns="2"
+                            label-offset="col-md-offset-1">
+  </platform-health-override>
 </div>

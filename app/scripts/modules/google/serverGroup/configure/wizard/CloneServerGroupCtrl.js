@@ -4,6 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServerGroup', [
   require('angular-ui-router'),
+  require('../../../../core/application/modal/platformHealthOverride.directive.js'),
 ])
   .controller('gceCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $state,
                                                   serverGroupWriter, modalWizardService, taskMonitorService,

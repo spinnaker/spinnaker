@@ -3,6 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.disableAsgStage', [
+  require('../../../../../application/modal/platformHealthOverride.directive.js'),
   require('../../../../../utils/lodash.js'),
   require('../../stageConstants.js'),
   require('./disableAsgExecutionDetails.controller.js')
@@ -54,6 +55,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.disableAsgSta
 
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'aws';
+
+    if (stage.isNew && $scope.application.attributes.platformHealthOnly) {
+      stage.interestingHealthProviderNames = ['Amazon'];
+    }
 
     if (!stage.credentials && $scope.application.defaultCredentials) {
       stage.credentials = $scope.application.defaultCredentials;

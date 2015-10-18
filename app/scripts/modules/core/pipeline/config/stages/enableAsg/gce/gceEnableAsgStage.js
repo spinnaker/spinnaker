@@ -5,6 +5,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.enableAsgStage', [
+  require('../../../../../application/modal/platformHealthOverride.directive.js'),
   require('../../../../../utils/lodash.js'),
   require('../../stageConstants.js'),
   require('./enableAsgExecutionDetails.controller.js')
@@ -51,6 +52,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.enableAsgStag
 
     stage.zones = stage.zones || [];
     stage.cloudProvider = 'gce';
+
+    if (stage.isNew && $scope.application.attributes.platformHealthOnly) {
+      stage.interestingHealthProviderNames = ['GCE'];
+    }
 
     if (!stage.credentials && $scope.application.defaultCredentials) {
       stage.credentials = $scope.application.defaultCredentials;

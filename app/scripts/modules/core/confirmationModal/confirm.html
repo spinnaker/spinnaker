@@ -4,7 +4,7 @@
   <div class="modal-header">
     <h3>{{params.header}}</h3>
   </div>
-  <div class="modal-body confirmation-modal" ng-if="params.body || verification.requireAccountEntry || state.error">
+  <div class="modal-body confirmation-modal" ng-if="params.body || verification.requireAccountEntry || state.error || params.platformHealthOnlyShowOverride">
     <form role="form" class="container-fluid" ng-submit="ctrl.confirm()">
       <div ng-if="params.body" bind-html-unsafe="params.body">
       </div>
@@ -18,6 +18,12 @@
           </div>
         </div>
       </div>
+      <platform-health-override ng-if="params.platformHealthOnlyShowOverride"
+                                command="params"
+                                platform-health-type="params.platformHealthType"
+                                label-columns="3"
+                                label-offset="col-sm-offset-1">
+      </platform-health-override>
     </form>
     <div ng-if="state.error">
       <div class="alert alert-danger">

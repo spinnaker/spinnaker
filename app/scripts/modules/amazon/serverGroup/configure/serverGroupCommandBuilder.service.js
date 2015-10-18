@@ -34,7 +34,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
           var regions = asyncData.regionsKeyedByAccount[defaultCredentials];
           var keyPair = regions ? regions.defaultKeyPair : null;
 
-          return {
+          var command = {
             application: application.name,
             credentials: defaultCredentials,
             region: defaultRegion,
@@ -69,6 +69,12 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
               disableStrategySelection: true,
             },
           };
+
+          if (application && application.attributes && application.attributes.platformHealthOnly) {
+            command.interestingHealthProviderNames = ['Amazon'];
+          }
+
+          return command;
         });
     }
 
@@ -197,6 +203,10 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
             isNew: false,
           },
         };
+
+        if (application && application.attributes && application.attributes.platformHealthOnly) {
+          command.interestingHealthProviderNames = ['Amazon'];
+        }
 
         if (mode === 'clone') {
           command.useSourceCapacity = true;
