@@ -17,9 +17,9 @@ module.exports = angular
     }
 
     function listNetworksByProvider(cloudProvider) {
-      return listNetworks().then(function(networks) {
-        return networks[cloudProvider];
-      });
+      return Restangular.one('networks', cloudProvider)
+        .withHttpConfig({cache: infrastructureCaches.networks})
+        .getList();
     }
 
     return {

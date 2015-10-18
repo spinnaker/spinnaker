@@ -34,7 +34,7 @@ module.exports = angular.module('spinnaker.aws.cache.initializer', [
       initializers: [subnetReader.listSubnets],
     };
 
-    config.vpcs = {
+    config.networks = {
       version: 2,
       initializers: [vpcReader.listVpcs],
       onReset: [vpcReader.resetCache],

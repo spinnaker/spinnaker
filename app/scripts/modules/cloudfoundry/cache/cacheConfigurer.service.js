@@ -8,9 +8,7 @@ module.exports = angular.module('spinnaker.cf.cache.initializer', [
   require('../../core/instance/instanceTypeService.js'),
   require('../../core/securityGroup/securityGroup.read.service.js'),
 ])
-  .factory('cfCacheConfigurer', function ($q,
-                                         accountService, instanceTypeService, securityGroupReader,
-                                         subnetReader, vpcReader, keyPairsReader, loadBalancerReader) {
+  .factory('cfCacheConfigurer', function ($q, accountService, instanceTypeService, loadBalancerReader) {
 
     let config = Object.create(null);
 

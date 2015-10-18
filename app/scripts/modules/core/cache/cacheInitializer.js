@@ -15,11 +15,10 @@ module.exports = angular.module('spinnaker.core.cache.initializer', [
 ])
   .factory('cacheInitializer', function ($q, applicationReader, infrastructureCaches,
                                          accountService, securityGroupReader, cloudProviderRegistry,
-                                         igorService, infrastructureCacheConfig, serviceDelegate, networkReader, _) {
+                                         igorService, infrastructureCacheConfig, serviceDelegate, _) {
 
     var initializers = {
       credentials: [accountService.listAccounts],
-      networks: [networkReader.listNetworks],
       securityGroups: [securityGroupReader.getAllSecurityGroups],
       applications: [applicationReader.listApplications],
       buildMasters: [igorService.listMasters],
