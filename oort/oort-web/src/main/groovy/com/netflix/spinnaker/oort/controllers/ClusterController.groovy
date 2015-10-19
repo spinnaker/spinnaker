@@ -152,7 +152,6 @@ class ClusterController {
       throw new TargetNotFoundException(target: target)
     }
 
-
     def sortedServerGroups = getServerGroups(application, account, clusterName, cloudProvider, null /* region */).findAll {
       def scopeMatch = it.region == scope || it.zones.contains(scope)
 
@@ -185,7 +184,7 @@ class ClusterController {
         }
         return sortedServerGroups.last()
       case TargetServerGroup.LARGEST:
-        // Choose the server group with the most instances, falling back to newest in the case of a tie
+        // Choose the server group with the most instances, falling back to newest in the case of a tie.
         return sortedServerGroups.sort { lhs, rhs ->
           rhs.instances.size() <=> lhs.instances.size() ?:
               rhs.createdTime <=> lhs.createdTime

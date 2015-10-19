@@ -117,7 +117,7 @@ interface ServerGroup {
 
   /**
    * An ImageSummary is collection of data related to the build and VM image of the server group. This is merely a view
-   * of data from others parts of this object.
+   * of data from other parts of this object.
    */
   @JsonIgnore
   ImageSummary getImageSummary()
