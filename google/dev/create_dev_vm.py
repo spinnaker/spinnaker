@@ -23,7 +23,7 @@ import time
 
 from pylib.run import run_quick
 from pylib.run import check_run_quick
-
+from pylib.yaml_util import YamlBindings
 
 __NEXT_STEP_INSTRUCTIONS = """
 To finish the installation, do the following (with or without tunnel):
@@ -92,6 +92,9 @@ def init_argument_parser(parser):
         '--copy_private_files', default=False, action='store_true',
         help='Also copy private files (.ssh/id_rsa*, .git-credentials, etc)')
 
+    parser.add_argument(
+        '--master_yml', default=None,
+        help='If specified, the path to the master spinnaker-local.yml file.')
     parser.add_argument(
         '--master_config', default=None,
         help='If specified, the path to the master config file.')
@@ -227,6 +230,9 @@ def create_instance(options):
       os.remove(temp_install_runtime)
 
 
+# DEPRECATED
+# This is the old style config. Replaced by copy_yaml_config.
+# Keep this around until people are comfortable transitioning.
 def copy_master_config(options):
     """Copy the specified master spinnaker_config.cfg file, and credentials.
 
@@ -240,6 +246,15 @@ def copy_master_config(options):
         about the instance we're going to copy to, as well as the source
         of the master spinnaker_config.cfg file.
     """
+    print """
+*****************************************************************************
+** WARNING:
+** --master_config is being deprecated.
+**
+** Please use --master_yaml and provide a spinnaker-local.yml instead.
+** Your builds will still support both styles for the interim.
+*****************************************************************************
+"""
     print 'Creating .spinnaker directory...'
     check_run_quick('gcloud compute ssh --command "mkdir -p .spinnaker"'
                     ' --project={project} --zone={zone} {instance}'
@@ -309,6 +324,84 @@ def copy_master_config(options):
       os.remove(temp_path)
 
 
+def copy_master_yml(options):
+    """Copy the specified master spinnaker-local.yml, and credentials.
+
+    This will look for paths to credentials within the spinnaker-local.yml, and
+    copy those as well. The paths to the credentials (and the reference
+    in the config file) will be changed to reflect the filesystem on the
+    new instance, which may be different than on this instance.
+
+    Args:
+      options [Namespace]: The parser namespace options contain information
+        about the instance we're going to copy to, as well as the source
+        of the master spinnaker_config.cfg file.
+    """
+    print 'Creating .spinnaker directory...'
+    check_run_quick('gcloud compute ssh --command "mkdir -p .spinnaker"'
+                    ' --project={project} --zone={zone} {instance}'
+                    .format(project=get_project(options),
+                            zone=options.zone,
+                            instance=options.instance),
+                    echo=False)
+
+    bindings = YamlBindings()
+    bindings.import_path(options.master_yml)
+
+    try:
+      json_credential_path = bindings.get(
+          'providers.google.primaryCredentials.jsonPath')
+    except KeyError:
+      json_credential_path = None
+
+    gcp_home = os.path.join('/home', os.environ['LOGNAME'], '.spinnaker')
+
+    # If there are credentials, write them to this path
+    gcp_credential_path = os.path.join(gcp_home, 'google-credentials.json')
+
+    fix_permissions = [
+        'cd {gcp_home}'.format(gcp_home=gcp_home),
+        'chmod 600 spinnaker-local.yml'
+    ]
+
+    with open(options.master_yml, 'r') as f:
+        content = f.read()
+
+    # Replace all the occurances of the original credentials path with the
+    # path that we are going to place the file in on the new instance.
+    if json_credential_path:
+        new_content = content.replace(json_credential_path, gcp_credential_path)
+
+    fd, temp_path = tempfile.mkstemp()
+    os.write(fd, new_content)
+    os.close(fd)
+    actual_path = temp_path
+
+    # Copy the credentials here. The cfg file will be copied after.
+    copy_file(options, actual_path,
+              '{instance}:.spinnaker/spinnaker-local.yml'.format(
+                    instance=options.instance))
+
+    if json_credential_path:
+        copy_file(options, json_credential_path,
+                  '{instance}:.spinnaker/google-credentials.json'.format(
+                        instance=options.instance))
+        fix_permissions.append('chmod 600 google-credentials.json')
+
+    print 'Fixing credentials.'
+    # Ideally this should be a parameter to copy-files so it is always
+    # protected, but there doesnt seem to be an API for it.
+    check_run_quick('gcloud compute ssh --command "{fix_permissions}"'
+                    ' --project={project} --zone={zone} {instance}'
+                    .format(fix_permissions=';'.join(fix_permissions),
+                            project=get_project(options),
+                            zone=options.zone,
+                            instance=options.instance),
+                    echo=False)
+    if temp_path:
+      os.remove(temp_path)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     init_argument_parser(parser)
@@ -329,6 +422,9 @@ if __name__ == '__main__':
 
     if options.master_config:
       copy_master_config(options)
+
+    if options.master_yml:
+      copy_master_yml(options)
 
     print __NEXT_STEP_INSTRUCTIONS.format(
         project=get_project(options),
