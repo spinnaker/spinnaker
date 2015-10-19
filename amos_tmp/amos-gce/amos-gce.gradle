@@ -1,0 +1,5 @@
+dependencies {
+  compile project(":amos-core")
+  spinnaker.group('gceApi')
+}
+
