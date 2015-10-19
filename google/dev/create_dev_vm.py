@@ -40,7 +40,7 @@ gcloud compute ssh --project {project} --zone {zone} {instance}\
 source /opt/spinnaker/install/bootstrap_vm.sh
 
 
-(3) Build and run the sources:
+(3a) Build and run directly from the sources:
 
   ../spinnaker/google/dev/run_dev.sh
 
@@ -68,8 +68,20 @@ def init_argument_parser(parser):
         '--instance',
         default='{user}-spinnaker-dev'.format(user=os.environ['USER']),
         help='The name of the GCE instance to create.')
-    parser.add_argument('--project', default=None)
-    parser.add_argument('--zone', default='us-central1-f')
+    parser.add_argument(
+        '--project', default=None,
+        help='The Google Project ID to create the new instance in.'
+        ' If left empty, use the default project gcloud was configured with.')
+
+    parser.add_argument(
+        '--zone', default='us-central1-f',
+        help='The Google Cloud Platform zone to create the new instance in.')
+
+    parser.add_argument(
+        '--disk_type',  default='pd-standard',
+        help='The Google Cloud Platform disk type to use for the new instance.'
+        '  The default is pd-standard. For a list of other available options,'
+        ' see "gcloud compute disk-types list".')
     parser.add_argument('--disk_size', default='200GB',
                         help='Warnings appear if disk size < 200GB')
     parser.add_argument('--machine_type', default='n1-highmem-8')
@@ -89,7 +101,9 @@ def init_argument_parser(parser):
              ' be an IP address or the name or URI of an address resource.')
     parser.add_argument(
         '--scopes', default='compute-rw,storage-rw',
-        help='Create the instance with these scopes.')
+        help='Create the instance with these scopes.'
+        'The default are the minimal scopes needed to run the development'
+        ' scripts. This is currently "compute-rw,storage-rw".')
 
 
 def copy_file(options, source, target):
@@ -199,6 +213,7 @@ def create_instance(options):
                '--image', 'ubuntu-14-04',
                '--scopes', 'compute-rw,storage-rw',
                '--boot-disk-size={size}'.format(size=options.disk_size),
+               '--boot-disk-type={type}'.format(type=options.disk_type),
                '--metadata', metadata,
                '--metadata-from-file={files}'.format(
                    files=','.join(metadata_files))]
