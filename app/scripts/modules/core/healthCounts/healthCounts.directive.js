@@ -6,7 +6,7 @@ require('./healthCounts.less');
 
 module.exports = angular.module('spinnaker.core.healthCounts.directive', [
 ])
-  .directive('healthCounts', function ($templateCache) {
+  .directive('healthCounts', function ($templateCache, $sce) {
     return {
       templateUrl: require('./healthCounts.html'),
       restrict: 'E',
@@ -18,7 +18,7 @@ module.exports = angular.module('spinnaker.core.healthCounts.directive', [
       link: function(scope) {
 
         scope.legendPlacement = scope.legendPlacement || 'top';
-        scope.legend = $templateCache.get(require('./healthLegend.html'));
+        scope.legend = $sce.trustAsHtml($templateCache.get(require('./healthLegend.html')));
 
         if (scope.additionalLegendText) {
           scope.legend += scope.additionalLegendText;
