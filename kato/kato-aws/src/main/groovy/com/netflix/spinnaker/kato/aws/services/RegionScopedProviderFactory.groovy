@@ -26,6 +26,7 @@ import com.netflix.spinnaker.kato.aws.deploy.LaunchConfigurationBuilder
 import com.netflix.spinnaker.kato.aws.deploy.ops.discovery.Eureka
 import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.aws.model.SubnetAnalyzer
+import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RestAdapter
@@ -40,6 +41,9 @@ class RegionScopedProviderFactory {
 
   @Autowired
   List<UserDataProvider> userDataProviders
+
+  @Autowired
+  KatoAWSConfig.DeployDefaults deployDefaults
 
   RegionScopedProvider forRegion(NetflixAmazonCredentials amazonCredentials, String region) {
     new RegionScopedProvider(amazonCredentials, region)

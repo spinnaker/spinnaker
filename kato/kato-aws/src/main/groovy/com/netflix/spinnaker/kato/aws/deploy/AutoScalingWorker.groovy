@@ -48,6 +48,7 @@ class AutoScalingWorker {
   private String stack
   private String freeFormDetails
   private String ami
+  private String classicLinkVpcId
   private String instanceType
   private String iamRole
   private String keyPair
@@ -114,6 +115,7 @@ class AutoScalingWorker {
       suffix: null,
       ami: ami,
       iamRole: iamRole,
+      classicLinkVpcId: classicLinkVpcId,
       instanceType: instanceType,
       keyPair: keyPair,
       associatePublicIpAddress: associatePublicIpAddress,

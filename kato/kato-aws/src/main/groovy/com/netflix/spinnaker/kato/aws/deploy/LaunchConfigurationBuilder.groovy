@@ -33,6 +33,8 @@ interface LaunchConfigurationBuilder {
 
     String ami
     String iamRole
+    String classicLinkVpcId
+    List<String> classicLinkVPCSecurityGroups
     String instanceType
     String keyPair
     Boolean associatePublicIpAddress

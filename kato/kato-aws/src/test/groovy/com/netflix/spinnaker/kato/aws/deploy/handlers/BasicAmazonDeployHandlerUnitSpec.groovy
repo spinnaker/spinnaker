@@ -26,7 +26,9 @@ import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeImagesRequest
 import com.amazonaws.services.ec2.model.DescribeImagesResult
+import com.amazonaws.services.ec2.model.DescribeVpcClassicLinkResult
 import com.amazonaws.services.ec2.model.Image
+import com.amazonaws.services.ec2.model.VpcClassicLink
 import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.TestCredential
@@ -106,6 +108,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     then:
     2 == deployCallCounts
     results.serverGroupNames == ['us-west-1:foo', 'us-east-1:foo']
+    2 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
   }
 
   void "load balancer names are derived from prior execution results"() {
@@ -122,6 +125,28 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
     then:
     setlbCalls
+    1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
+  }
+
+  void "should populate classic link VPC Id when classic link is enabled"() {
+    setup:
+    AutoScalingWorker.metaClass.deploy = {
+      assert classicLinkVpcId == "vpc-456"
+      "foo"
+    }
+    def description = new BasicAmazonDeployDescription(amiName: "ami-12345")
+    description.availabilityZones = ["us-west-1": []]
+    description.credentials = TestCredential.named('baz')
+
+    when:
+    handler.handle(description, [])
+
+    then:
+    1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult(vpcs: [
+      new VpcClassicLink(vpcId: "vpc-123", classicLinkEnabled: false),
+      new VpcClassicLink(vpcId: "vpc-456", classicLinkEnabled: true),
+      new VpcClassicLink(vpcId: "vpc-789", classicLinkEnabled: false)
+      ])
   }
 
   void "should send instance class block devices to AutoScalingWorker when matched and none are specified"() {
@@ -144,6 +169,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     2 == deployCallCounts
     results.serverGroupNames == ['us-west-1:foo', 'us-east-1:foo']
     setBlockDevices == this.blockDevices
+    2 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
   }
 
   void "should favour explicit description block devices over default config"() {
@@ -168,6 +194,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     results.serverGroupNames == ['us-west-1:foo', 'us-east-1:foo']
     setBlockDevices.size()
     setBlockDevices == description.blockDevices
+    2 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
   }
 
   void "should resolve amiId from amiName"() {
@@ -189,7 +216,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
       return new DescribeImagesResult().withImages(new Image().withImageId('ami-12345'))
     }
-
+    1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
     deployCallCounts == 1
   }
 
