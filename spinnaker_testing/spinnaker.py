@@ -398,7 +398,7 @@ class SpinnakerAgent(service_testing.HttpAgent):
         return None
 
       try:
-        bindings = yaml_config.YamlBindings()
+        bindings = yaml_util.YamlBindings()
         bindings.import_path(yaml_file)
         return bindings
       except IOError as e:
