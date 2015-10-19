@@ -23,15 +23,15 @@ import groovy.transform.Canonical
  * @author sthadeshwar
  */
 class TitanDeployDescription extends AbstractTitanCredentialsDescription implements DeployDescription {
+  String account
+  String region
+  String subnet
+  List<String> zones
   String application
   String stack
   String freeFormDetails
   String imageId
   Capacity capacity = new Capacity()
-  String account
-  String region
-  String subnet
-  List<String> zones
   Resources resources = new Resources()
   Map env
 
