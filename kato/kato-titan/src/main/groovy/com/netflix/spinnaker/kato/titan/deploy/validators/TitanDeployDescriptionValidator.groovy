@@ -63,21 +63,21 @@ class TitanDeployDescriptionValidator extends AbstractTitanDescriptionValidatorS
 
     if (description.resources) {
       if (description.resources.cpu <= 0) {
-        errors.rejectValue "capacity", "titanDeployDescription.resources.cpu.invalid"
+        errors.rejectValue "resources.cpu", "titanDeployDescription.resources.cpu.invalid"
       }
 
       if (description.resources.memory <= 0) {
-        errors.rejectValue "capacity", "titanDeployDescription.resources.memory.invalid"
+        errors.rejectValue "resources.memory", "titanDeployDescription.resources.memory.invalid"
       }
 
       if (description.resources.disk <= 0) {
-        errors.rejectValue "capacity", "titanDeployDescription.resources.disk.invalid"
+        errors.rejectValue "resources.disk", "titanDeployDescription.resources.disk.invalid"
       }
 
       if (description.resources.ports) {
         description.resources.ports.each {
           if (it <= 0) {
-            errors.rejectValue "capacity", "titanDeployDescription.resources.ports.invalid", it, "Invalid port specified"
+            errors.rejectValue "resources.port", "titanDeployDescription.resources.port.invalid", it, "Invalid port specified"
           }
         }
       }
