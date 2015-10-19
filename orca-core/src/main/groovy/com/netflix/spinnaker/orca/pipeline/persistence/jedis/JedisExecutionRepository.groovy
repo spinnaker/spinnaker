@@ -26,6 +26,7 @@ import rx.functions.Func1
 import rx.schedulers.Schedulers
 import static com.google.common.base.Predicates.notNull
 import static com.google.common.collect.Maps.filterValues
+import static java.lang.System.currentTimeMillis
 
 @Component
 @Slf4j
@@ -95,6 +96,27 @@ class JedisExecutionRepository implements ExecutionRepository {
         throw new ExecutionNotFoundException("No execution found with id $id")
       }
       jedis.hset(key, "canceled", "true")
+    }
+  }
+
+  @Override
+  void updateStatus(String id, ExecutionStatus status) {
+    withJedis {Jedis jedis->
+      String key
+      if (jedis.exists("pipeline:$id")) {
+        key = "pipeline:$id"
+      } else if (jedis.exists("orchestration:$id")) {
+        key = "orchestration:$id"
+      } else {
+        throw new ExecutionNotFoundException("No execution found with id $id")
+      }
+      Map<String, String> map = [executionStatus: status.name()]
+      if (status == ExecutionStatus.RUNNING) {
+        map.startTime = String.valueOf(currentTimeMillis())
+      } else if (status.complete) {
+        map.endTime = String.valueOf(currentTimeMillis())
+      }
+      jedis.hmset(key, map)
     }
   }
 
@@ -191,10 +213,8 @@ class JedisExecutionRepository implements ExecutionRepository {
       def appKey = appKey(execution.getClass(), execution.application)
       jedis.sadd(appKey, execution.id)
     }
-    def json = mapper.writeValueAsString(execution)
 
     def key = "${prefix}:$execution.id"
-    jedis.hset(key, "config", json)
 
     Map<String, String> map = [
       application      : execution.application,
@@ -203,6 +223,8 @@ class JedisExecutionRepository implements ExecutionRepository {
       parallel         : String.valueOf(execution.parallel),
       limitConcurrent  : String.valueOf(execution.limitConcurrent),
       buildTime        : Long.toString(execution.buildTime ?: 0L),
+      startTime        : Long.toString(execution.startTime ?: 0L),
+      endTime        : Long.toString(execution.endTime ?: 0L),
       executingInstance: execution.executingInstance,
       executionStatus  : execution.executionStatus?.name(),
       authentication   : mapper.writeValueAsString(execution.authentication)
@@ -277,6 +299,8 @@ class JedisExecutionRepository implements ExecutionRepository {
       execution.parallel = Boolean.parseBoolean(map.parallel)
       execution.limitConcurrent = Boolean.parseBoolean(map.limitConcurrent)
       execution.buildTime = Long.parseLong(map.buildTime) ?: 0
+      execution.startTime = Long.parseLong(map.startTime) ?: 0
+      execution.endTime = Long.parseLong(map.endTime) ?: 0
       execution.executingInstance = map.executingInstance
       execution.executionStatus = map.executionStatus ? ExecutionStatus.valueOf(map.executionStatus) : null
       execution.authentication = mapper.readValue(map.authentication, Execution.AuthenticationDetails)
@@ -317,7 +341,7 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   @Deprecated
   @CompileDynamic
-  private <T extends Execution> T sortStages(Jedis jedis, T execution, Class<T> type) {
+  private <T extends Execution> T sortStages(JedisCommands jedis, T execution, Class<T> type) {
     List<Stage<T>> reorderedStages = []
 
     def childStagesByParentStageId = execution.stages.findAll { it.parentStageId != null }.groupBy { it.parentStageId }

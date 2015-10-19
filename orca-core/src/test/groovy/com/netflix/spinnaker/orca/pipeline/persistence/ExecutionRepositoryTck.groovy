@@ -26,6 +26,7 @@ import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import redis.clients.util.Pool
 import spock.lang.*
+import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
 @Subject(ExecutionRepository)
 @Unroll
@@ -178,6 +179,53 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     and:
     repository.retrievePipelines().toList().toBlocking().first() == []
   }
+
+  def "updateStatus sets startTime to current time if new status is RUNNING"() {
+    given:
+    repository.store(execution)
+
+    expect:
+    execution.startTime == null
+
+    when:
+    repository.updateStatus(execution.id, RUNNING)
+
+    then:
+    with(repository."retrieve$type"(execution.id)) {
+      executionStatus == RUNNING
+      startTime != null
+    }
+
+    where:
+    execution << [new Pipeline(buildTime: 0), new Orchestration()]
+    type = execution.getClass().simpleName
+  }
+
+  def "updateStatus sets endTime to current time if new status is #status"() {
+    given:
+    repository.store(execution)
+
+    expect:
+    execution.startTime == null
+
+    when:
+    repository.updateStatus(execution.id, status)
+
+    then:
+    with(repository."retrieve$type"(execution.id)) {
+      executionStatus == status
+      endTime != null
+    }
+
+    where:
+    execution                  | status
+    new Pipeline(buildTime: 0) | CANCELED
+    new Orchestration()        | SUCCEEDED
+    new Orchestration()        | FAILED
+    new Orchestration()        | TERMINAL
+
+    type = execution.getClass().simpleName
+  }
 }
 
 class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecutionRepository> {
@@ -230,7 +278,7 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
 
     then:
     jedis.zrange(JedisExecutionRepository.executionsByPipelineKey(pipeline.pipelineConfigId), 0, 1) == [
-        pipeline.id
+      pipeline.id
     ] as Set<String>
 
     when:

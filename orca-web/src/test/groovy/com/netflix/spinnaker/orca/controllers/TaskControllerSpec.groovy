@@ -134,13 +134,11 @@ class TaskControllerSpec extends Specification {
     given:
     def now = new Date()
     def tasks = [
-      [stages                                                   : [new OrchestrationStage(
-        startTime: (now - daysOfExecutionHistory).time - 1)], id: 'too-old'] as Orchestration,
-      [stages                                                   : [new OrchestrationStage(
-        startTime: (now - daysOfExecutionHistory).time + 1)], id: 'not-too-old'] as Orchestration,
-      [stages: [new OrchestrationStage(startTime: (now - 1).time)], id: 'pretty-new'] as Orchestration,
-      [stages: [new OrchestrationStage()], id: 'not-started-1'] as Orchestration,
-      [stages: [new OrchestrationStage()], id: 'not-started-2'] as Orchestration
+      [startTime: (now - daysOfExecutionHistory).time - 1, id: 'too-old'] as Orchestration,
+      [startTime: (now - daysOfExecutionHistory).time + 1, id: 'not-too-old'] as Orchestration,
+      [startTime: (now - 1).time, id: 'pretty-new'] as Orchestration,
+      [id: 'not-started-1'] as Orchestration,
+      [id: 'not-started-2'] as Orchestration
     ]
     def app = 'test'
 
@@ -207,9 +205,7 @@ class TaskControllerSpec extends Specification {
 
     then:
     1 * executionRepository.retrievePipelinesForApplication(app) >> rx.Observable.from(pipelines.collect {
-      def pipelineStage = new PipelineStage(new Pipeline(), "")
-      pipelineStage.startTime = it.startTime
-      new Pipeline(id: it.id, stages: it.startTime ? [pipelineStage] : [], pipelineConfigId: it.pipelineConfigId)
+      new Pipeline(id: it.id, startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
     })
     results.id == ['not-started', 'also-not-started', 'older2', 'older1', 'newer']
   }

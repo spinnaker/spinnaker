@@ -101,33 +101,4 @@ class PipelineSpec extends Specification {
     expect:
     pipeline.trigger.name == "SPINNAKER-build-job" && pipeline.trigger.lastBuildLabel == 1
   }
-
-  @Unroll
-  def "should resolve start and end time properly"() {
-    when:
-    pipeline.stages[0].startTime = stage1StartTime
-    pipeline.stages[0].endTime = stage1EndTime
-    pipeline.stages[0].status = stage1Status
-    pipeline.stages[1].startTime = stage2StartTime
-    pipeline.stages[1].endTime = stage2EndTime
-    pipeline.stages[1].status = stage2Status
-    pipeline.stages[2].startTime = stage2StartTime
-    pipeline.stages[2].endTime = stage2EndTime
-    pipeline.stages[2].status = stage2Status
-
-    then:
-    pipeline.startTime == pipelineStart
-
-    and:
-    pipeline.endTime == pipelineEnd
-
-    where:
-    stage1StartTime | stage1EndTime | stage1Status | stage2StartTime | stage2EndTime | stage2Status | pipelineStart | pipelineEnd
-    1L              | 2L            | SUCCEEDED    | 2L              | 3L            | SUCCEEDED    | 1L            | 3L
-    1L              | 2L            | SUCCEEDED    | 2L              | null          | RUNNING      | 1L            | null
-    1L              | null          | RUNNING      | 1L              | 2L            | SUCCEEDED    | 1L            | null
-    null            | null          | NOT_STARTED  | null            | 2L            | NOT_STARTED  | null          | null
-    1L              | 1L            | FAILED       | null            | null          | NOT_STARTED  | 1L            | 1L
-  }
-
 }

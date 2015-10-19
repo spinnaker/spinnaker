@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.notifications.scheduling
 
+import java.util.concurrent.atomic.AtomicInteger
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -25,8 +26,6 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 import spock.lang.Specification
-
-import java.util.concurrent.atomic.AtomicInteger
 
 class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specification {
   void "filter should only consider SUCCEEDED executions"() {
@@ -44,12 +43,10 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
 
   void "mapper should extract id, startTime, status, and pipelineConfigId"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), "Named Stage")
-    stage.startTime = 1000
-
-    def pipeline = new Pipeline(stages: [stage])
+    def pipeline = new Pipeline()
     pipeline.id = "ID1"
     pipeline.pipelineConfigId = "P1"
+    pipeline.startTime = 1000
 
     and:
     def mapper = new TopApplicationExecutionCleanupPollingNotificationAgent().mapper

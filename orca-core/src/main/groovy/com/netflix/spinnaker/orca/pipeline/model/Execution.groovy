@@ -33,6 +33,8 @@ abstract class Execution<T> implements Serializable {
   boolean parallel
   boolean limitConcurrent = false
   Long buildTime
+  Long startTime
+  Long endTime
   String executingInstance
 
   ExecutionStatus executionStatus = NOT_STARTED
@@ -47,30 +49,6 @@ abstract class Execution<T> implements Serializable {
   Stage namedStage(String type) {
     stages.find {
       it.type == type
-    }
-  }
-
-  Long getStartTime() {
-    Long startTime = stages ? stages.first().startTime : null
-    if (!startTime && stages.find { it.startTime != null }) {
-      startTime = stages.findAll { it.startTime != null }.collect { it.startTime }.sort {}.get(0)
-    }
-    startTime
-  }
-
-  Long getEndTime() {
-    if (stages && getStartTime()) {
-      if (stages.every { it.endTime }) {
-        return stages.endTime.max()
-      } else {
-        return stages.findAll {
-          it.status.halt
-        }.collect {
-          it.endTime
-        }.max()
-      }
-    } else {
-      return null
     }
   }
 
