@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.titan.credentials
 
-import com.netflix.spinnaker.amos.AccountCredentials    // TODO - Titan module should not need 'amos'!
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials    // TODO - Titan module should not need 'amos'!
 import com.netflix.titanclient.TitanRegion
 import com.netflix.titanclient.security.TitanCredentials
 

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kato.titan.deploy.converters
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
 import com.netflix.spinnaker.kato.deploy.DeployAtomicOperation
 import com.netflix.spinnaker.kato.deploy.DeployDescription

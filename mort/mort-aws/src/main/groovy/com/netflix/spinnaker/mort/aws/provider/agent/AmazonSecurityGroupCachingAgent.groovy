@@ -19,9 +19,7 @@ package com.netflix.spinnaker.mort.aws.provider.agent
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -30,6 +28,8 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.mort.aws.cache.Keys

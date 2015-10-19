@@ -18,7 +18,7 @@ package com.netflix.spinnaker.kato.aws.deploy.ops
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.model.DeleteSecurityGroupRequest
 import com.amazonaws.services.ec2.model.SecurityGroup
-import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.DeleteSecurityGroupDescription
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository

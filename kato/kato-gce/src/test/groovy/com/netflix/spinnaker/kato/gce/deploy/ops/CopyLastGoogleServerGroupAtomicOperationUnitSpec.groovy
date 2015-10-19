@@ -22,7 +22,7 @@ import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.Network
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -88,7 +88,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
   def setup() {
     computeMock = Mock(Compute)
-    credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
+    credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
 
     instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
     instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)

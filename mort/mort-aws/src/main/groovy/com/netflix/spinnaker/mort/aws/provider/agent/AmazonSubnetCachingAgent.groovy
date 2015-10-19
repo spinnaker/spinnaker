@@ -17,14 +17,14 @@
 package com.netflix.spinnaker.mort.aws.provider.agent
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.SUBNETS
 
 import com.amazonaws.services.ec2.model.Subnet
-import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.awsobjectmapper.AmazonObjectMapper
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent

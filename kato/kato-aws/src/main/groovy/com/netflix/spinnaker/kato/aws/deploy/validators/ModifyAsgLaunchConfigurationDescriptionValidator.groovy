@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
 
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.aws.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.ModifyAsgLaunchConfigurationDescription
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
 import org.springframework.beans.factory.annotation.Autowired

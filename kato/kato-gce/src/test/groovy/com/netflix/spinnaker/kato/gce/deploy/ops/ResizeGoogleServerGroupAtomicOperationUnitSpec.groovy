@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
 import com.google.api.services.compute.Compute
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.ResizeGoogleServerGroupDescription
@@ -40,7 +40,7 @@ class ResizeGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def computeMock = Mock(Compute)
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
       def instanceGroupManagersResizeMock = Mock(Compute.InstanceGroupManagers.Resize)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new ResizeGoogleServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                targetSize: TARGET_SIZE,
                                                                zone: ZONE,

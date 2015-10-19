@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.kato.config
 
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.kato.cf.deploy.handlers.CloudFoundryDeployHandler
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryAccountCredentials
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryClientFactory

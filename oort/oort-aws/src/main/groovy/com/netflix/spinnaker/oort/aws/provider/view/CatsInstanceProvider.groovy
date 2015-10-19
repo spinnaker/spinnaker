@@ -17,17 +17,15 @@
 package com.netflix.spinnaker.oort.aws.provider.view
 
 import com.amazonaws.services.ec2.model.GetConsoleOutputRequest
-import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.model.AmazonInstance
 import com.netflix.spinnaker.oort.model.InstanceProvider
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.HEALTH

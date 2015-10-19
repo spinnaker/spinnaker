@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.kato.cf.deploy.validators
 
-import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
-import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.kato.cf.TestCredential
 import com.netflix.spinnaker.kato.cf.deploy.description.CloudFoundryDeployDescription
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryAccountCredentials

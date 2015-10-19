@@ -18,7 +18,6 @@ package com.netflix.spinnaker.mort.gce.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.model.Network
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -27,6 +26,7 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.mort.gce.cache.Keys
 import com.netflix.spinnaker.mort.gce.provider.GoogleInfrastructureProvider
 import groovy.util.logging.Slf4j

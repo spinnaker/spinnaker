@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.core
 
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
-import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.cache.CacheConfig
 import com.netflix.spinnaker.clouddriver.cache.NoopOnDemandCacheUpdater
 import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
@@ -28,6 +24,10 @@ import com.netflix.spinnaker.clouddriver.search.ApplicationSearchProvider
 import com.netflix.spinnaker.clouddriver.search.NoopSearchProvider
 import com.netflix.spinnaker.clouddriver.search.ProjectSearchProvider
 import com.netflix.spinnaker.clouddriver.search.SearchProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean

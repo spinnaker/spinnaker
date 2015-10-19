@@ -19,7 +19,7 @@ package com.netflix.spinnaker.kato.gce.deploy.ops
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceGroupManagersRecreateInstancesRequest
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.TerminateGoogleInstancesDescription
@@ -53,7 +53,7 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
       def computeMock = Mock(Compute)
       def instancesMock = Mock(Compute.Instances)
       def deleteMock = Mock(Compute.Instances.Delete)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new TerminateGoogleInstancesDescription(zone: ZONE,
                                                                 instanceIds: GOOD_INSTANCE_IDS,
                                                                 accountName: ACCOUNT_NAME,
@@ -77,7 +77,7 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
       def computeMock = Mock(Compute)
       def instancesMock = Mock(Compute.Instances)
       def deleteMock = Mock(Compute.Instances.Delete)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new TerminateGoogleInstancesDescription(zone: ZONE,
                                                                 instanceIds: ALL_INSTANCE_IDS,
                                                                 accountName: ACCOUNT_NAME,
@@ -111,7 +111,7 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
       def request = new InstanceGroupManagersRecreateInstancesRequest().setInstances(GOOD_INSTANCE_URLS)
 
       def instanceGroupManagersRecreateMock = Mock(Compute.InstanceGroupManagers.RecreateInstances)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new TerminateGoogleInstancesDescription(serverGroupName: MANAGED_INSTANCE_GROUP_NAME,
                                                                 instanceIds: GOOD_INSTANCE_IDS,
                                                                 zone: ZONE,

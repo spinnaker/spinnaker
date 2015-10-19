@@ -16,7 +16,8 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
+
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.AllowLaunchDescription
 import org.springframework.validation.Errors

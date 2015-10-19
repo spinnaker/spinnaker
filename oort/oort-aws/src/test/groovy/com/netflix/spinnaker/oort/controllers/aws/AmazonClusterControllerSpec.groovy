@@ -20,9 +20,9 @@ import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.Activity
 import com.amazonaws.services.autoscaling.model.DescribeScalingActivitiesRequest
 import com.amazonaws.services.autoscaling.model.DescribeScalingActivitiesResult
-import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.oort.aws.controllers.AmazonClusterController
 import org.springframework.http.HttpStatus
 import spock.lang.Specification

@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
 
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.deploy.description.ResizeAsgDescription
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import org.springframework.validation.Errors

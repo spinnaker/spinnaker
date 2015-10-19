@@ -21,10 +21,10 @@ import com.amazonaws.services.ec2.model.DescribeInstancesRequest
 import com.amazonaws.services.ec2.model.Filter
 import com.amazonaws.services.ec2.model.Instance
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest
-import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.aws.AmazonCredentials
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.RunnableAgent
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.kato.aws.deploy.ops.DetachInstancesAtomicOperation
 import com.netflix.spinnaker.kato.aws.provider.AwsCleanupProvider

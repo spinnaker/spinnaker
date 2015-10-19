@@ -19,8 +19,8 @@ package com.netflix.spinnaker.kato.security
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.netflix.spinnaker.amos.AccountCredentials
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.orchestration.AtomicOperationConverter
 import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired

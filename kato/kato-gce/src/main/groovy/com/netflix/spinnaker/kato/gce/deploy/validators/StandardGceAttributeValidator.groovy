@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.validators
 
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.validation.Errors
 
 /**

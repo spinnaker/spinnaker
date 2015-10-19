@@ -19,11 +19,10 @@ package com.netflix.spinnaker.kato.aws.deploy.ops
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.ec2.model.DescribeSubnetsRequest
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.aws.deploy.handlers.BasicAmazonDeployHandler
 import com.netflix.spinnaker.kato.aws.model.SubnetData

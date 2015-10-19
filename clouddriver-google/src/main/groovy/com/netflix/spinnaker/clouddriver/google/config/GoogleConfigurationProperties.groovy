@@ -16,19 +16,34 @@
 
 package com.netflix.spinnaker.clouddriver.google.config
 
+import groovy.transform.ToString
+
 class GoogleConfigurationProperties {
   public static final int POLLING_INTERVAL_SECONDS_DEFAULT = 60
   public static final int ASYNC_OPERATION_TIMEOUT_SECONDS_DEFAULT = 300
   public static final int ASYNC_OPERATION_MAX_POLLING_INTERVAL_SECONDS = 8
 
+  @ToString(includeNames = true)
   static class ManagedAccount {
     String name
     String environment
     String accountType
     String project
+    String jsonPath
+
+    public InputStream getInputStream() {
+      if (jsonPath) {
+        if (jsonPath.startsWith("classpath:")) {
+          getClass().getResourceAsStream(jsonPath.replace("classpath:", ""))
+        } else {
+          new FileInputStream(new File(jsonPath))
+        }
+      } else {
+        null
+      }
+    }
   }
 
-  String kmsServer
   List<ManagedAccount> accounts = []
   int pollingIntervalSeconds = POLLING_INTERVAL_SECONDS_DEFAULT
   int asyncOperationTimeoutSecondsDefault = ASYNC_OPERATION_TIMEOUT_SECONDS_DEFAULT
