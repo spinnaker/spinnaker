@@ -22,8 +22,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableAsgSta
         },
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'target', },
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', },
+        { type: 'requiredField', fieldName: 'zones', },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
   }).controller('gceDisableAsgStageCtrl', function($scope, accountService, stageConstants, _) {

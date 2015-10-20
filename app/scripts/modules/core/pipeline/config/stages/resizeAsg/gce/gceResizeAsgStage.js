@@ -18,7 +18,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
           type: 'targetImpedance',
           message: 'This pipeline will attempt to resize a server group without deploying a new version into the same cluster.'
         },
-        { type: 'requiredField', fieldName: 'cluster', },
+        { type: 'requiredField', fieldName: 'cluster' },
+        { type: 'requiredField', fieldName: 'target', },
+        { type: 'requiredField', fieldName: 'action', },
+        { type: 'requiredField', fieldName: 'zones', },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
   }).controller('gceResizeAsgStageCtrl', function($scope, accountService, stageConstants, _) {
