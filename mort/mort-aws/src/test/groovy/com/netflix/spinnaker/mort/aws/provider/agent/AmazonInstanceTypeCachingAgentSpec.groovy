@@ -20,11 +20,11 @@ import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeReservedInstancesOfferingsRequest
 import com.amazonaws.services.ec2.model.DescribeReservedInstancesOfferingsResult
 import com.amazonaws.services.ec2.model.ReservedInstancesOffering
-import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import spock.lang.Specification
 import spock.lang.Subject

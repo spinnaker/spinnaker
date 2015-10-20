@@ -24,7 +24,7 @@ import com.google.api.services.compute.model.InstanceAggregatedList
 import com.google.api.services.compute.model.InstanceReference
 import com.google.api.services.compute.model.InstancesScopedList
 import com.google.api.services.compute.model.TargetPoolsAddInstanceRequest
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -81,7 +81,7 @@ class RegisterInstancesWithGoogleLoadBalancerAtomicOperationUnitSpec extends Spe
       def targetPoolsMock = Mock(Compute.TargetPools)
       def addInstanceMock = Mock(Compute.TargetPools.AddInstance)
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new RegisterInstancesWithGoogleLoadBalancerDescription(
           loadBalancerNames: [LOAD_BALANCER_NAME_1, LOAD_BALANCER_NAME_2],
           instanceIds: INSTANCE_IDS,
@@ -126,7 +126,7 @@ class RegisterInstancesWithGoogleLoadBalancerAtomicOperationUnitSpec extends Spe
         )
       ])
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new RegisterInstancesWithGoogleLoadBalancerDescription(
           loadBalancerNames: [LOAD_BALANCER_NAME_1],
           instanceIds: INSTANCE_IDS,

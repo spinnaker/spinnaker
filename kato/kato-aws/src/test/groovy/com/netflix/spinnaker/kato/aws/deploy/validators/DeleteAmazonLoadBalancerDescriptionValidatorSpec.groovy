@@ -16,12 +16,10 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
 
-import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.DeleteAmazonLoadBalancerDescription
 import org.springframework.validation.Errors
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 

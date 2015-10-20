@@ -25,7 +25,7 @@ import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsResu
 import com.amazonaws.services.autoscaling.model.Ebs
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.AmazonEC2
-import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.AsgReferenceCopier
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription

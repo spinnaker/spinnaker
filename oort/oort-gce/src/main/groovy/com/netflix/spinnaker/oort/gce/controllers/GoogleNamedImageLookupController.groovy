@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.oort.gce.controllers
 
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.oort.gce.model.GoogleResourceRetriever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping

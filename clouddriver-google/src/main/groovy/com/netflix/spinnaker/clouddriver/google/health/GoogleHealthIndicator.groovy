@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.google.health
 
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
-import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import groovy.transform.InheritConstructors
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

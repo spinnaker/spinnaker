@@ -58,8 +58,8 @@ interface ClusterProvider<T extends Cluster> {
   Map<String, Set<T>> getClusterDetails(String application)
 
   /**
-   * Looks up all of the clusters known to this provider to be for a specified application and within a {@link com.netflix.spinnaker.amos.AccountCredentials} registered with
-   * a {@link com.netflix.spinnaker.amos.AccountCredentialsProvider}
+   * Looks up all of the clusters known to this provider to be for a specified application and within a {@link com.netflix.spinnaker.clouddriver.security.AccountCredentials} registered with
+   * a {@link com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider}
    *
    * @param application
    * @param account name
@@ -69,7 +69,7 @@ interface ClusterProvider<T extends Cluster> {
   Set<T> getClusters(String application, String account)
 
   /**
-   * Looks up a cluster known to this provider to be for a specified application, within a specified {@link com.netflix.spinnaker.amos.AccountCredentials}, and with the specified name.
+   * Looks up a cluster known to this provider to be for a specified application, within a specified {@link com.netflix.spinnaker.clouddriver.security.AccountCredentials}, and with the specified name.
    *
    * @param account
    * @param name
@@ -79,7 +79,7 @@ interface ClusterProvider<T extends Cluster> {
   T getCluster(String application, String account, String name)
 
   /**
-   * Looks up a server group known to this provider, within a specified {@link com.netflix.spinnaker.amos.AccountCredentials} and region, and with the specified name.
+   * Looks up a server group known to this provider, within a specified {@link com.netflix.spinnaker.clouddriver.security.AccountCredentials} and region, and with the specified name.
    * @param account name
    * @param region
    * @param name

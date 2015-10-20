@@ -17,8 +17,8 @@ package com.netflix.spinnaker.kato.aws.services
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.ec2.AmazonEC2
-import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.deploy.AWSServerGroupNameResolver
 import com.netflix.spinnaker.kato.aws.deploy.AsgReferenceCopier
 import com.netflix.spinnaker.kato.aws.deploy.DefaultLaunchConfigurationBuilder

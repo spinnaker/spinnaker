@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.oort.aws.provider.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.amos.aws.AmazonCredentials
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.oort.aws.discovery.DiscoveryApiFactory
 import com.netflix.spinnaker.oort.aws.edda.EddaApiFactory
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider

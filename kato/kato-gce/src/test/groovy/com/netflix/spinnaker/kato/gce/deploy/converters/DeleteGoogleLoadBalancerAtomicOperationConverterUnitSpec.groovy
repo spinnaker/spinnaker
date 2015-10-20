@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.kato.gce.deploy.converters
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleLoadBalancerDescription
 import com.netflix.spinnaker.kato.gce.deploy.ops.loadbalancer.DeleteGoogleLoadBalancerAtomicOperation
 import spock.lang.Shared

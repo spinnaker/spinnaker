@@ -18,7 +18,7 @@ package com.netflix.spinnaker.oort.gce.model
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Timer
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.oort.model.ApplicationProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component

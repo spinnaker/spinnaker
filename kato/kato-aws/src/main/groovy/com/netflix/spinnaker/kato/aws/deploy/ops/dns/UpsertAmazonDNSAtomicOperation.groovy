@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.kato.aws.deploy.ops.dns
 
 import com.amazonaws.services.route53.model.*
-import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertAmazonDNSDescription

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kato.config
 
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.kato.docker.security.DockerAccountCredentials
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean

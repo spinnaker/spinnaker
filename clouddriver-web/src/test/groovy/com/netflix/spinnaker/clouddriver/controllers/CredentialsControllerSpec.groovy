@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
-
-import com.netflix.spinnaker.amos.AccountCredentials
-import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
-import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials
+import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import groovy.json.JsonSlurper
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders

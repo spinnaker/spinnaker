@@ -1,9 +1,8 @@
 package com.netflix.spinnaker.mort.web
 
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.mort.model.ElasticIp
 import com.netflix.spinnaker.mort.model.ElasticIpProvider
-import com.netflix.spinnaker.mort.model.SecurityGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping

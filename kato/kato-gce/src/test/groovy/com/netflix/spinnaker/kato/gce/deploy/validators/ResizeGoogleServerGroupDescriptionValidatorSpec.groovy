@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.validators
 
-import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
-import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
-import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.ResizeGoogleServerGroupDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
@@ -40,7 +40,7 @@ class ResizeGoogleServerGroupDescriptionValidatorSpec extends Specification {
     def credentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
     def credentials = Mock(GoogleNamedAccountCredentials)
     credentials.getName() >> ACCOUNT_NAME
-    credentials.getCredentials() >> new GoogleCredentials(null, null, null, null, null)
+    credentials.getCredentials() >> new GoogleCredentials(null, null)
     credentialsRepo.save(ACCOUNT_NAME, credentials)
     validator.accountCredentialsProvider = credentialsProvider
   }

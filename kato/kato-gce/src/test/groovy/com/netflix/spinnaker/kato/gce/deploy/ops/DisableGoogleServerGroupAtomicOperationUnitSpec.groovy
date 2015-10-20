@@ -21,7 +21,7 @@ import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceGroupManagersSetTargetPoolsRequest
 import com.google.api.services.compute.model.TargetPool
 import com.google.api.services.compute.model.Zone
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.EnableDisableGoogleServerGroupDescription
@@ -69,7 +69,7 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
   def setup() {
     computeMock = Mock(Compute)
-    credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
+    credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
 
     zonesMock = Mock(Compute.Zones)
     zonesGetMock = Mock(Compute.Zones.Get)

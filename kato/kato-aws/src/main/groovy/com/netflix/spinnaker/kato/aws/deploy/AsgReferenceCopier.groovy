@@ -20,8 +20,8 @@ import com.amazonaws.services.autoscaling.model.*
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch
 import com.amazonaws.services.cloudwatch.model.*
 import com.google.common.collect.Lists
-import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.model.AwsResultsRetriever
 import com.netflix.spinnaker.kato.aws.services.IdGenerator
 import com.netflix.spinnaker.kato.data.task.Task
