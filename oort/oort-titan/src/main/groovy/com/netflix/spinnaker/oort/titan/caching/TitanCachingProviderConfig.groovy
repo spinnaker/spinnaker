@@ -18,8 +18,8 @@ package com.netflix.spinnaker.oort.titan.caching
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
 import com.netflix.spinnaker.oort.titan.caching.agents.TitanClusterCachingAgent

@@ -25,8 +25,8 @@ import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.InstanceWithNamedPorts
 import com.google.api.services.compute.model.Operation
 import com.google.api.services.compute.model.Tags
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
@@ -105,7 +105,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
       def instancesSetTagsOperation1GetMock = Mock(Compute.ZoneOperations.Get)
       def instancesSetTagsOperation2GetMock = Mock(Compute.ZoneOperations.Get)
       def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new UpsertGoogleServerGroupTagsDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                    zone: ZONE,
                                                                    tags: TAGS,
@@ -208,7 +208,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
       def instanceGroupsListInstancesMock = Mock(Compute.InstanceGroups.ListInstances)
       def instanceGroupsListInstancesReal = new InstanceGroupsListInstances()
       def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new UpsertGoogleServerGroupTagsDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                    zone: ZONE,
                                                                    tags: TAGS,

@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.mort.aws.provider.config
 
-import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.awsobjectmapper.AmazonObjectMapper
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.amos.aws.AmazonCredentials
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.mort.aws.provider.AwsInfrastructureProvider
 import com.netflix.spinnaker.mort.aws.provider.agent.AmazonElasticIpCachingAgent
 import com.netflix.spinnaker.mort.aws.provider.agent.AmazonInstanceTypeCachingAgent

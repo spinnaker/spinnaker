@@ -22,7 +22,7 @@ import com.amazonaws.services.autoscaling.model.CreateLaunchConfigurationRequest
 import com.amazonaws.services.autoscaling.model.Ebs
 import com.amazonaws.services.autoscaling.model.InstanceMonitoring
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
-import com.netflix.spinnaker.amos.AccountCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.kato.aws.deploy.LaunchConfigurationBuilder.LaunchConfigurationSettings
 import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice

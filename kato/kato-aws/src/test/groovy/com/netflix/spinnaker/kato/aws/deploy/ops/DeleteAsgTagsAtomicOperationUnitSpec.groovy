@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.kato.aws.deploy.ops
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.*
-import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.DeleteAsgTagsDescription
 import com.netflix.spinnaker.kato.data.task.Task

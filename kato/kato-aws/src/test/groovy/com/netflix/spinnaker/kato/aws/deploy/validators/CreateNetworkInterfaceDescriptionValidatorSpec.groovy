@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.kato.aws.deploy.validators
 
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.CreateNetworkInterfaceDescription
 import com.netflix.spinnaker.kato.aws.model.AwsNetworkInterface

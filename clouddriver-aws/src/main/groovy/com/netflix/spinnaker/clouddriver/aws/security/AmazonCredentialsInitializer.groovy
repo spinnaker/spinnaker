@@ -17,11 +17,9 @@
 package com.netflix.spinnaker.clouddriver.aws.security
 
 import com.amazonaws.auth.AWSCredentialsProvider
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
-import com.netflix.spinnaker.amos.aws.NetflixAssumeRoleAmazonCredentials
-import com.netflix.spinnaker.amos.aws.config.CredentialsConfig
-import com.netflix.spinnaker.amos.aws.config.CredentialsLoader
+import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig
+import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsLoader
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties

@@ -15,8 +15,9 @@
  */
 
 package com.netflix.spinnaker.kato.titan.deploy.validators
-import com.netflix.spinnaker.amos.AccountCredentials
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
+
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.titan.deploy.description.AbstractTitanCredentialsDescription

@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.kato.aws.security
 
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.AllowLaunchDescription
 import org.springframework.validation.Errors
 import spock.lang.Specification

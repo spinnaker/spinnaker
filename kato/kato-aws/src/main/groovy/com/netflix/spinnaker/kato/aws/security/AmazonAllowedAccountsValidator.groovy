@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.kato.aws.security
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.AbstractAmazonCredentialsDescription
 import com.netflix.spinnaker.kato.security.AllowedAccountsValidator
 import groovy.util.logging.Slf4j

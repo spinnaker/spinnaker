@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.mort.web
 
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.mort.model.SecurityGroup
 import com.netflix.spinnaker.mort.model.SecurityGroupProvider
 import com.netflix.spinnaker.mort.model.SecurityGroupSummary

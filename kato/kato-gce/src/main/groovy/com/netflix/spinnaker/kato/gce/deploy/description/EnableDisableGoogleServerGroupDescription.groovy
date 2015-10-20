@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.description
 
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 
 /**
  * "Enabling" means adding a server group to the target pool of each of its network load balancers.

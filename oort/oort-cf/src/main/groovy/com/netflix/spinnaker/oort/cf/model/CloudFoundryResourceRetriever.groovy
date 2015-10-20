@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.oort.cf.model
 
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConfigurationProperties
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryAccountCredentials
 import com.netflix.spinnaker.oort.model.HealthState
 import groovy.util.logging.Slf4j

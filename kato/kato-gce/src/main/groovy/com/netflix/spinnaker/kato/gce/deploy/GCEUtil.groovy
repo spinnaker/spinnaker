@@ -27,7 +27,7 @@ import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
 import com.netflix.frigga.NameValidation
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.gce.deploy.description.BaseGoogleInstanceDescription

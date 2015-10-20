@@ -23,7 +23,7 @@ def subs = [
   cats: ["cats-core", "cats-redis"]
 ]
 
-def topLevels = [ 'clouddriver-core', 'clouddriver-web', 'clouddriver-aws', 'clouddriver-titan', 'clouddriver-google', 'clouddriver-cf' ]
+def topLevels = [ 'clouddriver-core', 'clouddriver-security', 'clouddriver-web', 'clouddriver-aws', 'clouddriver-titan', 'clouddriver-google', 'clouddriver-cf' ]
 
 String[] allmodules = (topLevels +  subs.collect { String sub, List<String> children -> [sub] + children.collect { sub + ':' + it } }.flatten()).toArray()
 
