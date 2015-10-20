@@ -24,7 +24,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.disableAsgSta
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'target', },
         { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
   }).controller('awsDisableAsgStageCtrl', function($scope, accountService, stageConstants, _) {
