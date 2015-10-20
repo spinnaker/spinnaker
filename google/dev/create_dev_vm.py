@@ -21,8 +21,8 @@ import sys
 import tempfile
 import time
 
-from pylib.run import run_quick
-from pylib.run import check_run_quick
+from spinnaker.run import run_quick
+from spinnaker.run import check_run_quick
 
 
 __NEXT_STEP_INSTRUCTIONS = """
@@ -156,7 +156,7 @@ def create_instance(options):
 
     dev_dir = os.path.dirname(sys.argv[0])
     install_dir = '{dir}/../install'.format(dir=dev_dir)
-    pylib_dir = '{dir}/../pylib'.format(dir=dev_dir)
+    pylib_spinnaker_dir = '{dir}/../pylib/spinnaker'.format(dir=dev_dir)
 
     with open('{dir}/install_development.py'.format(dir=dev_dir), 'r') as f:
         # Remove leading install. package reference to module imports
@@ -164,7 +164,7 @@ def create_instance(options):
         # the things it is importing (no need for PYTHONPATH)
         content = f.read()
         content = content.replace('install.install', 'install')
-        content = content.replace('pylib.', '')
+        content = content.replace('from spinnaker.', 'from ')
 
     fd, temp_install_development = tempfile.mkstemp()
     os.write(fd, content)
@@ -173,7 +173,7 @@ def create_instance(options):
               'r') as f:
         content = f.read()
         content = content.replace('install.install', 'install')
-        content = content.replace('pylib.', '')
+        content = content.replace('from spinnaker.', 'from ')
     fd, temp_install_runtime = tempfile.mkstemp()
     os.write(fd, content)
     os.close(fd)
@@ -184,13 +184,13 @@ def create_instance(options):
     metadata_files = [
         'startup-script={install_dir}/google_install_loader.py'
         ',py_install_utils={install_dir}/install_utils.py'
-        ',py_fetch={pylib_dir}/fetch.py'
-        ',py_run={pylib_dir}/run.py'
+        ',py_fetch={pylib_spinnaker_dir}/fetch.py'
+        ',py_run={pylib_spinnaker_dir}/run.py'
         ',py_install_development={temp_install_development}'
         ',sh_bootstrap_vm={dev_dir}/bootstrap_vm.sh'
         ',py_install_runtime_dependencies={temp_install_runtime}'
         .format(install_dir=install_dir,
-                dev_dir=dev_dir, pylib_dir=pylib_dir,
+                dev_dir=dev_dir, pylib_spinnaker_dir=pylib_spinnaker_dir,
                 temp_install_runtime=temp_install_runtime,
                 temp_install_development=temp_install_development)]
 

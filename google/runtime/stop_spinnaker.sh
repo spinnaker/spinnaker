@@ -20,5 +20,5 @@ else
   args="$@"
 fi
 
-PYTHONPATH=$(dirname $0)/.. \
-python $(dirname $0)/../pylib/spinnaker_runner.py STOP $args
+PYTHONPATH=$(dirname $0)/../pylib \
+python $(dirname $0)/../pylib/spinnaker/spinnaker_runner.py STOP $args

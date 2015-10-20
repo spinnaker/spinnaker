@@ -22,8 +22,8 @@ import os
 import re
 import sys
 
-from pylib.run import check_run_quick
-from pylib.run import run_quick
+from spinnaker.run import check_run_quick
+from spinnaker.run import run_quick
 from abstract_packer_builder import AbstractPackerBuilder
 
 

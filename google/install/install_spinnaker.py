@@ -34,12 +34,12 @@ import tempfile
 
 import install_runtime_dependencies
 
-from pylib.run import run_and_monitor
-from pylib.run import check_run_and_monitor
-from pylib.run import check_run_quick
-from pylib.run import run_quick
-from pylib.fetch import is_google_instance
-from pylib.fetch import check_write_instance_metadata
+from spinnaker.run import run_and_monitor
+from spinnaker.run import check_run_and_monitor
+from spinnaker.run import check_run_quick
+from spinnaker.run import run_quick
+from spinnaker.fetch import is_google_instance
+from spinnaker.fetch import check_write_instance_metadata
 
 
 HOME = os.environ['HOME'] if 'HOME' in os.environ else '/root'

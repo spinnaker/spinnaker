@@ -14,4 +14,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-PYTHONPATH=$(dirname $0)/..  python $(dirname $0)/refresh_source.py $@
+PYTHONPATH=$(dirname $0)/../pylib  python $(dirname $0)/refresh_source.py $@

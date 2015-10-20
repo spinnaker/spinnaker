@@ -37,7 +37,7 @@ tree. However, for historical development reasons, that is not yet done.
 
 import argparse
 import collections
-import glob
+import fnmatch
 import os
 import multiprocessing
 import multiprocessing.pool
@@ -51,8 +51,8 @@ import zipfile
 
 
 import refresh_source
-from pylib.run import check_run_quick
-from pylib.run import run_quick
+from spinnaker.run import check_run_quick
+from spinnaker.run import run_quick
 
 
 SUBSYSTEM_LIST = ['gce-kms', 'clouddriver', 'orca', 'front50',
@@ -210,7 +210,30 @@ class Builder(object):
           'Building {name}'.format(name=name),
           'cd {name}; ./gradlew {target}'.format(name=name, target=target))
 
-  def start_copy_file(self, source, target):
+  def start_copy_dir(self, source, target, filter='*'):
+    if target.startswith('s3://'):
+      return BackgroundProcess.spawn(
+        'Copying {source}'.format,
+        'aws s3 cp --recursive "{source}" "{target}"'
+        ' --exclude "*" --include "{filter}"'
+        .format(source=source, target=target, filter=filter))
+
+    list = []
+    for root, dirs, files in os.walk(source):
+      postfix = root[len(source):]
+      rel_target = (target
+                    if not postfix
+                    else os.path.join(target, root[len(source) + 1:]))
+      for file in fnmatch.filter(files, filter):
+        list.append(self.start_copy_file(os.path.join(root, file),
+                                         os.path.join(rel_target, file)))
+
+    print '  Waiting to finish copying directory {source}'.format(source=source)
+    for p in list:
+      p.check_wait()
+    return NO_PROCESS
+
+  def start_copy_file(self, source, target, dir=False):
       """Start a subprocess to copy the source file.
 
       Args:
@@ -339,10 +362,8 @@ class Builder(object):
     source_dir = os.path.join(self.__project_dir, 'cassandra')
     target_dir = os.path.join(self.__release_dir, 'cassandra')
     processes = []
-    for file in glob.glob(os.path.join(source_dir, '*')):
-      processes.append(
-         self.start_copy_file(file,
-                              os.path.join(target_dir, os.path.basename(file))))
+    processes.append(self.start_copy_dir(
+      source_dir, target_dir, filter='*.cql'))
 
     print 'Waiting for dependency scripts.'
     for p in processes:
@@ -354,14 +375,10 @@ class Builder(object):
     target_dir = os.path.join(self.__release_dir, 'install')
 
     processes = []
-    for file in glob.glob(os.path.join(source_dir, '*.py')):
-       processes.append(
-         self.start_copy_file(file,
-                              os.path.join(target_dir, os.path.basename(file))))
-    for file in glob.glob(os.path.join(source_dir, '*.sh')):
-       processes.append(
-         self.start_copy_file(file,
-                              os.path.join(target_dir, os.path.basename(file))))
+    processes.append(self.start_copy_dir(
+      source_dir, target_dir, filter='*.py'))
+    processes.append(self.start_copy_dir(
+      source_dir, target_dir, filter='*.sh'))
 
     print 'Waiting for install scripts to finish.'
     for p in processes:
@@ -370,18 +387,15 @@ class Builder(object):
   def copy_admin_scripts(self):
     """Copy administrative/operational support scripts into release."""
     processes = []
-    for file in glob.glob(os.path.join(self.__project_dir, 'pylib/*.py')):
-      processes.append(
-          self.start_copy_file(
-            file,
-            os.path.join(self.__release_dir, 'pylib', os.path.basename(file))))
+    processes.append(self.start_copy_dir(
+      os.path.join(self.__project_dir, 'pylib'),
+      os.path.join(self.__release_dir, 'pylib'),
+      filter='*.py'))
 
-    for file in glob.glob(os.path.join(self.__project_dir, 'runtime/*.sh')):
-      processes.append(
-          self.start_copy_file(
-            file,
-            os.path.join(self.__release_dir,
-                         'scripts', os.path.basename(file))))
+    processes.append(self.start_copy_dir(
+      os.path.join(self.__project_dir, 'runtime'),
+      os.path.join(self.__release_dir, 'runtime'),
+      filter='*.sh'))
 
     print 'Waiting for admin scripts to finish.'
     for p in processes:
@@ -443,11 +457,12 @@ if __name__ == '__main__':
       dep_root = os.path.dirname(sys.argv[0]) + '/..'
       deps = ['install/install_spinnaker.py',
               'install/install_runtime_dependencies.py',
-              'pylib/run.py',
-              'pylib/fetch.py']
+              'pylib/spinnaker/run.py',
+              'pylib/spinnaker/fetch.py']
       for file in deps:
           with open(os.path.join(dep_root, file), 'r') as f:
-            zip.writestr(os.path.basename(file), f.read().replace('pylib.', ''))
+            zip.writestr(os.path.basename(file),
+                         f.read().replace('from spinnaker.', 'from '))
       zip.close()
       zip = None
 
@@ -519,6 +534,7 @@ if __name__ == '__main__':
       self.__zip_dir(zip, 'citest/citest', 'citest')
       self.__zip_dir(zip,
                      'citest/spinnaker/spinnaker_testing', 'spinnaker_testing')
+      self.__zip_dir(zip, 'pylib/yaml', 'yaml')
       test_py = '{test_name}.py'.format(test_name=test_name)
       zip.write('citest/spinnaker/spinnaker_system/' + test_py, test_py)
       zip.close()
