@@ -55,7 +55,7 @@ interface OortService {
                                  @Path("scope") String scope,
                                  @Path("target") String target,
                                  @Path("summaryType") String summaryType,
-                                 @Query("onlyEnable") String onlyEnable)
+                                 @Query("onlyEnabled") String onlyEnabled)
 
   @GET("/search")
   Response getSearchResults(@Query("q") String searchTerm,

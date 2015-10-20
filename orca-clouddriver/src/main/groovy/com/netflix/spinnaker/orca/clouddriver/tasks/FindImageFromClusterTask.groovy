@@ -88,7 +88,8 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     TypeReference<Map<String, Object>> jsonType = new TypeReference<Map<String, Object>>() {}
     Map<Location, Map<String, Object>> imageSummaries = requiredLocations.collectEntries { location ->
       try {
-        def lookupResults = oortService.getServerGroupSummary(app,
+        def lookupResults = oortService.getServerGroupSummary(
+          app,
           account,
           cluster,
           cloudProvider,
