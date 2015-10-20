@@ -47,28 +47,25 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
   }
 
   void "should properly order stages and steps"() {
-    setup:
-    def pos = []
-
     when:
     launchJob()
 
     then:
     1 * task1.execute(_) >> { Stage stage ->
       assert ctx1.every { stage.context[it.key] == it.value }
-      pos << 1
       new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
     }
+
+    then:
     1 * task2.execute(_) >> { Stage stage ->
-      pos << 2
       new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
     }
+
+    then:
     1 * task3.execute(_) >> { Stage stage ->
       assert ctx2.every { stage.context[it.key] == it.value }
-      pos << 3
       new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
     }
-    pos == [1, 2, 3]
   }
 
   void "should properly mark injected stages as synthetic"() {
