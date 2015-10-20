@@ -30,7 +30,7 @@ module.exports = angular
       controllerAs: 'migratorActionCtrl',
     };
   })
-  .controller('PipelineMigratorActionCtrl', function ($scope, $modal, vpcReader, settings, subnetReader, _) {
+  .controller('PipelineMigratorActionCtrl', function ($scope, $uibModal, vpcReader, settings, subnetReader, _) {
 
     $scope.showAction = false;
 
@@ -84,7 +84,7 @@ module.exports = angular
     }
 
     this.previewMigration = function () {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./pipeline.migrator.modal.html'),
         controller: 'PipelineMigratorCtrl as ctrl',
         resolve: {
@@ -105,7 +105,7 @@ module.exports = angular
     };
   })
   .controller('PipelineMigratorCtrl', function ($scope, pipeline, application, type, actionableDeployStages,
-                                                $modalInstance,
+                                                $uibModalInstance,
                                                 migratorService, pipelineConfigService, scrollToService,
                                                 cacheInitializer) {
 
@@ -148,7 +148,7 @@ module.exports = angular
       if ($scope.executor) {
         $scope.executor.deferred.promise.cancelled = true;
       }
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
 
     this.submit = function () {

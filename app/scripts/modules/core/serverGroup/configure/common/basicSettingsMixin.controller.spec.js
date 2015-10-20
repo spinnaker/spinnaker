@@ -17,7 +17,7 @@ describe('Basic Settings Mixin Controller:', function () {
       $scope: $scope,
       RxService: RxService,
       namingService: namingService,
-      $modalStack: { dismissAll: angular.noop },
+      $uibModalStack: { dismissAll: angular.noop },
     });
   }));
 

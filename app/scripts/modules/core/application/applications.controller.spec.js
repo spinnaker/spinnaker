@@ -22,7 +22,7 @@ describe('Controller: Applications', function() {
         applicationList = [ deck, oort, mort ];
 
     // Initialize the controller and a mock scope
-    beforeEach(window.inject(function ($controller, $rootScope, $window, $q, $modal, $log, $filter, accountService,
+    beforeEach(window.inject(function ($controller, $rootScope, $window, $q, $uibModal, $log, $filter, accountService,
                                 $state, $timeout, settings, applicationReader) {
 
       this.$scope = $rootScope.$new();
@@ -41,7 +41,7 @@ describe('Controller: Applications', function() {
 
       this.ctrl = $controller('ApplicationsCtrl', {
         $scope: this.$scope,
-        $modal: $modal,
+        $uibModal: $uibModal,
         $log: $log,
         $filter: $filter,
         accountService: accountService,

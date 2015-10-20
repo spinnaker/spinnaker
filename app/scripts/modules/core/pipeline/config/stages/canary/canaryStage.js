@@ -28,7 +28,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.canaryStage', [
         });
     }
   })
-  .controller('CanaryStageCtrl', function ($scope, $modal, stage, _,
+  .controller('CanaryStageCtrl', function ($scope, $uibModal, stage, _,
                                            namingService, providerSelectionService,
                                            authenticationService, cloudProviderRegistry,
                                            serverGroupCommandBuilder, awsServerGroupTransformer, accountService) {
@@ -99,7 +99,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.canaryStage', [
       $scope.stage.clusterPairs = $scope.stage.clusterPairs || [];
       providerSelectionService.selectProvider($scope.application).then(function(selectedProvider) {
         let config = cloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
-        $modal.open({
+        $uibModal.open({
           templateUrl: config.cloneServerGroupTemplateUrl,
           controller: `${config.cloneServerGroupController} as ctrl`,
           resolve: {
@@ -139,7 +139,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.canaryStage', [
     this.editCluster = function(cluster, index, type) {
       cluster.provider = cluster.provider || 'aws';
       let config = cloudProviderRegistry.getValue(cluster.provider, 'serverGroup');
-      $modal.open({
+      $uibModal.open({
         templateUrl: config.cloneServerGroupTemplateUrl,
         controller: `${config.cloneServerGroupController} as ctrl`,
         resolve: {

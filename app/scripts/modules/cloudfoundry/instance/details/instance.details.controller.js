@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
   require('../../../core/history/recentHistory.service.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
-  .controller('cfInstanceDetailsCtrl', function ($scope, $state, $modal, InsightFilterStateModel,
+  .controller('cfInstanceDetailsCtrl', function ($scope, $state, $uibModal, InsightFilterStateModel,
                                                instanceWriter, confirmationModalService, recentHistoryService,
                                                instanceReader, _, instance, app) {
 
@@ -357,7 +357,7 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
     };
 
     this.showConsoleOutput = function  () {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('../../../core/instance/details/console/consoleOutput.modal.html'),
         controller: 'ConsoleOutputCtrl as ctrl',
         size: 'lg',

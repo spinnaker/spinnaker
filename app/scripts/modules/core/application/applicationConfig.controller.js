@@ -11,7 +11,7 @@ module.exports = angular
     require('../utils/lodash.js'),
     require('./modal/editApplication.controller.modal.js'),
   ])
-  .controller('ApplicationConfigController', function ($modal, $state, $log, applicationWriter, confirmationModalService,
+  .controller('ApplicationConfigController', function ($uibModal, $state, $log, applicationWriter, confirmationModalService,
                                             cacheInitializer, infrastructureCaches, app, _) {
     const application = app;
     var vm = this;
@@ -21,7 +21,7 @@ module.exports = angular
     vm.error = '';
 
     vm.editApplication = function () {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./modal/editApplication.html'),
         controller: 'EditApplicationController',
         controllerAs: 'editApp',

@@ -25,14 +25,14 @@ module.exports = angular
       controllerAs: 'migratorActionCtrl',
     };
   })
-  .controller('MigratorActionCtrl', function ($scope, $modal, vpcReader, settings) {
+  .controller('MigratorActionCtrl', function ($scope, $uibModal, vpcReader, settings) {
 
     vpcReader.getVpcName($scope.serverGroup.vpcId).then(function (name) {
       $scope.showAction = name === 'Main' && settings.feature.vpcMigrator;
     });
 
     this.previewMigration = function () {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./serverGroup.migrator.modal.html'),
         controller: 'MigratorCtrl as ctrl',
         resolve: {
@@ -49,7 +49,7 @@ module.exports = angular
       });
     };
   })
-  .controller('MigratorCtrl', function ($scope, serverGroup, application, type, $modalInstance, migratorService) {
+  .controller('MigratorCtrl', function ($scope, serverGroup, application, type, $uibModalInstance, migratorService) {
 
     $scope.submittingTemplateUrl = require('../migrator.modal.submitting.html');
 
@@ -100,7 +100,7 @@ module.exports = angular
       if ($scope.executor) {
         $scope.executor.deferred.promise.cancelled = true;
       }
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
 
     this.submit = function () {

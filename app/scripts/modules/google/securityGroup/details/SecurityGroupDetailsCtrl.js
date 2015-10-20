@@ -31,7 +31,7 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
 ])
   .controller('gceSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, accountService, app, InsightFilterStateModel,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,
-                                                    $modal, _) {
+                                                    $uibModal, _) {
 
     const application = app;
     const securityGroup = resolvedSecurityGroup;
@@ -114,7 +114,7 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
     extractSecurityGroup().then(() => application.registerAutoRefreshHandler(extractSecurityGroup, $scope));
 
     this.editInboundRules = function editInboundRules() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('../configure/editSecurityGroup.html'),
         controller: 'gceEditSecurityGroupCtrl as ctrl',
         resolve: {
@@ -128,7 +128,7 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
 
 
     this.cloneSecurityGroup = function cloneSecurityGroup() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('../clone/cloneSecurityGroup.html'),
         controller: 'gceCloneSecurityGroupController as ctrl',
         resolve: {

@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.core.loadBalancer.controller', [
   require('../filterModel/filter.tags.directive.js'),
   require('../cloudProvider/cloudProvider.registry.js'),
 ])
-  .controller('AllLoadBalancersCtrl', function($scope, $modal, _, providerSelectionService, cloudProviderRegistry,
+  .controller('AllLoadBalancersCtrl', function($scope, $uibModal, _, providerSelectionService, cloudProviderRegistry,
                                                LoadBalancerFilterModel, loadBalancerFilterService, app ) {
 
     LoadBalancerFilterModel.activate();
@@ -54,7 +54,7 @@ module.exports = angular.module('spinnaker.core.loadBalancer.controller', [
     this.createLoadBalancer = function createLoadBalancer() {
       providerSelectionService.selectProvider(app).then(function(selectedProvider) {
         let provider = cloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
-        $modal.open({
+        $uibModal.open({
           templateUrl: provider.createLoadBalancerTemplateUrl,
           controller: `${provider.createLoadBalancerController} as ctrl`,
           resolve: {

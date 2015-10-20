@@ -20,7 +20,7 @@ module.exports = angular.module('spinnaker.core.notifications.notificationList',
             controllerAs: 'notificationListCtrl'
         };
     })
-    .controller('NotificationListCtrl', function ($scope, $modal, notificationService, _) {
+    .controller('NotificationListCtrl', function ($scope, $uibModal, notificationService, _) {
 
         var vm = this;
 
@@ -79,7 +79,7 @@ module.exports = angular.module('spinnaker.core.notifications.notificationList',
         };
 
         vm.editNotification = function (notification) {
-            var modalInstance = $modal.open({
+            var modalInstance = $uibModal.open({
                 templateUrl: require('./modal/editNotification.html'),
                 controller: 'EditNotificationController',
                 controllerAs: 'editNotification',

@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.applications.controller', [
   require('../presentation/sortToggle/sorttoggle.directive.js'),
   require('../insight/insightmenu.directive.js'),
 ])
-  .controller('ApplicationsCtrl', function($scope, $modal, $log, $filter, accountService,
+  .controller('ApplicationsCtrl', function($scope, $uibModal, $log, $filter, accountService,
                                            $state, applicationReader, viewStateCache) {
 
     var applicationsViewStateCache = viewStateCache.applications || viewStateCache.createCache('applications', { version: 1 });
@@ -46,7 +46,7 @@ module.exports = angular.module('spinnaker.applications.controller', [
       {
         displayName: 'Create Application',
         action: function() {
-          $modal.open({
+          $uibModal.open({
             scope: $scope,
             templateUrl: require('./modal/newapplication.html'),
             controller: 'CreateApplicationModalCtrl',

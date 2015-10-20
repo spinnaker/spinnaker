@@ -9,22 +9,22 @@
       </div>
       <div class="col-md-5">
         <div class="btn-group">
-          <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" btn-radio="''">
+          <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" uib-btn-radio="''">
             <a href>All</a>
           </label>
-          <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" btn-radio="'NOT_STARTED'">
+          <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" uib-btn-radio="'NOT_STARTED'">
             <a href><status-glyph item="{hasNotStarted: true}"></status-glyph> Not Started</a>
           </label>
-          <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" btn-radio="'RUNNING'">
+          <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" uib-btn-radio="'RUNNING'">
             <a href><status-glyph item="{isRunning: true}"></status-glyph> Running</a>
           </label>
-          <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" btn-radio="'COMPLETED'">
+          <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" uib-btn-radio="'COMPLETED'">
             <a href><status-glyph item="{isCompleted: true}"></status-glyph> Completed</a>
           </label>
-          <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" btn-radio="'FAILED'">
+          <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" uib-btn-radio="'FAILED'">
             <a href><status-glyph item="{isFailed: true}"></status-glyph> Failed</a>
           </label>
-          <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" btn-radio="'CANCELED'">
+          <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" uib-btn-radio="'CANCELED'">
             <a href><status-glyph item="{isCanceled: true}"></status-glyph> Canceled</a>
           </label>
         </div>
@@ -159,13 +159,13 @@
     </div>
     <div class="row pagination-footer">
       <div class="col-md-9">
-        <pagination ng-if="tasks.tasksLoaded && tasks.sortedTasks.length > pagination.itemsPerPage"
+        <uib-pagination ng-if="tasks.tasksLoaded && tasks.sortedTasks.length > pagination.itemsPerPage"
                     items-per-page="pagination.itemsPerPage"
                     total-items="tasks.sortedTasks.length"
                     max-size="pagination.maxSize"
                     ng-model="pagination.currentPage"
                     class="pagination-sm"
-          ></pagination>
+          ></uib-pagination>
       </div>
       <div class="col-md-3 text-right">
           <div class="form-group">

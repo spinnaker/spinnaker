@@ -11,7 +11,7 @@ module.exports = angular
     require('../../../naming/naming.service.js'),
     require('../../../image/image.reader.js')
   ])
-  .controller('BasicSettingsMixin', function ($scope, RxService, imageReader, namingService, $modalStack, $state, _) {
+  .controller('BasicSettingsMixin', function ($scope, RxService, imageReader, namingService, $uibModalStack, $state, _) {
     function searchImages(q) {
       $scope.allImageSearchResults = [
         {
@@ -89,7 +89,7 @@ module.exports = angular
           serverGroup: latest.name
         };
 
-      $modalStack.dismissAll();
+      $uibModalStack.dismissAll();
       if ($state.is('home.applications.application.insight.clusters')) {
         $state.go('.serverGroup', params);
       } else {

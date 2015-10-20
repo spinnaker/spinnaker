@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('gceServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
-                                                     gceServerGroupCommandBuilder, serverGroupReader, $modal, confirmationModalService, _, serverGroupWriter,
+                                                     gceServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, _, serverGroupWriter,
                                                      executionFilterService) {
 
     let application = app;
@@ -255,7 +255,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
     };
 
     this.resizeServerGroup = function resizeServerGroup() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./resize/resizeServerGroup.html'),
         controller: 'gceResizeServerGroupCtrl as ctrl',
         resolve: {
@@ -266,7 +266,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
     };
 
     this.cloneServerGroup = function cloneServerGroup(serverGroup) {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('../configure/wizard/serverGroupWizard.html'),
         controller: 'gceCloneServerGroupCtrl as ctrl',
         resolve: {
@@ -280,7 +280,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
     this.showUserData = function showScalingActivities() {
       $scope.userData = window.atob($scope.serverGroup.launchConfig.userData);
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('../../../core/serverGroup/details/userData.html'),
         controller: 'CloseableModalCtrl',
         scope: $scope

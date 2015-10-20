@@ -62,11 +62,11 @@
         </tr>
       </tbody>
     </table>
-    <pagination ng-if="applicationsLoaded"
+    <uib-pagination ng-if="applicationsLoaded"
                 items-per-page="pagination.itemsPerPage"
                 total-items="filteredApplications.length"
                 max-size="pagination.maxSize"
                 ng-model="pagination.currentPage"
-      ></pagination>
+      ></uib-pagination>
   </div>
 </div>

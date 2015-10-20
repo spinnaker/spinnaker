@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.netflix.feedback.directive', [
     return {
       restrict: 'E',
       templateUrl: require('./feedback.html'),
-      controller: function($scope, $modal) {
+      controller: function($scope, $uibModal) {
 
         $scope.state = {
           showMenu: false,
@@ -24,7 +24,7 @@ module.exports = angular.module('spinnaker.netflix.feedback.directive', [
         };
 
         $scope.openFeedback = function() {
-          $modal.open({
+          $uibModal.open({
             templateUrl: require('./feedback.modal.html'),
             controller: 'FeedbackModalCtrl as ctrl'
           });

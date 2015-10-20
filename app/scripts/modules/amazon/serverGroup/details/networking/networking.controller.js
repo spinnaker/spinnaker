@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.details.networking.co
   require('./elasticIp.controller.js'),
   require('./ip.sort.filter.js'),
 ])
-  .controller('networkingCtrl', function ($scope, $modal, elasticIpReader, _) {
+  .controller('networkingCtrl', function ($scope, $uibModal, elasticIpReader, _) {
     var application = $scope.application;
 
     function getElasticIpsForCluster() {
@@ -22,7 +22,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.details.networking.co
     getElasticIpsForCluster();
 
     $scope.associateElasticIp = function associateElasticIp() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./details/associateElasticIp.html'),
         controller: 'ElasticIpCtrl as ctrl',
         resolve: {
@@ -35,7 +35,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.details.networking.co
     };
 
     $scope.disassociateElasticIp = function disassociateElasticIp(address) {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./details/disassociateElasticIp.html'),
         controller: 'ElasticIpCtrl as ctrl',
         resolve: {

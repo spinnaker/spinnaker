@@ -30,7 +30,7 @@ module.exports = angular.module('spinnaker.securityGroup.cf.details.controller',
 ])
   .controller('cfSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, accountService, app, InsightFilterStateModel,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,
-                                                    $modal, _) {
+                                                    $uibModal, _) {
 
     const application = app;
     const securityGroup = resolvedSecurityGroup;

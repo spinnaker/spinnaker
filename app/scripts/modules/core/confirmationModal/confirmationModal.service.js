@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.core.confirmationModal.service', [
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
 ])
-  .factory('confirmationModalService', function($modal) {
+  .factory('confirmationModalService', function($uibModal) {
     var defaults = {
       buttonText: 'Confirm',
       cancelButtonText: 'Cancel'
@@ -34,14 +34,14 @@ module.exports = angular.module('spinnaker.core.confirmationModal.service', [
       if (params.size) {
         modalArgs.size = params.size;
       }
-      return $modal.open(modalArgs).result;
+      return $uibModal.open(modalArgs).result;
     }
 
     return {
       confirm: confirm
     };
   })
-  .controller('ConfirmationModalCtrl', function($scope, $state, $modalInstance, accountService, params, taskMonitorService, _) {
+  .controller('ConfirmationModalCtrl', function($scope, $state, $uibModalInstance, accountService, params, taskMonitorService, _) {
     $scope.params = params;
 
     $scope.state = {
@@ -49,7 +49,7 @@ module.exports = angular.module('spinnaker.core.confirmationModal.service', [
     };
 
     if (params.taskMonitorConfig) {
-      params.taskMonitorConfig.modalInstance = $modalInstance;
+      params.taskMonitorConfig.modalInstance = $uibModalInstance;
 
       $scope.taskMonitor = taskMonitorService.buildTaskMonitor(params.taskMonitorConfig);
     }
@@ -76,15 +76,15 @@ module.exports = angular.module('spinnaker.core.confirmationModal.service', [
         } else {
           if (params.submitMethod) {
             $scope.state.submitting = true;
-            params.submitMethod(params.interestingHealthProviderNames).then($modalInstance.close, showError);
+            params.submitMethod(params.interestingHealthProviderNames).then($uibModalInstance.close, showError);
           } else {
-            $modalInstance.close();
+            $uibModalInstance.close();
           }
         }
       }
     };
 
     this.cancel = function () {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     };
   }).name;

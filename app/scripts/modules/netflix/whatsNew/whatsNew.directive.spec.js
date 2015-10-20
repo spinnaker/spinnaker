@@ -11,14 +11,14 @@ describe('Directives: whatsNew', function () {
     )
   );
 
-  beforeEach(window.inject(function ($rootScope, $compile, whatsNewReader, viewStateCache, $q, $filter, $modal) {
+  beforeEach(window.inject(function ($rootScope, $compile, whatsNewReader, viewStateCache, $q, $filter, $uibModal) {
     this.scope = $rootScope.$new();
     this.compile = $compile;
     this.whatsNewReader = whatsNewReader;
     this.viewStateCache = viewStateCache;
     this.$filter = $filter;
     this.$q = $q;
-    this.$modal = $modal;
+    this.$uibModal = $uibModal;
   }));
 
   describe('with content', function() {
@@ -88,7 +88,7 @@ describe('Directives: whatsNew', function () {
           writtenToCache = val;
         }
       };
-      spyOn(this.$modal, 'open').and.returnValue({});
+      spyOn(this.$uibModal, 'open').and.returnValue({});
 
       var domNode = this.compile('<whats-new></whats-new>')(this.scope);
       this.scope.$digest();
@@ -97,7 +97,7 @@ describe('Directives: whatsNew', function () {
       domNode.find('a').click();
       this.scope.$digest();
 
-      expect(this.$modal.open).toHaveBeenCalled();
+      expect(this.$uibModal.open).toHaveBeenCalled();
       expect(writtenToCache).not.toBeNull();
       expect(writtenToCache.updateLastViewed).toBe(this.lastUpdated);
 

@@ -50,19 +50,19 @@
          <div class="row" ng-show="fp.promotionPaneOpen && fp.promotions.length > 0">
            <div class="col-md-5 col-md-offset-4">
              <div class="btn-group">
-               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('')" btn-radio="''">
+               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('')" uib-btn-radio="''">
                  <a href>All</a>
                </label>
-               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('Pending')" btn-radio="'Pending'">
+               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('Pending')" uib-btn-radio="'Pending'">
                  <a href><status-glyph item="{hasNotStarted: true}"></status-glyph> Pending</a>
                </label>
-               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('Running')" btn-radio="'Running'">
+               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('Running')" uib-btn-radio="'Running'">
                  <a href><status-glyph item="{isRunning: true}"></status-glyph> Running</a>
                </label>
-               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('Successful')" btn-radio="'Successful'">
+               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('Successful')" uib-btn-radio="'Successful'">
                  <a href><status-glyph item="{isCompleted: true}"></status-glyph> Successful</a>
                </label>
-               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('Failed')" btn-radio="'Failed'">
+               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('Failed')" uib-btn-radio="'Failed'">
                  <a href><status-glyph item="{isFailed: true}"></status-glyph> Failed</a>
                </label>
              </div>
@@ -186,14 +186,14 @@
         </select>
       </div>
       <div class="col-md-10">
-        <pagination class="pull-right"
+        <uib-pagination class="pull-right"
                     ng-if="fp.filteredProps"
                     total-items="fp.filteredProps.length"
                     max-size="fp.pagination.maxSize"
                     ng-model="fp.pagination.currentPage"
                     ng-change="fp.setFilteredProperties()">
 
-        </pagination>
+        </uib-pagination>
       </div>
     </div>
 

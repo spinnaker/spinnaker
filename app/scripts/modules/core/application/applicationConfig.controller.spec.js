@@ -6,7 +6,7 @@ describe('Controller: Config', function () {
   var configController;
   var notificationService;
   var $rootScope;
-  var $modal;
+  var $uibModal;
   var application;
 
   beforeEach(window.module(
@@ -14,10 +14,10 @@ describe('Controller: Config', function () {
   ));
 
   beforeEach(
-    window.inject(function (_$rootScope_, _$controller_, _$modal_) {
+    window.inject(function (_$rootScope_, _$controller_, _$uibModal_) {
       $rootScope = _$rootScope_;
       $controller = _$controller_;
-      $modal = _$modal_;
+      $uibModal = _$uibModal_;
     })
   );
 
@@ -31,14 +31,14 @@ describe('Controller: Config', function () {
 
         configController = $controller('ApplicationConfigController', {
           app: application,
-          $modal: $modal,
+          $uibModal: $uibModal,
         });
       }
     );
 
     it('should copy attributes when edit application is successful', function() {
       var newAttributes = { foo: 'bar' };
-      spyOn($modal, 'open').and.returnValue({
+      spyOn($uibModal, 'open').and.returnValue({
         result: {
           then: function(method) {
             method(newAttributes);

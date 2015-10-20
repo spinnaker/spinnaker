@@ -7,13 +7,13 @@ module.exports = angular.module('spinnaker.providerSelection.service', [
   require('../../config/settings.js'),
   require('../../utils/lodash.js'),
 ])
-  .factory('providerSelectionService', function($modal, $q, _, accountService, settings) {
+  .factory('providerSelectionService', function($uibModal, $q, _, accountService, settings) {
     function selectProvider(application) {
       return accountService.listProviders(application).then((providers) => {
         var provider;
 
         if (providers.length > 1) {
-          provider = $modal.open({
+          provider = $uibModal.open({
             templateUrl: require('./providerSelection.html'),
             controller: 'ProviderSelectCtrl as ctrl',
             resolve: {
