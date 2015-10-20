@@ -55,7 +55,7 @@ from spinnaker.run import check_run_quick
 from spinnaker.run import run_quick
 
 
-SUBSYSTEM_LIST = ['gce-kms', 'clouddriver', 'orca', 'front50',
+SUBSYSTEM_LIST = ['clouddriver', 'orca', 'front50',
                   'rush', 'echo', 'rosco', 'gate', 'igor', 'deck']
 
 
