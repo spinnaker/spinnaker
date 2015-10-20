@@ -28,6 +28,7 @@ import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.kato.aws.services.AsgService
 import com.netflix.spinnaker.kato.aws.services.SecurityGroupService
+import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import groovy.transform.CompileStatic
 import org.apache.commons.codec.binary.Base64
 import org.joda.time.LocalDateTime
@@ -42,12 +43,16 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
   final AsgService asgService
   final SecurityGroupService securityGroupService
   final List<UserDataProvider> userDataProviders
+  final KatoAWSConfig.DeployDefaults deployDefaults
 
-  DefaultLaunchConfigurationBuilder(AmazonAutoScaling autoScaling, AsgService asgService, SecurityGroupService securityGroupService, List<UserDataProvider> userDataProviders) {
+  DefaultLaunchConfigurationBuilder(AmazonAutoScaling autoScaling, AsgService asgService,
+                                    SecurityGroupService securityGroupService, List<UserDataProvider> userDataProviders,
+                                    KatoAWSConfig.DeployDefaults deployDefaults) {
     this.autoScaling = autoScaling
     this.asgService = asgService
     this.securityGroupService = securityGroupService
     this.userDataProviders = (userDataProviders ?: Collections.<UserDataProvider>emptyList()) as List<UserDataProvider>
+    this.deployDefaults = deployDefaults
   }
 
   /**
@@ -90,6 +95,8 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
       suffix,
       lc.imageId,
       lc.iamInstanceProfile,
+      lc.classicLinkVPCId,
+      lc.classicLinkVPCSecurityGroups,
       lc.instanceType,
       lc.keyName,
       lc.associatePublicIpAddress,
@@ -190,8 +197,22 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
       .withRamdiskId(settings.ramdiskId)
       .withEbsOptimized(settings.ebsOptimized)
       .withSpotPrice(settings.spotPrice)
+
     if (settings.instanceMonitoring) {
       request.withInstanceMonitoring(new InstanceMonitoring(enabled: settings.instanceMonitoring))
+    }
+
+    if (settings.classicLinkVpcId) {
+      request.withClassicLinkVPCId(settings.classicLinkVpcId)
+      if (settings.classicLinkVPCSecurityGroups) {
+        request.withClassicLinkVPCSecurityGroups(settings.classicLinkVPCSecurityGroups)
+      } else {
+        if (deployDefaults.classicLinkSecurityGroupName) {
+          def classicLinkVpcSecurityGroupIds = securityGroupService.
+            getSecurityGroupIds([deployDefaults.classicLinkSecurityGroupName], settings.classicLinkVpcId).keySet()
+          request.withClassicLinkVPCSecurityGroups(classicLinkVpcSecurityGroupIds)
+        }
+      }
     }
 
     if (settings.blockDevices) {
