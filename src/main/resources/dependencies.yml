@@ -1,8 +1,5 @@
 versions:
 # spinnaker libs
-  amazoncomponents: "0.11.15"
-  amos: "0.34"
-  cats: "0.20.0"
   kork: "1.49"
   redbatch: "0.4"
 # third party
@@ -12,10 +9,11 @@ versions:
   awsObjectMapper: "1.10.5.0"
   batch: "3.0.4.RELEASE"
   cglib: "3.1"
+  clouddriver: "0.135"
   eureka: "1.1.159"
   frigga: "0.13"
-  googleHttp: "1.20.0"
   googleCompute: "v1-rev74-1.20.0"
+  googleHttp: "1.20.0"
   groovy: "2.3.11"
   guava: "18.0"
   hamcrest: "1.3"
@@ -49,8 +47,8 @@ groups:
       - akkaActorTests
   amazon:
     compile:
-      - amazoncomponents
       - aws
+      - awsObjectMapper
       - httpclient
       - httpcore
   awsCreds:
@@ -68,17 +66,8 @@ groups:
       - astyanaxCql
       - astyanaxCassandra
       - astyanaxThrift
-  cats:
-    compile:
-      - catsCore
-      - catsRedis
-  gceApi:
-    compile:
-      - googleCompute
-      - googleHttp
   google:
     compile:
-      - amosGce
       - googleCompute
       - googleHttp
   jackson:
@@ -123,12 +112,7 @@ groups:
 
 dependencies:
 # spinnaker libs
-  amazoncomponents: "com.netflix.amazoncomponents:amazoncomponents:${versions.amazoncomponents}"
-  amos: "com.netflix.spinnaker:amos-core:${versions.amos}"
-  amosAws: "com.netflix.spinnaker:amos-aws:${versions.amos}"
-  amosGce: "com.netflix.spinnaker:amos-gce:${versions.amos}"
-  catsCore: "com.netflix.spinnaker.cats:cats-core:${versions.cats}"
-  catsRedis: "com.netflix.spinnaker.cats:cats-redis:${versions.cats}"
+  clouddriverSecurity: "com.netflix.spinnaker.clouddriver:clouddriver-security:${versions.clouddriver}"
   kork: "com.netflix.spinnaker.kork:kork-core:${versions.kork}"
   korkCassandra: "com.netflix.spinnaker.kork:kork-cassandra:${versions.kork}"
   korkJedis: "com.netflix.spinnaker.kork:kork-jedis:${versions.kork}"
