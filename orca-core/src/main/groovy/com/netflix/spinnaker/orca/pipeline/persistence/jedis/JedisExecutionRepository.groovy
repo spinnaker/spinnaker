@@ -95,7 +95,13 @@ class JedisExecutionRepository implements ExecutionRepository {
       } else {
         throw new ExecutionNotFoundException("No execution found with id $id")
       }
-      jedis.hset(key, "canceled", "true")
+      if (isNewSchemaVersion(jedis, key)) {
+        jedis.hset(key, "canceled", "true")
+      } else {
+        def data = mapper.readValue(jedis.hget(key, "config"), Map)
+        data.canceled = "true"
+        jedis.hset(key, "config", mapper.writeValueAsString(data))
+      }
     }
   }
 
@@ -110,14 +116,22 @@ class JedisExecutionRepository implements ExecutionRepository {
       } else {
         throw new ExecutionNotFoundException("No execution found with id $id")
       }
-      Map<String, String> map = [executionStatus: status.name()]
-      if (status == ExecutionStatus.RUNNING) {
-        map.startTime = String.valueOf(currentTimeMillis())
-      } else if (status.complete) {
-        map.endTime = String.valueOf(currentTimeMillis())
+      if (isNewSchemaVersion(jedis, key)) {
+        Map<String, String> map = [executionStatus: status.name()]
+        if (status == ExecutionStatus.RUNNING) {
+          map.startTime = String.valueOf(currentTimeMillis())
+        } else if (status.complete) {
+          map.endTime = String.valueOf(currentTimeMillis())
+        }
+        jedis.hmset(key, map)
+      } else {
+        // TODO: is a no-op the right thing here? Old version derives status from stages.
       }
-      jedis.hmset(key, map)
     }
+  }
+
+  boolean isNewSchemaVersion(JedisCommands jedis, String key) {
+    !jedis.hexists(key, "config")
   }
 
   @Override
@@ -214,38 +228,43 @@ class JedisExecutionRepository implements ExecutionRepository {
       jedis.sadd(appKey, execution.id)
     }
 
-    def key = "${prefix}:$execution.id"
+    String key = "${prefix}:$execution.id"
 
-    Map<String, String> map = [
-      application      : execution.application,
-      appConfig        : mapper.writeValueAsString(execution.appConfig),
-      canceled         : String.valueOf(execution.canceled),
-      parallel         : String.valueOf(execution.parallel),
-      limitConcurrent  : String.valueOf(execution.limitConcurrent),
-      buildTime        : Long.toString(execution.buildTime ?: 0L),
-      startTime        : Long.toString(execution.startTime ?: 0L),
-      endTime        : Long.toString(execution.endTime ?: 0L),
-      executingInstance: execution.executingInstance,
-      executionStatus  : execution.executionStatus?.name(),
-      authentication   : mapper.writeValueAsString(execution.authentication)
-    ]
-    // TODO: store separately? Seems crazy to be using a hash rather than a set
-    map.stageIndex = execution.stages.id.join(",")
-    execution.stages.each { stage ->
-      map.putAll(serializeStage(stage))
-    }
-    if (execution instanceof Pipeline) {
-      map.name = execution.name
-      map.pipelineConfigId = execution.pipelineConfigId
-      map.trigger = mapper.writeValueAsString(execution.trigger)
-      map.notifications = mapper.writeValueAsString(execution.notifications)
-      map.initialConfig = mapper.writeValueAsString(execution.initialConfig)
-    } else if (execution instanceof Orchestration) {
-      map.description = execution.description
-    }
+    if (!jedis.exists(key) || isNewSchemaVersion(jedis, key)) {
+      Map<String, String> map = [
+        application      : execution.application,
+        appConfig        : mapper.writeValueAsString(execution.appConfig),
+        canceled         : String.valueOf(execution.canceled),
+        parallel         : String.valueOf(execution.parallel),
+        limitConcurrent  : String.valueOf(execution.limitConcurrent),
+        buildTime        : Long.toString(execution.buildTime ?: 0L),
+        // TODO: modify these lines once we eliminate dynamic time properties
+        startTime        : Long.toString(execution.executionStartTime ?: execution.startTime ?: 0L),
+        endTime          : Long.toString(execution.executionEndTime ?: execution.endTime ?: 0L),
+        executingInstance: execution.executingInstance,
+        executionStatus  : execution.executionStatus?.name(),
+        authentication   : mapper.writeValueAsString(execution.authentication)
+      ]
+      // TODO: store separately? Seems crazy to be using a hash rather than a set
+      map.stageIndex = execution.stages.id.join(",")
+      execution.stages.each { stage ->
+        map.putAll(serializeStage(stage))
+      }
+      if (execution instanceof Pipeline) {
+        map.name = execution.name
+        map.pipelineConfigId = execution.pipelineConfigId
+        map.trigger = mapper.writeValueAsString(execution.trigger)
+        map.notifications = mapper.writeValueAsString(execution.notifications)
+        map.initialConfig = mapper.writeValueAsString(execution.initialConfig)
+      } else if (execution instanceof Orchestration) {
+        map.description = execution.description
+      }
 
-    jedis.hdel(key, "config")
-    jedis.hmset(key, filterValues(map, notNull()))
+      jedis.hdel(key, "config")
+      jedis.hmset(key, filterValues(map, notNull()))
+    } else {
+      jedis.hset(key, "config", mapper.writeValueAsString(execution))
+    }
   }
 
   private Map<String, String> serializeStage(Stage stage) {
@@ -276,7 +295,7 @@ class JedisExecutionRepository implements ExecutionRepository {
   private <T extends Execution> T retrieveInternal(Jedis jedis, Class<T> type, String id) throws ExecutionNotFoundException {
     def prefix = type.simpleName.toLowerCase()
     def key = "$prefix:$id"
-    if (jedis.hexists(key, "config")) {
+    if (!isNewSchemaVersion(jedis, key)) {
       log.warn("Reading {} {} with legacy format", type.simpleName, id)
       def json = jedis.hget(key, "config")
       def execution = mapper.readValue(json, type)
@@ -299,8 +318,8 @@ class JedisExecutionRepository implements ExecutionRepository {
       execution.parallel = Boolean.parseBoolean(map.parallel)
       execution.limitConcurrent = Boolean.parseBoolean(map.limitConcurrent)
       execution.buildTime = Long.parseLong(map.buildTime) ?: 0
-      execution.startTime = Long.parseLong(map.startTime) ?: 0
-      execution.endTime = Long.parseLong(map.endTime) ?: 0
+      execution.executionStartTime = Long.parseLong(map.startTime) ?: 0
+      execution.executionEndTime = Long.parseLong(map.endTime) ?: 0
       execution.executingInstance = map.executingInstance
       execution.executionStatus = map.executionStatus ? ExecutionStatus.valueOf(map.executionStatus) : null
       execution.authentication = mapper.readValue(map.authentication, Execution.AuthenticationDetails)

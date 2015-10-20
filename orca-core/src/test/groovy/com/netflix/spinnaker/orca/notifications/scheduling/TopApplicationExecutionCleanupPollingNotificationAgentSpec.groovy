@@ -46,13 +46,19 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
     def pipeline = new Pipeline()
     pipeline.id = "ID1"
     pipeline.pipelineConfigId = "P1"
-    pipeline.startTime = 1000
+    pipeline.executionStartTime = 1000
+    pipeline.version = 2
 
     and:
     def mapper = new TopApplicationExecutionCleanupPollingNotificationAgent().mapper
 
     expect:
-    mapper.call(pipeline) == [id: "ID1", startTime: 1000, pipelineConfigId: "P1", status: ExecutionStatus.NOT_STARTED]
+    with(mapper.call(pipeline)) {
+      id == "ID1"
+      startTime == 1000
+      pipelineConfigId == "P1"
+      status == ExecutionStatus.NOT_STARTED
+    }
   }
 
   void "tick should cleanup each application with > threshold # of executions"() {
@@ -61,7 +67,8 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
     def orchestrations = buildExecutions(startTime, 3)
     def pipelines = buildExecutions(startTime, 3, "P1") + buildExecutions(startTime, 5, "P2")
 
-    def agent = new TopApplicationExecutionCleanupPollingNotificationAgent(threshold: 2, minimumNumberOfExecutionsToKeepPerPipeline: 2)
+    def agent = new TopApplicationExecutionCleanupPollingNotificationAgent(threshold: 2,
+                                                                           minimumNumberOfExecutionsToKeepPerPipeline: 2)
     agent.jedisPool = Mock(Pool) {
       1 * getResource() >> {
         return Mock(Jedis) {
@@ -73,8 +80,8 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
       }
     }
     agent.executionRepository = Mock(ExecutionRepository) {
-      1 * retrieveOrchestrationsForApplication("app1") >> { return rx.Observable.from(orchestrations)}
-      1 * retrievePipelinesForApplication("app2") >> { return rx.Observable.from(pipelines)}
+      1 * retrieveOrchestrationsForApplication("app1") >> { return rx.Observable.from(orchestrations) }
+      1 * retrievePipelinesForApplication("app2") >> { return rx.Observable.from(pipelines) }
       0 * _
     }
 
@@ -95,7 +102,8 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
 //    1 * agent.executionRepository.deletePipeline(pipelines[7].id)
   }
 
-  private static Collection<Execution> buildExecutions(AtomicInteger startTime, int count, String pipelineConfigId = null) {
+  private
+  static Collection<Execution> buildExecutions(AtomicInteger startTime, int count, String pipelineConfigId = null) {
     (1..count).collect {
       def stage = new PipelineStage(new Pipeline(), "")
       stage.startTime = startTime.incrementAndGet()

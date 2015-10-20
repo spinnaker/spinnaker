@@ -130,25 +130,25 @@ class TaskControllerSpec extends Specification {
     app = "test"
   }
 
-  void '/applications/{application}/tasks only returns unstarted and tasks from the past two weeks, sorted newest first'() {
+  void '/applications/{application}/tasks only returns un-started and tasks from the past two weeks, sorted newest first'() {
     given:
     def now = new Date()
     def tasks = [
-      [startTime: (now - daysOfExecutionHistory).time - 1, id: 'too-old'] as Orchestration,
-      [startTime: (now - daysOfExecutionHistory).time + 1, id: 'not-too-old'] as Orchestration,
-      [startTime: (now - 1).time, id: 'pretty-new'] as Orchestration,
-      [id: 'not-started-1'] as Orchestration,
-      [id: 'not-started-2'] as Orchestration
+      [executionStartTime: (now - daysOfExecutionHistory).time - 1, id: 'too-old', version: 2] as Orchestration,
+      [executionStartTime: (now - daysOfExecutionHistory).time + 1, id: 'not-too-old', version: 2] as Orchestration,
+      [executionStartTime: (now - 1).time, id: 'pretty-new', version: 2] as Orchestration,
+      [id: 'not-started-1', version: 2] as Orchestration,
+      [id: 'not-started-2', version: 2] as Orchestration
     ]
     def app = 'test'
+    clock.millis() >> now.time
+    executionRepository.retrieveOrchestrationsForApplication(app) >> rx.Observable.from(tasks)
 
     when:
     def response = new ObjectMapper().readValue(
       mockMvc.perform(get("/applications/$app/tasks")).andReturn().response.contentAsString, ArrayList)
 
     then:
-    1 * clock.millis() >> now.time
-    1 * executionRepository.retrieveOrchestrationsForApplication(app) >> rx.Observable.from(tasks)
     response.id == ['not-started-2', 'not-started-1', 'not-too-old', 'pretty-new']
   }
 
@@ -205,7 +205,7 @@ class TaskControllerSpec extends Specification {
 
     then:
     1 * executionRepository.retrievePipelinesForApplication(app) >> rx.Observable.from(pipelines.collect {
-      new Pipeline(id: it.id, startTime: it.startTime, pipelineConfigId: it.pipelineConfigId)
+      new Pipeline(id: it.id, executionStartTime: it.startTime, pipelineConfigId: it.pipelineConfigId, version: 2)
     })
     results.id == ['not-started', 'also-not-started', 'older2', 'older1', 'newer']
   }
