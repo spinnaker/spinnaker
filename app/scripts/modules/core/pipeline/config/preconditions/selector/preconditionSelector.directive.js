@@ -25,8 +25,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.se
     $scope.preconditionTypes = preconditionTypeService.listPreconditionTypes();
     $scope.regions = [];
 
-    $scope.precondition = $scope.precondition || {};
-    $scope.precondition.context = $scope.precondition.context || { failPipeline: true };
+    $scope.precondition = $scope.precondition || { failPipeline: true};
+    $scope.precondition.context = $scope.precondition.context || {};
     if (!$scope.precondition.type && $scope.preconditionTypes && $scope.preconditionTypes.length) {
       $scope.precondition.type = $scope.preconditionTypes[0].key;
     }

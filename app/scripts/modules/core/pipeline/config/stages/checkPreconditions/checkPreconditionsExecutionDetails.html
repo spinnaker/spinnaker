@@ -4,12 +4,20 @@
     <div class="row">
       <div class="col-md-9">
         <dl class="dl-narrow dl-horizontal">
-          <dt>TODO(cfieber) summarize preconditions</dt>
+            <div ng-repeat="(key, val) in stage.context.context">
+              <dt>{{key | robotToHuman}}</dt>
+              <dd>{{val}}</dd>
+            </div>
+            <div>
+              <dt>Fail Pipeline</dt>
+              <dd>{{stage.context.failPipeline}}</dd>
+            </div>
+          </dd>
         </dl>
       </div>
     </div>
 
-    <stage-failure-message is-failed="stage.isFailed" message="ctrl.getException(stage)"></stage-failure-message>
+    <stage-failure-message is-failed="ctrl.getException(stage)" message="ctrl.getException(stage)"></stage-failure-message>
   </div>
 
   <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">

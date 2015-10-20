@@ -18,7 +18,10 @@
                         {{precondition.type|preconditionType}}
                     </td>
                     <td>
-                        {{precondition.context}}
+                        <div ng-repeat="(key, val) in precondition.context">
+                            <strong>{{key | robotToHuman}}: </strong> {{val}}
+                        </div>
+                        <strong>Fail Pipeline: </strong> {{precondition.failPipeline}}
                     </td>
                     <td>
                         <a class="btn btn-xs btn-link" href
