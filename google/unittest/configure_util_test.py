@@ -17,10 +17,10 @@ import shutil
 import tempfile
 import unittest
 
-from pylib import configure_util
-from pylib import yaml_util
-from pylib.fetch import get_google_project
-from pylib.fetch import is_google_instance
+from spinnaker import configure_util
+from spinnaker import yaml_util
+from spinnaker.fetch import get_google_project
+from spinnaker.fetch import is_google_instance
 
 # This is a config file defining VARIABLE_A and VARIABLE_B.
 # The 'B1' denotes that B has the value 1 here (other files will redefine it)
