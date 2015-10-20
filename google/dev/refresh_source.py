@@ -39,7 +39,6 @@ class SourceRepository(
 class Refresher(object):
   __OPTIONAL_REPOSITORIES = [SourceRepository('citest', 'google')]
   __REQUIRED_REPOSITORIES = [
-      SourceRepository('gce-kms', 'spinnaker'),
       SourceRepository('clouddriver', 'spinnaker'),
       SourceRepository('orca', 'spinnaker'),
       SourceRepository('front50', 'spinnaker'),

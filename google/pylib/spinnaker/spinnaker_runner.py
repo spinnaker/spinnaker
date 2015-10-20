@@ -44,7 +44,7 @@ class Runner(object):
   __SPINNAKER_COMPONENT = 'all'
 
   # These are all the standard spinnaker subsystems that can be started
-  # independent of one another (but after gce-kms)
+  # independent of one another.
   INDEPENDENT_SUBSYSTEM_LIST=['clouddriver', 'front50', 'orca', 'rosco',
                               'echo']
 
@@ -126,13 +126,9 @@ class Runner(object):
   # These are all the spinnaker subsystems in total.
   @classmethod
   def get_all_subsystem_names(cls):
-    # Currently this must start first.
-    # TODO: Group this into the optional subsystem list when it is fixed.
-    result = ['gce-kms']
 
-    # These are always started. Order doesnt matter other
-    # than after gce-kms
-    result.extend(cls.INDEPENDENT_SUBSYSTEM_LIST)
+    # These are always started. Order doesnt matter.
+    result = list(cls.INDEPENDENT_SUBSYSTEM_LIST)
 
     # These are additional, optional subsystems.
     result.extend(['rush', 'igor'])
@@ -300,9 +296,6 @@ class Runner(object):
     """
     re_pid_and_subsystem = None
 
-    # If we use jps then some classnames dont match the subsystems we expect.
-    hack_java_package_to_subsystem = {'gcekms': 'gce-kms'}
-
     # Try jps, but this is not currently available on openjdk-8-jre
     # so depending on the JRE environment, this might not work.
     p = subprocess.Popen(
@@ -329,7 +322,6 @@ class Runner(object):
     job_map = {}
     for match in re_pid_and_subsystem.finditer(stdout):
       name = self.program_to_subsystem(match.groups()[1])
-      name = hack_java_package_to_subsystem.get(name, name)
       pid = int(match.groups()[0])
       job_map[name] = pid
 
@@ -489,12 +481,6 @@ Proceeding anyway.
             'GOOGLE_ENABLED', 'false').lower() != 'false'
 
     jobs = self.get_all_java_subsystem_jobs()
-    if not google_enabled:
-      print 'Not using gce-kms because GOOGLE_ENABLED=false'
-    else:
-      pid = self.maybe_start_job(jobs, 'gce-kms')
-      self.wait_for_service('gce-kms', pid)
-
     self.start_spinnaker_subsystems(jobs)
     self.start_deck()
     print 'Started all Spinnaker components.'
