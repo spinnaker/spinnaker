@@ -15,4 +15,4 @@
 # limitations under the License.
 
 SCRIPT_DIR=$(dirname $0)
-PYTHONPATH=$SCRIPT_DIR/.. python $SCRIPT_DIR/create_dev_vm.py "$@"
+PYTHONPATH=$SCRIPT_DIR/../pylib python $SCRIPT_DIR/create_dev_vm.py "$@"

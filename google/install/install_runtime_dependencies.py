@@ -20,9 +20,9 @@ import re
 import sys
 import tempfile
 
-from pylib.run import check_run_and_monitor
-from pylib.run import run_quick
-from pylib.fetch import check_fetch
+from spinnaker.run import check_run_and_monitor
+from spinnaker.run import run_quick
+from spinnaker.fetch import check_fetch
 
 
 # These explicit versions are only applicable when not using the

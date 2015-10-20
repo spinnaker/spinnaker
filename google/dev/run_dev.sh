@@ -20,4 +20,4 @@ else
   args="$@"
 fi
 
-PYTHONPATH=$(dirname $0)/.. python $(dirname $0)/dev_runner.py START $args
+PYTHONPATH=$(dirname $0)/../pylib python $(dirname $0)/dev_runner.py START $args

@@ -185,7 +185,7 @@ def create_prototype_instance(options):
 
     script_dir = os.path.dirname(sys.argv[0])
     install_dir = os.path.join(script_dir, '../install')
-    pylib_dir = os.path.join(script_dir, '../pylib')
+    pylib_spinnaker_dir = os.path.join(script_dir, '../pylib/spinnaker')
     metadata = ','.join(['startup_py_command={startup_command}'.format(
                              startup_command='+'.join(startup_command)),
                          'startup_loader_files='
@@ -198,7 +198,7 @@ def create_prototype_instance(options):
     with open(os.path.join(install_dir, 'install_spinnaker.py'), 'r') as f:
         content = f.read()
         content = content.replace('install.install', 'install')
-        content = content.replace('pylib.', '')
+        content = content.replace('from spinnaker.', 'from ')
     os.write(fd, content)
     os.close(fd)
 
@@ -207,19 +207,19 @@ def create_prototype_instance(options):
               'r') as f:
         content = f.read()
         content = content.replace('install.install', 'install')
-        content = content.replace('pylib.', '')
+        content = content.replace('from spinnaker.', 'from ')
     os.write(fd, content)
     os.close(fd)
 
     file_list = (
         'startup-script={install_dir}/google_install_loader.py'
-        ',py_fetch={pylib_dir}/fetch.py'
-        ',py_run={pylib_dir}/run.py'
+        ',py_fetch={pylib_spinnaker_dir}/fetch.py'
+        ',py_run={pylib_spinnaker_dir}/run.py'
         ',py_install_spinnaker={temp_install_spinnaker}'
         ',py_install_runtime_dependencies='
         '{temp_install_dependencies}'
         .format(install_dir=install_dir,
-                pylib_dir=pylib_dir,
+                pylib_spinnaker_dir=pylib_spinnaker_dir,
                 temp_install_dependencies=temp_install_dependencies,
                 temp_install_spinnaker=temp_install_spinnaker))
 

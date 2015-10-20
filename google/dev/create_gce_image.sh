@@ -18,6 +18,6 @@ echo "***************************************************************"
 echo "** This script is deprecated"
 echo "** Running $(dirname $0)/build_google_image.sh instead"
 echo "***************************************************************\n"
-PYTHONPATH=$(dirname $0)/.. \
+PYTHONPATH=$(dirname $0)/../pylib \
 python \
 $(dirname $0)/create_gce_image.py "$@"

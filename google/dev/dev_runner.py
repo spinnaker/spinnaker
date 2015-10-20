@@ -23,9 +23,9 @@ import subprocess
 import sys
 import time
 
-from pylib.fetch import fetch
-from pylib import configure_util
-from pylib import spinnaker_runner
+from spinnaker.fetch import fetch
+from spinnaker import configure_util
+from spinnaker import spinnaker_runner
 
 
 class DevInstallationParameters(configure_util.InstallationParameters):

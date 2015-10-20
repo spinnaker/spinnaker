@@ -19,11 +19,11 @@ import os
 import sys
 import tempfile
 
-from pylib.fetch import check_fetch
-from pylib.run import run_and_monitor
-from pylib.run import run_quick
-from pylib.run import check_run_quick
-from pylib.run import check_run_and_monitor
+from spinnaker.fetch import check_fetch
+from spinnaker.run import run_and_monitor
+from spinnaker.run import run_quick
+from spinnaker.run import check_run_quick
+from spinnaker.run import check_run_and_monitor
 
 import install.install_runtime_dependencies
 
