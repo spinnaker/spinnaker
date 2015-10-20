@@ -411,3 +411,55 @@ class ConfigureUtil(object):
       os.makedirs(target_path)
     with open(target_path, 'w') as f:
       f.write(content)
+
+  def update_deck_settings(self, yaml_bindings):
+    """Update the settings.js file with new binding info.
+
+    Args:
+      yaml_bindings: yaml_util.YamlBindings
+
+    This is for the new bindings only. While this is an outlier here,
+    the intent is to remove all the old config support soon.
+    """
+    source_path = os.path.join(self.__installation.SPINNAKER_INSTALL_DIR,
+                              'config/settings.js')
+    with open(source_path, 'r') as f:
+      source = f.read()
+
+    settings = self.process_deck_settings(source, yaml_bindings)
+    target_path = os.path.join(self.__installation.DECK_INSTALL_DIR,
+                               'settings.js')
+    with open(target_path, 'w') as f:
+      f.write(''.join(settings))
+
+  def process_deck_settings(self, source, yaml_bindings):
+    offset = source.find('# BEGIN reconfigure_spinnaker')
+    if offset < 0:
+      raise ValueError(
+        'deck settings file does not contain a'
+        ' "# BEGIN reconfigure_spinnaker" marker.')
+    end = source.find('# END reconfigure_spinnaker')
+    if end < 0:
+      raise ValueError(
+        'deck settings file does not contain a'
+        ' "# END reconfigure_spinnaker" marker.')
+
+    original_block = source[offset:end]
+    # Remove all the explicit declarations in this block
+    # Leaving us with just comments
+    block = re.sub('\n\s*let\s+\w+\s*=(.+)\n', '\n', original_block)
+    settings = [source[:offset]]
+
+    # Now iterate over the comments looking for let specifications
+    offset = 0
+    for match in re.finditer('#\s*let\s+(\w+)\s*=\s*(.+);?\n', block) or []:
+      settings.append(block[offset:match.end()])
+      offset = match.end()
+      name = match.group(1)
+      value = yaml_bindings.replace(match.group(2))
+      settings.append('let {name} = {value!r}\n'.format(
+         name=name, value=value))
+
+    settings.append(block[offset:])
+    settings.append(source[end + 1:])
+    return ''.join(settings)

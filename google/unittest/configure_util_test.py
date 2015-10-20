@@ -18,6 +18,7 @@ import tempfile
 import unittest
 
 from pylib import configure_util
+from pylib import yaml_util
 from pylib.fetch import get_google_project
 from pylib.fetch import is_google_instance
 
@@ -324,7 +325,7 @@ declaration_c={c}
 
     self.assertEqual(template_data.format(a='A'), got)
 
-  def test_load_bindings(self):
+  def test_load_old_bindings(self):
     root = tempfile.mkdtemp()
     config_dir = os.path.join(root, 'config')
     config_template_dir = os.path.join(root, 'template')
@@ -366,6 +367,36 @@ declaration_c={c}
                      bindings.get_variable('GOOGLE_ENABLED', ''))
     for platform in platform_variables:
       self.assertEqual(platform[1], bindings.get_variable(platform[0], ''))
+
+  def process_deck_settings(self):
+    bindings = yaml_util.YamlBindings()
+    bindings.import_dict({'parent': {'a': 'A', 'b': 'B'}})
+    original = """  
+let initial = 'Initial';
+# BEGIN reconfigure_spinnaker
+let v1 = 'discard'
+let superflous = 'removed'
+# let v1 = '${parent.a}'
+# let v2 = 'both ${parent.b} and ${parent.a}';
+
+# let v2 = '${unknown:C}'
+# END reconfigure_spinnaker
+let final = 'Final';
+"""
+
+    expect = """
+let initial = 'Initial';
+# BEGIN reconfigure_spinnaker
+let v1 = 'A';
+let v2 = 'both B and A';
+let v3 = 'C';
+# END reconfigure_spinnaker
+let final = 'Final';
+"""
+
+    util = configure_util.ConfigureUtil()
+    self.assertEqual(expect,
+                     util.process_deck_settings, original, yaml_bindings())
 
 
 if __name__ == '__main__':

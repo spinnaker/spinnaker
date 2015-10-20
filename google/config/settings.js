@@ -1,32 +1,54 @@
 'use strict';
 
-let gateHost = '${services.gate.host}:${services.gate.port}';
+
+#################################################################
+# This section is managed by scripts/reconfigure_spinnaker.sh
+# If hand-editing, only add comment lines that look like
+# '# let VARIABLE = VALUE'
+# and let scripts/reconfigure manage the actual values.
+#################################################################
+# BEGIN reconfigure_spinnaker
+
+# let gateUrl = ${services.gate.baseUrl};
+# let bakeryBaseUrl = ${services.bakery.baseUrl};
+# let awsDefaultRegion = ${providers.aws.defaultRegion};
+# let awsPrimaryAccount = ${providers.aws.primaryCredentials.name};
+# let googleDefaultRegion = ${providers.google.defaultRegion};
+# let googleDefaultZone = ${providers.google.defaultZone};
+# let googlePrimaryAccount = ${providers.google.primaryCredentials.name;
+
+# END reconfigure_spinnaker
+####################################################################
+# Any additional custom let statements can go below without being
+# affected by scripts/reconfigure_spinnaker.sh
+####################################################################
+
 
 window.spinnakerSettings = {
-  gateUrl: `${services.gate.baseUrl}`,
-  bakeryDetailUrl: '${services.bakery.baseUrl}/api/v1/global/logs/{{context.status.id}}?html=true',
+  gateUrl: '${gateUrl}',
+  bakeryDetailUrl: '${bakeryBaseUrl}/api/v1/global/logs/{{context.status.id}}?html=true',
   pollSchedule: 30000,
   defaultTimeZone: 'America/New_York', // see http://momentjs.com/timezone/docs/#/data-utilities/
   providers: {
     gce: {
       defaults: {
-        account: '${providers.google.primaryCredentials.name}',
-        region: '${providers.google.defaultRegion}',
-        zone: '${providers.google.defaultZone}',
+        account: '${googlePrimaryAccount}',
+        region: '${googleDefaultRegion}',
+        zone: '${googleDefaultZone}',
       },
-      primaryAccounts: ['${providers.google.primaryCredentials.name}'],
-      challengeDestructiveActions: ['${providers.google.primaryCredentials.name}'],
+      primaryAccounts: ['${googlePrimaryAccount}'],
+      challengeDestructiveActions: ['${googlePrimaryAccount}'],
     },
     aws: {
       defaults: {
-        account: '${providers.aws.primaryCredentials.name}',
-        region: '${providers.aws.defaultRegion}',
+        account: '${awsPrimaryAccount}',
+        region: '${awsDefaultRegion}'
       },
-      primaryAccounts: ['${providers.aws.primaryCredentials.name}]',
+      primaryAccounts: ['${awsPrimaryAccount}'],
       primaryRegions: ['eu-west-1', 'us-east-1', 'us-west-1', 'us-west-2'],
-      challengeDestructiveActions: ['${providers.aws.primaryCredentials.name}'],
+      challengeDestructiveActions: ['${awsPrimaryAccount}'],
       preferredZonesByAccount: {
-        ${providers.aws.primaryCredentials.name}: {
+        ${awsPrimaryAccount}: {
           'us-east-1': ['us-east-1a', 'us-east-1b', 'us-east-1d', 'us-east-1e'],
           'us-west-1': ['us-west-1a', 'us-west-1b', 'us-west-1c'],
           'us-west-2': ['us-west-2a', 'us-west-2b', 'us-west-2c'],

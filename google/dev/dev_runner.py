@@ -183,6 +183,9 @@ class DevRunner(spinnaker_runner.Runner):
     """
     if self.using_deprecated_config:
       self.reconfigure_subsystems(options)
+    else:
+      util = configure_util.ConfigureUtil(self.__installation)
+      util.update_deck_settings(self.new_bindings)
 
     ignore_tail_jobs = self.tail_error_logs()
     super(DevRunner, self).start_all(options)

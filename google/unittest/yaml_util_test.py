@@ -79,6 +79,13 @@ e:
     bindings.import_path(temp_path)
     self.assertEqual(expect, bindings.map)
 
+  def test_load_composite_value(self):
+    bindings = YamlBindings()
+    bindings.import_dict({'a': 'A', 'b':'B'})
+    bindings.import_string('test: ${a}/${b}')
+    print str(bindings.map)
+    self.assertEqual('A/B', bindings.get('test'))
+
   def test_update_field_union(self):
     bindings = YamlBindings()
     bindings.import_dict({'a': 'A'})
@@ -130,6 +137,7 @@ e:
   def test_load_key_not_found(self):
     bindings = YamlBindings()
     bindings.import_dict({'field': '${injected.value}', 'injected': {}})
+
     with self.assertRaises(KeyError):
       bindings.get('unknown')
 
@@ -140,6 +148,11 @@ e:
     with self.assertRaises(ValueError):
       bindings.get('field')
 
+  def test_replace(self):
+    bindings = YamlBindings()
+    bindings.import_dict({'a': 'A', 'container': {'b': 'B'}})
+    self.assertEqual('This is A B or C',
+                     bindings.replace('This is ${a} ${container.b} or ${c:C}'))
 
 if __name__ == '__main__':
   loader = unittest.TestLoader()
