@@ -273,14 +273,11 @@ class Refresher(object):
 cd $(dirname $0)
 LOG_DIR=${{LOG_DIR:-../logs}}
 
+DEF_SYS_PROPERTIES=""
 if [[ -f $HOME/.spinnaker/spinnaker-local.yml ]]; then
-   if [[ "$SPRING_CONFIG_LOCATION" != "" ]]; then
-     echo "WARNING: SPRING_CONFIG_LOCATION is overriden as $SPRING_CONFIG_LOCATION"
-   else
-     export SPRING_CONFIG_LOCATION="{spring_location}"
-   fi
+   DEF_SYS_PROPERTIES="-Dspring.config.location='{spring_location}'"
 fi
-bash -c "(./gradlew $@ > $LOG_DIR/{name}.log) 2>&1\
+bash -c "(./gradlew $DEF_SYS_PROPERTIES $@ > $LOG_DIR/{name}.log) 2>&1\
  | tee -a $LOG_DIR/{name}.log >& $LOG_DIR/{name}.err &"
 """.format(name=name, spring_location=self.__determine_spring_config_location()))
       os.chmod(path, 0777)
