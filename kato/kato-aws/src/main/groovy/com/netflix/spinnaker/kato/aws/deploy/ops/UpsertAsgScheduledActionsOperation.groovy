@@ -21,7 +21,7 @@ import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.DescribeScheduledActionsRequest
 import com.amazonaws.services.autoscaling.model.PutScheduledUpdateGroupActionRequest
 import com.amazonaws.services.autoscaling.model.ScheduledUpdateGroupAction
-import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertAsgScheduledActionsDescription
 import com.netflix.spinnaker.kato.aws.services.IdGenerator
 import com.netflix.spinnaker.kato.data.task.Task

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kato.docker.security
 
-import com.netflix.spinnaker.amos.AccountCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 
 class DockerAccountCredentials implements AccountCredentials<Docker> {
   static final String CLOUD_PROVIDER = 'docker'

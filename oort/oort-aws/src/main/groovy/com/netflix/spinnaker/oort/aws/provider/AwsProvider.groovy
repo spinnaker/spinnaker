@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.oort.aws.provider
 
-import java.util.regex.Pattern
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.amos.aws.AmazonCredentials
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.provider.agent.HealthProvidingCachingAgent
+import java.util.regex.Pattern
 import org.springframework.beans.factory.annotation.Autowired
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.*
 

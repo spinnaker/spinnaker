@@ -19,7 +19,7 @@ package com.netflix.spinnaker.kato.aws.deploy.description
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 
 abstract class AbstractAmazonCredentialsDescription {
   @JsonIgnore

@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.kato.cf.security
 
-import com.netflix.spinnaker.amos.AccountCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import org.cloudfoundry.client.lib.CloudCredentials
 
 /**

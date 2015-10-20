@@ -18,10 +18,10 @@ package com.netflix.spinnaker.mort.gce.provider.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.mort.gce.provider.GoogleInfrastructureProvider
 import com.netflix.spinnaker.mort.gce.provider.agent.GoogleNetworkCachingAgent
 import com.netflix.spinnaker.mort.gce.provider.agent.GoogleSecurityGroupCachingAgent

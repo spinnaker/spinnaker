@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.description
 
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 
 class CreateGoogleHttpLoadBalancerDescription {
   // Really, this is the ForwardingRule name (but be aware that the UrlMap name will be the name of the

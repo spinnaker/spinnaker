@@ -15,7 +15,8 @@
  */
 
 package com.netflix.spinnaker.clouddriver.titan
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
+
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
 import com.netflix.titanclient.RegionScopedTitanClient
 import com.netflix.titanclient.TitanRegion

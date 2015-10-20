@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.google.security
 
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
@@ -39,7 +38,8 @@ class GoogleCredentialsInitializer {
 
     for (managedAccount in googleConfigurationProperties.accounts) {
       try {
-        def googleAccount = new GoogleNamedAccountCredentials(googleConfigurationProperties.kmsServer, managedAccount.name, managedAccount.environment, managedAccount.accountType,  managedAccount.project, googleApplicationName)
+        def jsonKey = getJsonKey(managedAccount)
+        def googleAccount = new GoogleNamedAccountCredentials(managedAccount.name, managedAccount.environment, managedAccount.accountType,  managedAccount.project, jsonKey, googleApplicationName)
 
         googleAccounts << accountCredentialsRepository.save(managedAccount.name, googleAccount)
       } catch (e) {
@@ -48,5 +48,11 @@ class GoogleCredentialsInitializer {
     }
 
     googleAccounts
+  }
+
+  private static String getJsonKey(GoogleConfigurationProperties.ManagedAccount managedAccount) {
+    def inputStream = managedAccount.inputStream
+
+    inputStream ? new String(managedAccount.inputStream.bytes) : null
   }
 }

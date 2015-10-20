@@ -20,7 +20,7 @@ package com.netflix.spinnaker.kato.aws.deploy.validators
 import com.amazonaws.services.route53.AmazonRoute53
 import com.amazonaws.services.route53.model.HostedZone
 import com.amazonaws.services.route53.model.ListHostedZonesResult
-import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertAmazonLoadBalancerDescription
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertAmazonDNSDescription
 import org.springframework.validation.Errors

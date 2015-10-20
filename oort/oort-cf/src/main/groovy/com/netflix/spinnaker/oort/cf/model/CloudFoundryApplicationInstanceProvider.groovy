@@ -18,7 +18,7 @@ package com.netflix.spinnaker.oort.cf.model
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Timer
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryAccountCredentials
 import com.netflix.spinnaker.oort.model.InstanceProvider
 import groovy.transform.CompileStatic

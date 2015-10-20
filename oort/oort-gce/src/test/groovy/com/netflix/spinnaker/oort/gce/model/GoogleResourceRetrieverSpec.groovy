@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.oort.gce.model
 
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
-import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.oort.gce.model.callbacks.InstanceAggregatedListCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
 import com.netflix.spinnaker.oort.model.HealthState
@@ -28,7 +28,7 @@ import spock.lang.Subject
 class GoogleResourceRetrieverSpec extends Specification {
   void "credentials are returned keyed by account name"() {
     setup:
-      def credentials1 = new GoogleCredentials(null, null, null, null, null)
+      def credentials1 = new GoogleCredentials(null, null)
       def credentialsStub1 = new GoogleNamedAccountCredentials(null, null, null, null, null, null) {
         @Override
         String getName() {
@@ -51,7 +51,7 @@ class GoogleResourceRetrieverSpec extends Specification {
         }
       }
 
-      def credentials2a = new GoogleCredentials(null, null, null, null, null)
+      def credentials2a = new GoogleCredentials(null, null)
       def credentialsStub2a = new GoogleNamedAccountCredentials(null, null, null, null, null, null) {
         @Override
         String getName() {
@@ -74,7 +74,7 @@ class GoogleResourceRetrieverSpec extends Specification {
         }
       }
 
-      def credentials2b = new GoogleCredentials(null, null, null, null, null)
+      def credentials2b = new GoogleCredentials(null, null)
       def credentialsStub2b = new GoogleNamedAccountCredentials(null, null, null, null, null, null) {
         @Override
         String getName() {

@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
 import com.google.api.services.compute.Compute
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleSecurityGroupDescription
@@ -38,7 +38,7 @@ class DeleteGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
       def computeMock = Mock(Compute)
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsDelete = Mock(Compute.Firewalls.Delete)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new DeleteGoogleSecurityGroupDescription(securityGroupName: SECURITY_GROUP_NAME,
                                                                  accountName: ACCOUNT_NAME,
                                                                  credentials: credentials)
