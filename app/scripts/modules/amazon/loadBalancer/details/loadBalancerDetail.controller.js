@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
   require('../../../core/presentation/collapsibleSection/collapsibleSection.directive.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
-  .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $modal, loadBalancer, app, InsightFilterStateModel,
+  .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, loadBalancer, app, InsightFilterStateModel,
                                                    securityGroupReader, _, confirmationModalService, loadBalancerWriter, loadBalancerReader, $q) {
 
     $scope.state = {
@@ -79,7 +79,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
     app.registerAutoRefreshHandler(extractLoadBalancer, $scope);
 
     this.editLoadBalancer = function editLoadBalancer() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('../configure/editLoadBalancer.html'),
         controller: 'awsCreateLoadBalancerCtrl as ctrl',
         resolve: {
@@ -91,7 +91,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
     };
 
     this.cloneLoadBalancer = function () {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('../configure/createLoadBalancer.html'),
         controller: 'awsCreateLoadBalancerCtrl as ctrl',
         resolve: {

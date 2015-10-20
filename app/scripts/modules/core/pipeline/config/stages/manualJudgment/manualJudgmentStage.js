@@ -22,12 +22,12 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentSta
       }
     });
   })
-  .controller('ManualJudgmentStageCtrl', function($scope, $modal) {
+  .controller('ManualJudgmentStageCtrl', function($scope, $uibModal) {
 
     $scope.stage.notifications = $scope.stage.notifications || [];
 
     this.addNotification = function() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./modal/editNotification.html'),
         controller: 'ManualJudgmentEditNotificationController',
         controllerAs: 'editNotification',

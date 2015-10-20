@@ -19,13 +19,13 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.basicSettin
       controller: 'gceServerGroupBasicSettingsSelectorCtrl as basicSettingsCtrl',
     };
   })
-  .controller('gceServerGroupBasicSettingsSelectorCtrl', function($scope, $controller, RxService, imageReader, namingService, $modalStack, $state) {
+  .controller('gceServerGroupBasicSettingsSelectorCtrl', function($scope, $controller, RxService, imageReader, namingService, $uibModalStack, $state) {
     angular.extend(this, $controller('BasicSettingsMixin', {
       $scope: $scope,
       RxService: RxService,
       imageReader: imageReader,
       namingService: namingService,
-      $modalStack: $modalStack,
+      $uibModalStack: $uibModalStack,
       $state: $state,
     }));
   })

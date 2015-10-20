@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
 ])
   .factory('pipelineConfigService', function (_, $q, settings, Restangular,
                                               authenticationService, viewStateCache,
-                                              $modal) {
+                                              $uibModal) {
 
     var configViewStateCache = viewStateCache.createCache('pipelineConfig', { version: 1 });
 
@@ -136,7 +136,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
 
     function toggleTrigger(pipeline, index) {
       var trigger = pipeline.triggers[index];
-      return $modal.open({
+      return $uibModal.open({
         templateUrl: require('../../../delivery/triggers/toggleTrigger.modal.html'),
         controller: 'ToggleTriggerModalCtrl',
         controllerAs: 'toggleTriggerCtrl',

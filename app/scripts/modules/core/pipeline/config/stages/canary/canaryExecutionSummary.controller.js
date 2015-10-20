@@ -10,10 +10,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.canary.summary.co
   require('./actions/generateScore.controller.js'),
   require('./actions/endCanary.controller.js'),
 ])
-  .controller('CanaryExecutionSummaryCtrl', function ($scope, $http, settings, $modal) {
+  .controller('CanaryExecutionSummaryCtrl', function ($scope, $http, settings, $uibModal) {
 
     this.generateCanaryScore = function() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./actions/generateScore.modal.html'),
         controller: 'GenerateScoreCtrl as ctrl',
         resolve: {
@@ -23,7 +23,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.canary.summary.co
     };
 
     this.endCanary = function() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./actions/endCanary.modal.html'),
         controller: 'EndCanaryCtrl as ctrl',
         resolve: {

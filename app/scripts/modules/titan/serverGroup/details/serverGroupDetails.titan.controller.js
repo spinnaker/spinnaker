@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('titanServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
-                                                     titanServerGroupCommandBuilder, serverGroupReader, $modal, confirmationModalService, _, serverGroupWriter,
+                                                     titanServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, _, serverGroupWriter,
                                                      executionFilterService) {
 
     let application = app;
@@ -203,7 +203,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
     };
 
     this.resizeServerGroup = function resizeServerGroup() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./resize/resizeServerGroup.html'),
         controller: 'titanResizeServerGroupCtrl as ctrl',
         resolve: {
@@ -214,7 +214,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
     };
 
     this.cloneServerGroup = function cloneServerGroup(serverGroup) {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('../configure/wizard/serverGroupWizard.html'),
         controller: 'titanCloneServerGroupCtrl as ctrl',
         resolve: {

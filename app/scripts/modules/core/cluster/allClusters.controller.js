@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
   require('angular-ui-bootstrap'),
   require('../cloudProvider/cloudProvider.registry.js'),
 ])
-  .controller('AllClustersCtrl', function($scope, app, $modal, providerSelectionService, _, clusterFilterService,
+  .controller('AllClustersCtrl', function($scope, app, $uibModal, providerSelectionService, _, clusterFilterService,
                                           ClusterFilterModel, serverGroupCommandBuilder, cloudProviderRegistry) {
 
     ClusterFilterModel.activate();
@@ -67,7 +67,7 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
     this.createServerGroup = function createServerGroup() {
       providerSelectionService.selectProvider(app).then(function(selectedProvider) {
         let provider = cloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
-        $modal.open({
+        $uibModal.open({
           templateUrl: provider.cloneServerGroupTemplateUrl,
           controller: `${provider.cloneServerGroupController} as ctrl`,
           resolve: {

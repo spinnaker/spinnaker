@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
   require('../../../core/utils/selectOnDblClick.directive.js'),
   require('../../../core/config/settings.js')
 ])
-  .controller('awsInstanceDetailsCtrl', function ($scope, $state, $modal, InsightFilterStateModel, settings,
+  .controller('awsInstanceDetailsCtrl', function ($scope, $state, $uibModal, InsightFilterStateModel, settings,
                                                instanceWriter, confirmationModalService, recentHistoryService,
                                                instanceReader, _, instance, app, $q) {
 
@@ -356,7 +356,7 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
     };
 
     this.showConsoleOutput = function  () {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('../../../core/instance/details/console/consoleOutput.modal.html'),
         controller: 'ConsoleOutputCtrl as ctrl',
         size: 'lg',

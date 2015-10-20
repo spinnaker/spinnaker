@@ -141,7 +141,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/core/history/recentHistory.service.js'),
     require('./config.js'),
 ])
-  .run(function($state, $rootScope, $log, cacheInitializer, $modalStack, pageTitleService, settings, recentHistoryService) {
+  .run(function($state, $rootScope, $log, cacheInitializer, $uibModalStack, pageTitleService, settings, recentHistoryService) {
     // This can go away when the next version of ui-router is available (0.2.11+)
     // for now, it's needed because ui-sref-active does not work on parent states
     // and we have to use ng-class. It's gross.
@@ -151,7 +151,7 @@ module.exports = angular.module('spinnaker', [
     $rootScope.$state = $state;
     $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
       if (!fromParams.allowModalToStayOpen) {
-        $modalStack.dismissAll();
+        $uibModalStack.dismissAll();
       }
       $log.debug(event.name, {
         event: event,

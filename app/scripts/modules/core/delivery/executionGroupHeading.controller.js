@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionGroupHeading.c
   require('./manualPipelineExecution.controller.js'),
   require('../confirmationModal/confirmationModal.service.js'),
 ])
-  .controller('executionGroupHeading', function($scope, $modal, $timeout, pipelineConfigService, executionService, collapsibleSectionStateCache, _) {
+  .controller('executionGroupHeading', function($scope, $uibModal, $timeout, pipelineConfigService, executionService, collapsibleSectionStateCache, _) {
     var controller = this;
 
     function getSectionCacheKey() {
@@ -72,7 +72,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionGroupHeading.c
       var pipeline = _.find($scope.configurations, {name: $scope.value});
       var currentlyRunningExecutions = getCurrentlyRunningExecutions();
 
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./manualPipelineExecution.html'),
         controller: 'ManualPipelineExecutionCtrl as ctrl',
         resolve: {

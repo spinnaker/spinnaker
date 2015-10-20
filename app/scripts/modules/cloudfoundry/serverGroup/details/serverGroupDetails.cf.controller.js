@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
     .controller('cfServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
-                                                       /*cfServerGroupCommandBuilder,*/ serverGroupReader, $modal, confirmationModalService, _, serverGroupWriter,
+                                                       /*cfServerGroupCommandBuilder,*/ serverGroupReader, $uibModal, confirmationModalService, _, serverGroupWriter,
                                                        executionFilterService) {
 
       let application = app;
@@ -221,7 +221,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
 
       this.showUserData = function showScalingActivities() {
         $scope.userData = window.atob($scope.serverGroup.launchConfig.userData);
-        $modal.open({
+        $uibModal.open({
           templateUrl: require('../../../core/serverGroup/details/userData.html'),
           controller: 'CloseableModalCtrl',
           scope: $scope

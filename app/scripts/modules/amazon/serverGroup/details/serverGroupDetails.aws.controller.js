@@ -25,7 +25,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
-                                                     serverGroupReader, awsServerGroupCommandBuilder, $modal, confirmationModalService, _, serverGroupWriter,
+                                                     serverGroupReader, awsServerGroupCommandBuilder, $uibModal, confirmationModalService, _, serverGroupWriter,
                                                      subnetReader, autoScalingProcessService, executionFilterService) {
 
     $scope.state = {
@@ -270,7 +270,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
     };
 
     this.toggleScalingProcesses = function toggleScalingProcesses() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./scalingProcesses/modifyScalingProcesses.html'),
         controller: 'ModifyScalingProcessesCtrl as ctrl',
         resolve: {
@@ -282,7 +282,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
     };
 
     this.resizeServerGroup = function resizeServerGroup() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./resize/resizeServerGroup.html'),
         controller: 'awsResizeServerGroupCtrl as ctrl',
         resolve: {
@@ -293,7 +293,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
     };
 
     this.cloneServerGroup = function cloneServerGroup(serverGroup) {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('../configure/wizard/serverGroupWizard.html'),
         controller: 'awsCloneServerGroupCtrl as ctrl',
         resolve: {
@@ -306,7 +306,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
 
     this.showScalingActivities = function showScalingActivities() {
       $scope.activities = [];
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./scalingActivities/scalingActivities.html'),
         controller: 'ScalingActivitiesCtrl as ctrl',
         resolve: {
@@ -320,7 +320,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
 
     this.showUserData = function showScalingActivities() {
       $scope.userData = window.atob($scope.serverGroup.launchConfig.userData);
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('../../../core/serverGroup/details/userData.html'),
         controller: 'CloseableModalCtrl',
         scope: $scope
@@ -336,7 +336,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
     };
 
     this.editScheduledActions = function () {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./scheduledAction/editScheduledActions.modal.html'),
         controller: 'EditScheduledActionsCtrl as ctrl',
         resolve: {
@@ -347,7 +347,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
     };
 
     this.editAdvancedSettings = function () {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./advancedSettings/editAsgAdvancedSettings.modal.html'),
         controller: 'EditAsgAdvancedSettingsCtrl as ctrl',
         resolve: {

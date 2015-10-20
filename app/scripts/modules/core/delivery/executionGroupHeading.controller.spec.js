@@ -14,7 +14,7 @@ describe('Controller: ExecutionGroupHeading', function () {
     this.$scope = $rootScope.$new();
     this.$controller = $controller;
     this.$q = $q;
-    this.$modal = { open: angular.noop };
+    this.$uibModal = { open: angular.noop };
   }));
 
   describe('triggerPipeline', function() {
@@ -44,7 +44,7 @@ describe('Controller: ExecutionGroupHeading', function () {
           pipelineConfigService: this.pipelineConfigService,
           executionService: this.executionService,
           application: this.$scope.application,
-          $modal: this.$modal,
+          $uibModal: this.$uibModal,
         });
       };
     });
@@ -56,7 +56,7 @@ describe('Controller: ExecutionGroupHeading', function () {
       $scope.value = name;
       this.initializeController('exec-1');
 
-      spyOn(this.$modal, 'open').and.returnValue({
+      spyOn(this.$uibModal, 'open').and.returnValue({
         result: {
           then: function(arg) {
             arg();

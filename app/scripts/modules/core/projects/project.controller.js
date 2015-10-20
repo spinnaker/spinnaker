@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.core.projects.project.controller', [
   require('./configure/configureProject.modal.controller.js'),
   require('../utils/lodash.js'),
 ])
-  .controller('ProjectCtrl', function ($scope, $modal, $timeout, $state, projectConfiguration, _) {
+  .controller('ProjectCtrl', function ($scope, $uibModal, $timeout, $state, projectConfiguration, _) {
 
     $scope.project = projectConfiguration;
 
@@ -67,7 +67,7 @@ module.exports = angular.module('spinnaker.core.projects.project.controller', [
     };
 
     this.configureProject = () => {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./configure/configureProject.modal.html'),
         controller: 'ConfigureProjectModalCtrl',
         controllerAs: 'ctrl',

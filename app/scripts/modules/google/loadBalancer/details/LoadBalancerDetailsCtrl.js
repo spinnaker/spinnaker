@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
-  .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $modal, loadBalancer, app, InsightFilterStateModel,
+  .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, loadBalancer, app, InsightFilterStateModel,
                                                       _, confirmationModalService, accountService, loadBalancerWriter, loadBalancerReader, $q) {
 
     let application = app;
@@ -69,7 +69,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
     extractLoadBalancer().then(() => application.registerAutoRefreshHandler(extractLoadBalancer, $scope));
 
     this.editLoadBalancer = function editLoadBalancer() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('../configure/editLoadBalancer.html'),
         controller: 'gceCreateLoadBalancerCtrl as ctrl',
         resolve: {

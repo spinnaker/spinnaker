@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
 ])
   .controller('awsSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, app, InsightFilterStateModel,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,
-                                                    $modal, _) {
+                                                    $uibModal, _) {
 
     const application = app;
     const securityGroup = resolvedSecurityGroup;
@@ -50,7 +50,7 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
     extractSecurityGroup().then(() => application.registerAutoRefreshHandler(extractSecurityGroup, $scope));
 
     this.editInboundRules = function editInboundRules() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('../configure/editSecurityGroup.html'),
         controller: 'awsEditSecurityGroupCtrl as ctrl',
         resolve: {
@@ -64,7 +64,7 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
 
 
     this.cloneSecurityGroup = function cloneSecurityGroup() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('../clone/cloneSecurityGroup.html'),
         controller: 'awsCloneSecurityGroupController as ctrl',
         resolve: {

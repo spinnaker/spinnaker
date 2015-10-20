@@ -12,7 +12,7 @@ module.exports = angular
     require('../../core/application/service/applications.read.service'),
     require('../../core/utils/lodash.js'),
   ])
-  .controller('ApplicationPropertiesController', function ($scope, $filter, $modal, $state, app, applicationReader,
+  .controller('ApplicationPropertiesController', function ($scope, $filter, $uibModal, $state, app, applicationReader,
                                                            fastPropertyReader, fastPropertyWriter, fastPropertyTransformer, _) {
     var vm = this;
     const application = app;
@@ -95,7 +95,7 @@ module.exports = angular
     };
 
     vm.delete = function(property) {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./modal/deleteFastProperty.html'),
         controller: 'DeleteFastPropertyModalController',
         controllerAs: 'delete',
@@ -108,7 +108,7 @@ module.exports = angular
     };
 
     vm.editFastProperty = function(property) {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./modal/fastPropertyWizard.html'),
         controller: 'FastPropertyUpsertController',
         controllerAs: 'newFP',
@@ -137,7 +137,7 @@ module.exports = angular
 
 
     vm.newFastPropertyModal = function() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./modal/fastPropertyWizard.html'),
         controller: 'FastPropertyUpsertController',
         controllerAs: 'newFP',

@@ -4,9 +4,9 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.actions.create.CreatePipelineButtonCtrl', [
 ])
-  .controller('CreatePipelineButtonCtrl', function($scope, $modal) {
+  .controller('CreatePipelineButtonCtrl', function($scope, $uibModal) {
     this.createPipeline = function() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./createPipelineModal.html'),
         controller: 'CreatePipelineModalCtrl',
         controllerAs: 'createPipelineModalCtrl',

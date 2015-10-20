@@ -2,8 +2,8 @@
   <h4 class="execution-details-title">
     {{stageSummary.name || stageSummary.type }} Details
 
-    <div ng-if="stage.isFailed && ctrl.isRestartable(stage)" dropdown class="btn-group pull-right">
-      <button type="button" class="btn btn-default btn-sm dropdown-toggle" aria-expanded="false" dropdown-toggle>
+    <div ng-if="stage.isFailed && ctrl.isRestartable(stage)" uib-dropdown class="btn-group pull-right">
+      <button type="button" class="btn btn-default btn-sm dropdown-toggle" aria-expanded="false" uib-dropdown-toggle>
         Actions
         <span class="caret"></span>
       </button>

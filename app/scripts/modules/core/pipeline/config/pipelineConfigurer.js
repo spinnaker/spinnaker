@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       templateUrl: require('./pipelineConfigurer.html'),
     };
   })
-  .controller('PipelineConfigurerCtrl', function($scope, $modal, $timeout, _,
+  .controller('PipelineConfigurerCtrl', function($scope, $uibModal, $timeout, _,
                                                  dirtyPipelineTracker, pipelineConfigService, viewStateCache) {
 
     var configViewStateCache = viewStateCache.pipelineConfig;
@@ -33,7 +33,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     };
 
     this.enableParallel = function() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./actions/enableParallel/enableParallel.html'),
         controller: 'EnableParallelModalCtrl',
         controllerAs: 'enableParallelModalCtrl',
@@ -46,7 +46,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     };
 
     this.disableParallel = function() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./actions/disableParallel/disableParallel.html'),
         controller: 'DisableParallelModalCtrl',
         controllerAs: 'disableParallelModalCtrl',
@@ -59,7 +59,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     };
 
     this.deletePipeline = function() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./actions/delete/deletePipelineModal.html'),
         controller: 'DeletePipelineModalCtrl',
         controllerAs: 'deletePipelineModalCtrl',
@@ -120,7 +120,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     this.renamePipeline = function() {
       var original = angular.fromJson($scope.viewState.original);
       original.name = $scope.pipeline.name;
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./actions/rename/renamePipelineModal.html'),
         controller: 'RenamePipelineModalCtrl',
         controllerAs: 'renamePipelineModalCtrl',
@@ -135,7 +135,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     };
 
     this.editPipelineJson = function() {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('./actions/json/editPipelineJsonModal.html'),
         controller: 'EditPipelineJsonModalCtrl',
         controllerAs: 'editPipelineJsonModalCtrl',

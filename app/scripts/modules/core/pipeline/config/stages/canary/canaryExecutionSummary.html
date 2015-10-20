@@ -8,8 +8,8 @@
 
     <div ng-if="stageSummary.masterStage.context.canary.status.status === 'LAUNCHED' ||
                 stageSummary.masterStage.context.canary.status.status === 'RUNNING' ||
-                stageSummary.masterStage.context.canary.status.status === 'DISABLED'" dropdown class="btn-group pull-right" dropdown>
-      <button type="button" class="btn btn-default btn-sm dropdown-toggle" aria-expanded="false" dropdown-toggle>
+                stageSummary.masterStage.context.canary.status.status === 'DISABLED'" uib-dropdown class="btn-group pull-right" dropdown>
+      <button type="button" class="btn btn-default btn-sm dropdown-toggle" aria-expanded="false" uib-dropdown-toggle>
         Actions
         <span class="caret"></span>
       </button>

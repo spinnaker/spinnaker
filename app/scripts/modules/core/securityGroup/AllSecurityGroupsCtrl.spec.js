@@ -24,7 +24,7 @@ describe('Controller: AllSecurityGroupsCtrl', function () {
           registerAutoRefreshHandler: function(handler) { autoRefresh = handler; },
           securityGroups: [],
         },
-        $modal: {},
+        $uibModal: {},
       });
     })
   );

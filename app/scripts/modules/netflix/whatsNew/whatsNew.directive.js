@@ -18,7 +18,7 @@ module.exports = angular
     return {
       restrict: 'E',
       templateUrl: require('./whatsNew.directive.html'),
-      controller: function($scope, $modal) {
+      controller: function($scope, $uibModal) {
 
         // single cache, so we will use the cache name as the key, also
         var cacheId = 'whatsNew';
@@ -40,7 +40,7 @@ module.exports = angular
         $scope.showWhatsNew = function() {
           $scope.viewState.updateLastViewed = $scope.fileLastUpdated;
           whatsNewViewStateCache.put(cacheId, $scope.viewState);
-          $modal.open({
+          $uibModal.open({
             templateUrl: require('./whatsNew.directive.modal.html'),
             scope: $scope,
           });

@@ -22,7 +22,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.deploy', [
         });
 
     })
-    .controller('DeployCloudFoundryStageCtrl', function($scope, $modal, stage, namingService, providerSelectionService,
+    .controller('DeployCloudFoundryStageCtrl', function($scope, $uibModal, stage, namingService, providerSelectionService,
                                         cloudProviderRegistry, serverGroupCommandBuilder, serverGroupTransformer) {
 
         $scope.stage = stage;
@@ -58,7 +58,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.deploy', [
         this.addCluster = function() {
             providerSelectionService.selectProvider().then(function(selectedProvider) {
                 let config = cloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
-                $modal.open({
+                $uibModal.open({
                     templateUrl: config.cloneServerGroupTemplateUrl,
                     controller: `${config.cloneServerGroupController} as ctrl`,
                     resolve: {
@@ -85,7 +85,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.deploy', [
         this.editCluster = function(cluster, index) {
             cluster.provider = cluster.providerType || 'cf';
             let providerConfig = cloudProviderRegistry.getProvider(cluster.provider);
-            return $modal.open({
+            return $uibModal.open({
                 templateUrl: providerConfig.serverGroup.cloneServerGroupTemplateUrl,
                 controller: `${providerConfig.serverGroup.cloneServerGroupController} as ctrl`,
                 resolve: {

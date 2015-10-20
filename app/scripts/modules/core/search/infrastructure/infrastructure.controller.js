@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   require('../../cluster/filter/clusterFilter.service.js'),
 ])
   .controller('InfrastructureCtrl', function($scope, infrastructureSearchService, $stateParams, $location, searchService,
-                                             pageTitleService, _, recentHistoryService, $modal, $state, clusterFilterService) {
+                                             pageTitleService, _, recentHistoryService, $uibModal, $state, clusterFilterService) {
 
     var search = infrastructureSearchService();
 
@@ -85,7 +85,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
     });
 
     this.createProject = () => {
-      $modal.open({
+      $uibModal.open({
         scope: $scope,
         templateUrl: require('../../projects/configure/configureProject.modal.html'),
         controller: 'ConfigureProjectModalCtrl',
@@ -105,7 +105,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
     }
 
     this.createApplication = () => {
-      $modal.open({
+      $uibModal.open({
         scope: $scope,
         templateUrl: require('../../application/modal/newapplication.html'),
         controller: 'CreateApplicationModalCtrl',

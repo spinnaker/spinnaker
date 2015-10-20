@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
   require('../../../core/history/recentHistory.service.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
-  .controller('gceInstanceDetailsCtrl', function ($scope, $state, $modal, InsightFilterStateModel,
+  .controller('gceInstanceDetailsCtrl', function ($scope, $state, $uibModal, InsightFilterStateModel,
                                                   instanceWriter, confirmationModalService, recentHistoryService,
                                                   instanceReader, _, instance, app, $q) {
 
@@ -421,7 +421,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
     };
 
     this.showConsoleOutput = function  () {
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('../../../core/instance/details/console/consoleOutput.modal.html'),
         controller: 'ConsoleOutputCtrl as ctrl',
         size: 'lg',
