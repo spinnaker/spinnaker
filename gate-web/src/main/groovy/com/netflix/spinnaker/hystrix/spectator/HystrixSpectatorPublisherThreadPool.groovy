@@ -21,22 +21,22 @@ import com.netflix.hystrix.HystrixThreadPoolKey
 import com.netflix.hystrix.HystrixThreadPoolMetrics
 import com.netflix.hystrix.HystrixThreadPoolProperties
 import com.netflix.hystrix.strategy.metrics.HystrixMetricsPublisherThreadPool
-import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.ValueFunction
 
 class HystrixSpectatorPublisherThreadPool implements HystrixMetricsPublisherThreadPool {
   private final HystrixThreadPoolKey key
   private final HystrixThreadPoolMetrics metrics
   private final HystrixThreadPoolProperties properties
-  private final ExtendedRegistry metricRegistry
+  private final Registry metricRegistry
   private final String metricGroup
   private final String metricType
 
   public HystrixSpectatorPublisherThreadPool(HystrixThreadPoolKey threadPoolKey,
                                              HystrixThreadPoolMetrics metrics,
                                              HystrixThreadPoolProperties properties,
-                                             ExtendedRegistry metricRegistry) {
+                                             Registry metricRegistry) {
     this.key = threadPoolKey
     this.metrics = metrics
     this.properties = properties

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.config
 
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
@@ -59,7 +59,7 @@ class NetflixConfig {
   ServiceConfiguration serviceConfiguration
 
   @Autowired
-  ExtendedRegistry extendedRegistry
+  Registry registry
 
   @Autowired
   EurekaLookupService eurekaLookupService
@@ -221,7 +221,7 @@ class NetflixConfig {
       newFixedEndpoint("niws://${service.vipAddress}")
       : newFixedEndpoint(service.baseUrl)
 
-    def client = new EurekaOkClient(okHttpClient, extendedRegistry, serviceName, eurekaLookupService)
+    def client = new EurekaOkClient(okHttpClient, registry, serviceName, eurekaLookupService)
 
     new RestAdapter.Builder()
       .setRequestInterceptor(spinnakerRequestInterceptor)

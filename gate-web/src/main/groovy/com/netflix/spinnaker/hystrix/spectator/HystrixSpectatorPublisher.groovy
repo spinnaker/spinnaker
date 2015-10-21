@@ -28,13 +28,13 @@ import com.netflix.hystrix.HystrixThreadPoolProperties
 import com.netflix.hystrix.strategy.metrics.HystrixMetricsPublisher
 import com.netflix.hystrix.strategy.metrics.HystrixMetricsPublisherCommand
 import com.netflix.hystrix.strategy.metrics.HystrixMetricsPublisherThreadPool
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 
 class HystrixSpectatorPublisher extends HystrixMetricsPublisher {
-  private final ExtendedRegistry extendedRegistry
+  private final Registry registry
 
-  HystrixSpectatorPublisher(ExtendedRegistry extendedRegistry) {
-    this.extendedRegistry = extendedRegistry
+  HystrixSpectatorPublisher(Registry registry) {
+    this.registry = registry
   }
 
   @Override
@@ -43,13 +43,13 @@ class HystrixSpectatorPublisher extends HystrixMetricsPublisher {
                                                                HystrixCommandMetrics metrics,
                                                                HystrixCircuitBreaker circuitBreaker,
                                                                HystrixCommandProperties properties) {
-    return new HystrixSpectatorPublisherCommand(commandKey, commandGroupKey, metrics, circuitBreaker, properties, extendedRegistry)
+    return new HystrixSpectatorPublisherCommand(commandKey, commandGroupKey, metrics, circuitBreaker, properties, registry)
   }
 
   @Override
   HystrixMetricsPublisherThreadPool getMetricsPublisherForThreadPool(HystrixThreadPoolKey threadPoolKey,
                                                                      HystrixThreadPoolMetrics metrics,
                                                                      HystrixThreadPoolProperties properties) {
-    return new HystrixSpectatorPublisherThreadPool(threadPoolKey, metrics, properties, extendedRegistry)
+    return new HystrixSpectatorPublisherThreadPool(threadPoolKey, metrics, properties, registry)
   }
 }

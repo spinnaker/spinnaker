@@ -26,6 +26,7 @@ import com.netflix.hystrix.strategy.metrics.HystrixMetricsPublisherCommand
 import com.netflix.hystrix.util.HystrixRollingNumberEvent
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.ValueFunction
 
 class HystrixSpectatorPublisherCommand implements HystrixMetricsPublisherCommand {
@@ -34,7 +35,7 @@ class HystrixSpectatorPublisherCommand implements HystrixMetricsPublisherCommand
   private final HystrixCommandMetrics metrics
   private final HystrixCircuitBreaker circuitBreaker
   private final HystrixCommandProperties properties
-  private final ExtendedRegistry metricRegistry
+  private final Registry metricRegistry
   private final String metricGroup
   private final String metricType
 
@@ -43,7 +44,7 @@ class HystrixSpectatorPublisherCommand implements HystrixMetricsPublisherCommand
                                           HystrixCommandMetrics metrics,
                                           HystrixCircuitBreaker circuitBreaker,
                                           HystrixCommandProperties properties,
-                                          ExtendedRegistry metricRegistry) {
+                                          Registry metricRegistry) {
     this.key = commandKey
     this.commandGroupKey = commandGroupKey
     this.metrics = metrics

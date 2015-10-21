@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.hystrix.spectator
 
 import com.netflix.hystrix.strategy.HystrixPlugins
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
@@ -29,13 +29,13 @@ import javax.annotation.PostConstruct
 @Configuration
 class HystrixSpectatorConfig {
   @Autowired
-  ExtendedRegistry extendedRegistry
+  Registry registry
 
   @PostConstruct
   void enableSpecatorPublisher() {
     log.info("Enabling HystrixSpectatorPublisher")
     HystrixPlugins.getInstance().registerMetricsPublisher(
-      new HystrixSpectatorPublisher(extendedRegistry)
+      new HystrixSpectatorPublisher(registry)
     )
   }
 }

@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.config
 
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.OkHttpClientConfiguration
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
@@ -91,7 +91,7 @@ class GateConfig {
   }
 
   @Autowired
-  ExtendedRegistry extendedRegistry
+  Registry registry
 
   @Autowired
   EurekaLookupService eurekaLookupService
@@ -157,7 +157,7 @@ class GateConfig {
       newFixedEndpoint("niws://${service.vipAddress}")
       : newFixedEndpoint(service.baseUrl)
 
-    def client = new EurekaOkClient(okHttpClient, extendedRegistry, serviceName, eurekaLookupService)
+    def client = new EurekaOkClient(okHttpClient, registry, serviceName, eurekaLookupService)
 
     new RestAdapter.Builder()
       .setRequestInterceptor(spinnakerRequestInterceptor)

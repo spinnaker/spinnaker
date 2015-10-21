@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.gate.retrofit
 
-import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.gate.model.discovery.DiscoveryApplication
 import com.netflix.spinnaker.gate.services.EurekaLookupService
 import com.squareup.okhttp.OkHttpClient
@@ -33,12 +33,12 @@ class EurekaOkClient extends OkClient {
   static final Pattern NIWS_SCHEME_PATTERN = ~("niws://([^/]+)(.*)")
 
   private final EurekaLookupService eureka
-  private final ExtendedRegistry registry
+  private final Registry registry
   private final Id metricId;
   private final Id discoveryId;
 
   @Autowired
-  EurekaOkClient(OkHttpClient okHttpClient, ExtendedRegistry registry, String name, EurekaLookupService eureka) {
+  EurekaOkClient(OkHttpClient okHttpClient, Registry registry, String name, EurekaLookupService eureka) {
     super(okHttpClient)
     this.registry = registry
     this.eureka = eureka
