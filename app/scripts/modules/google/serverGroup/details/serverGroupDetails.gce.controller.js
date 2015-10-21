@@ -206,12 +206,12 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
         platformHealthOnlyShowOverride: application.attributes.platformHealthOnlyShowOverride,
-        platformHealthType: 'GCE',
+        platformHealthType: 'Google',
         submitMethod: submitMethod,
       };
 
       if (application.attributes.platformHealthOnly) {
-        confirmationModalParams.interestingHealthProviderNames = ['GCE'];
+        confirmationModalParams.interestingHealthProviderNames = ['Google'];
       }
 
       confirmationModalService.confirm(confirmationModalParams);
@@ -243,12 +243,12 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
         platformHealthOnlyShowOverride: application.attributes.platformHealthOnlyShowOverride,
-        platformHealthType: 'GCE',
+        platformHealthType: 'Google',
         submitMethod: submitMethod,
       };
 
       if (application.attributes.platformHealthOnly) {
-        confirmationModalParams.interestingHealthProviderNames = ['GCE'];
+        confirmationModalParams.interestingHealthProviderNames = ['Google'];
       }
 
       confirmationModalService.confirm(confirmationModalParams);
