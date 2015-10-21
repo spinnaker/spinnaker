@@ -209,7 +209,7 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
       } else {
         if (deployDefaults.classicLinkSecurityGroupName) {
           def classicLinkVpcSecurityGroupIds = securityGroupService.
-            getSecurityGroupIds([deployDefaults.classicLinkSecurityGroupName], settings.classicLinkVpcId).keySet()
+            getSecurityGroupIds([deployDefaults.classicLinkSecurityGroupName], settings.classicLinkVpcId).values()
           request.withClassicLinkVPCSecurityGroups(classicLinkVpcSecurityGroupIds)
         }
       }
