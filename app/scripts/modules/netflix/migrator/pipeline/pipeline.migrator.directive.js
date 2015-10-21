@@ -105,7 +105,7 @@ module.exports = angular
     };
   })
   .controller('PipelineMigratorCtrl', function ($scope, pipeline, application, type, actionableDeployStages,
-                                                $uibModalInstance,
+                                                $modalInstance,
                                                 migratorService, pipelineConfigService, scrollToService,
                                                 cacheInitializer) {
 
@@ -148,7 +148,7 @@ module.exports = angular
       if ($scope.executor) {
         $scope.executor.deferred.promise.cancelled = true;
       }
-      $uibModalInstance.dismiss();
+      $modalInstance.dismiss();
     };
 
     this.submit = function () {
