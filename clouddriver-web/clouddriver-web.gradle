@@ -57,9 +57,32 @@ ospackage {
   release '4'
   into "/opt/${project.applicationName}"
   from ("${project.buildDir}/install/${project.applicationName}")
+
+  postInstall("install  --mode=755 --owner=spinnaker --group=spinnaker --directory  /var/log/netflix/clouddriver")
+  postUninstall("rm -rf /var/log/netflix/clouddriver")
+
+  from(file('src/main/resources/clouddriver.conf')) {
+    into('/etc/init')
+    user = 'root'
+    permissionGroup = 'root'
+    fileType = CONFIG | NOREPLACE
+  }
+
+  from(file('src/main/resources/clouddriver')) {
+    into('/etc/logrotate.d')
+    user = 'root'
+    permissionGroup = 'root'
+    fileType = CONFIG | NOREPLACE
+  }
 }
 
 buildDeb {
+  dependsOn installApp
+}
+
+buildRpm {
+  arch = NOARCH
+  os = LINUX
   dependsOn installApp
 }
 
