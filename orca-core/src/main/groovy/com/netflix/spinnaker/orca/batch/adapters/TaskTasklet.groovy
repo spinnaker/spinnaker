@@ -23,8 +23,6 @@ import com.netflix.spinnaker.orca.batch.BatchStepStatus
 import com.netflix.spinnaker.orca.batch.ExecutionContextManager
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task as TaskModel
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -138,11 +136,7 @@ class TaskTasklet implements Tasklet {
   }
 
   private void save(Stage stage) {
-    if (stage.self instanceof OrchestrationStage) {
-      executionRepository.storeStage(stage.self as OrchestrationStage)
-    } else if (stage.self instanceof PipelineStage) {
-      executionRepository.storeStage(stage.self as PipelineStage)
-    }
+    executionRepository.storeStage(stage.self)
   }
 
   private static void setStopStatus(ChunkContext chunkContext, ExitStatus exitStatus, ExecutionStatus executionStatus) {
