@@ -28,6 +28,7 @@ interface ExecutionRepository {
   void storeStage(PipelineStage stage)
 
   void cancel(String id)
+  boolean isCanceled(String id)
   void updateStatus(String id, ExecutionStatus status)
 
   Pipeline retrievePipeline(String id)

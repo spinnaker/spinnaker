@@ -106,6 +106,26 @@ class JedisExecutionRepository implements ExecutionRepository {
   }
 
   @Override
+  boolean isCanceled(String id) {
+    withJedis { Jedis jedis ->
+      String key
+      if (jedis.exists("pipeline:$id")) {
+        key = "pipeline:$id"
+      } else if (jedis.exists("orchestration:$id")) {
+        key = "orchestration:$id"
+      } else {
+        throw new ExecutionNotFoundException("No execution found with id $id")
+      }
+      if (isNewSchemaVersion(jedis, key)) {
+        Boolean.valueOf(jedis.hget(key, "canceled"))
+      } else {
+        def data = mapper.readValue(jedis.hget(key, "config"), Map)
+        Boolean.valueOf(data.canceled.toString())
+      }
+    }
+  }
+
+  @Override
   void updateStatus(String id, ExecutionStatus status) {
     withJedis {Jedis jedis->
       String key

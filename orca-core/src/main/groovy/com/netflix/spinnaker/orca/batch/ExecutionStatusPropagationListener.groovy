@@ -23,8 +23,7 @@ import groovy.util.logging.Slf4j
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.listener.JobExecutionListenerSupport
-import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import static com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
+import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
 @Slf4j
 @CompileStatic
@@ -45,11 +44,19 @@ class ExecutionStatusPropagationListener extends JobExecutionListenerSupport {
 
   @Override
   void afterJob(JobExecution jobExecution) {
-    def stepExecutions = new ArrayList<StepExecution>(jobExecution.stepExecutions).sort { it.lastUpdated }.reverse()
-    def stepExecution = stepExecutions.find { it.status == jobExecution.status } ?: stepExecutions[0]
-    def orcaTaskStatus = stepExecution?.executionContext?.get("orcaTaskStatus") as ExecutionStatus ?: TERMINAL
-
     def id = executionId(jobExecution)
+
+    def orcaTaskStatus
+    if (executionRepository.isCanceled(id)) {
+      orcaTaskStatus = CANCELED
+    } else if (jobExecution.failureExceptions) {
+      orcaTaskStatus = TERMINAL
+    } else {
+      def stepExecutions = new ArrayList<StepExecution>(jobExecution.stepExecutions).sort { it.lastUpdated }.reverse()
+      def stepExecution = stepExecutions.find { it.status == jobExecution.status } ?: stepExecutions[0]
+      orcaTaskStatus = stepExecution?.executionContext?.get("orcaTaskStatus") as ExecutionStatus ?: TERMINAL
+    }
+
     executionRepository.updateStatus(id, orcaTaskStatus)
 
     log.info("Marked $id as $orcaTaskStatus (afterJob)")
