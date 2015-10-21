@@ -232,6 +232,7 @@ class JedisExecutionRepository implements ExecutionRepository {
 
     if (!jedis.exists(key) || isNewSchemaVersion(jedis, key)) {
       Map<String, String> map = [
+        version          : String.valueOf(execution.version ?: 2),
         application      : execution.application,
         appConfig        : mapper.writeValueAsString(execution.appConfig),
         canceled         : String.valueOf(execution.canceled),
@@ -263,6 +264,7 @@ class JedisExecutionRepository implements ExecutionRepository {
       jedis.hdel(key, "config")
       jedis.hmset(key, filterValues(map, notNull()))
     } else {
+      execution.version = 1
       jedis.hset(key, "config", mapper.writeValueAsString(execution))
     }
   }
@@ -299,6 +301,7 @@ class JedisExecutionRepository implements ExecutionRepository {
       log.warn("Reading {} {} with legacy format", type.simpleName, id)
       def json = jedis.hget(key, "config")
       def execution = mapper.readValue(json, type)
+      execution.version = 1
       // PATCH to handle https://jira.netflix.com/browse/SPIN-784
       def originalStageCount = execution.stages.size()
       execution.stages = execution.stages.unique({ it.id })
@@ -312,6 +315,7 @@ class JedisExecutionRepository implements ExecutionRepository {
       Map<String, String> map = jedis.hgetAll(key)
       def execution = type.newInstance()
       execution.id = id
+      execution.version = Integer.parseInt(map.version ?: "2")
       execution.application = map.application
       execution.appConfig.putAll(mapper.readValue(map.appConfig, Map))
       execution.canceled = Boolean.parseBoolean(map.canceled)
