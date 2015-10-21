@@ -49,7 +49,7 @@ module.exports = angular
       });
     };
   })
-  .controller('MigratorCtrl', function ($scope, serverGroup, application, type, $uibModalInstance, migratorService) {
+  .controller('MigratorCtrl', function ($scope, serverGroup, application, type, $modalInstance, migratorService) {
 
     $scope.submittingTemplateUrl = require('../migrator.modal.submitting.html');
 
@@ -100,7 +100,7 @@ module.exports = angular
       if ($scope.executor) {
         $scope.executor.deferred.promise.cancelled = true;
       }
-      $uibModalInstance.dismiss();
+      $modalInstance.dismiss();
     };
 
     this.submit = function () {

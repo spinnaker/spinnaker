@@ -41,7 +41,7 @@ module.exports = angular.module('spinnaker.core.confirmationModal.service', [
       confirm: confirm
     };
   })
-  .controller('ConfirmationModalCtrl', function($scope, $state, $uibModalInstance, accountService, params, taskMonitorService, _) {
+  .controller('ConfirmationModalCtrl', function($scope, $state, $modalInstance, accountService, params, taskMonitorService, _) {
     $scope.params = params;
 
     $scope.state = {
@@ -49,7 +49,7 @@ module.exports = angular.module('spinnaker.core.confirmationModal.service', [
     };
 
     if (params.taskMonitorConfig) {
-      params.taskMonitorConfig.modalInstance = $uibModalInstance;
+      params.taskMonitorConfig.modalInstance = $modalInstance;
 
       $scope.taskMonitor = taskMonitorService.buildTaskMonitor(params.taskMonitorConfig);
     }
@@ -76,15 +76,15 @@ module.exports = angular.module('spinnaker.core.confirmationModal.service', [
         } else {
           if (params.submitMethod) {
             $scope.state.submitting = true;
-            params.submitMethod(params.interestingHealthProviderNames).then($uibModalInstance.close, showError);
+            params.submitMethod(params.interestingHealthProviderNames).then($modalInstance.close, showError);
           } else {
-            $uibModalInstance.close();
+            $modalInstance.close();
           }
         }
       }
     };
 
     this.cancel = function () {
-      $uibModalInstance.dismiss();
+      $modalInstance.dismiss();
     };
   }).name;
