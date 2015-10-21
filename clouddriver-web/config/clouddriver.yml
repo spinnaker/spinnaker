@@ -81,7 +81,7 @@ aws:
 
 
 google:
-  enabled: ${GCE_ENABLED:false}
+  enabled: false
   defaults:
     instanceTypePersistentDisks:
     - instanceType: n1-standard-1
