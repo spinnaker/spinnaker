@@ -129,7 +129,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       };
 
       if (application && application.attributes && application.attributes.platformHealthOnly) {
-        command.interestingHealthProviderNames = ['GCE'];
+        command.interestingHealthProviderNames = ['Google'];
       }
 
       attemptToSetValidCredentials(application, defaultCredentials, command);
@@ -191,7 +191,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       };
 
       if (application && application.attributes && application.attributes.platformHealthOnly) {
-        command.interestingHealthProviderNames = ['GCE'];
+        command.interestingHealthProviderNames = ['Google'];
       }
 
       if (serverGroup.launchConfig) {

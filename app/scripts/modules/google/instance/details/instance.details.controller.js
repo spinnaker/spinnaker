@@ -36,7 +36,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       instance.health = instance.health || [];
       var displayableMetrics = instance.health.filter(
         function(metric) {
-          return metric.type !== 'GCE' || metric.state !== 'Unknown';
+          return metric.type !== 'Google' || metric.state !== 'Unknown';
         });
 
       // backfill details where applicable

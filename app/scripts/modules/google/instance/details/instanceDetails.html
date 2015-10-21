@@ -86,7 +86,7 @@
         <span class="glyphicon glyphicon-Starting-triangle"></span> <strong>Starting</strong>
       </p>
 
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? '': 'dl-horizontal'">
+      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '': 'dl-horizontal'">
         <dt ng-repeat-start="metric in healthMetrics | orderBy: 'type'">{{metric.type | robotToHuman}}</dt>
         <dd ng-repeat-end>
           <div ng-if="metric.type !== 'LoadBalancer'">
