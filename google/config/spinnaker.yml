@@ -36,11 +36,6 @@ services:
     port: ${services.clouddriver.port}
     baseUrl: ${services.clouddriver.baseUrl}
 
-  gce_kms:
-    host: localhost
-    port: 7909
-    baseUrl: ${serviceProtocol}://${services.gce_kms.host}:${services.gce_kms.port}
-
   mort:
     host: ${services.clouddriver.host}
     port: ${services.clouddriver.port}

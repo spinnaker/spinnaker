@@ -16,7 +16,6 @@ aws:
 google:
   enabled: ${providers.google.enabled:false}
 
-  kmsServer: ${services.gce_kms.baseUrl:http://localhost:7909}
   accounts:
     - name: ${providers.google.primaryCredentials.name}
       project: ${providers.google.primaryCredentials.project}
