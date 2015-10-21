@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.config
 
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
@@ -31,13 +31,13 @@ import javax.servlet.Filter
 @ComponentScan
 public class GateWebConfig extends WebMvcConfigurerAdapter {
   @Autowired
-  ExtendedRegistry extendedRegistry
+  Registry registry
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(
       new MetricsInterceptor(
-        extendedRegistry, "controller.invocations", ["account", "region", "application"], ["BasicErrorController"]
+        this.registry, "controller.invocations", ["account", "region", "application"], ["BasicErrorController"]
       )
     )
   }
