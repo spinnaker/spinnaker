@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.oort.aws.provider
 
 import com.netflix.spinnaker.cats.agent.Agent
+import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -28,7 +29,7 @@ import java.util.regex.Pattern
 import org.springframework.beans.factory.annotation.Autowired
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.*
 
-class AwsProvider implements SearchableProvider {
+class AwsProvider extends AgentSchedulerAware implements SearchableProvider {
 
   public static final String PROVIDER_NAME = AwsProvider.name
 
@@ -52,17 +53,23 @@ class AwsProvider implements SearchableProvider {
   final Map<String, SearchableProvider.IdentifierExtractor> identifierExtractors
 
   final Collection<Agent> agents
-  private final Collection<HealthProvidingCachingAgent> healthAgents
+  private Collection<HealthProvidingCachingAgent> healthAgents
 
   @Autowired(required = false)
   List<HealthProvidingCachingAgent> externalHealthProvidingCachingAgents = []
 
   AwsProvider(AccountCredentialsRepository accountCredentialsRepository, Collection<Agent> agents) {
-    this.agents = Collections.unmodifiableCollection(agents)
-    this.healthAgents = Collections.unmodifiableCollection(agents.findAll { it instanceof HealthProvidingCachingAgent } as List<HealthProvidingCachingAgent>)
+    this.agents = agents
+    synchronizeHealthAgents()
     identifierExtractors = [
       (INSTANCES.ns): new InstanceIdentifierExtractor(accountCredentialsRepository)
     ].asImmutable()
+  }
+
+  void synchronizeHealthAgents() {
+    this.healthAgents = Collections.unmodifiableCollection(agents.findAll {
+      it instanceof HealthProvidingCachingAgent
+    } as List<HealthProvidingCachingAgent>)
   }
 
   @Override

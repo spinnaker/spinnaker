@@ -74,6 +74,7 @@ class Main extends SpringBootServletInitializer {
   }
 
   static void main(String... args) {
+    launchArgs = args
     new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main).run(args)
   }
 
@@ -82,5 +83,6 @@ class Main extends SpringBootServletInitializer {
     application.properties(DEFAULT_PROPS).sources(Main)
   }
 
+  static String[] launchArgs = []
 }
 

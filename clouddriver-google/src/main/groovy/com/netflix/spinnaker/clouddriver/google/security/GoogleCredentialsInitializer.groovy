@@ -16,38 +16,82 @@
 
 package com.netflix.spinnaker.clouddriver.google.security
 
+import com.netflix.spinnaker.cats.module.CatsModule
+import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
+import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.config.ConfigurableBeanFactory
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Scope
+import org.springframework.stereotype.Component
 
+@Component
 @Configuration
-class GoogleCredentialsInitializer {
+class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizable {
   private static final Logger log = Logger.getLogger(this.class.simpleName)
 
   @Autowired
   String googleApplicationName
 
+  @Autowired
+  AccountCredentialsRepository accountCredentialsRepository
+
+  @Autowired
+  ApplicationContext appContext;
+
+  @Autowired
+  List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers
+
   @Bean
   List<? extends GoogleNamedAccountCredentials> googleNamedAccountCredentials(
-    GoogleConfigurationProperties googleConfigurationProperties,
-    AccountCredentialsRepository accountCredentialsRepository) {
-    List<? extends GoogleNamedAccountCredentials> googleAccounts = []
+    GoogleConfigurationProperties googleConfigurationProperties) {
+    synchronizeGoogleAccounts(googleConfigurationProperties, null)
+  }
 
-    for (managedAccount in googleConfigurationProperties.accounts) {
+  @Override
+  String getCredentialsSynchronizationBeanName() {
+    return "synchronizeGoogleAccounts"
+  }
+
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  @Bean
+  List<?> synchronizeGoogleAccounts(GoogleConfigurationProperties googleConfigurationProperties, CatsModule catsModule) {
+    def (ArrayList<GoogleConfigurationProperties.ManagedAccount> accountsToAdd, List<String> namesOfDeletedAccounts) =
+      ProviderUtils.calculateAccountDeltas(accountCredentialsRepository,
+                                           GoogleNamedAccountCredentials,
+                                           googleConfigurationProperties.accounts)
+
+    accountsToAdd.each { GoogleConfigurationProperties.ManagedAccount managedAccount ->
       try {
-        def jsonKey = getJsonKey(managedAccount)
-        def googleAccount = new GoogleNamedAccountCredentials(managedAccount.name, managedAccount.environment, managedAccount.accountType,  managedAccount.project, jsonKey, googleApplicationName)
+        def jsonKey = GoogleCredentialsInitializer.getJsonKey(managedAccount)
+        def googleAccount = new GoogleNamedAccountCredentials(managedAccount.name,
+                                                              managedAccount.environment,
+                                                              managedAccount.accountType,
+                                                              managedAccount.project,
+                                                              jsonKey,
+                                                              googleApplicationName)
 
-        googleAccounts << accountCredentialsRepository.save(managedAccount.name, googleAccount)
+        accountCredentialsRepository.save(managedAccount.name, googleAccount)
       } catch (e) {
         log.info "Could not load account ${managedAccount.name} for Google.", e
       }
     }
 
-    googleAccounts
+    ProviderUtils.unscheduleAndDeregisterAgents(namesOfDeletedAccounts, catsModule)
+
+    if (accountsToAdd && catsModule) {
+      ProviderUtils.synchronizeAgentProviders(appContext, providerSynchronizerTypeWrappers)
+    }
+
+    accountCredentialsRepository.all.findAll {
+      it instanceof GoogleNamedAccountCredentials
+    } as List
   }
 
   private static String getJsonKey(GoogleConfigurationProperties.ManagedAccount managedAccount) {

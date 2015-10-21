@@ -33,12 +33,19 @@ public class DefaultCatsModule implements CatsModule {
     private final ProviderRegistry providerRegistry;
     private final AgentScheduler agentScheduler;
     private final Cache view;
+    private final ExecutionInstrumentation executionInstrumentation;
 
     public DefaultCatsModule(Collection<Provider> providers, NamedCacheFactory namedCacheFactory, AgentScheduler agentScheduler, ExecutionInstrumentation executionInstrumentation) {
         this.namedCacheFactory = namedCacheFactory;
         providerRegistry = new DefaultProviderRegistry(providers, namedCacheFactory);
         this.agentScheduler = agentScheduler;
+
+        if (agentScheduler instanceof CatsModuleAware) {
+          ((CatsModuleAware)agentScheduler).setCatsModule(this);
+        }
+
         view = new CompositeCache(providerRegistry.getProviderCaches());
+        this.executionInstrumentation = executionInstrumentation;
         new AgentController(providerRegistry, agentScheduler, executionInstrumentation);
     }
 
@@ -57,5 +64,10 @@ public class DefaultCatsModule implements CatsModule {
     @Override
     public Cache getView() {
         return view;
+    }
+
+    @Override
+    public ExecutionInstrumentation getExecutionInstrumentation() {
+      return executionInstrumentation;
     }
 }

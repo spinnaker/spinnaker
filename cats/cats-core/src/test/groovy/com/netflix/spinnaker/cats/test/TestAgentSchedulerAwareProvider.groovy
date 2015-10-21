@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,29 +14,13 @@
  * limitations under the License.
  */
 
-
-package com.netflix.spinnaker.kato.aws.provider
+package com.netflix.spinnaker.cats.test
 
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
 import com.netflix.spinnaker.cats.provider.Provider
 
-class AwsCleanupProvider extends AgentSchedulerAware implements Provider {
-  public static final String PROVIDER_NAME = AwsCleanupProvider.name
-
-  private final Collection<Agent> agents
-
-  AwsCleanupProvider(Collection<Agent> agents) {
-    this.agents = agents
-  }
-
-  @Override
-  String getProviderName() {
-    return PROVIDER_NAME
-  }
-
-  @Override
-  Collection<Agent> getAgents() {
-    return agents
-  }
+class TestAgentSchedulerAwareProvider extends AgentSchedulerAware implements Provider {
+  String providerName = TestAgentSchedulerAwareProvider.simpleName
+  Collection<Agent> agents;
 }

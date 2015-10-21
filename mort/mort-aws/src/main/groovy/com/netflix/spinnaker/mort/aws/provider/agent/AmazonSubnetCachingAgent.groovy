@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.mort.aws.provider.agent
 
+import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -37,7 +38,7 @@ import com.netflix.spinnaker.mort.aws.provider.AwsInfrastructureProvider
 import groovy.util.logging.Slf4j
 
 @Slf4j
-class AmazonSubnetCachingAgent implements CachingAgent {
+class AmazonSubnetCachingAgent implements CachingAgent, AccountAware {
 
   final AmazonCloudProvider amazonCloudProvider
   final AmazonClientProvider amazonClientProvider
@@ -69,6 +70,11 @@ class AmazonSubnetCachingAgent implements CachingAgent {
   @Override
   String getAgentType() {
     "${account.name}/${region}/${AmazonSubnetCachingAgent.simpleName}"
+  }
+
+  @Override
+  String getAccountName() {
+    account.name
   }
 
   @Override

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.mort.aws.provider.agent
 
 import com.amazonaws.services.ec2.model.Address
+import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -36,7 +37,7 @@ import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.ELASTIC_IPS
 import groovy.util.logging.Slf4j
 
 @Slf4j
-class AmazonElasticIpCachingAgent implements CachingAgent {
+class AmazonElasticIpCachingAgent implements CachingAgent, AccountAware {
 
   final AmazonCloudProvider amazonCloudProvider
   final AmazonClientProvider amazonClientProvider
@@ -65,6 +66,11 @@ class AmazonElasticIpCachingAgent implements CachingAgent {
   @Override
   String getAgentType() {
     "${account.name}/${region}/${AmazonElasticIpCachingAgent.simpleName}"
+  }
+
+  @Override
+  String getAccountName() {
+    account.name
   }
 
   @Override

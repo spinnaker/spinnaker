@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.cats.redis.cluster;
 
 import com.netflix.spinnaker.cats.agent.*;
+import com.netflix.spinnaker.cats.module.CatsModuleAware;
 import com.netflix.spinnaker.cats.redis.JedisSource;
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
 import redis.clients.jedis.Jedis;
@@ -32,7 +33,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class ClusteredAgentScheduler implements AgentScheduler, Runnable {
+public class ClusteredAgentScheduler extends CatsModuleAware implements AgentScheduler, Runnable {
     private final JedisSource jedisSource;
     private final NodeIdentity nodeIdentity;
     private final AgentIntervalProvider intervalProvider;
@@ -135,8 +136,17 @@ public class ClusteredAgentScheduler implements AgentScheduler, Runnable {
 
     @Override
     public void schedule(Agent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
+        if (agent instanceof AgentSchedulerAware) {
+          ((AgentSchedulerAware)agent).setAgentScheduler(this);
+        }
+
         final AgentExecutionAction agentExecutionAction = new AgentExecutionAction(agent, agentExecution, executionInstrumentation);
         agents.put(agent.getAgentType(), agentExecutionAction);
+    }
+
+    @Override
+    public void unschedule(Agent agent) {
+        agents.remove(agent.getAgentType());
     }
 
     private static class AgentJob implements Runnable {

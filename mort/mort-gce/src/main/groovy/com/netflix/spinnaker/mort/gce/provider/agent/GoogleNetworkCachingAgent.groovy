@@ -18,6 +18,7 @@ package com.netflix.spinnaker.mort.gce.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.model.Network
+import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -34,7 +35,7 @@ import groovy.util.logging.Slf4j
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 
 @Slf4j
-class GoogleNetworkCachingAgent implements CachingAgent {
+class GoogleNetworkCachingAgent implements CachingAgent, AccountAware {
 
   final GoogleCloudProvider googleCloudProvider
   final String accountName
@@ -63,6 +64,11 @@ class GoogleNetworkCachingAgent implements CachingAgent {
   @Override
   String getAgentType() {
     "${accountName}/global/${GoogleNetworkCachingAgent.simpleName}"
+  }
+
+  @Override
+  String getAccountName() {
+    accountName
   }
 
   @Override

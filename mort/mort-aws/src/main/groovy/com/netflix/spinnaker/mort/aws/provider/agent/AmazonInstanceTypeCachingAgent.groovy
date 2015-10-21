@@ -18,6 +18,7 @@ package com.netflix.spinnaker.mort.aws.provider.agent
 
 import com.amazonaws.services.ec2.model.DescribeReservedInstancesOfferingsRequest
 import com.amazonaws.services.ec2.model.ReservedInstancesOffering
+import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -40,7 +41,7 @@ import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.INSTANCE_TYPES
 import groovy.util.logging.Slf4j
 
 @Slf4j
-class AmazonInstanceTypeCachingAgent implements CachingAgent, CustomScheduledAgent {
+class AmazonInstanceTypeCachingAgent implements CachingAgent, CustomScheduledAgent, AccountAware {
 
   public static final long DEFAULT_POLL_INTERVAL_MILLIS = TimeUnit.HOURS.toMillis(2)
   public static final long DEFAULT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(15)
@@ -86,6 +87,11 @@ class AmazonInstanceTypeCachingAgent implements CachingAgent, CustomScheduledAge
   @Override
   String getAgentType() {
     "${account.name}/${region}/${AmazonInstanceTypeCachingAgent.simpleName}"
+  }
+
+  @Override
+  String getAccountName() {
+    account.name
   }
 
   @Override

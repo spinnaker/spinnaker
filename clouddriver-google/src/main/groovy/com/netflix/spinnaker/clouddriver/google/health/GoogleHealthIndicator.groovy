@@ -60,10 +60,6 @@ class GoogleHealthIndicator implements HealthIndicator {
         it instanceof GoogleNamedAccountCredentials
       } as Set<GoogleNamedAccountCredentials>
 
-      if (!googleCredentialsSet) {
-        throw new GoogleCredentialsNotFoundException()
-      }
-
       for (GoogleNamedAccountCredentials accountCredentials in googleCredentialsSet) {
         try {
           GoogleCredentials googleCredentials = accountCredentials.credentials
@@ -82,10 +78,6 @@ class GoogleHealthIndicator implements HealthIndicator {
       lastException.set(ex)
     }
   }
-
-  @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR, reason = 'Google Module is configured, but no credentials found.')
-  @InheritConstructors
-  static class GoogleCredentialsNotFoundException extends RuntimeException {}
 
   @ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE, reason = "Problem communicating with Google.")
   @InheritConstructors

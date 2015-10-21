@@ -47,6 +47,8 @@ public interface CatsModule {
 
     Cache getView();
 
+    ExecutionInstrumentation getExecutionInstrumentation();
+
     public static class Builder {
         private NamedCacheFactory cacheFactory;
         private AgentScheduler scheduler;

@@ -62,9 +62,6 @@ class AmazonHealthIndicator implements HealthIndicator {
       Set<NetflixAmazonCredentials> amazonCredentials = accountCredentialsProvider.all.findAll {
         it instanceof NetflixAmazonCredentials
       } as Set<NetflixAmazonCredentials>
-      if (!amazonCredentials) {
-        throw new AmazonCredentialsNotFoundException()
-      }
       for (NetflixAmazonCredentials credentials in amazonCredentials) {
         try {
           def ec2 = amazonClientProvider.getAmazonEC2(credentials, "us-east-1")
@@ -79,10 +76,6 @@ class AmazonHealthIndicator implements HealthIndicator {
       lastException.set(ex)
     }
   }
-
-  @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR, reason = 'AWS Module is configured, but no credentials found.')
-  @InheritConstructors
-  static class AmazonCredentialsNotFoundException extends RuntimeException {}
 
   @ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE, reason = 'Could not reach Amazon.')
   @InheritConstructors

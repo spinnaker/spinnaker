@@ -91,6 +91,10 @@ class ReservationReportCachingAgent implements CachingAgent {
     }
   }
 
+  public Collection<NetflixAmazonCredentials> getAccounts() {
+    return accounts;
+  }
+
   @Override
   CacheResult loadData(ProviderCache providerCache) {
     log.info("Describing items in ${agentType}")

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.oort.aws.provider.agent
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.cats.agent.AgentDataType
+import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
@@ -39,20 +40,24 @@ import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.HEALTH
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
 
 @Slf4j
-class DiscoveryCachingAgent implements CachingAgent, HealthProvidingCachingAgent {
-  private final List<NetflixAmazonCredentials> accounts
+class DiscoveryCachingAgent extends AgentSchedulerAware implements CachingAgent, HealthProvidingCachingAgent {
+  private final Set<NetflixAmazonCredentials> accounts
   private final String region
   private final DiscoveryApi discoveryApi
   private final ObjectMapper objectMapper
   private final String discoveryHost
   final String healthId = "discovery"
 
-  DiscoveryCachingAgent(DiscoveryApi discoveryApi, List<NetflixAmazonCredentials> accounts, String region, ObjectMapper objectMapper) {
+  DiscoveryCachingAgent(DiscoveryApi discoveryApi, Set<NetflixAmazonCredentials> accounts, String region, ObjectMapper objectMapper) {
     this.accounts = accounts
     this.region = region
     this.discoveryApi = discoveryApi
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     this.discoveryHost = accounts[0].discovery.replaceAll(Pattern.quote('{{region}}'), region)
+  }
+
+  Set<NetflixAmazonCredentials> getAccounts() {
+    accounts
   }
 
   @Override

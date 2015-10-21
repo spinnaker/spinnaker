@@ -18,9 +18,11 @@ package com.netflix.spinnaker.clouddriver
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.controllers.CacheController
+import com.netflix.spinnaker.clouddriver.controllers.ConfigRefreshController
 import com.netflix.spinnaker.clouddriver.controllers.CredentialsController
 import com.netflix.spinnaker.clouddriver.controllers.SearchController
 import com.netflix.spinnaker.clouddriver.filters.SimpleCORSFilter
+import com.netflix.spinnaker.clouddriver.listeners.CredentialsRefreshListener
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,7 +39,9 @@ import javax.servlet.Filter
 @Configuration
 @Import([
   SimpleCORSFilter,
+  ConfigRefreshController,
   CredentialsController,
+  CredentialsRefreshListener,
   CacheController,
   SearchController
 ])

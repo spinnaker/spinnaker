@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.frigga.Names
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
@@ -57,7 +58,7 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 
 @Slf4j
-class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
+class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
   @Deprecated
   private static final String LEGACY_ON_DEMAND_TYPE = 'AmazonServerGroup'
 
@@ -107,6 +108,11 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
   @Override
   String getAgentType() {
     "${account.name}/${region}/${ClusterCachingAgent.simpleName}"
+  }
+
+  @Override
+  String getAccountName() {
+    account.name
   }
 
   @Override

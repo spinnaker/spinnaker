@@ -25,6 +25,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -48,7 +49,7 @@ import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.LOAD_BALANCERS
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.ON_DEMAND
 
 @Slf4j
-class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent {
+class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
 
   @Deprecated
   private static final String LEGACY_ON_DEMAND_TYPE = 'AmazonLoadBalancer'
@@ -70,6 +71,11 @@ class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent {
   @Override
   String getAgentType() {
     "${account.name}/${region}/${LoadBalancerCachingAgent.simpleName}"
+  }
+
+  @Override
+  String getAccountName() {
+    account.name
   }
 
   @Override

@@ -18,13 +18,14 @@ package com.netflix.spinnaker.mort.aws.provider
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.netflix.spinnaker.cats.agent.Agent
+import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.mort.aws.cache.Keys
 
 import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.SECURITY_GROUPS
 
-class AwsInfrastructureProvider implements SearchableProvider {
+class AwsInfrastructureProvider extends AgentSchedulerAware implements SearchableProvider {
   public static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
   public static final String PROVIDER_NAME = AwsInfrastructureProvider.name
@@ -34,7 +35,7 @@ class AwsInfrastructureProvider implements SearchableProvider {
 
   AwsInfrastructureProvider(AmazonCloudProvider amazonCloudProvider, Collection<Agent> agents) {
     this.amazonCloudProvider = amazonCloudProvider
-    this.agents = Collections.unmodifiableCollection(agents)
+    this.agents = agents
   }
 
   @Override

@@ -86,6 +86,18 @@ class GoogleResourceRetriever {
 
   // TODO(duftler): Handle paginated results.
   private void load() {
+    Map<String, Set<GoogleCredentials>> accountNameToSetOfGoogleCredentialsMap = getAllGoogleCredentialsObjects()
+
+    if (!accountNameToSetOfGoogleCredentialsMap) {
+      if (appMap) {
+        log.info "Flushing application map..."
+
+        appMap = new HashMap<String, GoogleApplication>()
+      }
+
+      return
+    }
+
     log.info "Loading GCE resources..."
 
     cacheLock.lock()
@@ -98,7 +110,7 @@ class GoogleResourceRetriever {
       def tempImageMap = new HashMap<String, List<Map>>()
       def tempNetworkLoadBalancerMap = new HashMap<String, Map<String, List<GoogleLoadBalancer>>>()
 
-      getAllGoogleCredentialsObjects().each {
+      accountNameToSetOfGoogleCredentialsMap.each {
         def accountName = it.key
         def credentialsSet = it.value
 

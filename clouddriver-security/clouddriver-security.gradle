@@ -1,3 +1,10 @@
 dependencies {
   spinnaker.group('jackson')
+
+  compile spinnaker.dependency('slf4j')
+  compile project(':cats:cats-core')
+
+  testCompile project(':clouddriver-aws')
+  testCompile project(':clouddriver-google')
+  testCompile project(path: ':cats:cats-core', configuration: 'test')
 }

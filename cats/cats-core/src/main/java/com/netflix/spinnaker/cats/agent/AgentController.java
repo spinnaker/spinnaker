@@ -29,6 +29,10 @@ public class AgentController {
                            AgentScheduler agentScheduler,
                            ExecutionInstrumentation executionInstrumentation) {
         for (Provider provider : providerRegistry.getProviders()) {
+            if (provider instanceof AgentSchedulerAware) {
+              ((AgentSchedulerAware)provider).setAgentScheduler(agentScheduler);
+            }
+
             for (Agent agent : provider.getAgents()) {
                 agentScheduler.schedule(agent, agent.getAgentExecution(providerRegistry), executionInstrumentation);
             }
