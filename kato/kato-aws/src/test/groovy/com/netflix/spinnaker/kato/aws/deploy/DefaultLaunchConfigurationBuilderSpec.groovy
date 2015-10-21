@@ -179,7 +179,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     builder.buildLaunchConfiguration(application, subnetType, settings)
 
     then:
-    1 * securityGroupService.getSecurityGroupIds(["nf-classiclink"], "vpc-123") >> ["sg-123": "nf-classiclink"]
+    1 * securityGroupService.getSecurityGroupIds(["nf-classiclink"], "vpc-123") >> ["nf-classiclink": "sg-123"]
     1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
       assert req.classicLinkVPCId == "vpc-123"
       assert req.classicLinkVPCSecurityGroups == ["sg-123"]
