@@ -29,7 +29,7 @@ class InstanceAggregatedListCallbackSpec extends Specification {
       def gceHealthState = InstanceAggregatedListCallback.buildGCEHealthState(instanceStatus)
 
     then:
-      gceHealthState.type == "GCE"
+      gceHealthState.type == "Google"
       gceHealthState.healthClass == "platform"
       gceHealthState.state == spinnakerHealthState
 

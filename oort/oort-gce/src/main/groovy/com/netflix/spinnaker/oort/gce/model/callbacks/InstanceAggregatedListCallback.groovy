@@ -117,7 +117,7 @@ class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCa
 
   static Map buildGCEHealthState(String instanceStatus) {
     [
-      type : "GCE",
+      type : "Google",
       healthClass: "platform",
       state: deriveInstanceGCEHealthState(instanceStatus)
     ]
