@@ -1,4 +1,4 @@
-<div ng-controller="FindAmiExecutionDetailsCtrl">
+<div ng-controller="gceFindAmiExecutionDetailsCtrl">
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
   <div class="step-section-details" ng-if="detailsSection === 'findAMIConfig'">
     <div class="row">
@@ -6,10 +6,10 @@
         <dl class="dl-narrow dl-horizontal">
           <dt>Account</dt>
           <dd>
-            <account-tag account="stage.context.account" provider="'aws'"></account-tag>
+            <account-tag account="stage.context.credentials"></account-tag>
           </dd>
-          <dt ng-if="stage.context.regions">Region</dt>
-          <dd ng-if="stage.context.regions">{{stage.context.regions.join(', ')}}</dd>
+          <dt ng-if="stage.context.zones">Zones</dt>
+          <dd ng-if="stage.context.zones">{{stage.context.zones.join(', ')}}</dd>
           <dt>Cluster</dt>
           <dd>{{stage.context.cluster}}</dd>
         </dl>
@@ -21,13 +21,13 @@
       <div class="col-md-12">
         <div class="well alert alert-info">
           <h4>Results</h4>
-          <dl ng-repeat="ami in stage.context.amiDetails" class="dl-narrow dl-horizontal">
-            <dt>Region</dt>
-            <dd>{{ami.region}}</dd>
-            <dt>AMI</dt>
-            <dd>{{ami.ami}}</dd>
+          <dl ng-repeat="image in stage.context.amiDetails" class="dl-narrow dl-horizontal">
+            <dt>Zone</dt>
+            <dd>{{image.zone}}</dd>
+            <dt>Image ID</dt>
+            <dd>{{image.imageId}}</dd>
             <dt>Name</dt>
-            <dd>{{ami.imageName}}</dd>
+            <dd>{{image.imageName}}</dd>
           </dl>
         </div>
       </div>

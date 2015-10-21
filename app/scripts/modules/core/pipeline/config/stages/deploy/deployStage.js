@@ -20,7 +20,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
       validators: [
         {
           type: 'stageBeforeType',
-          stageTypes: ['bake', 'findAmi'],
+          stageTypes: ['bake', 'findAmi', 'findImage'],
           message: 'You must have a Bake or Find Image stage before any deploy stage.'
         },
       ],
