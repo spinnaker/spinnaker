@@ -1,3 +1,12 @@
+
+ext {
+  springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
+}
+
+tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
+  systemProperty('spring.config.location', project.springConfigLocation)
+}
+
 buildscript {
   ext {
     springBootVersion = "1.2.5.RELEASE"
