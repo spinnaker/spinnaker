@@ -53,16 +53,16 @@ class AbstractPackerBuilder(object):
   def remove_raw_arg(self, name):
     """Remove the raw argument data for the given name."""
     result = []
-    args = self.__raw_args
     flag = '--' + name
-    for i in range(len(args)):
-        if not args[i].startswith(flag):
-          result.append(args[i])
+    remaining = self.__raw_args
+    while remaining:
+        arg = remaining.pop(0)
+        if not arg.startswith(flag):
+          result.append(arg)
           continue
-        if i + 1 < len(args) and not args[i + 1].startswith('--'):
-          # argument was in form --flag value
-          # so skip the value part as well.
-          i += 1
+        if remaining and not remaining[0].startswith('--'):
+          # pop value for this argument as well.
+          remaining.pop(0)
 
     self.__raw_args = result
 
@@ -154,17 +154,20 @@ class AbstractPackerBuilder(object):
 
     This is a helper method for internal prepare()
     """
-    for i in range(len(self.__raw_args)):
-      arg = self.__raw_args[i]
+    remaining = list(self.__raw_args)
+    while remaining:
+      arg = remaining.pop(0)
       if not arg.startswith('--'):
-        raise ValueError('Unexpected argument "{arg}"'.format(arg))
+        raise ValueError('Unexpected argument "{arg}"'.format(arg=arg))
       arg = arg[2:]
       eq = arg.find('=')
       if eq > 0:
          self.__var_map[arg[0:eq]] = arg[eq + 1:]
       else:
-         self.__var_map[arg] = arg[i + 1]
-         i += 1
+        self.__var_map[arg] = ''
+        if remaining and not remaining[0].startswith('--'):
+          self.__var_map[arg] = remaining.pop(0)
+
 
   @classmethod
   def init_argument_parser(cls, parser):
@@ -176,7 +179,14 @@ class AbstractPackerBuilder(object):
 
   @classmethod
   def main(cls):
-    parser = argparse.ArgumentParser()
+    class NonAbbreviatingParser(argparse.ArgumentParser):
+      # Dont allow implied abbreviations.
+      # This causes unknown options that are substrings of known options
+      # to be interpreted as the known option.
+      def _get_option_tuples(self, option_string):
+        return []
+
+    parser = NonAbbreviatingParser()
     parser.description = (
         'Additional command line variables are passed through to {packer}'
         '\nSee the "variables" section in the template for more options.'
