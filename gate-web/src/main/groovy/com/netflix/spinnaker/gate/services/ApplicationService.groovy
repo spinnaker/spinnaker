@@ -123,7 +123,7 @@ class ApplicationService {
     if (!front50Service) {
       return null
     }
-    HystrixFactory.newMapCommand(GROUP, "getStrategyConfigForApplicationAndPipeline") {
+    HystrixFactory.newMapCommand(GROUP, "getStrategyConfigForApplicationAndStrategy") {
       front50Service.getStrategyConfigs(app).find { it.name == strategyName }
     } execute()
   }
