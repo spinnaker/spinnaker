@@ -78,7 +78,7 @@ class ParallelDeployStage extends ParallelStage {
   protected Map<String, Object> clusterContext(Stage stage, Map defaultStageContext, Map cluster) {
     def type = DeployStage.PIPELINE_CONFIG_TYPE
 
-    if (cluster.providerType) {
+    if (cluster.providerType && !(cluster.providerType in ['aws', 'titan'])) {
       type += "_$cluster.providerType"
     }
 

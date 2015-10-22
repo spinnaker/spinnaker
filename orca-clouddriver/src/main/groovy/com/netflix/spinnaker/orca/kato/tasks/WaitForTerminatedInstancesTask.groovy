@@ -22,12 +22,14 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 
 @Component
-class WaitForTerminatedInstancesTask implements RetryableTask {
+class WaitForTerminatedInstancesTask extends AbstractCloudProviderAwareTask implements RetryableTask {
   long backoffPeriod = 1000
   long timeout = 3600000
 
@@ -44,20 +46,23 @@ class WaitForTerminatedInstancesTask implements RetryableTask {
     if (!instanceIds || !instanceIds.size()) {
       return new DefaultTaskResult(ExecutionStatus.FAILED)
     }
+
+    String cloudProvider = getCloudProvider(stage)
     def notAllTerminated = instanceIds.find { String instanceId ->
-      def response = oortService.getSearchResults(instanceId, "serverGroupInstances", "aws")
-      if (response.status != 200) {
+      try {
+        def response = oortService.getSearchResults(instanceId, "instances", cloudProvider)
+        def searchResult = objectMapper.readValue(response.body.in().text, List)
+        if (!searchResult || searchResult.size() != 1) {
+          return true
+        }
+        Map searchResultSet = (Map) searchResult[0]
+        if (searchResultSet.totalMatches != 0) {
+          return true
+        }
+        return false
+      } catch (RetrofitError ignored) {
         return true
       }
-      def searchResult = objectMapper.readValue(response.body.in().text, List)
-      if (!searchResult || searchResult.size() != 1) {
-        return true
-      }
-      Map searchResultSet = (Map) searchResult[0]
-      if (searchResultSet.totalMatches != 0) {
-        return true
-      }
-      return false
     }
 
     def status = notAllTerminated ? ExecutionStatus.RUNNING : ExecutionStatus.SUCCEEDED

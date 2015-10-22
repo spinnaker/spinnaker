@@ -1,8 +1,10 @@
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
 import java.util.function.Function
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.*
@@ -22,12 +24,18 @@ import rx.Observable
 import rx.Scheduler
 import rx.functions.Func1
 import rx.schedulers.Schedulers
+import static com.google.common.base.Predicates.notNull
+import static com.google.common.collect.Maps.filterValues
+import static java.lang.System.currentTimeMillis
 
 @Component
 @Slf4j
 @CompileStatic
 class JedisExecutionRepository implements ExecutionRepository {
 
+  private static final TypeReference<List<Task>> LIST_OF_TASKS = new TypeReference<List<Task>>() {}
+  private static final TypeReference<Map<String, Object>> MAP_STRING_TO_OBJECT = new TypeReference<Map<String, Object>>() {
+  }
   private final Pool<Jedis> jedisPool
   private final ObjectMapper mapper = new OrcaObjectMapper()
   private final int chunkSize
@@ -36,15 +44,15 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   @Autowired
   JedisExecutionRepository(
-    ExtendedRegistry extendedRegistry,
+    Registry registry,
     Pool<Jedis> jedisPool,
     @Value('${threadPool.executionRepository:150}') int threadPoolSize,
     @Value('${chunkSize.executionRepository:75}') int threadPoolChunkSize
   ) {
     this(
       jedisPool,
-      Schedulers.from(newFixedThreadPool(extendedRegistry, 10, "QueryAll")),
-      Schedulers.from(newFixedThreadPool(extendedRegistry, threadPoolSize, "QueryByApp")),
+      Schedulers.from(newFixedThreadPool(registry, 10, "QueryAll")),
+      Schedulers.from(newFixedThreadPool(registry, threadPoolSize, "QueryByApp")),
       threadPoolChunkSize
     )
   }
@@ -74,6 +82,76 @@ class JedisExecutionRepository implements ExecutionRepository {
       storeExecutionInternal(jedis, pipeline)
       jedis.zadd(executionsByPipelineKey(pipeline.pipelineConfigId), pipeline.buildTime, pipeline.id)
     }
+  }
+
+  @Override
+  void cancel(String id) {
+    withJedis { Jedis jedis ->
+      String key
+      if (jedis.exists("pipeline:$id")) {
+        key = "pipeline:$id"
+      } else if (jedis.exists("orchestration:$id")) {
+        key = "orchestration:$id"
+      } else {
+        throw new ExecutionNotFoundException("No execution found with id $id")
+      }
+      if (isNewSchemaVersion(jedis, key)) {
+        jedis.hset(key, "canceled", "true")
+      } else {
+        def data = mapper.readValue(jedis.hget(key, "config"), Map)
+        data.canceled = "true"
+        jedis.hset(key, "config", mapper.writeValueAsString(data))
+      }
+    }
+  }
+
+  @Override
+  boolean isCanceled(String id) {
+    withJedis { Jedis jedis ->
+      String key
+      if (jedis.exists("pipeline:$id")) {
+        key = "pipeline:$id"
+      } else if (jedis.exists("orchestration:$id")) {
+        key = "orchestration:$id"
+      } else {
+        throw new ExecutionNotFoundException("No execution found with id $id")
+      }
+      if (isNewSchemaVersion(jedis, key)) {
+        Boolean.valueOf(jedis.hget(key, "canceled"))
+      } else {
+        def data = mapper.readValue(jedis.hget(key, "config"), Map)
+        Boolean.valueOf(data.canceled.toString())
+      }
+    }
+  }
+
+  @Override
+  void updateStatus(String id, ExecutionStatus status) {
+    withJedis {Jedis jedis->
+      String key
+      if (jedis.exists("pipeline:$id")) {
+        key = "pipeline:$id"
+      } else if (jedis.exists("orchestration:$id")) {
+        key = "orchestration:$id"
+      } else {
+        throw new ExecutionNotFoundException("No execution found with id $id")
+      }
+      if (isNewSchemaVersion(jedis, key)) {
+        Map<String, String> map = [executionStatus: status.name()]
+        if (status == ExecutionStatus.RUNNING) {
+          map.startTime = String.valueOf(currentTimeMillis())
+        } else if (status.complete) {
+          map.endTime = String.valueOf(currentTimeMillis())
+        }
+        jedis.hmset(key, map)
+      } else {
+        // TODO: is a no-op the right thing here? Old version derives status from stages.
+      }
+    }
+  }
+
+  boolean isNewSchemaVersion(JedisCommands jedis, String key) {
+    !jedis.hexists(key, "config")
   }
 
   @Override
@@ -169,24 +247,80 @@ class JedisExecutionRepository implements ExecutionRepository {
       def appKey = appKey(execution.getClass(), execution.application)
       jedis.sadd(appKey, execution.id)
     }
-    def json = mapper.writeValueAsString(execution)
 
-    def key = "${prefix}:$execution.id"
-    jedis.hset(key, "config", json)
+    String key = "${prefix}:$execution.id"
+
+    if (!jedis.exists(key) || isNewSchemaVersion(jedis, key)) {
+      Map<String, String> map = [
+        version          : String.valueOf(execution.version ?: 2),
+        application      : execution.application,
+        appConfig        : mapper.writeValueAsString(execution.appConfig),
+        canceled         : String.valueOf(execution.canceled),
+        parallel         : String.valueOf(execution.parallel),
+        limitConcurrent  : String.valueOf(execution.limitConcurrent),
+        buildTime        : Long.toString(execution.buildTime ?: 0L),
+        // TODO: modify these lines once we eliminate dynamic time properties
+        startTime        : (execution.executionStartTime ?: execution.startTime)?.toString(),
+        endTime          : (execution.executionEndTime ?: execution.endTime)?.toString(),
+        executingInstance: execution.executingInstance,
+        executionStatus  : execution.executionStatus?.name(),
+        authentication   : mapper.writeValueAsString(execution.authentication)
+      ]
+      // TODO: store separately? Seems crazy to be using a hash rather than a set
+      map.stageIndex = execution.stages.id.join(",")
+      execution.stages.each { stage ->
+        map.putAll(serializeStage(stage))
+      }
+      if (execution instanceof Pipeline) {
+        map.name = execution.name
+        map.pipelineConfigId = execution.pipelineConfigId
+        map.trigger = mapper.writeValueAsString(execution.trigger)
+        map.notifications = mapper.writeValueAsString(execution.notifications)
+        map.initialConfig = mapper.writeValueAsString(execution.initialConfig)
+      } else if (execution instanceof Orchestration) {
+        map.description = execution.description
+      }
+
+      jedis.hdel(key, "config")
+      jedis.hmset(key, filterValues(map, notNull()))
+    } else {
+      execution.version = 1
+      jedis.hset(key, "config", mapper.writeValueAsString(execution))
+    }
+  }
+
+  private Map<String, String> serializeStage(Stage stage) {
+    Map<String, String> map = [:]
+    map["stage.${stage.id}.refId".toString()] = stage.refId
+    map["stage.${stage.id}.type".toString()] = stage.type
+    map["stage.${stage.id}.name".toString()] = stage.name
+    map["stage.${stage.id}.startTime".toString()] = stage.startTime?.toString()
+    map["stage.${stage.id}.endTime".toString()] = stage.endTime?.toString()
+    map["stage.${stage.id}.status".toString()] = stage.status.name()
+    map["stage.${stage.id}.initializationStage".toString()] = String.valueOf(stage.initializationStage)
+    map["stage.${stage.id}.syntheticStageOwner".toString()] = stage.syntheticStageOwner?.name()
+    map["stage.${stage.id}.parentStageId".toString()] = stage.parentStageId
+    map["stage.${stage.id}.requisiteStageRefIds".toString()] = stage.requisiteStageRefIds?.join(",")
+    map["stage.${stage.id}.scheduledTime".toString()] = String.valueOf(stage.scheduledTime)
+    map["stage.${stage.id}.context".toString()] = mapper.writeValueAsString(stage.context)
+    map["stage.${stage.id}.tasks".toString()] = mapper.writeValueAsString(stage.tasks)
+    return map
   }
 
   private <T extends Execution> void storeStageInternal(Jedis jedis, Class<T> type, Stage<T> stage) {
-    def json = mapper.writeValueAsString(stage)
-    def key = "${type.simpleName.toLowerCase()}:stage:${stage.id}"
-    jedis.hset(key, "config", json)
+    def prefix = type.simpleName.toLowerCase()
+    def key = "$prefix:$stage.execution.id"
+    jedis.hmset(key, filterValues(serializeStage(stage), notNull()))
   }
 
   @CompileDynamic
   private <T extends Execution> T retrieveInternal(Jedis jedis, Class<T> type, String id) throws ExecutionNotFoundException {
-    def key = "${type.simpleName.toLowerCase()}:$id"
-    if (jedis.exists(key)) {
+    def prefix = type.simpleName.toLowerCase()
+    def key = "$prefix:$id"
+    if (!isNewSchemaVersion(jedis, key)) {
       def json = jedis.hget(key, "config")
       def execution = mapper.readValue(json, type)
+      execution.version = 1
       // PATCH to handle https://jira.netflix.com/browse/SPIN-784
       def originalStageCount = execution.stages.size()
       execution.stages = execution.stages.unique({ it.id })
@@ -195,13 +329,60 @@ class JedisExecutionRepository implements ExecutionRepository {
           "Pipeline ${id} has duplicate stages (original count: ${originalStageCount}, unique count: ${execution.stages.size()})")
       }
       return sortStages(jedis, execution, type)
+    } else if (jedis.exists(key)) {
+      Map<String, String> map = jedis.hgetAll(key)
+      def execution = type.newInstance()
+      execution.id = id
+      execution.version = Integer.parseInt(map.version ?: "2")
+      execution.application = map.application
+      execution.appConfig.putAll(mapper.readValue(map.appConfig, Map))
+      execution.canceled = Boolean.parseBoolean(map.canceled)
+      execution.parallel = Boolean.parseBoolean(map.parallel)
+      execution.limitConcurrent = Boolean.parseBoolean(map.limitConcurrent)
+      execution.buildTime = map.buildTime?.toLong()
+      execution.executionStartTime = map.startTime?.toLong()
+      execution.executionEndTime = map.endTime?.toLong()
+      execution.executingInstance = map.executingInstance
+      execution.executionStatus = map.executionStatus ? ExecutionStatus.valueOf(map.executionStatus) : null
+      execution.authentication = mapper.readValue(map.authentication, Execution.AuthenticationDetails)
+      def stageIds = map.stageIndex.tokenize(",")
+      stageIds.each { stageId ->
+        def stage = execution instanceof Pipeline ? new PipelineStage() : new OrchestrationStage()
+        stage.id = stageId
+        stage.refId = map["stage.${stageId}.refId".toString()]
+        stage.type = map["stage.${stageId}.type".toString()]
+        stage.name = map["stage.${stageId}.name".toString()]
+        stage.startTime = map["stage.${stageId}.startTime".toString()]?.toLong()
+        stage.endTime = map["stage.${stageId}.endTime".toString()]?.toLong()
+        stage.status = ExecutionStatus.valueOf(map["stage.${stageId}.status".toString()])
+        stage.initializationStage = map["stage.${stageId}.initializationStage".toString()].toBoolean()
+        stage.syntheticStageOwner = map["stage.${stageId}.syntheticStageOwner".toString()] ? Stage.SyntheticStageOwner.valueOf(map["stage.${stageId}.syntheticStageOwner".toString()]) : null
+        stage.parentStageId = map["stage.${stageId}.parentStageId".toString()]
+        stage.requisiteStageRefIds = map["stage.${stageId}.requisiteStageRefIds".toString()]?.tokenize(",")
+        stage.scheduledTime = map["stage.${stageId}.scheduledTime".toString()]?.toLong()
+        stage.context = mapper.readValue(map["stage.${stageId}.context".toString()], MAP_STRING_TO_OBJECT)
+        stage.tasks = mapper.readValue(map["stage.${stageId}.tasks".toString()], LIST_OF_TASKS)
+        stage.execution = execution
+        execution.stages << stage
+      }
+      if (execution instanceof Pipeline) {
+        execution.name = map.name
+        execution.pipelineConfigId = map.pipelineConfigId
+        execution.trigger.putAll(mapper.readValue(map.trigger, Map))
+        execution.notifications.addAll(mapper.readValue(map.notifications, List))
+        execution.initialConfig.putAll(mapper.readValue(map.initialConfig, Map))
+      } else if (execution instanceof Orchestration) {
+        execution.description = map.description
+      }
+      return execution
     } else {
       throw new ExecutionNotFoundException("No ${type.simpleName} found for $id")
     }
   }
 
+  @Deprecated
   @CompileDynamic
-  private <T extends Execution> T sortStages(Jedis jedis, T execution, Class<T> type) {
+  private <T extends Execution> T sortStages(JedisCommands jedis, T execution, Class<T> type) {
     List<Stage<T>> reorderedStages = []
 
     def childStagesByParentStageId = execution.stages.findAll { it.parentStageId != null }.groupBy { it.parentStageId }
@@ -226,6 +407,7 @@ class JedisExecutionRepository implements ExecutionRepository {
     return execution
   }
 
+  @Deprecated
   private <T extends Execution> List<Stage<T>> retrieveStages(Jedis jedis, Class<T> type, List<String> ids) {
     def pipeline = jedis.pipelined()
     ids.each { id ->
@@ -236,26 +418,21 @@ class JedisExecutionRepository implements ExecutionRepository {
   }
 
   private <T extends Execution> void deleteInternal(Jedis jedis, Class<T> type, String id) {
-    def key = "${type.simpleName.toLowerCase()}:$id"
+    def prefix = type.simpleName.toLowerCase()
+    def key = "$prefix:$id"
     try {
-      T item = retrieveInternal(jedis, type, id)
-      def appKey = appKey(type, item.application)
+      def application = jedis.hget(key, "application")
+      def appKey = appKey(type, application)
       jedis.srem(appKey, id)
 
-      if (item instanceof Pipeline) {
-        ((Pipeline) item).with {
-          jedis.zrem(executionsByPipelineKey(pipelineConfigId), item.id)
-        }
-      }
-
-      item.stages.each { Stage stage ->
-        def stageKey = "${type.simpleName.toLowerCase()}:stage:${stage.id}"
-        jedis.hdel(stageKey, "config")
+      if (type == Pipeline) {
+        def pipelineConfigId = jedis.hget(key, "pipelineConfigId")
+        jedis.zrem(executionsByPipelineKey(pipelineConfigId), id)
       }
     } catch (ExecutionNotFoundException ignored) {
       // do nothing
     } finally {
-      jedis.hdel(key, "config")
+      jedis.del(key)
       jedis.srem(alljobsKey(type), id)
     }
   }
@@ -327,11 +504,11 @@ class JedisExecutionRepository implements ExecutionRepository {
     jedisPool.resource.withCloseable(action.&apply)
   }
 
-  private static ThreadPoolTaskExecutor newFixedThreadPool(ExtendedRegistry extendedRegistry,
+  private static ThreadPoolTaskExecutor newFixedThreadPool(Registry registry,
                                                            int threadPoolSize,
                                                            String threadPoolName) {
     def executor = new ThreadPoolTaskExecutor(maxPoolSize: threadPoolSize, corePoolSize: threadPoolSize)
     executor.afterPropertiesSet()
-    return OrcaConfiguration.applyThreadPoolMetrics(extendedRegistry, executor, threadPoolName)
+    return OrcaConfiguration.applyThreadPoolMetrics(registry, executor, threadPoolName)
   }
 }

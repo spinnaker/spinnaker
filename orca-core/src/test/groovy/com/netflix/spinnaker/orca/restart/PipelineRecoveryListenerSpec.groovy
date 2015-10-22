@@ -2,7 +2,6 @@ package com.netflix.spinnaker.orca.restart
 
 import com.netflix.appinfo.InstanceInfo
 import com.netflix.spectator.api.DefaultRegistry
-import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
@@ -24,7 +23,7 @@ class PipelineRecoveryListenerSpec extends Specification {
   def executionRepository = Stub(ExecutionRepository)
   def pipelineStarter = Mock(PipelineStarter)
   @Shared currentInstance = InstanceInfo.Builder.newBuilder().setAppName("orca").setHostName("localhost").build()
-  def registry = new ExtendedRegistry(new DefaultRegistry())
+  def registry = new DefaultRegistry()
 
   @Subject listener = new PipelineRecoveryListener(executionRepository, pipelineStarter, currentInstance, registry)
   def event = new ContextRefreshedEvent(new StaticApplicationContext())

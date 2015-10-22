@@ -26,6 +26,7 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.*
 @CompileStatic
 abstract class Execution<T> implements Serializable {
   String id
+  Integer version
   String application
   final Map<String, Object> appConfig = [:]
   List<Stage<T>> stages = []
@@ -35,6 +36,8 @@ abstract class Execution<T> implements Serializable {
   Long buildTime
   String executingInstance
 
+  Long executionStartTime
+  Long executionEndTime
   ExecutionStatus executionStatus = NOT_STARTED
 
   AuthenticationDetails authentication
@@ -51,6 +54,9 @@ abstract class Execution<T> implements Serializable {
   }
 
   Long getStartTime() {
+    if (version > 1) {
+      return executionStartTime
+    }
     Long startTime = stages ? stages.first().startTime : null
     if (!startTime && stages.find { it.startTime != null }) {
       startTime = stages.findAll { it.startTime != null }.collect { it.startTime }.sort {}.get(0)
@@ -59,6 +65,9 @@ abstract class Execution<T> implements Serializable {
   }
 
   Long getEndTime() {
+    if (version > 1) {
+      return executionEndTime
+    }
     if (stages && getStartTime()) {
       if (stages.every { it.endTime }) {
         return stages.endTime.max()
@@ -75,6 +84,10 @@ abstract class Execution<T> implements Serializable {
   }
 
   ExecutionStatus getStatus() {
+    if (version > 1) {
+      return executionStatus
+    }
+
     if (canceled) {
       return CANCELED
     }

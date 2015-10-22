@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.web.config
 
 import javax.servlet.*
 import javax.servlet.http.HttpServletResponse
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -36,13 +36,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @CompileStatic
 class WebConfiguration extends WebMvcConfigurerAdapter {
   @Autowired
-  ExtendedRegistry extendedRegistry
+  Registry registry
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(
       new MetricsInterceptor(
-        extendedRegistry, "controller.invocations", ["application"], ["BasicErrorController"]
+        this.registry, "controller.invocations", ["application"], ["BasicErrorController"]
       )
     )
   }

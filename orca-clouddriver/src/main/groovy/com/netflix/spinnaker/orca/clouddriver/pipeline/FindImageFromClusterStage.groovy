@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.pipeline
-import com.netflix.spinnaker.orca.clouddriver.pipeline.CloneLastServerGroupStage
-import groovy.transform.CompileStatic
+package com.netflix.spinnaker.orca.clouddriver.pipeline
+
+import com.netflix.spinnaker.orca.clouddriver.tasks.FindImageFromClusterTask
+import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
 @Component
-@CompileStatic
-@Deprecated
-class CopyLastAsgStage extends CloneLastServerGroupStage {
+class FindImageFromClusterStage extends LinearStage {
+  static final String PIPELINE_CONFIG_TYPE = "findImage"
 
-  public static final String PIPELINE_CONFIG_TYPE = "copyLastAsg"
-
-  CopyLastAsgStage() {
+  FindImageFromClusterStage() {
     super(PIPELINE_CONFIG_TYPE)
+  }
+
+  @Override
+  public List<Stage> buildSteps(Stage stage) {
+    [buildStep(stage, "findImage", FindImageFromClusterTask)]
   }
 
 }

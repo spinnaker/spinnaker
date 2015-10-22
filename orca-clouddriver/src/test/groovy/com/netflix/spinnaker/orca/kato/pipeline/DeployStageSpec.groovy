@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
@@ -33,7 +32,6 @@ import org.springframework.batch.core.repository.JobRepository
 import org.springframework.context.ApplicationContext
 import org.springframework.transaction.PlatformTransactionManager
 import redis.clients.jedis.Jedis
-import redis.clients.jedis.JedisPool
 import redis.clients.util.Pool
 import spock.lang.*
 
@@ -46,10 +44,10 @@ class DeployStageSpec extends Specification {
   }
 
   def cleanup() {
-    embeddedRedis.jedis.flushDB()
+    embeddedRedis.jedis.withCloseable { it.flushDB() }
   }
 
-  Pool<Jedis> jedisPool = new JedisPool("localhost", embeddedRedis.@port)
+  Pool<Jedis> jedisPool = embeddedRedis.pool
 
   def configJson = """\
           {
@@ -84,7 +82,7 @@ class DeployStageSpec extends Specification {
 
   def mapper = new OrcaObjectMapper()
   def objectMapper = new OrcaObjectMapper()
-  def executionRepository = new JedisExecutionRepository(new ExtendedRegistry(new NoopRegistry()), jedisPool, 1, 50)
+  def executionRepository = new JedisExecutionRepository(new NoopRegistry(), jedisPool, 1, 50)
 
   @Subject DeployStage deployStage
 

@@ -119,6 +119,7 @@ class RegisterCanaryTaskSpec extends Specification {
     result.stageOutputs.canary
     with(result.stageOutputs.canary) {
       canaryDeployments.size() == 1
+      canaryDeployments[0]["@class"] == "ClusterCanaryDeployment"
       canaryDeployments[0].canaryCluster.name == 'foo--cfieber-canary'
       canaryDeployments[0].baselineCluster.name == 'foo--cfieber-baseline'
       canaryConfig.lifetimeHours == 1

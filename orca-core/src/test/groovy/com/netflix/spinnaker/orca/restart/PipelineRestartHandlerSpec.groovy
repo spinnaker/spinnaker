@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.orca.restart
 
 import com.netflix.spectator.api.DefaultRegistry
-import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -16,7 +15,7 @@ class PipelineRestartHandlerSpec extends Specification {
   def executionRepository = Stub(ExecutionRepository) {
     retrievePipeline(input.id) >> pipeline
   }
-  def registry = new ExtendedRegistry(new DefaultRegistry())
+  def registry = new DefaultRegistry()
 
   @Shared def input = [id: "1", application: "orca", name: "test"]
   @Shared def pipeline = new Pipeline(id: input.id, application: input.application, name: input.name)
@@ -56,7 +55,7 @@ class PipelineRestartHandlerSpec extends Specification {
     def handler = new PipelineRestartHandler(input)
     handler.pipelineStarter = pipelineStarter
     handler.executionRepository = executionRepository
-    handler.extendedRegistry = registry
+    handler.registry = registry
     return handler
   }
 

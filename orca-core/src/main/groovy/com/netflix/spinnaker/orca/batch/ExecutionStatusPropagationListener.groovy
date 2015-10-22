@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.batch
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.listener.JobExecutionListenerSupport
+import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
 @Slf4j
+@CompileStatic
 class ExecutionStatusPropagationListener extends JobExecutionListenerSupport {
   private final ExecutionRepository executionRepository
 
@@ -34,32 +35,37 @@ class ExecutionStatusPropagationListener extends JobExecutionListenerSupport {
   }
 
   @Override
-  void afterJob(JobExecution jobExecution) {
-    def stepExecutions = new ArrayList<StepExecution>(jobExecution.stepExecutions).sort { it.lastUpdated }.reverse()
-    def stepExecution = stepExecutions.find { it.status == jobExecution.status }
-    def orcaTaskStatus = stepExecution ? stepExecution.executionContext.get("orcaTaskStatus") as ExecutionStatus : ExecutionStatus.TERMINAL
+  void beforeJob(JobExecution jobExecution) {
+    def id = executionId(jobExecution)
+    executionRepository.updateStatus(id, RUNNING)
 
-    def execution = fetchExecution(executionRepository, jobExecution)
-    execution.executionStatus = orcaTaskStatus
-    executionRepository.store(execution)
-
-    log.info("Marked ${execution.class.simpleName} ${execution.id} as ${execution.executionStatus} (afterJob)")
+    log.info("Marked $id as $RUNNING (beforeJob)")
   }
 
   @Override
-  void beforeJob(JobExecution jobExecution) {
-    def execution = fetchExecution(executionRepository, jobExecution)
-    execution.executionStatus = ExecutionStatus.RUNNING
-    executionRepository.store(execution)
+  void afterJob(JobExecution jobExecution) {
+    def id = executionId(jobExecution)
 
-    log.info("Marked ${execution.class.simpleName} ${execution.id} as ${execution.executionStatus} (beforeJob)")
-  }
-
-  private static Execution fetchExecution(ExecutionRepository executionRepository, JobExecution jobExecution) {
-    if (jobExecution.jobParameters.getString("pipeline")) {
-      return executionRepository.retrievePipeline(jobExecution.jobParameters.getString("pipeline"))
+    def orcaTaskStatus
+    if (executionRepository.isCanceled(id)) {
+      orcaTaskStatus = CANCELED
+    } else if (jobExecution.failureExceptions) {
+      orcaTaskStatus = TERMINAL
+    } else {
+      def stepExecutions = new ArrayList<StepExecution>(jobExecution.stepExecutions).sort { it.lastUpdated }.reverse()
+      def stepExecution = stepExecutions.find { it.status == jobExecution.status } ?: stepExecutions[0]
+      orcaTaskStatus = stepExecution?.executionContext?.get("orcaTaskStatus") as ExecutionStatus ?: TERMINAL
     }
 
-    return executionRepository.retrieveOrchestration(jobExecution.jobParameters.getString("orchestration"))
+    executionRepository.updateStatus(id, orcaTaskStatus)
+
+    log.info("Marked $id as $orcaTaskStatus (afterJob)")
+  }
+
+  private String executionId(JobExecution jobExecution) {
+    if (jobExecution.jobParameters.getString("pipeline")) {
+      return jobExecution.jobParameters.getString("pipeline")
+    }
+    return jobExecution.jobParameters.getString("orchestration")
   }
 }

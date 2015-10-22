@@ -16,18 +16,16 @@
 
 package com.netflix.spinnaker.orca.config
 
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.batch.ExecutionStatusPropagationListener
 import com.netflix.spinnaker.orca.libdiffs.ComparableLooseVersion
 import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion
-import org.springframework.batch.core.JobExecution
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 
 import java.time.Clock
 import java.time.Duration
 import java.util.concurrent.ThreadPoolExecutor
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.ExtendedRegistry
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.ValueFunction
 import com.netflix.spinnaker.kork.eureka.EurekaConfiguration
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
@@ -90,9 +88,9 @@ class OrcaConfiguration {
   @Bean
   @CompileDynamic
   @ConditionalOnMissingBean(TaskExecutor)
-  TaskExecutor getTaskExecutor(ExtendedRegistry extendedRegistry) {
+  TaskExecutor getTaskExecutor(Registry registry) {
     def executor = new ThreadPoolTaskExecutor(maxPoolSize: 150, corePoolSize: 150)
-    applyThreadPoolMetrics(extendedRegistry, executor, "TaskExecutor")
+    applyThreadPoolMetrics(registry, executor, "TaskExecutor")
     return executor
   }
 
@@ -140,8 +138,8 @@ class OrcaConfiguration {
   @Bean
   TaskTaskletAdapter taskTaskletAdapter(ExecutionRepository executionRepository,
                                         List<ExceptionHandler> exceptionHandlers,
-                                        ExtendedRegistry extendedRegistry = new ExtendedRegistry(new NoopRegistry())) {
-    new TaskTaskletAdapter(executionRepository, exceptionHandlers, extendedRegistry)
+                                        Registry registry) {
+    new TaskTaskletAdapter(executionRepository, exceptionHandlers, registry)
   }
 
   @Bean
@@ -156,17 +154,7 @@ class OrcaConfiguration {
 
   @Bean
   ExecutionStatusPropagationListener pipelineStatusPropagationListener(ExecutionRepository executionRepository) {
-    new ExecutionStatusPropagationListener(executionRepository) {
-      @Override
-      void beforeJob(JobExecution jobExecution) {
-        // do nothing, temporarily disabled
-      }
-
-      @Override
-      void afterJob(JobExecution jobExecution) {
-        // do nothing, temporarily disabled
-      }
-    }
+    new ExecutionStatusPropagationListener(executionRepository)
   }
 
   @Bean
@@ -181,15 +169,15 @@ class OrcaConfiguration {
   }
 
   @CompileDynamic
-  public static ThreadPoolTaskExecutor applyThreadPoolMetrics(ExtendedRegistry extendedRegistry,
+  public static ThreadPoolTaskExecutor applyThreadPoolMetrics(Registry registry,
                                                           ThreadPoolTaskExecutor executor,
                                                           String threadPoolName) {
     def createGuage = { String name, Closure valueCallback ->
-      def id = extendedRegistry
+      def id = registry
         .createId("threadpool.${name}" as String)
         .withTag("id", threadPoolName)
 
-      extendedRegistry.gauge(id, executor, new ValueFunction() {
+      registry.gauge(id, executor, new ValueFunction() {
         @Override
         double apply(Object ref) {
           valueCallback(((ThreadPoolTaskExecutor) ref).threadPoolExecutor)

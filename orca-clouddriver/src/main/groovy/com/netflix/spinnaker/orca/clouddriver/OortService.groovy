@@ -47,6 +47,16 @@ interface OortService {
                                 @Path("scope") String scope,
                                 @Path("target") String target)
 
+  @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/{scope}/serverGroups/target/{target}/{summaryType}")
+  Map<String, Object> getServerGroupSummary(@Path("app") String app,
+                                            @Path("account") String account,
+                                            @Path("cluster") String cluster,
+                                            @Path("cloudProvider") String cloudProvider,
+                                            @Path("scope") String scope,
+                                            @Path("target") String target,
+                                            @Path("summaryType") String summaryType,
+                                            @Query("onlyEnabled") String onlyEnabled)
+
   @GET("/search")
   Response getSearchResults(@Query("q") String searchTerm,
                             @Query("type") String type,

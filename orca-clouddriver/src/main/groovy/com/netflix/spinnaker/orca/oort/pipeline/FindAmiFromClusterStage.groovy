@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
 @Component
+@Deprecated
 class FindAmiFromClusterStage extends LinearStage {
   static final String PIPELINE_CONFIG_TYPE = "findAmi"
 

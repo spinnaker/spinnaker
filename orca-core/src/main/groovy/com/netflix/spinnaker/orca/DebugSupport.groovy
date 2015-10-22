@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca
 
-import org.apache.commons.collections.MapUtils
+import com.fasterxml.jackson.databind.ObjectMapper
 
 /**
  * Utility class that aids in debugging Maps in the logs.
@@ -29,9 +29,9 @@ class DebugSupport {
    * @return a prettier, loggable string version of a Map.
    */
   static String prettyPrint(Map m) {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    PrintStream ps = new PrintStream(baos);
-    MapUtils.debugPrint(ps, null, m);
-    return baos.toString();
+    try {
+      return new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(m)
+    } catch (Exception ignored) {}
+    return "Could not pretty print map: ${m}"
   }
 }

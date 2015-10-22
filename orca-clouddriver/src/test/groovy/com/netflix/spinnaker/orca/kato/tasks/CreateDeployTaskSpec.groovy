@@ -204,6 +204,33 @@ class CreateDeployTaskSpec extends Specification {
     amiName = "ami-name-from-bake"
   }
 
+  def "create deploy task adds imageId if present in deployment details"() {
+    given:
+    stage.context.amiName = null
+    def operations = []
+    task.kato = Mock(KatoService) {
+      1 * requestOperations(*_) >> {
+        operations.addAll(it[1].flatten())
+        Observable.from(taskId)
+      }
+    }
+    stage.context.deploymentDetails = [
+      ["imageId": "docker-image-is-not-region-specific", "region": "us-west-1"],
+      ["imageId": "docker-image-is-not-region-specific", "region": "us-west-2"],
+    ]
+
+    when:
+    task.execute(stage.asImmutable())
+
+    then:
+    operations.find {
+      it.containsKey("createServerGroup")
+    }.createServerGroup.imageId == "docker-image-is-not-region-specific"
+
+    where:
+    amiName = "ami-name-from-bake"
+  }
+
   def "returns a success status with the kato task id"() {
     given:
     task.kato = Stub(KatoService) {
