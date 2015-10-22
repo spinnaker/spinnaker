@@ -6,6 +6,11 @@ cassandra:
   embedded: ${services.cassandra.embedded:false}
   host: ${services.cassandra.host:localhost}
 
+spinnaker:
+  cassandra:
+    cluster: ${services.cassandra.cluster:spinnaker}
+    keyspace: 'rush'
+
 docker:
   accounts:
     - name: ${services.docker.primaryAccount.name}
