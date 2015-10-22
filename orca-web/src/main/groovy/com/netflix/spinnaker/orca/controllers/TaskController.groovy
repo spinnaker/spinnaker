@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.controllers
 
 import java.time.Clock
-import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
@@ -64,9 +63,9 @@ class TaskController {
   List<Orchestration> list(@PathVariable String application) {
     def startTimeCutoff = (new Date(clock.millis()) - daysOfExecutionHistory).time
     executionRepository.retrieveOrchestrationsForApplication(application)
-      .filter({ Orchestration orchestration -> !orchestration.startTime || (orchestration.startTime > startTimeCutoff) })
-      .map({ Orchestration orchestration -> convert(orchestration) })
-      .subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
+                       .filter({ Orchestration orchestration -> !orchestration.startTime || (orchestration.startTime > startTimeCutoff) })
+                       .map({ Orchestration orchestration -> convert(orchestration) })
+                       .subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
   }
 
   @RequestMapping(value = "/tasks", method = RequestMethod.GET)
@@ -80,14 +79,14 @@ class TaskController {
   }
 
   @RequestMapping(value = "/tasks/{id}", method = RequestMethod.DELETE)
-  OrchestrationViewModel deleteTask(@PathVariable String id) {
+  void deleteTask(@PathVariable String id) {
     executionRepository.deleteOrchestration(id)
   }
 
   @RequestMapping(value = "/tasks/{id}/cancel", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancelTask(@PathVariable String id) {
-    executionRepository.cancel(id, ExecutionStatus.CANCELED)
+    executionRepository.cancel(id)
   }
 
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.GET)
@@ -103,7 +102,7 @@ class TaskController {
   @RequestMapping(value = "/pipelines/{id}/cancel", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancel(@PathVariable String id) {
-    executionRepository.cancel(id, ExecutionStatus.CANCELED)
+    executionRepository.cancel(id)
   }
 
   @RequestMapping(value = "/pipelines/running", method = RequestMethod.GET)
@@ -154,7 +153,7 @@ class TaskController {
   @RequestMapping(value = "/applications/{application}/pipelines", method = RequestMethod.GET)
   List<Pipeline> getApplicationPipelines(@PathVariable String application) {
     def pipelines = executionRepository.retrievePipelinesForApplication(application)
-      .subscribeOn(Schedulers.io()).toList().toBlocking().single()
+                                       .subscribeOn(Schedulers.io()).toList().toBlocking().single()
 
     def cutoffTime = (new Date(clock.millis()) - daysOfExecutionHistory).time
 
@@ -193,7 +192,7 @@ class TaskController {
     def aStartTime = a.startTime ?: 0
     def bStartTime = b.startTime ?: 0
 
-    return aStartTime.compareTo(bStartTime) ?: b.id <=> a.id
+    return aStartTime <=> bStartTime ?: b.id <=> a.id
   }
 
   private OrchestrationViewModel convert(Orchestration orchestration) {
