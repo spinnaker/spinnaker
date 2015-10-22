@@ -229,7 +229,9 @@ class TaskTasklet implements Tasklet {
     def taskLogger = LoggerFactory.getLogger(task.class)
     if (result.status.complete || taskLogger.isDebugEnabled()) {
       def executionId = stage.execution.id + (stage.refId ? ":${stage.refId}" : "")
-      def message = "${stage.execution.class.simpleName}:${executionId} ${taskName(chunkContext)} ${result.status} -- Batch step id: ${chunkContext.stepContext.stepExecution.id},  Task Outputs: ${result.outputs},  Stage Context: ${stage.context}"
+      def outputs = DebugSupport.prettyPrint(result.outputs)
+      def ctx = DebugSupport.prettyPrint(stage.context)
+      def message = "${stage.execution.class.simpleName}:${executionId} ${taskName(chunkContext)} ${result.status} -- Batch step id: ${chunkContext.stepContext.stepExecution.id},  Task Outputs: ${outputs},  Stage Context: ${ctx}"
       if (result.status.complete) {
         taskLogger.info message
       } else {
