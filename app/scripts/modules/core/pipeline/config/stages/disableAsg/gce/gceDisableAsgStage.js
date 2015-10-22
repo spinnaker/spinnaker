@@ -56,7 +56,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableAsgSta
     stage.cloudProvider = 'gce';
 
     if (stage.isNew && $scope.application.attributes.platformHealthOnly) {
-      stage.interestingHealthProviderNames = ['GCE'];
+      stage.interestingHealthProviderNames = ['Google'];
     }
 
     if (!stage.credentials && $scope.application.defaultCredentials) {
