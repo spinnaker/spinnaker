@@ -34,15 +34,10 @@ class ExpressionPreconditionTask implements PreconditionTask {
       return DefaultTaskResult.SUCCEEDED
     }
 
-    if (stageData.failPipeline) {
-      return new DefaultTaskResult(ExecutionStatus.TERMINAL)
-    }
-
-    return new DefaultTaskResult(ExecutionStatus.STOPPED)
+    return new DefaultTaskResult(ExecutionStatus.TERMINAL)
   }
 
   static class StageData {
     String expression = "false"
-    boolean failPipeline = true
   }
 }

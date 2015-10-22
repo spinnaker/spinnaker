@@ -25,7 +25,6 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
 @CompileStatic
 abstract class Execution<T> implements Serializable {
-  Integer version
   String id
   Integer version
   String application
@@ -88,16 +87,11 @@ abstract class Execution<T> implements Serializable {
   }
 
   ExecutionStatus getStatus() {
-    if (version > 1) {
-      return executionStatus
-    }
-
     if (canceled) {
       return CANCELED
     }
 
-    def currentVersion = version ?: 1
-    if (currentVersion > 1) {
+    if (version > 1) {
       return executionStatus
     }
 

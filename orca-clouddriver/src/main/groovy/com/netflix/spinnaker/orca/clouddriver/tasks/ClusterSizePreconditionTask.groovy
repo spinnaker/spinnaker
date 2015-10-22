@@ -118,12 +118,12 @@ class ClusterSizePreconditionTask extends AbstractCloudProviderAwareTask impleme
       int actual = serverGroups.size()
       boolean acceptable = config.getOp().evaluate(actual, config.expected)
       if (!acceptable) {
-        failures << "Failed for $region, expected $config.expected ServerGroups but found $actual : ${serverGroups*.name}"
+        failures << "$region - expected $config.expected server groups but found $actual : ${serverGroups*.name}"
       }
     }
 
     if (failures) {
-      throw new IllegalStateException("precondition check failed: ${failures.join(',')}")
+      throw new IllegalStateException("Precondition failed: ${failures.join(',')}")
     }
 
     return DefaultTaskResult.SUCCEEDED

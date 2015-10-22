@@ -250,6 +250,30 @@ class TaskTaskletSpec extends Specification {
     errors = ["E4", "E5"]
   }
 
+  @Unroll
+  def "should override status depending on `failPipeline`"() {
+    given:
+    def stage = new PipelineStage()
+    stage.context = stageContext
+
+    when:
+    def result = TaskTasklet.applyStageStatusOverrides(
+      stage,
+      new DefaultTaskResult(originalStatus, ["stage": 1], ["global": 2])
+    )
+
+    then:
+    result.status == expectedStatus
+    result.stageOutputs == ["stage": 1]
+    result.globalOutputs == ["global": 2]
+
+    where:
+    stageContext         | originalStatus || expectedStatus
+    [:]                  | TERMINAL       || TERMINAL
+    [failPipeline: true]  | TERMINAL       || TERMINAL
+    [failPipeline: false] | TERMINAL       || STOPPED
+  }
+
   private buildTasklet(Class taskType, boolean shouldRetry) {
     def task = Mock(taskType)
     task.execute(_) >> { throw new RuntimeException() }

@@ -71,7 +71,7 @@ class ManualJudgmentStage extends LinearStage implements RestartableStage {
         case "continue":
           return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
         case "stop":
-          def executionStatus = stageData.failPipeline ? ExecutionStatus.TERMINAL : ExecutionStatus.STOPPED
+          def executionStatus = ExecutionStatus.TERMINAL
           return new DefaultTaskResult(executionStatus)
       }
 
@@ -93,7 +93,6 @@ class ManualJudgmentStage extends LinearStage implements RestartableStage {
 
   static class StageData {
     String judgmentStatus = ""
-    boolean failPipeline = true
     List<Notification> notifications = []
   }
 
