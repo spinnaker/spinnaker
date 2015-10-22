@@ -134,7 +134,7 @@ class GoogleServerGroup implements ServerGroup, Serializable {
     return new ServerGroup.ImageSummary() {
       String serverGroupName = name
       String imageName = launchConfig?.instanceTemplate?.name
-      String imageId = launchConfig?.instanceTemplate?.id
+      String imageId = launchConfig?.imageId
 
       @Override
       Map<String, Object> getBuildInfo() {
