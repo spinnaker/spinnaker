@@ -1,10 +1,9 @@
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
-import com.netflix.spectator.api.Registry
-
 import java.util.function.Function
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -319,7 +318,6 @@ class JedisExecutionRepository implements ExecutionRepository {
     def prefix = type.simpleName.toLowerCase()
     def key = "$prefix:$id"
     if (!isNewSchemaVersion(jedis, key)) {
-      log.warn("Reading {} {} with legacy format", type.simpleName, id)
       def json = jedis.hget(key, "config")
       def execution = mapper.readValue(json, type)
       execution.version = 1
@@ -332,7 +330,6 @@ class JedisExecutionRepository implements ExecutionRepository {
       }
       return sortStages(jedis, execution, type)
     } else if (jedis.exists(key)) {
-      log.warn("Reading {} {} with new format", type.simpleName, id)
       Map<String, String> map = jedis.hgetAll(key)
       def execution = type.newInstance()
       execution.id = id
