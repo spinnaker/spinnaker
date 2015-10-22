@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Id
 import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.batch.BatchStepStatus
@@ -45,16 +45,16 @@ class TaskTasklet implements Tasklet {
   private final Task task
   private final ExecutionRepository executionRepository
   private final List<ExceptionHandler> exceptionHandlers
-  private final ExtendedRegistry extendedRegistry
+  private final Registry registry
 
   TaskTasklet(Task task,
               ExecutionRepository executionRepository,
               List<ExceptionHandler> exceptionHandlers,
-              ExtendedRegistry extendedRegistry) {
+              Registry registry) {
     this.task = task
     this.executionRepository = executionRepository
     this.exceptionHandlers = exceptionHandlers
-    this.extendedRegistry = extendedRegistry
+    this.registry = registry
   }
 
   Class<? extends Task> getTaskType() {
@@ -213,7 +213,7 @@ class TaskTasklet implements Tasklet {
   }
 
   private void logResult(TaskResult result, Stage stage, ChunkContext chunkContext) {
-    Id id = extendedRegistry.createId(METRIC_NAME)
+    Id id = registry.createId(METRIC_NAME)
                             .withTag("status", result.status.toString())
                             .withTag("executionType", stage.execution.class.simpleName)
                             .withTag("stageType", stage.type)
@@ -224,7 +224,7 @@ class TaskTasklet implements Tasklet {
       id = id.withTag("sourceApplication", stage.execution.application)
     }
 
-    extendedRegistry.counter(id).increment()
+    registry.counter(id).increment()
 
     def taskLogger = LoggerFactory.getLogger(task.class)
     if (result.status.complete || taskLogger.isDebugEnabled()) {

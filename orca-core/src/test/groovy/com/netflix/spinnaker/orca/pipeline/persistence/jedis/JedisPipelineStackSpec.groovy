@@ -37,17 +37,14 @@ class JedisPipelineStackSpec extends PipelineStackTck<JedisPipelineStack> {
   }
 
   def cleanup() {
-    embeddedRedis.jedis.flushDB()
+    embeddedRedis.jedis.withCloseable { it.flushDB() }
   }
-
-  def jedis = embeddedRedis.jedis
 
   @Subject
   JedisPipelineStack pipelineStack
 
   @Override
   JedisPipelineStack createPipelineStack() {
-    JedisPool jedisPool = new JedisPool(jedis.client.host, jedis.client.port)
-    new JedisPipelineStack('test', jedisPool)
+    new JedisPipelineStack('test', embeddedRedis.pool)
   }
 }

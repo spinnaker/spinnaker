@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.batch.lifecycle
 
-import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -26,7 +25,6 @@ import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepos
 import org.springframework.batch.core.JobExecution
 import org.springframework.test.context.ContextConfiguration
 import redis.clients.jedis.Jedis
-import redis.clients.jedis.JedisPool
 import redis.clients.util.Pool
 import spock.lang.AutoCleanup
 import spock.lang.Shared
@@ -41,13 +39,13 @@ abstract class AbstractBatchLifecycleSpec extends BatchExecutionSpec {
   }
 
   def cleanup() {
-    embeddedRedis.jedis.flushDB()
+    embeddedRedis.jedis.withCloseable { it.flushDB() }
   }
 
-  Pool<Jedis> jedisPool = new JedisPool("localhost", embeddedRedis.@port)
+  Pool<Jedis> jedisPool = embeddedRedis.pool
 
   def objectMapper = new OrcaObjectMapper()
-  def executionRepository = new JedisExecutionRepository(new ExtendedRegistry(new NoopRegistry()), jedisPool, 1, 50)
+  def executionRepository = new JedisExecutionRepository(new NoopRegistry(), jedisPool, 1, 50)
   def pipeline = createPipeline()
 
   void setup() {

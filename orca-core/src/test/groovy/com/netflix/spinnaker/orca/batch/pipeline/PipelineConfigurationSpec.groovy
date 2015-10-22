@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.batch.pipeline
 
 import com.google.common.collect.Maps
-import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -62,10 +61,10 @@ class PipelineConfigurationSpec extends Specification {
   }
 
   def cleanup() {
-    embeddedRedis.jedis.flushDB()
+    embeddedRedis.jedis.withCloseable { it.flushDB() }
   }
 
-  Pool<Jedis> jedisPool = new JedisPool("localhost", embeddedRedis.@port)
+  Pool<Jedis> jedisPool = embeddedRedis.pool
 
   @Autowired AbstractApplicationContext applicationContext
   @Autowired JobBuilderFactory jobs
@@ -81,7 +80,7 @@ class PipelineConfigurationSpec extends Specification {
   def bazTask = Mock(Task)
 
   @Shared mapper = new OrcaObjectMapper()
-  def executionRepository = new JedisExecutionRepository(new ExtendedRegistry(new NoopRegistry()), jedisPool, 1, 50)
+  def executionRepository = new JedisExecutionRepository(new NoopRegistry(), jedisPool, 1, 50)
 
   def setup() {
 

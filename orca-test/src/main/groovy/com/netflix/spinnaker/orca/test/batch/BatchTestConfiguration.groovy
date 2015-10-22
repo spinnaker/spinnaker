@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.orca.test.batch
 
 import com.netflix.appinfo.InstanceInfo
-import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spectator.api.Registry
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.configuration.ListableJobLocator
 import org.springframework.batch.core.configuration.annotation.BatchConfigurer
@@ -75,9 +75,9 @@ class BatchTestConfiguration {
   }
 
   @Bean
-  @ConditionalOnMissingBean(ExtendedRegistry)
-  ExtendedRegistry getExtendedRegistry() {
-    new ExtendedRegistry(new NoopRegistry())
+  @ConditionalOnMissingBean(Registry)
+  Registry registry() {
+    new NoopRegistry()
   }
 
   @Bean

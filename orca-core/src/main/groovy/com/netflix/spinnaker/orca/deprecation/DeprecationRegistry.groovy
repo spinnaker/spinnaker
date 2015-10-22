@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.deprecation
 
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Id
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -35,11 +35,11 @@ class DeprecationRegistry {
   private static final String APPLICATION_TAG_KEY = "application"
   private static final String DEPRECATION_TAG_KEY = "deprecationName"
 
-  private final ExtendedRegistry extendedRegistry
+  private final Registry registry
 
   @Autowired
-  DeprecationRegistry(ExtendedRegistry extendedRegistry) {
-    this.extendedRegistry = extendedRegistry
+  DeprecationRegistry(Registry registry) {
+    this.registry = registry
   }
 
   void logDeprecatedUsage(String tagName, String application) {
@@ -47,10 +47,10 @@ class DeprecationRegistry {
       log.warn("No deprecation tag name (${tagName}) or application (${application}) provided - ignoring publish of deprecated usage")
       return
     }
-    Id id = extendedRegistry.createId(METRIC_NAME)
+    Id id = registry.createId(METRIC_NAME)
       .withTag(DEPRECATION_TAG_KEY, tagName)
       .withTag(APPLICATION_TAG_KEY, application)
-    extendedRegistry.counter(id).increment()
+    registry.counter(id).increment()
   }
 
 }

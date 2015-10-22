@@ -19,13 +19,9 @@ package com.netflix.spinnaker.orca.test.redis
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import net.greghaines.jesque.Config
 import net.greghaines.jesque.ConfigBuilder
-import org.springframework.beans.factory.config.BeanDefinition
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Scope
 import redis.clients.jedis.Jedis
-import redis.clients.jedis.JedisCommands
-import redis.clients.jedis.JedisPool
 import redis.clients.util.Pool
 
 /**
@@ -38,28 +34,21 @@ class EmbeddedRedisConfiguration {
   @Bean
   EmbeddedRedis redisServer() {
     def redis = EmbeddedRedis.embed()
-    def jedis = redis.jedis
-    jedis.flushAll()
-    jedis.close()
+    redis.jedis.withCloseable { Jedis jedis ->
+      jedis.flushAll()
+    }
     return redis
   }
 
   @Bean
   Config jesqueConfig() {
-    new ConfigBuilder().withHost("localhost")
-                       .withPort(redisServer().redisServer.port)
+    new ConfigBuilder().withHost("127.0.0.1")
+                       .withPort(redisServer().port)
                        .build()
   }
 
   @Bean
   Pool<Jedis> jedisPool() {
-    new JedisPool("localhost", redisServer().redisServer.port)
+    redisServer().pool
   }
-
-  @Bean
-  @Scope(BeanDefinition.SCOPE_PROTOTYPE)
-  JedisCommands jedisCommands(Pool<Jedis> pool) {
-    pool.resource
-  }
-
 }
