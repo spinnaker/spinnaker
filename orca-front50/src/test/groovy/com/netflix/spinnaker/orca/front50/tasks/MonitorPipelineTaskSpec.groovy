@@ -46,15 +46,24 @@ class MonitorPipelineTaskSpec extends Specification {
     def pipeline = new Pipeline().builder().withStage(
       com.netflix.spinnaker.orca.front50.pipeline.PipelineStage.PIPELINE_CONFIG_TYPE, "pipeline", [:]
     ).build()
+    pipeline.version = 1
     pipeline.stages.each {
       it.status = providedStatus
       it.tasks = [Mock(Task)]
     }
 
-    1 * repo.retrievePipeline(_) >> pipeline
+    2 * repo.retrievePipeline(_) >> pipeline
 
     when:
     def result = task.execute(stage)
+
+    then:
+    result.status == expectedStatus
+
+    when:
+    pipeline.version = 2
+    pipeline.executionStatus = providedStatus
+    result = task.execute(stage)
 
     then:
     result.status == expectedStatus

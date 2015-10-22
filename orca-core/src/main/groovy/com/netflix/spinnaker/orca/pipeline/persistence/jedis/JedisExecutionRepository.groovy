@@ -338,7 +338,7 @@ class JedisExecutionRepository implements ExecutionRepository {
       Map<String, String> map = jedis.hgetAll(key)
       def execution = type.newInstance()
       execution.id = id
-      execution.version = Integer.parseInt(map.version ?: "2")
+      execution.version = Integer.parseInt(map.version ?: "${type instanceof Pipeline ? Pipeline.CURRENT_VERSION : Orchestration.CURRENT_VERSION}")
       execution.application = map.application
       execution.appConfig.putAll(mapper.readValue(map.appConfig, Map))
       execution.canceled = Boolean.parseBoolean(map.canceled)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline.model
+package com.netflix.spinnaker.orca.pipeline.tasks
 
-import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import org.springframework.stereotype.Component
 
-@CompileStatic
-class Orchestration extends Execution<Orchestration> {
-  static final int CURRENT_VERSION = 2
+@Component
+class NoopPreconditionTask implements PreconditionTask {
 
-  String description
+  final String preconditionType = 'noop'
+
+  @Override
+  TaskResult execute(Stage stage) {
+    DefaultTaskResult.SUCCEEDED
+  }
 }

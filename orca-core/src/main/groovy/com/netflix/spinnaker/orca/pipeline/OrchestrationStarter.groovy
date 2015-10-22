@@ -71,6 +71,7 @@ class OrchestrationStarter extends ExecutionStarter<Orchestration> {
     orchestration.buildTime = System.currentTimeMillis()
     orchestration.authentication = Execution.AuthenticationDetails.build().orElse(new Execution.AuthenticationDetails())
     orchestration.executingInstance = currentInstance.id
+    orchestration.version = Orchestration.CURRENT_VERSION
 
     return orchestration
   }

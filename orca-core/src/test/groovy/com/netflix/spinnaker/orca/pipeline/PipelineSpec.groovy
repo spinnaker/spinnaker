@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
@@ -27,18 +28,40 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.*
 @Unroll
 class PipelineSpec extends Specification {
 
-  @Subject pipeline = Pipeline.builder()
-                              .withTrigger(name: "SPINNAKER-build-job", lastBuildLabel: 1)
-                              .withStage("stage1")
-                              .withStage("stage2")
-                              .withStage("stage3")
-                              .build()
+  @Subject
+    pipeline = Pipeline.builder()
+      .withTrigger(name: "SPINNAKER-build-job", lastBuildLabel: 1)
+      .withStage("stage1")
+      .withStage("stage2")
+      .withStage("stage3")
+      .build()
 
   void setup() {
+    pipeline.version = 1
     pipeline.stages.findAll { it.tasks.isEmpty() }.each {
       // ensure each stage has at least one task (otherwise it will get skipped when calculating pipeline status)
       it.tasks << new DefaultTask()
     }
+  }
+
+  def "a v2 pipeline's status is 'executionStatus'"() {
+    when:
+    pipeline.version = 2
+
+    pipeline.executionStatus = RUNNING
+    pipeline.stages[0].status = TERMINAL
+    pipeline.stages[1].status = TERMINAL
+    pipeline.stages[2].status = TERMINAL
+
+    then:
+    pipeline.status == RUNNING
+
+    when:
+    pipeline.version = 1
+
+    then:
+    pipeline.status == TERMINAL
+
   }
 
   def "a pipeline's status is #expectedStatus if one of its stages is #expectedStatus"() {
