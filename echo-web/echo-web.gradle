@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+ext {
+  springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
+}
+
 buildscript {
     repositories {
         jcenter()
@@ -27,6 +31,12 @@ apply from: "$rootDir/gradle/groovy-module.gradle"
 apply plugin: 'spring-boot'
 apply plugin: 'project-report'
 apply plugin: 'spinnaker-debpublish'
+
+applicationName = 'echo'
+applicationDefaultJvmArgs = ["-Djava.security.egd=file:/dev/./urandom"]
+applicationDistribution.from(project.file('config')) {
+    into 'config'
+}
 
 springBoot {
     mainClass = 'com.netflix.spinnaker.echo.Application'
@@ -60,15 +70,16 @@ dependencies {
 tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
     def jamm = project.configurations.compile.find { it.name.startsWith('jamm') }
     if (jamm) {
-        jvmArgs "-javaagent:${jamm}"
+        jvmArgs applicationDefaultJvmArgs.join(" ") + " -javaagent:${jamm}"
     }
+    systemProperty('spring.config.location', project.springConfigLocation)
 }
 
 test {
     // jamm is required when using prepared statements with in-memory C*
     def jamm = project.configurations.compile.find { it.name.startsWith('jamm') }
     if (jamm) {
-        jvmArgs "-javaagent:${jamm}"
+        jvmArgs applicationDefaultJvmArgs.join(" ") + " -javaagent:${jamm}"
     }
 }
 
@@ -92,12 +103,6 @@ startScripts {
         unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
         windowsScript.text = windowsScript.text.replace('set CLASSPATH=', 'set CLASSPATH=%APP_HOME%\\config;')
     }
-}
-
-applicationName = 'echo'
-applicationDefaultJvmArgs = ["-Djava.security.egd=file:/dev/./urandom"]
-applicationDistribution.from(project.file('config')) {
-    into 'config'
 }
 
 ospackage {
