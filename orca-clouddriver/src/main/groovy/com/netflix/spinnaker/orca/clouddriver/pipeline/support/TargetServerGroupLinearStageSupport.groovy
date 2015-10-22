@@ -40,6 +40,11 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
   }
 
   void composeTargets(Stage stage) {
+    if(stage.execution.appConfig.strategy){
+      stage.context.regions = [stage.execution.appConfig.strategyConfig.region]
+      stage.context.cluster = stage.execution.appConfig.strategyConfig.cluster
+      stage.context.credentials = stage.execution.appConfig.strategyConfig.credentials
+    }
     def params = TargetServerGroup.Params.fromStage(stage)
     if (TargetServerGroup.isDynamicallyBound(stage)) {
       composeDynamicTargets(stage, params)
