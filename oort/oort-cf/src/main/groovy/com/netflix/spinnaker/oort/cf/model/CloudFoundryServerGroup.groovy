@@ -64,7 +64,7 @@ class CloudFoundryServerGroup implements ServerGroup, Serializable {
     if (this.instances.size() > 0) {
       this.instances.first().launchTime
     } else {
-      nativeApplication.meta.updated.time
+      nativeApplication?.meta?.updated?.time
     }
   }
 
