@@ -85,7 +85,6 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     def onlyEnabled = stage.context.onlyEnabled == null ? true : (Boolean.valueOf(stage.context.onlyEnabled.toString()))
     def selectionStrat = SelectionStrategy.valueOf(stage.context.selectionStrategy?.toString() ?: "NEWEST")
 
-    TypeReference<Map<String, Object>> jsonType = new TypeReference<Map<String, Object>>() {}
     Map<Location, Map<String, Object>> imageSummaries = requiredLocations.collectEntries { location ->
       try {
         def lookupResults = oortService.getServerGroupSummary(
@@ -97,12 +96,12 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
           selectionStrat.toString(),
           SUMMARY_TYPE,
           onlyEnabled.toString())
-        return [(location): objectMapper.readValue(lookupResults.body.in(), jsonType)]
+        return [(location): lookupResults]
       } catch (RetrofitError e) {
         if (e.response.status == 404) {
           def message = "Could not find cluster '$cluster' in account '$account'"
           try {
-            Map reason = objectMapper.readValue(e.response.body.in(), jsonType)
+            Map reason = objectMapper.readValue(e.response.body.in(), new TypeReference<Map<String, Object>>() {})
             if (reason.error.contains("target.fail.strategy")){
               message = "Multiple possible server groups present in ${location.value}"
             }

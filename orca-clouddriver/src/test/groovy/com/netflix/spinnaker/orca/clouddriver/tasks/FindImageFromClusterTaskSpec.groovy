@@ -54,17 +54,14 @@ class FindImageFromClusterTaskSpec extends Specification {
           regions          : [location1.value, location2.value]
       ])
 
-      Response response1 = new Response("http://oort", 200, "OK", [], new TypedString(oortResponse1))
-      Response response2 = new Response("http://oort", 200, "OK", [], new TypedString(oortResponse2))
-
     when:
       def result = task.execute(stage)
 
     then:
       1 * oortService.getServerGroupSummary("foo", "test", "foo-test", "cloudProvider", location1.value,
-          "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> response1
+          "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> oortResponse1
       1 * oortService.getServerGroupSummary("foo", "test", "foo-test", "cloudProvider", location2.value,
-          "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> response2
+          "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> oortResponse2
       assertNorth result.globalOutputs?.deploymentDetails?.find { it.region == "north" } as Map
       assertSouth result.globalOutputs?.deploymentDetails?.find { it.region == "south" } as Map
 
@@ -72,25 +69,21 @@ class FindImageFromClusterTaskSpec extends Specification {
       location1 = new Location(type: Location.Type.REGION, value: "north")
       location2 = new Location(type: Location.Type.REGION, value: "south")
 
-      oortResponse1 = """\
-      {
-        "serverGroupName":  "foo-test-v000",
-        "imageId": "ami-012",
-        "imageName": "ami-012-name",
-        "image": { "imageId": "ami-012", "name": "ami-012-name", "foo": "bar" },
-        "buildInfo": { "job": "foo-build", "buildNumber": 1 }
-      }
-      """.stripIndent()
+      oortResponse1 = [
+        serverGroupName:  "foo-test-v000",
+        imageId: "ami-012",
+        imageName: "ami-012-name",
+        image: [ imageId: "ami-012", name: "ami-012-name", foo: "bar" ],
+        buildInfo: [ job: "foo-build", buildNumber: 1 ]
+      ]
 
-      oortResponse2 = """\
-      {
-        "serverGroupName":  "foo-test-v002",
-        "imageId": "ami-234",
-        "imageName": "ami-234-name",
-        "image": { "imageId": "ami-234", "name": "ami-234-name", "foo": "baz" },
-        "buildInfo": { "job": "foo-build", "buildNumber": 1 }
-      }
-      """.stripIndent()
+      oortResponse2 = [
+        serverGroupName:  "foo-test-v002",
+        imageId: "ami-234",
+        imageName: "ami-234-name",
+        image: [ imageId: "ami-234", name: "ami-234-name", foo: "baz" ],
+        buildInfo: [ job: "foo-build", buildNumber: 1 ]
+      ]
   }
 
   private void assertNorth(Map details) {
