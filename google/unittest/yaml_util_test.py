@@ -16,7 +16,7 @@ import os
 import tempfile
 import unittest
 
-from pylib.yaml_util import YamlBindings
+from spinnaker.yaml_util import YamlBindings
 
 
 class YamlUtilTest(unittest.TestCase):
