@@ -1,5 +1,0 @@
-dependencies {
-  compile spinnaker.dependency('bootAutoConfigure')
-  compile spinnaker.dependency('jedis')
-  spinnaker.group('spockBase')
-}
