@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.batch.adapters
 
 import java.time.Clock
 import java.time.Instant
-import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -58,10 +57,10 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
   }
 
   def cleanup() {
-    embeddedRedis.jedis.flushDB()
+    embeddedRedis.jedis.withCloseable { it.flushDB() }
   }
 
-  Pool<Jedis> jedisPool = new JedisPool("localhost", embeddedRedis.@port)
+  Pool<Jedis> jedisPool = embeddedRedis.pool
 
   @Shared backoffPeriod = 1000L
   @Shared timeout = 60000L
@@ -73,8 +72,8 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
 
   def sleeper = Mock(Sleeper)
   def objectMapper = new OrcaObjectMapper()
-  def executionRepository = new JedisExecutionRepository(new ExtendedRegistry(new NoopRegistry()), jedisPool, 1, 50)
-  def taskFactory = new TaskTaskletAdapter(executionRepository, [], new ExtendedRegistry(new NoopRegistry()), sleeper)
+  def executionRepository = new JedisExecutionRepository(new NoopRegistry(), jedisPool, 1, 50)
+  def taskFactory = new TaskTaskletAdapter(executionRepository, [], new NoopRegistry(), sleeper)
   Pipeline pipeline
 
   @Shared def random = Random.newInstance()
@@ -149,7 +148,7 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
 
     and:
     def stage = new PipelineStage(new Pipeline(), null, stageContext)
-    def tasklet = new RetryableTaskTasklet(task, null, null, new ExtendedRegistry(new NoopRegistry()), clock)
+    def tasklet = new RetryableTaskTasklet(task, null, null, new NoopRegistry(), clock)
 
     when:
     def exceptionThrown = false

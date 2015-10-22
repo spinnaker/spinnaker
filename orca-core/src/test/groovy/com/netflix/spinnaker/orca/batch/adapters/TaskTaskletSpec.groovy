@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
-import com.netflix.spectator.api.DefaultRegistry
-import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -52,19 +50,19 @@ class TaskTaskletSpec extends Specification {
   }
 
   def cleanup() {
-    embeddedRedis.jedis.flushDB()
+    embeddedRedis.jedis.withCloseable { it.flushDB() }
   }
 
-  Pool<Jedis> jedisPool = new JedisPool("localhost", embeddedRedis.@port)
+  Pool<Jedis> jedisPool = embeddedRedis.pool
 
   def objectMapper = new OrcaObjectMapper()
-  def executionRepository = new JedisExecutionRepository(new ExtendedRegistry(new NoopRegistry()), jedisPool, 1, 50)
+  def executionRepository = new JedisExecutionRepository(new NoopRegistry(), jedisPool, 1, 50)
   def pipeline = Pipeline.builder().withStage("stage", "stage", [foo: "foo"]).build()
   def stage = pipeline.stages.first()
   def task = Mock(Task)
 
   @Subject
-  def tasklet = new TaskTasklet(task, executionRepository, [], new ExtendedRegistry(new NoopRegistry()))
+  def tasklet = new TaskTasklet(task, executionRepository, [], new NoopRegistry())
 
   JobExecution jobExecution
   StepExecution stepExecution
@@ -256,7 +254,7 @@ class TaskTaskletSpec extends Specification {
     def task = Mock(taskType)
     task.execute(_) >> { throw new RuntimeException() }
 
-    def tasklet = new TaskTasklet(task, executionRepository, [], new ExtendedRegistry(new DefaultRegistry()))
+    def tasklet = new TaskTasklet(task, executionRepository, [], new NoopRegistry())
     tasklet.exceptionHandlers << Mock(ExceptionHandler) {
       1 * handles(_) >> {
         true

@@ -1,9 +1,10 @@
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
+import com.netflix.spectator.api.Registry
+
 import java.util.function.Function
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -44,15 +45,15 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   @Autowired
   JedisExecutionRepository(
-    ExtendedRegistry extendedRegistry,
+    Registry registry,
     Pool<Jedis> jedisPool,
     @Value('${threadPool.executionRepository:150}') int threadPoolSize,
     @Value('${chunkSize.executionRepository:75}') int threadPoolChunkSize
   ) {
     this(
       jedisPool,
-      Schedulers.from(newFixedThreadPool(extendedRegistry, 10, "QueryAll")),
-      Schedulers.from(newFixedThreadPool(extendedRegistry, threadPoolSize, "QueryByApp")),
+      Schedulers.from(newFixedThreadPool(registry, 10, "QueryAll")),
+      Schedulers.from(newFixedThreadPool(registry, threadPoolSize, "QueryByApp")),
       threadPoolChunkSize
     )
   }
@@ -506,11 +507,11 @@ class JedisExecutionRepository implements ExecutionRepository {
     jedisPool.resource.withCloseable(action.&apply)
   }
 
-  private static ThreadPoolTaskExecutor newFixedThreadPool(ExtendedRegistry extendedRegistry,
+  private static ThreadPoolTaskExecutor newFixedThreadPool(Registry registry,
                                                            int threadPoolSize,
                                                            String threadPoolName) {
     def executor = new ThreadPoolTaskExecutor(maxPoolSize: threadPoolSize, corePoolSize: threadPoolSize)
     executor.afterPropertiesSet()
-    return OrcaConfiguration.applyThreadPoolMetrics(extendedRegistry, executor, threadPoolName)
+    return OrcaConfiguration.applyThreadPoolMetrics(registry, executor, threadPoolName)
   }
 }

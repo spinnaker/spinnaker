@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
@@ -43,9 +43,9 @@ class RetryableTaskTasklet extends TaskTasklet {
   RetryableTaskTasklet(RetryableTask task,
                        ExecutionRepository executionRepository,
                        List<ExceptionHandler> exceptionHandlers,
-                       ExtendedRegistry extendedRegistry,
+                       Registry registry,
                        Clock clock = Clock.systemUTC()) {
-    super(task, executionRepository, exceptionHandlers, extendedRegistry)
+    super(task, executionRepository, exceptionHandlers, registry)
     this.clock = clock
     this.timeoutMs = task.timeout
   }

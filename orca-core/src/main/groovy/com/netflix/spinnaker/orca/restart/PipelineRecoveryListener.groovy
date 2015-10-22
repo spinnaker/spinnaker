@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.orca.restart
 
 import com.netflix.appinfo.InstanceInfo
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -28,17 +28,17 @@ class PipelineRecoveryListener implements ApplicationListener<ContextRefreshedEv
   private final ExecutionRepository executionRepository
   private final PipelineStarter pipelineStarter
   private final InstanceInfo currentInstance
-  private final ExtendedRegistry extendedRegistry
+  private final Registry registry
 
   @Autowired
   PipelineRecoveryListener(ExecutionRepository executionRepository,
                            PipelineStarter pipelineStarter,
                            @Qualifier("instanceInfo") InstanceInfo currentInstance,
-                           ExtendedRegistry extendedRegistry) {
+                           Registry registry) {
     this.currentInstance = currentInstance
     this.executionRepository = executionRepository
     this.pipelineStarter = pipelineStarter
-    this.extendedRegistry = extendedRegistry
+    this.registry = registry
   }
 
   @Override
@@ -56,9 +56,9 @@ class PipelineRecoveryListener implements ApplicationListener<ContextRefreshedEv
   private void onResumablePipeline(Pipeline pipeline) {
     try {
       pipelineStarter.resume(pipeline)
-      extendedRegistry.counter("pipeline.restarts").increment()
+      registry.counter("pipeline.restarts").increment()
     } catch (Exception e) {
-      extendedRegistry.counter("pipeline.failed.restarts").increment()
+      registry.counter("pipeline.failed.restarts").increment()
     }
   }
 }
