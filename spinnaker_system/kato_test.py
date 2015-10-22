@@ -87,15 +87,6 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     """
     return kato.new_agent(bindings)
 
-  def __init__(self, bindings, agent):
-    """Construct new scenaro.
-
-    Args:
-      bindings: Configuration key/value bindings. Keys are upper case.
-      agent: KatoSpinnakerAgent the scenario will talk to.
-    """
-    super(KatoTestScenario, self).__init__(bindings, agent)
-
   def create_instances(self):
     """Creates test adding instances to GCE.
 
@@ -562,7 +553,9 @@ class KatoIntegrationTest(st.AgentTestCase):
 
 
 def main():
-  return KatoIntegrationTest.main(KatoTestScenario)
+  return st.ScenarioTestRunner.main(
+      KatoTestScenario,
+      test_case_list=[KatoIntegrationTest])
 
 
 if __name__ == '__main__':

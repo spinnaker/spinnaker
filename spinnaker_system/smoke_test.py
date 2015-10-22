@@ -74,7 +74,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
         default='fe',
         help='Refinement for component name to create.')
 
-  def __init__(self, bindings, agent):
+  def __init__(self, bindings, agent=None):
     super(SmokeTestScenario, self).__init__(bindings, agent)
 
     bindings = self.bindings
@@ -289,38 +289,43 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
 
 class SmokeTest(st.AgentTestCase):
   def test_a_create_app(self):
-    self.run_test_case(self._scenario.create_app())
+    self.run_test_case(self.scenario.create_app())
 
   def test_b_create_load_balancer(self):
-    self.run_test_case(self._scenario.create_load_balancer())
+    self.run_test_case(self.scenario.create_load_balancer())
 
   def test_c_create_server_group(self):
     # We'll permit this to timeout for now
     # because it might be waiting on confirmation
     # but we'll continue anyway because side effects
     # should have still taken place.
-    self.run_test_case(self._scenario.create_server_group(), timeout_ok=True)
+    self.run_test_case(self.scenario.create_server_group(), timeout_ok=True)
 
   def test_x_delete_server_group(self):
-    self.run_test_case(self._scenario.delete_server_group(), max_retries=5)
+    self.run_test_case(self.scenario.delete_server_group(), max_retries=5)
 
   def test_y_delete_load_balancer(self):
-    self.run_test_case(self._scenario.delete_load_balancer(),
+    self.run_test_case(self.scenario.delete_load_balancer(),
                        max_retries=5)
 
   def test_z_delete_app(self):
     # Give a total of a minute because it might also need
     # an internal cache update
-    self.run_test_case(self._scenario.delete_app(),
+    self.run_test_case(self.scenario.delete_app(),
                        retry_interval_secs=8, max_retries=8)
 
 
 def main():
+
   defaults = {
-    'TEST_STACK': 'smoketest' + SmokeTest.DEFAULT_TEST_ID,
-    'TEST_APP': 'smoketest' + SmokeTest.DEFAULT_TEST_ID
+    'TEST_STACK': 'smoketest' + SmokeTestScenario.DEFAULT_TEST_ID,
+    'TEST_APP': 'smoketest' + SmokeTestScenario.DEFAULT_TEST_ID
   }
-  return SmokeTest.main(SmokeTestScenario, default_binding_overrides=defaults)
+
+  return st.ScenarioTestRunner.main(
+      SmokeTestScenario,
+      default_binding_overrides=defaults,
+      test_case_list=[SmokeTest])
 
 
 if __name__ == '__main__':

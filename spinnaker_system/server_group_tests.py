@@ -31,7 +31,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
     '''
     return gate.new_agent(bindings)
 
-  def __init__(self, bindings, agent):
+  def __init__(self, bindings, agent=None):
     super(ServerGroupTestScenario, self).__init__(bindings, agent)
 
     # Our application name and path to post events to.
@@ -360,12 +360,16 @@ class ServerGroupTest(st.AgentTestCase):
 
 
 def main():
+
   defaults = {
-    'TEST_STACK': 'svrgrptst' + ServerGroupTest.DEFAULT_TEST_ID,
-    'TEST_APP': 'servergrouptest' + ServerGroupTest.DEFAULT_TEST_ID
+    'TEST_STACK': 'svrgrptst' + ServerGroupTestScenario.DEFAULT_TEST_ID,
+    'TEST_APP': 'servergrouptest' + ServerGroupTestScenario.DEFAULT_TEST_ID
   }
-  return ServerGroupTest.main(
-      ServerGroupTestScenario, default_binding_overrides=defaults)
+
+  return st.ScenarioTestRunner.main(
+      ServerGroupTestScenario,
+      default_binding_overrides=defaults,
+      test_case_list=[ServerGroupTest])
 
 
 if __name__ == '__main__':

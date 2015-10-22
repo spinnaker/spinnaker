@@ -144,9 +144,8 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         help='Default Spinnaker stack decorator.')
 
     parser.add_argument(
-        '--test_app', default=defaults.get('TEST_APP', cls.__name__),
+        '--test_app', default=defaults.get('TEST_APP', cls.__name__.lower()),
         help='Default Spinnaker application name to use with test.')
-
 
 
   @property
@@ -157,7 +156,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
   def aws_observer(self):
     return self._aws_observer
 
-  def __init__(self, bindings, agent):
+  def __init__(self, bindings, agent=None):
     """Constructor
 
     Args:
@@ -165,6 +164,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       agent: The Spinnaker agent to bind to the scenario.
     """
     super(SpinnakerTestScenario, self).__init__(bindings, agent)
+    agent = self.agent
     bindings = self._bindings  # base class made a copy
 
     if not self._bindings['TEST_GCE_ZONE']:
