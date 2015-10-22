@@ -61,6 +61,18 @@ interface Front50Service {
   @POST('/notifications/{type}/{app}')
   Response saveNotificationConfig(@Path('type') String type, @Path('app') String app, @Body Map notificationConfig)
 
+  @GET('/strategies/{app}')
+  List<Map> getStrategyConfigs(@Path("app") String app)
+
+  @DELETE('/strategies/{app}/{name}')
+  Response deleteStrategyConfig(@Path("app") String app, @Path("name") String name)
+
+  @POST('/strategies')
+  Response saveStrategyConfig(@Body Map strategyConfig)
+
+  @POST('/strategies/move')
+  Response moveStrategyConfig(@Body Map moveCommand)
+
   @GET('/v2/projects')
   HalList getAllProjects()
 

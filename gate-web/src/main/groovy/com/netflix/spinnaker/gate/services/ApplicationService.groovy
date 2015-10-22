@@ -109,6 +109,25 @@ class ApplicationService {
     } execute()
   }
 
+  List<Map> getStrategyConfigs(String app) {
+    if (!front50Service) {
+      return []
+    }
+
+    HystrixFactory.newListCommand(GROUP, "getStrategyConfigForApplication") {
+      front50Service.getStrategyConfigs(app)
+    } execute()
+  }
+
+  Map getStrategyConfig(String app, String strategyName) {
+    if (!front50Service) {
+      return null
+    }
+    HystrixFactory.newMapCommand(GROUP, "getStrategyConfigForApplicationAndPipeline") {
+      front50Service.getStrategyConfigs(app).find { it.name == strategyName }
+    } execute()
+  }
+
   private Collection<Callable<List<Map>>> buildApplicationListRetrievers() {
     def globalAccounts = front50Service.credentials.findAll { it.global == true }.collect { it.name } as List<String>
     return globalAccounts.collectMany { String globalAccount ->

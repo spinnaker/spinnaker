@@ -102,6 +102,19 @@ class ApplicationController {
     }
   }
 
+  @RequestMapping(value = "/{application}/strategyConfigs", method = RequestMethod.GET)
+  List getStrategyConfigs(@PathVariable("application") String application) {
+    applicationService.getStrategyConfigs(application)
+  }
+
+  @RequestMapping(value = "/{application}/strategyConfigs/{strategyName:.+}", method = RequestMethod.GET)
+  Map getStrategyConfig(
+    @PathVariable("application") String application, @PathVariable("strategyName") String strategyName) {
+    applicationService.getStrategyConfigs(application).find {
+      it.name == strategyName
+    }
+  }
+
   /**
    * @deprecated  Use PipelineController instead for pipeline operations.
    */
