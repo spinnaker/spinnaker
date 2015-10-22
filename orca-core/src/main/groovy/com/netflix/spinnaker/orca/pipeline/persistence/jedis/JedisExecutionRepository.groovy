@@ -96,7 +96,12 @@ class JedisExecutionRepository implements ExecutionRepository {
         throw new ExecutionNotFoundException("No execution found with id $id")
       }
       if (isNewSchemaVersion(jedis, key)) {
-        jedis.hset(key, "canceled", "true")
+        def data = [canceled: "true"]
+        def currentStatus = ExecutionStatus.valueOf(jedis.hget(key, "status"))
+        if (currentStatus == ExecutionStatus.NOT_STARTED) {
+          data.status = ExecutionStatus.CANCELED.name()
+        }
+        jedis.hmset(key, data)
       } else {
         def data = mapper.readValue(jedis.hget(key, "config"), Map)
         data.canceled = "true"
@@ -137,7 +142,7 @@ class JedisExecutionRepository implements ExecutionRepository {
         throw new ExecutionNotFoundException("No execution found with id $id")
       }
       if (isNewSchemaVersion(jedis, key)) {
-        Map<String, String> map = [executionStatus: status.name()]
+        Map<String, String> map = [status: status.name()]
         if (status == ExecutionStatus.RUNNING) {
           map.startTime = String.valueOf(currentTimeMillis())
         } else if (status.complete) {
@@ -263,7 +268,7 @@ class JedisExecutionRepository implements ExecutionRepository {
         startTime        : (execution.executionStartTime ?: execution.startTime)?.toString(),
         endTime          : (execution.executionEndTime ?: execution.endTime)?.toString(),
         executingInstance: execution.executingInstance,
-        executionStatus  : execution.executionStatus?.name(),
+        status           : execution.executionStatus?.name(),
         authentication   : mapper.writeValueAsString(execution.authentication)
       ]
       // TODO: store separately? Seems crazy to be using a hash rather than a set
@@ -343,7 +348,7 @@ class JedisExecutionRepository implements ExecutionRepository {
       execution.executionStartTime = map.startTime?.toLong()
       execution.executionEndTime = map.endTime?.toLong()
       execution.executingInstance = map.executingInstance
-      execution.executionStatus = map.executionStatus ? ExecutionStatus.valueOf(map.executionStatus) : null
+      execution.executionStatus = map.status ? ExecutionStatus.valueOf(map.status) : null
       execution.authentication = mapper.readValue(map.authentication, Execution.AuthenticationDetails)
       def stageIds = map.stageIndex.tokenize(",")
       stageIds.each { stageId ->

@@ -231,6 +231,49 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     type = execution.getClass().simpleName
   }
+
+  def "cancelling a not-yet-started execution updates the status immediately"() {
+    given:
+    def execution = new Pipeline(buildTime: 0)
+    repository.store(execution)
+
+    expect:
+    with(repository.retrievePipeline(execution.id)) {
+      executionStatus == NOT_STARTED
+    }
+
+    when:
+    repository.cancel(execution.id)
+
+
+    then:
+    with(repository.retrievePipeline(execution.id)) {
+      canceled
+      executionStatus == CANCELED
+    }
+  }
+
+  def "cancelling a running execution does not update the status immediately"() {
+    given:
+    def execution = new Pipeline(buildTime: 0)
+    repository.store(execution)
+    repository.updateStatus(execution.id, RUNNING)
+
+    expect:
+    with(repository.retrievePipeline(execution.id)) {
+      executionStatus == RUNNING
+    }
+
+    when:
+    repository.cancel(execution.id)
+
+
+    then:
+    with(repository.retrievePipeline(execution.id)) {
+      canceled
+      executionStatus == RUNNING
+    }
+  }
 }
 
 class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecutionRepository> {
