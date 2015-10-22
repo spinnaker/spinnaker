@@ -424,6 +424,16 @@ class SpinnakerAgent(service_testing.HttpAgent):
     bindings = yaml_util.YamlBindings()
 
     got = response.output
+
+    # gcloud prints an info message about upgrades to the output stream.
+    # There seems to be no way to supress this!
+    # Look for it and truncate the stream there if we see it.
+    update_msg_offset = got.find('Updates are available')
+    if update_msg_offset > 0:
+      got = got[0:update_msg_offset]
+
+    # When we ssh in, there may be a message written warning us that the host
+    # was added to known hosts. If so, this will be the first line. Remove it.
     eoln = got.find('\n')
     if eoln > 0 and re.match('^Warning: .+$', got[0:eoln]):
       got = got[eoln + 1:]
