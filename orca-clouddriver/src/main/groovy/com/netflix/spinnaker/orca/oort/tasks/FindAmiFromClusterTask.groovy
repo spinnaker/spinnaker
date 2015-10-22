@@ -32,6 +32,7 @@ import retrofit.RetrofitError
 
 @Component
 @Slf4j
+@Deprecated
 class FindAmiFromClusterTask implements Task {
 
   static enum SelectionStrategy {
