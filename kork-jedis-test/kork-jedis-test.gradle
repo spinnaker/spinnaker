@@ -1,4 +1,4 @@
 dependencies {
+  compile spinnaker.dependency('jedis')
   compile spinnaker.dependency('redisEmbedded')
-  compile project(':kork-jedis')
 }

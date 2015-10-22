@@ -1,28 +1,32 @@
 package com.netflix.spinnaker.kork.jedis;
 
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCommands;
+import redis.clients.jedis.JedisPool;
+import redis.clients.util.Pool;
 import redis.embedded.RedisServer;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.URI;
 import java.net.URISyntaxException;
 
 public class EmbeddedRedis {
 
-  private final String host;
-  private final int port;
-  private final String connection;
+  private final URI connection;
   private final RedisServer redisServer;
 
-  private Jedis jedis;
-  private JedisCommands jedisCommands;
+  private Pool<Jedis> jedis;
 
-  private EmbeddedRedis(String host, int port) throws IOException, URISyntaxException {
-    this.host = host;
-    this.port = port;
-    this.connection = String.format("redis://%s:%d", host, port);
-    this.redisServer = new RedisServer(port);
+  private EmbeddedRedis(int port) throws IOException, URISyntaxException {
+    this.connection = URI.create(String.format("redis://127.0.0.1:%d/0", port));
+    this.redisServer = RedisServer
+      .builder()
+      .port(port)
+      .setting("bind 127.0.0.1")
+      .setting("appendonly no")
+      .setting("save \"\"")
+      .setting("databases 1")
+      .build();
     this.redisServer.start();
   }
 
@@ -34,27 +38,27 @@ public class EmbeddedRedis {
     }
   }
 
-  public Jedis getJedis() {
+  public int getPort() {
+    return redisServer.ports().get(0);
+  }
+
+  public Pool<Jedis> getPool() {
     if (jedis == null) {
-      jedis = new Jedis(host, port);
+      jedis = new JedisPool(connection);
     }
     return jedis;
   }
 
-  public JedisCommands getJedisCommands() {
-    if (jedisCommands == null) {
-      jedisCommands = new JedisConfig().jedis(connection, 2000);
-    }
-    return jedisCommands;
+  public Jedis getJedis() {
+    return getPool().getResource();
   }
 
   public static EmbeddedRedis embed() {
     try {
       ServerSocket serverSocket = new ServerSocket(0);
-      String host = serverSocket.getInetAddress().getCanonicalHostName();
       int port = serverSocket.getLocalPort();
       serverSocket.close();
-      return new EmbeddedRedis(host, port);
+      return new EmbeddedRedis(port);
     } catch (IOException | URISyntaxException e) {
       throw new RuntimeException("Failed to create embedded Redis", e);
     }
