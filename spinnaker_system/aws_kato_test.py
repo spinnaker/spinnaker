@@ -68,7 +68,7 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
   def new_agent(cls, bindings):
     return kato.new_agent(bindings)
 
-  def __init__(self, bindings, agent):
+  def __init__(self, bindings, agent=None):
     super(AwsKatoTestScenario, self).__init__(bindings, agent)
 
   def upsert_load_balancer(self):
@@ -168,10 +168,13 @@ class AwsKatoIntegrationTest(st.AgentTestCase):
 
 def main():
   defaults = {
-    'TEST_APP': 'awskatotest' + AwsKatoIntegrationTest.DEFAULT_TEST_ID
+    'TEST_APP': 'awskatotest' + AwsKatoTestScenario.DEFAULT_TEST_ID
   }
-  return AwsKatoIntegrationTest.main(AwsKatoTestScenario,
-                                     default_binding_overrides=defaults)
+
+  return st.ScenarioTestRunner.main(
+      AwsKatoTestScenario,
+      default_binding_overrides=defaults,
+      test_case_list=[AwsKatoIntegrationTest])
 
 
 if __name__ == '__main__':
