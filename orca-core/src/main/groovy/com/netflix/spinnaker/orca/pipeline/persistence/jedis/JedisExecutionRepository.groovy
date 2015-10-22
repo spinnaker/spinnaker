@@ -260,8 +260,8 @@ class JedisExecutionRepository implements ExecutionRepository {
         limitConcurrent  : String.valueOf(execution.limitConcurrent),
         buildTime        : Long.toString(execution.buildTime ?: 0L),
         // TODO: modify these lines once we eliminate dynamic time properties
-        startTime        : Long.toString(execution.executionStartTime ?: execution.startTime ?: 0L),
-        endTime          : Long.toString(execution.executionEndTime ?: execution.endTime ?: 0L),
+        startTime        : (execution.executionStartTime ?: execution.startTime)?.toString(),
+        endTime          : (execution.executionEndTime ?: execution.endTime)?.toString(),
         executingInstance: execution.executingInstance,
         executionStatus  : execution.executionStatus?.name(),
         authentication   : mapper.writeValueAsString(execution.authentication)
@@ -339,9 +339,9 @@ class JedisExecutionRepository implements ExecutionRepository {
       execution.canceled = Boolean.parseBoolean(map.canceled)
       execution.parallel = Boolean.parseBoolean(map.parallel)
       execution.limitConcurrent = Boolean.parseBoolean(map.limitConcurrent)
-      execution.buildTime = Long.parseLong(map.buildTime) ?: 0
-      execution.executionStartTime = Long.parseLong(map.startTime) ?: 0
-      execution.executionEndTime = Long.parseLong(map.endTime) ?: 0
+      execution.buildTime = map.buildTime?.toLong()
+      execution.executionStartTime = map.startTime?.toLong()
+      execution.executionEndTime = map.endTime?.toLong()
       execution.executingInstance = map.executingInstance
       execution.executionStatus = map.executionStatus ? ExecutionStatus.valueOf(map.executionStatus) : null
       execution.authentication = mapper.readValue(map.authentication, Execution.AuthenticationDetails)

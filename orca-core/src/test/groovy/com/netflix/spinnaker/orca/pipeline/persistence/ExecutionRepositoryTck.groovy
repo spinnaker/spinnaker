@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import redis.clients.jedis.Jedis
-import redis.clients.jedis.JedisPool
 import redis.clients.util.Pool
 import spock.lang.*
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
@@ -185,7 +184,10 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.store(execution)
 
     expect:
-    execution.startTime == null
+    with (repository."retrieve$type"(execution.id)) {
+      startTime == null
+      executionStartTime == null
+    }
 
     when:
     repository.updateStatus(execution.id, RUNNING)
@@ -206,7 +208,10 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.store(execution)
 
     expect:
-    execution.startTime == null
+    with (repository."retrieve$type"(execution.id)) {
+      endTime == null
+      executionEndTime == null
+    }
 
     when:
     repository.updateStatus(execution.id, status)
