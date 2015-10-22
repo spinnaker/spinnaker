@@ -1,6 +1,6 @@
 versions:
 # spinnaker libs
-  kork: "1.50"
+  kork: "1.51"
   redbatch: "0.4"
 # third party
   akka: "2.3.9"
@@ -20,7 +20,7 @@ versions:
   httpclient: "4.3.6"
   httpcore: "4.3.3"
   jackson: "2.5.3"
-  jedis: "2.6.2"
+  jedis: "2.7.3"
   junit: "4.12"
   lombok: "1.16.4"
   objenesis: "2.1"
@@ -115,7 +115,6 @@ dependencies:
   clouddriverSecurity: "com.netflix.spinnaker.clouddriver:clouddriver-security:${versions.clouddriver}"
   kork: "com.netflix.spinnaker.kork:kork-core:${versions.kork}"
   korkCassandra: "com.netflix.spinnaker.kork:kork-cassandra:${versions.kork}"
-  korkJedis: "com.netflix.spinnaker.kork:kork-jedis:${versions.kork}"
   korkJedisTest: "com.netflix.spinnaker.kork:kork-jedis-test:${versions.kork}"
   korkSecurity: "com.netflix.spinnaker.kork:kork-security:${versions.kork}"
   korkSwagger: "com.netflix.spinnaker.kork:kork-swagger:${versions.kork}"
@@ -164,7 +163,7 @@ dependencies:
   objenesis: "org.objenesis:objenesis:${versions.objenesis}"
   okHttp: "com.squareup.okhttp:okhttp:${versions.okHttp}"
   okHttpUrlconnection: "com.squareup.okhttp:okhttp-urlconnection:${versions.okHttp}"
-  redisEmbedded: "com.orange.redis-embedded:embedded-redis:${versions.redisEmbedded}"
+  redisEmbedded: "com.github.kstyrc:embedded-redis:${versions.redisEmbedded}"
   retrofit: "com.squareup.retrofit:retrofit:${versions.retrofit}"
   retrofitJackson: "com.squareup.retrofit:converter-jackson:${versions.retrofit}"
   retrofitMock: "com.squareup.retrofit:retrofit-mock:${versions.retrofit}"
