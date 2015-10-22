@@ -65,7 +65,14 @@ class CreateGoogleServerGroupTask implements Task {
     def deploymentDetails = (stage.context.deploymentDetails ?: []) as List<Map>
 
     if (!operation.image && deploymentDetails) {
+      // Bakery ops are keyed off cloudProviderType
       operation.image = deploymentDetails.find { it.cloudProviderType == 'gce' }?.ami
+
+      // Alternatively, FindImage ops distinguish between server groups deployed to different zones.
+      // This is partially because AWS images are only available regionally.
+      if (!operation.image && stage.context.zone) {
+        operation.image = deploymentDetails.find { it.zone == stage.context.zone}?.imageId
+      }
     }
 
     operation
