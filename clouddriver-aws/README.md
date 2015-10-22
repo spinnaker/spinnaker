@@ -1,6 +1,6 @@
 ## Configuring multiple AWS accounts
 
-When Spinnaker is configured to manage multiple AWS accounts is uses AWS STS
+When Spinnaker is configured to manage multiple AWS accounts it uses AWS STS
 assumeRole functionality to connect to and operate on each managed account.
 
 The single set of AWS credentials used by Spinnaker connects to the managing
