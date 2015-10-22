@@ -48,7 +48,7 @@ class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task {
   @Autowired
   ObjectMapper mapper
 
-  @Value('${default.bake.account:test}')
+  @Value('${default.bake.account:default}')
   String defaultBakeAccount
 
   @Value('${default.vpc.securityGroups:#{T(com.netflix.spinnaker.orca.kato.tasks.CreateDeployTask).DEFAULT_VPC_SECURITY_GROUPS}}')

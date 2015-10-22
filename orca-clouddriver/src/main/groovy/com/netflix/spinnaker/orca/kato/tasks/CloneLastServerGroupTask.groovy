@@ -38,7 +38,7 @@ class CloneLastServerGroupTask extends AbstractCloudProviderAwareTask implements
   @Autowired
   ObjectMapper mapper
 
-  @Value('${default.bake.account:test}')
+  @Value('${default.bake.account:default}')
   String defaultBakeAccount
 
   @Override
