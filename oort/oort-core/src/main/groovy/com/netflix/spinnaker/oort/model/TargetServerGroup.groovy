@@ -23,7 +23,7 @@ enum TargetServerGroup {
   /**
    * The most recent Server Group.
    */
-  CURRENT(),
+  CURRENT(['newest']),
 
   /**
    * The second most recent Server Group. Useful for referencing the Server Group to which to roll back.
@@ -34,6 +34,16 @@ enum TargetServerGroup {
    * The oldest Server Group.
    */
   OLDEST(),
+
+  /**
+   * The largest server group. In the case of a tie, the newest server group is returned.
+   */
+  LARGEST(),
+
+  /**
+   * Fail if there is more than one server group to choose from.
+   */
+  FAIL(),
 
   private final List<String> aliases
 

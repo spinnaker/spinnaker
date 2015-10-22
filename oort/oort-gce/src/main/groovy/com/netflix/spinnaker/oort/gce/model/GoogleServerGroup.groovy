@@ -128,6 +128,26 @@ class GoogleServerGroup implements ServerGroup, Serializable {
     return null
   }
 
+  @Override
+  ServerGroup.ImageSummary getImageSummary() {
+    def bi = buildInfo
+    return new ServerGroup.ImageSummary() {
+      String serverGroupName = name
+      String imageName = launchConfig?.instanceTemplate?.name
+      String imageId = launchConfig?.instanceTemplate?.id
+
+      @Override
+      Map<String, Object> getBuildInfo() {
+        return bi
+      }
+
+      @Override
+      Map<String, Object> getImage() {
+        return launchConfig?.instanceTemplate
+      }
+    }
+  }
+
   static Collection<Instance> filterInstancesByHealthState(Set<Instance> instances, HealthState healthState) {
     instances.findAll { Instance it -> it.getHealthState() == healthState }
   }
