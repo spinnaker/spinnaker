@@ -39,7 +39,7 @@ import org.springframework.web.client.RestTemplate
 import java.util.concurrent.TimeUnit
 
 /**
- * A deployment handler for Cloud Foundry. Inspired by cf-maven-plugin's {@link org.cloudfoundry.maven.AbstractPush}
+ * A deployment handler for Cloud Foundry. Inspired by cf-maven-plugin's {@literal AbstractPush}
  *
  * @author Greg Turnquist
  */
@@ -47,10 +47,10 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
   private static final String BASE_PHASE = "DEPLOY"
 
   private static final Integer DEFAULT_MEMORY = 512
-  private static final Integer DEFAULT_APP_STARTUP_TIMEOUT = 5
+  private static final Integer DEFAULT_APP_STARTUP_TIMEOUT = 5  // minutes
 
   private final String username
-  private final String password // minutes
+  private final String password
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()

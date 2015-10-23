@@ -46,6 +46,7 @@ class CloudFoundryDeployDescriptionValidator extends DescriptionValidator<CloudF
         errors.rejectValue("credentials", "cloudFoundryDeployDescription.credentials.invalid")
       }
     }
+    // TODO Reinstate the validator after the operation if verified
 //    if (!description.api) {
 //      errors.rejectValue "api", "cloudFoundryDepoyDescription.api.empty"
 //    }
