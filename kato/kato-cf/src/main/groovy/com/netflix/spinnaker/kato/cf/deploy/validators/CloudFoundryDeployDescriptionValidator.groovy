@@ -46,23 +46,24 @@ class CloudFoundryDeployDescriptionValidator extends DescriptionValidator<CloudF
         errors.rejectValue("credentials", "cloudFoundryDeployDescription.credentials.invalid")
       }
     }
-    if (!description.api) {
-      errors.rejectValue "api", "cloudFoundryDepoyDescription.api.empty"
-    }
-    if (!description.org) {
-      errors.rejectValue "org", "cloudFoundryDepoyDescription.org.empty"
-    }
-    if (!description.space) {
-      errors.rejectValue "space", "cloudFoundryDepoyDescription.space.empty"
-    }
-    if (!description.application) {
-      errors.rejectValue "application", "cloudFoundryDeployDescription.application.empty"
-    }
-    if (!description.artifact) {
-      errors.rejectValue "artifact", "cloudFoundryDepoyDescription.artifact.empty"
-    }
-    if (description.instances != null && description.instances < 1) {
-      errors.rejectValue "instances", "cloudFoundryDeployDescription.instances.invalid", description.instances as String
-    }
+    // TODO Reinstate the validator after the operation if verified
+//    if (!description.api) {
+//      errors.rejectValue "api", "cloudFoundryDepoyDescription.api.empty"
+//    }
+//    if (!description.org) {
+//      errors.rejectValue "org", "cloudFoundryDepoyDescription.org.empty"
+//    }
+//    if (!description.space) {
+//      errors.rejectValue "space", "cloudFoundryDepoyDescription.space.empty"
+//    }
+//    if (!description.application) {
+//      errors.rejectValue "application", "cloudFoundryDeployDescription.application.empty"
+//    }
+//    if (!description.artifact) {
+//      errors.rejectValue "artifact", "cloudFoundryDepoyDescription.artifact.empty"
+//    }
+//    if (description.instances != null && description.instances < 1) {
+//      errors.rejectValue "instances", "cloudFoundryDeployDescription.instances.invalid", description.instances as String
+//    }
   }
 }

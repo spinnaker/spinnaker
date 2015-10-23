@@ -95,9 +95,7 @@ class CloudFoundryClusterProvider implements ClusterProvider<CloudFoundryCluster
   @Override
   ServerGroup getServerGroup(String account, String region, String name) {
     serverGroup.record({
-      cloudFoundryResourceRetriever.clustersByAccountAndClusterName[account][name].serverGroups.find {
-        it.nativeApplication.space.organization.name == region
-      }
+      cloudFoundryResourceRetriever.serverGroupByAccountAndServerGroupName[account][name]
     } as Callable<ServerGroup>)
   }
 }

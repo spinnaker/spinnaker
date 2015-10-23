@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.kato.cf.deploy.description
-
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryAccountCredentials
 import com.netflix.spinnaker.kato.deploy.DeployDescription
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
-import org.springframework.core.io.DefaultResourceLoader
-import org.springframework.core.io.Resource
-import org.springframework.core.io.ResourceLoader
-
 /**
  * Descriptor for a Cloud Foundry {@link DeployDescription}
  *
@@ -32,38 +28,45 @@ import org.springframework.core.io.ResourceLoader
  */
 @AutoClone
 @Canonical
+@JsonIgnoreProperties(ignoreUnknown = true)
 class CloudFoundryDeployDescription implements DeployDescription {
 
-  String api
-  String org
-  String space
   String application
-  String artifact
-  Resource artifactResource
-  Integer memory = 512
-  Boolean trustSelfSignedCerts = false  // switch to true for your own local CF instance
-  Integer instances = null              // blank this out by default, letting the platform set the default
-  List<String> urls = null              // blank this out by default
-  List<String> domains = null           // blank this out by default
+
+  Map<String, List<String>> availabilityZones
+
+  Map<String, Double> capacity
+
+  @JsonProperty("securityGroups")
+  List<String> services
+
+  @JsonProperty("zone")
+  String space
+
+  Integer targetSize
+
+  List<String> urls = []
+
+  Integer memory = 1024
+
+  String org
+
+  String stack
+
+  String freeFormDetails
+
+  Boolean trustSelfSignedCerts = true
 
   @JsonIgnore
   CloudFoundryAccountCredentials credentials
-
-  @JsonIgnore
-  private final ResourceLoader resourceLoader = new DefaultResourceLoader()
 
   @JsonProperty("credentials")
   String getCredentialAccount() {
     this.credentials.name
   }
 
-  void setArtifact(String artifact) {
-    this.artifact = artifact
-    if (new File(artifact).exists()) {
-      this.artifactResource = resourceLoader.getResource('file://' + artifact)
-    } else {
-      this.artifactResource = resourceLoader.getResource(artifact)
-    }
-  }
+  Map<String, Object> targetPackage
+
+  String targetHost
 
 }

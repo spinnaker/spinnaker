@@ -169,10 +169,18 @@ titan:
 
 cf:
   enabled: false
-  accounts:
-    -
-      name: ${CF_ACCOUNT_NAME}
-      password: ${CF_PASSWORD}
+#  jenkins:
+#    username: /* your jenkins username, or property name here */
+#    password: /* your jenkins password or property name here */
+#  accounts:
+#    -
+#      name: /* name for this CF space */
+#      api: /* URL for this CF API */
+#      org: /* CF org name */
+#      space: /* CF space name */
+#      username: /* CF API username, or property name */
+#      password: /* CF API password, or property name */
+
 
 ---
 

@@ -20,7 +20,6 @@ import com.netflix.spinnaker.oort.model.Cluster
 import com.netflix.spinnaker.oort.model.LoadBalancer
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
-
 /**
  * One part of a Cloud Foundry application (like blue or green).
  *
@@ -34,11 +33,10 @@ class CloudFoundryCluster implements Cluster, Serializable {
   String type = 'cf'
   String accountName
   Set<CloudFoundryServerGroup> serverGroups = [] as Set<CloudFoundryServerGroup>
-  Set<CloudFoundryService> services = [] as Set<CloudFoundryService>
 
   @Override
   Set<LoadBalancer> getLoadBalancers() {
-    services
+    Collections.emptySet()
   }
 
 }
