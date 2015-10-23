@@ -128,6 +128,6 @@ providers:
     defaultRegion: us-east-1
     defaultSimpleDBDomain: CLOUD_APPLICATIONS
     primaryCredentials:
-      name: my-aws-account
+      name: default
       aws_access_key:
       aws_secret_key: 
