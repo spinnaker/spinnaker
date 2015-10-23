@@ -2,34 +2,37 @@ global:
   spinnaker:
     environment: test
 
-serviceProtocol: http
 services:
-  clouddriver:
+  default:
     host: localhost
+    protocol: http
+
+  clouddriver:
+    host: ${services.default.host}
     port: 7002
-    baseUrl: ${serviceProtocol}://${services.clouddriver.host}:${services.clouddriver.port}
+    baseUrl: ${services.default.protocol}://${services.clouddriver.host}:${services.clouddriver.port}
 
   echo:
     enabled: true
-    host: localhost
+    host: ${services.default.host}
     port: 8089
-    baseUrl: ${serviceProtocol}://${services.echo.host}:${services.echo.port}
+    baseUrl: ${services.default.protocol}://${services.echo.host}:${services.echo.port}
 
   front50:
-    host: localhost
+    host: ${services.default.host}
     port: 8080
-    baseUrl: ${serviceProtocol}://${services.front50.host}:${services.front50.port}
+    baseUrl: ${services.default.protocol}://${services.front50.host}:${services.front50.port}
 
   gate:
-    host: localhost
+    host: ${services.default.host}
     port: 8084
-    baseUrl: ${serviceProtocol}://${services.gate.host}:${services.gate.port}
+    baseUrl: ${services.default.protocol}://${services.gate.host}:${services.gate.port}
 
   igor:
     enabled: false
-    host: localhost
+    host: ${services.default.host}
     port: 8088
-    baseUrl: ${serviceProtocol}://${services.igor.host}:${services.igor.port}
+    baseUrl: ${services.default.protocol}://${services.igor.host}:${services.igor.port}
 
   kato:
     host: ${services.clouddriver.host}
@@ -42,9 +45,9 @@ services:
     baseUrl: ${services.clouddriver.baseUrl}
 
   orca:
-    host: localhost
+    host: ${services.default.host}
     port: 8083
-    baseUrl: ${serviceProtocol}://${services.orca.host}:${services.orca.port}
+    baseUrl: ${services.default.protocol}://${services.orca.host}:${services.orca.port}
     enabled: true
 
   oort:
@@ -53,14 +56,14 @@ services:
     baseUrl: ${services.clouddriver.baseUrl}
 
   rosco:
-    host: localhost
+    host: ${services.default.host}
     port: 8087
-    baseUrl: ${serviceProtocol}://${services.rosco.host}:${services.rosco.port}
+    baseUrl: ${services.default.protocol}://${services.rosco.host}:${services.rosco.port}
 
   rush:
-    host: localhost
+    host: ${services.default.host}
     port: 8085
-    baseUrl: ${serviceProtocol}://${services.rush.host}:${services.rush.port}
+    baseUrl: ${services.default.protocol}://${services.rush.host}:${services.rush.port}
     primaryAccount: # Expected in spinnaker-local.yml
 
   bakery:
@@ -82,7 +85,7 @@ services:
         registry: ${services.dockerRegistry.baseUrl}
 
   dockerRegistry:
-    host: localhost
+    host: ${services.default.host}
     port: 5000
     baseUrl: http://${services.dockerRegistry.host}:${services.dockerRegistry.port}
 
@@ -94,12 +97,12 @@ services:
     baseUrl: http://${services.jenkins.host}:${services.jenkins.port}
 
   redis:
-    host: localhost
+    host: ${services.default.host}
     port: 6379
     connection: redis://${services.redis.host}:${services.redis.port}
 
   cassandra:
-    host: localhost
+    host: ${services.default.host}
     port: 9042
     embedded: false
     cluster: CASS_SPINNAKER
@@ -111,7 +114,7 @@ providers:
     defaultRegion: us-central1
     defaultZone: us-central1-f
     primaryCredentials:
-      name: my-account
+      name: my-account-name
       project: 
       jsonPath:
     credentials:
@@ -125,6 +128,6 @@ providers:
     defaultRegion: us-east-1
     defaultSimpleDBDomain: CLOUD_APPLICATIONS
     primaryCredentials:
-      name: my-account
+      name: my-aws-account
       aws_access_key:
       aws_secret_key: 
