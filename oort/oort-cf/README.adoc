@@ -1,6 +1,6 @@
 == Cloud Foundry - OORT Concepts
 
-OORT has a set of interfaces. The idea is to map Cloud Foundry concepts onto this model to get maximum support when plugging into the rest of spinnaker.
+OORT has a set of interfaces. The idea is to map Cloud Foundry concepts onto this model to get maximum support when plugging into the rest of spinnaker. The following table covers this. To consume the table, remember that CF applications map 1-to-1 with Spinnaker server groups.
 
 .OORT/Cloud Foundry relationships
 [cols="2,2a,5a"]
@@ -12,26 +12,31 @@ OORT has a set of interfaces. The idea is to map Cloud Foundry concepts onto thi
 
 * 0..N `Cluster`
 
-|Aggregation of all blue/green parts or single part of singular app.
+|A single application found on github. Can be found deployed in multiple units across multiple CF spaces (even on different CF installations).
 
-* my-app
+* sagan
 
 |`Cluster`
 |contains: 
 
 * 0..N `ServerGroup`
-* 0..N `LoadBalancer`
-* 1 account name
+* 0..N `SecurityGroup`
+* 1 account name/CF space
 
 
-|Sides of a green/blue deployment, or None when not using that.
+|An application deployed to a single space. An account is essentially CF credentials + a CF space. Imagine sagan installed into various spaces. NOTE: This is NOT enough for an ACTUAL deployed instance inside CF. This is an aggregation of server groups (see below).
 
-* my-app/blue
-* my-app/green
+* account: production, cluster: sagan-main
+* account: staging, cluster: sagan-main
+* account: development, cluster: sagan-main
 
 or
 
-* my-app
+* account: sagan, cluster: sagan-production
+* account: sagan, cluster: sagan-production
+* account: sagan, cluster: sagan-development
+
+The "main", "production", "staging", and "development" bits are called Spinnaker stacks and act as a logical grouping for one system.
 
 |`ServerGroup`
 |contains:
@@ -45,21 +50,32 @@ or
 
 |
 
-* my-app/blue 
-** Region(org): FrameworksAndRuntimes 
-** Zone(space): development
-** LoadBalancers(services): redis-service, mongodb-service
-** launchConfig: CF env variables like SPRING_PROFILES_ACTIVE=production
+* sagan-main-v001
+** Region(org): spring.io 
+** Zone(space): production
+** SecurityGroups(services): redis-service, mongodb-service
+
+* sagan-main-v002
+** Region(org): spring.io 
+** Zone(space): production
+** SecurityGroups(services): redis-service, mongodb-service
+
+* sagan-main-v003
+** Region(org): spring.io 
+** Zone(space): production
+** SecurityGroups(services): redis-service, mongodb-service
+
+"v001", "v002", "v003" are versions, and map 1-to-1 with versions of codes. By mapping these with a CF route, you effectively institute blue/green deployments. It's more sophisticated and allows each release of code to form an immutable CF application.
 
 
-|`LoadBalancer`
+|`SecurityGroup`
 |contains:
 
 * 0..N `ServerGroup`
 
-|Services? CF apps have services, which can bind to multiple apps. Since `LoadBalancer` can map to multiple `ServerGroup`, this would fit the relationship, even if semantically it doesn't sound right. Possible to rebrand in the UI via metadata???
+|Services? CF apps have services, which can bind to multiple apps. Since `SecurityGroup` can map to multiple `ServerGroup`, this would fit the relationship, even if semantically it doesn't sound right. Possible to rebrand in the UI via metadata???
 
-* redis-service => my-app/blue, my-app/green
+* redis-service => sagan-main-v001, sagan-main-v002
 
 
 |`Instance`
@@ -70,13 +86,8 @@ or
 
 |Number of scaled instances of an app, whether blue/green/none type.
 
-* my-app/blue #0 FrameworksAndRuntimes
-* my-app/blue #1 FrameworksAndRuntimes
-
-
-|`SecurityGroup`
-|Part of MORT
-|N/A
+* sagan-main-v001:0 production
+* sagan-main-v002:1 production
 
 
 |Region
