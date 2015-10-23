@@ -25,6 +25,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentSta
   .controller('ManualJudgmentStageCtrl', function($scope, $uibModal) {
 
     $scope.stage.notifications = $scope.stage.notifications || [];
+    $scope.stage.failPipeline = ($scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline);
 
     this.addNotification = function() {
       $uibModal.open({
