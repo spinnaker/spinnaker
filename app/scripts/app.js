@@ -121,6 +121,10 @@ module.exports = angular.module('spinnaker', [
     require('./modules/core/pipeline/config/stages/shrinkCluster/shrinkClusterStage.module.js'),
     require('./modules/core/pipeline/config/stages/wait/waitStage.module.js'),
     require('./modules/core/pipeline/config/stages/determineTargetReference/determineTargetReference.module.js'),
+    require('./modules/core/pipeline/config/stages/checkPreconditions/checkPreconditionsStage.module.js'),
+    require('./modules/core/pipeline/config/preconditions/preconditions.module.js'),
+    require('./modules/core/pipeline/config/preconditions/types/clusterSize/clusterSize.precondition.type.module.js'),
+    require('./modules/core/pipeline/config/preconditions/types/expression/expression.precondition.type.module.js'),
     require('./modules/core/authentication/authentication.module.js'),
     require('./modules/core/cloudProvider/cloudProviderLogo.directive.js'),
     require('./modules/core/search/search.module.js'),
@@ -272,4 +276,3 @@ module.exports = angular.module('spinnaker', [
     globalHotkeys.forEach((hotkeyConfig) => hotkeys.add(hotkeyConfig));
   })
 ;
-

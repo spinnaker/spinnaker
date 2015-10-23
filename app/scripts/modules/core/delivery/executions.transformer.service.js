@@ -216,6 +216,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
       canceled: '#cccccc',
       suspended: '#cccccc',
       unknown: '#cccccc',
+      stopped: '#777777',
     };
 
     function addStageWidths(execution) {

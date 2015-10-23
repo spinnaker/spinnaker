@@ -96,6 +96,9 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'gce.serverGroup.customMetadata.load-balancer-names': 'This field is used to "remember" what load balancers this server group is associated with, even if the instances are deregistered.',
     'gce.serverGroup.customMetadata.startup-script': 'This script will run automatically on every boot.',
     'gce.serverGroup.securityGroups.implicit': 'Firewall rules with no target tags defined will permit incoming connections that match the ingress rules to all instances in the network.',
+    'pipeline.config.checkPreconditions.failPipeline': '' +
+      '<p><strong>Checked</strong> - the overall pipeline will fail whenever this precondition is false.</p>' +
+      '<p><strong>Unchecked</strong> - the overall pipeline will continue executing but this particular branch will stop.</p>',
     'pipeline.config.deploy.template': '<p>Select an existing cluster to use as a template for this deployment, and we\'ll pre-fill ' +
       'the configuration based on the newest server group in the cluster.</p>' +
       '<p>If you want to start from scratch, select "None".</p>' +
@@ -123,7 +126,9 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.bake.enhancedNetworking': '<p>(Optional) Enable enhanced networking (sr-iov) support for image (requires hvm and trusty base_os).</p>',
     'pipeline.config.bake.amiName': '<p>(Optional) Default = $package-$arch-$ami_suffix-$store_type</p>',
     'pipeline.config.manualJudgment.instructions': '<p>(Optional) Instructions are shown to the user when making a manual judgment.</p><p>May contain HTML.</p>',
-
+    'pipeline.config.manualJudgment.failPipeline': '' +
+      '<p><strong>Checked</strong> - the overall pipeline will fail whenever the manual judgment is negative.</p>' +
+      '<p><strong>Unchecked</strong> - the overall pipeline will continue executing but this particular branch will stop.</p>',
     'pipeline.config.canary.clusterPairs': '' +
       '<p>A <em>cluster pair</em> is used to create a baseline and canary cluster.</p>' +
       '<p>The version currently deployed in the baseline cluster will be used to create a new baseline server group, while the version created in the previous bake or Find AMI stage will be deployed into the canary.</p>',
