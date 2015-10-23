@@ -57,6 +57,10 @@ class ExecutionStatusPropagationListener extends JobExecutionListenerSupport {
       orcaTaskStatus = stepExecution?.executionContext?.get("orcaTaskStatus") as ExecutionStatus ?: TERMINAL
     }
 
+    if (orcaTaskStatus == STOPPED) {
+      orcaTaskStatus = SUCCEEDED
+    }
+
     executionRepository.updateStatus(id, orcaTaskStatus)
 
     log.info("Marked $id as $orcaTaskStatus (afterJob)")

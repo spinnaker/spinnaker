@@ -77,6 +77,10 @@ class ExecutionStatusPropagationListenerSpec extends Specification {
     ]              | BatchStatus.STOPPED        || ExecutionStatus.TERMINAL
     [
       stepExecution("1", new Date() - 1, BatchStatus.COMPLETED, ExecutionStatus.SUCCEEDED),
+      stepExecution("2", new Date(), BatchStatus.STOPPED, ExecutionStatus.STOPPED)
+    ]              | BatchStatus.STOPPED        || ExecutionStatus.SUCCEEDED
+    [
+      stepExecution("1", new Date() - 1, BatchStatus.COMPLETED, ExecutionStatus.SUCCEEDED),
       stepExecution("2", new Date(), BatchStatus.STOPPED, ExecutionStatus.TERMINAL),
       stepExecution("3", new Date() + 1, BatchStatus.STOPPED, ExecutionStatus.CANCELED)
     ]              | BatchStatus.STOPPED        || ExecutionStatus.CANCELED
