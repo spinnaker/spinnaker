@@ -15,7 +15,6 @@
  */
 
 package com.netflix.spinnaker.oort.cf.model
-
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConfigurationProperties
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -69,7 +68,8 @@ class CloudFoundryResourceRetriever {
 
   Map<String, CloudFoundryApplication> applicationByName = [:].withDefault {new CloudFoundryApplication()}
 
-  Map<String, Set<CloudFoundryApplicationInstance>> instances = [:].withDefault {[] as Set<CloudFoundryApplicationInstance>}
+  Map<String, Map<String, CloudFoundryApplicationInstance>> instancesByAccountAndId =
+          [:].withDefault {[:] as Map<String, CloudFoundryApplicationInstance>}
 
 
   @PostConstruct
@@ -161,21 +161,49 @@ class CloudFoundryResourceRetriever {
                   region: space.organization.name,
                   nativeService: it
                 ])})
+
+              try {
+                serverGroup.instances = client.getApplicationInstances(app)?.instances.collect {
+                  def instance = new CloudFoundryApplicationInstance([
+                          name             : "${app.name}:${it.index}",
+                          healthState      : instanceStateToHealthState(it.state),
+                          nativeApplication: app,
+                          nativeInstance:   it
+                  ])
+                  if (instancesByAccountAndId[account][instance.name]?.healthState != instance.healthState) {
+                    log.info "Updating ${account}/${instance.name} to ${instance.healthState}"
+                  }
+                  instancesByAccountAndId[account][instance.name] = instance
+                  instance
+                } as Set<CloudFoundryApplicationInstance>
+              } catch (HttpServerErrorException e) {
+                log.warn "Unable to retrieve instance data about ${app.name} in ${account} => ${e.message}"
+              }
+
               services.addAll(serverGroup.services)
               servicesByAccount[account].addAll(serverGroup.services)
               servicesByRegion[space.organization.name].addAll(serverGroup.services)
 
+              if (serverGroupsByAccount[account].contains(serverGroup)) {
+                serverGroupsByAccount[account].remove(serverGroup)
+              }
               serverGroupsByAccount[account].add(serverGroup)
 
               serverGroupByAccountAndServerGroupName[account][app.name] = serverGroup
 
               def clusterName = names.cluster
 
+              if (serverGroupsByAccountAndClusterName[account][clusterName].contains(serverGroup)) {
+                serverGroupsByAccountAndClusterName[account][clusterName].remove(serverGroup)
+              }
               serverGroupsByAccountAndClusterName[account][clusterName].add(serverGroup)
 
               def cluster = clusterByAccountAndClusterName[account][clusterName]
               cluster.name = clusterName
               cluster.accountName = account
+              if (cluster.serverGroups.contains(serverGroup)) {
+                cluster.serverGroups.remove(serverGroup)
+              }
               cluster.serverGroups.add(serverGroup)
 
               clustersByApplicationName[names.app].add(cluster)
@@ -188,22 +216,6 @@ class CloudFoundryResourceRetriever {
               application.name = names.app
               application.applicationClusters[account].add(cluster)
               application.clusterNames[account].add(cluster.name)
-
-              try {
-                serverGroup.instances = client.getApplicationInstances(app)?.instances.collect {
-                  new CloudFoundryApplicationInstance([
-                      name             : "${names.app}:${it.index}",
-                      healthState      : instanceStateToHealthState(it.state),
-                      nativeApplication: app,
-                      nativeInstance:   it
-                  ])
-                } as Set<CloudFoundryApplicationInstance>
-
-                instances[account].addAll(serverGroup.instances)
-              } catch (HttpServerErrorException e) {
-                log.warn "Unable to retrieve instance data about ${app.name} in ${account} => ${e.message}"
-              }
-
             }
 
             log.info "Done loading new version of data"

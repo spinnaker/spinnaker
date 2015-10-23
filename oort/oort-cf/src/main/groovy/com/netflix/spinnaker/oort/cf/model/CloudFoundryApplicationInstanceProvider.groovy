@@ -58,7 +58,7 @@ class CloudFoundryApplicationInstanceProvider implements InstanceProvider<CloudF
   @Override
   CloudFoundryApplicationInstance getInstance(String account, String region, String id) {
     instancesByAccountRegionId.record({
-      cloudFoundryResourceRetriever.instances[account].find { instance -> instance.name == id }
+      cloudFoundryResourceRetriever.instancesByAccountAndId[account][id]
     } as Callable<CloudFoundryApplicationInstance>)
   }
 

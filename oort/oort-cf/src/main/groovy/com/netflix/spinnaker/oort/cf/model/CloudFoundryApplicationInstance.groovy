@@ -18,12 +18,14 @@ package com.netflix.spinnaker.oort.cf.model
 
 import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.Instance
+import groovy.transform.EqualsAndHashCode
 import org.cloudfoundry.client.lib.domain.CloudApplication
 import org.cloudfoundry.client.lib.domain.InstanceInfo
 
 /**
  * @author Greg Turnquist
  */
+@EqualsAndHashCode(includes = ["name"])
 class CloudFoundryApplicationInstance implements Instance, Serializable {
 
   String name

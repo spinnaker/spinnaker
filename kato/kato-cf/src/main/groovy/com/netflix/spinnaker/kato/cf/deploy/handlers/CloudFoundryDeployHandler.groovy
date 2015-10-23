@@ -16,9 +16,7 @@
 package com.netflix.spinnaker.kato.cf.deploy.handlers
 
 import com.netflix.frigga.NameValidation
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.kato.cf.deploy.description.CloudFoundryDeployDescription
-import com.netflix.spinnaker.kato.cf.security.CloudFoundryAccountCredentials
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryClientFactory
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -33,7 +31,6 @@ import org.cloudfoundry.client.lib.domain.CloudApplication
 import org.cloudfoundry.client.lib.domain.InstanceInfo
 import org.cloudfoundry.client.lib.domain.InstanceState
 import org.cloudfoundry.client.lib.domain.Staging
-import org.springframework.core.io.Resource
 import org.springframework.http.*
 import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.web.client.HttpServerErrorException
