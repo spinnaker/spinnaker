@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.kato.com.netflix.asgard.kato.controllers
+package com.netflix.spinnaker.kato.cf
 
 import com.netflix.spinnaker.clouddriver.core.CloudDriverConfig
 import com.netflix.spinnaker.clouddriver.core.CloudProvider
