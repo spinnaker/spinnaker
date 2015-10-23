@@ -72,12 +72,12 @@ To deploy this image, use a command like:
         --scopes=compute-rw \\
         --metadata=startup-script=/opt/spinnaker/install/first_google_boot.sh \\
         --metadata-from-file=\\
-spinnaker_config=$SPINNAKER_CONFIG_PATH,\\
+spinnaker_local=$SPINNAKER_YML_PATH,\\
 managed_project_credentials=$GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH
 
   You can leave off the managed_project_credentials metadata if
   $SPINNAKER_PROJECT is the same as the GOOGLE_PRIMARY_MANAGED_PROJECT_ID
-  in the spinnaker_config.
+  in the spinnaker-local.yml.
 """.format(
     image=image_name,
     image_project=self.options.image_project)

@@ -311,7 +311,7 @@ def copy_master_config(options):
               '{instance}:.spinnaker/spinnaker_config.cfg'.format(
                     instance=options.instance))
 
-    print 'Fixing credentials.'
+    print 'Setting credential permissions.'
     # Ideally this should be a parameter to copy-files so it is always
     # protected, but there doesnt seem to be an API for it.
     check_run_quick('gcloud compute ssh --command "{fix_permissions}"'

@@ -201,13 +201,9 @@ fi
 echo "$STATUS_PREFIX  Extracting Credentials"
 extract_spinnaker_credentials
 
-if [[ ! -f /root/.spinnaker/spinnaker-local.yml ]]; then
-  # DEPRECATED
-  # Reconfigure the instance before replacing the script so that
-  # if it fails, and we reboot, we'll continue where we left off.
-  echo "$STATUS_PREFIX  Configuring Spinnaker"
-  $SPINNAKER_INSTALL_DIR/scripts/reconfigure_spinnaker.sh
-fi
+echo "$STATUS_PREFIX  Configuring Spinnaker"
+$SPINNAKER_INSTALL_DIR/scripts/reconfigure_spinnaker.sh
+
 
 # Replace this first time boot with the normal startup script
 # that just starts spinnaker (and its dependencies) without configuring anymore.

@@ -17,7 +17,9 @@ bakery:
     extractBuildDetails: ${services.bakery.extractBuildDetails:true}
     propagateCloudProviderType: ${services.bakery.propagateCloudProviderType:true}
 echo:
+    enabled: ${services.echo.enabled:false}
     baseUrl: ${services.echo.baseUrl:8089}
+
 igor:
     baseUrl: ${services.igor.baseUrl:8088}
 

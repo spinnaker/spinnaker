@@ -6,6 +6,7 @@ services:
   default:
     host: localhost
     protocol: http
+    primaryAccountName: service-default-primaryAcountName-not-defined
 
   clouddriver:
     host: ${services.default.host}
@@ -64,7 +65,7 @@ services:
     host: ${services.default.host}
     port: 8085
     baseUrl: ${services.default.protocol}://${services.rush.host}:${services.rush.port}
-    primaryAccount: # Expected in spinnaker-local.yml
+    primaryAccount: ${services.default.primaryAccountName}
 
   bakery:
     host: ${services.rosco.host}
@@ -75,26 +76,29 @@ services:
 
   docker:
     enabled: false
-    host: # Expected in spinnaker-local.yaml
-    port: # Expected in spinnaker-local.yaml
-    baseUrl: http://${services.docker.host}:${services.docker.port}
+    baseUrl: # Expected in spinnaker-local.yaml
 
+    # If there are multiple accounts then you will need to list them in
+    # rush-local.yml. See the docker.accounts section in config/rush.yml.
     primaryAccount:
-      - name: docker-name-not-set # Expected in spinnaker-local.yml
-        url:  ${services.docker.baseUrl}
-        registry: ${services.dockerRegistry.baseUrl}
+      name: ${services.default.primaryAccountName}
+      url:  ${services.docker.baseUrl}
+      registry: ${services.dockerRegistry.baseUrl}
 
   dockerRegistry:
-    host: ${services.default.host}
-    port: 5000
-    baseUrl: http://${services.dockerRegistry.host}:${services.dockerRegistry.port}
+    baseUrl: #  Expected in spinnaker-local.yml
 
   jenkins:
-    host:  # Expected in spinnaker-local.yml
-    port:  # Expected in spinnaker-local.yml
-    username:  # Expected in spinnaker-local.yml
-    password:  # Expected in spinnaker-local.yml
-    baseUrl: http://${services.jenkins.host}:${services.jenkins.port}
+    # The "name" entry is used for the display name when selecting
+    # this server.
+    #
+    # If you have multiple jenkins servers, you will need to list
+    # them in an igor-local.yml. See jenkins.masters in config/igor.yml.
+    defaultMaster:
+      name: Jenkins
+      baseUrl:   # Expected in spinnaker-local.yml
+      username:  # Expected in spinnaker-local.yml
+      password:  # Expected in spinnaker-local.yml
 
   redis:
     host: ${services.default.host}

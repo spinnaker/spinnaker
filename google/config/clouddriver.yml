@@ -12,6 +12,8 @@ redis:
 
 aws:
   enabled: ${providers.aws.enabled:false}
+  aws_access_key: ${providers.aws.primaryCredentials.aws_access_key}
+  aws_secret_key: ${providers.aws.primaryCredentials.aws_secret_key}
 
 google:
   enabled: ${providers.google.enabled:false}
