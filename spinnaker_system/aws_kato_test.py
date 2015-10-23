@@ -53,7 +53,6 @@
 #   These are currently hardcoded in.
 
 import sys
-import time
 
 import citest.aws_testing as aws
 import citest.gcp_testing as gcp
@@ -64,43 +63,21 @@ import spinnaker_testing as sk
 import spinnaker_testing.kato as kato
 
 
-_TEST_DECORATOR = time.strftime('%H%M%S')
-
-
 class AwsKatoTestScenario(sk.SpinnakerTestScenario):
   @classmethod
   def new_agent(cls, bindings):
     return kato.new_agent(bindings)
 
-  @classmethod
-  def initArgumentParser(cls, parser):
-    """Initialize command line argument parser.
-
-    Args:
-      parser: argparse.ArgumentParser
-    """
-    super(AwsKatoTestScenario, cls).initArgumentParser(parser, 'aws_kato')
-
-    # Local test
-    parser.add_argument(
-        '--test_image_name',
-        default='ubuntu-1404-trusty-v20150909a',
-        help='Image name to use when creating test instance.')
-    parser.add_argument(
-        '--test_stack', default='awstest', help='Spinnaker stack decorator.')
-    parser.add_argument(
-        '--test_app', default='myaws', help='')
-
   def __init__(self, bindings, agent):
     super(AwsKatoTestScenario, self).__init__(bindings, agent)
 
   def upsert_load_balancer(self):
-    detail_raw_name = 'katotestlb' + _TEST_DECORATOR
+    detail_raw_name = 'katotestlb' + self.test_id
     self._use_lb_name = detail_raw_name
 
-    region = self.bindings['TEST_AWS_REGION']
+    bindings = self.bindings
+    region = bindings['TEST_AWS_REGION']
     avail_zones = [region + 'a', region + 'b']
-    avail_zone_str = str(avail_zones).replace("'", '"')
 
     listener = {
       'Listener': {
@@ -117,36 +94,25 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
     }
     path = 'healthcheck'
 
-    # Note the double-{ is escaping the curly.
-    # A single curly are for format variable substitution.
-    payload = self.substitute_variables(
-      '[{{'
-          '"upsertAmazonLoadBalancerDescription":'
-          '{{'
-             '"credentials":"$AWS_CREDENTIALS",'
-             '"clusterName":"$TEST_APP",'
-             '"name":"{name}",'
-             '"availabilityZones":{{"$TEST_AWS_REGION":{availability_zones} }},'
-             '"listeners":[{{'
-                '"internalProtocol":"HTTP","internalPort":{internal_port},'
-                '"externalProtocol":"HTTP","externalPort":{external_port}'
-             '}}],'
-             '"healthCheck":"{target}",'
-             '"healthTimeout":{timeout},'
-             '"healthInterval":{interval},'
-             '"healthyThreshold":{healthy},'
-             '"unhealthyThreshold":{unhealthy}'
-          '}}'
-      '}}]'.format(
-          name=detail_raw_name,
-          availability_zones=avail_zone_str,
-          internal_port=listener['Listener']['InstancePort'],
-          external_port=listener['Listener']['LoadBalancerPort'],
-          target=health_check['Target'],
-          timeout=health_check['Timeout'], interval=health_check['Interval'],
-          healthy=health_check['HealthyThreshold'],
-          unhealthy=health_check['UnhealthyThreshold']))
-
+    payload = self.agent.type_to_payload(
+      'upsertAmazonLoadBalancerDescription',
+      {
+        'credentials': bindings['AWS_CREDENTIALS'],
+        'clusterName': bindings['TEST_APP'],
+        'name': detail_raw_name,
+        'availabilityZones': { bindings['TEST_AWS_REGION']: avail_zones },
+        'listeners': [{
+                'internalProtocol': 'HTTP',
+                'internalPort': listener['Listener']['InstancePort'],
+                'externalProtocol': 'HTTP',
+                'externalPort': listener['Listener']['LoadBalancerPort']
+          }],
+        'healthCheck': health_check['Target'],
+        'healthTimeout': health_check['Timeout'],
+        'healthInterval': health_check['Interval'],
+        'healthyThreshold': health_check['HealthyThreshold'],
+        'unhealthyThreshold': health_check['UnhealthyThreshold']
+       })
 
     builder = aws.AwsContractBuilder(self.aws_observer)
     (builder.new_clause_builder('Load Balancer Added', retryable_for_secs=30)
@@ -169,13 +135,13 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
 
 
   def delete_load_balancer(self):
-    payload = self.substitute_variables(
-      '[{'
-          '"deleteAmazonLoadBalancerDescription":{'
-          '"credentials":"$AWS_CREDENTIALS",'
-          '"regions":["$TEST_AWS_REGION"],'
-          '"loadBalancerName":"' + self._use_lb_name + '"}'
-      '}]')
+    payload = self.agent.type_to_payload(
+          'deleteAmazonLoadBalancerDescription',
+          {
+            'credentials': self.bindings['AWS_CREDENTIALS'],
+            'regions': [self.bindings['TEST_AWS_REGION']],
+            'loadBalancerName': self._use_lb_name
+          })
 
     builder = aws.AwsContractBuilder(self.aws_observer)
     (builder.new_clause_builder('Load Balancer Removed')
@@ -201,7 +167,11 @@ class AwsKatoIntegrationTest(st.AgentTestCase):
 
 
 def main():
-  return AwsKatoIntegrationTest.main(AwsKatoTestScenario)
+  defaults = {
+    'TEST_APP': 'awskatotest' + AwsKatoIntegrationTest.DEFAULT_TEST_ID
+  }
+  return AwsKatoIntegrationTest.main(AwsKatoTestScenario,
+                                     default_binding_overrides=defaults)
 
 
 if __name__ == '__main__':

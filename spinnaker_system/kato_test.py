@@ -40,7 +40,6 @@
 
 
 # Standard python modules.
-import time
 import sys
 
 # citest modules.
@@ -52,9 +51,6 @@ import citest.service_testing.http_agent as http_agent
 # Spinnaker modules.
 import spinnaker_testing as sk
 import spinnaker_testing.kato as kato
-
-
-_TEST_DECORATOR = time.strftime('%H%M%S')
 
 
 class KatoTestScenario(sk.SpinnakerTestScenario):
@@ -91,21 +87,6 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     """
     return kato.new_agent(bindings)
 
-  @classmethod
-  def initArgumentParser(cls, parser):
-    """Initialize command line argument parser.
-
-    Args:
-      parser: argparse.ArgumentParser
-    """
-    super(KatoTestScenario, cls).initArgumentParser(parser, 'kato')
-
-    # TODO(ewiseblatt): Move this image name somewhere.
-    parser.add_argument(
-        '--test_gce_image_name',
-        default='ubuntu-1404-trusty-v20150909a',
-        help='Image name to use when creating test instance on GCE.')
-
   def __init__(self, bindings, agent):
     """Construct new scenaro.
 
@@ -137,9 +118,9 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     # to this particular run so as not to conflict with other tests that may
     # be running.
     self.use_instance_names = [
-        'katotest%sa' % _TEST_DECORATOR,
-        'katotest%sb' % _TEST_DECORATOR,
-        'katotest%sc' % _TEST_DECORATOR]
+        'katotest%sa' % self.test_id,
+        'katotest%sb' % self.test_id,
+        'katotest%sc' % self.test_id]
 
     # Put the instance in zones. Force one zone to be different
     # to ensure we're testing zone placement. We arent bothering
@@ -266,7 +247,7 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
         contract=builder.build())
 
   def create_http_load_balancer(self):
-    logical_http_lb_name = 'katotest-httplb-' + _TEST_DECORATOR
+    logical_http_lb_name = 'katotest-httplb-' + self.test_id
     self._use_http_lb_name = logical_http_lb_name
 
     # TODO(ewiseblatt): 20150530
@@ -382,7 +363,7 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
 
 
   def upsert_load_balancer(self):
-    self._use_lb_name = 'katotest-lb-' + _TEST_DECORATOR
+    self._use_lb_name = 'katotest-lb-' + self.test_id
     self._use_lb_hc_name = '%s-hc' % self._use_lb_name
     self._use_lb_tp_name = '%s-tp' % self._use_lb_name
     self._use_lb_target = '{0}/targetPools/{1}'.format(
