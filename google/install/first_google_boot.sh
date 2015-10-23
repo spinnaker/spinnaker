@@ -185,6 +185,10 @@ function process_args() {
   done
 }
 
+# apply outstanding updates since time of image creation
+apt-get -y update
+apt-get -y dist-upgrade
+
 process_args
 mkdir -p /root/.spinnaker
 
