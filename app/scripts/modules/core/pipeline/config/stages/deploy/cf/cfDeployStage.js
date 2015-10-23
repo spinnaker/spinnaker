@@ -52,7 +52,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.deploy', [
         };
 
         this.getClusterName = function(cluster) {
-            return cluster.application;
+            return namingService.getClusterName(cluster.application, cluster.stack, cluster.freeFormDetails);
         };
 
         this.addCluster = function() {
