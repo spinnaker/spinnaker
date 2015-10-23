@@ -35,7 +35,7 @@ class CreateCloudFoundryDeployTask implements Task {
 
     def regionGroups = [:].withDefault { [] }
     operation.availabilityZones.each { key, value ->
-      regionGroups[key] << operation.application
+      regionGroups[key] << "${operation.application}-${operation.stack}".toString()
     }
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED,
