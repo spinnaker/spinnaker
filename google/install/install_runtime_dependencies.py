@@ -111,7 +111,7 @@ def install_os_updates(options):
 
   print 'Upgrading packages...'
   check_run_and_monitor('sudo apt-get -y update', echo=True)
-  check_run_and_monitor('sudo apt-get -y upgrade', echo=True)
+  check_run_and_monitor('sudo apt-get -y dist-upgrade', echo=True)
 
 
 def install_runtime_dependencies(options):
