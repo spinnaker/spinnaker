@@ -1,0 +1,83 @@
+providers:
+  aws:
+    # If you want to deploy some services to Amazon Web Services (AWS),
+    # set enabled and provide primary credentials for deploying.
+    # Enabling AWS is independent of other providers.
+    enabled: false
+    defaultRegion: us-east-1
+    primaryCredentials:
+      name: my-aws-account
+      aws_access_key:
+      aws_secret_key:
+
+  google:
+    # If you want to deploy some services to Google Cloud Platform (google),
+    # set enabled and provide primary credentials for deploying.
+    # Enabling google is independent of other providers.
+    enabled: false
+    defaultRegion: us-central1
+    defaultZone: us-central1-f
+    primaryCredentials:
+      name: my-google-account
+      project:
+      jsonPath:
+
+services:
+  defaults:
+    # These defaults can be modified to change all the spinnaker subsystems
+    # (clouddriver, gate, etc) at once, but not external systems (jenkins, etc).
+    # Individual systems can still be overriden using their own section entry
+    # directly under 'services'.
+    protocol: http    # Assume all spinnaker subsystems are using http
+    host: localhost   # Assume all spinnaker subsystems are on localhost
+
+  redis:
+    # If you are using a remote redis server, you can set the host here.
+    # If the remote server is on a different port or url, you can add
+    # a "port" or "baseUrl" field here instead.
+    host: localhost
+
+  cassandra:
+    # If you are using a remote cassndra server, you can set the host here.
+    # If the remote server is on a different port or url, you can add
+    # a "port" or "baseUrl" field here instead. You may also need to set
+    # the cluster name. See the main spinnaker.yml file for more attributes.
+    host: localhost
+
+  docker:
+    # Spinnaker's "rush" subsystem uses docker to run internal jobs.
+    # Note that docker is not installed with Spinnaker so you must obtain this
+    # on your own if you are interested.
+    host:
+    port:
+
+    # You'll need to provide it a Spinnaker account to use.
+    # Here we are assuming the primary google account,
+    # but you may want ${providers.aws.primaryCredentials.name}
+    # or some other entirely different account.
+    primaryAccount:
+       name: ${providers.google.primaryCredentials.name}
+
+  jenkins:
+    # If you are integrating Jenkins, set its location here using the addressPath
+    # field and provide the username/password credentials.
+    # You must also enable the "igor" service listed seperately.
+    #
+    # Note that jenkins is not installed with Spinnaekr so you must obtain this
+    # on your own if you are interested.
+    host:
+    username:
+    password:
+
+  igor:
+    # If you are integrating Jenkins then you must also enable Spinnaker's
+    # "igor" subsystem.
+    enabled: false
+
+  rush:
+    # Spinnaker's "rush" subsystem is used by the "rosco" bakery.
+    # You'll need to provide it a Spinnaker account to use.
+    # Here we are assuming the primary google account,
+    # but you may want ${providers.aws.primaryCredentials.name}
+    # or some other entirely different account.
+    primaryAccount: ${providers.google.primaryCredentials.name}
