@@ -27,7 +27,7 @@ services:
     host:
     port:
     username:
-    password;
+    password:
 
   docker:
     host:
