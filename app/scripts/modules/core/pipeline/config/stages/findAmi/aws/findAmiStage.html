@@ -1,4 +1,4 @@
-<div class="form-horizontal">
+<div ng-controller="awsFindAmiStageCtrl as findAmiCtrl" class="form-horizontal">
   <div class="form-group">
     <div class="col-md-2 col-md-offset-1 sm-label-left">
       <b>Cluster</b>
@@ -12,11 +12,11 @@
   <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-left">Account</label>
     <div class="col-md-6">
-      <account-select-field component="stage" field="account" accounts="accounts" provider="'aws'" on-change="accountUpdated" required></account-select-field>
+      <account-select-field component="stage" field="credentials" accounts="accounts" on-change="findAmiCtrl.accountUpdated()" required></account-select-field>
     </div>
   </div>
   <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">ASG Selection</label>
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Server Group Selection</label>
     <div class="col-md-6">
       <ui-select ng-model="stage.selectionStrategy" class="form-control input-sm">
         <ui-select-match placeholder="None">{{$select.selected.label}}</ui-select-match>
@@ -28,28 +28,22 @@
     </div>
   </div>
   <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">ASG Filters</label>
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Server Group Filters</label>
     <div class="col-md-6">
       <label class="checkbox-inline">
         <input type="checkbox"
                ng-model="stage.onlyEnabled"/>
-        Only consider enabled ASGs
+        Only consider enabled Server Groups
       </label>
     </div>
   </div>
-  <div class="form-group" ng-if="stage.account">
+  <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-left">Regions</label>
-    <div class="col-md-6">
-      <label class="checkbox-inline" ng-repeat="r in regions">
-        <input
-          type="checkbox"
-          name="regions[]"
-          value="{{r}}"
-          ng-disabled="!regionsLoaded"
-          ng-checked="stage.regions.indexOf(r) > -1"
-          ng-click="toggleRegion(r)">
-        {{r}}
-      </label>
+    <div class="col-md-6" ng-if="!stage.credentials">
+      <p class="form-control-static">(Select an Account)</p>
+    </div>
+    <div class="col-md-6" ng-if="stage.credentials">
+      <checklist items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
     </div>
   </div>
 </div>
