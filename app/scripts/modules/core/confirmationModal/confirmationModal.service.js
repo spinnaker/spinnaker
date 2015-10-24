@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.core.confirmationModal.service', [
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
 ])
-  .factory('confirmationModalService', function($uibModal) {
+  .factory('confirmationModalService', function($uibModal, $sce) {
     var defaults = {
       buttonText: 'Confirm',
       cancelButtonText: 'Cancel'
@@ -20,6 +20,10 @@ module.exports = angular.module('spinnaker.core.confirmationModal.service', [
 
     function confirm(params) {
       params = angular.extend(angular.copy(defaults), params);
+
+      if (params.body) {
+        params.body = $sce.trustAsHtml(params.body);
+      }
 
       var modalArgs = {
         templateUrl: require('./confirm.html'),
@@ -41,7 +45,7 @@ module.exports = angular.module('spinnaker.core.confirmationModal.service', [
       confirm: confirm
     };
   })
-  .controller('ConfirmationModalCtrl', function($scope, $state, $modalInstance, accountService, params, taskMonitorService, _) {
+  .controller('ConfirmationModalCtrl', function($scope, $state, $modalInstance, accountService, params, taskMonitorService) {
     $scope.params = params;
 
     $scope.state = {

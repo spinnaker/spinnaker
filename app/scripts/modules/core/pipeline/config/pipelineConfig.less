@@ -18,8 +18,7 @@
 }
 
 .pipeline-footer {
-  border-top: 1px solid @light_grey;
-  margin-top: 10px;
+  margin-top: 0;
   padding-top: 10px;
 
   .alert {
@@ -43,10 +42,20 @@
 pipeline-configurer {
   margin-top: 15px;
   display: block;
-  padding: 10px;
-  border: 1px solid @mid_light_grey;
-  border-radius: 5px;
+  padding: 15px;
   background-color: #ffffff;
+  border: 1px solid @light_grey;
+
+  .pipeline-config-heading {
+    h3 {
+      margin-top: 0;
+    }
+  }
+
+  pipeline-config-view {
+    display: block;
+    padding: 0 20px;
+  }
 
   .stage-details {
     background-color: #ffffff;
@@ -123,6 +132,11 @@ triggers {
   .add-new {
     margin: 0;
   }
+  h4 {
+    font-weight: 600;
+    margin-top: 25px;
+    margin-bottom: 0;
+  }
 }
 
 .config-section {
@@ -154,7 +168,6 @@ triggers {
 }
 
 .panel-pipeline-phase {
-  padding: 15px;
   margin-bottom: 15px;
   &.no-border {
     border-width: 0;
@@ -181,12 +194,28 @@ availability-zone-selector {
   display: block;
 }
 
+pipeline-config-errors {
+  font-size: 80%;
+}
+
 .pipeline-configurer {
+  @media (min-width: 768px) and (max-width: 992px) {
+    width: 768px;
+  }
+
+  @media (min-width: 992px) {
+    width: 792px;
+  }
+  @media (min-width: 1200px) {
+    width: 900px;
+  }
+  @media (min-width: 1400px) {
+    width: 1100px;
+  }
   .validation-warnings {
     position: relative;
     .glyphicon-exclamation-sign {
       color: @unhealthy_red;
-      font-size: 100%;
       opacity: 1;
       margin-left: 5px;
       top: 4px;
@@ -244,85 +273,10 @@ availability-zone-selector {
   }
   &::before {
     left: 0;
-    box-shadow: inset 5px 0 7px #fff;
+    box-shadow: inset 5px 0 7px #ffffff;
   }
   &::after {
     right: 0;
-    box-shadow: inset -5px 0 7px #fff;
-  }
-  pipeline-graph {
-    display: block;
-    position: relative;
-    overflow-x: auto;
-  }
-  svg {
-    path.link {
-      fill: none;
-      stroke: #CCC;
-      stroke-width: 1px;
-      &.active {
-        &.target {
-          stroke: @healthy_green;
-        }
-        &.source {
-          stroke: @spinnaker-blue;
-        }
-        stroke-width: 4px;
-      }
-      &.highlighted {
-        &.target {
-          stroke: lighten(@healthy_green, 10);
-        }
-        &.source {
-          stroke: lighten(@spinnaker-blue, 25);
-        }
-        stroke-width: 2.5px;
-        transition: stroke .2s, stroke-width .2s;
-      }
-    }
-
-    g {
-      circle, rect {
-        fill: @mid_light_grey;
-      }
-      &.connected {
-        circle, rect {
-          fill: @mid_lighter_grey;
-        }
-      }
-      &.active, &.highlighted {
-        circle, rect {
-          fill: @healthy_green_border;
-          transition: fill .2s;
-        }
-      }
-      div.label-body {
-        background-color: transparent;
-        text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
-        line-height: 14px;
-        word-wrap: break-word;
-        a {
-          color: lighten(@text-color, 60);
-          &:hover {
-            text-decoration: none;
-          }
-        }
-      }
-      &.active, &.highlighted {
-        div.label-body {
-          a {
-            color: @text-color;
-            transition: color .2s;
-          }
-          font-weight: 600;
-        }
-      }
-      &.highlighted {
-        div.label-body {
-          font-weight: 400;
-        }
-      }
-    }
+    box-shadow: inset -5px 0 7px #ffffff;
   }
 }
-

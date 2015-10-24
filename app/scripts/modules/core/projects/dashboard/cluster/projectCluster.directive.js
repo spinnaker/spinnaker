@@ -38,6 +38,8 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
 
     this.clearFilters = clusterFilterService.overrideFiltersForUrl;
 
+    this.refreshTooltipTemplate = require('./projectClusterRefresh.tooltip.html');
+
     this.state = {
       loaded: false,
       expanded: stateCache.isSet(getCacheKey()) ? stateCache.isExpanded(getCacheKey()) : true,

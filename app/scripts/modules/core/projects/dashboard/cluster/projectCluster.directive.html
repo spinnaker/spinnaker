@@ -11,14 +11,8 @@
               <a href ng-click="vm.refreshImmediately(); $event.stopPropagation()">
                 <span class="small glyphicon glyphicon-refresh refresh-enabled"
                       tooltip-placement="bottom"
-                      tooltip-html-unsafe="
-                        <p>{{vm.state.refreshing ? 'Cluster data is <strong>refreshing</strong>.'
-                        : '(click <span class=\'small glyphicon glyphicon-refresh\'></span> to refresh)'}}</p>
-                        <p>Last refresh: {{vm.state.lastRefresh | timestamp }} <br> ({{vm.state.lastRefresh | relativeTime }})</p>
-                        <p class='small'><strong>Note:</strong> Due to caching, data may be delayed up to 2 minutes</p>"
-                      ng-class="{
-                      'glyphicon-spinning': vm.state.refreshing,
-                      }"></span>
+                      uib-tooltip-template="vm.refreshTooltipTemplate"
+                      ng-class="{'glyphicon-spinning': vm.state.refreshing}"></span>
               </a>
 
               <span class="pull-right" ng-if="vm.state.loaded">

@@ -2,6 +2,9 @@
 
 let angular = require('angular');
 
+require('./newapplication.less');
+require('./application.less');
+
 module.exports = angular.module('spinnaker.application.controller', [
   require('exports?"cfp.hotkeys"!angular-hotkeys'),
   require('angular-ui-router'),
@@ -11,6 +14,7 @@ module.exports = angular.module('spinnaker.application.controller', [
     $scope.$window = $window;
     $scope.application = app;
     $scope.insightTarget = app;
+    $scope.refreshTooltipTemplate = require('./applicationRefresh.tooltip.html');
     if (app.notFound) {
       recentHistoryService.removeLastItem('applications');
       return;

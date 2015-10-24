@@ -18,7 +18,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
 ])
   .controller('titanServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
                                                      titanServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, _, serverGroupWriter,
-                                                     executionFilterService) {
+                                                       runningExecutionsService) {
 
     let application = app;
 
@@ -45,7 +45,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
 
         $scope.serverGroup = restangularlessDetails;
         $scope.runningExecutions = function() {
-          return executionFilterService.filterRunningExecutions($scope.serverGroup.executions);
+          return runningExecutionsService.filterRunningExecutions($scope.serverGroup.executions);
         };
 
         if (!_.isEmpty($scope.serverGroup)) {

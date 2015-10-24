@@ -3,15 +3,9 @@
       <span class="application-name">{{application.name}}</span>
       <a href ng-click="application.refreshImmediately(true)">
         <span class="small glyphicon glyphicon-refresh refresh-enabled"
-              tooltip-html-unsafe="
-                <p>{{application.refreshing ? 'Application is <strong>refreshing</strong>.'
-                : '(click <span class=\'small glyphicon glyphicon-refresh\'></span> to refresh)'}}</p>
-                <p>Last refresh: {{application.lastRefresh | timestamp }} <br> ({{application.lastRefresh | relativeTime }})</p>
-                <p class='small'><strong>Note:</strong> Due to caching, data may be delayed up to 2 minutes</p>"
+              uib-tooltip-template="refreshTooltipTemplate"
               tooltip-placement="{{$window.innerWidth < 1100 ? 'right' : 'bottom'}}"
-              ng-class="{
-              'glyphicon-spinning': application.refreshing,
-              }"></span>
+              ng-class="{'glyphicon-spinning': application.refreshing}"></span>
       </a>
     </h2>
 

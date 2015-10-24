@@ -6,7 +6,7 @@ module.exports = angular
   .module('spinnaker.executionFilter.service', [
     require('../../../utils/lodash.js'),
   ])
-  .factory('executionFilterService', function(_) {
+  .factory('runningExecutionsService', function(_) {
 
     function filterRunningExecutions(executions) {
       if(executions) {

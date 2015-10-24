@@ -14,13 +14,8 @@
         <a href ng-click="dashboardCtrl.refreshImmediately()">
           <span class="small glyphicon glyphicon-refresh refresh-enabled"
                 tooltip-placement="bottom"
-                tooltip-html-unsafe="
-                  <p>{{dashboardCtrl.state.refreshing ? 'Pipeline data is <strong>refreshing</strong>.'
-                  : '(click <span class=\'small glyphicon glyphicon-refresh\'></span> to refresh)'}}</p>
-                  <p>Last refresh:<br> {{dashboardCtrl.state.lastRefresh | timestamp }} <br> ({{dashboardCtrl.state.lastRefresh | relativeTime }})</p>"
-                ng-class="{
-                'glyphicon-spinning': dashboardCtrl.state.refreshing,
-                }"></span>
+                uib-tooltip-template="dashboardCtrl.refreshTooltipTemplate"
+                ng-class="{'glyphicon-spinning': dashboardCtrl.state.refreshing}"></span>
         </a>
       </h3>
       <project-pipeline

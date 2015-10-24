@@ -9,8 +9,7 @@ module.exports = angular.module('spinnaker.core.delivery.states', [])
       url: '/executions',
       views: {
         'insight': {
-          templateUrl: require('./pipelineExecutions.html'),
-          controller: 'pipelineExecutions as ctrl',
+          template: '<executions application="application"></executions>',
         },
       },
       children: [
@@ -25,7 +24,6 @@ module.exports = angular.module('spinnaker.core.delivery.states', [])
               value: '0',
             }
           },
-          views: {},
           data: {
             pageTitleDetails: {
               title: 'Execution Details',
@@ -42,11 +40,12 @@ module.exports = angular.module('spinnaker.core.delivery.states', [])
     },
     configure: {
       name: 'pipelineConfig',
-      url: '/pipelines',
+      url: '/executions/configure/:pipelineId',
       views: {
         'insight': {
           templateUrl: require('../pipeline/config/pipelineConfig.html'),
-          controller: 'PipelineConfigCtrl as pipelineConfigCtrl'
+          controller: 'PipelineConfigCtrl',
+          controllerAs: 'vm',
         },
       },
       data: {

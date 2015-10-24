@@ -8,16 +8,17 @@
     <div class="col-md-6" ng-if="ctrl.getDetailsSourceUrl()">
       <div class="stage-details">
         <div class="row stage-details-heading">
-          <div class="col-md-11">
+          <div class="col-md-8">
             <h4>
               <status-glyph item="stage"></status-glyph>
               {{stage.name || stage.type | robotToHuman }}
 
             </h4>
           </div>
-          <div class="col-md-1 text-right">
-            <a href ng-click="ctrl.close(); $event.stopPropagation();">
-              <span class="glyphicon glyphicon-remove"></span>
+          <div class="col-md-4 text-right" ng-if="!execution.parallel">
+            <a class="hide-details-link" href
+               ng-click="ctrl.close()">
+              Hide Details <span class="glyphicon glyphicon-remove"></span>
             </a>
           </div>
         </div>

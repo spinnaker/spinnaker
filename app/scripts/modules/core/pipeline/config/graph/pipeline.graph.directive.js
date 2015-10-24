@@ -2,16 +2,20 @@
 
 let angular = require('angular');
 
+require('./pipelineGraph.less');
+
 module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive', [
   require('../../../utils/d3.js'),
   require('../../../utils/lodash.js'),
   require('../../../utils/jQuery.js'),
+  require('./pipelineGraph.service.js'),
 ])
-  .directive('pipelineGraph', function ($window, d3Service, _, $) {
+  .directive('pipelineGraph', function ($window, d3Service, _, $, pipelineGraphService) {
     return {
       restrict: 'E',
       scope: {
         pipeline: '=',
+        execution: '=',
         viewState: '=',
         onNodeClick: '=',
       },
@@ -21,10 +25,12 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
         var minLabelWidth = 100;
 
         scope.nodeRadius = 8;
-        scope.rowPadding = 30;
+        scope.rowPadding = 22;
         scope.graphVerticalPadding = 15;
+        scope.minExecutionGraphHeight = 60;
         scope.labelOffsetX = scope.nodeRadius + 3;
         scope.labelOffsetY = scope.nodeRadius + 10;
+        let graphId = scope.pipeline ? scope.pipeline.id : scope.execution.id;
 
         /**
          * Used to draw inverse bezier curve between stages
@@ -38,7 +44,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
 
 
         scope.nodeClicked = function(node) {
-          scope.onNodeClick(node.section, node.index);
+          scope.onNodeClick(node);
         };
 
         scope.highlight = function(node) {
@@ -48,11 +54,11 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
           node.isHighlighted = true;
           node.parentLinks.forEach(function(link) {
             link.isHighlighted = true;
-            link.className = 'highlighted target';
+            setLinkClass(link);
           });
           node.childLinks.forEach(function(link) {
             link.isHighlighted = true;
-            link.className = 'highlighted source';
+            setLinkClass(link);
           });
         };
 
@@ -63,56 +69,41 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
           node.isHighlighted = false;
           node.parentLinks.forEach(function(link) {
             link.isHighlighted = false;
-            link.className = link.parent.isActive ? 'active source' : 'inactive';
+            setLinkClass(link);
           });
           node.childLinks.forEach(function(link) {
             link.isHighlighted = false;
-            link.className = link.child.isActive ? 'active target' : 'inactive';
+            setLinkClass(link);
           });
         };
 
-        /**
-         * Creates base configuration for all nodes;
-         *  - does not set phase, position, or create links between nodes
-         */
-        function createNodes() {
-          var configNode = {
-              name: 'Configuration',
-              phase: 0,
-              id: -1,
-              section: 'triggers',
-              parentIds: [],
-              parents: [],
-              children: [],
-              parentLinks: [],
-              childLinks: [],
-              root: true,
-              isActive: scope.viewState.section === 'triggers',
-              isHighlighted: false,
-            },
-            nodes = [configNode];
-
-          scope.pipeline.stages.forEach(function(stage, idx) {
-            var node = {
-              id: stage.refId,
-              name: stage.name || '[new stage]',
-              section: 'stage',
-              index: idx,
-              parentIds: angular.copy(stage.requisiteStageRefIds || []),
-              parents: [],
-              children: [],
-              parentLinks: [],
-              childLinks: [],
-              isActive: scope.viewState.stageIndex === idx && scope.viewState.section === 'stage',
-              isHighlighted: false,
-            };
-            if (!node.parentIds.length) {
-              node.parentIds.push(configNode.id);
+        function setLinkClass(link) {
+          let child = link.child,
+              parent = link.parent;
+          let linkClasses = [];
+          if (link.isHighlighted) {
+            linkClasses.push('highlighted');
+          }
+          if (child.isActive || parent.isActive) {
+            linkClasses.push('active');
+            if (!child.executionStage) {
+              linkClasses.push(child.isActive ? 'target' : 'source');
             }
-            nodes.push(node);
-          });
-          return nodes;
+          }
+          if (child.executionStage) {
+            if (child.hasNotStarted) {
+              linkClasses.push(child.status.toLowerCase());
+            } else {
+              linkClasses.push(parent.status.toLowerCase());
+            }
+            linkClasses.push('has-status');
+          }
+          link.linkClass = linkClasses.join(' ');
         }
+
+        let createNodes = scope.pipeline ?
+         () =>  pipelineGraphService.generateConfigGraph(scope.pipeline, scope.viewState) :
+         () =>  pipelineGraphService.generateExecutionGraph(scope.execution, scope.viewState);
 
         /**
          * Sets phases and adds children/parents to nodes
@@ -257,14 +248,12 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
           scope.nodes.forEach(function(column) {
             column.forEach(function(node) {
               node.children.forEach(function(child) {
-                var linkClass = node.isActive ? 'active source' :
-                  child.isActive ? 'active target' : 'inactive';
                 var link = {
                   parent: node,
                   child: child,
-                  className: linkClass,
                   line: diagonal({ source: node, target: child })
                 };
+                setLinkClass(link);
                 node.childLinks.push(link);
                 child.parentLinks.push(link);
               });
@@ -298,7 +287,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
             });
           });
           scope.rowHeights = rowHeights;
-          scope.graphHeight = _.sum(scope.rowHeights) + 2*scope.graphVerticalPadding;
+          scope.graphHeight = Math.max(_.sum(scope.rowHeights) + scope.graphVerticalPadding, scope.minExecutionGraphHeight);
         }
 
 
@@ -321,10 +310,10 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
 
         scope.$watch('pipeline', updateGraph, true);
         scope.$watch('viewState', updateGraph, true);
-        $($window).bind('resize.pipelineGraph-' + scope.pipeline.id, handleWindowResize);
+        $($window).bind('resize.pipelineGraph-' + graphId, handleWindowResize);
 
         scope.$on('$destroy', function() {
-          $($window).unbind('resize.pipelineGraph-' + scope.pipeline.id);
+          $($window).unbind('resize.pipelineGraph-' + graphId);
         });
 
       },

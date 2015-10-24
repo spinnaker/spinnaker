@@ -1,39 +1,58 @@
-<svg ng-style="{height: graphHeight, width: graphWidth, padding: graphVerticalPadding + 'px ' + nodeRadius*2 + 'px'}" class="{{graphClass}}">
+<svg ng-style="{height: graphHeight, width: graphWidth,
+                padding: graphVerticalPadding + 'px ' + nodeRadius*2 + 'px ' + '0 ' + nodeRadius*2 + 'px'}"
+     class="{{graphClass}}">
   <g class="placeholder">
     <foreignobject ng-attr-width="{{maxLabelWidth > 0 ? maxLabelWidth : 1}}" height="200">
       <div class="label-body node active"></div>
     </foreignobject>
   </g>
-  <g ng-repeat="node in allNodes" ng-class="{active: node.isActive, highlighted: node.isHighlighted}" ng-attr-transform="translate({{node.x}},{{node.y}})">
-    <path ng-repeat="link in node.childLinks" ng-attr-d="{{link.line}}" class="link {{link.className}}"
-          ng-attr-transform="translate({{0-node.x}}, {{0-node.y}})"></path>
+  <g ng-repeat="stage in allNodes" ng-class="{'has-status': stage.status, active: stage.isActive, highlighted: stage.isHighlighted}" ng-attr-transform="translate({{stage.x}},{{stage.y}})">
+
+    <path ng-repeat="link in stage.childLinks" ng-attr-d="{{link.line}}" class="link {{link.linkClass}}"
+          ng-attr-stroke="{{link.color}}"
+          ng-attr-transform="translate({{0-stage.x}}, {{0-stage.y}})"></path>
+
+
+    <foreignobject ng-attr-width="{{maxLabelWidth}}" height="100"
+                   ng-attr-transform="translate({{labelOffsetX}}, {{stage.leaf && !stage.executionStage ? -8 : labelOffsetY*-1}})">
+      <div class="execution-stage-label clickable {{stage.status.toLowerCase()}}"
+           ng-if="stage.labelTemplateUrl"
+           ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
+           ng-style="{height: stage.height + 'px'}"
+           ng-click="nodeClicked(stage)">
+        <div ng-include="stage.labelTemplateUrl"></div>
+      </div>
+      <div class="label-body node"
+           ng-if="!stage.labelTemplateUrl"
+           ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
+           ng-click="nodeClicked(stage)"><a href>{{stage.name}}</a></div>
+    </foreignobject>
 
     <circle ng-attr-r="{{nodeRadius}}"
             class="clickable"
-            ng-mouseenter="highlight(node)" ng-mouseleave="removeHighlight(node)"
-            ng-click="nodeClicked(node)"></circle>
+            ng-class="{active: stage.isActive}"
+            ng-style="{fill: stage.color}"
+            ng-attr-fill-opacity="{{!stage.isActive && stage.executionStage ? 0.4: 1}}"
+            ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
+            ng-click="nodeClicked(stage)"></circle>
 
-    <rect ng-if="node.root"
+    <rect ng-if="stage.root && !stage.executionStage"
           ng-attr-width="{{nodeRadius}}"
           ng-attr-height="{{nodeRadius*2}}"
+          ng-style="{fill: stage.color}"
           ng-attr-transform="translate({{nodeRadius*-1}},{{nodeRadius*-1}})"
           class="clickable"
-          ng-mouseenter="highlight(node)" ng-mouseleave="removeHighlight(node)"
-          ng-click="nodeClicked(node)"></rect>
+          ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
+          ng-click="nodeClicked(stage)"></rect>
 
-    <rect ng-if="node.leaf"
+    <rect ng-if="stage.leaf && !stage.executionStage"
           ng-attr-width="{{nodeRadius}}"
           ng-attr-height="{{nodeRadius*2}}"
+          ng-style="{fill: stage.color}"
           ng-attr-transform="translate(0,{{nodeRadius*-1}})"
           class="clickable"
-          ng-mouseenter="highlight(node)" ng-mouseleave="removeHighlight(node)"
-          ng-click="nodeClicked(node)"></rect>
+          ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
+          ng-click="nodeClicked(stage)"></rect>
 
-    <foreignobject ng-attr-width="{{maxLabelWidth}}" height="100"
-                   ng-attr-transform="translate({{labelOffsetX}}, {{node.leaf ? -8 : labelOffsetY*-1}})">
-        <div class="label-body node"
-             ng-mouseenter="highlight(node)" ng-mouseleave="removeHighlight(node)"
-             ng-click="nodeClicked(node)"><a href>{{node.name}}</a></div>
-    </foreignobject>
   </g>
 </svg>

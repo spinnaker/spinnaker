@@ -1,0 +1,111 @@
+@import "../../presentation/less/imports/commonImports.less";
+
+execution-status {
+  display: inline-block;
+  width: 180px;
+}
+.execution-bar {
+  display: inline-block;
+  width: calc(~"100% - 215px");
+  vertical-align: top;
+  padding-top: 20px;
+  .stage {
+    margin-top: 0;
+    display: inline-block;
+    height: 20px;
+    opacity: 0.65;
+    &:hover, &.active {
+      opacity: 1;
+    }
+    &.active {
+      border: 1px solid @dark_grey;
+    }
+    &.glowing {
+      .glowing(2.5);
+    }
+  }
+}
+.execution-actions {
+  display: inline-block;
+  width: 20px;
+  vertical-align: top;
+  padding-top: 20px;
+  margin-left: 6px;
+  .glyphicon-remove-circle {
+    color: @unhealthy_red;
+  }
+}
+.execution-summary {
+  padding: 0 5px 5px;
+  font-size: 90%;
+}
+
+execution-details-section-nav {
+  margin-left: 15px;
+  display: block;
+}
+
+.execution-group-container {
+  padding: 10px 30px 0;
+}
+
+.execution-group-heading {
+  margin-top: 5px;
+  background-color: @mid_grey;
+  color: rgb(248, 248, 248);
+  border: 2px solid @lightest_grey;
+  border-radius: 3px;
+  box-shadow: 0 8px 6px -6px @lightest_grey;
+  a {
+    font-weight: 300;
+  }
+  h4 {
+    display: inline-block;
+    vertical-align: top;
+    margin: 6px 0;
+    .disabled {
+      color: @mid_lighter_grey;
+    }
+    cursor: pointer;
+    .glyphicon {
+      &.glyphicon-certificate {
+        margin-left: 5px;
+        padding: 2px 0 0 0;
+        font-size: 75%;
+      }
+    }
+  }
+  .badge {
+    background-color: @lighter_grey;
+    color: @mid_grey;
+  }
+  &.inactive {
+    background-color: lighten(@mid_grey, 40%);
+    .label-retired {
+      background-color: transparent;
+      color: @light_grey;
+      padding: 3px 10px;
+      font-size: 12px;
+    }
+  }
+}
+
+.triggers-toggle {
+  font-weight: 300;
+  font-size: 85%;
+  margin: 9px 0 0 0;
+  position: relative;
+  color: @healthy_green;
+  &.disabled {
+    color: @mid_lighter_grey;
+  }
+}
+
+execution-group {
+  display: block;
+}
+
+.execution-group-title {
+  padding-left: 10px;
+}
+

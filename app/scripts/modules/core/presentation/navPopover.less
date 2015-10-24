@@ -1,0 +1,45 @@
+@import "./less/imports/commonImports.less";
+
+.nav-popover {
+  font-weight: 600;
+  color: @text-color;
+  .small {
+    color: @text-color;
+  }
+  &:hover, &:active, &:focus {
+    color: @text-color;
+    text-decoration: none;
+  }
+}
+.nav-popover-menu {
+  top: 45px;
+  font-size: 60%;
+  position: absolute;
+  min-width: 200px;
+  z-index: 12;
+  border: 1px solid @mid_grey;
+  background-color: #ffffff;
+  &::before, &::after {
+    width: 0;
+    height: 0;
+    content: ' ';
+    left: 30%;
+    position: absolute;
+    border: 10px solid transparent;
+    border-top-width: 0;
+    margin-left: -10px;
+  }
+  &::after {
+    margin-left: -10px;
+    border-width: 10px;
+    top: -18px;
+    border-bottom-color: #ffffff;
+  }
+  &::before {
+    top: -10px;
+    border-bottom-color: @mid_grey;
+  }
+  .list-group-item {
+    border-radius: 0;
+  }
+}

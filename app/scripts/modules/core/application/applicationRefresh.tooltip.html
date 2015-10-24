@@ -1,0 +1,4 @@
+<p ng-if="application.refreshing">Application is <strong>refreshing</strong>.</p>
+<p ng-if="!application.refreshing">(click <span class="small glyphicon glyphicon-refresh"></span> to refresh)</p>
+<p>Last refresh: {{application.lastRefresh | timestamp }} <br> ({{application.lastRefresh | relativeTime }})</p>
+<p class='small'><strong>Note:</strong> Due to caching, data may be delayed up to 2 minutes</p>
