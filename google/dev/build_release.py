@@ -166,7 +166,7 @@ class Builder(object):
   def __init__(self, options):
       if options.release:
         # DEPRECATED take out options.release_path check below and require it.
-        print 'WARNING: --release is depcreated. Use --release_path instead.\n'
+        print 'WARNING: --release is deprecated. Use --release_path instead.\n'
         options.release_path = 'gs://' + options.release
 
       if not options.release_path:

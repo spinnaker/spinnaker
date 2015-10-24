@@ -254,7 +254,8 @@ class Runner(object):
 
     if self.__new_bindings:
       docker_address = self.__new_bindings.get('services.docker.baseUrl')
-      jenkins_address = self.__new_bindings.get('services.jenkins.baseUrl')
+      jenkins_address = self.__new_bindings.get(
+          'services.jenkins.defaultMaster.baseUrl')
       igor_enabled = self.__new_bindings.get('services.igor.enabled')
     else:
       docker_address = self.__old_bindings.get_variable('DOCKER_ADDRESS', '')
@@ -273,7 +274,7 @@ class Runner(object):
         if not igor_enabled:
             sys.stderr.write(
                 'WARNING: Not starting igor because IGOR_ENABLED=false'
-                ' even though JENKINS_ADDRESS="{address}"'.format(
+                ' even though JENKINS_ADDRESS="{address}"\n'.format(
                       address=jenkins_address))
         else:
             pid = self.maybe_start_job(jobs, 'igor')
@@ -467,7 +468,6 @@ Proceeding anyway.
   def start_all(self, options):
     self.check_configuration(options)
 
-    self.stop_deck()
     try:
       os.makedirs(self.__installation.LOG_DIR)
     except OSError:
@@ -561,15 +561,6 @@ Proceeding anyway.
   def check_configuration(self, options):
     if os.path.exists(
         os.path.join(self.__installation.CONFIG_DIR, 'spinnaker-local.yml')):
-      # Rush is non-standard and wont find the rush.yml file, so move the
-      # normal system one here. It doesnt normally need to be overriden, and if
-      # so then just override whatever is here anyway.
-      local_rush = os.path.join(self.__installation.CONFIG_DIR,
-                                'rush-local.yml')
-      if not os.path.exists(local_rush):
-         rush = self.__installation.SPINNAKER_INSTALL_DIR + '/config/rush.yml'
-         if os.path.exists(rush):
-            shutil.copyfile(rush, local_rush)
       return
 
     # DEPRECATED, but this is currently the reliable way to use it

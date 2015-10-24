@@ -4,10 +4,10 @@ server:
 
 jenkins:
   masters:
-    - name: ${services.jenkins.name}
-      address: ${services.jenkins.baseUrl}
-      username: ${services.jenkins.username}
-      password: ${services.jenkins.password}
+    - name: ${services.jenkins.defaultMaster.name}
+      address: ${services.jenkins.defaultMaster.baseUrl}
+      username: ${services.jenkins.defaultMaster.username}
+      password: ${services.jenkins.defaultMaster.password}
 
 # This is recursive
 #services:

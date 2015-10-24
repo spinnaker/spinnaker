@@ -30,6 +30,7 @@ services:
     # directly under 'services'.
     protocol: http    # Assume all spinnaker subsystems are using http
     host: localhost   # Assume all spinnaker subsystems are on localhost
+    primaryAccountName: ${providers.google.primaryCredentials.name}
 
   redis:
     # If you are using a remote redis server, you can set the host here.
@@ -48,26 +49,38 @@ services:
     # Spinnaker's "rush" subsystem uses docker to run internal jobs.
     # Note that docker is not installed with Spinnaker so you must obtain this
     # on your own if you are interested.
-    host:
-    port:
+    enabled: false
+    baseUrl: # Expected in spinnaker-local.yaml
 
     # You'll need to provide it a Spinnaker account to use.
-    # Here we are assuming the primary google account,
-    # but you may want ${providers.aws.primaryCredentials.name}
-    # or some other entirely different account.
+    # Here we are assuming the default primary acccount.
+    #
+    # If you have multiple accounts using docker then you will need to
+    # provide a rush-local.yml.
+    # For more info see docker.accounts in config/rush.yml.
     primaryAccount:
-       name: ${providers.google.primaryCredentials.name}
+      name: ${services.default.primaryAccountName}
+      url:  ${services.docker.baseUrl}
+      registry: ${services.dockerRegistry.baseUrl}
+
+  dockerRegistry:
+    baseUrl:
 
   jenkins:
-    # If you are integrating Jenkins, set its location here using the addressPath
+    # If you are integrating Jenkins, set its location here using the baseUrl
     # field and provide the username/password credentials.
     # You must also enable the "igor" service listed seperately.
     #
-    # Note that jenkins is not installed with Spinnaekr so you must obtain this
+    # If you have multiple jenkins servers, you will need to list
+    # them in an igor-local.yml. See jenkins.masters in config/igor.yml.
+    #
+    # Note that jenkins is not installed with Spinnaker so you must obtain this
     # on your own if you are interested.
-    host:
-    username:
-    password:
+    defaultMaster:
+      name: Jenkins # The display name for this server
+      baseUrl:
+      username:
+      password:
 
   igor:
     # If you are integrating Jenkins then you must also enable Spinnaker's
@@ -77,7 +90,5 @@ services:
   rush:
     # Spinnaker's "rush" subsystem is used by the "rosco" bakery.
     # You'll need to provide it a Spinnaker account to use.
-    # Here we are assuming the primary google account,
-    # but you may want ${providers.aws.primaryCredentials.name}
-    # or some other entirely different account.
-    primaryAccount: ${providers.google.primaryCredentials.name}
+    # Here we are assuming the default primary acccount.
+    primaryAccount: ${services.default.primaryAccountName}

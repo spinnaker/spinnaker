@@ -433,16 +433,16 @@ class ConfigureUtil(object):
       f.write(''.join(settings))
 
   def process_deck_settings(self, source, yaml_bindings):
-    offset = source.find('# BEGIN reconfigure_spinnaker')
+    offset = source.find('// BEGIN reconfigure_spinnaker')
     if offset < 0:
       raise ValueError(
         'deck settings file does not contain a'
         ' "# BEGIN reconfigure_spinnaker" marker.')
-    end = source.find('# END reconfigure_spinnaker')
+    end = source.find('// END reconfigure_spinnaker')
     if end < 0:
       raise ValueError(
         'deck settings file does not contain a'
-        ' "# END reconfigure_spinnaker" marker.')
+        ' "// END reconfigure_spinnaker" marker.')
 
     original_block = source[offset:end]
     # Remove all the explicit declarations in this block
@@ -452,14 +452,14 @@ class ConfigureUtil(object):
 
     # Now iterate over the comments looking for let specifications
     offset = 0
-    for match in re.finditer('#\s*let\s+(\w+)\s*=\s*(.+);?\n', block) or []:
+    for match in re.finditer('//\s*let\s+(\w+)\s*=\s*(.+?);?\n', block) or []:
       settings.append(block[offset:match.end()])
       offset = match.end()
       name = match.group(1)
       value = yaml_bindings.replace(match.group(2))
-      settings.append('let {name} = {value!r}\n'.format(
+      settings.append('let {name} = {value!r};\n'.format(
          name=name, value=value))
 
     settings.append(block[offset:])
-    settings.append(source[end + 1:])
+    settings.append(source[end:])
     return ''.join(settings)

@@ -295,7 +295,12 @@ bash -c "(./gradlew $DEF_SYS_PROPERTIES $@ > $LOG_DIR/{name}.log) 2>&1\
 cd $(dirname $0)
 LOG_DIR=${{LOG_DIR:-../logs}}
 
-npm install >& $LOG_DIR/{name}.log
+if [[ node_modules -ot .git ]]; then
+  # Update npm, otherwise assume nothing changed and we're good.
+  npm install >& $LOG_DIR/deck.log
+else
+  echo "deck npm node_modules looks up to date already."
+fi
 
 # Append to the log file we just started.
 bash -c "(npm start >> $LOG_DIR/{name}.log) 2>&1\
