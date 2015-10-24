@@ -9,6 +9,9 @@ module.exports = angular.module('spinnaker.core.utils.timeFormatters', [
   .filter('timestamp', function(momentService, settings) {
     return function(input) {
       var tz = settings.defaultTimeZone || 'America/Los_Angeles';
+      if (!input) {
+        return '-';
+      }
       var moment = momentService.tz(isNaN(parseInt(input)) ? input : parseInt(input), tz);
       return moment.isValid() ? moment.format('YYYY-MM-DD HH:mm:ss z') : '-';
     };
