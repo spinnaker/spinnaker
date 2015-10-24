@@ -12,11 +12,13 @@ module.exports = angular
     require('../../securityGroup/securityGroup.read.service.js'),
     require('../../cache/infrastructureCaches.js'),
     require('../../scheduler/scheduler.service.js'),
-    require('../../delivery/execution.service.js'),
+    require('../../delivery/service/execution.service.js'),
     require('../../serverGroup/serverGroup.transformer.js'),
+    require('../../pipeline/config/services/pipelineConfigService.js'),
   ])
   .factory('applicationReader', function ($q, $log, $window,  $rootScope, Restangular, _, clusterService, taskReader,
                                           loadBalancerReader, loadBalancerTransformer, securityGroupReader, scheduler,
+                                          pipelineConfigService,
                                           infrastructureCaches, settings, executionService, serverGroupTransformer) {
 
     function listApplications() {
@@ -91,10 +93,13 @@ module.exports = angular
         }
 
         function reloadExecutions() {
-          return executionService.getAll(application)
+          application.executionsLoading = true;
+          return executionService.getAll(application.name)
             .then(function(executions) {
+              executionService.transformExecutions(application, executions);
               addExecutionsToApplication(application, executions);
               if (!application.executionsLoaded) {
+                application.executionsLoading = false;
                 application.executionsLoaded = true;
                 $rootScope.$broadcast('executions-loaded', application);
               } else {
@@ -108,6 +113,16 @@ module.exports = angular
             });
         }
 
+        function reloadPipelineConfigs() {
+          application.pipelineConfigsLoading = true;
+          return pipelineConfigService.getPipelinesForApplication(application.name)
+            .then((configs) => {
+              application.pipelineConfigs = configs;
+              application.pipelineConfigsLoading = false;
+              $rootScope.$broadcast('pipelineConfigs-loaded', application);
+            });
+        }
+
 
         application.registerAutoRefreshHandler = registerAutoRefreshHandler;
         application.deregisterAutoRefreshHandler = deregisterAutoRefreshHandler;
@@ -118,6 +133,7 @@ module.exports = angular
         application.enableAutoRefresh = enableAutoRefresh;
         application.reloadTasks = reloadTasks;
         application.reloadExecutions = reloadExecutions;
+        application.reloadPipelineConfigs = reloadPipelineConfigs;
 
         if (application.fromServer && application.clusters) {
           application.accounts = Object.keys(application.clusters);
@@ -220,7 +236,8 @@ module.exports = angular
       var securityGroupsByApplicationNameLoader = securityGroupReader.loadSecurityGroupsByApplicationName(applicationName),
         loadBalancerLoader = loadBalancerReader.loadLoadBalancers(applicationName),
         applicationLoader = getApplicationEndpoint(applicationName).get(),
-        serverGroupLoader = clusterService.loadServerGroups(applicationName);
+        serverGroupLoader = clusterService.loadServerGroups(applicationName),
+        executionsLoader = options && options.executions ? executionService.getAll(applicationName) : $q.when(null);
 
       var application, securityGroupAccounts, loadBalancerAccounts, serverGroups;
 
@@ -229,14 +246,17 @@ module.exports = angular
       return $q.all({
         securityGroups: securityGroupsByApplicationNameLoader,
         loadBalancers: loadBalancerLoader,
-        application: applicationLoader
+        application: applicationLoader,
+        executions: executionsLoader,
       })
         .then(function(applicationLoader) {
           application = applicationLoader.application;
 
           // These attributes are stored as strings.
-          application.attributes.platformHealthOnly = (application.attributes.platformHealthOnly === "true");
-          application.attributes.platformHealthOnlyShowOverride = (application.attributes.platformHealthOnlyShowOverride === "true");
+          application.attributes.platformHealthOnly = (application.attributes.platformHealthOnly === 'true');
+          application.attributes.platformHealthOnlyShowOverride = (application.attributes.platformHealthOnlyShowOverride === 'true');
+
+          application.executionsLoading = false;
 
           application.lastRefresh = new Date().getTime();
           securityGroupAccounts = _(applicationLoader.securityGroups).pluck('account').unique().value();
@@ -252,7 +272,13 @@ module.exports = angular
           }
 
           if (options && options.executions) {
-            application.reloadExecutions();
+            executionService.transformExecutions(application, applicationLoader.executions);
+            addExecutionsToApplication(application, applicationLoader.executions);
+            application.executionsLoaded = true;
+          }
+
+          if (options && options.pipelineConfigs) {
+            application.reloadPipelineConfigs();
           }
 
           securityGroupLoader = securityGroupReader.loadSecurityGroups(application);

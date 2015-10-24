@@ -1,0 +1,42 @@
+<div class="execution-status-section">
+  <h5 class="execution-name" ng-if="filter.groupBy !== 'name'">{{execution.name}}</h5>
+  <span class="trigger-type" ng-switch="execution.trigger.type" ng-class="{subheading: filter.groupBy !== 'name'}">
+     <h5 ng-switch-when="jenkins">
+       Triggered Build
+     </h5>
+    <h5 ng-switch-when="manual">
+      Manual Start
+    </h5>
+    <h5 ng-switch-when="pipeline">
+      Pipeline
+    </h5>
+    <h5 ng-switch-when="cron">
+      Cron<br/>{{ execution.trigger.cronExpression }}
+    </h5>
+    <h5 ng-switch-default>
+      {{ execution.trigger.type }}
+    </h5>
+    <h5 class="build-number">
+      <execution-build-number execution="execution"></execution-build-number>
+    </h5>
+  </span>
+  <ul class="trigger-details">
+    <li ng-if="execution.trigger.buildInfo.url">
+      {{ execution.trigger.buildInfo | buildDisplayName }}
+    </li>
+    <span ng-switch="execution.trigger.type">
+      <li ng-switch-when="jenkins">
+        {{ execution.trigger.job}}
+      </li>
+      <li ng-switch-when="manual">
+        {{ execution.trigger.user || 'unknown user'}}
+      </li>
+      <li ng-switch-when="pipeline">
+        {{ execution.trigger.user || 'unknown user'}}
+      </li>
+      <li>
+        {{ execution.startTime | timestamp }}
+      </li>
+    </span>
+  </ul>
+</div>

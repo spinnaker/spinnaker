@@ -4,31 +4,20 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.delivery', [
 
-  require('./executionGroupHeading.controller.js'),
-  require('./pipelineExecutions.controller.js'),
-  require('./execution.controller.js'),
-  require('./executionBar.controller.js'),
-  require('./executionGroup.controller.js'),
-  require('./executionStatus.controller.js'),
-  require('./executionBuildNumber.directive.js'),
+  require('./filter/executionFilters.directive.js'),
+  require('./executions/executions.directive.js'),
+  require('./status/executionStatus.controller.js'),
+  require('./executionBuild/executionBuildNumber.directive.js'),
 
-  require('./executionGroups.filter.js'),
-  require('./statusNames.filter.js'),
-  require('./executions.filter.js'),
-  require('./buildDisplayName.filter.js'),
-
-  require('./execution.directive.js'),
-  require('./executionBar.directive.js'),
+  require('./executionBuild/buildDisplayName.filter.js'),
 
   require('./details/executionDetails.directive.js'),
   require('./details/executionDetailsSectionNav.directive.js'),
   require('./details/executionDetails.controller.js'),
 
-  require('./executionGroup.directive.js'),
-  require('./executionGroupHeading.directive.js'),
-  require('./executionStatus.directive.js'),
+  require('./status/executionStatus.directive.js'),
   require('./stageFailureMessage/stageFailureMessage.directive.js'),
-  require('./manualPipelineExecution.controller.js'),
+  require('./manualExecution/manualPipelineExecution.controller.js'),
 
   require('../cache/deckCacheFactory.js'),
   require('../utils/appendTransform.js'),

@@ -6,7 +6,7 @@
   </div>
   <div class="modal-body confirmation-modal" ng-if="params.body || verification.requireAccountEntry || state.error || params.platformHealthOnlyShowOverride">
     <form role="form" class="container-fluid" ng-submit="ctrl.confirm()">
-      <div ng-if="params.body" bind-html-unsafe="params.body">
+      <div ng-if="params.body" ng-bind-html="params.body">
       </div>
       <div class="row" ng-if="verification.requireAccountEntry">
         <div class="col-sm-offset-1 col-sm-10">

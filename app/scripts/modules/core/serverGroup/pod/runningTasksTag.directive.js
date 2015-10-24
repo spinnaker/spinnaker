@@ -17,10 +17,10 @@ module.exports = angular.module('spinnaker.core.serverGroup.display.tasks.tag', 
       controller: 'RunningTaskTagController',
     };
   })
-  .controller('RunningTaskTagController', function ($scope, executionFilterService) {
+  .controller('RunningTaskTagController', function ($scope, runningExecutionsService) {
     $scope.popover = { show : false };
     $scope.runningExecutions = function() {
-      return executionFilterService.filterRunningExecutions($scope.executions);
+      return runningExecutionsService.filterRunningExecutions($scope.executions);
     };
 
   }).name;

@@ -4,13 +4,13 @@
       <h2>
         <span class="project-name">{{project.name}} /</span>
         <div class="project-view">
-          <a href class="project-view-current"
+          <a href class="nav-popover"
              ng-click="viewState.showMenu = !viewState.showMenu"
              ng-blur="ctrl.hideNavigationMenu()">
             {{viewState.navSelection.title}}
             <span class="small glyphicon glyphicon-chevron-{{viewState.showMenu ? 'up' : 'down'}}"></span>
           </a>
-          <div class="project-view-menu list-group" ng-if="viewState.showMenu">
+          <div class="nav-popover-menu list-group" ng-if="viewState.showMenu">
             <a href
                class="list-group-item"
                ng-repeat="option in navOptions"

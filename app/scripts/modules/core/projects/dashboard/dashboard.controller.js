@@ -7,13 +7,15 @@ require('./dashboard.less');
 module.exports = angular.module('spinnaker.core.projects.dashboard.controller', [
   require('./cluster/projectCluster.directive.js'),
   require('./pipeline/projectPipeline.directive.js'),
-  require('../../delivery/execution.service.js'),
+  require('../../delivery/service/execution.service.js'),
   require('../../scheduler/scheduler.service.js'),
   require('../../history/recentHistory.service.js'),
 ])
   .controller('ProjectDashboardCtrl', function ($scope, projectConfiguration, executionService, scheduler, recentHistoryService) {
 
     $scope.project = projectConfiguration;
+
+    this.refreshTooltipTemplate = require('./dashboardRefresh.tooltip.html');
 
     if (projectConfiguration.notFound) {
       recentHistoryService.removeLastItem('projects');

@@ -10,63 +10,41 @@ module.exports = angular.module('spinnaker.core.pipeline.config.controller', [
   require('./services/dirtyPipelineTracker.service.js'),
 ])
   .controller('PipelineConfigCtrl', function($scope, $rootScope, $timeout, $stateParams, _, $q, $window,
-                                             pageTitleService, dirtyPipelineTracker, pipelineConfigService) {
+                                             pageTitleService, dirtyPipelineTracker) {
 
-    $scope.state = {
+    let application = $scope.application;
+
+    this.state = {
       pipelinesLoaded: false,
     };
 
-    var ctrl = this;
-
-    ctrl.updatePipelines = function(pipelines) {
-      $q.all(pipelines.map(function(pipeline) {
-        return pipelineConfigService.savePipeline(pipeline, true);
-      }));
-    };
-
-    ctrl.initialize = function() {
-      pipelineConfigService.getPipelinesForApplication($stateParams.application).then(function (pipelines) {
-        $scope.application.pipelines = pipelines;
-        $scope.state.pipelinesLoaded = true;
-      });
-    };
-
-    ctrl.toggleExpansion = (expand) => {
-      $scope.$broadcast('toggle-expansion', expand);
-    };
-
-    $scope.pipelineSortOptions = {
-      axis: 'y',
-      delay: 150,
-      placeholder: 'drop-placeholder',
-      'ui-floating': false,
-      start: function(e, ui) {
-        ui.placeholder.width(ui.helper.width()).height(ui.helper.height());
-      },
-      stop: function() {
-        var dirty = [];
-        $scope.application.pipelines.forEach(function(pipeline, index) {
-          if (pipeline.index !== index) {
-            pipeline.index = index;
-            dirty.push(pipeline);
-          }
-        });
-        ctrl.updatePipelines(dirty);
+    this.initialize = () => {
+      this.pipelineConfig = _.find(application.pipelineConfigs, { id: $stateParams.pipelineId });
+      if (!this.pipelineConfig) {
+        this.state.notFound = true;
       }
+      this.state.pipelinesLoaded = true;
     };
+
+    let configLoader = $q.when(null);
+    if (!application.pipelineConfigs) {
+      let deferred = $q.defer();
+      configLoader = deferred.promise;
+      if (!application.pipelineConfigsLoading) {
+        application.reloadPipelineConfigs();
+      }
+      $scope.$on('pipelineConfigs-loaded', deferred.resolve);
+    }
+
+    configLoader.then(this.initialize);
 
     function constructBaseWarningMessage() {
-      var message = 'You have unsaved changes in the following pipelines:\n\n';
-      dirtyPipelineTracker.list().forEach(function(pipeline) {
-        message += '    * ' + pipeline + '\n';
-      });
-      return message;
+      return 'You have unsaved changes.\nAre you sure you want to navigate away from this page?';
     }
 
     var confirmPageLeave = $rootScope.$on('$stateChangeStart', function(event) {
       if (dirtyPipelineTracker.hasDirtyPipelines()) {
         var message = constructBaseWarningMessage();
-        message += '\nAre you sure you want to navigate away from this page?';
         if (!$window.confirm(message)) {
           event.preventDefault();
           pageTitleService.handleRoutingSuccess({
@@ -88,7 +66,5 @@ module.exports = angular.module('spinnaker.core.pipeline.config.controller', [
       confirmPageLeave();
       $window.onbeforeunload = undefined;
     });
-
-    ctrl.initialize();
 
   }).name;

@@ -1,0 +1,3 @@
+<p ng-if="dashboardCtrl.state.refreshing">Pipeline data is <strong>refreshing</strong>.</p>
+<p ng-if="!dashboardCtrl.state.refreshing">(click <span class="small glyphicon glyphicon-refresh"></span> to refresh)</p>
+<p>Last refresh:<br> {{dashboardCtrl.state.lastRefresh | timestamp }} <br> ({{dashboardCtrl.state.lastRefresh | relativeTime }})</p>

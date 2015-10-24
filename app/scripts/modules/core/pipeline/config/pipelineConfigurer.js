@@ -32,6 +32,18 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       saving: false,
     };
 
+    // keep it separate from viewState, since viewState is cached...
+    $scope.navMenuState = {
+      showMenu: false,
+    };
+
+    this.hideNavigationMenu = () => {
+      // give the navigate method a chance to fire before hiding the menu
+      $timeout(() => {
+        $scope.navMenuState.showMenu = false;
+      }, 200 );
+    };
+
     this.enableParallel = function() {
       $uibModal.open({
         templateUrl: require('./actions/enableParallel/enableParallel.html'),
@@ -159,10 +171,10 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       }
     };
 
-    this.navigateTo = function(section, index) {
-      $scope.viewState.section = section;
-      if (section === 'stage') {
-        ctrl.navigateToStage(index);
+    this.navigateTo = function(stage) {
+      $scope.viewState.section = stage.section;
+      if (stage.section === 'stage') {
+        ctrl.navigateToStage(stage.index);
       }
     };
 
@@ -186,7 +198,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
         $scope.viewState.stageIndex--;
       }
       if (!$scope.pipeline.stages.length) {
-        this.navigateTo('settings');
+        this.navigateTo({section: 'triggers'});
       }
     };
 
@@ -232,7 +244,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
           $scope.viewState.stageIndex = lastStage;
         }
         if (!$scope.pipeline.stages.length) {
-          this.navigateTo('triggers');
+          this.navigateTo({section: 'triggers'});
         }
       }
       $scope.$broadcast('pipeline-reverted');
@@ -296,6 +308,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     $scope.$watch('viewState', cacheViewState, true);
     $scope.$watch('pipeline.name', cacheViewState);
 
-    this.navigateTo($scope.viewState.section, $scope.viewState.stageIndex);
+    this.navigateTo({section: $scope.viewState.section, index: $scope.viewState.stageIndex});
 
   }).name;

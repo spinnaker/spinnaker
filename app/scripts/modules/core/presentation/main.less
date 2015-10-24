@@ -88,12 +88,25 @@ body {
     .content {
       padding-bottom: 20px;
     }
+    .collapsible-section {
+      h4 {
+        margin: 0;
+        padding: 10px 15px 0;
+        background-color: transparent;
+      }
+      .content-body {
+        padding-left: 35px;
+        margin: 0;
+      }
+      border-bottom-width: 0;
+    }
   }
   .nav {
     margin-left: -15px;
     overflow-x: hidden;
-    transition: width 0.25s ease-in-out;
+    transition: width 0.25s linear;
     position: relative;
+    width: 39px;
     .pin-unpin {
       position: absolute;
       right: 5px;
@@ -102,7 +115,7 @@ body {
     .content, .heading {
       margin-left: -260px;
       width: 260px;
-      transition: all 0.25s ease-in-out;
+      transition: all 0.25s linear;
     }
     .menu-toggle {
       text-align: right;
@@ -194,6 +207,40 @@ body {
     }
     @media(min-width: 1400px) {
       width: 750px;
+    }
+  }
+  .full-content {
+    margin: 0 25px;
+    transition: width 0.25s linear;
+    flex-direction: column;
+    @media (max-width:768px) {
+      width: 90%;
+    }
+
+    @media(min-width: 768px) and (max-width: 992px) {
+      width: 770px;
+      &.filters-expanded {
+        width: 650px;
+      }
+    }
+
+    @media(min-width: 992px) {
+      width: 900px;
+      &.filters-expanded {
+        width: 740px;
+      }
+    }
+    @media(min-width: 1200px) {
+      width: 1050px;
+      &.filters-expanded {
+        width: 830px;
+      }
+    }
+    @media(min-width: 1400px) {
+      width: 1320px;
+      &.filters-expanded {
+        width: 1100px;
+      }
     }
   }
 
@@ -1068,4 +1115,10 @@ body > .select2-container.open {
 
 .break-word {
   word-break: break-all;
+}
+
+.horizontal-rule {
+  border-top: 1px solid #D0D0D0;
+  margin-top: 2px;
+  margin-bottom: 5px;
 }

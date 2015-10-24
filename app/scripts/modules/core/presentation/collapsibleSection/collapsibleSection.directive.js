@@ -13,7 +13,8 @@ module.exports = angular.module('spinnaker.core.presentation.collapsibleSection.
       scope: {
         heading: '@',
         expanded: '@?',
-        bodyClass: '@?'
+        bodyClass: '@?',
+        helpKey: '@'
       },
       templateUrl: require('./collapsibleSection.directive.html'),
       link: function(scope) {

@@ -18,7 +18,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 ])
   .controller('gceServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
                                                      gceServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, _, serverGroupWriter,
-                                                     executionFilterService) {
+                                                     runningExecutionsService) {
 
     let application = app;
 
@@ -57,7 +57,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
         $scope.serverGroup = restangularlessDetails;
         $scope.runningExecutions = function() {
-          return executionFilterService.filterRunningExecutions($scope.serverGroup.executions);
+          return runningExecutionsService.filterRunningExecutions($scope.serverGroup.executions);
         };
 
         if (!_.isEmpty($scope.serverGroup)) {

@@ -26,7 +26,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $uibModal, confirmationModalService, _, serverGroupWriter,
-                                                     subnetReader, autoScalingProcessService, executionFilterService) {
+                                                     subnetReader, autoScalingProcessService, runningExecutionsService) {
 
     $scope.state = {
       loading: true
@@ -85,7 +85,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
 
         $scope.serverGroup = restangularlessDetails;
         $scope.runningExecutions = function() {
-          return executionFilterService.filterRunningExecutions($scope.serverGroup.executions);
+          return runningExecutionsService.filterRunningExecutions($scope.serverGroup.executions);
         };
 
         if (!_.isEmpty($scope.serverGroup)) {

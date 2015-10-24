@@ -1,0 +1,134 @@
+@import "../../../presentation/less/imports/commonImports.less";
+
+pipeline-graph {
+  display: block;
+  position: relative;
+  overflow-x: auto;
+  svg {
+    path.link {
+      fill: none;
+      stroke: #CCC;
+      stroke-width: 1px;
+      stroke-opacity: 0.3;
+      &.active, &.highlighted {
+        stroke-opacity: 1;
+        &.has-status {
+          stroke-width: 4px;
+        }
+      }
+      &.active {
+        &.target {
+          stroke: @healthy_green;
+        }
+        &.source {
+          stroke: @spinnaker-blue;
+        }
+        stroke-width: 4px;
+      }
+      &.highlighted {
+        &.target {
+          stroke: lighten(@healthy_green, 10);
+        }
+        &.source {
+          stroke: lighten(@spinnaker-blue, 25);
+        }
+        &.has-status {
+          stroke-width: 4px;
+        }
+        stroke-width: 2.5px;
+        transition: stroke .2s, stroke-width .2s;
+      }
+      &.running {
+        stroke: @spinnaker-blue;
+      }
+      &.failed {
+        stroke: @unhealthy_red;
+      }
+      &.completed {
+        stroke: @stage_complete;
+      }
+      &.not_started, &.suspended, &.canceled, &.unknown {
+        stroke: @mid_light_grey;
+      }
+    }
+
+    g {
+      circle, rect {
+        fill: @mid_light_grey;
+      }
+      &.connected {
+        circle, rect {
+          fill: @mid_lighter_grey;
+        }
+      }
+      &.active, &.highlighted {
+        circle, rect {
+          fill: @healthy_green_border;
+          transition: fill .2s;
+        }
+        &.has-status {
+          circle {
+            fill: #ffffff;
+            fill-opacity: 1;
+            stroke: @mid_grey;
+            stroke-width: 2px;
+          }
+        }
+      }
+      a {
+        color: @text-color;
+      }
+      a:hover {
+        color: @text-color;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      div.execution-stage-label {
+        color: lighten(@text-color, 30);
+        font-weight: 400;
+        padding: 0 5px 0 0;
+        border: 2px solid transparent;
+        min-height: 25px;
+      }
+      div.label-body, div.execution-stage-label {
+        line-height: 17px;
+        text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
+        word-wrap: break-word;
+      }
+      &.active, &.highlighted {
+        div.label-body {
+          color: @text-color;
+          transition: color .2s;
+          font-weight: 600;
+        }
+        div.execution-stage-label {
+          & > div {
+            padding: 5px;
+            margin: -5px;
+            display: inline-block;
+            color: @lightest_grey;
+            background-color: @mid_grey;
+            border-radius: 4px;
+            text-shadow: none;
+          }
+          font-weight: 600;
+          margin-left: -12px;
+          padding-left: 12px;
+        }
+      }
+      &.highlighted {
+        div.label-body {
+          font-weight: 400;
+        }
+      }
+    }
+  }
+}
+
+.execution-graph {
+  margin: 0 -10px;
+  padding: 0 10px;
+  background-color: @secondary_panel_grey;
+  border-top: 1px solid @mid_light_grey;
+  border-bottom: 1px solid @mid_light_grey;
+}

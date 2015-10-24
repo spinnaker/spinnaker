@@ -3,6 +3,7 @@
       <h4 class="collapsible-heading">
         <span class="glyphicon glyphicon-chevron-{{getIcon()}}"></span>
         {{heading}}
+        <help-field ng-if="helpKey" key="{{helpKey}}" placement="right"></help-field>
       </h4>
     </a>
   <div class="content-body" ng-class="bodyClass" ng-if="state.expanded" ng-transclude></div>

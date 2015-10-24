@@ -154,7 +154,7 @@ module.exports = angular
       'string': {
         toParam: function(filterModel, property) {
           var val = filterModel.sortFilter[property.model];
-          return val ? val : null;
+          return val && val !== property.defaultValue ? val : null;
         },
         toModel: function(filterModel, property) {
           var val = getParamVal(property);
@@ -184,7 +184,7 @@ module.exports = angular
       'number': {
         toParam: function(filterModel, property) {
           var val = filterModel.sortFilter[property.model];
-          return isNaN(val) ? null : val;
+          return isNaN(val) ? null : property.defaultValue === val ? null: val;
         },
         toModel: function(filterModel, property) {
           var val = getParamVal(property);

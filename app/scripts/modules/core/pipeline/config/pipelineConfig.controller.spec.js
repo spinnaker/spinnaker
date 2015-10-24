@@ -2,8 +2,6 @@
 
 describe('Controller: PipelineConfigCtrl', function () {
 
-  //NOTE: This is only testing the controllers dependencies. Please add more tests.
-
   var controller;
   var scope;
 
@@ -16,14 +14,17 @@ describe('Controller: PipelineConfigCtrl', function () {
   beforeEach(
     window.inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
-      controller = $controller('PipelineConfigCtrl', {
-        $scope: scope
-      });
+      controller = $controller;
     })
   );
 
-  it('should instantiate the controller', function () {
-    expect(controller).toBeDefined();
+  it('should reload pipeline configs if not present on application', function () {
+    scope.application = { reloadPipelineConfigs: angular.noop };
+    spyOn(scope.application, 'reloadPipelineConfigs');
+    controller('PipelineConfigCtrl', {
+      $scope: scope
+    });
+    expect(scope.application.reloadPipelineConfigs.calls.count()).toBe(1);
   });
 });
 

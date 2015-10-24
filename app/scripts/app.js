@@ -27,13 +27,9 @@ require('source-sans-pro');
 let Clipboard = require('clipboard');
 
 // likely that some of these can be moved to the modules that support them
-require('./modules/core/application/application.less');
-require('./modules/core/delivery/delivery.less');
 require('./modules/core/presentation/details.less');
 require('./modules/core/instance/instanceSelection.less');
 require('./modules/core/presentation/main.less');
-require('./modules/core/modal/modals.less');
-require('./modules/core/application/newapplication.less');
 
 require('../fonts/spinnaker/icons.css');
 

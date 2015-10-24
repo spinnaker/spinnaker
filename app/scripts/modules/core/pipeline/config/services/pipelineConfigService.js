@@ -43,12 +43,10 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
       return Restangular.all('pipelines').one(applicationName, pipelineName).remove();
     }
 
-    function savePipeline(pipeline, retainIsNewFlags) {
+    function savePipeline(pipeline) {
       delete pipeline.isNew;
       pipeline.stages.forEach(function(stage) {
-        if (!retainIsNewFlags) {
-          delete stage.isNew;
-        }
+        delete stage.isNew;
         if (!stage.name) {
           delete stage.name;
         }

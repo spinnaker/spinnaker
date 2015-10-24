@@ -1,0 +1,74 @@
+<div class="row insight" ng-if="!vm.application.notFound">
+  <div class="nav"
+       ng-class="{'filters-expanded': vm.InsightFilterStateModel.filtersExpanded}"
+       ng-mouseover="vm.InsightFilterStateModel.hoverFilters()"
+       ng-mouseleave="vm.InsightFilterStateModel.exitFilters()"
+      >
+    <h3 class="filters-placeholder">
+      <a href ng-click="vm.InsightFilterStateModel.pinFilters(true)"><span class="glyphicon glyphicon-menu-hamburger"></span></a>
+    </h3>
+    <a href
+       class="btn btn-xs btn-default pull-right pin-unpin"
+       ng-click="vm.InsightFilterStateModel.pinFilters(!vm.InsightFilterStateModel.filtersPinned)"
+       ng-show="vm.InsightFilterStateModel.filtersExpanded"
+        >
+      <span class="small glyphicon glyphicon-pushpin"></span> {{vm.InsightFilterStateModel.filtersPinned ? 'Unpin' : 'Pin'}}
+    </a>
+    <execution-filters ng-if="!vm.viewState.loading" application="vm.application"></execution-filters>
+  </div>
+  <div class="full-content" data-scroll-id="nav-content" ng-class="{'filters-expanded': vm.InsightFilterStateModel.filtersExpanded}">
+    <div class="execution-groups-header">
+      <form class="form-inline execution-filters">
+        <div class="form-group" ng-if="vm.filter.groupBy" style="margin-right: 20px">
+          <a class="btn btn-xs btn-default" href ng-click="vm.toggleExpansion(true)" tooltip="expand all">
+            <span class="glyphicon glyphicon-plus"></span>
+          </a>
+          <a class="btn btn-xs btn-default" href ng-click="vm.toggleExpansion(false)" tooltip="collapse all">
+            <span class="glyphicon glyphicon-minus"></span>
+          </a>
+        </div>
+        <div class="form-group">
+          <label>Group by</label>
+          <select class="form-control input-sm" ng-model="vm.filter.groupBy" ng-change="vm.updateExecutionGroups()">
+            <option value="none">None</option>
+            <option value="name">Pipeline</option>
+            <option value="timeBoundary">Time Boundary</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Show</label>
+          <select class="form-control input-sm" ng-model="vm.filter.count" ng-change="vm.updateExecutionGroups()"
+                  ng-options="count for count in filterCountOptions">
+          </select>
+          per group
+        </div>
+        <div class="form-group pull-right">
+          <a href class="btn btn-sm btn-primary"
+             ng-click="vm.triggerPipeline()"
+             ng-disabled="vm.viewState.triggeringExecution">
+            <span ng-if="vm.viewState.triggeringExecution" class="pulsing">
+              <span class="glyphicon glyphicon-asterisk glyphicon-spinning visible-md-inline visible-sm-inline" tooltip="Starting Execution"></span>
+              <span class="glyphicon glyphicon-asterisk glyphicon-spinning visible-lg-inline"></span>
+              <span class="visible-lg-inline">Starting Execution</span>&hellip;
+            </span>
+            <span ng-if="!vm.viewState.triggeringExecution">
+              <span class="glyphicon glyphicon-play visible-lg-inline"></span>
+              <span class="glyphicon glyphicon-play visible-md-inline visible-sm-inline" uib-tooltip="Start Manual Execution"></span>
+              <span class="visible-lg-inline">Start Manual Execution</span>
+            </span>
+          </a>
+        </div>
+        <div class="pull-right">
+          <create-pipeline-button application="vm.application"></create-pipeline-button>
+        </div>
+      </form>
+      <filter-tags tags="vm.tags" tag-cleared="vm.updateClusterGroups()" clear-filters="vm.clearFilters()"></filter-tags>
+    </div>
+    <div class="text-center" ng-if="vm.viewState.loading">
+      <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
+    </div>
+    <execution-groups
+        application="vm.application"
+        ng-if="!vm.viewState.loading && (vm.application.executions.length || vm.application.pipelineConfigs.length)"></execution-groups>
+  </div>
+</div>
