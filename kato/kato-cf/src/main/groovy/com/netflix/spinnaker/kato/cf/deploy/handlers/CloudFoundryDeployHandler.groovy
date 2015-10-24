@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.kato.cf.deploy.handlers
 
-import com.netflix.frigga.NameValidation
 import com.netflix.spinnaker.kato.cf.deploy.description.CloudFoundryDeployDescription
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryClientFactory
 import com.netflix.spinnaker.kato.data.task.Task
@@ -26,17 +25,12 @@ import com.netflix.spinnaker.kato.deploy.DeploymentResult
 import org.apache.commons.codec.binary.Base64
 import org.cloudfoundry.client.lib.CloudFoundryClient
 import org.cloudfoundry.client.lib.CloudFoundryException
-import org.cloudfoundry.client.lib.StartingInfo
 import org.cloudfoundry.client.lib.domain.CloudApplication
-import org.cloudfoundry.client.lib.domain.InstanceInfo
-import org.cloudfoundry.client.lib.domain.InstanceState
 import org.cloudfoundry.client.lib.domain.Staging
 import org.springframework.http.*
 import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.RestTemplate
-
-import java.util.concurrent.TimeUnit
 
 /**
  * A deployment handler for Cloud Foundry. Inspired by cf-maven-plugin's {@literal AbstractPush}
@@ -72,20 +66,12 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
   DeploymentResult handle(CloudFoundryDeployDescription description, List priorOutputs) {
     CloudFoundryClient client = clientFactory.createCloudFoundryClient(description)
 
-    def clusterName = combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
-
-    task.updateStatus BASE_PHASE, "Initializing creation of server group for cluster ${clusterName} in ${description.space}..."
-
-    def nextSequence = description.targetPackage.buildNumber.toInteger() % 1000
-    def serverGroupName = "${clusterName}-v".toString() + String.format("%03d", nextSequence)
-    task.updateStatus BASE_PHASE, "Produced server group name: $serverGroupName"
-
     task.updateStatus BASE_PHASE, "Initializing handler..."
     def deploymentResult = new DeploymentResult()
 
-    task.updateStatus BASE_PHASE, "Preparing deployment of ${serverGroupName}"
+    task.updateStatus BASE_PHASE, "Preparing deployment of ${description.serverGroupName}"
     if (description.urls.empty) {
-      description.urls = ["${serverGroupName}.${client.defaultDomain.name}".toString()]
+      description.urls = ["${description.serverGroupName}.${client.defaultDomain.name}".toString()]
     }
 
     task.updateStatus BASE_PHASE, "Adding domains..."
@@ -94,69 +80,37 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
     task.updateStatus BASE_PHASE, "Creating services..."
     createServices(client)
 
-    task.updateStatus BASE_PHASE, "Pushing app..."
+    task.updateStatus BASE_PHASE, "Creating application ${description.serverGroupName}"
 
-    task.updateStatus BASE_PHASE, "Creating application ${serverGroupName}"
-
-    createApplication(serverGroupName, description, client)
-
-    task.updateStatus BASE_PHASE, "Uploading application"
+    createApplication(description.serverGroupName, description, client)
 
     try {
-      uploadApplication(serverGroupName, description, client)
+      uploadApplication(description.serverGroupName, description, client)
     } catch (CloudFoundryException e) {
-      def message = "Error while creating application '%${serverGroupName}'. Error message: '${e.message}'. Description: '${e.description}'"
+      def message = "Error while creating application '%${description.serverGroupName}'. Error message: '${e.message}'. Description: '${e.description}'"
       throw new RuntimeException(message, e)
     }
 
     if (description?.targetSize) {
       task.updateStatus BASE_PHASE, "Setting the number of instances to ${description.targetSize}"
       try {
-        client.updateApplicationInstances(serverGroupName, description.targetSize)
+        client.updateApplicationInstances(description.serverGroupName, description.targetSize)
       } catch (CloudFoundryException e) {
-        def message = "Error while setting number of instances for application '${serverGroupName}'. " +
+        def message = "Error while setting number of instances for application '${description.serverGroupName}'. " +
             "Error message: '${e.message}'. Description: '${e.description}'"
         throw new RuntimeException(message, e)
       }
     }
 
-    task.updateStatus BASE_PHASE, "Starting ${serverGroupName}"
+    task.updateStatus BASE_PHASE, "Starting ${description.serverGroupName}"
 
-    client.startApplication(serverGroupName)
+    client.startApplication(description.serverGroupName)
 
-    // TODO Migrate this into the proper monitoring
-    try {
-      showStagingStatus(client.startApplication(serverGroupName), deploymentResult, client)
-
-      showStartingStatus(description, client.getApplication(serverGroupName), deploymentResult, client)
-      showStartResults(client.getApplication(serverGroupName), description.urls, deploymentResult, client)
-    } catch (CloudFoundryException e) {
-      def message = "Error while creating application '${serverGroupName}'. Error message: '${e.message}'. Description: '${e.description}'"
-      throw new RuntimeException(message, e)
-    }
-
-    deploymentResult.serverGroupNames = [serverGroupName]
-    deploymentResult.serverGroupNameByRegion[description.credentials.org] = serverGroupName
+    deploymentResult.serverGroupNames = [description.serverGroupName]
+    deploymentResult.serverGroupNameByRegion[description.credentials.org] = description.serverGroupName
     deploymentResult.messages = task.history.collect { "${it.phase} : ${it.status}".toString() }
 
     deploymentResult
-  }
-
-  def combineAppStackDetail(String appName, String stack, String detail) {
-    NameValidation.notEmpty(appName, "appName");
-
-    // Use empty strings, not null references that output "null"
-    stack = stack != null ? stack : "";
-
-    if (detail != null && !detail.isEmpty()) {
-      return appName + "-" + stack + "-" + detail;
-    }
-
-    if (!stack.isEmpty()) {
-      return appName + "-" + stack;
-    }
-
-    return appName;
   }
 
   def addDomains(CloudFoundryClient client, CloudFoundryDeployDescription description) {
@@ -216,8 +170,6 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
   }
 
   def uploadApplication(String serverGroupName, CloudFoundryDeployDescription description, CloudFoundryClient client) {
-    task.updateStatus BASE_PHASE, String.format("Deploying resource %s", description.targetPackage)
-
     try {
       def path = "${description.targetPackage.buildUrl}artifact/${description.targetPackage.relativePath}"
       HttpHeaders requestHeaders = new HttpHeaders()
@@ -248,95 +200,11 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
       fout.write(responseBytes.body)
       fout.close()
 
+      task.updateStatus BASE_PHASE, "Uploading ${contentLength} bytes to ${serverGroupName}"
+
       client.uploadApplication(serverGroupName, description.targetPackage.package, file.newInputStream())
     } catch (IOException e) {
       throw new IllegalStateException("Error uploading application => ${e.message}.", e)
-    }
-  }
-
-  def showStagingStatus(StartingInfo startingInfo, DeploymentResult deploymentResult, CloudFoundryClient client) {
-    if (startingInfo != null) {
-      def offset = 0
-      String staging = client.getStagingLogs(startingInfo, offset)
-      while (staging != null) {
-        task.updateStatus BASE_PHASE, staging
-        deploymentResult.messages.add(staging)
-        offset += staging.length()
-        staging = client.getStagingLogs(startingInfo, offset)
-      }
-    }
-  }
-
-  def showStartingStatus(CloudFoundryDeployDescription description, CloudApplication app,
-                         DeploymentResult deploymentResult, CloudFoundryClient client) {
-    task.updateStatus BASE_PHASE, String.format("Checking status of application '%s'", description.application)
-
-    long appStartupExpiry = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(DEFAULT_APP_STARTUP_TIMEOUT)
-
-    while (System.currentTimeMillis() < appStartupExpiry) {
-      def instances = client.getApplicationInstances(app)?.instances
-
-      if (instances != null) {
-        int expectedInstances = instances?.size() ?: 0
-        int runningInstances = instances?.findAll { it.state == InstanceState.RUNNING }?.size() ?: 0
-        int flappingInstances = instances?.findAll { it.state == InstanceState.FLAPPING }?.size() ?: 0
-
-        showInstancesStatus(instances, runningInstances, expectedInstances, deploymentResult)
-
-        if (flappingInstances > 0)
-          break
-
-        if (runningInstances == expectedInstances)
-          break
-      }
-
-      try {
-        Thread.sleep(1000)
-      } catch (InterruptedException e) {
-        // ignore
-      }
-    }
-
-  }
-
-  def showInstancesStatus(List<InstanceInfo> instances, int runningInstances, int expectedInstances, DeploymentResult deploymentResult) {
-    def stateCounts = [:]
-
-    instances?.each { instance ->
-      String state = instance.state.toString()
-      Integer stateCount = stateCounts[state] as Integer
-      if (stateCount == null) {
-        stateCounts[state] = 1
-      } else {
-        stateCounts[state] = stateCount + 1
-      }
-    }
-
-    def stateStrings = stateCounts.collect { String key, int value ->
-      "${value} ${key.toLowerCase()}"
-    }
-
-    def message = "${runningInstances} of ${expectedInstances} instances running (${stateStrings.join(',')})"
-    task.updateStatus BASE_PHASE, message
-    deploymentResult.messages.add(message)
-  }
-
-  def showStartResults(CloudApplication app, List<String> urls, DeploymentResult deploymentResult,
-                       CloudFoundryClient client) {
-    def instances = client.getApplicationInstances(app)?.instances
-
-    int expectedInstances = instances?.size() ?: 0
-    int runningInstances = instances?.findAll { it.state == InstanceState.RUNNING }?.size() ?: 0
-    int flappingInstances = instances?.findAll { it.state == InstanceState.FLAPPING }?.size() ?: 0
-
-    if (flappingInstances > 0) {
-      throw new RuntimeException("Application start unsuccessful")
-    } else if (runningInstances > 0) {
-      if (urls == null || urls.empty) {
-        task.updateStatus BASE_PHASE, "Application '${app.name}' is available"
-      } else {
-        task.updateStatus BASE_PHASE, "Application '${app.name}' is available at '${urls.collect {'http://' + it}.join(',')}'"
-      }
     }
   }
 
