@@ -164,9 +164,17 @@ class CloudFoundryResourceRetriever {
 
               try {
                 serverGroup.instances = client.getApplicationInstances(app)?.instances.collect {
+                  def healthState = instanceStateToHealthState(it.state)
+                  def health = [[
+                          state      : healthState.toString(),
+                          type       : 'serverGroup',
+                          description: 'State of the CF server group'
+                  ]]
+
                   def instance = new CloudFoundryApplicationInstance([
                           name             : "${app.name}:${it.index}",
-                          healthState      : instanceStateToHealthState(it.state),
+                          healthState      : healthState,
+                          health           : health,
                           nativeApplication: app,
                           nativeInstance:   it
                   ])

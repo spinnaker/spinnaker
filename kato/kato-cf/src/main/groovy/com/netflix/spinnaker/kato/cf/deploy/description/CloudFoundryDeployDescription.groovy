@@ -67,6 +67,6 @@ class CloudFoundryDeployDescription implements DeployDescription {
 
   Map<String, Object> targetPackage
 
-  String targetHost
+  String serverGroupName
 
 }
