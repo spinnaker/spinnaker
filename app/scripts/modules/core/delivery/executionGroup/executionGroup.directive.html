@@ -51,7 +51,8 @@
         <em>No executions found matching the selected filters.</em>
       </div>
       <div class="execution"
-           ng-repeat="execution in vm.group.executions track by $index">
+           ng-repeat="execution in vm.group.executions track by $index"
+           id="execution-{{execution.id}}">
         <execution-status execution="execution" filter="filter">
         </execution-status>
         <div class="execution-bar">

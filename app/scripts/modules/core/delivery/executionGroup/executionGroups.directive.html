@@ -2,7 +2,7 @@
   <div class="row" ng-if="vm.viewState.initializationError">
     <h4 class="text-center">There was a server error loading pipelines. Please try again later.</h4>
   </div>
-  <div class="execution-groups" sticky-headers>
+  <div class="execution-groups all-execution-groups" sticky-headers>
     <div ng-repeat="group in vm.groups">
       <execution-group group="group"
                          application="vm.application">
