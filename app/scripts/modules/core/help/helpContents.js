@@ -82,7 +82,12 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
       '</ul>' +
       '<p>You can search for multiple words or word fragments. For instance, to find all security groups in a prod stack with "canary" in the details' +
       ', enter <samp>prod canary</samp>.</p>',
-
+    'executions.search': 'Quickly filter the displayed executions by the following fields:' +
+      '<ul>' +
+      '<li>Name</li>' +
+      '<li>Trigger</li>' +
+      '<li>Context - server groups, bakery results, etc.</li>' +
+      '</ul>',
     'gce.instance.customMetadata.instance-template': 'The instance template used to configure this instance.',
     'gce.instance.customMetadata.load-balancer-names': 'This field is used to "remember" what load balancers this instance is associated with, even if it is deregistered.',
     'gce.instance.customMetadata.startup-script': 'This script will run automatically on every boot.',

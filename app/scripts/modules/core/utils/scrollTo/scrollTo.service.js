@@ -21,7 +21,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.utils.scrollTo', ['spinnaker.core.utils.jQuery'])
   .factory('scrollToService', function($timeout, $) {
 
-    function scrollTo(elementId, scrollableContainer, offset) {
+    function scrollTo(elementId, scrollableContainer, offset, delay=0) {
       $timeout(function() {
         var elem = $('#' + elementId);
         if (elem.length) {
@@ -31,7 +31,7 @@ module.exports = angular.module('spinnaker.core.utils.scrollTo', ['spinnaker.cor
             content.animate({scrollTop: top + 'px'}, 200);
           }
         }
-      });
+      }, delay);
     }
 
     return {

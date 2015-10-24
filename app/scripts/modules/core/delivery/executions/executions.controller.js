@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
   require('../filter/executionFilter.service.js'),
   require('../create/create.module.js'),
 ])
-  .controller('ExecutionsCtrl', function($scope, $state, $q, $uibModal,
+  .controller('ExecutionsCtrl', function($scope, $state, $q, $uibModal, $stateParams,
                                          pipelineConfigService, scrollToService,
                                          executionService, ExecutionFilterModel, executionFilterService,
                                          viewStateCache, collapsibleSectionStateCache, InsightFilterStateModel) {
@@ -22,6 +22,8 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       ExecutionFilterModel.groups = [];
       ExecutionFilterModel.mostRecentApplication = $scope.application.name;
     }
+
+    let scrollIntoView = () => scrollToService.scrollTo('execution-' + $stateParams.executionId, '.all-execution-groups', 280, 300);
 
     let application = $scope.application;
     this.application = application;
@@ -65,6 +67,9 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
     $q.all([executionLoader, configLoader]).then(() => {
       this.updateExecutionGroups();
       this.viewState.loading = false;
+      if ($stateParams.executionId) {
+        scrollIntoView();
+      }
     });
 
     var executionsViewStateCache = viewStateCache.executions || viewStateCache.createCache('executions', {
@@ -92,13 +97,6 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
         }
       });
     }
-
-    // The executionId will not be available in the $stateParams that would be passed into this controller
-    // because that field belongs to a child state. So we have to watch for a $stateChangeSuccess event, then set
-    // the value on the scope
-    $scope.$on('$stateChangeSuccess', function(event, toState, toParams) {
-      $scope.detailsTarget = toParams.executionId;
-    });
 
     let dataInitializationFailure = () => {
       this.viewState.loading = false;
