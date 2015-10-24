@@ -2,12 +2,14 @@ package com.netflix.spinnaker.orca.kato.tasks.cf
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
+import com.netflix.frigga.NameBuilder
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
+import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
@@ -16,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 /**
+ * Craft a deployment task for Cloud Foundry.
+ *
  * @author Greg Turnquist
  */
 @Slf4j
@@ -35,7 +39,7 @@ class CreateCloudFoundryDeployTask implements Task {
 
     def regionGroups = [:].withDefault { [] }
     operation.availabilityZones.each { key, value ->
-      regionGroups[key] << "${operation.application}-${operation.stack}".toString()
+      regionGroups[key] << operation.serverGroupName
     }
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED,
@@ -45,7 +49,8 @@ class CreateCloudFoundryDeployTask implements Task {
             "kato.last.task.id"   : taskId,
             "account.name"        : operation.credentials,
             "deploy.account.name" : operation.credentials,
-            "deploy.server.groups": regionGroups
+            "deploy.server.groups": regionGroups,
+            interestingHealthProviderNames: HealthHelper.getInterestingHealthProviderNames(stage, ["serverGroup"])
 
         ]
     )
@@ -66,6 +71,17 @@ class CreateCloudFoundryDeployTask implements Task {
 
     CloudFoundryPackageInfo info = new CloudFoundryPackageInfo(stage, 'jar', '-', true, true, mapper)
     operation.targetPackage = info.findTargetPackage()
+
+    def nameBuilder = new NameBuilder() {
+      @Override
+      public String combineAppStackDetail(String appName, String stack, String detail) {
+        return super.combineAppStackDetail(appName, stack, detail)
+      }
+    }
+
+    def clusterName = nameBuilder.combineAppStackDetail(operation.application, operation.stack, operation.freeFormDetails)
+    def nextSequence = operation.targetPackage.buildNumber.toInteger() % 1000
+    operation.serverGroupName = "${clusterName}-v".toString() + String.format("%03d", nextSequence)
 
     operation
   }
