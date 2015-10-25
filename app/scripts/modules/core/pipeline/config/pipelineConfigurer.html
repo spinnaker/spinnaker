@@ -10,11 +10,12 @@
         {{pipeline.name}}
         <span class="small glyphicon glyphicon-chevron-{{navMenuState.showMenu ? 'up' : 'down'}}"></span>
       </a>
-      <div class="nav-popover-menu list-group" ng-if="navMenuState.showMenu" style="top: 60px">
+      <div class="nav-popover-menu list-group" ng-if="navMenuState.showMenu" style="top: 70px">
         <a href
            class="list-group-item"
            ng-repeat="pipeline in application.pipelineConfigs"
            ui-sref="^.pipelineConfig({pipelineId: pipeline.id})">{{pipeline.name}}</a>
+        <create-pipeline-button application="application"></create-pipeline-button>
       </div>
       <pipeline-config-errors pipeline="pipeline"></pipeline-config-errors>
     </h3>
