@@ -9,6 +9,7 @@ module.exports = angular
     require('../filter/executionFilter.service.js'),
     require('../filter/executionFilter.model.js'),
     require('../../confirmationModal/confirmationModal.service.js'),
+    require('../triggers/triggersTag.directive.js'),
   ])
   .directive('executionGroup', function() {
     return {
