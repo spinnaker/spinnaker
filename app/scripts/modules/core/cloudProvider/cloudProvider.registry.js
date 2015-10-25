@@ -34,7 +34,7 @@ module.exports = angular.module('spinnaker.core.cloudProvider.registry', [
           notFound = false;
 
       if (!config) {
-        console.warn(`No provider found matching '${provider}' for key '${key}'`);
+        console.debug(`No provider found matching '${provider}' for key '${key}'`);
         return null;
       }
 
@@ -47,7 +47,7 @@ module.exports = angular.module('spinnaker.core.cloudProvider.registry', [
       });
 
       if (notFound) {
-        console.warn(`No value configured for '${key}' in provider '${provider}'`);
+        console.debug(`No value configured for '${key}' in provider '${provider}'`);
         return null;
       }
       return current;

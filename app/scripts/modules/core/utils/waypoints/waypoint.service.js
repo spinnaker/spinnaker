@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.core.utils.waypoints.service', [
   require('../jQuery.js'),
   require('../lodash.js'),
 ])
-  .factory('waypointService', function($timeout, $, _) {
+  .factory('waypointService', function($timeout, $, _, $log) {
 
     var waypointRegistry = Object.create(null);
 
@@ -57,7 +57,7 @@ module.exports = angular.module('spinnaker.core.utils.waypoints.service', [
       $timeout(function() {
         var registry = waypointRegistry[key];
         if (!registry || !registry.container) {
-          console.warn('nothing found, returning');
+          $log.info('no waypoint found for ' + key + ', returning');
           return;
         }
 
