@@ -104,6 +104,9 @@
       z-index: 10;
       background-color: @lightest_grey;
       padding: 20px 15px 0 0;
+      @media (min-width: 708px) and (max-width: 992px) {
+        padding: 0;
+      }
       h3 {
         display: inline-block;
         margin-right: 20px;
@@ -123,6 +126,9 @@
       &.header-clusters {
         padding-top: 0;
         h3 {
+          @media (min-width: 708px) and (max-width: 992px) {
+            font-size: 110%;
+          }
           padding-bottom: 5px;
         }
         .filters {
@@ -158,6 +164,9 @@
     }
     .content {
       padding: 0 25px 10px;
+      @media (min-width: 708px) and (max-width: 992px) {
+        padding: 0 5px;
+      }
     }
   }
 }

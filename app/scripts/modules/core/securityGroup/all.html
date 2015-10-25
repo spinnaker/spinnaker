@@ -1,10 +1,10 @@
 <div class="header row header-clusters">
-  <div class="col-md-4">
+  <div class="col-md-4 col-sm-4">
     <h3>
       Security Groups
     </h3>
   </div>
-  <div class="col-md-8">
+  <div class="col-md-8 col-sm-8">
     <div class="form-inline clearfix filters">
       <div class="form-group text-center">
         <label class="checkbox">Show </label>
@@ -24,7 +24,9 @@
     </div>
     <div class="application-actions">
       <button class="btn btn-sm btn-default" ng-click="ctrl.createSecurityGroup()">
-        <span class="glyphicon glyphicon-plus-sign"></span> Create Security Group
+        <span class="glyphicon glyphicon-plus-sign visible-lg-inline"></span>
+        <span class="glyphicon glyphicon-plus-sign visible-md-inline visible-sm-inline" uib-tooltip="Create Security Group"></span>
+        <span class="visible-lg-inline">Create Security Group</span>
       </button>
     </div>
   </div>
