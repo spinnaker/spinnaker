@@ -16,8 +16,15 @@ module.exports = angular.module('spinnaker.core.delivery.filter.executionFilter.
       pipelineReorderDisabled: true,
     };
 
-    this.enablePipelineReorder = () => this.viewState.pipelineReorderDisabled = false;
-    this.disablePipelineReorder = () => this.viewState.pipelineReorderDisabled = true;
+    this.enablePipelineReorder = () => {
+      this.viewState.pipelineReorderDisabled = false;
+      this.pipelineSortOptions.disabled = false;
+    };
+
+    this.disablePipelineReorder = () => {
+      this.viewState.pipelineReorderDisabled = true;
+      this.pipelineSortOptions.disabled = true;
+    };
 
     this.updateExecutionGroups = () => {
       ExecutionFilterModel.applyParamsToUrl();
@@ -56,6 +63,7 @@ module.exports = angular.module('spinnaker.core.delivery.filter.executionFilter.
     this.pipelineSortOptions = {
       axis: 'y',
       delay: 150,
+      disabled: true,
       stop: () => {
         var dirty = [];
         this.application.pipelineConfigs.forEach((pipeline, index) => {
