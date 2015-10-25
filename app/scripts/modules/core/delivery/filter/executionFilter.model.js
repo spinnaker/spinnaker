@@ -19,10 +19,11 @@ module.exports = angular
       { model: 'pipeline', param: 'pipeline', type: 'object', },
       { model: 'status', type: 'object', },
       { model: 'groupBy', displayOption: true, type: 'string', defaultValue: 'name', },
-      { model: 'count', displayOption: true, type: 'number', defaultValue: 2 },
+      //{ model: 'count', displayOption: true, type: 'number', defaultValue: 2 },
     ];
 
     filterModelService.configureFilterModel(this, filterModelConfig);
+    this.sortFilter.count = 10; // TODO: remove, uncomment count config above if we ever have the power to show multiple executions
 
     function isExecutionState(stateName) {
       return stateName === 'home.applications.application.insight.executions' ||
