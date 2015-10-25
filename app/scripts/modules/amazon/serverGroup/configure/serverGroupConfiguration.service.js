@@ -245,8 +245,9 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
     }
 
     function configureSecurityGroupDiffs(command) {
-      var currentOptions = command.backingData.filtered.securityGroups;
-      var currentSecurityGroupNames = command.securityGroups.map(function(groupId) {
+      var currentOptions = command.backingData.filtered.securityGroups,
+          currentSecurityGroups = command.securityGroups || [];
+      var currentSecurityGroupNames = currentSecurityGroups.map(function(groupId) {
         var match = _(currentOptions).find({id: groupId});
         return match ? match.name : groupId;
       });
