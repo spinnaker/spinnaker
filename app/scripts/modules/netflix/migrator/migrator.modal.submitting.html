@@ -5,7 +5,7 @@
   <div class="modal-body clearfix">
     <div class="col-md-10 col-md-offset-1" auto-scroll="[executor.lastResult.eventLog]" >
       <ul class="task task-progress">
-        <li ng-repeat="entry in executor.lastResult.eventLog">
+        <li ng-repeat="entry in executor.lastResult.eventLog track by $index">
           <span class="glyphicon glyphicon-ok-circle"></span> {{entry}}
         </li>
       </ul>
