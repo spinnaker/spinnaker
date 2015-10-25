@@ -16,6 +16,11 @@ module.exports = angular
     const application = app;
     var vm = this;
 
+    if (application.notFound) {
+      $state.go('home.infrastructure', null, {location: 'replace'});
+      return;
+    }
+
     vm.serverGroupCount = application.serverGroups.length;
     vm.hasServerGroups = Boolean(vm.serverGroupCount);
     vm.error = '';
