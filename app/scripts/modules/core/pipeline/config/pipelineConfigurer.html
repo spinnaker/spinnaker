@@ -53,7 +53,7 @@
                       ng-class="{'active': pipelineConfigurerCtrl.stageIsActive($index)}">
                 {{$index+1}}: {{stage.name || '[Unnamed Stage]'}}
                 <span ng-if="stage.restrictExecutionDuringTimeWindow"
-                      class="glyphicon glyphicon-time small" tooltip="This stage is configured to only run during specified windows"></span>
+                      class="glyphicon glyphicon-time small" uib-tooltip="This stage is configured to only run during specified windows"></span>
               </a>
             </div>
             <button class="btn btn-sm add-new" ng-click="pipelineConfigurerCtrl.addStage()">

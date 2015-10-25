@@ -32,7 +32,7 @@
       <div class="col-md-1 text-right" style="padding-right: 0">
         <a class="btn btn-link" ng-click="tasks.clearNameFilter()" style="
         padding-right: 5px" ng-if="viewState.nameFilter.length > 0">
-          <span class="glyphicon glyphicon-remove" tooltip="clear search filter"></span>
+          <span class="glyphicon glyphicon-remove" uib-tooltip="clear search filter"></span>
         </a>
       </div>
       <div class="col-md-3 text-right" style="padding-left: 0">
@@ -117,10 +117,10 @@
               </td>
               <td class="small text-center">
                 <a ng-if="task.isRunning || task.hasNotStarted" href ng-click="tasks.cancelTask(task.id); $event.stopPropagation();">
-                  <span class="glyphicon glyphicon-remove" tooltip="Cancel Task"></span>
+                  <span class="glyphicon glyphicon-remove" uib-tooltip="Cancel Task"></span>
                 </a>
                 <a ng-if="!task.isRunning && !task.hasNotStarted" href ng-click="tasks.deleteTask(task.id); $event.stopPropagation();">
-                  <span class="glyphicon glyphicon-trash" tooltip="Delete Task History"></span>
+                  <span class="glyphicon glyphicon-trash" uib-tooltip="Delete Task History"></span>
                 </a>
               </td>
             </tr>

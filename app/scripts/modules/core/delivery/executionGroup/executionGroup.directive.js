@@ -23,7 +23,7 @@ module.exports = angular
       controllerAs: 'vm',
     };
   })
-  .controller('executionGroupCtrl', function($scope, $timeout, _, $state, settings, $stateParams, $modal, executionService, collapsibleSectionStateCache,
+  .controller('executionGroupCtrl', function($scope, $timeout, _, $state, settings, $stateParams, $uibModal, executionService, collapsibleSectionStateCache,
                                                ExecutionFilterModel, pipelineConfigService, confirmationModalService) {
     // TODO: MOVE TO SEPARATE DIRECTIVE
     this.showDetails = function(executionId) {
@@ -119,7 +119,7 @@ module.exports = angular
 
     this.triggerPipeline = () => {
 
-      $modal.open({
+      $uibModal.open({
         templateUrl: require('../manualExecution/manualPipelineExecution.html'),
         controller: 'ManualPipelineExecutionCtrl as ctrl',
         resolve: {

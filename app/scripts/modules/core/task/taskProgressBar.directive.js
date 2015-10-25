@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.task.progressBar.directive', [])
-  .directive('taskProgressBar', function($filter) {
+  .directive('taskProgressBar', function($filter, $sce) {
     return {
       restrict: 'E',
       scope: {
@@ -26,7 +26,7 @@ module.exports = angular.module('spinnaker.core.task.progressBar.directive', [])
 
           var currentStepIndex = task.steps.indexOf(currentStep[0]) + 1;
 
-          scope.tooltip = 'Step ' + currentStepIndex + ' of ' + task.steps.length + ': ' + $filter('robotToHuman')(currentStep[0].name);
+          scope.tooltip = $sce.trustAsHtml('Step ' + currentStepIndex + ' of ' + task.steps.length + ': ' + $filter('robotToHuman')(currentStep[0].name));
         }
 
         if (task.isFailed) {
@@ -37,10 +37,10 @@ module.exports = angular.module('spinnaker.core.task.progressBar.directive', [])
           if (failedStep.length) {
             var failedStepIndex = task.steps.indexOf(failedStep[0]) + 1;
             var clipped = task.failureMessage.length > 400 ? task.failureMessage.substring(0, 400) + '&hellip;' : task.failureMessage;
-            scope.tooltip = 'Failed on Step ' + failedStepIndex + ' of ' + task.steps.length + ':<br>' + $filter('robotToHuman')(failedStep[0].name) +
-              '<br><br><strong>Exception:</strong><p>' + clipped + '</p>';
+            scope.tooltip = $sce.trustAsHtml('Failed on Step ' + failedStepIndex + ' of ' + task.steps.length + ':<br>' + $filter('robotToHuman')(failedStep[0].name) +
+              '<br><br><strong>Exception:</strong><p>' + clipped + '</p>');
           } else {
-            scope.tooltip = 'Task failed; sorry, no reason provided';
+            scope.tooltip = $sce.trustAsHtml('Task failed; sorry, no reason provided');
           }
         }
       }

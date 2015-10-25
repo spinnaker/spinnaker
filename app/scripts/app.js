@@ -240,15 +240,15 @@ module.exports = angular.module('spinnaker', [
   })
   .run(function($templateCache) {
     $templateCache.put('template/popover/popover.html',
-        '<div class="popover {{placement}}" ng-class="{ in: isOpen(), fade: animation() }">\n' +
-        '  <div class="arrow"></div>\n' +
-        '\n' +
-        '  <div class="popover-inner">\n' +
-        '      <h3 class="popover-title" ng-bind="title" ng-show="title"></h3>\n' +
-        '      <div class="popover-content" ng-bind-html="content"></div>\n' +
-        '  </div>\n' +
-        '</div>\n' +
-        '');
+      '<div tooltip-animation-class="fade"' +
+      '  uib-tooltip-classes' +
+      '  ng-class="{ in: isOpen() }">' +
+      '  <div class="arrow"></div>' +
+      '  <div class="popover-inner">' +
+      '      <h3 class="popover-title" ng-bind="title" ng-if="title"></h3>' +
+      '      <div class="popover-content" ng-bind-html="content"></div>' +
+      '  </div>' +
+    '  </div>');
   }).run(function($state, hotkeys) {
     let globalHotkeys = [
       {

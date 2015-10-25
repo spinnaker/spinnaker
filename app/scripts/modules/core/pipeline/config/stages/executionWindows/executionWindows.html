@@ -16,7 +16,7 @@
           <div ng-repeat="window in timelineWindows"
                class="execution-window"
                ng-style="window.style"
-               tooltip="{{window.start | date:'HH:mm'}} - {{window.end | date:'HH:mm'}}"
+               uib-tooltip="{{window.start | date:'HH:mm'}} - {{window.end | date:'HH:mm'}}"
             >
           </div>
         </div>
@@ -69,7 +69,7 @@
 
           <button class="btn-link btn-remove"
                   ng-click="executionWindowsCtrl.removeWindow($index)">
-            <span class="glyphicon glyphicon-trash" tooltip="Remove window"></span><span class="sr-only">Remove window</span>
+            <span class="glyphicon glyphicon-trash" uib-tooltip="Remove window"></span><span class="sr-only">Remove window</span>
           </button>
 
         </div>
