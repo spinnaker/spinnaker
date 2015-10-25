@@ -26,8 +26,8 @@ module.exports = angular
     this.sortFilter.count = 10; // TODO: remove, uncomment count config above if we ever have the power to show multiple executions
 
     function isExecutionState(stateName) {
-      return stateName === 'home.applications.application.insight.executions' ||
-        stateName === 'home.project.application.insight.executions';
+      return stateName === 'home.applications.application.executions' ||
+        stateName === 'home.project.application.executions';
     }
 
     function isExecutionStateOrChild(stateName) {
@@ -38,11 +38,11 @@ module.exports = angular
       return stateName.indexOf('executions.execution') > -1;
     }
 
-    function movingToClusterState(toState) {
+    function movingToExecutionsState(toState) {
       return isExecutionStateOrChild(toState.name);
     }
 
-    function movingFromClusterState (toState, fromState) {
+    function movingFromExecutionsState (toState, fromState) {
       return isExecutionStateOrChild(fromState.name) && !isExecutionStateOrChild(toState.name);
     }
 
@@ -70,7 +70,7 @@ module.exports = angular
     });
 
     $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
-      if (movingFromClusterState(toState, fromState)) {
+      if (movingFromExecutionsState(toState, fromState)) {
         filterModel.saveState(fromState, fromParams, mostRecentParams);
       }
     });
@@ -80,7 +80,7 @@ module.exports = angular
         filterModel.applyParamsToUrl();
         return;
       }
-      if (movingToClusterState(toState)) {
+      if (movingToExecutionsState(toState)) {
         if (shouldRouteToSavedState(toParams, fromState)) {
           filterModel.restoreState(toParams);
         }

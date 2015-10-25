@@ -94,7 +94,7 @@
           <a href
              class="pull-right hide-details-link"
              ng-if="execution.parallel"
-             ng-click="vm.hideDetails(); $event.stopPropagation();">
+             ui-sref=".">
             Hide Details <span class="glyphicon glyphicon-remove"></span>
           </a>
           <pipeline-graph ng-if="execution.parallel"
