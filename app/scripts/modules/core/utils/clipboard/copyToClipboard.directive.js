@@ -14,7 +14,7 @@ module.exports = angular
       template: `
       <button
         class="btn btn-xs btn-default clipboard-btn"
-        tooltip="{{cb.toolTip}}"
+        uib-tooltip="{{cb.toolTip}}"
         tooltip-trigger="mouseenter"
         tooltip-placement="top"
         tooltip-enable="true"

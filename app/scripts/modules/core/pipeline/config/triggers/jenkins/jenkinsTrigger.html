@@ -13,7 +13,7 @@
       <a href
          ng-click="jenkinsTriggerCtrl.refreshMasters()"
          tooltip-placement="right"
-         tooltip-html-unsafe="Masters {{viewState.mastersRefreshing ? 'refreshing.<br>' : 'last refreshed ' }}{{viewState.mastersLastRefreshed}}
+         uib-tooltip-html-unsafe="Masters {{viewState.mastersRefreshing ? 'refreshing.<br>' : 'last refreshed ' }}{{viewState.mastersLastRefreshed}}
                               <br>(click <span class='small glyphicon glyphicon-refresh'></span> to refresh)</p>"
         >
               <span ng-class="{'glyphicon-spinning':viewState.mastersRefreshing}"
@@ -40,7 +40,7 @@
       <a href
          ng-click="jenkinsTriggerCtrl.refreshJobs()"
          tooltip-placement="right"
-         tooltip-html-unsafe="Jobs {{viewState.jobsRefreshing ? 'refreshing.<br>' : 'last refreshed ' }}{{viewState.jobsLastRefreshed}}
+         uib-tooltip-html-unsafe="Jobs {{viewState.jobsRefreshing ? 'refreshing.<br>' : 'last refreshed ' }}{{viewState.jobsLastRefreshed}}
                               <br>(click <span class='small glyphicon glyphicon-refresh'></span> to refresh)</p>"
         >
               <span ng-class="{'glyphicon-spinning':viewState.jobsRefreshing}"

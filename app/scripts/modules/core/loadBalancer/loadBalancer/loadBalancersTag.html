@@ -3,7 +3,7 @@
       class="btn btn-link btn-multiple-load-balancers clearfix no-padding"
       ng-if="serverGroup.loadBalancers.length > maxDisplay"
       ng-click="popover.show = !popover.show; $event.stopPropagation();"
-      tooltip="{{popover.show ? 'Hide' : 'Show'}} all {{serverGroup.loadBalancers.length}} load balancers">
+      uib-tooltip="{{popover.show ? 'Hide' : 'Show'}} all {{serverGroup.loadBalancers.length}} load balancers">
     <span class="badge counter">{{serverGroup.loadBalancers.length}}</span>
     <span class="icon">
       <span class="icon-elb"></span>
@@ -25,7 +25,7 @@
        ng-repeat="loadBalancer in serverGroup.loadBalancers | orderBy:'toString()'"
        ui-sref=".loadBalancerDetails({region: serverGroup.region, accountId: serverGroup.account, name: loadBalancer, vpcId: serverGroup.vpcId, provider: serverGroup.type})"
        ui-sref-active="active"
-       tooltip="Load Balancer: {{loadBalancer}}">
+       uib-tooltip="Load Balancer: {{loadBalancer}}">
       <span class="icon">
         <span class="icon-elb"></span>
       </span>

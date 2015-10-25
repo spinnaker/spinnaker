@@ -31,7 +31,7 @@
           <triggers-tag pipeline="vm.pipelineConfig"></triggers-tag>
         </div>
         <div class="col-md-2 col-sm-4 text-right" ng-if="vm.viewState.isRetired">
-          <h4><span class="label-retired" tooltip="The configuration for this pipeline has been renamed or deleted.">RETIRED</span></h4>
+          <h4><span class="label-retired" uib-tooltip="The configuration for this pipeline has been renamed or deleted.">RETIRED</span></h4>
         </div>
         <div class="col-md-2 col-sm-4 text-right" ng-if="vm.viewState.canConfigure" ng-class="{'col-md-offset-2' : !vm.viewState.canTriggerPipelineManually}">
           <h4>
@@ -61,7 +61,7 @@
                  class="clickable stage execution-status execution-status-{{stage.status.toLowerCase()}}"
                  ng-class="{active: vm.isActive(execution.id, $index), glowing: stage.isRunning}"
                  ng-style="{width: 100/execution.stageSummaries.length + '%', 'background-color': stage.color}"
-                 tooltip-template="stage.labelTemplateUrl"
+                 uib-tooltip-template="stage.labelTemplateUrl"
                  tooltip-title="(Click for details)"
                  tooltip-placement="bottom"
                  ng-click="vm.toggleDetails({executionId: execution.id, index: $index})"></div>
@@ -75,13 +75,13 @@
           <a href
              ng-if="!execution.isActive"
              ng-click="vm.deleteExecution(execution); $event.stopPropagation();"
-             tooltip="Delete execution">
+             uib-tooltip="Delete execution">
             <span class="glyphicon glyphicon-trash"></span>
           </a>
           <a href
              ng-if="execution.isActive"
              ng-click="vm.cancelExecution(execution); $event.stopPropagation();"
-             tooltip="Cancel execution">
+             uib-tooltip="Cancel execution">
             <span class="glyphicon glyphicon-remove-circle"></span>
           </a>
         </div>

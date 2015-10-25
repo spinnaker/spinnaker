@@ -125,7 +125,7 @@
                          class="error-message glyphicon glyphicon-exclamation-sign"
                          ng-if="!property.isValid && property.errors.indexOf('cluster') > -1"
                          style="display: inline; padding-left: 5px"
-                         tooltip="{{property.cluster}} is not in service"
+                         uib-tooltip="{{property.cluster}} is not in service"
                          tooltip-placement="right">
                      </i>
                    </dd>
@@ -137,7 +137,7 @@
                          class="error-message glyphicon glyphicon-exclamation-sign"
                          ng-if="!property.isValid && property.errors.indexOf('asg') > -1"
                          style="display: inline; padding-left: 5px"
-                         tooltip="{{property.asg}} is not in service"
+                         uib-tooltip="{{property.asg}} is not in service"
                          tooltip-placement="right">
                      </i>
                    </dd>
@@ -154,7 +154,7 @@
                          class="error-message glyphicon glyphicon-exclamation-sign"
                          ng-if="!property.isValid && property.errors.indexOf('serverId') > -1"
                          style="display: inline; padding-left: 5px"
-                         tooltip="{{property.serverId}} is not in service"
+                         uib-tooltip="{{property.serverId}} is not in service"
                          tooltip-placement="right">
                        </i>
                    </dd>

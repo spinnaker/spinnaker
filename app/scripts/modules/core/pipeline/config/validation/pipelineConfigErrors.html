@@ -1,7 +1,7 @@
 <span class="validation-warnings" ng-if="messages.length">
   <a href
      ng-click="popover.show = !popover.show; $event.stopPropagation();"
-     tooltip="{{popover.show ? 'Hide warnings' : 'Show warnings'}}">
+     uib-tooltip="{{popover.show ? 'Hide warnings' : 'Show warnings'}}">
     <span class="glyphicon glyphicon-exclamation-sign"></span>
   </a>
   <div class="menu-validation-warnings" ng-if="popover.show">

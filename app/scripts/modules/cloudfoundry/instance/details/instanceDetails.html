@@ -83,7 +83,7 @@
         <dt ng-repeat-start="metric in healthMetrics | orderBy: 'type'">{{metric.type | robotToHuman}}</dt>
         <dd ng-repeat-end>
           <div ng-if="metric.type !== 'LoadBalancer'">
-            <span tooltip="{{metric.state.toLowerCase() === 'down' ? metric.description : ''}}" tooltip-placement="left">
+            <span uib-tooltip="{{metric.state.toLowerCase() === 'down' ? metric.description : ''}}" tooltip-placement="left">
               <span class="glyphicon glyphicon-{{metric.state}}-triangle"></span>
               {{metric.state | robotToHuman}}
             </span>
