@@ -65,6 +65,10 @@
                  tooltip-title="(Click for details)"
                  tooltip-placement="bottom"
                  ng-click="vm.toggleDetails({executionId: execution.id, index: $index})"></div>
+            <div ng-if="!execution.stageSummaries.length" class="text-center">
+              No stages found.
+              <a target="_blank" ng-href="{{vm.pipelinesUrl + execution.id}}">Source</a>
+            </div>
           </div>
           <div class="execution-summary">
             Status: <span class="status execution-status execution-status-{{execution.status.toLowerCase()}}">{{execution.status}}</span>
