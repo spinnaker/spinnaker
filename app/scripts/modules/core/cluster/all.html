@@ -1,10 +1,10 @@
 <div class="header row header-clusters">
-  <div class="col-md-4 col-sm-12">
+  <div class="col-md-4 col-sm-4">
     <h3>
       Clusters <span class="small"><help-field key="cluster.description"></help-field></span>
     </h3>
   </div>
-  <div class="col-md-8 col-sm-12">
+  <div class="col-md-8 col-sm-8">
     <div class="form-inline clearfix filters">
       <div class="form-group text-center">
         <label class="checkbox">Show </label>
@@ -28,7 +28,9 @@
     </div>
     <div class="application-actions">
       <button class="btn btn-sm btn-default" ng-click="allClusters.createServerGroup()">
-        <span class="glyphicon glyphicon-plus-sign"></span> Create Server Group
+        <span class="glyphicon glyphicon-plus-sign visible-lg-inline"></span>
+        <span class="glyphicon glyphicon-plus-sign visible-md-inline visible-sm-inline" uib-tooltip="Create Server Group"></span>
+        <span class="visible-lg-inline">Create Server Group</span>
       </button>
     </div>
   </div>
