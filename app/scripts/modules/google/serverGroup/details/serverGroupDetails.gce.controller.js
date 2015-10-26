@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
   require('./resize/resizeServerGroup.controller'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
-  .controller('gceServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
+  .controller('gceServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup, InsightFilterStateModel,
                                                      gceServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, _, serverGroupWriter,
                                                      runningExecutionsService) {
 
@@ -166,8 +166,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
     this.getBodyTemplate = function(serverGroup, application) {
       if(this.isLastServerGroupInRegion(serverGroup, application)){
         var template = $templateCache.get(require('../../../core/serverGroup/details/deleteLastServerGroupWarning.html'));
-        $scope.deletingServerGroup = serverGroup;
-        return $compile(template)($scope);
+        return $interpolate(template)({deletingServerGroup: serverGroup});
       }
     };
 

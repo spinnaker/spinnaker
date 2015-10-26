@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
   require('../../../core/modal/closeable/closeable.modal.controller.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
-  .controller('titanServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
+  .controller('titanServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup, InsightFilterStateModel,
                                                      titanServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, _, serverGroupWriter,
                                                        runningExecutionsService) {
 
@@ -130,8 +130,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
     this.getBodyTemplate = function(serverGroup, application) {
       if(this.isLastServerGroupInRegion(serverGroup, application)){
         var template = $templateCache.get(require('../../../core/serverGroup/details/deleteLastServerGroupWarning.html'));
-        $scope.deletingServerGroup = serverGroup;
-        return $compile(template)($scope);
+        return $interpolate(template)({deletingServerGroup: serverGroup});
       }
     };
 

@@ -24,7 +24,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('./resize/resizeServerGroup.controller'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
-  .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
+  .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup, InsightFilterStateModel,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $uibModal, confirmationModalService, _, serverGroupWriter,
                                                      subnetReader, autoScalingProcessService, runningExecutionsService) {
 
@@ -190,8 +190,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
     this.getBodyTemplate = function(serverGroup, app) {
       if(this.isLastServerGroupInRegion(serverGroup, app)){
         var template = $templateCache.get(require('../../../core/serverGroup/details/deleteLastServerGroupWarning.html'));
-        $scope.deletingServerGroup = serverGroup;
-        return $compile(template)($scope);
+        return $interpolate(template)({deletingServerGroup: serverGroup});
       }
     };
 
