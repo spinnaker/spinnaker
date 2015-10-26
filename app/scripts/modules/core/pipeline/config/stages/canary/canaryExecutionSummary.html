@@ -1,5 +1,5 @@
 <div ng-controller="CanaryExecutionSummaryCtrl as canaryExecutionSummaryCtrl">
-  <h4 class="execution-details-title">
+  <h5 class="execution-details-title">
     {{stageSummary.name || stageSummary.type }} Details
 
     <!--<span style="margin-left: 50px" class="label label-default label-{{ stageSummary.masterStage.context.canary.status.status | lowercase }}">-->
@@ -18,7 +18,7 @@
         <li><a href ng-click="canaryExecutionSummaryCtrl.endCanary()">End Canary</a></li>
       </ul>
     </div>
-  </h4>
+  </h5>
   <table class="table canary-summary">
     <thead>
     <tr>
