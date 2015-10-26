@@ -28,6 +28,7 @@ module.exports = angular.module('spinnaker.core.projects.project.controller', [
     $scope.viewState = {
       projectLoaded: false,
       showMenu: false,
+      navigating: false,
     };
 
     $scope.navOptions = [
@@ -56,14 +57,17 @@ module.exports = angular.module('spinnaker.core.projects.project.controller', [
     this.hideNavigationMenu = () => {
       // give the navigate method a chance to fire before hiding the menu
       $timeout(() => {
-        $scope.viewState.showMenu = false;
-      }, 50 );
+        if (!$scope.viewState.navigating) {
+          $scope.viewState.showMenu = false;
+        }
+      }, 100 );
     };
 
     this.navigate = (option) => {
       $scope.viewState.navSelection = option;
       $scope.viewState.showMenu = false;
       $state.go(option.view, option.params);
+      $scope.viewState.navigating = false;
     };
 
     this.configureProject = () => {
