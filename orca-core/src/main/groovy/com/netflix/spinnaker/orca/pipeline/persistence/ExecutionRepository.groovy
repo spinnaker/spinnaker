@@ -23,6 +23,8 @@ interface ExecutionRepository {
   void store(Orchestration orchestration)
   void store(Pipeline pipeline)
 
+  void storeExecutionContext(String id, Map<String, Object> context)
+
   void storeStage(Stage stage)
   void storeStage(OrchestrationStage stage)
   void storeStage(PipelineStage stage)

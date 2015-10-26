@@ -17,53 +17,72 @@
 package com.netflix.spinnaker.orca.batch
 
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import groovy.transform.Canonical
-import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.batch.core.scope.context.ChunkContext
 
 @Slf4j
 @Canonical
-@CompileStatic
 class ExecutionContextManager {
-  private static final String GLOBAL_KEY_PREFIX = "global-"
-
   static <T extends Execution> Stage<T> retrieve(Stage<T> stage, ChunkContext chunkContext) {
-    def jobExecutionContext = chunkContext.stepContext.jobExecutionContext
-    jobExecutionContext.each { String key, Object globalValue ->
-      if (key.startsWith(GLOBAL_KEY_PREFIX)) {
-        key = key.replace(GLOBAL_KEY_PREFIX, "")
-        if (!stage.context.containsKey(key)) {
-          // global value should only apply if stage context does not already contain a local value
-          stage.context.put(key, globalValue)
-        }
-      }
-    }
-
-    if(stage.context) {
-      def augmentedContext = [:] + stage.context
-      if (stage.execution instanceof Pipeline) {
-        augmentedContext.put('trigger', ((Pipeline) stage.execution).trigger)
-        augmentedContext.put('execution', stage.execution)
-      }
-      stage.context.putAll(ContextParameterProcessor.process(stage.context, augmentedContext))
-    }
-
+    ((AbstractStage)stage).context = new DelegatingHashMap(stage.context, chunkContext, stage)
     return stage
   }
 
   static void store(ChunkContext chunkContext, TaskResult taskResult) {
     def jobExecutionContext = chunkContext.stepContext.stepExecution.jobExecution.executionContext
     taskResult.globalOutputs.each { String key, Serializable obj ->
-      jobExecutionContext.put(globalId(key), obj)
+      jobExecutionContext.put(key, obj)
     }
   }
 
-  private static String globalId(String key) {
-    return "${GLOBAL_KEY_PREFIX}${key}"
+  static class DelegatingHashMap implements Map<String, Object> {
+    @Delegate(excludes = "get")
+    private final Map<String, Object> delegate
+
+    private final ChunkContext chunkContext
+
+    private final Stage stage
+
+    DelegatingHashMap(Map<String, Object> delegate, ChunkContext chunkContext, Stage stage) {
+      this.delegate = delegate
+      this.chunkContext = chunkContext
+      this.stage = stage
+    }
+
+    public Object get(Object key) {
+      if (stage.execution instanceof Pipeline) {
+        if (key == "trigger") {
+          return ((Pipeline) stage.execution).trigger
+        }
+
+        if (key == "execution") {
+          return stage.execution
+        }
+      }
+
+      def result = delegate.get(key)
+      if (result == null) {
+        def jobExecutionContext = chunkContext.stepContext.jobExecutionContext
+        result = jobExecutionContext.get(key)
+      }
+
+      if (result instanceof String && ContextParameterProcessor.containsExpression(result)) {
+        def augmentedContext = [:] + stage.context
+        if (stage.execution instanceof Pipeline) {
+          augmentedContext.put('trigger', ((Pipeline) stage.execution).trigger)
+          augmentedContext.put('execution', stage.execution)
+        }
+        def processed = ContextParameterProcessor.process([(key): result], augmentedContext)
+        return processed[key]
+      }
+
+      return result
+    }
   }
 }

@@ -67,6 +67,23 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     execution << [new Pipeline(buildTime: 0), new Orchestration(id: "a-preassigned-id")]
   }
 
+  def "can update an execution's context"() {
+    given:
+    repository.store(execution)
+
+    when:
+    repository.storeExecutionContext(execution.id, ["value": execution.class.simpleName])
+    def storedExecution = (execution instanceof Pipeline) ? repository.retrievePipeline(execution.id) : repository.retrieveOrchestration(execution.id)
+
+    then:
+    storedExecution.id == execution.id
+    storedExecution.context == ["value": storedExecution.class.simpleName]
+
+    where:
+    execution << [new Pipeline(buildTime: 0), new Orchestration(id: "a-preassigned-id")]
+  }
+
+
   def "a pipeline can be retrieved after being stored"() {
     given:
     repository.store(pipeline)

@@ -27,9 +27,12 @@ class ExecutionContextManagerSpec extends Specification {
   @Unroll
   def "should not overwrite a local value with a global value"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), null, context)
+    def trigger = [trigger: "Trigger Details"]
+    def pipeline = new Pipeline()
+    pipeline.trigger.putAll(trigger)
+    def stage = new PipelineStage(pipeline, null, context)
     def chunkContext = Mock(ChunkContext) {
-      1 * getStepContext() >> {
+      _ * getStepContext() >> {
         return Mock(StepContext) {
           1 * getJobExecutionContext() >> {
             return jobExecutionContext
@@ -42,23 +45,24 @@ class ExecutionContextManagerSpec extends Specification {
     ExecutionContextManager.retrieve(stage, chunkContext)
 
     then:
-    stage.context == expectedContext
+    stage.context.execution == pipeline
+    stage.context.trigger == trigger
+    stage.context."doesNotExist" == null
+    stage.context."key" == expectedValue
 
     where:
-    context          | jobExecutionContext            || expectedContext
-    [:]              | [:]                            || [:]
-    [:]              | ["invalid": "invalid-value"]   || [:]
-    ["key": "value"] | [:]                            || ["key": "value"]
-    ["key": "value"] | ["global-key": "global-value"] || ["key": "value"]
-    [:]              | ["global-key": "global-value"] || ["key": "global-value"]
+    context          | jobExecutionContext          || expectedValue
+    ["key": "value"] | [:]                          || "value"
+    ["key": "value"] | ["key": "global-value"]      || "value"
+    [:]              | ["key": "global-value"]      || "global-value"
   }
 
   @Unroll
   def "should convert SPEL expressions into actual values"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), null, [ "key": "normal-string", "replaceKey": '${#alphanumerical(key)}' ] )
+    def stage = new PipelineStage(new Pipeline(), null, ["key": "normal-string", "replaceKey": '${#alphanumerical(key)}'])
     def chunkContext = Mock(ChunkContext) {
-      1 * getStepContext() >> {
+      _ * getStepContext() >> {
         return Mock(StepContext) {
           1 * getJobExecutionContext() >> {
             return [:]
@@ -71,7 +75,7 @@ class ExecutionContextManagerSpec extends Specification {
     ExecutionContextManager.retrieve(stage, chunkContext)
 
     then:
-    stage.context == ["key":"normal-string", "replaceKey": "normalstring"]
+    stage.context == ["key": "normal-string", "replaceKey": "normalstring"]
 
   }
 }

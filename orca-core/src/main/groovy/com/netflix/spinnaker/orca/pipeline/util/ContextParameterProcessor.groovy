@@ -57,6 +57,10 @@ class ContextParameterProcessor {
     transform(parameters, precomputeValues(context))
   }
 
+  static boolean containsExpression(String value) {
+    return value?.contains(parserContext.getExpressionPrefix())
+  }
+
   static Map precomputeValues(Map context) {
 
     if(context.trigger?.parameters) {
