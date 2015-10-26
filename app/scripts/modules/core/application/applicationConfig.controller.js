@@ -8,11 +8,10 @@ module.exports = angular
     require('../confirmationModal/confirmationModal.service.js'),
     require('../cache/cacheInitializer.js'),
     require('../cache/infrastructureCaches.js'),
-    require('../utils/lodash.js'),
     require('./modal/editApplication.controller.modal.js'),
   ])
   .controller('ApplicationConfigController', function ($uibModal, $state, $log, applicationWriter, confirmationModalService,
-                                            cacheInitializer, infrastructureCaches, app, _) {
+                                            cacheInitializer, infrastructureCaches, app) {
     const application = app;
     var vm = this;
 
@@ -94,7 +93,5 @@ module.exports = angular
         }
       );
     };
-
-    return vm;
 
   }).name;
