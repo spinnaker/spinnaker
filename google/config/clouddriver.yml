@@ -12,8 +12,10 @@ redis:
 
 aws:
   enabled: ${providers.aws.enabled:false}
-  aws_access_key: ${providers.aws.primaryCredentials.aws_access_key}
-  aws_secret_key: ${providers.aws.primaryCredentials.aws_secret_key}
+  # Credentials are passed either as environment variables or through
+  # a standard AWS file $HOME/.aws/credentials
+  # See providers.aws.primaryCredentials in spinnaker.yml for more
+  # info on setting environment variables.
 
 google:
   enabled: ${providers.google.enabled:false}

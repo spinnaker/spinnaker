@@ -141,7 +141,7 @@ class Runner(object):
     return result
 
   @staticmethod
-  def run_daemon(path, args, detach=True):
+  def run_daemon(path, args, detach=True, environ=None):
     """Run a program as a long-running background process.
 
     Args:
@@ -168,7 +168,7 @@ class Runner(object):
        except OSError:
          pass
 
-    os.execv(path, args)
+    os.execve(path, args, environ or os.environ)
 
   def stop_subsystem(self, subsystem, pid):
     """Stop the specified subsystem.
@@ -200,12 +200,29 @@ class Runner(object):
                            program, 'bin', program)
     base_log_path = os.path.join(self.__installation.LOG_DIR, subsystem)
 
+    if self.__new_bindings and subsystem == 'clouddriver':
+        environ = dict(os.environ)
+        if self.__new_bindings.get('providers.aws.enabled'):
+          # Set AWS environment variables for credentials if not already there.
+          access_key_id = self.__new_bindings.get(
+                'providers.aws.primaryCredentials.access_key_id')
+          secret_key = self.__new_bindings.get(
+                'providers.aws.primaryCredentials.secret_key')
+          if access_key_id:
+            environ['AWS_ACCESS_KEY_ID'] = environ.get('AWS_ACCESS_KEY_ID',
+                                                       access_key_id)
+          if secret_key:
+            environ['AWS_SECRET_KEY'] = environ.get('AWS_SECRET_KEY', secret_key)
+    else:
+      environ = os.environ
+
     return self.run_daemon('/bin/bash',
                     ['/bin/bash',
                      '-c',
                      '({command} > {log}.log) 2>&1 '
                      '| tee -a {log}.log >& {log}.err'
-                     .format(command=command, log=base_log_path)])
+                     .format(command=command, log=base_log_path)],
+                     environ=environ)
 
   def start_dependencies(self):
     """Start all the external dependencies running on this host."""

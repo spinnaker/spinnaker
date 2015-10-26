@@ -1,9 +1,21 @@
+# This file is intended to serve as a master configuration for a Spinnaker deployment.
+# Customizations to the deployment should be made in another file named
+# "spinnaker-local.yml". The distribution has a prototype called
+# "default-spinnaker-local.yml" which calls out the subset of attributes of general
+# interest. It can be copied into a "spinnaker-local.yml" to start with. The prototype
+# does not change any of the default values here, it just surfaces the more critical
+# attributes.
+
 global:
   spinnaker:
     environment: test
 
 services:
   default:
+    # These defaults can be modified to change all the spinnaker subsystems
+    # (clouddriver, gate, etc) at once, but not external systems (jenkins, etc).
+    # Individual systems can still be overriden using their own section entry
+    # directly under 'services'.
     host: localhost
     protocol: http
     primaryAccountName: service-default-primaryAcountName-not-defined
@@ -30,6 +42,8 @@ services:
     baseUrl: ${services.default.protocol}://${services.gate.host}:${services.gate.port}
 
   igor:
+    # If you are integrating Jenkins then you must also enable Spinnaker's
+    # "igor" subsystem.
     enabled: false
     host: ${services.default.host}
     port: 8088
@@ -62,6 +76,9 @@ services:
     baseUrl: ${services.default.protocol}://${services.rosco.host}:${services.rosco.port}
 
   rush:
+    # Spinnaker's "rush" subsystem is used by the "rosco" bakery.
+    # You'll need to provide it a Spinnaker account to use.
+    # Here we are assuming the default primary acccount.
     host: ${services.default.host}
     port: 8085
     baseUrl: ${services.default.protocol}://${services.rush.host}:${services.rush.port}
@@ -75,11 +92,18 @@ services:
     propagateCloudProviderType: true
 
   docker:
+    # Spinnaker's "rush" subsystem uses docker to run internal jobs.
+    # Note that docker is not installed with Spinnaker so you must obtain this
+    # on your own if you are interested.
     enabled: false
     baseUrl: # Expected in spinnaker-local.yaml
 
-    # If there are multiple accounts then you will need to list them in
-    # rush-local.yml. See the docker.accounts section in config/rush.yml.
+    # You'll need to provide it a Spinnaker account to use.
+    # Here we are assuming the default primary acccount.
+    #
+    # If you have multiple accounts using docker then you will need to
+    # provide a rush-local.yml.
+    # For more info see docker.accounts in config/rush.yml.
     primaryAccount:
       name: ${services.default.primaryAccountName}
       url:  ${services.docker.baseUrl}
@@ -94,6 +118,9 @@ services:
     #
     # If you have multiple jenkins servers, you will need to list
     # them in an igor-local.yml. See jenkins.masters in config/igor.yml.
+    #
+    # Note that jenkins is not installed with Spinnaker so you must obtain this
+    # on your own if you are interested.
     defaultMaster:
       name: Jenkins
       baseUrl:   # Expected in spinnaker-local.yml
@@ -113,25 +140,33 @@ services:
 
 
 providers:
-  google:
-    enabled: false
-    defaultRegion: us-central1
-    defaultZone: us-central1-f
-    primaryCredentials:
-      name: my-account-name
-      project: 
-      jsonPath:
-    credentials:
-      name: ${providers.google.primaryCredentials.name}
-      project: ${providers.google.primaryCredentials.project}
-      jsonPath: ${providers.google.primaryCredentials.jsonPath}
-
   aws:
+    # If you want to deploy some services to Amazon Web Services (AWS),
+    # set enabled and provide primary credentials for deploying.
+    # Enabling AWS is independent of other providers.
     enabled: false
     simpleDBEnabled: false
     defaultRegion: us-east-1
     defaultSimpleDBDomain: CLOUD_APPLICATIONS
     primaryCredentials:
       name: default
-      aws_access_key:
-      aws_secret_key: 
+      # You can use a standard $HOME/.aws/credentials file instead of providing
+      # these here. If provided here, then start_spinnaker will set environment
+      # variables before starting up the subsystems that interact with AWS.
+      access_key_id:
+      secret_key: 
+
+  google:
+    # If you want to deploy some services to Google Cloud Platform (google),
+    # set enabled and provide primary credentials for deploying.
+    # Enabling google is independent of other providers.
+    enabled: false
+    defaultRegion: us-central1
+    defaultZone: us-central1-f
+    primaryCredentials:
+      name: my-account-name
+      # The project is the Google Project ID for the project to manage with Spinnaker.
+      # The jsonPath is a path to the JSON service credentials downloaded from the
+      # Google Developer's Console.
+      project: 
+      jsonPath:

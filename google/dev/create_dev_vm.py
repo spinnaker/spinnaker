@@ -94,6 +94,9 @@ def init_argument_parser(parser):
         help='Also copy private files (.ssh/id_rsa*, .git-credentials, etc)')
 
     parser.add_argument(
+        '--aws_credentials', default=None,
+        help='If specified, the path to the aws credentials file.')
+    parser.add_argument(
         '--master_yml', default=None,
         help='If specified, the path to the master spinnaker-local.yml file.')
     parser.add_argument(
@@ -112,19 +115,33 @@ def init_argument_parser(parser):
 
 def copy_file(options, source, target):
     if os.path.exists(source):
+        # TODO(ewiseblatt): we can use scp here instead, and pass the
+        # credentials we want to copy with rather than the additional command
+        # below. But we need to figure out the IP address to copy to.
+        # For now, do it the long way.
         print 'Copying {source}'.format(source=source)
         command = ' '.join([
-            'gcloud', 'compute', 'copy-files',
+            'gcloud compute copy-files',
             '--project', get_project(options),
             '--zone', options.zone,
-            source, target])
-
+            source,
+            '{instance}:{target}'.format(instance=options.instance,
+                                         target=target)])
         while True:
             result = run_quick(command, echo=False)
             if not result.returncode:
                 break
             print 'New instance does not seem ready yet...retry in 5s.'
             time.sleep(5)
+
+        command = ' '.join([
+            'gcloud compute ssh',
+            '--command="chmod 600 /home/{gcp_user}/{target}"'.format(
+                gcp_user=os.environ['LOGNAME'], target=target),
+            options.instance,
+            '--project', get_project(options),
+            '--zone', options.zone])
+        check_run_quick(command, echo=False)
 
 
 def copy_home_files(options, type, file_list, source_dir=None):
@@ -133,9 +150,7 @@ def copy_home_files(options, type, file_list, source_dir=None):
     home=os.environ['HOME']
     for file in file_list:
        source = '{0}/{1}'.format(home, file)
-       target = '{instance}:{file}'.format(
-                instance=options.instance, file=file)
-       copy_file(options, source, target)
+       copy_file(options, source, file)
     print 'Finished copying {type} files.'.format(type=type)
 
 
@@ -278,20 +293,13 @@ def copy_master_config(options):
         json_credential_path = None
 
 
-    # GCloud compute ssh uses the local $LOGNAME and creates a user with
-    # that name, not your GCP account name.
-    gcp_user = os.environ['LOGNAME']
-
-    fix_permissions = [
-        'cd /home/{gcp_user}/.spinnaker'.format(gcp_user=gcp_user),
-        'chmod 600 spinnaker_config.cfg'
-    ]
-
     temp_path = None
     actual_path = options.master_config
     if json_credential_path:
+       # GCloud compute ssh uses the local $LOGNAME and creates a user with
+       # that name, not your GCP account name.
        target_location = '/home/{gcp_user}/.spinnaker/credentials.json'.format(
-           gcp_user=gcp_user)
+           gcp_user=os.environ['LOGNAME'])
 
        content = re.sub('(?m)(GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH=).*',
                         r'\1{path}'.format(path=target_location),
@@ -302,25 +310,10 @@ def copy_master_config(options):
        actual_path = temp_path
 
        # Copy the credentials here. The cfg file will be copied after.
-       copy_file(options, json_credential_path,
-                 '{instance}:.spinnaker/credentials.json'.format(
-                     instance=options.instance))
-       fix_permissions.append('chmod 600 credentials.json')
+       copy_file(options, json_credential_path, '.spinnaker/credentials.json')
 
-    copy_file(options, actual_path,
-              '{instance}:.spinnaker/spinnaker_config.cfg'.format(
-                    instance=options.instance))
+    copy_file(options, actual_path, '.spinnaker/spinnaker_config.cfg')
 
-    print 'Setting credential permissions.'
-    # Ideally this should be a parameter to copy-files so it is always
-    # protected, but there doesnt seem to be an API for it.
-    check_run_quick('gcloud compute ssh --command "{fix_permissions}"'
-                    ' --project={project} --zone={zone} {instance}'
-                    .format(fix_permissions=';'.join(fix_permissions),
-                            project=get_project(options),
-                            zone=options.zone,
-                            instance=options.instance),
-                    echo=False)
     if temp_path:
       os.remove(temp_path)
 
@@ -360,11 +353,6 @@ def copy_master_yml(options):
     # If there are credentials, write them to this path
     gcp_credential_path = os.path.join(gcp_home, 'google-credentials.json')
 
-    fix_permissions = [
-        'cd {gcp_home}'.format(gcp_home=gcp_home),
-        'chmod 600 spinnaker-local.yml'
-    ]
-
     with open(options.master_yml, 'r') as f:
         content = f.read()
 
@@ -379,26 +367,12 @@ def copy_master_yml(options):
     actual_path = temp_path
 
     # Copy the credentials here. The cfg file will be copied after.
-    copy_file(options, actual_path,
-              '{instance}:.spinnaker/spinnaker-local.yml'.format(
-                    instance=options.instance))
+    copy_file(options, actual_path, '.spinnaker/spinnaker-local.yml')
 
     if json_credential_path:
         copy_file(options, json_credential_path,
-                  '{instance}:.spinnaker/google-credentials.json'.format(
-                        instance=options.instance))
-        fix_permissions.append('chmod 600 google-credentials.json')
+                  '.spinnaker/google-credentials.json')
 
-    print 'Fixing credentials.'
-    # Ideally this should be a parameter to copy-files so it is always
-    # protected, but there doesnt seem to be an API for it.
-    check_run_quick('gcloud compute ssh --command "{fix_permissions}"'
-                    ' --project={project} --zone={zone} {instance}'
-                    .format(fix_permissions=';'.join(fix_permissions),
-                            project=get_project(options),
-                            zone=options.zone,
-                            instance=options.instance),
-                    echo=False)
     if temp_path:
       os.remove(temp_path)
 
@@ -426,6 +400,16 @@ if __name__ == '__main__':
 
     if options.master_yml:
       copy_master_yml(options)
+
+    if options.aws_credentials:
+        print 'Creating .aws directory...'
+        check_run_quick('gcloud compute ssh --command "mkdir -p .aws"'
+                        ' --project={project} --zone={zone} {instance}'
+                        .format(project=get_project(options),
+                              zone=options.zone,
+                              instance=options.instance),
+                        echo=False)
+        copy_file(options, options.aws_credentials, '.aws/credentials')
 
     print __NEXT_STEP_INSTRUCTIONS.format(
         project=get_project(options),
