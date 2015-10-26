@@ -1,5 +1,5 @@
 <div>
-  <h4 class="execution-details-title">
+  <h5 class="execution-details-title">
     {{stageSummary.name || stageSummary.type }} Details
 
     <div ng-if="(!stage.isRunning && !stage.isCompleted) && ctrl.isRestartable(stage)" uib-dropdown class="btn-group pull-right">
@@ -11,7 +11,7 @@
         <li><a href ng-controller="RestartStageCtrl as restartCtrl" ng-click="restartCtrl.restart()">Restart Stage</a></li>
       </ul>
     </div>
-  </h4>
+  </h5>
 
   <table class="table">
     <thead>

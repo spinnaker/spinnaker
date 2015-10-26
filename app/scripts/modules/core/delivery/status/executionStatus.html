@@ -1,23 +1,23 @@
 <div class="execution-status-section">
-  <h5 class="execution-name" ng-if="filter.groupBy !== 'name'">{{execution.name}}</h5>
+  <h4 class="execution-name" ng-if="filter.groupBy !== 'name'">{{execution.name}}</h4>
   <span class="trigger-type" ng-switch="execution.trigger.type" ng-class="{subheading: filter.groupBy !== 'name'}">
-     <h5 ng-switch-when="jenkins">
-       Triggered Build
-     </h5>
-    <h5 ng-switch-when="manual">
-      Manual Start
-    </h5>
-    <h5 ng-switch-when="pipeline">
-      Pipeline
-    </h5>
-    <h5 ng-switch-when="cron">
-      Cron<br/>{{ execution.trigger.cronExpression }}
-    </h5>
-    <h5 ng-switch-default>
-      {{ execution.trigger.type }}
-    </h5>
     <h5 class="build-number">
       <execution-build-number execution="execution"></execution-build-number>
+    </h5>
+     <h5 ng-switch-when="jenkins" class="execution-type">
+       Triggered Build
+     </h5>
+    <h5 ng-switch-when="manual" class="execution-type">
+      Manual Start
+    </h5>
+    <h5 ng-switch-when="pipeline" class="execution-type">
+      Pipeline
+    </h5>
+    <h5 ng-switch-when="cron" class="execution-type">
+      Cron<br/>{{ execution.trigger.cronExpression }}
+    </h5>
+    <h5 ng-switch-default class="execution-type">
+      {{ execution.trigger.type }}
     </h5>
   </span>
   <ul class="trigger-details">

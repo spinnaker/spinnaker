@@ -50,7 +50,7 @@ execution-details-section-nav {
 }
 
 .execution-group-heading {
-  margin-top: 5px;
+  margin-top: 3px;
   background-color: @mid_grey;
   color: rgb(248, 248, 248);
   border: 2px solid @lightest_grey;
@@ -60,6 +60,7 @@ execution-details-section-nav {
     font-weight: 300;
   }
   h4 {
+    font-size: 16px;
     display: inline-block;
     vertical-align: top;
     margin: 6px 0;
@@ -68,10 +69,11 @@ execution-details-section-nav {
     }
     cursor: pointer;
     .glyphicon {
-      &.glyphicon-certificate {
+      font-size: 70%;
+      &.glyphicon-certificate, &.glyphicon-play {
         margin-left: 5px;
         padding: 2px 0 0 0;
-        font-size: 75%;
+        font-size: 80%;
       }
     }
   }
@@ -105,7 +107,9 @@ execution-group {
   display: block;
 }
 
-.execution-group-title {
-  padding-left: 10px;
+h4 {
+  &.execution-group-title {
+    padding-left: 0;
+    margin-top: 8px;
+  }
 }
-
