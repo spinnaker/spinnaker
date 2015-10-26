@@ -97,18 +97,17 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
     };
 
     this.execute = function() {
-      let command = {},
-          trigger = {},
-          selectedTrigger = $scope.command.trigger,
+      let selectedTrigger = $scope.command.trigger,
+          command = { trigger: selectedTrigger },
           pipeline = $scope.command.pipeline;
 
       command.pipelineName = pipeline.name;
 
       if (selectedTrigger && $scope.command.selectedBuild) {
-        trigger.buildNumber = $scope.command.selectedBuild.number;
+        selectedTrigger.buildNumber = $scope.command.selectedBuild.number;
       }
       if (pipeline.parameterConfig !== undefined && pipeline.parameterConfig.length) {
-        trigger.parameters = $scope.parameters;
+        selectedTrigger.parameters = $scope.parameters;
       }
       $modalInstance.close(command);
     };
