@@ -97,7 +97,7 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
     };
 
     this.execute = function() {
-      let selectedTrigger = $scope.command.trigger,
+      let selectedTrigger = $scope.command.trigger || {},
           command = { trigger: selectedTrigger },
           pipeline = $scope.command.pipeline;
 

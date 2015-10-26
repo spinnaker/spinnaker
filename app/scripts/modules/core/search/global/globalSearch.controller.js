@@ -65,7 +65,7 @@ module.exports = angular.module('spinnaker.core.search.global.controller', [
     };
 
     this.dispatchQueryInput = function(event) {
-      if ($scope.showSearchResults) {
+      if ($scope.showSearchResults || $scope.hasRecentItems) {
         var code = event.which;
         if (code === 27) { // escape
           return reset();
