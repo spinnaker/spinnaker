@@ -20,6 +20,24 @@
   </ul>
   <ul class="dropdown-menu"
       role="menu"
+      ng-if="!querying && showRecentItems">
+    <li ng-repeat-start="category in recentItems" class="category-heading">
+      <div class="category-heading">Recent {{ category.category }}</div>
+    </li>
+    <li ng-repeat="result in category.results | limitTo: 5"
+        ng-repeat-end
+        ng-mouseover="ctrl.focussedResult = result"
+        class="result">
+      <a ng-keydown="ctrl.navigateResults($event)"
+         ui-sref="{{ result.state }}(result.params)"
+         ng-click="ctrl.hideResults()"
+         ng-focus="ctrl.focussedResult = result">
+        <search-result item="result"></search-result>
+      </a>
+    </li>
+  </ul>
+  <ul class="dropdown-menu"
+      role="menu"
       ng-if="!querying && showSearchResults">
     <li ng-repeat-start="category in categories | orderBy: 'order'" class="category-heading">
       <div class="category-heading">{{ category.category }}</div>
@@ -29,20 +47,8 @@
         ng-mouseover="ctrl.focussedResult = result"
         class="result">
       <a ng-keydown="ctrl.navigateResults($event)" ng-click="ctrl.clearFilters(result)" href="{{ result.href }}"
-         ng-class="{sublinked: result.sublinks}"
          ng-focus="ctrl.focussedResult = result">
         <search-result item="result"></search-result>
-        <span class="small" ng-if="result.sublinks && ctrl.focussedResult === result">- {{result.sublinks[0].name}}</span>
-      </a>
-      <span class="small sublink-label" ng-if="result.sublinks && ctrl.focussedResult === result">jump to: </span>
-      <span class="sublink-label" ng-repeat-start="sublink in result.sublinks.slice(1)"
-            ng-show="ctrl.focussedResult === result && $index > 0">|</span>
-      <a class="sublink small"
-         ng-show="ctrl.focussedResult === result"
-         ng-repeat-end
-         ng-keydown="ctrl.navigateResults($event)" ng-click="ctrl.clearFilters(result)"
-         href="{{ result.href + sublink.href }}">
-        {{sublink.name}}
       </a>
     </li>
     <li class="divider"></li>

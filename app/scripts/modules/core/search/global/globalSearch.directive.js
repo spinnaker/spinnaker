@@ -23,6 +23,7 @@ module.exports = angular.module('spinnaker.core.search.global.directive', [
           }
 
           scope.showSearchResults = false;
+          scope.showRecentItems = false;
           scope.$digest();
         });
 

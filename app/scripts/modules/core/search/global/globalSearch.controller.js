@@ -8,8 +8,10 @@ module.exports = angular.module('spinnaker.core.search.global.controller', [
   require('../../utils/jQuery.js'),
   require('../searchResult/searchResult.directive.js'),
   require('../searchRank.filter.js'),
+  require('../../history/recentHistory.service.js'),
 ])
-  .controller('GlobalSearchCtrl', function($scope, $element, $window, infrastructureSearchService, ClusterFilterModel, $stateParams, _, $, clusterFilterService) {
+  .controller('GlobalSearchCtrl', function($scope, $element, infrastructureSearchService, recentHistoryService,
+                                           $stateParams, _, $, clusterFilterService) {
     var ctrl = this;
     var search = infrastructureSearchService();
 
@@ -20,14 +22,46 @@ module.exports = angular.module('spinnaker.core.search.global.controller', [
       $scope.query = null;
       $scope.categories = null;
       $scope.showSearchResults = false;
+      $scope.showRecentItems = false;
       ctrl.focussedResult = null;
       $element.find('input').focus();
     }
 
-    this.displayResults = function() {
+    this.displayResults = () => {
       if ($scope.query) {
         $scope.showSearchResults = true;
+        $scope.showRecentItems = false;
+      } else {
+        this.showRecentHistory();
       }
+    };
+
+    this.hideResults = () => {
+      $scope.showSearchResults = false;
+      $scope.showRecentItems = false;
+    };
+
+    this.showRecentHistory = () => {
+      $scope.recentItems = ['applications', 'projects']
+        .map((category) => {
+          return {
+            category: category,
+            results: recentHistoryService.getItems(category)
+              .map((result) => {
+                let routeParams = angular.extend(result.params, result.extraData);
+                search.formatRouteResult(category, routeParams, true).then((name) => result.displayName = name);
+                return result;
+              })
+          };
+        })
+        .filter((category) => {
+          return category.results.length;
+        });
+
+      $scope.hasRecentItems = $scope.recentItems.some((category) => {
+        return category.results.length > 0;
+      });
+      $scope.showRecentItems = $scope.hasRecentItems;
     };
 
     this.dispatchQueryInput = function(event) {
@@ -68,6 +102,7 @@ module.exports = angular.module('spinnaker.core.search.global.controller', [
           $scope.querying = false;
           $scope.categories = result.filter((category) => category.results.length);
           $scope.showSearchResults = !!$scope.query;
+          $scope.showRecentItems = !$scope.query;
         });
       });
     }, 200);
@@ -128,27 +163,6 @@ module.exports = angular.module('spinnaker.core.search.global.controller', [
           ctrl.focusLastSearchResult(event);
         }
         event.preventDefault();
-      }
-      if (event.which === 39) { // right
-        if ($target.is('.sublinked') || $target.is('.sublink')) {
-          if ($target.nextAll('.sublink').size()) {
-            $target.nextAll('.sublink')[0].focus();
-          } else {
-            $target.prevAll('.sublinked')[0].focus();
-          }
-        }
-      }
-      if (event.which === 37) { // left
-        if ($target.is('.sublinked')) {
-          $target.nextAll('.sublink').last().focus();
-        }
-        if ($target.is('.sublink')) {
-          try {
-            $target.prevAll('.sublink')[0].focus();
-          } catch (e) {
-            $target.prevAll('.sublinked')[0].focus();
-          }
-        }
       }
     };
   }).name;
