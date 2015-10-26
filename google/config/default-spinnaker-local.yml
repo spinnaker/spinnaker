@@ -39,7 +39,7 @@ services:
     host: localhost
 
   cassandra:
-    # If you are using a remote cassndra server, you can set the host here.
+    # If you are using a remote cassandra server, you can set the host here.
     # If the remote server is on a different port or url, you can add
     # a "port" or "baseUrl" field here instead. You may also need to set
     # the cluster name. See the main spinnaker.yml file for more attributes.
