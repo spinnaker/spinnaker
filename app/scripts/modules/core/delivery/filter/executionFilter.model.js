@@ -6,11 +6,19 @@ module.exports = angular
   .module('spinnaker.core.delivery.filter.executionFilter.model', [
     require('../../filterModel/filter.model.service.js'),
     require('../../navigation/urlParser.service.js'),
+    require('../../cache/viewStateCache.js')
   ])
-  .factory('ExecutionFilterModel', function($rootScope, filterModelService, urlParser) {
+  .factory('ExecutionFilterModel', function($rootScope, filterModelService, urlParser, viewStateCache) {
 
     var filterModel = this;
     var mostRecentParams = null;
+
+    // Store count globally for 180 days
+    var configViewStateCache = viewStateCache.createCache('executionFilters', {
+      version: 1,
+      maxAge: 180 * 24 * 60 * 60 * 1000,
+    });
+    var groupCount = (configViewStateCache.get('#global') || { count: 2 }).count;
 
     this.mostRecentApplication = null;
 
@@ -19,11 +27,20 @@ module.exports = angular
       { model: 'pipeline', param: 'pipeline', type: 'object', },
       { model: 'status', type: 'object', },
       { model: 'groupBy', displayOption: true, type: 'string', defaultValue: 'name', },
-      //{ model: 'count', displayOption: true, type: 'number', defaultValue: 2 },
     ];
 
     filterModelService.configureFilterModel(this, filterModelConfig);
-    this.sortFilter.count = 10; // TODO: remove, uncomment count config above if we ever have the power to show multiple executions
+
+    // A nice way to avoid watches is to define a property on an object
+    Object.defineProperty(this.sortFilter, 'count', {
+      get: function() {
+        return groupCount;
+      },
+      set: function(count) {
+        groupCount = count;
+        configViewStateCache.put('#global', { count: count});
+      }
+    });
 
     function isExecutionState(stateName) {
       return stateName === 'home.applications.application.executions' ||

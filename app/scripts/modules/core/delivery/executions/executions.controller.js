@@ -81,7 +81,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       executionsViewStateCache.put($scope.application.name, $scope.filter);
     }
 
-    $scope.filterCountOptions = [1, 2, 5, 10, 25, 50, 100];
+    $scope.filterCountOptions = [1, 2, 5];
 
     function normalizeExecutionNames() {
       let executions = application.executions || [];
