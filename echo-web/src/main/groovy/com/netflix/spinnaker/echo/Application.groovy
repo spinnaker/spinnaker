@@ -29,12 +29,13 @@ import org.springframework.context.annotation.Configuration
 @ComponentScan(['com.netflix.spinnaker.echo.config', 'com.netflix.spinnaker.config'])
 class Application extends SpringBootServletInitializer {
     static final Map<String, String> DEFAULT_PROPS = [
-        'netflix.environment'   : System.getProperty('netflix.environment', 'test'),
-        'netflix.account'       : System.getProperty('netflix.environment', 'test'),
-        'netflix.stack'         : System.getProperty('netflix.stack', 'test'),
-        'spring.config.location': "${System.properties['user.home']}/.spinnaker/",
-        'spring.config.name'    : 'echo',
-        'spring.profiles.active': "${System.getProperty('netflix.environment', 'test')},local"
+        'netflix.environment'    : 'test',
+        'netflix.account'        : '${netflix.environment}',
+        'netflix.stack'          : 'test',
+        'spring.config.location' : '${user.home}/.spinnaker/',
+        'spring.application.name': 'echo',
+        'spring.config.name'     : 'spinnaker,${spring.application.name}',
+        'spring.profiles.active' : '${netflix.environment},local'
     ]
 
     static void main(String... args) {
