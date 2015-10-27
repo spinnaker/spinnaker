@@ -215,6 +215,8 @@ function process_args() {
 # apply outstanding updates since time of image creation
 apt-get -y update
 apt-get -y dist-upgrade
+apt-get -y install unattended-upgrades
+unattended-upgrade -d
 
 process_args
 mkdir -p /root/.spinnaker
