@@ -35,7 +35,6 @@ import com.netflix.spinnaker.orca.rush.config.RushConfiguration
 import com.netflix.spinnaker.orca.tide.config.TideConfiguration
 import com.netflix.spinnaker.orca.web.config.WebConfiguration
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
-import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
@@ -79,23 +78,13 @@ class Main extends SpringBootServletInitializer {
     'spring.profiles.active': "${System.getProperty('netflix.environment', 'test')},local"
   ]
 
-  static {
-    applyDefaults()
-  }
-
-  static void applyDefaults() {
-    DEFAULT_PROPS.each { k, v ->
-      System.setProperty(k, System.getProperty(k, v))
-    }
-  }
-
   static void main(String... args) {
-    SpringApplication.run(Main, args)
+    new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main).run(args)
   }
 
   @Override
   SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-    application.sources Main
+    application.properties(DEFAULT_PROPS).sources(Main)
   }
 
   static class StockMappingJackson2HttpMessageConverter extends MappingJackson2HttpMessageConverter {
