@@ -4,8 +4,8 @@ providers:
     defaultRegion: us-east-1
     primaryCredentials:
       name: my-aws-account
-      aws_access_key:
-      aws_secret_key:
+      access_key_id:
+      secret_key:
 
   google:
     enabled: true

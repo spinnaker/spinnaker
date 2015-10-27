@@ -129,6 +129,11 @@ function extract_spinnaker_local_yaml() {
 }
 
 function extract_spinnaker_credentials() {
+    extract_spinnaker_google_credentials
+    extract_spinnaker_aws_credentials
+}
+
+function extract_spinnaker_google_credentials() {
   local json_path="$CONFIG_DIR/ManagedProjectCredentials.json"
   mkdir -p $(dirname $json_path)
   if clear_metadata_to_file "managed_project_credentials" $json_path; then
@@ -140,6 +145,7 @@ function extract_spinnaker_credentials() {
     sed -i s/^None$//g $json_path
     if [[ -s $json_path ]]; then
       chmod 400 $json_path
+      echo "Extracted google credentials to $json_path"
     else
        rm $json_path
     fi
@@ -163,6 +169,27 @@ function extract_spinnaker_credentials() {
           "$CONFIG_DIR/spinnaker_config.cfg"
       echo "GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH=$json_path" \
           >> "$CONFIG_DIR/spinnaker_config.cfg"
+  fi
+}
+
+function extract_spinnaker_aws_credentials() {
+  local credentials_path="$HOME/.aws/credentials"
+  mkdir -p $(dirname $credentials_path)
+  if clear_metadata_to_file "aws_credentials" $credentials_path; then
+    # This is a workaround for difficulties using the Google Deployment Manager
+    # to express no value. We'll use the value "None". But we dont want
+    # to officially support this, so we'll just strip it out of this first
+    # time boot if we happen to see it, and assume the Google Deployment Manager
+    # got in the way.
+    sed -i s/^None$//g $credentials_path
+    if [[ -s $credentials_path ]]; then
+      chmod 400 $credentials_path
+      echo "Extracted aws credentials to $credentials_path"
+    else
+       rm $credentials_path
+    fi
+  else
+    clear_instance_metadata "aws_credentials"
   fi
 }
 

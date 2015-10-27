@@ -1,3 +1,7 @@
+# This file is intended to override the default configuration in the spinnaker.yml file.
+# In order for Spinnaker to discover it, it must be copied to a file named
+# "spinnaker-local.yml" and placed in the $HOME/.spinnaker directory.
+
 providers:
   aws:
     # If you want to deploy some services to Amazon Web Services (AWS),
@@ -7,8 +11,11 @@ providers:
     defaultRegion: us-east-1
     primaryCredentials:
       name: my-aws-account
-      aws_access_key:
-      aws_secret_key:
+      # You can use a standard $HOME/.aws/credentials file instead of providing
+      # these here. If provided here, then start_spinnaker will set environment
+      # variables before starting up the subsystems that interact with AWS.
+      access_key_id:
+      secret_key:
 
   google:
     # If you want to deploy some services to Google Cloud Platform (google),
@@ -19,11 +26,14 @@ providers:
     defaultZone: us-central1-f
     primaryCredentials:
       name: my-google-account
+      # The project is the Google Project ID for the project to manage with Spinnaker.
+      # The jsonPath is a path to the JSON service credentials downloaded from the
+      # Google Developer's Console.
       project:
       jsonPath:
 
 services:
-  defaults:
+  default:
     # These defaults can be modified to change all the spinnaker subsystems
     # (clouddriver, gate, etc) at once, but not external systems (jenkins, etc).
     # Individual systems can still be overriden using their own section entry
