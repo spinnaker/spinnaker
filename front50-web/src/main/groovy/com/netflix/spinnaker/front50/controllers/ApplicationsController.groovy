@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.front50.controllers
 
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.front50.events.ApplicationEventListener
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
@@ -53,7 +53,7 @@ public class ApplicationsController {
   List<ApplicationEventListener> applicationEventListeners = []
 
   @Autowired
-  ExtendedRegistry extendedRegistry
+  Registry registry
 
   @RequestMapping(value = "/search", method = RequestMethod.GET)
   @ApiOperation(value = "", notes = """Search for applications within a specific `account` given one or more attributes.
