@@ -18,6 +18,8 @@ module.exports = angular.module('spinnaker.core.serverGroup.serverGroup.directiv
         serverGroup: '=',
         application: '=',
         parentHeading: '=',
+        hasLoadBalancers: '=',
+        hasDiscovery: '=',
       },
       link: function (scope, el) {
 

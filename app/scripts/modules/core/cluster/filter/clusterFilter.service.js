@@ -116,6 +116,30 @@ module.exports = angular
       return true;
     }
 
+    function hasDiscovery(group) {
+      return group.serverGroups.some((serverGroup) =>
+          (serverGroup.instances || []).some((instance) =>
+              (instance.health || []).some((health) => health.type === 'Discovery')
+          )
+      );
+    }
+
+    function hasLoadBalancers(group) {
+      return group.serverGroups.some((serverGroup) =>
+          (serverGroup.instances || []).some((instance) =>
+              (instance.health || []).some((health) => health.type === 'LoadBalancer')
+          )
+      );
+    }
+
+    function addHealthFlags() {
+      ClusterFilterModel.groups.forEach((group) => {
+        group.subgroups.forEach((subgroup) => {
+          subgroup.hasDiscovery = subgroup.subgroups.some(hasDiscovery);
+          subgroup.hasLoadBalancers = subgroup.subgroups.some(hasLoadBalancers);
+        });
+      });
+    }
 
     /**
      * Grouping logic
@@ -158,6 +182,7 @@ module.exports = angular
       waypointService.restoreToWaypoint(application.name);
       ClusterFilterModel.addTags();
       lastApplication = application;
+      addHealthFlags();
       return groups;
     }, 25);
 
