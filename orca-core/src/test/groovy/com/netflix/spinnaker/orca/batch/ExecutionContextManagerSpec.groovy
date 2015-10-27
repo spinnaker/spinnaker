@@ -73,9 +73,10 @@ class ExecutionContextManagerSpec extends Specification {
 
     when:
     ExecutionContextManager.retrieve(stage, chunkContext)
+    def contextCopy = [:] + stage.context
 
     then:
     stage.context == ["key": "normal-string", "replaceKey": "normalstring"]
-
+    contextCopy == ["key": "normal-string", "replaceKey": "normalstring"]
   }
 }

@@ -66,14 +66,15 @@ class ExecutionContextManager {
         }
       }
 
+      def jobExecutionContext = chunkContext.stepContext.jobExecutionContext
+
       def result = delegate.get(key)
       if (result == null) {
-        def jobExecutionContext = chunkContext.stepContext.jobExecutionContext
         result = jobExecutionContext.get(key)
       }
 
       if (result instanceof String && ContextParameterProcessor.containsExpression(result)) {
-        def augmentedContext = [:] + stage.context
+        def augmentedContext = [:] + jobExecutionContext + delegate
         if (stage.execution instanceof Pipeline) {
           augmentedContext.put('trigger', ((Pipeline) stage.execution).trigger)
           augmentedContext.put('execution', stage.execution)
@@ -83,6 +84,17 @@ class ExecutionContextManager {
       }
 
       return result
+    }
+
+    public Set<Map.Entry<Object, Object>> entrySet() {
+      def jobExecutionContext = chunkContext.stepContext.jobExecutionContext
+      def augmentedContext = [:] + jobExecutionContext + delegate
+      if (stage.execution instanceof Pipeline) {
+        augmentedContext.put('trigger', ((Pipeline) stage.execution).trigger)
+        augmentedContext.put('execution', stage.execution)
+      }
+      def processed = ContextParameterProcessor.process(delegate, augmentedContext)
+      return processed?.entrySet() ?: [:].entrySet()
     }
   }
 }
