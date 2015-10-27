@@ -16,12 +16,13 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import org.springframework.stereotype.Component
 
 @Component
 class WaitForScaleDownClusterTask extends AbstractWaitForClusterWideClouddriverTask {
   @Override
-  boolean isServerGroupOperationInProgress(Optional<Map> currentServerGroup) {
-    !(currentServerGroup.orElse([instances: []]).instances ?: []).isEmpty()
+  boolean isServerGroupOperationInProgress(Optional<TargetServerGroup> currentServerGroup) {
+    !currentServerGroup.map({ it.instances ?: []}).orElse([]).isEmpty()
   }
 }

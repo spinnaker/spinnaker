@@ -16,12 +16,34 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.Location
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.Canonical
 import org.springframework.stereotype.Component
 
 @Component
 class ShrinkClusterTask extends AbstractClusterWideClouddriverTask {
+  @Override
+  protected TaskResult missingClusterResult(Stage stage, ClusterSelection clusterSelection) {
+    def shrinkConfig = stage.mapTo(ShrinkConfig)
+    if (shrinkConfig.shrinkToSize == 0) {
+      return DefaultTaskResult.SUCCEEDED
+    }
+    return super.missingClusterResult(stage, clusterSelection)
+  }
+
+  @Override
+  protected TaskResult emptyClusterResult(Stage stage, ClusterSelection clusterSelection, Map cluster) {
+    def shrinkConfig = stage.mapTo(ShrinkConfig)
+    if (shrinkConfig.shrinkToSize == 0) {
+      return DefaultTaskResult.SUCCEEDED
+    }
+    return super.emptyClusterResult(stage, clusterSelection, cluster)
+  }
+
   @Canonical
   static class ShrinkConfig {
     boolean allowDeleteActive = false
@@ -34,28 +56,21 @@ class ShrinkClusterTask extends AbstractClusterWideClouddriverTask {
     "destroyServerGroup"
   }
 
-  List<Map> filterActiveGroups(boolean includeActive, List<Map> serverGroups) {
-    if (includeActive) {
-      return serverGroups
-    }
-    return serverGroups.findAll { !isActive(it) }
-  }
-
   @Override
-  List<Map> filterServerGroups(Stage stage, String account, String region, List<Map> serverGroups) {
-    List<Map> filteredGroups = super.filterServerGroups(stage, account, region, serverGroups)
+  List<TargetServerGroup> filterServerGroups(Stage stage, String account, Location location, List<TargetServerGroup> serverGroups) {
+    List<Map> filteredGroups = super.filterServerGroups(stage, account, location, serverGroups)
     if (!filteredGroups) {
       return []
     }
 
-    def config = stage.mapTo(ShrinkConfig)
-    filteredGroups = filterActiveGroups(config.allowDeleteActive, filteredGroups)
+    def shrinkConfig = stage.mapTo(ShrinkConfig)
+    filteredGroups = filterActiveGroups(shrinkConfig.allowDeleteActive, filteredGroups)
     def comparators = []
-    int dropCount = config.shrinkToSize - (serverGroups.size() - filteredGroups.size())
-    if (config.allowDeleteActive) {
+    int dropCount = shrinkConfig.shrinkToSize - (serverGroups.size() - filteredGroups.size())
+    if (shrinkConfig.allowDeleteActive) {
       comparators << new IsActive()
     }
-    if (config.retainLargerOverNewer) {
+    if (shrinkConfig.retainLargerOverNewer) {
       comparators << new InstanceCount()
     }
     comparators << new CreatedTime()

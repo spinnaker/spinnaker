@@ -21,6 +21,8 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.Location
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.Canonical
@@ -36,23 +38,23 @@ abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudPr
   @Autowired
   OortHelper oortHelper
 
-  protected TaskResult missingClusterResult() {
-    DefaultTaskResult.SUCCEEDED
+  protected TaskResult missingClusterResult(Stage stage, AbstractClusterWideClouddriverTask.ClusterSelection clusterSelection) {
+    throw new IllegalStateException("no cluster details found for $clusterSelection")
   }
 
-  protected TaskResult emptyClusterResult() {
-    DefaultTaskResult.SUCCEEDED
+  protected TaskResult emptyClusterResult(Stage stage, AbstractClusterWideClouddriverTask.ClusterSelection clusterSelection, Map cluster) {
+    throw new IllegalStateException("No ServerGroups found in cluster $clusterSelection")
   }
 
-  boolean isServerGroupOperationInProgress(List<Map> currentServerGroups, DeployServerGroup deployServerGroup) {
-    isServerGroupOperationInProgress(Optional.ofNullable(currentServerGroups.find { it.region == deployServerGroup.region && it.name == deployServerGroup.name }))
+  boolean isServerGroupOperationInProgress(List<TargetServerGroup> currentServerGroups, DeployServerGroup deployServerGroup) {
+    isServerGroupOperationInProgress(Optional.ofNullable(currentServerGroups.find { it.getLocation() == deployServerGroup.location && it.name == deployServerGroup.name }))
   }
 
-  abstract boolean isServerGroupOperationInProgress(Optional<Map> serverGroup)
+  abstract boolean isServerGroupOperationInProgress(Optional<TargetServerGroup> serverGroup)
 
   @Canonical
   static class DeployServerGroup {
-    String region
+    Location location
     String name
   }
 
@@ -63,12 +65,14 @@ abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudPr
   @Override
   TaskResult execute(Stage stage) {
 
+    def clusterSelection = stage.mapTo(AbstractClusterWideClouddriverTask.ClusterSelection)
+
     List<DeployServerGroup> remainingDeployServerGroups = stage.mapTo(RemainingDeployServerGroups).remainingDeployServerGroups
 
     if (!remainingDeployServerGroups) {
       Map<String, List<String>> dsg = stage.context.'deploy.server.groups' as Map
-      remainingDeployServerGroups = dsg?.collect { String region, List<String> groups ->
-        groups?.collect { new DeployServerGroup(region, it) } ?: []
+      remainingDeployServerGroups = dsg?.collect { String location, List<String> groups ->
+        groups?.collect { new DeployServerGroup(TargetServerGroup.Support.locationFromCloudProviderValue(clusterSelection.cloudProvider, location), it) } ?: []
       }?.flatten() ?: []
     }
 
@@ -76,18 +80,17 @@ abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudPr
       return DefaultTaskResult.SUCCEEDED
     }
 
-    def config = stage.mapTo(AbstractClusterWideClouddriverTask.ClusterSelection)
-    def names = Names.parseName(config.cluster)
+    def names = Names.parseName(clusterSelection.cluster)
 
-    Optional<Map> cluster = oortHelper.getCluster(names.app, config.credentials, config.cluster, config.cloudProvider)
+    Optional<Map> cluster = oortHelper.getCluster(names.app, clusterSelection.credentials, clusterSelection.cluster, clusterSelection.cloudProvider)
     if (!cluster.isPresent()) {
-      return missingClusterResult()
+      return missingClusterResult(stage, clusterSelection)
     }
 
-    def serverGroups = cluster.get().serverGroups
+    def serverGroups = cluster.get().serverGroups.collect { new TargetServerGroup(serverGroup: it) }
 
     if (!serverGroups) {
-      return emptyClusterResult()
+      return emptyClusterResult(stage, clusterSelection, cluster.get())
     }
 
     List<DeployServerGroup> stillRemaining = remainingDeployServerGroups.findAll(this.&isServerGroupOperationInProgress.curry(serverGroups))

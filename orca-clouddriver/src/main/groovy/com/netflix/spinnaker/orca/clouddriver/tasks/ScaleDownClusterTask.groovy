@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.Location
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.Canonical
 import org.springframework.stereotype.Component
@@ -34,30 +36,25 @@ class ScaleDownClusterTask extends AbstractClusterWideClouddriverTask {
     boolean allowScaleDownActive = false
   }
 
-  List<Map> filterActiveGroups(boolean includeActive, List<Map> serverGroups) {
-    if (includeActive) {
-      return serverGroups
-    }
-    return serverGroups.findAll { !isActive(it) }
+  @Override
+  protected Map buildOperationPayload(ClusterSelection clusterSelection, TargetServerGroup serverGroup) {
+    return super.buildOperationPayload(clusterSelection, serverGroup) + [capacity: [min: 0, max: 0, desired: 0]]
   }
 
   @Override
-  protected List<Map> buildOperationPayloads(ClusterSelection config, Map serverGroup) {
+  protected List<Map> buildOperationPayloads(ClusterSelection clusterSelection, TargetServerGroup serverGroup) {
     List<Map> ops = []
-    if (config.cloudProvider == 'aws') {
-      ops << [resumeAsgProcessesDescription:[
-        credentials: config.credentials,
-        asgName: serverGroup.name,
-        regions: [serverGroup.region],
+    if (clusterSelection.cloudProvider == 'aws') {
+      ops << [resumeAsgProcessesDescription: serverGroup.toClouddriverOperationPayload(clusterSelection.credentials) + [
         processes: ['Terminate']
       ]]
     }
-    ops + super.buildOperationPayload(config, serverGroup)
+    ops + super.buildOperationPayloads(clusterSelection, serverGroup)
   }
 
   @Override
-  List<Map> filterServerGroups(Stage stage, String account, String region, List<Map> serverGroups) {
-    List<Map> filteredGroups = super.filterServerGroups(stage, account, region, serverGroups)
+  List<TargetServerGroup> filterServerGroups(Stage stage, String account, Location location, List<TargetServerGroup> serverGroups) {
+    List<Map> filteredGroups = super.filterServerGroups(stage, account, location, serverGroups)
     def config = stage.mapTo(ScaleDownClusterConfig)
     filteredGroups = filterActiveGroups(config.allowScaleDownActive, filteredGroups)
 

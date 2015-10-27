@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.Location
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.Canonical
 import org.springframework.stereotype.Component
@@ -35,15 +37,15 @@ class DisableClusterTask extends AbstractClusterWideClouddriverTask {
   }
 
   @Override
-  List<Map> filterServerGroups(Stage stage, String account, String region, List<Map> serverGroups) {
-    List<Map> filtered = super.filterServerGroups(stage, account, region, serverGroups)
+  List<TargetServerGroup> filterServerGroups(Stage stage, String account, Location location, List<TargetServerGroup> serverGroups) {
+    List<TargetServerGroup> filtered = super.filterServerGroups(stage, account, location, serverGroups)
 
-    def config = stage.mapTo(DisableClusterConfig)
-    int dropCount = Math.max(0, config.remainingEnabledServerGroups - (serverGroups.size() - filtered.size()))
+    def disableClusterConfig = stage.mapTo(DisableClusterConfig)
+    int dropCount = Math.max(0, disableClusterConfig.remainingEnabledServerGroups - (serverGroups.size() - filtered.size()))
 
     filtered = filtered.findAll { isActive(it) }
 
-    Comparator<Map> comparator = config.preferLargerOverNewer ?
+    Comparator<TargetServerGroup> comparator = disableClusterConfig.preferLargerOverNewer ?
       new InstanceCount() :
       new CreatedTime()
 

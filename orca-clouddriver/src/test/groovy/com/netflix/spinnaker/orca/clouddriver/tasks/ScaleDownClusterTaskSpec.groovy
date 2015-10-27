@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.Location
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
@@ -45,7 +47,7 @@ class ScaleDownClusterTaskSpec extends Specification {
     def stage = new PipelineStage(new Pipeline(), "scaleDownCluster", ctx)
 
     when:
-    def filtered = task.filterServerGroups(stage, account, region, serverGroups)
+    def filtered = task.filterServerGroups(stage, account, location, serverGroups)
 
     then:
     filtered == expected
@@ -63,15 +65,15 @@ class ScaleDownClusterTaskSpec extends Specification {
     1                             | "true"                | false                | [sg(true, 10), sg(true, 9)] | [1]
 
     account = 'test'
-    region = 'us-east-1'
+    location = new Location(Location.Type.REGION, 'us-east-1')
     expected = expectedIdx.collect { serverGroups[it] }
   }
 
   static final AtomicInteger inc = new AtomicInteger()
 
-  Map sg(boolean disabled = false, int instances = 10) {
-    [name: 'foo-v' + inc.incrementAndGet(), region: 'us-east-1', createdTime: inc.incrementAndGet(), disabled: disabled, instances: (0..instances).collect {
+  TargetServerGroup sg(boolean disabled = false, int instances = 10) {
+    new TargetServerGroup(serverGroup: [name: 'foo-v' + inc.incrementAndGet(), region: 'us-east-1', createdTime: inc.incrementAndGet(), disabled: disabled, instances: (0..instances).collect {
       [[id: 'i' + inc.incrementAndGet(), healthState: disabled ? 'OutOfService' : 'Up']]
-    }]
+    }])
   }
 }

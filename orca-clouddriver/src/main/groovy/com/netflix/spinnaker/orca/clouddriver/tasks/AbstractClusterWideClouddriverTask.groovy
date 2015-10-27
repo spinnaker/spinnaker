@@ -23,6 +23,8 @@ import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.CloneLastServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.Location
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.kato.pipeline.CopyLastAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.DeployStage
@@ -30,6 +32,8 @@ import com.netflix.spinnaker.orca.kato.pipeline.gce.DeployGoogleServerGroupStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
+
+import java.lang.annotation.Target
 
 /**
  * A task that operates on some subset of the ServerGroups in a cluster.
@@ -41,6 +45,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     5000
   }
 
+  @Override
   public long getTimeout() {
     30000
   }
@@ -60,32 +65,49 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     String cloudProvider = 'aws'
     String credentials
     Set<String> regions
+
+    @Override
+    String toString() {
+      "Cluster $cloudProvider/$credentials/$cluster in $regions"
+    }
+  }
+
+  protected TaskResult missingClusterResult(Stage stage, ClusterSelection clusterSelection) {
+    throw new IllegalStateException("no cluster details found for $clusterSelection")
+  }
+
+  protected TaskResult emptyClusterResult(Stage stage, ClusterSelection clusterSelection, Map cluster) {
+    throw new IllegalStateException("No ServerGroups found in cluster $clusterSelection")
   }
 
 
   @Override
   TaskResult execute(Stage stage) {
-    def config = stage.mapTo(ClusterSelection)
-    def names = Names.parseName(config.cluster)
+    def clusterSelection = stage.mapTo(ClusterSelection)
+    def names = Names.parseName(clusterSelection.cluster)
 
-    Optional<Map> cluster = oortHelper.getCluster(names.app, config.credentials, config.cluster, config.cloudProvider)
+    Optional<Map> cluster = oortHelper.getCluster(names.app, clusterSelection.credentials, clusterSelection.cluster, clusterSelection.cloudProvider)
     if (!cluster.isPresent()) {
-      return DefaultTaskResult.SUCCEEDED
+      return missingClusterResult(stage, clusterSelection)
     }
 
     List<Map> serverGroups = cluster.get().serverGroups
 
-    Map<String, List<Map>> serverGroupsByRegion = serverGroups.groupBy { it.region }
+    if (!serverGroups) {
+      return emptyClusterResult(stage, clusterSelection, cluster.get())
+    }
 
-    List<Map> filteredServerGroups = config.regions.findResults {
+    Map<Location, List<TargetServerGroup>> serverGroupsByRegion = serverGroups.collect { new TargetServerGroup(serverGroup: it) }.groupBy { it.getLocation() }
+
+    List<TargetServerGroup> filteredServerGroups = clusterSelection.regions.collect { TargetServerGroup.Support.locationFromCloudProviderValue(clusterSelection.cloudProvider, it) }.findResults {
       def regionGroups = serverGroupsByRegion[it]
       if (!regionGroups) {
         return null
       }
-      filterServerGroups(stage, config.credentials, it, regionGroups) ?: null
+      filterServerGroups(stage, clusterSelection.credentials, it, regionGroups) ?: null
     }.flatten()
 
-    List<Map<String, Map>> katoOps = filteredServerGroups.collect(this.&buildOperationPayloads.curry(config)).flatten()
+    List<Map<String, Map>> katoOps = filteredServerGroups.collect(this.&buildOperationPayloads.curry(clusterSelection)).flatten()
 
     if (!katoOps) {
       return DefaultTaskResult.SUCCEEDED
@@ -93,45 +115,35 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
 
     def regionGroups = filteredServerGroups
       .groupBy { it.region }
-      .collectEntries { String region, List<Map> serverGroup ->
+      .collectEntries { String region, List<TargetServerGroup> serverGroup ->
         [(region): serverGroup.collect { it.name }]
       }
 
-    def taskId = katoService.requestOperations(config.cloudProvider, katoOps).toBlocking().first()
+    def taskId = katoService.requestOperations(clusterSelection.cloudProvider, katoOps).toBlocking().first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
       "notification.type"   : getNotificationType(),
-      "deploy.account.name" : config.credentials,
+      "deploy.account.name" : clusterSelection.credentials,
       "kato.last.task.id"   : taskId,
       "deploy.server.groups": regionGroups
     ])
   }
 
-  protected Map buildOperationPayload(ClusterSelection config, Map serverGroup) {
-    [(getClouddriverOperation()): [
-      credentials: config.credentials,
-      accountName: config.credentials,
-
-      //TODO(cfieber) - better way to do this would be nice:
-      regions: [serverGroup.region],
-      region: serverGroup.region,
-      zone: serverGroup.zone ?: serverGroup.zones?.getAt(0) ?: null,
-      zones: serverGroup.zones ?: null,
-
-      //TODO(cfieber) - dedupe
-      serverGroupName: serverGroup.name,
-      asgName: serverGroup.name,
-
-      //TODO(cfieber) - dedupe
-      cloudProvider: config.cloudProvider,
-      providerType: config.cloudProvider
-    ]]
+  protected Map buildOperationPayload(ClusterSelection clusterSelection, TargetServerGroup serverGroup) {
+    serverGroup.toClouddriverOperationPayload(clusterSelection.credentials)
   }
 
-  protected List<Map> buildOperationPayloads(ClusterSelection config, Map serverGroup) {
-    [buildOperationPayload(config, serverGroup)]
+  protected List<Map> buildOperationPayloads(ClusterSelection clusterSelection, TargetServerGroup serverGroup) {
+    [[(getClouddriverOperation()): buildOperationPayload(clusterSelection, serverGroup)]]
   }
 
-  List<Map> filterParentDeploys(Stage stage, String account, String region, List<Map> serverGroups) {
+  protected List<TargetServerGroup> filterActiveGroups(boolean includeActive, List<TargetServerGroup> serverGroups) {
+    if (includeActive) {
+      return serverGroups
+    }
+    return serverGroups.findAll { !isActive(it) }
+  }
+
+  protected List<TargetServerGroup> filterParentDeploys(Stage stage, String account, Location location, List<TargetServerGroup> serverGroups) {
     //if we are a synthetic stage child of a deploy, don't operate on what we just deployed
     final Set<String> deployStageTypes = [
       DeployStage.PIPELINE_CONFIG_TYPE,
@@ -139,67 +151,70 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
       CloneLastServerGroupStage.PIPELINE_CONFIG_TYPE,
       DeployGoogleServerGroupStage.PIPELINE_CONFIG_TYPE
     ]
-    List<String> parentDeploys = []
+    List<TargetServerGroup> deployedServerGroups = []
     if (stage.parentStageId) {
-      parentDeploys = stage.execution.stages.findResult {
-        if (it.id == stage.parentStageId &&
+      Stage parentDeployStage = stage.execution.stages.find {
+        it.id == stage.parentStageId &&
+          //Stage type is the context.type value when the stage is running as a child stage of a parallel deploy, or
+          // the stage.type attribute when it is running directly as part of an Orchestration or Pipeline
           (deployStageTypes.contains(it.type) || deployStageTypes.contains(it.context.type)) &&
           it.context.'deploy.account.name' == account
-        ) {
-          return it.context.'deploy.server.groups'?.getAt(region) ?: null
-        }
-        return null
-      } ?: []
+      }
+      if (parentDeployStage) {
+        Set<String> names = (parentDeployStage.context.'deploy.server.groups'[location.value] ?: []) as Set
+        deployedServerGroups = serverGroups.findAll { it.getLocation() == location && names.contains(it.name) }
+      }
     }
-    return serverGroups.findAll { !(it.region == region && parentDeploys.contains(it.name)) }
+
+    return serverGroups - deployedServerGroups
   }
 
-  List<Map> filterServerGroups(Stage stage, String account, String region, List<Map> serverGroups) {
+  List<TargetServerGroup> filterServerGroups(Stage stage, String account, Location location, List<TargetServerGroup> serverGroups) {
     if (!serverGroups) {
       return []
     }
 
-    if (!serverGroups.every { it.region == region }) {
-      throw new IllegalStateException("all server groups must be in the same region, found ${serverGroups*.region}")
+    if (!serverGroups.every { it.getLocation() == location }) {
+      throw new IllegalStateException("all server groups must be in the same region, found ${serverGroups*.getLocation()}")
     }
 
-    return filterParentDeploys(stage, account, region, serverGroups)
+    return filterParentDeploys(stage, account, location, serverGroups)
   }
 
-  static boolean isActive(Map serverGroup) {
+  static boolean isActive(TargetServerGroup serverGroup) {
     return serverGroup.disabled == false || serverGroup.instances.any { it.healthState == 'Up' }
   }
 
-  static class IsActive implements Comparator<Map> {
+  static class IsActive implements Comparator<TargetServerGroup> {
     @Override
-    int compare(Map o1, Map o2) {
+    int compare(TargetServerGroup o1, TargetServerGroup o2) {
       isActive(o2) <=> isActive(o1)
     }
   }
 
-  static class InstanceCount implements Comparator<Map> {
+  static class InstanceCount implements Comparator<TargetServerGroup> {
     @Override
-    int compare(Map o1, Map o2) {
+    int compare(TargetServerGroup o1, TargetServerGroup o2) {
       o2.instances.size() <=> o1.instances.size()
     }
   }
 
-  static class CreatedTime implements Comparator<Map> {
+  static class CreatedTime implements Comparator<TargetServerGroup> {
     @Override
-    int compare(Map o1, Map o2) {
+    int compare(TargetServerGroup o1, TargetServerGroup o2) {
       o2.createdTime <=> o1.createdTime
     }
   }
 
-  static class CompositeComparitor implements Comparator<Map> {
-    private final List<Comparator<Map>> comparators
+  static class CompositeComparitor implements Comparator<TargetServerGroup> {
+    private final List<Comparator<TargetServerGroup>> comparators
 
-    CompositeComparitor(List<Comparator<Map>> comparators) {
+    CompositeComparitor(List<Comparator<TargetServerGroup>> comparators) {
       this.comparators = comparators
     }
 
     @Override
-    int compare(Map o1, Map o2) {
+    int compare(TargetServerGroup o1, TargetServerGroup o2) {
       comparators.findResult { it.compare(o1, o2) ?: null } ?: 0
     }
   }

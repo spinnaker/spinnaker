@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.Location
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractWaitForClusterWideClouddriverTask.DeployServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -34,7 +36,7 @@ class AbstractWaitForClusterWideClouddriverTaskSpec extends Specification {
 
   static class TestTask extends AbstractWaitForClusterWideClouddriverTask {
     @Override
-    boolean isServerGroupOperationInProgress(Optional<Map> serverGroup) {
+    boolean isServerGroupOperationInProgress(Optional<TargetServerGroup> serverGroup) {
       return serverGroup.isPresent()
     }
   }
@@ -55,7 +57,7 @@ class AbstractWaitForClusterWideClouddriverTaskSpec extends Specification {
     where:
     serverGroups = [sg('s1', 'r1'), sg('s2', 'r1'), sg('s3', 'r2'), sg('s4', 'r2')]
     deployServerGroups = serverGroups.groupBy { it.region }.collectEntries { k, v -> [(k): v.collect { it.name }]}
-    expected = serverGroups.collect { new DeployServerGroup(it.region, it.name) }
+    expected = serverGroups.collect { new DeployServerGroup(new Location(Location.Type.REGION, it.region), it.name) }
     regions = ['r1', 'r2']
   }
 
@@ -65,25 +67,24 @@ class AbstractWaitForClusterWideClouddriverTaskSpec extends Specification {
     task.execute(stage([:])).status == ExecutionStatus.SUCCEEDED
   }
 
-  def 'succeeds if no cluster present'() {
+  def 'fails if no cluster present'() {
     when:
     def result = task.execute(stage([remainingDeployServerGroups: [dsg('c1')]]))
 
     then:
     1 * oortHelper.getCluster(application, credentials, cluster, cloudProvider) >> Optional.empty()
 
-    result.status == ExecutionStatus.SUCCEEDED
+    thrown(IllegalStateException)
   }
 
-  def 'succeeds if no server groups in cluster'() {
+  def 'fails if no server groups in cluster'() {
     when:
     def result = task.execute(stage([remainingDeployServerGroups: [dsg('c1')]]))
 
     then:
     1 * oortHelper.getCluster(application, credentials, cluster, cloudProvider) >> Optional.of([serverGroups: []])
 
-    result.status == ExecutionStatus.SUCCEEDED
-
+    thrown(IllegalStateException)
   }
 
   def 'runs while there are still server groups'() {
@@ -109,11 +110,11 @@ class AbstractWaitForClusterWideClouddriverTaskSpec extends Specification {
 
 
   Map sg(String name, String r = region) {
-    [name: name, region: r]
+    [name: name, region: r, type: cloudProvider]
   }
 
   DeployServerGroup dsg(String name, String r = region) {
-    new DeployServerGroup(r, name)
+    new DeployServerGroup(new Location(Location.Type.REGION, r), name)
   }
 
   Stage stage(Map context) {
