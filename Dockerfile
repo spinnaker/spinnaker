@@ -2,10 +2,14 @@ FROM java:8
 
 MAINTAINER clin@netflix.com
 
-COPY . workdir/
+COPY . workdir/code
 
-WORKDIR workdir
+WORKDIR workdir/code
 
-RUN ./gradlew build -x test
+RUN ./gradlew installApp
 
-CMD ["./gradlew", "bootRun"]
+RUN mv /workdir/code/igor-web/build/install /install
+
+RUN rm -rf /workdir/code
+
+CMD ["/install/igor/bin/igor"]
