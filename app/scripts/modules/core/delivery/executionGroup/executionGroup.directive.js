@@ -25,12 +25,14 @@ module.exports = angular
     };
   })
   .controller('executionGroupCtrl', function($scope, $timeout, _, $state, settings, $stateParams, $uibModal, executionService, collapsibleSectionStateCache,
-                                               ExecutionFilterModel, pipelineConfigService, confirmationModalService) {
+                                               ExecutionFilterModel, pipelineConfigService, confirmationModalService, $location) {
     // TODO: MOVE TO SEPARATE DIRECTIVE
     this.showDetails = function(executionId) {
       return executionId === $stateParams.executionId &&
         $state.includes('**.execution.**');
     };
+
+    this.getUrl = () => $location.absUrl();
 
     this.isActive = (executionId, stageIndex) => {
       return this.showDetails(executionId) && Number($stateParams.stage) === stageIndex;
