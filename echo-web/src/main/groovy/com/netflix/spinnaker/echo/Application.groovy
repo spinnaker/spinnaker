@@ -16,13 +16,11 @@
 
 package com.netflix.spinnaker.echo
 
-import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.web.SpringBootServletInitializer
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-
 /**
  * Application entry point.
  */
@@ -31,30 +29,21 @@ import org.springframework.context.annotation.Configuration
 @ComponentScan(['com.netflix.spinnaker.echo.config', 'com.netflix.spinnaker.config'])
 class Application extends SpringBootServletInitializer {
     static final Map<String, String> DEFAULT_PROPS = [
-        'netflix.environment'   : System.getProperty('netflix.environment', 'test'),
-        'netflix.account'       : System.getProperty('netflix.environment', 'test'),
-        'netflix.stack'         : System.getProperty('netflix.stack', 'test'),
-        'spring.config.location': "${System.properties['user.home']}/.spinnaker/",
-        'spring.config.name'    : 'echo',
-        'spring.profiles.active': "${System.getProperty('netflix.environment', 'test')},local"
+        'netflix.environment'    : 'test',
+        'netflix.account'        : '${netflix.environment}',
+        'netflix.stack'          : 'test',
+        'spring.config.location' : '${user.home}/.spinnaker/',
+        'spring.application.name': 'echo',
+        'spring.config.name'     : 'spinnaker,${spring.application.name}',
+        'spring.profiles.active' : '${netflix.environment},local'
     ]
 
-    static {
-        applyDefaults()
-    }
-
-    static void applyDefaults() {
-        DEFAULT_PROPS.each { k, v ->
-            System.setProperty(k, System.getProperty(k, v))
-        }
-    }
-
     static void main(String... args) {
-        SpringApplication.run this, args
+        new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Application).run(args)
     }
 
     @Override
     SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
-        builder.sources(Application)
+        builder.properties(DEFAULT_PROPS).sources(Application)
     }
 }
