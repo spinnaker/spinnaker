@@ -138,15 +138,13 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
 
     this.showRecentResults = () => this.hasRecentItems && !$scope.viewState.searching && $scope.categories.every((category) => !category.results.length);
 
-    this.removeRecentItem = (category, id, index) => {
+    this.removeRecentItem = (category, id) => {
       recentHistoryService.removeItem(category, id);
-      $scope.recentItems.find((test) => test.category === category).results.splice(index, 1);
       this.loadRecentItems();
     };
 
     this.removeRecentProject = (id, index) => {
       recentHistoryService.removeItem('projects', id);
-      $scope.recentProjects.splice(index, 1);
       this.loadRecentItems();
     };
 
