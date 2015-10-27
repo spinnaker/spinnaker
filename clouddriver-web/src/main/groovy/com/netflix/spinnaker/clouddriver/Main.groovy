@@ -15,13 +15,13 @@
  */
 
 package com.netflix.spinnaker.clouddriver
+
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
-import com.netflix.spinnaker.clouddriver.titan.TitanConfiguration
 import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConfig
 import com.netflix.spinnaker.clouddriver.config.RetrofitConfig
 import com.netflix.spinnaker.clouddriver.core.CloudDriverConfig
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
-import org.springframework.boot.SpringApplication
+import com.netflix.spinnaker.clouddriver.titan.TitanConfiguration
 import org.springframework.boot.actuate.autoconfigure.ManagementSecurityAutoConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
@@ -64,8 +64,6 @@ class Main extends SpringBootServletInitializer {
   ]
 
   static {
-    applyDefaults()
-
     /**
      * We often operate in an environment where we expect resolution of DNS names for remote dependencies to change
      * frequently, so it's best to tell the JVM to avoid caching DNS results internally.
@@ -74,19 +72,13 @@ class Main extends SpringBootServletInitializer {
     Security.setProperty('networkaddress.cache.ttl', '0')
   }
 
-  static void applyDefaults() {
-    DEFAULT_PROPS.each { k, v ->
-      System.setProperty(k, System.getProperty(k, v))
-    }
-  }
-
   static void main(String... args) {
-    SpringApplication.run this, args
+    new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main).run(args)
   }
 
   @Override
   SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-    application.sources Main
+    application.properties(DEFAULT_PROPS).sources(Main)
   }
 
 }
