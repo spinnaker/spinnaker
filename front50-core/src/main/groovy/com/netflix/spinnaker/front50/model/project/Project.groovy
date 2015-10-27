@@ -37,6 +37,7 @@ class Project {
     String account
     String stack
     String detail
+    Collection<String> applications
   }
 
   static class PipelineConfig {
