@@ -5,6 +5,7 @@
         <table class="table table-condensed">
           <thead>
           <tr>
+            <th width="25%">Applications</th>
             <th>Account</th>
             <th>Stack <help-field key="project.cluster.stack"></help-field></th>
             <th>Detail <help-field key="project.cluster.detail"></help-field></th>
@@ -13,6 +14,27 @@
           </thead>
           <tbody>
           <tr ng-repeat="cluster in command.config.clusters">
+            <td>
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox"
+                         ng-model="cluster.useAllApplications"
+                         ng-change="ctrl.toggleClusterApplicationOverrides(cluster)"> All
+                </label>
+              </div>
+              <ui-select multiple required name="applications" class="form-control input-sm"
+                         ng-model="cluster.applications"
+                         ng-if="!cluster.useAllApplications">
+                <ui-select-match>
+                  {{$item}}
+                </ui-select-match>
+                <ui-select-choices repeat="application in command.config.applications | filter: $select.search">
+                  {{application}}
+                </ui-select-choices>
+              </ui-select>
+
+            </td>
+
             <td>
               <account-select-field accounts="accounts" component="cluster" field="account"></account-select-field>
             </td>

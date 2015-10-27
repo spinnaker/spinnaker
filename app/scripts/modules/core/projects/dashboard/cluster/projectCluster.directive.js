@@ -32,6 +32,9 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
                                              collapsibleSectionStateCache, namingService, scheduler,
                                              clusterFilterService) {
 
+    let getApplications = () => this.cluster.applications && this.cluster.applications.length ?
+      this.cluster.applications : this.project.config.applications;
+
     let stateCache = collapsibleSectionStateCache;
 
     let getCacheKey = () => [this.project.name, this.cluster.account, this.cluster.stack].join(':');
@@ -118,15 +121,6 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
 
     let initializeClusterData = () => {
       this.clusterData = {
-        applications: this.project.config.applications.map((application) => {
-          let metadata = getMetadata({name: application});
-          metadata.href = urlBuilderService.buildFromMetadata(metadata);
-          return {
-            name: application,
-            regions: {},
-            metadata: metadata,
-          };
-        }),
         regions: [],
         instanceCounts: {
           totalCount: 0,
@@ -137,6 +131,15 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
           unknownCount: 0,
         }
       };
+      this.clusterData.applications = getApplications().map((application) => {
+        let metadata = getMetadata({name: application});
+        metadata.href = urlBuilderService.buildFromMetadata(metadata);
+        return {
+          name: application,
+          regions: {},
+          metadata: metadata,
+        };
+      });
     };
 
     let applyRegionsAndInstanceCounts = (clusters, application) => {
@@ -220,7 +223,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
     let loadData = () => {
       this.state.refreshing = true;
 
-      this.project.config.applications.map((application) => {
+      getApplications().map((application) => {
         clusterLoaders[application] = buildDataLoader(application);
       });
       $q.all(clusterLoaders).then((clusters) => {
