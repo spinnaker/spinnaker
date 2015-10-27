@@ -28,11 +28,7 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
     });
 
     this.toggleClusterApplicationOverrides = (cluster) => {
-      if (cluster.useAllApplications) {
-        cluster.applications = [];
-      } else {
-        cluster.applications.length = 0;
-      }
+      cluster.applications = [];
     };
 
     this.pages = {
