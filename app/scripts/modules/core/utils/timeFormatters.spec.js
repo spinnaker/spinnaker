@@ -13,8 +13,9 @@ describe('Filter: timeFormatters', function() {
     describe('timePicker', function () {
       beforeEach(
         window.inject(
-          function($filter) {
+          function($filter, settings) {
             filter = $filter('timePickerTime');
+            settings.defaultTimeZone = 'Etc/GMT+0';
           }
         )
       );
@@ -56,8 +57,7 @@ describe('Filter: timeFormatters', function() {
         expect(filter(null)).toBe('-');
       });
       it('returns formatted date when valid value is provided', function () {
-        // this will probably break when daylight savings ends, let's find out!
-        expect(filter(1445707299020)).toBe('2015-10-24 10:21:39 PDT');
+        expect(filter(1445707299020)).toBe('2015-10-24 17:21:39 GMT');
       });
     });
   });
