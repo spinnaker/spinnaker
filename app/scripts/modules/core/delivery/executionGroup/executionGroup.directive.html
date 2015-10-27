@@ -115,8 +115,8 @@
             <div class="col-md-12">
               <a target="_blank" ng-href="{{vm.pipelinesUrl + execution.id}}">Source</a>
               |
-              <a target="_blank" ng-href="{{$location.absUrl()}}">Permalink</a>
-              <copy-to-clipboard text="{{$location.absUrl()}}" tool-tip="Copy permalink to clipboard"></copy-to-clipboard>
+              <a target="_blank" ng-href="{{vm.getUrl()}}">Permalink</a>
+              <copy-to-clipboard text="{{vm.getUrl()}}" tool-tip="Copy permalink to clipboard"></copy-to-clipboard>
             </div>
           </div>
         </div>
