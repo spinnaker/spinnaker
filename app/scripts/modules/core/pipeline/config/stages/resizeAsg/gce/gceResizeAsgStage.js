@@ -19,10 +19,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
           message: 'This pipeline will attempt to resize a server group without deploying a new version into the same cluster.'
         },
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'target', },
-        { type: 'requiredField', fieldName: 'action', },
-        { type: 'requiredField', fieldName: 'zones', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'target' },
+        { type: 'requiredField', fieldName: 'action' },
+        { type: 'requiredField', fieldName: 'zones' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'}
       ],
     });
   }).controller('gceResizeAsgStageCtrl', function($scope, accountService, stageConstants, _) {
@@ -33,30 +33,19 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
 
     $scope.viewState = {
       accountsLoaded: false,
-      zonesLoaded: false,
-      loading: true,
+      zonesLoaded: false
     };
 
     accountService.listAccounts('gce').then(function (accounts) {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
-      $scope.viewState.loading = false;
     });
 
     $scope.zones = ['us-central1-a', 'us-central1-b', 'us-central1-c'];
 
     ctrl.accountUpdated = function () {
-      if (!$scope.accounts) {
-        return;
-      }
-      $scope.selectedAccount = _.find($scope.accounts, function (candidate) {
-        return candidate.name === stage.credentials;
-      });
-      accountService.getRegionsForAccount(stage.credentials).then(function (regions) {
-        if ($scope.selectedAccount) {
-          stage.cloudProviderType = 'gce';
-          $scope.zones = _.flatten(_.map(regions, function(val) { return val; } ));
-        }
+      accountService.getRegionsForAccount(stage.credentials).then(function(regions) {
+        $scope.zones = _.flatten(_.map(regions, (zones) => { return zones; } ));
         $scope.zonesLoaded = true;
       });
     };
@@ -66,7 +55,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
     $scope.scaleActions = [
       {
         label: 'Scale Up',
-        val: 'scale_up',
+        val: 'scale_up'
       },
       {
         label: 'Scale Down',
@@ -95,6 +84,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
     stage.action = stage.action || $scope.scaleActions[0].val;
     stage.resizeType = stage.resizeType || $scope.resizeTypes[0].val;
     stage.cloudProvider = 'gce';
+    stage.cloudProviderType = 'gce';
 
     if (stage.isNew && $scope.application.attributes.platformHealthOnly) {
       stage.interestingHealthProviderNames = ['Google'];
