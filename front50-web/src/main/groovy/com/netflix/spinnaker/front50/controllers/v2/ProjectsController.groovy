@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.front50.controllers.v2
 
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.project.Project
 import com.netflix.spinnaker.front50.model.project.ProjectDAO
@@ -55,7 +55,7 @@ public class ProjectsController {
   ProjectDAO projectDAO
 
   @Autowired
-  ExtendedRegistry extendedRegistry
+  Registry registry
 
   private final ProjectResourceAssembler assembler = new ProjectResourceAssembler()
 

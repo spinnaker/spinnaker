@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.front50.config
 
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.ComponentScan
@@ -28,13 +28,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @ComponentScan
 public class Front50WebConfig extends WebMvcConfigurerAdapter {
   @Autowired
-  ExtendedRegistry extendedRegistry
+  Registry registry
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(
         new MetricsInterceptor(
-            extendedRegistry, "controller.invocations", ["account", "application"], ["BasicErrorController"]
+            this.registry, "controller.invocations", ["account", "application"], ["BasicErrorController"]
         )
     )
   }

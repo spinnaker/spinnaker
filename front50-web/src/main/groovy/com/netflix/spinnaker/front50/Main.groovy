@@ -18,7 +18,6 @@
 
 package com.netflix.spinnaker.front50
 
-import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
@@ -35,30 +34,21 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @ComponentScan(["com.netflix.spinnaker.front50", "com.netflix.spinnaker.config"])
 public class Main extends SpringBootServletInitializer {
   static final Map<String, String> DEFAULT_PROPS = [
-    'netflix.environment': System.getProperty('netflix.environment', 'test'),
-    'netflix.account': System.getProperty('netflix.environment', 'test'),
-    'netflix.stack': System.getProperty('netflix.stack', 'test'),
-    'spring.config.location': "${System.properties['user.home']}/.spinnaker/",
-    'spring.config.name': 'front50',
-    'spring.profiles.active': "${System.getProperty('netflix.environment', 'test')},local"
+    'netflix.environment'    : 'test',
+    'netflix.account'        : '${netflix.environment}',
+    'netflix.stack'          : 'test',
+    'spring.config.location' : '${user.home}/.spinnaker/',
+    'spring.application.name': 'front50',
+    'spring.config.name'     : 'spinnaker,${spring.application.name}',
+    'spring.profiles.active' : '${netflix.environment},local'
   ]
 
-  static {
-    applyDefaults()
-  }
-
-  static void applyDefaults() {
-    DEFAULT_PROPS.each { k, v ->
-      System.setProperty(k, System.getProperty(k, v))
-    }
-  }
-
   static void main(String... args) {
-    SpringApplication.run Main, args
+    new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main).run(args)
   }
 
   @Override
   SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-    application.sources Main
+    application.properties(DEFAULT_PROPS).sources(Main)
   }
 }
