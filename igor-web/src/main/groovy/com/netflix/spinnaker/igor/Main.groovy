@@ -16,14 +16,12 @@
 
 package com.netflix.spinnaker.igor
 
-import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.web.SpringBootServletInitializer
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-
 /**
  * Application entry point.
  */
@@ -33,30 +31,21 @@ import org.springframework.context.annotation.Configuration
 class Main extends SpringBootServletInitializer {
 
     static final Map<String, String> DEFAULT_PROPS = [
-        'netflix.environment': 'test',
-        'netflix.account': System.getProperty('netflix.environment', 'test'),
-        'netflix.stack': 'test',
-        'spring.config.location': "${System.properties['user.home']}/.spinnaker/",
-        'spring.config.name': 'igor',
-        'spring.profiles.active': "${System.getProperty('netflix.environment', 'test')},local"
+        'netflix.environment'    : 'test',
+        'netflix.account'        : '${netflix.environment}',
+        'netflix.stack'          : 'test',
+        'spring.config.location' : '${user.home}/.spinnaker/',
+        'spring.application.name': 'igor',
+        'spring.config.name'     : 'spinnaker,${spring.application.name}',
+        'spring.profiles.active' : '${netflix.environment},local'
     ]
 
-    static {
-        applyDefaults()
-    }
-
-    static void applyDefaults() {
-        DEFAULT_PROPS.each { k, v ->
-            System.setProperty(k, System.getProperty(k, v))
-        }
-    }
-
     static void main(String... args) {
-        SpringApplication.run this, args
+        new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main).run(args)
     }
 
     @Override
     SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        application.sources Main
+        application.properties(DEFAULT_PROPS).sources(Main)
     }
 }
