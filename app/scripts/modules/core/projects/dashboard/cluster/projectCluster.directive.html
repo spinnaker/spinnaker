@@ -71,12 +71,13 @@
               <health-counts container="application.regions[region].instanceCounts"
                              additional-legend-text="(Click to view cluster in this region)"
                              legend-placement="right"></health-counts>
-              <span class="text-warning"
-                    ng-if="application.inconsistentBuilds && application.regions[region].build.number !== application.build.number">
-                <span ng-if="application.regions[region].build.number > -1">(#{{application.regions[region].build.number}})</span>
-                <span ng-if="application.regions[region].build.number === -1">(N/A)</span>
-              </span>
             </a>
+            <span class="text-warning"
+                  ng-if="application.inconsistentBuilds && application.regions[region].build.number !== application.build.number">
+              <span ng-if="application.regions[region].build.number > -1">(#{{application.regions[region].build.number}})</span>
+              <span ng-if="application.regions[region].build.number === -1">(N/A)</span>
+            </span>
+
           </span>
           <span ng-if="!application.regions[region]">
             -

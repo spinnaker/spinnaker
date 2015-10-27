@@ -23,6 +23,18 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
       };
     }
 
+    projectConfig.config.clusters.forEach((cluster) => {
+      cluster.useAllApplications = !cluster.applications || !cluster.applications.length;
+    });
+
+    this.toggleClusterApplicationOverrides = (cluster) => {
+      if (cluster.useAllApplications) {
+        cluster.applications = [];
+      } else {
+        cluster.applications.length = 0;
+      }
+    };
+
     this.pages = {
       config: require('./projectConfig.modal.html'),
       applications: require('./projectApplications.modal.html'),
@@ -61,7 +73,7 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
     };
 
     this.addCluster = () => {
-      $scope.command.config.clusters.push({ stack: '*', detail: '*'});
+      $scope.command.config.clusters.push({ stack: '*', detail: '*', useAllApplications: true});
     };
 
     this.removePipeline = (index) => {
