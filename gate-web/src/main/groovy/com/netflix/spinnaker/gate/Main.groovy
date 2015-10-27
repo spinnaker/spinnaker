@@ -15,10 +15,8 @@
  */
 
 package com.netflix.spinnaker.gate
-
 import com.netflix.hystrix.contrib.metrics.eventstream.HystrixMetricsStreamServlet
 import com.netflix.spinnaker.hystrix.spectator.HystrixSpectatorConfig
-import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
@@ -40,31 +38,22 @@ import org.springframework.scheduling.annotation.EnableAsync
 @EnableAutoConfiguration(exclude = [SecurityAutoConfiguration, GroovyTemplateAutoConfiguration])
 class Main extends SpringBootServletInitializer {
   static final Map<String, String> DEFAULT_PROPS = [
-          'netflix.environment': System.getProperty('netflix.environment', 'test'),
-          'netflix.account': System.getProperty('netflix.environment', 'test'),
-          'netflix.stack': System.getProperty('netflix.stack', 'test'),
-          'spring.config.location': "${System.properties['user.home']}/.spinnaker/",
-          'spring.config.name': 'gate',
-          'spring.profiles.active': "${System.getProperty('netflix.environment', 'test')},local"
+          'netflix.environment': 'test',
+          'netflix.account': '${netflix.environment}',
+          'netflix.stack': 'test',
+          'spring.config.location': '${user.home]}/.spinnaker/',
+          'spring.application.name': 'gate',
+          'spring.config.name': 'spinnaker,${spring.application.name}',
+          'spring.profiles.active': '${netflix.environment},local'
   ]
 
-  static {
-    applyDefaults()
-  }
-
-  static void applyDefaults() {
-    DEFAULT_PROPS.each { k, v ->
-      System.setProperty(k, System.getProperty(k, v))
-    }
-  }
-
   static void main(String... args) {
-    SpringApplication.run this, args
+    new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main).run(args)
   }
 
   @Override
   SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
-    builder.sources(Main)
+    builder.properties(DEFAULT_PROPS).sources(Main)
   }
 
   @Bean
