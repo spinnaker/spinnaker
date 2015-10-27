@@ -109,6 +109,7 @@ class ResizeSupport {
         operations[tsg.name as String].regions.add(location.value)
         continue
       }
+      operation.serverGroupName = tsg.name
       operation.asgName = tsg.name
       operation.regions = [tsg.region]
 
@@ -188,10 +189,8 @@ class ResizeSupport {
   }
 
   private static augmentDescriptionForGCE(Map description, TargetServerGroup tsg) {
-    // TODO(ttomsu): Make clouddriver op support specifying multiple zones.
     description.zone = tsg.getLocation().value
     description.targetSize = description.capacity.desired
-    description.serverGroupName = description.asgName
   }
 
   static enum ResizeAction {

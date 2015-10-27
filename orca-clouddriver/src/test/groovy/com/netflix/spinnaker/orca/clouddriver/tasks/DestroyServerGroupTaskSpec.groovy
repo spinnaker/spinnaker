@@ -16,11 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
-import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -32,7 +30,6 @@ class DestroyServerGroupTaskSpec extends Specification {
   @Subject
     task = new DestroyServerGroupTask()
   def stage = new PipelineStage(new Pipeline(), "whatever")
-  def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def destroyASGConfig = [
@@ -43,8 +40,6 @@ class DestroyServerGroupTaskSpec extends Specification {
   ]
 
   def setup() {
-    mapper.registerModule(new GuavaModule())
-    task.mapper = mapper
     stage.context = destroyASGConfig
   }
 
