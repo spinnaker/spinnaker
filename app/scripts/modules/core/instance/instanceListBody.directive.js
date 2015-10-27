@@ -11,8 +11,12 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
       scope: {
         instances: '=',
         sortFilter: '=',
+        hasLoadBalancers: '=',
+        hasDiscovery: '=',
+        showProviderHealth: '=',
       },
       link: function (scope, elem) {
+        var tooltipEnabled = false;
         scope.activeInstance = null;
 
         var base = elem.parent().inheritedData('$uiView').state;
@@ -45,12 +49,18 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
           return row;
         }
 
+        function buildProviderHealthCell(row, providerStatus) {
+          row += '<td class="text-center small">' + providerStatus + '</td>';
+          return row;
+        }
+
         function buildLoadBalancersCell(row, loadBalancers) {
           row += '<td>';
           loadBalancers.forEach(function (loadBalancer) {
             var tooltip = loadBalancer.state === 'OutOfService' ? loadBalancer.description.replace(/"/g, '&quot;') : null;
             var icon = loadBalancer.state === 'InService' ? 'Up' : 'Down';
             if (tooltip) {
+              tooltipEnabled = true;
               row += '<div data-toggle="tooltip" title="' + tooltip + '">';
             } else {
               row += '<div>';
@@ -67,7 +77,9 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
         }
 
         function renderInstances() {
-          $('[data-toggle="tooltip"]', elem).tooltip('destroy');
+          if (tooltipEnabled) {
+            $('[data-toggle="tooltip"]', elem).tooltip('destroy');
+          }
           var instances = scope.instances || [],
             filtered = instances.filter(clusterFilterService.shouldShowInstance),
             sorted = $filter('orderBy')(filtered, scope.sortFilter.instanceSort.key);
@@ -77,6 +89,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
               discoveryState = '',
               discoveryStatus = '-',
               loadBalancerSort = '',
+              providerStatus = '',
               activeClass = ' ',
               params = {instanceId: instance.id, provider: instance.provider };
             if ($state.includes('**.instanceDetails', params)) {
@@ -85,7 +98,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
             }
 
             instance.health.forEach(function (health) {
-              if (health.type === 'LoadBalancer') {
+              if (scope.hasLoadBalancers && health.type === 'LoadBalancer') {
                 loadBalancers = health.loadBalancers;
                 loadBalancerSort = _(health.loadBalancers)
                 .sortByAll(['name', 'state'])
@@ -94,9 +107,12 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
                 })
                 .join(',');
               }
-              if (health.type === 'Discovery') {
+              if (scope.hasDiscovery && health.type === 'Discovery') {
                 discoveryState = health.state.toLowerCase();
                 discoveryStatus = $filter('robotToHuman')(health.status.toLowerCase());
+              }
+              if (scope.showProviderHealth) {
+                providerStatus = health.state;
               }
             });
 
@@ -104,16 +120,24 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
             row = buildInstanceIdCell(row, instance);
             row = buildLaunchTimeCell(row, instance);
             row = buildZoneCell(row, instance);
-            row = buildDiscoveryCell(row, discoveryStatus);
-            row = buildLoadBalancersCell(row, loadBalancers);
+            if (scope.hasDiscovery) {
+              row = buildDiscoveryCell(row, discoveryStatus);
+            }
+            if (scope.hasLoadBalancers) {
+              row = buildLoadBalancersCell(row, loadBalancers);
+            }
+            if (scope.showProviderHealth) {
+              row = buildProviderHealthCell(row, providerStatus);
+            }
             row += '</tr>';
 
             return row;
 
           }).join('');
 
-          $('[data-toggle="tooltip"]', elem).tooltip({placement: 'left', container: 'body'});
-
+          if (tooltipEnabled) {
+            $('[data-toggle="tooltip"]', elem).tooltip({placement: 'left', container: 'body'});
+          }
           scope.$watch('sortFilter.instanceSort.key', function(newVal, oldVal) {
             if (newVal && oldVal && newVal !== oldVal) {
               renderInstances();
@@ -161,7 +185,9 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
         scope.$on('$locationChangeSuccess', clearActiveState);
 
         scope.$on('$destroy', function() {
-          $('[data-toggle="tooltip"]', elem).tooltip('destroy').removeData();
+          if (tooltipEnabled) {
+            $('[data-toggle="tooltip"]', elem).tooltip('destroy').removeData();
+          }
           elem.unbind('click');
         });
 

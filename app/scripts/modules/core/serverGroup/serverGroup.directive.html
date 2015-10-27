@@ -35,7 +35,10 @@
         <instances highlight="sortFilter.filter" instances="viewModel.instances"></instances>
       </div>
       <div ng-if="sortFilter.listInstances">
-        <instance-list instances="viewModel.instances" sort-filter="sortFilter"></instance-list>
+        <instance-list instances="viewModel.instances"
+                       sort-filter="sortFilter"
+                       has-discovery="hasDiscovery"
+                       has-load-balancers="hasLoadBalancers"></instance-list>
       </div>
     </div>
   </div>

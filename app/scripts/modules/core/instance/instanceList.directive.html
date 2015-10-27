@@ -3,14 +3,20 @@
   <tr>
     <!-- use this when multi-select is a thing -->
     <!--<th width="4%"><input type="checkbox"></th>-->
-    <th width="15%" sort-toggle key="id" label="Instance" sort-model="sortFilter.instanceSort" on-change="applyParamsToUrl()"></th>
-    <th width="23%" sort-toggle key="launchTime" label="Launch Time" default="true" sort-model="sortFilter.instanceSort" on-change="applyParamsToUrl()"></th>
-    <th width="13%" sort-toggle key="availabilityZone" label="Zone" sort-model="sortFilter.instanceSort" on-change="applyParamsToUrl()"></th>
-    <th width="15%" class="text-center" sort-toggle key="discoveryState" label="Discovery" sort-model="sortFilter.instanceSort" on-change="applyParamsToUrl()"></th>
-    <th width="34%" sort-toggle key="loadBalancerSort" label="Load Balancers" sort-model="sortFilter.instanceSort" on-change="applyParamsToUrl()"></th>
+    <th width="{{::columnWidth.id}}%" sort-toggle key="id" label="Instance" sort-model="sortFilter.instanceSort" on-change="applyParamsToUrl()"></th>
+    <th width="{{::columnWidth.launchTime}}%" sort-toggle key="launchTime" label="Launch Time" default="true" sort-model="sortFilter.instanceSort" on-change="applyParamsToUrl()"></th>
+    <th width="{{::columnWidth.zone}}%" sort-toggle key="availabilityZone" label="Zone" sort-model="sortFilter.instanceSort" on-change="applyParamsToUrl()"></th>
+    <th ng-if="hasDiscovery" width="{{::columnWidth.discovery}}%" class="text-center" sort-toggle key="discoveryState" label="Discovery" sort-model="sortFilter.instanceSort" on-change="applyParamsToUrl()"></th>
+    <th ng-if="hasLoadBalancers" width="{{::columnWidth.loadBalancers}}%" sort-toggle key="loadBalancerSort" label="Load Balancers" sort-model="sortFilter.instanceSort" on-change="applyParamsToUrl()"></th>
+    <th ng-if="showProviderHealth" width="{{::columnWidth.cloudProvider}}%" class="text-center" sort-toggle key="providerHealth" label="Cloud Provider" sort-model="sortFilter.instanceSort" on-change="applyParamsToUrl()"></th>
 
   </tr>
   </thead>
-  <tbody class="instance-list-body" instances="instances" sort-filter="sortFilter">
+  <tbody class="instance-list-body"
+         instances="instances"
+         has-load-balancers="hasLoadBalancers"
+         has-discovery="hasDiscovery"
+         show-provider-health="showProviderHealth"
+         sort-filter="sortFilter">
   </tbody>
 </table>
