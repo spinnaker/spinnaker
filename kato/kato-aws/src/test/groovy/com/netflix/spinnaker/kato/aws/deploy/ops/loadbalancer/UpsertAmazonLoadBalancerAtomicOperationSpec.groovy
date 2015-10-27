@@ -34,7 +34,7 @@ import com.amazonaws.services.elasticloadbalancing.model.ListenerDescription
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerAttributes
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.amazonaws.services.elasticloadbalancing.model.ModifyLoadBalancerAttributesRequest
-import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertAmazonLoadBalancerDescription
 import com.netflix.spinnaker.kato.aws.model.SubnetAnalyzer

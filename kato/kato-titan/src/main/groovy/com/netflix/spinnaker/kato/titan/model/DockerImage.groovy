@@ -26,10 +26,10 @@ class DockerImage {
   String imageName
   String imageVersion
 
-  DockerImage(String dockerImageId) {
-    if (!dockerImageId) throw new IllegalArgumentException("Invalid docker image id specified: ${dockerImageId}")
-    String[] imageNameParts = dockerImageId.split(IMAGE_NAME_SEPARATOR)
-    if (imageNameParts.size() != 2) throw new IllegalArgumentException("Invalid docker image id specified: ${dockerImageId}")
+  DockerImage(String imageId) {
+    if (!imageId) throw new IllegalArgumentException("Invalid docker image id specified: ${imageId}")
+    String[] imageNameParts = imageId.split(IMAGE_NAME_SEPARATOR)
+    if (imageNameParts.size() != 2) throw new IllegalArgumentException("Invalid docker image id specified: ${imageId}")
     this.imageName = imageNameParts[0]
     this.imageVersion = imageNameParts[1]
   }

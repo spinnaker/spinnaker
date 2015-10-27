@@ -18,8 +18,8 @@
 package com.netflix.spinnaker.kato.aws.deploy.converters
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.CopyLastAsgAtomicOperation
 import spock.lang.Shared

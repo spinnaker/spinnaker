@@ -18,7 +18,7 @@ package com.netflix.spinnaker.oort.cf.model
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Timer
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryAccountCredentials
 import com.netflix.spinnaker.oort.model.InstanceProvider
 import groovy.transform.CompileStatic
@@ -58,7 +58,7 @@ class CloudFoundryApplicationInstanceProvider implements InstanceProvider<CloudF
   @Override
   CloudFoundryApplicationInstance getInstance(String account, String region, String id) {
     instancesByAccountRegionId.record({
-      cloudFoundryResourceRetriever.instances[account].find { instance -> instance.name == id }
+      cloudFoundryResourceRetriever.instancesByAccountAndId[account][id]
     } as Callable<CloudFoundryApplicationInstance>)
   }
 

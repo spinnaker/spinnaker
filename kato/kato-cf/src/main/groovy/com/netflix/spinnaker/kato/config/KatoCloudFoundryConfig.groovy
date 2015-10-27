@@ -15,13 +15,14 @@
  */
 package com.netflix.spinnaker.kato.config
 
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.kato.cf.deploy.handlers.CloudFoundryDeployHandler
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryAccountCredentials
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryClientFactory
 import com.netflix.spinnaker.kato.cf.security.DefaultCloudFoundryClientFactory
 import com.netflix.spinnaker.kato.deploy.DeployHandler
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -63,8 +64,9 @@ class KatoCloudFoundryConfig {
 
   @Bean
   @ConditionalOnMissingBean(CloudFoundryDeployHandler)
-  DeployHandler deployHandler(CloudFoundryClientFactory clientFactory) {
-    new CloudFoundryDeployHandler(clientFactory)
+  DeployHandler deployHandler(CloudFoundryClientFactory clientFactory, @Value('${cf.jenkins.username}') String username,
+                              @Value('${cf.jenkins.password}') String password) {
+    new CloudFoundryDeployHandler(clientFactory, username, password)
   }
 
   @ConfigurationProperties('cf')

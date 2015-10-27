@@ -15,14 +15,16 @@
  */
 
 package com.netflix.spinnaker.oort.cf.model
-
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConfigurationProperties
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryAccountCredentials
 import com.netflix.spinnaker.oort.model.HealthState
 import groovy.util.logging.Slf4j
 import org.cloudfoundry.client.lib.CloudFoundryClient
-import org.cloudfoundry.client.lib.domain.*
+import org.cloudfoundry.client.lib.domain.CloudService
+import org.cloudfoundry.client.lib.domain.CloudSpace
+import org.cloudfoundry.client.lib.domain.InstanceState
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.client.HttpServerErrorException
 
@@ -31,7 +33,6 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
-
 /**
  * @author Greg Turnquist
  */
@@ -50,22 +51,25 @@ class CloudFoundryResourceRetriever {
   Map<String, Set<CloudService>> serviceCache = [:].withDefault { [] as Set<CloudService> }
 
   Map<String, Set<CloudFoundryServerGroup>> serverGroupsByAccount = [:].withDefault {[] as Set<CloudFoundryServerGroup>}
-  Map<String, Map<String, CloudFoundryServerGroup>> serverGroupsByAccountAndServerGroupName = [:].withDefault {[:]}
+  Map<String, Map<String, CloudFoundryServerGroup>> serverGroupByAccountAndServerGroupName = [:].withDefault {[:]}
   Map<String, Map<String, Set<CloudFoundryServerGroup>>> serverGroupsByAccountAndClusterName =
       [:].withDefault {[:].withDefault {[] as Set<CloudFoundryServerGroup>}}
 
   Map<String, Set<CloudFoundryCluster>> clustersByApplicationName = [:].withDefault {[] as Set<CloudFoundryCluster>}
   Map<String, Map<String, Set<CloudFoundryCluster>>> clustersByApplicationAndAccount =
       [:].withDefault {[:].withDefault {[] as Set<CloudFoundryCluster>}}
-  Map<String, Map<String, CloudFoundryCluster>> clustersByAccountAndClusterName =
+  Map<String, Map<String, CloudFoundryCluster>> clusterByAccountAndClusterName =
       [:].withDefault {[:].withDefault {new CloudFoundryCluster()}}
   Map<String, Set<CloudFoundryCluster>> clustersByAccount = [:].withDefault {[] as Set<CloudFoundryCluster>}
 
+  Set<CloudFoundryService> services = [] as Set<CloudFoundryService>
   Map<String, Set<CloudFoundryService>> servicesByAccount = [:].withDefault {[] as Set<CloudFoundryService>}
+  Map<String, Set<CloudFoundryService>> servicesByRegion = [:].withDefault {[] as Set<CloudFoundryService>}
 
   Map<String, CloudFoundryApplication> applicationByName = [:].withDefault {new CloudFoundryApplication()}
 
-  Map<String, Set<CloudFoundryApplicationInstance>> instances = [:].withDefault {[] as Set<CloudFoundryApplicationInstance>}
+  Map<String, Map<String, CloudFoundryApplicationInstance>> instancesByAccountAndId =
+          [:].withDefault {[:] as Map<String, CloudFoundryApplicationInstance>}
 
 
   @PostConstruct
@@ -95,11 +99,11 @@ class CloudFoundryResourceRetriever {
       accountCredentialsProvider.all.each { accountCredentials ->
         try {
           if (accountCredentials instanceof CloudFoundryAccountCredentials) {
-            log.info "Logging in to ${cloudFoundryConfigurationProperties.api} as ${accountCredentials.name}"
-
             CloudFoundryAccountCredentials credentials = (CloudFoundryAccountCredentials) accountCredentials
 
-            def client = new CloudFoundryClient(credentials.credentials, cloudFoundryConfigurationProperties.api.toURL())
+            log.info "Logging in to ${credentials.api} as ${credentials.name}"
+
+            def client = new CloudFoundryClient(credentials.credentials, credentials.api.toURL(), true)
 
             /**
              * In spinnaker terms:
@@ -118,80 +122,108 @@ class CloudFoundryResourceRetriever {
 
             log.info "Looking up services..."
             spaceCache.values().each { space ->
-              def conn = new CloudFoundryClient(credentials.credentials, cloudFoundryConfigurationProperties.api.toURL(),
-                  space)
+              def conn = new CloudFoundryClient(credentials.credentials, credentials.api.toURL(), space, true)
               conn.services.each { service ->
                 serviceCache.get(space.meta.guid).add(service)
               }
               conn.logout()
             }
 
+
+            def space = spaceCache.values().find {
+              it?.name == credentials.space && it?.organization.name == credentials.org
+            }
+            client = new CloudFoundryClient(credentials.credentials, credentials.api.toURL(), space, true)
+
             log.info "Look up all applications..."
             def cfApplications = client.applications
 
             cfApplications.each { app ->
 
-              def space = spaceCache.get(app.space.meta.guid)
               app.space = space
-              def account = space?.organization?.name + ':' + space?.name
+              def account = credentials.name
+
+              Names names = Names.parseName(app.name)
 
               def serverGroup = new CloudFoundryServerGroup([
                   name: app.name,
                   nativeApplication: app,
-                  services: app.services as Set,
-                  nativeServices: app.services.collect { name -> name == serviceCache[space.meta.guid].name }
+                  envVariables: app.envAsMap
               ])
 
-              serverGroupsByAccount[account].add(serverGroup)
-
-              serverGroupsByAccountAndServerGroupName[account][app.name] = serverGroup
-
-              def clusterName = clusterName(app.name)
-
-              serverGroupsByAccountAndClusterName[account][clusterName].add(serverGroup)
-
-              def cluster = clustersByAccountAndClusterName[account][clusterName]
-              cluster.name = clusterName
-              cluster.accountName = account
-              cluster.serverGroups.add(serverGroup)
-              cluster.services.addAll(serviceCache[space.meta.guid].findAll {serverGroup.services.contains(it.name)}
-                  .collect {new CloudFoundryService([
-                      name: it.name,
-                      type: it.label,
-                      nativeService: it
-                  ])})
-
-              cluster.services.each { service ->
-                service.serverGroups.add(serverGroup.name)
-              }
-
-              clustersByApplicationName[cluster.name].add(cluster)
-
-              clustersByApplicationAndAccount[cluster.name][account].add(cluster)
-
-              clustersByAccount[account].add(cluster)
-              servicesByAccount[account].addAll(cluster.services)
-
-              def application = applicationByName[cluster.name]
-              application.name = cluster.name
-              application.applicationClusters[account].add(cluster)
-              application.clusterNames[account].add(cluster.name)
+              serverGroup.services.addAll(serviceCache[space.meta.guid].findAll {app.services.contains(it.name)}
+                .collect {new CloudFoundryService([
+                  type: 'cf',
+                  id: it.meta.guid,
+                  name: it.name,
+                  application: names.app,
+                  accountName: account,
+                  region: space.organization.name,
+                  nativeService: it
+                ])})
 
               try {
                 serverGroup.instances = client.getApplicationInstances(app)?.instances.collect {
-                  new CloudFoundryApplicationInstance([
-                      name             : "${app.name}:${it.index}",
-                      healthState      : instanceStateToHealthState(it.state),
-                      nativeApplication: app,
-                      nativeInstance:   it
-                  ])
-                } as Set<CloudFoundryApplicationInstance>
+                  def healthState = instanceStateToHealthState(it.state)
+                  def health = [[
+                          state      : healthState.toString(),
+                          type       : 'serverGroup',
+                          description: 'State of the CF server group'
+                  ]]
 
-                instances[account].addAll(serverGroup.instances)
+                  def instance = new CloudFoundryApplicationInstance([
+                          name             : "${app.name}:${it.index}",
+                          healthState      : healthState,
+                          health           : health,
+                          nativeApplication: app,
+                          nativeInstance:   it
+                  ])
+                  if (instancesByAccountAndId[account][instance.name]?.healthState != instance.healthState) {
+                    log.info "Updating ${account}/${instance.name} to ${instance.healthState}"
+                  }
+                  instancesByAccountAndId[account][instance.name] = instance
+                  instance
+                } as Set<CloudFoundryApplicationInstance>
               } catch (HttpServerErrorException e) {
                 log.warn "Unable to retrieve instance data about ${app.name} in ${account} => ${e.message}"
               }
 
+              services.addAll(serverGroup.services)
+              servicesByAccount[account].addAll(serverGroup.services)
+              servicesByRegion[space.organization.name].addAll(serverGroup.services)
+
+              if (serverGroupsByAccount[account].contains(serverGroup)) {
+                serverGroupsByAccount[account].remove(serverGroup)
+              }
+              serverGroupsByAccount[account].add(serverGroup)
+
+              serverGroupByAccountAndServerGroupName[account][app.name] = serverGroup
+
+              def clusterName = names.cluster
+
+              if (serverGroupsByAccountAndClusterName[account][clusterName].contains(serverGroup)) {
+                serverGroupsByAccountAndClusterName[account][clusterName].remove(serverGroup)
+              }
+              serverGroupsByAccountAndClusterName[account][clusterName].add(serverGroup)
+
+              def cluster = clusterByAccountAndClusterName[account][clusterName]
+              cluster.name = clusterName
+              cluster.accountName = account
+              if (cluster.serverGroups.contains(serverGroup)) {
+                cluster.serverGroups.remove(serverGroup)
+              }
+              cluster.serverGroups.add(serverGroup)
+
+              clustersByApplicationName[names.app].add(cluster)
+
+              clustersByApplicationAndAccount[names.app][account].add(cluster)
+
+              clustersByAccount[account].add(cluster)
+
+              def application = applicationByName[names.app]
+              application.name = names.app
+              application.applicationClusters[account].add(cluster)
+              application.clusterNames[account].add(cluster.name)
             }
 
             log.info "Done loading new version of data"
@@ -199,6 +231,7 @@ class CloudFoundryResourceRetriever {
           }
         } catch (e) {
           log.error "Squashed exception ${e.getClass().getName()} thrown by ${accountCredentials}."
+          throw e
         }
       }
 

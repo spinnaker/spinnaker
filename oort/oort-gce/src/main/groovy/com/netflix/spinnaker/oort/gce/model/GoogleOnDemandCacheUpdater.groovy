@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.oort.gce.model
 
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component

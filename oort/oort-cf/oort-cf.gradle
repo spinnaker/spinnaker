@@ -1,5 +1,6 @@
 dependencies {
   compile project(":kato:kato-cf")
+  compile project(":mort:mort-core")
   compile project(":oort:oort-core")
   compile project(":clouddriver-cf")
 

@@ -18,9 +18,9 @@ package com.netflix.spinnaker.oort.aws.controllers
 
 import com.amazonaws.services.autoscaling.model.Activity
 import com.amazonaws.services.autoscaling.model.DescribeScalingActivitiesRequest
-import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -36,6 +36,8 @@ class AmazonClusterController {
   @Autowired
   AmazonClientProvider amazonClientProvider
 
+  final static int MAX_SCALING_ACTIVITIES = 30
+
   @RequestMapping(value = "/scalingActivities", method = RequestMethod.GET)
   ResponseEntity getScalingActivities(@PathVariable String account, @PathVariable String serverGroupName, @RequestParam(value = "region", required = true) String region) {
     def credentials = accountCredentialsProvider.getCredentials(account)
@@ -46,7 +48,7 @@ class AmazonClusterController {
     def request = new DescribeScalingActivitiesRequest(autoScalingGroupName: serverGroupName)
     def response = autoScaling.describeScalingActivities(request)
     List<Activity> scalingActivities = []
-    while (true) {
+    while (scalingActivities.size() < MAX_SCALING_ACTIVITIES) {
       scalingActivities.addAll response.activities
       if (response.nextToken) {
         response = autoScaling.describeScalingActivities(request.withNextToken(response.nextToken))

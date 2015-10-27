@@ -21,8 +21,8 @@ import com.google.api.client.googleapis.testing.json.GoogleJsonResponseException
 import com.google.api.client.testing.json.MockJsonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
@@ -58,7 +58,7 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
       GoogleJsonResponseException notFoundException =
         GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found");
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new UpsertGoogleSecurityGroupDescription(
           securityGroupName: SECURITY_GROUP_NAME,
           description: DESCRIPTION,
@@ -114,7 +114,7 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
       GoogleJsonResponseException notFoundException =
         GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found");
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new UpsertGoogleSecurityGroupDescription(
           securityGroupName: SECURITY_GROUP_NAME,
           network: NETWORK_NAME,
@@ -167,7 +167,7 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
       def firewall = new Firewall(name: SECURITY_GROUP_NAME)
       def firewallsUpdateMock = Mock(Compute.Firewalls.Update)
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new UpsertGoogleSecurityGroupDescription(securityGroupName: SECURITY_GROUP_NAME,
           network: NETWORK_NAME,
           sourceRanges: [SOURCE_RANGE],
@@ -218,7 +218,7 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
       def firewall = new Firewall(name: SECURITY_GROUP_NAME)
       def firewallsUpdateMock = Mock(Compute.Firewalls.Update)
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new UpsertGoogleSecurityGroupDescription(securityGroupName: SECURITY_GROUP_NAME,
         network: NETWORK_NAME,
         sourceRanges: [SOURCE_RANGE],
@@ -270,7 +270,7 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
       def firewall = new Firewall(name: SECURITY_GROUP_NAME, targetTags: [ORIG_TARGET_TAG])
       def firewallsUpdateMock = Mock(Compute.Firewalls.Update)
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new UpsertGoogleSecurityGroupDescription(securityGroupName: SECURITY_GROUP_NAME,
         network: NETWORK_NAME,
         sourceRanges: [SOURCE_RANGE],

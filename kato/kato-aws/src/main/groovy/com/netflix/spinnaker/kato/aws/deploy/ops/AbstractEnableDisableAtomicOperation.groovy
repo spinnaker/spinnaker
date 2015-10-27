@@ -19,8 +19,7 @@ import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFrom
 import com.amazonaws.services.elasticloadbalancing.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
 import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
-import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.discovery.DiscoverySupport

@@ -21,7 +21,7 @@ import com.amazonaws.services.autoscaling.model.SuspendProcessesRequest
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult
 import com.amazonaws.services.ec2.model.Subnet
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
@@ -48,6 +48,7 @@ class AutoScalingWorker {
   private String stack
   private String freeFormDetails
   private String ami
+  private String classicLinkVpcId
   private String instanceType
   private String iamRole
   private String keyPair
@@ -114,6 +115,7 @@ class AutoScalingWorker {
       suffix: null,
       ami: ami,
       iamRole: iamRole,
+      classicLinkVpcId: classicLinkVpcId,
       instanceType: instanceType,
       keyPair: keyPair,
       associatePublicIpAddress: associatePublicIpAddress,

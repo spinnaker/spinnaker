@@ -21,10 +21,10 @@ import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Firewall
 import com.google.api.services.compute.model.FirewallList
 import com.netflix.spectator.api.Spectator
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.mort.gce.cache.Keys
 import spock.lang.Specification
 import spock.lang.Subject
@@ -39,7 +39,7 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
     setup:
       def googleCloudProvider = new GoogleCloudProvider()
       def computeMock = Mock(Compute)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsListMock = Mock(Compute.Firewalls.List)
       def securityGroupA = new Firewall(name: 'name-a')

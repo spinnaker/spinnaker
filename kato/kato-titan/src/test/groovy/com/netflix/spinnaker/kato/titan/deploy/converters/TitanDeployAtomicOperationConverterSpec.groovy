@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kato.titan.deploy.converters
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
 import com.netflix.spinnaker.kato.deploy.DeployAtomicOperation
 import com.netflix.spinnaker.kato.deploy.DeployDescription
@@ -48,7 +48,7 @@ class TitanDeployAtomicOperationConverterSpec extends Specification {
       details: '',
       source: [account: 'test', region: 'us-east-1'],
       subnetType: 'vpc0',
-      dockerImageId: 'api.server:master-201506020033-trusty-7366606',
+      imageId: 'api.server:master-201506020033-trusty-7366606',
       capacity: [desired: 1],
       resources: [cpu: 2, memory: 4, disk: 4000, ports: [7001]],
       env: ['netflix.environment': 'test'],
@@ -72,7 +72,7 @@ class TitanDeployAtomicOperationConverterSpec extends Specification {
       details: '',
       source: [account: 'test', region: 'us-east-1'],
       subnetType: 'vpc0',
-      dockerImageId: 'api.server:master-201506020033-trusty-7366606',
+      imageId: 'api.server:master-201506020033-trusty-7366606',
       capacity: [desired: 1],
       resources: [cpu: 2, memory: 4, disk: 4000, ports: [7001]],
       env: ['netflix.environment': 'test'],

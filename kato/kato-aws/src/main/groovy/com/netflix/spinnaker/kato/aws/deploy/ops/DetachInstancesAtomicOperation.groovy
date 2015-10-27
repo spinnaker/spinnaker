@@ -25,7 +25,7 @@ import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.amazonaws.services.ec2.model.CreateTagsRequest
 import com.amazonaws.services.ec2.model.Tag
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest
-import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.DetachInstancesDescription
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository

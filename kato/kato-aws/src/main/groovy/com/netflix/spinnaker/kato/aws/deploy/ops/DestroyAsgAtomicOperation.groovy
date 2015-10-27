@@ -23,8 +23,7 @@ import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.DeleteLaunchConfigurationRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest
-import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.DestroyAsgDescription
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository

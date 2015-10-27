@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
 
-import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertAmazonDNSDescription
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertAmazonLoadBalancerDescription
 import org.springframework.beans.factory.annotation.Autowired

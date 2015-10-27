@@ -17,8 +17,8 @@ package com.netflix.spinnaker.kato.aws.services
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.ec2.AmazonEC2
-import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.deploy.AWSServerGroupNameResolver
 import com.netflix.spinnaker.kato.aws.deploy.AsgReferenceCopier
 import com.netflix.spinnaker.kato.aws.deploy.DefaultLaunchConfigurationBuilder
@@ -26,6 +26,7 @@ import com.netflix.spinnaker.kato.aws.deploy.LaunchConfigurationBuilder
 import com.netflix.spinnaker.kato.aws.deploy.ops.discovery.Eureka
 import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.aws.model.SubnetAnalyzer
+import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RestAdapter
@@ -40,6 +41,9 @@ class RegionScopedProviderFactory {
 
   @Autowired
   List<UserDataProvider> userDataProviders
+
+  @Autowired
+  KatoAWSConfig.DeployDefaults deployDefaults
 
   RegionScopedProvider forRegion(NetflixAmazonCredentials amazonCredentials, String region) {
     new RegionScopedProvider(amazonCredentials, region)
@@ -88,7 +92,8 @@ class RegionScopedProviderFactory {
     }
 
     LaunchConfigurationBuilder getLaunchConfigurationBuilder() {
-      new DefaultLaunchConfigurationBuilder(getAutoScaling(), getAsgService(), getSecurityGroupService(), userDataProviders)
+      new DefaultLaunchConfigurationBuilder(getAutoScaling(), getAsgService(), getSecurityGroupService(),
+        userDataProviders, deployDefaults)
     }
 
     Eureka getEureka() {

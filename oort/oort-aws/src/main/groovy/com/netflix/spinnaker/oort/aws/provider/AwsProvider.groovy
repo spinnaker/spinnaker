@@ -16,22 +16,17 @@
 
 package com.netflix.spinnaker.oort.aws.provider
 
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.amos.aws.AmazonCredentials
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.provider.agent.HealthProvidingCachingAgent
-import org.springframework.beans.factory.annotation.Autowired
-
 import java.util.regex.Pattern
-
-import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.CLUSTERS
-import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
-import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.LOAD_BALANCERS
-import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.SERVER_GROUPS
+import org.springframework.beans.factory.annotation.Autowired
+import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.*
 
 class AwsProvider implements SearchableProvider {
 
@@ -91,7 +86,7 @@ class AwsProvider implements SearchableProvider {
     @Override
     Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id) {
       def item = cacheView.get(INSTANCES.ns, id)
-      if (!item.relationships["serverGroups"]) {
+      if (!item?.relationships["serverGroups"]) {
         return result
       }
 

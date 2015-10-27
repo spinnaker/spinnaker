@@ -20,8 +20,8 @@ package com.netflix.spinnaker.kato.aws.deploy.handlers
 import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.kato.aws.deploy.AmiIdResolver
 import com.netflix.spinnaker.kato.aws.deploy.AutoScalingWorker
 import com.netflix.spinnaker.kato.aws.deploy.ResolvedAmiResult
@@ -93,6 +93,15 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, region)
       def amazonEC2 = regionScopedProvider.amazonEC2
 
+      String classicLinkVpcId = null
+      if (!subnetType) {
+        def result = amazonEC2.describeVpcClassicLink()
+        def classicLinkVpc = result.vpcs.find { it.classicLinkEnabled }
+        if (classicLinkVpc) {
+          classicLinkVpcId = classicLinkVpc.vpcId
+        }
+      }
+
       if (!description.blockDevices) {
         def blockDeviceConfig = deployDefaults.instanceClassBlockDevices.find {
           it.handlesInstanceType(description.instanceType)
@@ -131,6 +140,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         stack: description.stack,
         freeFormDetails: description.freeFormDetails,
         ami: ami.amiId,
+        classicLinkVpcId: classicLinkVpcId,
         minInstances: description.capacity.min,
         maxInstances: description.capacity.max,
         desiredInstances: description.capacity.desired,

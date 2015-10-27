@@ -19,10 +19,10 @@ package com.netflix.spinnaker.clouddriver.aws.health
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeAccountAttributesResult
-import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.aws.AmazonCredentials
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.boot.actuate.health.Status
 import spock.lang.Specification
 

@@ -16,8 +16,9 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
-import com.netflix.spinnaker.amos.aws.AmazonCredentials
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertAmazonLoadBalancerDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared

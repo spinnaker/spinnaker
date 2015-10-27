@@ -125,37 +125,41 @@ class ClusterControllerSpec extends Specification {
       def serverGroup1 = Mock(ServerGroup)
       with(serverGroup1) {
         getName() >> "serverGroup-v1"
-        getRegion() >> "north-pole"
-        getZones() >> []
-        getCreatedTime() >> 1234
+        getRegion() >> "north"
+        getZones() >> ["abc"]
+        getCreatedTime() >> 1111
+        isDisabled() >> false
+        getInstances() >> [Mock(Instance)]
       }
       def serverGroup2 = Mock(ServerGroup)
       with(serverGroup2) {
         getName() >> "serverGroup-v2"
-        getRegion() >> "south-pole"
+        getRegion() >> "north"
         getZones() >> []
-        getCreatedTime() >> 6789
+        getCreatedTime() >> 2222
+        isDisabled() >> false
+        getInstances() >> [Mock(Instance)]
       }
       def serverGroup3 = Mock(ServerGroup)
       with(serverGroup3) {
-        getName() >> "serverGroup-v3"
-        getRegion() >> "south-pole"
+        getName() >> "serverGroup-v2"
+        getRegion() >> "south"
         getZones() >> []
-        getCreatedTime() >> 1234
+        getCreatedTime() >> 2222
+        isDisabled() >> true
+        getInstances() >> [Mock(Instance)]
       }
       def serverGroup4 = Mock(ServerGroup)
       with(serverGroup4) {
-        getName() >> "serverGroup-v4"
-        getRegion() >> "east"
-        getZones() >> ["abc"]
-        getCreatedTime() >> 1234
+        getName() >> "serverGroup-v3"
+        getRegion() >> "south"
+        getZones() >> ["def"]
+        getCreatedTime() >> 3333
+        isDisabled() >> false
+        getInstances() >> [Mock(Instance), Mock(Instance)]
       }
 
-    when:
-      def result = clusterController.getTargetServerGroup("app", "account", "clusterName", "cloudProvider", location, target)
-
-    then:
-      1 * clusterProvider1.getCluster(*_) >> {
+      clusterProvider1.getCluster(*_) >> {
         def cluster = Mock(Cluster)
         with(cluster) {
           getType() >> "cloudProvider"
@@ -163,17 +167,94 @@ class ClusterControllerSpec extends Specification {
         }
         cluster
       }
+
+    when:
+      def result = clusterController.getTargetServerGroup(
+          "app", "account", "clusterName", "cloudProvider",
+          location, target, onlyEnabled.toString(), validateOldest.toString()
+      )
+
+    then:
       result
       result.getName() == expectedName
 
+    when:
+      clusterController.getTargetServerGroup(
+          "app", "account", "clusterName", "cloudProvider",
+          "north", "fail", false.toString() /* onlyEnabled */, true.toString() /* validateOldest */
+      )
+
+    then:
+      thrown(ClusterController.TargetFailException)
+
+    when:
+      clusterController.getTargetServerGroup(
+          "app", "account", "clusterName", "cloudProvider",
+          "south", "oldest", true.toString() /* onlyEnabled */, true.toString() /* validateOldest */
+      )
+
+    then:
+      thrown(ClusterController.TargetNotFoundException)
+
     where:
-      location     | target                || expectedName
-      "north-pole" | "current"             || "serverGroup-v1"
-      "north-pole" | "current_asg"         || "serverGroup-v1"
-      "north-pole" | "current_asg_dynamic" || "serverGroup-v1"
-      "south-pole" | "current"             || "serverGroup-v2"
-      "south-pole" | "previous"            || "serverGroup-v3"
-      "south-pole" | "oldest"              || "serverGroup-v3"
-      "abc"        | "current"             || "serverGroup-v4"
+      location | target                | onlyEnabled | validateOldest || expectedName
+      "north"  | "newest"              | false       | true           || "serverGroup-v2"
+      "north"  | "current"             | false       | true           || "serverGroup-v2"
+      "north"  | "current_asg"         | false       | true           || "serverGroup-v2"
+      "north"  | "current_asg_dynamic" | false       | true           || "serverGroup-v2"
+      "north"  | "previous"            | false       | true           || "serverGroup-v1"
+      "north"  | "oldest"              | false       | true           || "serverGroup-v1"
+      "north"  | "largest"             | false       | true           || "serverGroup-v2"
+
+      "south"  | "current"             | false       | true           || "serverGroup-v3"
+      "south"  | "previous"            | false       | true           || "serverGroup-v2"
+      "south"  | "oldest"              | false       | true           || "serverGroup-v2"
+      "south"  | "oldest"              | true        | false          || "serverGroup-v3"
+      "south"  | "largest"             | false       | true           || "serverGroup-v3"
+      "south"  | "fail"                | true        | true           || "serverGroup-v3"
+
+      "abc"    | "current"             | false       | true           || "serverGroup-v1"
+  }
+
+  def "should get ImageSummary from serverGroup"() {
+    given:
+      def clusterProvider1 = Mock(ClusterProvider)
+      clusterController.clusterProviders = [clusterProvider1]
+      def mockImageSummary = Mock(ServerGroup.ImageSummary)
+      def serverGroup1 = Mock(ServerGroup)
+      with(serverGroup1) {
+        getName() >> "serverGroup-v1"
+        getRegion() >> "north"
+        getZones() >> ["abc"]
+        getCreatedTime() >> 1111
+        isDisabled() >> false
+        getInstances() >> [Mock(Instance)]
+        getImageSummary() >> mockImageSummary
+      }
+      clusterProvider1.getCluster(*_) >> {
+        def cluster = Mock(Cluster)
+        with(cluster) {
+          getType() >> "cloudProvider"
+          getServerGroups() >> [serverGroup1]
+        }
+        cluster
+      }
+
+
+    when:
+      def result = clusterController.getServerGroupSummary(
+          "app", "account", "clusterName", "cloudProvider",
+          "north", "largest", "image", null /* onlyEnabled */)
+
+    then:
+      result == mockImageSummary
+
+    when:
+      clusterController.getServerGroupSummary(
+          "app", "account", "clusterName", "cloudProvider",
+          "north", "largest", "doesntExist", null /* onlyEnabled */)
+
+    then:
+      thrown(ClusterController.SummaryNotFoundException)
   }
 }

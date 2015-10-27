@@ -34,6 +34,7 @@ final class AtomicOperations {
   public static final String REBOOT_INSTANCES = "rebootInstances"
   public static final String TERMINATE_INSTANCES = "terminateInstances"
   public static final String TERMINATE_INSTANCE_AND_DECREMENT = "terminateInstanceAndDecrementServerGroup"
+  public static final String ATTACH_CLASSIC_LINK_VPC = "attachClassicLinkVpc"
 
   // Load Balancer operations
   public static final String DELETE_LOAD_BALANCER = "deleteLoadBalancer"

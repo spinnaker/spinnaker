@@ -17,9 +17,9 @@
 
 package com.netflix.spinnaker.kato.config
 
-import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.kato.aws.agent.CleanupDetachedInstancesAgent
 import com.netflix.spinnaker.kato.aws.deploy.handlers.BasicAmazonDeployHandler
 import com.netflix.spinnaker.kato.aws.deploy.userdata.LocalFileUserDataProvider
@@ -56,6 +56,7 @@ class KatoAWSConfig {
 
   static class DeployDefaults {
     String iamRole
+    String classicLinkSecurityGroupName
     List<AmazonInstanceClassBlockDevice> instanceClassBlockDevices = []
   }
 

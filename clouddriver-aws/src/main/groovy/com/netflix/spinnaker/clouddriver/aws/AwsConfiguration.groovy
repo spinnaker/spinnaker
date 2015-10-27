@@ -19,10 +19,10 @@ package com.netflix.spinnaker.clouddriver.aws
 import com.amazonaws.metrics.AwsSdkMetrics
 import com.amazonaws.retry.RetryPolicy
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.awsobjectmapper.AmazonObjectMapper
 import com.netflix.spectator.aws.SpectatorMetricsCollector
 import com.netflix.spinnaker.clouddriver.aws.bastion.BastionConfig
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentialsInitializer
 import com.netflix.spinnaker.kork.aws.AwsComponents
 import org.springframework.beans.factory.annotation.Autowired

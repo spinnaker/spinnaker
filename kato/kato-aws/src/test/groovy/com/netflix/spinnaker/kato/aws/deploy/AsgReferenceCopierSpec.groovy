@@ -32,7 +32,7 @@ import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult
 import com.amazonaws.services.cloudwatch.model.Dimension
 import com.amazonaws.services.cloudwatch.model.MetricAlarm
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest
-import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.services.IdGenerator
 import com.netflix.spinnaker.kato.data.task.Task
 import spock.lang.Specification

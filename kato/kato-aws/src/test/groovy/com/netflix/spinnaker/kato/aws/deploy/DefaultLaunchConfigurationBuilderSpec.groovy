@@ -22,6 +22,7 @@ import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.kato.aws.services.AsgService
 import com.netflix.spinnaker.kato.aws.services.SecurityGroupService
+import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -35,7 +36,8 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
 
 
   @Subject
-  DefaultLaunchConfigurationBuilder builder = new DefaultLaunchConfigurationBuilder(autoScaling, asgService, securityGroupService, [userDataProvider])
+  DefaultLaunchConfigurationBuilder builder = new DefaultLaunchConfigurationBuilder(autoScaling, asgService,
+    securityGroupService, [userDataProvider], new KatoAWSConfig.DeployDefaults())
 
   void "should lookup security groups when provided by name"() {
     when:
@@ -116,6 +118,86 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
       suffix: '20150515',
       securityGroups: securityGroups)
 
+  }
+
+  void "should attach classic link security group if vpc is linked"() {
+    when:
+    builder.buildLaunchConfiguration(application, subnetType, settings)
+
+    then:
+    1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
+      assert req.classicLinkVPCId == "vpc-123"
+      assert req.classicLinkVPCSecurityGroups == ["sg-123", "sg-456"]
+    }
+    0 * _
+
+    where:
+    application = 'foo'
+    subnetType = null
+    account = 'prod'
+    expectedGroups = [application]
+    settings = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
+      account: 'prod',
+      region: 'us-east-1',
+      baseName: 'fooapp-v001',
+      suffix: '20150515',
+      securityGroups: ["sg-000"],
+      classicLinkVpcId: "vpc-123",
+      classicLinkVPCSecurityGroups: ["sg-123", "sg-456"])
+  }
+
+  void "should try to look up classic link security group if vpc is linked"() {
+    when:
+    builder.buildLaunchConfiguration(application, subnetType, settings)
+
+    then:
+    1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
+      assert req.classicLinkVPCId == "vpc-123"
+      assert req.classicLinkVPCSecurityGroups == []
+    }
+    0 * _
+
+    where:
+    application = 'foo'
+    subnetType = null
+    account = 'prod'
+    expectedGroups = [application]
+    settings = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
+      account: 'prod',
+      region: 'us-east-1',
+      baseName: 'fooapp-v001',
+      suffix: '20150515',
+      securityGroups: ["sg-000"],
+      classicLinkVpcId: "vpc-123")
+  }
+
+  void "should look up and attach classic link security group if vpc is linked"() {
+    builder = new DefaultLaunchConfigurationBuilder(autoScaling, asgService, securityGroupService, [userDataProvider],
+      new KatoAWSConfig.DeployDefaults(classicLinkSecurityGroupName: "nf-classiclink"))
+
+    when:
+    builder.buildLaunchConfiguration(application, subnetType, settings)
+
+    then:
+    1 * securityGroupService.getSecurityGroupIds(["nf-classiclink"], "vpc-123") >> ["nf-classiclink": "sg-123"]
+    1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
+      assert req.classicLinkVPCId == "vpc-123"
+      assert req.classicLinkVPCSecurityGroups == ["sg-123"]
+    }
+    0 * _
+
+    where:
+    application = 'foo'
+    subnetType = null
+    account = 'prod'
+    expectedGroups = [application]
+    settings = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
+      account: 'prod',
+      region: 'us-east-1',
+      baseName: 'fooapp-v001',
+      suffix: '20150515',
+      securityGroups: ["sg-000"],
+      classicLinkVpcId: "vpc-123")
   }
 
   void "handles block device mappings"() {

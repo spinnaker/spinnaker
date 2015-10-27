@@ -28,7 +28,7 @@ import com.google.api.services.compute.model.MachineType
 import com.google.api.services.compute.model.MachineTypeList
 import com.google.api.services.compute.model.Network
 import com.google.api.services.compute.model.NetworkList
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -102,7 +102,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
             def compute = new Compute.Builder(
                     httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build()
 
-            def credentials = new GoogleCredentials(PROJECT_NAME, compute, null, null, null)
+            def credentials = new GoogleCredentials(PROJECT_NAME, compute)
             def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
                                                                   image: IMAGE,
                                                                   instanceType: INSTANCE_TYPE,
@@ -131,7 +131,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
     def computeMock = Mock(Compute)
     def machineTypesMock = Mock(Compute.MachineTypes)
     def machineTypesListMock = Mock(Compute.MachineTypes.List)
-    def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
+    def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
     def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
                                                           image: IMAGE,
                                                           instanceType: INSTANCE_TYPE,
@@ -192,7 +192,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
             def compute = new Compute.Builder(
                     httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build()
 
-            def credentials = new GoogleCredentials(PROJECT_NAME, compute, null, null, null)
+            def credentials = new GoogleCredentials(PROJECT_NAME, compute)
             def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
                                                                   image: IMAGE,
                                                                   instanceType: INSTANCE_TYPE,

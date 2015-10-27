@@ -23,7 +23,7 @@ import com.amazonaws.services.autoscaling.model.Instance
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeInstancesResult
 import com.amazonaws.services.ec2.model.Reservation
-import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
 import com.netflix.spinnaker.kato.aws.services.AsgService
@@ -417,8 +417,7 @@ class DiscoverySupportUnitSpec extends Specification {
     Map<String, Object> launchConfig
     ServerGroup.InstanceCounts instanceCounts
     ServerGroup.Capacity capacity
-    Boolean isDisabled() {
-      return disabled
-    }
+    Boolean isDisabled() {disabled}
+    ServerGroup.ImageSummary getImageSummary() {null}
   }
 }

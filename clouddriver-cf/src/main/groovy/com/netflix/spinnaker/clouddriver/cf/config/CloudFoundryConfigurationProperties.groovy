@@ -22,7 +22,7 @@ package com.netflix.spinnaker.clouddriver.cf.config
 class CloudFoundryConfigurationProperties {
 
 
-  public static final int POLLING_INTERVAL_SECONDS_DEFAULT = 600
+  public static final int POLLING_INTERVAL_SECONDS_DEFAULT = 60; // TODO Raise to 600
 
   String api
   int pollingIntervalSeconds = POLLING_INTERVAL_SECONDS_DEFAULT

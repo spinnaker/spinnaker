@@ -6,6 +6,6 @@ COPY . workdir/
 
 WORKDIR workdir
 
-RUN ./gradlew build -x test
+RUN ./gradlew --no-daemon build -x test
 
 CMD ["./gradlew", "bootRun"]

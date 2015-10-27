@@ -18,8 +18,8 @@ package com.netflix.spinnaker.kato.gce.deploy.ops.loadbalancer
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Operation
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
@@ -77,7 +77,7 @@ class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesInsert = Mock(Compute.GlobalForwardingRules.Insert)
       def insertOp = new Operation(targetLink: "link")
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new CreateGoogleHttpLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
           accountName: ACCOUNT_NAME,
@@ -171,7 +171,7 @@ class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesInsert = Mock(Compute.GlobalForwardingRules.Insert)
       def insertOp = new Operation(targetLink: "link")
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new CreateGoogleHttpLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
           accountName: ACCOUNT_NAME,

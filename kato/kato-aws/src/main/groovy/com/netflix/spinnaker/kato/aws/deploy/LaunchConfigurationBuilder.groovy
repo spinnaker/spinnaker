@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kato.aws.deploy
 
-import com.netflix.spinnaker.amos.AccountCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
 import groovy.transform.Immutable
 
@@ -33,6 +33,8 @@ interface LaunchConfigurationBuilder {
 
     String ami
     String iamRole
+    String classicLinkVpcId
+    List<String> classicLinkVPCSecurityGroups
     String instanceType
     String keyPair
     Boolean associatePublicIpAddress

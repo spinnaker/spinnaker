@@ -29,9 +29,9 @@ class DefaultCloudFoundryClientFactory implements CloudFoundryClientFactory {
   CloudFoundryClient createCloudFoundryClient(CloudFoundryDeployDescription description) {
     new CloudFoundryClient(
         description.credentials.credentials,
-        description.api.toURL(),
-        description.org,
-        description.space,
+        description.credentials.api.toURL(),
+        description.credentials.org,
+        description.credentials.space,
         description.trustSelfSignedCerts)
   }
 
