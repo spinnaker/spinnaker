@@ -2,7 +2,7 @@
     <h2>
       <span class="application-name">{{application.name}}</span>
       <a href ng-click="application.refreshImmediately(true)">
-        <span class="small glyphicon glyphicon-refresh refresh-enabled"
+        <span class="small glyphicon glyphicon-refresh refresh-enabled refresh-{{getAgeColor()}}"
               uib-tooltip-template="refreshTooltipTemplate"
               tooltip-placement="{{$window.innerWidth < 1100 ? 'right' : 'bottom'}}"
               ng-class="{'glyphicon-spinning': application.refreshing}"></span>

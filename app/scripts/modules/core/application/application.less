@@ -200,10 +200,16 @@
 }
 
 .glyphicon-refresh {
-  &.refresh-enabled {
-    color: @healthy_green_icon;
-  }
   &.refresh-disabled {
     opacity: 0.5;
+  }
+  &.refresh-young {
+    color: @healthy_green_icon;
+  }
+  &.refresh-old {
+    color: #CEB717;
+  }
+  &.refresh-ancient {
+    color: @unhealthy_red;
   }
 }
