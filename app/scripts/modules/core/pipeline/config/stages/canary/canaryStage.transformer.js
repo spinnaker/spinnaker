@@ -135,6 +135,9 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.canary.transforme
           if (_.some(deployStages, { status: 'RUNNING' })) {
             status = 'RUNNING';
           }
+          if (_.some(deployStages, { status: 'TERMINAL' })) {
+            status = 'TERMINAL';
+          }
           var canaryStatus = stage.context.canary.status;
           if (canaryStatus && status !== 'CANCELED') {
             if (canaryStatus.status === 'LAUNCHED' || monitorStage.status === 'RUNNING') {
@@ -247,6 +250,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.canary.transforme
             var canaryDeploymentId = deployment.canaryAnalysisResult ? deployment.canaryAnalysisResult.canaryDeploymentId : null;
             syntheticStagesToAdd.push(createSyntheticCanaryDeploymentStage(stage, deployment, status, deployParent, deploymentEndTime, canaryDeploymentId, execution));
           });
+          execution.stages = execution.stages.filter((stage) => deployStages.indexOf(stage) === -1);
         }
       });
       execution.stages = execution.stages.concat(syntheticStagesToAdd);
