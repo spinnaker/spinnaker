@@ -21,7 +21,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.canaryStage', [
           validators: [
             {
               type: 'stageBeforeType',
-              stageTypes: ['bake', 'findAmi'],
+              stageTypes: ['bake', 'findAmi', 'findImage'],
               message: 'You must have a Bake or Find AMI stage before a canary stage.'
             },
           ],
