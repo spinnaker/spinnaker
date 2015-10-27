@@ -6,6 +6,8 @@ COPY . workdir/
 
 WORKDIR workdir
 
-RUN ./gradlew --no-daemon build -x test
+RUN ./gradlew buildDeb -x test
 
-CMD ["./gradlew", "bootRun"]
+RUN dpkg -i ./clouddriver-web/build/distributions/*.deb
+
+CMD ["/opt/clouddriver/bin/clouddriver"]
