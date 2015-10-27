@@ -18,7 +18,7 @@ module.exports = angular.module('spinnaker.aws.cache.initializer', [
     let config = Object.create(null);
 
     config.credentials = {
-      initializers: [ () => accountService.getRegionsKeyedByAccount('aws') ],
+      initializers: [ () => accountService.listAccounts('aws') ],
     };
 
     config.instanceTypes = {
