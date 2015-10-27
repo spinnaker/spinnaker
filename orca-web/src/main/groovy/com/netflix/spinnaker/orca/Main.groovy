@@ -70,12 +70,13 @@ import org.springframework.scheduling.annotation.EnableAsync
 ])
 class Main extends SpringBootServletInitializer {
   static final Map<String, String> DEFAULT_PROPS = [
-    'netflix.environment': 'test',
-    'netflix.account'    : System.getProperty('netflix.environment', 'test'),
-    'netflix.stack'      : 'test',
-    'spring.config.location': "${System.properties['user.home']}/.spinnaker/",
-    'spring.config.name' : 'orca',
-    'spring.profiles.active': "${System.getProperty('netflix.environment', 'test')},local"
+    'netflix.environment'    : 'test',
+    'netflix.account'        : '${netflix.environment}',
+    'netflix.stack'          : 'test',
+    'spring.config.location' : '${user.home}/.spinnaker/',
+    'spring.application.name': 'orca',
+    'spring.config.name'     : 'spinnaker,${spring.application.name}',
+    'spring.profiles.active' : '${netflix.environment},local'
   ]
 
   static void main(String... args) {
