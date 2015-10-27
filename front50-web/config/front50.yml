@@ -1,13 +1,10 @@
 server:
   port: 8080
 
-aws:
-  defaultSimpleDBDomain: CLOUD_REGISTRY
-  simpleDBEnabled: false
-
 spinnaker:
   cassandra:
     enabled: true
+    embedded: true
     cluster: CASS_SPINNAKER
     keyspace: front50
     name: default
