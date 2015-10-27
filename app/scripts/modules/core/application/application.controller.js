@@ -20,6 +20,16 @@ module.exports = angular.module('spinnaker.application.controller', [
       return;
     }
 
+    $scope.getAgeColor = () => {
+      const yellowAge = 2 * 60 * 1000; // 2 minutes
+      const redAge = 5 * 60 * 1000; // 5 minutes
+      let lastRefresh = app.lastRefresh || 0;
+      let age = new Date().getTime() - lastRefresh;
+
+      return age < yellowAge ? 'young' :
+             age < redAge ? 'old' : 'ancient';
+    };
+
     var hotkeyBind = hotkeys.bindTo($scope);
     var applicationHotkeys = [
       {
