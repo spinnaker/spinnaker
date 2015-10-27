@@ -23,11 +23,12 @@ import groovy.util.logging.Slf4j
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.listener.JobExecutionListenerSupport
+import org.springframework.core.Ordered
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
 @Slf4j
 @CompileStatic
-class ExecutionStatusPropagationListener extends JobExecutionListenerSupport {
+class ExecutionStatusPropagationListener extends JobExecutionListenerSupport implements Ordered {
   private final ExecutionRepository executionRepository
 
   ExecutionStatusPropagationListener(ExecutionRepository executionRepository) {
@@ -71,5 +72,10 @@ class ExecutionStatusPropagationListener extends JobExecutionListenerSupport {
       return jobExecution.jobParameters.getString("pipeline")
     }
     return jobExecution.jobParameters.getString("orchestration")
+  }
+
+  @Override
+  int getOrder() {
+    HIGHEST_PRECEDENCE
   }
 }
