@@ -76,7 +76,7 @@ class ShrinkClusterTask extends AbstractClusterWideClouddriverTask {
     comparators << new CreatedTime()
 
     //result will be sorted in priority order to retain
-    def prioritized = filteredGroups.sort(false, new CompositeComparitor(comparators))
+    def prioritized = filteredGroups.sort(false, new CompositeComparator(comparators))
 
     return prioritized.drop(dropCount)
   }
