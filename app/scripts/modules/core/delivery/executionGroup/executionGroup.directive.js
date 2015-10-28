@@ -10,6 +10,7 @@ module.exports = angular
     require('../filter/executionFilter.model.js'),
     require('../../confirmationModal/confirmationModal.service.js'),
     require('../triggers/triggersTag.directive.js'),
+    require('./execution/execution.directive.js'),
   ])
   .directive('executionGroup', function() {
     return {
@@ -26,25 +27,14 @@ module.exports = angular
   })
   .controller('executionGroupCtrl', function($scope, $timeout, _, $state, settings, $stateParams, $uibModal, executionService, collapsibleSectionStateCache,
                                                ExecutionFilterModel, pipelineConfigService, confirmationModalService, $location) {
-    // TODO: MOVE TO SEPARATE DIRECTIVE
     this.showDetails = function(executionId) {
       return executionId === $stateParams.executionId &&
         $state.includes('**.execution.**');
     };
 
-    this.getUrl = () => $location.absUrl();
-
-    this.isActive = (executionId, stageIndex) => {
-      return this.showDetails(executionId) && Number($stateParams.stage) === stageIndex;
-    };
-
-    let updateViewStateDetails = () => {
-      this.viewState.activeStageId = Number($stateParams.stage);
-      this.viewState.executionId = $stateParams.executionId;
-    };
-
-    this.pipelinesUrl = [settings.gateUrl, 'pipelines/'].join('/');
-
+    this.isShowingDetails = () => this.group.executions
+      .map((execution) => execution.id)
+      .some(this.showDetails);
 
     this.configure = (id) => {
       if ($state.current.name.indexOf('.executions.execution') === -1) {
@@ -65,10 +55,8 @@ module.exports = angular
 
     this.viewState = {
       triggeringExecution: false,
-      open: !collapsibleSectionStateCache.isSet(getSectionCacheKey()) || collapsibleSectionStateCache.isExpanded(getSectionCacheKey()),
+      open: this.isShowingDetails() || !collapsibleSectionStateCache.isSet(getSectionCacheKey()) || collapsibleSectionStateCache.isExpanded(getSectionCacheKey()),
       poll: null,
-      activeStageId: Number($stateParams.stage),
-      executionId: $stateParams.executionId,
       canTriggerPipelineManually: this.pipelineConfig,
       canConfigure: this.pipelineConfig,
       isRetired: ExecutionFilterModel.sortFilter.groupBy === 'name' && !this.pipelineConfig,
@@ -81,26 +69,11 @@ module.exports = angular
       }
     });
 
-    $scope.$on('$stateChangeSuccess', function(event, toState, toParams) {
-      $scope.detailsTarget = toParams.executionId;
-      updateViewStateDetails();
-    });
-
-    this.toggleDetails = (node) => {
-      const params = { executionId: node.executionId, stage: node.index};
-      if ($state.includes('**.execution', params)) {
-        $state.go('^');
-      } else {
-        if ($state.current.name.indexOf('.executions.execution') !== -1) {
-          $state.go('.', params);
-        } else {
-          $state.go('.execution', params);
-        }
-      }
-    };
-
     this.toggle = () => {
       this.viewState.open = !this.viewState.open;
+      if (this.isShowingDetails()) {
+        this.hideDetails();
+      }
       collapsibleSectionStateCache.setExpanded(getSectionCacheKey(), this.viewState.open);
     };
 
@@ -121,7 +94,6 @@ module.exports = angular
     };
 
     this.triggerPipeline = () => {
-
       $uibModal.open({
         templateUrl: require('../manualExecution/manualPipelineExecution.html'),
         controller: 'ManualPipelineExecutionCtrl as ctrl',
@@ -131,24 +103,6 @@ module.exports = angular
           currentlyRunningExecutions: () => this.group.runningExecutions,
         }
       }).result.then(startPipeline);
-    };
-
-    this.deleteExecution = (execution) => {
-      confirmationModalService.confirm({
-        header: 'Really delete execution?',
-        buttonText: 'Delete',
-        body: '<p>This will permanently delete the execution history.</p>',
-        submitMethod: () => executionService.deleteExecution(this.application, execution.id)
-      });
-    };
-
-    this.cancelExecution = (execution) => {
-      confirmationModalService.confirm({
-        header: 'Really stop execution of ' + execution.name + '?',
-        buttonText: 'Stop running ' + execution.name,
-        destructive: false,
-        submitMethod: () => executionService.cancelExecution(execution.id)
-      });
     };
 
     $scope.$on('toggle-expansion', (event, expanded) => {
