@@ -15,7 +15,8 @@ module.exports = angular.module('spinnaker.core.instance.instances.directive', [
       },
       link: function (scope, elem) {
         var $state = scope.$parent.$state;
-        let lastRender = '';
+        let lastRender = '',
+            tooltipsApplied = false;
 
         var base = elem.parent().inheritedData('$uiView').state;
 
@@ -41,9 +42,11 @@ module.exports = angular.module('spinnaker.core.instance.instances.directive', [
             }).join('') + '</div>';
 
           if (innerHtml !== lastRender) {
-            $('[data-toggle="tooltip"]', elem).tooltip('destroy');
+            if (tooltipsApplied) {
+              $('[data-toggle="tooltip"]', elem).tooltip('destroy');
+              tooltipsApplied = false;
+            }
             elem.get(0).innerHTML = innerHtml;
-            $('[data-toggle="tooltip"]', elem).tooltip({placement: 'top', container: 'body', animation: false});
             lastRender = innerHtml;
           }
         }
@@ -71,6 +74,11 @@ module.exports = angular.module('spinnaker.core.instance.instances.directive', [
           });
         });
 
+        elem.mouseover((event) => {
+          $(event.target, elem).tooltip({placement: 'top', container: 'body', animation: false}).tooltip('show');
+          tooltipsApplied = true;
+        });
+
         function clearActiveState() {
           if (scope.activeInstance && !$state.includes('**.instanceDetails', scope.activeInstance)) {
             $('a[data-instance-id="' + scope.activeInstance.instanceId+'"]', elem).removeClass('active');
@@ -81,8 +89,13 @@ module.exports = angular.module('spinnaker.core.instance.instances.directive', [
         scope.$on('$locationChangeSuccess', clearActiveState);
 
         scope.$on('$destroy', function() {
-          $('[data-toggle="tooltip"]', elem).tooltip('destroy');
+          if (tooltipsApplied) {
+            $('[data-toggle="tooltip"]', elem).tooltip('destroy');
+            tooltipsApplied = false;
+          }
+          elem.unbind('mouseover');
           elem.unbind('click');
+          lastRender = null;
         });
 
         scope.$watch('instances', renderInstances);
