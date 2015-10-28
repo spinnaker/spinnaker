@@ -115,8 +115,6 @@ class TaskTasklet implements Tasklet {
           jobExecution.status = batchStepStatus.batchStatus
         }
         contribution.exitStatus = batchStepStatus.exitStatus
-        stage.endTime = !batchStepStatus.repeatStatus.continuable ? System.currentTimeMillis() : null
-
         return batchStepStatus.repeatStatus
       }
     } finally {
