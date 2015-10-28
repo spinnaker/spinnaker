@@ -2,19 +2,31 @@
   <div class="row clickable" sticky-header added-offset-height="-6" ng-click="vm.toggle()" ng-if="vm.group.heading">
     <div class="col-md-12 execution-group-heading" ng-class="vm.viewState.isRetired ? 'inactive' : 'active'">
       <div class="row">
-        <div class="col-md-8 col-sm-8">
+        <div class="col-md-4 col-sm-4">
           <h4 class="execution-group-title">
             <span class="glyphicon"
                   ng-class="{'glyphicon-chevron-up': !vm.viewState.open, 'glyphicon-chevron-down': vm.viewState.open}">
             </span>
             <span class="execution-group-title">
-              <span ng-if="vm.group.runningExecutions.length" class="badge" style="margin-left: 10px">
+              <span ng-if="vm.group.runningExecutions.length" class="badge">
                 {{vm.group.runningExecutions.length}}
               </span>
               {{ vm.group.heading }}
             </span>
           </h4>
-          <h4 style="margin-left: 20px" ng-if="vm.viewState.canTriggerPipelineManually">
+        </div>
+        <div class="col-md-8 col-sm-8 text-right execution-group-actions" ng-if="vm.viewState.canConfigure">
+          <h4 ng-if="vm.viewState.isRetired"><span class="label-retired" uib-tooltip="The configuration for this pipeline has been renamed or deleted.">RETIRED</span></h4>
+          <triggers-tag pipeline="vm.pipelineConfig"></triggers-tag>
+          <h4>
+            <a href
+               class="btn btn-xs btn-link link-inverse"
+               ng-click="vm.configure(vm.group.config.id); $event.stopPropagation();">
+              <span class="glyphicon glyphicon-cog"></span>
+              Configure
+            </a>
+          </h4>
+          <h4 ng-if="vm.viewState.canTriggerPipelineManually">
             <a href
                class="btn btn-xs btn-link link-inverse"
                ng-click="vm.triggerPipeline(); $event.stopPropagation();">
@@ -24,22 +36,6 @@
               <span ng-if="!vm.viewState.triggeringExecution">
                 <span class="glyphicon glyphicon-play"></span> Start Manual Execution
               </span>
-            </a>
-          </h4>
-        </div>
-        <div class="col-md-2 col-sm-4 text-right" ng-if="vm.viewState.canTriggerPipelineManually">
-          <triggers-tag pipeline="vm.pipelineConfig"></triggers-tag>
-        </div>
-        <div class="col-md-2 col-sm-4 text-right" ng-if="vm.viewState.isRetired">
-          <h4><span class="label-retired" uib-tooltip="The configuration for this pipeline has been renamed or deleted.">RETIRED</span></h4>
-        </div>
-        <div class="col-md-2 col-sm-4 text-right" ng-if="vm.viewState.canConfigure" ng-class="{'col-md-offset-2' : !vm.viewState.canTriggerPipelineManually}">
-          <h4>
-            <a href
-               class="btn btn-xs btn-link link-inverse"
-               ng-click="vm.configure(vm.group.config.id); $event.stopPropagation();">
-              <span class="glyphicon glyphicon-cog"></span>
-              Configure
             </a>
           </h4>
         </div>
