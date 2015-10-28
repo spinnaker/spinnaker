@@ -74,6 +74,7 @@ class TitanDeployHandler implements DeployHandler<TitanDeployDescription> {
       .withDisk(description.resources.disk)
       .withPorts(description.resources.ports)
       .withEnv(description.env)
+      .withAllocateIpAddress(description.resources.allocateIpAddress)
 
     task.updateStatus BASE_PHASE, "Submitting job request to Titan..."
     String jobUri = titanClient.submitJob(submitJobRequest)

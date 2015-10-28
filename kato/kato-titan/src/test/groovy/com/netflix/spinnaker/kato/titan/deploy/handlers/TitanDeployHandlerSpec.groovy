@@ -60,7 +60,7 @@ class TitanDeployHandlerSpec extends Specification {
       subnet: 'vpc0',
       imageId: 'api.server:master-201506020033-trusty-7366606',
       capacity: [desired: 1],
-      resources: [cpu: 2, memory: 4, disk: 4000, ports: [7001]],
+      resources: [cpu: 2, memory: 4, disk: 4000, ports: [7001], allocateIpAddress: true],
       env: ['netflix.environment': 'test'],
       credentials: testCredentials
     )
@@ -84,7 +84,8 @@ class TitanDeployHandlerSpec extends Specification {
         it.disk == titanDeployDescription.resources.disk &&
         it.ports == titanDeployDescription.resources.ports &&
         it.env == titanDeployDescription.env &&
-        it.application == titanDeployDescription.application
+        it.application == titanDeployDescription.application &&
+        it.allocateIpAddress ==  titanDeployDescription.resources.allocateIpAddress
     } as SubmitJobRequest)
   }
 
