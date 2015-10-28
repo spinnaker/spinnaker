@@ -1,9 +1,0 @@
-<div class="instances">
-  <a class="instance health-status-{{instance.healthState}}"
-     ng-class="{highlighted: highlight && highlight.length > 1 && instance.id.indexOf(highlight) !== -1}"
-     ng-repeat="instance in displayedInstances | instanceSearch:highlight track by instance.id | orderBy:'launchTime'"
-     uib-tooltip="{{instance.id}}"
-     ui-sref=".instanceDetails({instanceId: instance.id, provider: instance.provider })"
-     ui-sref-active="active">
-    <span class="sr-only">{{instance.id}}</span></a>
-</div>

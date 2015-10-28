@@ -24,8 +24,12 @@
           </div>
           <div class="col-md-4 col-sm-6 text-right">
             <health-counts container="viewModel.serverGroup"></health-counts>
-            <running-tasks-tag application="application" tasks="viewModel.serverGroup.runningTasks" executions="viewModel.serverGroup.executions"></running-tasks-tag>
-            <load-balancers-tag server-group="viewModel.serverGroup" max-display="1"></load-balancers-tag>
+            <running-tasks-tag
+                ng-if="viewModel.serverGroup.runningTasks.length || viewModel.serverGroup.executions.length"
+                application="application" tasks="viewModel.serverGroup.runningTasks" executions="viewModel.serverGroup.executions"></running-tasks-tag>
+            <load-balancers-tag
+                ng-if="viewModel.serverGroup.loadBalancers.length"
+                server-group="viewModel.serverGroup" max-display="1"></load-balancers-tag>
           </div>
         </div>
       </div>
