@@ -16,26 +16,18 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
+import java.util.function.Function
+
 @Component
-class WaitForClusterShrinkTask extends AbstractWaitForClusterWideClouddriverTask {
+class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTask {
   @Override
-  protected TaskResult missingClusterResult(Stage stage, AbstractClusterWideClouddriverTask.ClusterSelection clusterSelection) {
-    DefaultTaskResult.SUCCEEDED
-  }
+  boolean isServerGroupOperationInProgress(Optional<TargetServerGroup> serverGroup) {
+    //assume a missing cluster is disabled
+    boolean isDisabled = serverGroup.map({ it.disabled } as Function<TargetServerGroup, Boolean>).orElse(true)
 
-  @Override
-  protected TaskResult emptyClusterResult(Stage stage, AbstractClusterWideClouddriverTask.ClusterSelection clusterSelection, Map cluster) {
-    DefaultTaskResult.SUCCEEDED
-  }
-
-  @Override
-  boolean isServerGroupOperationInProgress(Optional<TargetServerGroup> currentServerGroup) {
-    currentServerGroup.isPresent()
+    return !isDisabled
   }
 }

@@ -28,7 +28,7 @@ import groovy.util.logging.Slf4j
 @ToString(includeNames = true)
 class TargetServerGroup {
   // Delegates all Map interface calls to this object.
-  @Delegate Map<String, Object> serverGroup
+  @Delegate Map<String, Object> serverGroup = [:]
 
   /**
    * All invocations of this method should use the full 'getLocation()' signature, instead of the shorthand dot way
@@ -36,13 +36,47 @@ class TargetServerGroup {
    * very likely not there.
    */
   Location getLocation() {
-    // All Google server group operations currently work with zones, not regions.
-    if (serverGroup.type == "gce") {
-      return new Location(type: Location.Type.ZONE, value: serverGroup.zones[0])
-    }
-    return new Location(type: Location.Type.REGION, value: serverGroup.region)
+    return Support.locationFromServerGroup(serverGroup)
   }
 
+  Map toClouddriverOperationPayload(String account) {
+    //TODO(cfieber) - add an endpoint on Clouddriver to do provider appropriate conversion of a TargetServerGroup
+    def op = [
+      credentials: account,
+      accountName: account,
+      serverGroupName: serverGroup.name,
+      asgName: serverGroup.name,
+      cloudProvider: serverGroup.type,
+      providerType: serverGroup.type
+    ]
+
+    def loc = getLocation()
+    if (loc.type == Location.Type.REGION) {
+      op.region = loc.value
+      op.regions = [loc.value]
+    } else if (loc.type == Location.Type.ZONE) {
+      op.zone = loc.value
+      op.zones = [loc.value]
+    } else {
+      throw new IllegalStateException("unsupported location type $loc.type")
+    }
+    return op
+  }
+
+  public static class Support {
+    static Location locationFromServerGroup(Map<String, Object> serverGroup) {
+      // All Google server group operations currently work with zones, not regions.
+      if (serverGroup.type == "gce") {
+        return new Location(type: Location.Type.ZONE, value: serverGroup.zones[0])
+      }
+      return new Location(type: Location.Type.REGION, value: serverGroup.region)
+    }
+
+    static Location locationFromCloudProviderValue(String cloudProvider, String value) {
+      Location.Type type = cloudProvider == 'gce' ? Location.Type.ZONE : Location.Type.REGION
+      return new Location(type: type, value: value)
+    }
+  }
   static boolean isDynamicallyBound(Stage stage) {
     Params.fromStage(stage).target?.isDynamic()
   }

@@ -15,16 +15,13 @@
  */
 
 package com.netflix.spinnaker.orca.kato.pipeline.strategy
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.frigga.Names
+import com.netflix.spinnaker.orca.clouddriver.pipeline.ScaleDownClusterStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.DisableClusterStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.ShrinkClusterStage
 import com.netflix.spinnaker.orca.deprecation.DeprecationRegistry
 import com.netflix.spinnaker.orca.clouddriver.pipeline.AbstractCloudProviderAwareStage
-import com.netflix.spinnaker.orca.clouddriver.pipeline.DestroyServerGroupStage
-import com.netflix.spinnaker.orca.clouddriver.pipeline.ResizeServerGroupStage
-import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyAsgLaunchConfigurationStage
-import com.netflix.spinnaker.orca.kato.pipeline.ModifyScalingProcessStage
 import com.netflix.spinnaker.orca.kato.pipeline.RollingPushStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
@@ -32,26 +29,20 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
-import retrofit.RetrofitError
 
 @CompileStatic
 abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
 
-  Logger logger = LoggerFactory.getLogger(DeployStrategyStage)
-
-  @Autowired ObjectMapper mapper
-  @Autowired ResizeServerGroupStage resizeServerGroupStage
-  @Autowired DisableAsgStage disableAsgStage
-  @Autowired DestroyServerGroupStage destroyServerGroupStage
-  @Autowired ModifyScalingProcessStage modifyScalingProcessStage
   @Autowired SourceResolver sourceResolver
   @Autowired ModifyAsgLaunchConfigurationStage modifyAsgLaunchConfigurationStage
   @Autowired RollingPushStage rollingPushStage
   @Autowired DeprecationRegistry deprecationRegistry
+
+  @Autowired ShrinkClusterStage shrinkClusterStage
+  @Autowired ScaleDownClusterStage scaleDownClusterStage
+  @Autowired DisableClusterStage disableClusterStage
 
   DeployStrategyStage(String name) {
     super(name)
@@ -69,7 +60,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
    */
   protected CleanupConfig determineClusterForCleanup(Stage stage) {
     def stageData = stage.mapTo(StageData)
-    new CleanupConfig(stageData.account, stageData.cluster, stageData.regions)
+    new CleanupConfig(stageData.account, stageData.cluster, stageData.region, stageData.cloudProvider)
   }
 
   /**
@@ -107,65 +98,41 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
     stage.context.remove("cluster")
   }
 
-  List<Map> getExistingServerGroups(String application, String account, String cluster, String cloudProvider) {
-    try {
-      return sourceResolver.getExistingAsgs(application, account, cluster, cloudProvider)
-    } catch (RetrofitError re) {
-      if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
-        return []
-      }
-      throw re
-    }
-  }
-
   @VisibleForTesting
   @CompileDynamic
   protected void composeRedBlackFlow(Stage stage) {
     def stageData = stage.mapTo(StageData)
     def cleanupConfig = determineClusterForCleanup(stage)
 
-    def existingAsgs = getExistingServerGroups(
-      stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.cloudProvider)
+    Map baseContext = [
+      regions: [cleanupConfig.region],
+      cluster: cleanupConfig.cluster,
+      credentials: cleanupConfig.account,
+      cloudProvider: cleanupConfig.cloudProvider
+    ]
 
-    if (existingAsgs) {
-      if (stageData.regions?.size() > 1) {
-        deprecationRegistry.logDeprecatedUsage("multiRegionRedBlack", stageData.application)
-        logger.warn("Pipeline uses more than 1 regions for the same cluster in a red/black deployment")
-      }
-      for (String region in stageData.regions) {
-        if (!cleanupConfig.regions.contains(region)) {
-          continue
-        }
-        def asgs = existingAsgs.findAll { it.region == region }.collect { it.name }
-        def latestAsg = asgs.size() > 0 ? asgs?.last() : null
-
-        if (!latestAsg) {
-          continue
-        }
-        def nextStageContext = [asgName: latestAsg, regions: [region], credentials: cleanupConfig.account]
-
-        if (nextStageContext.asgName) {
-          def names = Names.parseName(nextStageContext.asgName as String)
-          if (stageData.application != names.app) {
-            logger.info("Next stage context targeting application not belonging to the source stage! ${mapper.writeValueAsString(nextStageContext)}")
-            continue
-          }
-        }
-        if (stageData.scaleDown) {
-          nextStageContext.capacity = [min: 0, max: 0, desired: 0]
-          injectAfter(stage, "scaleDown", resizeServerGroupStage, nextStageContext)
-        }
-        injectAfter(stage, "disable", disableAsgStage, nextStageContext)
-        // delete the oldest asgs until there are maxRemainingAsgs left (including the newly created one)
-        if (stageData?.maxRemainingAsgs > 0 && (asgs.size() - stageData.maxRemainingAsgs) >= 0) {
-          asgs[0..(asgs.size() - stageData.maxRemainingAsgs)].each { asg ->
-            logger.info("Injecting destroyServerGroup stage (${region}:${asg})")
-            nextStageContext.putAll([asgName: asg, credentials: cleanupConfig.account, regions: [region]])
-            injectAfter(stage, "destroyServerGroup", destroyServerGroupStage, nextStageContext)
-          }
-        }
-      }
+    if (stageData?.maxRemainingAsgs && (stageData?.maxRemainingAsgs > 0)) {
+      Map shrinkContext = baseContext + [
+        shrinkToSize: stageData.maxRemainingAsgs,
+        allowDeleteActive: false,
+        retainLargerOverNewer: false
+      ]
+      injectAfter(stage, "shrinkCluster", shrinkClusterStage, shrinkContext)
     }
+
+    if (stageData.scaleDown) {
+      def scaleDown = baseContext + [
+        allowScaleDownActive: true,
+        remainingFullSizeServerGroups: 1,
+        preferLargerOverNewer: false
+      ]
+      injectAfter(stage, "scaleDown", scaleDownClusterStage, scaleDown)
+    }
+
+    injectAfter(stage, "disableCluster", disableClusterStage, baseContext + [
+      remainingEnabledServerGroups: 1,
+      preferLargerOverNewer: false
+    ])
   }
 
   protected void composeRollingPushFlow(Stage stage) {
@@ -192,49 +159,24 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
 
   @CompileDynamic
   protected void composeHighlanderFlow(Stage stage) {
-    def stageData = stage.mapTo(StageData)
     def cleanupConfig = determineClusterForCleanup(stage)
-    def existingServerGroups = getExistingServerGroups(stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.cloudProvider)
-    if (existingServerGroups) {
-      if (stageData.regions?.size() > 1) {
-        deprecationRegistry.logDeprecatedUsage("multiRegionHighlander", stageData.application)
-        logger.warn("Pipeline uses more than 1 regions for the same cluster in a highlander deployment")
-      }
-      for (String region in stageData.regions) {
-
-        if (!cleanupConfig.regions.contains(region)) {
-          continue
-        }
-
-        existingServerGroups.findAll { it.region == region }.each { Map asg ->
-          def nextContext = [
-            asgName: asg.name,
-            credentials: cleanupConfig.account,
-            regions: [region],
-            serverGroupName: asg.name,
-            region: region,
-            cloudProvider: stageData.cloudProvider
-          ]
-
-          if (nextContext.asgName) {
-            def names = Names.parseName(nextContext.asgName as String)
-            if (stageData.application != names.app) {
-              logger.info("Next stage context targeting application not belonging to the source stage! ${mapper.writeValueAsString(nextContext)}")
-              return
-            }
-          }
-
-          logger.info("Injecting destroyServerGroup stage (${asg.region}:${asg.name})")
-          injectAfter(stage, "destroyServerGroup", destroyServerGroupStage, nextContext)
-        }
-      }
-    }
+    Map shrinkContext = [
+      regions: [cleanupConfig.region],
+      cluster: cleanupConfig.cluster,
+      credentials: cleanupConfig.account,
+      cloudProvider: cleanupConfig.cloudProvider,
+      shrinkToSize: 1,
+      allowDeleteActive: true,
+      retainLargerOverNewer: false
+    ]
+    injectAfter(stage, "shrinkCluster", shrinkClusterStage, shrinkContext)
   }
 
   @Immutable
   static class CleanupConfig {
     String account
     String cluster
-    List<String> regions
+    String region
+    String cloudProvider
   }
 }

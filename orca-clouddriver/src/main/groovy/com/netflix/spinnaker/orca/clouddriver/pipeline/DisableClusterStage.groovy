@@ -18,25 +18,25 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractClusterWideClouddriverTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractWaitForClusterWideClouddriverTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.ShrinkClusterTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForClusterShrinkTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.DisableClusterTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForClusterDisableTask
 import org.springframework.stereotype.Component
 
 @Component
-class ShrinkClusterStage extends AbstractClusterWideClouddriverOperationStage {
-  public static final String PIPELINE_CONFIG_TYPE = "shrinkCluster"
+class DisableClusterStage extends AbstractClusterWideClouddriverOperationStage {
+  public static final String PIPELINE_CONFIG_TYPE = "disableCluster"
 
-  ShrinkClusterStage() {
+  DisableClusterStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override
   Class<? extends AbstractClusterWideClouddriverTask> getClusterOperationTask() {
-    ShrinkClusterTask
+    DisableClusterTask
   }
 
   @Override
   Class<? extends AbstractWaitForClusterWideClouddriverTask> getWaitForTask() {
-    WaitForClusterShrinkTask
+    WaitForClusterDisableTask
   }
 }
