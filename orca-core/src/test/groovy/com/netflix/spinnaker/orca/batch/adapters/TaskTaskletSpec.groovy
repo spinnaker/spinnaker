@@ -224,7 +224,7 @@ class TaskTaskletSpec extends Specification {
 
     then:
     chunkContext.stepContext.jobExecutionContext == outputs.collect {
-      ["global-${it.key}" as String, it.value]
+      [it.key, it.value]
     }.collectEntries()
 
     where:
@@ -268,8 +268,8 @@ class TaskTaskletSpec extends Specification {
     result.globalOutputs == ["global": 2]
 
     where:
-    stageContext         | originalStatus || expectedStatus
-    [:]                  | TERMINAL       || TERMINAL
+    stageContext          | originalStatus || expectedStatus
+    [:]                   | TERMINAL       || TERMINAL
     [failPipeline: true]  | TERMINAL       || TERMINAL
     [failPipeline: false] | TERMINAL       || STOPPED
   }

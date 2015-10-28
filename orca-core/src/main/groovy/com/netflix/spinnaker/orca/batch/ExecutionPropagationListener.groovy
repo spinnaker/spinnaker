@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.batch
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -28,10 +30,10 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
 @Slf4j
 @CompileStatic
-class ExecutionStatusPropagationListener extends JobExecutionListenerSupport implements Ordered {
+class ExecutionPropagationListener extends JobExecutionListenerSupport implements Ordered {
   private final ExecutionRepository executionRepository
 
-  ExecutionStatusPropagationListener(ExecutionRepository executionRepository) {
+  ExecutionPropagationListener(ExecutionRepository executionRepository) {
     this.executionRepository = executionRepository
   }
 
@@ -39,6 +41,14 @@ class ExecutionStatusPropagationListener extends JobExecutionListenerSupport imp
   void beforeJob(JobExecution jobExecution) {
     def id = executionId(jobExecution)
     executionRepository.updateStatus(id, RUNNING)
+
+    def execution = execution(executionRepository, jobExecution)
+    if (execution?.context) {
+      execution.context.each { String key, Object value ->
+        jobExecution.executionContext.put(key, value)
+      }
+      log.info("Restored execution context for $id (beforeJob)")
+    }
 
     log.info("Marked $id as $RUNNING (beforeJob)")
   }
@@ -67,7 +77,7 @@ class ExecutionStatusPropagationListener extends JobExecutionListenerSupport imp
     log.info("Marked $id as $orcaTaskStatus (afterJob)")
   }
 
-  private String executionId(JobExecution jobExecution) {
+  private static String executionId(JobExecution jobExecution) {
     if (jobExecution.jobParameters.getString("pipeline")) {
       return jobExecution.jobParameters.getString("pipeline")
     }
@@ -77,5 +87,16 @@ class ExecutionStatusPropagationListener extends JobExecutionListenerSupport imp
   @Override
   int getOrder() {
     HIGHEST_PRECEDENCE
+  }
+
+  private static Execution execution(ExecutionRepository executionRepository, JobExecution jobExecution) {
+    try {
+      if (jobExecution.jobParameters.getString("pipeline")) {
+        return executionRepository.retrievePipeline(jobExecution.jobParameters.getString("pipeline"))
+      }
+      return executionRepository.retrieveOrchestration(jobExecution.jobParameters.getString("orchestration"))
+    } catch (ExecutionNotFoundException ignored) {
+      return null
+    }
   }
 }

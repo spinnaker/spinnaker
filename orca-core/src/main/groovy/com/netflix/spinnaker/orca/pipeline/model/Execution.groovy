@@ -37,6 +37,7 @@ abstract class Execution<T> implements Serializable {
   boolean limitConcurrent = false
 
   final Map<String, Object> appConfig = [:]
+  final Map<String, Object> context = [:]
   List<Stage<T>> stages = []
 
   Long executionStartTime

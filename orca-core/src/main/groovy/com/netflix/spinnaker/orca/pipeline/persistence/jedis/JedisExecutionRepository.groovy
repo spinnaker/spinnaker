@@ -85,6 +85,22 @@ class JedisExecutionRepository implements ExecutionRepository {
   }
 
   @Override
+  void storeExecutionContext(String id, Map<String, Object> context) {
+    withJedis { Jedis jedis ->
+      String key
+      if (jedis.exists("pipeline:$id")) {
+        key = "pipeline:$id"
+      } else if (jedis.exists("orchestration:$id")) {
+        key = "orchestration:$id"
+      } else {
+        throw new ExecutionNotFoundException("No execution found with id $id")
+      }
+
+      jedis.hset(key, "context", mapper.writeValueAsString(context))
+    }
+  }
+
+  @Override
   void cancel(String id) {
     withJedis { Jedis jedis ->
       String key
@@ -341,6 +357,7 @@ class JedisExecutionRepository implements ExecutionRepository {
       execution.version = Integer.parseInt(map.version ?: "${type instanceof Pipeline ? Pipeline.CURRENT_VERSION : Orchestration.CURRENT_VERSION}")
       execution.application = map.application
       execution.appConfig.putAll(mapper.readValue(map.appConfig, Map))
+      execution.context.putAll(map.context ? mapper.readValue(map.context, Map) : [:])
       execution.canceled = Boolean.parseBoolean(map.canceled)
       execution.parallel = Boolean.parseBoolean(map.parallel)
       execution.limitConcurrent = Boolean.parseBoolean(map.limitConcurrent)

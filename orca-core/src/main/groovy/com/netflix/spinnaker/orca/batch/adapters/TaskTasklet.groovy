@@ -115,12 +115,10 @@ class TaskTasklet implements Tasklet {
           jobExecution.status = batchStepStatus.batchStatus
         }
         contribution.exitStatus = batchStepStatus.exitStatus
-        stage.endTime = !batchStepStatus.repeatStatus.continuable ? System.currentTimeMillis() : null
-
         return batchStepStatus.repeatStatus
       }
     } finally {
-      save(stage)
+      save(stage, chunkContext)
     }
   }
 
@@ -147,8 +145,9 @@ class TaskTasklet implements Tasklet {
     return RepeatStatus.FINISHED
   }
 
-  private void save(Stage stage) {
+  private void save(Stage stage, ChunkContext chunkContext) {
     executionRepository.storeStage(stage.self)
+    executionRepository.storeExecutionContext(stage.execution.id, chunkContext.stepContext.jobExecutionContext)
   }
 
   private static void setStopStatus(ChunkContext chunkContext, ExitStatus exitStatus, ExecutionStatus executionStatus) {
