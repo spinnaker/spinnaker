@@ -73,16 +73,6 @@
             </div>
           </div>
           <div class="row">
-            <div class="col-md-3 col-md-offset-1">Key Pairs</div>
-            <div class="col-md-3">{{config.getCacheInfo('keyPairs').ageMax | timestamp}}</div>
-            <div class="col-md-1 text-center">
-              <a href ng-click="config.refreshCache('keyPairs')">
-              <span ng-class="{'glyphicon-spinning':config.clearingCache['keyPairs']}"
-                    class="glyphicon glyphicon-refresh"></span>
-              </a>
-            </div>
-          </div>
-          <div class="row">
             <div class="col-md-3 col-md-offset-1">Load Balancers</div>
             <div class="col-md-3">{{config.getCacheInfo('loadBalancers').ageMax | timestamp}}</div>
             <div class="col-md-1 text-center">
