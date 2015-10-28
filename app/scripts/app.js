@@ -89,6 +89,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/core/deploymentStrategy/strategies/redblack/redblack.strategy.module.js'),
     require('./modules/core/deploymentStrategy/strategies/none/none.strategy.module.js'),
     require('./modules/core/deploymentStrategy/strategies/highlander/highlander.strategy.module.js'),
+    require('./modules/core/deploymentStrategy/strategies/custom/custom.strategy.module.js'),
     require('./modules/core/deploymentStrategy/strategies/rollingPush/rollingPush.strategy.module.js'),
     require('./modules/core/serverGroup/serverGroup.module.js'),
     require('./modules/core/securityGroup/securityGroup.module.js'),

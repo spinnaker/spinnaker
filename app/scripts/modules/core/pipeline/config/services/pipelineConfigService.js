@@ -20,23 +20,37 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
     }
 
     function getPipelinesForApplication(applicationName) {
-      return Restangular.one('applications', applicationName).all('pipelineConfigs').getList().then(function(pipelines) {
-        var sorted = _.sortByAll(pipelines, ['index', 'name']);
-        // if there are pipelines with a bad index, fix that
-        var misindexed = [];
-        if (sorted && sorted.length) {
-          sorted.forEach(function (pipeline, index) {
-            if (pipeline.index !== index) {
-              pipeline.index = index;
-              misindexed.push(savePipeline(pipeline));
-            }
-          });
-          if (misindexed.length) {
-            return $q.all(misindexed).then(function() { return sorted; });
-          }
-        }
-        return sorted;
+      return Restangular.one('applications', applicationName).all('pipelineConfigs').getList().then(function (pipelines) {
+        return sortPipelines(pipelines);
       });
+    }
+
+    function getStrategiesForApplication(applicationName) {
+      return Restangular.one('applications', applicationName).all('strategyConfigs').getList().then(function (pipelines) {
+        return sortPipelines(pipelines);
+      });
+    }
+
+    function sortPipelines(pipelines) {
+
+      var sorted = _.sortByAll(pipelines, ['index', 'name']);
+
+      // if there are pipelines with a bad index, fix that
+      var misindexed = [];
+      if (sorted && sorted.length) {
+        sorted.forEach(function (pipeline, index) {
+          if (pipeline.index !== index) {
+            pipeline.index = index;
+            misindexed.push(savePipeline(pipeline));
+          }
+        });
+        if (misindexed.length) {
+          return $q.all(misindexed).then(function () {
+            return sorted;
+          });
+        }
+      }
+      return sorted;
     }
 
     function deletePipeline(applicationName, pipelineName) {
@@ -147,6 +161,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
 
     return {
       getPipelinesForApplication: getPipelinesForApplication,
+      getStrategiesForApplication: getStrategiesForApplication,
       savePipeline: savePipeline,
       deletePipeline: deletePipeline,
       renamePipeline: renamePipeline,
