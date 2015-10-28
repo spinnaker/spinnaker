@@ -22,7 +22,7 @@ module.exports = angular.module('spinnaker.core.loadBalancer.filter.controller',
     };
 
     function getHeadingsForOption(option) {
-      return _.compact(_.uniq(_.pluck(app.serverGroups, option))).sort();
+      return _.compact(_.uniq(_.pluck(app.loadBalancers, option))).sort();
     }
 
     function getAvailabilityZones() {
