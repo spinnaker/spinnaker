@@ -4,28 +4,28 @@ let angular = require('angular');
 
 //BEN_TODO: where is this defined?
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.shrinkClusterStage', [
+module.exports = angular.module('spinnaker.core.pipeline.stage.disableClusterStage', [
   require('../../../../utils/lodash.js'),
   require('../stageConstants.js'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
-      label: 'Shrink Cluster',
-      description: 'Shrinks a cluster',
-      key: 'shrinkCluster',
-      alias: 'shrinkCluster',
-      controller: 'ShrinkClusterStageCtrl',
-      controllerAs: 'shrinkClusterStageCtrl',
-      templateUrl: require('./shrinkClusterStage.html'),
-      executionDetailsUrl: require('./shrinkClusterExecutionDetails.html'),
+      label: 'Disable Cluster',
+      description: 'Disables a cluster',
+      key: 'disableCluster',
+      alias: 'disableCluster',
+      controller: 'DisableClusterStageCtrl',
+      controllerAs: 'disableClusterStageCtrl',
+      templateUrl: require('./disableClusterStage.html'),
+      executionDetailsUrl: require('./disableClusterExecutionDetails.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups'},
+        { type: 'requiredField', fieldName: 'remainingEnabledServerGroups', fieldLabel: 'Keep [X] enabled Server Groups'},
         { type: 'requiredField', fieldName: 'regions', },
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('ShrinkClusterStageCtrl', function($scope, stage, accountService, stageConstants, _) {
+  }).controller('DisableClusterStageCtrl', function($scope, stage, accountService, stageConstants, _) {
     var ctrl = this;
 
     $scope.stage = stage;
@@ -62,12 +62,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.shrinkClusterStag
       ctrl.accountUpdated();
     }
 
-    if (stage.shrinkToSize === undefined) {
-      stage.shrinkToSize = 1;
-    }
-
-    if (stage.allowDeleteActive === undefined) {
-      stage.allowDeleteActive = false;
+    if (stage.remainingEnabledServerGroups === undefined) {
+      stage.remainingEnabledServerGroups = 1;
     }
 
     ctrl.pluralize = function(str, val) {
@@ -77,10 +73,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.shrinkClusterStag
       return str + 's';
     };
 
-    if (stage.retainLargerOverNewer === undefined) {
-      stage.retainLargerOverNewer = "false";
+    if (stage.preferLargerOverNewer === undefined) {
+      stage.preferLargerOverNewer = "false";
     }
-    stage.retainLargerOverNewer = stage.retainLargerOverNewer.toString();
+    stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
   })
   .name;
 
