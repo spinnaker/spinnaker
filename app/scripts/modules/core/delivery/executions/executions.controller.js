@@ -6,8 +6,6 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
   require('../service/execution.service.js'),
   require('../../pipeline/config/services/pipelineConfigService.js'),
   require('../../utils/scrollTo/scrollTo.service.js'),
-  require('../../cache/collapsibleSectionStateCache.js'),
-  require('../../cache/viewStateCache.js'),
   require('../../insight/insightFilterState.model.js'),
   require('../filter/executionFilter.model.js'),
   require('../filter/executionFilter.service.js'),
@@ -16,7 +14,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
   .controller('ExecutionsCtrl', function($scope, $state, $q, $uibModal, $stateParams,
                                          pipelineConfigService, scrollToService,
                                          executionService, ExecutionFilterModel, executionFilterService,
-                                         viewStateCache, collapsibleSectionStateCache, InsightFilterStateModel) {
+                                         InsightFilterStateModel) {
 
     if (ExecutionFilterModel.mostRecentApplication !== $scope.application.name) {
       ExecutionFilterModel.groups = [];
@@ -72,16 +70,11 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       }
     });
 
-    var executionsViewStateCache = viewStateCache.executions || viewStateCache.createCache('executions', {
-        version: 1,
-        maxAge: 180 * 24 * 60 * 60 * 1000, // 180 days
-      });
-
-    function cacheViewState() {
-      executionsViewStateCache.put($scope.application.name, $scope.filter);
-    }
-
     $scope.filterCountOptions = [1, 2, 5];
+
+    $scope.$watch(() => ExecutionFilterModel.groups, () => {
+
+    });
 
     function normalizeExecutionNames() {
       let executions = application.executions || [];
@@ -105,7 +98,6 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
 
     $scope.$on('executions-load-failure', dataInitializationFailure);
     $scope.$on('executions-reloaded', normalizeExecutionNames);
-    $scope.$watch('filter', cacheViewState, true);
 
     this.toggleExpansion = (expand) => {
       $scope.$broadcast('toggle-expansion', expand);
