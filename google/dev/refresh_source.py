@@ -22,6 +22,7 @@ import sys
 
 from spinnaker.run import run_and_monitor
 from spinnaker.run import run_quick
+from spinnaker.run import check_run_and_monitor
 from spinnaker.run import check_run_quick
 
 
@@ -167,9 +168,9 @@ class Refresher(object):
           sys.stderr.write(
               'WARNING: Updating {name} branch={branch}, *NOT* "master"\n'
               .format(name=name, branch=branch))
-      check_run_quick('git -C {dir} pull origin {branch}'
-                      .format(dir=name, branch=branch),
-                      echo=True)
+      check_run_and_monitor('git -C {dir} pull origin {branch}'
+                            .format(dir=name, branch=branch),
+                            echo=True)
 
   def pull_from_upstream_if_master(self, repository):
       """Pulls the master branch fromthe upstream repository.
@@ -190,9 +191,9 @@ class Refresher(object):
           return
 
       print 'Pulling master {name} from upstream'.format(name=name)
-      check_run_quick('git -C {name} pull upstream master'
-                      .format(name=name),
-                      echo=True)
+      check_run_and_monitor('git -C {name} pull upstream master'
+                            .format(name=name),
+                            echo=True)
 
   def push_to_origin_if_master(self, repository):
       """Pushes the current master branch of the local repository to the origin.
@@ -253,11 +254,7 @@ class Refresher(object):
     root = '{dir}/config'.format(
         dir=os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), '..')))
     home = os.path.join(os.environ['HOME'] + '/.spinnaker')
-    return ('{root}/spinnaker.yml'
-            ',{home}/spinnaker-local.yml'
-            ',{root}/'
-            ',{home}/'
-            .format(home=home, root=root))
+    return ('{root}/,{home}/'.format(home=home, root=root))
 
   def write_gradle_run_script(self, repository):
       """Generate a dev_run.sh script for the local repository.

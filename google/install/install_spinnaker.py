@@ -305,10 +305,7 @@ def inject_spring_config_location(options, subsystem):
   home = '/root/.spinnaker'
   new_content.append(value[0:offset])
   new_content.append('{quote}-Dspring.config.location='
-                     '{root}/spinnaker.yml'
-                     ',{home}/spinnaker-local.yml'
-                     ',{root}/'
-                     ',{home}/{quote}'
+                     '{root}/,{home}/{quote}'
                      .format(quote=quote, home=home, root=root))
   new_content.append(' ')
 

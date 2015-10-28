@@ -188,16 +188,10 @@ class Runner(object):
     Returns:
       The pid of the subsystem once running.
     """
-    program = self.subsystem_to_program(subsystem)
-
-    if program == subsystem:
-      print 'Starting {subsystem}'.format(subsystem=subsystem)
-    else:
-      print 'Starting {subsystem} as "{program}"'.format(
-        subsystem=subsystem, program=program)
+    print 'Starting {subsystem}'.format(subsystem=subsystem)
 
     command = os.path.join(self.__installation.SUBSYSTEM_ROOT_DIR,
-                           program, 'bin', program)
+                           subsystem, 'bin', subsystem)
     base_log_path = os.path.join(self.__installation.LOG_DIR, subsystem)
 
     if self.__new_bindings and subsystem == 'clouddriver':
@@ -339,7 +333,7 @@ class Runner(object):
 
     job_map = {}
     for match in re_pid_and_subsystem.finditer(stdout):
-      name = self.program_to_subsystem(match.groups()[1])
+      name = match.groups()[1]
       pid = int(match.groups()[0])
       job_map[name] = pid
 
@@ -602,18 +596,6 @@ Proceeding anyway.
     runner.init_argument_parser(parser)
     options = parser.parse_args()
     runner.run(options)
-
-  def program_to_subsystem(self, program):
-    if program == 'front50-web':
-      return 'front50'
-    else:
-      return program
-
-  def subsystem_to_program(self, subsystem):
-    if subsystem == 'front50':
-      return 'front50-web'
-    else:
-      return subsystem
 
   @staticmethod
   def check_java_version():
