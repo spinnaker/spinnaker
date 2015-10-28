@@ -9,11 +9,10 @@ module.exports = angular.module('spinnaker.aws.cache.initializer', [
   require('../../core/securityGroup/securityGroup.read.service.js'),
   require('../subnet/subnet.read.service.js'),
   require('../vpc/vpc.read.service.js'),
-  require('../keyPairs/keyPairs.read.service.js'),
 ])
   .factory('awsCacheConfigurer', function ($q,
                                          accountService, instanceTypeService, securityGroupReader,
-                                         subnetReader, vpcReader, keyPairsReader, loadBalancerReader) {
+                                         subnetReader, vpcReader, loadBalancerReader) {
 
     let config = Object.create(null);
 
@@ -38,10 +37,6 @@ module.exports = angular.module('spinnaker.aws.cache.initializer', [
       version: 2,
       initializers: [vpcReader.listVpcs],
       onReset: [vpcReader.resetCache],
-    };
-
-    config.keyPairs = {
-      initializers: [keyPairsReader.listKeyPairs]
     };
 
     return config;
