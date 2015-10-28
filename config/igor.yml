@@ -1,0 +1,15 @@
+server:
+  port: ${services.igor.port:8088}
+  address: ${services.igor.host:localhost}
+
+jenkins:
+  masters:
+    - name: ${services.jenkins.defaultMaster.name}
+      address: ${services.jenkins.defaultMaster.baseUrl}
+      username: ${services.jenkins.defaultMaster.username}
+      password: ${services.jenkins.defaultMaster.password}
+
+# This is recursive
+#services:
+#  echo:
+#    baseUrl: ${services.echo.baseUrl}

@@ -1,0 +1,15 @@
+server:
+  port: ${services.echo.port:8089}
+  address: ${services.echo.host:localhost}
+
+cassandra:
+  embedded: ${services.cassandra.embedded:false}
+  host: ${services.cassandra.host:localhost}
+
+front50:
+  baseUrl: ${services.front50.baseUrl:http://localhost:8080}
+
+orca:
+  baseUrl: ${services.orca.baseUrl:http://localhost:8083}
+
+endpoints.health.sensitive: false
