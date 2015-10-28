@@ -20,6 +20,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
       });
       var stageSummaries = [];
 
+      execution.context = execution.context || {};
       execution.stages.forEach(function(stage, index) {
         stage.before = stage.before || [];
         stage.after = stage.after || [];
@@ -246,6 +247,10 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
         .get('context')
         .get('deploymentDetails')
         .value();
+
+      // TODO - remove 'deploymentDetails || ...' once we've finalized the migration away from per-stage deploymentDetails
+      // var deploymentDetails = execution.context.deploymentDetails;
+      deploymentDetails = deploymentDetails || execution.context.deploymentDetails;
 
       if (deploymentDetails && deploymentDetails.length) {
         execution.buildInfo = deploymentDetails[0].jenkins;

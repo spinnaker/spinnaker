@@ -69,10 +69,7 @@ module.exports = angular.module('spinnaker.core.orchestratedItem.transformer', [
         },
         runningTimeInMs: {
           get: function() {
-            let endTime = item.isRunning || !item.endTime ? new Date().getTime() : item.endTime;
-            return parseInt(endTime) - parseInt(item.startTime);
-            // TODO: remove the lines above once we stop incorrectly setting the end time on running items
-            //return (parseInt(item.endTime) || new Date().getTime()) - parseInt(item.startTime);
+            return (parseInt(item.endTime) || new Date().getTime()) - parseInt(item.startTime);
           }
         }
       });
