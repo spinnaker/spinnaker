@@ -2,5 +2,5 @@ dependencies {
   compile project(":clouddriver-core")
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
-  compile ('com.netflix:titan-client:0.27')
+  compile ('com.netflix:titan-client:0.28')
 }

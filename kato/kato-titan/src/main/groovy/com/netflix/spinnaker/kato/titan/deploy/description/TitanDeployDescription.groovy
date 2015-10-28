@@ -48,5 +48,6 @@ class TitanDeployDescription extends AbstractTitanCredentialsDescription impleme
     int memory
     int disk
     int[] ports
+    boolean allocateIpAddress
   }
 }
