@@ -1,0 +1,24 @@
+# jenkins configuration
+SERVICES_JENKINS_DEFAULTMASTER_NAME=spinnaker
+SERVICES_JENKINS_DEFAULTMASTER_BASEURL=https://spinnaker.builds.myjenkinshost.com
+SERVICES_JENKINS_DEFAULTMASTER_USERNAME=username
+SERVICES_JENKINS_DEFAULTMASTER_PASSWORD=password
+
+# clouddriver config
+PROVIDERS_AWS_ENABLED=true
+
+# front end overrides - enter the results of docker-machine ip [yourenv] here
+API_HOST=[IP]
+
+# embedded cassandra
+CASSANDRA_HOST=127.0.0.1
+CASSANDRA_EMBEDDED=true
+
+# Internal configuration for docker compose - don't need to change
+SERVICES_DEFAULT_HOST=0.0.0.0
+SERVICES_CLOUDDRIVER_HOST=clouddriver
+SERVICES_ECHO_HOST=echo
+SERVICES_FRONT50_HOST=front50
+SERVICES_IGOR_HOST=igor
+SERVICES_ORCA_HOST=orca
+REDIS_CONNECTION=redis://redis:6379
