@@ -11,8 +11,10 @@
           <dd ng-if="stage.context.regions">{{stage.context.regions.join(', ')}}</dd>
           <dt>Cluster</dt>
           <dd>{{stage.context.cluster}}</dd>
-          <dt>Server Group</dt>
-          <dd ng-if="stage.context.targetReferences.length">{{stage.context.targetReferences[0].serverGroup.name}}</dd>
+          <dt>Server Groups</dt>
+          <dd ng-if="stage.context.targetReferences.length">
+            <div data-ng-repeat="tr in stage.context.targetReferences">{{tr.name}}</div>
+          </dd>
           <dd ng-if="!stage.context.targetReferences.length">[n/a]</dd>
         </dl>
       </div>
