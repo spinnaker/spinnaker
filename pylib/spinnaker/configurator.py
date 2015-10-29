@@ -109,11 +109,13 @@ class Configurator(object):
     """Returns the user (or system's) .spinnaker directory for overrides."""
     return self.__installation.USER_CONFIG_DIR
 
-  def __init__(self, installation_parameters=None):
+  def __init__(self, installation_parameters=None, bindings=None):
     """Constructor
 
     Args:
-      installation_parameters: An InstallationParameters instance.
+      installation_parameters [InstallationParameters] if None then use default
+      bindings [YamlBindings] Allows bindings to be explicitly injected for
+         testing. Otherwise they are loaded on demand.
     """
     if not installation_parameters:
       installation_parameters = InstallationParameters()
@@ -137,13 +139,12 @@ class Configurator(object):
 
         # If we arenot root, allow for a non-standard installation location.
         installation_parameters.INSTALLED_CONFIG_DIR = os.path.abspath(
-           os.path.join(os.path.dirname(sys.argv[0]), '../../config'))
+           os.path.join(os.path.dirname(__file__), '../../config'))
         installation_parameters.USER_CONFIG_DIR = user_config
         installation_parameters.DECK_INSTALL_DIR = deck_dir
 
     self.__installation = installation_parameters
-    self.__bindings = None   # Load on demand
-
+    self.__bindings = bindings   # Either injected or loaded on demand.
 
   def update_deck_settings(self):
     """Update the settings.js file from configuration info."""

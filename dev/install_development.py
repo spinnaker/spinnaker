@@ -37,7 +37,7 @@ To finish the personal developer workspace installation, do the following:
 
 This will leave you in a 'build' subdirectory. To run Spinnaker:
    ../spinnaker/google/dev/run_dev.sh
-""".format(dev=os.path.dirname(sys.argv[0]))
+""".format(dev=os.path.dirname(__file__))
 
 __STARTUP_SCRIPT_INVOCATION_NEXT_STEPS = """
 To finish the personal developer workspace installation, do the following:

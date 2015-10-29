@@ -37,7 +37,7 @@ class DevInstallationParameters(InstallationParameters):
   Also, custom configuration parameters come from the $HOME/.spinnaker
   rather than the normal installation location.
   """
-  DEV_SCRIPT_DIR = os.path.abspath(os.path.dirname(sys.argv[0]))
+  DEV_SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
   SUBSYSTEM_ROOT_DIR = os.getcwd()
 
   USER_CONFIG_DIR = os.path.join(os.environ['HOME'], '.spinnaker')

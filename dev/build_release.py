@@ -177,7 +177,7 @@ class Builder(object):
       # Ultimately we'll want to go to the root directory and install
       # standard stuff and gce stuff.
       self.__project_dir = os.path.abspath(
-          os.path.dirname(sys.argv[0]) + '/..')
+          os.path.dirname(__file__) + '/..')
       self.__release_dir = options.release_path
 
       if self.__release_dir.startswith('gs://'):
@@ -429,7 +429,7 @@ if __name__ == '__main__':
   sys.exit(retcode)
 """)
 
-      dep_root = os.path.dirname(sys.argv[0]) + '/..'
+      dep_root = os.path.dirname(__file__) + '/..'
       deps = ['install/install_spinnaker.py',
               'install/install_runtime_dependencies.py',
               'pylib/spinnaker/run.py',
@@ -542,7 +542,7 @@ if __name__ == '__main__':
 
       parser.add_argument('--nobuild', dest='build', action='store_false')
 
-      config_path= os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]),
+      config_path= os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                 '../config'))
       parser.add_argument(
           '--config_source', default=config_path,

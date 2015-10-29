@@ -170,7 +170,7 @@ def create_instance(options):
     print 'with machine type {type} and boot disk size {disk_size}...'.format(
         type=options.machine_type, disk_size=options.disk_size)
 
-    dev_dir = os.path.dirname(sys.argv[0])
+    dev_dir = os.path.dirname(__file__)
     install_dir = '{dir}/../install'.format(dir=dev_dir)
     pylib_spinnaker_dir = '{dir}/../pylib/spinnaker'.format(dir=dev_dir)
 

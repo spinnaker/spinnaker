@@ -66,6 +66,14 @@ class YamlBindings(object):
         node = node[part]
     return node
 
+  def __typed_value(self, value_text):
+    """Convert the text of a value into the YAML value.
+    
+    This is used for type conversion for default values.
+    Not particularly efficient, but there doesnt seem to be a direct API.
+    """
+    return yaml.load('x: {0}'.format(value_text), Loader=yaml.Loader)['x']
+
   def __get_value(self, field, saw, original):
     value = self.__get_node(field)
     if not isinstance(value, basestring) or not value.startswith('$'):
@@ -75,12 +83,24 @@ class YamlBindings(object):
       raise ValueError('Cycle looking up variable ' + original)
     saw = saw + [field]
 
+    expression_re = re.compile('\${([\._a-zA-Z0-9]+)(:.+?)?}')
+    exact_match = expression_re.match(value)
+    if exact_match and exact_match.group(0) == value:
+      try:
+        got = self.__get_value(exact_match.group(1), saw, original)
+        return got
+      except KeyError:
+        if exact_match.group(2):
+          return self.__typed_value(exact_match.group(2)[1:])
+        else:
+          return value
+
     result = []
     offset = 0
 
     # Look for fragments of ${key} or ${key:default} then resolve them.
     text = value
-    for match in re.finditer('\${([\._a-zA-Z0-9]+)(:.+?)?}', text):
+    for match in expression_re.finditer(text):
         result.append(text[offset:match.start()])
         try:
           got = self.__get_value(match.group(1), saw, original)
