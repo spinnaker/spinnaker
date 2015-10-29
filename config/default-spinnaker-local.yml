@@ -9,6 +9,7 @@ providers:
     # Enabling AWS is independent of other providers.
     enabled: false
     defaultRegion: us-east-1
+    defaultIAMRole: BaseIAMRole
     primaryCredentials:
       name: my-aws-account
       # You can use a standard $HOME/.aws/credentials file instead of providing
