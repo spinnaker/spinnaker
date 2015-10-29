@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.findAmi.gce.execu
 ])
   .controller('gceFindAmiExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 
-    $scope.configSections = ['findAMIConfig', 'taskStatus'];
+    $scope.configSections = ['findImageConfig', 'taskStatus'];
 
     function initialize() {
       executionDetailsSectionService.synchronizeSection($scope.configSections);
