@@ -30,10 +30,14 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 import retrofit.converter.ConversionException
+import rx.Observable
+import rx.Scheduler
+import rx.schedulers.Schedulers
 
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
 @CompileStatic
@@ -41,6 +45,8 @@ import java.util.concurrent.atomic.AtomicReference
 @Slf4j
 class ApplicationService {
   private static final String GROUP = "applications"
+
+  private Scheduler scheduler = Schedulers.io()
 
   @Autowired
   ServiceConfiguration serviceConfiguration
@@ -56,10 +62,18 @@ class ApplicationService {
 
   private AtomicReference<List<Map>> allApplicationsCache = new AtomicReference<>([])
 
-  List<Map> getAll() {
-    def applicationListRetrievers = buildApplicationListRetrievers()
+  ApplicationService() {
+    Observable
+      .timer(30000, TimeUnit.MILLISECONDS, scheduler)
+      .repeat()
+      .subscribe({ Long interval -> tick() })
+  }
 
-    HystrixFactory.newListCommand(GROUP, "getAll", {
+  void tick() {
+    log.info("Refreshing Application List")
+
+    def applicationListRetrievers = buildApplicationListRetrievers()
+    def applications = HystrixFactory.newListCommand(GROUP, "getAll", {
       List<Future<List<Map>>> futures = executorService.invokeAll(applicationListRetrievers)
       List<List<Map>> all = futures.collect { it.get() } // spread operator doesn't work here; no clue why.
       List<Map> flat = (List<Map>) all?.flatten()?.toList()
@@ -67,10 +81,15 @@ class ApplicationService {
         it.attributes
       } as List<Map>
 
-      allApplicationsCache.set(mergedApplications)
-
       return mergedApplications
     }, { return allApplicationsCache.get() }).execute()
+
+    allApplicationsCache.set(applications)
+    log.info("Refreshed Application List")
+  }
+
+  List<Map> getAll() {
+    return allApplicationsCache.get()
   }
 
   Map get(String name) {

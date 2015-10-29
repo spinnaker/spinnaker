@@ -29,10 +29,6 @@ interface OrcaService {
   List getTasks(@Path("application") String app)
 
   @Headers("Accept: application/json")
-  @GET("/applications/{application}/pipelines")
-  List getPipelines(@Path("application") String app)
-
-  @Headers("Accept: application/json")
   @GET("/v2/applications/{application}/pipelines")
   List getPipelinesV2(@Path("application") String app, @Query("limit") int limit)
 
