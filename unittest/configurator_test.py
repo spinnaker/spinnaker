@@ -89,4 +89,3 @@ if __name__ == '__main__':
   suite = loader.loadTestsFromTestCase(ConfiguratorTest)
   unittest.TextTestRunner(verbosity=2).run(suite)
 
-

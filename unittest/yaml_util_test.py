@@ -154,6 +154,32 @@ e:
     self.assertEqual('This is A B or C',
                      bindings.replace('This is ${a} ${container.b} or ${c:C}'))
 
+  def test_boolean(self):
+     bindings = YamlBindings()
+     bindings.import_string(
+        "t: true\nf: false\ndef: ${unkown:true}\nindirect: ${f}")
+     self.assertEqual(True, bindings.get('t'))
+     self.assertEqual(False, bindings.get('f'))
+     self.assertEqual(True, bindings.get('def'))
+     self.assertEqual(False, bindings.get('indirect'))
+
+  def test_number(self):
+     bindings = YamlBindings()
+     bindings.import_string(
+        "scalar: 123\nneg: -321\ndef: ${unkown:234}\nindirect: ${scalar}")
+     self.assertEqual(123, bindings.get('scalar'))
+     self.assertEqual(-321, bindings.get('neg'))
+     self.assertEqual(234, bindings.get('def'))
+     self.assertEqual(123, bindings.get('indirect'))
+
+  def test_list(self):
+     bindings = YamlBindings()
+     bindings.import_string(
+        "root:\n - elem: 'first'\n - elem: 2\ncopy: ${root}")
+     self.assertEqual([{'elem': 'first'}, {'elem': 2}],
+                      bindings.get('root'))
+     self.assertEqual(bindings.get('root'), bindings.get('copy'))
+
 if __name__ == '__main__':
   loader = unittest.TestLoader()
   suite = loader.loadTestsFromTestCase(YamlUtilTest)
