@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.support
 
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.InheritConstructors
 import groovy.transform.ToString
@@ -70,6 +71,17 @@ class TargetServerGroup {
         return new Location(type: Location.Type.ZONE, value: serverGroup.zones[0])
       }
       return new Location(type: Location.Type.REGION, value: serverGroup.region)
+    }
+
+    static Location locationFromStageData(StageData stageData) {
+      if (stageData.cloudProvider == "gce") {
+        def zones = stageData.availabilityZones.values().flatten().toArray()
+        if (!zones) {
+          throw new IllegalStateException("Cannot find GCE zones in stage data ${stageData}")
+        }
+        return new Location(type: Location.Type.ZONE, value: zones[0])
+      }
+      return new Location(type: Location.Type.REGION, value: stageData.region)
     }
 
     static Location locationFromCloudProviderValue(String cloudProvider, String value) {

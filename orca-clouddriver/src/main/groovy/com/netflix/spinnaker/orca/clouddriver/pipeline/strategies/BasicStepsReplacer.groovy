@@ -14,25 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.clouddriver.pipeline.support
+package com.netflix.spinnaker.orca.clouddriver.pipeline.strategies
 
-import groovy.transform.Immutable
-import groovy.transform.ToString
-
-@ToString(includeNames = true)
-@Immutable
-class Location {
-  enum Type {
-    REGION,
-    ZONE
-  }
-  Type type
-  String value
-
-  /**
-   * @return The all lowercase, plural form of this location type ("regions" or "zones")
-   */
-  String pluralType() {
-    return this.type.toString().toLowerCase() + "s"
-  }
+/**
+ * Removable with RollingPushStrategy deletion.
+ */
+trait BasicStepsReplacer {
+  boolean replacesBasicSteps() { false }
 }
