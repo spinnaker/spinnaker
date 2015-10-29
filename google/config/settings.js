@@ -15,7 +15,7 @@
 // let awsPrimaryAccount = ${providers.aws.primaryCredentials.name};
 // let googleDefaultRegion = ${providers.google.defaultRegion};
 // let googleDefaultZone = ${providers.google.defaultZone};
-// let googlePrimaryAccount = ${providers.google.primaryCredentials.name;
+// let googlePrimaryAccount = ${providers.google.primaryCredentials.name};
 
 // END reconfigure_spinnaker
 /**
