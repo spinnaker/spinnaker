@@ -230,6 +230,7 @@ class ApplicationServiceSpec extends Specification {
     def front50App = [name: name.toLowerCase(), email: email]
 
     when:
+    service.tick()
     def apps = service.getAll()
 
     then:
@@ -243,6 +244,7 @@ class ApplicationServiceSpec extends Specification {
     apps[0].clusters == null
 
     when: "should return last known good values if an exception is thrown"
+    service.tick()
     def allApps = service.getAll()
     def singleApp = service.get(name)
 
