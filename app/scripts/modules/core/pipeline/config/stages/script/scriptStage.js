@@ -13,6 +13,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.scriptStage', [
         controllerAs: 'scriptStageCtrl',
         templateUrl: require('./scriptStage.html'),
         executionDetailsUrl: require('./scriptExecutionDetails.html'),
+        strategy: true,
       });
     })
     .controller('ScriptStageCtrl', function($scope, stage, authenticationService) {

@@ -18,7 +18,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.quickPatchAsgStag
         { type: 'requiredField', fieldName: 'region', },
         { type: 'requiredField', fieldName: 'package', },
         { type: 'requiredField', fieldName: 'baseOs', },
-      ]
+      ],
+      strategy: true,
     });
   }).controller('QuickPatchAsgStageCtrl', function($scope, stage, bakeryService, accountService) {
     $scope.stage = stage;

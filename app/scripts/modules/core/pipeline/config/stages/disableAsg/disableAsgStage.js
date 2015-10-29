@@ -12,7 +12,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.disableAsgStage',
       useBaseProvider: true,
       key: 'disableServerGroup',
       label: 'Disable Server Group',
-      description: 'Disables a server group'
+      description: 'Disables a server group',
+      strategy: true,
     });
   })
   .name;

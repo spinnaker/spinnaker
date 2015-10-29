@@ -31,6 +31,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
 
     var stageTypes = pipelineConfig.getConfigurableStageTypes(),
         lastStageScope;
+
     $scope.options = {
       stageTypes: _.sortBy(stageTypes, function (stageType) {
         return stageType.label;
@@ -43,6 +44,12 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
         return !stageType.cloudProvider || _.contains(providers, stageType.cloudProvider);
       });
     });
+
+    if($scope.pipeline.strategy){
+      $scope.options.stageTypes = $scope.options.stageTypes.filter((stageType) => {
+            return stageType.strategy || false;
+      });
+    }
 
     function getConfig(type) {
       return pipelineConfig.getStageConfig({type: type});

@@ -24,6 +24,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.shrinkClusterStag
         { type: 'requiredField', fieldName: 'regions', },
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
+      strategy: true,
     });
   }).controller('ShrinkClusterStageCtrl', function($scope, stage, accountService, stageConstants, _) {
     var ctrl = this;

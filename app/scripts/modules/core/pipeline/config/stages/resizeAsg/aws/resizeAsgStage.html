@@ -1,20 +1,11 @@
 <div ng-controller="awsResizeAsgStageCtrl as resizeAsgStageCtrl">
+  <div ng-if="!pipeline.strategy">
   <div ng-if="!viewState.accountsLoaded">
     <h4 class="text-center">
       <span us-spinner="{radius:20, width:6, length: 12}"></span>
     </h4>
   </div>
   <div ng-if="viewState.accountsLoaded">
-    <div class="form-group">
-      <div class="col-md-2 col-md-offset-1 sm-label-left">
-        <b>Cluster</b>
-        <help-field key="pipeline.config.resizeAsg.cluster"></help-field>
-      </div>
-      <div class="col-md-6">
-        <input type="text" required ng-model="stage.cluster"
-          class="form-control input-sm" />
-      </div>
-    </div>
     <div class="form-group">
       <label class="col-md-2 col-md-offset-1 sm-label-left">Account</label>
       <div class="col-md-6">
@@ -29,6 +20,17 @@
       <div class="col-md-6" ng-if="stage.credentials">
         <checklist items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
       </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-2 col-md-offset-1 sm-label-left">
+        <b>Cluster</b>
+        <help-field key="pipeline.config.resizeAsg.cluster"></help-field>
+      </div>
+      <div class="col-md-6">
+        <input type="text" required ng-model="stage.cluster"
+          class="form-control input-sm" />
+      </div>
+    </div>
     </div>
     <div class="form-group">
       <div class="col-md-2 col-md-offset-1 sm-label-left">

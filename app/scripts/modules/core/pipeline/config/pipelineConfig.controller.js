@@ -21,7 +21,10 @@ module.exports = angular.module('spinnaker.core.pipeline.config.controller', [
     this.initialize = () => {
       this.pipelineConfig = _.find(application.pipelineConfigs, { id: $stateParams.pipelineId });
       if (!this.pipelineConfig) {
-        this.state.notFound = true;
+          this.pipelineConfig = _.find(application.strategyConfigs, { id: $stateParams.pipelineId });
+          if(!this.pipelineConfig) {
+            this.state.notFound = true;
+          }
       }
       this.state.pipelinesLoaded = true;
     };

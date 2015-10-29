@@ -72,9 +72,9 @@
                     placeholder="(Optional) anything that might be helpful to explain the purpose of this stage; HTML is okay"></textarea>
         </div>
       </div>
-      <execution-windows stage="stage"></execution-windows>
+      <execution-windows stage="stage" ng-if="!pipeline.strategy"></execution-windows>
       <override-timeout stage="stage"></override-timeout>
-      <notification-list level="stage" notifications="stage.notifications" parent="stage"></notification-list>
+      <notification-list level="stage" notifications="stage.notifications" parent="stage" ng-if="!pipeline.strategy"></notification-list>
     </div>
   </div>
 </div>

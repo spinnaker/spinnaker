@@ -11,6 +11,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
     pipelineConfigProvider.registerStage({
       label: 'Deploy',
       description: 'Deploys the previously baked or found image',
+      strategyDescription: 'Deploys the image specified',
       key: 'deploy',
       templateUrl: require('./deployStage.html'),
       executionDetailsUrl: require('./deployExecutionDetails.html'),
@@ -24,6 +25,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
           message: 'You must have a Bake or Find Image stage before any deploy stage.'
         },
       ],
+      strategy: true,
     });
   })
   .controller('DeployStageCtrl', function ($scope, $uibModal, stage, namingService, providerSelectionService,

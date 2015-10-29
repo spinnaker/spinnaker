@@ -10,6 +10,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.waitStage', [])
       key: 'wait',
       templateUrl: require('./waitStage.html'),
       executionDetailsUrl: require('./waitExecutionDetails.html'),
+      strategy: true,
     });
   })
   .name;

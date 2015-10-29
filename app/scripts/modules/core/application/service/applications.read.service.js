@@ -118,8 +118,12 @@ module.exports = angular
           return pipelineConfigService.getPipelinesForApplication(application.name)
             .then((configs) => {
               application.pipelineConfigs = configs;
-              application.pipelineConfigsLoading = false;
-              $rootScope.$broadcast('pipelineConfigs-loaded', application);
+              pipelineConfigService.getStrategiesForApplication(application.name)
+                  .then((strategies) => {
+                     application.strategyConfigs = strategies;
+                     application.pipelineConfigsLoading = false;
+                     $rootScope.$broadcast('pipelineConfigs-loaded', application);
+              });
             });
         }
 
