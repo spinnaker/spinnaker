@@ -2,7 +2,7 @@
   <div class="row clickable" sticky-header added-offset-height="-6" ng-click="vm.toggle()" ng-if="vm.group.heading">
     <div class="col-md-12 execution-group-heading" ng-class="vm.viewState.isRetired ? 'inactive' : 'active'">
       <div class="row">
-        <div class="col-md-4 col-sm-4">
+        <div class="col-md-5 col-sm-5">
           <h4 class="execution-group-title">
             <span class="glyphicon"
                   ng-class="{'glyphicon-chevron-up': !vm.viewState.open, 'glyphicon-chevron-down': vm.viewState.open}">
@@ -15,7 +15,7 @@
             </span>
           </h4>
         </div>
-        <div class="col-md-8 col-sm-8 text-right execution-group-actions" ng-if="vm.viewState.canConfigure">
+        <div class="col-md-7 col-sm-7 text-right execution-group-actions" ng-if="vm.viewState.canConfigure">
           <h4 ng-if="vm.viewState.isRetired"><span class="label-retired" uib-tooltip="The configuration for this pipeline has been renamed or deleted.">RETIRED</span></h4>
           <triggers-tag pipeline="vm.pipelineConfig"></triggers-tag>
           <h4>
@@ -47,12 +47,8 @@
       <div ng-if="!vm.group.executions.length" style="padding-bottom: 10px">
         <em>No executions found matching the selected filters.</em>
       </div>
-      <div class="execution"
-           ng-repeat="execution in vm.group.executions track by $index"
-           id="execution-{{execution.id}}">
-        <execution execution="execution" application="vm.application"></execution>
-
-      </div>
+      <execution ng-repeat="execution in vm.group.executions track by $index"
+                 execution="execution" application="vm.application"></execution>
     </div>
   </div>
 </div>
