@@ -54,6 +54,7 @@ class ValidateConfig(object):
 
     # TODO: Add more verification here
     # This is representative for the time being.
+    self.verify_at_least_one_provider_enabled()
     self.verify_google_scopes()
     self.verify_external_dependencies()
     self.verify_security()
@@ -109,7 +110,7 @@ class ValidateConfig(object):
     if isinstance(value, bool):
       return True
 
-    self.__errors.append('{name}="{value}" is not valid.'
+    self.__errors.append('{name}={value!r} is not valid.'
                          ' Must be boolean true or false.'
                          .format(name=name, value=value))
     return False
@@ -121,12 +122,21 @@ class ValidateConfig(object):
       name [string]: variable name.
       required [bool]: If True value cannot be empty.
     """
-    value = self.__bindings.get(name)
+    try:
+      value = self.__bindings.get(name)
+    except KeyError:
+      if not required:
+        return True
+      self.__errors.append('Missing "{name}".'.format(name=name))
+      return False
+      
     if self.is_reference(value):
+      if not required:
+        return True
       self.__errors.append('Missing "{name}".'.format(name=name))
       return False
 
-    host_regex = '^[-_\.a-z0-9]+$'
+    host_regex = '^[-\.a-z0-9]+$'
     if not value:
       if not required:
         return True
@@ -139,7 +149,16 @@ class ValidateConfig(object):
       return True
 
     self.__errors.append(
-       'name="{value}" does not look like {regex}'.format(regex=host_regex))
+       'name="{value}" does not look like {regex}'.format(
+         value=value, regex=host_regex))
+    return False
+
+  def verify_at_least_one_provider_enabled(self):
+    providers = self.__bindings.get('providers')
+    for name,attrs in providers.items():
+      if attrs.get('enabled', False):
+        return True
+    self.__errors.append('None of the providers are enabled.')
     return False
 
   def verify_google_scopes(self):

@@ -37,7 +37,7 @@ def get_default_project():
 
 
 class GooglePackerBuilder(AbstractPackerBuilder):
-  PACKER_TEMPLATE = os.path.dirname(sys.argv[0]) + '/build_google_image.packer'
+  PACKER_TEMPLATE = os.path.dirname(__file__) + '/build_google_image.packer'
 
   def _do_prepare(self):
     if not self.options.image_project:

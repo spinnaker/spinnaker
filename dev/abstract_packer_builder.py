@@ -30,6 +30,21 @@ class AbstractPackerBuilder(object):
   PACKER_TEMPLATE = "Undefined"   # specializations should override
 
   @property
+  def _variable_map(self):
+    """Exposed for testing, probably not needed externally."""
+    return self.__var_map
+
+  @property
+  def _packer_vars(self):
+    """Exposed for testing, probably not needed externally."""
+    return self.__packer_vars
+
+  @property
+  def _raw_args(self):
+    """Exposed for testing, probably not needed externally."""
+    return self.__raw_args
+
+  @property
   def packer_output(self):
     """The output from the packer process once it has completed."""
     return self.__output
@@ -83,9 +98,16 @@ class AbstractPackerBuilder(object):
     """Hook for specialized builders to cleanup if needed."""
     pass
 
-  def _do_next_steps(self):
+  def _do_get_next_steps(self):
     """Hook for specialized builders to add followup instructions."""
     pass
+
+  def _do_run_packer(self):
+    """Hook intended for testing only."""
+    return check_run_and_monitor(
+        'packer build {vars} {packer}'.format(
+              vars=' '.join(self.__packer_vars), packer=self.PACKER_TEMPLATE),
+        echo=True)
 
   def create_image(self):
     """Runs the process for creating an image.
@@ -95,26 +117,19 @@ class AbstractPackerBuilder(object):
     self.__prepare()
     try:
       self.__in_subprocess = True
-      result = check_run_and_monitor(
-          'packer build {vars} {packer}'
-          .format(vars=' '.join(self.__packer_vars),
-                  packer=self.PACKER_TEMPLATE),
-          echo=True)
+      result = self._do_run_packer()
       self.__in_subprocess = False
 
       self.__output = result.stdout
     finally:
       self.__cleanup()
 
-  def __prepare(self):
-    """Internal helper function implementing the Prepare step.
+  def  _do_prepare_installer(self, installer_path):
+    """Gets the installer script.
 
-    Calls _do_prepare to allow specialized classes to hook in.
+    Args:
+      installer_path [string]: The path to write the installer script to.
     """
-    fd,self.__installer_path = tempfile.mkstemp()
-    os.close(fd)
-    self.__var_map['installer_path'] = self.__installer_path
-
     if self.options.release_path.startswith('gs://'):
       program = 'gsutil'
     elif self.options.release_path.startswith('s3://'):
@@ -128,8 +143,19 @@ class AbstractPackerBuilder(object):
         '{program} cp {release}/install/install_spinnaker.py.zip {path}'
         .format(program=program,
                 release=self.options.release_path,
-                path=self.__installer_path))
+                path=installer_path))
     self.__in_subprocess = False
+
+  def __prepare(self):
+    """Internal helper function implementing the Prepare step.
+
+    Calls _do_prepare to allow specialized classes to hook in.
+    """
+    fd,self.__installer_path = tempfile.mkstemp()
+    os.close(fd)
+    self.__var_map['installer_path'] = self.__installer_path
+
+    self._do_prepare_installer(self.__installer_path)
 
     self._do_prepare()
     self.__add_args_to_map()

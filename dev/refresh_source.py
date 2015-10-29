@@ -251,7 +251,7 @@ class Refresher(object):
 
   def __determine_spring_config_location(self):
     root = '{dir}/config'.format(
-        dir=os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), '..')))
+        dir=os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
     home = os.path.join(os.environ['HOME'] + '/.spinnaker')
     return '{root}/,{home}/'.format(home=home, root=root)
 
