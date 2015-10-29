@@ -48,4 +48,7 @@ public interface MineService {
   @GET("/canaryDeployments/{id}/canaryAnalysisHistory")
   List<Map> getCanaryAnalysisHistory(@Path("id") String canaryDeploymentId)
 
+  @GET("/canaryConfig/names")
+  List<String> getCanaryConfigNames()
+
 }
