@@ -51,7 +51,7 @@ Edit `$HOME/.spinnaker/spinnaker-local.yml` and set the enabled option for the c
 
 If you enabled AWS for Spinnaker, there are some requirements for the AWS account:
 
-Decide which region you want Spinnaker to index. In `$HOME/.spinnaker/spinnaker-local.yml` fill in that value in providers.aws.defaultRegion. (The default is us-east-1).jjjkkk
+Decide which region you want Spinnaker to index. In `$HOME/.spinnaker/spinnaker-local.yml` fill in that value in providers.aws.defaultRegion. (The default is us-east-1).
 
 Sign into the AWS console, and select the region Spinnaker will manage.
 
