@@ -57,7 +57,7 @@ Sign into the AWS console, and select the region Spinnaker will manage.
 
 1. Name your vpc (edit the name tag, and give it a value with no spaces or dots in the name) (e.g. defaultvpc)
 2. Name your subnets (edit the name tag and name following the pattern vpcName.internal.<availabilityZone>
-    - e.g. defaultvpc.internal.us-west-1a, defaultvpc.internal.us-west-2b, defaultvpc-internal.us-west-2c
+    - e.g. defaultvpc.internal.us-east-1a, defaultvpc.internal.us-east-1b, defaultvpc-internal.us-east-1c
 3. Create an EC2 role called BaseIAMRole
     - IAM > Roles > Create New Role. Select Amazon EC2.
     - You don't have to apply any policies to this role. EC2 instances launched with Spinnaker will have this role associated.
