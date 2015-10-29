@@ -28,13 +28,17 @@ abstract class Execution<T> implements Serializable {
   String id
   Integer version
   String application
-  final Map<String, Object> appConfig = [:]
-  List<Stage<T>> stages = []
+  String executingInstance
+
+  Long buildTime
+
   boolean canceled
   boolean parallel
   boolean limitConcurrent = false
-  Long buildTime
-  String executingInstance
+
+  final Map<String, Object> appConfig = [:]
+  final Map<String, Object> context = [:]
+  List<Stage<T>> stages = []
 
   Long executionStartTime
   Long executionEndTime
@@ -84,12 +88,12 @@ abstract class Execution<T> implements Serializable {
   }
 
   ExecutionStatus getStatus() {
-    if (version > 1) {
-      return executionStatus
-    }
-
     if (canceled) {
       return CANCELED
+    }
+
+    if (version > 1) {
+      return executionStatus
     }
 
     if (stages.status.any { it == TERMINAL }) {

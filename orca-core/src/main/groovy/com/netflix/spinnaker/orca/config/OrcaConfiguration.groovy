@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.config
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.orca.batch.ExecutionStatusPropagationListener
+import com.netflix.spinnaker.orca.batch.ExecutionPropagationListener
 import com.netflix.spinnaker.orca.libdiffs.ComparableLooseVersion
 import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -153,8 +153,8 @@ class OrcaConfiguration {
   }
 
   @Bean
-  ExecutionStatusPropagationListener pipelineStatusPropagationListener(ExecutionRepository executionRepository) {
-    new ExecutionStatusPropagationListener(executionRepository)
+  ExecutionPropagationListener pipelineStatusPropagationListener(ExecutionRepository executionRepository) {
+    new ExecutionPropagationListener(executionRepository)
   }
 
   @Bean

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline.model
+package com.netflix.spinnaker.orca.pipeline.tasks
 
-import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.Task
 
-@CompileStatic
-class Orchestration extends Execution<Orchestration> {
-  static final int CURRENT_VERSION = 2
-
-  String description
+/**
+ * Marker interface for tasks used to evaluate a precondition.
+ *
+ * A precondition task is intended to evaluates current state without any side-effects.
+ * It will be executed by {@link com.netflix.spinnaker.orca.pipeline.CheckPreconditionsStage}.
+ */
+interface PreconditionTask extends Task {
+  String getPreconditionType()
 }

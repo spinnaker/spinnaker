@@ -109,7 +109,7 @@ class TaskTaskletSpec extends Specification {
     then:
     0 * task.execute(_)
     chunkContext.stepContext.stepExecution.terminateOnly == taskStatus.halt
-    chunkContext.stepContext.stepExecution.exitStatus == (taskStatus.halt ? ExitStatus.FAILED : ExitStatus.EXECUTING)
+    chunkContext.stepContext.stepExecution.exitStatus == (taskStatus.halt ? taskStatus.exitStatus : ExitStatus.EXECUTING)
 
     where:
     taskStatus << ExecutionStatus.values().findAll { it.complete }
@@ -224,7 +224,7 @@ class TaskTaskletSpec extends Specification {
 
     then:
     chunkContext.stepContext.jobExecutionContext == outputs.collect {
-      ["global-${it.key}" as String, it.value]
+      [it.key, it.value]
     }.collectEntries()
 
     where:
@@ -248,6 +248,30 @@ class TaskTaskletSpec extends Specification {
     operation = "E2"
     error = "E3"
     errors = ["E4", "E5"]
+  }
+
+  @Unroll
+  def "should override status depending on `failPipeline`"() {
+    given:
+    def stage = new PipelineStage()
+    stage.context = stageContext
+
+    when:
+    def result = TaskTasklet.applyStageStatusOverrides(
+      stage,
+      new DefaultTaskResult(originalStatus, ["stage": 1], ["global": 2])
+    )
+
+    then:
+    result.status == expectedStatus
+    result.stageOutputs == ["stage": 1]
+    result.globalOutputs == ["global": 2]
+
+    where:
+    stageContext          | originalStatus || expectedStatus
+    [:]                   | TERMINAL       || TERMINAL
+    [failPipeline: true]  | TERMINAL       || TERMINAL
+    [failPipeline: false] | TERMINAL       || STOPPED
   }
 
   private buildTasklet(Class taskType, boolean shouldRetry) {

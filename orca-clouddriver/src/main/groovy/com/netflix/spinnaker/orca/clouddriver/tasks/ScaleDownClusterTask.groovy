@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -25,52 +23,47 @@ import groovy.transform.Canonical
 import org.springframework.stereotype.Component
 
 @Component
-class ShrinkClusterTask extends AbstractClusterWideClouddriverTask {
+class ScaleDownClusterTask extends AbstractClusterWideClouddriverTask {
   @Override
-  protected TaskResult missingClusterResult(Stage stage, ClusterSelection clusterSelection) {
-    def shrinkConfig = stage.mapTo(ShrinkConfig)
-    if (shrinkConfig.shrinkToSize == 0) {
-      return DefaultTaskResult.SUCCEEDED
-    }
-    return super.missingClusterResult(stage, clusterSelection)
-  }
-
-  @Override
-  protected TaskResult emptyClusterResult(Stage stage, ClusterSelection clusterSelection, Map cluster) {
-    def shrinkConfig = stage.mapTo(ShrinkConfig)
-    if (shrinkConfig.shrinkToSize == 0) {
-      return DefaultTaskResult.SUCCEEDED
-    }
-    return super.emptyClusterResult(stage, clusterSelection, cluster)
+  String getClouddriverOperation() {
+    'resizeServerGroup'
   }
 
   @Canonical
-  static class ShrinkConfig {
-    boolean allowDeleteActive = false
-    int shrinkToSize = 1
-    boolean retainLargerOverNewer = false
+  private static class ScaleDownClusterConfig {
+    int remainingFullSizeServerGroups = 1
+    boolean preferLargerOverNewer = false
+    boolean allowScaleDownActive = false
   }
 
   @Override
-  String getClouddriverOperation() {
-    "destroyServerGroup"
+  protected Map buildOperationPayload(ClusterSelection clusterSelection, TargetServerGroup serverGroup) {
+    return super.buildOperationPayload(clusterSelection, serverGroup) + [capacity: [min: 0, max: 0, desired: 0]]
+  }
+
+  @Override
+  protected List<Map> buildOperationPayloads(ClusterSelection clusterSelection, TargetServerGroup serverGroup) {
+    List<Map> ops = []
+    if (clusterSelection.cloudProvider == 'aws') {
+      ops << [resumeAsgProcessesDescription: serverGroup.toClouddriverOperationPayload(clusterSelection.credentials) + [
+        processes: ['Terminate']
+      ]]
+    }
+    ops + super.buildOperationPayloads(clusterSelection, serverGroup)
   }
 
   @Override
   List<TargetServerGroup> filterServerGroups(Stage stage, String account, Location location, List<TargetServerGroup> serverGroups) {
     List<Map> filteredGroups = super.filterServerGroups(stage, account, location, serverGroups)
-    if (!filteredGroups) {
-      return []
-    }
+    def config = stage.mapTo(ScaleDownClusterConfig)
+    filteredGroups = filterActiveGroups(config.allowScaleDownActive, filteredGroups)
 
-    def shrinkConfig = stage.mapTo(ShrinkConfig)
-    filteredGroups = filterActiveGroups(shrinkConfig.allowDeleteActive, filteredGroups)
     def comparators = []
-    int dropCount = shrinkConfig.shrinkToSize - (serverGroups.size() - filteredGroups.size())
-    if (shrinkConfig.allowDeleteActive) {
+    int dropCount = Math.max(0, config.remainingFullSizeServerGroups - (serverGroups.size() - filteredGroups.size()))
+    if (config.allowScaleDownActive) {
       comparators << new IsActive()
     }
-    if (shrinkConfig.retainLargerOverNewer) {
+    if (config.preferLargerOverNewer) {
       comparators << new InstanceCount()
     }
     comparators << new CreatedTime()
@@ -80,4 +73,5 @@ class ShrinkClusterTask extends AbstractClusterWideClouddriverTask {
 
     return prioritized.drop(dropCount)
   }
+
 }

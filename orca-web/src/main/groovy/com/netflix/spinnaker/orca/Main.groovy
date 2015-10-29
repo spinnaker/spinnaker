@@ -35,7 +35,6 @@ import com.netflix.spinnaker.orca.rush.config.RushConfiguration
 import com.netflix.spinnaker.orca.tide.config.TideConfiguration
 import com.netflix.spinnaker.orca.web.config.WebConfiguration
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
-import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
@@ -71,31 +70,22 @@ import org.springframework.scheduling.annotation.EnableAsync
 ])
 class Main extends SpringBootServletInitializer {
   static final Map<String, String> DEFAULT_PROPS = [
-    'netflix.environment': 'test',
-    'netflix.account'    : System.getProperty('netflix.environment', 'test'),
-    'netflix.stack'      : 'test',
-    'spring.config.location': "${System.properties['user.home']}/.spinnaker/",
-    'spring.config.name' : 'orca',
-    'spring.profiles.active': "${System.getProperty('netflix.environment', 'test')},local"
+    'netflix.environment'    : 'test',
+    'netflix.account'        : '${netflix.environment}',
+    'netflix.stack'          : 'test',
+    'spring.config.location' : '${user.home}/.spinnaker/',
+    'spring.application.name': 'orca',
+    'spring.config.name'     : 'spinnaker,${spring.application.name}',
+    'spring.profiles.active' : '${netflix.environment},local'
   ]
 
-  static {
-    applyDefaults()
-  }
-
-  static void applyDefaults() {
-    DEFAULT_PROPS.each { k, v ->
-      System.setProperty(k, System.getProperty(k, v))
-    }
-  }
-
   static void main(String... args) {
-    SpringApplication.run(Main, args)
+    new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main).run(args)
   }
 
   @Override
   SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-    application.sources Main
+    application.properties(DEFAULT_PROPS).sources(Main)
   }
 
   static class StockMappingJackson2HttpMessageConverter extends MappingJackson2HttpMessageConverter {

@@ -19,18 +19,20 @@ package com.netflix.spinnaker.orca.batch
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.*
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class ExecutionStatusPropagationListenerSpec extends Specification {
+class ExecutionPropagationListenerSpec extends Specification {
   def executionRepository = Mock(ExecutionRepository)
-  def listener = new ExecutionStatusPropagationListener(executionRepository)
+  def listener = new ExecutionPropagationListener(executionRepository)
 
-  def "should mark pipeline/orchestration as RUNNING in beforeJob"() {
+  def "should mark pipeline/orchestration as RUNNING and set initial global execution context in beforeJob"() {
     given:
     def pipeline = new Pipeline(id: "PIPELINE-1")
+    pipeline.context.putAll(["existing": "context"])
     def pipelineJobExecution = new JobExecution(1L, new JobParameters([
       "pipeline": new JobParameter(pipeline.id)
     ]))
@@ -47,7 +49,12 @@ class ExecutionStatusPropagationListenerSpec extends Specification {
     then:
     1 * executionRepository.updateStatus(pipeline.id, ExecutionStatus.RUNNING)
     1 * executionRepository.updateStatus(orchestration.id, ExecutionStatus.RUNNING)
+    1 * executionRepository.retrievePipeline(pipeline.id) >> { pipeline }
+    1 * executionRepository.retrieveOrchestration(orchestration.id) >> { throw new ExecutionNotFoundException("No orchestration") }
     0 * _
+
+    pipelineJobExecution.executionContext.get("existing") == "context"
+    orchestrationJobExecution.executionContext.isEmpty()
   }
 
   @Unroll
@@ -75,6 +82,10 @@ class ExecutionStatusPropagationListenerSpec extends Specification {
       stepExecution("1", new Date() - 1, BatchStatus.COMPLETED, ExecutionStatus.SUCCEEDED),
       stepExecution("2", new Date(), BatchStatus.STOPPED, ExecutionStatus.TERMINAL)
     ]              | BatchStatus.STOPPED        || ExecutionStatus.TERMINAL
+    [
+      stepExecution("1", new Date() - 1, BatchStatus.COMPLETED, ExecutionStatus.SUCCEEDED),
+      stepExecution("2", new Date(), BatchStatus.STOPPED, ExecutionStatus.STOPPED)
+    ]              | BatchStatus.STOPPED        || ExecutionStatus.SUCCEEDED
     [
       stepExecution("1", new Date() - 1, BatchStatus.COMPLETED, ExecutionStatus.SUCCEEDED),
       stepExecution("2", new Date(), BatchStatus.STOPPED, ExecutionStatus.TERMINAL),

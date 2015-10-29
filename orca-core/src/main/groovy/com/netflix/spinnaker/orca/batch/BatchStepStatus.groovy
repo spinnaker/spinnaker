@@ -34,18 +34,20 @@ class BatchStepStatus {
   static BatchStepStatus mapResult(TaskResult result) {
     switch (result.status) {
       case ExecutionStatus.SUCCEEDED:
-        return new BatchStepStatus(RepeatStatus.FINISHED, ExitStatus.COMPLETED, BatchStatus.COMPLETED)
+        return new BatchStepStatus(RepeatStatus.FINISHED, result.status.exitStatus, BatchStatus.COMPLETED)
       case ExecutionStatus.SUSPENDED:
-        return new BatchStepStatus(RepeatStatus.FINISHED, ExitStatus.STOPPED, BatchStatus.STOPPED)
+        return new BatchStepStatus(RepeatStatus.FINISHED, result.status.exitStatus, BatchStatus.STOPPED)
       case ExecutionStatus.FAILED:
       case ExecutionStatus.TERMINAL:
-        return new BatchStepStatus(RepeatStatus.FINISHED, ExitStatus.FAILED, BatchStatus.FAILED)
+        return new BatchStepStatus(RepeatStatus.FINISHED, result.status.exitStatus, BatchStatus.FAILED)
       case ExecutionStatus.RUNNING:
-        return new BatchStepStatus(RepeatStatus.CONTINUABLE, ExitStatus.EXECUTING, BatchStatus.STARTED)
+        return new BatchStepStatus(RepeatStatus.CONTINUABLE, result.status.exitStatus, BatchStatus.STARTED)
       case ExecutionStatus.CANCELED:
-        return new BatchStepStatus(RepeatStatus.FINISHED, ExitStatus.STOPPED, BatchStatus.COMPLETED)
+        return new BatchStepStatus(RepeatStatus.FINISHED, result.status.exitStatus, BatchStatus.COMPLETED)
       case ExecutionStatus.REDIRECT:
-        return new BatchStepStatus(RepeatStatus.FINISHED, new ExitStatus(ExecutionStatus.REDIRECT.name()) , BatchStatus.COMPLETED)
+        return new BatchStepStatus(RepeatStatus.FINISHED, result.status.exitStatus, BatchStatus.COMPLETED)
+      case ExecutionStatus.STOPPED:
+        return new BatchStepStatus(RepeatStatus.FINISHED, result.status.exitStatus, BatchStatus.COMPLETED)
     }
   }
 }

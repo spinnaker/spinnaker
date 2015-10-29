@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.netflix.spinnaker.orca.batch.ExecutionStatusPropagationListener
+import com.netflix.spinnaker.orca.batch.ExecutionPropagationListener
 import com.netflix.spinnaker.orca.batch.OrchestrationInitializerTasklet
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component
 class OrchestrationJobBuilder extends ExecutionJobBuilder<Orchestration> {
 
   @Autowired
-  ExecutionStatusPropagationListener executionStatusPropagationListener
+  ExecutionPropagationListener executionStatusPropagationListener
 
   @Override
   Job build(Orchestration orchestration) {

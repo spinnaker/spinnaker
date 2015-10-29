@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline.model
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
-import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
+import org.springframework.stereotype.Component
 
-@CompileStatic
-class Orchestration extends Execution<Orchestration> {
-  static final int CURRENT_VERSION = 2
-
-  String description
+@Component
+class WaitForScaleDownClusterTask extends AbstractWaitForClusterWideClouddriverTask {
+  @Override
+  boolean isServerGroupOperationInProgress(Optional<TargetServerGroup> currentServerGroup) {
+    !currentServerGroup.map({ it.instances ?: []}).orElse([]).isEmpty()
+  }
 }

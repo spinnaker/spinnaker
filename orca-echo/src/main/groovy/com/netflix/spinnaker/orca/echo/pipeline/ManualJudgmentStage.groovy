@@ -71,7 +71,8 @@ class ManualJudgmentStage extends LinearStage implements RestartableStage {
         case "continue":
           return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
         case "stop":
-          return new DefaultTaskResult(ExecutionStatus.TERMINAL)
+          def executionStatus = ExecutionStatus.TERMINAL
+          return new DefaultTaskResult(executionStatus)
       }
 
       def outputs = [:]

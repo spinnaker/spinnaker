@@ -76,7 +76,7 @@ class TaskTasklet implements Tasklet {
         chunkContext.stepContext.stepExecution.executionContext.put("orcaTaskStatus", task.status)
 
         if (task.status.halt) {
-          setStopStatus(chunkContext, ExitStatus.FAILED, task.status)
+          setStopStatus(chunkContext, task.status.exitStatus, task.status)
         }
 
         return RepeatStatus.FINISHED
@@ -85,6 +85,8 @@ class TaskTasklet implements Tasklet {
         stage = currentStage(chunkContext, true)
 
         def result = executeTask(stage, chunkContext)
+        result = applyStageStatusOverrides(stage, result)
+
         logResult(result, stage, chunkContext)
 
         // we should reload the execution now, in case it has been affected
@@ -113,13 +115,21 @@ class TaskTasklet implements Tasklet {
           jobExecution.status = batchStepStatus.batchStatus
         }
         contribution.exitStatus = batchStepStatus.exitStatus
-        stage.endTime = !batchStepStatus.repeatStatus.continuable ? System.currentTimeMillis() : null
-
         return batchStepStatus.repeatStatus
       }
     } finally {
-      save(stage)
+      save(stage, chunkContext)
     }
+  }
+
+  private static TaskResult applyStageStatusOverrides(Stage stage, TaskResult result) {
+    if (result.status == ExecutionStatus.TERMINAL) {
+      def shouldFailPipeline = (stage.context.failPipeline == null ? true : stage.context.failPipeline) as String
+      def terminalStatus = Boolean.valueOf(shouldFailPipeline) ? ExecutionStatus.TERMINAL : ExecutionStatus.STOPPED
+      result = new DefaultTaskResult(terminalStatus, result.stageOutputs, result.globalOutputs)
+    }
+
+    return result
   }
 
   private RepeatStatus cancel(Stage stage) {
@@ -135,8 +145,9 @@ class TaskTasklet implements Tasklet {
     return RepeatStatus.FINISHED
   }
 
-  private void save(Stage stage) {
+  private void save(Stage stage, ChunkContext chunkContext) {
     executionRepository.storeStage(stage.self)
+    executionRepository.storeExecutionContext(stage.execution.id, chunkContext.stepContext.jobExecutionContext)
   }
 
   private static void setStopStatus(ChunkContext chunkContext, ExitStatus exitStatus, ExecutionStatus executionStatus) {
@@ -168,6 +179,7 @@ class TaskTasklet implements Tasklet {
       def taskName = (!stage.tasks.isEmpty() ? stage.tasks[-1].name : null) as String
       def exceptionDetails = exceptionHandler.handle(taskName, e)
       def isRetryable = exceptionDetails.shouldRetry && task instanceof RetryableTask
+
       return new DefaultTaskResult(isRetryable ? ExecutionStatus.RUNNING : ExecutionStatus.TERMINAL, [
         "exception": exceptionDetails
       ])

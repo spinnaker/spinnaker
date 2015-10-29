@@ -16,20 +16,21 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
-import com.netflix.spinnaker.orca.clouddriver.tasks.ShrinkClusterTask.CompositeComparitor
-import com.netflix.spinnaker.orca.clouddriver.tasks.ShrinkClusterTask.CreatedTime
-import com.netflix.spinnaker.orca.clouddriver.tasks.ShrinkClusterTask.InstanceCount
-import com.netflix.spinnaker.orca.clouddriver.tasks.ShrinkClusterTask.IsActive
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.Location
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractClusterWideClouddriverTask.CompositeComparitor
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractClusterWideClouddriverTask.CreatedTime
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractClusterWideClouddriverTask.InstanceCount
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractClusterWideClouddriverTask.IsActive
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import retrofit.client.Response
-import retrofit.mime.TypedByteArray
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -41,8 +42,7 @@ class ShrinkClusterTaskSpec extends Specification {
   static AtomicInteger inc = new AtomicInteger(100)
   OortService oortService = Mock(OortService)
   KatoService katoService = Mock(KatoService)
-  ObjectMapper objectMapper = new ObjectMapper()
-  OortHelper oortHelper = new OortHelper(objectMapper: objectMapper, oortService: oortService)
+  OortHelper oortHelper = Mock(OortHelper)
 
   @Subject
   ShrinkClusterTask task
@@ -56,13 +56,12 @@ class ShrinkClusterTaskSpec extends Specification {
     setup:
     Stage orchestration = new OrchestrationStage(new Orchestration(), 'test', context)
     Map cluster = [serverGroups: serverGroups]
-    Response oortResponse = new Response('http://clouddriver', 200, 'OK', [], new TypedByteArray('application/json', objectMapper.writeValueAsBytes(cluster)))
 
     when:
     def result = task.execute(orchestration)
 
     then:
-    1 * oortService.getCluster('foo', 'test', 'foo-test', 'aws') >> oortResponse
+    1 * oortHelper.getCluster('foo', 'test', 'foo-test', 'aws') >> cluster
 
     (expectedItems ? 1 : 0) * katoService.requestOperations('aws', _) >> { p, ops ->
       assert ops.size == expected.size()
@@ -89,9 +88,16 @@ class ShrinkClusterTaskSpec extends Specification {
 
   @Unroll
   def "deletion priority #desc"() {
+    setup:
+    def context = [
+      allowDeleteActive: allowDeleteActive,
+      shrinkToSize: shrinkToSize,
+      retainLargerOverNewer: retainLargerOverNewer
+    ]
+    def stage = new PipelineStage(new Pipeline(), 'shrinkCluster', context)
 
     when:
-    def toDelete = task.getDeletionServerGroups(serverGroups, retainLargerOverNewer, allowDeleteActive, shrinkToSize)
+    def toDelete = task.filterServerGroups(stage, account, location, serverGroups)
 
     then:
     toDelete == expected
@@ -100,53 +106,57 @@ class ShrinkClusterTaskSpec extends Specification {
     //test data generation is a bit dirty - serverGroups is the data set, expectedItems is the indexes in that set in deletion
     //order
     //each invocation of mkSG creates a 'newer' ServerGroup than any previous invocation
-    allowDeleteActive | shrinkToSize | retainLargerOverNewer | serverGroups                                                    | expectedItems | desc
-    true              | 1            | true                  | [mkSG(), mkSG(instances: 11), mkSG(instances: 9)]               | [0, 2]        | 'prefers size over age when retainLargerOverNewer'
-    true              | 1            | false                 | [mkSG(), mkSG(instances: 11), mkSG(instances: 9)]               | [1, 0]        | 'prefers age over size when not retainLargerOverNewer'
-    false             | 1            | true                  | [mkSG(), mkSG(instances: 11), mkSG(instances: 9)]               | []            | 'dont delete any active if allowDeleteActive is false'
-    false             | 1            | true                  | [mkSG(health: 'Down'), mkSG(instances: 11), mkSG(instances: 9)] | [0]           | 'if at least shrinkToSize active groups are retained, dont delete'
-    true              | 1            | true                  | [mkSG(), mkSG(), mkSG()]                                        | [1, 0]        | 'falls through to createdTime if size is equal'
-    true              | 2            | false                 | [mkSG(), mkSG(), mkSG()]                                        | [0]           | 'keeps shrinkToSize items'
-    true              | 4            | true                  | [mkSG(), mkSG(), mkSG()]                                        | []            | 'deletes nothing if less serverGroups than shrinkToSize'
+    allowDeleteActive | shrinkToSize | retainLargerOverNewer | serverGroups                                                       | expectedItems | desc
+    true              | 1            | true                  | [mkTSG(), mkTSG(instances: 11), mkTSG(instances: 9)]               | [0, 2]        | 'prefers size over age when retainLargerOverNewer'
+    true              | 1            | false                 | [mkTSG(), mkTSG(instances: 11), mkTSG(instances: 9)]               | [1, 0]        | 'prefers age over size when not retainLargerOverNewer'
+    false             | 1            | true                  | [mkTSG(), mkTSG(instances: 11), mkTSG(instances: 9)]               | []            | 'dont delete any active if allowDeleteActive is false'
+    false             | 1            | true                  | [mkTSG(health: 'Down'), mkTSG(instances: 11), mkTSG(instances: 9)] | [0]           | 'if at least shrinkToSize active groups are retained, dont delete'
+    true              | 1            | true                  | [mkTSG(), mkTSG(), mkTSG()]                                        | [1, 0]        | 'falls through to createdTime if size is equal'
+    true              | 2            | false                 | [mkTSG(), mkTSG(), mkTSG()]                                        | [0]           | 'keeps shrinkToSize items'
+    true              | 4            | true                  | [mkTSG(), mkTSG(), mkTSG()]                                        | []            | 'deletes nothing if less serverGroups than shrinkToSize'
 
     expected = expectedItems.collect { serverGroups[it] }
+    account = 'test'
+    location = new Location(Location.Type.REGION, 'us-east-1')
+    cloudProvider = 'aws'
+
   }
 
   def 'instanceCount prefers larger'() {
-    def larger = mkSG(instances: 10)
-    def smaller = mkSG(instances: 9)
+    def larger = mkTSG(instances: 10)
+    def smaller = mkTSG(instances: 9)
 
     expect:
     [smaller, larger].sort(true, new InstanceCount()) == [larger, smaller]
   }
 
   def 'createdTime prefers newer'() {
-    def older = mkSG()
-    def newer = mkSG()
+    def older = mkTSG()
+    def newer = mkTSG()
 
     expect:
     [older, newer].sort(true, new CreatedTime()) == [newer, older]
   }
 
   def 'isActive prefers active'() {
-    def inactive = mkSG(health: 'OutOfService')
-    def active = mkSG()
+    def inactive = mkTSG(health: 'OutOfService')
+    def active = mkTSG()
 
     expect:
     [inactive, active].sort(true, new IsActive()) == [active, inactive]
   }
 
   def 'empty instances is inactive'() {
-    def inactive = mkSG(instances: 0)
-    def active = mkSG()
+    def inactive = mkTSG(instances: 0)
+    def active = mkTSG()
 
     expect:
     [inactive, active].sort(true, new IsActive()) == [active, inactive]
   }
 
   def 'compositeComparator applies in order'() {
-    def olderButBigger = mkSG(instances: 10)
-    def newerButSmaller = mkSG(instances: 5)
+    def olderButBigger = mkTSG(instances: 10)
+    def newerButSmaller = mkTSG(instances: 5)
     def items = [olderButBigger, newerButSmaller]
 
     expect:
@@ -165,6 +175,10 @@ class ShrinkClusterTaskSpec extends Specification {
       retainLargerOverNewer: retainLargerOverNewer
 
     ]
+  }
+
+  private TargetServerGroup mkTSG(Map params = [:]) {
+    return new TargetServerGroup(serverGroup: mkSG(params))
   }
 
   private Map<String, Object> mkSG(Map params = [:]) {

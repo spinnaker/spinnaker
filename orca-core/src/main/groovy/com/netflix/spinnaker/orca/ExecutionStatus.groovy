@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca
 
 import groovy.transform.CompileStatic
+import org.springframework.batch.core.ExitStatus
 
 @CompileStatic
 enum ExecutionStatus {
@@ -24,47 +25,52 @@ enum ExecutionStatus {
   /**
    * The task has yet to start.
    */
-  NOT_STARTED(false, false),
+  NOT_STARTED(false, false, ExitStatus.EXECUTING),
 
   /**
    * The task is still running and the {@code Task} may be re-executed in order
    * to continue.
    */
-    RUNNING(false, false),
+    RUNNING(false, false, ExitStatus.EXECUTING),
 
   /**
    * The task is complete but the pipeline should now be stopped pending a
    * trigger of some kind.
    */
-    SUSPENDED(false, false),
+    SUSPENDED(false, false, ExitStatus.STOPPED),
 
   /**
    * The task executed successfully and the pipeline may now proceed to the next
    * task.
    */
-    SUCCEEDED(true, false),
+    SUCCEEDED(true, false, ExitStatus.COMPLETED),
 
   /**
    * The task failed and the pipeline should be able to recover through
    * subsequent steps.
    */
-    FAILED(true, true),
+    FAILED(true, true, ExitStatus.FAILED),
 
   /**
    * The task failed and the failure was terminal. The pipeline will not
    * progress any further.
    */
-    TERMINAL(true, true),
+    TERMINAL(true, true, ExitStatus.FAILED),
 
   /**
    * The task was canceled. The pipeline will not progress any further.
    */
-    CANCELED(true, true),
+    CANCELED(true, true, ExitStatus.STOPPED),
 
   /**
    * The step completed but is indicating that a decision path should be followed, not the default path.
    */
-    REDIRECT(false, false)
+    REDIRECT(false, false, new ExitStatus("REDIRECT")),
+
+  /**
+   * The task was stopped. The pipeline will not progress any further.
+   */
+    STOPPED(true, true, ExitStatus.STOPPED)
 
   /**
    * Indicates that the task/stage/pipeline has finished its work (successfully or not).
@@ -76,8 +82,11 @@ enum ExecutionStatus {
    */
   final boolean halt
 
-  ExecutionStatus(boolean complete, boolean halt) {
+  final ExitStatus exitStatus
+
+  ExecutionStatus(boolean complete, boolean halt, ExitStatus exitStatus) {
     this.complete = complete
     this.halt = halt
+    this.exitStatus = exitStatus
   }
 }

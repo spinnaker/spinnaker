@@ -67,6 +67,23 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     execution << [new Pipeline(buildTime: 0), new Orchestration(id: "a-preassigned-id")]
   }
 
+  def "can update an execution's context"() {
+    given:
+    repository.store(execution)
+
+    when:
+    repository.storeExecutionContext(execution.id, ["value": execution.class.simpleName])
+    def storedExecution = (execution instanceof Pipeline) ? repository.retrievePipeline(execution.id) : repository.retrieveOrchestration(execution.id)
+
+    then:
+    storedExecution.id == execution.id
+    storedExecution.context == ["value": storedExecution.class.simpleName]
+
+    where:
+    execution << [new Pipeline(buildTime: 0), new Orchestration(id: "a-preassigned-id")]
+  }
+
+
   def "a pipeline can be retrieved after being stored"() {
     given:
     repository.store(pipeline)
@@ -230,6 +247,49 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     new Orchestration()        | TERMINAL
 
     type = execution.getClass().simpleName
+  }
+
+  def "cancelling a not-yet-started execution updates the status immediately"() {
+    given:
+    def execution = new Pipeline(buildTime: 0)
+    repository.store(execution)
+
+    expect:
+    with(repository.retrievePipeline(execution.id)) {
+      executionStatus == NOT_STARTED
+    }
+
+    when:
+    repository.cancel(execution.id)
+
+
+    then:
+    with(repository.retrievePipeline(execution.id)) {
+      canceled
+      executionStatus == CANCELED
+    }
+  }
+
+  def "cancelling a running execution does not update the status immediately"() {
+    given:
+    def execution = new Pipeline(buildTime: 0)
+    repository.store(execution)
+    repository.updateStatus(execution.id, RUNNING)
+
+    expect:
+    with(repository.retrievePipeline(execution.id)) {
+      executionStatus == RUNNING
+    }
+
+    when:
+    repository.cancel(execution.id)
+
+
+    then:
+    with(repository.retrievePipeline(execution.id)) {
+      canceled
+      executionStatus == RUNNING
+    }
   }
 }
 

@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.Location
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractWaitForClusterWideClouddriverTask.DeployServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
@@ -24,28 +27,38 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 
-class WaitForClusterShrinkTaskSpec extends Specification {
+class AbstractWaitForClusterWideClouddriverTaskSpec extends Specification {
   private static final String application = 'bar'
   private static final String cluster = 'bar'
   private static final String credentials = 'test'
   private static final String cloudProvider = 'aws'
+  private static final String region = 'us-east-1'
+
+  static class TestTask extends AbstractWaitForClusterWideClouddriverTask {
+    @Override
+    boolean isServerGroupOperationInProgress(Optional<TargetServerGroup> serverGroup) {
+      return serverGroup.isPresent()
+    }
+  }
 
   OortHelper oortHelper = Mock(OortHelper)
-  @Subject WaitForClusterShrinkTask task = new WaitForClusterShrinkTask(oortHelper: oortHelper)
+  @Subject TestTask task = new TestTask(oortHelper: oortHelper)
 
-  def 'uses deploy.server.groups to populate inital waitingOnDestroy list'() {
+  def 'uses deploy.server.groups to populate inital remainingDeployServerGroups list'() {
     when:
-    def result = task.execute(stage(['deploy.server.groups': deployServerGroups]))
+    def result = task.execute(stage(['deploy.server.groups': deployServerGroups, regions: regions]))
 
     then:
     1 * oortHelper.getCluster(application, credentials, cluster, cloudProvider) >> Optional.of([serverGroups: serverGroups])
 
     result.status == ExecutionStatus.RUNNING
-    result.stageOutputs.waitingOnDestroy == serverGroups
+    result.stageOutputs.remainingDeployServerGroups == expected
 
     where:
-    deployServerGroups = [r1: ['s1', 's2'], r2: ['s3', 's4']]
-    serverGroups = deployServerGroups.collect { k, v -> v.collect { [region: k, name: it]}}.flatten()
+    serverGroups = [sg('s1', 'r1'), sg('s2', 'r1'), sg('s3', 'r2'), sg('s4', 'r2')]
+    deployServerGroups = serverGroups.groupBy { it.region }.collectEntries { k, v -> [(k): v.collect { it.name }]}
+    expected = serverGroups.collect { new DeployServerGroup(new Location(Location.Type.REGION, it.region), it.name) }
+    regions = ['r1', 'r2']
   }
 
 
@@ -54,41 +67,40 @@ class WaitForClusterShrinkTaskSpec extends Specification {
     task.execute(stage([:])).status == ExecutionStatus.SUCCEEDED
   }
 
-  def 'succeeds if no cluster present'() {
+  def 'fails if no cluster present'() {
     when:
-    def result = task.execute(stage([waitingOnDestroy: [sg('c1')]]))
+    def result = task.execute(stage([remainingDeployServerGroups: [dsg('c1')]]))
 
     then:
     1 * oortHelper.getCluster(application, credentials, cluster, cloudProvider) >> Optional.empty()
 
-    result.status == ExecutionStatus.SUCCEEDED
+    thrown(IllegalStateException)
   }
 
-  def 'succeeds if no server groups in cluster'() {
+  def 'fails if no server groups in cluster'() {
     when:
-    def result = task.execute(stage([waitingOnDestroy: [sg('c1')]]))
+    def result = task.execute(stage([remainingDeployServerGroups: [dsg('c1')]]))
 
     then:
     1 * oortHelper.getCluster(application, credentials, cluster, cloudProvider) >> Optional.of([serverGroups: []])
 
-    result.status == ExecutionStatus.SUCCEEDED
-
+    thrown(IllegalStateException)
   }
 
   def 'runs while there are still server groups'() {
     when:
-    def result = task.execute(stage([waitingOnDestroy: [sg('c1'), sg('c2')]]))
+    def result = task.execute(stage([remainingDeployServerGroups: [dsg('c1'), dsg('c2')]]))
 
     then:
     1 * oortHelper.getCluster(application, credentials, cluster, cloudProvider) >> Optional.of([serverGroups: [sg('c1')]])
 
     result.status == ExecutionStatus.RUNNING
-    result.stageOutputs.waitingOnDestroy == [sg('c1')]
+    result.stageOutputs.remainingDeployServerGroups == [dsg('c1')]
   }
 
   def 'finishes when last serverGroups disappear'() {
     when:
-    def result = task.execute(stage([waitingOnDestroy: [sg('c1')]]))
+    def result = task.execute(stage([remainingDeployServerGroups: [dsg('c1')]]))
 
     then:
     1 * oortHelper.getCluster(application, credentials, cluster, cloudProvider) >> Optional.of([serverGroups: [sg('c2'), sg('c3')]])
@@ -97,15 +109,20 @@ class WaitForClusterShrinkTaskSpec extends Specification {
   }
 
 
-  Map sg(String name, String region = 'e1') {
-    [name: name, region: region]
+  Map sg(String name, String r = region) {
+    [name: name, region: r, type: cloudProvider]
+  }
+
+  DeployServerGroup dsg(String name, String r = region) {
+    new DeployServerGroup(new Location(Location.Type.REGION, r), name)
   }
 
   Stage stage(Map context) {
     def base = [
       cluster: cluster,
       credentials: credentials,
-      cloudProvider: cloudProvider
+      cloudProvider: cloudProvider,
+      regions: [region]
     ]
     new PipelineStage(new Pipeline(), 'shrinkCluster', base + context)
   }
