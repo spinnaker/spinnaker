@@ -49,30 +49,8 @@ aws:
         virtualName: ephemeral0
       - deviceName: /dev/sdc
         virtualName: ephemeral1
-
   defaultRegions:
-   - name: eu-west-1
-     availabilityZones:
-     - eu-west-1a
-     - eu-west-1b
-     - eu-west-1c
-   - name: us-east-1
-     availabilityZones:
-     - us-east-1a
-     - us-east-1b
-     - us-east-1c
-     - us-east-1d
-     - us-east-1e
-   - name: us-west-1
-     availabilityZones:
-     - us-west-1a
-     - us-west-1b
-     - us-west-1c
-   - name: us-west-2
-     availabilityZones:
-     - us-west-2a
-     - us-west-2b
-     - us-west-2c
+    - name: us-east-1
   defaultKeyPairTemplate: '{{name}}-keypair'
 
   # an empty list means we are directly managing the AWS account we have credentials for (named default.account.env)
