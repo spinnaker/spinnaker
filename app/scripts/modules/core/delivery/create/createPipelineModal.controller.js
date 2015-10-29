@@ -9,7 +9,13 @@ module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
   .controller('CreatePipelineModalCtrl', function($scope, application,
                                                   _, pipelineConfigService, $modalInstance, $log) {
 
-    var noTemplate = {name: 'None', stages: [], triggers: [], application: application.name};
+    var noTemplate = {
+      name: 'None',
+      stages: [],
+      triggers: [],
+      application: application.name,
+      limitConcurrent: true
+    };
 
     $scope.viewState = {};
 

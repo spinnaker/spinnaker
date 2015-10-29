@@ -1,0 +1,68 @@
+<div class="execution" id="execution-{{vm.execution.id}}">
+  <execution-status execution="vm.execution" filter="vm.filter">
+  </execution-status>
+  <div class="execution-bar">
+    <div class="stages">
+      <div ng-repeat="stage in vm.execution.stageSummaries"
+           class="clickable stage execution-status execution-status-{{stage.status.toLowerCase()}}"
+           ng-class="{active: vm.isActive($index), glowing: stage.isRunning}"
+           ng-style="{width: 100/vm.execution.stageSummaries.length + '%', 'background-color': stage.color}"
+           uib-tooltip-template="stage.labelTemplateUrl"
+           tooltip-title="(Click for details)"
+           tooltip-placement="bottom"
+           ng-click="vm.toggleDetails({executionId: vm.execution.id, index: $index})"></div>
+      <div ng-if="!vm.execution.stageSummaries.length" class="text-center">
+        No stages found.
+        <a target="_blank" ng-href="{{vm.pipelinesUrl + vm.execution.id}}">Source</a>
+      </div>
+    </div>
+    <div class="execution-summary">
+      Status: <span class="status execution-status execution-status-{{vm.execution.status.toLowerCase()}}">{{vm.execution.status}}</span>
+      <span class="pull-right">Duration: {{vm.execution.runningTimeInMs | duration}}</span>
+    </div>
+  </div>
+  <div class="execution-actions">
+    <a href
+       ng-if="!vm.execution.isActive"
+       ng-click="vm.deleteExecution(); $event.stopPropagation();"
+       uib-tooltip="Delete execution">
+      <span class="glyphicon glyphicon-trash"></span>
+    </a>
+    <a href
+       ng-if="vm.execution.isActive"
+       ng-click="vm.cancelExecution(); $event.stopPropagation();"
+       uib-tooltip="Cancel execution">
+      <span class="glyphicon glyphicon-remove-circle"></span>
+    </a>
+  </div>
+
+  <div ng-if="vm.showDetails()" class="execution-graph">
+    <a href
+       class="hide-details-link"
+       ng-if="vm.execution.parallel"
+       ui-sref=".">
+      Hide Details <span class="glyphicon glyphicon-remove"></span>
+    </a>
+    <pipeline-graph ng-if="vm.execution.parallel"
+                    execution="vm.execution"
+                    on-node-click="vm.toggleDetails"
+                    view-state="vm.viewState">
+
+    </pipeline-graph>
+  </div>
+
+  <div ng-if="vm.showDetails()" class="execution-details">
+    <div class="row">
+      <execution-details execution="vm.execution">
+      </execution-details>
+    </div>
+    <div class="row permalinks text-right">
+      <div class="col-md-12">
+        <a target="_blank" ng-href="{{vm.pipelinesUrl + vm.execution.id}}">Source</a>
+        |
+        <a target="_blank" ng-href="{{vm.getUrl()}}">Permalink</a>
+        <copy-to-clipboard text="{{vm.getUrl()}}" tool-tip="Copy permalink to clipboard"></copy-to-clipboard>
+      </div>
+    </div>
+  </div>
+</div>

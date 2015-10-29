@@ -1,0 +1,47 @@
+@import "../../../presentation/less/imports/commonImports.less";
+
+.execution-actions {
+  display: inline-block;
+  width: 20px;
+  vertical-align: top;
+  padding-top: 20px;
+  margin-left: 6px;
+  .glyphicon-remove-circle {
+    color: @unhealthy_red;
+  }
+}
+.execution-summary {
+  padding: 0 5px 5px;
+  font-size: 90%;
+}
+
+execution-details-section-nav {
+  margin-left: 15px;
+  display: block;
+}
+
+execution-status {
+  display: inline-block;
+  width: 180px;
+}
+.execution-bar {
+  display: inline-block;
+  width: calc(~"100% - 215px");
+  vertical-align: top;
+  padding-top: 20px;
+  .stage {
+    margin-top: 0;
+    display: inline-block;
+    height: 20px;
+    opacity: 0.65;
+    &:hover, &.active {
+      opacity: 1;
+    }
+    &.active {
+      border: 1px solid @dark_grey;
+    }
+    &.glowing {
+      .glowing(2.5);
+    }
+  }
+}

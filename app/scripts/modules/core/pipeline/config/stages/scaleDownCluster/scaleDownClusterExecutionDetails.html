@@ -1,0 +1,53 @@
+<div ng-controller="ScaleDownClusterExecutionDetailsCtrl">
+    <execution-details-section-nav sections="configSections"></execution-details-section-nav>
+    <div class="step-section-details" ng-if="detailsSection === 'scaleDownClusterConfig'">
+        <div class="row">
+            <div class="col-md-9">
+                <dl class="dl-narrow dl-horizontal">
+                    <dt>Account</dt>
+                    <dd>
+                        <account-tag account="stage.context.credentials"></account-tag>
+                    </dd>
+                    <dt>Region</dt>
+                    <dd>{{stage.context.regions.join(', ')}}</dd>
+                    <dt>Cluster</dt>
+                    <dd>{{stage.context.cluster}}</dd>
+                    <dt>Keep Full Size</dt>
+                    <dd>{{stage.context.remainingFullSizeServerGroups}}</dd>
+                    <dt>Scale Active?</dt>
+                    <dd>{{stage.context.allowScaleDownActive}}</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="row" ng-if="stage.context['deploy.server.groups']">
+            <div class="col-md-11">
+                <dl class="dl-narrow dl-horizontal">
+                    <dt>Scaled down:</dt><dd></dd>
+                    <dt ng-repeat-start="(region, servergroups) in stage.context['deploy.server.groups']">{{region}}</dt>
+                    <dd ng-repeat-end>{{servergroups.join(', ')}}</dd>
+                </dl>
+            </div>
+        </div>
+
+
+        <stage-failure-message is-failed="stage.isFailed" message="ctrl.getException(stage)"></stage-failure-message>
+
+        <div class="row" ng-if="stage.context.execution.logs">
+            <div class="col-md-12">
+                <div class="well alert alert-info">
+                    <!-- TODO: Move this to config -->
+                    <a target="_blank" href="{{stage.context.execution.logs}}">
+                        View Execution Logs
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+        <div class="row">
+            <execution-step-details item="stage"></execution-step-details>
+        </div>
+    </div>
+</div>
