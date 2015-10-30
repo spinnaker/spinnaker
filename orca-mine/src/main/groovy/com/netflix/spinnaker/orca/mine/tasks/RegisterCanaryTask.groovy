@@ -23,11 +23,13 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.mine.pipeline.DeployCanaryStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.client.Response
 
 @Component
+@Slf4j
 class RegisterCanaryTask implements Task {
 
   @Autowired
@@ -39,6 +41,8 @@ class RegisterCanaryTask implements Task {
     Stage deployStage = stage.execution.stages.find { it.parentStageId == stage.parentStageId && it.type == DeployCanaryStage.PIPELINE_CONFIG_TYPE }
 
     Map c = buildCanary(app, deployStage)
+
+    log.info("Registering Canary (executionId: ${stage.execution.id}, canary: ${c})")
     Response response = mineService.registerCanary(c)
     String canaryId
     if (response.status == 200 && response.body.mimeType().startsWith('text/plain')) {

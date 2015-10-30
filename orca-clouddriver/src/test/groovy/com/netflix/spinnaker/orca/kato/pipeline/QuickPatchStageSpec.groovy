@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -30,7 +31,6 @@ import org.springframework.batch.core.repository.JobRepository
 import org.springframework.context.ApplicationContext
 import org.springframework.transaction.PlatformTransactionManager
 import redis.clients.jedis.Jedis
-import redis.clients.jedis.JedisPool
 import redis.clients.util.Pool
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -90,7 +90,7 @@ class QuickPatchStageSpec extends Specification {
     ]
 
     and:
-    def stage = new PipelineStage(null, "quickPatch", config)
+    def stage = new PipelineStage(new Pipeline(), "quickPatch", config)
     stage.beforeStages = new NeverClearedArrayList()
     stage.afterStages = new NeverClearedArrayList()
 
@@ -120,7 +120,7 @@ class QuickPatchStageSpec extends Specification {
     and:
     1 * oortHelper.getInstancesForCluster(config, null, true, false) >> expectedInstances
 
-    def stage = new PipelineStage(null, "quickPatch", config)
+    def stage = new PipelineStage(new Pipeline(), "quickPatch", config)
     stage.beforeStages = new NeverClearedArrayList()
     stage.afterStages = new NeverClearedArrayList()
 
@@ -156,7 +156,7 @@ class QuickPatchStageSpec extends Specification {
 
   def "configures rolling quickpatch"() {
     given:
-    def stage = new PipelineStage(null, "quickPatch", config)
+    def stage = new PipelineStage(new Pipeline(), "quickPatch", config)
     stage.beforeStages = new NeverClearedArrayList()
     stage.afterStages = new NeverClearedArrayList()
 
