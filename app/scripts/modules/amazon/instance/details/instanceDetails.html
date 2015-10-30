@@ -165,6 +165,15 @@
               tool-tip="Copy to clipboard">
           </copy-to-clipboard>
         </dd>
+        <dt ng-if="instance.secureVipAddress && instance.secureVipAddress.length > 0">Secure VIP Address:</dt>
+        <dd ng-repeat="address in instance.secureVipAddress">
+          <a href="http://{{address}}" target="_blank">{{address}}</a>
+          <copy-to-clipboard
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="{{address}}"
+              tool-tip="Copy to clipboard">
+          </copy-to-clipboard>
+        </dd>
       </dl>
     </collapsible-section>
     <collapsible-section ng-if="!instance.notFound" heading="Security Groups">
