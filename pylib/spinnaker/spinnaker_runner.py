@@ -279,6 +279,13 @@ class Runner(object):
       'providers.aws.primaryCredentials.secret_key')
     if key_id:
       environ['AWS_ACCESS_KEY_ID'] = environ.get('AWS_ACCESS_KEY_ID', key_id)
+
+      # TODO(ewiseblatt): 20151030
+      # http://docs.aws.amazon.com/AWSSdkDocsJava/latest/DeveloperGuide/credentials.html
+      # suggests the proper key is AWS_ACCESS_KEY_ID however this appears not
+      # to work (when running from gradle). Instead the key needs to be
+      # AWS_ACCESS_KEY, so we will set both for now.
+      environ['AWS_ACCESS_KEY'] = environ.get('AWS_ACCESS_KEY', key_id)
     if secret_key:
       environ['AWS_SECRET_KEY'] = environ.get('AWS_SECRET_KEY', secret_key)
 
