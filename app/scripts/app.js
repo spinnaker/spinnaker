@@ -142,6 +142,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/core/account/accountLabelColor.directive.js'),
     require('./modules/core/history/recentHistory.service.js'),
     require('./config.js'),
+    require('./modules/core/canary'),
 ])
   .run(function($state, $rootScope, $log, cacheInitializer, $uibModalStack, pageTitleService, settings, recentHistoryService) {
     // This can go away when the next version of ui-router is available (0.2.11+)
