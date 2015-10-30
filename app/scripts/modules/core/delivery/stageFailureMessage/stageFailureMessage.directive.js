@@ -10,6 +10,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionDetails.stageF
       scope: {
         isFailed: '=',
         message: '=',
+        messages: '=',
       },
     };
   }).name;
