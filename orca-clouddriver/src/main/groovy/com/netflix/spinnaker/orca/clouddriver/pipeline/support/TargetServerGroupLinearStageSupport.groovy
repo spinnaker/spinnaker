@@ -118,7 +118,7 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
     }
 
     def locationValues = params.locations.collect { it.value }
-    def locationType = params.locations[0].type.toString().toLowerCase() + "s" // "regions" or "zones" (plural!)
+    def locationType = params.locations[0].pluralType()
 
     Map dtsgContext = new HashMap(stage.context)
     dtsgContext[locationType] = new ArrayList(locationValues)
