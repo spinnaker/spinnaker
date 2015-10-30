@@ -273,13 +273,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       };
     }
 
-    function pipelineUpdated(newVal, oldVal) {
-      if (newVal && oldVal && newVal.name !== oldVal.name) {
-        $scope.viewState.original = null;
-      }
-      markDirty();
-    }
-
     var markDirty = function markDirty() {
       if (!$scope.viewState.original) {
         $scope.viewState.original = angular.toJson(getPlain($scope.pipeline));
@@ -303,7 +296,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
 
     $scope.$on('toggle-expansion', (event, expanded) => $scope.viewState.expanded = expanded);
 
-    $scope.$watch('pipeline', pipelineUpdated, true);
+    $scope.$watch('pipeline', markDirty, true);
     $scope.$watch('viewState.original', markDirty, true);
     $scope.$watch('viewState', cacheViewState, true);
     $scope.$watch('pipeline.name', cacheViewState);
