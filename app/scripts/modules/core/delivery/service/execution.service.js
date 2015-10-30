@@ -39,7 +39,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       }
       executions.forEach((execution) => {
         let stringVal = JSON.stringify(execution);
-        // do not transform if it hasn't changed unless requested
+        // do not transform if it hasn't changed
         let match = (application.executions || []).filter((test) => test.id === execution.id);
         if (!match.length || !match[0].stringVal || match[0].stringVal !== stringVal) {
           execution.stringVal = stringVal;

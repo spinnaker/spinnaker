@@ -130,10 +130,15 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
           $scope.instance.vpcId = vpcId;
           $scope.instance.loadBalancers = loadBalancers;
           var discoveryMetric = _.find($scope.healthMetrics, function(metric){ return metric.type === 'Discovery'; });
-          if( discoveryMetric && discoveryMetric.vipAddress) {
+          if (discoveryMetric && discoveryMetric.vipAddress) {
             var vipList = discoveryMetric.vipAddress;
             let vipAddress = vipList.contains(',') ? vipList.split(',') : [vipList];
             $scope.instance.vipAddress = _.uniq(vipAddress);
+          }
+          if (discoveryMetric && discoveryMetric.secureVipAddress) {
+            var secureVipList = discoveryMetric.secureVipAddress;
+            let secureVipAddress = secureVipList.contains(',') ? secureVipList.split(',') : [secureVipList];
+            $scope.instance.secureVipAddress = _.uniq(secureVipAddress);
           }
           $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
         },
