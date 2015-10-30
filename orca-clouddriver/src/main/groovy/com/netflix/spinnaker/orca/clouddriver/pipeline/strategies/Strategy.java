@@ -14,25 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.clouddriver.pipeline.support
+package com.netflix.spinnaker.orca.clouddriver.pipeline.strategies;
 
-import groovy.transform.Immutable
-import groovy.transform.ToString
+import com.netflix.spinnaker.orca.kato.pipeline.Nameable;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
 
-@ToString(includeNames = true)
-@Immutable
-class Location {
-  enum Type {
-    REGION,
-    ZONE
-  }
-  Type type
-  String value
+interface Strategy extends Nameable {
+  void composeFlow(Stage stage);
 
-  /**
-   * @return The all lowercase, plural form of this location type ("regions" or "zones")
-   */
-  String pluralType() {
-    return this.type.toString().toLowerCase() + "s"
+  default boolean replacesBasicSteps() {
+    return false;
   }
 }
