@@ -222,7 +222,7 @@ function print_run_book_reference() {
 cat <<EOF
 
 For more help, see the Spinnaker Build & Run Book:
-https://docs.google.com/document/d/1Q_ah8eG3Imyw-RWS1DSp_ItM2pyn56QEepCeaOAPaKA
+  https://docs.google.com/document/d/1Q_ah8eG3Imyw-RWS1DSp_ItM2pyn56QEepCeaOAPaKA
 
 EOF
 }
