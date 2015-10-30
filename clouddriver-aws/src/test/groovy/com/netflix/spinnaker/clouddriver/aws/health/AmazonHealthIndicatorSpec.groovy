@@ -28,21 +28,6 @@ import spock.lang.Specification
 
 class AmazonHealthIndicatorSpec extends Specification {
 
-  def "health fails when no aws credentials are available"() {
-    setup:
-    def holder = Mock(AccountCredentialsProvider)
-    def creds = []
-    holder.getAll() >> creds
-    def indicator = new AmazonHealthIndicator(accountCredentialsProvider: holder)
-
-    when:
-    indicator.checkHealth()
-    indicator.health()
-
-    then:
-    thrown AmazonHealthIndicator.AmazonCredentialsNotFoundException
-  }
-
   def "health fails when amazon appears unreachable"() {
     setup:
     def creds = [credential('foo')]

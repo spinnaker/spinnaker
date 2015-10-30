@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.cats.agent;
+package com.netflix.spinnaker.clouddriver.events
 
-/**
- * An AgentScheduler manages the execution of a CachingAgent.
- */
-public interface AgentScheduler {
-    void schedule(Agent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation);
-    default void unschedule(Agent agent) {};
+import org.springframework.context.ApplicationEvent
+
+class ConfigRefreshedEvent extends ApplicationEvent {
+  public ConfigRefreshedEvent(Object source) {
+    super(source)
+  }
 }

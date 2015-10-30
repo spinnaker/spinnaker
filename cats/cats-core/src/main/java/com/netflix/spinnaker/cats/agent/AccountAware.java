@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,12 @@
 package com.netflix.spinnaker.cats.agent;
 
 /**
- * An AgentScheduler manages the execution of a CachingAgent.
+ * This interface is used to identify classes (typically Agents) that are capable of returning the name of the account
+ * they are associated with.
  */
-public interface AgentScheduler {
-    void schedule(Agent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation);
-    default void unschedule(Agent agent) {};
+public interface AccountAware {
+  /**
+   * Get the name of the account this object is associated with.
+   */
+  String getAccountName();
 }

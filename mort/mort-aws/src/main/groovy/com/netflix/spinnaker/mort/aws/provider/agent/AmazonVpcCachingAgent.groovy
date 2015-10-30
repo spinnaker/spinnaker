@@ -18,6 +18,7 @@ package com.netflix.spinnaker.mort.aws.provider.agent
 
 import com.amazonaws.services.ec2.model.Vpc
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -37,7 +38,7 @@ import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.VPCS
 import groovy.util.logging.Slf4j
 
 @Slf4j
-class AmazonVpcCachingAgent implements CachingAgent {
+class AmazonVpcCachingAgent implements CachingAgent, AccountAware {
 
   final AmazonCloudProvider amazonCloudProvider
   final AmazonClientProvider amazonClientProvider
@@ -69,6 +70,11 @@ class AmazonVpcCachingAgent implements CachingAgent {
   @Override
   String getAgentType() {
     "${account.name}/${region}/${AmazonVpcCachingAgent.simpleName}"
+  }
+
+  @Override
+  String getAccountName() {
+    account.name
   }
 
   @Override

@@ -16,9 +16,13 @@
 
 package com.netflix.spinnaker.cats.agent;
 
+import com.netflix.spinnaker.cats.module.CatsModuleAware;
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -31,12 +35,13 @@ import java.util.concurrent.TimeUnit;
  * An exception thrown while reporting executionFailure will abort the schedule for
  * the CachingAgent.
  */
-public class DefaultAgentScheduler implements AgentScheduler {
+public class DefaultAgentScheduler extends CatsModuleAware implements AgentScheduler {
     private static final long DEFAULT_INTERVAL = 60000;
 
     private final ScheduledExecutorService scheduledExecutorService;
     private final long interval;
     private final TimeUnit timeUnit;
+    private final Map<Agent, Future> agentFutures = new ConcurrentHashMap<Agent, Future>();
 
     public DefaultAgentScheduler() {
         this(DEFAULT_INTERVAL);
@@ -58,7 +63,16 @@ public class DefaultAgentScheduler implements AgentScheduler {
 
     @Override
     public void schedule(Agent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
-        scheduledExecutorService.scheduleAtFixedRate(new AgentExecutionRunnable(agent, agentExecution, executionInstrumentation), 0, interval, timeUnit);
+        Future agentFuture =
+          scheduledExecutorService.scheduleAtFixedRate(new AgentExecutionRunnable(agent, agentExecution, executionInstrumentation), 0, interval, timeUnit);
+
+        agentFutures.put(agent, agentFuture);
+    }
+
+    @Override
+    public void unschedule(Agent agent) {
+        agentFutures.get(agent).cancel(false);
+        agentFutures.remove(agent);
     }
 
     private static class AgentExecutionRunnable implements Runnable {

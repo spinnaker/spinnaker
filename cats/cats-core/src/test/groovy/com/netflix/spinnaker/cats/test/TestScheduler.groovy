@@ -20,13 +20,19 @@ import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentExecution
 import com.netflix.spinnaker.cats.agent.AgentScheduler
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
+import com.netflix.spinnaker.cats.module.CatsModuleAware
 
-class TestScheduler implements AgentScheduler {
+class TestScheduler extends CatsModuleAware implements AgentScheduler {
     Collection<Scheduled> scheduled = []
 
     @Override
     void schedule(Agent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
         scheduled << new Scheduled(agent, agentExecution)
+    }
+
+    @Override
+    void unschedule(Agent agent) {
+        scheduled.remove(scheduled.find { it.agent == agent })
     }
 
     void runAll() {

@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProper
 import com.netflix.spinnaker.clouddriver.google.health.GoogleHealthIndicator
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentialsInitializer
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -28,6 +29,7 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.PropertySource
+import org.springframework.context.annotation.Scope
 import org.springframework.scheduling.annotation.EnableScheduling
 
 @Configuration
@@ -38,6 +40,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @PropertySource(value = "classpath:META-INF/clouddriver-core.properties", ignoreResourceNotFound = true)
 @Import([ GoogleCredentialsInitializer ])
 class GoogleConfiguration {
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
   @ConfigurationProperties("google")
   GoogleConfigurationProperties googleConfigurationProperties() {

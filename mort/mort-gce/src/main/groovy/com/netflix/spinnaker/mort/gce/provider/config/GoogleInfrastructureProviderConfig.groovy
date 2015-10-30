@@ -18,16 +18,22 @@ package com.netflix.spinnaker.mort.gce.provider.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.cats.agent.Agent
+import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import com.netflix.spinnaker.mort.gce.provider.GoogleInfrastructureProvider
 import com.netflix.spinnaker.mort.gce.provider.agent.GoogleNetworkCachingAgent
 import com.netflix.spinnaker.mort.gce.provider.agent.GoogleSecurityGroupCachingAgent
+import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
+import org.springframework.context.annotation.Scope
+
+import java.util.concurrent.ConcurrentHashMap
 
 @Configuration
 class GoogleInfrastructureProviderConfig {
@@ -37,17 +43,59 @@ class GoogleInfrastructureProviderConfig {
                                                             AccountCredentialsRepository accountCredentialsRepository,
                                                             ObjectMapper objectMapper,
                                                             Registry registry) {
-    List<CachingAgent> agents = []
+    def googleInfrastructureProvider =
+      new GoogleInfrastructureProvider(googleCloudProvider, Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
 
-    def allAccounts = accountCredentialsRepository.all.findAll {
-      it instanceof GoogleNamedAccountCredentials
-    } as Collection<GoogleNamedAccountCredentials>
+    synchronizeGoogleInfrastructureProvider(googleInfrastructureProvider,
+                                            googleCloudProvider,
+                                            accountCredentialsRepository,
+                                            objectMapper,
+                                            registry)
+
+    googleInfrastructureProvider
+  }
+
+  @Bean
+  GoogleInfrastructureProviderSynchronizerTypeWrapper googleInfrastructureProviderSynchronizerTypeWrapper() {
+    new GoogleInfrastructureProviderSynchronizerTypeWrapper()
+  }
+
+  class GoogleInfrastructureProviderSynchronizerTypeWrapper implements ProviderSynchronizerTypeWrapper {
+    @Override
+    Class getSynchronizerType() {
+      return GoogleInfrastructureProviderSynchronizer
+    }
+  }
+
+  class GoogleInfrastructureProviderSynchronizer {}
+
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  @Bean
+  GoogleInfrastructureProviderSynchronizer synchronizeGoogleInfrastructureProvider(GoogleInfrastructureProvider googleInfrastructureProvider,
+                                                                                   GoogleCloudProvider googleCloudProvider,
+                                                                                   AccountCredentialsRepository accountCredentialsRepository,
+                                                                                   ObjectMapper objectMapper,
+                                                                                   Registry registry) {
+    def scheduledAccounts = ProviderUtils.getScheduledAccounts(googleInfrastructureProvider)
+    def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, GoogleNamedAccountCredentials)
 
     allAccounts.each { GoogleNamedAccountCredentials credentials ->
-      agents << new GoogleSecurityGroupCachingAgent(googleCloudProvider, credentials.accountName, credentials.credentials, objectMapper, registry)
-      agents << new GoogleNetworkCachingAgent(googleCloudProvider, credentials.accountName, credentials.credentials, objectMapper)
+      if (!scheduledAccounts.contains(credentials.accountName)) {
+        def newlyAddedAgents = []
+
+        newlyAddedAgents << new GoogleSecurityGroupCachingAgent(googleCloudProvider, credentials.accountName, credentials.credentials, objectMapper, registry)
+        newlyAddedAgents << new GoogleNetworkCachingAgent(googleCloudProvider, credentials.accountName, credentials.credentials, objectMapper)
+
+        // If there is an agent scheduler, then this provider has been through the AgentController in the past.
+        // In that case, we need to do the scheduling here (because accounts have been added to a running system).
+        if (googleInfrastructureProvider.agentScheduler) {
+          ProviderUtils.rescheduleAgents(googleInfrastructureProvider, newlyAddedAgents)
+        }
+
+        googleInfrastructureProvider.agents.addAll(newlyAddedAgents)
+      }
     }
 
-    new GoogleInfrastructureProvider(googleCloudProvider, agents)
+    new GoogleInfrastructureProviderSynchronizer()
   }
 }

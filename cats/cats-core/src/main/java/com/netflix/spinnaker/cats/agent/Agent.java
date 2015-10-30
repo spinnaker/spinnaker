@@ -31,4 +31,12 @@ public interface Agent {
   String getProviderName();
 
   AgentExecution getAgentExecution(ProviderRegistry providerRegistry);
+
+  default public boolean handlesAccount(String accountName) {
+    if (this instanceof AccountAware) {
+      return accountName.equals(((AccountAware)this).getAccountName());
+    }
+
+    return false;
+  }
 }

@@ -23,6 +23,7 @@ import com.amazonaws.services.ec2.model.StateReason
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -44,7 +45,7 @@ import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.SERVER_GROUPS
 
 @Slf4j
-class InstanceCachingAgent implements CachingAgent {
+class InstanceCachingAgent implements CachingAgent, AccountAware {
 
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
@@ -74,6 +75,11 @@ class InstanceCachingAgent implements CachingAgent {
   @Override
   String getAgentType() {
     "${account.name}/${region}/${InstanceCachingAgent.simpleName}"
+  }
+
+  @Override
+  String getAccountName() {
+    account.name
   }
 
   @Override

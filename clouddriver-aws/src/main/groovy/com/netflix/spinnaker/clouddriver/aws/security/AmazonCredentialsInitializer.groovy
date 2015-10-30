@@ -17,35 +17,52 @@
 package com.netflix.spinnaker.clouddriver.aws.security
 
 import com.amazonaws.auth.AWSCredentialsProvider
+import com.netflix.spinnaker.cats.module.CatsModule
+import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsLoader
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable
+import com.netflix.spinnaker.clouddriver.security.ProviderUtils
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Scope
 
 import static com.amazonaws.regions.Regions.*
 
 @Configuration
 @EnableConfigurationProperties
-class AmazonCredentialsInitializer {
+class AmazonCredentialsInitializer implements CredentialsInitializerSynchronizable  {
+  @Autowired
+  ApplicationContext appContext;
+
+  @Autowired
+  List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers
+
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
   @ConfigurationProperties('aws')
   CredentialsConfig credentialsConfig() {
     new CredentialsConfig()
   }
 
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
   Class<? extends NetflixAmazonCredentials> credentialsType(CredentialsConfig credentialsConfig) {
-    if (!credentialsConfig.accounts) {
+    if (!credentialsConfig.accounts && !credentialsConfig.defaultAssumeRole) {
       NetflixAmazonCredentials
     } else {
       NetflixAssumeRoleAmazonCredentials
     }
   }
 
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
   CredentialsLoader<? extends NetflixAmazonCredentials> credentialsLoader(AWSCredentialsProvider awsCredentialsProvider, Class<? extends NetflixAmazonCredentials> credentialsType) {
     new CredentialsLoader<? extends NetflixAmazonCredentials>(awsCredentialsProvider, credentialsType)
@@ -56,8 +73,17 @@ class AmazonCredentialsInitializer {
                                                                     CredentialsConfig credentialsConfig,
                                                                     AccountCredentialsRepository accountCredentialsRepository,
                                                                     @Value('${default.account.env:default}') String defaultEnv) {
+    synchronizeAmazonAccounts(credentialsLoader, credentialsConfig, accountCredentialsRepository, defaultEnv, null)
+  }
 
-    if (!credentialsConfig.accounts) {
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  @Bean
+  List<?> synchronizeAmazonAccounts(CredentialsLoader<? extends NetflixAmazonCredentials> credentialsLoader,
+                                    CredentialsConfig credentialsConfig,
+                                    AccountCredentialsRepository accountCredentialsRepository,
+                                    @Value('${default.account.env:default}') String defaultEnv,
+                                    CatsModule catsModule) {
+    if (!credentialsConfig.accounts && !credentialsConfig.defaultAssumeRole) {
       credentialsConfig.accounts = [new CredentialsConfig.Account(name: defaultEnv)]
       if (!credentialsConfig.defaultRegions) {
         credentialsConfig.defaultRegions = [US_EAST_1, US_WEST_1, US_WEST_2, EU_WEST_1].collect { new CredentialsConfig.Region(name: it.name) }
@@ -66,10 +92,26 @@ class AmazonCredentialsInitializer {
 
     List<? extends NetflixAmazonCredentials> accounts = credentialsLoader.load(credentialsConfig)
 
-    for (act in accounts) {
-      accountCredentialsRepository.save(act.name, act)
+    def (ArrayList<NetflixAmazonCredentials> accountsToAdd, List<String> namesOfDeletedAccounts) =
+      ProviderUtils.calculateAccountDeltas(accountCredentialsRepository, NetflixAmazonCredentials, accounts)
+
+    accountsToAdd.each { NetflixAmazonCredentials account ->
+      accountCredentialsRepository.save(account.name, account)
     }
 
-    accounts
+    ProviderUtils.unscheduleAndDeregisterAgents(namesOfDeletedAccounts, catsModule)
+
+    if ((namesOfDeletedAccounts || accountsToAdd) && catsModule) {
+      ProviderUtils.synchronizeAgentProviders(appContext, providerSynchronizerTypeWrappers)
+    }
+
+    accountCredentialsRepository.all.findAll {
+      it instanceof NetflixAmazonCredentials
+    } as List
+  }
+
+  @Override
+  String getCredentialsSynchronizationBeanName() {
+    return "synchronizeAmazonAccounts"
   }
 }

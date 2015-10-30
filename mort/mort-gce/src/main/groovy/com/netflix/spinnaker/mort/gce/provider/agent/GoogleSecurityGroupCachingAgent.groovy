@@ -19,6 +19,7 @@ package com.netflix.spinnaker.mort.gce.provider.agent
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.model.Firewall
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -37,7 +38,7 @@ import groovy.util.logging.Slf4j
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 
 @Slf4j
-class GoogleSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
+class GoogleSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
 
   @Deprecated
   private static final String LEGACY_ON_DEMAND_TYPE = 'GoogleSecurityGroup'
@@ -75,6 +76,11 @@ class GoogleSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
   @Override
   String getAgentType() {
     "${accountName}/global/${GoogleSecurityGroupCachingAgent.simpleName}"
+  }
+
+  @Override
+  String getAccountName() {
+    accountName
   }
 
   @Override

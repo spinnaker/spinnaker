@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,23 @@
 package com.netflix.spinnaker.cats.agent;
 
 /**
- * An AgentScheduler manages the execution of a CachingAgent.
+ * This class is used to identify classes (typically Providers or Agents) that are capable of returning the agent
+ * scheduler they are associated with.
  */
-public interface AgentScheduler {
-    void schedule(Agent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation);
-    default void unschedule(Agent agent) {};
+public abstract class AgentSchedulerAware {
+  private AgentScheduler agentScheduler;
+
+  /**
+   * Set this object's agent scheduler.
+   */
+  public void setAgentScheduler(AgentScheduler agentScheduler) {
+    this.agentScheduler = agentScheduler;
+  };
+
+  /**
+   * Get this object's agent scheduler.
+   */
+  public AgentScheduler getAgentScheduler() {
+    return agentScheduler;
+  };
 }

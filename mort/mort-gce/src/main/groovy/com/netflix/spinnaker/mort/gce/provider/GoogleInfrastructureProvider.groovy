@@ -17,13 +17,14 @@
 package com.netflix.spinnaker.mort.gce.provider
 
 import com.netflix.spinnaker.cats.agent.Agent
+import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.mort.gce.cache.Keys
 
 import static com.netflix.spinnaker.mort.gce.cache.Keys.Namespace.SECURITY_GROUPS
 
-class GoogleInfrastructureProvider implements SearchableProvider {
+class GoogleInfrastructureProvider extends AgentSchedulerAware implements SearchableProvider {
   public static final String PROVIDER_NAME = GoogleInfrastructureProvider.name
 
   private final GoogleCloudProvider googleCloudProvider
@@ -31,7 +32,7 @@ class GoogleInfrastructureProvider implements SearchableProvider {
 
   GoogleInfrastructureProvider(GoogleCloudProvider googleCloudProvider, Collection<Agent> agents) {
     this.googleCloudProvider = googleCloudProvider
-    this.agents = Collections.unmodifiableCollection(agents)
+    this.agents = agents
   }
 
   @Override
