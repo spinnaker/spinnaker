@@ -37,7 +37,7 @@ dev/bootstrap_dev.sh
 ## Configure Spinnaker
 
 We will create a directory for Spinnaker configuration overrides, copy the default configuration template there, and edit to select
-the appropriate cloud provider.
+the appropriate cloud provider(s).
 
 ````bash
 cd $SPINNAKER_HOME
