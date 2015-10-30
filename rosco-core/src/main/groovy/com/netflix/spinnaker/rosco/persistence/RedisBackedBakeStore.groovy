@@ -327,7 +327,7 @@ class RedisBackedBakeStore implements BakeStore {
 
   private Object evalSHA(String scriptName, List<String> keyList, List<String> argList) {
     try {
-      def scriptSHA = scriptNameToSHAMap[scriptName]
+      String scriptSHA = scriptNameToSHAMap[scriptName]
 
       if (!scriptSHA) {
         cacheAllScripts()
