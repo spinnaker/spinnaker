@@ -22,6 +22,19 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.canary.transforme
       return stage.name;
     }
 
+    function getException (stage) {
+      if (stage.context) {
+        if (stage.context.exception && stage.context.exception.details.errors.length) {
+          return stage.context.exception.details.errors.join(', ');
+        }
+        if (stage.context['kato.tasks'] && stage.context['kato.tasks'].length) {
+          var lastTask = stage.context['kato.tasks'][stage.context['kato.tasks'].length-1];
+          return lastTask.exception ? lastTask.exception.message : null;
+        }
+      }
+      return null;
+    }
+
     function buildCanaryDeploymentsFromClusterPairs(stage) {
       return _.map(stage.context.clusterPairs, function (pair) {
         var name = function (cluster) {
@@ -105,6 +118,9 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.canary.transforme
       var syntheticStagesToAdd = [];
       execution.stages.forEach(function(stage) {
         if (stage.type === 'canary') {
+
+          stage.exceptions = [];
+
           var deployParent = _.find(execution.stages, {
             type: 'deployCanary',
             context: {
@@ -125,6 +141,15 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.canary.transforme
           var deployStages = _.filter(execution.stages, {
             type: 'deploy',
             parentStageId: deployParent.id,
+          });
+
+          if (getException(monitorStage)) {
+            stage.exceptions.push('Monitor Canary failure: ' + getException(monitorStage));
+          }
+          deployStages.forEach((deployStage) => {
+            if (getException(deployStage)) {
+              stage.exceptions.push(deployStage.name + ': ' + getException(deployStage));
+            }
           });
 
           stage.context.canary = monitorStage.context.canary || deployParent.context.canary || stage.context.canary;
