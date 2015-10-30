@@ -153,8 +153,15 @@ class OrcaConfiguration {
   }
 
   @Bean
-  ExecutionPropagationListener pipelineStatusPropagationListener(ExecutionRepository executionRepository) {
-    new ExecutionPropagationListener(executionRepository)
+  ExecutionPropagationListener executionPropagationListenerBefore(ExecutionRepository executionRepository) {
+    // need a dedicated beforeJob listener due to how spring boot ordered listeners
+    new ExecutionPropagationListener(executionRepository, true, false)
+  }
+
+  @Bean
+  ExecutionPropagationListener executionPropagationListenerAfter(ExecutionRepository executionRepository) {
+    // need a dedicated afterJob listener due to how spring boot ordered listeners
+    new ExecutionPropagationListener(executionRepository, false, true)
   }
 
   @Bean

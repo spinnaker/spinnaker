@@ -33,12 +33,23 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.*
 class ExecutionPropagationListener extends JobExecutionListenerSupport implements Ordered {
   private final ExecutionRepository executionRepository
 
-  ExecutionPropagationListener(ExecutionRepository executionRepository) {
+  private boolean isBeforeJobEnabled = false
+  private boolean isAfterJobEnabled = false
+
+  ExecutionPropagationListener(ExecutionRepository executionRepository,
+                               boolean isBeforeJobEnabled,
+                               boolean isAfterJobEnabled) {
     this.executionRepository = executionRepository
+    this.isBeforeJobEnabled = isBeforeJobEnabled
+    this.isAfterJobEnabled = isAfterJobEnabled
   }
 
   @Override
   void beforeJob(JobExecution jobExecution) {
+    if (!isBeforeJobEnabled) {
+      return
+    }
+
     def id = executionId(jobExecution)
     executionRepository.updateStatus(id, RUNNING)
 
@@ -55,6 +66,10 @@ class ExecutionPropagationListener extends JobExecutionListenerSupport implement
 
   @Override
   void afterJob(JobExecution jobExecution) {
+    if (!isAfterJobEnabled) {
+      return
+    }
+
     def id = executionId(jobExecution)
 
     def orcaTaskStatus
@@ -84,11 +99,6 @@ class ExecutionPropagationListener extends JobExecutionListenerSupport implement
     return jobExecution.jobParameters.getString("orchestration")
   }
 
-  @Override
-  int getOrder() {
-    HIGHEST_PRECEDENCE
-  }
-
   private static Execution execution(ExecutionRepository executionRepository, JobExecution jobExecution) {
     try {
       if (jobExecution.jobParameters.getString("pipeline")) {
@@ -98,5 +108,18 @@ class ExecutionPropagationListener extends JobExecutionListenerSupport implement
     } catch (ExecutionNotFoundException ignored) {
       return null
     }
+  }
+
+  @Override
+  int getOrder() {
+    if (isBeforeJobEnabled) {
+      return Ordered.HIGHEST_PRECEDENCE
+    }
+
+    if (isAfterJobEnabled) {
+      return Ordered.LOWEST_PRECEDENCE
+    }
+
+    return 0
   }
 }

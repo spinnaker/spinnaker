@@ -9,9 +9,11 @@ import groovy.util.logging.Slf4j
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobExecutionListener
+import org.springframework.core.annotation.Order
 
-@CompileStatic
 @Slf4j
+@Order(0)
+@CompileStatic
 class EchoNotifyingPipelineExecutionListener implements JobExecutionListener {
 
   protected final ExecutionRepository executionRepository
