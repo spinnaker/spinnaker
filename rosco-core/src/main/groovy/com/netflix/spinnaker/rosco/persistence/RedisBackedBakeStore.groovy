@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.api.BakeStatus
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.exceptions.JedisDataException
@@ -325,10 +326,11 @@ class RedisBackedBakeStore implements BakeStore {
     }
   }
 
+  @CompileStatic
   private Object evalSHA(String scriptName, List<String> keyList, List<String> argList) {
-    try {
-      def scriptSHA = scriptNameToSHAMap[scriptName]
+    String scriptSHA = scriptNameToSHAMap[scriptName]
 
+    try {
       if (!scriptSHA) {
         cacheAllScripts()
 
@@ -338,7 +340,7 @@ class RedisBackedBakeStore implements BakeStore {
       def jedis = jedisPool.getResource()
 
       jedis.withCloseable {
-        return jedis.evalsha(scriptSHA, keyList, argList)
+        return jedis.evalsha((String)scriptSHA, keyList, argList)
       }
     } catch (JedisDataException e) {
       // If the redis server doesn't recognize the SHA1 hash, cache the scripts.
@@ -348,7 +350,7 @@ class RedisBackedBakeStore implements BakeStore {
         def jedis = jedisPool.getResource()
 
         jedis.withCloseable {
-          return jedis.evalsha(scriptSHA, keyList, argList)
+          return jedis.evalsha((String)scriptSHA, keyList, argList)
         }
       } else {
         throw e
