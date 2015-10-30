@@ -33,8 +33,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
 
-import java.lang.annotation.Target
-
 /**
  * A task that operates on some subset of the ServerGroups in a cluster.
  */
@@ -64,11 +62,10 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     String cluster
     String cloudProvider = 'aws'
     String credentials
-    Set<String> regions
 
     @Override
     String toString() {
-      "Cluster $cloudProvider/$credentials/$cluster in $regions"
+      "Cluster $cloudProvider/$credentials/$cluster"
     }
   }
 
@@ -86,7 +83,10 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     def clusterSelection = stage.mapTo(ClusterSelection)
     def names = Names.parseName(clusterSelection.cluster)
 
-    Optional<Map> cluster = oortHelper.getCluster(names.app, clusterSelection.credentials, clusterSelection.cluster, clusterSelection.cloudProvider)
+    Optional<Map> cluster = oortHelper.getCluster(names.app,
+                                                  clusterSelection.credentials,
+                                                  clusterSelection.cluster,
+                                                  clusterSelection.cloudProvider)
     if (!cluster.isPresent()) {
       return missingClusterResult(stage, clusterSelection)
     }
@@ -97,14 +97,19 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
       return emptyClusterResult(stage, clusterSelection, cluster.get())
     }
 
-    Map<Location, List<TargetServerGroup>> targetServerGroupsByLocation = serverGroups.collect { new TargetServerGroup(serverGroup: it) }.groupBy { it.getLocation() }
+    Map<Location, List<TargetServerGroup>> targetServerGroupsByLocation = serverGroups.collect {
+      new TargetServerGroup(serverGroup: it)
+    }.groupBy { it.getLocation() }
 
-    List<TargetServerGroup> filteredServerGroups = clusterSelection.regions.collect { TargetServerGroup.Support.locationFromCloudProviderValue(clusterSelection.cloudProvider, it) }.findResults {
-      def regionGroups = targetServerGroupsByLocation[it]
-      if (!regionGroups) {
+    def locations = stage.context.regions ?: stage.context.zones ?: []
+    List<TargetServerGroup> filteredServerGroups = locations.collect {
+      TargetServerGroup.Support.locationFromCloudProviderValue(clusterSelection.cloudProvider, it)
+    }.findResults { Location l ->
+      def tsgs = targetServerGroupsByLocation[l]
+      if (!tsgs) {
         return null
       }
-      filterServerGroups(stage, clusterSelection.credentials, it, regionGroups) ?: null
+      filterServerGroups(stage, clusterSelection.credentials, l, tsgs) ?: null
     }.flatten()
 
     List<Map<String, Map>> katoOps = filteredServerGroups.collect(this.&buildOperationPayloads.curry(clusterSelection)).flatten()
@@ -113,18 +118,18 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
       return DefaultTaskResult.SUCCEEDED
     }
 
-    def regionGroups = filteredServerGroups
-      .groupBy { it.region }
-      .collectEntries { String region, List<TargetServerGroup> serverGroup ->
-        [(region): serverGroup.collect { it.name }]
-      }
+    def locationGroups = filteredServerGroups.groupBy {
+      it.getLocation()
+    }.collectEntries { Location location, List<TargetServerGroup> serverGroup ->
+      [(location.value): serverGroup.collect { it.name }]
+    }
 
     def taskId = katoService.requestOperations(clusterSelection.cloudProvider, katoOps).toBlocking().first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
       "notification.type"   : getNotificationType(),
       "deploy.account.name" : clusterSelection.credentials,
       "kato.last.task.id"   : taskId,
-      "deploy.server.groups": regionGroups
+      "deploy.server.groups": locationGroups
     ])
   }
 
@@ -175,7 +180,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     }
 
     if (!serverGroups.every { it.getLocation() == location }) {
-      throw new IllegalStateException("all server groups must be in the same region, found ${serverGroups*.getLocation()}")
+      throw new IllegalStateException("all server groups must be in the same location, found ${serverGroups*.getLocation()}")
     }
 
     return filterParentDeploys(stage, account, location, serverGroups)
@@ -206,10 +211,10 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     }
   }
 
-  static class CompositeComparitor implements Comparator<TargetServerGroup> {
+  static class CompositeComparator implements Comparator<TargetServerGroup> {
     private final List<Comparator<TargetServerGroup>> comparators
 
-    CompositeComparitor(List<Comparator<TargetServerGroup>> comparators) {
+    CompositeComparator(List<Comparator<TargetServerGroup>> comparators) {
       this.comparators = comparators
     }
 
