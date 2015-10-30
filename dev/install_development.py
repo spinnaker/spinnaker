@@ -32,7 +32,7 @@ NODE_VERSION = '0.12'
 NVM_VERSION = 'v0.26.0'
 
 __LOCAL_INVOCATION_NEXT_STEPS = """
-To finish the personal developer workspace installation, do the following:
+To finish the personal developer workspace installation, follow these steps:
    source ${dev}/bootstrap_dev.sh
 
 This will leave you in a 'build' subdirectory. To run Spinnaker:
@@ -40,7 +40,7 @@ This will leave you in a 'build' subdirectory. To run Spinnaker:
 """.format(dev=os.path.dirname(__file__))
 
 __STARTUP_SCRIPT_INVOCATION_NEXT_STEPS = """
-To finish the personal developer workspace installation, do the following:
+To finish the personal developer workspace installation, follow these steps:
    Log into this vm as your development user.
 
    source /opt/spinnaker/install/bootstrap_dev.sh
