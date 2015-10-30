@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
-import com.netflix.spinnaker.orca.clouddriver.pipeline.CloneLastServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.CloneServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
@@ -153,7 +153,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     final Set<String> deployStageTypes = [
       DeployStage.PIPELINE_CONFIG_TYPE,
       CopyLastAsgStage.PIPELINE_CONFIG_TYPE,
-      CloneLastServerGroupStage.PIPELINE_CONFIG_TYPE,
+      CloneServerGroupStage.PIPELINE_CONFIG_TYPE,
       DeployGoogleServerGroupStage.PIPELINE_CONFIG_TYPE
     ]
     List<TargetServerGroup> deployedServerGroups = []
