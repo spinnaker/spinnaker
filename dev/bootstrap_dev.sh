@@ -189,7 +189,7 @@ fi
 # Pull the spinnaker source into a fresh build directory.
 mkdir -p build
 cd build
-../spinnaker/google/dev/refresh_source.sh --pull_origin \
+../spinnaker/dev/refresh_source.sh --pull_origin \
     --github_user $CONFIRMED_GITHUB_REPOSITORY_OWNER
 
 # Some dependencies of Deck rely on Bower to manage their dependencies. Bower
@@ -201,9 +201,9 @@ echo "{\"interactive\":false}" > ~/.bowerrc
 # dont have the environment variables we set, and arent in the build directory.
 function print_invoke_instructions() {
 cat <<EOF
-To initate a build and run spinnaker:
+To initiate a build and run spinnaker:
   cd build
-  ../spinnaker/google/dev/run_dev.sh
+  ../spinnaker/dev/run_dev.sh
 EOF
 }
 
@@ -212,8 +212,8 @@ EOF
 function print_source_instructions() {
 cat <<EOF
 
-To initate a build and run spinnaker:
-  ../spinnaker/google/dev/run_dev.sh
+To initiate a build and run spinnaker:
+  ../spinnaker/dev/run_dev.sh
 EOF
 }
 
