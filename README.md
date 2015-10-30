@@ -1,6 +1,6 @@
 # Getting Started with Spinnaker
 
-These instructions cover pulling Spinnaker from source and setting up to run locally against either an Amazon Web Services or Google Compute account.
+These instructions cover pulling Spinnaker from source and setting up to run locally against Amazon Web Services and/or Google Cloud Platform accounts.
 
 We will clone into `$SPINNAKER_HOME` and create that as our working directory, including this repo for configuration scripts, as well as the various
 service repos.
@@ -37,7 +37,7 @@ dev/bootstrap_dev.sh
 ## Configure Spinnaker
 
 We will create a directory for Spinnaker configuration overrides, copy the default configuration template there, and edit to select
-the appropriate cloud provider.
+the appropriate cloud provider(s).
 
 ````bash
 cd $SPINNAKER_HOME
@@ -68,7 +68,7 @@ Sign into the AWS console, and select the region Spinnaker will manage.
     - Create an Access Key for the user. Save the access key and secret key into `~/.aws/credentials` as shown here: http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-config-files. Alternatively, add the keys to `$HOME/.spinnaker/spinnaker-local.yml`
     - Edit the users Permissions. Attach a Policy to the user granting PowerUserAccess. Create an inline policy for IAM granting PassRole on the resource '*'
 
-## Configure your Google Compute Account
+## Configure your Google Cloud Platform Account
 
 TODO
 
