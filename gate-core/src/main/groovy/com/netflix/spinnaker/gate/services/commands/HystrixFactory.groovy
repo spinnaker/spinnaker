@@ -43,6 +43,14 @@ class HystrixFactory {
     new MapCommand(groupKey, commandKey, propagate(work, false), fallback)
   }
 
+  public static StringCommand newStringCommand(String groupKey,
+                                        String commandKey,
+                                        boolean withLastKnownGoodFallback,
+                                        Closure<? extends String> work,
+                                        Closure<? extends String> fallback = { null }) {
+
+    new StringCommand(groupKey, commandKey, withLastKnownGoodFallback, propagate(work, false), fallback )
+  }
   private static class ListCommand extends AbstractHystrixCommand<List> {
     ListCommand(String groupKey, String commandKey, Closure work, Closure fallback) {
       super(groupKey, commandKey, work, fallback)
@@ -52,6 +60,12 @@ class HystrixFactory {
   private static class MapCommand extends AbstractHystrixCommand<Map> {
     MapCommand(String groupKey, String commandKey, Closure work, Closure fallback) {
       super(groupKey, commandKey, work, fallback)
+    }
+  }
+
+  private static class StringCommand extends AbstractHystrixCommand<String> {
+    StringCommand(String groupKey, String commandKey, boolean withLastKnownGoodFallback, Closure work, Closure fallback) {
+      super(groupKey, commandKey, withLastKnownGoodFallback, "", work, fallback)
     }
   }
 }
