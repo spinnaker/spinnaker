@@ -49,11 +49,12 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
     "a"           | []                             | "should inject"
   }
 
+  @Unroll
   void "should inject a stage for each extra region when the target is dynamically bound"() {
     given:
     def stage = new PipelineStage(new Pipeline(), "test", [
-      regions: ["us-east-1", "us-west-1", "us-west-2", "eu-west-2"],
-      target : "current_asg_dynamic"
+        (locationType): ["us-east-1", "us-west-1", "us-west-2", "eu-west-2"],
+        target        : "current_asg_dynamic"
     ])
 
     when:
@@ -63,9 +64,14 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
     stage.beforeStages.size() == 1
     stage.afterStages.size() == 3
     stage.afterStages*.name == ["testSupportStage", "testSupportStage", "testSupportStage"]
-    stage.context.regions == ["us-east-1"]
-    stage.afterStages*.context.regions.flatten() == ["us-west-1", "us-west-2", "eu-west-2"]
+    stage.context[locationType] == ["us-east-1"]
+    stage.context[oppositeLocationType] == null
+    stage.afterStages*.context[locationType].flatten() == ["us-west-1", "us-west-2", "eu-west-2"]
 
+    where:
+    locationType | oppositeLocationType
+    "regions"    | "zones"
+    "zones"      | "regions"
   }
 
   void "should inject a stage after for each extra target when target is not dynamically bound"() {
@@ -110,8 +116,8 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
 
     then:
     (shouldResolve ? 1 : 0) * resolver.resolveByParams(_) >> [
-      new TargetServerGroup(serverGroup: [name: "asg-v001", region: "us-east-1"]),
-      new TargetServerGroup(serverGroup: [name: "asg-v002", region: "us-west-1"]),
+        new TargetServerGroup(serverGroup: [name: "asg-v001", region: "us-east-1"]),
+        new TargetServerGroup(serverGroup: [name: "asg-v002", region: "us-west-1"]),
     ]
     stage.beforeStages*.name == beforeNames
     stage.afterStages*.name == ["testPostInjectable", "testPreInjectable", "testSupportStage", "testPostInjectable"]

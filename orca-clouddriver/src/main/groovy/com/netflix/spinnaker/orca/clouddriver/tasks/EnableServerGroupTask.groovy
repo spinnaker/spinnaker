@@ -21,5 +21,6 @@ import org.springframework.stereotype.Component
 
 @Component
 class EnableServerGroupTask extends AbstractServerGroupTask {
+  protected boolean addTargetOpOutputs = true
   String serverGroupAction = EnableServerGroupStage.PIPELINE_CONFIG_TYPE
 }
