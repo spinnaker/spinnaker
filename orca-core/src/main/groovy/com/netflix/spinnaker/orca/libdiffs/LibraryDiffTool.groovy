@@ -21,15 +21,16 @@ package com.netflix.spinnaker.orca.libdiffs
 class LibraryDiffTool {
 
   private final ComparableLooseVersion comparableLooseVersion
+  private final boolean includeLibraryDetails
 
-  LibraryDiffTool(ComparableLooseVersion comparableLooseVersion) {
+  LibraryDiffTool(ComparableLooseVersion comparableLooseVersion, boolean includeLibraryDetails = true) {
     this.comparableLooseVersion = comparableLooseVersion
+    this.includeLibraryDetails = includeLibraryDetails
   }
 
   LibraryDiffs calculateLibraryDiffs(List<Library> sourceLibs, List<Library> targetLibs) {
     LibraryDiffs libraryDiffs = new LibraryDiffs(
       unknown: [],
-      unchanged: [],
       upgraded: [],
       downgraded: [],
       duplicates: [],
@@ -37,6 +38,10 @@ class LibraryDiffTool {
       added: [],
       totalLibraries: targetLibs ? targetLibs.size() : 0
     )
+
+    def buildDiff = { Library library, String display ->
+      return new Diff(library: includeLibraryDetails ? library : null, displayDiff: display)
+    }
 
     try {
       if (targetLibs && sourceLibs) {
@@ -47,29 +52,24 @@ class LibraryDiffTool {
             Library currentLib = uniqueCurrentList.find { it.name == oldLib.name }
             if (currentLib) {
               if (!currentLib.version || !oldLib.version) {
-                libraryDiffs.unknown << new Diff(library: oldLib, displayDiff: "${oldLib.name}")
+                libraryDiffs.unknown << buildDiff(oldLib, "${oldLib.name}")
               } else if (currentLib.version && oldLib.version) {
                 int comparison = comparableLooseVersion.compare(currentLib.version, oldLib.version)
-                if (comparison == 0) {
-                  libraryDiffs.unchanged << new Diff(library: oldLib, displayDiff: "${oldLib.name}: ${currentLib.version}")
-                }
                 if (comparison == 1) {
-                  libraryDiffs.upgraded << new Diff(library: oldLib, displayDiff: "${oldLib.name}: ${oldLib.version} -> " +
-                    "${currentLib.version}")
+                  libraryDiffs.upgraded << buildDiff(oldLib, "${oldLib.name}: ${oldLib.version} -> ${currentLib.version}")
                 }
                 if (comparison == -1) {
-                  libraryDiffs.downgraded << new Diff(library: oldLib, displayDiff: "${oldLib.name}: ${oldLib.version} -> " +
-                    "${currentLib.version}")
+                  libraryDiffs.downgraded << buildDiff(oldLib, "${oldLib.name}: ${oldLib.version} -> ${currentLib.version}")
                 }
               }
             } else {
-              libraryDiffs.removed << new Diff(library: oldLib, displayDiff: "${oldLib.name}: ${oldLib.version}")
+              libraryDiffs.removed << buildDiff(oldLib, "${oldLib.name}: ${oldLib.version}")
             }
           }
         }
 
         (uniqueCurrentList - sourceLibs).each { Library newLib ->
-          libraryDiffs.added << new Diff(library: newLib, displayDiff: "${newLib.name}: ${newLib.version}")
+          libraryDiffs.added << buildDiff(newLib, "${newLib.name}: ${newLib.version}")
         }
 
         duplicatesMap.each { key, value ->
@@ -78,7 +78,7 @@ class LibraryDiffTool {
             boolean valid = value.collect { it.version }.findAll { it != null }.groupBy { it }.keySet().size() > 1
             if (valid) {
               String displayDiff = "${currentLib.name}: ${value.collect { it.version }.join(", ")}"
-              libraryDiffs.duplicates << new Diff(library: currentLib, displayDiff: displayDiff)
+              libraryDiffs.duplicates << buildDiff(currentLib, displayDiff)
             }
           }
         }
