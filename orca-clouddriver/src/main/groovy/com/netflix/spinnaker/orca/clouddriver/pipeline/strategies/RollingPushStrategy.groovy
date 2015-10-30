@@ -24,12 +24,9 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-/**
- * This appears to be a Netflix-only stage.
- */
 @Component
 @Deprecated
-class RollingPushStrategy implements Strategy, BasicStepsReplacer {
+class RollingPushStrategy implements Strategy {
 
   final String name = "rollingpush"
 
@@ -43,7 +40,7 @@ class RollingPushStrategy implements Strategy, BasicStepsReplacer {
   SourceResolver sourceResolver
 
   @Override
-  def composeFlow(Stage stage) {
+  void composeFlow(Stage stage) {
     def source = sourceResolver.getSource(stage)
 
     def modifyCtx = stage.context + [

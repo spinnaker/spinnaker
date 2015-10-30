@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @Slf4j
-class HighlanderStrategy implements Strategy, BasicStepsReplacer {
+class HighlanderStrategy implements Strategy {
 
   final String name = "highlander"
 
@@ -33,7 +33,7 @@ class HighlanderStrategy implements Strategy, BasicStepsReplacer {
   ShrinkClusterStage shrinkClusterStage
 
   @Override
-  def composeFlow(Stage stage) {
+  void composeFlow(Stage stage) {
     def cleanupConfig = AbstractDeployStrategyStage.CleanupConfig.fromStage(stage)
     Map shrinkContext = [
         (cleanupConfig.location.pluralType()): [cleanupConfig.location.value],

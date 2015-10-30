@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class RedBlackStrategy implements Strategy, BasicStepsReplacer {
+class RedBlackStrategy implements Strategy {
 
   final String name = "redblack"
 
@@ -40,7 +40,7 @@ class RedBlackStrategy implements Strategy, BasicStepsReplacer {
   DisableClusterStage disableClusterStage
 
   @Override
-  def composeFlow(Stage stage) {
+  void composeFlow(Stage stage) {
     def stageData = stage.mapTo(StageData)
     def cleanupConfig = AbstractDeployStrategyStage.CleanupConfig.fromStage(stage)
 

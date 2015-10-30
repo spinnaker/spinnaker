@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.clouddriver.pipeline.strategies
+package com.netflix.spinnaker.orca.clouddriver.pipeline.strategies;
 
-/**
- * Removable with RollingPushStrategy deletion.
- */
-trait BasicStepsReplacer {
-  boolean replacesBasicSteps() { false }
+import com.netflix.spinnaker.orca.kato.pipeline.Nameable;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
+
+interface Strategy extends Nameable {
+  void composeFlow(Stage stage);
+
+  default boolean replacesBasicSteps() {
+    return false;
+  }
 }

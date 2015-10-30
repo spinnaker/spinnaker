@@ -20,12 +20,12 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
 @Component
-class NoStrategy implements Strategy, BasicStepsReplacer {
+class NoStrategy implements Strategy {
 
   final String name = "none"
 
   @Override
-  def composeFlow(Stage stage) {
+  void composeFlow(Stage stage) {
     // Do or do not, there is no try.
     // In this case: do not.
   }
