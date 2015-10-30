@@ -5,6 +5,15 @@ These instructions cover pulling Spinnaker from source and setting up to run loc
 We will clone into `$SPINNAKER_HOME` and create that as our working directory, including this repo for configuration scripts, as well as the various
 service repos.
 
+**Note** If you are going to create a Virtual Machine in Amazon EC2 or
+Google Compute Engine for your development, then a reasonable machine
+type is m4.2xlarge (Amazon) or n1-standard-8 (Google). If using Google,
+you will need to add "Read Write" Compute access scope when creating the
+instance, and may also wish to add "Full" Storage scope to later write
+releases to Google Cloud Storage buckets. The Amazon credentials are
+discussed below in [Configure your AWS Account](#configure-your-aws-account).
+
+
 ## Get the bootstrap / configuration repo
 
 ````bash
@@ -43,6 +52,7 @@ the appropriate cloud provider(s).
 cd $SPINNAKER_HOME
 mkdir -p $HOME/.spinnaker
 cp spinnaker/config/default-spinnaker-local.yml $HOME/.spinnaker/spinnaker-local.yml
+chmod 600 $HOME/.spinnaker/spinnaker-local.yml
 ````
 
 Edit `$HOME/.spinnaker/spinnaker-local.yml` and set the enabled option for the cloud provider(s) of your choice.
@@ -70,14 +80,36 @@ Sign into the AWS console, and select the region Spinnaker will manage.
 
 ## Configure your Google Cloud Platform Account
 
-TODO
+If you enabled Google for Spinnaker, there are some requirements for the Google
+project and account:
+
+Sign into the [Google Developer's Console](https://console.developers.google.com).
+
+1. Enable APIs in the project that Spinnaker will be managing
+   - In the Google Developer's Console, select the project you wish Spinnaker
+     to manage.
+   - Go to the API Management page.
+   - Enable the "Compute Engine" and "Compute Engine Autoscaler" APIs.
+2. Add and Obtain Credentials
+   - Go to the Credentials tab (if using the beta console, it is in API Manager):
+   - Select "Service account" and create a JSON key.
+   - Download this key to a file. `chmod 400` the file.
+   - Set the project and jsonPath for the providers.google.primaryCredentials
+     in `$HOME/.spinnaker/spinnaker-local.yml`.
+
 
 ## Start Spinnaker Services
 
 ````bash
 cd $SPINNAKER_HOME
-spinnaker/dev/run_dev.sh
+spinnaker/dev/run_dev.sh [service]
 ````
+
+If a service is provided, then just that one service will be started.
+If no service is provided, then all the services will be started
+(including redis and cassandra unless they are specified with a remote host).
+If a service is already running (even if not yet available) then it will
+not be restarted.
 
 **Note** `run_dev.sh` might get stuck waiting on a service to start. Hitting CTRL-C just stops the waiting on service it doesn't terminate the services. If it seems stuck
 stop and restart run_dev.sh.
@@ -85,6 +117,12 @@ stop and restart run_dev.sh.
 ## Stop Spinnaker Services
 ````bash
 cd $SPINNAKER_HOME
-spinnaker/dev/stop_dev.sh
+spinnaker/dev/stop_dev.sh [service]
 ````
+
+If a service is provided, then just that one service will be stopped.
+If no service is provided then all the spinnaker services will be stopped.
+Cassandra and redis are not affected by stop_dev.sh
+
+
 
