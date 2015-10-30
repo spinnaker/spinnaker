@@ -71,7 +71,7 @@ class ExecutionCancellationSpec extends AbstractBatchLifecycleSpec {
   protected Job configureJob(JobBuilder jobBuilder) {
     def stage = pipeline.namedStage("cancel")
     def builder = jobBuilder
-      .listener(new ExecutionPropagationListener(executionRepository))
+      .listener(new ExecutionPropagationListener(executionRepository, true, true))
       .flow(initializationStep(steps, pipeline))
     def stageBuilder = new CancellationStageBuilder(
       steps: steps,

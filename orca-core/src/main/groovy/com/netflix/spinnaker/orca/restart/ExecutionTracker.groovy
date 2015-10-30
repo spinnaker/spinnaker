@@ -11,10 +11,12 @@ import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobExecutionListener
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
-@Component
 @Slf4j
+@Order(0)
+@Component
 @CompileStatic
 class ExecutionTracker implements JobExecutionListener {
 

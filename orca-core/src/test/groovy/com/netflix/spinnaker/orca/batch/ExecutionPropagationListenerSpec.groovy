@@ -27,7 +27,7 @@ import spock.lang.Unroll
 
 class ExecutionPropagationListenerSpec extends Specification {
   def executionRepository = Mock(ExecutionRepository)
-  def listener = new ExecutionPropagationListener(executionRepository)
+  def listener = new ExecutionPropagationListener(executionRepository, true, true)
 
   def "should mark pipeline/orchestration as RUNNING and set initial global execution context in beforeJob"() {
     given:

@@ -25,9 +25,11 @@ import groovy.transform.CompileDynamic
 import groovy.util.logging.Slf4j
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobExecutionListener
+import org.springframework.core.annotation.Order
 
-@CompileDynamic
 @Slf4j
+@Order(0)
+@CompileDynamic
 class DependentPipelineExecutionListener implements JobExecutionListener {
 
   protected final ExecutionRepository executionRepository
