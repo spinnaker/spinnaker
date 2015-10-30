@@ -17,7 +17,7 @@
                        class="form-control input-sm">
               <ui-select-match placeholder="Select...">
               <span ng-if="!$select.selected.label">
-                <account-tag account="$select.selected.account"></account-tag>
+                <account-tag account="$select.selected.account" provider="'aws'"></account-tag>
                 <span ng-if="$select.selected.serverGroup">{{$select.selected.serverGroupName}}</span>
                 ({{$select.selected.region}})
               </span>
