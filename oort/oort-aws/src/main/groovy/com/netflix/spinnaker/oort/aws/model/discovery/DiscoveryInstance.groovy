@@ -48,6 +48,7 @@ class DiscoveryInstance implements Health {
   String statusPageUrl
   String healthCheckUrl
   String vipAddress
+  String secureVipAddress
   Long lastUpdatedTimestamp
   String asgName
 
@@ -61,6 +62,7 @@ class DiscoveryInstance implements Health {
                     @JsonProperty('statusPageUrl') String statusPageUrl,
                     @JsonProperty('healthCheckUrl') String healthCheckUrl,
                     @JsonProperty('vipAddress') String vipAddress,
+                    @JsonProperty('secureVipAddress') String secureVipAddress,
                     @JsonProperty('lastUpdatedTimestamp') long lastUpdatedTimestamp,
                     @JsonProperty('asgName') String asgName) {
     def meta = dataCenterInfo.metadata
@@ -91,6 +93,7 @@ class DiscoveryInstance implements Health {
       statusPageUrl,
       healthCheckUrl,
       vipAddress,
+      secureVipAddress,
       lastUpdatedTimestamp,
       asgName)
   }
