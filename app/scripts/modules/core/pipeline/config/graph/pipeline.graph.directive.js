@@ -25,9 +25,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
         var minLabelWidth = 100;
 
         scope.nodeRadius = 8;
-        scope.rowPadding = 22;
-        scope.graphVerticalPadding = 15;
-        scope.minExecutionGraphHeight = 60;
+        scope.rowPadding = 20;
+        scope.graphVerticalPadding = 11;
+        scope.minExecutionGraphHeight = 40;
         scope.labelOffsetX = scope.nodeRadius + 3;
         scope.labelOffsetY = scope.nodeRadius + 10;
         let graphId = scope.pipeline ? scope.pipeline.id : scope.execution.id;
