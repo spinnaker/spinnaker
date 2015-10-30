@@ -6,7 +6,7 @@
         <dl class="dl-narrow dl-horizontal">
           <dt>Account</dt>
           <dd>
-            <account-tag account="stage.context.account"></account-tag>
+            <account-tag account="stage.context.account" provider="provider"></account-tag>
           </dd>
           <dt>Region</dt>
           <dd ng-repeat="(region, zones) in stage.context.availabilityZones">{{region}}<br/>({{zones.join(', ')}})</dd>
