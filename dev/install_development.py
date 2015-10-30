@@ -36,7 +36,7 @@ To finish the personal developer workspace installation, follow these steps:
    source ${dev}/bootstrap_dev.sh
 
 This will leave you in a 'build' subdirectory. To run Spinnaker:
-   ../spinnaker/google/dev/run_dev.sh
+   ../spinnaker/dev/run_dev.sh
 """.format(dev=os.path.dirname(__file__))
 
 __STARTUP_SCRIPT_INVOCATION_NEXT_STEPS = """
@@ -46,7 +46,7 @@ To finish the personal developer workspace installation, follow these steps:
    source /opt/spinnaker/install/bootstrap_dev.sh
 
 This will leave you in a 'build' subdirectory. To run Spinnaker:
-   ../spinnaker/google/dev/run_dev.sh
+   ../spinnaker/dev/run_dev.sh
 """
 
 
