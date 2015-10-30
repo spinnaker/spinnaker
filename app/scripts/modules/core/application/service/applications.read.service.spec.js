@@ -66,6 +66,18 @@ describe('Service: applicationReader', function () {
       expect(application.executions).toEqual([persistent]);
     });
 
+    it('should remove multiple executions if not in the new set', function () {
+      let transient1 = {id:1, stringVal: 'ac'};
+      let persistent = {id:2, stringVal: 'ab'};
+      let transient3 = {id:3, stringVal: 'ac'};
+      let execs = [persistent];
+      application.executions = [transient1, persistent, transient3];
+
+      applicationReader.addExecutionsToApplication(application, execs);
+
+      expect(application.executions).toEqual([persistent]);
+    });
+
     it('should replace the existing executions if application has executions comes back empty', function () {
       let execs = [];
       application.executions = [{a:1}];

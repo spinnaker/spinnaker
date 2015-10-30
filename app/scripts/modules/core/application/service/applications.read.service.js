@@ -197,7 +197,7 @@ module.exports = angular
           }
         });
 
-        toRemove.forEach((idx) => application.executions.splice(idx, 1));
+        toRemove.reverse().forEach((idx) => application.executions.splice(idx, 1));
 
         // add any new ones
         executions.forEach((execution) => {
