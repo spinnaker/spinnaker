@@ -16,35 +16,30 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline
 
+import com.netflix.spinnaker.orca.clouddriver.pipeline.strategies.AbstractDeployStrategyStage
+import com.netflix.spinnaker.orca.clouddriver.tasks.CloneServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForUpInstancesTask
-import com.netflix.spinnaker.orca.kato.pipeline.strategy.DeployStrategyStage
-import com.netflix.spinnaker.orca.kato.tasks.CloneLastServerGroupTask
 import com.netflix.spinnaker.orca.kato.tasks.DiffTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-/**
- * @author sthadeshwar
- */
 @Component
-@CompileStatic
-class CloneLastServerGroupStage extends DeployStrategyStage {
+class CloneServerGroupStage extends AbstractDeployStrategyStage {
 
-  public static final String PIPELINE_CONFIG_TYPE = "cloneLastServerGroup"
+  public static final String PIPELINE_CONFIG_TYPE = "cloneServerGroup"
 
   @Autowired(required = false)
   List<DiffTask> diffTasks
 
-  CloneLastServerGroupStage() {
+  CloneServerGroupStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
-  CloneLastServerGroupStage(String type) {
+  CloneServerGroupStage(String type) {
     super(type)
   }
 
@@ -52,7 +47,7 @@ class CloneLastServerGroupStage extends DeployStrategyStage {
   List<Step> basicSteps(Stage stage) {
     def steps = []
 
-    steps << buildStep(stage, "cloneLastServerGroup", CloneLastServerGroupTask)
+    steps << buildStep(stage, "cloneServerGroup", CloneServerGroupTask)
     steps << buildStep(stage, "monitorDeploy", MonitorKatoTask)
     steps << buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     steps << buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask)

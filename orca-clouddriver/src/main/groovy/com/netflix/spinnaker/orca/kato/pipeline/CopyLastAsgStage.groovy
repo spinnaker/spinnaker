@@ -15,14 +15,15 @@
  */
 
 package com.netflix.spinnaker.orca.kato.pipeline
-import com.netflix.spinnaker.orca.clouddriver.pipeline.CloneLastServerGroupStage
+
+import com.netflix.spinnaker.orca.clouddriver.pipeline.CloneServerGroupStage
 import groovy.transform.CompileStatic
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
 @Deprecated
-class CopyLastAsgStage extends CloneLastServerGroupStage {
+class CopyLastAsgStage extends CloneServerGroupStage {
 
   public static final String PIPELINE_CONFIG_TYPE = "copyLastAsg"
 
