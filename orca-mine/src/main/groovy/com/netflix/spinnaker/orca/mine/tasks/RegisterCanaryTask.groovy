@@ -55,9 +55,9 @@ class RegisterCanaryTask implements Task {
 
   Map buildCanary(String app, Stage stage) {
     Map c = stage.context.canary
-    c.canaryDeployments.each {
-      it["@class"] = "ClusterCanaryDeployment"
-    }
+//    c.canaryDeployments.each {
+//      it["@class"] = ".ClusterCanaryDeployment"
+//    }
     c.application = c.application ?: app
     c.canaryConfig.canaryHealthCheckHandler = c.canaryConfig.canaryHealthCheckHandler ?: [:]
     c.canaryConfig.canaryHealthCheckHandler['@class'] = c.canaryConfig.canaryHealthCheckHandler['@class'] ?: 'com.netflix.spinnaker.mine.CanaryResultHealthCheckHandler'
