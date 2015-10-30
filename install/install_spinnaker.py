@@ -84,6 +84,10 @@ def init_argument_parser(parser):
         '--release_path', default=None,
         help='The path to the release being installed.')
 
+    parser.add_argument(
+        '--region', default=None,
+        help='The region is only needed if copying from an S3 release_uri.')
+
 
 def safe_mkdir(dir):
     """Create a local directory if it does not already exist.

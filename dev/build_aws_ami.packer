@@ -1,0 +1,37 @@
+{
+ "variables": {
+   "release_path": null,
+   "installer_path": null,
+   "aws_access_key": "",
+   "aws_secret_key": "",
+   "region": "us-east-1",
+   "source_ami": "ami-d05e75b8",
+   "target_ami": "{{env `USER`}}-spinnaker-{{timestamp}}",
+   "install_args": ""
+ },
+
+ "builders": [{
+   "type": "amazon-ebs",
+   "access_key": "{{user `aws_access_key`}}",
+   "secret_key": "{{user `aws_secret_key`}}",
+   "region": "{{user `region`}}",
+   "source_ami": "{{user `source_ami`}}",
+   "instance_type": "m4.large",
+   "ssh_username": "ubuntu",
+   "ami_name": "{{user `target_ami`}}"
+ }],
+
+ "provisioners": [
+  {
+    "type": "file",
+    "source": "{{user `installer_path`}}",
+    "destination": "/tmp/install_spinnaker.py.zip"
+  },
+  {
+    "type": "shell",
+    "inline": ["sudo apt-get update -y",
+               "sudo apt-get install -y awscli",
+               "python /tmp/install_spinnaker.py.zip --package_manager --release_path={{user `release_path`}} --region={{user `region`}} {{user `install_args`}}"]
+  }
+ ]
+}
