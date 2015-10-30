@@ -56,7 +56,7 @@ class CheckPreconditionsStage extends ParallelStage implements StepProvider {
 
   @Override
   String parallelStageName(Stage stage, boolean hasParallelFlows) {
-    "Check Preconditions"
+    stage.name
   }
 
   @Override
