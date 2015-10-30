@@ -36,14 +36,28 @@ gcloud compute ssh --project {project} --zone {zone} {instance}\
  --ssh-flag="-L 8084:localhost:8084"
 
 
-(2) Set up the build environment:
+(2) Wait for the installation to complete:
+
+   tail -f /var/log/startupscript.log
+
+   When the instance startup script completes installing the developer tools
+   you are ready to continue. ^C to terminate the tail process.
+
+
+(3) Set up the build environment:
 
 source /opt/spinnaker/install/bootstrap_dev.sh
 
 
-(3a) Build and run directly from the sources:
+(4a) Build and run directly from the sources:
 
-  ../spinnaker/google/dev/run_dev.sh
+  ../spinnaker/dev/run_dev.sh
+
+or (4b) Build a release:
+
+  ../spinnaker/dev/build_release.sh --release_path=$RELEASE_PATH
+
+  A release can be turned into a provider image or installed directly.
 
 
 For more help, see the Spinnaker Build & Run Book:
