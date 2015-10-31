@@ -13,17 +13,12 @@ describe('Controller: jenkinsTrigger', function() {
     this._ = ___;
     this.$q = $q;
     this.igorService = igorService;
-    this.infrastructureCaches = {
-      buildMasters: { getStats: function() { return { ageMax: 1 }; } },
-      buildJobs: { getStats: function() { return { ageMax: 1 }; } }
-    };
     this.$scope = $rootScope.$new();
     this.initializeController = function (trigger) {
       this.controller = $controller('JenkinsTriggerCtrl', {
         $scope: this.$scope,
         trigger: trigger,
         igorService: this.igorService,
-        infrastructureCaches: this.infrastructureCaches,
       });
     };
   }));
