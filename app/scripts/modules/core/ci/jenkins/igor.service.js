@@ -3,6 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.ci.jenkins.igor.service', [
+  require('../../config/settings.js'),
   require('exports?"restangular"!imports?_=lodash!restangular'),
 ])
   .factory('igorService', function (settings, Restangular) {
