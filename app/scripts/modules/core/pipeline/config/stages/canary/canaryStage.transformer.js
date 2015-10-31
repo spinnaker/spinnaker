@@ -152,6 +152,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.canary.transforme
             }
           });
 
+          stage.exceptions = _.uniq(stage.exceptions);
+
           stage.context.canary = monitorStage.context.canary || deployParent.context.canary || stage.context.canary;
           if (!stage.context.canary.canaryDeployments) {
             stage.context.canary.canaryDeployments = buildCanaryDeploymentsFromClusterPairs(stage);
