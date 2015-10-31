@@ -33,6 +33,10 @@ module.exports = angular
       RestangularConfigurer.addElementTransformer('applications', false, function(application) {
 
         function refreshApplication() {
+          if (application.refreshing) {
+            $log.warn('application still reloading, skipping reload');
+            return $q.when(null);
+          }
           application.refreshing = true;
           application.reloadTasks();
           application.reloadExecutions();
@@ -45,6 +49,10 @@ module.exports = angular
               newApplication = null;
             }
             application.refreshing = false;
+          })
+          .catch(function(rejection) {
+              $log.warn('Error refreshing application:', rejection);
+              application.refreshing = false;
           });
         }
 
@@ -73,6 +81,11 @@ module.exports = angular
         }
 
         function reloadTasks() {
+          if (application.tasksLoading) {
+            $log.warn('tasks still loading, skipping reload');
+            return $q.when(null);
+          }
+          application.tasksLoading = true;
           return taskReader.listAllTasksForApplication(application.name)
             .then(function(tasks) {
               addTasksToApplication(application, tasks);
@@ -82,6 +95,7 @@ module.exports = angular
               } else {
                 $rootScope.$broadcast('tasks-reloaded', application);
               }
+              application.tasksLoading = false;
             })
             .catch(function(rejection) {
               // Gate will send back a 429 error code (TOO_MANY_REQUESTS) and will be caught here
@@ -89,17 +103,22 @@ module.exports = angular
               // application, which will let the user know that no tasks where found for the app.
               addTasksToApplication(application, []);
               $log.warn('Error retrieving [tasks]', rejection);
+              application.tasksLoading = false;
             });
         }
 
         function reloadExecutions() {
+          if (application.executionsLoading) {
+            $log.warn('executions still loading, skipping reload');
+            return $q.when(null);
+          }
           application.executionsLoading = true;
           return executionService.getAll(application.name)
             .then(function(executions) {
               executionService.transformExecutions(application, executions);
               addExecutionsToApplication(application, executions);
+              application.executionsLoading = false;
               if (!application.executionsLoaded) {
-                application.executionsLoading = false;
                 application.executionsLoaded = true;
                 $rootScope.$broadcast('executions-loaded', application);
               } else {
@@ -110,16 +129,25 @@ module.exports = angular
               // Gate will send back a 429 error code (TOO_MANY_REQUESTS) and will be caught here.
               $log.warn('Error retrieving [executions]', rejection);
               $rootScope.$broadcast('executions-load-failure', application);
+              application.executionsLoading = false;
             });
         }
 
         function reloadPipelineConfigs() {
+          if (application.pipelineConfigsLoading) {
+            $log.warn('pipeline configs still loading, skipping reload');
+            return $q.when(null);
+          }
           application.pipelineConfigsLoading = true;
           return pipelineConfigService.getPipelinesForApplication(application.name)
             .then((configs) => {
               application.pipelineConfigs = configs;
               application.pipelineConfigsLoading = false;
               $rootScope.$broadcast('pipelineConfigs-loaded', application);
+            })
+            .catch(function(rejection) {
+              $log.warn('Error retrieving [pipelineConfigs]', rejection);
+              application.pipelineConfigsLoading = false;
             });
         }
 
@@ -150,8 +178,8 @@ module.exports = angular
 
     function addDefaultRegion(application) {
       var fromServerGroups = _.pluck(application.serverGroups, 'region'),
-        fromLoadBalancers = _.pluck(application.loadBalancers, 'region'),
-        fromSecurityGroups = _.pluck(application.securityGroups, 'region');
+          fromLoadBalancers = _.pluck(application.loadBalancers, 'region'),
+          fromSecurityGroups = _.pluck(application.securityGroups, 'region');
 
       var allRegions = _.union(fromServerGroups, fromLoadBalancers, fromSecurityGroups);
 
@@ -162,8 +190,8 @@ module.exports = angular
 
     function addDefaultCredentials(application) {
       var fromServerGroups = _.pluck(application.serverGroups, 'account'),
-        fromLoadBalancers = _.pluck(application.loadBalancers, 'account'),
-        fromSecurityGroups = _.pluck(application.securityGroups, 'accountName');
+          fromLoadBalancers = _.pluck(application.loadBalancers, 'account'),
+          fromSecurityGroups = _.pluck(application.securityGroups, 'accountName');
 
       var allCredentials = _.union(fromServerGroups, fromLoadBalancers, fromSecurityGroups);
 
@@ -234,10 +262,10 @@ module.exports = angular
 
     function getApplication(applicationName, options) {
       var securityGroupsByApplicationNameLoader = securityGroupReader.loadSecurityGroupsByApplicationName(applicationName),
-        loadBalancerLoader = loadBalancerReader.loadLoadBalancers(applicationName),
-        applicationLoader = getApplicationEndpoint(applicationName).get(),
-        serverGroupLoader = clusterService.loadServerGroups(applicationName),
-        executionsLoader = options && options.executions ? executionService.getAll(applicationName) : $q.when(null);
+          loadBalancerLoader = loadBalancerReader.loadLoadBalancers(applicationName),
+          applicationLoader = getApplicationEndpoint(applicationName).get(),
+          serverGroupLoader = clusterService.loadServerGroups(applicationName),
+          executionsLoader = options && options.executions ? executionService.getAll(applicationName) : $q.when(null);
 
       var application, securityGroupAccounts, loadBalancerAccounts, serverGroups;
 
@@ -301,19 +329,23 @@ module.exports = angular
               }
               return securityGroupReader.attachSecurityGroups(application, results.securityGroups, applicationLoader.securityGroups, true)
                 .then(
-                  function() {
-                    addDefaultRegion(application);
-                    addDefaultCredentials(application);
-                    return application;
-                  },
-                  function(err) {
-                    $log.error(err, 'Failed to load application');
-                  }
-                );
+                function() {
+                  addDefaultRegion(application);
+                  addDefaultCredentials(application);
+                  return application;
+                },
+                function(err) {
+                  $log.error(err, 'Failed to load application');
+                }
+              );
             }, function(err) {
               $log.error(err, 'Failed to load application');
             });
-        });
+        },
+        () => {
+          $log.warn('Application failed to load. Will retry on next scheduler execution.');
+        }
+      );
     }
 
     function applyNewServerGroups(application, serverGroups) {
