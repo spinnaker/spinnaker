@@ -20,17 +20,15 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', []
         { type: 'requiredField', fieldName: 'job', },
       ],
     });
-  }).controller('JenkinsStageCtrl', function($scope, stage, igorService, $filter, infrastructureCaches, _) {
+  }).controller('JenkinsStageCtrl', function($scope, stage, igorService, _) {
 
     $scope.stage = stage;
 
     $scope.viewState = {
       mastersLoaded: false,
       mastersRefreshing: false,
-      mastersLastRefreshed: null,
       jobsLoaded: false,
       jobsRefreshing: false,
-      jobsLastRefreshed: null,
     };
 
     function initializeMasters() {
@@ -38,21 +36,16 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', []
         $scope.masters = masters;
         $scope.viewState.mastersLoaded = true;
         $scope.viewState.mastersRefreshing = false;
-        $scope.viewState.mastersLastRefreshed = $filter('timestamp')(infrastructureCaches.buildMasters.getStats().ageMax);
       });
     }
 
     this.refreshMasters = function() {
       $scope.viewState.mastersRefreshing = true;
-      $scope.viewState.mastersLastRefreshed = null;
-      infrastructureCaches.clearCache('buildMasters');
       initializeMasters();
     };
 
     this.refreshJobs = function() {
       $scope.viewState.jobsRefreshing = true;
-      $scope.viewState.jobsLastRefreshed = null;
-      infrastructureCaches.clearCache('buildJobs');
       updateJobsList();
     };
 
@@ -61,7 +54,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', []
         $scope.viewState.jobsLoaded = false;
         $scope.jobs = [];
         igorService.listJobsForMaster($scope.stage.master).then(function(jobs) {
-          $scope.viewState.jobsLastRefreshed = $filter('timestamp')(infrastructureCaches.buildJobs.getStats().ageMax);
           $scope.viewState.jobsLoaded = true;
           $scope.viewState.jobsRefreshing = false;
           $scope.jobs = jobs;

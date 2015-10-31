@@ -4,9 +4,6 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.cache.infrastructure.config', [])
   .constant('infrastructureCacheConfig', {
-    credentials: {
-      version: 2,
-    },
     networks: {
       version: 2,
     },
@@ -29,12 +26,5 @@ module.exports = angular.module('spinnaker.core.cache.infrastructure.config', []
       maxAge: 7 * 24 * 60 * 60 * 1000,
       version: 2
     },
-    keyPairs: {},
-    buildMasters: {
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    },
-    buildJobs: {
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    }
   })
   .name;
