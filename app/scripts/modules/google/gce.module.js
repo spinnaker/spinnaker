@@ -4,6 +4,12 @@ let angular = require('angular');
 
 require('./logo/gce.logo.less');
 
+// load all templates into the $templateCache
+var templates = require.context('./', true, /\.html$/);
+templates.keys().forEach(function(key) {
+  templates(key);
+});
+
 module.exports = angular.module('spinnaker.gce', [
   require('../core/cloudProvider/cloudProvider.registry.js'),
   require('./serverGroup/details/serverGroupDetails.gce.controller.js'),
