@@ -91,10 +91,11 @@ Sign into the [Google Developer's Console](https://console.developers.google.com
    - Go to the API Management page.
    - Enable the "Compute Engine" and "Compute Engine Autoscaler" APIs.
 2. Add and Obtain Credentials
-   - Go to the Credentials tab (if using the beta console, it is in API Manager):
+   - Navigate to the Credentials tab (if using the beta console, it is in API Manager).
    - Select "Service account" and create a JSON key.
-   - Download this key to a file. `chmod 400` the file.
-   - Set the project and jsonPath for the providers.google.primaryCredentials
+   - Download this key to a file.
+   - `chmod 400` the file.
+   - Set the project and jsonPath for `providers.google.primaryCredentials`
      in `$HOME/.spinnaker/spinnaker-local.yml`.
 
 
