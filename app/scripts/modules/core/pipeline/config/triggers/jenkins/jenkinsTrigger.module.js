@@ -5,10 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins', [
   require('../trigger.directive.js'),
   require('../../../../ci/jenkins/igor.service.js'),
-  require('../../../../cache/cacheInitializer.js'),
-  require('../../../../cache/infrastructureCaches.js'),
   require('../../pipelineConfigProvider.js'),
-  require('../../../../utils/timeFormatters.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerTrigger({
@@ -28,17 +25,15 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins'
       ],
     });
   })
-  .controller('JenkinsTriggerCtrl', function($scope, trigger, igorService, cacheInitializer, infrastructureCaches, $filter) {
+  .controller('JenkinsTriggerCtrl', function($scope, trigger, igorService) {
 
     $scope.trigger = trigger;
 
     $scope.viewState = {
       mastersLoaded: false,
       mastersRefreshing: false,
-      mastersLastRefreshed: null,
       jobsLoaded: false,
       jobsRefreshing: false,
-      jobsLastRefreshed: null,
     };
 
     function initializeMasters() {
@@ -46,21 +41,16 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins'
         $scope.masters = masters;
         $scope.viewState.mastersLoaded = true;
         $scope.viewState.mastersRefreshing = false;
-        $scope.viewState.mastersLastRefreshed = $filter('timestamp')(infrastructureCaches.buildMasters.getStats().ageMax);
       });
     }
 
     this.refreshMasters = function() {
       $scope.viewState.mastersRefreshing = true;
-      $scope.viewState.mastersLastRefreshed = null;
-      infrastructureCaches.clearCache('buildMasters');
       initializeMasters();
     };
 
     this.refreshJobs = function() {
       $scope.viewState.jobsRefreshing = true;
-      $scope.viewState.jobsLastRefreshed = null;
-      infrastructureCaches.clearCache('buildJobs');
       updateJobsList();
     };
 
@@ -69,7 +59,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins'
         $scope.viewState.jobsLoaded = false;
         $scope.jobs = [];
         igorService.listJobsForMaster($scope.trigger.master).then(function(jobs) {
-          $scope.viewState.jobsLastRefreshed = $filter('timestamp')(infrastructureCaches.buildJobs.getStats().ageMax);
           $scope.viewState.jobsLoaded = true;
           $scope.viewState.jobsRefreshing = false;
           $scope.jobs = jobs;
