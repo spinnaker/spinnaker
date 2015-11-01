@@ -93,4 +93,11 @@ module.exports = angular.module('spinnaker.core.history.service', [
       removeLastItem: removeLastItem,
       addExtraDataToLatest: addExtraDataToLatest,
     };
+  })
+  .run(function($rootScope, recentHistoryService) {
+    $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams) {
+      if (toState.data && toState.data.history) {
+        recentHistoryService.addItem(toState.data.history.type, toState.name, toParams, toState.data.history.keyParams);
+      }
+    });
   }).name;

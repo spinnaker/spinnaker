@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('applicationBootstrap', [
+module.exports = angular.module('spinnaker.applicationBootstrap', [
   require('../navigation/stateactive.directive.js'),
 ])
 .directive('spinnaker', function() {

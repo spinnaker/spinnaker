@@ -2,6 +2,12 @@
 
 let angular = require('angular');
 
+// load all templates into the $templateCache
+var templates = require.context('./', true, /\.html$/);
+templates.keys().forEach(function(key) {
+    templates(key);
+});
+
 module.exports = angular.module('spinnaker.cf', [
     require('../core/cloudProvider/cloudProvider.registry.js'),
     require('../core/pipeline/config/stages/deploy/cf/cfDeployStage.js'),

@@ -4,6 +4,12 @@ let angular = require('angular');
 
 require('./logo/aws.logo.less');
 
+// load all templates into the $templateCache
+var templates = require.context('./', true, /\.html$/);
+templates.keys().forEach(function(key) {
+  templates(key);
+});
+
 module.exports = angular.module('spinnaker.aws', [
   require('../core/cloudProvider/cloudProvider.registry.js'),
   require('../core/pipeline/config/stages/bake/aws/awsBakeStage.js'),

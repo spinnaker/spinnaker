@@ -88,4 +88,17 @@ module.exports = angular
     };
 
   })
+  .run(function($rootScope, pageTitleService) {
+    $rootScope.$on('$stateChangeStart', function() {
+      pageTitleService.handleRoutingStart();
+    });
+
+    $rootScope.$on('$stateChangeError', function() {
+      pageTitleService.handleRoutingError();
+    });
+
+    $rootScope.$on('$stateChangeSuccess', function(event, toState) {
+      pageTitleService.handleRoutingSuccess(toState.data);
+    });
+  })
   .name;

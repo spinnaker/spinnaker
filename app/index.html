@@ -1,10 +1,12 @@
 <!doctype html>
-<html class="no-js" ng-app="spinnaker">
+<html class="no-js" ng-app="netflix.spinnaker">
 <head>
-  <meta charset="utf-8">
   <title ng-bind="pageTitle">Spinnaker</title>
+  <meta charset="utf-8">
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width">
+
+  <!-- Sample loading styles -->
   <style>
     @keyframes fade-in {
       from {
@@ -58,13 +60,9 @@
   </style>
 </head>
 <body>
-  <div class="transition-overlay" ng-if="!authenticating && routing">
-    <h1 us-spinner="{radius:30, width:8, length: 16}"></h1>
-  </div>
+  <!-- Sample loading styles -->
   <div ng-style="{display: authenticating ? '' : 'none'}" class="loading-placeholder">
-
-    <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-       width="252px" height="262.8px" viewBox="0 0 252 262.8" enable-background="new 0 0 252 262.8" xml:space="preserve">
+    <svg version="1.1" x="0px" y="0px" width="252px" height="262.8px" viewBox="0 0 252 262.8" enable-background="new 0 0 252 262.8">
     <linearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="483.252" y1="15.4531" x2="782.4482" y2="15.4531" gradientTransform="matrix(-0.3568 0.9342 0.9342 0.3568 358.2632 -455.2441)">
       <stop  offset="0" style="stop-color:#2B3C90"/>
       <stop  offset="0.0932" style="stop-color:#29539C"/>
@@ -96,28 +94,34 @@
     <h1 id="welcome-message" ng-if="!authenticating">Hello!</h1>
     <h1 style="display: none" ng-style="{display: authenticating ? '' : 'none'}">Authenticating...</h1>
   </div>
-  <spinnaker ng-if="!authenticating"></spinnaker>
 
+  <!-- Replaces "Welcome!" message periodically with a random quote -->
   <script>
     (function() {
       var messageOptions = [
-          'If I\'m not back in five minutes... just wait longer.',
-          'And that\'s why you always leave a note.',
-          'Jim never has a second cup of coffee at home.',
-          'This is WZAZ in Chicago, where disco lives forever.',
-          'Carpe dentum. Seize the teeth.',
-          'Ah! Norman Bates!',
-          'I am the walrus.',
-          'I mean, say what you want about the tenets of National Socialism, Dude, at least it\'s an ethos.',
-          'And a good day to you, sir!',
-
+          'If I\'m not back in five minutes... just wait longer.', // Ace Ventura: Pet Detective
+          'And that\'s why you always leave a note.', // Arrested Development
+          'Jim never has a second cup of coffee at home.', // Airplane!
+          'This is WZAZ in Chicago, where disco lives forever.', // Airplane!
+          'Carpe dentum. Seize the teeth.', // Mrs. Doubtfire
+          'Ah! Norman Bates!', // Airplane! (it was a really good movie)
+          'I am the walrus.', // The Big Lebowski
+          'And a good day to you, sir!', // The Big Lebowski (also a really good movie)
+          'Do you want ants? Because that\'s how you get ants!', // Archer
+          'Kids you can literally fly!', // Key and Peele
+          'Goats are the only animals with an innate sense of democracy. That\'s why they\'re called "Nature\'s President".',
+          'Goats are stupid, mean, and hardheaded animals. That\'s why they\'re called "Nature\'s President".' // Mr. Show
       ];
 
-      if (Math.random() < 0.03) {
+      if (Math.random() < 0.02) {
         var idx = Math.floor(Math.random() * messageOptions.length);
         document.querySelector('#welcome-message').innerHTML = messageOptions[idx];
       }
     })();
   </script>
+
+  <!-- Actually injects our application -->
+  <spinnaker ng-if="!authenticating"></spinnaker>
+
 </body>
 </html>
