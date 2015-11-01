@@ -186,6 +186,7 @@ def create_instance(options):
     print 'with machine type {type} and boot disk size {disk_size}...'.format(
         type=options.machine_type, disk_size=options.disk_size)
 
+    google_dev_dir = os.path.join(os.path.dirname(__file__), '../google/dev')
     dev_dir = os.path.dirname(__file__)
     install_dir = '{dir}/../install'.format(dir=dev_dir)
     pylib_spinnaker_dir = '{dir}/../pylib/spinnaker'.format(dir=dev_dir)
@@ -214,13 +215,14 @@ def create_instance(options):
                        '--package_manager']
 
     metadata_files = [
-        'startup-script={dev_dir}/google_install_loader.py'
+        'startup-script={google_dev_dir}/google_install_loader.py'
         ',py_fetch={pylib_spinnaker_dir}/fetch.py'
         ',py_run={pylib_spinnaker_dir}/run.py'
         ',py_install_development={temp_install_development}'
         ',sh_bootstrap_dev={dev_dir}/bootstrap_dev.sh'
         ',py_install_runtime_dependencies={temp_install_runtime}'
-        .format(dev_dir=dev_dir, pylib_spinnaker_dir=pylib_spinnaker_dir,
+        .format(google_dev_dir=google_dev_dir,
+                dev_dir=dev_dir, pylib_spinnaker_dir=pylib_spinnaker_dir,
                 temp_install_runtime=temp_install_runtime,
                 temp_install_development=temp_install_development)]
 
