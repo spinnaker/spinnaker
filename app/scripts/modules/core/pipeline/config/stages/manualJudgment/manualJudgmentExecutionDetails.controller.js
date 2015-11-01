@@ -23,7 +23,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgment.ex
       $http({
         method: 'PATCH',
         url: targetUrl,
-        data: angular.toJson({judgmentStatus: judgmentStatus})
+        data: angular.toJson({judgmentStatus: judgmentStatus}),
+        timeout: settings.pollSchedule,
       }).success(function() {
         $scope.stage.context.judgmentStatus = judgmentStatus;
         $scope.stage.status = executionStatus;

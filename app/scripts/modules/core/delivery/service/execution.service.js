@@ -21,7 +21,8 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
           'applications',
           applicationName,
           'pipelines',
-        ].join('/')
+        ].join('/'),
+        timeout: settings.pollSchedule,
       }).then(
         function(resp) {
           deferred.resolve(resp.data);
