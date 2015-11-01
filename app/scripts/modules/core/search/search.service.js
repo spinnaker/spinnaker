@@ -20,7 +20,8 @@ module.exports = angular.module('spinnaker.core.search.service', [
 
       return $http({
         url: settings.gateUrl + '/search',
-        params: angular.extend(defaultParams, params)
+        params: angular.extend(defaultParams, params),
+        timeout: settings.pollSchedule,
       })
         .then(
           function(response) {
