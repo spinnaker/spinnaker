@@ -25,6 +25,22 @@ from spinnaker.run import run_quick
 from spinnaker.run import check_run_quick
 
 
+def get_repository_dir(name):
+  """Determine the local directory that a given repository is in.
+
+  We assume that refresh_source is being run in the build directory
+  that contains all the repositories. Except spinnaker/ itself is not
+  in the build directory so special case it.
+
+  Args:
+    name [string]: The repository name.
+  """
+  if name == 'spinnaker':
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+  else:
+    return name
+    
+
 class SourceRepository(
           collections.namedtuple('SourceRepository', ['name', 'owner'])):
   """Denotes a github repository.
@@ -39,6 +55,7 @@ class SourceRepository(
 class Refresher(object):
   __OPTIONAL_REPOSITORIES = [SourceRepository('citest', 'google')]
   __REQUIRED_REPOSITORIES = [
+      SourceRepository('spinnaker', 'spinnaker'),
       SourceRepository('clouddriver', 'spinnaker'),
       SourceRepository('orca', 'spinnaker'),
       SourceRepository('front50', 'spinnaker'),
@@ -70,7 +87,7 @@ class Refresher(object):
         The name of the branch.
       """
       result = run_quick('git -C {dir} rev-parse --abbrev-ref HEAD'
-                         .format(dir=name),
+                         .format(dir=get_repository_dir(name)),
                          echo=True)
       if result.returncode:
         error = 'Could not determine branch: ' + result.stdout
@@ -107,6 +124,7 @@ class Refresher(object):
                If not provided use the configured options.
       """
       name = repository.name
+      repository_dir = get_repository_dir(name)
       upstream_user = repository.owner
       origin_url = self.get_github_repository_url(repository, owner=owner)
       upstream_url = 'https://github.com/{upstream_user}/{name}.git'.format(
@@ -122,7 +140,7 @@ class Refresher(object):
       else:
           if repository in self.__extra_repositories:
              sys.stderr.write('WARNING: Missing optional repository {name}.\n'
-                              .format(name=name))
+                                  .format(name=name))
              sys.stderr.write('         Continue on without it.\n')
              return
           sys.stderr.write(shell_result.stderr or shell_result.stdout)
@@ -137,7 +155,7 @@ class Refresher(object):
           print '  Adding upstream repository {upstream}.'.format(
               upstream=upstream_url)
           check_run_quick('git -C {dir} remote add upstream {url}'
-                          .format(dir=name, url=upstream_url),
+                              .format(repository_dir, url=upstream_url),
                           echo=False)
 
       if self.__options.disable_upstream_push:
@@ -146,7 +164,7 @@ class Refresher(object):
               which=which, upstream=upstream_url)
           check_run_quick(
               'git -C {dir} remote set-url --push {which} disabled'
-              .format(dir=name, which=which),
+                  .format(dir=repository_dir, which=which),
               echo=False)
 
   def pull_from_origin(self, repository):
@@ -156,8 +174,9 @@ class Refresher(object):
         repository [string]: The local repository to update.
       """
       name = repository.name
+      repository_dir = get_repository_dir(name)
       owner = repository.owner
-      if not os.path.exists(name):
+      if not os.path.exists(repository_dir):
           self.git_clone(repository)
           return
 
@@ -166,10 +185,14 @@ class Refresher(object):
       if branch != 'master':
           sys.stderr.write(
               'WARNING: Updating {name} branch={branch}, *NOT* "master"\n'
-              .format(name=name, branch=branch))
-      check_run_quick('git -C {dir} pull origin {branch}'
-                      .format(dir=name, branch=branch),
-                      echo=True)
+                  .format(name=name, branch=branch))
+      result = run_quick('git -C {dir} pull origin {branch}'
+                             .format(dir=repository_dir, branch=branch),
+                         echo=True)
+      if result.returncode:
+          if branch != 'master':
+            sys.stderr.write('  Maybe the branch is only local.\n')
+          sys.stderr.write('Ignoring error.\n')
 
   def pull_from_upstream_if_master(self, repository):
       """Pulls the master branch fromthe upstream repository.
@@ -181,7 +204,8 @@ class Refresher(object):
         repository [string]: The name of the local repository to update.
       """
       name = repository.name
-      if not os.path.exists(name):
+      repository_dir = get_repository_dir(name)
+      if not os.path.exists(repository_dir):
           self.pull_from_origin(repository)
       branch = self.get_branch_name(name)
       if branch != 'master':
@@ -190,8 +214,8 @@ class Refresher(object):
           return
 
       print 'Pulling master {name} from upstream'.format(name=name)
-      check_run_quick('git -C {name} pull upstream master'
-                      .format(name=name),
+      check_run_quick('git -C {dir} pull upstream master'
+                         .format(dir=repository_dir),
                       echo=True)
 
   def push_to_origin_if_master(self, repository):
@@ -204,19 +228,21 @@ class Refresher(object):
         repository [string]: The name of the local repository to push from.
       """
       name = repository.name
-      if not os.path.exists(name):
+      repository_dir = get_repository_dir(name)
+      if not os.path.exists(repository_dir):
           sys.stderr.write('Skipping {name} because it does not yet exist.\n'
-                           .format(name=name))
+                               .format(name=name))
           return
 
       branch = self.get_branch_name(name)
       if branch != 'master':
           sys.stderr.write('Skipping {name} because it is in branch={branch}.\n'
-                           .format(name=name, branch=branch))
+                               .format(name=name, branch=branch))
           return
 
       print 'Pushing {name} to origin.'.format(name=name)
-      check_run_quick('git -C {dir} push origin master'.format(dir=name),
+      check_run_quick('git -C {dir} push origin master'.format(
+                          dir=repository_dir),
                       echo=True)
 
   def push_all_to_origin_if_master(self):
