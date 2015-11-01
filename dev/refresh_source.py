@@ -20,9 +20,10 @@ import os
 import re
 import sys
 
+from spinnaker.run import check_run_and_monitor
+from spinnaker.run import check_run_quick
 from spinnaker.run import run_and_monitor
 from spinnaker.run import run_quick
-from spinnaker.run import check_run_quick
 
 
 def get_repository_dir(name):
@@ -86,9 +87,9 @@ class Refresher(object):
       Returns:
         The name of the branch.
       """
-      result = run_quick('git -C {dir} rev-parse --abbrev-ref HEAD'
+      result = run_quick('git -C "{dir}" rev-parse --abbrev-ref HEAD'
                          .format(dir=get_repository_dir(name)),
-                         echo=True)
+                         echo=False)
       if result.returncode:
         error = 'Could not determine branch: ' + result.stdout
         raise RuntimeError(error)
@@ -154,7 +155,7 @@ class Refresher(object):
       if self.__options.add_upstream and origin_url != upstream_url:
           print '  Adding upstream repository {upstream}.'.format(
               upstream=upstream_url)
-          check_run_quick('git -C {dir} remote add upstream {url}'
+          check_run_quick('git -C "{dir}" remote add upstream {url}'
                               .format(repository_dir, url=upstream_url),
                           echo=False)
 
@@ -163,7 +164,7 @@ class Refresher(object):
           print '  Disabling git pushes to {which} {upstream}'.format(
               which=which, upstream=upstream_url)
           check_run_quick(
-              'git -C {dir} remote set-url --push {which} disabled'
+              'git -C "{dir}" remote set-url --push {which} disabled'
                   .format(dir=repository_dir, which=which),
               echo=False)
 
@@ -186,9 +187,9 @@ class Refresher(object):
           sys.stderr.write(
               'WARNING: Updating {name} branch={branch}, *NOT* "master"\n'
                   .format(name=name, branch=branch))
-      result = run_quick('git -C {dir} pull origin {branch}'
-                             .format(dir=repository_dir, branch=branch),
-                         echo=True)
+      result = run_and_monitor('git -C "{dir}" pull origin {branch}'
+                                   .format(dir=repository_dir, branch=branch),
+                               echo=True)
       if result.returncode:
           if branch != 'master':
             sys.stderr.write('  Maybe the branch is only local.\n')
@@ -214,9 +215,9 @@ class Refresher(object):
           return
 
       print 'Pulling master {name} from upstream'.format(name=name)
-      check_run_quick('git -C {dir} pull upstream master'
-                         .format(dir=repository_dir),
-                      echo=True)
+      check_run_and_monitor('git -C "{dir}" pull upstream master'
+                                .format(dir=repository_dir),
+                            echo=True)
 
   def push_to_origin_if_master(self, repository):
       """Pushes the current master branch of the local repository to the origin.
@@ -241,9 +242,9 @@ class Refresher(object):
           return
 
       print 'Pushing {name} to origin.'.format(name=name)
-      check_run_quick('git -C {dir} push origin master'.format(
-                          dir=repository_dir),
-                      echo=True)
+      check_run_and_monitor('git -C "{dir}" push origin master'.format(
+                                dir=repository_dir),
+                            echo=True)
 
   def push_all_to_origin_if_master(self):
     """Push all the local repositories current master branch to origin.
@@ -292,12 +293,13 @@ class Refresher(object):
 
       with open(path, 'w') as f:
           f.write("""#!/bin/bash
-cd $(dirname $0)
+d=$(dirname "$0")
+cd "$d"
 LOG_DIR=${{LOG_DIR:-../logs}}
 
 DEF_SYS_PROPERTIES="-Dspring.config.location='{spring_location}'"
-bash -c "(./gradlew $DEF_SYS_PROPERTIES $@ > $LOG_DIR/{name}.log) 2>&1\
- | tee -a $LOG_DIR/{name}.log >& $LOG_DIR/{name}.err &"
+bash -c "(./gradlew $DEF_SYS_PROPERTIES $@ > '$LOG_DIR/{name}.log') 2>&1\
+ | tee -a '$LOG_DIR/{name}.log' >& '$LOG_DIR/{name}.err' &"
 """.format(name=name, spring_location=self.__determine_spring_config_location()))
       os.chmod(path, 0777)
 
@@ -311,19 +313,20 @@ bash -c "(./gradlew $DEF_SYS_PROPERTIES $@ > $LOG_DIR/{name}.log) 2>&1\
       path = '{name}/start_dev.sh'.format(name=name)
       with open(path, 'w') as f:
           f.write("""#!/bin/bash
-cd $(dirname $0)
+d=$(dirname "$0")
+cd "$d"
 LOG_DIR=${{LOG_DIR:-../logs}}
 
 if [[ node_modules -ot .git ]]; then
   # Update npm, otherwise assume nothing changed and we're good.
-  npm install >& $LOG_DIR/deck.log
+  npm install >& "$LOG_DIR/deck.log"
 else
   echo "deck npm node_modules looks up to date already."
 fi
 
 # Append to the log file we just started.
-bash -c "(npm start >> $LOG_DIR/{name}.log) 2>&1\
- | tee -a $LOG_DIR/{name}.log >& $LOG_DIR/{name}.err &"
+bash -c "(npm start >> '$LOG_DIR/{name}.log') 2>&1\
+ | tee -a '$LOG_DIR/{name}.log' >& '$LOG_DIR/{name}.err' &"
 """.format(name=name))
       os.chmod(path, 0777)
 
