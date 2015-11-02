@@ -88,13 +88,14 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
 
     var taskMatchers = {
       'createcopylastasg': function(task, serverGroup) {
-        var source = task.getValueFor('source'),
-            targetAccount = task.getValueFor('deploy.account.name'),
-            targetRegion = task.getValueFor('availabilityZones') ? Object.keys(task.getValueFor('availabilityZones'))[0] : null,
-            targetServerGroup = targetRegion && task.getValueFor('deploy.server.groups') ? task.getValueFor('deploy.server.groups')[targetRegion][0] : null,
-            sourceServerGroup = source.asgName,
-            sourceAccount = source.account,
-            sourceRegion = source.region;
+        var source = task.getValueFor('source');
+        var targetAccount = task.getValueFor('deploy.account.name');
+        var targetRegion = task.getValueFor('availabilityZones') ? Object.keys(task.getValueFor('availabilityZones'))[0] : null;
+        var dsgs = task.getValueFor('deploy.server.groups');
+        var targetServerGroup = targetRegion && dsgs && dsgs[targetRegion] ? dsgs[targetRegion][0] : null;
+        var sourceServerGroup = source.asgName;
+        var sourceAccount = source.account;
+        var sourceRegion = source.region;
 
         if (serverGroup.account === targetAccount && serverGroup.region === targetRegion && serverGroup.name === targetServerGroup) {
           return true;

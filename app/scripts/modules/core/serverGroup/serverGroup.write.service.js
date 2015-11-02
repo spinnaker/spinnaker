@@ -80,7 +80,7 @@ module.exports = angular
       var description;
       if (command.viewState.mode === 'clone') {
         description = 'Create Cloned Server Group from ' + command.source.asgName;
-        command.type = 'copyLastAsg';
+        command.type = 'cloneServerGroup';
       } else {
         command.type = 'linearDeploy';
         var asgName = application.name;

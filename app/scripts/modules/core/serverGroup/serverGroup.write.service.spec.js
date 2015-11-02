@@ -80,7 +80,7 @@ describe('serverGroupWriter', function () {
         };
 
       var submitted = postTask(command);
-      expect(submitted.job[0].type).toBe('copyLastAsg');
+      expect(submitted.job[0].type).toBe('cloneServerGroup');
       expect(submitted.description).toBe('Create Cloned Server Group from appName-v002');
       expect(submitted.job[0].source).toEqual(command.source);
     });
