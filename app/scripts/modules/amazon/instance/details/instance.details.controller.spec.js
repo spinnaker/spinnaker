@@ -27,7 +27,8 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
         instance: {},
         app: {
           registerAutoRefreshHandler: angular.noop
-        }
+        },
+        overrides: {},
       });
 
       this.createController = function(application, instance) {
@@ -39,6 +40,7 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
           recentHistoryService: {
             addExtraDataToLatest: angular.noop,
           },
+          overrides: {},
         });
       };
     })
