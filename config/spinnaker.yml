@@ -98,6 +98,7 @@ services:
     enabled: false
     baseUrl: # Expected in spinnaker-local.yml
     # This target repository is used by the bakery to publish baked docker images.
+    # Do not include http://.
     targetRepository: # Optional, but expected in spinnaker-local.yml if specified.
 
     # You'll need to provide it a Spinnaker account to use.
