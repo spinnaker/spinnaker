@@ -41,7 +41,7 @@ module.exports = angular
           application.reloadTasks();
           application.reloadExecutions();
           return getApplication(application.name).then(function (newApplication) {
-            if (newApplication) {
+            if (newApplication && !newApplication.notFound) {
               deepCopyApplication(application, newApplication);
               application.autoRefreshHandlers.forEach((handler) => handler.call());
               application.oneTimeRefreshHandlers.forEach((handler) => handler.call());
