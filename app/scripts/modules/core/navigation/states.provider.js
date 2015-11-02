@@ -366,9 +366,11 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
               return applicationReader.getApplication($stateParams.application, {tasks: true, executions: true, pipelineConfigs: true})
                 .then(
                 function(app) {
-                  return app;
+                  return app || { notFound: true, name: $stateParams.application };
                 },
-                function() { return {notFound: true, name: $stateParams.application}; }
+                function() {
+                  return { notFound: true, name: $stateParams.application };
+                }
               );
             }]
           },

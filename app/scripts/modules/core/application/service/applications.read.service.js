@@ -344,7 +344,6 @@ module.exports = angular
         },
         () => {
           $log.warn('Application failed to load. Will retry on next scheduler execution.');
-          return { notFound: true, name: applicationName };
         }
       );
     }
