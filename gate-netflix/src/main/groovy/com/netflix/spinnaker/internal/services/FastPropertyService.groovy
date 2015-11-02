@@ -3,6 +3,7 @@ package com.netflix.spinnaker.internal.services
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.internal.services.internal.MaheService
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Component
 
 @CompileStatic
 @Component
+@Slf4j
 class FastPropertyService {
   private static final String GROUP = "fastProperty"
 
@@ -31,60 +33,87 @@ class FastPropertyService {
   MaheService maheService
 
   Map getByAppName(String appName) {
-    HystrixFactory.newMapCommand(GROUP, "getByAppName") {
+    def command =  HystrixFactory.newMapCommand(GROUP, "getByAppName") {
       maheService.getFastPropertiesByApplication(appName)
-    } execute()
+    }
+
+    return command.execute()
   }
 
   Map getAll() {
-    HystrixFactory.newMapCommand(GROUP, "getAll") {
+    def command = HystrixFactory.newMapCommand(GROUP, "getAll") {
       maheService.getAll()
-    } execute()
+    }
+
+    return command.execute()
   }
 
   Map create(Map fastProperty) {
-    HystrixFactory.newMapCommand(GROUP, "create") {
+    def command = HystrixFactory.newMapCommand(GROUP, "create") {
       maheService.create(fastProperty)
-    } execute()
+    }
+
+    return command.execute()
   }
 
   String promote(Map fastProperty) {
-    maheService.promote(fastProperty)
+    def command = HystrixFactory.newStringCommand(GROUP, "promote") {
+      maheService.promote(fastProperty)
+    }
+
+    return command.execute()
   }
 
   Map promotionStatus(String promotionId) {
-    maheService.promotionStatus(promotionId)
+    def command = HystrixFactory.newMapCommand(GROUP, "promotionStatus") {
+      maheService.promotionStatus(promotionId)
+    }
+
+    return command.execute()
   }
 
   Map passPromotion(String promotionId, Boolean pass) {
-    maheService.passPromotion(promotionId, pass)
+    def command = HystrixFactory.newMapCommand(GROUP, "passPromotion") {
+      maheService.passPromotion(promotionId, pass)
+    }
+
+    return command.execute()
   }
 
   List promotions() {
-    maheService.promotions()
+    def command = HystrixFactory.newListCommand(GROUP, "promotions"){
+      maheService.promotions()
+    }
+
+    return command.execute()
   }
 
   List promotionsByApp(String appId) {
-    maheService.promotionsByApp(appId)
+    def command = HystrixFactory.newListCommand(GROUP, "promotionsByApp") {
+      maheService.promotionsByApp(appId)
+    }
+    return command.execute()
   }
 
-
   Map delete(String propId, String cmcTicket, String env) {
-    HystrixFactory.newMapCommand(GROUP, "delete")  {
+    def command = HystrixFactory.newMapCommand(GROUP, "delete")  {
       maheService.delete(propId, cmcTicket, env)
-    } execute()
+    }
+    return command.execute()
   }
 
 
   Map queryByScope(Map scope) {
-    HystrixFactory.newMapCommand(GROUP, "queryByScope") {
+    def command = HystrixFactory.newMapCommand(GROUP, "queryByScope") {
       maheService.queryScope(scope)
-    } execute()
+    }
+    return command.execute()
   }
 
   Map getImpact(Map scope) {
-    HystrixFactory.newMapCommand(GROUP, "getImpact") {
+    def command = HystrixFactory.newMapCommand(GROUP, "getImpact") {
       maheService.getImpact(scope)
-    } execute()
+    }
+    return command.execute()
   }
 }
