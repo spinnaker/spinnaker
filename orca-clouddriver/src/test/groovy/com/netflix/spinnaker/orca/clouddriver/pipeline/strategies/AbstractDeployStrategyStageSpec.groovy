@@ -69,7 +69,5 @@ class AbstractDeployStrategyStageSpec extends Specification {
       "none"            | noStrat
       "a"               | aStrat
       "B"               | bStrat
-
   }
-
 }

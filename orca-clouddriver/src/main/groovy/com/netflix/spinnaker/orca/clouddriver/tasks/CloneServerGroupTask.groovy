@@ -68,7 +68,10 @@ class CloneServerGroupTask extends AbstractCloudProviderAwareTask implements Tas
 
   private List<Map<String, Object>> getDescriptions(Map operation) {
     List<Map<String, Object>> descriptions = []
-    if (operation.credentials != defaultBakeAccount && operation.availabilityZones) {
+    // NFLX bakes images in their test account. This rigmarole is to allow the prod account access to that image.
+    if (operation.cloudProvider == "aws" &&
+        operation.credentials != defaultBakeAccount &&
+        operation.availabilityZones) {
       def allowLaunchDescriptions = operation.availabilityZones.collect { String region, List<String> azs ->
         [
           allowLaunchDescription: [

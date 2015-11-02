@@ -46,7 +46,15 @@ class HighlanderStrategySpec extends Specification {
     then:
       stage.afterStages.size() == 1
       stage.afterStages.last().stageBuilder == shrinkClusterStage
-      stage.afterStages.last().context[locationType] == [locationValue]
+      stage.afterStages.last().context == [
+          credentials          : "testAccount",
+          (locationType)       : [locationValue],
+          cluster              : "unit-tests",
+          cloudProvider        : cloudProvider,
+          shrinkToSize         : 1,
+          retainLargerOverNewer: false,
+          allowDeleteActive    : true
+      ]
 
     where:
       cloudProvider | locationType | locationValue
