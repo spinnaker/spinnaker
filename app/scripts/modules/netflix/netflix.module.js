@@ -15,5 +15,6 @@ module.exports = angular
     require('./fastProperties/fastProperties.module.js'),
     require('./alert/alertHandler.js'),
     require('./feedback/feedback.module.js'),
-    require('../core/canary/canary.module.js'), // TODO: move to Netflix module
+    require('../core/pipeline/config/stages/canary/canaryStage.module.js'), // TODO: move to Netflix module
+    require('../core/canary/index.js'), // TODO: move to Netflix module
   ]).name;

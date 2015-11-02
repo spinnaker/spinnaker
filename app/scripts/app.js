@@ -11,5 +11,6 @@ module.exports = angular.module('netflix.spinnaker', [
   require('./modules/amazon/aws.module.js'),
   require('./modules/google/gce.module.js'),
   require('./modules/cloudfoundry/cf.module.js'),
+  require('./modules/netflix/netflix.module.js'),
   require('./modules/titan/titan.module.js'),
 ]).name;
