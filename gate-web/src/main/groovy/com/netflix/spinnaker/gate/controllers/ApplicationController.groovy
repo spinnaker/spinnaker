@@ -19,11 +19,11 @@ package com.netflix.spinnaker.gate.controllers
 import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.ExecutionHistoryService
 import com.netflix.spinnaker.gate.services.TaskService
-import com.netflix.config.DynamicIntProperty
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.env.Environment
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
@@ -35,7 +35,6 @@ import org.springframework.web.bind.annotation.*
 class ApplicationController {
 
   static final String PIPELINE_EXECUTION_LIMIT = 'gate.execution.fetch.limit'
-  static final DynamicIntProperty executionLimit = new DynamicIntProperty(PIPELINE_EXECUTION_LIMIT, 10)
 
   @Autowired
   ApplicationService applicationService
@@ -48,6 +47,9 @@ class ApplicationController {
 
   @Autowired
   PipelineController pipelineController
+
+  @Autowired
+  Environment environment
 
   @RequestMapping(method = RequestMethod.GET)
   List<Map> all() {
@@ -75,7 +77,7 @@ class ApplicationController {
   @RequestMapping(value = "/{application}/pipelines", method = RequestMethod.GET)
   List getPipelines(@PathVariable("application") String application,
                     @RequestParam(value = "limit", required = false) Integer limit) {
-    def listLimit = limit ?: executionLimit.get()
+    def listLimit = limit ?: environment.getProperty(PIPELINE_EXECUTION_LIMIT, Integer, 10)
     log.info("execution fetch limit: ${listLimit}")
     executionHistoryService.getPipelines(application, listLimit)
   }
