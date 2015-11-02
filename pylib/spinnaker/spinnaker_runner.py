@@ -233,8 +233,8 @@ class Runner(object):
     return self.run_daemon('/bin/bash',
                     ['/bin/bash',
                      '-c',
-                     '({command} > {log}.log) 2>&1 '
-                     '| tee -a {log}.log >& {log}.err'
+                     '("{command}" > "{log}.log") 2>&1 '
+                     '| tee -a "{log}.log" >& "{log}.err"'
                      .format(command=command, log=base_log_path)],
                      environ=environ)
 
@@ -248,8 +248,8 @@ class Runner(object):
     print 'Starting external dependencies...'
     check_run_quick(
         'REDIS_HOST={host}'
-        ' LOG_DIR={log_dir}'
-        ' {run_dir}/start_redis.sh'
+        ' LOG_DIR="{log_dir}"'
+        ' "{run_dir}/start_redis.sh"'
         .format(host=redis_host,
                 log_dir=self.__installation.LOG_DIR,
                 run_dir=run_dir),
@@ -257,8 +257,8 @@ class Runner(object):
 
     check_run_quick(
         'CASSANDRA_HOST={host}'
-        ' CASSANDRA_DIR={install_dir}/cassandra'
-        ' {run_dir}/start_cassandra.sh'
+        ' CASSANDRA_DIR="{install_dir}/cassandra"'
+        ' "{run_dir}/start_cassandra.sh"'
         .format(host=cassandra_host,
                 install_dir=self.__installation.SPINNAKER_INSTALL_DIR,
                 run_dir=run_dir),

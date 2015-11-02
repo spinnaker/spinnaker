@@ -54,14 +54,14 @@ fi
 # Create Cassandra keyspaces.
 echo "Creating Cassandra keyspaces..."
 DELAY=1
-while ! cqlsh -f $CASSANDRA_DIR/create_echo_keyspace.cql && [ "$DELAY" -lt 32 ]
+while ! cqlsh -f "$CASSANDRA_DIR/create_echo_keyspace.cql" && [ "$DELAY" -lt 32 ]
 do
     sleep $DELAY
     let DELAY*=2
 done
 
-cqlsh -f $CASSANDRA_DIR/create_front50_keyspace.cql
+cqlsh -f "$CASSANDRA_DIR/create_front50_keyspace.cql"
 
-cqlsh -f $CASSANDRA_DIR/create_rush_keyspace.cql
+cqlsh -f "$CASSANDRA_DIR/create_rush_keyspace.cql"
 
 echo "Cassandra is ready."
