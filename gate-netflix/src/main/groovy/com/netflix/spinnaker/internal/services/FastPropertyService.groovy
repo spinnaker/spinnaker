@@ -33,168 +33,87 @@ class FastPropertyService {
   MaheService maheService
 
   Map getByAppName(String appName) {
-    def command =  HystrixFactory.newMapCommand(GROUP, "getByAppName", true) {
+    def command =  HystrixFactory.newMapCommand(GROUP, "getByAppName") {
       maheService.getFastPropertiesByApplication(appName)
     }
 
-    try {
-      return command.execute()
-    } finally {
-      if(command.isResponseFromFallback()) {
-        log.warn("Fallback encoutered for FastPropertyService.getFastPropertiesByApplication(${appName})")
-        throw new ThrottledRequestException("Unable to retrieve fast properies by app namefor '${appName}'")
-      }
-    }
+    return command.execute()
   }
 
   Map getAll() {
-    def command = HystrixFactory.newMapCommand(GROUP, "getAll", true) {
+    def command = HystrixFactory.newMapCommand(GROUP, "getAll") {
       maheService.getAll()
     }
 
-    try {
-      return command.execute()
-    } finally {
-      if(command.isResponseFromFallback()) {
-        log.warn("Fallback encountered for FastPropertyService.getAll()")
-        throw new ThrottledRequestException("Unable to retrieve all fast properties")
-      }
-    }
+    return command.execute()
   }
 
   Map create(Map fastProperty) {
-    def command = HystrixFactory.newMapCommand(GROUP, "create", true) {
+    def command = HystrixFactory.newMapCommand(GROUP, "create") {
       maheService.create(fastProperty)
     }
 
-    try {
-      return command.execute()
-    } finally {
-      if(command.isResponseFromFallback()) {
-        log.warn("Fallback encountered for FastPropertyService.create(${fastProperty})")
-        throw new ThrottledRequestException("Unable to create fast property")
-      }
-    }
+    return command.execute()
   }
 
   String promote(Map fastProperty) {
-    def command = HystrixFactory.newStringCommand(GROUP, "promote", true) {
+    def command = HystrixFactory.newStringCommand(GROUP, "promote") {
       maheService.promote(fastProperty)
     }
 
-    try {
-      return command.execute()
-    } finally {
-      if(command.isResponseFromFallback()) {
-        log.warn("Fallback encountered for FastPropertyService.promote(${fastProperty})")
-        throw new ThrottledRequestException("Unable to promote fast property")
-      }
-    }
+    return command.execute()
   }
 
   Map promotionStatus(String promotionId) {
-    def command = HystrixFactory.newMapCommand(GROUP, "promotionStatus", true) {
+    def command = HystrixFactory.newMapCommand(GROUP, "promotionStatus") {
       maheService.promotionStatus(promotionId)
     }
 
-    try {
-      return command.execute()
-    } finally {
-      if(command.isResponseFromFallback()) {
-        log.warn("Fallback encountered for FastPropertyService.promotionStatus(${promotionId})")
-        throw new ThrottledRequestException("Unable to retrieve fast property promotion status")
-      }
-    }
+    return command.execute()
   }
 
   Map passPromotion(String promotionId, Boolean pass) {
-    def command = HystrixFactory.newMapCommand(GROUP, "passPromotion", true) {
+    def command = HystrixFactory.newMapCommand(GROUP, "passPromotion") {
       maheService.passPromotion(promotionId, pass)
     }
 
-    try {
-      return command.execute()
-    } finally {
-      if(command.isResponseFromFallback()) {
-        log.warn("Fallback encountered for FastPropertyService.passPromotion(${promotionId}, ${pass})")
-        throw new ThrottledRequestException("Unable to pass fast property pomotion")
-      }
-    }
+    return command.execute()
   }
 
   List promotions() {
-    def command = HystrixFactory.newListCommand(GROUP, "promotions", true){
+    def command = HystrixFactory.newListCommand(GROUP, "promotions"){
       maheService.promotions()
     }
 
-    try {
-      return command.execute()
-    } finally {
-      if(command.isResponseFromFallback()) {
-        log.warn("Fallback encountered for FastPropertyService.promotions()")
-        throw new ThrottledRequestException("Unable to retrieve all fast properties promotions")
-      }
-    }
+    return command.execute()
   }
 
   List promotionsByApp(String appId) {
-    def command = HystrixFactory.newListCommand(GROUP, "promotionsByApp", true) {
+    def command = HystrixFactory.newListCommand(GROUP, "promotionsByApp") {
       maheService.promotionsByApp(appId)
     }
-
-    try {
-      return command.execute()
-    } finally {
-      if(command.isResponseFromFallback()) {
-        log.warn("Fallback encountered for FastPropertyService.promotionsByApp(${appId})")
-        throw new ThrottledRequestException("Unable to retrieve promotions by app")
-      }
-    }
+    return command.execute()
   }
 
   Map delete(String propId, String cmcTicket, String env) {
-    def command = HystrixFactory.newMapCommand(GROUP, "delete", true)  {
+    def command = HystrixFactory.newMapCommand(GROUP, "delete")  {
       maheService.delete(propId, cmcTicket, env)
     }
-
-    try {
-      return command.execute()
-    } finally {
-      if(command.isResponseFromFallback()) {
-        log.warn("Fallback encountered for FastPropertyService.delete(${propId}, ${cmcTicket}, ${env})")
-        throw new ThrottledRequestException("Unable to delete promotions by propId: ${propId} in env: ${env}")
-      }
-    }
+    return command.execute()
   }
 
 
   Map queryByScope(Map scope) {
-    def command = HystrixFactory.newMapCommand(GROUP, "queryByScope", true) {
+    def command = HystrixFactory.newMapCommand(GROUP, "queryByScope") {
       maheService.queryScope(scope)
     }
-
-    try {
-      return command.execute()
-    } finally {
-      if(command.isResponseFromFallback()) {
-        log.warn("Fallback encountered for FastPropertyService.queryByScope(${scope})")
-        throw new ThrottledRequestException("Unable to query by scope for scope ${scope}")
-      }
-    }
+    return command.execute()
   }
 
   Map getImpact(Map scope) {
-    def command = HystrixFactory.newMapCommand(GROUP, "getImpact", true) {
+    def command = HystrixFactory.newMapCommand(GROUP, "getImpact") {
       maheService.getImpact(scope)
     }
-
-    try {
-      return command.execute()
-    } finally {
-      if(command.isResponseFromFallback()) {
-        log.warn("Fallback encountered for FastPropertyService.getImpact(${scope})")
-        throw new ThrottledRequestException("Unable to getImpact for scope: ${scope}")
-      }
-    }
+    return command.execute()
   }
 }
