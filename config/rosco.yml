@@ -13,6 +13,8 @@ aws:
 
 docker:
   enabled: ${services.docker.enabled:false}
+  bakeryDefaults:
+    targetRepository: ${services.docker.targetRepository}
 
 google:
   enabled: ${providers.google.enabled:false}
