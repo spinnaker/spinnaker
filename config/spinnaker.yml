@@ -96,7 +96,9 @@ services:
     # Note that docker is not installed with Spinnaker so you must obtain this
     # on your own if you are interested.
     enabled: false
-    baseUrl: # Expected in spinnaker-local.yaml
+    baseUrl: # Expected in spinnaker-local.yml
+    # This target repository is used by the bakery to publish baked docker images.
+    targetRepository: # Optional, but expected in spinnaker-local.yml if specified.
 
     # You'll need to provide it a Spinnaker account to use.
     # Here we are assuming the default primary acccount.
