@@ -16,13 +16,16 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
+import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
+@GoogleOperation(AtomicOperations.CLONE_SERVER_GROUP)
 @Component("copyLastGoogleServerGroupDescriptionValidator")
 class CopyLastGoogleServerGroupDescriptionValidator extends DescriptionValidator<BasicGoogleDeployDescription> {
   @Autowired
