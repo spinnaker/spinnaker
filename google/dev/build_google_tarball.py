@@ -23,8 +23,8 @@ import re
 import sys
 import time
 
-from pylib.spinnaker.run import run_quick
-from pylib.spinnaker.run import check_run_quick
+from spinnaker.run import run_quick
+from spinnaker.run import check_run_quick
 
 
 def get_default_project():
