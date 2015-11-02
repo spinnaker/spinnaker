@@ -85,7 +85,6 @@ module.exports = angular
 
     require('./pipeline/pipelines.module.js'),
     require('./pipeline/config/stages/bake/bakeStage.module.js'),
-    require('./pipeline/config/stages/canary/canaryStage.module.js'),
     require('./pipeline/config/stages/checkPreconditions/checkPreconditionsStage.module.js'),
     require('./pipeline/config/stages/core/stage.core.module.js'),
     require('./pipeline/config/stages/deploy/deployStage.module.js'),
@@ -98,7 +97,6 @@ module.exports = angular
     require('./pipeline/config/stages/findAmi/findAmiStage.module.js'),
     require('./pipeline/config/stages/jenkins/jenkinsStage.module.js'),
     require('./pipeline/config/stages/manualJudgment/manualJudgmentStage.module.js'),
-    require('./pipeline/config/stages/modifyScalingProcess/modifyScalingProcess.module.js'),
     require('./pipeline/config/stages/pipeline/pipelineStage.module.js'),
     require('./pipeline/config/stages/quickPatchAsg/bulkQuickPatchStage/bulkQuickPatchStage.module.js'),
     require('./pipeline/config/stages/quickPatchAsg/quickPatchAsgStage.module.js'),
