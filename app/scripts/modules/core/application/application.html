@@ -1,5 +1,5 @@
   <div class="page-header application-header navbar">
-    <h2>
+    <h2 ng-if="!application.notFound">
       <span class="application-name">{{application.name}}</span>
       <a href ng-click="application.refreshImmediately(true)">
         <span class="small glyphicon glyphicon-refresh refresh-enabled refresh-{{getAgeColor()}}"
