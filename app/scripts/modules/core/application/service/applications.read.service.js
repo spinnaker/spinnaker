@@ -118,7 +118,7 @@ module.exports = angular
           return pipelineConfigService.getPipelinesForApplication(application.name)
             .then((configs) => {
               application.pipelineConfigs = configs;
-              pipelineConfigService.getStrategiesForApplication(application.name)
+              return pipelineConfigService.getStrategiesForApplication(application.name)
                   .then((strategies) => {
                      application.strategyConfigs = strategies;
                      application.pipelineConfigsLoading = false;

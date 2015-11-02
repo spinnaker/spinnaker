@@ -58,8 +58,6 @@ module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
         function() {
           template.isNew = true;
           application.reloadPipelineConfigs().then(() => {
-            debugger;
-
             let newPipeline = _.find(template.strategy === true ? application.strategyConfigs : application.pipelineConfigs, {name: template.name});
             if (!newPipeline) {
               $log.warn('Could not find new pipeline after save succeeded.');
