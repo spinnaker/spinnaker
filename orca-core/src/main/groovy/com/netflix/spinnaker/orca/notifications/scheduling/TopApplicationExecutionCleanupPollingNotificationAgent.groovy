@@ -116,7 +116,9 @@ class TopApplicationExecutionCleanupPollingNotificationAgent implements Applicat
               break
             case "orchestration":
               log.info("Cleaning up orchestration executions (application: ${application}, threshold: ${threshold})")
-              cleanup(executionRepository.retrieveOrchestrationsForApplication(application), application, "orchestration")
+
+              def executionCriteria = new ExecutionRepository.ExecutionCriteria(limit: 500)
+              cleanup(executionRepository.retrieveOrchestrationsForApplication(application, executionCriteria), application, "orchestration")
               break
             default:
               log.error("Unable to cleanup executions, unsupported type: ${type}")

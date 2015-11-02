@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
+import rx.schedulers.Schedulers
 import spock.lang.*
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
@@ -83,6 +84,69 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     execution << [new Pipeline(buildTime: 0), new Orchestration(id: "a-preassigned-id")]
   }
 
+  def "can retrieve pipelines by status"() {
+    given:
+    def runningExecution = new Pipeline(executionStatus: RUNNING, pipelineConfigId: "pipeline-1", buildTime: 0)
+    def succeededExecution = new Pipeline(executionStatus: SUCCEEDED, pipelineConfigId: "pipeline-1", buildTime: 0)
+
+    when:
+    repository.store(runningExecution)
+    repository.store(succeededExecution)
+    def pipelines = repository.retrievePipelinesForPipelineConfigId(
+      "pipeline-1", new ExecutionRepository.ExecutionCriteria(limit: 5, statuses: ["RUNNING", "SUCCEEDED", "TERMINAL"])
+    ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
+
+    then:
+    pipelines*.id.sort() == [runningExecution.id, succeededExecution.id].sort()
+
+    when:
+    pipelines = repository.retrievePipelinesForPipelineConfigId(
+      "pipeline-1", new ExecutionRepository.ExecutionCriteria(limit: 5, statuses: ["RUNNING"])
+    ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
+
+    then:
+    pipelines*.id.sort() == [runningExecution.id].sort()
+
+    when:
+    pipelines = repository.retrievePipelinesForPipelineConfigId(
+      "pipeline-1", new ExecutionRepository.ExecutionCriteria(limit: 5, statuses: ["TERMINAL"])
+    ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
+
+    then:
+    pipelines.isEmpty()
+  }
+
+  def "can retrieve orchestrations by status"() {
+    given:
+    def runningExecution = new Orchestration(executionStatus: RUNNING, buildTime: 0, application: "application")
+    def succeededExecution = new Orchestration(executionStatus: SUCCEEDED, buildTime: 0, application: "application")
+
+    when:
+    repository.store(runningExecution)
+    repository.store(succeededExecution)
+    def orchestrations = repository.retrieveOrchestrationsForApplication(
+      "application", new ExecutionRepository.ExecutionCriteria(limit: 5, statuses: ["RUNNING", "SUCCEEDED", "TERMINAL"])
+    ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
+
+    then:
+    orchestrations*.id.sort() == [runningExecution.id, succeededExecution.id].sort()
+
+    when:
+    orchestrations = repository.retrieveOrchestrationsForApplication(
+      "application", new ExecutionRepository.ExecutionCriteria(limit: 5, statuses: ["RUNNING"])
+    ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
+
+    then:
+    orchestrations*.id.sort() == [runningExecution.id].sort()
+
+    when:
+    orchestrations = repository.retrieveOrchestrationsForApplication(
+      "application", new ExecutionRepository.ExecutionCriteria(limit: 5, statuses: ["TERMINAL"])
+    ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
+
+    then:
+    orchestrations.isEmpty()
+  }
 
   def "a pipeline can be retrieved after being stored"() {
     given:

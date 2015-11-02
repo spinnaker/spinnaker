@@ -80,7 +80,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
       }
     }
     agent.executionRepository = Mock(ExecutionRepository) {
-      1 * retrieveOrchestrationsForApplication("app1") >> { return rx.Observable.from(orchestrations) }
+      1 * retrieveOrchestrationsForApplication("app1", _) >> { return rx.Observable.from(orchestrations) }
       1 * retrievePipelinesForApplication("app2") >> { return rx.Observable.from(pipelines) }
       0 * _
     }

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import com.netflix.spinnaker.orca.front50.Front50Service
+
 import java.time.Clock
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.*
@@ -33,6 +35,7 @@ class TaskControllerSpec extends Specification {
 
   MockMvc mockMvc
   ExecutionRepository executionRepository
+  Front50Service front50Service
 
   Clock clock = Mock(Clock)
   int daysOfExecutionHistory = 14
@@ -42,8 +45,10 @@ class TaskControllerSpec extends Specification {
 
   void setup() {
     executionRepository = Mock(ExecutionRepository)
+    front50Service = Mock(Front50Service)
     mockMvc = MockMvcBuilders.standaloneSetup(
       new TaskController(
+        front50Service: front50Service,
         executionRepository: executionRepository,
         daysOfExecutionHistory: daysOfExecutionHistory,
         numberOfOldPipelineExecutionsToInclude: numberOfOldPipelineExecutionsToInclude,
@@ -124,7 +129,7 @@ class TaskControllerSpec extends Specification {
     def response = mockMvc.perform(get("/applications/$app/tasks")).andReturn().response
 
     then:
-    1 * executionRepository.retrieveOrchestrationsForApplication(app) >> rx.Observable.empty()
+    1 * executionRepository.retrieveOrchestrationsForApplication(app, _) >> rx.Observable.empty()
 
     where:
     app = "test"
@@ -142,7 +147,7 @@ class TaskControllerSpec extends Specification {
     ]
     def app = 'test'
     clock.millis() >> now.time
-    executionRepository.retrieveOrchestrationsForApplication(app) >> rx.Observable.from(tasks)
+    executionRepository.retrieveOrchestrationsForApplication(app, _) >> rx.Observable.from(tasks)
 
     when:
     def response = new ObjectMapper().readValue(
@@ -204,7 +209,11 @@ class TaskControllerSpec extends Specification {
     List results = new ObjectMapper().readValue(response.contentAsString, List)
 
     then:
-    1 * executionRepository.retrievePipelinesForApplication(app) >> rx.Observable.from(pipelines.collect {
+    1 * front50Service.getPipelines(app) >> { [[id: "1"], [id: "2"]] }
+    1 * executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> rx.Observable.from(pipelines.findAll {it.pipelineConfigId == "1"}.collect {
+      new Pipeline(id: it.id, executionStartTime: it.startTime, pipelineConfigId: it.pipelineConfigId, version: 2)
+    })
+    1 * executionRepository.retrievePipelinesForPipelineConfigId("2", _) >> rx.Observable.from(pipelines.findAll {it.pipelineConfigId == "2"}.collect {
       new Pipeline(id: it.id, executionStartTime: it.startTime, pipelineConfigId: it.pipelineConfigId, version: 2)
     })
     results.id == ['not-started', 'also-not-started', 'older2', 'older1', 'newer']
