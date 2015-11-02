@@ -12,21 +12,8 @@
       <pipeline-config-errors pipeline="pipeline"></pipeline-config-errors>
     </h3>
     <div class="pipeline-actions text-right">
+      <create-new application="application"></create-new>
       <div class="dropdown pull-left" uib-dropdown>
-        <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
-          Configure <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu" role="menu">
-          <li><create-pipeline-button application="application"></create-pipeline-button></li>
-          <li class="dropdown-header">Pipelines</li>
-          <li ng-repeat="pipeline in application.pipelineConfigs"><a href
-               ui-sref="^.pipelineConfig({pipelineId: pipeline.id})">{{pipeline.name}}</a></li>
-          <li class="dropdown-header">Deployment Strategies</li>
-          <li  ng-repeat="pipeline in application.strategyConfigs"><a href
-                 ui-sref="^.pipelineConfig({pipelineId: pipeline.id})">{{pipeline.name}}</a></li>
-          </ul>
-      </div>
-      <div class="dropdown pull-left" style="margin-left:10px" uib-dropdown>
         <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
           Pipeline Actions <span class="caret"></span>
         </button>

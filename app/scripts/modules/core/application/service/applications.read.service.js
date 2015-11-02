@@ -115,18 +115,16 @@ module.exports = angular
 
         function reloadPipelineConfigs() {
           application.pipelineConfigsLoading = true;
-          return pipelineConfigService.getPipelinesForApplication(application.name)
-            .then((configs) => {
-              application.pipelineConfigs = configs;
-              return pipelineConfigService.getStrategiesForApplication(application.name)
-                  .then((strategies) => {
-                     application.strategyConfigs = strategies;
-                     application.pipelineConfigsLoading = false;
-                     $rootScope.$broadcast('pipelineConfigs-loaded', application);
-              });
+          let pipelineLoader = pipelineConfigService.getPipelinesForApplication(application.name),
+              strategyLoader = pipelineConfigService.getStrategiesForApplication(application.name);
+          return $q.all({pipelines: pipelineLoader, strategies: strategyLoader})
+              .then((configs) => {
+                application.pipelineConfigs = configs.pipelines;
+                application.strategyConfigs = configs.strategies;
+                application.pipelineConfigsLoading = false;
+                $rootScope.$broadcast('pipelineConfigs-loaded', application);
             });
         }
-
 
         application.registerAutoRefreshHandler = registerAutoRefreshHandler;
         application.deregisterAutoRefreshHandler = deregisterAutoRefreshHandler;
