@@ -157,6 +157,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
         };
         addInstanceCounts(regionInfo);
         applicationData.regions[region] = regionInfo;
+        applicationData.lastCreatedTime = _.sortBy(serverGroups, 'createdTime').pop().createdTime;
         serverGroups.forEach((serverGroup) => {
           serverGroup.build = makeBuildModel(serverGroup);
           if (serverGroup.build.number > regionInfo.build.number) {
