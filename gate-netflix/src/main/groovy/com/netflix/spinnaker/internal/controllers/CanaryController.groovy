@@ -58,6 +58,11 @@ class CanaryController {
     canaryService.endCanary(id, command.result, command.reason)
   }
 
+  @RequestMapping(value = "/canaryConfig/names", method = RequestMethod.GET)
+  List<String> getCanaryConfigNames() {
+    canaryService.getCanaryConfigNames();
+  }
+
   static class GenerateResultCommand {
     int duration
     String durationUnit

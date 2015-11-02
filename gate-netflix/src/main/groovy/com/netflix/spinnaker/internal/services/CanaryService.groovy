@@ -45,4 +45,9 @@ class CanaryService {
   Map showCanary(String canaryId) {
     mineService ? mineService.showCanary(canaryId) : [:]
   }
+
+  List<String> getCanaryConfigNames() {
+    mineService ? mineService.getCanaryConfigNames() : []
+  }
+
 }
