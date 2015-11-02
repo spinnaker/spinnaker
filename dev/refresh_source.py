@@ -156,7 +156,7 @@ class Refresher(object):
           print '  Adding upstream repository {upstream}.'.format(
               upstream=upstream_url)
           check_run_quick('git -C "{dir}" remote add upstream {url}'
-                              .format(repository_dir, url=upstream_url),
+                              .format(dir=repository_dir, url=upstream_url),
                           echo=False)
 
       if self.__options.disable_upstream_push:
