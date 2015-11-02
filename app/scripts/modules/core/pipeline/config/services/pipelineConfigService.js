@@ -53,8 +53,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
       return sorted;
     }
 
-    function deletePipeline(applicationName, pipelineName) {
-      return Restangular.all('pipelines').one(applicationName, pipelineName).remove();
+    function deletePipeline(applicationName, pipeline, pipelineName) {
+      return Restangular.all(pipeline.strategy ? 'strategies' : 'pipelines').one(applicationName, pipelineName).remove();
     }
 
     function savePipeline(pipeline) {
@@ -65,12 +65,12 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
           delete stage.name;
         }
       });
-      return Restangular.all('pipelines').post(pipeline);
+      return Restangular.all( pipeline.strategy ? 'strategies' : 'pipelines').post(pipeline);
     }
 
-    function renamePipeline(applicationName, currentName, newName) {
+    function renamePipeline(applicationName, pipeline, currentName, newName) {
       configViewStateCache.remove(buildViewStateCacheKey(applicationName, currentName));
-      return Restangular.all('pipelines').all('move').post({
+      return Restangular.all(pipeline.strategy ? 'strategies' : 'pipelines').all('move').post({
         application: applicationName,
         from: currentName,
         to: newName

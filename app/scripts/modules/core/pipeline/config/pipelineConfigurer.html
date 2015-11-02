@@ -8,19 +8,25 @@
          ng-click="navMenuState.showMenu = !navMenuState.showMenu"
          ng-blur="pipelineConfigurerCtrl.hideNavigationMenu()">
         {{pipeline.name}}
-        <span class="small glyphicon glyphicon-chevron-{{navMenuState.showMenu ? 'up' : 'down'}}"></span>
       </a>
-      <div class="nav-popover-menu list-group" ng-if="navMenuState.showMenu" style="top: 70px">
-        <a href
-           class="list-group-item"
-           ng-repeat="pipeline in application.pipelineConfigs"
-           ui-sref="^.pipelineConfig({pipelineId: pipeline.id})">{{pipeline.name}}</a>
-        <create-pipeline-button application="application"></create-pipeline-button>
-      </div>
       <pipeline-config-errors pipeline="pipeline"></pipeline-config-errors>
     </h3>
     <div class="pipeline-actions text-right">
-      <div class="dropdown" uib-dropdown>
+      <div class="dropdown pull-left" uib-dropdown>
+        <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
+          Configure <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" role="menu">
+          <li><create-pipeline-button application="application"></create-pipeline-button></li>
+          <li class="dropdown-header">Pipelines</li>
+          <li ng-repeat="pipeline in application.pipelineConfigs"><a href
+               ui-sref="^.pipelineConfig({pipelineId: pipeline.id})">{{pipeline.name}}</a></li>
+          <li class="dropdown-header">Deployment Strategies</li>
+          <li  ng-repeat="pipeline in application.strategyConfigs"><a href
+                 ui-sref="^.pipelineConfig({pipelineId: pipeline.id})">{{pipeline.name}}</a></li>
+          </ul>
+      </div>
+      <div class="dropdown pull-left" style="margin-left:10px" uib-dropdown>
         <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
           Pipeline Actions <span class="caret"></span>
         </button>
@@ -33,6 +39,8 @@
           <li><pipeline-migrator pipeline="pipeline" application="application"></pipeline-migrator></li>
         </ul>
       </div>
+
+
     </div>
   </div>
   <div class="pipeline-contents">
