@@ -16,8 +16,11 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.google.GoogleOperation
+import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import org.springframework.stereotype.Component
 
+@GoogleOperation(AtomicOperations.ENABLE_SERVER_GROUP)
 @Component("enableGoogleServerGroupDescriptionValidator")
 class EnableGoogleServerGroupDescriptionValidator extends AbstractEnableDisableGoogleServerGroupDescriptionValidator {
 }
