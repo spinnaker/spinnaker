@@ -39,10 +39,11 @@
         <tr>
           <th width="18%"></th>
           <th width="9%"></th>
-          <th width="73%" ng-if="!vm.state.loaded">(loading clusters...)</th>
-          <th ng-repeat="region in vm.clusterData.regions" width="{{72/vm.clusterData.regions.length}}%">
+          <th width="58%" ng-if="!vm.state.loaded">(loading clusters...)</th>
+          <th ng-repeat="region in vm.clusterData.regions" width="{{57/vm.clusterData.regions.length}}%">
             {{region}}
           </th>
+          <th ng-if="vm.state.loaded" width="15%">Last Push</th>
         </tr>
       </thead>
       <tbody>
@@ -81,6 +82,14 @@
           </span>
           <span ng-if="!application.regions[region]">
             -
+          </span>
+        </td>
+        <td ng-if="vm.state.loaded">
+          <span ng-if="!application.lastCreatedTime">
+            -
+          </span>
+          <span class="small" ng-if="application.lastCreatedTime">
+            {{application.lastCreatedTime | relativeTime }}
           </span>
         </td>
       </tr>
