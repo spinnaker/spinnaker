@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import com.netflix.spinnaker.orca.ExecutionStatus
+
 import java.time.Clock
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -60,9 +62,15 @@ class TaskController {
   Clock clock = Clock.systemUTC()
 
   @RequestMapping(value = "/applications/{application}/tasks", method = RequestMethod.GET)
-  List<Orchestration> list(@PathVariable String application) {
+  List<Orchestration> list(@PathVariable String application,
+                           @RequestParam(value = "statuses", required = false) String statuses) {
+    statuses = statuses ?: ExecutionStatus.values()*.toString().join(",")
+    def executionCriteria = new ExecutionRepository.ExecutionCriteria(
+      statuses: (statuses.split(",") as Collection)
+    )
+
     def startTimeCutoff = (new Date(clock.millis()) - daysOfExecutionHistory).time
-    executionRepository.retrieveOrchestrationsForApplication(application)
+    executionRepository.retrieveOrchestrationsForApplication(application, executionCriteria)
                        .filter({ Orchestration orchestration -> !orchestration.startTime || (orchestration.startTime > startTimeCutoff) })
                        .map({ Orchestration orchestration -> convert(orchestration) })
                        .subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
@@ -150,15 +158,37 @@ class TaskController {
     }
   }
 
-  @RequestMapping(value = "/applications/{application}/pipelines", method = RequestMethod.GET)
-  List<Pipeline> getApplicationPipelines(@PathVariable String application) {
-    def pipelines = executionRepository.retrievePipelinesForApplication(application)
-                                       .subscribeOn(Schedulers.io()).toList().toBlocking().single()
+  @RequestMapping(value = "/v2/applications/{application}/pipelines", method = RequestMethod.GET)
+  List<Pipeline> getApplicationPipelines(@PathVariable String application,
+                                         @RequestParam(value = "limit", defaultValue = "5") int limit,
+                                         @RequestParam(value = "statuses", required = false) String statuses) {
+    return getPipelinesForApplication(application, limit, statuses)
+  }
 
+  @RequestMapping(value = "/applications/{application}/pipelines", method = RequestMethod.GET)
+  List<Pipeline> getPipelinesForApplication(@PathVariable String application,
+                                            @RequestParam(value = "limit", defaultValue = "5") int limit,
+                                            @RequestParam(value = "statuses", required = false) String statuses) {
+    if (!limit) {
+      return []
+    }
+
+    statuses = statuses ?: ExecutionStatus.values()*.toString().join(",")
+    def executionCriteria = new ExecutionRepository.ExecutionCriteria(
+      limit: limit,
+      statuses: (statuses.split(",") as Collection)
+    )
+
+    def pipelineConfigIds = front50Service.getPipelines(application)*.id as List<String>
+    def allPipelines = rx.Observable.merge(pipelineConfigIds.collect {
+      executionRepository.retrievePipelinesForPipelineConfigId(it, executionCriteria)
+    }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
+
+    // TODO-AJ The eventual goal is to return `allPipelines` without the need to group + filter below (WIP)
     def cutoffTime = (new Date(clock.millis()) - daysOfExecutionHistory).time
 
-    def allPipelines = []
-    pipelines.groupBy { it.pipelineConfigId }.values().each { List<Pipeline> pipelinesGroup ->
+    def pipelinesSatisfyingCutoff = []
+    allPipelines.groupBy { it.pipelineConfigId }.values().each { List<Pipeline> pipelinesGroup ->
       def sortedPipelinesGroup = pipelinesGroup.sort(startTimeOrId).reverse()
       def recentPipelines = sortedPipelinesGroup.findAll { !it.startTime || it.startTime > cutoffTime }
       if (!recentPipelines && sortedPipelinesGroup) {
@@ -167,25 +197,10 @@ class TaskController {
         recentPipelines = sortedPipelinesGroup[0..upperBounds]
       }
 
-      allPipelines.addAll(recentPipelines)
+      pipelinesSatisfyingCutoff.addAll(recentPipelines)
     }
 
-    return allPipelines.sort(startTimeOrId)
-  }
-
-  @RequestMapping(value = "/v2/applications/{application}/pipelines", method = RequestMethod.GET)
-  List<Pipeline> getPipelinesForApplication(@PathVariable String application,
-                                            @RequestParam(value = "limit", defaultValue = "5") int limit) {
-    if (!limit) {
-      return []
-    }
-
-    def pipelineConfigIds = front50Service.getPipelines(application)*.id as List<String>
-    def allPipelines = rx.Observable.merge(pipelineConfigIds.collect {
-      executionRepository.retrievePipelinesForPipelineConfigId(it, limit)
-    }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
-
-    return allPipelines
+    return pipelinesSatisfyingCutoff.sort(startTimeOrId)
   }
 
   private static Closure startTimeOrId = { a, b ->

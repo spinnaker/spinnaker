@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -38,7 +39,9 @@ class ProjectController {
   Front50Service front50Service
 
   @RequestMapping(value = "/projects/{projectId}/pipelines", method = RequestMethod.GET)
-  List<Pipeline> list(@PathVariable String projectId, @RequestParam(value="limit", defaultValue="5") int limit) {
+  List<Pipeline> list(@PathVariable String projectId,
+                      @RequestParam(value="limit", defaultValue="5") int limit,
+                      @RequestParam(value = "statuses", required = false) String statuses) {
     if (!limit) {
       return []
     }
@@ -55,8 +58,14 @@ class ProjectController {
       throw e
     }
 
+    statuses = statuses ?: ExecutionStatus.values()*.toString().join(",")
+    def executionCriteria = new ExecutionRepository.ExecutionCriteria(
+      limit: limit,
+      statuses: (statuses.split(",") as Collection)
+    )
+
     def allPipelines = rx.Observable.merge(pipelineConfigIds.collect {
-      executionRepository.retrievePipelinesForPipelineConfigId(it, limit)
+      executionRepository.retrievePipelinesForPipelineConfigId(it, executionCriteria)
     }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
 
     return allPipelines
