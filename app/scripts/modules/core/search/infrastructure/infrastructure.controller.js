@@ -16,6 +16,9 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
 
     var search = infrastructureSearchService();
 
+    $scope.categories = [];
+    $scope.projects = [];
+
     $scope.viewState = {
       searching: false,
       minCharactersToSearch: 3,
@@ -58,17 +61,17 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
       $scope.query = $location.search().q;
     }
     $scope.$watch('query', function(query) {
+      $scope.categories = [];
+      $scope.projects = [];
       if (query && query.length < $scope.viewState.minCharactersToSearch) {
-        $scope.categories = [];
         $scope.viewState.searching = false;
         updateLocation();
         return;
       }
       $scope.viewState.searching = true;
-      $scope.categories = [];
       search.query(query).then(function(result) {
         $scope.categories = result.filter((category) => category.category !== 'Projects' && category.results.length);
-        $scope.projects = result.filter((category) => category.category === 'Projects');
+        $scope.projects = result.filter((category) => category.category === 'Projects' && category.results.length);
         $scope.moreResults = _.sum(result, function(resultSet) {
           return resultSet.results.length;
         }) === $scope.pageSize;
@@ -133,11 +136,12 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
     ];
 
     this.hasResults = () => {
-      return angular.isObject($scope.categories) && $scope.categories.length > 0 && $scope.query && $scope.query.length > 0 ||
-        ($scope.projects && $scope.projects.length);
+      return $scope.categories.length || $scope.projects.length;
     };
 
-    this.showRecentResults = () => this.hasRecentItems && !$scope.viewState.searching && $scope.categories.every((category) => !category.results.length) && !$scope.projects;
+    this.noMatches = () => !this.hasResults() && $scope.query && $scope.query.length > 0;
+
+    this.showRecentResults = () => this.hasRecentItems && !$scope.viewState.searching && !$scope.projects.length && $scope.categories.every((category) => !category.results.length);
 
     this.removeRecentItem = (category, id) => {
       recentHistoryService.removeItem(category, id);
