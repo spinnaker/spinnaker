@@ -68,6 +68,11 @@
             <h3>Infrastructure matching "{{query}}"</h3>
           </div>
         </div>
+        <div class="row" ng-if="!categories.length">
+          <div class="col-md-12">
+            <h4>No Infrastructure results found.</h4>
+          </div>
+        </div>
         <div class="row">
           <div class="col-md-4 category-container" ng-repeat="category in categories | orderBy:'order'">
             <div class="panel category row">
@@ -89,13 +94,6 @@
   <h2 ng-if="viewState.searching" class="text-center" style="margin-bottom: 25px">
     <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
   </h2>
-  <div ng-if="ctrl.noMatches() && !viewState.searching">
-    <div class="row">
-      <div class="col-md-12">
-        <h4 class="no-results">No results matching "{{ query }}".</h4>
-      </div>
-    </div>
-  </div>
   <div ng-if="ctrl.showRecentResults()" class="infrastructure-section">
     <div class="row recently-viewed-items">
       <div class="col-md-12">
