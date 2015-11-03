@@ -15,6 +15,7 @@ module.exports = angular.module('spinnaker.aws', [
   require('../core/pipeline/config/stages/bake/aws/awsBakeStage.js'),
   require('../core/pipeline/config/stages/destroyAsg/aws/awsDestroyAsgStage.js'),
   require('../core/pipeline/config/stages/disableAsg/aws/awsDisableAsgStage.js'),
+  require('../core/pipeline/config/stages/disableCluster/aws/awsDisableClusterStage.js'),
   require('../core/pipeline/config/stages/enableAsg/aws/awsEnableAsgStage.js'),
   require('../core/pipeline/config/stages/findAmi/aws/awsFindAmiStage.js'),
   require('../core/pipeline/config/stages/modifyScalingProcess/modifyScalingProcess.module.js'),
