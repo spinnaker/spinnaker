@@ -139,18 +139,19 @@ module.exports = angular
             return $q.when(null);
           }
           application.pipelineConfigsLoading = true;
-          return pipelineConfigService.getPipelinesForApplication(application.name)
+          let pipelineLoader = pipelineConfigService.getPipelinesForApplication(application.name),
+              strategyLoader = pipelineConfigService.getStrategiesForApplication(application.name);
+          return $q.all({pipelines: pipelineLoader, strategies: strategyLoader})
             .then((configs) => {
-              application.pipelineConfigs = configs;
+              application.pipelineConfigs = configs.pipelines;
+              application.strategyConfigs = configs.strategies;
               application.pipelineConfigsLoading = false;
               $rootScope.$broadcast('pipelineConfigs-loaded', application);
-            })
-            .catch(function(rejection) {
+            }).catch(function(rejection) {
               $log.warn('Error retrieving [pipelineConfigs]', rejection);
               application.pipelineConfigsLoading = false;
             });
         }
-
 
         application.registerAutoRefreshHandler = registerAutoRefreshHandler;
         application.deregisterAutoRefreshHandler = deregisterAutoRefreshHandler;
