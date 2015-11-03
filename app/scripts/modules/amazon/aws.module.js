@@ -19,6 +19,7 @@ module.exports = angular.module('spinnaker.aws', [
   require('../core/pipeline/config/stages/findAmi/aws/awsFindAmiStage.js'),
   require('../core/pipeline/config/stages/modifyScalingProcess/modifyScalingProcess.module.js'),
   require('../core/pipeline/config/stages/resizeAsg/aws/awsResizeAsgStage.js'),
+  require('../core/pipeline/config/stages/shrinkCluster/aws/awsShrinkClusterStage.js'),
   require('./serverGroup/details/serverGroup.details.module.js'),
   require('./serverGroup/serverGroup.transformer.js'),
   require('./serverGroup/configure/wizard/CloneServerGroup.aws.controller.js'),
