@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.security;
 
 import com.amazonaws.AmazonWebServiceClient;
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.handlers.RequestHandler2;
 import com.amazonaws.regions.Region;
@@ -271,8 +272,12 @@ public class AmazonClientProvider {
 
   protected <T extends AmazonWebServiceClient> T getClient(Class<T> impl, NetflixAmazonCredentials amazonCredentials, String region) throws IllegalAccessException, InvocationTargetException,
     InstantiationException, NoSuchMethodException {
-    Constructor<T> constructor = impl.getConstructor(AWSCredentialsProvider.class);
-    T delegate = constructor.newInstance(amazonCredentials.getCredentialsProvider());
+    Constructor<T> constructor = impl.getConstructor(AWSCredentialsProvider.class, ClientConfiguration.class);
+
+    ClientConfiguration clientConfiguration = new ClientConfiguration();
+    clientConfiguration.setRetryPolicy(retryPolicy);
+
+    T delegate = constructor.newInstance(amazonCredentials.getCredentialsProvider(), clientConfiguration);
     for (RequestHandler2 requestHandler : requestHandlers) {
       delegate.addRequestHandler(requestHandler);
     }

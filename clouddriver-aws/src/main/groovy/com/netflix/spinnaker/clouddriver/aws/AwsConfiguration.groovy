@@ -47,6 +47,9 @@ class AwsConfiguration {
   @Value('${aws.metrics.enabled:false}')
   boolean metricsEnabled
 
+  @Value('${aws.client.maxErrorRetry:3}')
+  int maxErrorRetry
+
   @Autowired
   SpectatorMetricsCollector spectatorMetricsCollector
 
@@ -62,6 +65,7 @@ class AwsConfiguration {
       .backoffStrategy(instrumentedBackoffStrategy)
       .retryCondition(instrumentedRetryCondition)
       .objectMapper(amazonObjectMapper())
+      .maxErrorRetry(maxErrorRetry)
       .build()
   }
 
