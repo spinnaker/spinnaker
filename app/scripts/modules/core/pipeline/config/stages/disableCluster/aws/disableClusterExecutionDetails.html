@@ -1,4 +1,4 @@
-<div ng-controller="DisableClusterExecutionDetailsCtrl">
+<div ng-controller="awsDisableClusterExecutionDetailsCtrl">
     <execution-details-section-nav sections="configSections"></execution-details-section-nav>
     <div class="step-section-details" ng-if="detailsSection === 'disableClusterConfig'">
         <div class="row">
@@ -8,7 +8,7 @@
                     <dd>
                         <account-tag account="stage.context.credentials" provider="stage.context.cloudProvider"></account-tag>
                     </dd>
-                    <dt>Region</dt>
+                    <dt>Regions</dt>
                     <dd>{{stage.context.regions.join(', ')}}</dd>
                     <dt>Cluster</dt>
                     <dd>{{stage.context.cluster}}</dd>

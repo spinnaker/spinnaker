@@ -31,7 +31,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.modifyScalingProc
       regionsLoaded: false
     };
 
-    accountService.listAccounts().then(function (accounts) {
+    accountService.listAccounts('aws').then(function (accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
