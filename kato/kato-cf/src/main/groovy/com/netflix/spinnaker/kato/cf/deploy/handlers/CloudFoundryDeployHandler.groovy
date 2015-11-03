@@ -64,7 +64,7 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
 
   @Override
   DeploymentResult handle(CloudFoundryDeployDescription description, List priorOutputs) {
-    CloudFoundryClient client = clientFactory.createCloudFoundryClient(description)
+    CloudFoundryClient client = clientFactory.createCloudFoundryClient(description.credentials, true)
 
     task.updateStatus BASE_PHASE, "Initializing handler..."
     def deploymentResult = new DeploymentResult()
