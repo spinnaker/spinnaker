@@ -2,7 +2,7 @@
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
   <div class="step-section-details" ng-if="detailsSection === 'jenkinsConfig'">
     <div class="row">
-      <div class="col-md-6">
+      <div class="col-md-{{stage.context.buildInfo.testResults ? 6 : 12}}">
         <h5>Jenkins Stage Configuration</h5>
         <dl class="dl-narrow dl-horizontal">
           <dt>Master</dt>
@@ -44,7 +44,15 @@
           </div>
         </div>
       </div>
-
+    </div>
+    <div class="row" ng-if="stage.context.parameters">
+      <div class="col-md-12">
+      <h5 style="margin-bottom: 0; padding-bottom: 5px;">Parameters</h5>
+      <dl style="font-size:12px;">
+        <dt ng-repeat-start="(key, val) in stage.context.parameters">{{key}}</dt>
+        <dd ng-repeat-end>{{val}}</dd>
+      </dl>
+      </div>
     </div>
 
     <stage-failure-message is-failed="stage.isFailed" message="failureMessage"></stage-failure-message>
