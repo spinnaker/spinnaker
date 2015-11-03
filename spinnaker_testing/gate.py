@@ -109,18 +109,16 @@ class GateAgent(sk.SpinnakerAgent):
   """
 
   @staticmethod
-  def make_payload(job, description, application):
+  def make_payload(**kwargs):
     """Make a gate operation JSON payload string from Python objects.
 
     Args:
-       job: A dictionary containing the JSON encodable name/value pairs.
-       description: String description for the payload.
-       application: String application name for processing the payload.
+       kwargs: The dictionary defining the payload to send.
+          The payload will be the dictionary encoded as json.
     Returns:
        JSON encoded payload string for Gate request.
     """
-    payload_dict = {
-      'job': job, 'application': application, 'description': description }
+    payload_dict = kwargs
     return json.JSONEncoder().encode(payload_dict)
 
   def make_create_app_operation(

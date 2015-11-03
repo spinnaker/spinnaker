@@ -22,8 +22,14 @@ import citest.gcp_testing as gcp
 
 class SpinnakerTestScenario(sk.AgentTestScenario):
   @classmethod
-  def new_post_operation(cls, title, data, path):
-    return http_agent.HttpPostOperation(title=title, data=data, path=path)
+  def new_post_operation(cls, title, data, path, status_class=None):
+    return http_agent.HttpPostOperation(title=title, data=data, path=path,
+                                        status_class=status_class)
+
+  @classmethod
+  def new_delete_operation(cls, title, data, path, status_class=None):
+    return http_agent.HttpDeleteOperation(title=title, data=data, path=path,
+                                          status_class=status_class)
 
   @classmethod
   def initArgumentParser(cls, parser, defaults=None):

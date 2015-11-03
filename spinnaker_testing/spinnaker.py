@@ -306,7 +306,7 @@ class SpinnakerAgent(service_testing.HttpAgent):
       if not bindings['GCE_INSTANCE']:
         missing.append('--gce_instance')
       if not bindings['GCE_ZONE']:
-        missing.append('--gce_instance')
+        missing.append('--gce_zone')
 
     if missing:
       error = ('Additional configuration information is required.'
@@ -330,11 +330,13 @@ class SpinnakerAgent(service_testing.HttpAgent):
       status_factory: Creates status instances from this agent.
     """
     super(SpinnakerAgent, self).__init__(address)
-    self._status_factory = status_factory
+    self.__default_status_factory = status_factory
     self._default_max_wait_secs = 240
 
   def _new_invoke_status(self, operation, http_response):
-    return self._status_factory(operation, http_response)
+    return (operation.status_class(operation, http_response)
+            if operation.status_class
+            else self.__default_status_factory(operation, http_response))
 
   @staticmethod
   def _get_gce_config_file_contents(gcloud, instance):
