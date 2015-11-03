@@ -57,7 +57,15 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.resizeAsgStage
       {
         label: 'Scale Down',
         val: 'scale_down'
-      }
+      },
+      {
+        label: 'Scale to Cluster Size',
+        val: 'scale_to_cluster'
+      },
+      {
+        label: 'Scale to Exact Size',
+        val: 'scale_exact'
+      },
     ];
 
     $scope.resizeTypes = [
@@ -68,10 +76,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.resizeAsgStage
       {
         label: 'Incremental',
         val: 'incr'
-      },
-      {
-        label: 'Exact',
-        val: 'exact'
       }
     ];
 
@@ -80,6 +84,9 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.resizeAsgStage
     stage.target = stage.target || $scope.resizeTargets[0].val;
     stage.action = stage.action || $scope.scaleActions[0].val;
     stage.resizeType = stage.resizeType || $scope.resizeTypes[0].val;
+    if (stage.resizeType === 'exact') {
+      stage.action = 'scale_exact';
+    }
     stage.cloudProvider = 'cf';
 
     if (!stage.credentials && $scope.application.defaultCredentials) {
@@ -94,11 +101,19 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.resizeAsgStage
     }
 
     ctrl.updateResizeType = function() {
-      stage.capacity = {};
-      delete stage.scalePct;
-      delete stage.scaleNum;
+      if (stage.action === 'scale_exact') {
+        stage.resizeType = 'exact';
+        delete stage.scalePct;
+        delete stage.scaleNum;
+      } else {
+        stage.capacity = {};
+        if (stage.resizeType === 'pct') {
+          delete stage.scaleNum;
+        } else if (stage.resizeType === 'incr') {
+          delete stage.scalePct;
+        }
+      }
     };
-
   })
   .name;
 

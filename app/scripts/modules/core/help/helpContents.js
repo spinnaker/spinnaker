@@ -113,6 +113,12 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'loadBalancer.advancedSettings.healthInterval': '<p>Configures the interval, in seconds, between ELB health checks.</p><p>Default: <b>10</b></p>',
     'loadBalancer.advancedSettings.healthyThreshold': '<p>Configures the number of healthy observations before reinstituting an instance into the ELB’s traffic rotation.</p><p>Default: <b>10</b></p>',
     'loadBalancer.advancedSettings.unhealthyThreshold': '<p>Configures the number of unhealthy observations before deservicing an instance from the ELB.</p><p>Default: <b>2</b></p>',
+    'pipeline.config.resizeAsg.action': '<p>Configures the resize action for the target server group.<ul>' +
+      '<li><b>Scale Up</b> increases the size of the target server group by an incremental or percentage amount</li>' +
+      '<li><b>Scale Down</b> decreases the size of the target server group by an incremental or percentage amount</li>' +
+      '<li><b>Scale to Cluster Size</b> increases the size of the target server group to match the largest server group in the cluster, optionally with an incremental or percentage additional capacity. Additional capacity will not exceed the existing maximum size.</li>' +
+      '<li><b>Scale to Exact Size</b> adjusts the size of the target server group to match the provided capacity</li>' +
+      '</ul></p>',
     'pipeline.config.resizeAsg.cluster': '<p>Configures the cluster upon which this resize operation will act. The <em>target</em> specifies what server group to resolve for the operation.</p>',
     'pipeline.config.modifyScalingProcess.cluster': '<p>Configures the cluster upon which this modify scaling process operation will act. The <em>target</em> specifies what server group to resolve for the operation.</p>',
     'pipeline.config.enableAsg.cluster': '<p>Configures the cluster upon which this enable operation will act. The <em>target</em> specifies what server group to resolve for the operation.</p>',
