@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline
 
+import com.netflix.spinnaker.orca.clouddriver.pipeline.strategies.AbstractDeployStrategyStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.CloneServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForUpInstancesTask
-import com.netflix.spinnaker.orca.kato.pipeline.strategy.DeployStrategyStage
 import com.netflix.spinnaker.orca.kato.tasks.DiffTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
-class CloneServerGroupStage extends DeployStrategyStage {
+class CloneServerGroupStage extends AbstractDeployStrategyStage {
 
   public static final String PIPELINE_CONFIG_TYPE = "cloneServerGroup"
 

@@ -28,15 +28,16 @@ import spock.lang.Subject
 
 class CloneServerGroupTaskSpec extends Specification {
   @Subject task = new CloneServerGroupTask()
-  def stage = new PipelineStage(new Pipeline(), "copyLastAsg")
+  def stage = new PipelineStage(new Pipeline(), "cloneServerGroup")
   def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
-  //The minimum required fields to copyLastAsg
-  def copyLastAsgConfig = [
+  //The minimum required fields to cloneServerGroup
+  def cloneServerGroupConfig = [
     application      : "hodor",
     availabilityZones: ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]],
-    credentials      : "fzlem"
+    credentials      : "fzlem",
+    cloudProvider: "aws"
   ]
 
   def setup() {
@@ -45,7 +46,7 @@ class CloneServerGroupTaskSpec extends Specification {
     task.mapper = mapper
 
     stage.execution.stages.add(stage)
-    stage.context = copyLastAsgConfig
+    stage.context = cloneServerGroupConfig
   }
 
   def "creates a deployment based on job parameters"() {
