@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-//BEN_TODO: where is this defined?
-
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.shrinkClusterStage', [
   require('../../../../../utils/lodash.js'),
   require('../../stageConstants.js'),
