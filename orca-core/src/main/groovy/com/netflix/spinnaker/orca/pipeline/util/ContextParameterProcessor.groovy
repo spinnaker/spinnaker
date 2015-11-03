@@ -114,6 +114,8 @@ class ContextParameterProcessor {
       evaluationContext.addPropertyAccessor(MapPropertyAccessor)
       evaluationContext.registerFunction('alphanumerical', ContextStringUtilities.getDeclaredMethod("alphanumerical", String))
       evaluationContext.registerFunction('toJson', ContextStringUtilities.getDeclaredMethod("toJson", Object))
+      evaluationContext.registerFunction('toInt', ContextStringUtilities.getDeclaredMethod("toInt", String))
+      evaluationContext.registerFunction('toFloat', ContextStringUtilities.getDeclaredMethod("toFloat", String))
       try {
         Expression exp = parser.parseExpression(parameters, parserContext)
         convertedValue = exp.getValue(evaluationContext)
@@ -137,8 +139,14 @@ abstract class ContextStringUtilities {
   static String alphanumerical(String str) {
     str.replaceAll('[^A-Za-z0-9]', '')
   }
-  static String toJson(Object o){
+  static String toJson(Object o) {
     new ObjectMapper().writeValueAsString(o)
+  }
+  static Integer toInt(String str) {
+    Integer.valueOf(str)
+  }
+  static Float toFloat(String str) {
+    Float.valueOf(str)
   }
 }
 
