@@ -51,6 +51,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', []
 
     function updateJobsList() {
       if ($scope.stage && $scope.stage.master) {
+        $scope.viewState.masterIsParameterized = $scope.stage.master.indexOf('${') > -1;
+        if ($scope.viewState.masterIsParameterized) {
+          return;
+        }
         $scope.viewState.jobsLoaded = false;
         $scope.jobs = [];
         igorService.listJobsForMaster($scope.stage.master).then(function(jobs) {
@@ -68,7 +72,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', []
     }
 
     function updateJobConfig() {
-      if ($scope.stage && $scope.stage.master && $scope.stage.job) {
+      if ($scope.stage && $scope.stage.master && $scope.stage.job && !$scope.viewState.masterIsParameterized) {
         igorService.getJobConfig($scope.stage.master, $scope.stage.job).then(function(config){
         if(!$scope.stage.parameters) {
           $scope.stage.parameters = {};
