@@ -149,14 +149,21 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
       let applicationData = _.find(this.clusterData.applications, (appData) => appData.name === application);
       applicationData.build = makeBuildModel();
       let serverGroupsByRegion = _.groupBy(clusterData.serverGroups, 'region');
+      if (clusterData.serverGroups.length) {
+        applicationData.lastCreatedTime = _.sortBy(clusterData.serverGroups, 'createdTime').pop().createdTime;
+      }
       Object.keys(serverGroupsByRegion).forEach((region) => {
         this.clusterData.regions.push(region);
         let serverGroups = serverGroupsByRegion[region];
         let regionInfo = {
           build: makeBuildModel(),
         };
+        if (serverGroups && serverGroups.length) {
+          regionInfo.lastCreatedTime = _.sortBy(serverGroups, 'createdTime').pop().createdTime;
+        }
         addInstanceCounts(regionInfo);
         applicationData.regions[region] = regionInfo;
+        applicationData.lastCreatedTime = _.sortBy(serverGroups, 'createdTime').pop().createdTime;
         serverGroups.forEach((serverGroup) => {
           serverGroup.build = makeBuildModel(serverGroup);
           if (serverGroup.build.number > regionInfo.build.number) {

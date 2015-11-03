@@ -39,8 +39,9 @@
         <tr>
           <th width="18%"></th>
           <th width="9%"></th>
-          <th width="73%" ng-if="!vm.state.loaded">(loading clusters...)</th>
-          <th ng-repeat="region in vm.clusterData.regions" width="{{72/vm.clusterData.regions.length}}%">
+          <th ng-if="vm.state.loaded" width="15%">Last Push</th>
+          <th width="58%" ng-if="!vm.state.loaded">(loading clusters...)</th>
+          <th ng-repeat="region in vm.clusterData.regions" width="{{57/vm.clusterData.regions.length}}%">
             {{region}}
           </th>
         </tr>
@@ -65,6 +66,14 @@
             <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
           </div>
         </td>
+        <td ng-if="vm.state.loaded">
+          <span ng-if="!application.lastCreatedTime">
+            -
+          </span>
+          <span class="small" ng-if="application.lastCreatedTime">
+            {{application.lastCreatedTime | relativeTime }}
+          </span>
+        </td>
         <td ng-repeat="region in vm.clusterData.regions">
           <span ng-if="application.regions[region]">
             <a  ng-click="vm.clearFilters(application.regions[region].metadata)" ng-href="{{application.regions[region].metadata.href}}">
@@ -73,7 +82,10 @@
                              legend-placement="right"></health-counts>
             </a>
             <span class="text-warning"
-                  ng-if="application.inconsistentBuilds && application.regions[region].build.number !== application.build.number">
+                  ng-if="application.inconsistentBuilds && application.regions[region].build.number !== application.build.number"
+                  uib-tooltip="Build {{application.regions[region].build.number > -1 ?
+                  '#' + application.regions[region].build.number
+                  : ''}} last deployed {{application.regions[region].lastCreatedTime | relativeTime }}">
               <span ng-if="application.regions[region].build.number > -1">(#{{application.regions[region].build.number}})</span>
               <span ng-if="application.regions[region].build.number === -1">(N/A)</span>
             </span>

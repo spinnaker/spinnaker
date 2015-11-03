@@ -4,6 +4,12 @@ let angular = require('angular');
 
 require('./logo/titan.logo.less');
 
+// load all templates into the $templateCache
+var templates = require.context('./', true, /\.html$/);
+templates.keys().forEach(function(key) {
+  templates(key);
+});
+
 module.exports = angular.module('spinnaker.titan', [
   require('../core/cloudProvider/cloudProvider.registry.js'),
   require('./serverGroup/details/serverGroupDetails.titan.controller.js'),

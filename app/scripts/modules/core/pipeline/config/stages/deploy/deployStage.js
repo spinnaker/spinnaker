@@ -91,7 +91,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
     };
 
     this.editCluster = function(cluster, index) {
-      cluster.provider = cluster.providerType || 'aws';
+      cluster.provider = cluster.cloudProvider || cluster.providerType || 'aws';
       let providerConfig = cloudProviderRegistry.getProvider(cluster.provider);
       return $uibModal.open({
         templateUrl: providerConfig.serverGroup.cloneServerGroupTemplateUrl,

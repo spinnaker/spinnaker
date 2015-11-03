@@ -52,18 +52,18 @@ module.exports = angular
       }
 
       if(filter.indexOf('vpc:') !== -1) {
-        let [, vpcName] = /vpc:([\w-]*)/.exec(filter);
+        let [, vpcName] = filter.split('vpc:');
         return serverGroup.vpcName.toLowerCase() === vpcName.toLowerCase();
       }
 
       if (filter.indexOf('detail:') !== -1) {
-        let [, detailName] = /detail:([\w-]*)/.exec(filter);
+        let [, detailName] = filter.split('detail:');
         return serverGroup.detail === detailName.toLowerCase();
       }
 
       if(filter.indexOf('cluster:') !== -1) {
-        var clusterName = /cluster:([\w-]*)/.exec(filter);
-        return serverGroup.cluster === clusterName[1];
+        let [, clusterName] = filter.split('cluster:');
+        return serverGroup.cluster === clusterName;
       } else {
         return filter.split(' ').every(function(testWord) {
           return serverGroup.searchField.indexOf(testWord) !== -1;

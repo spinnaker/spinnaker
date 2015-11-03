@@ -19,6 +19,8 @@ module.exports = angular.module('spinnaker.delivery', [
   require('./stageFailureMessage/stageFailureMessage.directive.js'),
   require('./manualExecution/manualPipelineExecution.controller.js'),
 
+  require('./states.js'),
+
   require('../cache/deckCacheFactory.js'),
   require('../utils/appendTransform.js'),
   require('../utils/lodash.js'),

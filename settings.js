@@ -30,6 +30,7 @@ window.spinnakerSettings = {
         'mgmt': 'aws.mgmt.netflix.net',
         'mcetest': 'awsmce.test.netflix.net',
         'mceprod': 'awsmce.prod.netflix.net',
+        'cpl': 'awscpl.prod.netflix.net',
       },
       preferredZonesByAccount: {
         prod: {

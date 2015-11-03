@@ -30,7 +30,10 @@
     <tr class="clickable"
         ng-class="{ info: ctrl.isStepCurrent(stageSummary.masterStageIndex) }"
         ng-click="ctrl.toggleDetails(stageSummary.masterStageIndex)">
-      <td><strong>Canary Summary</strong></td>
+      <td>
+        <status-glyph item="{isFailed: true}" ng-if="stageSummary.masterStage.exceptions"></status-glyph>
+        <strong>Canary Summary</strong>
+      </td>
       <td>{{stageSummary.runningTimeInMs | duration}}</td>
     </tr>
     <tr class="clickable canary-deployment-row"

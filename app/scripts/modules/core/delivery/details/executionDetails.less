@@ -1,176 +1,178 @@
 @import "../../presentation/less/imports/commonImports.less";
 
-.execution-details {
-  background-color: #ffffff;
-  padding: 0 10px 0 15px;
-  margin: 0 -5px;
+execution {
+  .execution-details {
+    background-color: #ffffff;
+    padding: 0 10px 0 15px;
+    margin: 0 -5px;
 
-  th {
-    font-weight: 600;
-  }
-
-  .nav {
-    background-color: transparent;
-    border: 0;
-    padding-left: 0;
-    width: auto;
-    a {
-      margin: 10px 0 0;
-      border-radius: 0;
-      padding: 5px 15px;
-      border-bottom-width: 0;
+    th {
       font-weight: 600;
-      color: @text-color;
-      background-color: @mid_light_grey;
-      &:hover {
-        background-color: @mid_lighter_grey;
-        transition: background-color 0.15s;
-      }
-      &.active {
-        background-color: @lightest_grey;
-      }
     }
-  }
 
-  .step-section-details {
-    background-color: @lightest_grey;
-    padding: 15px;
-  }
-
-  .execution-details-title {
-    text-transform: uppercase;
-    font-weight: 600;
-    .btn-group {
-      margin-left: 20px;
-      text-transform: none;
-    }
-  }
-
-  .canary-summary {
-    .canary-deployment-row {
-      td:first-child {
-        padding-left: 20px;
+    .nav {
+      background-color: transparent;
+      border: 0;
+      padding-left: 0;
+      width: auto;
+      a {
+        margin: 10px 0 0;
+        border-radius: 0;
+        padding: 5px 15px;
+        border-bottom-width: 0;
         font-weight: 600;
+        color: @text-color;
+        background-color: @mid_light_grey;
+        &:hover {
+          background-color: @mid_lighter_grey;
+          transition: background-color 0.15s;
+        }
+        &.active {
+          background-color: @lightest_grey;
+        }
       }
     }
-  }
 
-  .canary-details {
-    .section-title {
-      border-bottom: 1px solid @mid_lighter_grey;
-      margin-bottom: 20px;
-      h4 {
-        border-bottom: 0;
+    .step-section-details {
+      background-color: @lightest_grey;
+      padding: 15px;
+    }
+
+    .execution-details-title {
+      text-transform: uppercase;
+      font-weight: 600;
+      .btn-group {
+        margin-left: 20px;
+        text-transform: none;
       }
-    }
-    h4 {
-      margin-bottom: 10px;
-      border-bottom: 1px solid @mid_lighter_grey;
-    }
-    .canary-config-section {
-      margin-bottom: 20px;
     }
 
     .canary-summary {
-      margin-bottom: 5px;
-      padding-bottom: 5px;
-      align-items: center;
-      display: flex;
+      .canary-deployment-row {
+        td:first-child {
+          padding-left: 20px;
+          font-weight: 600;
+        }
+      }
+    }
 
-      & > div {
+    .canary-details {
+      .section-title {
+        border-bottom: 1px solid @mid_lighter_grey;
+        margin-bottom: 20px;
+        h4 {
+          border-bottom: 0;
+        }
+      }
+      h4 {
+        margin-bottom: 10px;
+        border-bottom: 1px solid @mid_lighter_grey;
+      }
+      .canary-config-section {
+        margin-bottom: 20px;
+      }
+
+      .canary-summary {
+        margin-bottom: 5px;
+        padding-bottom: 5px;
+        align-items: center;
         display: flex;
-        flex: 4 0 20px;
-        margin-right: 15px;
-        &.canary-summary-section {
-          display: block;
-        }
-        &.score-large {
-          flex: 0 0 auto;
-          height: 48px;
-          .score {
-            line-height: 38px;
-            height: 48px;
-            padding-left: 10px;
-            padding-right: 10px;
-            font-size: 175%;
+
+        & > div {
+          display: flex;
+          flex: 4 0 20px;
+          margin-right: 15px;
+          &.canary-summary-section {
+            display: block;
           }
-          margin-right: 10px;
+          &.score-large {
+            flex: 0 0 auto;
+            height: 48px;
+            .score {
+              line-height: 38px;
+              height: 48px;
+              padding-left: 10px;
+              padding-right: 10px;
+              font-size: 175%;
+            }
+            margin-right: 10px;
+          }
+        }
+      }
+
+      h5 {
+        margin: 0;
+      }
+    }
+
+    tbody {
+      tr.stage-summary {
+        font-weight: 600;
+      }
+      tr {
+        font-size: 85%;
+      }
+      tr.clickable {
+        cursor: pointer;
+        &:hover {
+          background-color: @table-bg-hover;
         }
       }
     }
-
+    .glyphicon-remove {
+      cursor: pointer;
+      color: @mid_grey;
+    }
     h5 {
-      margin: 0;
+      font-weight: 600;
+      padding-bottom: 10px;
+    }
+    .stage-name {
+      margin-top: 5px;
+    }
+    .well {
+      margin-top: 10px;
     }
   }
 
-  tbody {
-    tr.stage-summary {
-      font-weight: 600;
-    }
-    tr {
-      font-size: 85%;
-    }
-    tr.clickable {
-      cursor: pointer;
-      &:hover {
-        background-color: @table-bg-hover;
+  .stage-details {
+    .stage-details-heading {
+      text-transform: uppercase;
+      margin-top: 0;
+      h4 {
+        font-weight: 600;
       }
     }
+    .stage-details-section-heading {
+      border-bottom: 1px solid @mid_grey;
+      margin-bottom: 5px;
+      h4 {
+        font-weight: 600;
+      }
+    }
+    h4 {
+      margin-top: 0;
+    }
   }
-  .glyphicon-remove {
-    cursor: pointer;
+
+  .subinput-note {
+    font-style: italic;
+    font-size: 11px;
     color: @mid_grey;
   }
-  h5 {
-    font-weight: 600;
-    padding-bottom: 10px;
-  }
-  .stage-name {
-    margin-top: 5px;
-  }
-  .well {
-    margin-top: 10px;
-  }
-}
 
-.hide-details-link {
-  display: block;
-  text-align: right;
-  padding-top: 5px;
-  color: @text-color;
-  text-transform: none;
-  font-size: 90%;
-  .glyphicon {
-    top: 2px;
-  }
-  &:hover {
-    text-decoration: none;
-  }
-}
-
-.stage-details {
-  .stage-details-heading {
-    text-transform: uppercase;
-    margin-top: 0;
-    h4 {
-      font-weight: 600;
+  .hide-details-link {
+    display: block;
+    text-align: right;
+    padding-top: 5px;
+    color: @text-color;
+    text-transform: none;
+    font-size: 90%;
+    .glyphicon {
+      top: 2px;
+    }
+    &:hover {
+      text-decoration: none;
     }
   }
-  .stage-details-section-heading {
-    border-bottom: 1px solid @mid_grey;
-    margin-bottom: 5px;
-    h4 {
-      font-weight: 600;
-    }
-  }
-  h4 {
-    margin-top: 0;
-  }
-}
-
-.subinput-note {
-  font-style: italic;
-  font-size: 11px;
-  color: @mid_grey;
 }

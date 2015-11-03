@@ -1,7 +1,7 @@
 'use strict';
 
-
 let angular = require('angular');
+let Clipboard = require('clipboard');
 
 require('./copyToClipboard.directive.less');
 
@@ -56,6 +56,11 @@ module.exports = angular
     vm.resetToolTip = () => {
       vm.toolTip = vm.tempToolTip;
     };
+  })
+  .config(function() {
+    /*eslint-disable */
+    let clipboard = new Clipboard('.clipboard-btn');
+    /*eslint-enable*/
   })
   .name;
 

@@ -27,7 +27,7 @@
             {{cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws' }}
           </td>
           <td>
-            <account-tag account="cluster.account"></account-tag>
+            <account-tag account="cluster.account" provider="cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws'"></account-tag>
           </td>
           <td>
             {{ deployStageCtrl.getClusterName(cluster) }}

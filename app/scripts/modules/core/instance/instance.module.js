@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./instanceSelection.less');
+
 module.exports = angular
   .module('spinnaker.core.instance', [
     require('./details/console/consoleOutput.modal.controller.js'),

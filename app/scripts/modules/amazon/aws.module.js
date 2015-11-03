@@ -4,6 +4,12 @@ let angular = require('angular');
 
 require('./logo/aws.logo.less');
 
+// load all templates into the $templateCache
+var templates = require.context('./', true, /\.html$/);
+templates.keys().forEach(function(key) {
+  templates(key);
+});
+
 module.exports = angular.module('spinnaker.aws', [
   require('../core/cloudProvider/cloudProvider.registry.js'),
   require('../core/pipeline/config/stages/bake/aws/awsBakeStage.js'),
@@ -11,6 +17,7 @@ module.exports = angular.module('spinnaker.aws', [
   require('../core/pipeline/config/stages/disableAsg/aws/awsDisableAsgStage.js'),
   require('../core/pipeline/config/stages/enableAsg/aws/awsEnableAsgStage.js'),
   require('../core/pipeline/config/stages/findAmi/aws/awsFindAmiStage.js'),
+  require('../core/pipeline/config/stages/modifyScalingProcess/modifyScalingProcess.module.js'),
   require('../core/pipeline/config/stages/resizeAsg/aws/awsResizeAsgStage.js'),
   require('./serverGroup/details/serverGroup.details.module.js'),
   require('./serverGroup/serverGroup.transformer.js'),
