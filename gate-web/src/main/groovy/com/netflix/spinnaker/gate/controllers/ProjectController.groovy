@@ -53,8 +53,9 @@ class ProjectController {
 
   @RequestMapping(value = "/{id:.+}/pipelines", method = RequestMethod.GET)
   List<Map> allPipelinesForProject(@PathVariable("id") String projectId,
-                                   @RequestParam(value = "limit", defaultValue = "5") int limit) {
-    return projectService.getAllPipelines(projectId, limit)
+                                   @RequestParam(value = "limit", defaultValue = "5") int limit,
+                                   @RequestParam(value = "statuses", required = false) String statuses) {
+    return projectService.getAllPipelines(projectId, limit, statuses)
   }
 
   @ResponseStatus(HttpStatus.NOT_FOUND)

@@ -49,9 +49,9 @@ class ProjectService {
     } execute()
   }
 
-  List<Map> getAllPipelines(String projectId, int limit) {
+  List<Map> getAllPipelines(String projectId, int limit, String statuses) {
     HystrixFactory.newListCommand(GROUP, "getAllPipelines") {
-      return orcaService.getPipelinesForProject(projectId, limit)
+      return orcaService.getPipelinesForProject(projectId, limit, statuses)
     } execute()
   }
 }
