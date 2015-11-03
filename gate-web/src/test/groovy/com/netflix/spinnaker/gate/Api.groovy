@@ -27,7 +27,7 @@ interface Api {
   Map getApplication(@Path("name") String name)
 
   @GET("/applications/{name}/tasks")
-  List getTasks(@Path("name") String name)
+  List getTasks(@Path("name") String name, @Query("limit") Integer limit, @Query("statuses") String statuses)
 
   @POST("/applications/{name}/tasks")
   Map createTask(@Path("name") String name, @Body Map body)

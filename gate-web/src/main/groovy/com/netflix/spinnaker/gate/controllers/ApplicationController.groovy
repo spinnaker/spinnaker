@@ -70,16 +70,19 @@ class ApplicationController {
   }
 
   @RequestMapping(value = "/{application}/tasks", method = RequestMethod.GET)
-  List getTasks(@PathVariable("application") String application) {
-    executionHistoryService.getTasks(application)
+  List getTasks(@PathVariable("application") String application,
+                @RequestParam(value = "limit", required = false) Integer limit,
+                @RequestParam(value = "statuses", required = false) String statuses) {
+    executionHistoryService.getTasks(application, limit, statuses)
   }
 
   @RequestMapping(value = "/{application}/pipelines", method = RequestMethod.GET)
   List getPipelines(@PathVariable("application") String application,
-                    @RequestParam(value = "limit", required = false) Integer limit) {
+                    @RequestParam(value = "limit", required = false) Integer limit,
+                    @RequestParam(value = "statuses", required = false) String statuses) {
     def listLimit = limit ?: environment.getProperty(PIPELINE_EXECUTION_LIMIT, Integer, 10)
     log.info("execution fetch limit: ${listLimit}")
-    executionHistoryService.getPipelines(application, listLimit)
+    executionHistoryService.getPipelines(application, listLimit, statuses)
   }
 
   /**

@@ -136,10 +136,10 @@ class FunctionalSpec extends Specification {
 
   void "should call ApplicationService for an application's tasks"() {
     when:
-      api.getTasks(name)
+      api.getTasks(name, null, "RUNNING,TERMINAL")
 
     then:
-      1 * orcaService.getTasks(name) >> []
+      1 * orcaService.getTasks(name, null, "RUNNING,TERMINAL") >> []
 
     where:
       name = "foo"
@@ -159,24 +159,24 @@ class FunctionalSpec extends Specification {
 
   void "should throw ThrottledRequestException if result served from hystrix fallback"() {
     when:
-    def tasks = executionHistoryService.getTasks("app")
+    def tasks = executionHistoryService.getTasks("app", 5, null)
 
     then:
-    1 * orcaService.getTasks("app") >> { return ["1"] }
+    1 * orcaService.getTasks("app", 5, null) >> { return ["1"] }
     tasks == ["1"]
 
     when:
-      executionHistoryService.getTasks("app")
+      executionHistoryService.getTasks("app", 10, "RUNNING")
 
     then:
-      1 * orcaService.getTasks("app") >> { throw new IllegalStateException() }
+      1 * orcaService.getTasks("app", 10, "RUNNING") >> { throw new IllegalStateException() }
       thrown(ThrottledRequestException)
 
     when:
-    executionHistoryService.getPipelines("app", 5)
+    executionHistoryService.getPipelines("app", 5, "TERMINAL")
 
     then:
-    1 * orcaService.getPipelinesV2("app", 5) >> { throw new IllegalStateException() }
+    1 * orcaService.getPipelines("app", 5, "TERMINAL") >> { throw new IllegalStateException() }
     thrown(ThrottledRequestException)
   }
 

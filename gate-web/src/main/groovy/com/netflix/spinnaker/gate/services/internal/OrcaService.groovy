@@ -26,15 +26,15 @@ interface OrcaService {
 
   @Headers("Accept: application/json")
   @GET("/applications/{application}/tasks")
-  List getTasks(@Path("application") String app)
+  List getTasks(@Path("application") String app, @Query("limit") Integer limit, @Query("statuses") String statuses)
 
   @Headers("Accept: application/json")
   @GET("/v2/applications/{application}/pipelines")
-  List getPipelinesV2(@Path("application") String app, @Query("limit") int limit)
+  List getPipelines(@Path("application") String app, @Query("limit") Integer limit, @Query("statuses") String statuses)
 
   @Headers("Accept: application/json")
   @GET("/projects/{projectId}/pipelines")
-  List<Map> getPipelinesForProject(@Path("projectId") String projectId, @Query("limit") int limit)
+  List<Map> getPipelinesForProject(@Path("projectId") String projectId, @Query("limit") Integer limit, @Query("statuses") String statuses)
 
   @Headers("Accept: application/json")
   @GET("/tasks/{id}")
