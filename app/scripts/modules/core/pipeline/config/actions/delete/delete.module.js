@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.delete',
     $scope.pipeline = pipeline;
 
     this.deletePipeline = function() {
-      return pipelineConfigService.deletePipeline(application.name, pipeline.name).then(
+      return pipelineConfigService.deletePipeline(application.name, pipeline, pipeline.name).then(
         function() {
           application.pipelineConfigs.splice(application.pipelineConfigs.indexOf(pipeline), 1);
           application.pipelineConfigs.forEach(function(pipeline, index) {
