@@ -189,7 +189,7 @@ module.exports = angular
   })
   .config(function(RestangularProvider, settings) {
     RestangularProvider.setBaseUrl(settings.gateUrl);
-    RestangularProvider.setDefaultHttpFields({timeout: settings.pollSchedule});
+    RestangularProvider.setDefaultHttpFields({timeout: settings.pollSchedule * 2 + 5000}); // TODO: replace with apiHost call
   })
   .config(function($httpProvider){
     $httpProvider.defaults.headers.patch = {

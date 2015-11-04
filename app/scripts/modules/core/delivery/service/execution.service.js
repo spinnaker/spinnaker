@@ -27,7 +27,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       $http({
         method: 'GET',
         url: url,
-        timeout: settings.pollSchedule,
+        timeout: settings.pollSchedule * 2 + 5000, // TODO: replace with apiHost call
       }).then(
         function(resp) {
           deferred.resolve(resp.data);
