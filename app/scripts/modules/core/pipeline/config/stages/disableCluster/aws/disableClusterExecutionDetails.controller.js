@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.disableCluster.aw
     require('../../../../../delivery/details/executionDetailsSection.service.js'),
     require('../../../../../delivery/details/executionDetailsSectionNav.directive.js'),
 ])
-.controller('DisableClusterExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
+.controller('awsDisableClusterExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 
     $scope.configSections = ['disableClusterConfig', 'taskStatus'];
 
