@@ -26,6 +26,10 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
     let application = $scope.application;
     this.application = application;
 
+    application.loadAllExecutions = true;
+    application.reloadExecutions();
+    $scope.$on('$destroy', () => application.loadAllExecutions = false);
+
     this.InsightFilterStateModel = InsightFilterStateModel;
 
     this.filter = ExecutionFilterModel.sortFilter;

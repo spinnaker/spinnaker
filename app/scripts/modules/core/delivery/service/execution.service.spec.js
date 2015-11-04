@@ -43,7 +43,7 @@ describe('Service: executionService', function () {
 
       $httpBackend.expectGET(url).respond(200, []);
 
-      let responsePromise = executionService.getAll('deck');
+      let responsePromise = executionService.getExecutions('deck');
 
       $httpBackend.flush();
 
@@ -67,7 +67,7 @@ describe('Service: executionService', function () {
 
       $httpBackend.expectGET(url).respond(429, []);
 
-      let responsePromise = executionService.getAll('deck');
+      let responsePromise = executionService.getExecutions('deck');
 
       $httpBackend.flush();
 
