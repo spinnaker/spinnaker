@@ -102,8 +102,8 @@ Sign into the [Google Developer's Console](https://console.developers.google.com
 ## Start Spinnaker Services
 
 ````bash
-cd $SPINNAKER_HOME
-spinnaker/dev/run_dev.sh [service]
+cd $SPINNAKER_HOME/build
+../spinnaker/dev/run_dev.sh [service]
 ````
 
 If a service is provided, then just that one service will be started.
@@ -117,8 +117,8 @@ stop and restart run_dev.sh.
 
 ## Stop Spinnaker Services
 ````bash
-cd $SPINNAKER_HOME
-spinnaker/dev/stop_dev.sh [service]
+cd $SPINNAKER_HOME/build
+../spinnaker/dev/stop_dev.sh [service]
 ````
 
 If a service is provided, then just that one service will be stopped.
