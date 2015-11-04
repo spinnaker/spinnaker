@@ -31,8 +31,7 @@
             </div>
         </div>
         <div class="well well-sm clearfix ng-scope col-md-offset-1 col-md-10" ng-if="pipelineParameters.length">
-            <h4 class="text-left">Pipeline Parameters</h4>
-
+            <strong class="text-left">Parameters</strong>
             <div class="form-group" ng-repeat="parameter in pipelineParameters | orderBy:'name' ">
                 <div class="col-md-3 sm-label-left">
                     <b>{{parameter.name}}</b>
