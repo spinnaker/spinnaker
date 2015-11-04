@@ -11,6 +11,7 @@ module.exports = angular.module('spinnaker.application.controller', [
   require('../history/recentHistory.service.js'),
 ])
   .controller('ApplicationCtrl', function($scope, $state, hotkeys, app, recentHistoryService, $window) {
+    this.applicationNavTemplate = require('./applicationNav.html');
     $scope.$window = $window;
     $scope.application = app;
     $scope.insightTarget = app;
