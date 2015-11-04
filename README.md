@@ -28,6 +28,8 @@ Prerequisites: jdk8, redis, cassandra, packer
 
 ### MacOSX
 
+You need to have [homebrew](http://brew.sh/) installed and ensure your version of git is above 2.0.
+
 ````bash
 brew install redis cassandra brew-cask packer
 brew cask install java
