@@ -22,6 +22,7 @@ window.spinnakerSettings = {
       primaryAccounts: ['prod', 'test'],
       primaryRegions: ['eu-west-1', 'us-east-1', 'us-west-1', 'us-west-2'],
       challengeDestructiveActions: ['mgmt', 'prod', 'mceprod', 'cpl'],
+      defaultSecurityGroups: ['nf-datacenter-vpc', 'nf-infrastructure-vpc', 'nf-datacenter', 'nf-infrastructure'],
       accountBastions : {
         'prod': 'aws.prod.netflix.net',
         'test': 'aws.test.netflix.net',
