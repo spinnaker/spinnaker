@@ -2,11 +2,11 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.canary.summary.controller', [
+module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.summary.controller', [
   require('angular-ui-router'),
-  require('../../../../utils/lodash.js'),
-  require('../../../../delivery/details/executionDetailsSection.service.js'),
-  require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
+  require('../../../../core/utils/lodash.js'),
+  require('../../../../core/delivery/details/executionDetailsSection.service.js'),
+  require('../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
   require('./actions/generateScore.controller.js'),
   require('./actions/endCanary.controller.js'),
 ])

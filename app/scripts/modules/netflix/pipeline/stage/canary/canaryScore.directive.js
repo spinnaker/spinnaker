@@ -4,7 +4,7 @@ let angular = require('angular');
 
 require('./canaryScore.directive.less');
 
-module.exports = angular.module('spinnaker.core.pipeline.stages.canary.score.directive', [])
+module.exports = angular.module('spinnaker.netflix.pipeline.stages.canary.score.directive', [])
   .directive('canaryScore', function() {
     return {
       restrict: 'E',

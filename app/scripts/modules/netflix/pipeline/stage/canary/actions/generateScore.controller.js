@@ -2,13 +2,13 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.canary.actions.generate.score.controller', [
+module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.actions.generate.score.controller', [
   require('angular-ui-router'),
-  require('../../../../../utils/lodash.js'),
-  require('../../../../../delivery/details/executionDetailsSection.service.js'),
-  require('../../../../../delivery/details/executionDetailsSectionNav.directive.js'),
+  require('../../../../../core/utils/lodash.js'),
+  require('../../../../../core/delivery/details/executionDetailsSection.service.js'),
+  require('../../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
 ])
-  .controller('GenerateScoreCtrl', function ($scope, $http, $modalInstance, settings, canaryId, _) {
+  .controller('GenerateScoreCtrl', function ($scope, $http, $modalInstance, settings, canaryId) {
 
     $scope.command = {
       duration: null,
