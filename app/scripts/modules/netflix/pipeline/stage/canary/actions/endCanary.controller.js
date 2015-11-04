@@ -2,13 +2,13 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.canary.actions.override.result.controller', [
+module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.actions.override.result.controller', [
   require('angular-ui-router'),
-  require('../../../../../utils/lodash.js'),
-  require('../../../../../delivery/details/executionDetailsSection.service.js'),
-  require('../../../../../delivery/details/executionDetailsSectionNav.directive.js'),
+  require('../../../../../core/utils/lodash.js'),
+  require('../../../../../core/delivery/details/executionDetailsSection.service.js'),
+  require('../../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
 ])
-  .controller('EndCanaryCtrl', function ($scope, $http, $modalInstance, settings, canaryId, _) {
+  .controller('EndCanaryCtrl', function ($scope, $http, $modalInstance, settings, canaryId) {
 
     $scope.command = {
       reason: null,

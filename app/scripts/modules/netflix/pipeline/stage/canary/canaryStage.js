@@ -2,9 +2,9 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.canaryStage', [
-  require('../../../../serverGroup/configure/common/serverGroupCommandBuilder.js'),
-  require('../../../../cloudProvider/cloudProvider.registry.js'),
+module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', [
+  require('../../../../core/serverGroup/configure/common/serverGroupCommandBuilder.js'),
+  require('../../../../core/cloudProvider/cloudProvider.registry.js'),
 ])
   .config(function (pipelineConfigProvider, settings) {
     if (settings.feature.canary === true) {

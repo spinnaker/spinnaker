@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stages.canary.status.directive', [])
+module.exports = angular.module('spinnaker.netflix.pipeline.stages.canary.status.directive', [])
   .directive('canaryStatus', function() {
     return {
       restrict: 'E',

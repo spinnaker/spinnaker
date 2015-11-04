@@ -2,12 +2,12 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.canary.canaryDeployment.details.controller', [
+module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.canaryDeployment.details.controller', [
   require('angular-ui-router'),
-  require('../../../../../utils/lodash.js'),
-  require('../../../../../delivery/details/executionDetailsSection.service.js'),
-  require('../../../../../delivery/details/executionDetailsSectionNav.directive.js'),
-  require('../../../../../navigation/urlBuilder.service.js'),
+  require('../../../../../core/utils/lodash.js'),
+  require('../../../../../core/delivery/details/executionDetailsSection.service.js'),
+  require('../../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
+  require('../../../../../core/navigation/urlBuilder.service.js'),
   require('./canaryDeploymentHistory.service.js')
 ])
   .controller('CanaryDeploymentExecutionDetailsCtrl', function ($scope, _, $stateParams, $timeout,
