@@ -143,7 +143,7 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
           defaultRegion = application.defaultRegion || settings.providers.aws.defaults.region;
       return {
         stack: '',
-        detail: 'frontend',
+        detail: '',
         credentials: defaultCredentials,
         region: defaultRegion,
         vpcId: null,
