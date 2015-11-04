@@ -55,13 +55,6 @@ body {
   padding-bottom: 19px;
 }
 
-/* Custom page footer */
-.footer {
-  padding-top: 19px;
-  color: #777;
-  border-top: 1px solid @mid_grey;
-}
-
 .insight {
   .filters-content, .nav-content, .details-panel {
     width: 100%;
@@ -417,7 +410,7 @@ body > .container {
 }
 
 .navbar-inverse {
-  background-color: #5b5b5b;
+  background-color: @dark_blue_background;
   border: none;
 
   .navbar-brand {
@@ -437,7 +430,7 @@ body > .container {
 
     &:focus, &:hover {
       border-top-color: #eeeeee;
-      background-color: #777777;
+      background-color: lighten(@dark_blue_background, 30%);
       transition: border-top-color .2s, background-color .2s;
     }
   }
@@ -686,7 +679,7 @@ tfoot .add-new {
 .details-row {
   width: 99%;
   table {
-    color: #5b5b5b;
+    color: @mid_grey;
     th, td {
       padding-left: 0px !important;
     }
