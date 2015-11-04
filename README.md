@@ -41,9 +41,27 @@ spinnaker/dev/refresh_source.sh --pull_origin --use_ssh --github_user default
 
 ````bash
 cd $SPINNAKER_HOME
-spinnaker/dev/install_development.sh
+spinnaker/dev/install_development.sh --package_manager
 spinnaker/dev/bootstrap_dev.sh
 ````
+
+The `--package_manager` argument requests the Debian Package Manager be used
+to the greatest extent possible. This permits adding new source repositories
+where package dependencies are distributed from non-standard repositories
+(e.g. cassandra). The alternative is `--nopackage_manager` to use the
+Package Manager for standard dependencies but explicitly install packages
+that come from other sources. `--nopackage_manager` is intended for
+installations where IT policies discourage or forbid adding additional
+source locations.
+
+
+The `bootstrap_dev.sh` script will ask to install additional components.
+`packer` is only needed if you plan on building VM images. `gcloud`
+is only needed to write releases to Google Cloud Storage, but is convenient
+to have if you plan on using or accessing Google Cloud Platform resources
+from your development environment. These could be installed at a system level
+rather than user level, but the default install requires updating your path
+so is performed here.
 
 ## Configure Spinnaker
 
