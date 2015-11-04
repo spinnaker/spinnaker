@@ -39,8 +39,8 @@ spinnaker/dev/refresh_source.sh --pull_origin --use_ssh --github_user default
 
 ````bash
 cd $SPINNAKER_HOME
-dev/install_development.sh
-dev/bootstrap_dev.sh
+spinnaker/dev/install_development.sh
+spinnaker/dev/bootstrap_dev.sh
 ````
 
 ## Configure Spinnaker
