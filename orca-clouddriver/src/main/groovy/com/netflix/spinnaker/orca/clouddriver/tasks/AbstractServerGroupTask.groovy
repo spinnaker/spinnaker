@@ -24,14 +24,30 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
-abstract class AbstractServerGroupTask extends AbstractCloudProviderAwareTask implements Task {
+abstract class AbstractServerGroupTask extends AbstractCloudProviderAwareTask implements RetryableTask {
+
+  @Override
+  long getBackoffPeriod() {
+    return 2000
+  }
+
+  @Override
+  long getTimeout() {
+    return 60000
+  }
 
   @Autowired
   KatoService kato
 
-  protected boolean addTargetOpOutputs = false
+  protected boolean isAddTargetOpOutputs() {
+    false
+  }
 
   abstract String getServerGroupAction()
+
+  Map getAdditionalStageOutputs(Stage stage, Map operation) {
+    [:]
+  }
 
   TaskResult execute(Stage stage) {
     String cloudProvider = getCloudProvider(stage)
@@ -57,7 +73,7 @@ abstract class AbstractServerGroupTask extends AbstractCloudProviderAwareTask im
       ]
     }
 
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, stageOutputs)
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, stageOutputs + getAdditionalStageOutputs(stage, operation))
   }
 
   Map convert(Stage stage) {

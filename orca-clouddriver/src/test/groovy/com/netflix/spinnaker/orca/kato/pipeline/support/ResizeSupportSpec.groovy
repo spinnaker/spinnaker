@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -60,28 +59,28 @@ class ResizeSupportSpec extends Specification {
   @Unroll
   def "should scale target capacity up or down by percentage or number"() {
     setup:
-      context[method] = value
-      context.action = direction
-      def stage = new PipelineStage(new Pipeline(), "resizeAsg", context)
+    context[method] = value
+    context.action = direction
+    def stage = new PipelineStage(new Pipeline(), "resizeAsg", context)
 
     when:
-      def descriptors = resizeSupport.createResizeStageDescriptors(stage, targetRefs)
+    def descriptors = resizeSupport.createResizeStageDescriptors(stage, targetRefs)
 
     then:
-      !descriptors.empty
-      descriptors[0].capacity == [min: want, max: want, desired: want] as Map
+    !descriptors.empty
+    descriptors[0].capacity == [min: want, max: want, desired: want] as Map
 
     where:
-      method     | direction    | value || want
-      "scalePct" | null         | 50    || 15
-      "scalePct" | "scale_up"   | 50    || 15
-      "scalePct" | "scale_down" | 50    || 5
-      "scalePct" | "scale_down" | 100   || 0
-      "scalePct" | "scale_down" | 1000  || 0
-      "scaleNum" | null         | 6     || 16
-      "scaleNum" | "scale_up"   | 6     || 16
-      "scaleNum" | "scale_down" | 6     || 4
-      "scaleNum" | "scale_down" | 100   || 0
+    method     | direction    | value || want
+    "scalePct" | null         | 50    || 15
+    "scalePct" | "scale_up"   | 50    || 15
+    "scalePct" | "scale_down" | 50    || 5
+    "scalePct" | "scale_down" | 100   || 0
+    "scalePct" | "scale_down" | 1000  || 0
+    "scaleNum" | null         | 6     || 16
+    "scaleNum" | "scale_up"   | 6     || 16
+    "scaleNum" | "scale_down" | 6     || 4
+    "scaleNum" | "scale_down" | 100   || 0
   }
 
   @Unroll
@@ -111,39 +110,5 @@ class ResizeSupportSpec extends Specification {
       [min: "0", max: "2"]               | [minSize: 1, maxSize: 3, desiredCapacity: 3] || [min: 0, max: 2, desired: 2]
       [min: "0", max: "2", desired: "3"] | [minSize: 1, maxSize: 3, desiredCapacity: 3] || [min: 0, max: 2, desired: 3]
       [:]                                | [minSize: 1, maxSize: 3, desiredCapacity: 3] || [min: 1, max: 3, desired: 3]
-  }
-
-  @Ignore
-  def "should use GCE-specific modifications"() {
-    setup:
-      context.provider = "gce"
-      context.scaleNum = 2
-      context.action = "scale_up"
-      context.target = "current_asg_dynamic"
-
-      def stage = new PipelineStage(new Pipeline(), "resizeAsg", context)
-      targetRefs[0].asg.zones = ["north-pole"]
-
-    when:
-      def descriptors = resizeSupport.createResizeStageDescriptors(stage, targetRefs)
-
-    then:
-      !descriptors.empty
-      descriptors[0] == [
-        action         : "scale_up",
-        asgName        : "testapp-asg-v001",
-        capacity       : [min:12, desired:12, max:12],
-        cluster        : "testapp-asg",
-        credentials    : "test",
-        targetSize     : 12,
-        provider       : "gce",
-        regions        : ["us-west-1"],
-        serverGroupName: "testapp-asg-v001",
-        scaleNum       : 2,
-        target         : "current_asg_dynamic",
-        zones          : ["north-pole"],
-        asgName        : "testapp-asg-v001",
-        capacity       : [min: 12, desired: 12, max: 12]
-      ]
   }
 }
