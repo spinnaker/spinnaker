@@ -6,27 +6,25 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
   require('../../../../core/serverGroup/configure/common/serverGroupCommandBuilder.js'),
   require('../../../../core/cloudProvider/cloudProvider.registry.js'),
 ])
-  .config(function (pipelineConfigProvider, settings) {
-    if (settings.feature.canary === true) {
-        pipelineConfigProvider.registerStage({
-          label: 'Canary',
-          description: 'Canary tests new changes against a baseline version',
-          key: 'canary',
-          templateUrl: require('./canaryStage.html'),
-          executionDetailsUrl: require('./canaryExecutionDetails.html'),
-          executionSummaryUrl: require('./canaryExecutionSummary.html'),
-          executionLabelTemplateUrl: require('./canaryExecutionLabel.html'),
-          controller: 'CanaryStageCtrl',
-          controllerAs: 'canaryStageCtrl',
-          validators: [
-            {
-              type: 'stageBeforeType',
-              stageTypes: ['bake', 'findAmi', 'findImage'],
-              message: 'You must have a Bake or Find AMI stage before a canary stage.'
-            },
-          ],
-        });
-    }
+  .config(function (pipelineConfigProvider) {
+      pipelineConfigProvider.registerStage({
+        label: 'Canary',
+        description: 'Canary tests new changes against a baseline version',
+        key: 'canary',
+        templateUrl: require('./canaryStage.html'),
+        executionDetailsUrl: require('./canaryExecutionDetails.html'),
+        executionSummaryUrl: require('./canaryExecutionSummary.html'),
+        executionLabelTemplateUrl: require('./canaryExecutionLabel.html'),
+        controller: 'CanaryStageCtrl',
+        controllerAs: 'canaryStageCtrl',
+        validators: [
+          {
+            type: 'stageBeforeType',
+            stageTypes: ['bake', 'findAmi', 'findImage'],
+            message: 'You must have a Bake or Find AMI stage before a canary stage.'
+          },
+        ],
+      });
   })
   .controller('CanaryStageCtrl', function ($scope, $uibModal, stage, _,
                                            namingService, providerSelectionService,
