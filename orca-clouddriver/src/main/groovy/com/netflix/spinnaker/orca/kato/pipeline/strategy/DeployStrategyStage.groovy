@@ -154,7 +154,11 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
     ]
 
     injectAfter(stage, "modifyLaunchConfiguration", modifyAsgLaunchConfigurationStage, modifyCtx)
-    injectAfter(stage, "rollingPush", rollingPushStage, modifyCtx)
+
+    def terminationConfig = stage.mapTo("/termination", TerminationConfig)
+    if (terminationConfig.relaunchAllInstances || terminationConfig.totalRelaunches > 0) {
+      injectAfter(stage, "rollingPush", rollingPushStage, modifyCtx)
+    }
   }
 
   @CompileDynamic
@@ -178,5 +182,13 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
     String cluster
     String region
     String cloudProvider
+  }
+
+  @Immutable
+  static class TerminationConfig {
+    String order
+    boolean relaunchAllInstances
+    int concurrentRelaunches
+    int totalRelaunches
   }
 }
