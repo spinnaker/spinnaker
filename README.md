@@ -65,7 +65,7 @@ If you enabled AWS for Spinnaker, there are some requirements for the AWS accoun
 
 Decide which region you want Spinnaker to index. In `$HOME/.spinnaker/spinnaker-local.yml` fill in that value in providers.aws.defaultRegion. (The default is us-east-1).
 
-Sign into the AWS console, and select the region Spinnaker will manage.
+Sign into the [AWS console](https://console.aws.amazon.com/), and select the region Spinnaker will manage.
 
 1. Name your vpc (edit the name tag, and give it a value with no spaces or dots in the name) (e.g. defaultvpc)
 2. Name your subnets (edit the name tag and name following the pattern vpcName.internal.\<availabilityZone>)
