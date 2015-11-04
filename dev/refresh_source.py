@@ -17,7 +17,6 @@
 import argparse
 import collections
 import os
-import re
 import sys
 
 from spinnaker.run import check_run_and_monitor
@@ -40,7 +39,7 @@ def get_repository_dir(name):
     return os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
   else:
     return name
-    
+
 
 class SourceRepository(
           collections.namedtuple('SourceRepository', ['name', 'owner'])):
@@ -78,6 +77,23 @@ class Refresher(object):
                 'Invalid --extra_repos value "{extra}"'.format(extra=extra))
           self.__extra_repositories.append(SourceRepository(pair[0], pair[1]))
 
+  def get_remote_repository_url(self, path, which='origin'):
+      """Determine the repository that a given path is from.
+
+      Args:
+        path [string]: The path to the repository
+        which [string]: The remote repository name (origin or upstream).
+
+      Returns:
+        The origin url for path, or None if not a git repository.
+      """
+      result = run_quick('git -C {path} config --get remote.{which}.url'
+                             .format(path=path, which=which),
+                         echo=False)
+      if result.returncode:
+        return None
+      return result.stdout.strip()
+
   def get_branch_name(self, name):
       """Determine which git branch a local repository is in.
 
@@ -91,7 +107,7 @@ class Refresher(object):
                          .format(dir=get_repository_dir(name)),
                          echo=False)
       if result.returncode:
-        error = 'Could not determine branch: ' + result.stdout
+        error = 'Could not determine branch: ' + result.stdout.strip()
         raise RuntimeError(error)
       return result.stdout.strip()
 
@@ -115,12 +131,11 @@ class Refresher(object):
                      else 'git@github.com:{user}/{name}.git')
       return url_pattern.format(user=user, name=repository.name)
 
-  def git_clone(self, repository, required=True, owner=None):
+  def git_clone(self, repository, owner=None):
       """Clone the specified repository
 
       Args:
         repository [string]: The name of the github repository (without owner).
-        required [bool]: Whether the clone must succeed or not.
         owner [string]: An explicit repository owner.
                If not provided use the configured options.
       """
@@ -146,8 +161,7 @@ class Refresher(object):
              return
           sys.stderr.write(shell_result.stderr or shell_result.stdout)
           sys.stderr.write(
-              'FATAL: Cannot continue without required'
-              ' repository {name}.\n'
+              'FATAL: Cannot continue without required repository {name}.\n'
               '       Consider using github to fork one from {upstream}.\n'.
               format(name=name, upstream=upstream_url))
           raise SystemExit('Repository {url} not found.'.format(url=origin_url))
@@ -176,7 +190,6 @@ class Refresher(object):
       """
       name = repository.name
       repository_dir = get_repository_dir(name)
-      owner = repository.owner
       if not os.path.exists(repository_dir):
           self.git_clone(repository)
           return
@@ -191,8 +204,6 @@ class Refresher(object):
                                    .format(dir=repository_dir, branch=branch),
                                echo=True)
       if result.returncode:
-          if branch != 'master':
-            sys.stderr.write('  Maybe the branch is only local.\n')
           sys.stderr.write('Ignoring error.\n')
 
   def pull_from_upstream_if_master(self, repository):
@@ -300,7 +311,8 @@ LOG_DIR=${{LOG_DIR:-../logs}}
 DEF_SYS_PROPERTIES="-Dspring.config.location='{spring_location}'"
 bash -c "(./gradlew $DEF_SYS_PROPERTIES $@ > '$LOG_DIR/{name}.log') 2>&1\
  | tee -a '$LOG_DIR/{name}.log' >& '$LOG_DIR/{name}.err' &"
-""".format(name=name, spring_location=self.__determine_spring_config_location()))
+""".format(name=name,
+           spring_location=self.__determine_spring_config_location()))
       os.chmod(path, 0777)
 
   def write_deck_run_script(self, repository):
@@ -399,6 +411,7 @@ bash -c "(npm start >> '$LOG_DIR/{name}.log') 2>&1\
 
   @classmethod
   def init_argument_parser(cls, parser):
+      """Initiaize command-line arguments."""
       parser.add_argument('--use_https', default=True, action='store_true',
                           help='Use https when cloning github repositories.')
       parser.add_argument('--use_ssh', dest='use_https', action='store_false',
@@ -443,18 +456,27 @@ bash -c "(npm start >> '$LOG_DIR/{name}.log') 2>&1\
     cls.init_extra_argument_parser(parser)
     options = parser.parse_args()
 
-    builder = cls(options)
+    refresher = cls(options)
+    in_repository_url = refresher.get_remote_repository_url('.')
+    if in_repository_url:
+      sys.stderr.write(
+          'ERROR: You cannot run this script from within a local repository.\n'
+          ' This directory is from "{url}".\n'
+          ' Did you intend to be in the parent directory?\n'
+        .format(url=in_repository_url))
+      sys.exit(-1)
+
     nothing = True
     if options.pull_upstream:
         nothing = False
-        builder.pull_all_from_upstream_if_master()
+        refresher.pull_all_from_upstream_if_master()
     if options.push_master:
         nothing = False
-        builder.push_all_to_origin_if_master()
+        refresher.push_all_to_origin_if_master()
     if options.pull_origin:
         nothing = False
-        builder.pull_all_from_origin()
-    builder.update_spinnaker_run_scripts()
+        refresher.pull_all_from_origin()
+    refresher.update_spinnaker_run_scripts()
 
     if nothing:
       sys.stderr.write('No pull/push options were specified.\n')
