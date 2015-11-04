@@ -114,13 +114,23 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
       return
     }
 
+    // Scrub the context of any preset location.
+    stage.context.with {
+      remove("zone")
+      remove("zones")
+      remove("region")
+      remove("regions")
+    }
+
     def locationValues = params.locations.collect { it.value }
+    def locationType = params.locations[0].pluralType()
+
     Map dtsgContext = new HashMap(stage.context)
-    dtsgContext.regions = new ArrayList(locationValues)
+    dtsgContext[locationType] = new ArrayList(locationValues)
 
     // The original stage.context object is reused here because concrete subclasses must actually perform the requested
     // operation. All future copies of the subclass (operating on different regions/zones) use a copy of the context.
-    stage.context.regions = [locationValues.remove(0)]
+    stage.context[locationType] = [locationValues.remove(0)]
 
     preDynamic(stage.context).each {
       injectBefore(stage, it.name, it.stage, it.context)
@@ -131,7 +141,7 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
 
     for (location in locationValues) {
       def ctx = new HashMap(stage.context)
-      ctx.regions = [location]
+      ctx[locationType] = [location]
       preDynamic(ctx).each {
         // Operations done after the first pre-postDynamic injection must all be added with injectAfter.
         injectAfter(stage, it.name, it.stage, it.context)

@@ -24,11 +24,13 @@ import groovy.util.logging.Slf4j
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobExecutionListener
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.annotation.Order
 
 /**
  * Reacts to pipelines finishing and schedules the next job waiting
  */
 @Slf4j
+@Order(0)
 @CompileStatic
 class PipelineStarterListener implements JobExecutionListener {
 

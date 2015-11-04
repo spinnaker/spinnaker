@@ -14,29 +14,30 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.fasterxml.jackson.datatype.guava.GuavaModule
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 
-class CloneLastServerGroupTaskSpec extends Specification {
-  @Subject task = new CloneLastServerGroupTask()
-  def stage = new PipelineStage(new Pipeline(), "copyLastAsg")
+class CloneServerGroupTaskSpec extends Specification {
+  @Subject task = new CloneServerGroupTask()
+  def stage = new PipelineStage(new Pipeline(), "cloneServerGroup")
   def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
-  //The minimum required fields to copyLastAsg
-  def copyLastAsgConfig = [
+  //The minimum required fields to cloneServerGroup
+  def cloneServerGroupConfig = [
     application      : "hodor",
     availabilityZones: ["us-east-1": ["a", "d"], "us-west-1": ["a", "b"]],
-    credentials      : "fzlem"
+    credentials      : "fzlem",
+    cloudProvider: "aws"
   ]
 
   def setup() {
@@ -45,7 +46,7 @@ class CloneLastServerGroupTaskSpec extends Specification {
     task.mapper = mapper
 
     stage.execution.stages.add(stage)
-    stage.context = copyLastAsgConfig
+    stage.context = cloneServerGroupConfig
   }
 
   def "creates a deployment based on job parameters"() {

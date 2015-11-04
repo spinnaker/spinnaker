@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractClusterWideClouddriverTask.CompositeComparitor
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractClusterWideClouddriverTask.CompositeComparator
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractClusterWideClouddriverTask.CreatedTime
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractClusterWideClouddriverTask.InstanceCount
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractClusterWideClouddriverTask.IsActive
@@ -160,8 +160,8 @@ class ShrinkClusterTaskSpec extends Specification {
     def items = [olderButBigger, newerButSmaller]
 
     expect:
-    items.sort(false, new CompositeComparitor([new CreatedTime(), new InstanceCount()])) == [newerButSmaller, olderButBigger]
-    items.sort(false, new CompositeComparitor([new InstanceCount(), new CreatedTime()])) == [olderButBigger, newerButSmaller]
+    items.sort(false, new CompositeComparator([new CreatedTime(), new InstanceCount()])) == [newerButSmaller, olderButBigger]
+    items.sort(false, new CompositeComparator([new InstanceCount(), new CreatedTime()])) == [olderButBigger, newerButSmaller]
   }
 
 

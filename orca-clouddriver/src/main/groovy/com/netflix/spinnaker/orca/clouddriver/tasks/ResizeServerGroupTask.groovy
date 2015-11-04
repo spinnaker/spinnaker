@@ -18,23 +18,20 @@ package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.pipeline.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeSupport
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 @Slf4j
-class ResizeServerGroupTask extends AbstractCloudProviderAwareTask implements Task {
+class ResizeServerGroupTask extends AbstractServerGroupTask {
 
-  @Autowired
-  KatoService kato
+  String serverGroupAction = ResizeServerGroupStage.TYPE
 
   @Override
   TaskResult execute(Stage stage) {
@@ -46,14 +43,12 @@ class ResizeServerGroupTask extends AbstractCloudProviderAwareTask implements Ta
                      .toBlocking()
                      .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-      "notification.type"   : "resizeasg", // TODO(someone on NFLX side): Rename to 'resizeservergroup'?
-      "deploy.account.name" : account,
-      "kato.last.task.id"   : taskId,
-      "asgName"             : operation.asgName,
-      "capacity"            : operation.capacity,
-      "deploy.server.groups": operation.regions.collectEntries {
-        [(it): [operation.asgName]]
-      }
+        "notification.type"   : "resizeasg", // TODO(someone on NFLX side): Rename to 'resizeservergroup'?
+        "deploy.account.name" : account,
+        "kato.last.task.id"   : taskId,
+        "asgName"             : operation.asgName,
+        "capacity"            : operation.capacity,
+        "deploy.server.groups": deployServerGroups(operation)
     ])
   }
 

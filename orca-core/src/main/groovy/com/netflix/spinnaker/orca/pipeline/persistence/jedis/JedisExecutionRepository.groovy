@@ -1,5 +1,8 @@
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
+import redis.clients.jedis.Response
+
 import java.util.function.Function
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -224,12 +227,34 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   @Override
   @CompileDynamic
-  Observable<Pipeline> retrievePipelinesForPipelineConfigId(String pipelineConfigId, int limit) {
+  Observable<Pipeline> retrievePipelinesForPipelineConfigId(String pipelineConfigId,
+                                                            ExecutionCriteria criteria) {
+    def filteredPipelineIds = null as List<String>
+    if (criteria.statuses) {
+      filteredPipelineIds = []
+      withJedis { Jedis jedis ->
+        def pipelineKeys = jedis.zrevrange(executionsByPipelineKey(pipelineConfigId), 0, -1)
+        def allowedExecutionStatuses = criteria.statuses*.toString() as Set<String>
+
+        def pipeline = jedis.pipelined()
+        def fetches = pipelineKeys.collect { pipeline.hget("pipeline:${it}" as String, "status") }
+        pipeline.sync()
+
+        fetches.eachWithIndex { Response<String> entry, int index ->
+          if (allowedExecutionStatuses.contains(entry.get())) {
+            filteredPipelineIds << pipelineKeys[index]
+          }
+        }
+      }
+
+      filteredPipelineIds = filteredPipelineIds.subList(0, Math.min(criteria.limit, filteredPipelineIds.size()))
+    }
+
     return retrieveObservable(Pipeline, executionsByPipelineKey(pipelineConfigId), new Func1<String, Iterable<String>>() {
       @Override
       Iterable<String> call(String key) {
         withJedis { Jedis jedis ->
-          return jedis.zrevrange(key, 0, (limit - 1))
+          return filteredPipelineIds != null ? filteredPipelineIds : jedis.zrevrange(key, 0, (criteria.limit - 1))
         }
       }
     }, queryByAppScheduler)
@@ -255,8 +280,36 @@ class JedisExecutionRepository implements ExecutionRepository {
   }
 
   @Override
-  Observable<Orchestration> retrieveOrchestrationsForApplication(String application) {
-    allForApplication(Orchestration, application)
+  @CompileDynamic
+  Observable<Orchestration> retrieveOrchestrationsForApplication(String application, ExecutionCriteria criteria) {
+    def allOrchestrationsKey = appKey(Orchestration, application)
+    def filteredOrchestrationIds = null as List<String>
+    if (criteria.statuses) {
+      filteredOrchestrationIds = []
+      withJedis { Jedis jedis ->
+        def orchestrationKeys = jedis.smembers(allOrchestrationsKey) as List<String>
+        def allowedExecutionStatuses = criteria.statuses*.toString() as Set<String>
+
+        def pipeline = jedis.pipelined()
+        def fetches = orchestrationKeys.collect { pipeline.hget("orchestration:${it}" as String, "status") }
+        pipeline.sync()
+
+        fetches.eachWithIndex { Response<String> entry, int index ->
+          if (allowedExecutionStatuses.contains(entry.get())) {
+            filteredOrchestrationIds << orchestrationKeys[index]
+          }
+        }
+      }
+    }
+
+    return retrieveObservable(Orchestration, allOrchestrationsKey, new Func1<String, Iterable<String>>() {
+      @Override
+      Iterable<String> call(String key) {
+        withJedis { Jedis jedis ->
+          return filteredOrchestrationIds != null ? filteredOrchestrationIds : jedis.smembers(key)
+        }
+      }
+    }, queryByAppScheduler)
   }
 
   private void storeExecutionInternal(JedisCommands jedis, Execution execution) {

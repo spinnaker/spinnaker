@@ -103,7 +103,7 @@ class JarDiffsTask implements DiffTask {
       List sourceJarList = getJarList(sourceInstances)
 
       // diff
-      LibraryDiffTool libraryDiffTool = new LibraryDiffTool(comparableLooseVersion)
+      LibraryDiffTool libraryDiffTool = new LibraryDiffTool(comparableLooseVersion, false)
       LibraryDiffs jarDiffs = libraryDiffTool.calculateLibraryDiffs(sourceJarList, targetJarList)
 
       // add the diffs to the context

@@ -37,9 +37,14 @@ interface ExecutionRepository {
   void deletePipeline(String id)
   rx.Observable<Pipeline> retrievePipelines()
   rx.Observable<Pipeline> retrievePipelinesForApplication(String application)
-  rx.Observable<Pipeline> retrievePipelinesForPipelineConfigId(String pipelineConfigId, int limit)
+  rx.Observable<Pipeline> retrievePipelinesForPipelineConfigId(String pipelineConfigId, ExecutionCriteria criteria)
   Orchestration retrieveOrchestration(String id)
   void deleteOrchestration(String id)
   rx.Observable<Orchestration> retrieveOrchestrations()
-  rx.Observable<Orchestration> retrieveOrchestrationsForApplication(String application)
+  rx.Observable<Orchestration> retrieveOrchestrationsForApplication(String application, ExecutionCriteria criteria)
+
+  static class ExecutionCriteria {
+    int limit
+    Collection<String> statuses = []
+  }
 }

@@ -28,4 +28,11 @@ class Location {
   }
   Type type
   String value
+
+  /**
+   * @return The all lowercase, plural form of this location type ("regions" or "zones")
+   */
+  String pluralType() {
+    return this.type.toString().toLowerCase() + "s"
+  }
 }

@@ -16,35 +16,32 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline
 
+import com.netflix.spinnaker.orca.clouddriver.pipeline.strategies.AbstractDeployStrategyStage
+import com.netflix.spinnaker.orca.clouddriver.tasks.CloneServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForUpInstancesTask
-import com.netflix.spinnaker.orca.kato.pipeline.strategy.DeployStrategyStage
-import com.netflix.spinnaker.orca.kato.tasks.CloneLastServerGroupTask
 import com.netflix.spinnaker.orca.kato.tasks.DiffTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-/**
- * @author sthadeshwar
- */
+@Slf4j
 @Component
-@CompileStatic
-class CloneLastServerGroupStage extends DeployStrategyStage {
+class CloneServerGroupStage extends AbstractDeployStrategyStage {
 
-  public static final String PIPELINE_CONFIG_TYPE = "cloneLastServerGroup"
+  public static final String PIPELINE_CONFIG_TYPE = "cloneServerGroup"
 
   @Autowired(required = false)
   List<DiffTask> diffTasks
 
-  CloneLastServerGroupStage() {
+  CloneServerGroupStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
-  CloneLastServerGroupStage(String type) {
+  CloneServerGroupStage(String type) {
     super(type)
   }
 
@@ -52,7 +49,7 @@ class CloneLastServerGroupStage extends DeployStrategyStage {
   List<Step> basicSteps(Stage stage) {
     def steps = []
 
-    steps << buildStep(stage, "cloneLastServerGroup", CloneLastServerGroupTask)
+    steps << buildStep(stage, "cloneServerGroup", CloneServerGroupTask)
     steps << buildStep(stage, "monitorDeploy", MonitorKatoTask)
     steps << buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     steps << buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask)
@@ -60,14 +57,18 @@ class CloneLastServerGroupStage extends DeployStrategyStage {
 
     if (diffTasks) {
       diffTasks.each { DiffTask diffTask ->
-        steps << buildStep(stage, getDiffTaskName(diffTask.class.simpleName), diffTask.class)
+        try {
+          steps << buildStep(stage, CloneServerGroupStage.getDiffTaskName(diffTask.class.simpleName), diffTask.class)
+        } catch (Exception e) {
+          log.error("Unable to build diff task (name: ${diffTask.class.simpleName}: executionId: ${stage.execution.id})", e)
+        }
       }
     }
 
     return steps
   }
 
-  private String getDiffTaskName(String className) {
+  static String getDiffTaskName(String className) {
     try {
       className = className[0].toLowerCase() + className.substring(1)
       className = className.replaceAll("Task", "")

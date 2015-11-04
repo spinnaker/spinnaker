@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.clouddriver.tasks
+package com.netflix.spinnaker.orca.clouddriver.pipeline.strategies
 
-import com.netflix.spinnaker.orca.clouddriver.pipeline.DestroyServerGroupStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
 @Component
-class DestroyServerGroupTask extends AbstractServerGroupTask {
-  String serverGroupAction = DestroyServerGroupStage.PIPELINE_CONFIG_TYPE
+class NoStrategy implements Strategy {
+
+  final String name = "none"
+
+  @Override
+  void composeFlow(Stage stage) {
+    // Do or do not, there is no try.
+    // In this case: do not.
+  }
 }

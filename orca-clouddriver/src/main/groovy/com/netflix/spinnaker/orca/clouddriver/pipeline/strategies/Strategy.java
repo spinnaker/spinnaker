@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.clouddriver.tasks
+package com.netflix.spinnaker.orca.clouddriver.pipeline.strategies;
 
-import com.netflix.spinnaker.orca.clouddriver.pipeline.DestroyServerGroupStage
-import org.springframework.stereotype.Component
+import com.netflix.spinnaker.orca.kato.pipeline.Nameable;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
 
-@Component
-class DestroyServerGroupTask extends AbstractServerGroupTask {
-  String serverGroupAction = DestroyServerGroupStage.PIPELINE_CONFIG_TYPE
+interface Strategy extends Nameable {
+  void composeFlow(Stage stage);
+
+  default boolean replacesBasicSteps() {
+    return false;
+  }
 }

@@ -16,19 +16,17 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.gce
 
+import com.netflix.spinnaker.orca.clouddriver.pipeline.strategies.AbstractDeployStrategyStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForUpInstancesTask
-import com.netflix.spinnaker.orca.kato.pipeline.strategy.DeployStrategyStage
 import com.netflix.spinnaker.orca.kato.tasks.gce.CreateGoogleServerGroupTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
-@CompileStatic
-class DeployGoogleServerGroupStage extends DeployStrategyStage {
+class DeployGoogleServerGroupStage extends AbstractDeployStrategyStage {
 
   public static final String PIPELINE_CONFIG_TYPE = "linearDeploy_gce"
 
@@ -38,10 +36,11 @@ class DeployGoogleServerGroupStage extends DeployStrategyStage {
 
   @Override
   protected List<Step> basicSteps(Stage stage) {
-    def step1 = buildStep(stage, "createDeploy", CreateGoogleServerGroupTask)
-    def step2 = buildStep(stage, "monitorDeploy", MonitorKatoTask)
-    def step3 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    def step4 = buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask)
-    [step1, step2, step3, step4]
+    [
+        buildStep(stage, "createDeploy", CreateGoogleServerGroupTask),
+        buildStep(stage, "monitorDeploy", MonitorKatoTask),
+        buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
+        buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask),
+    ]
   }
 }

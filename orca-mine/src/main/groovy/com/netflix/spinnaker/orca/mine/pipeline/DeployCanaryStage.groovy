@@ -113,7 +113,7 @@ class DeployCanaryStage extends ParallelDeployStage {
               }
             }
             if (!cluster.amiName) {
-              def ami = deployStage.context.deploymentDetails.find { it.region == region }
+              def ami = deployStage.execution.context.deploymentDetails.find { it.region == region }
 
               cluster.amiName = ami?.ami
               cluster.buildUrl = createBuildUrl(ami) ?: ((Pipeline) stage.execution).trigger?.buildInfo?.url

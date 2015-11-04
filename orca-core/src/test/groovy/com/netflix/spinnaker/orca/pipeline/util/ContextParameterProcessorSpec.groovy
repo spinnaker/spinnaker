@@ -80,7 +80,7 @@ class ContextParameterProcessorSpec extends Specification {
   }
 
   @Unroll
-  def "correctly computer scmInfo attribute"() {
+  def "correctly compute scmInfo attribute"() {
 
     given:
     def source = ['branch': '${scmInfo.branch}']
@@ -470,5 +470,42 @@ class ContextParameterProcessorSpec extends Specification {
 
   }
 
+  @Unroll
+  def 'helper method to convert Strings into Integers'(){
+    given:
+    def source = [intParam: '${#toInt( str )}']
+    def context = [str: str]
+
+    when:
+    def result = ContextParameterProcessor.process(source, context)
+
+    then:
+    result.intParam instanceof Integer
+    result.intParam == intParam
+
+    where:
+    str | intParam
+    '0' | 0
+    '1' | 1
+  }
+
+  @Unroll
+  def 'helper method to convert Strings into Floats'(){
+    given:
+    def source = [floatParam: '${#toFloat( str )}']
+    def context = [str: str]
+
+    when:
+    def result = ContextParameterProcessor.process(source, context)
+
+    then:
+    result.floatParam instanceof Float
+    result.floatParam == floatParam
+
+    where:
+    str   | floatParam
+    '7'   | 7f
+    '7.5' | 7.5f
+  }
 
 }

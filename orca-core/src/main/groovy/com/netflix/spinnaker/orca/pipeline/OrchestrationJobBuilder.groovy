@@ -34,13 +34,16 @@ import org.springframework.stereotype.Component
 class OrchestrationJobBuilder extends ExecutionJobBuilder<Orchestration> {
 
   @Autowired
-  ExecutionPropagationListener executionStatusPropagationListener
+  Collection<ExecutionPropagationListener> executionPropagationListeners
 
   @Override
   Job build(Orchestration orchestration) {
     String name = jobNameFor(orchestration)
     JobBuilder jobBuilder = jobs.get(name)
-    jobBuilder = jobBuilder.listener(executionStatusPropagationListener)
+
+    executionPropagationListeners.each {
+      jobBuilder = jobBuilder.listener(it)
+    }
 
     Tasklet t = new OrchestrationInitializerTasklet(orchestration)
     Step tasklet = t.createTasklet(steps)

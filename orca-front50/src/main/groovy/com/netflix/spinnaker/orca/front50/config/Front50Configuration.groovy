@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.front50.config
 
+import org.springframework.core.annotation.Order
+
 import static retrofit.Endpoints.newFixedEndpoint
 
 import com.google.gson.Gson

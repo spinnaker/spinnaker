@@ -85,7 +85,7 @@ class TargetServerGroupResolver {
     // Without zonal support in the getServerGroup call above, we have to do the filtering here.
     def tsg = tsgList?.find { Map tsg -> tsg.region == location.value || tsg.zones.contains(location.value) }
     if (!tsg) {
-      throw new TargetServerGroup.NotFoundException("Unable to locate $params.asgName in $params.credentials/$location/$params.cluster")
+      throw new TargetServerGroup.NotFoundException("Unable to locate $params.asgName in $params.credentials/$location.value/$params.cluster")
     }
     return new TargetServerGroup(serverGroup: tsg)
   }
