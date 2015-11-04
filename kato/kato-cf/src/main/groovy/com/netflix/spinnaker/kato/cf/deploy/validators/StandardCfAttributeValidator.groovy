@@ -177,6 +177,15 @@ class StandardCfAttributeValidator {
     return result
   }
 
+  def validatePositiveInt(int value, String attribute) {
+    def result = true
+    if (value < 1) {
+      errors.rejectValue attribute, "${context}.${attribute}.notPositive"
+      result = false
+    }
+    return result
+  }
+
   def validateServerGroupName(String serverGroupName) {
     validateName(serverGroupName, "serverGroupName")
   }
