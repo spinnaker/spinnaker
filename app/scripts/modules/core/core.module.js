@@ -59,8 +59,8 @@ module.exports = angular
     require('./deploymentStrategy/strategies/highlander/highlander.strategy.module.js'),
     require('./deploymentStrategy/strategies/none/none.strategy.module.js'),
     require('./deploymentStrategy/strategies/redblack/redblack.strategy.module.js'),
-    require('./deploymentStrategy/strategies/rollingPush/rollingPush.strategy.module.js'),
     require('./deploymentStrategy/strategies/custom/custom.strategy.module.js'),
+    require('./deploymentStrategy/strategies/rollingPush/rollingPush.strategy.module.js'),
 
     require('./forms/forms.module.js'),
 
