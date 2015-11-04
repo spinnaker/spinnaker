@@ -299,10 +299,10 @@ def copy_master_yml(options):
     # Replace all the occurances of the original credentials path with the
     # path that we are going to place the file in on the new instance.
     if json_credential_path:
-        new_content = content.replace(json_credential_path, gcp_credential_path)
+        content = content.replace(json_credential_path, gcp_credential_path)
 
     fd, temp_path = tempfile.mkstemp()
-    os.write(fd, new_content)
+    os.write(fd, content)
     os.close(fd)
     actual_path = temp_path
 
