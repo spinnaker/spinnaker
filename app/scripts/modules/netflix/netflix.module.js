@@ -16,5 +16,5 @@ module.exports = angular
     require('./alert/alertHandler.js'),
     require('./feedback/feedback.module.js'),
     require('./pipeline/stage/canary/canaryStage.module.js'),
-    require('../core/canary/index.js'), // TODO: move to Netflix module
+    require('./canary'),
   ]).name;
