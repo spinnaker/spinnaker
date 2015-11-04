@@ -41,6 +41,7 @@ describe('Controller: pipelineExecutions', function () {
       name: 'foo',
       executionsLoaded: false,
       pipelineConfigsLoaded: false,
+      reloadExecutions: angular.noop,
     };
     spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when({ plain: function () {
       return [];
@@ -61,6 +62,7 @@ describe('Controller: pipelineExecutions', function () {
       name: 'foo',
       pipelineConfigsLoading: false,
       executionsLoaded: true,
+      reloadExecutions: angular.noop,
       pipelineConfigs: [
         {
           id: 'a1',

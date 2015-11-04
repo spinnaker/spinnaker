@@ -9,6 +9,7 @@ describe('Controller: tasks', function () {
 
   controllerInjector = function (appData) {
     appData.registerAutoRefreshHandler = angular.noop;
+    appData.reloadTasks = angular.noop;
     return function ($controller, $rootScope) {
       var viewStateCache = { createCache: function() { return { get: angular.noop, put: angular.noop }; }};
       scope = $rootScope.$new();
