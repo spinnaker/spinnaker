@@ -66,8 +66,8 @@ ospackage {
   into "/opt/${project.applicationName}"
   from ("${project.buildDir}/install/${project.applicationName}")
 
-  postInstall("install  --mode=755 --owner=spinnaker --group=spinnaker --directory  /var/log/netflix/clouddriver")
-  postUninstall("rm -rf /var/log/netflix/clouddriver")
+  postInstall("install  --mode=755 --owner=spinnaker --group=spinnaker --directory  /var/log/spinnaker/clouddriver")
+  postUninstall("rm -rf /var/log/spinnaker/clouddriver")
 
   from(file('src/main/resources/clouddriver.conf')) {
     into('/etc/init')
