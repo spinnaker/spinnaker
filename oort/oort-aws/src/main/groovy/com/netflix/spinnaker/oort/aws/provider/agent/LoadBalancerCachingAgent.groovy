@@ -171,7 +171,7 @@ class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAw
       }
     }
 
-    def cacheResult = metricsSupport.transformData { buildCacheResult(loadBalancers, [:]) }
+    def cacheResult = metricsSupport.transformData { buildCacheResult(loadBalancers, [:], System.currentTimeMillis(), []) }
     metricsSupport.onDemandStore {
       def cacheData = new DefaultCacheData(
         Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, loadBalancers ? loadBalancers[0].getVPCId() : null),
@@ -239,15 +239,10 @@ class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAw
       }
     }
 
-    if (evictableOnDemandCacheDatas) {
-      log.info("Evicting onDemand cache keys (${evictableOnDemandCacheDatas.collect { "${it.id}/${start - it.attributes.cacheTime}ms"}.join(", ")})")
-      providerCache.evictDeletedItems(ON_DEMAND.ns, evictableOnDemandCacheDatas*.id)
-    }
-
-    buildCacheResult(allLoadBalancers, usableOnDemandCacheDatas.collectEntries { [it.id, it] })
+    buildCacheResult(allLoadBalancers, usableOnDemandCacheDatas.collectEntries { [it.id, it] }, start, evictableOnDemandCacheDatas)
   }
 
-  private CacheResult buildCacheResult(Collection<LoadBalancerDescription> allLoadBalancers, Map<String, CacheData> onDemandCacheDataByLb) {
+  private CacheResult buildCacheResult(Collection<LoadBalancerDescription> allLoadBalancers, Map<String, CacheData> onDemandCacheDataByLb, long start, Collection<CacheData> evictableOnDemandCacheDatas) {
 
     Map<String, CacheData> instances = cache()
     Map<String, CacheData> loadBalancers = cache()
@@ -277,9 +272,14 @@ class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAw
     }
     log.info("Caching ${instances.size()} instances in ${agentType}")
     log.info("Caching ${loadBalancers.size()} load balancers in ${agentType}")
-    new DefaultCacheResult(
+    if (evictableOnDemandCacheDatas) {
+      log.info("Evicting onDemand cache keys (${evictableOnDemandCacheDatas.collect { "${it.id}/${start - it.attributes.cacheTime}ms"}.join(", ")})")
+    }
+    new DefaultCacheResult([
       (INSTANCES.ns): instances.values(),
-      (LOAD_BALANCERS.ns):  loadBalancers.values())
+      (LOAD_BALANCERS.ns):  loadBalancers.values()
+      ],[
+      (ON_DEMAND.ns): evictableOnDemandCacheDatas*.id])
   }
 
   private void cache(List<CacheData> data, Map<String, CacheData> cacheDataById) {

@@ -120,6 +120,7 @@ public class DefaultProviderCache implements ProviderCache {
     public void putCacheResult(String sourceAgentType, Collection<String> authoritativeTypes, CacheResult cacheResult) {
         Set<String> allTypes = new HashSet<>(cacheResult.getCacheResults().keySet());
         allTypes.addAll(authoritativeTypes);
+        allTypes.addAll(cacheResult.getEvictions().keySet());
         validateTypes(allTypes);
 
         for (String type : allTypes) {
@@ -127,13 +128,16 @@ public class DefaultProviderCache implements ProviderCache {
             if (authoritativeTypes.contains(type)) {
                 previousSet = getExistingSourceIdentifiers(type, sourceAgentType);
             } else {
-                previousSet = Collections.emptySet();
+                previousSet = new HashSet<>();
             }
             if (cacheResult.getCacheResults().containsKey(type)) {
                 cacheDataType(type, sourceAgentType, cacheResult.getCacheResults().get(type));
                 for (CacheData data : cacheResult.getCacheResults().get(type)) {
                     previousSet.remove(data.getId());
                 }
+            }
+            if (cacheResult.getEvictions().containsKey(type)) {
+              previousSet.addAll(cacheResult.getEvictions().get(type));
             }
             evictDeletedItems(type, previousSet);
         }
