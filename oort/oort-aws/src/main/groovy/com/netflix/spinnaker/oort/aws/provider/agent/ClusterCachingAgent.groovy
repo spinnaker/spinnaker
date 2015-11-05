@@ -217,7 +217,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
     }
 
     def cacheResult = metricsSupport.transformData {
-      buildCacheResult(onDemandData.asgs, onDemandData.scalingPolicies, onDemandData.scheduledActions, onDemandData.subnetMap, [:])
+      buildCacheResult(onDemandData.asgs, onDemandData.scalingPolicies, onDemandData.scheduledActions, onDemandData.subnetMap, [:], [])
     }
     metricsSupport.onDemandStore {
       def cacheData = new DefaultCacheData(
@@ -403,12 +403,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
       }
     }
 
-    if (evictableOnDemandCacheDatas) {
-      log.info("Evicting onDemand cache keys (${evictableOnDemandCacheDatas.collect { "${it.id}/${start - it.attributes.cacheTime}ms"}.join(", ")})")
-      providerCache.evictDeletedItems(ON_DEMAND.ns, evictableOnDemandCacheDatas*.id)
-    }
-
-    CacheResult result = buildCacheResult(asgs, scalingPolicies, scheduledActions, getSubnetToVpcIdMap(clients), usableOnDemandCacheDatas.collectEntries { [it.id, it] })
+    CacheResult result = buildCacheResult(asgs, scalingPolicies, scheduledActions, getSubnetToVpcIdMap(clients), usableOnDemandCacheDatas.collectEntries { [it.id, it] }, evictableOnDemandCacheDatas*.id)
     if (start) {
       long drift = new Date().time - start
       log.info("${agentType}/drift - $drift milliseconds")
@@ -420,6 +415,9 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
     log.info("Caching ${cacheResults[LOAD_BALANCERS.ns]?.size()} load balancers in ${agentType}")
     log.info("Caching ${cacheResults[LAUNCH_CONFIGS.ns]?.size()} launch configs in ${agentType}")
     log.info("Caching ${cacheResults[INSTANCES.ns]?.size()} instances in ${agentType}")
+    if (evictableOnDemandCacheDatas) {
+      log.info("Evicting onDemand cache keys (${evictableOnDemandCacheDatas.collect { "${it.id}/${start - it.attributes.cacheTime}ms" }.join(", ")})")
+    }
     result
   }
 
@@ -427,7 +425,8 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
                                        Map<String, List<Map>> scalingPolicies,
                                        Map<String, List<Map>> scheduledActions,
                                        Map<String, String> subnetMap,
-                                       Map<String, CacheData> onDemandCacheDataByAsg) {
+                                       Map<String, CacheData> onDemandCacheDataByAsg,
+                                       Collection<String> evictableOnDemandCacheDataIdentifiers) {
     Map<String, CacheData> applications = cache()
     Map<String, CacheData> clusters = cache()
     Map<String, CacheData> serverGroups = cache()
@@ -462,13 +461,16 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
       }
     }
 
-    new DefaultCacheResult(
+    new DefaultCacheResult([
       (APPLICATIONS.ns): applications.values(),
       (CLUSTERS.ns): clusters.values(),
       (SERVER_GROUPS.ns): serverGroups.values(),
       (LOAD_BALANCERS.ns): loadBalancers.values(),
       (LAUNCH_CONFIGS.ns): launchConfigs.values(),
-      (INSTANCES.ns): instances.values())
+      (INSTANCES.ns): instances.values(),
+      ],[
+      (ON_DEMAND.ns): evictableOnDemandCacheDataIdentifiers
+      ])
   }
 
   private void cache(List<CacheData> data, Map<String, CacheData> cacheDataById) {
