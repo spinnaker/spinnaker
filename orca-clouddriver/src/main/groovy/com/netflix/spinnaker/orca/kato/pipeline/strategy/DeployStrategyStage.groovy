@@ -33,6 +33,7 @@ import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 
 @CompileStatic
+@Deprecated
 abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
 
   @Autowired SourceResolver sourceResolver
