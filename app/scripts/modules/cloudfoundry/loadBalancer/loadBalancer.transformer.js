@@ -38,7 +38,29 @@ module.exports = angular.module('spinnaker.cf.loadBalancer.transformer', [
     }
 
     function normalizeLoadBalancer(loadBalancer) {
-      return $q.when(loadBalancer); // no-op
+      loadBalancer.serverGroups.forEach(function(serverGroup) {
+        serverGroup.account = loadBalancer.account;
+        serverGroup.region = loadBalancer.region;
+        if (serverGroup.detachedInstances) {
+          serverGroup.detachedInstances = serverGroup.detachedInstances.map(function(instanceId) {
+            return { id: instanceId };
+          });
+          serverGroup.instances = serverGroup.instances.concat(serverGroup.detachedInstances);
+        } else {
+          serverGroup.detachedInstances = [];
+        }
+
+        serverGroup.instances.forEach(function(instance) {
+          transformInstance(instance, loadBalancer);
+        });
+        updateHealthCounts(serverGroup);
+      });
+      var activeServerGroups = _.filter(loadBalancer.serverGroups, {isDisabled: false});
+      loadBalancer.provider = loadBalancer.type;
+      loadBalancer.instances = _(activeServerGroups).pluck('instances').flatten().valueOf();
+      loadBalancer.detachedInstances = _(activeServerGroups).pluck('detachedInstances').flatten().valueOf();
+      updateHealthCounts(loadBalancer);
+      return $q.when(loadBalancer);
     }
 
     function serverGroupIsInLoadBalancer(serverGroup, loadBalancer) {
