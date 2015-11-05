@@ -96,7 +96,10 @@ class ImageCachingAgent implements CachingAgent, AccountAware {
       def imageId = Keys.getImageKey(image.imageId, account.name, region)
       def namedImageId = Keys.getNamedImageKey(account.name, image.name)
       imageCacheData.add(new DefaultCacheData(imageId, attributes, [(NAMED_IMAGES.ns):[namedImageId]]))
-      namedImageCacheData.add(new DefaultCacheData(namedImageId, [name: image.name], [(IMAGES.ns):[imageId]]))
+      namedImageCacheData.add(new DefaultCacheData(namedImageId, [
+        name: image.name,
+        virtualizationType: image.virtualizationType
+      ], [(IMAGES.ns):[imageId]]))
     }
 
     long drift = new Date().time - start
