@@ -58,16 +58,4 @@ describe('Controller: cfCreateLoadBalancerCtrl', function () {
     expect(lb.name).toBe('testApp-testStack');
   });
 
-  it('should make the health check tab invisible then visible again', function() {
-    var wiz = jasmine.createSpyObj('wizard', ['markComplete', 'markIncomplete', 'includePage', 'excludePage']);
-    spyOn(this.wizardService, 'getWizard').and.returnValue(wiz);
-    this.$scope.loadBalancer.listeners[0].healthCheck = false;
-    this.ctrl.setVisibilityHealthCheckTab();
-    expect(wiz.excludePage.calls.count()).toEqual(1);
-
-    this.$scope.loadBalancer.listeners[0].healthCheck = true;
-    this.ctrl.setVisibilityHealthCheckTab();
-    expect(wiz.includePage.calls.count()).toEqual(1);
-  });
-
 });

@@ -48,9 +48,21 @@ module.exports = angular.module('spinnaker.cf.loadBalancer.transformer', [
         serverGroup.loadBalancers.indexOf(loadBalancer.name) !== -1;
     }
 
+    function constructNewLoadBalancerTemplate() {
+      // TODO: fill in
+      return {};
+    }
+
+    function convertLoadBalancerForEditing(loadBalancer) {
+      // TODO: fill in
+      return {};
+    }
+
     return {
       normalizeLoadBalancer: normalizeLoadBalancer,
-      serverGroupIsInLoadBalancer: serverGroupIsInLoadBalancer
+      serverGroupIsInLoadBalancer: serverGroupIsInLoadBalancer,
+      constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
+      convertLoadBalancerForEditing: convertLoadBalancerForEditing,
     };
 
   }).name;
