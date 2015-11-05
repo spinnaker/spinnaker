@@ -333,7 +333,7 @@ class SpinnakerAgent(service_testing.HttpAgent):
     self._status_factory = status_factory
     self._default_max_wait_secs = 240
 
-  def _new_post_status(self, operation, http_response):
+  def _new_invoke_status(self, operation, http_response):
     return self._status_factory(operation, http_response)
 
   @staticmethod
