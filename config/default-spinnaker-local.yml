@@ -22,7 +22,7 @@ providers:
     # If you want to deploy some services to Google Cloud Platform (google),
     # set enabled and provide primary credentials for deploying.
     # Enabling google is independent of other providers.
-    enabled: false
+    enabled: true
     defaultRegion: us-central1
     defaultZone: us-central1-f
     primaryCredentials:
