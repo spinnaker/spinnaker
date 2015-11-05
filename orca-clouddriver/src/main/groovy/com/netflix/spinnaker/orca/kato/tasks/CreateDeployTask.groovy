@@ -123,6 +123,8 @@ class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task {
         descriptions.addAll(deployOperation.availabilityZones.collect { String region, List<String> azs ->
           [allowLaunchDescription: convertAllowLaunch(deployOperation.credentials, defaultBakeAccount, region, deployOperation.amiName)]
         })
+
+        log.info("Generated `allowLaunchDescriptions` (allowLaunchDescriptions: ${descriptions})")
       }
     }
 

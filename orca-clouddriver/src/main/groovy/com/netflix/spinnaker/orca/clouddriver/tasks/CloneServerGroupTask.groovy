@@ -24,10 +24,12 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
+@Slf4j
 @Component
 class CloneServerGroupTask extends AbstractCloudProviderAwareTask implements Task {
 
@@ -67,10 +69,11 @@ class CloneServerGroupTask extends AbstractCloudProviderAwareTask implements Tas
   }
 
   private List<Map<String, Object>> getDescriptions(Map operation) {
+    log.info("Generating descriptions (cloudProvider: ${operation.cloudProvider}, credentials: ${operation.credentials}, defaultBakeAccount: ${defaultBakeAccount}, availabilityZones: ${operation.availabilityZones})")
+
     List<Map<String, Object>> descriptions = []
     // NFLX bakes images in their test account. This rigmarole is to allow the prod account access to that image.
-    if (operation.cloudProvider == "aws" &&
-        operation.credentials != defaultBakeAccount &&
+    if (operation.credentials != defaultBakeAccount &&
         operation.availabilityZones) {
       def allowLaunchDescriptions = operation.availabilityZones.collect { String region, List<String> azs ->
         [
@@ -83,6 +86,8 @@ class CloneServerGroupTask extends AbstractCloudProviderAwareTask implements Tas
         ]
       }
       descriptions.addAll(allowLaunchDescriptions)
+
+      log.info("Generated `allowLaunchDescriptions` (allowLaunchDescriptions: ${allowLaunchDescriptions})")
     }
     descriptions.add([cloneServerGroup: operation])
     descriptions
