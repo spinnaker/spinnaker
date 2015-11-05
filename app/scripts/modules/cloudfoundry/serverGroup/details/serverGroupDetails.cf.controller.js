@@ -68,8 +68,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
               }).compact().value();
             }
 
-            var pathSegments = $scope.serverGroup.launchConfig.instanceTemplate.selfLink.split('/');
-            var projectId = pathSegments[pathSegments.indexOf('projects') + 1];
+            //var pathSegments = $scope.serverGroup.launchConfig.instanceTemplate.selfLink.split('/');
+            //var projectId = pathSegments[pathSegments.indexOf('projects') + 1];
 
             // TODO Add link to CF console outputs
 
