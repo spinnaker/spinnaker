@@ -42,8 +42,9 @@ class StartPipelineTask implements Task {
 
     String application = stage.context.pipelineApplication ?: stage.context.application
     String pipelineId = stage.context.pipelineId ?: stage.context.pipeline
+    Boolean isStrategy = stage.context.pipelineConfig?.strategy ?: false
 
-    List pipelines = front50Service.getPipelines(application)
+    List pipelines = isStrategy ? front50Service.getStrategies(application) : front50Service.getPipelines(application)
     Map pipelineConfig = pipelines.find { it.id == pipelineId }
 
     if (stage.context.pipelineConfig) {
