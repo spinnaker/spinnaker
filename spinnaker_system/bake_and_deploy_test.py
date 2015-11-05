@@ -25,24 +25,49 @@
 #     and $CITEST_ROOT points to the root directory of this repository
 #     (which is . if you execute this from the root). The passphrase file
 #     can be ommited if you run ssh-agent and add .ssh/compute_google_engine.
+#     
+#     Since this test runs a pipeline from a Jenkins trigger, you need to 
+#     configure Jenkins in the following way.
+#         1. Take note of your Jenkins server baseUrl, 
+#            i.e <protocol>://<host>[:port]/[basePath]
+#            and store it as $JENKINS_URL.
+#         2. Create a file, fill it with 
+#            <username> <password>
+#            corresponding to valid Jenkins credentials, and store its path
+#            as $JENKINS_AUTH_PATH (also chmod 400).
+#         3. Take note of the Jenkins job you have configured in Igor, 
+#            and store its name as $JENKINS_JOB.
+#         3. On your Jenkins server, navigate to /job/$JENKINS_JOB/configure,
+#            and under "Build Triggers", check "Trigger builds remotely". In
+#            the "Authentication Token" field, write some token and store it
+#            as $JENKINS_TOKEN.
 #
 #   PYTHONPATH=$CITEST_ROOT:$CITEST_ROOT/spinnaker \
 #     python $CITEST_ROOT/spinnaker/spinnaker_system/bake_and_deploy_test.py \
 #     --gce_ssh_passphrase_file=$PASSPHRASE_FILE \
 #     --gce_project=$PROJECT \
 #     --gce_zone=$ZONE \
-#     --gce_instance=$INSTANCE
+#     --gce_instance=$INSTANCE \
+#     --jenkins_url=$JENKINS_URL \
+#     --jenkins_auth_path=$JENKINS_AUTH_PATH \
+#     --jenkins_job=$JENKINS_JOB \
+#     --jenkins_token=$JENKINS_TOKEN 
 # or
 #   PYTHONPATH=$CITEST_ROOT:$CITEST_ROOT/spinnaker \
 #     python $CITEST_ROOT/spinnaker/spinnaker_system/bake_and_deploy_test.py \
 #     --native_hostname=host-running-smoke-test
 #     --managed_gce_project=$PROJECT \
 #     --test_gce_zone=$ZONE
+#     --jenkins_url=$JENKINS_URL \
+#     --jenkins_auth_path=$JENKINS_AUTH_PATH \
+#     --jenkins_job=$JENKINS_JOB \
+#     --jenkins_token=$JENKINS_TOKEN 
 
 
 # Standard python modules.
 import os
 import sys
+import requests
 
 # citest modules.
 import citest.gcp_testing as gcp
@@ -71,16 +96,25 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
 
     defaults = defaults or {}
     parser.add_argument(
-        '--test_component_detail',
-        default='fe',
-        help='Refinement for component name to create.')
-
+     '--test_component_detail', default='fe',
+     help='Refinement for component name to create.')
     parser.add_argument(
       '--jenkins_master', default='jenkins1',
       help='The name of the jenkins master as configured in igor.')
     parser.add_argument(
       '--jenkins_job', default='TestTriggerProject',
       help='The name of the jenkins job to trigger off.')
+    parser.add_argument(
+      '--jenkins_auth_path', default='~/.jenkins',
+      help='The path to a file containing the jenkins username password pair.'
+           + 'The contents should look like: <username> <password>.' )
+    parser.add_argument(
+      '--jenkins_token', default='token',
+      help='The authentication token for the jenkins build trigger.')
+    parser.add_argument(
+      '--jenkins_url', default='http://localhost:8080/',
+      help='The baseUrl of the jenkins service, '
+           + 'i.e. <protocol>://<host>[:port]/[basePath].')
 
   def __init__(self, bindings, agent=None):
     super(BakeAndDeployTestScenario, self).__init__(bindings, agent)
@@ -386,6 +420,34 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
             status_class=st.SynchronousHttpOperationStatus),
         contract=builder.build())
 
+  def trigger_jenkins_build(self):
+    jenkins_url = self.bindings["JENKINS_URL"]
+    jenkins_job = self.bindings["JENKINS_JOB"]
+    jenkins_path = 'job/{job}/build/?token={token}'.format(
+        job=jenkins_job,
+        token=self.bindings["JENKINS_TOKEN"])
+
+    jenkins_url = os.path.join(jenkins_url, jenkins_path)
+    username, password = '', ''
+
+    auth_path = self.bindings["JENKINS_AUTH_PATH"]
+    with open(auth_path, 'r') as f:
+      contents = f.read()
+      contents = contents.split()
+
+      if len(contents) != 2:
+        raise ValueError(('--jenkins_auth_path={path} is not in the correct '
+            + 'format. You must supply a file with the contents '
+            + '<username> <password').format(path=auth_path))
+
+      username, password = contents[0], contents[1]
+
+    r = requests.get(jenkins_url, auth=(username, password))
+
+    r.raise_for_status() # Will raise an HTTPError if the request failed
+
+    return None
+    
 
 class BakeAndDeployTest(st.AgentTestCase):
   def test_a_create_app(self):
@@ -404,6 +466,9 @@ class BakeAndDeployTest(st.AgentTestCase):
 
   def test_c3_create_bake_and_deploy_aws_pipeline(self):
     self.run_test_case(self.scenario.create_bake_and_deploy_aws_pipeline())
+ 
+  def test_d1_trigger_pipeline(self):
+    self.scenario.trigger_jenkins_build()
 
   def test_x1_delete_aws_pipeline(self):
     self.run_test_case(
