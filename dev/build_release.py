@@ -523,7 +523,12 @@ if __name__ == '__main__':
   def add_test_zip_files(self):
      if not os.path.exists('citest'):
         print 'Adding citest repository'
-        self.refresher.git_clone('citest', owner='google')
+        try:
+          self.refresher.git_clone(
+              refresh_source.SourceRepository('citest', 'google'))
+        except Exception as ex:
+          sys.stderr.write('*** Omitting tests: {0}\n'.format(ex.message))
+          return
 
      print 'Adding tests...'
      self.add_python_test_zip('aws_kato_test')
