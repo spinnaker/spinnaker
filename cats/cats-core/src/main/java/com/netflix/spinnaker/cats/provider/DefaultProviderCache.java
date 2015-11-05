@@ -123,6 +123,8 @@ public class DefaultProviderCache implements ProviderCache {
         allTypes.addAll(cacheResult.getEvictions().keySet());
         validateTypes(allTypes);
 
+        Map<String, Collection<String>> evictions = new HashMap<>();
+
         for (String type : allTypes) {
             final Collection<String> previousSet;
             if (authoritativeTypes.contains(type)) {
@@ -139,7 +141,13 @@ public class DefaultProviderCache implements ProviderCache {
             if (cacheResult.getEvictions().containsKey(type)) {
               previousSet.addAll(cacheResult.getEvictions().get(type));
             }
-            evictDeletedItems(type, previousSet);
+            if (!previousSet.isEmpty()) {
+              evictions.put(type, previousSet);
+            }
+        }
+
+        for (Map.Entry<String, Collection<String>> eviction : evictions.entrySet()) {
+          evictDeletedItems(eviction.getKey(), eviction.getValue());
         }
     }
 
