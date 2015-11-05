@@ -25,6 +25,7 @@ import time
 
 from spinnaker.fetch import fetch
 from spinnaker.configurator import InstallationParameters
+from spinnaker.validate_configuration import ValidateConfig
 from spinnaker import spinnaker_runner
 
 
@@ -145,6 +146,8 @@ class DevRunner(spinnaker_runner.Runner):
     to console will stop once this process is terminated. However, the
     logging will still continue into the LOG_DIR.
     """
+
+    ValidateConfig(self.configurator).check_validate()
     self.configurator.update_deck_settings()
 
     ignore_tail_jobs = self.tail_error_logs()
