@@ -32,7 +32,11 @@ import groovy.transform.Immutable
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 
+/**
+ * DEPRECATED - Use AbstractDeployStrategyStage instead.
+ */
 @CompileStatic
+@Deprecated
 abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
 
   @Autowired SourceResolver sourceResolver
