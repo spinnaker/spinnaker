@@ -108,17 +108,17 @@ class StandardGceAttributeValidatorSpec extends Specification {
       def label = "testAttribute"
 
     when:
-      validator.validateNonNegativeInt(0, label)
+      validator.validateNonNegativeLong(0, label)
     then:
       0 * errors._
 
     when:
-      validator.validateNonNegativeInt(1, label)
+      validator.validateNonNegativeLong(1, label)
     then:
       0 * errors._
 
     when:
-      validator.validateNonNegativeInt(1 << 30, label)  // unlimited
+      validator.validateNonNegativeLong(1 << 30, label)  // unlimited
     then:
       0 * errors._
   }
@@ -130,7 +130,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
       def label = "testAttribute"
 
     when:
-      validator.validateNonNegativeInt(-1, label)
+      validator.validateNonNegativeLong(-1, label)
     then:
       1 * errors.rejectValue(label, "${DECORATOR}.${label}.negative")
       0 * errors._

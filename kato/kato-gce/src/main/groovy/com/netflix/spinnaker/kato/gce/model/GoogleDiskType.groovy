@@ -16,7 +16,25 @@
 
 package com.netflix.spinnaker.kato.gce.model
 
-class GooglePersistentDisk {
-  String type
-  Integer size
+public enum GoogleDiskType {
+  PD_STANDARD("pd-standard", true),
+  PD_SSD("pd-ssd", true),
+  LOCAL_SSD("local-ssd", false)
+
+  String text
+  boolean persistent
+
+  GoogleDiskType(String text, boolean persistent) {
+    this.text = text
+    this.persistent = persistent
+  }
+
+  static GoogleDiskType fromValue(String text) {
+    values().find { it.text == text } ?: PD_STANDARD
+  }
+
+  @Override
+  String toString() {
+    text
+  }
 }

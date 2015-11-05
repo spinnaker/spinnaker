@@ -107,6 +107,9 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
     // Remove the properties we don't want to compare or override.
     newDescriptionProperties.keySet().removeAll(["class"])
 
+    // Resolve the auth scopes since the scopes returned on the existing instance template will be fully-resolved.
+    newDescriptionProperties.authScopes = GCEUtil.resolveAuthScopes(newDescriptionProperties.authScopes)
+
     // Create a description to represent the current instance template after overriding the specified properties.
     def newDescription = new BaseGoogleInstanceDescription(newDescriptionProperties)
 
@@ -118,10 +121,9 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
       // Override the instance template's name.
       instanceTemplate.setName("$serverGroupName-${System.currentTimeMillis()}")
 
-      // Override the instance template's disk configuration if image, diskType, diskSizeGb or instanceType was specified.
+      // Override the instance template's disk configuration if image, disks or instanceType was specified.
       if (overriddenProperties.image
-          || overriddenProperties.diskType
-          || overriddenProperties.diskSizeGb
+          || overriddenProperties.disks
           || overriddenProperties.instanceType) {
         def sourceImage = GCEUtil.querySourceImage(project,
                                                    newDescription.image,
@@ -129,16 +131,15 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
                                                    task,
                                                    BASE_PHASE,
                                                    googleApplicationName)
-        def attachedDisk = GCEUtil.buildAttachedDisk(project,
-                                                     zone,
-                                                     sourceImage,
-                                                     newDescription.diskSizeGb,
-                                                     newDescription.diskType,
-                                                     false,
-                                                     newDescription.instanceType,
-                                                     gceDeployDefaults)
+        def attachedDisks = GCEUtil.buildAttachedDisks(project,
+                                                       zone,
+                                                       sourceImage,
+                                                       overriddenProperties.disks,
+                                                       false,
+                                                       newDescription.instanceType,
+                                                       gceDeployDefaults)
 
-        instanceTemplateProperties.setDisks([attachedDisk])
+        instanceTemplateProperties.setDisks(attachedDisks)
       }
 
       // Override the instance template's machine type if instanceType was specified.
@@ -160,6 +161,13 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
         def tags = GCEUtil.buildTagsFromList(description.tags)
 
         instanceTemplateProperties.setTags(tags)
+      }
+
+      // Override the instance template's auth scopes if authScopes was specified.
+      if (overriddenProperties.authScopes != null) {
+        def serviceAccount = GCEUtil.buildServiceAccount(description.authScopes)
+
+        instanceTemplateProperties.setServiceAccounts([serviceAccount])
       }
 
       // Override the instance template's network if network was specified.

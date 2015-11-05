@@ -119,14 +119,13 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     task.updateStatus BASE_PHASE, "Composing server group $serverGroupName..."
 
-    def attachedDisk = GCEUtil.buildAttachedDisk(project,
-                                                 zone,
-                                                 sourceImage,
-                                                 description.diskSizeGb,
-                                                 description.diskType,
-                                                 false,
-                                                 description.instanceType,
-                                                 gceDeployDefaults)
+    def attachedDisks = GCEUtil.buildAttachedDisks(project,
+                                                   zone,
+                                                   sourceImage,
+                                                   description.disks,
+                                                   false,
+                                                   description.instanceType,
+                                                   gceDeployDefaults)
 
     def networkInterface = GCEUtil.buildNetworkInterface(network, ACCESS_CONFIG_NAME, ACCESS_CONFIG_TYPE)
 
@@ -134,11 +133,14 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def tags = GCEUtil.buildTagsFromList(description.tags)
 
+    def serviceAccount = GCEUtil.buildServiceAccount(description.authScopes)
+
     def instanceProperties = new InstanceProperties(machineType: machineType.name,
-                                                    disks: [attachedDisk],
+                                                    disks: attachedDisks,
                                                     networkInterfaces: [networkInterface],
                                                     metadata: metadata,
-                                                    tags: tags)
+                                                    tags: tags,
+                                                    serviceAccounts: [serviceAccount])
 
     def instanceTemplate = new InstanceTemplate(name: "$serverGroupName-${System.currentTimeMillis()}",
                                                 properties: instanceProperties)
