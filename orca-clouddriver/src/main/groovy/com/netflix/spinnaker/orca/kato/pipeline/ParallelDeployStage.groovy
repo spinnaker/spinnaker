@@ -103,12 +103,8 @@ class ParallelDeployStage extends ParallelStage {
       }
       Map cluster = parentStage.context as Map
       cluster.strategy = 'none'
+      cluster.amiName = stage.execution.appConfig.deploymentDetails.find{ it.region ==  stage.execution.appConfig.strategyConfig.region }.ami
       stage.context.clusters = [cluster as Map<String, Object>]
-
-      Map currentStage = trigger.parentExecution.stages.find{
-        it.id == stage.execution.appConfig.currentPipelineStageId
-      }
-      stage.context.deploymentDetails = currentStage.context.deploymentDetails
     }
 
     def defaultStageContext = new HashMap(stage.context)

@@ -47,9 +47,14 @@ class StartPipelineTask implements Task {
     List pipelines = isStrategy ? front50Service.getStrategies(application) : front50Service.getPipelines(application)
     Map pipelineConfig = pipelines.find { it.id == pipelineId }
 
+    def deploymentDetails = stage.context.deploymentDetails?.collect { Map it ->
+      [region: it.region, ami: it.ami, imageName: it.imageName]
+    } ?: [:]
+
     if (stage.context.pipelineConfig) {
       pipelineConfig.appConfig = (pipelineConfig.appConfig ?: [:]) + stage.context.pipelineConfig + [
-        currentPipelineStageId: stage.id
+        currentPipelineStageId: stage.id,
+        deploymentDetails: deploymentDetails
       ]
     }
 
