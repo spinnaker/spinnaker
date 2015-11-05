@@ -97,6 +97,22 @@ def safe_mkdir(dir):
           dir=dir, error=result.stdout))
 
 
+def path_exists(path):
+   """Determine if a path exists or not.
+
+   Args:
+     path [string]: A local or bucket path.
+   """
+   if path.startswith('gs://'):
+       command = 'gsutil ls {path} >& /dev/null'.format(path=path)
+   elif path.startswith('s3://'):
+       command = 'awscli s3 ls {path} >& /dev/null'.format(path=path)
+   else:
+       return os.path.exists(path)
+
+   return run_quick(command, echo=False).returncode == 0
+
+
 def start_copy_file(options, source, target, dir=False):
    """Copy a file.
 
@@ -347,12 +363,13 @@ def install_spinnaker_packages(options, bucket):
   #############
   # Copy Tests
   #############
-  print 'Copying tests.'
   tests_dir = os.path.join(spinnaker_dir, 'tests')
-  jobs.append(
-      start_copy_dir(options,
-                     os.path.join(bucket, 'tests'),
-                     tests_dir))
+  if path_exists(os.path.join(bucket, 'tests')):
+      print 'Copying tests.'
+      jobs.append(
+          start_copy_dir(options,
+                         os.path.join(bucket, 'tests'),
+                         tests_dir))
 
   ###########################
   # Copy Subsystem Packages
