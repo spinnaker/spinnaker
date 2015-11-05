@@ -72,11 +72,16 @@ module.exports = angular.module('spinnaker.core.serverGroup.serverGroup.directiv
               return;
             }
             var params = {
+              application: scope.application.name,
               region: serverGroup.region,
               accountId: serverGroup.account,
               serverGroup: serverGroup.name,
               provider: serverGroup.type,
             };
+            if (angular.equals(scope.$state.params, params)) {
+              // already there
+              return;
+            }
             // also stolen from uiSref directive
             scope.$state.go('.serverGroup', params, {relative: base, inherit: true});
           });
