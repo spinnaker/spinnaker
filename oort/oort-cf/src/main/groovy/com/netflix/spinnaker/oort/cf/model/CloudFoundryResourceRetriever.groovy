@@ -96,6 +96,30 @@ class CloudFoundryResourceRetriever {
 
     try {
 
+      Map<String, CloudSpace> tempSpaceCache = new HashMap<>()
+      Map<String, Set<CloudService>> tempServiceCache = [:].withDefault { [] as Set<CloudService> }
+
+      Map<String, Set<CloudFoundryServerGroup>> tempServerGroupsByAccount = [:].withDefault {[] as Set<CloudFoundryServerGroup>}
+      Map<String, Map<String, CloudFoundryServerGroup>> tempServerGroupByAccountAndServerGroupName = [:].withDefault {[:]}
+      Map<String, Map<String, Set<CloudFoundryServerGroup>>> tempServerGroupsByAccountAndClusterName =
+          [:].withDefault {[:].withDefault {[] as Set<CloudFoundryServerGroup>}}
+
+      Map<String, Set<CloudFoundryCluster>> tempClustersByApplicationName = [:].withDefault {[] as Set<CloudFoundryCluster>}
+      Map<String, Map<String, Set<CloudFoundryCluster>>> tempClustersByApplicationAndAccount =
+          [:].withDefault {[:].withDefault {[] as Set<CloudFoundryCluster>}}
+      Map<String, Map<String, CloudFoundryCluster>> tempClusterByAccountAndClusterName =
+          [:].withDefault {[:].withDefault {new CloudFoundryCluster()}}
+      Map<String, Set<CloudFoundryCluster>> tempClustersByAccount = [:].withDefault {[] as Set<CloudFoundryCluster>}
+
+      Set<CloudFoundryService> tempServices = [] as Set<CloudFoundryService>
+      Map<String, Set<CloudFoundryService>> tempServicesByAccount = [:].withDefault {[] as Set<CloudFoundryService>}
+      Map<String, Set<CloudFoundryService>> tempServicesByRegion = [:].withDefault {[] as Set<CloudFoundryService>}
+
+      Map<String, CloudFoundryApplication> tempApplicationByName = [:].withDefault {new CloudFoundryApplication()}
+
+      Map<String, Map<String, CloudFoundryApplicationInstance>> tempInstancesByAccountAndId =
+          [:].withDefault {[:] as Map<String, CloudFoundryApplicationInstance>}
+
       accountCredentialsProvider.all.each { accountCredentials ->
         try {
           if (accountCredentials instanceof CloudFoundryAccountCredentials) {
@@ -115,22 +139,22 @@ class CloudFoundryResourceRetriever {
 
             log.info "Looking up spaces..."
             client.spaces.each { space ->
-              if (!spaceCache.containsKey(space.meta.guid)) {
-                spaceCache.put(space.meta.guid, space)
+              if (!tempSpaceCache.containsKey(space.meta.guid)) {
+                tempSpaceCache.put(space.meta.guid, space)
               }
             }
 
             log.info "Looking up services..."
-            spaceCache.values().each { space ->
+            tempSpaceCache.values().each { space ->
               def conn = new CloudFoundryClient(credentials.credentials, credentials.api.toURL(), space, true)
               conn.services.each { service ->
-                serviceCache.get(space.meta.guid).add(service)
+                tempServiceCache.get(space.meta.guid).add(service)
               }
               conn.logout()
             }
 
 
-            def space = spaceCache.values().find {
+            def space = tempSpaceCache.values().find {
               it?.name == credentials.space && it?.organization.name == credentials.org
             }
             client = new CloudFoundryClient(credentials.credentials, credentials.api.toURL(), space, true)
@@ -151,7 +175,7 @@ class CloudFoundryResourceRetriever {
                   envVariables: app.envAsMap
               ])
 
-              serverGroup.services.addAll(serviceCache[space.meta.guid].findAll {app.services.contains(it.name)}
+              serverGroup.services.addAll(tempServiceCache[space.meta.guid].findAll {app.services.contains(it.name)}
                 .collect {new CloudFoundryService([
                   type: 'cf',
                   id: it.meta.guid,
@@ -178,35 +202,35 @@ class CloudFoundryResourceRetriever {
                           nativeApplication: app,
                           nativeInstance:   it
                   ])
-                  if (instancesByAccountAndId[account][instance.name]?.healthState != instance.healthState) {
+                  if (tempInstancesByAccountAndId[account][instance.name]?.healthState != instance.healthState) {
                     log.info "Updating ${account}/${instance.name} to ${instance.healthState}"
                   }
-                  instancesByAccountAndId[account][instance.name] = instance
+                  tempInstancesByAccountAndId[account][instance.name] = instance
                   instance
                 } as Set<CloudFoundryApplicationInstance>
               } catch (HttpServerErrorException e) {
                 log.warn "Unable to retrieve instance data about ${app.name} in ${account} => ${e.message}"
               }
 
-              services.addAll(serverGroup.services)
-              servicesByAccount[account].addAll(serverGroup.services)
-              servicesByRegion[space.organization.name].addAll(serverGroup.services)
+              tempServices.addAll(serverGroup.services)
+              tempServicesByAccount[account].addAll(serverGroup.services)
+              tempServicesByRegion[space.organization.name].addAll(serverGroup.services)
 
-              if (serverGroupsByAccount[account].contains(serverGroup)) {
-                serverGroupsByAccount[account].remove(serverGroup)
+              if (tempServerGroupsByAccount[account].contains(serverGroup)) {
+                tempServerGroupsByAccount[account].remove(serverGroup)
               }
-              serverGroupsByAccount[account].add(serverGroup)
+              tempServerGroupsByAccount[account].add(serverGroup)
 
-              serverGroupByAccountAndServerGroupName[account][app.name] = serverGroup
+              tempServerGroupByAccountAndServerGroupName[account][app.name] = serverGroup
 
               def clusterName = names.cluster
 
-              if (serverGroupsByAccountAndClusterName[account][clusterName].contains(serverGroup)) {
-                serverGroupsByAccountAndClusterName[account][clusterName].remove(serverGroup)
+              if (tempServerGroupsByAccountAndClusterName[account][clusterName].contains(serverGroup)) {
+                tempServerGroupsByAccountAndClusterName[account][clusterName].remove(serverGroup)
               }
-              serverGroupsByAccountAndClusterName[account][clusterName].add(serverGroup)
+              tempServerGroupsByAccountAndClusterName[account][clusterName].add(serverGroup)
 
-              def cluster = clusterByAccountAndClusterName[account][clusterName]
+              def cluster = tempClusterByAccountAndClusterName[account][clusterName]
               cluster.name = clusterName
               cluster.accountName = account
               if (cluster.serverGroups.contains(serverGroup)) {
@@ -214,13 +238,13 @@ class CloudFoundryResourceRetriever {
               }
               cluster.serverGroups.add(serverGroup)
 
-              clustersByApplicationName[names.app].add(cluster)
+              tempClustersByApplicationName[names.app].add(cluster)
 
-              clustersByApplicationAndAccount[names.app][account].add(cluster)
+              tempClustersByApplicationAndAccount[names.app][account].add(cluster)
 
-              clustersByAccount[account].add(cluster)
+              tempClustersByAccount[account].add(cluster)
 
-              def application = applicationByName[names.app]
+              def application = tempApplicationByName[names.app]
               application.name = names.app
               application.applicationClusters[account].add(cluster)
               application.clusterNames[account].add(cluster.name)
@@ -235,6 +259,25 @@ class CloudFoundryResourceRetriever {
         }
       }
 
+      spaceCache = tempSpaceCache
+      serviceCache = tempServiceCache
+
+      serverGroupsByAccount = tempServerGroupsByAccount
+      serverGroupByAccountAndServerGroupName = tempServerGroupByAccountAndServerGroupName
+      serverGroupsByAccountAndClusterName = tempServerGroupsByAccountAndClusterName
+
+      clustersByApplicationName = tempClustersByApplicationName
+      clustersByApplicationAndAccount = tempClustersByApplicationAndAccount
+      clusterByAccountAndClusterName = tempClusterByAccountAndClusterName
+      clustersByAccount = tempClustersByAccount
+
+      services = tempServices
+      servicesByAccount = tempServicesByAccount
+      servicesByRegion = tempServicesByRegion
+
+      applicationByName = tempApplicationByName
+
+      instancesByAccountAndId = tempInstancesByAccountAndId
     } finally {
       cacheLock.unlock()
     }
@@ -243,18 +286,7 @@ class CloudFoundryResourceRetriever {
 
   }
 
-  String clusterName(String serverGroupName) {
-    def variants = ['-blue', '-green']
-
-    for (String variant : variants) {
-      if (serverGroupName.endsWith(variant)) {
-        return serverGroupName - variant
-      }
-    }
-
-    serverGroupName
-  }
-/**
+  /**
    * Convert from {@link InstanceState} to {@link HealthState}.
    *
    * @param instanceState

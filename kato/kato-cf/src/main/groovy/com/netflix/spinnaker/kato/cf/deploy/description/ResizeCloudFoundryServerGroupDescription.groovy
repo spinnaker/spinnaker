@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.kato.cf.security
 
-import org.cloudfoundry.client.lib.CloudFoundryOperations
+package com.netflix.spinnaker.kato.cf.deploy.description
+
+import com.netflix.spinnaker.kato.cf.security.CloudFoundryAccountCredentials
+
 /**
- * Factory interface for creating Cloud Foundry clients. Makes it possible to delay client
- * creation until ALL details are gathered.
- *
  * @author Greg Turnquist
  */
-interface CloudFoundryClientFactory {
-
-  CloudFoundryOperations createCloudFoundryClient(CloudFoundryAccountCredentials credentials,
-                                              boolean trustSelfSignedCerts)
-
+class ResizeCloudFoundryServerGroupDescription {
+  String serverGroupName
+  int targetSize
+  String zone
+  String getAccountName() {
+    credentials?.name
+  }
+  CloudFoundryAccountCredentials credentials
 }

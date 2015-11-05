@@ -15,9 +15,7 @@
  */
 package com.netflix.spinnaker.kato.cf.security
 
-import com.netflix.spinnaker.kato.cf.deploy.description.CloudFoundryDeployDescription
-import org.cloudfoundry.client.lib.CloudFoundryClient
-
+import org.cloudfoundry.client.lib.CloudFoundryOperations
 /**
  * Stub CF client factory. Makes it possible to inject stub client.
  *
@@ -25,10 +23,11 @@ import org.cloudfoundry.client.lib.CloudFoundryClient
  */
 class TestCloudFoundryClientFactory implements CloudFoundryClientFactory {
 
-  CloudFoundryClient stubClient
+  CloudFoundryOperations stubClient
 
   @Override
-  CloudFoundryClient createCloudFoundryClient(CloudFoundryDeployDescription description) {
+  CloudFoundryOperations createCloudFoundryClient(CloudFoundryAccountCredentials credentials,
+                                              boolean trustSelfSignedCerts) {
     stubClient
   }
 }
