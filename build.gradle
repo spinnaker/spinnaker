@@ -1,4 +1,3 @@
-
 buildscript {
   repositories {
     jcenter()
@@ -11,18 +10,15 @@ buildscript {
 
 group = "com.netflix.spinnaker.spinnaker"
 
-apply plugin: 'base'
 
-task copyTask(type: Copy) {
-    from ${project.buildDir}
-    into 'build/spinnaker'
-}
+apply plugin: 'application'
+apply plugin: 'nebula.os-package'
+
 
 ospackage {
-  packageName = project.applicationName
+  packageName = "${project.applicationName}"
   version = project.version.replaceAll("-SNAPSHOT", "")
   release '3'
   into "/opt/${project.applicationName}"
-  from "${project.buildDir}/install/${project.applicationName}"
-
+  from "."
 }
