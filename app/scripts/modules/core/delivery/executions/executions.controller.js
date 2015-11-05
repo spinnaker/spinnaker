@@ -74,7 +74,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       }
     });
 
-    $scope.filterCountOptions = [1, 2, 5];
+    $scope.filterCountOptions = [1, 2, 5, 10];
 
     $scope.$watch(() => ExecutionFilterModel.groups, () => {
 
