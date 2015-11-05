@@ -26,6 +26,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.delete',
             }
           });
           dirtyPipelineTracker.remove(pipeline.name);
+          application.reloadPipelineConfigs();
           $state.go('^.executions', null, {location: 'replace'});
         },
         function(response) {
