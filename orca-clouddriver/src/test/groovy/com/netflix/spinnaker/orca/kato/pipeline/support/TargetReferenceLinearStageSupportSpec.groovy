@@ -116,7 +116,7 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
 
     stage.execution.appConfig.strategy = true
     stage.execution.appConfig.strategyConfig = [
-      regions    : ['us-west-1'],
+      region     : 'us-west-1',
       credentials: 'test',
       cluster    : 'myappcluster'
     ]
