@@ -22,3 +22,17 @@ ospackage {
   into "/opt/${project.applicationName}"
   from "."
 }
+
+buildDeb {
+
+  task redis_ppa(type: Exec) {
+  executable "sh"
+  args "-c", "echo 'deb http://ppa.launchpad.net/chris-lea/redis-server/ubuntu trusty main' > '/etc/apt/sources.list.d/webupd8team-java.list'"
+}
+
+}
+
+buildRpm {
+  arch = NOARCH
+  os = LINUX
+}
