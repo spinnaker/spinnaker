@@ -13,6 +13,8 @@ group = "com.netflix.spinnaker.spinnaker"
 
 apply plugin: 'application'
 apply plugin: 'nebula.os-package'
+apply plugin: 'nebula.os-package-base'
+
 
 
 ospackage {
@@ -44,7 +46,13 @@ buildDeb {
   executable "sh"
   args "-c", "echo 'deb http://ppa.launchpad.net/chris-lea/redis-server/ubuntu trusty main' > '/etc/apt/sources.list.d/chris-lea-redis-server.list'"
 }
+}
 
+task setupUbuntu(type: Deb) {
+    installUtils = file('scripts/deb/utils.sh')
+    preInstall = file('scripts/deb/preInstall.sh')
+    postInstall = file('scripts/deb/postInstall.sh')
+    postUninstall = file('scripts/deb/postUninstall.sh')
 }
 
 buildRpm {
