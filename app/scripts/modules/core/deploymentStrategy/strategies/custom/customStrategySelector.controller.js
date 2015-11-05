@@ -6,6 +6,10 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.custom.custom
     ])
     .controller('CustomStrategySelectorController', function($scope, pipelineConfigService, applicationReader, _) {
 
+        if(!$scope.command.strategyApplication){
+            $scope.command.strategyApplication = $scope.command.application;
+        }
+
         $scope.viewState = {
             mastersLoaded: false,
             mastersRefreshing: false,
@@ -32,8 +36,8 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.custom.custom
             if ($scope.command.application) {
                 pipelineConfigService.getStrategiesForApplication($scope.command.application).then(function (pipelines) {
                     $scope.pipelines = pipelines;
-                    if (!_.find( pipelines, function(pipeline) { return pipeline.id === $scope.command.pipeline; })) {
-                        $scope.command.pipeline = null;
+                    if (!_.find( pipelines, function(pipeline) { return pipeline.id === $scope.command.strategyPipeline; })) {
+                        $scope.command.strategyPipeline = null;
                     }
                     $scope.viewState.pipelinesLoaded = true;
                     updatePipelineConfig();
@@ -42,8 +46,8 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.custom.custom
         }
 
         function updatePipelineConfig() {
-            if ($scope.command && $scope.command.application && $scope.command.pipeline) {
-                var config = _.find( $scope.pipelines, function(pipeline){ return pipeline.id === $scope.command.pipeline; } );
+            if ($scope.command && $scope.command.strategyApplication && $scope.command.strategyPipeline) {
+                var config = _.find( $scope.pipelines, function(pipeline){ return pipeline.id === $scope.command.strategyPipeline; } );
                 if(config && config.parameterConfig) {
                     if (!$scope.command.pipelineParameters) {
                         $scope.command.pipelineParameters = {};
@@ -82,7 +86,7 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.custom.custom
             }
         };
 
-        $scope.$watch('command.application', initializeMasters);
-        $scope.$watch('command.pipeline', updatePipelineConfig);
+        $scope.$watch('command.strategyApplication', initializeMasters);
+        $scope.$watch('command.strategyPipeline', updatePipelineConfig);
 
     }).name;

@@ -4,7 +4,7 @@
             <label class="col-md-2 col-md-offset-1 sm-label-left">Application</label>
 
             <div class="col-md-6">
-                <ui-select ng-model="command.application" class="form-control input-sm">
+                <ui-select ng-model="command.strategyApplication" class="form-control input-sm">
                     <ui-select-match placeholder="None">{{$select.selected}}</ui-select-match>
                     <ui-select-choices
                             repeat="application in applications | filter: $select.search | limitTo: viewState.infiniteScroll.currentItems"
@@ -15,13 +15,13 @@
                 </ui-select>
             </div>
         </div>
-        <div class="form-group" ng-if="command.application && viewState.pipelinesLoaded">
+        <div class="form-group" ng-if="command.strategyApplication && viewState.pipelinesLoaded">
             <label class="col-md-2 col-md-offset-1 sm-label-left">Strategy</label>
 
             <div class="col-md-6">
                 <div>
                     <ui-select class="form-control input-sm"
-                               ng-model="command.pipeline">
+                               ng-model="command.strategyPipeline">
                         <ui-select-match placeholder="Select a strategy...">{{$select.selected.name}}</ui-select-match>
                         <ui-select-choices
                                 repeat="pipeline.id as pipeline in pipelines | filter: $select.search | orderBy: 'index'"><span
