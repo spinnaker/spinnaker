@@ -11,8 +11,7 @@ buildscript {
 
 group = "com.netflix.spinnaker.spinnaker"
 
-apply plugin: 'nebula.ospackage'
-
+apply plugin: 'base'
 
 task copyTask(type: Copy) {
     from ${project.buildDir}
