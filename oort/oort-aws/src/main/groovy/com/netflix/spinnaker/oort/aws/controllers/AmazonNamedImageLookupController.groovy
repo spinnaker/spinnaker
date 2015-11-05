@@ -106,6 +106,7 @@ class AmazonNamedImageLookupController {
     for (CacheData data : namedImages) {
       Map<String, String> keyParts = Keys.parse(data.id)
       NamedImage thisImage = byImageName[keyParts.imageName]
+      thisImage.attributes.putAll(data.attributes - [name: keyParts.imageName])
       thisImage.accounts.add(keyParts.account)
 
       for (String imageKey : data.relationships[IMAGES.ns] ?: []) {
@@ -166,6 +167,7 @@ class AmazonNamedImageLookupController {
 
   private static class NamedImage {
     String imageName
+    Map<String,Object> attributes = [:]
     Map<String,String> tags = [:]
     Set<String> accounts = []
     Map<String, Collection<String>> amis = [:].withDefault { new HashSet<String>() }
