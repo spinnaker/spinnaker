@@ -27,7 +27,6 @@ module.exports = angular
       delete command.backingData;
       delete command.selectedProvider;
       delete command.implicitSecurityGroups;
-      delete command.providerType;
 
       return command;
     }
