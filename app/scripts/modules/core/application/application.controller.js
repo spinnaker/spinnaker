@@ -9,9 +9,10 @@ module.exports = angular.module('spinnaker.application.controller', [
   require('exports?"cfp.hotkeys"!angular-hotkeys'),
   require('angular-ui-router'),
   require('../history/recentHistory.service.js'),
+  require('../templateOverride/templateOverride.registry.js'),
 ])
-  .controller('ApplicationCtrl', function($scope, $state, hotkeys, app, recentHistoryService, $window) {
-    this.applicationNavTemplate = require('./applicationNav.html');
+  .controller('ApplicationCtrl', function($scope, $state, hotkeys, app, recentHistoryService, $window, templateOverrideRegistry) {
+    this.applicationNavTemplate = templateOverrideRegistry.getTemplate('applicationNavHeader', require('./applicationNav.html'));
     $scope.$window = $window;
     $scope.application = app;
     $scope.insightTarget = app;

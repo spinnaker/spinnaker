@@ -117,6 +117,8 @@ module.exports = angular
 
     require('./task/task.module.js'),
 
+    require('./templateOverride/templateOverride.registry.js'),
+
     require('./utils/utils.module.js'),
 
     require('./validation/validation.module.js'),
