@@ -18,7 +18,8 @@ module.exports = angular
     require('./instance/aws/netflixAwsInstanceDetails.controller.js'),
     require('./pipeline/stage/canary/canaryStage.module.js'),
     require('./canary'),
-    require('./application/applicationNav.module.js'),
+    require('./templateOverride/templateOverrides.module.js'),
+    require('./migrator/pipeline/pipeline.migrator.directive.js'),
   ])
   .run(function(cloudProviderRegistry) {
     cloudProviderRegistry.overrideValue(
