@@ -27,7 +27,7 @@ import retrofit.http.Query
  */
 public interface MineService {
 
-  @PUT("/canaries/{id}")
+  @GET("/canaries/{id}")
   Map showCanary(@Path("id") String canaryId)
 
   @POST("/canaries/{id}/generateCanaryResult")
