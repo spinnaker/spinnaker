@@ -5,6 +5,7 @@ require('./fastProperties.less');
 
 module.exports = angular
   .module('spinnaker.netflix.fastProperties', [
+    require('./states.js'),
     require('./fastProperties.controller.js'),
     require('./modal/fastPropertyUpsert.controller.js'),
     require('./applicationProperties.controller.js'),

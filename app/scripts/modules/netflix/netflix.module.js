@@ -17,4 +17,5 @@ module.exports = angular
     require('./feedback/feedback.module.js'),
     require('./pipeline/stage/canary/canaryStage.module.js'),
     require('./canary'),
+    require('./application/applicationNav.module.js'),
   ]).name;
