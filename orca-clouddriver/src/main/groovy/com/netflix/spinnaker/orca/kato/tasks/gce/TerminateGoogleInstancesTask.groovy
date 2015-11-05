@@ -28,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-@CompileStatic
 class TerminateGoogleInstancesTask extends AbstractCloudProviderAwareTask implements Task {
   @Autowired
   KatoService kato

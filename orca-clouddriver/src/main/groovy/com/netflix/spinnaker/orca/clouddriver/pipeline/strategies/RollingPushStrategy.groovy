@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.kato.pipeline.RollingPushStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.Immutable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -35,7 +36,7 @@ class RollingPushStrategy implements Strategy {
 
   @Autowired
   RollingPushStage rollingPushStage
-  
+
   @Autowired
   SourceResolver sourceResolver
 
@@ -59,11 +60,23 @@ class RollingPushStrategy implements Strategy {
     ]
 
     LinearStage.injectAfter(stage, "modifyLaunchConfiguration", modifyAsgLaunchConfigurationStage, modifyCtx)
-    LinearStage.injectAfter(stage, "rollingPush", rollingPushStage, modifyCtx)
+
+    def terminationConfig = stage.mapTo("/termination", TerminationConfig)
+    if (terminationConfig.relaunchAllInstances || terminationConfig.totalRelaunches > 0) {
+      LinearStage.injectAfter(stage, "rollingPush", rollingPushStage, modifyCtx)
+    }
   }
 
   @Override
   boolean replacesBasicSteps() {
     return true
+  }
+
+  @Immutable
+  static class TerminationConfig {
+    String order
+    boolean relaunchAllInstances
+    int concurrentRelaunches
+    int totalRelaunches
   }
 }

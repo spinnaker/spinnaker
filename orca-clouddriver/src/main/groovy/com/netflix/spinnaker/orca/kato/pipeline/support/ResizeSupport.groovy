@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
-import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
+import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.Capacity
+import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.OptionalConfiguration
+import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.ResizeAction
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
 import groovy.util.logging.Slf4j
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @Slf4j
+@Deprecated
 class ResizeSupport {
 
   @Autowired
@@ -87,7 +90,8 @@ class ResizeSupport {
         description.capacity = [min: newMin, desired: newDesired, max: newMax]
       } else {
         def capacity = stage.mapTo("/capacity", Capacity)
-        description.capacity = mergeConfiguredCapacityWithCurrent(capacity, currentMin, currentDesired, currentMax)
+        def newCapacity = ScaleExactResizeStrategy.mergeConfiguredCapacityWithCurrent(capacity, currentMin, currentDesired, currentMax)
+        description.capacity = [min: newCapacity.min, desired: newCapacity.desired, max: newCapacity.max]
       }
 
       descriptions[asg.name as String] = description
@@ -95,117 +99,5 @@ class ResizeSupport {
     descriptions.values().flatten()
   }
 
-  @CompileDynamic
-  static public List<Map<String, Object>> createResizeDescriptors(Stage stage, List<TargetServerGroup> targetServerGroups) {
-    def optionalConfig = stage.mapTo(OptionalConfiguration)
-    Map<String, Map<String, Object>> operations = [:]
 
-    for (TargetServerGroup tsg : targetServerGroups) {
-      def location = tsg.getLocation()
-
-      def operation = new HashMap(stage.context)
-      if (operations.containsKey(tsg.name)) {
-        // TODO(ttomsu): Multi-zone resizing for GCE, which means this 'regions' attribute will have to change, too.
-        operations[tsg.name as String].regions.add(location.value)
-        continue
-      }
-      operation.serverGroupName = tsg.name
-      operation.asgName = tsg.name
-      operation.regions = [tsg.region]
-
-      def currentMin = Integer.parseInt(tsg.capacity.min.toString())
-      def currentDesired = Integer.parseInt(tsg.capacity.desired.toString())
-      def currentMax = Integer.parseInt(tsg.capacity.max.toString())
-
-      Integer newMin, newDesired, newMax
-      if (optionalConfig.scalePct) {
-        def factor = optionalConfig.scalePct / 100
-        def minDiff = Math.ceil(currentMin * factor)
-        def desiredDiff = Math.ceil(currentDesired * factor)
-        def maxDiff = Math.ceil(currentMax * factor)
-        newMin = currentMin + minDiff
-        newDesired = currentDesired + desiredDiff
-        newMax = currentMax + maxDiff
-
-        if (optionalConfig.action == ResizeAction.scale_down) {
-          newMin = Math.max(currentMin - minDiff, 0)
-          newDesired = Math.max(currentDesired - desiredDiff, 0)
-          newMax = Math.max(currentMax - maxDiff, 0)
-        }
-      } else if (optionalConfig.scaleNum) {
-        newMin = currentMin + optionalConfig.scaleNum
-        newDesired = currentDesired + optionalConfig.scaleNum
-        newMax = currentMax + optionalConfig.scaleNum
-
-        if (optionalConfig.action == ResizeAction.scale_down) {
-          newMin = Math.max(currentMin - optionalConfig.scaleNum, 0)
-          newDesired = Math.max(currentDesired - optionalConfig.scaleNum, 0)
-          newMax = Math.max(currentMax - optionalConfig.scaleNum, 0)
-        }
-      }
-
-      if (newMin != null && newDesired != null && newMax != null) {
-        operation.capacity = [min: newMin, desired: newDesired, max: newMax]
-      } else {
-        def capacity = stage.mapTo("/capacity", Capacity)
-        operation.capacity = mergeConfiguredCapacityWithCurrent(capacity, currentMin, currentDesired, currentMax)
-      }
-
-      // TODO(ttomsu): Remove cloud provider-specific operation.
-      if (operation.provider == "gce" || operation.cloudProvider == "gce") {
-        augmentDescriptionForGCE(operation, tsg)
-      }
-      operations[tsg.name as String] = operation
-    }
-    operations.values().flatten()
-  }
-
-  private static Map mergeConfiguredCapacityWithCurrent(Capacity configured, int currentMin, int currentDesired, int currentMax) {
-    boolean minConfigured = configured.min != null;
-    boolean desiredConfigured = configured.desired != null;
-    boolean maxConfigured = configured.max != null;
-    Map result = [
-      min: minConfigured ? configured.min : currentMin,
-    ]
-    if (maxConfigured) {
-      result.max = configured.max
-      result.min = Math.min(result.min, configured.max)
-    } else {
-      result.max = Math.max(result.min, currentMax)
-    }
-    if (desiredConfigured) {
-      result.desired = configured.desired
-    } else {
-      result.desired = currentDesired
-      if (currentDesired < result.min) {
-        result.desired = result.min
-      }
-      if (currentDesired > result.max) {
-        result.desired = result.max
-      }
-    }
-
-    result
-  }
-
-  private static augmentDescriptionForGCE(Map description, TargetServerGroup tsg) {
-    description.zone = tsg.getLocation().value
-    description.targetSize = description.capacity.desired
-  }
-
-  static enum ResizeAction {
-    scale_up, scale_down
-  }
-
-  static class OptionalConfiguration {
-    ResizeAction action
-    Integer scalePct
-    Integer scaleNum
-  }
-
-  static class Capacity {
-    Integer max
-    Integer desired
-    Integer min
-  }
 }
