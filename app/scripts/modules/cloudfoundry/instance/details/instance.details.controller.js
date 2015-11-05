@@ -132,13 +132,10 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
           $scope.instance.externalIpAddress = $scope.instance.networkInterfaces[0].accessConfigs[0].natIP;
           $scope.instance.network = getNetwork();
 
-          $scope.instance.sshLink =
-            $scope.instance.selfLink.replace('www.googleapis.com/compute/v1', 'cloudssh.developers.google.com') + '?authuser=0&hl=en_US';
-
           var pathSegments = $scope.instance.selfLink.split('/');
           var projectId = pathSegments[pathSegments.indexOf('projects') + 1];
-          $scope.instance.logsLink =
-            'https://console.developers.google.com/project/' + projectId + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + $scope.instance.instanceId;
+
+          // TODO Add link to CF console outputs
         },
           autoClose
         );

@@ -3,8 +3,9 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.cf.loadBalancer.transformer', [
+  require('../../core/utils/lodash.js')
 ])
-  .factory('cfLoadBalancerTransformer', function ($q) {
+  .factory('cfLoadBalancerTransformer', function ($q, settings, _) {
 
     function updateHealthCounts(container) {
       var instances = container.instances;
@@ -47,9 +48,21 @@ module.exports = angular.module('spinnaker.cf.loadBalancer.transformer', [
         serverGroup.loadBalancers.indexOf(loadBalancer.name) !== -1;
     }
 
+    function constructNewLoadBalancerTemplate() {
+      // TODO: fill in
+      return {};
+    }
+
+    function convertLoadBalancerForEditing(loadBalancer) {
+      // TODO: fill in
+      return {};
+    }
+
     return {
       normalizeLoadBalancer: normalizeLoadBalancer,
-      serverGroupIsInLoadBalancer: serverGroupIsInLoadBalancer
+      serverGroupIsInLoadBalancer: serverGroupIsInLoadBalancer,
+      constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
+      convertLoadBalancerForEditing: convertLoadBalancerForEditing,
     };
 
   }).name;

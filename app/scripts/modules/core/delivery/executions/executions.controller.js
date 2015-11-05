@@ -25,6 +25,13 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
 
     let application = $scope.application;
     this.application = application;
+    if ($scope.application.notFound) {
+      return;
+    }
+
+    application.loadAllExecutions = true;
+    application.reloadExecutions();
+    $scope.$on('$destroy', () => application.loadAllExecutions = false);
 
     this.InsightFilterStateModel = InsightFilterStateModel;
 
@@ -70,7 +77,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       }
     });
 
-    $scope.filterCountOptions = [1, 2, 5];
+    $scope.filterCountOptions = [1, 2, 5, 10];
 
     $scope.$watch(() => ExecutionFilterModel.groups, () => {
 

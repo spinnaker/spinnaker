@@ -1,18 +1,16 @@
 'use strict';
 
 let feedbackUrl = process.env.FEEDBACK_URL || 'http://hootch.test.netflix.net/submit';
-let gateHost = process.env.API_HOST || 'spinnaker-api-prestaging.prod.netflix.net';
+let gateHost = process.env.API_HOST || 'https://spinnaker-api-prestaging.prod.netflix.net';
 let bakeryDetailUrl = process.env.BAKERY_DETAIL_URL || 'http://bakery.test.netflix.net/#/?region={{context.region}}&package={{context.package}}&detail=bake:{{context.status.resourceId}}';
-let authEndpoint = process.env.AUTH_ENDPOINT || 'spinnaker-api-prestaging.prod.netflix.net/auth/info';
-
-let protocol = process.env.PROTOCOL || 'https';
+let authEndpoint = process.env.AUTH_ENDPOINT || 'https://spinnaker-api-prestaging.prod.netflix.net/auth/info';
 
 window.spinnakerSettings = {
   defaultProviders: ['aws'],
   feedbackUrl: feedbackUrl,
-  gateUrl: `${protocol}://${gateHost}`,
+  gateUrl: gateHost,
   bakeryDetailUrl: bakeryDetailUrl,
-  authEndpoint: `${protocol}://${authEndpoint}`,
+  authEndpoint: authEndpoint,
   pollSchedule: 30000,
   defaultTimeZone: 'America/Los_Angeles', // see http://momentjs.com/timezone/docs/#/data-utilities/
   providers: {
@@ -24,6 +22,7 @@ window.spinnakerSettings = {
       primaryAccounts: ['prod', 'test'],
       primaryRegions: ['eu-west-1', 'us-east-1', 'us-west-1', 'us-west-2'],
       challengeDestructiveActions: ['mgmt', 'prod', 'mceprod', 'cpl'],
+      defaultSecurityGroups: ['nf-datacenter-vpc', 'nf-infrastructure-vpc', 'nf-datacenter', 'nf-infrastructure'],
       accountBastions : {
         'prod': 'aws.prod.netflix.net',
         'test': 'aws.test.netflix.net',
@@ -122,8 +121,6 @@ window.spinnakerSettings = {
   feature: {
     pipelines: true,
     notifications: false,
-    canary: process.env.CANARY !== 'disabled',
-    parallelPipelines: true,
     fastProperty: true,
     vpcMigrator: true,
     clusterDiff: true,

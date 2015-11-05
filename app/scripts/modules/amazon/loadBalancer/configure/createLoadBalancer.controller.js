@@ -18,12 +18,13 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
   require('../../../core/region/regionSelectField.directive.js'),
   require('../../../core/account/accountSelectField.directive.js'),
   require('../../subnet/subnetSelectField.directive.js'),
+  require('../../../core/config/settings.js'),
 ])
   .controller('awsCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, _,
                                                     accountService, awsLoadBalancerTransformer, securityGroupReader,
                                                     cacheInitializer, infrastructureCaches, loadBalancerReader,
                                                     modalWizardService, loadBalancerWriter, taskMonitorService,
-                                                    subnetReader, namingService,
+                                                    subnetReader, namingService, settings,
                                                     application, loadBalancer, isNew) {
 
     var ctrl = this;
@@ -54,7 +55,8 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     });
 
     var allSecurityGroups = {},
-        allLoadBalancerNames = {};
+        allLoadBalancerNames = {},
+        defaultSecurityGroups = [];
 
     function initializeEditMode() {
       if ($scope.loadBalancer.vpcId) {
@@ -66,6 +68,9 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
 
     function initializeCreateMode() {
       preloadSecurityGroups();
+      if (_.has(settings, 'providers.aws.defaultSecurityGroups')) {
+        defaultSecurityGroups = settings.providers.aws.defaultSecurityGroups;
+      }
       accountService.listAccounts('aws').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
@@ -130,8 +135,6 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
           return availableVpcIds.indexOf(securityGroup.vpcId) !== -1;
         });
         $scope.existingSecurityGroupNames = _.collect($scope.availableSecurityGroups, 'name');
-        // TODO: Move to settings
-        var defaultSecurityGroups = ['nf-datacenter-vpc', 'nf-infrastructure-vpc', 'nf-datacenter', 'nf-infrastructure'];
         var existingNames = defaultSecurityGroups.filter(function(defaultName) {
           return $scope.existingSecurityGroupNames.indexOf(defaultName) !== -1;
         });

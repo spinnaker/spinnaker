@@ -8,8 +8,14 @@ module.exports = angular
   ])
   .factory('taskReader', function(tasksApi) {
 
-    function listAllTasksForApplication(applicationName) {
-      return tasksApi.one('applications', applicationName).all('tasks').getList()
+    const activeStatuses = ['RUNNING', 'SUSPENDED', 'NOT_STARTED'];
+
+    function getRunningTasks(applicationName) {
+      return getTasks(applicationName, activeStatuses);
+    }
+
+    function getTasks(applicationName, statuses=[]) {
+      return tasksApi.one('applications', applicationName).all('tasks').getList({statuses: statuses.join(',')})
         .then(function(tasks) {
           return tasks.filter(function(task) {
             return !task.getValueFor('dryRun');
@@ -23,7 +29,8 @@ module.exports = angular
     }
 
     return {
-      listAllTasksForApplication: listAllTasksForApplication,
+      getTasks: getTasks,
+      getRunningTasks: getRunningTasks,
       getOneTaskForApplication: getOneTaskForApplication
 
     };

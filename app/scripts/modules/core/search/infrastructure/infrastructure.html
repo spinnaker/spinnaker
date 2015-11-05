@@ -51,7 +51,7 @@
         </div>
         <div class="row">
           <div class="col-md-12">
-            <div class="no-results" ng-if="!projects.length || !projects[0].results.length">
+            <div class="no-results" ng-if="!projects.length">
               No projects found matching "{{query}}".<br/>
               <a href ng-click="ctrl.createProject()">Create a new project</a>
             </div>
@@ -66,6 +66,11 @@
         <div class="row">
           <div class="col-md-12">
             <h3>Infrastructure matching "{{query}}"</h3>
+          </div>
+        </div>
+        <div class="row" ng-if="!categories.length">
+          <div class="col-md-12">
+            <h4>No Infrastructure results found.</h4>
           </div>
         </div>
         <div class="row">

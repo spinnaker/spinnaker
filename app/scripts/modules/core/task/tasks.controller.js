@@ -16,6 +16,10 @@ module.exports = angular.module('spinnaker.core.task.controller', [
     var controller = this;
     const application = app;
 
+    application.loadAllTasks = true;
+    application.reloadTasks();
+    $scope.$on('$destroy', () => application.loadAllTasks = false);
+
     var tasksViewStateCache = viewStateCache.tasks || viewStateCache.createCache('tasks', { version: 1 });
 
     function cacheViewState() {

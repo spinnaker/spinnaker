@@ -86,7 +86,10 @@ module.exports = angular
             return $q.when(null);
           }
           application.tasksLoading = true;
-          return taskReader.listAllTasksForApplication(application.name)
+          let taskLoader = application.loadAllTasks ?
+            taskReader.getTasks(application.name) :
+            taskReader.getRunningTasks(application.name);
+          return taskLoader
             .then(function(tasks) {
               addTasksToApplication(application, tasks);
               if (!application.tasksLoaded) {
@@ -113,7 +116,10 @@ module.exports = angular
             return $q.when(null);
           }
           application.executionsLoading = true;
-          return executionService.getAll(application.name)
+          let executionLoader = application.loadAllExecutions ?
+            executionService.getExecutions(application.name) :
+            executionService.getRunningExecutions(application.name);
+          return executionLoader
             .then(function(executions) {
               executionService.transformExecutions(application, executions);
               addExecutionsToApplication(application, executions);
@@ -266,7 +272,11 @@ module.exports = angular
           loadBalancerLoader = loadBalancerReader.loadLoadBalancers(applicationName),
           applicationLoader = getApplicationEndpoint(applicationName).get(),
           serverGroupLoader = clusterService.loadServerGroups(applicationName),
-          executionsLoader = options && options.executions ? executionService.getAll(applicationName) : $q.when(null);
+          executionsLoader = options && options.executions ?
+            options.loadAllExecutions ?
+              executionService.getExecutions(applicationName) :
+              executionService.getRunningExecutions(applicationName) :
+            $q.when(null);
 
       var application, securityGroupAccounts, loadBalancerAccounts, serverGroups;
 

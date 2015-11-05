@@ -11,18 +11,23 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
   .factory('executionService', function($stateParams, $http, $timeout, $q, $log,
                                          scheduler, settings, appendTransform, executionsTransformer) {
 
-    function getExecutions(applicationName) {
+    const activeStatuses = ['RUNNING', 'SUSPENDED', 'NOT_STARTED'];
+
+    function getRunningExecutions(applicationName) {
+      return getExecutions(applicationName, activeStatuses);
+    }
+
+    function getExecutions(applicationName, statuses=[]) {
 
       var deferred = $q.defer();
+      let url = [ settings.gateUrl, 'applications', applicationName, 'pipelines'].join('/');
+      if (statuses.length) {
+        url += '?statuses=' + statuses.map((status) => status.toUpperCase()).join(',');
+      }
       $http({
         method: 'GET',
-        url: [
-          settings.gateUrl,
-          'applications',
-          applicationName,
-          'pipelines',
-        ].join('/'),
-        timeout: settings.pollSchedule,
+        url: url,
+        timeout: settings.pollSchedule * 2 + 5000, // TODO: replace with apiHost call
       }).then(
         function(resp) {
           deferred.resolve(resp.data);
@@ -51,14 +56,13 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
 
     function waitUntilNewTriggeredPipelineAppears(application, pipelineName, triggeredPipelineId) {
 
-      return application.reloadExecutions().then(function() {
-        var executions = application.executions;
+      return getRunningExecutions(application.name).then(function(executions) {
         var match = executions.filter(function(execution) {
           return execution.id === triggeredPipelineId;
         });
         var deferred = $q.defer();
         if (match && match.length) {
-          deferred.resolve();
+          application.reloadExecutions().then(deferred.resolve);
           return deferred.promise;
         } else {
           return $timeout(function() {
@@ -140,7 +144,8 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
     }
 
     return {
-      getAll: getExecutions,
+      getExecutions: getExecutions,
+      getRunningExecutions: getRunningExecutions,
       transformExecutions: transformExecutions,
       cancelExecution: cancelExecution,
       deleteExecution: deleteExecution,

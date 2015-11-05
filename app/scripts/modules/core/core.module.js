@@ -118,6 +118,8 @@ module.exports = angular
 
     require('./task/task.module.js'),
 
+    require('./templateOverride/templateOverride.registry.js'),
+
     require('./utils/utils.module.js'),
 
     require('./validation/validation.module.js'),
@@ -190,7 +192,7 @@ module.exports = angular
   })
   .config(function(RestangularProvider, settings) {
     RestangularProvider.setBaseUrl(settings.gateUrl);
-    RestangularProvider.setDefaultHttpFields({timeout: settings.pollSchedule});
+    RestangularProvider.setDefaultHttpFields({timeout: settings.pollSchedule * 2 + 5000}); // TODO: replace with apiHost call
   })
   .config(function($httpProvider){
     $httpProvider.defaults.headers.patch = {

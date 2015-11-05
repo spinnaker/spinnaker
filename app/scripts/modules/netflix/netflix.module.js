@@ -15,6 +15,21 @@ module.exports = angular
     require('./fastProperties/fastProperties.module.js'),
     require('./alert/alertHandler.js'),
     require('./feedback/feedback.module.js'),
-    require('../core/pipeline/config/stages/canary/canaryStage.module.js'), // TODO: move to Netflix module
-    require('../core/canary/index.js'), // TODO: move to Netflix module
-  ]).name;
+    require('./instance/aws/netflixAwsInstanceDetails.controller.js'),
+    require('./pipeline/stage/canary/canaryStage.module.js'),
+    require('./canary'),
+    require('./templateOverride/templateOverrides.module.js'),
+    require('./migrator/pipeline/pipeline.migrator.directive.js'),
+  ])
+  .run(function(cloudProviderRegistry) {
+    cloudProviderRegistry.overrideValue(
+      'aws',
+      'instance.detailsTemplateUrl',
+      require('./instance/aws/instanceDetails.html')
+    );
+    cloudProviderRegistry.overrideValue(
+      'aws',
+      'instance.detailsController',
+      'netflixAwsInstanceDetailsCtrl'
+    );
+  }).name;

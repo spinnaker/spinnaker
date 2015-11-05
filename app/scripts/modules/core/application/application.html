@@ -14,56 +14,7 @@
 
       <p class="text-center">Please check your URL - we can't find any data for <em>{{application.name}}</em>.</p>
     </div>
-    <ul class="nav nav-pills" ng-if="!application.notFound">
-      <li ng-if="feature.pipelines">
-        <a ui-sref=".executions"
-           ng-class="{active: $state.includes('**.executions.**') || $state.includes('**.pipelineConfig')}">
-          Pipelines <span class="badge"
-                         ng-if="( application.executions | filter:{isActive:true}).length > 0">
-            {{ (application.executions | filter:{isActive:true}).length }}
-          </span>
-        </a>
-      </li>
-      <li>
-        <a ui-sref=".insight.clusters"
-           ng-class="{active: $state.includes('**.clusters.**')}">
-          Clusters
-        </a>
-      </li>
-      <li>
-        <a ui-sref=".insight.loadBalancers"
-           ng-class="{active: $state.includes('**.loadBalancers.**') || $state.includes('*.loadBalancer')}">
-          Load Balancers
-        </a>
-      </li>
-      <li>
-        <a ui-sref=".insight.securityGroups"
-           ng-class="{active: $state.includes('**.securityGroups.**')}">
-          Security Groups
-        </a>
-      <li>
-      <li ng-if="feature.fastProperty">
-        <a ui-sref=".properties"
-           ng-class="{active: $state.includes('**.properties')}">
-          Properties
-        </a>
-      <li>
-      <li>
-        <a ui-sref=".tasks"
-           ng-class="{active: $state.includes('**.tasks.**')}">
-          Tasks <span class="badge"
-                      ng-if="( application.tasks | filter:{isActive:true}).length > 0">
-            {{ (application.tasks | filter:{isActive:true}).length }}
-          </span>
-        </a>
-      </li>
-      <li>
-        <a ui-sref=".config"
-           ng-class="{active: $state.includes('**.config.**')}">
-          Config
-        </a>
-      </li>
-    </ul>
+    <span ng-include="ctrl.applicationNavTemplate"></span>
   </div>
   <div class="scrollable-columns">
     <div class="secondary-panel" ui-view="insight"></div>

@@ -13,21 +13,7 @@
     </h3>
     <div class="pipeline-actions text-right">
       <create-new application="application"></create-new>
-      <div class="dropdown pull-left" uib-dropdown>
-        <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
-          Pipeline Actions <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu" role="menu">
-          <li><a href ng-click="pipelineConfigurerCtrl.renamePipeline()">Rename</a></li>
-          <li><a href ng-click="pipelineConfigurerCtrl.deletePipeline()">Delete</a></li>
-          <li><a href ng-click="pipelineConfigurerCtrl.editPipelineJson()">Edit as JSON</a></li>
-          <li ng-if="pipeline.parallel"><a href ng-click="pipelineConfigurerCtrl.disableParallel()">Disable parallel execution</a></li>
-          <li ng-if="!pipeline.parallel"><a href ng-click="pipelineConfigurerCtrl.enableParallel()">Enable parallel execution</a></li>
-          <li><pipeline-migrator pipeline="pipeline" application="application"></pipeline-migrator></li>
-        </ul>
-      </div>
-
-
+      <div ng-include="pipelineConfigurerCtrl.actionsTemplateUrl"></div>
     </div>
   </div>
   <div class="pipeline-contents">
@@ -36,8 +22,8 @@
         <ul class="nav-pipeline-config">
           <li class="config-section">
             <a href class="btn btn-default"
-                    ng-class="{active: pipelineConfigurerCtrl.isActive('triggers') }"
-                    ng-click="pipelineConfigurerCtrl.navigateTo({section: 'triggers'})">
+               ng-class="{active: pipelineConfigurerCtrl.isActive('triggers') }"
+               ng-click="pipelineConfigurerCtrl.navigateTo({section: 'triggers'})">
               <span class="glyphicon glyphicon-certificate"></span> Configuration
             </a>
           </li>
@@ -45,8 +31,8 @@
             <h4>Stages</h4>
             <div class="sortable-stages" ui-sortable="stageSortOptions" ng-model="pipeline.stages">
               <a href ng-repeat="stage in pipeline.stages" class="btn btn-default"
-                      ng-click="pipelineConfigurerCtrl.navigateToStage($index, $event)"
-                      ng-class="{'active': pipelineConfigurerCtrl.stageIsActive($index)}">
+                 ng-click="pipelineConfigurerCtrl.navigateToStage($index, $event)"
+                 ng-class="{'active': pipelineConfigurerCtrl.stageIsActive($index)}">
                 {{$index+1}}: {{stage.name || '[Unnamed Stage]'}}
                 <span ng-if="stage.restrictExecutionDuringTimeWindow"
                       class="glyphicon glyphicon-time small" uib-tooltip="This stage is configured to only run during specified windows"></span>

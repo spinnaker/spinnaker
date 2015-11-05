@@ -18,6 +18,7 @@ module.exports = angular
       if (base.viewState.mode !== 'clone') {
         delete command.source;
       }
+      command.cloudProvider = 'gce';
       command.availabilityZones = {};
       command.availabilityZones[command.region] = [base.zone];
       command.account = command.credentials;

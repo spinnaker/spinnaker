@@ -18,7 +18,15 @@ module.exports = angular
       version: 1,
       maxAge: 180 * 24 * 60 * 60 * 1000,
     });
-    var groupCount = (configViewStateCache.get('#global') || { count: 2 }).count;
+
+    function getCachedViewState() {
+      let cached = configViewStateCache.get('#global') || {},
+          defaults = { count: 2, groupBy: 'name' };
+      return angular.extend(defaults, cached);
+    }
+
+    var groupCount = getCachedViewState().count;
+    var groupBy = getCachedViewState().groupBy;
 
     this.mostRecentApplication = null;
 
@@ -26,10 +34,13 @@ module.exports = angular
       { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search', },
       { model: 'pipeline', param: 'pipeline', type: 'object', },
       { model: 'status', type: 'object', },
-      { model: 'groupBy', displayOption: true, type: 'string', defaultValue: 'name', },
     ];
 
     filterModelService.configureFilterModel(this, filterModelConfig);
+
+    function cacheConfigViewState() {
+      configViewStateCache.put('#global', { count: groupCount, groupBy: groupBy });
+    }
 
     // A nice way to avoid watches is to define a property on an object
     Object.defineProperty(this.sortFilter, 'count', {
@@ -38,7 +49,17 @@ module.exports = angular
       },
       set: function(count) {
         groupCount = count;
-        configViewStateCache.put('#global', { count: count});
+        cacheConfigViewState();
+      }
+    });
+
+    Object.defineProperty(this.sortFilter, 'groupBy', {
+      get: function() {
+        return groupBy;
+      },
+      set: function(grouping) {
+        groupBy = grouping;
+        cacheConfigViewState();
       }
     });
 
