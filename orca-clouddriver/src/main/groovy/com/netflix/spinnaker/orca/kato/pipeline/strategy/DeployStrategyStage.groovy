@@ -169,8 +169,8 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
     def cleanupConfig = determineClusterForCleanup(stage)
 
     def modifyCtx = [
-      pipelineApplication: stage.context.pipelineApplication,
-      pipelineId: stage.context.pipeline,
+      pipelineApplication: stage.context.strategyApplication,
+      pipelineId: stage.context.strategyPipeline,
       pipelineConfig:[
         parentPipelineId: stage.execution.id,
         parentStageId: stage.id,
@@ -179,7 +179,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
           application: stage.context.application,
           credentials: cleanupConfig.account,
           cluster: cleanupConfig.cluster,
-          regions: cleanupConfig.regions
+          region: cleanupConfig.region
         ]
       ]
     ]
