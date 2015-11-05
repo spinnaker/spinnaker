@@ -24,6 +24,25 @@ module.exports = angular.module('spinnaker.core.cloudProvider.registry', [
       return Object.keys(providers);
     }
 
+    function overrideValue(provider, key, val) {
+      if (!providers[provider]) {
+        console.warn('Cannot override "' + key + '" for provider "' + provider + '" (provider not registered)');
+      }
+      let config = providers[provider],
+          parentKeys = key.split('.'),
+          lastKey = parentKeys.pop(),
+          current = config;
+
+      parentKeys.forEach((parentKey) => {
+        if (!current[parentKey]) {
+          current[parentKey] = {};
+        }
+        current = current[parentKey];
+      });
+
+      current[lastKey] = val;
+    }
+
     function getValue(provider, key) {
       if (!key) {
         return null;
@@ -57,6 +76,7 @@ module.exports = angular.module('spinnaker.core.cloudProvider.registry', [
       return {
         getProvider: getProvider,
         getValue: getValue,
+        overrideValue: overrideValue,
         listRegisteredProviders: listRegisteredProviders,
       };
     };

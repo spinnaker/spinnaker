@@ -23,6 +23,14 @@
       <h3 select-on-dbl-click>
         {{instance.instanceId}}
       </h3>
+
+      <copy-to-clipboard
+          ng-if="instance.provider === 'aws'"
+          class="copy-to-clipboard"
+          text="ssh -t {{ctrl.getBastionAddressForAccount(instance.account)}} 'oq-ssh --region {{instance.region}} {{instance.instanceId}}'"
+          tool-tip="Copy SSH command to clipboard">
+      </copy-to-clipboard>
+
     </div>
     <div>
       <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }" ng-if="instance.placement">
@@ -148,21 +156,73 @@
               tool-tip="Copy to clipboard">
           </copy-to-clipboard>
         </dd>
+        <dt ng-if="instance.vipAddress && instance.vipAddress.length > 0">VIP Address:</dt>
+        <dd ng-repeat="address in instance.vipAddress">
+          <a href="http://{{address}}" target="_blank">{{address}}</a>
+          <copy-to-clipboard
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="{{address}}"
+              tool-tip="Copy to clipboard">
+          </copy-to-clipboard>
+        </dd>
+        <dt ng-if="instance.secureVipAddress && instance.secureVipAddress.length > 0">Secure VIP Address:</dt>
+        <dd ng-repeat="address in instance.secureVipAddress">
+          <a href="http://{{address}}" target="_blank">{{address}}</a>
+          <copy-to-clipboard
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="{{address}}"
+              tool-tip="Copy to clipboard">
+          </copy-to-clipboard>
+        </dd>
       </dl>
     </collapsible-section>
     <collapsible-section ng-if="!instance.notFound" heading="Security Groups">
-        <ul>
-          <li ng-repeat="securityGroup in instance.securityGroups | orderBy:'groupName'">
-            <a ui-sref="^.securityGroupDetails({name:securityGroup.groupName, accountId: instance.account, region: instance.region, vpcId: instance.vpcId, provider: instance.provider})">
-              {{securityGroup.groupName}} ({{securityGroup.groupId}})
-            </a>
-          </li>
-        </ul>
+      <ul>
+        <li ng-repeat="securityGroup in instance.securityGroups | orderBy:'groupName'">
+          <a ui-sref="^.securityGroupDetails({name:securityGroup.groupName, accountId: instance.account, region: instance.region, vpcId: instance.vpcId, provider: instance.provider})">
+            {{securityGroup.groupName}} ({{securityGroup.groupId}})
+          </a>
+        </li>
+      </ul>
     </collapsible-section>
     <collapsible-section heading="Logs" ng-if="baseIpAddress">
       <ul>
         <li>
+          <a href="http://{{baseIpAddress}}:7001/AdminLogs/list?view=tomcat/catalina.out" target="_blank">catalina.out</a>
+        </li>
+        <li>
+          <a href="http://{{baseIpAddress}}:7001/AdminLogs/list" target="_blank">Log File Archive</a>
+        </li>
+        <li>
+          <a href="http://{{baseIpAddress}}:7001/AdminLogs/threaddumps" target="_blank">Thread Dumps</a>
+        </li>
+        <li>
+          <a href="http://{{baseIpAddress}}:7001/AdminProxyInfo" target="_blank">Admin Proxy Info</a>
+        </li>
+        <li>
+          <a href="http://{{baseIpAddress}}:7001/AdminProxyStatus" target="_blank">Admin Proxy Status</a>
+        </li>
+        <li>
+          <a href="http://{{baseIpAddress}}:7001/AdminGCViz/index" target="_blank">GC Visualization</a>
+        </li>
+        <li>
           <a href ng-click="ctrl.showConsoleOutput()">Console Output (Raw)</a>
+        </li>
+      </ul>
+    </collapsible-section>
+    <collapsible-section heading="Netflix Configuration" ng-if="baseIpAddress">
+      <ul>
+        <li>
+          <a href="http://{{baseIpAddress}}:8077/baseserver#view=props" target="_blank">Properties Console</a>
+        </li>
+        <li>
+          <a href="http://{{baseIpAddress}}:8077/baseserver#view=jars" target="_blank">Libraries Console</a>
+        </li>
+        <li>
+          <a href="http://{{baseIpAddress}}:8077/AdminNetflixConfiguration/machineReadableProps" target="_blank">Machine Readable Properties</a>
+        </li>
+        <li>
+          <a href="http://{{baseIpAddress}}:8077/AdminNetflixConfiguration/webapp/META-INF/MANIFEST.MF" target="_blank">Manifest</a>
         </li>
       </ul>
     </collapsible-section>

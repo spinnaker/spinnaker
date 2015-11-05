@@ -15,7 +15,20 @@ module.exports = angular
     require('./fastProperties/fastProperties.module.js'),
     require('./alert/alertHandler.js'),
     require('./feedback/feedback.module.js'),
+    require('./instance/aws/netflixAwsInstanceDetails.controller.js'),
     require('./pipeline/stage/canary/canaryStage.module.js'),
     require('./canary'),
     require('./application/applicationNav.module.js'),
-  ]).name;
+  ])
+  .run(function(cloudProviderRegistry) {
+    cloudProviderRegistry.overrideValue(
+      'aws',
+      'instance.detailsTemplateUrl',
+      require('./instance/aws/instanceDetails.html')
+    );
+    cloudProviderRegistry.overrideValue(
+      'aws',
+      'instance.detailsController',
+      'netflixAwsInstanceDetailsCtrl'
+    );
+  }).name;
