@@ -10,6 +10,7 @@ module.exports = angular.module('spinnaker.core.loadBalancer.directive', [
       restrict: 'E',
       templateUrl: require('./loadBalancer/loadBalancer.html'),
       scope: {
+        application: '=',
         loadBalancer: '=',
         serverGroups: '=',
       },
@@ -34,12 +35,18 @@ module.exports = angular.module('spinnaker.core.loadBalancer.directive', [
               return;
             }
             var params = {
+              application: scope.application.name,
               region: loadBalancer.region,
               accountId: loadBalancer.account,
               name: loadBalancer.name,
               vpcId: loadBalancer.vpcId,
               provider: loadBalancer.provider,
             };
+
+            if (angular.equals(scope.$state.params, params)) {
+              // already there
+              return;
+            }
             // also stolen from uiSref directive
             scope.$state.go('.loadBalancerDetails', params, {relative: base, inherit: true});
           });

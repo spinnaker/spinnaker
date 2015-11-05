@@ -17,6 +17,7 @@
   <div class="rollup-details">
     <div class="pod-subgroup" ng-repeat="subgroup in grouping.subgroups">
       <load-balancer
+          application="application"
           load-balancer="subgroup.loadBalancer"
           server-groups="subgroup.serverGroups"></load-balancer>
     </div>

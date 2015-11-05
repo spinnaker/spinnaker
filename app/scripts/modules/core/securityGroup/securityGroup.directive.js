@@ -9,6 +9,7 @@ module.exports = angular.module('spinnaker.core.securityGroup.directive', [])
       replace: true,
       templateUrl: require('./securityGroup.html'),
       scope: {
+        application: '=',
         securityGroup: '=',
         sortFilter: '='
       },
@@ -29,12 +30,18 @@ module.exports = angular.module('spinnaker.core.securityGroup.directive', [])
               return;
             }
             var params = {
+              application: scope.application.name,
               region: securityGroup.region,
               accountId: securityGroup.accountName,
               name: securityGroup.name,
               vpcId: securityGroup.vpcId,
               provider: securityGroup.provider,
             };
+
+            if (angular.equals(scope.$state.params, params)) {
+              // already there
+              return;
+            }
             // also stolen from uiSref directive
             scope.$state.go('.securityGroupDetails', params, {relative: base, inherit: true});
           });
