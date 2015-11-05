@@ -48,7 +48,8 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.oort.aws.data.Keys
-import groovy.util.logging.Slf4j
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.*
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.*
@@ -57,8 +58,8 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 
-@Slf4j
-class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
+class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, DriftMetric {
+  final Logger log = LoggerFactory.getLogger(getClass())
   @Deprecated
   private static final String LEGACY_ON_DEMAND_TYPE = 'AmazonServerGroup'
 
@@ -274,7 +275,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
     while (true) {
       def resp = clients.autoScaling.describeAutoScalingGroups(request)
       if (account.eddaEnabled) {
-        start = EddaSupport.parseLastModified(amazonClientProvider.lastResponseHeaders?.get("last-modified")?.get(0))
+        start = amazonClientProvider.lastModified ?: 0
       }
       asgs.addAll(resp.autoScalingGroups)
       if (resp.nextToken) {
@@ -286,7 +287,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
 
     if (!start) {
       if (account.eddaEnabled) {
-        log.warn("${agentType} did not receive last-modified header in response")
+        log.warn("${agentType} did not receive lastModified value in response metadata")
       }
       start = System.currentTimeMillis()
     }
@@ -404,10 +405,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
     }
 
     CacheResult result = buildCacheResult(asgs, scalingPolicies, scheduledActions, getSubnetToVpcIdMap(clients), usableOnDemandCacheDatas.collectEntries { [it.id, it] }, evictableOnDemandCacheDatas*.id)
-    if (start) {
-      long drift = new Date().time - start
-      log.info("${agentType}/drift - $drift milliseconds")
-    }
+    recordDrift(start)
     def cacheResults = result.cacheResults
     log.info("Caching ${cacheResults[APPLICATIONS.ns]?.size()} applications in ${agentType}")
     log.info("Caching ${cacheResults[CLUSTERS.ns]?.size()} clusters in ${agentType}")

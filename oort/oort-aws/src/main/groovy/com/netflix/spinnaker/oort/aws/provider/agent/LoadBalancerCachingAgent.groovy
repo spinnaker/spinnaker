@@ -41,6 +41,8 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 import groovy.util.logging.Slf4j
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
@@ -48,9 +50,8 @@ import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.LOAD_BALANCERS
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.ON_DEMAND
 
-@Slf4j
-class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
-
+class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, DriftMetric {
+  final Logger log = LoggerFactory.getLogger(getClass())
   @Deprecated
   private static final String LEGACY_ON_DEMAND_TYPE = 'AmazonLoadBalancer'
 
@@ -211,7 +212,7 @@ class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAw
     while (true) {
       def resp = loadBalancing.describeLoadBalancers(request)
       if (account.eddaEnabled) {
-        start = EddaSupport.parseLastModified(amazonClientProvider.lastResponseHeaders?.get("last-modified")?.get(0))
+        start = amazonClientProvider.lastModified ?: 0
       }
 
       allLoadBalancers.addAll(resp.loadBalancerDescriptions)
@@ -224,7 +225,7 @@ class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAw
 
     if (!start) {
       if (account.eddaEnabled) {
-        log.warn("${agentType} did not receive last-modified header in response")
+        log.warn("${agentType} did not receive lastModified value in response metadata")
       }
       start = System.currentTimeMillis()
     }
@@ -270,6 +271,7 @@ class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAw
         }
       }
     }
+    recordDrift(start)
     log.info("Caching ${instances.size()} instances in ${agentType}")
     log.info("Caching ${loadBalancers.size()} load balancers in ${agentType}")
     if (evictableOnDemandCacheDatas) {
