@@ -25,6 +25,9 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
 
     let application = $scope.application;
     this.application = application;
+    if ($scope.application.notFound) {
+      return;
+    }
 
     application.loadAllExecutions = true;
     application.reloadExecutions();
