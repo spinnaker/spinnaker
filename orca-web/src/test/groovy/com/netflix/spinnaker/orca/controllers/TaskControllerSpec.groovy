@@ -210,6 +210,7 @@ class TaskControllerSpec extends Specification {
 
     then:
     1 * front50Service.getPipelines(app) >> { [[id: "1"], [id: "2"]] }
+    1 * front50Service.getStrategies(app) >> { [] }
     1 * executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> rx.Observable.from(pipelines.findAll {it.pipelineConfigId == "1"}.collect {
       new Pipeline(id: it.id, executionStartTime: it.startTime, pipelineConfigId: it.pipelineConfigId, version: 2)
     })
