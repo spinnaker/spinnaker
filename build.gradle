@@ -18,17 +18,39 @@ apply plugin: 'nebula.os-package-base'
 
 
 ospackage {
-  packageName = "${project.applicationName}"
+
+// common installation paths 
+  def spinnakerHome = "/opt/" + project.applicationName
+
+// global package requirements
+  packageName = project.applicationName
   version = project.version.replaceAll("-SNAPSHOT", "")
   release '3'
-  into "/opt/${project.applicationName}"
-  from "."
+
+// installer scripts
+  installUtils = file('scripts/deb/utils.sh')
+  preInstall = file('scripts/deb/preInstall.sh')
+  postInstall = file('scripts/deb/postInstall.sh')
+  postUninstall = file('scripts/deb/postUninstall.sh')
+
+// files to put in the meta package
+  from('pylib') {
+    into spinnakerHome + '/pylib'
+  }
+
+  from('runtime/reconfigure_spinnaker.sh') {
+    into spinnakerHome + '/bin/reconfigure_spinnaker'
+    fileMode = 0755
+  }
+
 }
 
+
+// Ubuntu
 buildDeb {
   requires('python-pip')
   requires('openjdk-8-jre', '8u45-b14-1~14.04', EQUAL)
-  requires('cassandra', '2.1.9', EQUAL)
+  //requires('cassandra', '2.1.9', EQUAL)
   requires('cassandra-tools', '2.1.9', EQUAL)
   requires('dsc21', '2.1.9-1', EQUAL)
   requires('redis-server', '3.0.5', GREATER | EQUAL)
@@ -40,21 +62,14 @@ buildDeb {
   requires('orca')
   requires('rosco')
   requires('rush')
+  requires('apache2')
 
-
-  task redis_ppa(type: Exec) {
-  executable "sh"
-  args "-c", "echo 'deb http://ppa.launchpad.net/chris-lea/redis-server/ubuntu trusty main' > '/etc/apt/sources.list.d/chris-lea-redis-server.list'"
-}
 }
 
-task setupUbuntu(type: Deb) {
-    installUtils = file('scripts/deb/utils.sh')
-    preInstall = file('scripts/deb/preInstall.sh')
-    postInstall = file('scripts/deb/postInstall.sh')
-    postUninstall = file('scripts/deb/postUninstall.sh')
 }
 
+
+// TO DO 
 buildRpm {
   arch = NOARCH
   os = LINUX
