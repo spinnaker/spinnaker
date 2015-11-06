@@ -42,7 +42,8 @@ class HighlanderStrategy implements Strategy {
         cloudProvider                        : cleanupConfig.cloudProvider,
         shrinkToSize                         : 1,
         allowDeleteActive                    : true,
-        retainLargerOverNewer                : false
+        retainLargerOverNewer                : false,
+        interestingHealthProviderNames       : stage.context.interestingHealthProviderNames
     ]
     LinearStage.injectAfter(stage, "shrinkCluster", shrinkClusterStage, shrinkContext)
   }

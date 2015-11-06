@@ -36,7 +36,8 @@ class AbstractWaitForClusterWideClouddriverTaskSpec extends Specification {
 
   static class TestTask extends AbstractWaitForClusterWideClouddriverTask {
     @Override
-    boolean isServerGroupOperationInProgress(Optional<TargetServerGroup> serverGroup) {
+    boolean isServerGroupOperationInProgress(List<Map> interestingHealthProviderNames,
+                                             Optional<TargetServerGroup> serverGroup) {
       return serverGroup.isPresent()
     }
   }
