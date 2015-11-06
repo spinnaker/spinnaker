@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.clouddriver.pipeline.DetermineTargetServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.Nameable
 import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,6 +41,12 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
   }
 
   void composeTargets(Stage stage) {
+    if(stage.execution instanceof Pipeline && stage.execution.trigger.parameters?.strategy == true){
+      Map trigger = ((Pipeline) stage.execution).trigger
+      stage.context.regions = [trigger.parameters.region]
+      stage.context.cluster = trigger.parameters.cluster
+      stage.context.credentials = trigger.parameters.credentials
+    }
     def params = TargetServerGroup.Params.fromStage(stage)
     if (TargetServerGroup.isDynamicallyBound(stage)) {
       composeDynamicTargets(stage, params)

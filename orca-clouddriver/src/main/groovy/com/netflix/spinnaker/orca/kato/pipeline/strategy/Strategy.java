@@ -23,6 +23,7 @@ public enum Strategy implements StrategyFlowComposer{
   RED_BLACK("redblack"),
   HIGHLANDER("highlander"),
   ROLLING_PUSH("rollingpush"),
+  CUSTOM("custom"),
   NONE("none");
 
   String key;
@@ -48,7 +49,7 @@ public enum Strategy implements StrategyFlowComposer{
 
   @Override
   public boolean replacesBasicSteps() {
-    return this == ROLLING_PUSH;
+    return this == ROLLING_PUSH || this == CUSTOM;
   }
 
   @Override
@@ -64,6 +65,10 @@ public enum Strategy implements StrategyFlowComposer{
 
       case ROLLING_PUSH:
         builder.composeRollingPushFlow(stage);
+        break;
+
+      case CUSTOM:
+        builder.composeCustomFlow(stage);
         break;
     }
   }

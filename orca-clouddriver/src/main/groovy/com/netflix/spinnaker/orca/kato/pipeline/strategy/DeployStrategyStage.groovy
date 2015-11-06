@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.kato.pipeline.ModifyAsgLaunchConfigurationStag
 import com.netflix.spinnaker.orca.kato.pipeline.RollingPushStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
+import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
@@ -43,6 +44,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
   @Autowired ModifyAsgLaunchConfigurationStage modifyAsgLaunchConfigurationStage
   @Autowired RollingPushStage rollingPushStage
   @Autowired DeprecationRegistry deprecationRegistry
+  @Autowired PipelineStage pipelineStage
 
   @Autowired ShrinkClusterStage shrinkClusterStage
   @Autowired ScaleDownClusterStage scaleDownClusterStage
@@ -163,6 +165,34 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
     if (terminationConfig.relaunchAllInstances || terminationConfig.totalRelaunches > 0) {
       injectAfter(stage, "rollingPush", rollingPushStage, modifyCtx)
     }
+  }
+
+  protected void composeCustomFlow(Stage stage) {
+
+    def cleanupConfig = determineClusterForCleanup(stage)
+
+    Map parameters = [
+      application                            : stage.context.application,
+      credentials                            : cleanupConfig.account,
+      cluster                                : cleanupConfig.cluster,
+      region : cleanupConfig.region,
+      cloudProvider                          : cleanupConfig.cloudProvider,
+      strategy                               : true,
+      parentPipelineId                       : stage.execution.id,
+      parentStageId                          : stage.id
+    ]
+
+    if(stage.context.pipelineParameters){
+      parameters.putAll(stage.context.pipelineParameters as Map)
+    }
+
+    Map modifyCtx = [
+      pipelineApplication: stage.context.strategyApplication,
+      pipelineId         : stage.context.strategyPipeline,
+      pipelineParameters : parameters
+    ]
+
+    injectAfter(stage, "pipeline", pipelineStage, modifyCtx)
   }
 
   @CompileDynamic

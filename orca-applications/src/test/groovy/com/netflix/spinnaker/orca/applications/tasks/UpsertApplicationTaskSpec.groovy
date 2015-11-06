@@ -15,15 +15,15 @@
  */
 
 
-package com.netflix.spinnaker.orca.front50.tasks
+package com.netflix.spinnaker.orca.applications.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
-import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.front50.model.Front50Credential
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.front50.model.Application
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject

@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.front50.pipeline
+package com.netflix.spinnaker.orca.applications.pipelines
 
-import com.netflix.spinnaker.orca.front50.tasks.DeleteApplicationTask
-import com.netflix.spinnaker.orca.front50.tasks.VerifyApplicationHasNoDependenciesTask
+import com.netflix.spinnaker.orca.applications.tasks.UpsertApplicationTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
@@ -26,17 +25,15 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class DeleteApplicationStage extends LinearStage {
-  public static final String PIPELINE_CONFIG_TYPE = "deleteApplication"
+class UpsertApplicationStage extends LinearStage {
+  public static final String PIPELINE_CONFIG_TYPE = "upsertApplication"
 
-  DeleteApplicationStage() {
+  UpsertApplicationStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "verifyNoDependencies", VerifyApplicationHasNoDependenciesTask)
-    def step2 = buildStep(stage, "deleteApplication", DeleteApplicationTask)
-    [step1, step2]
+    [buildStep(stage, "upsertApplicationTask", UpsertApplicationTask)]
   }
 }

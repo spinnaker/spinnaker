@@ -37,4 +37,12 @@ class Location {
   String pluralType() {
     return this.type.toString().toLowerCase() + "s"
   }
+
+  /**
+   * @return The all lowercase, plural form of this location type ("region" or "zone")
+   */
+  @JsonIgnore
+  String singularType() {
+    return this.type.toString().toLowerCase()
+  }
 }

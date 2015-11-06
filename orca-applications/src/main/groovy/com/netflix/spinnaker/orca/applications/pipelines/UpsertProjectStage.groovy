@@ -15,7 +15,7 @@
  */
 
 
-package com.netflix.spinnaker.orca.front50.pipeline
+package com.netflix.spinnaker.orca.applications.pipelines
 
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.DefaultTaskResult

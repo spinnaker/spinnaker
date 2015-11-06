@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.front50.tasks
+package com.netflix.spinnaker.orca.applications.tasks
 
 import groovy.util.logging.Slf4j
 import com.fasterxml.jackson.databind.ObjectMapper

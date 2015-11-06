@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.front50.pipeline
+package com.netflix.spinnaker.orca.applications.pipelines
 
-import com.netflix.spinnaker.orca.front50.tasks.UpsertApplicationTask
+import com.netflix.spinnaker.orca.applications.tasks.UpsertApplicationTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
@@ -25,15 +25,15 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class UpdateApplicationStage extends LinearStage {
-  public static final String PIPELINE_CONFIG_TYPE = "updateApplication"
+class CreateApplicationStage extends LinearStage {
+  public static final String PIPELINE_CONFIG_TYPE = "createApplication"
 
-  UpdateApplicationStage() {
+  CreateApplicationStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    [buildStep(stage, "updateApplication", UpsertApplicationTask)]
+    [buildStep(stage, "createApplication", UpsertApplicationTask)]
   }
 }

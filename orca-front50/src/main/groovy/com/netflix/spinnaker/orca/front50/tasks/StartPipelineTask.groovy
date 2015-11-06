@@ -40,11 +40,29 @@ class StartPipelineTask implements Task {
   @Override
   TaskResult execute(Stage stage) {
 
-    String application = stage.context.application
-    List pipelines = front50Service.getPipelines(application)
-    Map pipelineConfig = pipelines.find { it.id == stage.context.pipeline }
+    String application = stage.context.pipelineApplication ?: stage.context.application
+    String pipelineId = stage.context.pipelineId ?: stage.context.pipeline
+    Boolean isStrategy = stage.context.pipelineParameters?.strategy ?: false
 
-    def pipeline = dependentPipelineStarter.trigger(pipelineConfig, stage.context.user, stage.execution, stage.context.pipelineParameters)
+    List pipelines = isStrategy ? front50Service.getStrategies(application) : front50Service.getPipelines(application)
+    Map pipelineConfig = pipelines.find { it.id == pipelineId }
+
+    def parameters = stage.context.pipelineParameters ?: [:]
+
+    if(stage.context.pipelineParameters?.strategy == true) {
+      def deploymentDetails = stage.context.deploymentDetails?.collect { Map it ->
+        [region: it.region, ami: it.ami, imageName: it.imageName]
+      } ?: [:]
+
+      if (!deploymentDetails.empty) {
+        parameters.deploymentDetails = deploymentDetails
+      }
+      if (!parameters.amiName && parameters.region) {
+        parameters.amiName = deploymentDetails.find { it.region == parameters.region }.ami
+      }
+    }
+
+    def pipeline = dependentPipelineStarter.trigger(pipelineConfig, stage.context.user, stage.execution, parameters)
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [executionId: pipeline.id, executionName: pipelineConfig.name])
 

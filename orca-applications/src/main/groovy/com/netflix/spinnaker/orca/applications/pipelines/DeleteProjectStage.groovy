@@ -15,7 +15,7 @@
  */
 
 
-package com.netflix.spinnaker.orca.front50.pipeline
+package com.netflix.spinnaker.orca.applications.pipelines
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
