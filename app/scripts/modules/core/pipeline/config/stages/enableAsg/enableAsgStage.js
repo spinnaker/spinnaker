@@ -14,7 +14,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.enableAsgStage', 
       useBaseProvider: true,
       key: 'enableServerGroup',
       label: 'Enable Server Group',
-      description: 'Enables a server group'
+      description: 'Enables a server group',
+      strategy: true,
     });
   })
   .name;

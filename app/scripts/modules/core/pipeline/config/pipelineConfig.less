@@ -98,6 +98,13 @@ pipeline-configurer {
     right: 30px;
     .fade-in(0.15, 0.4); // hack: prevent shifting of actions button during sliding animation
   }
+
+  .create-action {
+    position: absolute;
+    top: 30px;
+    right: 140px;
+    .fade-in(0.15, 0.4); // hack: prevent shifting of actions button during sliding animation
+  }
 }
 
 .nav-pipeline-config {
@@ -281,12 +288,3 @@ pipeline-config-errors {
   }
 }
 
-.nav-popover-menu {
-  create-pipeline-button {
-    .btn {
-      border-radius: 0;
-      border-top-width: 2px;
-      width: 100%;
-    }
-  }
-}

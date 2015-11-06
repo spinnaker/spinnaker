@@ -19,6 +19,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', []
       validators: [
         { type: 'requiredField', fieldName: 'job', },
       ],
+      strategy: true,
     });
   }).controller('JenkinsStageCtrl', function($scope, stage, igorService, _) {
 

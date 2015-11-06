@@ -8,17 +8,12 @@
          ng-click="navMenuState.showMenu = !navMenuState.showMenu"
          ng-blur="pipelineConfigurerCtrl.hideNavigationMenu()">
         {{pipeline.name}}
-        <span class="small glyphicon glyphicon-chevron-{{navMenuState.showMenu ? 'up' : 'down'}}"></span>
       </a>
-      <div class="nav-popover-menu list-group" ng-if="navMenuState.showMenu" style="top: 70px">
-        <a href
-           class="list-group-item"
-           ng-repeat="pipeline in application.pipelineConfigs"
-           ui-sref="^.pipelineConfig({pipelineId: pipeline.id})">{{pipeline.name}}</a>
-        <create-pipeline-button application="application"></create-pipeline-button>
-      </div>
       <pipeline-config-errors pipeline="pipeline"></pipeline-config-errors>
     </h3>
+    <div class="create-action">
+      <create-new application="application"></create-new>
+    </div>
     <div class="pipeline-actions text-right">
       <div ng-include="pipelineConfigurerCtrl.actionsTemplateUrl"></div>
     </div>
@@ -29,8 +24,8 @@
         <ul class="nav-pipeline-config">
           <li class="config-section">
             <a href class="btn btn-default"
-                    ng-class="{active: pipelineConfigurerCtrl.isActive('triggers') }"
-                    ng-click="pipelineConfigurerCtrl.navigateTo({section: 'triggers'})">
+               ng-class="{active: pipelineConfigurerCtrl.isActive('triggers') }"
+               ng-click="pipelineConfigurerCtrl.navigateTo({section: 'triggers'})">
               <span class="glyphicon glyphicon-certificate"></span> Configuration
             </a>
           </li>
@@ -38,8 +33,8 @@
             <h4>Stages</h4>
             <div class="sortable-stages" ui-sortable="stageSortOptions" ng-model="pipeline.stages">
               <a href ng-repeat="stage in pipeline.stages" class="btn btn-default"
-                      ng-click="pipelineConfigurerCtrl.navigateToStage($index, $event)"
-                      ng-class="{'active': pipelineConfigurerCtrl.stageIsActive($index)}">
+                 ng-click="pipelineConfigurerCtrl.navigateToStage($index, $event)"
+                 ng-class="{'active': pipelineConfigurerCtrl.stageIsActive($index)}">
                 {{$index+1}}: {{stage.name || '[Unnamed Stage]'}}
                 <span ng-if="stage.restrictExecutionDuringTimeWindow"
                       class="glyphicon glyphicon-time small" uib-tooltip="This stage is configured to only run during specified windows"></span>

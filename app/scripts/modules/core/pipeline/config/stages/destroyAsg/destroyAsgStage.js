@@ -14,7 +14,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.destroyAsgStage',
       useBaseProvider: true,
       key: 'destroyServerGroup',
       label: 'Destroy Server Group',
-      description: 'Destroys a server group'
+      description: 'Destroys a server group',
+      strategy: true,
     });
   })
   .name;

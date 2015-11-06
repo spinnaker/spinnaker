@@ -14,5 +14,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.create.c
       templateUrl: require('./createPipelineButton.html'),
       controller: 'CreatePipelineButtonCtrl',
       controllerAs: 'buttonCtrl',
+      replace: true,
     };
   }).name;

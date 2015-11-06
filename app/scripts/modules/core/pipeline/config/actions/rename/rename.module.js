@@ -24,13 +24,14 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.rename',
 
     this.renamePipeline = function() {
       pipeline.name = $scope.newName;
-      return pipelineConfigService.renamePipeline(application.name, currentName, $scope.command.newName).then(
+      return pipelineConfigService.renamePipeline(application.name, pipeline, currentName, $scope.command.newName).then(
         function() {
           $scope.pipeline.name = $scope.command.newName;
           if (dirtyPipelineTracker.list().indexOf(currentName) > -1) {
             dirtyPipelineTracker.remove(currentName);
             dirtyPipelineTracker.add(pipeline.name);
           }
+          application.reloadPipelineConfigs();
           $modalInstance.close();
         },
         function(response) {

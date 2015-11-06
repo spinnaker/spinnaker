@@ -24,6 +24,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.scaleDownClusterS
         { type: 'requiredField', fieldName: 'regions', },
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
+      strategy: true,
     });
   }).controller('ScaleDownClusterStageCtrl', function($scope, stage, accountService, stageConstants, _) {
     var ctrl = this;

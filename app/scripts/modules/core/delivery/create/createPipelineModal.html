@@ -1,7 +1,7 @@
 <div modal-page>
   <modal-close></modal-close>
   <div class="modal-header">
-    <h3>Create Pipeline</h3>
+    <h3>Create New {{command.strategy === true ?'Strategy':'Pipeline'}}</h3>
   </div>
   <div class="modal-body">
     <div class="alert alert-danger" ng-if="viewState.saveError">
@@ -12,7 +12,17 @@
     <form role="form" name="form" class="form-horizontal" ng-submit="createPipelineModalCtrl.createPipeline()">
       <div class="form-group">
         <div class="col-md-3 sm-label-left">
-          <b>Pipeline Name</b>
+          <b>Type</b>
+        </div>
+        <div class="col-md-7">
+          <select name="singleSelect" ng-model="command.strategy"
+            ng-options="o.v as o.n for o in [{ n: 'Pipeline', v: false }, { n: 'Strategy', v: true }]">
+         </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-3 sm-label-left">
+          <b>{{command.strategy === true ?'Strategy':'Pipeline'}} Name</b>
         </div>
         <div class="col-md-7">
           <input type="text" class="form-control input-sm"
@@ -26,17 +36,17 @@
       <div class="form-group row slide-in animated" ng-if="form.name.$error.pattern">
         <div class="col-sm-9 col-sm-offset-3 error-message">
           <div>
-            Pipeline name cannot contain any of the following characters:
+            {{command.strategy === true ?'Strategy':'Pipeline'}} name cannot contain any of the following characters:
           </div>
           <code>/  \  ?  %  #</code>
         </div>
       </div>
       <div class="form-group row slide-in animated" ng-if="form.name.$error.validateUnique">
         <div class="col-sm-9 col-sm-offset-3 error-message">
-          <span>There is already a pipeline with that name.</span>
+          <span>There is already a {{command.strategy === true ?'strategy':'pipeline'}} with that name.</span>
         </div>
       </div>
-      <div class="form-group" ng-if="templates.length > 1">
+      <div class="form-group" ng-if="templates.length > 1 && command.strategy === false">
         <div class="col-md-3 sm-label-left">
           <b>Template</b>
         </div>
@@ -58,7 +68,7 @@
           </ui-select>
         </div>
       </div>
-      <div class="checkbox col-md-offset-3" ng-if="!command.template.id">
+      <div class="checkbox col-md-offset-3" ng-if="!command.template.id && command.strategy === false">
         <label>
           <input type="checkbox" ng-model="command.parallel"/>
           Enable parallel stage execution
@@ -73,7 +83,7 @@
     <button class="btn btn-primary"
             ng-disabled="form.$invalid"
             ng-click="createPipelineModalCtrl.createPipeline()">
-      <span class="glyphicon glyphicon-ok-circle"></span> Create Pipeline
+      <span class="glyphicon glyphicon-ok-circle"></span> Create {{command.strategy === true ?'Strategy':'Pipeline'}}
     </button>
   </div>
 </div>

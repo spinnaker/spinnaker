@@ -1,0 +1,14 @@
+<div class="dropdown pull-left" style="margin-right:10px"  uib-dropdown>
+    <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
+        Configure <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu" role="menu">
+        <li><create-pipeline-button application="application"></create-pipeline-button></li>
+        <li class="dropdown-header" style="margin-top:0px" ng-if="application.pipelineConfigs.length">Pipelines</li>
+        <li ng-repeat="pipeline in application.pipelineConfigs"><a href
+                                                                   ui-sref="^.pipelineConfig({pipelineId: pipeline.id})">{{pipeline.name}}</a></li>
+        <li class="dropdown-header" style="margin-top:0px" ng-if="application.strategyConfigs.length">Deployment Strategies</li>
+        <li  ng-repeat="pipeline in application.strategyConfigs"><a href
+                                                                    ui-sref="^.pipelineConfig({pipelineId: pipeline.id})">{{pipeline.name}}</a></li>
+    </ul>
+</div>

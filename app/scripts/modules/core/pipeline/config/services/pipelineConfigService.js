@@ -20,27 +20,41 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
     }
 
     function getPipelinesForApplication(applicationName) {
-      return Restangular.one('applications', applicationName).all('pipelineConfigs').getList().then(function(pipelines) {
-        var sorted = _.sortByAll(pipelines, ['index', 'name']);
-        // if there are pipelines with a bad index, fix that
-        var misindexed = [];
-        if (sorted && sorted.length) {
-          sorted.forEach(function (pipeline, index) {
-            if (pipeline.index !== index) {
-              pipeline.index = index;
-              misindexed.push(savePipeline(pipeline));
-            }
-          });
-          if (misindexed.length) {
-            return $q.all(misindexed).then(function() { return sorted; });
-          }
-        }
-        return sorted;
+      return Restangular.one('applications', applicationName).all('pipelineConfigs').getList().then(function (pipelines) {
+        return sortPipelines(pipelines);
       });
     }
 
-    function deletePipeline(applicationName, pipelineName) {
-      return Restangular.all('pipelines').one(applicationName, pipelineName).remove();
+    function getStrategiesForApplication(applicationName) {
+      return Restangular.one('applications', applicationName).all('strategyConfigs').getList().then(function (pipelines) {
+        return sortPipelines(pipelines);
+      });
+    }
+
+    function sortPipelines(pipelines) {
+
+      var sorted = _.sortByAll(pipelines, ['index', 'name']);
+
+      // if there are pipelines with a bad index, fix that
+      var misindexed = [];
+      if (sorted && sorted.length) {
+        sorted.forEach(function (pipeline, index) {
+          if (pipeline.index !== index) {
+            pipeline.index = index;
+            misindexed.push(savePipeline(pipeline));
+          }
+        });
+        if (misindexed.length) {
+          return $q.all(misindexed).then(function () {
+            return sorted;
+          });
+        }
+      }
+      return sorted;
+    }
+
+    function deletePipeline(applicationName, pipeline, pipelineName) {
+      return Restangular.all(pipeline.strategy ? 'strategies' : 'pipelines').one(applicationName, pipelineName).remove();
     }
 
     function savePipeline(pipeline) {
@@ -51,12 +65,12 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
           delete stage.name;
         }
       });
-      return Restangular.all('pipelines').post(pipeline);
+      return Restangular.all( pipeline.strategy ? 'strategies' : 'pipelines').post(pipeline);
     }
 
-    function renamePipeline(applicationName, currentName, newName) {
+    function renamePipeline(applicationName, pipeline, currentName, newName) {
       configViewStateCache.remove(buildViewStateCacheKey(applicationName, currentName));
-      return Restangular.all('pipelines').all('move').post({
+      return Restangular.all(pipeline.strategy ? 'strategies' : 'pipelines').all('move').post({
         application: applicationName,
         from: currentName,
         to: newName
@@ -147,6 +161,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
 
     return {
       getPipelinesForApplication: getPipelinesForApplication,
+      getStrategiesForApplication: getStrategiesForApplication,
       savePipeline: savePipeline,
       deletePipeline: deletePipeline,
       renamePipeline: renamePipeline,
