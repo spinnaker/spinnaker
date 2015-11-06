@@ -25,6 +25,29 @@ ospackage {
   from "."
 }
 
+buildDeb {
+  requires('python-pip')
+  requires('openjdk-8-jre', '8u45-b14-1~14.04', EQUAL)
+  requires('cassandra', '2.1.9', EQUAL)
+  requires('cassandra-tools', '2.1.9', EQUAL)
+  requires('dsc21', '2.1.9-1', EQUAL)
+  requires('redis-server', '3.0.5', GREATER | EQUAL)
+  requires('clouddriver')
+  requires('deck')
+  requires('echo')
+  requires('front50')
+  requires('igor')
+  requires('orca')
+  requires('rosco')
+  requires('rush')
+
+
+  task redis_ppa(type: Exec) {
+  executable "sh"
+  args "-c", "echo 'deb http://ppa.launchpad.net/chris-lea/redis-server/ubuntu trusty main' > '/etc/apt/sources.list.d/chris-lea-redis-server.list'"
+}
+}
+
 task setupUbuntu(type: Deb) {
     installUtils = file('scripts/deb/utils.sh')
     preInstall = file('scripts/deb/preInstall.sh')
