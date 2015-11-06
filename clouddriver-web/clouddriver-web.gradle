@@ -66,8 +66,9 @@ ospackage {
   into "/opt/${project.applicationName}"
   from ("${project.buildDir}/install/${project.applicationName}")
 
-  postInstall("install  --mode=755 --owner=spinnaker --group=spinnaker --directory  /var/log/spinnaker/clouddriver")
-  postUninstall("rm -rf /var/log/spinnaker/clouddriver")
+// installer scripts
+  postInstall = file('scripts/postInstall.sh')
+  postUninstall = file('scripts/postUninstall.sh')
 
   from(file('src/main/resources/clouddriver.conf')) {
     into('/etc/init')
