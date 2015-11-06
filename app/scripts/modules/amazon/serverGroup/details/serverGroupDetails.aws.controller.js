@@ -9,6 +9,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('../../../core/application/modal/platformHealthOverride.directive.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/serverGroup/serverGroup.write.service.js'),
+  require('../../../core/serverGroup/details/serverGroupWarningMessage.service.js'),
   require('../../../core/utils/lodash.js'),
   require('../../vpc/vpcTag.directive.js'),
   require('./scalingProcesses/autoScalingProcess.service.js'),
@@ -26,7 +27,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup, InsightFilterStateModel,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $uibModal, confirmationModalService, _, serverGroupWriter,
-                                                     subnetReader, autoScalingProcessService, runningExecutionsService) {
+                                                     subnetReader, autoScalingProcessService, runningExecutionsService, serverGroupWarningMessageService) {
 
     $scope.state = {
       loading: true
@@ -187,10 +188,9 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
       });
     };
 
-    this.getBodyTemplate = function(serverGroup, app) {
-      if(this.isLastServerGroupInRegion(serverGroup, app)){
-        var template = $templateCache.get(require('../../../core/serverGroup/details/deleteLastServerGroupWarning.html'));
-        return $interpolate(template)({deletingServerGroup: serverGroup});
+    this.getBodyTemplate = (serverGroup, app) => {
+      if (this.isLastServerGroupInRegion(serverGroup, app)){
+        return serverGroupWarningMessageService.getMessage(serverGroup);
       }
     };
 
