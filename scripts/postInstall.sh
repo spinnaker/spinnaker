@@ -1,26 +1,15 @@
-#!/bin/bash
+#!/bin/sh
 
-dist=`gawk -F= '/^NAME/{print $2}' /etc/os-release`
 
-if [[ "$dist" == *Ubuntu* ]]; then
+# Apache
 
-  # Apache
+a2enmod http_proxy
 
-  a2enmod http_proxy
+# Copy vhosts
 
-  # Copy vhosts
+# Restart apache
 
-  # Restart apache
+# Install cassandra keyspaces
 
-  # Install cassandra keyspaces
+# Start all the services 
 
-  # Start all the services 
-
-  # test dir created to test block execution
-  mkdir -p /home/ubuntu/3
-
-fi
-
-if [[ "$dist" == *"Amazon Linux AMI"* ]]; then
-  echo "Amazon Linux AMI"
-fi
