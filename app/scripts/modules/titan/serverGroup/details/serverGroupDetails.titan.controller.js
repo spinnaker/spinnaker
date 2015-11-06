@@ -7,6 +7,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
   require('angular-ui-router'),
   require('../configure/ServerGroupCommandBuilder.js'),
   require('../../../core/serverGroup/serverGroup.read.service.js'),
+  require('../../../core/serverGroup/details/serverGroupWarningMessage.service.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../core/serverGroup/configure/common/runningExecutions.service.js'),
@@ -18,7 +19,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
 ])
   .controller('titanServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup, InsightFilterStateModel,
                                                      titanServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, _, serverGroupWriter,
-                                                       runningExecutionsService) {
+                                                       runningExecutionsService, serverGroupWarningMessageService) {
 
     let application = app;
 
@@ -127,10 +128,9 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
       });
     };
 
-    this.getBodyTemplate = function(serverGroup, application) {
-      if(this.isLastServerGroupInRegion(serverGroup, application)){
-        var template = $templateCache.get(require('../../../core/serverGroup/details/deleteLastServerGroupWarning.html'));
-        return $interpolate(template)({deletingServerGroup: serverGroup});
+    this.getBodyTemplate = (serverGroup, application) => {
+      if (this.isLastServerGroupInRegion(serverGroup, application)){
+        return serverGroupWarningMessageService.getMessage(serverGroup);
       }
     };
 
