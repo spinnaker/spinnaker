@@ -71,7 +71,7 @@ class _KatoStatus(sk.SpinnakerStatus):
       self._error = 'Invalid response="{0}"'.format(original_response)
       self._finished = True
       self._failed = True
-      self._current_state = 'INTERNAL_ERROR'
+      self._current_state = 'CITEST_INTERNAL_ERROR'
 
   def _update_response_from_json(self, doc):
     """Updates abstract SpinnakerStatus attributes from a Kato response.

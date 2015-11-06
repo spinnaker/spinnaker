@@ -17,8 +17,8 @@ import json
 from . import spinnaker as sk
 
 
-class _GateStatus(sk.SpinnakerStatus):
-  """Specialization of sk.SpinnakerStatus for accessing Gate status."""
+class GateTaskStatus(sk.SpinnakerStatus):
+  """Specialization of sk.SpinnakerStatus for accessing Gate 'tasks' status."""
 
   @classmethod
   def new(cls, operation, original_response):
@@ -31,7 +31,7 @@ class _GateStatus(sk.SpinnakerStatus):
     Returns:
       sk.SpinnakerStatus for handling status from a Gate request.
     """
-    return _GateStatus(operation, original_response)
+    return GateTaskStatus(operation, original_response)
 
   @property
   def timed_out(self):
@@ -56,7 +56,7 @@ class _GateStatus(sk.SpinnakerStatus):
       operation: The operation this status is for.
       original_response: The original JSON string with the status identifier.
     """
-    super(_GateStatus, self).__init__(operation, original_response)
+    super(GateTaskStatus, self).__init__(operation, original_response)
 
     doc = None
     try:
@@ -71,7 +71,7 @@ class _GateStatus(sk.SpinnakerStatus):
       self._request_id = self._detail_path
     else:
       self._error = "Invalid response='{0}'".format(original_response)
-      self._current_state = 'INTERNAL_ERROR'
+      self._current_state = 'CITEST_INTERNAL_ERROR'
 
   def _update_response_from_json(self, doc):
     """Updates abstract sk.SpinnakerStatus attributes from a Gate response.
@@ -100,6 +100,78 @@ class _GateStatus(sk.SpinnakerStatus):
               break
 
     self._exception_details = exception_details or kato_exception
+
+
+class GatePipelineStatus(sk.SpinnakerStatus):
+  """Specialization of sk.SpinnakerStatus for accessing Gate 'pipelines' status."""
+
+  @classmethod
+  def new(cls, operation, original_response):
+    """Factory method.
+
+    Args:
+      operation: The operation this status is for.
+      original_response: The original JSON string with the status identifier.
+
+    Returns:
+      sk.SpinnakerStatus for handling status from a Gate request.
+    """
+    return GatePipelineStatus(operation, original_response)
+
+  @property
+  def timed_out(self):
+    """True if status indicates the request timed out."""
+    return (self.current_state == 'TERMINAL'
+            and str(self.detail).find(' timed out.') > 0)
+
+  @property
+  def finished(self):
+    """True if status indicates the request has finished."""
+    return not self._current_state in ["NOT_STARTED", "RUNNING", None]
+
+  @property
+  def finished_ok(self):
+    """True if status indicates the request has finished successfully."""
+    return self._current_state == 'SUCCEEDED'
+
+  def __init__(self, operation, original_response=None):
+    """Construct a new Gate request status.
+
+    Args:
+      operation: The operation this status is for.
+      original_response: The original JSON string with the status identifier.
+    """
+    super(GatePipelineStatus, self).__init__(operation, original_response)
+
+    doc = None
+    try:
+      doc = json.JSONDecoder().decode(original_response.output)
+    except ValueError:
+      pass
+    except TypeError:
+      pass
+
+    if isinstance(doc, dict):
+      self._detail_path = doc['ref']
+      self._request_id = self._detail_path
+    else:
+      self._error = "Invalid response='{0}'".format(original_response)
+      self._current_state = 'CITEST_INTERNAL_ERROR'
+
+  def _update_response_from_json(self, doc):
+    """Updates abstract sk.SpinnakerStatus attributes from a Gate response.
+
+    This is called by the base class.
+
+    Args:
+       doc: JSON Document object read from response payload.
+    """
+    self._current_state = doc['status']
+    self._exception_details = None
+
+    # TODO(ewiseblatt): Not sure what these look like yet.
+    exception_details = None
+    self._exception_details = exception_details
 
 
 class GateAgent(sk.SpinnakerAgent):
@@ -193,6 +265,6 @@ def new_agent(bindings, port=8084):
        account_name: The account name that Spinnaker is configured to use.
   """
   spinnaker = GateAgent.new_instance_from_bindings(
-      'gate', _GateStatus.new, bindings, port)
+      'gate', GateTaskStatus.new, bindings, port)
   return spinnaker
 
