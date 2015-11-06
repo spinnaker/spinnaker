@@ -28,10 +28,10 @@ ospackage {
   release '3'
 
 // installer scripts
-  installUtils = file('scripts/deb/utils.sh')
-  preInstall = file('scripts/deb/preInstall.sh')
-  postInstall = file('scripts/deb/postInstall.sh')
-  postUninstall = file('scripts/deb/postUninstall.sh')
+  installUtils = file('scripts/utils.sh')
+  preInstall = file('scripts/preInstall.sh')
+  postInstall = file('scripts/postInstall.sh')
+  postUninstall = file('scripts/postUninstall.sh')
 
 // files to put in the meta package
   from('pylib') {
@@ -63,9 +63,7 @@ buildDeb {
   requires('rosco')
   requires('rush')
   requires('apache2')
-
-}
-
+  
 }
 
 
