@@ -24,7 +24,7 @@
           <td if-multiple-providers>
             <cloud-provider-logo provider="cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws'"
                                  width="14px" height="14px"></cloud-provider-logo>
-            {{cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws' }}
+            <cloud-provider-label provider="cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws'"></cloud-provider-label>
           </td>
           <td>
             <account-tag account="cluster.account" provider="cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws'"></account-tag>

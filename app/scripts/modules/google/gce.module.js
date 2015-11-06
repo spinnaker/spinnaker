@@ -42,6 +42,7 @@ module.exports = angular.module('spinnaker.gce', [
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('gce', {
+      name: 'Google',
       logo: {
         path: require('./logo/gce.logo.png'),
       },

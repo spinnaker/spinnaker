@@ -44,6 +44,7 @@ module.exports = angular.module('spinnaker.aws', [
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('aws', {
+      name: 'Amazon',
       logo: {
         path: require('./logo/aws.logo.png'),
       },
