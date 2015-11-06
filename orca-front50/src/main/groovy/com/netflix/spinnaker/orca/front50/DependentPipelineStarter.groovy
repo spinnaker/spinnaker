@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.front50
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import groovy.util.logging.Slf4j
@@ -34,7 +35,7 @@ class DependentPipelineStarter {
   @Autowired
   PipelineStarter pipelineStarter
 
-  Pipeline trigger(Map pipelineConfig, String user, Pipeline parentPipeline, Map suppliedParameters) {
+  Pipeline trigger(Map pipelineConfig, String user, Execution parentPipeline, Map suppliedParameters) {
     def json = objectMapper.writeValueAsString(pipelineConfig)
     log.info('triggering dependant pipeline {}:{}', pipelineConfig.id, json)
 
@@ -42,11 +43,16 @@ class DependentPipelineStarter {
       type                     : "pipeline",
       user                     : user ?: '[anonymous]',
       parentPipelineId         : parentPipeline.id,
-      parentPipelineName       : parentPipeline.name,
       parentPipelineApplication: parentPipeline.application,
       parentStatus             : parentPipeline.status,
-      parentExecution          : parentPipeline
+      parentExecution          : parentPipeline,
+      isPipeline               : false
     ]
+
+    if( parentPipeline instanceof Pipeline){
+      pipelineConfig.trigger.name = parentPipeline.name
+      pipelineConfig.trigger.isPipeline = true
+    }
 
     if (pipelineConfig.parameterConfig) {
       if (!pipelineConfig.trigger.parameters) {

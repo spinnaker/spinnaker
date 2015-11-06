@@ -103,7 +103,11 @@ class ParallelDeployStage extends ParallelStage {
       }
       Map cluster = parentStage.context as Map
       cluster.strategy = 'none'
-      cluster.amiName = stage.execution.appConfig.deploymentDetails.find{ it.region ==  stage.execution.appConfig.strategyConfig.region }.ami
+      if(!cluster.amiName) {
+        cluster.amiName = stage.execution.appConfig.deploymentDetails.find {
+          it.region == stage.execution.appConfig.strategyConfig.region
+        }.ami
+      }
       stage.context.clusters = [cluster as Map<String, Object>]
     }
 
