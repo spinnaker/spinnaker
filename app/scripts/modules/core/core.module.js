@@ -49,6 +49,7 @@ module.exports = angular
 
     require('./cache/caches.module.js'),
     require('./cloudProvider/cloudProviderLogo.directive.js'),
+    require('./cloudProvider/cloudProviderLabel.directive.js'),
     require('./cloudProvider/serviceDelegate.service.js'),
     require('./cluster/cluster.module.js'),
     require('./config/settings.js'),

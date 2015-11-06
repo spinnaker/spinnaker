@@ -28,6 +28,7 @@ module.exports = angular.module('spinnaker.cf', [
 ])
     .config(function(cloudProviderRegistryProvider) {
         cloudProviderRegistryProvider.registerProvider('cf', {
+            name: 'Cloud Foundry',
             logo: {
                 path: require('./logo_cf.png'),
             },
