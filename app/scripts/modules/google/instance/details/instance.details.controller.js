@@ -420,17 +420,6 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       });
     };
 
-    this.showConsoleOutput = function  () {
-      $uibModal.open({
-        templateUrl: require('../../../core/instance/details/console/consoleOutput.modal.html'),
-        controller: 'ConsoleOutputCtrl as ctrl',
-        size: 'lg',
-        resolve: {
-          instance: function() { return $scope.instance; },
-        }
-      });
-    };
-
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
       var instance = $scope.instance;
       return (instance.health.some(function (health) {
