@@ -25,26 +25,6 @@ describe('Controller: cfCreateLoadBalancerCtrl', function () {
     this.wizardService = _modalWizardService_;
   }));
 
-  it('requires health check path for HTTP/S', function () {
-    var loadBalancer = {
-      healthCheckProtocol: 'HTTP'
-    };
-
-    this.$scope.loadBalancer = loadBalancer;
-
-    expect(this.ctrl.requiresHealthCheckPath()).toBe(true);
-
-    loadBalancer.healthCheckProtocol = 'HTTPS';
-    expect(this.ctrl.requiresHealthCheckPath()).toBe(true);
-
-    loadBalancer.healthCheckProtocol = 'SSL';
-    expect(this.ctrl.requiresHealthCheckPath()).toBe(false);
-
-    loadBalancer.healthCheckProtocol = 'TCP';
-    expect(this.ctrl.requiresHealthCheckPath()).toBe(false);
-
-  });
-
   it('should update name', function() {
     var lb = this.$scope.loadBalancer;
     expect(lb).toBeDefined();
