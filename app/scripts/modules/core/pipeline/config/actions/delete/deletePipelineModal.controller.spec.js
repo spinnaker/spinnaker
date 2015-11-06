@@ -38,6 +38,7 @@ describe('Controller: deletePipelineModal', function() {
       ];
 
       this.application = { name: 'the_app', pipelineConfigs: [this.pipelines[0], this.pipelines[1], this.pipelines[2]]};
+      this.application.reloadPipelineConfigs = function () {};
       this.initializeController(this.application, this.pipelines[1]);
 
     });
@@ -49,7 +50,7 @@ describe('Controller: deletePipelineModal', function() {
           newStateTarget = null,
           newStateOptions = null;
 
-      spyOn(this.pipelineConfigService, 'deletePipeline').and.callFake(function (applicationName, pipelineName) {
+      spyOn(this.pipelineConfigService, 'deletePipeline').and.callFake(function (applicationName, [:], pipelineName) {
         submittedPipeline = pipelineName;
         submittedApplication = applicationName;
         return $q.when(null);

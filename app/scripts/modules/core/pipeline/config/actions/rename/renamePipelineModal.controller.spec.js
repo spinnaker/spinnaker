@@ -35,6 +35,7 @@ describe('Controller: renamePipelineModal', function() {
     ];
 
     this.application = { name: 'the_app', pipelines: [this.pipelines[0], this.pipelines[1], this.pipelines[2]]};
+    this.application.reloadPipelineConfigs = function () {};
     this.initializeController(this.application, this.pipelines[1]);
 
   });
@@ -57,7 +58,7 @@ describe('Controller: renamePipelineModal', function() {
         newName: 'd'
       };
 
-      spyOn(this.pipelineConfigService, 'renamePipeline').and.callFake(function (applicationName, currentName, newName) {
+      spyOn(this.pipelineConfigService, 'renamePipeline').and.callFake(function (applicationName, [:], currentName, newName) {
         submittedNewName = newName;
         submittedCurrentName = currentName;
         submittedApplication = applicationName;
