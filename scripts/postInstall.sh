@@ -3,7 +3,7 @@
 
 # Apache
 
-a2enmod http_proxy
+a2enmod proxy_http
 
 # Copy vhosts
 
