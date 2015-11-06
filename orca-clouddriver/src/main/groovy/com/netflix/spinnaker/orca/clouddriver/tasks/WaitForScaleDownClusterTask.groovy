@@ -22,7 +22,8 @@ import org.springframework.stereotype.Component
 @Component
 class WaitForScaleDownClusterTask extends AbstractWaitForClusterWideClouddriverTask {
   @Override
-  boolean isServerGroupOperationInProgress(Optional<TargetServerGroup> currentServerGroup) {
+  boolean isServerGroupOperationInProgress(List<Map> interestingHealthProviderNames,
+                                           Optional<TargetServerGroup> currentServerGroup) {
     !currentServerGroup.map({ it.instances ?: []}).orElse([]).isEmpty()
   }
 }

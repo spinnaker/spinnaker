@@ -46,11 +46,11 @@ abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudPr
     throw new IllegalStateException("No ServerGroups found in cluster $clusterSelection")
   }
 
-  boolean isServerGroupOperationInProgress(List<TargetServerGroup> currentServerGroups, DeployServerGroup deployServerGroup) {
-    isServerGroupOperationInProgress(Optional.ofNullable(currentServerGroups.find { it.getLocation() == deployServerGroup.location && it.name == deployServerGroup.name }))
+  boolean isServerGroupOperationInProgress(List<TargetServerGroup> currentServerGroups, List<Map> interestingHealthProviderNames, DeployServerGroup deployServerGroup) {
+    isServerGroupOperationInProgress(interestingHealthProviderNames, Optional.ofNullable(currentServerGroups.find { it.getLocation() == deployServerGroup.location && it.name == deployServerGroup.name }))
   }
 
-  abstract boolean isServerGroupOperationInProgress(Optional<TargetServerGroup> serverGroup)
+  abstract boolean isServerGroupOperationInProgress(List<Map> interestingHealthProviderNames, Optional<TargetServerGroup> serverGroup)
 
   @Canonical
   static class DeployServerGroup {
@@ -93,7 +93,8 @@ abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudPr
       return emptyClusterResult(stage, clusterSelection, cluster.get())
     }
 
-    List<DeployServerGroup> stillRemaining = remainingDeployServerGroups.findAll(this.&isServerGroupOperationInProgress.curry(serverGroups))
+    List<String> healthProviderTypesToCheck = stage.context.interestingHealthProviderNames as List<String>
+    List<DeployServerGroup> stillRemaining = remainingDeployServerGroups.findAll(this.&isServerGroupOperationInProgress.curry(serverGroups, healthProviderTypesToCheck))
 
     if (stillRemaining) {
       return new DefaultTaskResult(ExecutionStatus.RUNNING, [remainingDeployServerGroups: stillRemaining])
