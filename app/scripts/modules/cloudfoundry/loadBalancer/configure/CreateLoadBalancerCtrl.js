@@ -9,7 +9,6 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
   require('../loadBalancer.transformer.js'),
   require('../../../core/modal/wizard/modalWizard.service.js'),
   require('../../../core/task/monitor/taskMonitorService.js'),
-  //require('../../cfRegionSelectField.directive.js'),
   require('../../../core/search/search.service.js'),
 ])
   .controller('cfCreateLoadBalancerCtrl', function($scope, $modalInstance, $state,
@@ -22,9 +21,7 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
     $scope.isNew = isNew;
 
     $scope.pages = {
-      location: require('./createLoadBalancerProperties.html'),
-      listeners: require('./listeners.html'),
-      healthCheck: require('./healthCheck.html'),
+      location: require('./createLoadBalancerProperties.html')
     };
 
     $scope.state = {
@@ -103,10 +100,6 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
 
     // Controller API
 
-    this.requiresHealthCheckPath = function () {
-      return $scope.loadBalancer.healthCheckProtocol && $scope.loadBalancer.healthCheckProtocol.indexOf('HTTP') === 0;
-    };
-
     this.updateName = function() {
       $scope.loadBalancer.name = this.getName();
     };
@@ -119,7 +112,7 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
 
     this.accountUpdated = function() {
       accountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function(regions) {
-        $scope.regions = Object.keys(regions);
+        $scope.regions = [];
         ctrl.regionUpdated();
       });
     };
@@ -127,19 +120,6 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
     this.regionUpdated = function() {
       updateLoadBalancerNames();
       ctrl.updateName();
-    };
-
-    this.setVisibilityHealthCheckTab = function() {
-      var wizard = modalWizardService.getWizard();
-
-      if ($scope.loadBalancer.listeners[0].healthCheck) {
-        wizard.includePage('Health Check');
-        wizard.markIncomplete('Health Check');
-      } else {
-        wizard.excludePage('Health Check');
-        wizard.markComplete('Health Check');
-        wizard.markComplete('Listener');
-      }
     };
 
     $scope.taskMonitor.onApplicationRefresh = function handleApplicationRefreshComplete() {
@@ -167,31 +147,6 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
             cloudProvider: 'cf',
             loadBalancerName: $scope.loadBalancer.name,
           };
-
-          if ($scope.loadBalancer.listeners && $scope.loadBalancer.listeners.length > 0) {
-            let listener = $scope.loadBalancer.listeners[0];
-
-            if (listener.protocol) {
-              params.ipProtocol = listener.protocol;
-            }
-
-            if (listener.portRange) {
-              params.portRange = listener.portRange;
-            }
-
-            if (listener.healthCheck) {
-              params.healthCheck = {
-                port: $scope.loadBalancer.healthCheckPort,
-                requestPath: $scope.loadBalancer.healthCheckPath,
-                timeoutSec: $scope.loadBalancer.healthTimeout,
-                checkIntervalSec: $scope.loadBalancer.healthInterval,
-                healthyThreshold: $scope.loadBalancer.healthyThreshold,
-                unhealthyThreshold: $scope.loadBalancer.unhealthyThreshold,
-              };
-            } else {
-              params.healthCheck = null;
-            }
-          }
 
           return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
         }

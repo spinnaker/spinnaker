@@ -78,44 +78,5 @@
         </dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Status" expanded="true">
-      <health-counts class="pull-left" container="loadBalancer.healthCounts"></health-counts>
-    </collapsible-section>
-    <collapsible-section heading="Listeners">
-      <dl>
-        <dt>Load Balancer &rarr; Instance</dt>
-        <dd ng-repeat="listener in loadBalancer.elb.listenerDescriptions">
-          {{listener.listener.protocol}}:{{listener.listener.loadBalancerPort}}
-          &rarr;
-          {{listener.listener.instanceProtocol}}:{{listener.listener.instancePort}}
-        </dd>
-      </dl>
-    </collapsible-section>
-    <collapsible-section heading="Health Checks">
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
-        <dt>Target</dt>
-        <dd>{{loadBalancer.elb.healthCheck.target}}</dd>
-        <dt>Interval</dt>
-        <dd>{{loadBalancer.elb.healthCheck.interval}} seconds</dd>
-        <dt>Timeout</dt>
-        <dd>{{loadBalancer.elb.healthCheck.timeout}} seconds</dd>
-        <dt>Unhealthy Threshold</dt>
-        <dd>{{loadBalancer.elb.healthCheck.unhealthyThreshold}}</dd>
-        <dt>Healthy Threshold</dt>
-        <dd>{{loadBalancer.elb.healthCheck.healthyThreshold}}</dd>
-      </dl>
-    </collapsible-section>
-    <collapsible-section heading="Logs">
-      <ul>
-        <li ng-if="loadBalancer.logsLink">
-          <a href="{{loadBalancer.logsLink}}" target="_blank">Developers Console Logs</a>
-          <copy-to-clipboard
-              class="copy-to-clipboard copy-to-clipboard-sm"
-              text="{{loadBalancer.logsLink}}"
-              tool-tip="Copy to clipboard">
-          </copy-to-clipboard>
-        </li>
-      </ul>
-    </collapsible-section>
   </div>
 </div>
