@@ -30,6 +30,7 @@ window.spinnakerSettings = {
   defaultTimeZone: 'America/New_York', // see http://momentjs.com/timezone/docs/#/data-utilities/
   providers: {
     gce: {
+      humanFriendlyLabel: 'Google',
       defaults: {
         account: `${googlePrimaryAccount}`,
         region: `${googleDefaultRegion}`,
@@ -39,6 +40,7 @@ window.spinnakerSettings = {
       challengeDestructiveActions: [`${googlePrimaryAccount}`],
     },
     aws: {
+      humanFriendlyLabel: 'Amazon',
       defaults: {
         account: `${awsPrimaryAccount}`,
         region: `${awsDefaultRegion}`
