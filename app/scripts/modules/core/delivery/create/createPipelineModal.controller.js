@@ -52,6 +52,7 @@ module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
 
       if($scope.command.strategy === true){
           template.strategy = true;
+          template.limitConcurrent = false;
       }
 
       return pipelineConfigService.savePipeline(template).then(
