@@ -9,4 +9,5 @@ module.exports = angular
   .config(function(templateOverrideRegistryProvider) {
     templateOverrideRegistryProvider.override('applicationNavHeader', require('./applicationNav.html'));
     templateOverrideRegistryProvider.override('pipelineConfigActions', require('./pipelineConfigActions.html'));
+    templateOverrideRegistryProvider.override('spinnakerHeader', require('./spinnakerHeader.html'));
   }).name;

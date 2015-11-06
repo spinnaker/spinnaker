@@ -9,6 +9,10 @@ module.exports = angular.module('spinnaker.applicationBootstrap', [
   return {
     restrict: 'E',
     templateUrl: require('./applicationBootstrap.directive.html'),
+    controller: function(templateOverrideRegistry) {
+      this.spinnakerHeaderTemplate = templateOverrideRegistry.getTemplate('spinnakerHeader', require('./spinnakerHeader.html'));
+    },
+    controllerAs: 'applicationBootstrapCtrl',
   };
 })
 .name;
