@@ -114,8 +114,8 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
     def stage = new PipelineStage(new Pipeline(), "test", [:])
     supportStage.targetReferenceSupport = targetReferenceSupport
 
-    stage.execution.appConfig.strategy = true
-    stage.execution.appConfig.strategyConfig = [
+    stage.execution.trigger.properties = [
+      strategy   : true,
       region     : 'us-west-1',
       credentials: 'test',
       cluster    : 'myappcluster'

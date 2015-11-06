@@ -169,24 +169,29 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
 
   protected void composeCustomFlow(Stage stage) {
 
-    def stageData = stage.mapTo(StageData)
     def cleanupConfig = determineClusterForCleanup(stage)
 
-    def modifyCtx = [
-      pipelineApplication: stage.context.strategyApplication,
-      pipelineId: stage.context.strategyPipeline,
-      pipelineConfig:[
-        parentPipelineId: stage.execution.id,
-        parentStageId: stage.id,
-        strategy: true,
-        strategyConfig: [
-          application: stage.context.application,
-          credentials: cleanupConfig.account,
-          cluster: cleanupConfig.cluster,
-          region: cleanupConfig.region
-        ]
-      ]
+    Map parameters = [
+      application                            : stage.context.application,
+      credentials                            : cleanupConfig.account,
+      cluster                                : cleanupConfig.cluster,
+      region : cleanupConfig.region,
+      cloudProvider                          : cleanupConfig.cloudProvider,
+      strategy                               : true,
+      parentPipelineId                       : stage.execution.id,
+      parentStageId                          : stage.id
     ]
+
+    if(stage.context.pipelineParameters){
+      parameters.putAll(stage.context.pipelineParameters as Map)
+    }
+
+    Map modifyCtx = [
+      pipelineApplication: stage.context.strategyApplication,
+      pipelineId         : stage.context.strategyPipeline,
+      pipelineParameters : parameters
+    ]
+
     injectAfter(stage, "pipeline", pipelineStage, modifyCtx)
   }
 

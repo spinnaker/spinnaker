@@ -35,22 +35,25 @@ class CustomStrategy implements Strategy {
 
     def cleanupConfig = AbstractDeployStrategyStage.CleanupConfig.fromStage(stage)
 
+    Map parameters = [
+      application                            : stage.context.application,
+      credentials                            : cleanupConfig.account,
+      cluster                                : cleanupConfig.cluster,
+      (cleanupConfig.location.singularType()): cleanupConfig.location.value,
+      cloudProvider                          : cleanupConfig.cloudProvider,
+      strategy                               : true,
+      parentPipelineId                       : stage.execution.id,
+      parentStageId                          : stage.id
+    ]
+
+    parameters.putAll(stage.context.pipelineParameters)
+
     Map modifyCtx = [
       pipelineApplication: stage.context.strategyApplication,
       pipelineId         : stage.context.strategyPipeline,
-      pipelineConfig     : [
-        parentPipelineId: stage.execution.id,
-        parentStageId   : stage.id,
-        strategy        : true,
-        strategyConfig  : [
-          application                            : stage.context.application,
-          credentials                            : cleanupConfig.account,
-          cluster                                : cleanupConfig.cluster,
-          (cleanupConfig.location.singularType()): cleanupConfig.location.value,
-          cloudProvider                          : cleanupConfig.cloudProvider
-        ]
-      ]
+      pipelineParameters : parameters
     ]
+
     LinearStage.injectAfter(stage, "pipeline", pipelineStage, modifyCtx)
   }
 

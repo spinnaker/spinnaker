@@ -42,23 +42,27 @@ class StartPipelineTask implements Task {
 
     String application = stage.context.pipelineApplication ?: stage.context.application
     String pipelineId = stage.context.pipelineId ?: stage.context.pipeline
-    Boolean isStrategy = stage.context.pipelineConfig?.strategy ?: false
+    Boolean isStrategy = stage.context.pipelineParameters?.strategy ?: false
 
     List pipelines = isStrategy ? front50Service.getStrategies(application) : front50Service.getPipelines(application)
     Map pipelineConfig = pipelines.find { it.id == pipelineId }
 
-    def deploymentDetails = stage.context.deploymentDetails?.collect { Map it ->
-      [region: it.region, ami: it.ami, imageName: it.imageName]
-    } ?: [:]
+    def parameters = stage.context.pipelineParameters ?: [:]
 
-    if (stage.context.pipelineConfig) {
-      pipelineConfig.appConfig = (pipelineConfig.appConfig ?: [:]) + stage.context.pipelineConfig + [
-        currentPipelineStageId: stage.id,
-        deploymentDetails: deploymentDetails
-      ]
+    if(stage.context.pipelineParameters?.strategy == true) {
+      def deploymentDetails = stage.context.deploymentDetails?.collect { Map it ->
+        [region: it.region, ami: it.ami, imageName: it.imageName]
+      } ?: [:]
+
+      if (!deploymentDetails.empty) {
+        parameters.deploymentDetails = deploymentDetails
+      }
+      if (!parameters.amiName && parameters.region) {
+        parameters.amiName = deploymentDetails.find { it.region == parameters.region }.ami
+      }
     }
 
-    def pipeline = dependentPipelineStarter.trigger(pipelineConfig, stage.context.user, stage.execution, stage.context.pipelineParameters)
+    def pipeline = dependentPipelineStarter.trigger(pipelineConfig, stage.context.user, stage.execution, parameters)
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [executionId: pipeline.id, executionName: pipelineConfig.name])
 

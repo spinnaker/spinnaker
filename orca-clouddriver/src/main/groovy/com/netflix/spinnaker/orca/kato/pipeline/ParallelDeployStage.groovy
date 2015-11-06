@@ -96,19 +96,19 @@ class ParallelDeployStage extends ParallelStage {
   @CompileDynamic
   List<Map<String, Object>> parallelContexts(Stage stage) {
 
-    if(stage.execution.appConfig?.strategy == true){
+    if (stage.execution instanceof Pipeline) {
       Map trigger = ((Pipeline) stage.execution).trigger
-      Map parentStage = trigger.parentExecution.stages.find{
-        it.id == stage.execution.appConfig.parentStageId
+      if (trigger.parameters?.strategy == true) {
+        Map parentStage = trigger.parentExecution.stages.find {
+          it.id == trigger.parameters.parentStageId
+        }
+        Map cluster = parentStage.context as Map
+        cluster.strategy = 'none'
+        if (!cluster.amiName) {
+          cluster.amiName = trigger.parameters.amiName
+        }
+        stage.context.clusters = [cluster as Map<String, Object>]
       }
-      Map cluster = parentStage.context as Map
-      cluster.strategy = 'none'
-      if(!cluster.amiName) {
-        cluster.amiName = stage.execution.appConfig.deploymentDetails.find {
-          it.region == stage.execution.appConfig.strategyConfig.region
-        }.ami
-      }
-      stage.context.clusters = [cluster as Map<String, Object>]
     }
 
     def defaultStageContext = new HashMap(stage.context)

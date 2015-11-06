@@ -62,6 +62,9 @@ class DependentPipelineStarter {
       pipelineConfig.parameterConfig.each {
         pipelineConfig.trigger.parameters[it.name] = pipelineParameters.containsKey(it.name) ? pipelineParameters[it.name] : it.default
       }
+      suppliedParameters.each{ k, v ->
+        pipelineConfig.trigger.parameters[k] = pipelineConfig.trigger.parameters[k] ?: suppliedParameters[k]
+      }
     }
 
     def augmentedContext = [:]
