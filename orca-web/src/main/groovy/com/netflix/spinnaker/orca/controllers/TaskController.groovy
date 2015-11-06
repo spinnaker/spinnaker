@@ -180,6 +180,9 @@ class TaskController {
     )
 
     def pipelineConfigIds = front50Service.getPipelines(application)*.id as List<String>
+    def strategyConfigIds = front50Service.getStrategies(application)*.id as List<String>
+    def allIds = pipelineConfigIds + strategyConfigIds
+
     def allPipelines = rx.Observable.merge(pipelineConfigIds.collect {
       executionRepository.retrievePipelinesForPipelineConfigId(it, executionCriteria)
     }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
