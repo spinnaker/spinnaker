@@ -28,7 +28,6 @@ ospackage {
   release '3'
 
 // installer scripts
-  installUtils = file('scripts/utils.sh')
   preInstall = file('scripts/preInstall.sh')
   postInstall = file('scripts/postInstall.sh')
   postUninstall = file('scripts/postUninstall.sh')

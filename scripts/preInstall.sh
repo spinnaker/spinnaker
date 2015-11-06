@@ -1,16 +1,11 @@
-#!/bin/bash
+#!/bin/sh
 
-dist=`gawk -F= '/^NAME/{print $2}' /etc/os-release`
-
-if [[ "$dist" == *Ubuntu* ]]; then
-  # Create spinnaker user
-  /usr/sbin/useradd spinnaker
-
-  # test dir created to test block execution
-  mkdir -p /home/ubuntu/2
-
+# check that owner group exists
+if [ -z `getent group spinnaker` ]; then
+  groupadd spinnaker
 fi
 
-if [[ "$dist" == *"Amazon Linux AMI"* ]]; then
-  echo "Amazon Linux AMI"
+# check that user exists
+if [ -z `getent passwd spinnaker` ]; then
+  useradd --gid spinnaker spinnaker
 fi
