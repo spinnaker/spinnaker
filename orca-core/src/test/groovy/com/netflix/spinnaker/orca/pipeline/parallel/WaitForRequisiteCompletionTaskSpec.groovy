@@ -59,4 +59,18 @@ class WaitForRequisiteCompletionTaskSpec extends Specification {
     ["3"]        | [new DefaultTask(status: SUCCEEDED)]   || RUNNING
     ["1", "3"]   | [new DefaultTask(status: SUCCEEDED)]   || RUNNING
   }
+
+  def "should fail with an exception if any requisite stages completed terminally"() {
+    given:
+    def pipeline = new Pipeline()
+    pipeline.stages << new PipelineStage(pipeline, "test", "test", ["refId": "1"])
+    pipeline.stages[0].status = TERMINAL
+
+    when:
+    def result = task.execute(new PipelineStage(pipeline, null, [requisiteIds: ["1"]]))
+
+    then:
+    def ex = thrown(IllegalStateException)
+    ex.message == "Requisite stage failures: test"
+  }
 }

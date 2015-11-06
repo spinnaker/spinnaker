@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline.parallel
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -24,17 +25,20 @@ import com.netflix.spinnaker.orca.pipeline.model.Task
 import groovy.transform.CompileStatic
 import org.springframework.stereotype.Component
 
+import java.util.concurrent.TimeUnit
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
 @Component
 @CompileStatic
 class WaitForRequisiteCompletionTask implements RetryableTask {
   long backoffPeriod = 5000
-  long timeout = 7200000
+  long timeout = TimeUnit.DAYS.toMillis(1)
 
   @Override
   TaskResult execute(Stage stage) {
     boolean allRequisiteStagesAreComplete = true
+    Set<String> termainalStageNames = []
 
     def requisiteIds = stage.context.requisiteIds as List<String>
     requisiteIds?.each { String requisiteId ->
@@ -42,12 +46,19 @@ class WaitForRequisiteCompletionTask implements RetryableTask {
       if (requisiteStage?.status != SUCCEEDED) {
         allRequisiteStagesAreComplete = false
       }
+      if (requisiteStage?.status == TERMINAL) {
+        termainalStageNames << requisiteStage?.name
+      }
 
       def tasks = (requisiteStage?.tasks ?: []) as List<Task>
       if (tasks && tasks[-1].status != SUCCEEDED) {
         // ensure the last task has completed (heuristic for all tasks being complete)
         allRequisiteStagesAreComplete = false
       }
+    }
+
+    if (termainalStageNames) {
+      throw new IllegalStateException("Requisite stage failures: ${termainalStageNames.join(',')}")
     }
 
     return new DefaultTaskResult(allRequisiteStagesAreComplete ? SUCCEEDED : RUNNING)
