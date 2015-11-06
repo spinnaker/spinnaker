@@ -28,7 +28,7 @@ class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTas
   boolean isServerGroupOperationInProgress(List<Map> interestingHealthProviderNames,
                                            Optional<TargetServerGroup> serverGroup) {
     if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
-      return true
+      return false
     }
 
     // Assume a missing server group is disabled.
