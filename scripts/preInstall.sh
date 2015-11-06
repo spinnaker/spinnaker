@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# check that owner group exists
+if [ -z `getent group spinnaker` ]; then
+  groupadd spinnaker
+fi
 
-# Create spinnaker user
-/usr/sbin/useradd spinnaker
+# check that user exists
+if [ -z `getent passwd spinnaker` ]; then
+  useradd --gid spinnaker spinnaker
+fi
