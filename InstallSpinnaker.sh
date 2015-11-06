@@ -26,7 +26,7 @@ fi
 
 # If not Ubuntu 14.xx.x or higher
 
-if [[ "$DISTRO" == "Ubuntu" ]]; then
+if [ "$DISTRO" = "Ubuntu" ]; then
   if [ "${DISTRIB_RELEASE%%.*}" -ne 14 ]; then
   echo "Not a supported version of Ubuntu"
   echo "Version is $DISTRIB_RELEASE we require 14.02 or higher"
@@ -46,7 +46,7 @@ fi
 # Redis
 # https://launchpad.net/~chris-lea/+archive/ubuntu/redis-server
 
-add-apt-repository -y -q ppa:chris-lea/redis-server
+add-apt-repository -y ppa:chris-lea/redis-server
 
 # Cassandra
 # http://docs.datastax.com/en/cassandra/2.1/cassandra/install/installDeb_t.html
@@ -57,14 +57,15 @@ echo "deb http://debian.datastax.com/community/ stable main" > /etc/apt/sources.
 # Java 8
 # https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa 
 
-add-apt-repository -y -q ppa:openjdk-r/ppa
+add-apt-repository -y ppa:openjdk-r/ppa
 
 # Spinnaker
 # DL Repo goes here
- echo "deb http://dl.bintray.com/spinnaker/ospackages ./" > /etc/apt/sources.list.d/spinnaker.list
+# echo "deb http://dl.bintray.com/spinnaker/ospackages ./" > /etc/apt/sources.list.d/spinnaker.list
+echo 'deb http://jenkins.staypuft.kenzan.com:8000/ trusty main' > /etc/apt/sources.list.d/spinnaker-dev.list
 
 ## Install software
 apt-get update
-apt-get install -y spinnaker
+apt-get install -y --force spinnaker
 
 
