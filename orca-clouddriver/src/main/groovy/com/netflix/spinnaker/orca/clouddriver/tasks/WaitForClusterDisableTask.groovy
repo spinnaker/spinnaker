@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
+import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import org.springframework.stereotype.Component
 
 import java.util.function.Function
@@ -24,10 +25,27 @@ import java.util.function.Function
 @Component
 class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTask {
   @Override
-  boolean isServerGroupOperationInProgress(Optional<TargetServerGroup> serverGroup) {
-    //assume a missing cluster is disabled
+  boolean isServerGroupOperationInProgress(List<Map> interestingHealthProviderNames,
+                                           Optional<TargetServerGroup> serverGroup) {
+    if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
+      return false
+    }
+
+    // Assume a missing server group is disabled.
     boolean isDisabled = serverGroup.map({ it.disabled } as Function<TargetServerGroup, Boolean>).orElse(true)
 
-    return !isDisabled
+    // If the server group shows as disabled, we don't need to do anything special w.r.t. interestingHealthProviderNames.
+    if (isDisabled) {
+      return false
+    } else {
+      // The operation can be considered complete if it was requested to only consider the platform health.
+      def platformHealthType = serverGroup.get().instances.collect { instance ->
+        HealthHelper.findPlatformHealth(instance.health)
+      }?.find {
+        it.type
+      }?.type
+
+      return !(platformHealthType && interestingHealthProviderNames == [platformHealthType])
+    }
   }
 }

@@ -53,12 +53,13 @@ class RedBlackStrategySpec extends Specification {
       stage.afterStages.size() == 1
       stage.afterStages.first().stageBuilder == disableClusterStage
       stage.afterStages.first().context == [
-          credentials                 : "testAccount",
-          cloudProvider               : "aws",
-          cluster                     : "unit-tests",
-          regions                     : ["north"],
-          remainingEnabledServerGroups: 1,
-          preferLargerOverNewer       : false,
+          credentials                   : "testAccount",
+          cloudProvider                 : "aws",
+          cluster                       : "unit-tests",
+          regions                       : ["north"],
+          remainingEnabledServerGroups  : 1,
+          preferLargerOverNewer         : false,
+          interestingHealthProviderNames: null
       ]
 
     when:
