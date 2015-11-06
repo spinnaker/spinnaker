@@ -1,11 +1,14 @@
 package com.netflix.spinnaker.kato.helpers
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.exception.OperationTimedOutException
+import groovy.util.logging.Slf4j
+
 /**
  * A poller with an upper time limit combined with a Fibonacci-based backoff.
  * Let's you wrap the operation in a Groovy closure and the "if complete" operation in another.
  * The "if complete" closure is fed the results of the first.
  */
+@Slf4j
 class OperationPoller {
 
   final int asyncOperationTimeoutSecondsDefault
@@ -48,11 +51,19 @@ class OperationPoller {
   private static handleFinishedAsyncOperation(Object operation, Task task, String resourceString, String basePhase) {
     if (!operation) {
       String errorMsg = "Operation on $resourceString timed out."
-      task.updateStatus basePhase, errorMsg
+      if (task != null) {
+        task.updateStatus basePhase, errorMsg
+      } else {
+        log.info errorMsg
+      }
       throw new OperationTimedOutException(errorMsg)
     }
 
-    task.updateStatus basePhase, "Done operating on $resourceString."
+    if (task != null) {
+      task.updateStatus basePhase, "Done operating on $resourceString."
+    } else {
+      log.info "Done operating on $resourceString"
+    }
 
     operation
   }

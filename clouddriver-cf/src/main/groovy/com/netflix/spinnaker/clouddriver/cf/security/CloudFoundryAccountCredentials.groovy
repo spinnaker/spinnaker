@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2015 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.kato.cf.security
+package com.netflix.spinnaker.clouddriver.cf.security
 
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import org.cloudfoundry.client.lib.CloudCredentials
+
 /**
  * Capture {@link AccountCredentials} for a Cloud Foundry instance
- *
- *
  */
 class CloudFoundryAccountCredentials implements AccountCredentials<CloudCredentials> {
 
@@ -54,5 +53,9 @@ class CloudFoundryAccountCredentials implements AccountCredentials<CloudCredenti
   @Override
   List<String> getRequiredGroupMembership() {
     []
+  }
+
+  Map<String, List<String>> getRegions() {
+    credentials != null ? [(org) : [space]] : [:]
   }
 }

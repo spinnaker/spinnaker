@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2015 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.spinnaker.kato.cf.deploy.handlers
 
 import com.netflix.frigga.NameBuilder
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConstants
 import com.netflix.spinnaker.kato.cf.deploy.description.CloudFoundryDeployDescription
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryClientFactory
 import com.netflix.spinnaker.kato.data.task.Task
@@ -29,8 +31,11 @@ import org.apache.commons.codec.binary.Base64
 import org.cloudfoundry.client.lib.CloudFoundryClient
 import org.cloudfoundry.client.lib.CloudFoundryException
 import org.cloudfoundry.client.lib.domain.CloudApplication
+import org.cloudfoundry.client.lib.domain.InstanceState
+import org.cloudfoundry.client.lib.domain.InstancesInfo
 import org.cloudfoundry.client.lib.domain.Staging
 import org.jets3t.service.S3Service
+import org.jets3t.service.S3ServiceException
 import org.jets3t.service.impl.rest.httpclient.RestS3Service
 import org.jets3t.service.model.S3Object
 import org.jets3t.service.security.AWSCredentials
@@ -87,57 +92,47 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
 
     description.serverGroupName = "${clusterName}-v${nextSequence}".toString()
 
-    if (description.urls.empty) {
-      description.urls = ["${description.serverGroupName}.${client.defaultDomain.name}".toString()]
-    } else {
-      description.urls = description.urls
-    }
-
-    task.updateStatus BASE_PHASE, "Adding domains..."
-    addDomains(client, description)
-
-    task.updateStatus BASE_PHASE, "Creating services..."
-    createServices(client)
-
-    task.updateStatus BASE_PHASE, "Creating application ${description.serverGroupName}"
-
-    createApplication(description, client)
-
     try {
-      uploadApplication(description, client)
-    } catch (CloudFoundryException e) {
-      def message = "Error while creating application '%${description.serverGroupName}'. Error message: '${e.message}'. Description: '${e.description}'"
+      addDomains(client, description)
 
+      task.updateStatus BASE_PHASE, "Creating application ${description.serverGroupName}"
+
+      createApplication(description, client)
+
+      uploadApplication(description, client)
+
+      addEnvironmentVariables(description, client)
+
+      if (description?.targetSize) {
+        task.updateStatus BASE_PHASE, "Setting the number of instances to ${description.targetSize}"
+        try {
+          client.updateApplicationInstances(description.serverGroupName, description.targetSize)
+        } catch (CloudFoundryException e) {
+          def message = "Error while setting number of instances for application '${description.serverGroupName}'. " +
+              "Error message: '${e.message}'. Description: '${e.description}'"
+          throw new RuntimeException(message, e)
+        }
+      }
+
+      task.updateStatus BASE_PHASE, "Starting ${description.serverGroupName}"
+
+      client.startApplication(description.serverGroupName)
+
+    } catch (Exception e) {
+      // In the event of an error along the way, need to clean out the server group from Cloud Foundry
       try {
-        task.updateStatus BASE_PHASE, "Failed to upload, so deleting ${description.serverGroupName}"
+        task.updateStatus BASE_PHASE, "Deleting ${description.serverGroupName}"
         client.deleteApplication(description.serverGroupName)
-      } catch (Exception ex) {
+      } finally {
         task.updateStatus BASE_PHASE, "${description.serverGroupName} cleaned up."
       }
 
-      throw new RuntimeException(message, e)
+      throw new RuntimeException("Error while building '${description.serverGroupName}'. Error message: '${e.message}'", e)
     }
-
-    if (description?.targetSize) {
-      task.updateStatus BASE_PHASE, "Setting the number of instances to ${description.targetSize}"
-      try {
-        client.updateApplicationInstances(description.serverGroupName, description.targetSize)
-      } catch (CloudFoundryException e) {
-        def message = "Error while setting number of instances for application '${description.serverGroupName}'. " +
-            "Error message: '${e.message}'. Description: '${e.description}'"
-        throw new RuntimeException(message, e)
-      }
-    }
-
-    task.updateStatus BASE_PHASE, "Starting ${description.serverGroupName}"
-
-    client.startApplication(description.serverGroupName)
-
-    client.getApplication(description.serverGroupName).state
 
     operationPoller.waitForOperation(
-        {client.getApplication(description.serverGroupName)},
-        {CloudApplication app -> app.state == CloudApplication.AppState.STARTED},
+        {client.getApplicationInstances(description.serverGroupName)},
+        { InstancesInfo instancesInfo -> instancesInfo?.instances?.any {it.state == InstanceState.RUNNING}},
         null, task, description.serverGroupName, BASE_PHASE)
 
     deploymentResult.serverGroupNames << "${description.credentials.org}:${description.serverGroupName}".toString()
@@ -148,6 +143,7 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
   }
 
   def addDomains(CloudFoundryClient client, CloudFoundryDeployDescription description) {
+    task.updateStatus BASE_PHASE, "Adding domains..."
     def domains = client.domains
     def currentDomains = domains.collect { domain -> domain.name }
 //    if (description.domains != null) {
@@ -158,12 +154,6 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
 //        }
 //      }
 //    }
-  }
-
-  def createServices(CloudFoundryClient client) {
-    def currentServices = client.services
-    def currentServiceNames = currentServices.collect { service -> service.name }
-    // TODO Add support for creating services
   }
 
   def createApplication(CloudFoundryDeployDescription description, CloudFoundryClient client) {
@@ -184,18 +174,12 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
     try {
       Staging staging = new Staging() // TODO evaluate if we need command, buildpack, etc.
       if (application == null) {
-        client.createApplication(description.serverGroupName, staging, description.memory, description.urls, null)
-//        // TODO Add support for configuring application env
-//      } else {
-//        client.stopApplication(description.application)
-//        client.updateApplicationStaging(description.application, staging)
-//        if (description.memory != null) {
-//          client.updateApplicationMemory(description.application, description.memory)
-//        }
-//        // TODO Add support for updating application disk quotas
-//        client.updateApplicationUris(description.application, description.urls)
-//        // TODO Add support for updating application services
-//        // TODO Add support for updating application env
+        def domain = client.getDefaultDomain()
+        def loadBalancers = description.loadBalancers?.split(',').collect {it + "." + domain.name}
+
+        client.createApplication(description.serverGroupName, staging, description.memory, loadBalancers,
+            description?.services)
+        // TODO Add support for updating application disk quotas
       }
     } catch (CloudFoundryException e) {
       def message = "Error while creating application '${description.serverGroupName}'. Error message: '${e.message}'. Description: '${e.description}'"
@@ -224,9 +208,42 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
       task.updateStatus BASE_PHASE, "Uploading ${results.contentLength} bytes to ${description.serverGroupName}"
 
       client.uploadApplication(description.serverGroupName, results.file.name, results.file.newInputStream())
+
     } catch (IOException e) {
       throw new IllegalStateException("Error uploading application => ${e.message}.", e)
     }
+  }
+
+  def addEnvironmentVariables(CloudFoundryDeployDescription description, CloudFoundryClient client) {
+    task.updateStatus BASE_PHASE, "Setting environment variables..."
+
+    def env = [:]
+
+    if (!description?.envs.isEmpty()) {
+      env += description.envs.collectEntries { [it.name, it.value] }
+    }
+
+    if (isJenkinsTrigger(description)) {
+      env[CloudFoundryConstants.JENKINS_HOST] = description.trigger.buildInfo.url
+      env[CloudFoundryConstants.JENKINS_NAME] = description.trigger.job
+      env[CloudFoundryConstants.JENKINS_BUILD] = description.trigger.buildNumber
+      env[CloudFoundryConstants.PACKAGE] = description.artifact
+      env[CloudFoundryConstants.COMMIT_HASH] = description.trigger.buildInfo.scm[0].sha1
+      env[CloudFoundryConstants.COMMIT_BRANCH] = description.trigger.buildInfo.scm[0].branch
+      env[CloudFoundryConstants.LOAD_BALANCERS] = description.loadBalancers
+    }
+
+    client.updateApplicationEnv(description.serverGroupName, env)
+  }
+
+  /**
+   * Discern if this is a Jenkins trigger
+   *
+   * @param description
+   * @return
+   */
+  private boolean isJenkinsTrigger(CloudFoundryDeployDescription description) {
+    description?.trigger?.job && description?.trigger?.buildNumber
   }
 
   def downloadJarFileFromWeb(CloudFoundryDeployDescription description) {
@@ -273,7 +290,15 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
     def baseBucket = description.repository + (description.repository.endsWith('/') ? '' : '/') - 's3://'
     baseBucket = baseBucket.getAt(0..baseBucket.length()-2)
 
-    S3Object object = s3.getObject(baseBucket, description.artifact)
+    task.updateStatus BASE_PHASE, "Downloading ${description.artifact} from ${baseBucket}..."
+
+    S3Object object
+    try {
+      object = s3.getObject(baseBucket, description.artifact)
+    } catch (S3ServiceException e) {
+      task.updateStatus BASE_PHASE, "Failed to download ${description.artifact} from ${baseBucket} => ${e.message}"
+      throw new RuntimeException(e.message)
+    }
 
     task.updateStatus BASE_PHASE, "Successfully downloaded ${object.contentLength} bytes"
 

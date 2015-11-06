@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 The original authors.
+ * Copyright 2015 Pivotal Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,13 @@ package com.netflix.spinnaker.clouddriver.cf.config
 
 class CloudFoundryConfigurationProperties {
 
-  public static final int POLLING_INTERVAL_SECONDS_DEFAULT = 60
-  public static final int ASYNC_OPERATION_TIMEOUT_SECONDS_DEFAULT = 300
+  public static final int POLLING_INTERVAL_SECONDS_DEFAULT = 300
+
+  public static final int ASYNC_OPERATION_TIMEOUT_SECONDS_DEFAULT = POLLING_INTERVAL_SECONDS_DEFAULT * 1.5
   public static final int ASYNC_OPERATION_MAX_POLLING_INTERVAL_SECONDS = 8
 
   int pollingIntervalSeconds = POLLING_INTERVAL_SECONDS_DEFAULT
+
   int asyncOperationTimeoutSecondsDefault = ASYNC_OPERATION_TIMEOUT_SECONDS_DEFAULT
   int asyncOperationMaxPollingIntervalSeconds = ASYNC_OPERATION_MAX_POLLING_INTERVAL_SECONDS
 

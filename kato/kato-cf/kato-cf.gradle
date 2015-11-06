@@ -3,6 +3,7 @@ dependencies {
   def jets3tVersion = '0.9.4'
 
   compile project(":kato:kato-core")
+  compile project(":oort:oort-cf")
   compile spinnaker.dependency('bootActuator')
   compile project(":clouddriver-cf")
   compile("org.cloudfoundry:cloudfoundry-client-lib:${cloudFoundryClientVersion}")
