@@ -178,5 +178,4 @@ def main():
 
 
 if __name__ == '__main__':
-  result = main()
-  sys.exit(result)
+  sys.exit(main())
