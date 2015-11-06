@@ -231,6 +231,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
                   ' && sudo apt-get install apache2 -y',
               'load-balancer-names': bindings['TEST_APP_COMPONENT_NAME']},
           'account': bindings['GCE_CREDENTIALS'],
+          'authScopes': ['compute'],
           'user': '[anonymous]'
           }],
       description='Create Server Group in ' + group_name,
