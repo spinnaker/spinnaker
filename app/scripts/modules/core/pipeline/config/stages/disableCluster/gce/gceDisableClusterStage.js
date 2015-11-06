@@ -49,6 +49,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableCluste
     stage.zones = stage.zones || [];
     stage.cloudProvider = 'gce';
 
+    if (stage.isNew && $scope.application.attributes.platformHealthOnly) {
+      stage.interestingHealthProviderNames = ['Google'];
+    }
+
     if (!stage.credentials && $scope.application.defaultCredentials) {
       stage.credentials = $scope.application.defaultCredentials;
     }
