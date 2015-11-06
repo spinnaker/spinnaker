@@ -17,6 +17,8 @@ module.exports = angular
       var command = _.defaults({backingData: [], viewState: []}, base);
       if (base.viewState.mode !== 'clone') {
         delete command.source;
+      } else {
+        delete command.providerType;
       }
       command.cloudProvider = 'gce';
       command.availabilityZones = {};
