@@ -48,7 +48,8 @@ ospackage {
 // Ubuntu
 buildDeb {
   requires('python-pip')
-  requires('openjdk-8-jre', '8u45-b14-1~14.04', EQUAL)
+  // requires('openjdk-8-jre', '8u45-b14-1~14.04', EQUAL)
+  requires('oracle-java8-installer')
   //requires('cassandra', '2.1.9', EQUAL)
   requires('cassandra-tools', '2.1.9', EQUAL)
   requires('dsc21', '2.1.9-1', EQUAL)
