@@ -105,6 +105,7 @@ module.exports = angular
     require('./pipeline/config/stages/script/scriptStage.module.js'),
     require('./pipeline/config/stages/shrinkCluster/shrinkClusterStage.module.js'),
     require('./pipeline/config/stages/wait/waitStage.module.js'),
+    require('./pipeline/config/stages/waitForParentTasks/waitForParentTasks.js'),
     require('./pipeline/config/preconditions/preconditions.module.js'),
     require('./pipeline/config/preconditions/types/clusterSize/clusterSize.precondition.type.module.js'),
     require('./pipeline/config/preconditions/types/expression/expression.precondition.type.module.js'),

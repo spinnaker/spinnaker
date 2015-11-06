@@ -1,0 +1,18 @@
+<div>
+  <div class="step-section-details">
+    <div class="row">
+      <div class="col-md-12">
+        <h5>Parent Tasks</h5>
+      </div>
+    </div>
+    <div class="row" ng-repeat="task in stage.parentTasks" style="margin-bottom: 10px">
+      <div class="col-md-6">
+        {{task.name}}
+      </div>
+      <div class="col-md-6">
+        <span class="label label-default label-{{task.status.toLowerCase()}}">{{task.status}}</span>
+      </div>
+    </div>
+    <stage-failure-message is-failed="stage.isFailed" message="ctrl.getException(stage)"></stage-failure-message>
+  </div>
+</div>
