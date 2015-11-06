@@ -57,8 +57,8 @@ echo "deb http://debian.datastax.com/community/ stable main" > /etc/apt/sources.
 # Java 8
 # https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa 
 
-add-apt-repository -y ppa:openjdk-r/ppa
-
+add-apt-repository -y ppa:webupd8team/java
+echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
 # Spinnaker
 # DL Repo goes here
 # echo "deb http://dl.bintray.com/spinnaker/ospackages ./" > /etc/apt/sources.list.d/spinnaker.list
@@ -66,6 +66,7 @@ echo 'deb http://jenkins.staypuft.kenzan.com:8000/ trusty main' > /etc/apt/sourc
 
 ## Install software
 apt-get update
-apt-get install -y --force spinnaker
+apt-get install -y oracle-java8-installer
+apt-get install -y --force-yes --allow-unauthenticated spinnaker
 
 
