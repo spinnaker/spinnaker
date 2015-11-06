@@ -79,7 +79,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
      .contains('name', self.__lb_name))
 
     payload = self.agent.make_payload(
-        job, description='Server Group Tests - create load balancer',
+        job=job, description='Server Group Tests - create load balancer',
         application=self.TEST_APP)
 
     return st.OperationContract(
@@ -122,7 +122,8 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
      .contains('name', self.__server_group_name))
 
     payload = self.agent.make_payload(
-        job, description='Server Group Tests - create initial server group',
+        job=job,
+        description='Server Group Tests - create initial server group',
         application=self.TEST_APP)
 
     return st.OperationContract(
@@ -158,7 +159,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
      .contains_eq('size', 2))
 
     payload = self.agent.make_payload(
-        job, description='Server Group Tests - resize to 2 instances',
+        job=job, description='Server Group Tests - resize to 2 instances',
         application=self.TEST_APP)
 
     return st.OperationContract(
@@ -205,7 +206,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
      .contains('baseInstanceName', self.__cloned_server_group_name))
 
     payload = self.agent.make_payload(
-        job, description='Server Group Tests - clone server group',
+        job=job, description='Server Group Tests - clone server group',
         application=self.TEST_APP)
 
     return st.OperationContract(
@@ -236,7 +237,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
          jc.PathContainsPredicate('targetPools', 'https')]))
 
     payload = self.agent.make_payload(
-        job, description='Server Group Tests - disable server group',
+        job=job, description='Server Group Tests - disable server group',
         application=self.TEST_APP)
 
     return st.OperationContract(
@@ -266,7 +267,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
          jc.PathContainsPredicate('targetPools', 'https')]))
 
     payload = self.agent.make_payload(
-        job, description='Server Group Tests - enable server group',
+        job=job, description='Server Group Tests - enable server group',
         application=self.TEST_APP)
 
     return st.OperationContract(
@@ -295,7 +296,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
      .excludes('baseInstanceName', serverGroupName))
 
     payload = self.agent.make_payload(
-        job, description='Server Group Tests - destroy server group',
+        job=job, description='Server Group Tests - destroy server group',
         application=self.TEST_APP)
 
     return st.OperationContract(
@@ -321,7 +322,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
      .excludes('name', self.__lb_name))
 
     payload = self.agent.make_payload(
-        job, description='Server Group Tests - delete load balancer',
+        job=job, description='Server Group Tests - delete load balancer',
         application=self.TEST_APP)
 
     return st.OperationContract(
