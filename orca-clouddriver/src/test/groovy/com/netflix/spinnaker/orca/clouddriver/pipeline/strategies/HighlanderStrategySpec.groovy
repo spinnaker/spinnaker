@@ -20,11 +20,13 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.ShrinkClusterStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class HighlanderStrategySpec extends Specification {
 
   def ShrinkClusterStage shrinkClusterStage = new ShrinkClusterStage()
 
+  @Unroll
   def "should compose flow"() {
     given:
       def ctx = [
@@ -37,6 +39,11 @@ class HighlanderStrategySpec extends Specification {
               north: ["pole-1a"]
           ]
       ]
+
+      if (interestingHealthProviderNames) {
+        ctx.interestingHealthProviderNames = interestingHealthProviderNames
+      }
+
       def stage = new PipelineStage(new Pipeline(), "whatever", ctx)
       def strat = new HighlanderStrategy(shrinkClusterStage: shrinkClusterStage)
 
@@ -47,18 +54,20 @@ class HighlanderStrategySpec extends Specification {
       stage.afterStages.size() == 1
       stage.afterStages.last().stageBuilder == shrinkClusterStage
       stage.afterStages.last().context == [
-          credentials          : "testAccount",
-          (locationType)       : [locationValue],
-          cluster              : "unit-tests",
-          cloudProvider        : cloudProvider,
-          shrinkToSize         : 1,
-          retainLargerOverNewer: false,
-          allowDeleteActive    : true
+          credentials                   : "testAccount",
+          (locationType)                : [locationValue],
+          cluster                       : "unit-tests",
+          cloudProvider                 : cloudProvider,
+          shrinkToSize                  : 1,
+          retainLargerOverNewer         : false,
+          allowDeleteActive             : true,
+          interestingHealthProviderNames: propagatedInterestingHealthProviderNames
       ]
 
     where:
-      cloudProvider | locationType | locationValue
-      "aws"         | "regions"    | "north"
-      "gce"         | "zones"      | "pole-1a"
+      cloudProvider | locationType | locationValue | interestingHealthProviderNames | propagatedInterestingHealthProviderNames
+      "aws"         | "regions"    | "north"       | null                           | null
+      "gce"         | "zones"      | "pole-1a"     | null                           | null
+      "gce"         | "zones"      | "pole-1a"     | ["Google"]                     | ["Google"]
   }
 }

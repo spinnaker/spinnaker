@@ -48,7 +48,8 @@ class RedBlackStrategy implements Strategy {
         (cleanupConfig.location.pluralType()): [cleanupConfig.location.value],
         cluster                              : cleanupConfig.cluster,
         credentials                          : cleanupConfig.account,
-        cloudProvider                        : cleanupConfig.cloudProvider
+        cloudProvider                        : cleanupConfig.cloudProvider,
+        interestingHealthProviderNames       : stage.context.interestingHealthProviderNames
     ]
 
     if (stageData?.maxRemainingAsgs && (stageData?.maxRemainingAsgs > 0)) {
