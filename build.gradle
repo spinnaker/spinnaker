@@ -37,6 +37,10 @@ ospackage {
     into spinnakerHome + '/pylib'
   }
 
+  from('cassandra') {
+    into spinnakerHome + '/cassandra'
+  }
+
   from('runtime/reconfigure_spinnaker.sh') {
     into spinnakerHome + '/bin/reconfigure_spinnaker'
     fileMode = 0755
@@ -57,6 +61,7 @@ buildDeb {
   requires('deck')
   requires('echo')
   requires('front50')
+  requires('gate')
   requires('igor')
   requires('orca')
   requires('rosco')
