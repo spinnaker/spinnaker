@@ -28,17 +28,6 @@ executions {
       margin-left: -15px;
     }
   }
-  .execution-is-current {
-    background-color: #ffffff;
-    border: 1px solid @mid_light_grey;
-    padding-bottom: 0 !important;
-    .execution-stage {
-      border-left-color: transparent;
-    }
-  }
-  .execution-not-current {
-    opacity: .5;
-  }
   .permalinks {
     font-size: 80%;
   }
@@ -48,38 +37,6 @@ executions {
     margin-bottom: 10px;
     border: 1px solid @mid_light_grey;
     background-color: #ffffff;
-  }
-  .execution-stage {
-    display: inline-block;
-    cursor: pointer;
-    text-transform: uppercase;
-    vertical-align: bottom;
-    height: 97px;
-    border-left: 2px solid @lightest_grey;
-    &:hover {
-      .execution-stage-label {
-        background-color: @mid_light_grey;
-        transition: background-color 0.15s;
-      }
-    }
-    .execution-stage-label {
-      width: 100%;
-      display: inline-block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-size: .8em;
-      line-height: 22px;
-      min-height: 54px;
-      font-weight: 600;
-      margin: 0;
-      border-left: 2px solid transparent;
-      padding: 10px 5px;
-      &.active {
-        background-color: @light_grey;
-        font-weight: 700;
-      }
-    }
   }
 }
 
