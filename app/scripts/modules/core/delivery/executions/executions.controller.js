@@ -55,12 +55,8 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       triggeringExecution: false,
     };
 
-    let executionLoader = $q.when(null);
-    if (!application.executionsLoaded) {
-      let deferred = $q.defer();
-      executionLoader = deferred.promise;
-      $scope.$on('executions-loaded', deferred.resolve);
-    }
+    let executionLoader = $q.defer();
+    $scope.$on('executions-reloaded', executionLoader.resolve);
 
     let configLoader = $q.when(null);
     if (application.pipelineConfigsLoading) {
@@ -69,7 +65,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       $scope.$on('pipelineConfigs-loaded', deferred.resolve);
     }
 
-    $q.all([executionLoader, configLoader]).then(() => {
+    $q.all([executionLoader.promise, configLoader]).then(() => {
       this.updateExecutionGroups();
       this.viewState.loading = false;
       if ($stateParams.executionId) {
