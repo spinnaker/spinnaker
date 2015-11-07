@@ -17,7 +17,7 @@
     <execution-filters ng-if="!vm.viewState.loading" application="vm.application"></execution-filters>
   </div>
   <div class="full-content" data-scroll-id="nav-content" ng-class="{'filters-expanded': vm.InsightFilterStateModel.filtersExpanded}">
-    <div class="execution-groups-header">
+    <div class="execution-groups-header" ng-if="!vm.viewState.loading">
       <form class="form-inline execution-filters">
         <div class="form-group" ng-if="vm.filter.groupBy" style="margin-right: 20px">
           <a class="btn btn-xs btn-default" href ng-click="vm.toggleExpansion(true)" uib-tooltip="expand all">
@@ -66,6 +66,9 @@
     </div>
     <div class="text-center" ng-if="vm.viewState.loading">
       <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
+    </div>
+    <div class="text-center" ng-if="!vm.viewState.loading && !vm.application.executions.length && !vm.application.pipelineConfigs.length">
+      <h4>No pipelines configured for this application.</h4>
     </div>
     <execution-groups
         application="vm.application"
