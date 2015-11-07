@@ -151,6 +151,8 @@
         <dd>{{serverGroup.launchConfig.imageId}}</dd>
         <dt>Instance Type</dt>
         <dd>{{serverGroup.launchConfig.instanceType}}</dd>
+        <dt ng-repeat-start="diskDescription in diskDescriptions">Disk{{diskDescription.countSuffix}}</dt>
+        <dd ng-repeat-end>{{diskDescription.finalLabel}}</dd>
         <dt ng-if="serverGroup.launchConfig.keyName">Key Name</dt>
         <dd ng-if="serverGroup.launchConfig.keyName">{{serverGroup.launchConfig.keyName}}</dd>
         <dt ng-if="serverGroup.launchConfig.kernelId">Kernel ID</dt>

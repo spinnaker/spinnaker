@@ -74,6 +74,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
           $scope.serverGroup.logsLink =
             'https://console.developers.google.com/project/' + projectId + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + $scope.serverGroup.name;
 
+          prepareDiskDescriptions();
           augmentTagsWithHelp();
         } else {
           autoClose();
@@ -93,6 +94,43 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
     function cancelLoader() {
       $scope.state.loading = false;
+    }
+
+    function prepareDiskDescriptions() {
+      if (_.has($scope.serverGroup, 'launchConfig.instanceTemplate.properties.disks')) {
+        let diskDescriptions = [];
+
+        $scope.serverGroup.launchConfig.instanceTemplate.properties.disks.forEach(disk => {
+          let diskLabel = disk.initializeParams.diskType + ":" + disk.initializeParams.diskSizeGb;
+          let existingDiskDescription = _.find(diskDescriptions, description => {
+            return description.bareLabel === diskLabel;
+          });
+
+          if (existingDiskDescription) {
+            existingDiskDescription.count++;
+            existingDiskDescription.countSuffix = ' (×' + existingDiskDescription.count + ')';
+          } else {
+            diskDescriptions.push({
+              bareLabel: diskLabel,
+              count: 1,
+              countSuffix: '',
+              finalLabel: translateDiskType(disk.initializeParams.diskType) + ": " + disk.initializeParams.diskSizeGb + "GB",
+            });
+          }
+        });
+
+        $scope.diskDescriptions = diskDescriptions;
+      }
+    }
+
+    function translateDiskType(diskType) {
+      if (diskType === 'pd-ssd') {
+        return 'Persistent SSD';
+      } else if (diskType === 'local-ssd') {
+        return 'Local SSD';
+      } else {
+        return 'Persistent Std';
+      }
     }
 
     function augmentTagsWithHelp() {
