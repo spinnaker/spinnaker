@@ -104,9 +104,9 @@ def path_exists(path):
      path [string]: A local or bucket path.
    """
    if path.startswith('gs://'):
-       command = 'gsutil ls {path} >& /dev/null'.format(path=path)
+       command = 'gsutil ls {path}'.format(path=path)
    elif path.startswith('s3://'):
-       command = 'awscli s3 ls {path} >& /dev/null'.format(path=path)
+       command = 'awscli s3 ls {path}'.format(path=path)
    else:
        return os.path.exists(path)
 
