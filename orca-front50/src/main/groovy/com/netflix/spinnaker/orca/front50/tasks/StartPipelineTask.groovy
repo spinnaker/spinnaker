@@ -49,16 +49,19 @@ class StartPipelineTask implements Task {
 
     def parameters = stage.context.pipelineParameters ?: [:]
 
-    if(stage.context.pipelineParameters?.strategy == true) {
+    if (stage.context.pipelineParameters?.strategy == true) {
       def deploymentDetails = stage.context.deploymentDetails?.collect { Map it ->
         [region: it.region, ami: it.ami, imageName: it.imageName]
       } ?: [:]
 
       if (!deploymentDetails.empty) {
         parameters.deploymentDetails = deploymentDetails
-      }
-      if (!parameters.amiName && parameters.region) {
-        parameters.amiName = deploymentDetails.find { it.region == parameters.region }.ami
+        if (!parameters.amiName && parameters.region) {
+          def details = deploymentDetails.find { it.region == parameters.region }
+          if( details ){
+            parameters.amiName = details.ami
+          }
+        }
       }
     }
 
