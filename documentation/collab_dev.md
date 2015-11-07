@@ -19,7 +19,9 @@ loudly.
 
 ## Patches Welcome
 
-First and foremost, as a potential contributor, your changes and ideas are welcome at any hour of the day or night, weekdays, weekends, and holidays. Please do not ever hesitate to ask a question or send a PR.
+First and foremost, as a potential contributor, your changes and ideas
+are welcome at any hour of the day or night, weekdays, weekends, and
+holidays. Please do not ever hesitate to ask a question or send a PR.
 
 ## Code Reviews
 
@@ -30,7 +32,7 @@ non-trivial changes obligatorily) from someone who knows the areas the
 change touches. For non-trivial changes, we may want two
 reviewers. The primary reviewer will make this decision and nominate a
 second reviewer, if needed. Except for trivial changes, PRs should not
-be committed until relevant parties (e.g., owners of the subsystem
+be committed until relevant parties (e.g., owners of the subsystems
 affected by the PR) have had a reasonable chance to look at the PR in
 their local business hours.
 
@@ -76,7 +78,7 @@ we trust that part of being a committer is having the judgement
 required to evaluate such things honestly, and not be motivated by
 your desire (or your cube-mate's desire) to get their code
 merged. Also, see "Holds" below - any reviewer can issue a "hold" to
-indicate that the PR is, in fact, copmlicated or complex and deserves
+indicate that the PR is, in fact, complicated or complex and deserves
 further review.
 
 PRs that are incorrectly judged to be mergeable - e.g., if subsequent
@@ -85,7 +87,7 @@ and subject to re-review.
 
 ## Holds
 
-Any maintainer or core contributor who wnats to review a PR but does
+Any maintainer or core contributor who wants to review a PR but does
 not have time immediately may put a hold on a PR simply by saying so
 on the PR discussion, and offer an ETA, measured in single-digit days
 at most, by when to provide the review. Any PR that has a hold shall
