@@ -8,9 +8,18 @@ module.exports = angular.module('spinnaker.scalingActivities.controller', [
 ])
   .controller('ScalingActivitiesCtrl', function($scope, $modalInstance, serverGroupReader, applicationName, account, clusterName, serverGroup, _) {
     var ctrl = this;
-    serverGroupReader.getScalingActivities(applicationName, account, clusterName, serverGroup.name, serverGroup.region, serverGroup.provider).then(function(response) {
-      $scope.activities = ctrl.groupScalingActivities(response);
-    });
+    this.viewState = {
+      loading: true,
+      error: false,
+    };
+    serverGroupReader.getScalingActivities(applicationName, account, clusterName, serverGroup.name, serverGroup.region, serverGroup.provider)
+      .then(
+      (response) => {
+        this.viewState.loading = false;
+        $scope.activities = ctrl.groupScalingActivities(response);
+      },
+      () => this.viewState.error = true
+    );
 
     this.groupScalingActivities = function(activities) {
       var grouped = _.groupBy(activities, 'cause'),
