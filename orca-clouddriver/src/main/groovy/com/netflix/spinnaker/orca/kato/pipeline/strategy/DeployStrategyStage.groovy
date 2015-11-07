@@ -187,6 +187,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
     }
 
     Map modifyCtx = [
+      application        : stage.context.application,
       pipelineApplication: stage.context.strategyApplication,
       pipelineId         : stage.context.strategyPipeline,
       pipelineParameters : parameters
