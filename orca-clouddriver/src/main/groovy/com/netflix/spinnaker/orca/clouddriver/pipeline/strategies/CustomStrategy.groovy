@@ -49,6 +49,7 @@ class CustomStrategy implements Strategy {
     parameters.putAll(stage.context.pipelineParameters)
 
     Map modifyCtx = [
+      application        : stage.context.application,
       pipelineApplication: stage.context.strategyApplication,
       pipelineId         : stage.context.strategyPipeline,
       pipelineParameters : parameters
