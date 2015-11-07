@@ -4,10 +4,16 @@
     <h3>Scaling Activities for {{serverGroup.name}}</h3>
   </div>
   <div class="modal-body">
-    <div class="loading" ng-if="!activities.length">
+    <div class="loading" ng-if="ctrl.viewState.loading">
       <span us-spinner="{radius:5, width:2, length: 3}"></span>
     </div>
-    <div ng-repeat="activity in activities" ng-if="activities.length">
+    <div ng-if="ctrl.viewState.error" class="text-center">
+      <p>There was an error loading scaling activities for {{serverGroup.name}}. Please try again later.</p>
+    </div>
+    <div ng-if="!ctrl.viewState.loading && !ctrl.viewState.error && !activities.length" class="text-center">
+      <p>No scaling activities found for {{serverGroup.name}}.</p>
+    </div>
+    <div ng-repeat="activity in activities" ng-if="!ctrl.viewState.loading">
         <p class="clearfix">
           <span class="label label-{{ctrl.isSuccessful(activity) ? 'success' : 'danger'}} pull-left">{{activity.statusCode}}</span>
           <span class="label label-default pull-right">{{activity.startTime | timestamp}}</span>
