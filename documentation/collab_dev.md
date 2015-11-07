@@ -74,7 +74,7 @@ should be held for 24 hours before merging. Of course, "complex" and
 "controversial" are left to the judgement of the people involved, but
 we trust that part of being a committer is having the judgement
 required to evaluate such things honestly, and not be motivated by
-your desire (or your cude-mate's desire) to get their code
+your desire (or your cube-mate's desire) to get their code
 merged. Also, see "Holds" below - any reviewer can issue a "hold" to
 indicate that the PR is, in fact, copmlicated or complex and deserves
 further review.
