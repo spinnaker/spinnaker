@@ -30,7 +30,7 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
   private static final String BASE_PHASE = "DEPLOY"
 
   // TODO(duftler): These should be exposed/configurable.
-  private static final String networkName = "default"
+  private static final String DEFAULT_NETWORK_NAME = "default"
   private static final String accessConfigName = "External NAT"
   private static final String accessConfigType = "ONE_TO_ONE_NAT"
 
@@ -69,25 +69,33 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
 
     def sourceImage = GCEUtil.querySourceImage(project, description.image, compute, task, BASE_PHASE, googleApplicationName)
 
-    def network = GCEUtil.queryNetwork(project, networkName, compute, task, BASE_PHASE)
+    def network = GCEUtil.queryNetwork(project, description.network ?: DEFAULT_NETWORK_NAME, compute, task, BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Composing instance..."
 
-    def rootDrive = GCEUtil.buildAttachedDisk(project,
-                                              zone,
-                                              sourceImage,
-                                              description.diskSizeGb,
-                                              description.diskType,
-                                              true,
-                                              description.instanceType,
-                                              gceDeployDefaults)
+    def attachedDisks = GCEUtil.buildAttachedDisks(project,
+                                                   zone,
+                                                   sourceImage,
+                                                   description.disks,
+                                                   true,
+                                                   description.instanceType,
+                                                   gceDeployDefaults)
 
     def networkInterface = GCEUtil.buildNetworkInterface(network, accessConfigName, accessConfigType)
 
+    def metadata = GCEUtil.buildMetadataFromMap(description.instanceMetadata)
+
+    def tags = GCEUtil.buildTagsFromList(description.tags)
+
+    def serviceAccount = GCEUtil.buildServiceAccount(description.authScopes)
+
     def instance = new Instance(name: description.instanceName,
                                 machineType: machineType.getSelfLink(),
-                                disks: [rootDrive],
-                                networkInterfaces: [networkInterface])
+                                disks: attachedDisks,
+                                networkInterfaces: [networkInterface],
+                                metadata: metadata,
+                                tags: tags,
+                                serviceAccounts: [serviceAccount])
 
     task.updateStatus BASE_PHASE, "Creating instance $description.instanceName..."
     compute.instances().insert(project, zone, instance).execute()

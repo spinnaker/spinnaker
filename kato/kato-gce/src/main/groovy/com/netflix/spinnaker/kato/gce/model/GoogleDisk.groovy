@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kato.gce.deploy.description
+package com.netflix.spinnaker.kato.gce.model
 
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
-import com.netflix.spinnaker.kato.gce.model.GoogleDisk
-import groovy.transform.AutoClone
-import groovy.transform.Canonical
+import groovy.transform.ToString
 
-@AutoClone
-@Canonical
-class BaseGoogleInstanceDescription {
-  String image
-  String instanceType
-  List<GoogleDisk> disks
-  Map<String, String> instanceMetadata
-  List<String> tags
-  String network
-  List<String> authScopes
+@ToString(includeNames = true)
+class GoogleDisk {
+  GoogleDiskType type
+  Long sizeGb
+  boolean autoDelete = true
 
-  String accountName
-  GoogleCredentials credentials
+  void setType(String type) {
+    this.type = GoogleDiskType.fromValue(type)
+  }
+
+  boolean isPersistent() {
+    type?.persistent
+  }
 }
