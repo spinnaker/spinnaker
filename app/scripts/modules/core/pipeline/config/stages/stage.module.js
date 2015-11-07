@@ -95,6 +95,10 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
       }
       $scope.stage = $scope.pipeline.stages[$scope.viewState.stageIndex];
 
+      if (!$scope.stage) {
+        return;
+      }
+
       if (!$scope.stage.type) {
         $scope.options.selectedStageType = null;
       } else {
