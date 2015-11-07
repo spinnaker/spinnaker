@@ -137,6 +137,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
     };
 
     this.clone = function () {
+      var origInstanceMetadata = $scope.command.instanceMetadata;
       var transformedInstanceMetadata = {};
       // The instanceMetadata is stored using 'key' and 'value' attributes to enable the Add/Remove behavior in the wizard.
       $scope.command.instanceMetadata.forEach(function(metadataPair) {
@@ -149,6 +150,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       }
       $scope.command.instanceMetadata = transformedInstanceMetadata;
 
+      var origTags = $scope.command.tags;
       var transformedTags = [];
       // The tags are stored using a 'value' attribute to enable the Add/Remove behavior in the wizard.
       $scope.command.tags.forEach(function(tag) {
@@ -168,7 +170,13 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       }
       $scope.taskMonitor.submit(
         function() {
-          return serverGroupWriter.cloneServerGroup(angular.copy($scope.command), application);
+          var promise = serverGroupWriter.cloneServerGroup(angular.copy($scope.command), application);
+
+          // Copy back the original objects so the wizard can still be used if the command needs to be resubmitted.
+          $scope.command.instanceMetadata = origInstanceMetadata;
+          $scope.command.tags = origTags;
+
+          return promise;
         }
       );
     };
