@@ -55,6 +55,41 @@ body {
   padding-bottom: 19px;
 }
 
+html {
+  a {
+    color: @spinnaker-link-color;
+  }
+  .table > tbody > tr.info > td {
+    background-color: @active_pod_blue;
+  }
+  .btn-link {
+    &.link-inverse {
+      color: @active_pod_blue;
+      &:active, &:hover, &:focus, &.active {
+        color: darken(@active_pod_blue, 20%);
+      }
+    }
+    color: @spinnaker-link-color;
+    &:active, &:hover, &:focus, &.active {
+      color: darken(@active_pod_blue, 60%);
+    }
+  }
+  .btn-primary {
+    background-color: @spinnaker-link-color;
+    border-color: @spinnaker-link-color;
+    &:active, &:hover, &:focus, &.active {
+      background-color: @spinnaker-link-hover;
+      border-color: @spinnaker-link-hover;
+    }
+    &[disabled], &[disabled]:hover {
+      background-color: @spinnaker-link-color;
+      border-color: @spinnaker-link-color;
+      opacity: 0.4;
+
+    }
+  }
+}
+
 .insight {
   .filters-content, .nav-content, .details-panel {
     width: 100%;
@@ -632,7 +667,7 @@ tfoot .add-new {
 
 .application-list {
   a {
-    color: @link-color;
+    color: @spinnaker-link-color;
   }
 }
 
