@@ -124,17 +124,22 @@ def start_copy_file(options, source, target, dir=False):
    Returns:
      A subprocess instance performing the copy.
    """
+
+   # We're adding HOME and PATH to the sudo commands so that if we are running
+   # as a user, we can use their storage bucket credentials for the install,
+   # and currently standard documented gcloud is installed as a user.
    if source.startswith('gs://'):
      if dir:
        safe_mkdir(target)
      command = ('sudo bash -c'
-                ' "PATH=$PATH gsutil -m -q cp {R} \"{source}\"{X} \"{target}\""'
+                ' "HOME=$HOME PATH=$PATH'
+                ' gsutil -m -q cp {R} \"{source}\"{X} \"{target}\""'
                 .format(source=source, target=target,
                         R='-R' if dir else '',
                         X='/*' if dir else ''))
    elif source.startswith('s3://'):
      command = ('sudo bash -c'
-                ' "PATH=$PATH aws s3 cp {R} --region {region}'
+                ' "HOME=$HOME PATH=$PATH aws s3 cp {R} --region {region}'
                 ' \"{source}\" \"{target}\""'
                 .format(source=source, target=target, region=options.region,
                         R='--recursive' if dir else ''))
