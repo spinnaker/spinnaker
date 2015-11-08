@@ -65,8 +65,14 @@ echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | su
 echo 'deb http://jenkins.staypuft.kenzan.com:8000/ trusty main' > /etc/apt/sources.list.d/spinnaker-dev.list
 
 ## Install software
+# "service cassandra status" is currently broken in Ubuntu grep in the script is grepping for things that do not exist
+# Cassandra 2.2 ships with RPC disabeld to enable run "nodetool enablethrift"
+
 apt-get update
 apt-get install -y oracle-java8-installer
+apt-get install -y cassandra=2.1.11 cassandra-tools=2.1.11
+# apt-get install dsc21
 apt-get install -y --force-yes --allow-unauthenticated spinnaker
 
 
+nodetool enablethrift
