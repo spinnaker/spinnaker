@@ -13,7 +13,11 @@
     - quick_start
     - user_guide   
     - integration_guide
-    - developer_guide 
+    - developer_guide
+-
+  title: Community
+  children:
+    - collab_dev
 -
   title: Videos
   children:
