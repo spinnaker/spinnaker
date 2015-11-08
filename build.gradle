@@ -37,6 +37,10 @@ ospackage {
     into spinnakerHome + '/pylib'
   }
 
+  from('cassandra') {
+    into spinnakerHome + '/cassandra'
+  }
+
   from('runtime/reconfigure_spinnaker.sh') {
     into spinnakerHome + '/bin/reconfigure_spinnaker'
     fileMode = 0755
@@ -48,15 +52,16 @@ ospackage {
 // Ubuntu
 buildDeb {
   requires('python-pip')
-  requires('openjdk-8-jre', '8u45-b14-1~14.04', EQUAL)
-  //requires('cassandra', '2.1.9', EQUAL)
-  requires('cassandra-tools', '2.1.9', EQUAL)
-  requires('dsc21', '2.1.9-1', EQUAL)
+  // requires('openjdk-8-jre', '8u45-b14-1~14.04', EQUAL)
+  requires('oracle-java8-installer')
+  requires('dsc22')
+  requires('cassandra-tools')
   requires('redis-server', '3.0.5', GREATER | EQUAL)
   requires('clouddriver')
   requires('deck')
   requires('echo')
   requires('front50')
+  requires('gate')
   requires('igor')
   requires('orca')
   requires('rosco')
