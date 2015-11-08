@@ -24,6 +24,17 @@
       </div>
     </div>
   </div>
+  <div class="step-section-details" ng-if="detailsSection === 'parameters'">
+    <div class="row">
+      <div class="col-md-12">
+        <h5>Parameters</h5>
+        <dl>
+          <dt ng-repeat-start="param in parameters">{{param.key}}</dt>
+          <dd ng-repeat-end>{{param.val}}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
   <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
     <div class="row">
       <execution-step-details item="stage"></execution-step-details>
