@@ -17,13 +17,13 @@ cqlsh -f "/opt/spinnaker/cassandra/create_rush_keyspace.cql"
 
 # Start all the services
 
-start 'clouddriver'
-start 'orca'
-start 'front50'
-start 'rush'
-start 'rosco'
-start 'echo'
-start 'gate'
-start 'igor'
+# start 'clouddriver'
+# start 'orca'
+# start 'front50'
+# start 'rush'
+# start 'rosco'
+# start 'echo'
+# start 'gate'
+# start 'igor'
 
 

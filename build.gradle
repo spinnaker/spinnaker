@@ -45,6 +45,19 @@ ospackage {
     into spinnakerHome + '/config'
   }
 
+  from(file('scripts/spinnaker.conf')) {
+    into('/etc/init')
+    user = 'root'
+    permissionGroup = 'root'
+    fileType = CONFIG | NOREPLACE
+  }
+
+   from('config/default-spinnaker-local.yml') {
+    include 'default-spinnaker-local.yml'
+    rename '.*', 'spinnaker-local.yml'
+    into spinnakerHome + '/config'
+  }
+
   from('runtime/reconfigure_spinnaker.sh') {
     into spinnakerHome + '/bin'
     fileMode = 0755
