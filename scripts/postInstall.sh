@@ -5,6 +5,7 @@
 a2enmod proxy_http
 
 # Copy vhosts
+/opt/spinnaker/bin/reconfigure_spinnaker.sh
 
 # Restart apache
 service apache2 restart

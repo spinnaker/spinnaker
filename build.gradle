@@ -41,8 +41,12 @@ ospackage {
     into spinnakerHome + '/cassandra'
   }
 
+  from('config') {
+    into spinnakerHome + '/config'
+  }
+
   from('runtime/reconfigure_spinnaker.sh') {
-    into spinnakerHome + '/bin/reconfigure_spinnaker'
+    into spinnakerHome + '/bin'
     fileMode = 0755
   }
 
