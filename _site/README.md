@@ -1,5 +1,5 @@
-Falcor Website
-==============
+Spinnaker Website
+=================
 
 To Develop the Site
 -------------------
@@ -21,7 +21,7 @@ For the most part, the layout of the site content can be done any way you like. 
 
 ### Homepage
 The homepage content is split into a number of markdown files to make it easy to edit despite jekyll's template limitations.
-- `_includes/tagline.txt` contains the (plain) text displayed underneath the Falcor logo
+- `_includes/tagline.txt` contains the (plain) text displayed underneath the spinnaker logo
 - `_includes/homepage-key-feature-1` through 3 contain, form left to right, the three key feature snippets displayed right under the hero banner (the large black banner)
 - `_includes/homepage.md` contains the main content (after the 3 key features widget) for the rest of the homepage
 
@@ -68,7 +68,7 @@ Page Crosslink Helper
 ---------------------
 There's a simple link to page id helper you can use like this:
 ```
-{% include link.to id="router" text="Falcor Router" %}
+{% include link.to id="router" text="Spinnaker Router" %}
 ```
 
 Where you can replace the id with any page's id, or even a variable (`id=site.data.my_favorite_page_id`), and it will always keep the correct url to that page, even if it's moved or renamed.

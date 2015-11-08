@@ -131,7 +131,7 @@
                       
                         
                         <li class="">
-                          <a href="/spinnaker/documentation/integration_guide.html">Integration Guide</a>
+                          <a href="/spinnaker"></a>
                         </li>
                       
                         
@@ -201,6 +201,10 @@
       <li><a href="#spinnaker-components" id="markdown-toc-spinnaker-components">Spinnaker Components</a></li>
     </ul>
   </li>
+  <li><a href="#jenkins-integration" id="markdown-toc-jenkins-integration">Jenkins Integration</a>    <ul>
+      <li><a href="#configuration" id="markdown-toc-configuration">Configuration</a></li>
+    </ul>
+  </li>
 </ul>
 
 <h1 id="developers-guide">Developer’s Guide</h1>
@@ -220,67 +224,49 @@
   <li><a href="https://www.github.com/spinnaker/rosco">Rosco</a> - bakery responsible for creating images for deployment</li>
 </ul>
 
+<h1 id="jenkins-integration">Jenkins Integration</h1>
+
+<p>Spinnaker integrates with Jenkins via the <a href="https://www.github.com/spinnaker/igor">Igor</a> microservice.</p>
+
+<p>Most commonly, jenkins builds are integrated into Spinnaker as either pipeline triggers or jenkins stages.</p>
+
+<ul>
+  <li><em>Pipeline triggers</em> launch a pipeline execution when a jenkins build has finished.</li>
+  <li><em>Jenkins stages</em>, in contrast, launch new jenkins job executions at specific points in the Spinnaker pipeline.</li>
+</ul>
+
+<h2 id="configuration">Configuration</h2>
+
+<p>Igor serves as an interface to multiple jenkins hosts. To configure the list of jenkins masters, you need to modify the igor.yml file that contains the configurations.</p>
+
+<p>Below is an example of two jenkins hosts configured for use in Spinnaker:</p>
+
+<pre><code>jenkins:
+  masters:
+    -
+      address: "http://spinhost.builds.example.net/"
+      name: spinnakerhost
+      password: f5e42494586b86687399aa5780eb2222
+      username: foo
+    -
+      address: "http://spinhost2.anotherexample.net/"
+      name: anotherhost
+      password: a56761f6a117022008e3c44396937f24
+      username: bar
+</code></pre>
+
+<p>In this example, we have two jenkins hosts. These will appear as <em>spinnakerhost</em> and <em>anotherhost</em> wherever the Spinnaker UI allows you to select a jenkins host.</p>
+
+<p>The username and password combination are used to identify the user accessing the jenkins host via its API. The user should have permissions to post new jobs if jenkins stages are being used in pipelines.</p>
+
+<p>Although Spinnaker allows you to specify the password you use to login to your Jenkins host, we recommend using an API token to access your build. The API token can be retrieved after login on your jenkins server through http://[my.jenkins.host]/user/[username]/configure. The value is under the heading “API Token”.</p>
+
     
     <div class="row row-gap-medium"></div>
     
 
 
-  
-    
-      
-    
-  
 
-  
-    
-      
-    
-      
-    
-      
-    
-      
-        
-        
-        
-        
-          
-          
-        
-        
-      
-    
-  
-
-  
-    
-      
-    
-      
-    
-  
-
-  
-
-
-
-  <div class="row">
-    <div class="col-xs-12">
-      <div class="intrasection-navigation">
-        <div class="row">
-          
-            <div class="col-xs-6 previous-page-action">
-              <span class="icon icon-arrow-left"></span>
-              <a href="/spinnaker/documentation/integration_guide.html">
-                Integration Guide
-              </a>
-            </div>
-          
-          
-        </div>
-      </div>
-    </div>
-  </div>
 
   </div>
 </div>        
