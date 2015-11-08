@@ -5,6 +5,7 @@
 a2enmod proxy_http
 
 # Copy vhosts
+/opt/spinnaker/bin/reconfigure_spinnaker.sh
 
 # Restart apache
 service apache2 restart
@@ -16,13 +17,13 @@ cqlsh -f "/opt/spinnaker/cassandra/create_rush_keyspace.cql"
 
 # Start all the services
 
-start 'clouddriver'
-start 'orca'
-start 'front50'
-start 'rush'
-start 'rosco'
-start 'echo'
-start 'gate'
-start 'igor'
+# start 'clouddriver'
+# start 'orca'
+# start 'front50'
+# start 'rush'
+# start 'rosco'
+# start 'echo'
+# start 'gate'
+# start 'igor'
 
 

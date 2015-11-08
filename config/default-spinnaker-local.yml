@@ -7,8 +7,8 @@ providers:
     # If you want to deploy some services to Amazon Web Services (AWS),
     # set enabled and provide primary credentials for deploying.
     # Enabling AWS is independent of other providers.
-    enabled: false
-    defaultRegion: us-east-1
+    enabled: ${SPINNAKER_AWS_ENABLED}
+    defaultRegion: ${SPINNAKER_AWS_DEFAULT_REGION}
     defaultIAMRole: BaseIAMRole
     primaryCredentials:
       name: my-aws-account

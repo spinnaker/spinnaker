@@ -41,8 +41,25 @@ ospackage {
     into spinnakerHome + '/cassandra'
   }
 
+  from('config') {
+    into spinnakerHome + '/config'
+  }
+
+  from(file('scripts/spinnaker.conf')) {
+    into('/etc/init')
+    user = 'root'
+    permissionGroup = 'root'
+    fileType = CONFIG | NOREPLACE
+  }
+
+   from('config/default-spinnaker-local.yml') {
+    include 'default-spinnaker-local.yml'
+    rename '.*', 'spinnaker-local.yml'
+    into spinnakerHome + '/config'
+  }
+
   from('runtime/reconfigure_spinnaker.sh') {
-    into spinnakerHome + '/bin/reconfigure_spinnaker'
+    into spinnakerHome + '/bin'
     fileMode = 0755
   }
 
