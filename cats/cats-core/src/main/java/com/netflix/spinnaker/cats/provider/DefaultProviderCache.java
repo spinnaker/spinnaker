@@ -120,14 +120,17 @@ public class DefaultProviderCache implements ProviderCache {
     public void putCacheResult(String sourceAgentType, Collection<String> authoritativeTypes, CacheResult cacheResult) {
         Set<String> allTypes = new HashSet<>(cacheResult.getCacheResults().keySet());
         allTypes.addAll(authoritativeTypes);
+        allTypes.addAll(cacheResult.getEvictions().keySet());
         validateTypes(allTypes);
+
+        Map<String, Collection<String>> evictions = new HashMap<>();
 
         for (String type : allTypes) {
             final Collection<String> previousSet;
             if (authoritativeTypes.contains(type)) {
                 previousSet = getExistingSourceIdentifiers(type, sourceAgentType);
             } else {
-                previousSet = Collections.emptySet();
+                previousSet = new HashSet<>();
             }
             if (cacheResult.getCacheResults().containsKey(type)) {
                 cacheDataType(type, sourceAgentType, cacheResult.getCacheResults().get(type));
@@ -135,7 +138,16 @@ public class DefaultProviderCache implements ProviderCache {
                     previousSet.remove(data.getId());
                 }
             }
-            evictDeletedItems(type, previousSet);
+            if (cacheResult.getEvictions().containsKey(type)) {
+              previousSet.addAll(cacheResult.getEvictions().get(type));
+            }
+            if (!previousSet.isEmpty()) {
+              evictions.put(type, previousSet);
+            }
+        }
+
+        for (Map.Entry<String, Collection<String>> eviction : evictions.entrySet()) {
+          evictDeletedItems(eviction.getKey(), eviction.getValue());
         }
     }
 

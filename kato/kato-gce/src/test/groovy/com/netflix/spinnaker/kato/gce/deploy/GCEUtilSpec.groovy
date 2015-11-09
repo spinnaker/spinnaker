@@ -33,6 +33,7 @@ import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundExc
 import groovy.mock.interceptor.MockFor
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class GCEUtilSpec extends Specification {
   private static final PROJECT_NAME = "my-project"
@@ -344,5 +345,32 @@ class GCEUtilSpec extends Specification {
 
       def exc = thrown GoogleResourceNotFoundException
       exc.message == "Instances [$INSTANCE_LOCAL_NAME_1, $INSTANCE_LOCAL_NAME_2] not found."
+  }
+
+  @Unroll
+  void "buildServiceAccount should return null when no authScopes are specified"() {
+    when:
+      def serviceAccount = GCEUtil.buildServiceAccount(authScopes)
+
+    then:
+      serviceAccount == null
+
+    where:
+      authScopes << [null, []]
+  }
+
+  @Unroll
+  void "buildServiceAccount should prepend base url if necessary"() {
+    when:
+      def serviceAccount = GCEUtil.buildServiceAccount(authScopes)
+
+    then:
+      serviceAccount.scopes == expectedScopes
+
+    where:
+      authScopes                                                   | expectedScopes
+      ["cloud-platform"]                                           | ["https://www.googleapis.com/auth/cloud-platform"]
+      ["devstorage.read_only"]                                     | ["https://www.googleapis.com/auth/devstorage.read_only"]
+      ["https://www.googleapis.com/auth/logging.write", "compute"] | ["https://www.googleapis.com/auth/logging.write", "https://www.googleapis.com/auth/compute"]
   }
 }

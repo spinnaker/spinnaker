@@ -30,6 +30,7 @@ import com.netflix.spinnaker.kato.deploy.DeploymentResult
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.kato.gce.deploy.handlers.BasicGoogleDeployHandler
+import com.netflix.spinnaker.kato.gce.model.GoogleDisk
 import com.netflix.spinnaker.mort.gce.model.GoogleSecurityGroup
 import com.netflix.spinnaker.mort.gce.provider.view.GoogleSecurityGroupProvider
 import spock.lang.Specification
@@ -52,6 +53,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final String HTTP_SERVER_TAG = "http-server"
   private static final String HTTPS_SERVER_TAG = "https-server"
   private static final List<String> TAGS = ["orig-tag-1", "orig-tag-2", HTTP_SERVER_TAG, HTTPS_SERVER_TAG]
+  private static final List<String> AUTH_SCOPES = ["compute", "logging.write"]
   private static final List<String> LOAD_BALANCERS = ["testlb-east-1", "testlb-east-2"]
   private static final String SECURITY_GROUP_1 = "sg-1"
   private static final String SECURITY_GROUP_2 = "sg-2"
@@ -60,6 +62,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
   private static final long DISK_SIZE_GB = 100
   private static final String DISK_TYPE = "pd-standard"
+  private static final GoogleDisk DISK_PD_STANDARD = new GoogleDisk(type: DISK_TYPE, sizeGb: DISK_SIZE_GB)
   private static final String DEFAULT_NETWORK_NAME = "default"
   private static final String ACCESS_CONFIG_NAME = "External NAT"
   private static final String ACCESS_CONFIG_TYPE = "ONE_TO_ONE_NAT"
@@ -74,10 +77,11 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
   private def sourceImage
   private def network
-  private def attachedDisk
+  private def attachedDisks
   private def networkInterface
   private def instanceMetadata
   private def tags
+  private def serviceAccount
   private def instanceProperties
   private def instanceTemplate
   private def instanceGroupManager
@@ -98,22 +102,23 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
     sourceImage = new Image(selfLink: IMAGE)
     network = new Network(selfLink: DEFAULT_NETWORK_NAME)
-    attachedDisk = GCEUtil.buildAttachedDisk(PROJECT_NAME,
-                                             ZONE,
-                                             sourceImage,
-                                             DISK_SIZE_GB,
-                                             DISK_TYPE,
-                                             false,
-                                             INSTANCE_TYPE,
-                                             new GceConfig.DeployDefaults())
+    attachedDisks = GCEUtil.buildAttachedDisks(PROJECT_NAME,
+                                               ZONE,
+                                               sourceImage,
+                                               [DISK_PD_STANDARD],
+                                               false,
+                                               INSTANCE_TYPE,
+                                               new GceConfig.DeployDefaults())
     networkInterface = GCEUtil.buildNetworkInterface(network, ACCESS_CONFIG_NAME, ACCESS_CONFIG_TYPE)
     instanceMetadata = GCEUtil.buildMetadataFromMap(INSTANCE_METADATA)
     tags = GCEUtil.buildTagsFromList(TAGS)
+    serviceAccount = GCEUtil.buildServiceAccount(AUTH_SCOPES)
     instanceProperties = new InstanceProperties(machineType: INSTANCE_TYPE,
-                                                disks: [attachedDisk],
+                                                disks: attachedDisks,
                                                 networkInterfaces: [networkInterface],
                                                 metadata: instanceMetadata,
-                                                tags: tags)
+                                                tags: tags,
+                                                serviceAccounts: [serviceAccount])
     instanceTemplate = new InstanceTemplate(name: INSTANCE_TEMPLATE_NAME,
                                             properties: instanceProperties)
     instanceGroupManager = new InstanceGroupManager(name: ANCESTOR_SERVER_GROUP_NAME,
@@ -129,11 +134,11 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          targetSize: 4,
                                                          image: "backports-$IMAGE",
                                                          instanceType: "n1-standard-8",
-                                                         diskType: "pd-ssd",
-                                                         diskSizeGb: 250,
+                                                         disks: [new GoogleDisk(type: "pd-ssd", sizeGb: 250)],
                                                          zone: ZONE,
                                                          instanceMetadata: ["differentKey": "differentValue"],
                                                          tags: ["new-tag-1", "new-tag-2"],
+                                                         authScopes: ["some-scope", "some-other-scope"],
                                                          network: "other-network",
                                                          loadBalancers: ["testlb-west-1", "testlb-west-2"],
                                                          securityGroups: ["sg-3", "sg-4"] as Set,
@@ -178,11 +183,11 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.targetSize = 2
       newDescription.image = IMAGE
       newDescription.instanceType = INSTANCE_TYPE
-      newDescription.diskType = DISK_TYPE
-      newDescription.diskSizeGb = DISK_SIZE_GB
+      newDescription.disks = [DISK_PD_STANDARD]
       newDescription.zone = ZONE
       newDescription.instanceMetadata = INSTANCE_METADATA
       newDescription.tags = TAGS
+      newDescription.authScopes = AUTH_SCOPES
       newDescription.network = DEFAULT_NETWORK_NAME
       newDescription.loadBalancers = LOAD_BALANCERS
       newDescription.securityGroups = SECURITY_GROUPS

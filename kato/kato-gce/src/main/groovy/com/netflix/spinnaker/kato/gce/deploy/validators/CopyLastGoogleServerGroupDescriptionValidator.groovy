@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kato.gce.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperations
@@ -31,6 +32,9 @@ class CopyLastGoogleServerGroupDescriptionValidator extends DescriptionValidator
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
+  @Autowired
+  private GceConfig.DeployDefaults gceDeployDefaults
+
   @Override
   void validate(List priorDescriptions, BasicGoogleDeployDescription description, Errors errors) {
     // Passing 'copyLastGoogleServerGroupDescription' rather than 'basicGoogleDeployDescription'
@@ -40,5 +44,8 @@ class CopyLastGoogleServerGroupDescriptionValidator extends DescriptionValidator
     def helper = new StandardGceAttributeValidator("copyLastGoogleServerGroupDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
+    helper.validateInstanceTypeDisks(gceDeployDefaults.determineInstanceTypeDisk(description.instanceType),
+                                     description.disks)
+    helper.validateAuthScopes(description.authScopes)
   }
 }

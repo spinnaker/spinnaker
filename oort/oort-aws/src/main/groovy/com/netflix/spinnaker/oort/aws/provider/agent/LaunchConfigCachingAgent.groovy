@@ -21,6 +21,7 @@ import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -34,14 +35,15 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 import groovy.util.logging.Slf4j
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.IMAGES
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.LAUNCH_CONFIGS
 
-@Slf4j
-class LaunchConfigCachingAgent implements CachingAgent, AccountAware {
-
+class LaunchConfigCachingAgent implements CachingAgent, AccountAware, DriftMetric {
+  final Logger log = LoggerFactory.getLogger(getClass())
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
   final Set<AgentDataType> types = Collections.unmodifiableSet([
@@ -52,12 +54,14 @@ class LaunchConfigCachingAgent implements CachingAgent, AccountAware {
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
+  final Registry registry
 
-  LaunchConfigCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper) {
+  LaunchConfigCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper, Registry registry) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    this.registry = registry
   }
 
   @Override
@@ -90,8 +94,8 @@ class LaunchConfigCachingAgent implements CachingAgent, AccountAware {
     def request = new DescribeLaunchConfigurationsRequest()
     while (true) {
       def resp = autoScaling.describeLaunchConfigurations(request)
-      if (!start) {
-        start = EddaSupport.parseLastModified(amazonClientProvider.lastResponseHeaders?.get("last-modified")?.get(0))
+      if (account.eddaEnabled) {
+        start = amazonClientProvider.lastModified ?: 0
       }
       launchConfigs.addAll(resp.launchConfigurations)
       if (resp.nextToken) {
@@ -107,10 +111,7 @@ class LaunchConfigCachingAgent implements CachingAgent, AccountAware {
       new DefaultCacheData(Keys.getLaunchConfigKey(lc.launchConfigurationName, account.name, region), attributes, relationships)
     }
 
-    if (start) {
-      long drift = new Date().time - start
-      log.info("${agentType}/drift - $drift milliseconds")
-    }
+    recordDrift(start)
     log.info("Caching ${launchConfigData.size()} items in ${agentType}")
     new DefaultCacheResult((LAUNCH_CONFIGS.ns): launchConfigData)
   }

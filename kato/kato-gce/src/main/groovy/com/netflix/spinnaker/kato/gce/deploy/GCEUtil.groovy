@@ -36,11 +36,14 @@ import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleSecurityGro
 import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
+import com.netflix.spinnaker.kato.gce.model.GoogleDisk
+import com.netflix.spinnaker.kato.gce.model.GoogleDiskType
 import com.netflix.spinnaker.mort.gce.model.GoogleSecurityGroup
 import com.netflix.spinnaker.mort.gce.provider.view.GoogleSecurityGroupProvider
 
 class GCEUtil {
   private static final String DISK_TYPE_PERSISTENT = "PERSISTENT"
+  private static final String DISK_TYPE_SCRATCH = "SCRATCH"
 
   public static final String TARGET_POOL_NAME_PREFIX = "tp"
 
@@ -311,63 +314,77 @@ class GCEUtil {
           "Instance template $instanceTemplate.name has ${instanceTemplateProperties.networkInterfaces?.size}.")
     }
 
-    if (instanceTemplateProperties.disks?.size != 1) {
-      throw new GoogleOperationException("Instance templates must have exactly one disk defined. Instance template " +
+    def image
+    def disks
+
+    if (instanceTemplateProperties.disks) {
+      def bootDisk = instanceTemplateProperties.disks.find { it.getBoot() }
+
+      image = GCEUtil.getLocalName(bootDisk?.initializeParams?.sourceImage)
+      disks = instanceTemplateProperties.disks.collect { attachedDisk ->
+        def initializeParams = attachedDisk.initializeParams
+
+        new GoogleDisk(type: initializeParams.diskType,
+                       sizeGb: initializeParams.diskSizeGb,
+                       autoDelete: attachedDisk.autoDelete)
+      }
+    } else {
+      throw new GoogleOperationException("Instance templates must have at least one disk defined. Instance template " +
           "$instanceTemplate.name has ${instanceTemplateProperties.disks?.size}.")
     }
 
     def networkInterface = instanceTemplateProperties.networkInterfaces[0]
-    def bootDiskInitializeParams = instanceTemplateProperties.disks[0].initializeParams
 
     return new BaseGoogleInstanceDescription(
-      image: getLocalName(bootDiskInitializeParams.sourceImage),
+      image: image,
       instanceType: instanceTemplateProperties.machineType,
-      diskType: bootDiskInitializeParams.diskType,
-      diskSizeGb: bootDiskInitializeParams.diskSizeGb,
+      disks: disks,
       instanceMetadata: instanceTemplateProperties.metadata?.items?.collectEntries {
         [it.key, it.value]
       },
       tags: instanceTemplateProperties.tags?.items,
-      network: getLocalName(networkInterface.network)
+      network: getLocalName(networkInterface.network),
+      authScopes: retrieveScopesFromDefaultServiceAccount(instanceTemplateProperties.serviceAccounts)
     )
   }
 
-  static String buildDiskTypeUrl(String projectName, String zone, String diskType) {
+  static List<String> retrieveScopesFromDefaultServiceAccount(List<ServiceAccount> serviceAccounts) {
+    serviceAccounts?.find { it.email == "default" }?.scopes
+  }
+
+  static String buildDiskTypeUrl(String projectName, String zone, GoogleDiskType diskType) {
     return "https://www.googleapis.com/compute/v1/projects/$projectName/zones/$zone/diskTypes/$diskType"
   }
 
-  static AttachedDisk buildAttachedDisk(String projectName,
-                                        String zone,
-                                        Image sourceImage,
-                                        Long diskSizeGb,
-                                        String diskType,
-                                        boolean useDiskTypeUrl,
-                                        String instanceType,
-                                        GceConfig.DeployDefaults deployDefaults) {
-    if (!diskSizeGb || !diskType) {
-      def defaultPersistentDisk = deployDefaults.determinePersistentDisk(instanceType)
-
-      if (!diskSizeGb) {
-        diskSizeGb = defaultPersistentDisk.size
-      }
-
-      if (!diskType) {
-        diskType = defaultPersistentDisk.type
-      }
+  static List<AttachedDisk> buildAttachedDisks(String projectName,
+                                               String zone,
+                                               Image sourceImage,
+                                               List<GoogleDisk> disks,
+                                               boolean useDiskTypeUrl,
+                                               String instanceType,
+                                               GceConfig.DeployDefaults deployDefaults) {
+    if (!disks) {
+      disks = deployDefaults.determineInstanceTypeDisk(instanceType).disks
     }
 
-    if (useDiskTypeUrl) {
-      diskType = buildDiskTypeUrl(projectName, zone, diskType)
+    if (!disks) {
+      throw new GoogleOperationException("Unable to determine disks for instance type $instanceType.")
     }
 
-    def attachedDiskInitializeParams = new AttachedDiskInitializeParams(sourceImage: sourceImage.selfLink,
-                                                                        diskSizeGb: diskSizeGb,
-                                                                        diskType: diskType)
+    def firstPersistentDisk = disks.find { it.persistent }
 
-    return new AttachedDisk(boot: true,
-                            autoDelete: true,
-                            type: DISK_TYPE_PERSISTENT,
-                            initializeParams: attachedDiskInitializeParams)
+    return disks.collect { disk ->
+      def diskType = useDiskTypeUrl ? buildDiskTypeUrl(projectName, zone, disk.type) : disk.type
+      def attachedDiskInitializeParams =
+        new AttachedDiskInitializeParams(sourceImage: disk.is(firstPersistentDisk) ? sourceImage.selfLink : null,
+                                         diskSizeGb: disk.sizeGb,
+                                         diskType: diskType)
+
+      new AttachedDisk(boot: disk.is(firstPersistentDisk),
+                       autoDelete: disk.autoDelete,
+                       type: disk.persistent ? DISK_TYPE_PERSISTENT : DISK_TYPE_SCRATCH,
+                       initializeParams: attachedDiskInitializeParams)
+    }
   }
 
   static NetworkInterface buildNetworkInterface(Network network, String accessConfigName, String accessConfigType) {
@@ -398,6 +415,16 @@ class GCEUtil {
 
   static Tags buildTagsFromList(List<String> tagsList) {
     return new Tags(items: tagsList)
+  }
+
+  static List<String> resolveAuthScopes(List<String> authScopes) {
+    return authScopes?.collect { authScope ->
+      authScope.startsWith("https://") ? authScope : "https://www.googleapis.com/auth/$authScope".toString()
+    }
+  }
+
+  static ServiceAccount buildServiceAccount(List<String> authScopes) {
+    return authScopes ? new ServiceAccount(email: "default", scopes: resolveAuthScopes(authScopes)) : null
   }
 
   // TODO(duftler/odedmeri): We should determine if there is a better approach than this naming convention.

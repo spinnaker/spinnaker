@@ -81,4 +81,10 @@ class CloudDriverConfig {
   ProjectSearchProvider projectSearchProvider(Front50Service front50Service) {
     new ProjectSearchProvider(front50Service)
   }
+
+  @Bean
+  @ConditionalOnMissingBean(CloudProvider)
+  CloudProvider noopCloudProvider() {
+    new NoopCloudProvider()
+  }
 }

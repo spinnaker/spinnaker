@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.aws.provider.agent
+package com.netflix.spinnaker.clouddriver.core
 
-import java.text.SimpleDateFormat
+import java.lang.annotation.Annotation
 
-class EddaSupport {
-
-  static long parseLastModified(String lastModified) {
-    if (!lastModified) return 0
-
-    // SimpleDateFormat isn't thread safe
-    SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
-    format.parse(lastModified).time
-  }
-
+class NoopCloudProvider implements CloudProvider {
+  final String id = "noop"
+  final String displayName = "noop"
+  final Class<Annotation> operationAnnotationType = null
 }
