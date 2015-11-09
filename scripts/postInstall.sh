@@ -1,13 +1,13 @@
 #!/bin/sh
 
-
-# Apache
-a2enmod proxy_http
-
-# Copy vhosts
+# deck settings
 /opt/spinnaker/bin/reconfigure_spinnaker.sh
 
-# Restart apache
+# vhosts
+rm -rf /etc/apache2/sites-enabled/*.conf
+
+ln -s /etc/apache2/sites-available/spinnker.conf /etc/apache2/sites-enabled/spinnaker.conf
+
 service apache2 restart
 
 # Install cassandra keyspaces

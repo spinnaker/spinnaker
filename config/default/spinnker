@@ -1,0 +1,11 @@
+# Spinnaker system defaults
+
+## Amazon
+
+# If you plan on using Amazon AWS set this to true
+SPINNAKER_AWS_ENABLED=false
+# Default region you desire to operate in
+SPINNAKER_AWS_DEFAULT_REGION=us-west-2
+
+
+
