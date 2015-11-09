@@ -97,6 +97,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       var result = { dirty: {} };
       if (command.region) {
         var filtered = gceInstanceTypeService.getAvailableTypesForRegions(command.backingData.instanceTypes, [command.region]);
+        filtered = sortInstanceTypes(filtered);
         if (command.instanceType && filtered.indexOf(command.instanceType) === -1) {
           command.instanceType = null;
           result.dirty.instanceType = true;
@@ -106,6 +107,25 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         command.backingData.filtered.instanceTypes = [];
       }
       return result;
+    }
+
+    // n1-standard-8 should come before n1-standard-16, so we must sort by the individual segments of the names.
+    function sortInstanceTypes(instanceTypes) {
+      var tokenizedInstanceTypes = _.map(instanceTypes, instanceType => {
+        let tokens = instanceType.split('-');
+
+        return {
+          class: tokens[0],
+          group: tokens[1],
+          index: Number(tokens[2]) || 0
+        };
+      });
+
+      let sortedTokenizedInstanceTypes = _.sortByAll(tokenizedInstanceTypes, ['class', 'group', 'index']);
+
+      return _.map(sortedTokenizedInstanceTypes, sortedTokenizedInstanceType => {
+        return sortedTokenizedInstanceType.class + '-' + sortedTokenizedInstanceType.group + (sortedTokenizedInstanceType.index ? '-' + sortedTokenizedInstanceType.index : '');
+      });
     }
 
     function configureImages(command) {
