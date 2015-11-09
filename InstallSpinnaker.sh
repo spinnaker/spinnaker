@@ -81,9 +81,18 @@ nodetool enablethrift
 apt-get install -y --force-yes --allow-unauthenticated spinnaker
 
 read -p "Enable Amazon AWS? (Y|n)" enableAws
-if [[ " ${enableAws,,}" == "y" || -z "$enableAws" ]]; then
+if [[ "${enableAws,,}" == "y" || -z "$enableAws" ]]; then
     setEnableAws="true"
     read -p "Default region: " defaultRegion
-    sed -i.bak -e "s/false/$setEnableAws" -e "s/us-west-2/$defaultRegion" /etc/default/spinnaker
+    sed -i.bak -e "s/false/$setEnableAws/" -e "s/us-west-2/$defaultRegion/" /etc/default/spinnaker
+else
+ echo Not enabling AWS
 fi
+
+service clouddriver start
+service gate start
+service rosco start
+service front50 start
+service igor start
+service echo start
 
