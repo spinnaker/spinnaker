@@ -162,12 +162,11 @@ public class AmazonClientProvider {
   }
 
   /**
-   * When edda serves the request, http headers are captured and available to the calling thread.
-   * Header names are lower-case.
-   * @return the HTTP headers from the last response for the requesting thread, if available.
+   * When edda serves the request, the last-modified time is captured from the response metadata.
+   * @return the last-modified timestamp, if available.
    */
-  public Map<String, List<String>> getLastResponseHeaders() {
-    return AmazonClientInvocationHandler.lastResponseHeaders.get();
+  public Long getLastModified() {
+    return AmazonClientInvocationHandler.lastModified.get();
   }
 
   public AmazonEC2 getAmazonEC2(NetflixAmazonCredentials amazonCredentials, String region) {

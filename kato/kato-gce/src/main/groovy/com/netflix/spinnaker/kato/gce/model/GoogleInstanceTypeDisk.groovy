@@ -16,7 +16,11 @@
 
 package com.netflix.spinnaker.kato.gce.model
 
-class GooglePersistentDisk {
-  String type
-  Integer size
+import groovy.transform.ToString
+
+@ToString(includeNames = true)
+class GoogleInstanceTypeDisk {
+  String instanceType
+  boolean supportsLocalSSD = true
+  List<GoogleDisk> disks
 }

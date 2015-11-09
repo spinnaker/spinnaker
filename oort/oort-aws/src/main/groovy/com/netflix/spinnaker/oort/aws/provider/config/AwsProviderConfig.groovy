@@ -112,9 +112,9 @@ class AwsProviderConfig {
       for (AmazonCredentials.AWSRegion region : credentials.regions) {
         if (!scheduledAccounts.contains(credentials.name)) {
           newlyAddedAgents << new ClusterCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, objectMapper, registry)
-          newlyAddedAgents << new LaunchConfigCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
-          newlyAddedAgents << new ImageCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
-          newlyAddedAgents << new InstanceCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
+          newlyAddedAgents << new LaunchConfigCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
+          newlyAddedAgents << new ImageCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
+          newlyAddedAgents << new InstanceCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
           newlyAddedAgents << new LoadBalancerCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, objectMapper, registry)
           if (credentials.eddaEnabled) {
             newlyAddedAgents << new EddaLoadBalancerCachingAgent(eddaApiFactory.createApi(credentials.edda, region.name), credentials, region.name, objectMapper)

@@ -128,26 +128,26 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
 
   void "should fail to create instance because machine type is invalid"() {
     setup:
-    def computeMock = Mock(Compute)
-    def machineTypesMock = Mock(Compute.MachineTypes)
-    def machineTypesListMock = Mock(Compute.MachineTypes.List)
-    def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
-    def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
-                                                          image: IMAGE,
-                                                          instanceType: INSTANCE_TYPE,
-                                                          zone: ZONE,
-                                                          accountName: ACCOUNT_NAME,
-                                                          credentials: credentials)
-    @Subject def operation = new CreateGoogleInstanceAtomicOperation(description)
+      def computeMock = Mock(Compute)
+      def machineTypesMock = Mock(Compute.MachineTypes)
+      def machineTypesListMock = Mock(Compute.MachineTypes.List)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
+                                                            image: IMAGE,
+                                                            instanceType: INSTANCE_TYPE,
+                                                            zone: ZONE,
+                                                            accountName: ACCOUNT_NAME,
+                                                            credentials: credentials)
+      @Subject def operation = new CreateGoogleInstanceAtomicOperation(description)
 
     when:
-    operation.operate([])
+      operation.operate([])
 
     then:
-    1 * computeMock.machineTypes() >> machineTypesMock
-    1 * machineTypesMock.list(PROJECT_NAME, ZONE) >> machineTypesListMock
-    1 * machineTypesListMock.execute() >> new MachineTypeList(items: [])
-    thrown GoogleResourceNotFoundException
+      1 * computeMock.machineTypes() >> machineTypesMock
+      1 * machineTypesMock.list(PROJECT_NAME, ZONE) >> machineTypesListMock
+      1 * machineTypesListMock.execute() >> new MachineTypeList(items: [])
+      thrown GoogleResourceNotFoundException
   }
 
   void "should fail to create instance because image is invalid"() {

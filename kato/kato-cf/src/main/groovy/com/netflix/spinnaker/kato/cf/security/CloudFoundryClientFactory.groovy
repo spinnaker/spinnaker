@@ -15,9 +15,7 @@
  */
 package com.netflix.spinnaker.kato.cf.security
 
-import com.netflix.spinnaker.kato.cf.deploy.description.CloudFoundryDeployDescription
-import org.cloudfoundry.client.lib.CloudFoundryClient
-
+import org.cloudfoundry.client.lib.CloudFoundryOperations
 /**
  * Factory interface for creating Cloud Foundry clients. Makes it possible to delay client
  * creation until ALL details are gathered.
@@ -26,6 +24,7 @@ import org.cloudfoundry.client.lib.CloudFoundryClient
  */
 interface CloudFoundryClientFactory {
 
-  CloudFoundryClient createCloudFoundryClient(CloudFoundryDeployDescription description)
+  CloudFoundryOperations createCloudFoundryClient(CloudFoundryAccountCredentials credentials,
+                                              boolean trustSelfSignedCerts)
 
 }
