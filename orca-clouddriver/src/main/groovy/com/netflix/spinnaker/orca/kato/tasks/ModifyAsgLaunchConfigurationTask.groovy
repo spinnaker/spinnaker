@@ -21,14 +21,21 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 @Component
+@Slf4j
 class ModifyAsgLaunchConfigurationTask implements Task {
   @Autowired
   KatoService kato
+
+  @Value('${default.bake.account:default}')
+  String defaultBakeAccount
 
   @Override
   TaskResult execute(Stage stage) {
@@ -37,9 +44,15 @@ class ModifyAsgLaunchConfigurationTask implements Task {
     if (!stage.context.amiName && deploymentDetails) {
       operationConfig.amiName = deploymentDetails.find { it.region == stage.context.region }?.ami
     }
-    def operation = [modifyAsgLaunchConfigurationDescription: operationConfig]
-    def ops = [operation]
-    def taskId = kato.requestOperations(ops)
+    def ops = []
+    if (stage.context.credentials != defaultBakeAccount) {
+      ops << [allowLaunchDescription: convertAllowLaunch(stage.context.credentials, defaultBakeAccount, stage.context.region, operationConfig.amiName)]
+      log.info("Generated `allowLaunchDescription` (allowLaunchDescription: ${ops})")
+    }
+
+    ops << [modifyAsgLaunchConfigurationDescription: operationConfig]
+
+    def taskId = kato.requestOperations(CloudProviderAware.DEFAULT_CLOUD_PROVIDER, ops)
       .toBlocking()
       .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
@@ -50,5 +63,9 @@ class ModifyAsgLaunchConfigurationTask implements Task {
       "kato.task.id"          : taskId, // TODO retire this.
       "deploy.server.groups"  : [(stage.context.region): [stage.context.asgName]]
     ])
+  }
+
+  private static Map convertAllowLaunch(String targetAccount, String sourceAccount, String region, String ami) {
+    [account: targetAccount, credentials: sourceAccount, region: region, amiName: ami]
   }
 }
