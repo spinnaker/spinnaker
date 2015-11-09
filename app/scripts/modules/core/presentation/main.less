@@ -85,7 +85,14 @@ html {
       background-color: @spinnaker-link-color;
       border-color: @spinnaker-link-color;
       opacity: 0.4;
-
+    }
+  }
+  .open > .dropdown-toggle.btn-primary {
+    background-color: @spinnaker-link-hover;
+    border-color: @spinnaker-link-hover;
+    &:focus, &:active {
+      background-color: @spinnaker-link-hover;
+      border-color: @spinnaker-link-hover;
     }
   }
 }

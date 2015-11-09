@@ -1,17 +1,16 @@
 <div class="row">
   <h4 class="col-md-12">My application is:</h4>
 </div>
-  <div class="archetype-columns archetype-columns-{{columns}}" ng-repeat="instanceProfile in instanceProfiles">
-    <button class="instance-profile"
-            ng-class="{active: command.viewState.instanceProfile === instanceProfile.type}"
-            ng-click="instanceArchetypeCtrl.selectInstanceType(instanceProfile.type)">
-          <span is-visible="command.viewState.instanceProfile === instanceProfile.type"
-                class="glyphicon glyphicon-ok-circle selected-indicator"></span>
-      <div class="panel-heading">
-        <h4><span class="glyphicon glyphicon-{{instanceProfile.icon}}"></span><br/> {{instanceProfile.label}}</h4>
-      </div>
-    </button>
-  </div>
+<div class="archetype-columns archetype-columns-{{columns}}" ng-repeat="instanceProfile in instanceProfiles">
+  <button class="instance-profile"
+          ng-class="{active: command.viewState.instanceProfile === instanceProfile.type}"
+          ng-click="instanceArchetypeCtrl.selectInstanceType(instanceProfile.type)">
+        <span is-visible="command.viewState.instanceProfile === instanceProfile.type"
+              class="glyphicon glyphicon-ok-circle selected-indicator"></span>
+    <div class="panel-heading">
+      <h4><span class="glyphicon glyphicon-{{instanceProfile.icon}}"></span><br/> {{instanceProfile.label}}</h4>
+    </div>
+  </button>
 </div>
 <div class="row fade-in animated" ng-if="selectedInstanceProfile.description">
   <div class="col-md-12">

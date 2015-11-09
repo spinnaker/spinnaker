@@ -83,6 +83,7 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
       $scope.$watch('command.region', createResultProcessor($scope.command.regionChanged));
       $scope.$watch('command.subnetType', createResultProcessor($scope.command.subnetChanged));
       $scope.$watch('command.viewState.usePreferredZones', createResultProcessor($scope.command.usePreferredZonesChanged));
+      $scope.$watch('command.virtualizationType', createResultProcessor($scope.command.imageChanged));
       $scope.$watch('command.stack', $scope.command.clusterChanged);
       $scope.$watch('command.freeFormDetails', $scope.command.clusterChanged);
       $scope.$watch('command.viewState.securityGroupDiffs', function(newVal) {
@@ -115,6 +116,13 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
       }
       if (result.dirty.availabilityZones) {
         modalWizardService.getWizard().markDirty('capacity');
+      }
+      if (result.dirty.instanceType) {
+        if ($scope.command.viewState.instanceProfile === 'custom') {
+          modalWizardService.getWizard().markDirty('instance-profile');
+        } else {
+          modalWizardService.getWizard().markDirty('instance-type');
+        }
       }
     }
 

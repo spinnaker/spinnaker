@@ -61,9 +61,6 @@ module.exports = angular.module('spinnaker.tasks.monitor.service', [
         monitor.submitting = false;
         monitor.error = true;
         monitor.errorMessage = monitor.task.failureMessage || monitor.task.lastKatoMessage || 'There was an unknown server error.';
-        if (monitor.errorMessage === 'There was an unknown server error.') {
-          debugger;
-        }
         $log.warn('Error with task:', monitor.task);
       };
 
