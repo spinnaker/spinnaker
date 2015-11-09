@@ -151,17 +151,18 @@
         <dd>{{serverGroup.launchConfig.imageId}}</dd>
         <dt>Instance Type</dt>
         <dd>{{serverGroup.launchConfig.instanceType}}</dd>
-        <dt ng-if="serverGroup.launchConfig.keyName">Key Name</dt>
-        <dd ng-if="serverGroup.launchConfig.keyName">{{serverGroup.launchConfig.keyName}}</dd>
-        <dt ng-if="serverGroup.launchConfig.kernelId">Kernel ID</dt>
-        <dd ng-if="serverGroup.launchConfig.kernelId">{{serverGroup.launchConfig.kernelId}}</dd>
-        <dt ng-if="serverGroup.launchConfig.ramdiskId">Ramdisk ID</dt>
-        <dd ng-if="serverGroup.launchConfig.ramdiskId">{{serverGroup.launchConfig.ramdiskId}}</dd>
-        <dt>User Data</dt>
-        <dd ng-if="serverGroup.launchConfig.userData"><a href ng-click="ctrl.showUserData()">Show User Data</a></dd>
-        <dd ng-if="!serverGroup.launchConfig.userData">[none]</dd>
+        <dt ng-repeat-start="diskDescription in serverGroup.diskDescriptions">Disk{{diskDescription.countSuffix}}</dt>
+        <dd ng-repeat-end>{{diskDescription.finalLabel}}</dd>
+        <dt ng-if="serverGroup.authScopes">Service Account Auth Scopes</dt>
+        <dd ng-repeat="authScope in serverGroup.authScopes">
+          {{authScope}}
+          <help-field key="gce.instance.authScopes.{{authScope}}"></help-field>
+        </dd>
         <dt>Network</dt>
         <dd>{{ctrl.getNetwork()}}</dd>
+        <dt>Startup Script</dt>
+        <dd ng-if="serverGroup.startupScript"><a href ng-click="ctrl.showStartupScript()">Show Startup Script</a></dd>
+        <dd ng-if="!serverGroup.startupScript">[none]</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Security Groups">
@@ -189,7 +190,7 @@
           {{metadata.key}}
           <help-field key="gce.serverGroup.customMetadata.{{metadata.key}}"></help-field>
         </dt>
-        <dd ng-repeat-end>{{metadata.value}}</dd>
+        <dd ng-repeat-end>{{metadata.value.length > 90 ? metadata.value.substring(0, 90) + "..." : metadata.value}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Package">

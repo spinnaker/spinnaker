@@ -28,6 +28,10 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.ins
 
     this.selectInstanceType = function(type) {
       $scope.command.instanceType = type;
+
+      instanceTypeService.getInstanceTypeDetails($scope.command.selectedProvider, type).then(function(instanceTypeDetails) {
+        $scope.command.viewState.instanceTypeDetails = instanceTypeDetails;
+      });
     };
 
   }).name;

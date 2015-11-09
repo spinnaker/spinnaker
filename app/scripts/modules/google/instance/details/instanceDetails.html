@@ -167,7 +167,7 @@
           {{metadata.key}}
           <help-field key="gce.instance.customMetadata.{{metadata.key}}"></help-field>
         </dt>
-        <dd ng-repeat-end>{{metadata.value}}</dd>
+        <dd ng-repeat-end>{{metadata.value.length > 90 ? metadata.value.substring(0, 90) + "..." : metadata.value}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="SSH" ng-if="!instance.notFound">

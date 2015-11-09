@@ -41,6 +41,58 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       return null;
     }
 
+    function populateDisksFromExisting(disks, command) {
+      let localSSDDisks = _.filter(disks, disk => {
+        return disk.initializeParams.diskType === 'local-ssd';
+      });
+
+      command.localSSDCount = _.size(localSSDDisks);
+
+      let persistentDisk = _.find(disks, disk => {
+        return disk.initializeParams.diskType.startsWith('pd-');
+      });
+
+      if (persistentDisk) {
+        command.persistentDiskType = persistentDisk.initializeParams.diskType;
+        command.persistentDiskSizeGb = persistentDisk.initializeParams.diskSizeGb;
+
+        return instanceTypeService.getInstanceTypeDetails(command.selectedProvider, command.instanceType).then(function(instanceTypeDetails) {
+          command.viewState.instanceTypeDetails = instanceTypeDetails;
+        });
+      } else {
+        command.persistentDiskType = 'pd-ssd';
+        command.persistentDiskSizeGb = 10;
+
+        return $q.when(null);
+      }
+    }
+
+    function populateDisksFromPipeline(disks, command) {
+      let localSSDDisks = _.filter(disks, disk => {
+        return disk.type === 'local-ssd';
+      });
+
+      command.localSSDCount = _.size(localSSDDisks);
+
+      let persistentDisk = _.find(disks, disk => {
+        return disk.type.startsWith('pd-');
+      });
+
+      if (persistentDisk) {
+        command.persistentDiskType = persistentDisk.type;
+        command.persistentDiskSizeGb = persistentDisk.sizeGb;
+
+        return instanceTypeService.getInstanceTypeDetails(command.selectedProvider, command.instanceType).then(function(instanceTypeDetails) {
+          command.viewState.instanceTypeDetails = instanceTypeDetails;
+        });
+      } else {
+        command.persistentDiskType = 'pd-ssd';
+        command.persistentDiskSizeGb = 10;
+
+        return $q.when(null);
+      }
+    }
+
     function populateCustomMetadata(metadataItems, command) {
       if (metadataItems) {
         if (angular.isArray(metadataItems)) {
@@ -70,6 +122,18 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       if (instanceTemplateTags && instanceTemplateTags.items) {
         _.map(instanceTemplateTags.items, function(tag) {
           command.tags.push({value: tag});
+        });
+      }
+    }
+
+    function populateAuthScopes(serviceAccounts, command) {
+      let defaultServiceAccount = _.find(serviceAccounts, serviceAccount => {
+        return serviceAccount.email === 'default';
+      });
+
+      if (defaultServiceAccount) {
+        command.authScopes = _.map(defaultServiceAccount.scopes, authScope => {
+          return authScope.replace('https://www.googleapis.com/auth/', '');
         });
       }
     }
@@ -111,8 +175,17 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           max: 0,
           desired: 1
         },
+        persistentDiskType: 'pd-ssd',
+        persistentDiskSizeGb: 10,
+        localSSDCount: 1,
         instanceMetadata: [],
         tags: [],
+        authScopes: [
+          'cloud.useraccounts.readonly',
+          'devstorage.read_only',
+          'logging.write',
+          'monitoring.write',
+        ],
         cloudProvider: 'gce',
         providerType: 'gce',
         selectedProvider: 'gce',
@@ -202,7 +275,11 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         return determineInstanceCategoryFromInstanceType(command).then(function() {
           populateCustomMetadata(serverGroup.launchConfig.instanceTemplate.properties.metadata.items, command);
           populateTags(serverGroup.launchConfig.instanceTemplate.properties.tags, command);
-          return command;
+          populateAuthScopes(serverGroup.launchConfig.instanceTemplate.properties.serviceAccounts, command);
+
+          return populateDisksFromExisting(serverGroup.launchConfig.instanceTemplate.properties.disks, command).then(function() {
+            return command;
+          });
         });
       }
 
@@ -239,15 +316,17 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
         var extendedCommand = angular.extend({}, command, pipelineCluster, viewOverrides);
 
-        var instanceMetadata = extendedCommand.instanceMetadata;
-        extendedCommand.instanceMetadata = [];
-        populateCustomMetadata(instanceMetadata, extendedCommand);
+        return populateDisksFromPipeline(extendedCommand.disks, extendedCommand).then(function() {
+          var instanceMetadata = extendedCommand.instanceMetadata;
+          extendedCommand.instanceMetadata = [];
+          populateCustomMetadata(instanceMetadata, extendedCommand);
 
-        var instanceTemplateTags = {items: extendedCommand.tags};
-        extendedCommand.tags = [];
-        populateTags(instanceTemplateTags, extendedCommand);
+          var instanceTemplateTags = {items: extendedCommand.tags};
+          extendedCommand.tags = [];
+          populateTags(instanceTemplateTags, extendedCommand);
 
-        return extendedCommand;
+          return extendedCommand;
+        });
       });
 
     }

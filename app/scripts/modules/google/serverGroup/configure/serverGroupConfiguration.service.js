@@ -15,6 +15,35 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
                                                           gceInstanceTypeService, cacheInitializer,
                                                           $q, loadBalancerReader, networkReader, _) {
 
+    var persistentDiskTypes = [
+      'pd-standard',
+      'pd-ssd'
+    ];
+    var authScopes = [
+      'cloud-platform',
+      'userinfo.email',
+      'compute.readonly',
+      'compute',
+      'cloud.useraccounts.readonly',
+      'cloud.useraccounts',
+      'devstorage.read_only',
+      'devstorage.write_only',
+      'devstorage.full_control',
+      'taskqueue',
+      'bigquery',
+      'sqlservice.admin',
+      'datastore',
+      'logging.write',
+      'logging.read',
+      'logging.admin',
+      'monitoring.write',
+      'monitoring.read',
+      'monitoring',
+      'bigtable.data.readonly',
+      'bigtable.data',
+      'bigtable.admin',
+      'bigtable.admin.table',
+    ];
 
     function configureCommand(command) {
       command.image = command.viewState.imageId;
@@ -25,6 +54,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         loadBalancers: loadBalancerReader.listLoadBalancers('gce'),
         instanceTypes: gceInstanceTypeService.getAllTypesByRegion(),
         images: gceImageReader.findImages({provider: 'gce'}),
+        persistentDiskTypes: $q.when(angular.copy(persistentDiskTypes)),
+        authScopes: $q.when(angular.copy(authScopes)),
       }).then(function(backingData) {
         var loadBalancerReloader = $q.when(null);
         var securityGroupReloader = $q.when(null);

@@ -1,6 +1,40 @@
 <div class="form-group">
+  <div class="col-md-5 sm-label-left">
+    <b>Persistent Disk Type</b>
+  </div>
+  <div class="col-md-6">
+    <ui-select ng-model="command.persistentDiskType" class="form-control input-sm" required>
+      <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
+      <ui-select-choices repeat="persistentDiskType in command.backingData.persistentDiskTypes | filter: $select.search">
+        <span ng-bind-html="persistentDiskType | highlight: $select.search"></span>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+</div>
+<div class="form-group">
+  <div class="col-md-5 sm-label-left">
+    <b>Persistent Disk Size (GB)</b>
+  </div>
+  <div class="col-md-6"><input type="number"
+                               class="form-control input-sm"
+                               ng-model="command.persistentDiskSizeGb"
+                               min="10"/></div>
+</div>
+<div class="form-group">
+  <div class="col-md-5 sm-label-left">
+    <b>Number of Local SSD Disks</b>
+    <help-field key="gce.instance.storage.localSSD"></help-field>
+  </div>
+  <div class="col-md-2"><input type="number"
+                               class="form-control input-sm"
+                               ng-model="command.localSSDCount"
+                               min="0"
+                               max="{{command.viewState.instanceTypeDetails.storage.localSSDSupported ? 4 : 0}}"/></div>
+</div>
+<div class="form-group">
   <div class="col-md-12">
     <table class="table table-condensed packed metadata">
+      <b>Custom Metadata</b>
       <thead>
       <tr>
         <th style="width: 25%">Key</th>
@@ -26,13 +60,8 @@
       </tr>
       </tfoot>
     </table>
-
     <table class="table table-condensed packed tags">
-      <thead>
-      <tr>
-        <th style="width: 100%">Tag</th>
-      </tr>
-      </thead>
+      <b>Tags</b>
       <tbody>
       <tr ng-repeat="tag in command.tags">
         <td><input class="form-control input-sm" type="text" ng-model="tag.value" required/></td>
@@ -51,6 +80,19 @@
       </tr>
       </tfoot>
     </table>
-
+  </div>
+</div>
+<div class="form-group">
+  <div class="col-md-5 sm-label-left">
+    <b>Service Account Auth Scopes</b>
+    <help-field key="gce.instance.authScopes"></help-field>
+  </div>
+  <div class="col-md-6">
+    <ui-select multiple tagging tagging-label="(custom auth scope)" ng-model="command.authScopes" class="form-control input-sm">
+      <ui-select-match>{{$item}}</ui-select-match>
+      <ui-select-choices repeat="authScope in command.backingData.authScopes | filter: $select.search">
+        <span ng-bind-html="authScope | highlight: $select.search"></span>
+      </ui-select-choices>
+    </ui-select>
   </div>
 </div>

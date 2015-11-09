@@ -46,6 +46,12 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.ins
       });
     };
 
+    this.updateInstanceTypeDetails = function() {
+      instanceTypeService.getInstanceTypeDetails($scope.command.selectedProvider, $scope.command.instanceType).then(function(instanceTypeDetails) {
+        $scope.command.viewState.instanceTypeDetails = instanceTypeDetails;
+      });
+    };
+
     if ($scope.command.region && $scope.command.instanceType && !$scope.command.viewState.instanceProfile) {
       this.selectInstanceType('custom');
     }

@@ -15,6 +15,7 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
       type: 'n1-standard',
       description: 'This family provides a balance of compute, memory, and network resources, and it is a good choice for general purpose applications.',
       storageType: 'SSD',
+      storageHelpFieldKey: 'gce.instance.storage',
       instanceTypes: [
         {
           name: 'n1-standard-1',
@@ -22,7 +23,13 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
           cpu: 1,
           memory: 3.75,
           storage: {
-            size: 20,
+            defaultSettings: {
+              persistentDiskType: 'pd-ssd',
+              persistentDiskSizeGb: 10,
+              localSSDCount: 1
+            },
+            localSSDSupported: true,
+            size: 375,
             count: 1
           },
           costFactor: 1
@@ -33,7 +40,13 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
           cpu: 2,
           memory: 7.5,
           storage: {
-            size: 40,
+            defaultSettings: {
+              persistentDiskType: 'pd-ssd',
+              persistentDiskSizeGb: 10,
+              localSSDCount: 1
+            },
+            localSSDSupported: true,
+            size: 375,
             count: 1
           },
           costFactor: 2
@@ -44,7 +57,13 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
           cpu: 4,
           memory: 15,
           storage: {
-            size: 80,
+            defaultSettings: {
+              persistentDiskType: 'pd-ssd',
+              persistentDiskSizeGb: 10,
+              localSSDCount: 1
+            },
+            localSSDSupported: true,
+            size: 375,
             count: 1
           },
           costFactor: 2
@@ -55,7 +74,13 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
           cpu: 8,
           memory: 30,
           storage: {
-            size: 160,
+            defaultSettings: {
+              persistentDiskType: 'pd-ssd',
+              persistentDiskSizeGb: 10,
+              localSSDCount: 1
+            },
+            localSSDSupported: true,
+            size: 375,
             count: 1
           },
           costFactor: 3
@@ -66,7 +91,13 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
           cpu: 16,
           memory: 60,
           storage: {
-            size: 320,
+            defaultSettings: {
+              persistentDiskType: 'pd-ssd',
+              persistentDiskSizeGb: 10,
+              localSSDCount: 1
+            },
+            localSSDSupported: true,
+            size: 375,
             count: 1
           },
           costFactor: 3
@@ -78,8 +109,14 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
           cpu: 32,
           memory: 120,
           storage: {
-            size: 640,
-            count: 1
+            defaultSettings: {
+              persistentDiskType: 'pd-ssd',
+              persistentDiskSizeGb: 10,
+              localSSDCount: 2
+            },
+            localSSDSupported: true,
+            size: 375,
+            count: 2
           },
           costFactor: 4
         }
@@ -90,6 +127,7 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
       type: 'f1-micro bursting',
       description: 'This family of machine types is a good choice for small, non-resource intensive workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
       storageType: 'Std',
+      storageHelpFieldKey: 'gce.instance.storage',
       instanceTypes: [
         {
           name: 'f1-micro',
@@ -97,6 +135,12 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
           cpu: 1,
           memory: 0.60,
           storage: {
+            defaultSettings: {
+              persistentDiskType: 'pd-ssd',
+              persistentDiskSizeGb: 10,
+              localSSDCount: 0
+            },
+            localSSDSupported: false,
             size: 10,
             count: 1
           },
@@ -108,6 +152,12 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
           cpu: 1,
           memory: 1.70,
           storage: {
+            defaultSettings: {
+              persistentDiskType: 'pd-ssd',
+              persistentDiskSizeGb: 10,
+              localSSDCount: 0
+            },
+            localSSDSupported: false,
             size: 10,
             count: 1
           },
@@ -120,6 +170,7 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
       type: 'n1-highmem',
       description: 'High memory machine types are ideal for tasks that require more memory relative to virtual cores. High memory machine types have 6.50GB of RAM per virtual core.',
       storageType: 'SSD',
+      storageHelpFieldKey: 'gce.instance.storage',
       instanceTypes: [
         {
           name: 'n1-highmem-2',
@@ -127,7 +178,13 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
           cpu: 2,
           memory: 13,
           storage: {
-            size: 40,
+            defaultSettings: {
+              persistentDiskType: 'pd-ssd',
+              persistentDiskSizeGb: 10,
+              localSSDCount: 1
+            },
+            localSSDSupported: true,
+            size: 375,
             count: 1
           },
           costFactor: 2
@@ -138,7 +195,13 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
           cpu: 4,
           memory: 26,
           storage: {
-            size: 80,
+            defaultSettings: {
+              persistentDiskType: 'pd-ssd',
+              persistentDiskSizeGb: 10,
+              localSSDCount: 1
+            },
+            localSSDSupported: true,
+            size: 375,
             count: 1
           },
           costFactor: 2
@@ -149,7 +212,13 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
           cpu: 8,
           memory: 52,
           storage: {
-            size: 160,
+            defaultSettings: {
+              persistentDiskType: 'pd-ssd',
+              persistentDiskSizeGb: 10,
+              localSSDCount: 1
+            },
+            localSSDSupported: true,
+            size: 375,
             count: 1
           },
           costFactor: 3
@@ -160,7 +229,13 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
           cpu: 16,
           memory: 104,
           storage: {
-            size: 320,
+            defaultSettings: {
+              persistentDiskType: 'pd-ssd',
+              persistentDiskSizeGb: 10,
+              localSSDCount: 1
+            },
+            localSSDSupported: true,
+            size: 375,
             count: 1
           },
           costFactor: 3
@@ -172,8 +247,14 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
           cpu: 32,
           memory: 208,
           storage: {
-            size: 640,
-            count: 1
+            defaultSettings: {
+              persistentDiskType: 'pd-ssd',
+              persistentDiskSizeGb: 10,
+              localSSDCount: 2
+            },
+            localSSDSupported: true,
+            size: 375,
+            count: 2
           },
           costFactor: 4
         }
@@ -184,6 +265,7 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
       type: 'n1-highcpu',
       description: 'High CPU machine types are ideal for tasks that require more virtual cores relative to memory. High CPU machine types have one virtual core for every 0.90GB of RAM.',
       storageType: 'SSD',
+      storageHelpFieldKey: 'gce.instance.storage',
       instanceTypes: [
         {
           name: 'n1-highcpu-2',
@@ -191,7 +273,13 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
           cpu: 2,
           memory: 1.80,
           storage: {
-            size: 40,
+            defaultSettings: {
+              persistentDiskType: 'pd-ssd',
+              persistentDiskSizeGb: 10,
+              localSSDCount: 1
+            },
+            localSSDSupported: true,
+            size: 375,
             count: 1
           },
           costFactor: 1
@@ -202,7 +290,13 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
           cpu: 4,
           memory: 3.60,
           storage: {
-            size: 80,
+            defaultSettings: {
+              persistentDiskType: 'pd-ssd',
+              persistentDiskSizeGb: 10,
+              localSSDCount: 1
+            },
+            localSSDSupported: true,
+            size: 375,
             count: 1
           },
           costFactor: 2
@@ -213,7 +307,13 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
           cpu: 8,
           memory: 7.20,
           storage: {
-            size: 160,
+            defaultSettings: {
+              persistentDiskType: 'pd-ssd',
+              persistentDiskSizeGb: 10,
+              localSSDCount: 1
+            },
+            localSSDSupported: true,
+            size: 375,
             count: 1
           },
           costFactor: 2
@@ -224,7 +324,13 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
           cpu: 16,
           memory: 14.4,
           storage: {
-            size: 320,
+            defaultSettings: {
+              persistentDiskType: 'pd-ssd',
+              persistentDiskSizeGb: 10,
+              localSSDCount: 1
+            },
+            localSSDSupported: true,
+            size: 375,
             count: 1
           },
           costFactor: 3
@@ -236,8 +342,14 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
           cpu: 32,
           memory: 28.8,
           storage: {
-            size: 640,
-            count: 1
+            defaultSettings: {
+              persistentDiskType: 'pd-ssd',
+              persistentDiskSizeGb: 10,
+              localSSDCount: 2
+            },
+            localSSDSupported: true,
+            size: 375,
+            count: 2
           },
           costFactor: 4
         }

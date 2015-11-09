@@ -29,6 +29,9 @@ module.exports = angular
       delete command.backingData;
       delete command.selectedProvider;
       delete command.implicitSecurityGroups;
+      delete command.persistentDiskType;
+      delete command.persistentDiskSizeGb;
+      delete command.localSSDCount;
 
       return command;
     }
