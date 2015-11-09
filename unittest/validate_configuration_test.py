@@ -76,68 +76,195 @@ class ValidateConfigurationTest(unittest.TestCase):
         self.assertFalse(validator.verify_true_false('indirect'))
         self.assertEqual('Missing "indirect".', validator.errors[0])
 
-    def test_verify_host_good(self):
+    def host_test_helper(self, tests, valid, required=False):
         bindings = YamlBindings()
-        bindings.import_dict({
+        bindings.import_dict(tests)
+        validator = ValidateConfig(
+              configurator=Configurator(bindings=bindings))
+        for key, value in tests.items():
+            msg = '"{key}" was {valid}'.format(
+                key=key, valid='invalid' if valid else 'valid')
+                                               
+            self.assertEqual(valid, validator.verify_host(key, required), msg)
+        return validator
+
+    def test_verify_host_good(self):
+        tests = {
              'short': 'localhost',
              'numeric': '0.0.0.0',
+             'ipv6-standard': '2607:f8b0:4001:0c20:0000:0000:0000:0066',
+             'ipv6-short-zero': '2607:f8b0:4001:c20:0:0:0:66',
              'dot1': 'my.host',
              'dot2': 'my.host.name',
              'hyphen': 'this.is-a.host1234',
-
-             # Note we accept this because the validation is loose.
-             'illegal': '-acceptable-even-though-invalid-'
-        })
-        validator = ValidateConfig(
-              configurator=Configurator(bindings=bindings))
-        self.assertTrue(validator.verify_host('short', True))
-        self.assertTrue(validator.verify_host('numeric', True))
-        self.assertTrue(validator.verify_host('dot1', True))
-        self.assertTrue(validator.verify_host('dot2', True))
-        self.assertTrue(validator.verify_host('hyphen', True))
-        self.assertTrue(validator.verify_host('illegal', True))
+        }
+        self.host_test_helper(tests, True)
         
     def test_verify_host_bad(self):
-        bindings = YamlBindings()
-        bindings.import_dict({
+        tests = {
              'upper': 'LOCALHOST',
              'under': 'local_host',
              'space': 'local host',
              'slash': 'localhost/foo',
              'colon': 'localhost:80',
-        })
-        validator = ValidateConfig(
-              configurator=Configurator(bindings=bindings))
-        self.assertFalse(validator.verify_host('upper', True))
-        self.assertFalse(validator.verify_host('under', True))
-        self.assertFalse(validator.verify_host('space', True))
-        self.assertFalse(validator.verify_host('slash', True))
-        self.assertFalse(validator.verify_host('colon', True))
+             'illegal': '-invalid-'
+        }
+        validator = self.host_test_helper(tests, False)
         self.assertTrue(validator.errors[0].startswith('name="LOCALHOST"'))
 
     def test_verify_host_missing(self):
-        bindings = YamlBindings()
-        bindings = {'unresolved': '${whatever}'}
+        tests = {
+            'unresolved': '${whatever}'
+        }
 
-        validator = ValidateConfig(
-              configurator=Configurator(bindings=bindings))
+        validator = self.host_test_helper(tests, False, required=True)
+        self.assertEquals('Missing "unresolved".', validator.errors[0])
+
         self.assertFalse(validator.verify_host('missing', True))
-        self.assertFalse(validator.verify_host('unresolved', True))
-        self.assertEquals('No host provided for "missing".',
-                          validator.errors[0])
-        self.assertEquals('Missing "unresolved".', validator.errors[1])
+        self.assertEquals('Missing "missing".', validator.errors[len(tests)])
 
     def test_verify_host_optional_ok(self):
-        bindings = YamlBindings()
-        bindings.import_dict({
+        tests = {
              'ok': 'localhost',
              'unresolved': '${whatever}',
-        })
+        }
+        self.host_test_helper(tests, True, required=False)
+
+    def baseUrl_test_helper(self, tests, valid, scheme_optional):
+        bindings = YamlBindings()
+        bindings.import_dict(tests)
         validator = ValidateConfig(
               configurator=Configurator(bindings=bindings))
-        self.assertTrue(validator.verify_host('ok', False))
-        self.assertTrue(validator.verify_host('missing', False))
-        self.assertTrue(validator.verify_host('unresolved', False))
+        for key, value in tests.items():
+            msg = '"{key}" was {valid}'.format(
+                key=key, valid='invalid' if valid else 'valid')
+                                               
+            self.assertEqual(
+                valid,
+                validator.verify_baseUrl(key, True,
+                                         scheme_optional=scheme_optional),
+                msg)
+
+    def test_verify_baseUrl_only_host_ok(self):
+        tests = {
+            'localhost': 'localhost',
+            'ip4': '10.20.30.40',
+            'ip4-short': '1.2.3.4',
+            'ip4-long': '255.255.255.255',
+            'ipv6-standard': '2607:f8b0:4001:0c20:0000:0000:0000:0066',
+            'ipv6-short-zero': '2607:f8b0:4001:c20:0:0:0:66',
+            'ipv6-abbrev-mid': '2607:f8b0:4001:c20::66',
+            'ipv6-abbrev-end': '2607:f8b0:4001:c20::',
+            'too-generous': '256.300.500.999', # invalid, but accept anyway
+            'domain': 'foo.bar',
+            'fulldomain': 'foo.bar.baz.test',
+            'mixed': 'myhost32.sub-domain23',
+            'reference': '${ip4}',
+
+            # These arent valid, but are accepted as valid
+            # to keep the implementation simple.
+            # They are here for documentation, but are not necessarily
+            # guaranteed to pass in the future.
+            'ipv6-badabbrev3': '2607:f8b0:4001:c20:::66',
+            'ipv6-multi-colon': '2607:f8b0::c20::',
+        }
+        self.baseUrl_test_helper(tests, True, scheme_optional=True)
+
+    def test_verify_baseUrl_only_host_bad(self):
+        tests = {
+            'leading_int': '32my',
+            'too-few': '10.20.30',
+            'too-many': '10.20.30.40.50',
+            'trailing-dot': '10.20.30.40.',
+            'undef': '${unknown}',
+            'capital': 'myHost',
+            'trailing-dot-again': 'myhost.'
+        }
+        self.baseUrl_test_helper(tests, False, scheme_optional=True)
+
+    def test_verify_baseUrl_only_host_port_ok(self):
+        tests = {
+            'localhost': 'localhost:123',
+            'ip4': '10.20.30.40:456',
+            'domain': 'foo.bar:789',
+            'fulldomain': 'foo.bar.baz.test:980',
+            'mixed': 'myhost32-test.sub-domain23:32'
+        }
+        self.baseUrl_test_helper(tests, True, scheme_optional=True)
+
+    def test_verify_baseUrl_only_host_port_bad(self):
+        tests = {
+            'letters': 'test:abc',
+            'mixed': 'test:123a',
+            'empty': 'test:'
+        }
+        self.baseUrl_test_helper(tests, False, scheme_optional=True)
+
+    def test_verify_baseUrl_only_host_port_path_ok(self):
+        tests = {
+            'simple': 'localhost:123/simple',
+            'noport': 'localhost/simple',
+            'ip4': '10.20.30.40:456/simple',
+            'deep': 'localhost/parent/child/leaf',
+            'dir': 'foo.bar.baz.test:980/dir/',
+            'numeric': 'host/012345',
+            'root': 'host/',
+            'mixed': 'myhost32-test.sub-domain23:123/root-path',
+            'escaped': 'host/spaced%32path',
+            'escapedhex': 'host/spaced%afpath',
+            'escapednumeric': 'host/spaced%321',
+            'jumple': 'host/%32path+-._',
+            'ref': '${root}${root}'
+        }
+        self.baseUrl_test_helper(tests, True, scheme_optional=True)
+
+    def test_verify_baseUrl_only_host_port_path_bad(self):
+        tests = {
+            'onlypath': '/bad',
+            'undef': 'localhost/${undef}',
+            'badescape0': 'host/bad%',
+            'badescape1': 'host/bad%1',
+            'badescapeX': 'host/bad%gg',
+            'space': 'host/bad space',
+            'query': 'host/path?name',
+            'frag': 'host/path#frag',
+        }
+        self.baseUrl_test_helper(tests, False, scheme_optional=True)
+
+    def test_verify_baseUrl_scheme_ok(self):
+        tests = {
+            'host': 'http://localhost',
+            'port': 'https://localhost:123',
+            'path': 'http://localhost/path',
+        }
+        self.baseUrl_test_helper(tests, True, scheme_optional=True)
+
+    def test_verify_baseUrl_scheme_bad(self):
+        tests = {
+            'nocolon': 'https//localhost:123',
+            'nonetloc': 'http:///path',
+        }
+        self.baseUrl_test_helper(tests, False, scheme_optional=True)
+
+    def test_verify_baseUrl_scheme_required_ok(self):
+        tests = {
+            'host': 'http://host',
+            'host_port': 'http://host:80',
+            'host_path': 'http://host/path',
+            'host_port_path': 'http://host:80/path'
+        }
+        self.baseUrl_test_helper(tests, True, scheme_optional=False)
+
+    def test_verify_baseUrl_scheme_required_bad(self):
+        tests = {
+            'scheme': 'http',
+            'scheme_colon': 'http://',
+            'host': 'localhost',
+            'host_port': 'host:80',
+            'host_port_path': 'host:80/path',
+            'nohost': 'http://'
+        }
+        self.baseUrl_test_helper(tests, False, scheme_optional=False)
 
     def test_verify_protection_good(self):
         bindings = YamlBindings()

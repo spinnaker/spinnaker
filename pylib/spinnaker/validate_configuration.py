@@ -27,6 +27,25 @@ from fetch import GOOGLE_METADATA_URL
 from fetch import GOOGLE_OAUTH_URL
 
 
+def _host_regex_token():
+  ip6_group = '[a-fA-F0-9]{1,4}'
+  ip6_full_host_token='(?:{group}:){{7}}{group}'.format(group=ip6_group)
+
+  # This isnt strictly correct but allows for '::' abbreviations.
+  # The spec says there can only be one use. This permits multiple and
+  # other nonsensical use of ':'.
+  ip6_abbrev_host_token='(?:{group}::?){{1,6}}:?'.format(group=ip6_group)
+  ip6_host_token='(?:{full}|{abbrev})'.format(
+      full=ip6_full_host_token, abbrev=ip6_abbrev_host_token)
+    
+  ip4_host_token = '(?:[0-9]{1,3}\.){3}[0-9]{1,3}'
+  name_host_token = '(?:[a-z]|(?:[a-z][-\.a-z0-9]*[a-z0-9]))'
+  host_token = '(?:{ip4})|(?:{ip6})|(?:{name})'.format(
+      ip4=ip4_host_token, ip6=ip6_host_token, name=name_host_token)
+  return host_token
+
+
+
 class ValidateConfig(object):
   @property
   def errors(self):
@@ -115,12 +134,12 @@ class ValidateConfig(object):
                          .format(name=name, value=value))
     return False
 
-  def verify_host(self, name, required):
-    """Verify name is a valid hostname.
-
+  def verify_baseUrl(self, name, required, scheme_optional=False):
+    """Verify value of variable |name| is a valid url.
     Args:
       name [string]: variable name.
       required [bool]: If True value cannot be empty.
+      scheme_optional: True if the URL protocol scheme is not required.
     """
     try:
       value = self.__bindings.get(name)
@@ -136,7 +155,51 @@ class ValidateConfig(object):
       self.__errors.append('Missing "{name}".'.format(name=name))
       return False
 
-    host_regex = '^[-\.a-z0-9]+$'
+    # We dont really need a full URL since we're validating base urls,
+    # (without query parameters and fragments), so the scheme will be optional.
+    scheme_token = '[a-z0-9]+'
+    host_token = _host_regex_token()
+    port_token = '[1-9][0-9]*'
+    path_token = '(?:[-\._+a-zA-Z0-9]|(?:%[0-9a-fA-F]{2}))+'
+    url_re = re.compile('^'
+                          '({scheme}://){scheme_optional}'
+                          '({host})(:{port})?'
+                          '((?:/{path})*/?)'
+                        '$'
+                        .format(
+                          scheme=scheme_token,
+                          scheme_optional = '?' if scheme_optional else '',
+                          host=host_token,
+                          port=port_token,
+                          path=path_token
+                        ))
+    match = url_re.match(value)
+    return match != None
+       
+  def verify_host(self, name, required):
+    """Verify value of variable |name| is a valid hostname.
+
+    Args:
+      name [string]: variable name.
+      required [bool]: If True, the value of variable |name| cannot be empty.
+    """
+    try:
+      value = self.__bindings.get(name)
+    except KeyError:
+      if not required:
+        return True
+      self.__errors.append('Missing "{name}".'.format(name=name))
+      return False
+      
+    if self.is_reference(value):
+      if not required:
+        return True
+      self.__errors.append('Missing "{name}".'.format(name=name))
+      return False
+
+    host_token = _host_regex_token()
+    host_regex = '^({host})$'.format(host=host_token)
+
     if not value:
       if not required:
         return True
@@ -233,7 +296,7 @@ class ValidateConfig(object):
     ok = self.verify_user_access_only(
         os.path.join(self.__user_config_dir, 'spinnaker-local.yml')) and ok
     ok = self.verify_user_access_only(
-        os.path.join(os.environ.get('HOME', '/root'), '.aws/credentials')) and ok
+        os.path.join(os.environ.get('HOME', '/root'),'.aws/credentials')) and ok
     return ok
 
 if __name__ == '__main__':
