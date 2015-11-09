@@ -54,7 +54,7 @@ jar {
 
 startScripts {
   doLast { 
-    unixScript.text = new File('config/unixStartScript.txt').text
+    unixScript.text = new File('clouddriver-web/config/unixStartScript.txt').text
     unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
     windowsScript.text = windowsScript.text.replace('set CLASSPATH=', 'set CLASSPATH=%APP_HOME%\\config;')
   }
