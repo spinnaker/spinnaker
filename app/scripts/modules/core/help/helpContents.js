@@ -215,4 +215,5 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
       'to only show load balancers with instances failing the health check for the load balancer.</p>',
     'project.cluster.stack': '<p>(Optional field)</p><p>Filters displayed clusters by stack.</p><p>Enter <samp>*</samp> to include all stacks; leave blank to omit any clusters with a stack.</p>',
     'project.cluster.detail': '<p>(Optional field)</p><p>Filters displayed clusters by detail.</p><p>Enter <samp>*</samp> to include all details; leave blank to omit any clusters with a detail.</p>',
+    'instanceType.unavailable': '<p>This instance type is not available for the selected configuration.</p>',
   }).name;

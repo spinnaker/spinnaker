@@ -41,9 +41,6 @@ module.exports = angular
       }
       if (object instanceof Object) {
         return Object.keys(object).map((key) => {
-          if (!blacklist.indexOf) {
-            debugger;
-          }
           if (blacklist.indexOf(key) !== -1) {
             return '';
           }

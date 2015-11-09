@@ -120,12 +120,12 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
       spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(resolve(securityGroupReaderFixture.allSecurityGroups));
       spyOn(this.loadBalancerReader, 'listLoadBalancers').and.callFake(resolve([]));
-      spyOn(this.awsImageReader, 'findImages').and.callFake(resolve([{amis: {'us-east-1': []}}]));
+      spyOn(this.awsImageReader, 'findImages').and.callFake(resolve([{attributes: {virtualizationType: 'hvm'}, amis: {'us-east-1': []}}]));
 
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
       spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);
       spyOn(this.awsInstanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
-      spyOn(this.awsInstanceTypeService, 'getAvailableTypesForRegions').and.callFake(resolve([]));
+      spyOn(this.awsInstanceTypeService, 'getAvailableTypesForRegions').and.returnValue([]);
     }
 
     it('updates to default values when credentials changed', function() {
@@ -238,7 +238,7 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
       spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);
       spyOn(this.awsInstanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
-      spyOn(this.awsInstanceTypeService, 'getAvailableTypesForRegions').and.callFake(resolve([]));
+      spyOn(this.awsInstanceTypeService, 'getAvailableTypesForRegions').and.returnValue([]);
     }
 
     it('sets state flags useAllImageSelection when none found and no server group provided', function () {
@@ -257,7 +257,7 @@ describe('Controller: awsCloneServerGroup', function () {
     it('puts found images on scope when found', function () {
       var $scope = this.$scope,
         regionalImages = [
-          {imageName: 'someImage', amis: {'us-east-1': ['ami-1']}}
+          {attributes: { virtualizationType: 'hvm'}, imageName: 'someImage', amis: {'us-east-1': ['ami-1']}}
         ];
       setupMocks.bind(this).call();
 
@@ -269,13 +269,13 @@ describe('Controller: awsCloneServerGroup', function () {
 
       expect($scope.command.viewState.useAllImageSelection).toBeFalsy();
       expect($scope.command.backingData.filtered.images.length).toBe(1);
-      expect($scope.command.backingData.filtered.images[0]).toEqual({imageName: 'someImage', ami: 'ami-1'});
+      expect($scope.command.backingData.filtered.images[0]).toEqual({virtualizationType: 'hvm', imageName: 'someImage', ami: 'ami-1'});
     });
 
     it('queries based on existing ami when cloning', function () {
       var context = this,
         $scope = this.$scope,
-        amiBasedImage = {imageName: 'something-packagebase-something-something', amis: {'us-east-1': ['ami-1234']}},
+        amiBasedImage = {attributes: {virtualizationType: 'hvm'}, imageName: 'something-packagebase-something-something', amis: {'us-east-1': ['ami-1234']}},
         packageBasedImages = [amiBasedImage],
         serverGroup = this.buildBaseClone();
       setupMocks.bind(this).call();
@@ -301,13 +301,13 @@ describe('Controller: awsCloneServerGroup', function () {
       expect(this.awsImageReader.findImages).toHaveBeenCalledWith({provider: 'aws', q: 'something-*'});
 
       expect($scope.command.backingData.filtered.images.length).toBe(1);
-      expect($scope.command.backingData.filtered.images[0]).toEqual({imageName: 'something-packagebase-something-something', ami: 'ami-1234'});
+      expect($scope.command.backingData.filtered.images[0]).toEqual({virtualizationType: 'hvm', imageName: 'something-packagebase-something-something', ami: 'ami-1234'});
 
     });
 
     it('returns only the existing ami without further querying when package name is less than three characters', function() {
       var $scope = this.$scope,
-          amiBasedImage = {imageName: 'aa-packagebase-something-something', amis: {'us-east-1': ['ami-1234']}},
+          amiBasedImage = {attributes: {virtualizationType: 'hvm'},imageName: 'aa-packagebase-something-something', amis: {'us-east-1': ['ami-1234']}},
           serverGroup = this.buildBaseClone();
 
       serverGroup.viewState.imageId = 'ami-1234';
@@ -394,7 +394,7 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
       spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);
       spyOn(this.awsInstanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
-      spyOn(this.awsInstanceTypeService, 'getAvailableTypesForRegions').and.callFake(resolve([]));
+      spyOn(this.awsInstanceTypeService, 'getAvailableTypesForRegions').and.returnValue([]);
       spyOn(this.awsImageReader, 'findImages').and.callFake(this.resolve([]));
       spyOn(this.awsImageReader, 'getImage').and.callFake(this.reject(null));
 

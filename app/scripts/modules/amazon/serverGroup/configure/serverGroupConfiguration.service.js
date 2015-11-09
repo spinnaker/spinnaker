@@ -139,38 +139,48 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
 
     function configureInstanceTypes(command) {
       var result = { dirty: {} };
-      if (command.region) {
+      if (command.region && command.virtualizationType) {
         var filtered = awsInstanceTypeService.getAvailableTypesForRegions(command.backingData.instanceTypes, [command.region]);
+        filtered = awsInstanceTypeService.filterInstanceTypesByVirtualizationType(filtered, command.virtualizationType);
         if (command.instanceType && filtered.indexOf(command.instanceType) === -1) {
+          result.dirty.instanceType = command.instanceType;
           command.instanceType = null;
-          result.dirty.instanceType = true;
         }
         command.backingData.filtered.instanceTypes = filtered;
       } else {
         command.backingData.filtered.instanceTypes = [];
       }
+      angular.extend(command.viewState.dirty, result.dirty);
       return result;
     }
 
     function configureImages(command) {
       var result = { dirty: {} };
       var regionalImages = null;
+      if (!command.amiName) {
+        command.virtualizationType = null;
+      }
       if (command.viewState.disableImageSelection) {
         return result;
       }
       if (command.region) {
-        regionalImages = command.backingData.packageImages.
-          filter(function (image) {
+        regionalImages = command.backingData.packageImages
+          .filter(function (image) {
             return image.amis && image.amis[command.region];
-          }).
-          map(function (image) {
-            return { imageName: image.imageName, ami: image.amis ? image.amis[command.region][0] : null };
+          })
+          .map(function (image) {
+            return {
+              virtualizationType: image.attributes.virtualizationType,
+              imageName: image.imageName,
+              ami: image.amis ? image.amis[command.region][0] : null
+            };
           });
-        if (command.amiName && !regionalImages.some(function (image) {
-          return image.imageName === command.amiName;
-        })) {
+        var regionalImageMatches = regionalImages.filter((image) => image.imageName === command.amiName);
+        if (command.amiName && !regionalImageMatches.length) {
           result.dirty.amiName = true;
           command.amiName = null;
+        } else {
+          command.virtualizationType = regionalImages.length ? regionalImages[0].virtualizationType : null;
         }
       } else {
         command.amiName = null;
@@ -415,6 +425,8 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
               configureSecurityGroupDiffs(command);
         });
       };
+
+      command.imageChanged = () => configureInstanceTypes(command);
     }
 
     return {

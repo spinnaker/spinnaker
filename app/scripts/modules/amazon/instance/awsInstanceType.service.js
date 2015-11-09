@@ -12,8 +12,8 @@ module.exports = angular.module('spinnaker.aws.instanceType.service', [
   .factory('awsInstanceTypeService', function ($http, $q, settings, _, Restangular, infrastructureCaches) {
 
     var m3 = {
-      type: 'M3',
-      description: 'This family includes the M3 instance types and provides a balance of compute, memory, and network resources, and it is a good choice for many applications.',
+      type: 'm3',
+      description: 'This family includes the m3 instance types and provides a balance of compute, memory, and network resources, and it is a good choice for many applications.',
       instanceTypes: [
         {
           name: 'm3.medium',
@@ -67,8 +67,8 @@ module.exports = angular.module('spinnaker.aws.instanceType.service', [
     };
 
     var t2 = {
-      type: 'T2',
-      description: 'T2 instances are a good choice for workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
+      type: 't2',
+      description: 't2 instances are a good choice for workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
       instanceTypes: [
         {
           name: 't2.small',
@@ -90,8 +90,8 @@ module.exports = angular.module('spinnaker.aws.instanceType.service', [
     };
 
     var m3micro = {
-      type: 'M3',
-      description: 'This family includes the M3 instance types and provides a balance of compute, memory, and network resources, and it is a good choice for many applications.',
+      type: 'm3',
+      description: 'This family includes the m3 instance types and provides a balance of compute, memory, and network resources, and it is a good choice for many applications.',
       instanceTypes: [
         {
           name: 'm3.medium',
@@ -109,8 +109,8 @@ module.exports = angular.module('spinnaker.aws.instanceType.service', [
     };
 
     var r3 = {
-      type: 'R3',
-      description: 'R3 instances are optimized for memory-intensive applications and have the lowest cost per GiB of RAM among Amazon EC2 instance types.',
+      type: 'r3',
+      description: 'r3 instances are optimized for memory-intensive applications and have the lowest cost per GiB of RAM among Amazon EC2 instance types.',
       instanceTypes: [
         {
           name: 'r3.large',
@@ -293,10 +293,23 @@ module.exports = angular.module('spinnaker.aws.instanceType.service', [
       return availableTypes.sort();
     }
 
+    let families = {
+      paravirtual: ['c1', 'c3', 'hi1', 'hs1', 'm1', 'm2', 'm3', 't1'],
+      hvm: ['c3', 'c4', 'd2', 'i2', 'g2', 'r3', 'm3', 'm4', 't2']
+    };
+
+    function filterInstanceTypesByVirtualizationType(instanceTypes, virtualizationType) {
+      return instanceTypes.filter((instanceType) => {
+        let [family] = instanceType.split('.');
+        return families[virtualizationType].indexOf(family) > -1;
+      });
+    }
+
     return {
       getCategories: getCategories,
       getAvailableTypesForRegions: getAvailableTypesForRegions,
-      getAllTypesByRegion: getAllTypesByRegion
+      getAllTypesByRegion: getAllTypesByRegion,
+      filterInstanceTypesByVirtualizationType: filterInstanceTypesByVirtualizationType,
     };
   }
 )

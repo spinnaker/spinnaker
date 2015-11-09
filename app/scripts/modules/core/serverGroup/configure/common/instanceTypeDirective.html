@@ -1,3 +1,16 @@
+<div class="row" ng-if="command.viewState.dirty.instanceType">
+  <div class="col-md-12">
+    <div class="alert alert-warning">
+      <p><span class="glyphicon glyphicon-warning-sign"></span>
+        The selected image cannot be deployed on the previously selected instance type
+        ({{command.viewState.dirty.instanceType}}).
+      </p>
+      <p class="text-right">
+        <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="command.viewState.dirty.instanceType = null">Okay</a>
+      </p>
+    </div>
+  </div>
+</div>
 <div class="row" ng-repeat="family in selectedInstanceProfile.families">
   <div class="col-md-12">
     <h4>{{selectedInstanceProfile.label}}: {{family.type}}</h4>
@@ -16,13 +29,12 @@
       </tr>
       </thead>
       <tbody>
-      <tr class="clickable"
-          ng-repeat="instanceType in family.instanceTypes"
-          ng-class="{info: command.instanceType === instanceType.name}"
-          ng-click="instanceTypeCtrl.selectInstanceType(instanceType.name)">
+      <tr ng-repeat="instanceType in family.instanceTypes"
+          ng-class="{info: command.instanceType === instanceType.name, clickable: !instanceType.unavailable, unavailable: instanceType.unavailable}"
+          ng-click="instanceTypeCtrl.selectInstanceType(instanceType)">
         <td>
-          <help-field nf-if="instanceType.helpFieldKey" key="{{instanceType.helpFieldKey}}"></help-field>
-          <input type="radio" ng-value="instanceType.name" ng-model="command.instanceType"/>
+          <help-field ng-if="instanceType.unavailable" key="instanceType.unavailable"></help-field>
+          <input type="radio" ng-value="instanceType.name" ng-model="command.instanceType" ng-disabled="instanceType.unavailable"/>
         </td>
         <td>{{instanceType.label}}</td>
         <td>{{instanceType.cpu}}</td>

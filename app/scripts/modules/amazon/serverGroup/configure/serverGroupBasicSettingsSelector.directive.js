@@ -23,6 +23,10 @@ module.exports = angular
   })
   .controller('ServerGroupBasicSettingsSelectorCtrl', function($scope, $controller, RxService, imageReader, namingService, $uibModalStack, $state) {
 
+    this.imageChanged = (image) => {
+      $scope.command.virtualizationType = image.virtualizationType;
+    };
+
     angular.extend(this, $controller('BasicSettingsMixin', {
       $scope: $scope,
       RxService: RxService,

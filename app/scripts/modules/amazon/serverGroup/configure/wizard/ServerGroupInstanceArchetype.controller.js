@@ -19,7 +19,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.instanceArc
       }
     });
 
-    $scope.$watch('command.viewState.instanceType', function(newVal) {
+    $scope.$watch('command.instanceType', function(newVal) {
       if (newVal) {
         wizard.markClean('instance-profile');
         wizard.markComplete('instance-profile');
