@@ -24,7 +24,13 @@ git clone git@github.com:spinnaker/spinnaker.git
 ````
 
 ## Configure your environment
-Prerequisites: jdk8, redis, cassandra, packer
+
+The Spinnaker platform has a few prerequisites, which are installed as a part of this configuration process. They are: 
+
+ * [JDK8](https://www.oracle.com/java/index.html)
+ * [Redis](http://redis.io/)
+ * [Cassandra](http://cassandra.apache.org/)
+ * [Packer](https://www.packer.io/)
 
 ### MacOSX
 
