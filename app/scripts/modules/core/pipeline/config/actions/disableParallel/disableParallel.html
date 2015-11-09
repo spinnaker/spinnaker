@@ -8,7 +8,7 @@
       <div class="form-group">
         <div class="col-md-12">
           <p>Disabling parallel execution will force each stage to run sequentially.</p>
-          <p>Are you sure you want to disable parallel execution for the pipeline: {{pipeline.name}}?</p>
+          <p>Are you sure you want to disable parallel execution for the {{pipeline.strategy === true ? 'strategy' : 'pipeline'}}: {{pipeline.name}}?</p>
         </div>
       </div>
     </form>

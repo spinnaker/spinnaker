@@ -8,7 +8,7 @@
       <div class="form-group">
         <div class="col-md-12">
           <p>Enabling parallel execution allows you to run some stages concurrently.</p>
-          <p>Are you sure you want to enable parallel execution for the pipeline: {{pipeline.name}}?</p>
+          <p>Are you sure you want to enable parallel execution for the {{pipeline.strategy === true ? 'strategy' : 'pipeline'}}: {{pipeline.name}}?</p>
         </div>
       </div>
     </form>
