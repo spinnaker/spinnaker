@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -27,7 +27,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class UpsertAmazonLoadBalancerTask implements Task {
+class UpsertLoadBalancerTask extends AbstractCloudProviderAwareTask implements Task {
+
+  static final String CLOUD_OPERATION_TYPE = "upsertLoadBalancer"
 
   @Autowired
   KatoService kato
@@ -37,28 +39,31 @@ class UpsertAmazonLoadBalancerTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
+    String cloudProvider = getCloudProvider(stage)
+    String account = getCredentials(stage)
+
     def context = new HashMap(stage.context)
     context.name = context.name ?: "${stage.context.clusterName}-frontend"
     context.availabilityZones = context.availabilityZones ?: [(context.region): context.regionZones]
 
     def operations = [
-      [upsertAmazonLoadBalancerDescription: context]
+      [(CLOUD_OPERATION_TYPE): context]
     ]
 
-    def taskId = kato.requestOperations(operations)
+    def taskId = kato.requestOperations(cloudProvider, operations)
       .toBlocking()
       .first()
 
     Map outputs = [
-      "notification.type"   : "upsertamazonloadbalancer",
+      "notification.type"   : CLOUD_OPERATION_TYPE.toLowerCase(),
       "kato.result.expected": true,
       "kato.last.task.id"   : taskId,
       "targets"             : operations.collect {
         [
-          credentials      : it.upsertAmazonLoadBalancerDescription.credentials,
-          availabilityZones: it.upsertAmazonLoadBalancerDescription.availabilityZones,
-          vpcId            : it.upsertAmazonLoadBalancerDescription.vpcId,
-          name             : it.upsertAmazonLoadBalancerDescription.name,
+          credentials      : account,
+          availabilityZones: it[CLOUD_OPERATION_TYPE].availabilityZones,
+          vpcId            : it[CLOUD_OPERATION_TYPE].vpcId,
+          name             : it[CLOUD_OPERATION_TYPE].name,
         ]
       }
     ]

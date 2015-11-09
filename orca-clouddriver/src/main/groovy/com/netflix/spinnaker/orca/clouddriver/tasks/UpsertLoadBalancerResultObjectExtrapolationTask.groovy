@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -25,7 +25,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
 @Component
-class UpsertAmazonLoadBalancerResultObjectExtrapolationTask implements Task {
+class UpsertLoadBalancerResultObjectExtrapolationTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
@@ -41,8 +41,11 @@ class UpsertAmazonLoadBalancerResultObjectExtrapolationTask implements Task {
     def resultObjectMap = resultObjects?.getAt(0) as Map
     Map outputs = [:]
     if (resultObjectMap) {
-      def dnsName = resultObjectMap.loadBalancers.entrySet().getAt(0).value.dnsName
-      outputs["dnsName"] = dnsName
+      def dnsName = resultObjectMap?.loadBalancers?.entrySet()?.getAt(0)?.value?.dnsName
+
+      if (dnsName) {
+        outputs["dnsName"] = dnsName
+      }
     }
 
     return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.kato.tasks.CopyAmazonLoadBalancerTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.kato.tasks.UpsertAmazonLoadBalancerForceRefreshTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.UpsertLoadBalancerForceRefreshTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
@@ -39,7 +39,7 @@ class CopyAmazonLoadBalancerStage extends LinearStage {
   public List<Step> buildSteps(Stage stage) {
     def step1 = buildStep(stage, "copyAmazonLoadBalancer", CopyAmazonLoadBalancerTask)
     def step2 = buildStep(stage, "monitorCopy", MonitorKatoTask)
-    def step3 = buildStep(stage, "forceCacheRefresh", UpsertAmazonLoadBalancerForceRefreshTask)
+    def step3 = buildStep(stage, "forceCacheRefresh", UpsertLoadBalancerForceRefreshTask)
     [step1, step2, step3]
   }
 }
