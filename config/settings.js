@@ -16,6 +16,9 @@
 // let googleDefaultRegion = ${providers.google.defaultRegion};
 // let googleDefaultZone = ${providers.google.defaultZone};
 // let googlePrimaryAccount = ${providers.google.primaryCredentials.name};
+// let cfDefaultRegion = ${providers.cf.defaultOrg};
+// let cfDefaultZone = ${providers.cf.defaultSpace};
+// let cfPrimaryAccount = ${providers.cf.primaryCredentials.name};
 
 // END reconfigure_spinnaker
 /**
@@ -46,6 +49,16 @@ window.spinnakerSettings = {
       primaryAccounts: [`${awsPrimaryAccount}`],
       primaryRegions: ['eu-west-1', 'us-east-1', 'us-west-1', 'us-west-2'],
       challengeDestructiveActions: [`${awsPrimaryAccount}`],
+      preferredZonesByAccount: {}
+    },
+    cf: {
+      defaults: {
+        account: `${cfPrimaryAccount}`,
+        region: `${cfDefaultRegion}`
+      },
+      primaryAccounts: [`${cfPrimaryAccount}`],
+      primaryRegions: ['production'],
+      challengeDestructiveActions: [`${cfPrimaryAccount}`],
       preferredZonesByAccount: {}
     }
   },

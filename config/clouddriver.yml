@@ -40,3 +40,19 @@ google:
     - name: ${providers.google.primaryCredentials.name}
       project: ${providers.google.primaryCredentials.project}
       jsonPath: ${providers.google.primaryCredentials.jsonPath}
+
+cf:
+  enabled: ${providers.cf.enabled:false}
+
+  jenkins:
+    username: ${providers.services.jenkins.defaultMaster.username}
+    password: ${providers.services.jenkins.defaultMaster.password}
+
+  accounts:
+    - name: ${providers.cf.primaryCredentials.name}
+      api: ${providers.cf.primaryCredentials.api}
+      console: ${providers.cf.primaryCredentials.console}
+      org: ${providers.cf.defaultOrg}
+      space: ${providers.cf.defaultSpace}
+      username: ${cf.account.name}
+      password: ${cf.account.password}

@@ -33,6 +33,19 @@ providers:
       project:
       jsonPath:
 
+  cf:
+    # If you want to deploy some services to Cloud Foundry (cf),
+    # set enabled and provide primary credentials for deploying.
+    # Enabling cf is independent of other providers.
+    enabled: false
+    defaultOrg: spinnaker-cf-org
+    defaultSpace: spinnaker-cf-space
+    primaryCredentials:
+      name: my-cf-account
+      api: my-cf-api-uri
+      console: my-cf-console-base-url
+    # You must also supply cf.account.username and cf.account.password through env properties
+
 services:
   default:
     # These defaults can be modified to change all the spinnaker subsystems

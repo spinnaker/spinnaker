@@ -7,3 +7,4 @@ build/
 #*
 config/spinnaker-local.yml
 .DS_Store
+*.html
