@@ -112,3 +112,7 @@ ospackage {
     into "/opt/${project.applicationName}"
     from "${project.buildDir}/install/${project.applicationName}"
 }
+
+buildDeb {
+  dependsOn installApp
+}
