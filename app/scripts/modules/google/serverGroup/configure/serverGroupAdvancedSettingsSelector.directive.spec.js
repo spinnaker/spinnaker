@@ -1,9 +1,9 @@
 'use strict';
 
 let angular = require('angular');
-require('./serverGroupAdvancedSettingsDirective.html')
+require('./serverGroupAdvancedSettingsDirective.html');
 
-xdescribe('Directive: GCE Group Advanced Settings Selector', function() {
+describe('Directive: GCE Group Advanced Settings Selector', function() {
 
   beforeEach(
     window.module(
@@ -13,9 +13,9 @@ xdescribe('Directive: GCE Group Advanced Settings Selector', function() {
 
   beforeEach(window.inject(function($rootScope, $compile) {
     this.scope = $rootScope.$new();
-    this.scope.command = {instanceMetadata: [], tags: []};
-    this.elem = angular.element('<gce-server-group-advanced-settings-selector command="command" />');
-    this.element = $compile(this.elem)(this.scope)
+    this.scope.command = {instanceMetadata: [], tags: [], authScopes: []};
+    this.elem = angular.element('<gce-server-group-advanced-settings-selector command="command"></gce-server-group-advanced-settings-selector>');
+    this.element = $compile(this.elem)(this.scope);
     this.scope.$digest();
   }));
 

@@ -2,7 +2,10 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.gce.advancedSettingSelector', [])
+module.exports = angular
+  .module('spinnaker.serverGroup.configure.gce.advancedSettingSelector', [
+    require('exports?"ui.select"!ui-select'),
+  ])
   .directive('gceServerGroupAdvancedSettingsSelector', function() {
     return {
       restrict: 'E',
