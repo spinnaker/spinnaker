@@ -133,7 +133,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     };
 
     this.renamePipeline = function() {
-      var original = angular.fromJson($scope.viewState.original);
+      var original = $scope.pipeline;
       original.name = $scope.pipeline.name;
       $uibModal.open({
         templateUrl: require('./actions/rename/renamePipelineModal.html'),

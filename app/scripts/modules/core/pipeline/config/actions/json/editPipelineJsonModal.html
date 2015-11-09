@@ -1,14 +1,14 @@
 <div modal-page>
   <modal-close></modal-close>
   <div class="modal-header">
-    <h3>Edit Pipeline JSON</h3>
+    <h3>Edit {{isStrategy === true ? 'Strategy' : 'Pipeline'}} JSON</h3>
   </div>
   <div class="modal-body">
     <div class="row">
       <div class="col-md-12">
         <p>
-          The JSON below represents the pipeline configuration in its persisted state.
-          You can change it here or use this to quickly copy a pipeline.
+          The JSON below represents the {{isStrategy === true ? 'strategy' : 'pipeline'}} configuration in its persisted state.
+          You can change it here or use this to quickly copy a {{isStrategy === true ? 'strategy' : 'pipeline'}}.
         </p>
       </div>
     </div>
@@ -20,7 +20,7 @@
     <div class="row">
       <div class="col-md-12">
         <p>
-          <strong>Note:</strong> Clicking "Update Pipeline" below will not save your changes to the server - it only
+          <strong>Note:</strong> Clicking "Update {{isStrategy === true ? 'Strategy' : 'Pipeline'}}" below will not save your changes to the server - it only
           updates the configuration within the browser, so you'll want to verify your changes and click "Save Changes"
           when you're ready.
         </p>
@@ -36,7 +36,7 @@
     <button class="btn btn-default" ng-click="editPipelineJsonModalCtrl.cancel()">Cancel</button>
     <button class="btn btn-primary"
             ng-click="editPipelineJsonModalCtrl.updatePipeline()">
-      <span class="glyphicon glyphicon-ok-circle"></span> Update Pipeline
+      <span class="glyphicon glyphicon-ok-circle"></span> Update {{isStrategy === true ? 'Strategy' : 'Pipeline'}}
     </button>
   </div>
 </div>
