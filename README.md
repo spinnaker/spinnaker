@@ -24,7 +24,11 @@ git clone git@github.com:spinnaker/spinnaker.git
 ````
 
 ## Configure your environment
-Prerequisites: jdk8, redis, cassandra, packer
+Prerequisites: 
+ - JDK8
+ - Redis 
+ - Cassandra
+ - Packer
 
 ### MacOSX
 
