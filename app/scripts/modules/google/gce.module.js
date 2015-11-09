@@ -26,6 +26,7 @@ module.exports = angular.module('spinnaker.gce', [
   require('../core/pipeline/config/stages/enableAsg/gce/gceEnableAsgStage.js'),
   require('../core/pipeline/config/stages/findAmi/gce/gceFindAmiStage.js'),
   require('../core/pipeline/config/stages/resizeAsg/gce/gceResizeAsgStage.js'),
+  require('../core/pipeline/config/stages/scaleDownCluster/gce/gceScaleDownClusterStage.js'),
   require('../core/pipeline/config/stages/shrinkCluster/gce/gceShrinkClusterStage.js'),
   require('./instance/gceInstanceTypeService.js'),
   require('./loadBalancer/loadBalancer.transformer.js'),
