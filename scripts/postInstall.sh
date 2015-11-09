@@ -1,9 +1,5 @@
 #!/bin/sh
 
-
-# Web server
-a2enmod proxy_http
-
 # deck settings
 /opt/spinnaker/bin/reconfigure_spinnaker.sh
 

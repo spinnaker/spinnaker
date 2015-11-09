@@ -63,10 +63,15 @@ ospackage {
     fileMode = 0755
   }
 
-    from('etc/apache2/sites-available/spinnaker.conf') {
+  from('config/apache2/sites-available/spinnaker.conf') {
     into '/etc/apache2/sites-available'
     fileMode = 0644
   }
+
+  from('config/default/spinnaker') {
+    into '/etc/default/spinnaker'
+    fileMode = 0644
+  }  
 
 }
 
