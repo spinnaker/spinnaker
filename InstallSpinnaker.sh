@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ## This script install pre-requisites for Spinnaker
 # To you put this file in the root of a web server
