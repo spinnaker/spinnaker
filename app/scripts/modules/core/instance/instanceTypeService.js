@@ -33,11 +33,28 @@ module.exports = angular.module('spinnaker.instanceType.service', [
       });
     }
 
+    function getInstanceTypeDetails(selectedProvider, instanceType) {
+      return getCategories(selectedProvider).then(function(categories) {
+        var query = {families: [ {instanceTypes: [ {name:instanceType } ] } ] };
+        var category = _.findWhere(categories, query);
+        var instanceTypeDetails;
+
+        if (category && category.families && category.families.length && category.families[0].instanceTypes) {
+          instanceTypeDetails = _.find(category.families[0].instanceTypes, candidateInstanceType => {
+            return candidateInstanceType.name === instanceType;
+          });
+        }
+
+        return instanceTypeDetails || {};
+      });
+    }
+
     return {
       getCategories: getCategories,
       getAvailableTypesForRegions: getAvailableTypesForRegions,
       getAllTypesByRegion: getAllTypesByRegion,
-      getCategoryForInstanceType: getCategoryForInstanceType
+      getCategoryForInstanceType: getCategoryForInstanceType,
+      getInstanceTypeDetails: getInstanceTypeDetails
     };
   }
 )

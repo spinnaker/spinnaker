@@ -9,7 +9,9 @@
         <th>Size</th>
         <th>vCPU</th>
         <th>Mem (GiB)</th>
-        <th>{{family.storageType || 'SSD'}} Storage (GB)</th>
+        <th>{{family.storageType || 'SSD'}} Storage (GB)
+          <help-field nf-if="family.storageHelpFieldKey" key="{{family.storageHelpFieldKey}}"></help-field>
+        </th>
         <th>Cost</th>
       </tr>
       </thead>

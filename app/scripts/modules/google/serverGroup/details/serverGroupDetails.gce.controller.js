@@ -74,7 +74,9 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
           $scope.serverGroup.logsLink =
             'https://console.developers.google.com/project/' + projectId + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + $scope.serverGroup.name;
 
+          findStartupScript();
           prepareDiskDescriptions();
+          prepareAuthScopes();
           augmentTagsWithHelp();
         } else {
           autoClose();
@@ -94,6 +96,19 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
     function cancelLoader() {
       $scope.state.loading = false;
+    }
+
+    function findStartupScript() {
+      if (_.has($scope.serverGroup, 'launchConfig.instanceTemplate.properties.metadata.items')) {
+        let metadataItems = $scope.serverGroup.launchConfig.instanceTemplate.properties.metadata.items;
+        let startupScriptItem = _.find(metadataItems, metadataItem => {
+          return metadataItem.key === 'startup-script';
+        });
+
+        if (startupScriptItem) {
+          $scope.serverGroup.startupScript = startupScriptItem.value;
+        }
+      }
     }
 
     function prepareDiskDescriptions() {
@@ -119,7 +134,22 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
           }
         });
 
-        $scope.diskDescriptions = diskDescriptions;
+        $scope.serverGroup.diskDescriptions = diskDescriptions;
+      }
+    }
+
+    function prepareAuthScopes() {
+      if (_.has($scope.serverGroup, 'launchConfig.instanceTemplate.properties.serviceAccounts')) {
+        let serviceAccounts = $scope.serverGroup.launchConfig.instanceTemplate.properties.serviceAccounts;
+        let defaultServiceAccount = _.find(serviceAccounts, serviceAccount => {
+          return serviceAccount.email === 'default';
+        });
+
+        if (defaultServiceAccount) {
+          $scope.serverGroup.authScopes = _.map(defaultServiceAccount.scopes, authScope => {
+            return authScope.replace('https://www.googleapis.com/auth/', '');
+          });
+        }
       }
     }
 
@@ -315,8 +345,9 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       });
     };
 
-    this.showUserData = function showScalingActivities() {
-      $scope.userData = window.atob($scope.serverGroup.launchConfig.userData);
+    this.showStartupScript = function showScalingActivities() {
+      $scope.userDataModalTitle = "Startup Script";
+      $scope.userData = $scope.serverGroup.startupScript;
       $uibModal.open({
         templateUrl: require('../../../core/serverGroup/details/userData.html'),
         controller: 'CloseableModalCtrl',

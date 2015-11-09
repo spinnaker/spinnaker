@@ -72,6 +72,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       $scope.$watch('command.credentials', createResultProcessor($scope.command.credentialsChanged));
       $scope.$watch('command.region', createResultProcessor($scope.command.regionChanged));
       $scope.$watch('command.network', createResultProcessor($scope.command.networkChanged));
+      $scope.$watch('command.viewState.instanceTypeDetails', updateStorageSettingsFromInstanceType());
     }
 
     function initializeSelectOptions() {
@@ -96,6 +97,22 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       if (result.dirty.availabilityZones) {
         modalWizardService.getWizard().markDirty('capacity');
       }
+    }
+
+    function updateStorageSettingsFromInstanceType() {
+      return function(instanceTypeDetails) {
+        if ($scope.command.viewState.initialized) {
+          if (instanceTypeDetails && instanceTypeDetails.storage && instanceTypeDetails.storage.defaultSettings) {
+            let defaultSettings = instanceTypeDetails.storage.defaultSettings;
+
+            $scope.command.persistentDiskType = defaultSettings.persistentDiskType;
+            $scope.command.persistentDiskSizeGb = defaultSettings.persistentDiskSizeGb;
+            $scope.command.localSSDCount = defaultSettings.localSSDCount;
+          }
+        } else {
+          $scope.command.viewState.initialized = true;
+        }
+      };
     }
 
     this.isValid = function () {
@@ -136,7 +153,25 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       });
     };
 
+    function generateDiskDescriptors() {
+      let persistentDiskDescriptor = {
+        type: $scope.command.persistentDiskType,
+        sizeGb: $scope.command.persistentDiskSizeGb
+      };
+      let localSSDDiskDescriptor = {
+        type: 'local-ssd',
+        sizeGb: 375
+      };
+
+      $scope.command.disks = Array($scope.command.localSSDCount + 1);
+      $scope.command.disks[0] = persistentDiskDescriptor;
+
+      _.fill($scope.command.disks, localSSDDiskDescriptor, 1);
+    }
+
     this.clone = function () {
+      generateDiskDescriptors();
+
       var origInstanceMetadata = $scope.command.instanceMetadata;
       var transformedInstanceMetadata = {};
       // The instanceMetadata is stored using 'key' and 'value' attributes to enable the Add/Remove behavior in the wizard.
