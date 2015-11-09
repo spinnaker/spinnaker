@@ -75,7 +75,7 @@ module.exports = angular
     });
 
     $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState) {
-      if (isSecurityGroupStateOrChild(toState.name)) {
+      if (isSecurityGroupStateOrChild(toState.name) && isSecurityGroupStateOrChild(fromState.name)) {
         filterModel.applyParamsToUrl();
         return;
       }
@@ -83,7 +83,6 @@ module.exports = angular
         if (shouldRouteToSavedState(toParams, fromState)) {
           filterModel.restoreState(toParams);
         }
-
         if (fromSecurityGroupsState(fromState) && !filterModel.hasSavedState(toParams)) {
           filterModel.clearFilters();
         }

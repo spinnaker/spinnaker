@@ -114,7 +114,7 @@ module.exports = angular
     });
 
     $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState) {
-      if (isExecutionStateOrChild(toState.name)) {
+      if (movingToExecutionsState(toState) && isExecutionStateOrChild(fromState.name)) {
         filterModel.applyParamsToUrl();
         return;
       }
