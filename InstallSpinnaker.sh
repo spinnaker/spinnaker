@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ## This script install pre-requisites for Spinnaker
 # To you put this file in the root of a web server
@@ -66,13 +66,33 @@ echo 'deb http://jenkins.staypuft.kenzan.com:8000/ trusty main' > /etc/apt/sourc
 
 ## Install software
 # "service cassandra status" is currently broken in Ubuntu grep in the script is grepping for things that do not exist
-# Cassandra 2.2 ships with RPC disabeld to enable run "nodetool enablethrift"
+# Cassandra 2.x can ship with RPC disabeld to enable run "nodetool enablethrift"
 
 apt-get update
 apt-get install -y oracle-java8-installer
 apt-get install -y cassandra=2.1.11 cassandra-tools=2.1.11
+
+# Let cassandra start
+sleep 5
+nodetool enablethrift
 # apt-get install dsc21
+
+
 apt-get install -y --force-yes --allow-unauthenticated spinnaker
 
+read -p "Enable Amazon AWS? (Y|n)" enableAws
+if [[ "${enableAws,,}" == "y" || -z "$enableAws" ]]; then
+    setEnableAws="true"
+    read -p "Default region: " defaultRegion
+    sed -i.bak -e "s/false/$setEnableAws/" -e "s/us-west-2/$defaultRegion/" /etc/default/spinnaker
+else
+ echo Not enabling AWS
+fi
 
-nodetool enablethrift
+service clouddriver start
+service gate start
+service rosco start
+service front50 start
+service igor start
+service echo start
+
