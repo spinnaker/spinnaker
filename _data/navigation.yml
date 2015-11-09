@@ -17,6 +17,7 @@
 -
   title: Community
   children:
+    - contributing_guidelines
     - collab_dev
     - code_of_conduct
 -
