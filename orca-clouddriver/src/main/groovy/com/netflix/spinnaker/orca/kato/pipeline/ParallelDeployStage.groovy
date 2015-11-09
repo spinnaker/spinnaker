@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.pipeline.CreateServerGroupStage
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.ParallelStage
 import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
@@ -76,7 +77,7 @@ class ParallelDeployStage extends ParallelStage {
 
   @CompileDynamic
   protected Map<String, Object> clusterContext(Stage stage, Map defaultStageContext, Map cluster) {
-    def type = DeployStage.PIPELINE_CONFIG_TYPE
+    def type = CreateServerGroupStage.PIPELINE_CONFIG_TYPE
 
     if (cluster.providerType && !(cluster.providerType in ['aws', 'titan'])) {
       type += "_$cluster.providerType"

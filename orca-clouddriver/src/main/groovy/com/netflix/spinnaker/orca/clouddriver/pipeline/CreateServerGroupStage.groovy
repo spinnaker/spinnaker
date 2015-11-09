@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,33 +17,26 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.strategies.AbstractDeployStrategyStage
-import com.netflix.spinnaker.orca.clouddriver.tasks.CloneServerGroupTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.CreateServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForUpInstancesTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.util.logging.Slf4j
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
-@Slf4j
 @Component
-class CloneServerGroupStage extends AbstractDeployStrategyStage {
+class CreateServerGroupStage extends AbstractDeployStrategyStage {
+  public static final String PIPELINE_CONFIG_TYPE = "createServerGroup"
 
-  public static final String PIPELINE_CONFIG_TYPE = "cloneServerGroup"
-
-  CloneServerGroupStage() {
+  CreateServerGroupStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
-  CloneServerGroupStage(String type) {
-    super(type)
-  }
-
   @Override
-  List<Step> basicSteps(Stage stage) {
+  protected List<Step> basicSteps(Stage stage) {
     [
-        buildStep(stage, "cloneServerGroup", CloneServerGroupTask),
+        buildStep(stage, "createServerGroup", CreateServerGroupTask),
         buildStep(stage, "monitorDeploy", MonitorKatoTask),
         buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
         buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask),

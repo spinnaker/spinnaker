@@ -36,6 +36,7 @@ import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
+@Deprecated
 class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task {
 
   static final List<String> DEFAULT_VPC_SECURITY_GROUPS = ["nf-infrastructure-vpc", "nf-datacenter-vpc"]
