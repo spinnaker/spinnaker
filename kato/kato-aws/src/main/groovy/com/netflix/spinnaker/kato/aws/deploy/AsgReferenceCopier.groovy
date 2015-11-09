@@ -77,10 +77,15 @@ class AsgReferenceCopier {
       def policyRequest = new PutScalingPolicyRequest(
         autoScalingGroupName: targetAsgName,
         policyName: newPolicyName,
+        policyType: sourceAsgScalingPolicy.policyType,
         scalingAdjustment: sourceAsgScalingPolicy.scalingAdjustment,
         adjustmentType: sourceAsgScalingPolicy.adjustmentType,
         cooldown: sourceAsgScalingPolicy.cooldown,
-        minAdjustmentStep: sourceAsgScalingPolicy.minAdjustmentStep
+        minAdjustmentStep: sourceAsgScalingPolicy.minAdjustmentStep,
+        minAdjustmentMagnitude: sourceAsgScalingPolicy.minAdjustmentMagnitude,
+        metricAggregationType: sourceAsgScalingPolicy.metricAggregationType,
+        stepAdjustments: sourceAsgScalingPolicy.stepAdjustments,
+        estimatedInstanceWarmup: sourceAsgScalingPolicy.estimatedInstanceWarmup,
       )
       def result = targetAutoScaling.putScalingPolicy(policyRequest)
       sourcePolicyArnToTargetPolicyArn[sourceAsgScalingPolicy.policyARN] = result.policyARN

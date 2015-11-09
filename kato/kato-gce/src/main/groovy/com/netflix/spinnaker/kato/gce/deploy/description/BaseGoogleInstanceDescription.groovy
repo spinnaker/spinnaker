@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.kato.gce.deploy.description
 
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.kato.gce.model.GoogleDisk
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
@@ -25,11 +26,11 @@ import groovy.transform.Canonical
 class BaseGoogleInstanceDescription {
   String image
   String instanceType
-  String diskType
-  Long diskSizeGb
+  List<GoogleDisk> disks
   Map<String, String> instanceMetadata
   List<String> tags
   String network
+  List<String> authScopes
 
   String accountName
   GoogleCredentials credentials

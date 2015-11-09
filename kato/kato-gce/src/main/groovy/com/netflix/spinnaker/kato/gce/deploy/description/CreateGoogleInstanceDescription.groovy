@@ -16,16 +16,9 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.description
 
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.kato.deploy.DeployDescription
 
-class CreateGoogleInstanceDescription implements DeployDescription {
+class CreateGoogleInstanceDescription extends BaseGoogleInstanceDescription implements DeployDescription {
   String instanceName
-  String image
-  String instanceType
-  String diskType
-  Long diskSizeGb
   String zone
-  String accountName
-  GoogleCredentials credentials
 }

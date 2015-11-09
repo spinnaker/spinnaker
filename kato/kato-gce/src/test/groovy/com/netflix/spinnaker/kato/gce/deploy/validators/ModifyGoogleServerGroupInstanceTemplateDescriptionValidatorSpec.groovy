@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.gce.deploy.description.ModifyGoogleServerGroupInstanceTemplateDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
@@ -30,8 +31,6 @@ class ModifyGoogleServerGroupInstanceTemplateDescriptionValidatorSpec extends Sp
   private static final ZONE = "us-central1-b"
   private static final IMAGE = "debian-7-wheezy-v20140415"
   private static final INSTANCE_TYPE = "f1-micro"
-  private static final DISK_TYPE = "pd-standard"
-  private static final DISK_SIZE_GB = 10
   private static final INSTANCE_METADATA = [
     "startup-script": "sudo apt-get update",
     "some-key": "some-value"
@@ -44,7 +43,8 @@ class ModifyGoogleServerGroupInstanceTemplateDescriptionValidatorSpec extends Sp
   ModifyGoogleServerGroupInstanceTemplateDescriptionValidator validator
 
   void setupSpec() {
-    validator = new ModifyGoogleServerGroupInstanceTemplateDescriptionValidator()
+    def gceDeployDefaults = new GceConfig.DeployDefaults()
+    validator = new ModifyGoogleServerGroupInstanceTemplateDescriptionValidator(gceDeployDefaults: gceDeployDefaults)
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     def credentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
     def credentials = Mock(GoogleNamedAccountCredentials)
@@ -74,8 +74,6 @@ class ModifyGoogleServerGroupInstanceTemplateDescriptionValidatorSpec extends Sp
                                                                                zone: ZONE,
                                                                                image: IMAGE,
                                                                                instanceType: INSTANCE_TYPE,
-                                                                               diskType: DISK_TYPE,
-                                                                               diskSizeGb: DISK_SIZE_GB,
                                                                                instanceMetadata: INSTANCE_METADATA,
                                                                                tags: TAGS,
                                                                                network: NETWORK,

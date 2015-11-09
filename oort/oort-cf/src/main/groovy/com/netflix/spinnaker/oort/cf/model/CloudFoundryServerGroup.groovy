@@ -100,6 +100,17 @@ class CloudFoundryServerGroup implements ServerGroup, Serializable {
     ])
   }
 
+  Map<String, Object> getAsg() {
+    if (nativeApplication) {
+      return [
+          minSize: nativeApplication.instances,
+          maxSize: nativeApplication.instances,
+          desiredCapacity: nativeApplication.instances
+      ]
+    }
+    return null
+  }
+
   @Override
   Set<String> getSecurityGroups() {
     services.collect {it.name} as Set<String>

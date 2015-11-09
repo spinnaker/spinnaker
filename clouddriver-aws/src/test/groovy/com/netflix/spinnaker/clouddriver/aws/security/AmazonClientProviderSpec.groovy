@@ -55,8 +55,7 @@ class AmazonClientProviderSpec extends Specification {
     1 * mockHttp.execute(_) >> {
       mockResponse
     }
-    provider.lastResponseHeaders != null
-    provider.lastResponseHeaders.containsKey('last-modified')
+    provider.lastModified == MTIME
   }
 
   void "edda requests handle parameters from request objects"() {
@@ -72,7 +71,7 @@ class AmazonClientProviderSpec extends Specification {
     then:
     client instanceof AmazonAutoScaling
     1 * mockHttp.execute(_) >> { HttpGet get ->
-      assert get.URI.rawPath.endsWith("_expand")
+      assert get.URI.rawPath.endsWith("_expand;_meta")
       mockResponse
     }
 
@@ -82,7 +81,7 @@ class AmazonClientProviderSpec extends Specification {
     then:
     client instanceof AmazonAutoScaling
     1 * mockHttp.execute(_) >> { HttpGet get ->
-      assert get.URI.rawPath.endsWith(asgName)
+      assert get.URI.rawPath.endsWith(asgName + ';_meta')
       getMockResponse(OBJECT_ASG_CONTENT)
     }
   }
@@ -129,7 +128,7 @@ class AmazonClientProviderSpec extends Specification {
     then:
     client instanceof AmazonAutoScaling
     1 * mockHttp.execute(_) >> { HttpGet get ->
-      assert get.URI.rawPath.endsWith("_expand")
+      assert get.URI.rawPath.endsWith("_expand;_meta")
       mockResponse
     }
   }
@@ -149,13 +148,13 @@ class AmazonClientProviderSpec extends Specification {
     1 * ec2.describeSecurityGroups()
   }
 
-  static def OBJECT_ASG_CONTENT = '{ "autoScalingGroupName": "my-app-v000" }'
+  static def MTIME = 1446701217475L
+  static def OBJECT_ASG_CONTENT = '{"mtime": ' + MTIME + ', "data": { "autoScalingGroupName": "my-app-v000" }}'
   static def ARRAY_ASG_CONTENT = "[$OBJECT_ASG_CONTENT]"
 
   def getMockResponse(String content = ARRAY_ASG_CONTENT) {
     def mock = Mock(HttpResponse)
     def statusLine = Mock(StatusLine)
-    mock.allHeaders >> [new BasicHeader('Last-Modified', 'Sat, 27 Dec 2014 02:05:31 GMT')]
     statusLine.getStatusCode() >> 200
     mock.getStatusLine() >> statusLine
     def entity = Mock(HttpEntity)

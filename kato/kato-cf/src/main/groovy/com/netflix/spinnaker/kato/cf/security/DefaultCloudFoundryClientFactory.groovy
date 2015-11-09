@@ -15,9 +15,8 @@
  */
 package com.netflix.spinnaker.kato.cf.security
 
-import com.netflix.spinnaker.kato.cf.deploy.description.CloudFoundryDeployDescription
 import org.cloudfoundry.client.lib.CloudFoundryClient
-
+import org.cloudfoundry.client.lib.CloudFoundryOperations
 /**
  * A factory for creating {@link CloudFoundryClient} objects. This allows delaying the creation until ALL
  * the details are gathered (some come via {@link com.netflix.spinnaker.kato.cf.deploy.description.CloudFoundryDeployDescription}
@@ -26,13 +25,13 @@ import org.cloudfoundry.client.lib.CloudFoundryClient
  */
 class DefaultCloudFoundryClientFactory implements CloudFoundryClientFactory {
 
-  CloudFoundryClient createCloudFoundryClient(CloudFoundryDeployDescription description) {
+  CloudFoundryOperations createCloudFoundryClient(CloudFoundryAccountCredentials credentials, boolean trustSelfSignedCerts) {
     new CloudFoundryClient(
-        description.credentials.credentials,
-        description.credentials.api.toURL(),
-        description.credentials.org,
-        description.credentials.space,
-        description.trustSelfSignedCerts)
+        credentials.credentials,
+        credentials.api.toURL(),
+        credentials.org,
+        credentials.space,
+        trustSelfSignedCerts)
   }
 
 }

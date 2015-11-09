@@ -3,5 +3,8 @@ dependencies {
 
   compile project(":kato:kato-core")
   compile spinnaker.dependency('bootActuator')
+  compile project(":clouddriver-cf")
   compile("org.cloudfoundry:cloudfoundry-client-lib:${cloudFoundryClientVersion}")
+
+  spinnaker.group("cf")
 }

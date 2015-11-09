@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.kato.gce.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleInstanceDescription
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,6 +29,9 @@ class CreateGoogleInstanceDescriptionValidator extends DescriptionValidator<Crea
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
+  @Autowired
+  private GceConfig.DeployDefaults gceDeployDefaults
+
   @Override
   void validate(List priorDescriptions, CreateGoogleInstanceDescription description, Errors errors) {
     def helper = new StandardGceAttributeValidator("createGoogleInstanceDescription", errors)
@@ -36,10 +40,9 @@ class CreateGoogleInstanceDescriptionValidator extends DescriptionValidator<Crea
     helper.validateInstanceName(description.instanceName)
     helper.validateImage(description.image)
     helper.validateInstanceType(description.instanceType)
+    helper.validateInstanceTypeDisks(gceDeployDefaults.determineInstanceTypeDisk(description.instanceType),
+                                     description.disks)
+    helper.validateAuthScopes(description.authScopes)
     helper.validateZone(description.zone)
-
-    if (description.diskSizeGb != null && description.diskSizeGb < 10) {
-      errors.rejectValue "diskSizeGb", "createGoogleInstanceDescription.diskSizeGb.invalid"
-    }
   }
 }

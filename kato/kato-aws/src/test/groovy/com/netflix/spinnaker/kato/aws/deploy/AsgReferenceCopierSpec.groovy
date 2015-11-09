@@ -26,6 +26,7 @@ import com.amazonaws.services.autoscaling.model.PutScalingPolicyResult
 import com.amazonaws.services.autoscaling.model.PutScheduledUpdateGroupActionRequest
 import com.amazonaws.services.autoscaling.model.ScalingPolicy
 import com.amazonaws.services.autoscaling.model.ScheduledUpdateGroupAction
+import com.amazonaws.services.autoscaling.model.StepAdjustment
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch
 import com.amazonaws.services.cloudwatch.model.DescribeAlarmsRequest
 import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult
@@ -192,6 +193,17 @@ class AsgReferenceCopierSpec extends Specification {
           adjustmentType: 'PercentChangeInCapacity',
           cooldown: 200,
           minAdjustmentStep: 3,
+          minAdjustmentMagnitude: 20,
+          metricAggregationType: "Average",
+          estimatedInstanceWarmup: 30,
+          stepAdjustments: [
+                  new StepAdjustment(
+                    metricIntervalLowerBound: 10.5,
+                    metricIntervalUpperBound: 11.5,
+                    scalingAdjustment: 90,
+                  )
+          ],
+          policyType: "StepScaling",
           alarms: ['alarm2', 'alarm3'].collect { new Alarm(alarmName: it) }
         )
       ]
@@ -210,7 +222,18 @@ class AsgReferenceCopierSpec extends Specification {
       scalingAdjustment: 10,
       adjustmentType: 'PercentChangeInCapacity',
       cooldown: 200,
-      minAdjustmentStep: 3
+      minAdjustmentStep: 3,
+      minAdjustmentMagnitude: 20,
+      metricAggregationType: "Average",
+      estimatedInstanceWarmup: 30,
+      stepAdjustments: [
+        new StepAdjustment(
+          metricIntervalLowerBound: 10.5,
+          metricIntervalUpperBound: 11.5,
+          scalingAdjustment: 90,
+        )
+      ],
+      policyType: "StepScaling",
     )) >> new PutScalingPolicyResult(policyARN: 'newPolicyARN2')
 
     1 * sourceCloudWatch.describeAlarms(new DescribeAlarmsRequest(alarmNames: ['alarm1', 'alarm2', 'alarm3'])) >> new DescribeAlarmsResult(metricAlarms: [
