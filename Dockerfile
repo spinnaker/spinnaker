@@ -1,15 +1,22 @@
-FROM java:8
+FROM phusion/baseimage:0.9.17
 
-MAINTAINER clin@netflix.com
+MAINTAINER delivery-engineering@netflix.com
 
-COPY . workdir/code
+RUN apt-get install -y software-properties-common
+RUN add-apt-repository -y ppa:webupd8team/java
+RUN apt-get update
 
-WORKDIR workdir/code
+# Auto-accept the Oracle JDK license
+RUN echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
 
-RUN ./gradlew installApp
+RUN apt-get install -y oracle-java8-installer
 
-RUN mv /workdir/code/igor-web/build/install /install
+COPY . workdir/
 
-RUN rm -rf /workdir/code
+WORKDIR workdir
 
-CMD ["/install/igor/bin/igor"]
+RUN ./gradlew buildDeb -x test
+
+RUN dpkg -i ./igor-web/build/distributions/*.deb
+
+CMD ["/opt/igor/bin/igor"]
