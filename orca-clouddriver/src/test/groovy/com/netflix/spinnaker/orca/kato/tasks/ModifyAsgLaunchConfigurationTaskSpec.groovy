@@ -28,7 +28,7 @@ class ModifyAsgLaunchConfigurationTaskSpec extends Specification {
 
   KatoService katoService = Mock(KatoService)
   @Subject
-  ModifyAsgLaunchConfigurationTask task = new ModifyAsgLaunchConfigurationTask(kato: katoService)
+  ModifyAsgLaunchConfigurationTask task = new ModifyAsgLaunchConfigurationTask(kato: katoService, defaultBakeAccount: 'default')
 
   void 'should populate deploy.server.groups to enable force cache refresh'() {
     setup:
@@ -43,7 +43,7 @@ class ModifyAsgLaunchConfigurationTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * katoService.requestOperations(_) >> rx.Observable.just(new TaskId('blerg'))
+    1 * katoService.requestOperations('aws', _) >> rx.Observable.just(new TaskId('blerg'))
     result.stageOutputs.'deploy.server.groups' == [(region): [asgName]]
 
     where:
@@ -68,9 +68,8 @@ class ModifyAsgLaunchConfigurationTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * katoService.requestOperations(_) >> { ops ->
-      //seems something wrong with the double deindex [0][0] here but I'm blaming spock..:
-      def opConfig = ops[0][0].modifyAsgLaunchConfigurationDescription
+    1 * katoService.requestOperations('aws', _) >> { cloudProvider, ops ->
+      def opConfig = ops.last().modifyAsgLaunchConfigurationDescription
 
       assert opConfig.amiName == expectedAmi
       rx.Observable.just(new TaskId('blerg'))
@@ -80,6 +79,40 @@ class ModifyAsgLaunchConfigurationTaskSpec extends Specification {
     deploymentDetailsAmi | contextAmi | expectedAmi
     'ami-dd'             | 'ami-cc'   | 'ami-cc'
     'ami-dd'             | null       | 'ami-dd'
+    region = 'us-east-1'
+    asgName = 'myasg-v001'
+  }
+
+  void 'should inject allowLaunch if deploy account does not match bake account'() {
+    setup:
+    def taskConfig = [
+      credentials: credentials,
+      region     : region,
+      asgName    : asgName,
+      amiName    : 'ami-abcdef'
+    ]
+    def stage = new OrchestrationStage(new Orchestration(), ModifyAsgLaunchConfigurationStage.PIPELINE_CONFIG_TYPE, taskConfig)
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * katoService.requestOperations('aws', _) >> { cloudProvider, ops ->
+      assert ops.size() == expectedOpsSize
+      if (expectedOpsSize == 2) {
+        def allowLaunch = ops.first().allowLaunchDescription
+        assert allowLaunch.account == credentials
+        assert allowLaunch.credentials == 'default'
+        assert allowLaunch.region == region
+        assert allowLaunch.amiName == 'ami-abcdef'
+      }
+      rx.Observable.just(new TaskId('blerg'))
+    }
+
+    where:
+    credentials | expectedOpsSize
+    'default'   | 1
+    'test'      | 2
     region = 'us-east-1'
     asgName = 'myasg-v001'
   }
