@@ -8,7 +8,6 @@ module.exports = angular
   .module('spinnaker.core.delivery.group.executionGroup.directive', [
     require('../filter/executionFilter.service.js'),
     require('../filter/executionFilter.model.js'),
-    require('../../confirmationModal/confirmationModal.service.js'),
     require('../triggers/triggersTag.directive.js'),
     require('./execution/execution.directive.js'),
   ])
@@ -26,7 +25,7 @@ module.exports = angular
     };
   })
   .controller('executionGroupCtrl', function($scope, $timeout, _, $state, settings, $stateParams, $uibModal, executionService, collapsibleSectionStateCache,
-                                               ExecutionFilterModel, pipelineConfigService, confirmationModalService, $location) {
+                                               ExecutionFilterModel, pipelineConfigService) {
     this.showDetails = function(executionId) {
       return executionId === $stateParams.executionId &&
         $state.includes('**.execution.**');

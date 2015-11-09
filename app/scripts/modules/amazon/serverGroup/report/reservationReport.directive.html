@@ -1,0 +1,30 @@
+<h4 ng-if="vm.viewState.loading"><span us-spinner="{radius:5, width:2, length: 3}"></span></h4>
+<!-- TODO: Remove error switch when feature flagging is available to toggle this directive on and off -->
+<div class="small reservation-report" ng-if="!vm.viewState.loading && !vm.viewState.error">
+  <div ng-if="!vm.viewState.error">
+    <h4>Reservations for {{vm.instanceType}} in <account-tag account="vm.account" provider="'aws'"></account-tag></h4>
+    <table class="table table-condensed">
+      <thead>
+      <tr>
+        <th>Zone</th>
+        <th>OS</th>
+        <th>Reserved</th>
+        <th>Used</th>
+        <th>Available</th>
+      </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="row in vm.report">
+          <td>{{row.availabilityZone}}</td>
+          <td>{{row.os}}</td>
+          <td>{{row.reservations.reserved}}</td>
+          <td>{{row.reservations.used}}</td>
+          <td><strong>{{row.reservations.surplus}}</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <h5 ng-if="vm.viewState.error" class="text-center">
+    There was an error loading the reservation counts for {{vm.instanceType}}
+  </h5>
+</div>

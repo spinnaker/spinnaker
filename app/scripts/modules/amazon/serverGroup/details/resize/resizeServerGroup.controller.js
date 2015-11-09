@@ -7,8 +7,10 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
   require('../../../../core/application/modal/platformHealthOverride.directive.js'),
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js'),
+  require('../../report/reservationReport.directive.js'),
 ])
-  .controller('awsResizeServerGroupCtrl', function($scope, $modalInstance, accountService, serverGroupWriter, taskMonitorService,
+  .controller('awsResizeServerGroupCtrl', function($scope, $modalInstance, accountService, serverGroupWriter,
+                                                   taskMonitorService, reservationReportReader,
                                                    application, serverGroup) {
     $scope.serverGroup = serverGroup;
     $scope.currentSize = {
