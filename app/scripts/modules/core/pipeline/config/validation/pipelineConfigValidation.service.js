@@ -12,6 +12,10 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.servic
 
     var validators = {
       stageBeforeType: function(pipeline, index, validationConfig, messages) {
+        if (pipeline.strategy === true && pipeline.stages[index].type === 'deploy') {
+          return;
+        }
+
         var stageTypes = validationConfig.stageTypes || [validationConfig.stageType];
         var stagesToTest = pipeline.stages.slice(0, index+1);
         if (pipeline.parallel) {
@@ -24,7 +28,11 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.servic
         }
         messages.push(validationConfig.message);
       },
-      checkRequiredField: function(stage, validationConfig, config, messages) {
+      checkRequiredField: function(pipeline, stage, validationConfig, config, messages) {
+       if (pipeline.strategy === true && ['cluster', 'regions', 'credentials'].indexOf(validationConfig.fieldName) > -1) {
+          return;
+        }
+
         let fieldLabel = validationConfig.fieldLabel || validationConfig.fieldName;
         fieldLabel = fieldLabel.charAt(0).toUpperCase() + fieldLabel.substr(1);
         let validationMessage = validationConfig.message ||
@@ -92,7 +100,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.servic
           config.validators.forEach(function(validator) {
             switch(validator.type) {
               case 'requiredField':
-                validators.checkRequiredField(trigger, validator, config, messages);
+                validators.checkRequiredField(pipeline, trigger, validator, config, messages);
                 break;
               default:
                 $log.warn('No validator of type "' + validator.type + '" found, ignoring validation on trigger "' + (index+1) + '" (' + trigger.type + ')');
@@ -112,7 +120,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.servic
                 validators.targetImpedance(pipeline, index, validator, messages);
                 break;
               case 'requiredField':
-                validators.checkRequiredField(stage, validator, config, messages);
+                validators.checkRequiredField(pipeline, stage, validator, config, messages);
                 break;
               default:
                 $log.warn('No validator of type "' + validator.type + '" found, ignoring validation on stage "' + stage.name + '" (' + stage.type + ')');
