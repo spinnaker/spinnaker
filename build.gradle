@@ -69,7 +69,7 @@ ospackage {
   }
 
   from('config/default/spinnaker') {
-    into '/etc/default/spinnaker'
+    into '/etc/default'
     fileMode = 0644
   }  
 
