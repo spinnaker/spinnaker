@@ -81,7 +81,7 @@ module.exports = angular
     });
 
     $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState) {
-      if (isClusterStateOrChild(toState.name)) {
+      if (movingToClusterState(toState) && isClusterStateOrChild(fromState.name)) {
         filterModel.applyParamsToUrl();
         return;
       }
