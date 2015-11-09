@@ -17,10 +17,13 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertAmazonLoadBalancerDescription
+import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
+@AmazonOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component("createAmazonLoadBalancerDescriptionValidator")
 class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionValidationSupport<UpsertAmazonLoadBalancerDescription> {
 
