@@ -39,7 +39,7 @@ class Location {
   }
 
   /**
-   * @return The all lowercase, plural form of this location type ("region" or "zone")
+   * @return The all lowercase, singular form of this location type ("region" or "zone")
    */
   @JsonIgnore
   String singularType() {
