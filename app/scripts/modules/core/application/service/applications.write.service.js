@@ -11,7 +11,6 @@ module.exports = angular
 
     function createApplication(app, account) {
       return taskExecutor.executeTask({
-        suppressNotification: true,
         job: [
           {
             type: 'createApplication',
@@ -48,7 +47,6 @@ module.exports = angular
 
       accounts.forEach(function(account) {
         taskList.push(taskExecutor.executeTask({
-          suppressNotification: true,
           job: [
             {
               type: 'updateApplication',
@@ -91,7 +89,6 @@ module.exports = angular
       accounts.forEach(function(account) {
         taskList.push(
           {
-            suppressNotification: true,
             job: [
               {
                 type: 'deleteApplication',

@@ -50,9 +50,14 @@ module.exports = angular
             function(taskResponse){
               taskResponse
                 .watchForTaskComplete()
-                .then(function() {
+                .then(() => {
                   var tailAccounts = _.tail(accounts);
                   vm.createAppForAccount(application, tailAccounts, deferred);
+                },
+                (error) => {
+                  vm.errorMsgs.push('Could not create application in ' + account + ': ' + error.failureMessage);
+                  goIdle();
+                  deferred.reject();
                 });
             },
             function() {
@@ -75,8 +80,7 @@ module.exports = angular
 
       vm.application.name = vm.application.name.toLowerCase();
 
-      var promise = vm.createAppForAccount(vm.application, vm.application.account);
-      promise.then(
+      vm.createAppForAccount(vm.application, vm.application.account).then(
         routeToApplication,
         extractErrorMsg
       );
@@ -95,6 +99,7 @@ module.exports = angular
     }
 
     function submitting() {
+      vm.errorMsgs = [];
       vm.submitting = true;
     }
 
@@ -113,15 +118,6 @@ module.exports = angular
 
     function extractErrorMsg(error) {
       $log.debug('extract error', error);
-      var exceptions = _.chain(error.variables)
-        .where({key: 'exception'})
-        .first()
-        .value()
-        .value
-        .details
-        .errors;
-
-      angular.copy(exceptions, vm.errorMsgs );
       assignErrorMsgs();
       goIdle();
 
