@@ -24,6 +24,7 @@ module.exports = angular
   .controller('ServerGroupBasicSettingsSelectorCtrl', function($scope, $controller, RxService, imageReader, namingService, $uibModalStack, $state) {
 
     this.imageChanged = (image) => {
+      console.warn('vt:', image);
       $scope.command.virtualizationType = image.virtualizationType;
     };
 
