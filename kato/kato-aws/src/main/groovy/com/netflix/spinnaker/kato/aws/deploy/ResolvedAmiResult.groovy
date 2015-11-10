@@ -26,4 +26,5 @@ class ResolvedAmiResult {
   String amiName
   String region
   String amiId
+  String virtualizationType
 }

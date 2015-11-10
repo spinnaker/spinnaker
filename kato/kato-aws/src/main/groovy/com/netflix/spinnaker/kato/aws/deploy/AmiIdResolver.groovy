@@ -3,7 +3,7 @@ package com.netflix.spinnaker.kato.aws.deploy
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeImagesRequest
 import com.amazonaws.services.ec2.model.Filter
-
+import com.amazonaws.services.ec2.model.Image
 import java.util.regex.Pattern
 
 class AmiIdResolver {
@@ -23,9 +23,9 @@ class AmiIdResolver {
     if (launcher) {
       req.withExecutableUsers(launcher)
     }
-    String imageId = amazonEC2.describeImages(req)?.images?.getAt(0)?.imageId
-    if (imageId) {
-      return new ResolvedAmiResult(nameOrId, region, imageId)
+    Image resolvedImage = amazonEC2.describeImages(req)?.images?.getAt(0)
+    if (resolvedImage) {
+      return new ResolvedAmiResult(nameOrId, region, resolvedImage.imageId, resolvedImage.virtualizationType)
     }
 
     return null

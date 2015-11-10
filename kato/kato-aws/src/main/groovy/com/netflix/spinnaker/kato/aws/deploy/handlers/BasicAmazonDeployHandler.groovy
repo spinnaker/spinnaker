@@ -40,6 +40,11 @@ import groovy.transform.PackageScope
 class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescription> {
   private static final String BASE_PHASE = "DEPLOY"
 
+  private static final KNOWN_VIRTUALIZATION_FAMILIES = [
+    paravirtual: ['c1', 'c3', 'hi1', 'hs1', 'm1', 'm2', 'm3', 't1'],
+    hvm: ['c3', 'c4', 'd2', 'i2', 'g2', 'r3', 'm3', 'm4', 't2']
+  ]
+
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
@@ -127,6 +132,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       if (!ami) {
         throw new IllegalArgumentException("unable to resolve AMI imageId from $description.amiName")
       }
+      validateInstanceType(ami, description.instanceType)
 
       def account = accountCredentialsRepository.getOne(description.credentials.name)
       if (!(account instanceof NetflixAmazonCredentials)) {
@@ -276,5 +282,16 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     }
 
     return null
+  }
+
+  private static void validateInstanceType(ResolvedAmiResult ami, String instanceType) {
+    String family = instanceType?.contains('.') ? instanceType.split("\\.")[0] : ''
+    boolean familyIsKnown = KNOWN_VIRTUALIZATION_FAMILIES.containsKey(ami.virtualizationType) &&
+        KNOWN_VIRTUALIZATION_FAMILIES.any { it.value.contains(family) }
+    if (familyIsKnown && !KNOWN_VIRTUALIZATION_FAMILIES[ami.virtualizationType].contains(family)) {
+      throw new IllegalArgumentException("Instance type ${instanceType} does not support " +
+          "virtualization type ${ami.virtualizationType}. Please select a different image or instance type.")
+    }
+
   }
 }
