@@ -62,7 +62,8 @@ echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | su
 # Spinnaker
 # DL Repo goes here
 # echo "deb http://dl.bintray.com/spinnaker/ospackages ./" > /etc/apt/sources.list.d/spinnaker.list
-echo 'deb http://jenkins.staypuft.kenzan.com:8000/ trusty main' > /etc/apt/sources.list.d/spinnaker-dev.list
+# echo 'deb http://jenkins.staypuft.kenzan.com:8000/ trusty main' > /etc/apt/sources.list.d/spinnaker-dev.list
+echo 'deb https://dl.bintray.com/kenzanlabs/spinnaker trusty spinnaker' > /etc/apt/sources.list.d/spinnaker-dev.list
 
 ## Install software
 # "service cassandra status" is currently broken in Ubuntu grep in the script is grepping for things that do not exist
