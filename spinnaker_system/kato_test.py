@@ -526,7 +526,8 @@ class KatoIntegrationTest(st.AgentTestCase):
 
   def test_v_delete_http_load_balancer(self):
     self.run_test_case(
-        self.scenario.delete_http_load_balancer(), timeout_ok=True)
+        self.scenario.delete_http_load_balancer(), timeout_ok=True,
+        retry_interval_secs=10, max_retries=9)
 
   def test_w_deregister_load_balancer_instances(self):
     self.run_test_case(self.scenario.deregister_load_balancer_instances())
