@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
@@ -29,13 +29,16 @@ import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
-class CreateServerGroupTask extends AbstractCloudProviderAwareTask implements Task {
+class CreateServerGroupTask extends AbstractCloudProviderAwareTask implements RetryableTask {
 
   @Autowired
   KatoService kato
 
   @Autowired
   List<ServerGroupCreator> serverGroupCreators
+
+  long backoffPeriod = 2000
+  long timeout = 60000
 
   @Override
   TaskResult execute(Stage stage) {
