@@ -90,7 +90,9 @@ else
 fi
 
 service clouddriver start
+service orca start
 service gate start
+service rush start
 service rosco start
 service front50 start
 service igor start
