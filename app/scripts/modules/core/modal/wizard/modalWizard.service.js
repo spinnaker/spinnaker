@@ -4,7 +4,9 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.modalWizard.service', [])
+  .module('spinnaker.core.modalWizard.service', [
+    require('../../utils/lodash.js'),
+  ])
   .factory('modalWizardService', function(_) {
     var modalWizard;
 

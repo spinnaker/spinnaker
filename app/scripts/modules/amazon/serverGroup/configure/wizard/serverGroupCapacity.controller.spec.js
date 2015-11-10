@@ -4,7 +4,7 @@ describe('Controller: ServerGroupCapacitySelector', function () {
 
   beforeEach(
     window.module(
-      require('./serverGroupCapacitySelector.directive.js')
+      require('./ServerGroupCapacity.controller.js')
     )
   );
 
@@ -22,8 +22,17 @@ describe('Controller: ServerGroupCapacitySelector', function () {
       }
     };
 
-    this.ctrl = $controller('ServerGroupCapacitySelectorCtrl', {
+    this.ctrl = $controller('awsServerGroupCapacityCtrl', {
       $scope: this.scope,
+      modalWizardService: {
+        getWizard: () => {
+          return {
+            markDirty: angular.noop,
+            markClean: angular.noop,
+            markComplete: angular.noop,
+          };
+        }
+      }
     });
   }));
 
