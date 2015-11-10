@@ -139,9 +139,11 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
 
     function configureInstanceTypes(command) {
       var result = { dirty: {} };
-      if (command.region && command.virtualizationType) {
+      if (command.region && (command.virtualizationType || command.viewState.disableImageSelection)) {
         var filtered = awsInstanceTypeService.getAvailableTypesForRegions(command.backingData.instanceTypes, [command.region]);
-        filtered = awsInstanceTypeService.filterInstanceTypesByVirtualizationType(filtered, command.virtualizationType);
+        if (command.virtualizationType) {
+          filtered = awsInstanceTypeService.filterInstanceTypesByVirtualizationType(filtered, command.virtualizationType);
+        }
         if (command.instanceType && filtered.indexOf(command.instanceType) === -1) {
           result.dirty.instanceType = command.instanceType;
           command.instanceType = null;
