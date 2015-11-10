@@ -18,13 +18,14 @@ package com.netflix.spinnaker.orca.pipeline.model
 
 import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TreeTraversingParser
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import groovy.transform.CompileStatic
 import groovy.transform.ToString
 
@@ -63,6 +64,9 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
 
   @JsonIgnore
   AtomicInteger taskCounter = new AtomicInteger(0)
+
+  @JsonIgnore
+  StageNavigator stageNavigator = null
 
   transient ObjectMapper objectMapper = new OrcaObjectMapper()
 
@@ -140,6 +144,11 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
     }
     mergeCommit ptr, obj
     context = objectMapper.convertValue(rootNode, LinkedHashMap)
+  }
+
+  @Override
+  List<StageNavigator.Result> ancestors(Closure<Boolean> matcher = { Stage stage, StageBuilder stageBuilder -> true }) {
+    return stageNavigator ? stageNavigator.findAll(this, matcher) :[]
   }
 
   private JsonNode getPointer(String pointer, ObjectNode rootNode = contextToNode()) {

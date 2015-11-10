@@ -16,22 +16,28 @@
 
 package com.netflix.spinnaker.orca.mine.pipeline
 
+import com.netflix.spinnaker.orca.CancellableStage
+import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.mine.tasks.CleanupCanaryTask
 import com.netflix.spinnaker.orca.mine.tasks.CompleteCanaryTask
 import com.netflix.spinnaker.orca.mine.tasks.MonitorCanaryTask
 import com.netflix.spinnaker.orca.mine.tasks.RegisterCanaryTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+@Slf4j
 @Component
-class MonitorCanaryStage extends LinearStage {
+class MonitorCanaryStage extends LinearStage implements CancellableStage {
   public static final String PIPELINE_CONFIG_TYPE = "monitorCanary"
 
   @Autowired DeployCanaryStage deployCanaryStage
+  @Autowired MineService mineService
 
   MonitorCanaryStage() {
     super(PIPELINE_CONFIG_TYPE)
@@ -46,5 +52,17 @@ class MonitorCanaryStage extends LinearStage {
       buildStep(stage, "monitorCleanup", MonitorKatoTask),
       buildStep(stage, "completeCanary", CompleteCanaryTask)
     ]
+  }
+
+  @Override
+  CancellableStage.Result cancel(Stage stage) {
+    def cancelCanaryResults = mineService.cancelCanary(stage.context.canary.id as String, "Pipeline execution (${stage.execution?.id}) canceled")
+    log.info("Cancelled canary in mine (canaryId: ${stage.context.canary.id}, stageId: ${stage.id}, executionId: ${stage.execution.id})")
+
+    def canary = stage.ancestors { Stage s, StageBuilder stageBuilder -> stageBuilder instanceof CanaryStage }[0]
+    def cancelResult = ((CanaryStage) canary.stageBuilder).cancel(canary.stage)
+    cancelResult.details.put("canary", cancelCanaryResults)
+
+    return cancelResult
   }
 }

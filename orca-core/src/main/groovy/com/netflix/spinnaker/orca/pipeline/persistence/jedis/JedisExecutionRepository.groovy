@@ -1,6 +1,9 @@
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
+import com.netflix.spinnaker.orca.batch.StageBuilder
+import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import redis.clients.jedis.Response
 
 import java.util.function.Function
@@ -44,6 +47,9 @@ class JedisExecutionRepository implements ExecutionRepository {
   private final int chunkSize
   private final Scheduler queryAllScheduler
   private final Scheduler queryByAppScheduler
+
+  @Autowired
+  StageNavigator stageNavigator
 
   @Autowired
   JedisExecutionRepository(
@@ -423,6 +429,7 @@ class JedisExecutionRepository implements ExecutionRepository {
       def stageIds = map.stageIndex.tokenize(",")
       stageIds.each { stageId ->
         def stage = execution instanceof Pipeline ? new PipelineStage() : new OrchestrationStage()
+        stage.stageNavigator = stageNavigator
         stage.id = stageId
         stage.refId = map["stage.${stageId}.refId".toString()]
         stage.type = map["stage.${stageId}.type".toString()]

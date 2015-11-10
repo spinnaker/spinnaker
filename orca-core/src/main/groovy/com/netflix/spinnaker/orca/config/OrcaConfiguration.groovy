@@ -20,7 +20,9 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.batch.ExecutionPropagationListener
 import com.netflix.spinnaker.orca.libdiffs.ComparableLooseVersion
 import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.context.ApplicationContext
 
 import java.time.Clock
 import java.time.Duration
@@ -173,6 +175,11 @@ class OrcaConfiguration {
   @ConditionalOnProperty(value = 'jarDiffs.enabled', matchIfMissing = false)
   ComparableLooseVersion comparableLooseVersion() {
     new DefaultComparableLooseVersion()
+  }
+
+  @Bean
+  StageNavigator stageNavigator(ApplicationContext applicationContext) {
+    return new StageNavigator(applicationContext)
   }
 
   @CompileDynamic

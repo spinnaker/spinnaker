@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
-import com.netflix.spinnaker.orca.CancellableTask
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
@@ -34,7 +33,7 @@ import java.util.concurrent.TimeUnit
 
 @Component
 @Slf4j
-class MonitorCanaryTask extends AbstractCloudProviderAwareTask implements RetryableTask, CancellableTask {
+class MonitorCanaryTask extends AbstractCloudProviderAwareTask implements RetryableTask {
   long backoffPeriod = 10000
   long timeout = TimeUnit.DAYS.toMillis(2)
 
@@ -90,20 +89,4 @@ class MonitorCanaryTask extends AbstractCloudProviderAwareTask implements Retrya
     log.info("Canary in progress: ${outputs.canary}")
     return new DefaultTaskResult(ExecutionStatus.RUNNING, outputs)
   }
-
-  @Override
-  TaskResult cancel(Stage stage) {
-    String canaryId = stage.context.canary.id
-    String cloudProvider = getCloudProvider(stage)
-    log.info("Cancelling canary: ${canaryId}...")
-    def outputs = [
-      canary : mineService.cancelCanary(canaryId, "Pipeline execution (${stage.execution?.id}) canceled")
-    ]
-    def ops = DeployedClustersUtil.toKatoAsgOperations('destroyServerGroup', stage.context)
-    log.info "Cleaning up canary clusters in ${stage.id} with ${ops}"
-    def taskId = katoService.requestOperations(cloudProvider, ops).toBlocking().first()
-    outputs << ['kato.last.task.id': taskId]
-    return new DefaultTaskResult(ExecutionStatus.CANCELED, outputs)
-  }
-
 }

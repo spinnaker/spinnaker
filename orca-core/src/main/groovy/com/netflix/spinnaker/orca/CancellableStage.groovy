@@ -18,11 +18,16 @@ package com.netflix.spinnaker.orca
 
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 
-/**
- * Upon cancellation of pipeline execution, cancel() method would be called for a task that is implementing
- * this interface
- * @author sthadeshwar
- */
-interface CancellableTask {
-  TaskResult cancel(Stage stage)
+interface CancellableStage {
+  Result cancel(Stage stage)
+
+  static class Result {
+    final String stageId
+    final Map details
+
+    Result(Stage stage, Map details) {
+      this.stageId = stage.id
+      this.details = details
+    }
+  }
 }
