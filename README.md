@@ -13,6 +13,10 @@ instance, and may also wish to add "Full" Storage scope to later write
 releases to Google Cloud Storage buckets. The Amazon credentials are
 discussed below in [Configure your AWS Account](#configure-your-aws-account).
 
+These scripts are tested on:
+* Ubuntu 14.04 LTS
+* Mac OS X 10.11
+
 
 ## Get the bootstrap / configuration repo
 
