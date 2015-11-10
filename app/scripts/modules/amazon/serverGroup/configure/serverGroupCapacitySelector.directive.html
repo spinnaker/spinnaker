@@ -1,4 +1,12 @@
 <div class="clearfix">
+  <div class="row">
+    <div class="col-md-12">
+      <reservation-report account="command.credentials"
+                          region="command.region"
+                          zones="command.availabilityZones"
+                          instance-type="command.instanceType"></reservation-report>
+    </div>
+  </div>
   <div ng-if="!command.viewState.useSimpleCapacity">
     <div class="form-group">
       <div class="col-md-12">

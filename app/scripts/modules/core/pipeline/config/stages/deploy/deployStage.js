@@ -33,16 +33,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
     $scope.stage = stage;
 
     function initializeCommand() {
-      // TODO: We can probably remove this once we've migrated everyone over to multi-cluster deploy stages.
-      // This is the lazy way to get us there without explicitly editing all the existing pipelines
       $scope.stage.clusters = $scope.stage.clusters || [];
-      if ($scope.stage.cluster) {
-        $scope.stage.cluster.account = $scope.stage.account;
-        $scope.stage.clusters = [$scope.stage.cluster];
-
-        delete $scope.stage.cluster;
-        delete $scope.stage.account;
-      }
     }
 
     this.getRegion = function(cluster) {
