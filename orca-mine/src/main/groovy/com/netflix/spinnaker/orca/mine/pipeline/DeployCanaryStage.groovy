@@ -18,24 +18,32 @@ package com.netflix.spinnaker.orca.mine.pipeline
 
 import com.netflix.frigga.NameBuilder
 import com.netflix.frigga.ami.AppVersion
+import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.batch.StageBuilder
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import com.netflix.spinnaker.orca.kato.tasks.DiffTask
+import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.oort.tasks.FindAmiFromClusterTask
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.kato.pipeline.ParallelDeployStage
+import groovy.util.logging.Slf4j
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+import java.util.concurrent.TimeUnit
+
+@Slf4j
 @Component
-class DeployCanaryStage extends ParallelDeployStage {
+class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAware, CancellableStage {
 
   public static final String PIPELINE_CONFIG_TYPE = "deployCanary"
 
@@ -44,6 +52,9 @@ class DeployCanaryStage extends ParallelDeployStage {
 
   @Autowired(required = false)
   List<DiffTask> diffTasks
+
+  @Autowired
+  MineService mineService
 
   DeployCanaryStage() {
     super(PIPELINE_CONFIG_TYPE)
@@ -143,6 +154,12 @@ class DeployCanaryStage extends ParallelDeployStage {
         new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [canary: canary, deployedClusterPairs: deployedClusterPairs])
       }
     }
+  }
+
+  @Override
+  CancellableStage.Result cancel(Stage stage) {
+    def canary = stage.ancestors { Stage s, StageBuilder stageBuilder -> stageBuilder instanceof CanaryStage }[0]
+    return ((CanaryStage) canary.stageBuilder).cancel(canary.stage)
   }
 }
 

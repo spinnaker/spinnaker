@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.pipeline.model
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.batch.StageBuilder
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -105,6 +107,11 @@ class ImmutableStageSupport {
     @Override
     Stage preceding(String type) {
       self.preceding(type)?.asImmutable()
+    }
+
+    @Override
+    List<StageNavigator.Result> ancestors(Closure<Boolean> matcher = { Stage stage, StageBuilder stageBuilder -> true }) {
+      return self.ancestors(matcher)
     }
 
     @Override

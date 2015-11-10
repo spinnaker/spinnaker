@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipeline.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import groovy.transform.CompileStatic
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -83,6 +84,18 @@ interface Stage<T extends Execution> {
    * Gets the last stage preceding this stage that has the specified type.
    */
   Stage preceding(String type)
+
+  /**
+   * Gets all ancestor stages that satisfy {@code matcher}, including the current stage.
+   * @return
+   */
+  List<StageNavigator.Result> ancestors(Closure<Boolean> matcher)
+
+  /**
+   * Gets all ancestor stages, including the current stage.
+   * @return
+   */
+  List<StageNavigator.Result> ancestors()
 
   /**
    * The context driving this stage. Provides inputs necessary to component steps

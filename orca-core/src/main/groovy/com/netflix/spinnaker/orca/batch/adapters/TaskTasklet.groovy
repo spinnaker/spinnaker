@@ -21,6 +21,7 @@ import com.netflix.spectator.api.Id
 import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.batch.BatchStepStatus
 import com.netflix.spinnaker.orca.batch.ExecutionContextManager
+import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -133,10 +134,12 @@ class TaskTasklet implements Tasklet {
   }
 
   private RepeatStatus cancel(Stage stage) {
-    if (task instanceof CancellableTask) {
-      CancellableTask cancellableTask = (CancellableTask) task
-      cancellableTask.cancel(stage)
+    def cancelResults = stage.ancestors({ Stage s, StageBuilder stageBuilder ->
+      !s.status.complete && stageBuilder instanceof CancellableStage
+    }).collect {
+      ((CancellableStage)it.stageBuilder).cancel(stage)
     }
+    stage.context.cancelResults = cancelResults
     stage.status = ExecutionStatus.CANCELED
     stage.endTime = System.currentTimeMillis()
     stage.tasks.findAll { !it.status.complete }.each { it.status = ExecutionStatus.CANCELED }
