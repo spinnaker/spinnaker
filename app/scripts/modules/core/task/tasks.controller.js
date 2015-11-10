@@ -12,13 +12,18 @@ module.exports = angular.module('spinnaker.core.task.controller', [
   require('angular-ui-router'),
   require('../cache/deckCacheFactory.js'),
 ])
-  .controller('TasksCtrl', function ($scope, $state, settings, app, _, viewStateCache, taskWriter, confirmationModalService) {
+  .controller('TasksCtrl', function ($scope, $state, $q, settings, app, _, viewStateCache, taskWriter, confirmationModalService) {
     var controller = this;
     const application = app;
 
     application.loadAllTasks = true;
     application.reloadTasks();
     $scope.$on('$destroy', () => application.loadAllTasks = false);
+
+    $scope.$on('tasks-reloaded', () => {
+      $scope.viewState.loading = false;
+      this.sortTasks();
+    });
 
     var tasksViewStateCache = viewStateCache.tasks || viewStateCache.createCache('tasks', { version: 1 });
 
@@ -42,6 +47,7 @@ module.exports = angular.module('spinnaker.core.task.controller', [
         nameFilter: '',
         expandedTasks: [],
       };
+      viewState.loading = true;
       viewState.itemsPerPage = tasksViewStateCache.get('#common') ? tasksViewStateCache.get('#common').itemsPerPage : 20;
 
       $scope.viewState = viewState;
@@ -51,7 +57,6 @@ module.exports = angular.module('spinnaker.core.task.controller', [
     controller.application = application;
 
     controller.sortedTasks = [];
-    controller.tasksLoaded = false;
 
     controller.toggleDetails = function(taskId) {
       var index = $scope.viewState.expandedTasks.indexOf(taskId);
@@ -72,9 +77,6 @@ module.exports = angular.module('spinnaker.core.task.controller', [
     };
 
     controller.sortTasks = function() {
-      if (application.tasks) {
-        controller.tasksLoaded = true;
-      }
       var joinedLists = filterRunningTasks().concat(filterNonRunningTasks());
       controller.sortedTasks = joinedLists;
       if ($scope.viewState.nameFilter) {
@@ -234,7 +236,6 @@ module.exports = angular.module('spinnaker.core.task.controller', [
       return taskB.startTime > taskA.startTime ? 1 : taskB.startTime < taskA.startTime ? -1 : 0;
     }
 
-    $scope.$watch('application.tasks', controller.sortTasks);
     // angular ui btn-radio doesn't support the ng-change or ng-click directives
     $scope.$watch('viewState.taskStateFilter', controller.sortTasksAndResetPaginator);
     $scope.$watch('viewState', cacheViewState, true);
