@@ -55,7 +55,7 @@ jar {
 
 startScripts {
   doLast {
-    unixScript.text = unixScript.text.replace('DEFAULT_JVM_OPTS=', '\n if [ -f /etc/default/spinnaker ];then \n . /etc/default/spinnaker \n fi \n DEFAULT_JVM_OPTS=')
+    unixScript.text = unixScript.text.replace('DEFAULT_JVM_OPTS=', '\n if [ -f /etc/default/spinnaker ];then \n set -a\n . /etc/default/spinnaker \n set +a\n fi \n DEFAULT_JVM_OPTS=')
     unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
     windowsScript.text = windowsScript.text.replace('set CLASSPATH=', 'set CLASSPATH=%APP_HOME%\\config;')
   }
