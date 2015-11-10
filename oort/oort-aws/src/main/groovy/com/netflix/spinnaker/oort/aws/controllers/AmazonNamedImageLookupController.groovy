@@ -123,6 +123,7 @@ class AmazonNamedImageLookupController {
       Map<String, String> amiKeyParts = Keys.parse(data.id)
       Map<String, String> namedImageKeyParts = Keys.parse(data.relationships[NAMED_IMAGES.ns][0])
       NamedImage thisImage = byImageName[namedImageKeyParts.imageName]
+      thisImage.attributes.virtualizationType = data.attributes.virtualizationType
       thisImage.accounts.add(namedImageKeyParts.account)
       amiKeyParts.tags.each {
         thisImage.tags << [it.key, it.value]
