@@ -277,7 +277,7 @@ module.exports = angular
               executionService.getExecutions(applicationName) :
               executionService.getRunningExecutions(applicationName) :
             $q.when(null),
-          tasksLoader = options.loadAllTasks ?
+          tasksLoader = options && options.loadAllTasks ?
               taskReader.getTasks(applicationName) :
               taskReader.getRunningTasks(applicationName);
 
