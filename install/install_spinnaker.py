@@ -312,7 +312,7 @@ def inject_spring_config_location(options, subsystem):
                      .format(quote=quote, home=home, root=root))
   new_content.append(' ')
 
-  new_content.append(content[match.start(1) + 1:])
+  new_content.append(content[match.start(1) + offset:])
   fd,temp = tempfile.mkstemp()
   os.write(fd, ''.join(new_content))
   os.close(fd)
