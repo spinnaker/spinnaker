@@ -30,15 +30,16 @@ describe('Controller: tasks', function () {
   );
 
   describe('initialization', function() {
-    it('tasksLoaded flag should be false', function() {
+    it('loading flag should be true', function() {
       scope.$digest();
-      expect(controller.tasksLoaded).toBe(false);
+      expect(scope.viewState.loading).toBe(true);
     });
 
-    it('tasksLoaded flag should be true if tasks object is present on application', function() {
+    it('loading flag should be false when tasks reloaded is broadcast', function() {
       window.inject(controllerInjector({tasks: [] }));
+      scope.$broadcast('tasks-reloaded');
       scope.$digest();
-      expect(controller.tasksLoaded).toBe(true);
+      expect(scope.viewState.loading).toBe(false);
     });
   });
 

@@ -276,7 +276,10 @@ module.exports = angular
             options.loadAllExecutions ?
               executionService.getExecutions(applicationName) :
               executionService.getRunningExecutions(applicationName) :
-            $q.when(null);
+            $q.when(null),
+          tasksLoader = options.loadAllTasks ?
+              taskReader.getTasks(applicationName) :
+              taskReader.getRunningTasks(applicationName);
 
       var application, securityGroupAccounts, loadBalancerAccounts, serverGroups;
 
@@ -287,6 +290,7 @@ module.exports = angular
         loadBalancers: loadBalancerLoader,
         application: applicationLoader,
         executions: executionsLoader,
+        tasks: tasksLoader,
       })
         .then(function(applicationLoader) {
           application = applicationLoader.application;
@@ -307,7 +311,8 @@ module.exports = angular
             .value();
 
           if (options && options.tasks) {
-            application.reloadTasks();
+            addTasksToApplication(application, tasksLoader.tasks);
+            application.tasksLoaded = true;
           }
 
           if (options && options.executions) {
