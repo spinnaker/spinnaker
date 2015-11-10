@@ -1,0 +1,181 @@
+# This file is intended to serve as a master configuration for a Spinnaker deployment.
+# Customizations to the deployment should be made in another file named
+# "spinnaker-local.yml". The distribution has a prototype called
+# "default-spinnaker-local.yml" which calls out the subset of attributes of general
+# interest. It can be copied into a "spinnaker-local.yml" to start with. The prototype
+# does not change any of the default values here, it just surfaces the more critical
+# attributes.
+
+global:
+  spinnaker:
+    environment: test
+
+services:
+  default:
+    # These defaults can be modified to change all the spinnaker subsystems
+    # (clouddriver, gate, etc) at once, but not external systems (jenkins, etc).
+    # Individual systems can still be overriden using their own section entry
+    # directly under 'services'.
+    host: localhost
+    protocol: http
+    primaryAccountName: service-default-primaryAcountName-not-defined
+
+  clouddriver:
+    host: ${services.default.host}
+    port: 7002
+    baseUrl: ${services.default.protocol}://${services.clouddriver.host}:${services.clouddriver.port}
+
+  echo:
+    enabled: true
+    host: ${services.default.host}
+    port: 8089
+    baseUrl: ${services.default.protocol}://${services.echo.host}:${services.echo.port}
+
+  front50:
+    host: ${services.default.host}
+    port: 8080
+    baseUrl: ${services.default.protocol}://${services.front50.host}:${services.front50.port}
+
+  gate:
+    host: ${services.default.host}
+    port: 8084
+    baseUrl: ${services.default.protocol}://${services.gate.host}:${services.gate.port}
+
+  igor:
+    # If you are integrating Jenkins then you must also enable Spinnaker's
+    # "igor" subsystem.
+    enabled: false
+    host: ${services.default.host}
+    port: 8088
+    baseUrl: ${services.default.protocol}://${services.igor.host}:${services.igor.port}
+
+  kato:
+    host: ${services.clouddriver.host}
+    port: ${services.clouddriver.port}
+    baseUrl: ${services.clouddriver.baseUrl}
+
+  mort:
+    host: ${services.clouddriver.host}
+    port: ${services.clouddriver.port}
+    baseUrl: ${services.clouddriver.baseUrl}
+
+  orca:
+    host: ${services.default.host}
+    port: 8083
+    baseUrl: ${services.default.protocol}://${services.orca.host}:${services.orca.port}
+    enabled: true
+
+  oort:
+    host: ${services.clouddriver.host}
+    port: ${services.clouddriver.port}
+    baseUrl: ${services.clouddriver.baseUrl}
+
+  rosco:
+    host: ${services.default.host}
+    port: 8087
+    baseUrl: ${services.default.protocol}://${services.rosco.host}:${services.rosco.port}
+
+  rush:
+    # Spinnaker's "rush" subsystem is used by the "rosco" bakery.
+    # You'll need to provide it a Spinnaker account to use.
+    # Here we are assuming the default primary acccount.
+    host: ${services.default.host}
+    port: 8085
+    baseUrl: ${services.default.protocol}://${services.rush.host}:${services.rush.port}
+    primaryAccount: ${services.default.primaryAccountName}
+
+  bakery:
+    host: ${services.rosco.host}
+    port: ${services.rosco.port}
+    baseUrl: ${services.rosco.baseUrl}
+    extractBuildDetails: true
+    propagateCloudProviderType: true
+
+  docker:
+    # Spinnaker's "rush" subsystem uses docker to run internal jobs.
+    # Note that docker is not installed with Spinnaker so you must obtain this
+    # on your own if you are interested.
+    enabled: false
+    baseUrl: # Expected in spinnaker-local.yml
+    # This target repository is used by the bakery to publish baked docker images.
+    # Do not include http://.
+    targetRepository: # Optional, but expected in spinnaker-local.yml if specified.
+
+    # You'll need to provide it a Spinnaker account to use.
+    # Here we are assuming the default primary acccount.
+    #
+    # If you have multiple accounts using docker then you will need to
+    # provide a rush-local.yml.
+    # For more info see docker.accounts in config/rush.yml.
+    primaryAccount:
+      name: ${services.default.primaryAccountName}
+      url:  ${services.docker.baseUrl}
+      registry: ${services.dockerRegistry.baseUrl}
+
+  dockerRegistry:
+    baseUrl: #  Expected in spinnaker-local.yml
+
+  jenkins:
+    # The "name" entry is used for the display name when selecting
+    # this server.
+    #
+    # If you have multiple jenkins servers, you will need to list
+    # them in an igor-local.yml. See jenkins.masters in config/igor.yml.
+    #
+    # Note that jenkins is not installed with Spinnaker so you must obtain this
+    # on your own if you are interested.
+    defaultMaster:
+      name: Jenkins
+      baseUrl:   # Expected in spinnaker-local.yml
+      username:  # Expected in spinnaker-local.yml
+      password:  # Expected in spinnaker-local.yml
+
+  redis:
+    host: ${services.default.host}
+    port: 6379
+    connection: redis://${services.redis.host}:${services.redis.port}
+
+  cassandra:
+    host: ${services.default.host}
+    port: 9042
+    embedded: false
+    cluster: CASS_SPINNAKER
+
+
+providers:
+  aws:
+    # If you want to deploy some services to Amazon Web Services (AWS),
+    # set enabled and provide primary credentials for deploying.
+    # Enabling AWS is independent of other providers.
+    enabled: false
+    simpleDBEnabled: false
+    defaultRegion: us-east-1
+    defaultSimpleDBDomain: CLOUD_APPLICATIONS
+    primaryCredentials:
+      # TODO(ewiseblatt):
+      # This only works for root credentials, which you arent supposed to use.
+      # I havent been able to figure out how to get normal user accounts to
+      # work.  I'm leaving this broken for now hoping that once this gets
+      # mainlined somebody else will be able to fix it.
+
+      name: default
+      # You can use a standard $HOME/.aws/credentials file instead of providing
+      # these here. If provided here, then start_spinnaker will set environment
+      # variables before starting up the subsystems that interact with AWS.
+      access_key_id:
+      secret_key:
+
+  google:
+    # If you want to deploy some services to Google Cloud Platform (google),
+    # set enabled and provide primary credentials for deploying.
+    # Enabling google is independent of other providers.
+    enabled: false
+    defaultRegion: us-central1
+    defaultZone: us-central1-f
+    primaryCredentials:
+      name: my-account-name
+      # The project is the Google Project ID for the project to manage with
+      # Spinnaker. The jsonPath is a path to the JSON service credentials
+      # downloaded from the Google Developer's Console.
+      project:
+      jsonPath:

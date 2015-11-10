@@ -1,0 +1,26 @@
+server:
+  port: ${services.rosco.port:8087}
+  address: ${services.rosco.host:localhost}
+
+redis:
+  host: ${services.redis.host:localhost}
+
+aws:
+  enabled: ${providers.aws.enabled:false}
+  bakeryDefaults:
+    awsAccessKey: ${providers.aws.primaryCredentials.access_key_id}
+    awsSecretKey: ${providers.aws.primaryCredentials.secret_key}
+
+docker:
+  enabled: ${services.docker.enabled:false}
+  bakeryDefaults:
+    targetRepository: ${services.docker.targetRepository}
+
+google:
+  enabled: ${providers.google.enabled:false}
+  gce:
+    bakeryDefaults:
+      project: ${providers.google.primaryCredentials.project}
+
+rush:
+  credentials: ${services.rush.primaryAccount}

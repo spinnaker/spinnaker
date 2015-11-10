@@ -1,0 +1,42 @@
+server:
+  port: ${services.clouddriver.port:7002}
+  address: ${services.clouddriver.host:localhost}
+
+#circular
+#services:
+#  front50:
+#    baseUrl: ${services.front50.baseUrl:localhost:8080}
+
+redis:
+  connection: ${services.redis.connection:redis://localhost:6379}
+
+default:
+  account:
+    env: ${providers.aws.primaryCredentials.name}
+
+aws:
+  enabled: ${providers.aws.enabled:false}
+  defaults:
+    iamRole: ${provider.aws.defaultIAMRole:BaseIAMRole}
+  defaultRegions:
+    - name: ${providers.aws.defaultRegion:us-east-1}
+  defaultFront50Template: ${services.front50.baseUrl}
+
+  # Credentials are passed either as environment variables or through
+  # a standard AWS file $HOME/.aws/credentials
+  # See providers.aws.primaryCredentials in spinnaker.yml for more
+  # info on setting environment variables.
+  #
+  # TODO(ewiseblatt):
+  # This only works for root credentials, which you arent supposed to use.
+  # I havent been able to figure out how to get normal user accounts to work.
+  # I'm leaving this broken for now hoping that once this gets mainlined some
+  # body else will be able to fix it.
+
+google:
+  enabled: ${providers.google.enabled:false}
+
+  accounts:
+    - name: ${providers.google.primaryCredentials.name}
+      project: ${providers.google.primaryCredentials.project}
+      jsonPath: ${providers.google.primaryCredentials.jsonPath}
