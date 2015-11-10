@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRep
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class StandardGceAttributeValidatorSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
@@ -80,6 +81,22 @@ class StandardGceAttributeValidatorSpec extends Specification {
       validator.validateNotEmpty([null], label)
     then:
       0 * errors._
+  }
+
+  @Unroll
+  void "expect non-empty ok with numeric values"() {
+    setup:
+    def errors = Mock(Errors)
+    def validator = new StandardGceAttributeValidator(DECORATOR, errors)
+    def label = "testAttribute"
+
+    when:
+    validator.validateNotEmpty(new Integer(intValue), label)
+    then:
+    0 * errors._
+
+    where:
+    intValue << [-1, 0, 1]
   }
 
   void "expect non-empty to fail with empty"() {

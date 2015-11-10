@@ -20,7 +20,7 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 
 class ResizeGoogleServerGroupDescription {
   String serverGroupName
-  int targetSize
+  Integer targetSize
   String zone
   String accountName
   GoogleCredentials credentials
