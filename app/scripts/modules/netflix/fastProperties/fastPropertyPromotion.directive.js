@@ -46,9 +46,17 @@ module.exports = angular
       }
     };
 
+    vm.extractScopeFromHistoryMessage = (messageString) => {
+      let regex = /(?:Scope\()(.+?)\)/;
+      let prefexRegex = /.+?(?=Selection)/;
+      let prefixResult = prefexRegex.exec(messageString);
+      let resultArray = regex.exec(messageString) || [];
+      return prefixResult && resultArray.length > 1 ? `${prefixResult}: ${resultArray[1].split(',').join(', ')}` : messageString;
+    };
+
     vm.getLastMessage = function(promotion) {
       if(promotion.history.length > 0) {
-        return _(promotion.history).last().message;
+        return vm.extractScopeFromHistoryMessage(_(promotion.history).last().message);
       } else {
         return 'no history';
       }

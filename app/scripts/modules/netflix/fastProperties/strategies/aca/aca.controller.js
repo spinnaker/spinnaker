@@ -7,24 +7,25 @@ module.exports = angular
   .module('spinneker.fastProperty.aca.strategy.controller', [
     require('../../fastProperty.write.service.js')
   ])
-  .controller('acaStrategyController', function($scope, fastPropertyWriter ) {
-    var vm = this; //controllerAs: strategy
-    vm.form = $scope.formScope.newFastPropertyForm;
-    vm.property = $scope.property;
-    vm.property.scope = $scope.selectedScope;
-    vm.property.impactCount = $scope.impactCount;
-    vm.selectedSope = $scope.selectedScope;
-    vm.clusters = $scope.clusters;
-    vm.isEditing = $scope.isEditing;
-    vm.appName = $scope.appName;
-    vm.property.strategyName = 'percentage';
+  .controller('acaStrategyController', function(parentVM, modalInstance, fastPropertyWriter) {
+    var vm = parentVM; //controllerAs: strategy
+    vm.form = parentVM.formScope.newFastPropertyForm;
+    vm.property.strategy.name = 'aca';
+    vm.property.strategy.rolloutListString = "";
 
-    vm.aca = {
-      name: `${$scope.appName}-${$scope.property.key}-${$scope.isEditing ? 'update' : 'create'}`
+
+
+    vm.property.canary = {
+      name: `${vm.appName}-${vm.property.key}-${vm.isEditing ? 'update' : 'create'}`,
+      successfulScore: 100,
+      unhealthyScore: 100,
     };
 
     vm.clusterIsSet = () => {
-      if(vm.property.scope && typeof vm.property.scope.cluster === 'undefined') {
+      if (vm.property &&
+          vm.property.startScope &&
+          typeof vm.property.startScope.cluster === 'undefined'
+      ) {
         vm.form.$setValidity('noCluster', false);
         return false;
       }
@@ -32,17 +33,26 @@ module.exports = angular
       return true;
     };
 
+
     vm.submit = () => {
-      vm.property.canary = Object.assign({}, vm.aca);
+      vm.property.startScope = vm.transformScope(vm.property.startScope);
+      vm.property.targetScope = vm.transformScope(vm.property.targetScope);
+      vm.property.strategy.rolloutList = vm.property.strategy.rolloutListString.split(/\s*,\s*/).map(Number);
+
       delete vm.property.env; //removing to help with downstream marshalling.
 
+      console.info("SUBMITTING ACA: ", vm.property);
       fastPropertyWriter.upsertFastProperty(vm.property).then(
         function(result) {
-          $scope.$modalInstance.close(result);
+          modalInstance.close(result);
         },
         function(error) {
           window.alert(JSON.stringify(error));
         });
     };
+
+    vm.update = vm.submit;
+
+    return vm;
   })
   .name;

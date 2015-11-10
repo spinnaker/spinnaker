@@ -1,0 +1,59 @@
+<form role="form" class="container-fluid" novalidate name="newFastPropertyForm">
+  <div class="modal-body">
+
+    <div class="row">
+      <div class="col-sm-6">
+        <b>Strategy:</b> {{newFP.selectedStrategy.selected.label}}
+      </div>
+    </div>
+
+    <div class="row" style="margin-top: 5px;">
+      <div class="col-sm-12">
+        <b>Discription:</b> {{newFP.selectedStrategy.selected.description}}
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-12">
+        <p>Select the cluster you would like to ACA this Fast Property against.</p>
+      </div>
+    </div>
+
+
+
+    <div class="form-horizontal fp-canary-config-view">
+
+      <scope-cluster-selector
+          model="newFP.property.startScope.cluster"
+          get-clusters="newFP.getAppClusters()"
+          show-if="true"
+          on-change="angular.noop()"
+          >
+      </scope-cluster-selector>
+
+    </div>
+
+  </div>
+
+  <!--
+    FOOTER BUTTONS
+  -->
+  <div class="modal-footer">
+    <button ng-disabled="taskMonitor.submitting" class="btn btn-default pull-left"
+            ng-click="$dismiss()">Cancel
+    </button>
+
+    <button class="btn btn-default"
+            ng-click="wizard.previousPage()">
+      <span class="glyphicon glyphicon-chevron-left"></span> Back
+    </button>
+
+    <button class="btn btn-primary"
+            ng-disabled="newFastPropertyForm.$invalid"
+            ng-click="wizard.markComplete('Target'); wizard.nextPage()">
+      Next <span class="glyphicon glyphicon-chevron-right"></span>
+    </button>
+  </div>
+
+
+</form>

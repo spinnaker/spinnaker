@@ -11,6 +11,7 @@ module.exports = angular
 
     fastPropertyStrategyProvider.registerStrategy({
       key: 'manualScopedPropagation',
+      wizardScreens: ['Target', 'Review'],
       label: 'Manual Scope Propagation',
       description: 'Select the base scope and propagate the fast property up to the global scope',
       templateUrl: scopedLadderStrategyTemplate,

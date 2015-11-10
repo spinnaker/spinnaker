@@ -33,9 +33,18 @@ module.exports = angular
       window.alert('Stop with: ' + promotionId);
     };
 
-    vm.getLastMessage = function(promotion) {
-      return _(promotion.history).last().message;
+    vm.extractScopeFromHistoryMessage = (messageString) => {
+      let regex = /(?:Scope\()(.+?)\)/;
+      let prefexRegex = /.+?(?=Selection)/;
+      let prefixResult = prefexRegex.exec(messageString);
+      let resultArray = regex.exec(messageString) || [];
+      return prefixResult && resultArray.length > 1 ? `${prefixResult}: ${resultArray[1].split(',').join(', ')}` : messageString;
     };
+
+    vm.getLastMessage = function(promotion) {
+      return vm.extractScopeFromHistoryMessage( _(promotion.history).last().message);
+    };
+
 
     vm.updateStateFilter = function(state) {
       if(state) {
@@ -51,6 +60,7 @@ module.exports = angular
       console.log('loading promotions');
       fastPropertyReader.loadPromotions()
         .then(function(promotionList) {
+          console.info("promotions list", promotionList);
           vm.promotions = vm.filteredPromotions = promotionList;
           vm.filter();
           return vm.promotions;

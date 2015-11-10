@@ -2,6 +2,7 @@
 
 let angular = require('angular');
 require('./fastProperties.less');
+require('../../core/canary/canary.less');
 
 module.exports = angular
   .module('spinnaker.netflix.fastProperties', [
@@ -18,5 +19,6 @@ module.exports = angular
     require('./modal/fastPropertyStrategySelector.directive.js'),
     require('./strategies/scopeLadder/scopeLadder.module.js'),
     require('./strategies/aca/aca.module.js'),
-    require('./fastPropertyPromotion.directive.js')
+    require('./fastPropertyPromotion.directive.js'),
+    require('./modal/wizard/fastPropertyWizard.module')
   ]).name;
