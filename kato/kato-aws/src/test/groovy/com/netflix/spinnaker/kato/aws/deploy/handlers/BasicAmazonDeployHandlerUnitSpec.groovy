@@ -170,6 +170,8 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     results.serverGroupNames == ['us-west-1:foo', 'us-east-1:foo']
     setBlockDevices == this.blockDevices
     2 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
+    2 * amazonEC2.describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId('ami-12345')
+        .withVirtualizationType('hvm'))
   }
 
   void "should favour explicit description block devices over default config"() {
@@ -195,6 +197,8 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     setBlockDevices.size()
     setBlockDevices == description.blockDevices
     2 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
+    2 * amazonEC2.describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId('ami-12345')
+        .withVirtualizationType('hvm'))
   }
 
   void "should resolve amiId from amiName"() {
@@ -204,6 +208,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
     def description = new BasicAmazonDeployDescription(amiName: "the-greatest-ami-in-the-world", availabilityZones: ['us-west-1': []])
     description.credentials = TestCredential.named('baz')
+    description.instanceType = "m3.medium"
 
     when:
     def results = handler.handle(description, [])
@@ -214,7 +219,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
       assert req.filters.first().name == 'name'
       assert req.filters.first().values == ['the-greatest-ami-in-the-world']
 
-      return new DescribeImagesResult().withImages(new Image().withImageId('ami-12345'))
+      return new DescribeImagesResult().withImages(new Image().withImageId('ami-12345').withVirtualizationType('hvm'))
     }
     1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
     deployCallCounts == 1
@@ -301,9 +306,6 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     descriptionCapacity = new BasicAmazonDeployDescription.Capacity(5, 5, 5)
   }
 
-
-
-
   void 'should copy capacity from source if specified'() {
     given:
     def description = new BasicAmazonDeployDescription(capacity: descriptionCapacity)
@@ -377,5 +379,53 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withVolumeSize(1024))          || new AmazonBlockDevice("Device1", null, 1024, null, null, null, null)
     new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withVolumeType("volumeType"))  || new AmazonBlockDevice("Device1", null, null, "volumeType", null, null, null)
     new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withSnapshotId("snapshotId"))  || new AmazonBlockDevice("Device1", null, null, null, null, null, "snapshotId")
+  }
+
+  @Unroll
+  void "should throw exception when instance type does not match image virtualization type"() {
+    setup:
+    def description = new BasicAmazonDeployDescription(amiName: "a-terrible-ami", availabilityZones: ['us-west-1': []])
+    description.credentials = TestCredential.named('baz')
+    description.instanceType = instanceType
+
+    when:
+    handler.handle(description, [])
+
+    then:
+    1 * amazonEC2.describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId('ami-12345')
+        .withVirtualizationType(virtualizationType))
+    1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
+    thrown IllegalArgumentException
+
+    where:
+    instanceType  | virtualizationType
+    'c1.large'    | 'hvm'
+    'r3.xlarge'   | 'paravirtual'
+  }
+
+  @Unroll
+  void "should not throw exception when instance type matches image virtualization type or is unknown"() {
+    setup:
+    def description = new BasicAmazonDeployDescription(amiName: "a-cool-ami", availabilityZones: ['us-west-1': []])
+    description.credentials = TestCredential.named('baz')
+    description.instanceType = instanceType
+
+    when:
+    handler.handle(description, [])
+
+    then:
+    1 * amazonEC2.describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId('ami-12345')
+        .withVirtualizationType(virtualizationType))
+    1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
+
+    where:
+    instanceType  | virtualizationType
+    'm1.large'    | 'pv'
+    'm4.medium'   | 'hvm'
+    'c3.large'    | 'hvm'
+    'c3.xlarge'   | 'paravirtual'
+    'mystery.big' | 'hvm'
+    'mystery.big' | 'paravirtual'
+    'what.the'    | 'heck'
   }
 }
