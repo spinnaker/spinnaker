@@ -38,7 +38,17 @@ else
   exit 1
 fi
 
+enableAws=$1
+defaultRegion=$2
 
+if [ "x$enableAws" == "x" ] && [ "x$defaultRegion" == "x" ]; then
+        read -p "Enable Amazon AWS? (Y|n)" enableAws
+        if [[ "${enableAws,,}" == "y" || -z "$enableAws" ]]; then
+                read -p "Default region: " defaultRegion
+        else
+                echo Not enabling AWS
+        fi
+fi
 
 ## PPAs ##
 # Add PPAs for software that is not necessarily in sync with Ubuntu releases
@@ -88,6 +98,11 @@ if [[ "${enableAws,,}" == "y" || -z "$enableAws" ]]; then
     sed -i.bak -e "s/false/$setEnableAws/" -e "s/us-west-2/$defaultRegion/" /etc/default/spinnaker
 else
  echo Not enabling AWS
+fi
+
+if [[ "${enableAws,,}" == "y" ]]; then
+        echo "enabling aws for $defaultRegion"
+        sed -i.bak -e "s/false/$setEnableAws/" -e "s/us-west-2/$defaultRegion/" /etc/default/spinnaker
 fi
 
 service clouddriver start
