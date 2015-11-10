@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -27,9 +27,19 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class UpsertLoadBalancerTask extends AbstractCloudProviderAwareTask implements Task {
+class UpsertLoadBalancerTask extends AbstractCloudProviderAwareTask implements RetryableTask {
 
   static final String CLOUD_OPERATION_TYPE = "upsertLoadBalancer"
+
+  @Override
+  long getBackoffPeriod() {
+    return 2000
+  }
+
+  @Override
+  long getTimeout() {
+    return 60000
+  }
 
   @Autowired
   KatoService kato
