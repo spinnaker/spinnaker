@@ -54,7 +54,7 @@ class DependentPipelineStarter {
       pipelineConfig.trigger.isPipeline = true
     }
 
-    if (pipelineConfig.parameterConfig) {
+    if (pipelineConfig.parameterConfig || !suppliedParameters.empty) {
       if (!pipelineConfig.trigger.parameters) {
         pipelineConfig.trigger.parameters = [:]
       }
