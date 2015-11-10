@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 require('./fastProperties.less');
-require('../../core/canary/canary.less');
+//require('../../core/canary/canary.less');
 
 module.exports = angular
   .module('spinnaker.netflix.fastProperties', [
