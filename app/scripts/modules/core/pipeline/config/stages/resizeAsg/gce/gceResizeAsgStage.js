@@ -44,8 +44,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
     $scope.zones = {"us-central1": ['us-central1-a', 'us-central1-b', 'us-central1-c']};
 
     ctrl.accountUpdated = function () {
-      accountService.getRegionsForAccount(stage.credentials).then(function(regions) {
-        $scope.zones = regions;
+      accountService.getRegionsForAccount(stage.credentials).then(function(zoneMap) {
+        $scope.zones = zoneMap;
         $scope.zonesLoaded = true;
       });
     };
