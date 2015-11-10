@@ -267,7 +267,7 @@ module.exports = angular
       newApplication.securityGroups = null;
     }
 
-    function getApplication(applicationName, options={}) {
+    function getApplication(applicationName, options) {
       var securityGroupsByApplicationNameLoader = securityGroupReader.loadSecurityGroupsByApplicationName(applicationName),
           loadBalancerLoader = loadBalancerReader.loadLoadBalancers(applicationName),
           applicationLoader = getApplicationEndpoint(applicationName).get(),
@@ -277,7 +277,7 @@ module.exports = angular
               executionService.getExecutions(applicationName) :
               executionService.getRunningExecutions(applicationName) :
             $q.when(null),
-          tasksLoader = options.loadAllTasks ?
+          tasksLoader = options && options.loadAllTasks ?
               taskReader.getTasks(applicationName) :
               taskReader.getRunningTasks(applicationName);
 
