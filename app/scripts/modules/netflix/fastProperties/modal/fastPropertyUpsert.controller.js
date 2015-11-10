@@ -69,20 +69,13 @@ module.exports = angular
     };
 
 
-    //vm.property = {
-    //  env: 'prod',
-    //  key: 'foo',
-    //  value: 'bar',
-    //  constraints: 'none',
-    //  email: 'zthrash@netflix.com',
-    //  cmcTicket: 'zkt'
-    //};
-
     vm.property = angular.copy(fastProperty);
 
     vm.property.targetScope = {};
     vm.property.startScope = {};
     vm.property.strategy = {};
+    vm.property.env = 'prod';
+    vm.property.constraints = 'none';
 
     vm.chosenApps = {};
 

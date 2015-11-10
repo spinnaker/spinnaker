@@ -4,8 +4,9 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.fastProperties.progressBar.directive', [
   require('../../core/utils/lodash.js'),
+  require('./fastPropertyScope.service.js')
 ])
-  .directive('fastPropertyProgressBar', function(_) {
+  .directive('fastPropertyProgressBar', function(_, FastPropertyScopeService) {
     return {
       restrict: 'E',
       scope: {
@@ -29,11 +30,11 @@ module.exports = angular.module('spinnaker.netflix.fastProperties.progressBar.di
         scope.isSuccessful = task.state === 'Successful';
         scope.isPending = task.state === 'Pending';
 
-        var currentStep = task.range.currentStep;
+        var currentStep = task.range ? task.range.currentStep : 0;
 
-        var totalSteps = task.range.totalSteps;
+        var totalSteps = task.range ? task.range.totalSteps : 0;
 
-        scope.progressStyle = { width: currentStep / task.range.totalSteps * 100 + '%' };
+        scope.progressStyle = { width: currentStep / totalSteps * 100 + '%' };
 
         scope.tooltip = currentStep;
 
@@ -58,13 +59,7 @@ module.exports = angular.module('spinnaker.netflix.fastProperties.progressBar.di
       controller: function() {
         const vm = this;
 
-        vm.extractScopeFromHistoryMessage = (messageString) => {
-          let regex = /(?:Scope\()(.+?)\)/;
-          let prefexRegex = /.+?(?=Selection)/;
-          let prefixResult = prefexRegex.exec(messageString);
-          let resultArray = regex.exec(messageString) || [];
-          return prefixResult && resultArray.length > 1 ? `${prefixResult}: ${resultArray[1].split(',').join(', ')}` : messageString;
-        };
+        vm.extractScopeFromHistoryMessage = FastPropertyScopeService.extractScopeFromHistoryMessage;
 
         return vm;
       },

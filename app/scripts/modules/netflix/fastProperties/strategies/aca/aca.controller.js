@@ -41,7 +41,6 @@ module.exports = angular
 
       delete vm.property.env; //removing to help with downstream marshalling.
 
-      console.info("SUBMITTING ACA: ", vm.property);
       fastPropertyWriter.upsertFastProperty(vm.property).then(
         function(result) {
           modalInstance.close(result);

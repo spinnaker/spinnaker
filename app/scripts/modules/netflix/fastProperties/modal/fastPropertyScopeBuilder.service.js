@@ -73,7 +73,6 @@ module.exports = angular
 
     let createApplicationSelectedFn = (ctrl, applicationChangeFn) => {
       return (appName) => {
-        console.log(`app selected: ${appName}`);
         applicationReader
           .getApplication(appName)
           .then( (application) => {

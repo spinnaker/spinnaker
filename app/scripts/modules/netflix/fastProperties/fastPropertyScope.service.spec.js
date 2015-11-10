@@ -588,6 +588,25 @@ describe('FastPropertyScopeService', function () {
     });
   });
 
+  describe('extract scope array from history message', function () {
+    it('should pull out the scope array if there is a Scope string in the message', function () {
+      let message = 'Proceeded to ScopeSelection(Scope(prod,gate,main,us-west-1,gate-main),Some(InstanceSelection(1)))'
+
+      let result = service.extractScopeFromHistoryMessage(message);
+
+      expect(result).toEqual('Proceeded to Scope: prod, gate, main, us-west-1, gate-main');
+    });
+
+    it('should return the original message if there is no Scope in the message', function () {
+      let message = 'Requested';
+
+      let result = service.extractScopeFromHistoryMessage(message);
+
+      expect(result).toEqual(message);
+
+    });
+  });
+
   function createCluster(account, name) {
 
     var cluster = {
