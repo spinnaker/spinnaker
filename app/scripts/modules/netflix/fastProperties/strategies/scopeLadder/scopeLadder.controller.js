@@ -27,7 +27,6 @@ module.exports = angular
       delete vm.property.env; //removing to help with downstream marshalling.
       delete vm.property.canary;
 
-      console.info("SUBMITTING NAIVE: ", vm.property);
 
       fastPropertyWriter.upsertFastProperty(vm.property).then(
         function(result) {
@@ -46,7 +45,6 @@ module.exports = angular
       delete vm.property.env; //removing to help with downstream marshalling.
       delete vm.property.canary;
 
-      console.info("Updating NAIVE: ", vm.property);
 
       fastPropertyWriter.upsertFastProperty(updatedParams).then(
         function(result) {

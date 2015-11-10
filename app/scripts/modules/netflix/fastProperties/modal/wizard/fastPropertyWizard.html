@@ -4,7 +4,7 @@
     <fast-property-form></fast-property-form>
   </wizard-page>
 
-  <wizard-page key="Scope" label="Select Scope">
+  <wizard-page key="Scope" label="Select Target Scope">
     <fast-property-scope-form></fast-property-scope-form>
   </wizard-page>
 
@@ -12,7 +12,12 @@
     <fast-property-strategy-form></fast-property-strategy-form>
   </wizard-page>
 
-  <wizard-page key="Target" label="Set Target" render="newFP.selectedStrategy.selected.display('Target')" lazy="true">
+  <wizard-page
+      key="Target"
+      label="Select Start"
+      hide-subheading="true"
+      render="newFP.selectedStrategy.selected.display('Target')"
+      lazy="true">
     <fast-property-aca-target-form ng-if="newFP.selectedStrategy.selected.key === 'aca'"></fast-property-aca-target-form>
     <fast-property-naive-target-form ng-if="newFP.selectedStrategy.selected.key === 'manualScopedPropagation'"></fast-property-naive-target-form>
   </wizard-page>

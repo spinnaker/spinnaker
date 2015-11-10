@@ -1,8 +1,6 @@
 <form role="form" class="container-fluid" novalidate name="newFastPropertyForm" ng-init="newFP.setFormScope(this)">
   <div class="modal-body">
 
-    <h2>Select your instance selection strategy</h2>
-
 
     <div class="form-horizontal fp-canary-config-view">
       <div class="form-group">
@@ -32,7 +30,7 @@
 
         <div class="small-label-left col-md-3">
           <b>Rollout {{newFP.property.strategy.option}}</b>
-          <help-field key="pipeline.config.canary.combinedCanaryResultStrategy"></help-field>
+          <help-field key="fastProperty.canary.strategy.rolloutList"></help-field>
         </div>
 
         <div class="col-md-9">

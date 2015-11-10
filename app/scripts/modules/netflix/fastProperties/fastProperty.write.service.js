@@ -14,7 +14,6 @@ module.exports = angular
       //var payload = createPromotedPayload(fastProperty);
       fastProperty.updatedBy = authenticationService.getAuthenticatedUser().name;
       fastProperty.sourceOfUpdate = 'spinnaker';
-      console.log('FP Payload', fastProperty);
       return Restangular
         .all('fastproperties')
         .all('promote')

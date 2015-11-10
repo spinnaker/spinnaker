@@ -199,6 +199,13 @@ module.exports = angular
       'serverId' : instanceTransformer,
     };
 
+    var extractScopeFromHistoryMessage = (messageString) => {
+      let regex = /(?:Scope\()(.+?)\)/;
+      let prefexRegex = /.+?(?=Selection)/;
+      let prefixResult = prefexRegex.exec(messageString);
+      let resultArray = regex.exec(messageString) || [];
+      return prefixResult && resultArray.length > 1 ? `${prefixResult}: ${resultArray[1].split(',').join(', ')}` : messageString;
+    };
 
     function getResultsForScope(appId, clusterList, scope) {
       var deferred = $q.defer();
@@ -207,7 +214,8 @@ module.exports = angular
     }
 
     return {
-      getResultsForScope: getResultsForScope
+      getResultsForScope: getResultsForScope,
+      extractScopeFromHistoryMessage: extractScopeFromHistoryMessage
     };
 
   }).name;

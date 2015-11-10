@@ -17,7 +17,6 @@ module.exports = angular.module('spinnaker.core.scheduler', [
 
     let runner = () => {
       lastRun = new Date().getTime();
-      $log.debug('refreshing');
       scheduler.onNext(true);
     };
 

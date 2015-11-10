@@ -8,8 +8,9 @@ module.exports = angular
     require('./fastProperty.write.service.js'),
     require('./fastPropertyTransformer.service.js'),
     require('../../core/utils/lodash.js'),
+    require('./fastPropertyScope.service.js'),
   ])
-  .controller('FastPropertyRolloutController', function ($scope, fastPropertyReader, fastPropertyWriter, fastPropertyTransformer, _) {
+  .controller('FastPropertyRolloutController', function ($scope, fastPropertyReader, fastPropertyWriter, fastPropertyTransformer, _, FastPropertyScopeService) {
     var vm = this;
 
     vm.applicationFilter = '';
@@ -33,16 +34,10 @@ module.exports = angular
       window.alert('Stop with: ' + promotionId);
     };
 
-    vm.extractScopeFromHistoryMessage = (messageString) => {
-      let regex = /(?:Scope\()(.+?)\)/;
-      let prefexRegex = /.+?(?=Selection)/;
-      let prefixResult = prefexRegex.exec(messageString);
-      let resultArray = regex.exec(messageString) || [];
-      return prefixResult && resultArray.length > 1 ? `${prefixResult}: ${resultArray[1].split(',').join(', ')}` : messageString;
-    };
+    vm.extractScopeFromHistoryMessage = FastPropertyScopeService.extractScopeFromHistoryMessage;
 
     vm.getLastMessage = function(promotion) {
-      return vm.extractScopeFromHistoryMessage( _(promotion.history).last().message);
+      return FastPropertyScopeService.extractScopeFromHistoryMessage( _(promotion.history).last().message);
     };
 
 
@@ -57,7 +52,6 @@ module.exports = angular
     };
 
     vm.loadPromotions = function loadPromotions() {
-      console.log('loading promotions');
       fastPropertyReader.loadPromotions()
         .then(function(promotionList) {
           console.info("promotions list", promotionList);
