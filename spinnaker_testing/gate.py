@@ -101,7 +101,6 @@ class GateTaskStatus(sk.SpinnakerStatus):
 
     self._exception_details = exception_details or kato_exception
 
-
 class GatePipelineStatus(sk.SpinnakerStatus):
   """Specialization of sk.SpinnakerStatus for accessing Gate 'pipelines' status."""
 
@@ -143,21 +142,6 @@ class GatePipelineStatus(sk.SpinnakerStatus):
     """
     super(GatePipelineStatus, self).__init__(operation, original_response)
 
-    doc = None
-    try:
-      doc = json.JSONDecoder().decode(original_response.output)
-    except ValueError:
-      pass
-    except TypeError:
-      pass
-
-    if isinstance(doc, dict):
-      self._detail_path = doc['ref']
-      self._request_id = self._detail_path
-    else:
-      self._error = "Invalid response='{0}'".format(original_response)
-      self._current_state = 'CITEST_INTERNAL_ERROR'
-
   def _update_response_from_json(self, doc):
     """Updates abstract sk.SpinnakerStatus attributes from a Gate response.
 
@@ -166,8 +150,20 @@ class GatePipelineStatus(sk.SpinnakerStatus):
     Args:
        doc: JSON Document object read from response payload.
     """
-    self._current_state = doc['status']
     self._exception_details = None
+    
+    if not isinstance(doc, list):
+      self._error = "Invalid response='{0}'".format(doc)
+      self._current_state = 'CITEST_INTERNAL_ERROR'
+
+    # It can take a while for the running pipelines to show up.
+    if len(doc) == 0:
+      return
+    
+    # TODO(lwander): We need a way to ensure we are monitoring the correct
+    #                pipeline.
+    doc = doc[0]
+    self._current_state = doc['status']
 
     # TODO(ewiseblatt): Not sure what these look like yet.
     exception_details = None

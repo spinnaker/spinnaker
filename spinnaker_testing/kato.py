@@ -121,7 +121,7 @@ class KatoAgent(sk.SpinnakerAgent):
        JSON encoded payload string for Kato request.
     """
     return json.JSONEncoder().encode(payload_dict_list)
- 
+
 
 def new_agent(bindings, port=7002):
   """Create agent to interact with a Spinnaker Kato server.
