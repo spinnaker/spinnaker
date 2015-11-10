@@ -85,4 +85,35 @@ class ResizeGoogleServerGroupDescriptionValidatorSpec extends Specification {
       1 * errors.rejectValue('serverGroupName', _)
       1 * errors.rejectValue('zone', _)
   }
+
+  void "uses capacity.desired instead of targetSize"() {
+    setup: "missing either size specification defaults to zero"
+      def description = new ResizeGoogleServerGroupDescription(
+          serverGroupName: SERVER_GROUP_NAME,
+          zone: ZONE,
+          accountName: ACCOUNT_NAME
+      )
+      def errors = Mock(Errors)
+
+    when:
+      description.capacity =  new ResizeGoogleServerGroupDescription.Capacity(desired: 10)
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors._
+
+    when:
+      description.capacity =  new ResizeGoogleServerGroupDescription.Capacity(desired: -10)
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue("targetSize", "resizeGoogleServerGroupDescription.targetSize.negative")
+
+    when:
+      description.capacity =  new ResizeGoogleServerGroupDescription.Capacity()
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue("targetSize", "resizeGoogleServerGroupDescription.targetSize.empty")
+  }
 }

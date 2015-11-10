@@ -37,8 +37,8 @@ class ResizeGoogleServerGroupDescriptionValidator extends DescriptionValidator<R
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
     helper.validateServerGroupName(description.serverGroupName)
-    helper.validateNotEmpty(description.targetSize, "targetSize")
-    helper.validateNonNegativeLong(description.targetSize ?: 0, "targetSize")
+    helper.validateNotEmpty(description.targetSize ?: description.capacity?.desired , "targetSize")
+    helper.validateNonNegativeLong(description.targetSize ?: description.capacity?.desired ?: 0, "targetSize")
     helper.validateZone(description.zone)
   }
 }

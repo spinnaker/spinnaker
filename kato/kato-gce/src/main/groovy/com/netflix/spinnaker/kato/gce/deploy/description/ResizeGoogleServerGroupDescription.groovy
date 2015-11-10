@@ -24,4 +24,12 @@ class ResizeGoogleServerGroupDescription {
   String zone
   String accountName
   GoogleCredentials credentials
+  Capacity capacity
+
+  /**
+   * Reuse Spinnaker's notion of capacity in an effort to make Orca more generic.
+   */
+  static class Capacity {
+    Integer desired
+  }
 }
