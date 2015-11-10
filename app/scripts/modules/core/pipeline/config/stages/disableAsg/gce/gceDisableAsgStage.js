@@ -41,11 +41,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableAsgSta
       $scope.state.accounts = true;
     });
 
-    $scope.zones = ['us-central1-a', 'us-central1-b', 'us-central1-c'];
+    $scope.zones = {"us-central1": ['us-central1-a', 'us-central1-b', 'us-central1-c']};
 
     ctrl.accountUpdated = function() {
-      accountService.getRegionsForAccount(stage.credentials).then(function(regions) {
-        $scope.zones = _.flatten(_.map(regions, (zones) => { return zones; } ));
+      accountService.getRegionsForAccount(stage.credentials).then(function(zoneMap) {
+        $scope.zones = zoneMap;
         $scope.zonesLoaded = true;
       });
     };
