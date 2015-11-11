@@ -30,6 +30,7 @@ import os
 import re
 import subprocess
 import sys
+import tarfile
 import tempfile
 
 import install_runtime_dependencies
@@ -113,7 +114,7 @@ def path_exists(path):
    return run_quick(command, echo=False).returncode == 0
 
 
-def start_copy_file(options, source, target, dir=False):
+def start_copy_file(options, source, target):
    """Copy a file.
 
    Args:
@@ -129,20 +130,15 @@ def start_copy_file(options, source, target, dir=False):
    # as a user, we can use their storage bucket credentials for the install,
    # and currently standard documented gcloud is installed as a user.
    if source.startswith('gs://'):
-     if dir:
-       safe_mkdir(target)
      command = ('sudo bash -c'
                 ' "HOME=$HOME PATH=$PATH'
-                ' gsutil -m -q cp {R} \"{source}\"{X} \"{target}\""'
-                .format(source=source, target=target,
-                        R='-R' if dir else '',
-                        X='/*' if dir else ''))
+                ' gsutil -m -q cp \"{source}\" \"{target}\""'
+                .format(source=source, target=target))
    elif source.startswith('s3://'):
      command = ('sudo bash -c'
-                ' "HOME=$HOME PATH=$PATH aws s3 cp {R} --region {region}'
+                ' "HOME=$HOME PATH=$PATH aws s3 cp --region {region}'
                 ' \"{source}\" \"{target}\""'
-                .format(source=source, target=target, region=options.region,
-                        R='--recursive' if dir else ''))
+                .format(source=source, target=target, region=options.region))
    else:
      # Use a shell to copy here to handle wildcard expansion.
      command = 'sudo cp "{source}" "{target}"'.format(
@@ -150,10 +146,6 @@ def start_copy_file(options, source, target, dir=False):
 
    process = subprocess.Popen(command, stderr=subprocess.PIPE, shell=True)
    return process
-
-
-def start_copy_dir(options, source, target):
-  return start_copy_file(options, source, target, dir=True)
 
 
 def check_wait_for_copy_complete(jobs):
@@ -172,33 +164,6 @@ def check_wait_for_copy_complete(jobs):
         output = stdout or stderr or ''
         error = 'COPY FAILED with {0}: {1}'.format(j.returncode, output.strip())
         raise RuntimeError(error)
-
-
-def get_release_metadata(options, bucket):
-  """Gets metadata files from the release.
-
-  This sets the global PACKAGE_LIST and CONFIG_LIST variables
-  telling us specifically what we'll need to install.
-
-  Args:
-    options [namespace]: The argparse namespace with options.
-    bucket [string]: The path or storage service URI to pull from.
-  """
-  spinnaker_dir = get_spinnaker_dir(options)
-  safe_mkdir(spinnaker_dir)
-  job = start_copy_file(options,
-                        os.path.join(bucket, 'config/release_config.cfg'),
-                        spinnaker_dir)
-  check_wait_for_copy_complete([job])
-
-  with open(os.path.join(spinnaker_dir, 'release_config.cfg'), 'r') as f:
-    content = f.read()
-    global PACKAGE_LIST
-    global CONFIG_LIST
-    PACKAGE_LIST = (re.search('\nPACKAGE_LIST="(.*?)"', content)
-                   .group(1).split())
-    CONFIG_LIST = (re.search('\nCONFIG_LIST="(.*?)"', content)
-                  .group(1).split())
 
 
 def check_google_path(path):
@@ -318,11 +283,14 @@ def inject_spring_config_location(options, subsystem):
   os.close(fd)
 
   check_run_quick(
-        'chmod --reference={path} {temp}'.format(path=path, temp=temp))
-  check_run_quick('sudo mv {temp} {path}'.format(temp=temp, path=path))
+      'chmod --reference={path} {temp}'.format(path=path, temp=temp),
+      echo=False)
+  check_run_quick(
+      'sudo mv {temp} {path}'.format(temp=temp, path=path),
+      echo=False)
 
 
-def install_spinnaker_packages(options, bucket):
+def _install_spinnaker_packages_helper(options, bucket):
   """Install the spinnaker packages from the specified path.
 
   Args:
@@ -336,45 +304,11 @@ def install_spinnaker_packages(options, bucket):
   install_config_dir = get_config_install_dir(options)
   spinnaker_dir = get_spinnaker_dir(options)
 
-  jobs = []
+  with open(os.path.join(spinnaker_dir, 'release_config.cfg'), 'r') as f:
+    content = f.read()
+    package_list = (re.search('\nPACKAGE_LIST="(.*?)"', content)
+                    .group(1).split())
 
-  ###########################
-  # Copy Configuration files
-  ###########################
-  print 'Copying configuration files.'
-  safe_mkdir(install_config_dir)
-
-  # For now we are copying both the old configuration files
-  # and the new ones.
-  # The new ones are not yet fully working so we are keeping
-  # the old ones around. It's particularly messy because the two
-  # cohabitate the same directory in the bucket. We separate them
-  # out in the installation so that the old -local files arent
-  # intercepted (with precedence) when using the new files.
-  # The new files are not enabled by default.
-
-  for cfg in CONFIG_LIST:
-    jobs.append(start_copy_file(options,
-                                os.path.join(bucket, 'config', cfg),
-                                install_config_dir))
-  jobs.append(
-      start_copy_file(
-          options,
-          os.path.join(bucket, 'config/settings.js'),
-          os.path.join(bucket, install_config_dir + '/settings.js')))
-  check_wait_for_copy_complete(jobs)
-  jobs = []
-
-  #############
-  # Copy Tests
-  #############
-  tests_dir = os.path.join(spinnaker_dir, 'tests')
-  if path_exists(os.path.join(bucket, 'tests')):
-      print 'Copying tests.'
-      jobs.append(
-          start_copy_dir(options,
-                         os.path.join(bucket, 'tests'),
-                         tests_dir))
 
   ###########################
   # Copy Subsystem Packages
@@ -382,13 +316,14 @@ def install_spinnaker_packages(options, bucket):
   print 'Downloading spinnaker release packages...'
   package_dir = os.path.join(spinnaker_dir, 'install')
   safe_mkdir(package_dir)
-  for pkg in PACKAGE_LIST:
+  jobs = []
+  for pkg in package_list:
     jobs.append(start_copy_file(options,
                                 os.path.join(bucket, pkg), package_dir))
 
   check_wait_for_copy_complete(jobs)
 
-  for pkg in PACKAGE_LIST:
+  for pkg in package_list:
     print 'Installing {0}.'.format(pkg)
 
     # Let this fail because it may have dependencies
@@ -415,46 +350,20 @@ def install_spinnaker(options):
   # But could be a gs:// URL to a path in a Google Cloud Storage bucket.
   bucket = options.release_path
 
-  get_release_metadata(options, bucket)
-  install_spinnaker_packages(options, bucket)
+  # Install all the dependency packages
+  _install_spinnaker_packages_helper(options, bucket)
 
   spinnaker_dir = get_spinnaker_dir(options)
-
-  #####################################
-  # Copy Scripts and Cassandra Schemas
-  #####################################
   install_dir = os.path.join(spinnaker_dir, 'install')
   script_dir = os.path.join(spinnaker_dir, 'scripts')
-  pylib_dir = os.path.join(spinnaker_dir, 'pylib')
-  cassandra_dir = os.path.join(spinnaker_dir, 'cassandra')
-
-  jobs = []
-  print 'Installing spinnaker scripts.'
-
-  # Note this also copies some install files that may already be there
-  # depending on when this script is being run. The files in the release
-  # may be different, but they are the release we are installing.
-  # If this is an issue, we can look into copy without overwriting.
-  jobs.append(start_copy_dir(options,
-                             os.path.join(bucket, 'install'),
-                             install_dir))
-  jobs.append(start_copy_dir(options,
-                             os.path.join(bucket, 'runtime'), script_dir))
-  jobs.append(start_copy_dir(options,
-                             os.path.join(bucket, 'pylib'), pylib_dir))
-
-  print 'Installing cassandra schemas.'
-  jobs.append(start_copy_dir(options,
-                             os.path.join(bucket, 'cassandra'), cassandra_dir))
-  check_wait_for_copy_complete(jobs)
+  print 'Installing spinnaker package...'
 
   # Use chmod since +x is convienent.
   # Fork a shell to do the wildcard expansion.
-  check_run_quick('sudo chmod +x {files}'
-                  .format(files=os.path.join(spinnaker_dir, 'scripts/*.sh')))
-  check_run_quick('sudo chmod +x {files}'
-                  .format(files=os.path.join(spinnaker_dir, 'install/*.sh')))
+  check_run_quick('sudo chmod +x {scripts}/*.sh'.format(scripts=script_dir))
+  check_run_quick('sudo chmod +x {install}/*.sh'.format(install=install_dir))
 
+  # Add a spinnaker-local.yml if one did not already exist.
   user_config_dir = get_user_config_dir(options)
   install_config_dir = get_config_install_dir(options)
   local_yml_path = os.path.join(user_config_dir, 'spinnaker-local.yml')
@@ -476,7 +385,8 @@ def install_spinnaker(options):
                     .format(temp=temp, config_dir=user_config_dir),
                 'rm -f {temp}'.format(temp=temp)]
     check_run_quick('sudo bash -c "{commands}"'
-                    .format(commands=' && '.join(commands)), echo=True)
+                    .format(commands=' && '.join(commands)), echo=False)
+    print 'Finished installing Spinnaker.'
 
 
 def make_default_spinnaker_yml_from_path(prototype_path):
