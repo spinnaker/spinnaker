@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -22,10 +22,10 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 
-class UpsertAmazonLoadBalancerResultObjectExtrapolationTaskSpec extends Specification {
+class UpsertLoadBalancerResultObjectExtrapolationTaskSpec extends Specification {
 
   @Subject
-    task = new UpsertAmazonLoadBalancerResultObjectExtrapolationTask()
+    task = new UpsertLoadBalancerResultObjectExtrapolationTask()
 
   def dnsName = "my-awesome-elb.amazonaws.com"
 

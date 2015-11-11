@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.pipeline.UpsertLoadBalancerStage
 import com.netflix.spinnaker.orca.kato.pipeline.UpsertAmazonLoadBalancerStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,7 +40,8 @@ class UpsertAmazonDNSTask implements Task {
     def operation = [type       : stage.context.recordType, name: stage.context.name, hostedZoneName: stage.context.hostedZone,
                      credentials: stage.context.credentials]
 
-    def upsertElbStage = stage.preceding(UpsertAmazonLoadBalancerStage.PIPELINE_CONFIG_TYPE)
+    def upsertElbStage = stage.preceding(UpsertAmazonLoadBalancerStage.PIPELINE_CONFIG_TYPE) ?: stage.preceding(UpsertLoadBalancerStage.PIPELINE_CONFIG_TYPE)
+
     if (upsertElbStage) {
       operation.target = upsertElbStage.context.dnsName
     } else {

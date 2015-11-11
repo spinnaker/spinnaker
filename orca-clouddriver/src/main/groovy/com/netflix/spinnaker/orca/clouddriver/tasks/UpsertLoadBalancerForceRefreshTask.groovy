@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.orca.kato.tasks
+
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -25,8 +26,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-public class UpsertAmazonLoadBalancerForceRefreshTask implements Task {
-  static final String REFRESH_TYPE = "AmazonLoadBalancer"
+public class UpsertLoadBalancerForceRefreshTask implements Task {
+  static final String REFRESH_TYPE = "LoadBalancer"
 
   @Autowired
   OortService oort

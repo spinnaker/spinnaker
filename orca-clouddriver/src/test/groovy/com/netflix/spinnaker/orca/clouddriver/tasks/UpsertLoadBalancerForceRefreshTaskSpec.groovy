@@ -1,13 +1,13 @@
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 
-class UpsertAmazonLoadBalancerForceRefreshTaskSpec extends Specification {
+class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
   @Subject
-  def task = new UpsertAmazonLoadBalancerForceRefreshTask()
+  def task = new UpsertLoadBalancerForceRefreshTask()
   def stage = new PipelineStage(type: "whatever")
 
   def config = [
@@ -28,7 +28,7 @@ class UpsertAmazonLoadBalancerForceRefreshTaskSpec extends Specification {
     task.execute(stage.asImmutable())
 
     then:
-    1 * task.oort.forceCacheUpdate(UpsertAmazonLoadBalancerForceRefreshTask.REFRESH_TYPE, _) >> { String type, Map<String, ? extends Object> body ->
+    1 * task.oort.forceCacheUpdate(UpsertLoadBalancerForceRefreshTask.REFRESH_TYPE, _) >> { String type, Map<String, ? extends Object> body ->
       assert body.loadBalancerName == "flapjack-frontend"
       assert body.account == "fzlem"
       assert body.region == "us-west-1"
