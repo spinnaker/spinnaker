@@ -7,7 +7,3 @@ SPINNAKER_AWS_ENABLED=false
 # Default region you desire to operate in
 SPINNAKER_AWS_DEFAULT_REGION=us-west-2
 
-export SPINNAKER_AWS_ENABLED
-export SPINNAKER_AWS_DEFAULT_REGION
-
-
