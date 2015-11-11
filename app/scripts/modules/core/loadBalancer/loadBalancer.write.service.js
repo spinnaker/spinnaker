@@ -31,13 +31,13 @@ module.exports = angular
 
     function upsertLoadBalancer(loadBalancer, application, descriptor, params={}) {
       var name = loadBalancer.clusterName || loadBalancer.name;
-      loadBalancer.providerType = loadBalancer.provider;
+      loadBalancer.cloudProvider = loadBalancer.provider;
       if (loadBalancer.healthCheckProtocol.indexOf('HTTP') === 0) {
         loadBalancer.healthCheck = loadBalancer.healthCheckProtocol + ':' + loadBalancer.healthCheckPort + loadBalancer.healthCheckPath;
       } else {
         loadBalancer.healthCheck = loadBalancer.healthCheckProtocol + ':' + loadBalancer.healthCheckPort;
       }
-      loadBalancer.type = 'upsertAmazonLoadBalancer';
+      loadBalancer.type = 'upsertLoadBalancer';
       loadBalancer.availabilityZones = {};
       loadBalancer.availabilityZones[loadBalancer.region] = loadBalancer.regionZones || [];
       if (!loadBalancer.vpcId && !loadBalancer.subnetType) {
