@@ -55,16 +55,6 @@ class ResizeServerGroupTask extends AbstractServerGroupTask {
 
     operation.capacity = [min: newCapacity.min, desired: newCapacity.desired, max: newCapacity.max]
 
-    // TODO(ttomsu): Remove cloud provider-specific operation.
-    if (cloudProvider == "gce") {
-      augmentDescriptionForGCE(operation, location)
-    }
-
     return operation
-  }
-
-  static void augmentDescriptionForGCE(Map description, Location location) {
-    description.zone = location.value
-    description.targetSize = description.capacity.desired
   }
 }
