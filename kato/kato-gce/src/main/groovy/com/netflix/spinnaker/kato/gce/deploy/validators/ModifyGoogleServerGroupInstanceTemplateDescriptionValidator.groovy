@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.kato.gce.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.gce.deploy.description.ModifyGoogleServerGroupInstanceTemplateDescription
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,11 +29,17 @@ class ModifyGoogleServerGroupInstanceTemplateDescriptionValidator extends Descri
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
+  @Autowired
+  private GceConfig.DeployDefaults gceDeployDefaults
+
   @Override
   void validate(List priorDescriptions, ModifyGoogleServerGroupInstanceTemplateDescription description, Errors errors) {
     def helper = new StandardGceAttributeValidator("modifyGoogleServerGroupInstanceTemplateDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
+    helper.validateInstanceTypeDisks(gceDeployDefaults.determineInstanceTypeDisk(description.instanceType),
+                                     description.disks)
+    helper.validateAuthScopes(description.authScopes)
     helper.validateZone(description.zone)
     helper.validateServerGroupName(description.serverGroupName)
   }

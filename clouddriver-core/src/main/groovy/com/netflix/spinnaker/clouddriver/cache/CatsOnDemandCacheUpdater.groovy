@@ -72,16 +72,16 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
         def providerCache = catsModule.getProviderRegistry().getProviderCache(agent.providerName)
         OnDemandAgent.OnDemandResult result = agent.handle(providerCache, data)
         if (result) {
+          if (result.cacheResult) {
+            agent.metricsSupport.cacheWrite {
+              providerCache.putCacheResult(result.sourceAgentType, result.authoritativeTypes, result.cacheResult)
+            }
+          }
           if (result.evictions) {
             agent.metricsSupport.cacheEvict {
               result.evictions.each { String evictType, Collection<String> ids ->
                 providerCache.evictDeletedItems(evictType, ids)
               }
-            }
-          }
-          if (result.cacheResult) {
-            agent.metricsSupport.cacheWrite {
-              providerCache.putCacheResult(result.sourceAgentType, result.authoritativeTypes, result.cacheResult)
             }
           }
           final long elapsed = System.nanoTime() - startTime

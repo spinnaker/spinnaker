@@ -16,13 +16,16 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleLoadBalancerDescription
+import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
+@GoogleOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component("upsertGoogleLoadBalancerDescriptionValidator")
 class UpsertGoogleLoadBalancerDescriptionValidator extends
     DescriptionValidator<UpsertGoogleLoadBalancerDescription> {

@@ -18,8 +18,10 @@ package com.netflix.spinnaker.oort.aws.controllers
 
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.oort.aws.data.Keys
 import groovy.transform.InheritConstructors
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PathVariable
@@ -31,10 +33,14 @@ import org.springframework.web.bind.annotation.RestController
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.IMAGES
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.NAMED_IMAGES
 
+@Slf4j
 @RestController
 @RequestMapping("/aws/images")
 class AmazonNamedImageLookupController {
-  private static final int MIN_NAME_FILTER = 2;
+  // TODO-AJ This will be replaced with an appropriate v2 API allowing a user-supplied limit and indication of totalNumberOfResults vs. returnedResults
+  private static final int MAX_SEARCH_RESULTS = 1000
+
+  private static final int MIN_NAME_FILTER = 3
   private static final String EXCEPTION_REASON = 'Minimum of ' + MIN_NAME_FILTER + ' characters required to filter namedImages'
 
   private final Cache cacheView
@@ -67,19 +73,25 @@ class AmazonNamedImageLookupController {
       throw new InsufficientLookupOptionsException(EXCEPTION_REASON)
     }
 
-    String glob = lookupOptions.q
+    String glob = lookupOptions.q?.trim()
+    def isAmi = glob.startsWith("ami")
+    if (isAmi && glob.length() != 12) {
+      throw new InsufficientLookupOptionsException("Searches by AMI id must be an exact match (ami-xxxxxxxx)")
+    }
+
     // Wrap in '*' if there are no glob-style characters in the query string
-    if (!glob.contains('*') && !glob.contains('?') && !glob.contains('[') && !glob.contains('\\')) {
+    if (!isAmi && !glob.contains('*') && !glob.contains('?') && !glob.contains('[') && !glob.contains('\\')) {
       glob = "*${glob}*"
     }
 
     def namedImageSearch = Keys.getNamedImageKey(lookupOptions.account ?: '*', glob)
     def imageSearch = Keys.getImageKey(glob, lookupOptions.account ?: '*', lookupOptions.region ?: '*')
 
-    Collection<String> namedImageIdentifiers = cacheView.filterIdentifiers(NAMED_IMAGES.ns, namedImageSearch)
-    Collection<String> imageIdentifiers = cacheView.filterIdentifiers(IMAGES.ns, imageSearch)
+    Collection<String> namedImageIdentifiers = !isAmi ? cacheView.filterIdentifiers(NAMED_IMAGES.ns, namedImageSearch) : []
+    Collection<String> imageIdentifiers = namedImageIdentifiers.isEmpty() ? cacheView.filterIdentifiers(IMAGES.ns, imageSearch) : []
 
-    Collection<CacheData> matchesByName = cacheView.getAll(NAMED_IMAGES.ns, namedImageIdentifiers)
+    namedImageIdentifiers = (namedImageIdentifiers as List).subList(0, Math.min(MAX_SEARCH_RESULTS, namedImageIdentifiers.size()))
+    Collection<CacheData> matchesByName = cacheView.getAll(NAMED_IMAGES.ns, namedImageIdentifiers, RelationshipCacheFilter.include(IMAGES.ns))
 
     Collection<CacheData> matchesByImageId = cacheView.getAll(IMAGES.ns, imageIdentifiers)
 
@@ -94,6 +106,7 @@ class AmazonNamedImageLookupController {
     for (CacheData data : namedImages) {
       Map<String, String> keyParts = Keys.parse(data.id)
       NamedImage thisImage = byImageName[keyParts.imageName]
+      thisImage.attributes.putAll(data.attributes - [name: keyParts.imageName])
       thisImage.accounts.add(keyParts.account)
 
       for (String imageKey : data.relationships[IMAGES.ns] ?: []) {
@@ -110,6 +123,7 @@ class AmazonNamedImageLookupController {
       Map<String, String> amiKeyParts = Keys.parse(data.id)
       Map<String, String> namedImageKeyParts = Keys.parse(data.relationships[NAMED_IMAGES.ns][0])
       NamedImage thisImage = byImageName[namedImageKeyParts.imageName]
+      thisImage.attributes.virtualizationType = data.attributes.virtualizationType
       thisImage.accounts.add(namedImageKeyParts.account)
       amiKeyParts.tags.each {
         thisImage.tags << [it.key, it.value]
@@ -143,7 +157,7 @@ class AmazonNamedImageLookupController {
   }
 
 
-  @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = 'Minimum of 2 characters required to filter namedImages')
+  @ResponseStatus(value = HttpStatus.BAD_REQUEST)
   @InheritConstructors
   private static class InsufficientLookupOptionsException extends RuntimeException { }
 
@@ -154,6 +168,7 @@ class AmazonNamedImageLookupController {
 
   private static class NamedImage {
     String imageName
+    Map<String,Object> attributes = [:]
     Map<String,String> tags = [:]
     Set<String> accounts = []
     Map<String, Collection<String>> amis = [:].withDefault { new HashSet<String>() }

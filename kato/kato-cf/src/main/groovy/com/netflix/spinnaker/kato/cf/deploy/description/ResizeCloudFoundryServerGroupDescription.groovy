@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Google, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kato.gce.model
+package com.netflix.spinnaker.kato.cf.deploy.description
 
-class GoogleInstanceTypePersistentDisk {
-  String instanceType
-  GooglePersistentDisk persistentDisk
+import com.netflix.spinnaker.kato.cf.security.CloudFoundryAccountCredentials
+
+/**
+ * @author Greg Turnquist
+ */
+class ResizeCloudFoundryServerGroupDescription {
+  String serverGroupName
+  int targetSize
+  String zone
+  String getAccountName() {
+    credentials?.name
+  }
+  CloudFoundryAccountCredentials credentials
 }

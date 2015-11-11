@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConfig
 import com.netflix.spinnaker.clouddriver.config.RetrofitConfig
 import com.netflix.spinnaker.clouddriver.core.CloudDriverConfig
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
+import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
 import com.netflix.spinnaker.clouddriver.titan.TitanConfiguration
 import org.springframework.boot.actuate.autoconfigure.ManagementSecurityAutoConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
@@ -45,6 +46,7 @@ import java.security.Security
   TitanConfiguration,
   GoogleConfiguration,
   CloudFoundryConfig,
+  SecurityConfig,
   com.netflix.spinnaker.kato.Main,
   com.netflix.spinnaker.mort.Main,
   com.netflix.spinnaker.oort.Main

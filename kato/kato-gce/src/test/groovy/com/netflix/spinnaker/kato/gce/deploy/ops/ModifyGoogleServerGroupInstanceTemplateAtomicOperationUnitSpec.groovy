@@ -81,7 +81,8 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
             new NetworkInterface(network: NETWORK_1)
           ],
           disks: [
-            new AttachedDisk(initializeParams: new AttachedDiskInitializeParams(
+            new AttachedDisk(autoDelete: true,
+                             initializeParams: new AttachedDiskInitializeParams(
               sourceImage: IMAGE,
               diskType: DISK_TYPE,
               diskSizeGb: DISK_SIZE_GB
@@ -129,7 +130,8 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
             new NetworkInterface(network: NETWORK_1)
           ],
           disks: [
-            new AttachedDisk(initializeParams: new AttachedDiskInitializeParams(
+            new AttachedDisk(autoDelete: true,
+                             initializeParams: new AttachedDiskInitializeParams(
               sourceImage: IMAGE,
               diskType: DISK_TYPE,
               diskSizeGb: DISK_SIZE_GB
@@ -250,7 +252,8 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
           machineType: MACHINE_TYPE,
           networkInterfaces: networkInterfaces,
           disks: [
-            new AttachedDisk(initializeParams: new AttachedDiskInitializeParams(
+            new AttachedDisk(autoDelete: true,
+                             initializeParams: new AttachedDiskInitializeParams(
               sourceImage: IMAGE,
               diskType: DISK_TYPE,
               diskSizeGb: DISK_SIZE_GB
@@ -296,7 +299,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
   }
 
   @Unroll
-  void "should throw exception if the original instance template defines a number of disks other than one"() {
+  void "should throw exception if the original instance template does not define any disks"() {
     setup:
       def computeMock = Mock(Compute)
       def instanceTemplatesMock = Mock(Compute.InstanceTemplates)
@@ -338,13 +341,12 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       1 * instanceTemplatesGetMock.execute() >> instanceTemplateReal
 
       def exc = thrown GoogleOperationException
-      exc.message == "Instance templates must have exactly one disk defined. " +
+      exc.message == "Instance templates must have at least one disk defined. " +
                      "Instance template $ORIG_INSTANCE_TEMPLATE_NAME has $exceptionMsgSizeDescriptor."
 
     where:
       disks                                    | exceptionMsgSizeDescriptor
       null                                     | null
       []                                       | 0
-      [new AttachedDisk(), new AttachedDisk()] | 2
   }
 }

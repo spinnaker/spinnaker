@@ -39,6 +39,27 @@ class DefaultProviderCacheSpec extends CacheSpec {
         getCache() as DefaultProviderCache
     }
 
+    def 'explicit evictions are removed from the cache'() {
+        setup:
+        String agent = 'agent'
+        CacheResult result = new DefaultCacheResult(test: [new DefaultCacheData('id', [id: 'id'], [:])])
+        defaultProviderCache.putCacheResult(agent, [], result)
+
+        when:
+        def data = defaultProviderCache.get('test', 'id')
+
+        then:
+        data != null
+        data.id == 'id'
+
+        when:
+        defaultProviderCache.putCacheResult(agent, [], new DefaultCacheResult([:], [test: ['id']]))
+        data = defaultProviderCache.get('test', 'id')
+
+        then:
+        data == null
+    }
+
     def 'multiple agents can cache the same data type'() {
         setup:
         String usEast1Agent = 'AwsProvider:test/us-east-1/ClusterCachingAgent'

@@ -26,7 +26,7 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
   String application
   String stack
   String freeFormDetails
-  int targetSize
+  Integer targetSize
   String zone
   List<String> loadBalancers
   Set<String> securityGroups

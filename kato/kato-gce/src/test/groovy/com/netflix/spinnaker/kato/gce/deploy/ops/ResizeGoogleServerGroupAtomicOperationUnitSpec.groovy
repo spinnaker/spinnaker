@@ -42,7 +42,8 @@ class ResizeGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def instanceGroupManagersResizeMock = Mock(Compute.InstanceGroupManagers.Resize)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new ResizeGoogleServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
-                                                               targetSize: TARGET_SIZE,
+                                                               targetSize: targetSize,
+                                                               capacity: capacity,
                                                                zone: ZONE,
                                                                accountName: ACCOUNT_NAME,
                                                                credentials: credentials)
@@ -58,5 +59,11 @@ class ResizeGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                            SERVER_GROUP_NAME,
                                            TARGET_SIZE) >> instanceGroupManagersResizeMock
       1 * instanceGroupManagersResizeMock.execute()
+
+    where:
+      targetSize  | capacity
+      TARGET_SIZE | null
+      null        | new ResizeGoogleServerGroupDescription.Capacity(desired: TARGET_SIZE)
+      TARGET_SIZE | new ResizeGoogleServerGroupDescription.Capacity(desired: TARGET_SIZE * 2)
   }
 }

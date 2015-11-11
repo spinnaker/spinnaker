@@ -20,7 +20,9 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleInstanceDescription
+import com.netflix.spinnaker.kato.gce.model.GoogleDisk
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
@@ -29,8 +31,8 @@ class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
   private static final INSTANCE_NAME = "my-app-v000"
   private static final IMAGE = "debian-7-wheezy-v20140415"
   private static final INSTANCE_TYPE = "f1-micro"
-  private static final DISK_TYPE = "pd-standard"
-  private static final DISK_SIZE_GB = 10
+  private static final DISK_PD_SSD = new GoogleDisk(type: "pd-ssd", sizeGb: 125)
+  private static final DISK_LOCAL_SSD = new GoogleDisk(type: "local-ssd", sizeGb: 375)
   private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
 
@@ -38,7 +40,8 @@ class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
   CreateGoogleInstanceDescriptionValidator validator
 
   void setupSpec() {
-    validator = new CreateGoogleInstanceDescriptionValidator()
+    def gceDeployDefaults = new GceConfig.DeployDefaults()
+    validator = new CreateGoogleInstanceDescriptionValidator(gceDeployDefaults: gceDeployDefaults)
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     def credentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
     def credentials = Mock(GoogleNamedAccountCredentials)
@@ -50,13 +53,12 @@ class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
 
   void "pass validation with proper description inputs"() {
     setup:
-    def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
-                                                          image: IMAGE,
-                                                          instanceType: INSTANCE_TYPE,
-                                                          diskType: DISK_TYPE,
-                                                          diskSizeGb: DISK_SIZE_GB,
-                                                          zone: ZONE,
-                                                          accountName: ACCOUNT_NAME)
+      def description = new CreateGoogleInstanceDescription(instanceName: INSTANCE_NAME,
+                                                            image: IMAGE,
+                                                            instanceType: INSTANCE_TYPE,
+                                                            disks: [DISK_PD_SSD, DISK_LOCAL_SSD],
+                                                            zone: ZONE,
+                                                            accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
 
     when:
@@ -64,29 +66,6 @@ class CreateGoogleInstanceDescriptionValidatorSpec extends Specification {
 
     then:
       0 * errors._
-  }
-
-  void "invalid diskSizeGb fails validation"() {
-    setup:
-    def errors = Mock(Errors)
-
-    when:
-    validator.validate([], new CreateGoogleInstanceDescription(diskSizeGb: -1), errors)
-
-    then:
-    1 * errors.rejectValue("diskSizeGb", "createGoogleInstanceDescription.diskSizeGb.invalid")
-
-    when:
-    validator.validate([], new CreateGoogleInstanceDescription(diskSizeGb: 0), errors)
-
-    then:
-    1 * errors.rejectValue("diskSizeGb", "createGoogleInstanceDescription.diskSizeGb.invalid")
-
-    when:
-    validator.validate([], new CreateGoogleInstanceDescription(diskSizeGb: 9), errors)
-
-    then:
-    1 * errors.rejectValue("diskSizeGb", "createGoogleInstanceDescription.diskSizeGb.invalid")
   }
 
   void "null input fails validation"() {

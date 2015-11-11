@@ -20,6 +20,7 @@ import com.amazonaws.services.ec2.model.Image
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -33,14 +34,16 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 import groovy.util.logging.Slf4j
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.IMAGES
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.NAMED_IMAGES
 
-@Slf4j
-class ImageCachingAgent implements CachingAgent, AccountAware {
+class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric {
+  final Logger log = LoggerFactory.getLogger(getClass())
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
   final Set<AgentDataType> types = Collections.unmodifiableSet([
@@ -52,12 +55,14 @@ class ImageCachingAgent implements CachingAgent, AccountAware {
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
+  final Registry registry
 
-  ImageCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper) {
+  ImageCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper, Registry registry) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    this.registry = registry
   }
 
   @Override
@@ -86,7 +91,10 @@ class ImageCachingAgent implements CachingAgent, AccountAware {
     def amazonEC2 = amazonClientProvider.getAmazonEC2(account, region)
 
     List<Image> images = amazonEC2.describeImages().images
-    long start = EddaSupport.parseLastModified(amazonClientProvider.lastResponseHeaders?.get("last-modified")?.get(0))
+    Long start = null
+    if (account.eddaEnabled) {
+      start = amazonClientProvider.lastModified ?: 0
+    }
 
     Collection<CacheData> imageCacheData = new ArrayList<>(images.size())
     Collection<CacheData> namedImageCacheData = new ArrayList<>(images.size())
@@ -96,11 +104,13 @@ class ImageCachingAgent implements CachingAgent, AccountAware {
       def imageId = Keys.getImageKey(image.imageId, account.name, region)
       def namedImageId = Keys.getNamedImageKey(account.name, image.name)
       imageCacheData.add(new DefaultCacheData(imageId, attributes, [(NAMED_IMAGES.ns):[namedImageId]]))
-      namedImageCacheData.add(new DefaultCacheData(namedImageId, [name: image.name], [(IMAGES.ns):[imageId]]))
+      namedImageCacheData.add(new DefaultCacheData(namedImageId, [
+        name: image.name,
+        virtualizationType: image.virtualizationType
+      ], [(IMAGES.ns):[imageId]]))
     }
 
-    long drift = new Date().time - start
-    log.info("${agentType}/drift - $drift milliseconds")
+    recordDrift(start)
     log.info("Caching ${imageCacheData.size()} items in ${agentType}")
     new DefaultCacheResult((IMAGES.ns): imageCacheData, (NAMED_IMAGES.ns): namedImageCacheData)
   }

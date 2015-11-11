@@ -18,6 +18,9 @@ package com.netflix.spinnaker.kato.gce.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.kato.gce.model.GoogleDisk
+import com.netflix.spinnaker.kato.gce.model.GoogleDiskType
+import com.netflix.spinnaker.kato.gce.model.GoogleInstanceTypeDisk
 import org.springframework.validation.Errors
 
 /**
@@ -99,17 +102,19 @@ class StandardGceAttributeValidator {
    * Validate a value that should not be empty.
    *
    * @param value The value cannot be null, empty string, or an empty container.
-   *              However it can be a container of only empty values.
+   *              However it can be a container of only empty values. Any
+   *              numeric value is considered non-empty.
    * @param attribute The name of the attribute being validated.
    * @param part If different than the attribute name then this is a subcomponent
    *             within the attribute (e.g. element within a list).
    */
   def validateNotEmptyAsPart(Object value, String attribute, String part) {
-    if (!value) {
+    if (value || value instanceof Number) {
+      return true
+    } else {
       errors.rejectValue(attribute, "${context}.${part}.empty")
       return false
     }
-    return true
   }
 
   /**
@@ -177,7 +182,7 @@ class StandardGceAttributeValidator {
     validateNotEmpty(network, "network")
   }
 
-  def validateNonNegativeInt(int value, String attribute) {
+  def validateNonNegativeLong(long value, String attribute) {
     def result = true
     if (value < 0) {
       errors.rejectValue attribute, "${context}.${attribute}.negative"
@@ -228,7 +233,67 @@ class StandardGceAttributeValidator {
     validateNotEmpty(instanceType, "instanceType")
   }
 
+  def validateInstanceTypeDisks(GoogleInstanceTypeDisk instanceTypeDisk, List<GoogleDisk> specifiedDisks) {
+    // The fields type and sizeGb are required on each disk, and sizeGb must be greater than zero.
+    specifiedDisks.eachWithIndex { disk, index ->
+      validateNotEmptyAsPart(disk.type, "disks", "disk${index}.type")
+      validateNotEmptyAsPart(disk.sizeGb, "disks", "disk${index}.sizeGb")
+      validateNonNegativeLong(disk.sizeGb ?: 0, "disk${index}.sizeGb")
+    }
+
+    if (specifiedDisks) {
+      // Must specify exactly one persistent disk.
+      int persistentDiskCount = specifiedDisks.findAll { it.persistent }.size()
+
+      if (!persistentDiskCount) {
+        errors.rejectValue("disks",
+                           "${context}.disks.missingPersistentDisk",
+                           "A persistent boot disk is required.")
+      } else if (persistentDiskCount > 1) {
+        errors.rejectValue("disks",
+                           "${context}.disks.tooManyPersistentDisks",
+                           "Cannot specify more than one persistent disk.")
+      }
+    }
+
+    // Persistent disks must be at least 10GB.
+    specifiedDisks.findAll { it.persistent }.eachWithIndex { persistentDisk, index ->
+      if (persistentDisk.sizeGb < 10) {
+        errors.rejectValue("disks",
+                           "${context}.disk${index}.sizeGb.invalidSize",
+                           "Persistent disks must be at least 10GB.")
+      }
+    }
+
+    specifiedDisks.findAll { it.type == GoogleDiskType.LOCAL_SSD }.eachWithIndex { localSSDDisk, index ->
+      // Shared-core instance types do not support local-ssd.
+      if (!instanceTypeDisk.supportsLocalSSD) {
+        errors.rejectValue("disks",
+                           "${context}.disk${index}.type.localSSDUnsupported",
+                           "Instance type $instanceTypeDisk.instanceType does not support Local SSD.")
+      }
+
+      // local-ssd disks must be exactly 375GB.
+      if (localSSDDisk.sizeGb != 375) {
+        errors.rejectValue("disks",
+                           "${context}.disk${index}.sizeGb.invalidSize",
+                           "Local SSD disks must be exactly 375GB.")
+      }
+
+      // local-ssd disks must have auto-delete set.
+      if (!localSSDDisk.autoDelete) {
+        errors.rejectValue("disks",
+                           "${context}.disk${index}.autoDelete.required",
+                           "Local SSD disks must have auto-delete set.")
+      }
+    }
+  }
+
   def validateTags(List<String> tags) {
     return validateOptionalNameList(tags, "tag")
+  }
+
+  def validateAuthScopes(List<String> authScopes) {
+    return validateOptionalNameList(authScopes, "authScope")
   }
 }

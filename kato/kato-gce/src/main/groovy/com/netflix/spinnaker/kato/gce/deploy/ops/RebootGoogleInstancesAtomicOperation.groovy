@@ -45,7 +45,7 @@ class RebootGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
    * Throws a runtime exception if any of the resets fails. The exception only contains the
    * first error. Additional errors from other instances are only visible in the task status.
    *
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "rebootGoogleInstancesDescription": { "instanceIds": ["myapp-dev-v000-abcd"], "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "rebootInstances": { "instanceIds": ["myapp-dev-v000-abcd"], "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    */
   @Override
   Void operate(List priorOutputs) {

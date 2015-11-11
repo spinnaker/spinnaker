@@ -30,6 +30,7 @@ import com.netflix.spinnaker.kato.data.task.TaskRepository
 import groovy.json.JsonSlurper
 import groovy.json.internal.Charsets
 import org.cloudfoundry.client.lib.CloudFoundryClient
+import org.cloudfoundry.client.lib.CloudFoundryOperations
 import org.cloudfoundry.client.lib.domain.CloudApplication
 import org.cloudfoundry.client.lib.domain.CloudDomain
 import org.cloudfoundry.client.lib.domain.InstanceInfo
@@ -293,10 +294,11 @@ class CloudFoundryOperationsSpec extends Specification {
 
   static class TestCloudFoundryClientFactory implements CloudFoundryClientFactory {
 
-    CloudFoundryClient stubClient
+    CloudFoundryOperations stubClient
 
     @Override
-    CloudFoundryClient createCloudFoundryClient(CloudFoundryDeployDescription description) {
+    CloudFoundryOperations createCloudFoundryClient(CloudFoundryAccountCredentials credentials,
+                                                boolean trustSelfSignedCerts) {
       stubClient
     }
   }

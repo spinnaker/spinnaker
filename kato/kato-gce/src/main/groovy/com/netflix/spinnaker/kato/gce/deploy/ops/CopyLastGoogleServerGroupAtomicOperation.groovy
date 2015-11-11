@@ -26,6 +26,7 @@ import com.netflix.spinnaker.kato.deploy.DeploymentResult
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.kato.gce.deploy.handlers.BasicGoogleDeployHandler
+import com.netflix.spinnaker.kato.gce.model.GoogleDisk
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.mort.gce.model.GoogleSecurityGroup
 import com.netflix.spinnaker.mort.gce.provider.view.GoogleSecurityGroupProvider
@@ -51,8 +52,8 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "copyLastGoogleServerGroupDescription": { "source": { "zone": "us-central1-f", "serverGroupName": "myapp-dev-v000" }, "credentials": "my-account-name" }} ]' localhost:7002/ops
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "copyLastGoogleServerGroupDescription": { "source": { "zone": "us-central1-f", "serverGroupName": "myapp-dev-v000" }, "application": "myapp", "stack": "dev", "image": "ubuntu-1410-utopic-v20150625", "targetSize": 4, "instanceType": "g1-small", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "cloneServerGroup": { "source": { "zone": "us-central1-f", "serverGroupName": "myapp-dev-v000" }, "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "cloneServerGroup": { "source": { "zone": "us-central1-f", "serverGroupName": "myapp-dev-v000" }, "application": "myapp", "stack": "dev", "image": "ubuntu-1410-utopic-v20150625", "targetSize": 4, "instanceType": "g1-small", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    */
   @Override
   DeploymentResult operate(List priorOutputs) {
@@ -118,9 +119,16 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
       List<AttachedDisk> attachedDisks = ancestorInstanceProperties?.disks
 
       if (attachedDisks) {
-        newDescription.image = description.image ?: GCEUtil.getLocalName(attachedDisks[0].initializeParams.sourceImage)
-        newDescription.diskType = description.diskType ?: GCEUtil.getLocalName(attachedDisks[0].initializeParams.diskType)
-        newDescription.diskSizeGb = description.diskSizeGb ?: attachedDisks[0].initializeParams.diskSizeGb
+        def bootDisk = attachedDisks.find { it.getBoot() }
+
+        newDescription.image = description.image ?: GCEUtil.getLocalName(bootDisk.initializeParams.sourceImage)
+        newDescription.disks = description.disks ?: attachedDisks.collect { attachedDisk ->
+          def initializeParams = attachedDisk.initializeParams
+
+          new GoogleDisk(type: initializeParams.diskType,
+                         sizeGb: initializeParams.diskSizeGb,
+                         autoDelete: attachedDisk.autoDelete)
+        }
       }
 
       def instanceMetadata = ancestorInstanceProperties.metadata
@@ -137,6 +145,11 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
       if (tags != null) {
         newDescription.tags = description.tags != null ? description.tags : tags.items
       }
+
+      newDescription.authScopes =
+          description.authScopes != null
+          ? description.authScopes
+          : GCEUtil.retrieveScopesFromDefaultServiceAccount(ancestorInstanceProperties.serviceAccounts)
 
       newDescription.network =
         GCEUtil.getLocalName(description.network ?: ancestorInstanceProperties.networkInterfaces?.getAt(0)?.network)

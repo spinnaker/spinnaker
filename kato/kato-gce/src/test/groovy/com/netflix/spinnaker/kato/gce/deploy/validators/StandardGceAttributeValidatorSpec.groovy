@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRep
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class StandardGceAttributeValidatorSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
@@ -82,6 +83,22 @@ class StandardGceAttributeValidatorSpec extends Specification {
       0 * errors._
   }
 
+  @Unroll
+  void "expect non-empty ok with numeric values"() {
+    setup:
+    def errors = Mock(Errors)
+    def validator = new StandardGceAttributeValidator(DECORATOR, errors)
+    def label = "testAttribute"
+
+    when:
+    validator.validateNotEmpty(new Integer(intValue), label)
+    then:
+    0 * errors._
+
+    where:
+    intValue << [-1, 0, 1]
+  }
+
   void "expect non-empty to fail with empty"() {
     setup:
       def errors = Mock(Errors)
@@ -108,17 +125,17 @@ class StandardGceAttributeValidatorSpec extends Specification {
       def label = "testAttribute"
 
     when:
-      validator.validateNonNegativeInt(0, label)
+      validator.validateNonNegativeLong(0, label)
     then:
       0 * errors._
 
     when:
-      validator.validateNonNegativeInt(1, label)
+      validator.validateNonNegativeLong(1, label)
     then:
       0 * errors._
 
     when:
-      validator.validateNonNegativeInt(1 << 30, label)  // unlimited
+      validator.validateNonNegativeLong(1 << 30, label)  // unlimited
     then:
       0 * errors._
   }
@@ -130,7 +147,7 @@ class StandardGceAttributeValidatorSpec extends Specification {
       def label = "testAttribute"
 
     when:
-      validator.validateNonNegativeInt(-1, label)
+      validator.validateNonNegativeLong(-1, label)
     then:
       1 * errors.rejectValue(label, "${DECORATOR}.${label}.negative")
       0 * errors._

@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
@@ -39,7 +40,8 @@ class CopyLastGoogleServerGroupDescriptionValidatorSpec extends Specification {
   CopyLastGoogleServerGroupDescriptionValidator validator
 
   void setupSpec() {
-    validator = new CopyLastGoogleServerGroupDescriptionValidator()
+    def gceDeployDefaults = new GceConfig.DeployDefaults()
+    validator = new CopyLastGoogleServerGroupDescriptionValidator(gceDeployDefaults: gceDeployDefaults)
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     def credentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
     def credentials = Mock(GoogleNamedAccountCredentials)
