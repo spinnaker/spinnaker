@@ -8,17 +8,12 @@ SERVICES_JENKINS_DEFAULTMASTER_PASSWORD=password
 PROVIDERS_AWS_ENABLED=true
 
 # front end overrides - enter the results of docker-machine ip [yourenv] here
-API_HOST=[IP]
+API_HOST=192.168.99.100:8080
+SERVICES_DEFAULT_HOST=192.168.99.100
 
 # embedded cassandra
 CASSANDRA_HOST=127.0.0.1
 CASSANDRA_EMBEDDED=true
 
 # Internal configuration for docker compose - don't need to change
-SERVICES_DEFAULT_HOST=0.0.0.0
-SERVICES_CLOUDDRIVER_HOST=clouddriver
-SERVICES_ECHO_HOST=echo
-SERVICES_FRONT50_HOST=front50
-SERVICES_IGOR_HOST=igor
-SERVICES_ORCA_HOST=orca
 REDIS_CONNECTION=redis://redis:6379

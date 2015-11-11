@@ -1,0 +1,89 @@
+clouddriver: 
+  container_name: clouddriver
+  env_file: compose_env
+  image: spinnaker/clouddriver
+  links: 
+    - redis
+  ports: 
+    - "7002:7002"
+  volumes: 
+    - "../../config:/root/.spinnaker"
+    - "aws:/root/.aws"
+echo: 
+  container_name: echo
+  env_file: compose_env
+  image: spinnaker/echo
+  ports: 
+    - "8089:8089"
+  volumes: 
+    - "../../config:/root/.spinnaker"
+front50: 
+  container_name: front50
+  env_file: compose_env
+  image: spinnaker/front50
+  ports: 
+    - "8080:8080"
+  volumes: 
+    - "../../config:/root/.spinnaker"
+frontend: 
+  container_name: deck
+  env_file: compose_env
+  environment: 
+    DECK_HOST: "0.0.0.0"
+    DECK_PORT: 9000
+  image: spinnaker/deck
+  ports: 
+    - "9000:9000"
+gate: 
+  container_name: gate
+  env_file: compose_env
+  image: spinnaker/gate
+  ports: 
+    - "8084:8084"
+  volumes: 
+    - "../../config:/root/.spinnaker"
+  links: 
+    - redis
+igor: 
+  container_name: igor
+  env_file: compose_env
+  image: spinnaker/igor
+  links: 
+    - redis
+  ports: 
+    - "8088:8088"
+  volumes: 
+    - "../../config:/root/.spinnaker"
+orca: 
+  container_name: orca
+  env_file: compose_env
+  expose: 
+    - "8083:8083"
+  image: spinnaker/orca
+  links: 
+    - redis
+  volumes: 
+    - "../../config:/root/.spinnaker"
+redis: 
+  container_name: redis
+  expose: 
+    - "6379"
+  image: redis
+# rosco: 
+#   container_name: rosco
+#   env_file: compose_env
+#   image: "spinnaker/rosco:master"
+#   links: 
+#     - redis
+#   ports: 
+#     - "8083:8083"
+#   volumes: 
+#     - "../../config:/root/.spinnaker"
+# rush: 
+#   container_name: rush
+#   env_file: compose_env
+#   image: "spinnaker/rush:master"
+#   ports: 
+#     - "8087:8087"
+#   volumes: 
+#     - "../../config:/root/.spinnaker"
