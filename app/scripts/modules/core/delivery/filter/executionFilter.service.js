@@ -55,6 +55,7 @@ module.exports = angular
         return;
       }
       let searchText = [execution.name];
+      searchText.push(execution.id);
       searchText.push(getValuesAsString(execution.appConfig));
       searchText.push(getValuesAsString(execution.trigger));
       execution.stages.forEach((stage) => searchText.push(getValuesAsString(stage.context, ['commits', 'jarDiffs', 'kato.tasks'])));
