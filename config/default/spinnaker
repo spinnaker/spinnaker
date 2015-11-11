@@ -7,3 +7,10 @@ SPINNAKER_AWS_ENABLED=false
 # Default region you desire to operate in
 SPINNAKER_AWS_DEFAULT_REGION=us-west-2
 
+## GCE
+
+# If you plan on using Google Compute Engine set this to true
+SPINNAKER_GCE_ENABLED=false
+# Default region you desire to operate in
+SPINNAKER_GCE_DEFAULT_REGION=us-central1-b
+
