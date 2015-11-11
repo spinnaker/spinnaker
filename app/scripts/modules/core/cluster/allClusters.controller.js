@@ -17,10 +17,11 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
   require('angular-ui-bootstrap'),
   require('../cloudProvider/cloudProvider.registry.js'),
 ])
-  .controller('AllClustersCtrl', function($scope, app, $uibModal, providerSelectionService, _, clusterFilterService,
+  .controller('AllClustersCtrl', function($scope, app, $uibModal, $timeout, providerSelectionService, _, clusterFilterService,
                                           ClusterFilterModel, serverGroupCommandBuilder, cloudProviderRegistry) {
 
     ClusterFilterModel.activate();
+    this.initialized = false;
 
     $scope.sortFilter = ClusterFilterModel.sortFilter;
 
@@ -48,16 +49,17 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
       });
     }
 
-    function updateClusterGroups() {
+    let updateClusterGroups = () => {
       ClusterFilterModel.applyParamsToUrl();
-      $scope.$evalAsync(function() {
+      $scope.$evalAsync(() => {
           clusterFilterService.updateClusterGroups(app);
+          $scope.groups = ClusterFilterModel.groups;
+          $scope.tags = ClusterFilterModel.tags;
+          // Timeout because the updateClusterGroups method is debounced by 25ms
+          $timeout(() => { this.initialized = true; }, 50);
         }
       );
-
-      $scope.groups = ClusterFilterModel.groups;
-      $scope.tags = ClusterFilterModel.tags;
-    }
+    };
 
     this.clearFilters = function() {
       clusterFilterService.clearFilters();

@@ -12,10 +12,12 @@ module.exports = angular.module('spinnaker.core.loadBalancer.controller', [
   require('../filterModel/filter.tags.directive.js'),
   require('../cloudProvider/cloudProvider.registry.js'),
 ])
-  .controller('AllLoadBalancersCtrl', function($scope, $uibModal, _, providerSelectionService, cloudProviderRegistry,
+  .controller('AllLoadBalancersCtrl', function($scope, $uibModal, _, $timeout,
+                                               providerSelectionService, cloudProviderRegistry,
                                                LoadBalancerFilterModel, loadBalancerFilterService, app ) {
 
     LoadBalancerFilterModel.activate();
+    this.initialized = false;
 
     $scope.application = app;
 
@@ -42,14 +44,16 @@ module.exports = angular.module('spinnaker.core.loadBalancer.controller', [
       updateLoadBalancerGroups();
     };
 
-    function updateLoadBalancerGroups() {
+    let updateLoadBalancerGroups = () => {
       LoadBalancerFilterModel.applyParamsToUrl();
-      $scope.$evalAsync(function() {
+      $scope.$evalAsync(() => {
         loadBalancerFilterService.updateLoadBalancerGroups(app);
         $scope.groups = LoadBalancerFilterModel.groups;
         $scope.tags = LoadBalancerFilterModel.tags;
+        // Timeout because the updateLoadBalancerGroups method is debounced by 25ms
+        $timeout(() => { this.initialized = true; }, 50);
       });
-    }
+    };
 
     this.createLoadBalancer = function createLoadBalancer() {
       providerSelectionService.selectProvider(app).then(function(selectedProvider) {
