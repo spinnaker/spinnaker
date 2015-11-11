@@ -20,12 +20,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.cassandra.TimeSeriesRepository
 import com.netflix.spinnaker.echo.model.Event
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 /**
  * Event listener for echo events
  */
 @Component
+@ConditionalOnProperty('timeseries.enabled')
 class CassandraEventListener implements EchoEventListener {
 
     @Autowired
