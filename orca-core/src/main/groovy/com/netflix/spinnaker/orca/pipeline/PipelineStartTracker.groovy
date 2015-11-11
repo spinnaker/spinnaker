@@ -16,17 +16,25 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStack
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import rx.schedulers.Schedulers
 
+@Slf4j
 @Component
 @CompileStatic
 class PipelineStartTracker {
 
   @Autowired
   PipelineStack pipelineStack
+
+  @Autowired
+  ExecutionRepository executionRepository
 
   static final String PIPELINE_STARTED = "PIPELINE:STARTED"
   static final String PIPELINE_QUEUED = "PIPELINE:QUEUED"
@@ -41,6 +49,18 @@ class PipelineStartTracker {
   }
 
   boolean queueIfNotStarted(String pipelineConfigId, String executionId) {
+    def allRunningExecutionIds = executionRepository.retrievePipelinesForPipelineConfigId(
+      pipelineConfigId,
+      new ExecutionRepository.ExecutionCriteria(limit: Integer.MAX_VALUE, statuses: [ExecutionStatus.RUNNING.toString()])
+    ).subscribeOn(Schedulers.io()).toList().toBlocking().single()*.id
+
+    getStartedPipelines(pipelineConfigId).each { String eId ->
+      if (!allRunningExecutionIds.contains(eId)) {
+        log.info("No running execution found for `${pipelineConfigId}:${eId}`, marking as finished")
+        markAsFinished(pipelineConfigId, eId)
+      }
+    }
+
     boolean isQueued = pipelineStack.addToListIfKeyExists("${PIPELINE_STARTED}:${pipelineConfigId}", "${PIPELINE_QUEUED}:${pipelineConfigId}", executionId)
     if (isQueued) {
       pipelineStack.add(PIPELINE_QUEUED_ALL, executionId)
@@ -65,6 +85,10 @@ class PipelineStartTracker {
 
   List<String> getQueuedPipelines(String pipelineConfigId) {
     pipelineStack.elements("${PIPELINE_QUEUED}:${pipelineConfigId}")
+  }
+
+  List<String> getStartedPipelines(String pipelineConfigId) {
+    pipelineStack.elements("${PIPELINE_STARTED}:${pipelineConfigId}")
   }
 
   void removeFromQueue(String pipelineConfigId, String executionId) {
