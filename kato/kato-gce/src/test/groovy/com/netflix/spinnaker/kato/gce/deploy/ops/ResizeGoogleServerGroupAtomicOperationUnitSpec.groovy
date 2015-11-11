@@ -64,5 +64,6 @@ class ResizeGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       targetSize  | capacity
       TARGET_SIZE | null
       null        | new ResizeGoogleServerGroupDescription.Capacity(desired: TARGET_SIZE)
+      TARGET_SIZE | new ResizeGoogleServerGroupDescription.Capacity(desired: TARGET_SIZE * 2)
   }
 }

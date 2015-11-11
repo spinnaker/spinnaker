@@ -96,6 +96,13 @@ class ResizeGoogleServerGroupDescriptionValidatorSpec extends Specification {
       def errors = Mock(Errors)
 
     when:
+      // no description.capacity set.
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue("targetSize", "resizeGoogleServerGroupDescription.targetSize.empty")
+
+    when:
       description.capacity =  new ResizeGoogleServerGroupDescription.Capacity(desired: 10)
       validator.validate([], description, errors)
 

@@ -24,6 +24,9 @@ class ResizeGoogleServerGroupDescription {
   String zone
   String accountName
   GoogleCredentials credentials
+  /**
+   * targetSize takes precedence if it and capacity are both specified.
+   */
   Capacity capacity
 
   /**
