@@ -36,7 +36,7 @@ import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
-class UpsertGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
+class UpsertGoogleLoadBalancerAtomicOperation implements AtomicOperation<Map> {
   private static final String BASE_PHASE = "UPSERT_LOAD_BALANCER"
 
   private static Task getTask() {
@@ -53,13 +53,13 @@ class UpsertGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertGoogleLoadBalancerDescription": { "region": "us-central1", "credentials" : "my-account-name", "loadBalancerName" : "testlb" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertLoadBalancer": { "region": "us-central1", "credentials" : "my-account-name", "loadBalancerName" : "testlb" }} ]' localhost:7002/gce/ops
    *
    * @param priorOutputs
    * @return
    */
   @Override
-  Void operate(List priorOutputs) {
+  Map operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing upsert of load balancer $description.loadBalancerName " +
       "in $description.region..."
 
@@ -242,7 +242,7 @@ class UpsertGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
       needToCreateNewForwardingRule, targetPoolName, targetPoolResourceLink, region, compute, project)
 
     task.updateStatus BASE_PHASE, "Done upserting load balancer $description.loadBalancerName in $region."
-    null
+    [loadBalancers: [(region): [name: description.loadBalancerName]]]
   }
 
   private void updateHttpHealthCheck(HttpHealthCheck existingHttpHealthCheck, Compute compute, String project) {

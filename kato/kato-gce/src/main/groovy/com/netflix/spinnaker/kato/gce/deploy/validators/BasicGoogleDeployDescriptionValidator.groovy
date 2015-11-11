@@ -47,6 +47,7 @@ class BasicGoogleDeployDescriptionValidator extends DescriptionValidator<BasicGo
     helper.validateAuthScopes(description.authScopes)
     helper.validateZone(description.zone)
     helper.validateName(description.application, "application")
-    helper.validateNonNegativeLong(description.targetSize, "targetSize")
+    helper.validateNotEmpty(description.targetSize, "targetSize")
+    helper.validateNonNegativeLong(description.targetSize ?: 0, "targetSize")
   }
 }

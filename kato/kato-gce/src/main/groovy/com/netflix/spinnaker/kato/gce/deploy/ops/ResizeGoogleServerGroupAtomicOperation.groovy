@@ -44,11 +44,12 @@ class ResizeGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
 
     def project = description.credentials.project
     def compute = description.credentials.compute
+    int targetSize = description.targetSize instanceof Number ? description.targetSize : description.capacity.desired
 
     compute.instanceGroupManagers().resize(project,
                                            description.zone,
                                            description.serverGroupName,
-                                           description.targetSize).execute()
+                                           targetSize).execute()
 
     task.updateStatus BASE_PHASE, "Done resizing server group $description.serverGroupName in $description.zone."
     null

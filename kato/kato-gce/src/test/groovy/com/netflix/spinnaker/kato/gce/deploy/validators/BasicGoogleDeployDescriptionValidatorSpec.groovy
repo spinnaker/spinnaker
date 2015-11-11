@@ -157,7 +157,9 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
       validator.validate([], new BasicGoogleDeployDescription(disks: [DISK_ZERO_SIZE]), errors)
 
     then:
-      1 * errors.rejectValue("disks", "basicGoogleDeployDescription.disk0.sizeGb.empty")
+      1 * errors.rejectValue("disks",
+                             "basicGoogleDeployDescription.disk0.sizeGb.invalidSize",
+                             "Persistent disks must be at least 10GB.")
 
     when:
       validator.validate([], new BasicGoogleDeployDescription(disks: [DISK_TOO_SMALL_SIZE]), errors)

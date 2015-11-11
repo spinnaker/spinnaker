@@ -16,12 +16,15 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.converters
 
+import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.kato.gce.deploy.ops.loadbalancer.UpsertGoogleLoadBalancerAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
+@GoogleOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component("upsertGoogleLoadBalancerDescription")
 class UpsertGoogleLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   AtomicOperation convertOperation(Map input) {

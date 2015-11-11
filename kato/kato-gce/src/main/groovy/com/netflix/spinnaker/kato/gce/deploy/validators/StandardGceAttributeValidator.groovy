@@ -102,17 +102,19 @@ class StandardGceAttributeValidator {
    * Validate a value that should not be empty.
    *
    * @param value The value cannot be null, empty string, or an empty container.
-   *              However it can be a container of only empty values.
+   *              However it can be a container of only empty values. Any
+   *              numeric value is considered non-empty.
    * @param attribute The name of the attribute being validated.
    * @param part If different than the attribute name then this is a subcomponent
    *             within the attribute (e.g. element within a list).
    */
   def validateNotEmptyAsPart(Object value, String attribute, String part) {
-    if (!value) {
+    if (value || value instanceof Number) {
+      return true
+    } else {
       errors.rejectValue(attribute, "${context}.${part}.empty")
       return false
     }
-    return true
   }
 
   /**
