@@ -5,3 +5,5 @@ build/
 *.pyc
 *~
 #*
+config/spinnaker-local.yml
+.DS_Store
