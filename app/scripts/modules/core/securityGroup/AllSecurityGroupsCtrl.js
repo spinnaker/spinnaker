@@ -11,11 +11,12 @@ module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
   require('angular-ui-bootstrap'),
   require('../cloudProvider/cloudProvider.registry.js'),
 ])
-  .controller('AllSecurityGroupsCtrl', function($scope, app, $uibModal, _, providerSelectionService, settings,
-                                                cloudProviderRegistry,
+  .controller('AllSecurityGroupsCtrl', function($scope, app, $uibModal, _, $timeout,
+                                                providerSelectionService, settings, cloudProviderRegistry,
                                                 SecurityGroupFilterModel, securityGroupFilterService) {
 
     SecurityGroupFilterModel.activate();
+    this.initialized = false;
 
     $scope.application = app;
 
@@ -43,14 +44,16 @@ module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
       updateSecurityGroups();
     };
 
-    function updateSecurityGroups() {
+    let updateSecurityGroups = () => {
       SecurityGroupFilterModel.applyParamsToUrl();
-      $scope.$evalAsync(function () {
+      $scope.$evalAsync(() => {
         securityGroupFilterService.updateSecurityGroups(app);
         $scope.groups = SecurityGroupFilterModel.groups;
         $scope.tags = SecurityGroupFilterModel.tags;
+        // Timeout because the updateSecurityGroups method is debounced by 25ms
+        $timeout(() => { this.initialized = true; }, 50);
       });
-    }
+    };
 
     this.createSecurityGroup = function createSecurityGroup() {
       providerSelectionService.selectProvider(app).then(function(selectedProvider) {
