@@ -13,14 +13,23 @@ These instructions have been tested on MacOS 10.11.1 and Docker Toolbox 1.9.0b
 Instructions.
 -------------
 
-Prerequisites:
+Limitations
+-----------
+
+* The docker compose project is intended as a 'try Spinnaker now' tool. It's not intended for production use.
+
+* Since we use an in-memory cassandra and an in-memory redis, changes to applications and pipelines will not be persisted across restarts. 
+
+* We only support Amazon credentials set via the .aws directory or via environment variables. 
+
+Requirements:
 -------------
 
 Make sure you're happy with the configuration of your spinnaker-local.yml file at ../../config. The instructions to change this are in the file default-spinnaker-local.yml
 
-Also make sure you have followed the setup needed at the Cloud level from the directions at the root of this project's README file. 
+Make sure you have followed the setup needed at the Cloud level from the directions at the root of this project's README file. 
 
-1. Install the [Docker ToolBox](https://www.docker.com/docker-toolbox)
+Install the [Docker ToolBox](https://www.docker.com/docker-toolbox)
 
 Starting Spinnaker
 ------------------
@@ -50,3 +59,8 @@ Stopping Spinnaker
 
 1. Run ```docker-compose stop```
 2. If you don't want to keep the containers around, use ```docker-compose rm -f```
+
+Helpful tips
+------------
+
+* Spinnaker is pretty memory intensive, we suggest modifying the virtual box image used by docker machine to have more memory. You can do this by opening virtualbox and changing your base memory amount via settings -> System -> Base memory. This configuration has been tested on 8GB. 
