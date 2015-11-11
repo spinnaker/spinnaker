@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
   require('../create/create.module.js'),
 ])
   .controller('ExecutionsCtrl', function($scope, $state, $q, $uibModal, $stateParams,
-                                         pipelineConfigService, scrollToService,
+                                         pipelineConfigService, scrollToService, $timeout,
                                          executionService, ExecutionFilterModel, executionFilterService,
                                          InsightFilterStateModel) {
 
@@ -47,7 +47,8 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       ExecutionFilterModel.applyParamsToUrl();
       executionFilterService.updateExecutionGroups(this.application);
       this.tags = ExecutionFilterModel.tags;
-      this.viewState.loading = false;
+      // updateExecutionGroups is debounced by 25ms, so we need to delay setting the loading flag a bit
+      $timeout(() => { this.viewState.loading = false; }, 50);
     };
 
     this.viewState = {
