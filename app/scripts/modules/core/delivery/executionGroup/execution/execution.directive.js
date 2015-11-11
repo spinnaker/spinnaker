@@ -9,6 +9,7 @@ module.exports = angular
     require('../../filter/executionFilter.service.js'),
     require('../../filter/executionFilter.model.js'),
     require('../../../confirmationModal/confirmationModal.service.js'),
+    require('../../../navigation/urlParser.service.js'),
   ])
   .directive('execution', function() {
     return {
@@ -23,7 +24,7 @@ module.exports = angular
       controllerAs: 'vm',
     };
   })
-  .controller('ExecutionCtrl', function ($scope, $location, $stateParams, $state,
+  .controller('ExecutionCtrl', function ($scope, $location, $stateParams, $state, urlParser,
                                          settings, ExecutionFilterModel, executionService, confirmationModalService) {
 
     this.pipelinesUrl = [settings.gateUrl, 'pipelines/'].join('/');
@@ -50,7 +51,15 @@ module.exports = angular
       }
     };
 
-    this.getUrl = () => $location.absUrl();
+    this.getUrl = () => {
+      // replace any search text with the execution id
+      let [url, queryString] = $location.absUrl().split('?');
+      let queryParams = urlParser.parseQueryString(queryString);
+      queryParams.q = this.execution.id;
+      url += '?';
+      let newQueryParts = Object.keys(queryParams).map((param) => param + '=' + queryParams[param]);
+      return url + newQueryParts.join('&');
+    };
 
     let updateViewStateDetails = () => {
       this.viewState.activeStageId = Number($stateParams.stage);
