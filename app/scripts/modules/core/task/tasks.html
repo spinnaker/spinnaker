@@ -159,7 +159,7 @@
     </div>
     <div class="row pagination-footer">
       <div class="col-md-9">
-        <uib-pagination ng-if="tasks.tasksLoaded && tasks.sortedTasks.length > pagination.itemsPerPage"
+        <uib-pagination ng-if="!viewState.loading && tasks.sortedTasks.length > pagination.itemsPerPage"
                     items-per-page="pagination.itemsPerPage"
                     total-items="tasks.sortedTasks.length"
                     max-size="pagination.maxSize"
