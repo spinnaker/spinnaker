@@ -67,21 +67,18 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
     def orchestrations = buildExecutions(startTime, 3)
     def pipelines = buildExecutions(startTime, 3, "P1") + buildExecutions(startTime, 5, "P2")
 
-    def agent = new TopApplicationExecutionCleanupPollingNotificationAgent(threshold: 2,
-                                                                           minimumNumberOfExecutionsToKeepPerPipeline: 2)
+    def agent = new TopApplicationExecutionCleanupPollingNotificationAgent(threshold: 2)
     agent.jedisPool = Mock(Pool) {
       1 * getResource() >> {
         return Mock(Jedis) {
-          1 * keys("*:app:*") >> { ["orchestration:app:app1", "pipeline:app:app2"] }
+          1 * keys("orchestration:app:*") >> { ["orchestration:app:app1"] }
           1 * scard("orchestration:app:app1") >> { return orchestrations.size() }
-          1 * scard("pipeline:app:app2") >> { return pipelines.size() }
           0 * _
         }
       }
     }
     agent.executionRepository = Mock(ExecutionRepository) {
       1 * retrieveOrchestrationsForApplication("app1", _) >> { return rx.Observable.from(orchestrations) }
-      1 * retrievePipelinesForApplication("app2") >> { return rx.Observable.from(pipelines) }
       0 * _
     }
 
@@ -90,16 +87,6 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
 
     then:
     1 * agent.executionRepository.deleteOrchestration(orchestrations[0].id)
-    1 * agent.executionRepository.deletePipeline(pipelines[0].id)
-// These executions should be preserved as they're the most recent `minimumNumberOfExecutionsToKeepPerPipeline`
-//    1 * agent.executionRepository.deletePipeline(pipelines[1].id)
-//    1 * agent.executionRepository.deletePipeline(pipelines[2].id)
-    1 * agent.executionRepository.deletePipeline(pipelines[3].id)
-    1 * agent.executionRepository.deletePipeline(pipelines[4].id)
-    1 * agent.executionRepository.deletePipeline(pipelines[5].id)
-// These executions should be preserved as they're the most recent `minimumNumberOfExecutionsToKeepPerPipeline`
-//    1 * agent.executionRepository.deletePipeline(pipelines[6].id)
-//    1 * agent.executionRepository.deletePipeline(pipelines[7].id)
   }
 
   private
