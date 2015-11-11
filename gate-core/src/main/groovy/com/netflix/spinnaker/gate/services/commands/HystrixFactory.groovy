@@ -50,6 +50,15 @@ class HystrixFactory {
 
     new StringCommand(groupKey, commandKey, propagate(work, false), fallback )
   }
+
+  public static VoidCommand newVoidCommand(String groupKey,
+                                        String commandKey,
+                                        Closure<?> work,
+                                        Closure<?> fallback = { null }) {
+
+    new VoidCommand(groupKey, commandKey, propagate(work, false), fallback )
+  }
+
   private static class ListCommand extends AbstractHystrixCommand<List> {
     ListCommand(String groupKey, String commandKey, Closure work, Closure fallback) {
       super(groupKey, commandKey, work, fallback)
@@ -64,6 +73,12 @@ class HystrixFactory {
 
   private static class StringCommand extends AbstractHystrixCommand<String> {
     StringCommand(String groupKey, String commandKey, Closure work, Closure fallback) {
+      super(groupKey, commandKey, work, fallback)
+    }
+  }
+
+  private static class VoidCommand extends AbstractHystrixCommand<Void> {
+    VoidCommand(String groupKey, String commandKey, Closure work, Closure fallback) {
       super(groupKey, commandKey, work, fallback)
     }
   }

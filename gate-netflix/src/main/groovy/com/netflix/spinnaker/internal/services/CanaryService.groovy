@@ -38,15 +38,33 @@ class CanaryService {
   MineService mineService
 
   void generateCanaryResult(String canaryId, int duration, String durationUnit) {
-    mineService?.generateCanaryResult(canaryId, duration, durationUnit)
+    HystrixFactory.newVoidCommand(HYSTRIX_GROUP, "generateCanaryResult", {
+      try {
+        mineService?.generateCanaryResult(canaryId, duration, durationUnit)
+      } catch (RetrofitError error) {
+        throw classifyError(error)
+      }
+    }).execute()
   }
 
   List<Map> getCanaryAnalysisHistory(String canaryDeploymentId) {
-    mineService ? mineService.getCanaryAnalysisHistory(canaryDeploymentId) : []
+    HystrixFactory.newListCommand(HYSTRIX_GROUP, "getCanaryAnalysisHistory", {
+      try {
+        mineService ? mineService.getCanaryAnalysisHistory(canaryDeploymentId) : []
+      } catch (RetrofitError error) {
+        throw classifyError(error)
+      }
+    }).execute()
   }
 
   Map endCanary(String canaryId, String result, String reason) {
-    mineService ? mineService.endCanary(canaryId, result, reason) : [:]
+    HystrixFactory.newMapCommand(HYSTRIX_GROUP, "endCanary", {
+      try {
+        mineService ? mineService.endCanary(canaryId, result, reason) : [:]
+      } catch (RetrofitError error) {
+        throw classifyError(error)
+      }
+    }).execute()
   }
 
   Map showCanary(String canaryId) {
@@ -60,7 +78,13 @@ class CanaryService {
   }
 
   List<String> getCanaryConfigNames() {
-    mineService ? mineService.getCanaryConfigNames() : []
+    HystrixFactory.newListCommand(HYSTRIX_GROUP, "getCanaryConfigNames", {
+      try {
+        mineService ? mineService.getCanaryConfigNames() : []
+      } catch (RetrofitError error) {
+        throw classifyError(error)
+      }
+    }).execute()
   }
 
 }
