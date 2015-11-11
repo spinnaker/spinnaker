@@ -83,8 +83,15 @@ module.exports = angular.module('spinnaker.cf.loadBalancer.transformer', [
     }
 
     function convertLoadBalancerForEditing(loadBalancer) {
-      // TODO: fill in
-      return {};
+      return {
+        provider: 'cf',
+        stack: loadBalancer.stack,
+        detail: loadBalancer.detail,
+        credentials: loadBalancer.credentials,
+        region: loadBalancer.region,
+        healthCheckProtocol: loadBalancer.healthCheckProtocol,
+        healthCheckPort: loadBalancer.healthCheckPort
+      };
     }
 
     return {
