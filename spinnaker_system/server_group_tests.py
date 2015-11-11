@@ -94,6 +94,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
       'credentials': self.bindings['GCE_CREDENTIALS'],
       'zone': self.TEST_ZONE,
       'network': 'default',
+      'targetSize': 1,
       'capacity': {
         'min': 1,
         'max': 1,
@@ -133,6 +134,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
 
   def resize_server_group(self):
     job = [{
+      'targetSize': 2,
       'capacity': {
         'min': 2,
         'max': 2,
@@ -173,6 +175,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
       'stack': self.TEST_STACK,
       'credentials': self.bindings['GCE_CREDENTIALS'],
       'loadBalancers': [self.__lb_name],
+      'targetSize': 1,
       'capacity': {
         'min': 1,
         'max': 1,
