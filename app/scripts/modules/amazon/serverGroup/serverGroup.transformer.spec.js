@@ -53,22 +53,6 @@ describe('awsServerGroupTransformer', function () {
 
   describe('command transforms', function () {
 
-    it('sets amiName from allImageSelection', function () {
-      var command = {
-        viewState: {
-          mode: 'create',
-          useAllImageSelection: true,
-          allImageSelection: 'something-packagebase',
-        },
-        application: { name: 'theApp'}
-      };
-
-      var transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
-
-      expect(transformed.amiName).toBe('something-packagebase');
-
-    });
-
     it('removes subnetType property when null', function () {
       var command = {
         viewState: {

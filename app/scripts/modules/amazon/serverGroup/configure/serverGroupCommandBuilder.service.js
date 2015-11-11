@@ -61,7 +61,6 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
             securityGroups: [],
             viewState: {
               instanceProfile: 'custom',
-              allImageSelection: null,
               useAllImageSelection: false,
               useSimpleCapacity: true,
               usePreferredZones: true,
@@ -195,7 +194,6 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
           suspendedProcesses: (serverGroup.asg.suspendedProcesses || []).map((process) => process.processName),
           viewState: {
             instanceProfile: asyncData.instanceProfile,
-            allImageSelection: null,
             useAllImageSelection: false,
             useSimpleCapacity: serverGroup.asg.minSize === serverGroup.asg.maxSize,
             usePreferredZones: usePreferredZones,

@@ -29,9 +29,6 @@ module.exports = angular.module('spinnaker.aws.serverGroup.transformer', [
       if (base.viewState.mode !== 'clone') {
         delete command.source;
       }
-      if (base.viewState.useAllImageSelection) {
-        command.amiName = base.viewState.allImageSelection;
-      }
       command.cloudProvider = 'aws';
       command.availabilityZones = {};
       command.availabilityZones[command.region] = base.availabilityZones;
