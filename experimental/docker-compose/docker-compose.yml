@@ -1,6 +1,6 @@
 clouddriver: 
   container_name: clouddriver
-  env_file: compose_env
+  env_file: ./compose.env
   image: spinnaker/clouddriver
   links: 
     - redis
@@ -8,10 +8,11 @@ clouddriver:
     - "7002:7002"
   volumes: 
     - "../../config:/root/.spinnaker"
-    - "aws:/root/.aws"
 echo: 
   container_name: echo
-  env_file: compose_env
+  env_file: ./compose.env
+  environment:
+    - ORCA_BASEURL=$DOCKER_IP:8083
   image: spinnaker/echo
   ports: 
     - "8089:8089"
@@ -19,7 +20,7 @@ echo:
     - "../../config:/root/.spinnaker"
 front50: 
   container_name: front50
-  env_file: compose_env
+  env_file: ./compose.env
   image: spinnaker/front50
   ports: 
     - "8080:8080"
@@ -27,26 +28,35 @@ front50:
     - "../../config:/root/.spinnaker"
 frontend: 
   container_name: deck
-  env_file: compose_env
-  environment: 
-    DECK_HOST: "0.0.0.0"
-    DECK_PORT: 9000
   image: spinnaker/deck
   ports: 
     - "9000:9000"
+  environment:
+    - API_HOST=$DOCKER_IP:8084
+    - DECK_HOST=0.0.0.0
+    - DECK_PORT=9000
+    - PROTOCOL=http
 gate: 
   container_name: gate
-  env_file: compose_env
+  env_file: ./compose.env
+  environment:
+    - CLOUDDRIVER_BASE_URL=$DOCKER_IP:7002
+    - ECHO_BASEURL=$DOCKER_IP:8089
+    - FRONT50_BASEURL=$DOCKER_IP:8080
+    - IGOR_BASEURL=$DOCKER_IP:8088
+    - ORCA_BASEURL=$DOCKER_IP:8083
   image: spinnaker/gate
+  links: 
+    - redis
   ports: 
     - "8084:8084"
   volumes: 
     - "../../config:/root/.spinnaker"
-  links: 
-    - redis
 igor: 
   container_name: igor
-  env_file: compose_env
+  env_file: ./compose.env
+  environment:
+    - ECHO_BASEURL=$DOCKER_IP:8089
   image: spinnaker/igor
   links: 
     - redis
@@ -56,10 +66,15 @@ igor:
     - "../../config:/root/.spinnaker"
 orca: 
   container_name: orca
-  env_file: compose_env
-  expose: 
+  env_file: ./compose.env
+  ports: 
     - "8083:8083"
   image: spinnaker/orca
+  environment:
+    - CLOUDDRIVER_BASE_URL=$DOCKER_IP:7002
+    - ECHO_BASEURL=$DOCKER_IP:8089
+    - FRONT50_BASEURL=$DOCKER_IP:8080
+    - IGOR_BASEURL=$DOCKER_IP:8088
   links: 
     - redis
   volumes: 
@@ -69,21 +84,3 @@ redis:
   expose: 
     - "6379"
   image: redis
-# rosco: 
-#   container_name: rosco
-#   env_file: compose_env
-#   image: "spinnaker/rosco:master"
-#   links: 
-#     - redis
-#   ports: 
-#     - "8083:8083"
-#   volumes: 
-#     - "../../config:/root/.spinnaker"
-# rush: 
-#   container_name: rush
-#   env_file: compose_env
-#   image: "spinnaker/rush:master"
-#   ports: 
-#     - "8087:8087"
-#   volumes: 
-#     - "../../config:/root/.spinnaker"
