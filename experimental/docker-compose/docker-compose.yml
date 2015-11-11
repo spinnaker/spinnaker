@@ -1,6 +1,9 @@
 clouddriver: 
   container_name: clouddriver
   env_file: ./compose.env
+  environment: 
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
   image: spinnaker/clouddriver
   links: 
     - redis
@@ -8,11 +11,12 @@ clouddriver:
     - "7002:7002"
   volumes: 
     - "../../config:/root/.spinnaker"
+    - "~/.aws:/root/.aws"
 echo: 
   container_name: echo
   env_file: ./compose.env
-  environment:
-    - SERVICE_DEFAULT_HOST=$DOCKER_IP
+  environment: 
+    - "FRONT50_BASEURL=http://$DOCKER_IP:8080"
   image: spinnaker/echo
   ports: 
     - "8089:8089"
@@ -28,29 +32,33 @@ front50:
     - "../../config:/root/.spinnaker"
 frontend: 
   container_name: deck
-  image: spinnaker/deck
-  ports: 
-    - "9000:9000"
-  environment:
-    - API_HOST=$DOCKER_IP:8084
+  environment: 
+    - "API_HOST=$DOCKER_IP:8084"
     - DECK_HOST=0.0.0.0
     - DECK_PORT=9000
     - PROTOCOL=http
+  image: spinnaker/deck
+  ports: 
+    - "9000:9000"
 gate: 
   container_name: gate
   env_file: ./compose.env
-  environment:
-    - SERVICE_DEFAULT_HOST=$DOCKER_IP
-    - CLOUDDRIVER_BASE_URL=$DOCKER_IP:7002
-    - ECHO_BASEURL=$DOCKER_IP:8089
-    - FRONT50_BASEURL=$DOCKER_IP:8080
-    - OORT=$DOCKER_IP:8083
-    - MORT_BASEURL=$DOCKER_IP:8083
-    - IGOR_BASEURL=$DOCKER_IP:8088
-    - ORCA_BASEURL=$DOCKER_IP:8083
+  environment: 
+    - "CLOUDDRIVER_BASE_URL=http://clouddriver:7002"
+    - "ECHO_BASEURL=http://echo:8089"
+    - "FRONT50_BASEURL=http://front50:8080"
+    - "OORT_BASEURL=http://clouddriver:8083"
+    - "MORT_BASEURL=http://clouddriver:8083"
+    - "IGOR_BASEURL=http://igor:8088"
+    - "ORCA_BASEURL=http://orca:8083"
   image: spinnaker/gate
   links: 
     - redis
+    - clouddriver
+    - echo
+    - front50
+    - igor
+    - orca
   ports: 
     - "8084:8084"
   volumes: 
@@ -58,12 +66,12 @@ gate:
 igor: 
   container_name: igor
   env_file: ./compose.env
-  environment:
-    - SERVICE_DEFAULT_HOST=$DOCKER_IP
-    - ECHO_BASEURL=$DOCKER_IP:8089
+  environment: 
+    - "SERVICES_ECHO_BASEURL=http://echo:8089"
   image: spinnaker/igor
   links: 
     - redis
+    - echo
   ports: 
     - "8088:8088"
   volumes: 
@@ -71,13 +79,20 @@ igor:
 orca: 
   container_name: orca
   env_file: ./compose.env
-  ports: 
-    - "8083:8083"
+  environment: 
+    - "CLOUDDRIVER_BASE_URL=http://clouddriver:7002"
+    - "ECHO_BASEURL=http://echo:8089"
+    - "FRONT50_BASEURL=http://front50:8080"
+    - "IGOR_BASEURL=http://igor:8088"
   image: spinnaker/orca
-  environment:
-    - SERVICE_DEFAULT_HOST=$DOCKER_IP
   links: 
     - redis
+    - clouddriver
+    - echo
+    - front50
+    - igor
+  ports: 
+    - "8083:8083"
   volumes: 
     - "../../config:/root/.spinnaker"
 redis: 
