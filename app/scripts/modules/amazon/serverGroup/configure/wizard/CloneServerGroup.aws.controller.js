@@ -164,7 +164,7 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
 
     this.isValid = function () {
       return $scope.command &&
-        ($scope.command.viewState.useAllImageSelection ? $scope.command.viewState.allImageSelection !== null : $scope.command.amiName !== null) &&
+        ($scope.command.amiName !== null) &&
         ($scope.command.application !== null) &&
         ($scope.command.credentials !== null) && ($scope.command.instanceType !== null) &&
         ($scope.command.region !== null) && ($scope.command.availabilityZones !== null) &&

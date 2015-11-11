@@ -14,6 +14,49 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.basicSettin
   .controller('awsServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state,
                                                           modalWizardService, RxService, imageReader, namingService) {
 
+    function searchImages(q) {
+      $scope.command.backingData.filtered.images = [
+        {
+          message: '<span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span> Finding results matching "' + q + '"...'
+        }
+      ];
+      return RxService.Observable.fromPromise(
+        imageReader.findImages({
+          provider: $scope.command.selectedProvider,
+          q: q,
+          region: $scope.command.region
+        })
+      );
+    }
+
+    var imageSearchResultsStream = new RxService.Subject();
+
+    imageSearchResultsStream
+      .throttle(250)
+      .flatMapLatest(searchImages)
+      .subscribe(function (data) {
+        $scope.command.backingData.filtered.images = data.map(function(image) {
+          if (image.message && !image.imageName) {
+            return image;
+          }
+          return {
+            imageName: image.imageName,
+            ami: image.amis && image.amis[$scope.command.region] ? image.amis[$scope.command.region][0] : null,
+            virtualizationType: image.attributes ? image.attributes.virtualizationType : null,
+          };
+        });
+        $scope.command.backingData.packageImages = $scope.command.backingData.filtered.images;
+      });
+
+    this.searchImages = function(q) {
+      imageSearchResultsStream.onNext(q);
+    };
+
+    this.enableAllImageSearch = () => {
+      $scope.command.viewState.useAllImageSelection = true;
+      this.searchImages('');
+    };
+
     this.imageChanged = (image) => {
       $scope.command.virtualizationType = image.virtualizationType;
     };

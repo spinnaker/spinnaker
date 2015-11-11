@@ -12,42 +12,6 @@ module.exports = angular
     require('../../../image/image.reader.js')
   ])
   .controller('BasicSettingsMixin', function ($scope, RxService, imageReader, namingService, $uibModalStack, $state, _) {
-    function searchImages(q) {
-      $scope.allImageSearchResults = [
-        {
-          message: '<span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span> Finding results matching "' + q + '"...'
-        }
-      ];
-      return RxService.Observable.fromPromise(
-        imageReader.findImages({
-          provider: $scope.command.selectedProvider,
-          q: q,
-          region: $scope.command.region
-        })
-      );
-    }
-
-    var imageSearchResultsStream = new RxService.Subject();
-
-    imageSearchResultsStream
-      .throttle(250)
-      .flatMapLatest(searchImages)
-      .subscribe(function (data) {
-        $scope.allImageSearchResults = data.map(function(image) {
-          if (image.message && !image.imageName) {
-            return image;
-          }
-          return {
-            imageName: image.imageName,
-            ami: image.amis && image.amis[$scope.command.region] ? image.amis[$scope.command.region][0] : null,
-            virtualizationType: image.attributes ? image.attributes.virtualizationType : null,
-          };
-        });
-      });
-
-    this.searchImages = function(q) {
-      imageSearchResultsStream.onNext(q);
-    };
 
     this.createsNewCluster = function() {
       var name = this.getNamePreview();
