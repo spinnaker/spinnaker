@@ -17,15 +17,21 @@
 package com.netflix.spinnaker.orca.batch.pipeline
 
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStack
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-class PipelineStarterQueueSpec extends Specification {
+class PipelineStartTrackerSpec extends Specification {
+  def executionRepository = Mock(ExecutionRepository)
 
   @Subject
-  PipelineStartTracker queue = new PipelineStartTracker(pipelineStack: new InMemoryPipelineStack())
+  PipelineStartTracker queue = new PipelineStartTracker(
+    pipelineStack: new InMemoryPipelineStack(),
+    executionRepository: executionRepository
+  )
 
   void "should return a list of started jobs"() {
     given:
@@ -52,6 +58,12 @@ class PipelineStarterQueueSpec extends Specification {
 
   void "should get a list of queued jobs"() {
     given:
+    executionRepository.retrievePipelinesForPipelineConfigId(_, _) >> {
+      return rx.Observable.from([
+          buildPipeline("xxx")
+      ])
+    }
+
     queue.addToStarted('123', 'xxx')
     (1..5).each {
       queue.queueIfNotStarted("123", "123-queue-${it}")
@@ -73,6 +85,11 @@ class PipelineStarterQueueSpec extends Specification {
   @Unroll
   void "should return correct queueIfNotStarted values"() {
     given:
+    executionRepository.retrievePipelinesForPipelineConfigId(_, _) >> {
+      return rx.Observable.from([
+        buildPipeline("444")
+      ])
+    }
     queue.addToStarted('123', '444')
 
     expect:
@@ -84,4 +101,31 @@ class PipelineStarterQueueSpec extends Specification {
     "not-123"  || false
   }
 
+  void "should remove STARTED executions if they are no longer RUNNING"() {
+    given:
+    def pipelineConfigId = "pipeline-config"
+    executionRepository.retrievePipelinesForPipelineConfigId(_, _) >> {
+      return rx.Observable.from([
+        buildPipeline("1")
+      ])
+    }
+
+    queue.addToStarted(pipelineConfigId, "1")
+    queue.addToStarted(pipelineConfigId, "2")
+
+    expect:
+    queue.getStartedPipelines(pipelineConfigId) == ["2", "1"]
+
+    when:
+    queue.queueIfNotStarted(pipelineConfigId, "3")
+
+    then:
+    queue.getStartedPipelines(pipelineConfigId) == ["1"]
+  }
+
+  private static Pipeline buildPipeline(String id) {
+    def pipeline = new Pipeline()
+    pipeline.id = id
+    return pipeline
+  }
 }
