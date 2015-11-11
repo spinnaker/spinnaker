@@ -4,26 +4,17 @@
 <form role="form" class="container-fluid" novalidate name="newFastPropertyForm">
   <div class="modal-body">
 
-
-    <h3>Naive</h3>
     <div class="row">
       <div class="col-sm-6">
-        <b>Strategy:</b>{{newFP.selectedStrategy.selected.label}}
+        <b>Strategy:</b> {{newFP.selectedStrategy.selected.label}}
       </div>
     </div>
 
-    <div class="row">
+    <div class="row" style="margin-top: 15px;">
       <div class="col-sm-12">
-        Discription: {{newFP.selectedStrategy.selected.description}}
+        <p>Select the starting scope for the manual propagation. The values of your target scope have been pre-populated. It is best to add to these scope properties and not change them.</p>
       </div>
     </div>
-
-    <div class="row">
-      <div class="col-sm-12">
-        <p>Select the cluster you would like to ACA this Fast Property against.</p>
-      </div>
-    </div>
-
 
     <div class="form-horizontal fp-canary-config-view">
       <scope-app-selector
