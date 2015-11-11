@@ -67,18 +67,6 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.details.controller', 
 
     extractLoadBalancer().then(() => application.registerAutoRefreshHandler(extractLoadBalancer, $scope));
 
-    this.editLoadBalancer = function editLoadBalancer() {
-      $uibModal.open({
-        templateUrl: require('../configure/editLoadBalancer.html'),
-        controller: 'cfCreateLoadBalancerCtrl as ctrl',
-        resolve: {
-          application: function() { return application; },
-          loadBalancer: function() { return angular.copy($scope.loadBalancer); },
-          isNew: function() { return false; }
-        }
-      });
-    };
-
     this.deleteLoadBalancer = function deleteLoadBalancer() {
       if ($scope.loadBalancer.instances && $scope.loadBalancer.instances.length) {
         return;
