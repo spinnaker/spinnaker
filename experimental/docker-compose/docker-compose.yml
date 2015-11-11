@@ -13,6 +13,7 @@ echo:
   env_file: ./compose.env
   environment:
     - ORCA_BASEURL=$DOCKER_IP:8083
+    - FRONT50_BASEURL=$DOCKER_IP:8080
   image: spinnaker/echo
   ports: 
     - "8089:8089"
