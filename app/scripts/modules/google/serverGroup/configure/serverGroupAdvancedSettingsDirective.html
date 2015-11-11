@@ -29,7 +29,8 @@
                                class="form-control input-sm"
                                ng-model="command.localSSDCount"
                                min="0"
-                               max="{{command.viewState.instanceTypeDetails.storage.localSSDSupported ? 4 : 0}}"/></div>
+                               max="{{command.viewState.instanceTypeDetails.storage.localSSDSupported ? 4 : 0}}"
+                               ng-disabled="!command.viewState.instanceTypeDetails.storage.localSSDSupported"/></div>
 </div>
 <div class="form-group">
   <div class="col-md-12">
