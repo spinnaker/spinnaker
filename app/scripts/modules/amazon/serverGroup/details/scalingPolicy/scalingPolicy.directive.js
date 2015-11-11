@@ -34,10 +34,17 @@ module.exports = angular.module('spinnaker.aws.instance.details.scalingPolicy.di
           }
         }
 
-        policy.operator  = policy.scalingAdjustment <= 0 ? 'decrease' : 'increase';
+        function addAdjustmentAttributes(adjuster) {
+          adjuster.operator  = adjuster.scalingAdjustment <= 0 ? 'decrease' : 'increase';
+          adjuster.absAdjustment = Math.abs(adjuster.scalingAdjustment);
+        }
+
+        policy.cooldownSeconds = policy.cooldown ? policy.cooldown : 0;
         policy.alarms.forEach(addComparator);
         policy.minAdjustmentStep = policy.minAdjustmentStep || 1;
-        policy.absAdjustment = Math.abs(policy.scalingAdjustment);
+        addAdjustmentAttributes(policy);
+        policy.stepAdjustments.forEach(addAdjustmentAttributes);
+
       }
     };
   }).name;
