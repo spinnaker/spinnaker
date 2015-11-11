@@ -27,6 +27,7 @@ import com.netflix.astyanax.serializers.StringSerializer
 import com.netflix.spinnaker.echo.model.Event
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.stereotype.Repository
@@ -36,6 +37,7 @@ import org.springframework.stereotype.Repository
  */
 @Slf4j
 @Repository
+@ConditionalOnProperty('timeseries.enabled')
 @SuppressWarnings(['PropertyName', 'LineLength'])
 class TimeSeriesRepository implements ApplicationListener<ContextRefreshedEvent> {
 
