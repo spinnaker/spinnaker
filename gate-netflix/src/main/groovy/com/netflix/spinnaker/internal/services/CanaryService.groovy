@@ -15,10 +15,15 @@
  */
 
 package com.netflix.spinnaker.internal.services
+
+import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.internal.services.internal.MineService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
+import static com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest.classifyError
+
 /**
  *
  * @author sthadeshwar
@@ -26,6 +31,8 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class CanaryService {
+
+  private static final String HYSTRIX_GROUP = "canaries"
 
   @Autowired(required = false)
   MineService mineService
@@ -43,7 +50,13 @@ class CanaryService {
   }
 
   Map showCanary(String canaryId) {
-    mineService ? mineService.showCanary(canaryId) : [:]
+    HystrixFactory.newMapCommand(HYSTRIX_GROUP, "showCanary", {
+      try {
+        mineService ? mineService.showCanary(canaryId) : [:]
+      } catch (RetrofitError error) {
+        throw classifyError(error)
+      }
+    }).execute()
   }
 
   List<String> getCanaryConfigNames() {

@@ -15,16 +15,16 @@
  */
 
 package com.netflix.spinnaker.internal.controllers
+
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+import com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest
 import com.netflix.spinnaker.internal.services.CanaryService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+
 /**
  *
  * @author sthadeshwar
@@ -71,5 +71,18 @@ class CanaryController {
   static class OverrideResultCommand {
     String reason
     String result
+  }
+
+  @ExceptionHandler(UpstreamBadRequest.class)
+  Map<String, Object> upstreamBadRequestHandler(
+    HttpServletRequest request,
+    HttpServletResponse response,
+    UpstreamBadRequest error) {
+    response.setStatus(error.getStatus())
+    [
+      url        : request.requestURI,
+      message    : error.message,
+      upstreamUrl: error.url
+    ]
   }
 }

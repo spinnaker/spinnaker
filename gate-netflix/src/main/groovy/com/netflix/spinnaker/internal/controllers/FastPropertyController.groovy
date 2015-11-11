@@ -1,20 +1,11 @@
 package com.netflix.spinnaker.internal.controllers
 
+import javax.servlet.http.HttpServletResponse
 import com.netflix.spinnaker.internal.services.FastPropertyService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseBody
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import retrofit.RetrofitError
-
-import javax.servlet.http.HttpServletResponse
 
 /*
  * Copyright 2015 Netflix, Inc.
@@ -98,8 +89,8 @@ class FastPropertyController {
 
   @ExceptionHandler(RetrofitError.class)
   @ResponseBody
-  public Map errorResponse(Exception ex, HttpServletResponse response) {
-    response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
+  public Map errorResponse(RetrofitError ex, HttpServletResponse response) {
+    response.setStatus(ex.response.status)
     [message: ex.message]
   }
 }
