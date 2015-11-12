@@ -1,30 +1,29 @@
 <div ng-controller="awsDisableAsgStageCtrl as disableAsgStageCtrl"class="form-horizontal">
   <div ng-if="!pipeline.strategy">
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Account</label>
-    <div class="col-md-6">
-      <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="disableAsgStageCtrl.accountUpdated()" required></account-select-field>
+    <div class="form-group">
+      <label class="col-md-2 col-md-offset-1 sm-label-left">Account</label>
+      <div class="col-md-6">
+        <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="disableAsgStageCtrl.accountUpdated()" required></account-select-field>
+      </div>
     </div>
-  </div>
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Regions</label>
-    <div class="col-md-6" ng-if="!stage.credentials">
-      <p class="form-control-static">(Select an Account)</p>
+    <div class="form-group">
+      <label class="col-md-2 col-md-offset-1 sm-label-left">Regions</label>
+      <div class="col-md-6" ng-if="!stage.credentials">
+        <p class="form-control-static">(Select an Account)</p>
+      </div>
+      <div class="col-md-6" ng-if="stage.credentials">
+        <checklist items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
+      </div>
     </div>
-    <div class="col-md-6" ng-if="stage.credentials">
-      <checklist items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
+    <div class="form-group">
+      <div class="col-md-2 col-md-offset-1 sm-label-left">
+        <b>Cluster</b>
+        <help-field key="pipeline.config.disableAsg.cluster"></help-field>
+      </div>
+      <div class="col-md-6">
+        <input type="text" required ng-model="stage.cluster" class="form-control input-sm" />
+      </div>
     </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Cluster</b>
-      <help-field key="pipeline.config.disableAsg.cluster"></help-field>
-    </div>
-    <div class="col-md-6">
-      <input type="text" required ng-model="stage.cluster"
-        class="form-control input-sm" />
-    </div>
-  </div>
   </div>
   <div class="form-group">
     <div class="col-md-2 col-md-offset-1 sm-label-left">
