@@ -50,10 +50,6 @@ ospackage {
     fileMode = 0755
   }
 
-  from('config') {
-    into spinnakerHome + '/config'
-  }
-
   from('tests') {
     into spinnakerHome + '/tests'
   }  
