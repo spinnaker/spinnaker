@@ -41,7 +41,7 @@ import static java.util.concurrent.TimeUnit.MINUTES
  * Detects pipelines that were running on another Orca instance that no longer exists and enqueues them for restart.
  */
 @Component
-@ConditionalOnExpression('${pollers.stalePipelines.enabled:true}')
+@ConditionalOnExpression('${pollers.stalePipelines.enabled:false}')
 @Slf4j
 @CompileStatic
 class PipelineRestartAgent extends AbstractPollingNotificationAgent {

@@ -26,6 +26,7 @@ import groovy.util.logging.Slf4j
 import net.greghaines.jesque.client.Client
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import rx.Observable
@@ -33,7 +34,7 @@ import rx.functions.Func1
 
 @Slf4j
 @Component
-@ConditionalOnProperty(value = 'pollers.orchestrationCleanup.enabled')
+@ConditionalOnExpression(value = '${pollers.orchestrationCleanup.enabled:false}')
 class OrchestrationCleanupPollingNotificationAgent extends AbstractPollingNotificationAgent {
   static final String NOTIFICATION_TYPE = "orchestrationCleanup"
   final String notificationType = NOTIFICATION_TYPE

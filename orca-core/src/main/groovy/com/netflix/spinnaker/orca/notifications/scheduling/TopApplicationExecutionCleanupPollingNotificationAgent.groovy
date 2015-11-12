@@ -26,6 +26,7 @@ import groovy.transform.PackageScope
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationListener
 import org.springframework.stereotype.Component
@@ -44,7 +45,7 @@ import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
 
 @Slf4j
 @Component
-@ConditionalOnProperty(value = 'pollers.topApplicationExecutionCleanup.enabled')
+@ConditionalOnExpression(value = '${pollers.topApplicationExecutionCleanup.enabled:false}')
 class TopApplicationExecutionCleanupPollingNotificationAgent implements ApplicationListener<EurekaStatusChangedEvent> {
 
   private Scheduler scheduler = Schedulers.io()
