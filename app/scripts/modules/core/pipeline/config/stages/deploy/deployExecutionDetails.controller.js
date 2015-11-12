@@ -45,7 +45,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.details.co
                 serverGroup: serverGroupName,
                 account: context.account,
                 region: region,
-                provider: context.providerType || 'aws'
+                provider: context.providerType || context.cloudProvider || 'aws'
               };
               result.href = urlBuilderService.buildFromMetadata(result);
               results.push(result);
