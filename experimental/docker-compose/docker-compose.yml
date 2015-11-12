@@ -99,6 +99,30 @@ orca:
     - "../../config:/root/.spinnaker"
 redis: 
   container_name: redis
+  command: "redis-server --appendonly yes"
   expose: 
     - "6379"
   image: redis
+rosco: 
+  container_name: rosco
+  env_file: ./compose.env
+  environment:
+    - "SERVICES_RUSH_HOST=rush"
+  image: spinnaker/rosco
+  ports: 
+    - "8087:8087"
+  volumes: 
+    - "../../config:/root/.spinnaker"  
+  links:
+    - "redis"
+    - "rush"
+rush: 
+  container_name: rush
+  env_file: ./compose.env
+  environment: 
+    - "JAVA_OPTS=-javaagent:/opt/rush/lib/jamm-0.2.5.jar"
+  image: spinnaker/rush
+  ports: 
+    - "8085:8085"
+  volumes: 
+    - "../../config:/root/.spinnaker"  
