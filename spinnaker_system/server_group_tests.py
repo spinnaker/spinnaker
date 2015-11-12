@@ -67,7 +67,6 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
         'healthCheck': False
       }],
       'name': self.__lb_name,
-      'providerType': 'gce',
       'type': 'upsertAmazonLoadBalancer',
       'availabilityZones': {self.TEST_REGION: []},
       'user': 'integration-tests'
@@ -108,11 +107,10 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
         'load-balancer-names': self.__lb_name
       },
       'cloudProvider': 'gce',
-      'providerType': 'gce',
       'image': self.bindings['TEST_GCE_IMAGE_NAME'],
       'instanceType': 'f1-micro',
       'initialNumReplicas': 1,
-      'type': 'linearDeploy',
+      'type': 'createServerGroup',
       'account': self.bindings['GCE_CREDENTIALS'],
       'user': 'integration-tests'
     }]
@@ -186,7 +184,6 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
       'instanceMetadata': {'load-balancer-names': self.__lb_name},
       'availabilityZones': {self.TEST_REGION: [self.TEST_ZONE]},
       'cloudProvider': 'gce',
-      'providerType': 'gce',
       'source': {
         'account': self.bindings['GCE_CREDENTIALS'],
         'region': self.TEST_REGION,
@@ -198,7 +195,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
       'image': self.bindings['TEST_GCE_IMAGE_NAME'],
       'initialNumReplicas': 1,
       'loadBalancers': [self.__lb_name],
-      'type': 'copyLastAsg',
+      'type': 'cloneServerGroup',
       'account': self.bindings['GCE_CREDENTIALS'],
       'user': 'integration-tests'
     }]
