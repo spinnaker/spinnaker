@@ -30,10 +30,10 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/credentials")
 class CredentialsController {
 
-  @Value('${credentials.primaryAccountTypes}')
+  @Value('${credentials.primaryAccountTypes:default}')
   List<String> primaryAccountTypes = []
 
-  @Value('${credentials.challengeDestructiveActionsEnvironments}')
+  @Value('${credentials.challengeDestructiveActionsEnvironments:default}')
   List<String> challengeDestructiveActionsEnvironments = []
 
   @Autowired
