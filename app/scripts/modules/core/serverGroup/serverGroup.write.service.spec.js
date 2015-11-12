@@ -52,7 +52,7 @@ describe('serverGroupWriter', function () {
         };
 
       var submitted = postTask(command);
-      expect(submitted.job[0].type).toBe('linearDeploy');
+      expect(submitted.job[0].type).toBe('createServerGroup');
       expect(submitted.description).toBe('Create New Server Group in cluster appName');
 
       command.stack = 'main';
