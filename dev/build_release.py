@@ -45,6 +45,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 import time
 import zipfile
@@ -159,16 +160,20 @@ class BackgroundProcess(
 
 NO_PROCESS = BackgroundProcess('nop', None)
 
+def determine_project_root():
+  return os.path.abspath(os.path.dirname(__file__) + '/..')
+
 
 class Builder(object):
   """Knows how to coordinate a Spinnaker release."""
 
-  def __init__(self, options):
+  def __init__(self, options, tarfile):
+      self.__tarfile = tarfile
       self.__package_list = []
       self.__config_list = []
       self.__background_processes = []
 
-      os.environ['NODE_ENV'] = 'dev'
+      os.environ['NODE_ENV'] = os.environ.get('NODE_ENV', 'dev')
       self.__options = options
       self.refresher = refresh_source.Refresher(options)
 
@@ -176,8 +181,7 @@ class Builder(object):
       # This is the GCE directory.
       # Ultimately we'll want to go to the root directory and install
       # standard stuff and gce stuff.
-      self.__project_dir = os.path.abspath(
-          os.path.dirname(__file__) + '/..')
+      self.__project_dir = determine_project_root()
       self.__release_dir = options.release_path
 
       if self.__release_dir.startswith('gs://'):
@@ -202,30 +206,20 @@ class Builder(object):
           'Building {name}'.format(name=name),
           'cd {name}; ./gradlew {target}'.format(name=name, target=target))
 
-  def start_copy_dir(self, source, target, filter='*'):
-    if target.startswith('s3://'):
-      return BackgroundProcess.spawn(
-        'Copying {source}'.format,
-        'aws s3 cp --recursive "{source}" "{target}"'
-        ' --exclude "*" --include "{filter}"'
-        .format(source=source, target=target, filter=filter))
+  @staticmethod
+  def __filter_file(info, filter):
+    if info.isdir():
+      return info  # keep dir so we can recurse into it
+    elif fnmatch.fnmatch(info.name, filter):
+      return info
+    else:
+      return None
 
-    list = []
-    for root, dirs, files in os.walk(source):
-      postfix = root[len(source):]
-      rel_target = (target
-                    if not postfix
-                    else os.path.join(target, root[len(source) + 1:]))
-      for file in fnmatch.filter(files, filter):
-        list.append(self.start_copy_file(os.path.join(root, file),
-                                         os.path.join(rel_target, file)))
-
-    print '  Waiting to finish copying directory {source}'.format(source=source)
-    for p in list:
-      p.check_wait()
-    return NO_PROCESS
-
-  def start_copy_file(self, source, target, dir=False):
+  def tar_dir(self, source, target, filter='*'):
+    fn = lambda info: self.__filter_file(info, filter)
+    self.__tarfile.add(source, arcname=target, recursive=True, filter=fn)
+                         
+  def start_copy_file(self, source, target):
       """Start a subprocess to copy the source file.
 
       Args:
@@ -313,25 +307,20 @@ class Builder(object):
       # Copy global spinnaker config (and sample local).
       for yml in [ 'default-spinnaker-local.yml', 'spinnaker.yml']:
           source_config = os.path.join(source_config_dir, yml)
-          target_config = os.path.join(self.__release_dir, 'config', yml)
+          self.__tarfile.add(source_config, os.path.join('config', yml))
           self.__config_list.append(yml)
-          processes.append(self.start_copy_file(source_config, target_config))
 
       # Copy subsystem configuration files.
       for subsys in SUBSYSTEM_LIST:
           processes.append(self.start_copy_debian_target(subsys))
           if subsys == 'deck':
-            source_config = os.path.join(source_config_dir, 'settings.js')
-            target_config = os.path.join(
-                self.__release_dir, 'config/settings.js')
-            processes.append(self.start_copy_file(source_config, target_config))
+              source_config = os.path.join(source_config_dir, 'settings.js')
+              self.__tarfile.add(source_config,'config/settings.js')
           else:
               source_config = os.path.join(source_config_dir, subsys + '.yml')
               yml = os.path.basename(source_config)
-              target_config = os.path.join(self.__release_dir, 'config', yml)
+              self.__tarfile.add(source_config, os.path.join('config', yml))
               self.__config_list.append(yml)
-              processes.append(
-                  self.start_copy_file(source_config, target_config))
 
       print 'Waiting for package copying to finish....'
       for p in processes:
@@ -340,51 +329,25 @@ class Builder(object):
   def copy_dependency_files(self):
     """Copy additional files used by external dependencies into release."""
     source_dir = os.path.join(self.__project_dir, 'cassandra')
-    target_dir = os.path.join(self.__release_dir, 'cassandra')
-    processes = []
-    processes.append(self.start_copy_dir(
-      source_dir, target_dir, filter='*.cql'))
-
-    print 'Waiting for dependency scripts.'
-    for p in processes:
-      p.check_wait()
+    self.tar_dir(source_dir, 'cassandra')
 
   def copy_install_scripts(self):
     """Copy installation scripts into release."""
     source_dir = os.path.join(self.__project_dir, 'install')
-    target_dir = os.path.join(self.__release_dir, 'install')
-
-    processes = []
-    processes.append(self.start_copy_dir(
-      source_dir, target_dir, filter='*.py'))
-    processes.append(self.start_copy_dir(
-      source_dir, target_dir, filter='*.sh'))
-
-    print 'Waiting for install scripts to finish.'
-    for p in processes:
-      p.check_wait()
+    self.tar_dir(source_dir, 'install', filter='*.py')
+    self.tar_dir(source_dir, 'install', filter='*.sh')
 
   def copy_admin_scripts(self):
     """Copy administrative/operational support scripts into release."""
-    processes = []
-    processes.append(self.start_copy_dir(
-      os.path.join(self.__project_dir, 'pylib'),
-      os.path.join(self.__release_dir, 'pylib'),
-      filter='*.py'))
-
-    processes.append(self.start_copy_dir(
-      os.path.join(self.__project_dir, 'runtime'),
-      os.path.join(self.__release_dir, 'runtime'),
-      filter='*.sh'))
-
-    print 'Waiting for admin scripts to finish.'
-    for p in processes:
-      p.check_wait()
+    self.tar_dir(os.path.join(self.__project_dir, 'pylib'),
+                 'pylib', filter='*.py')
+    self.tar_dir(os.path.join(self.__project_dir, 'runtime'),
+                 'scripts', filter='*.sh')
 
   def copy_release_config(self):
     """Copy configuration files into release."""
     source_dir = self.__options.config_source
-    target_dir = os.path.join(self.__release_dir, 'config')
+    self.tar_dir(source_dir, 'config')
 
     # This is the contents of the release_config.cfg file.
     # Which acts as manifest to inform the installer what packages to install.
@@ -395,60 +358,8 @@ class Builder(object):
                  .format(configs=' '.join(self.__config_list),
                     packages=' '.join(self.__package_list)))
     os.close(fd)
-
-    try:
-      self.start_copy_file(
-        temp_file, os.path.join(target_dir, 'release_config.cfg')).check_wait()
-    finally:
-      os.remove(temp_file)
-
-  def build_web_installer_zip(self):
-    """Build encapsulated python zip file for install_spinnaker.py
-
-    This is useful as an installer that can be pointed at a release somewhere,
-    and just pull and install it onto any machine. Unfortunately you cannot
-    directly run a zip through stdin so need to download the zip first, then
-    run it. The zip is packaged as part of the release for distribution
-    convenience.
-    """
-    fd, zip_path = tempfile.mkstemp()
-    os.close(fd)
-
-    zip = zipfile.ZipFile(zip_path, 'w')
-
-    try:
-      zip.writestr('__main__.py', """
-from install_spinnaker import main
-import os
-import sys
-
-if __name__ == '__main__':
-  if len(sys.argv) == 1 and os.environ.get('RELEASE_PATH', ''):
-      sys.argv.extend('--release_path', os.environ['RELEASE_PATH'])
-  retcode = main()
-  sys.exit(retcode)
-""")
-
-      dep_root = os.path.dirname(__file__) + '/..'
-      deps = ['install/install_spinnaker.py',
-              'install/install_runtime_dependencies.py',
-              'pylib/spinnaker/run.py',
-              'pylib/spinnaker/fetch.py']
-      for file in deps:
-          with open(os.path.join(dep_root, file), 'r') as f:
-            zip.writestr(os.path.basename(file),
-                         f.read().replace('from spinnaker.', 'from '))
-      zip.close()
-      zip = None
-
-      shutil.move(zip_path, './install_spinnaker.py.zip')
-      p = self.start_copy_file('./install_spinnaker.py.zip',
-                               os.path.join(self.__release_dir,
-                                            'install/install_spinnaker.py.zip'))
-      p.check_wait()
-    finally:
-      if zip is not None:
-        zip.close()
+    self.__tarfile.add(temp_file, 'release_config.cfg')
+    os.remove(temp_file)
 
   @staticmethod
   def __zip_dir(zip_file, source_path, arcname=''):
@@ -514,9 +425,7 @@ if __name__ == '__main__':
       zip.write('citest/spinnaker/spinnaker_system/' + test_py, test_py)
       zip.close()
 
-      p = self.start_copy_file(
-          zip_path, os.path.join(self.__release_dir, 'tests', test_py + '.zip'))
-      p.check_wait()
+      self.__tarfile.add(zip_path, 'tests/{py}.zip'.format(py=test_py))
     finally:
       os.remove(zip_path)
 
@@ -577,19 +486,38 @@ if __name__ == '__main__':
     if not options.release_path:
       sys.stderr.write('ERROR: --release_path cannot be empty.\n')
       return -1
-      
-    builder = cls(options)
+
+    fd, tarfile_path = tempfile.mkstemp()
+    os.close(fd)
+    tz = tarfile.open(tarfile_path, mode='w:gz')
+    builder = cls(options, tz)
     if options.pull_origin:
         builder.refresher.pull_all_from_origin()
 
     builder.build_packages()
-    builder.build_web_installer_zip()
 
+    print 'Building spinnaker.tar.gz'
     builder.copy_dependency_files()
     builder.copy_install_scripts()
     builder.copy_admin_scripts()
     builder.copy_release_config()
     builder.add_test_zip_files()
+
+    tz.close()
+    processes = []
+    try:
+      print 'Copying spinnaker.tar.gz'
+      processes.append(builder.start_copy_file(
+        tarfile_path, os.path.join(options.release_path, 'spinnaker.tar.gz')))
+      processes.append(builder.start_copy_file(
+        os.path.join(determine_project_root(),
+                     'install/install_spinnaker.sh'),
+        os.path.join(options.release_path, 'install_spinnaker.sh')))
+      for p in processes:
+        p.check_wait()
+    finally:
+      shutil.copy(tarfile_path, './created_spinnaker.tar.gz')   # !!!
+      os.remove(tarfile_path)
 
     print '\nFINISHED writing release to {dir}'.format(
         dir=builder.__release_dir)

@@ -23,11 +23,12 @@
   {
     "type": "file",
     "source": "{{user `installer_path`}}",
-    "destination": "/tmp/install_spinnaker.py.zip"
+    "destination": "/tmp/install_spinnaker.sh"
   },
   {
     "type": "shell",
-    "inline": ["python /tmp/install_spinnaker.py.zip --package_manager --release_path={{user `release_path`}} {{user `install_args`}}"]
+    "inline": ["chmod +x /tmp/install_spinnaker.sh",
+               "/tmp/install_spinnaker.sh --release_path {{user `release_path`}} --package_manager {{user `install_args`}}"]
   }
  ]
 }

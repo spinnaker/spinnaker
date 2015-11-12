@@ -140,7 +140,7 @@ class AbstractPackerBuilder(object):
 
     self.__in_subprocess = True
     check_run_quick(
-        '{program} cp {release}/install/install_spinnaker.py.zip {path}'
+        '{program} cp {release}/install_spinnaker.sh {path} && chmod +x {path}'
         .format(program=program,
                 release=self.options.release_path,
                 path=installer_path))
