@@ -121,6 +121,7 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
           $scope.state.loading = false;
           extractHealthMetrics(instanceSummary, details);
           $scope.instance = _.defaults(details, instanceSummary);
+          $scope.instance.instanceId = $scope.instance.id;
           $scope.instance.account = account;
           $scope.instance.region = region;
           $scope.instance.vpcId = vpcId;
@@ -128,12 +129,6 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
           $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
 
           $scope.instance.internalDnsName = $scope.instance.instanceId;
-          $scope.instance.internalIpAddress = $scope.instance.networkInterfaces[0].networkIP;
-          $scope.instance.externalIpAddress = $scope.instance.networkInterfaces[0].accessConfigs[0].natIP;
-          $scope.instance.network = getNetwork();
-
-          var pathSegments = $scope.instance.selfLink.split('/');
-          var projectId = pathSegments[pathSegments.indexOf('projects') + 1];
 
           // TODO Add link to CF console outputs
         },
@@ -152,15 +147,6 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
       }
       $state.params.allowModalToStayOpen = true;
       $state.go('^', null, {location: 'replace'});
-    }
-
-    function getNetwork() {
-      if ($scope.instance.networkInterfaces[0].network) {
-        var networkUrl = $scope.instance.networkInterfaces[0].network;
-
-        return _.last(networkUrl.split('/'));
-      }
-      return null;
     }
 
     this.canRegisterWithLoadBalancer = function() {
