@@ -24,3 +24,4 @@ google:
 
 rush:
   credentials: ${services.rush.primaryAccount}
+  baseUrl: ${services.rush.baseUrl:localhost:8085}
