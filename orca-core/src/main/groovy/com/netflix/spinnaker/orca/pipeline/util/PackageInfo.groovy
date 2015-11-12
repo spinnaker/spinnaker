@@ -72,7 +72,7 @@ class PackageInfo {
   @CompileDynamic
   @VisibleForTesting
   private Map createAugmentedRequest(Map trigger, Map buildInfo, Map request) {
-    List<Map> triggerArtifacts = trigger.buildInfo?.artifacts
+    List<Map> triggerArtifacts = trigger.buildInfo?.artifacts ?: trigger.parentExecution?.trigger?.buildInfo?.artifacts
     List<Map> buildArtifacts = buildInfo.artifacts
     if ((!triggerArtifacts && !buildArtifacts) || isUrl(request.package)) {
       return request
