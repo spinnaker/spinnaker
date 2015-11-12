@@ -574,6 +574,10 @@ if __name__ == '__main__':
     cls.init_argument_parser(parser)
     options = parser.parse_args()
 
+    if not options.release_path:
+      sys.stderr.write('ERROR: --release_path cannot be empty.\n')
+      return -1
+      
     builder = cls(options)
     if options.pull_origin:
         builder.refresher.pull_all_from_origin()
@@ -589,7 +593,7 @@ if __name__ == '__main__':
 
     print '\nFINISHED writing release to {dir}'.format(
         dir=builder.__release_dir)
-
+    return 0
 
 if __name__ == '__main__':
-  Builder.main()
+  sys.exit(Builder.main())

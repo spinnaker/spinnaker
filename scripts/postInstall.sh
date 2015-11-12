@@ -6,7 +6,7 @@
 # vhosts
 rm -rf /etc/apache2/sites-enabled/*.conf
 
-ln -s /etc/apache2/sites-available/spinnker.conf /etc/apache2/sites-enabled/spinnaker.conf
+ln -s /etc/apache2/sites-available/spinnaker.conf /etc/apache2/sites-enabled/spinnaker.conf
 
 service apache2 restart
 

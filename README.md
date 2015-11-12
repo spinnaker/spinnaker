@@ -13,6 +13,10 @@ instance, and may also wish to add "Full" Storage scope to later write
 releases to Google Cloud Storage buckets. The Amazon credentials are
 discussed below in [Configure your AWS Account](#configure-your-aws-account).
 
+These scripts are tested on:
+* Ubuntu 14.04 LTS
+* Mac OS X 10.11
+
 
 ## Get the bootstrap / configuration repo
 
@@ -24,7 +28,13 @@ git clone git@github.com:spinnaker/spinnaker.git
 ````
 
 ## Configure your environment
-Prerequisites: jdk8, redis, cassandra, packer
+
+The Spinnaker platform has a few prerequisites, which are installed as a part of this configuration process. They are: 
+
+ * [JDK8](https://www.oracle.com/java/index.html)
+ * [Redis](http://redis.io/)
+ * [Cassandra](http://cassandra.apache.org/)
+ * [Packer](https://www.packer.io/)
 
 ### MacOSX
 

@@ -53,6 +53,41 @@ class SourceRepository(
 
 
 class Refresher(object):
+  """Provides branch management capabilities across Spinnaker repositories.
+
+  The Spinnaker repositories are federated across several independent
+  repositories. This class provides convenient support to update local
+  repositories from remote and vice-versa.
+
+  The origin repository is specified using --github_user option. This specifies
+  the github repository owner for the origin repositories. It is only relevant
+  when a repository needs to be cloned to establish a local repository. The
+  value 'upstream' can be used to indicate that the repository should be cloned
+  from its authoritative source as opposed to another user's fork.
+
+  When the refresher clones new repositories, it establishes an "upstream"
+  remote to the authoritative repository (based on hard-coded mappings)
+  unless the origin is the upstream. Upstream pulls are disabled (including
+  when the origin is the upstream) and only the master branch can be pulled
+  from upstream.
+
+  If --pull_branch is used then the local repositories will pull their current
+  branch from the origin repository. If a local repository does not yet exist,
+  then it will be cloned from the --github_user using the branch specified
+  by --pull_branch. The --pull_origin option is similar but implies that the
+  branch is 'master'. This is intended to perform complete updates of the
+  local repositories.
+
+  --push_branch (or --push_master, implying 'master' branch) will push the
+  local repository branch back to the origin, but only if the local repository
+  is in the specified branch. This is for safety to prevent accidental pushes.
+  It is assumed that multi-repository changes will have a common feature-branch
+  name, and not all repositories will be affected.
+
+  Of course, individual repositories can still be managed using explicit git
+  commands. This class is intended for cross-cutting management.
+  """
+
   __OPTIONAL_REPOSITORIES = [SourceRepository('citest', 'google')]
   __REQUIRED_REPOSITORIES = [
       SourceRepository('spinnaker', 'spinnaker'),
@@ -65,6 +100,40 @@ class Refresher(object):
       SourceRepository('gate', 'spinnaker'),
       SourceRepository('igor', 'spinnaker'),
       SourceRepository('deck', 'spinnaker')]
+
+  @property
+  def pull_branch(self):
+      """Gets the branch that we want to pull.
+
+      This may raise a ValueError if the specification is inconsistent.
+      This is determined lazily rather than at construction to be consistent
+      with the push_branch property.
+      """
+      if self.__options.pull_origin:
+          if (self.__options.pull_branch
+              and self.__options.pull_branch != 'master'):
+            raise ValueError(
+                '--pull_origin is incompatible with --pull_branch={branch}'
+                .format(branch=self.__options.pull_branch))
+          return 'master'
+      return self.__options.pull_branch
+
+  @property
+  def push_branch(self):
+      """Gets the branch that we want to push.
+
+      This may raise a ValueError if the specification is inconsistent.
+      This is determined lazily rather than at construction because the
+      option to push is not necessarily present depending on the use case.
+      """
+      if self.__options.push_master:
+          if (self.__options.push_branch
+              and self.__options.push_branch != 'master'):
+            raise ValueError(
+                '--push_origin is incompatible with --push_branch={branch}'
+                .format(branch=self.__options.push_branch))
+          return 'master'
+      return self.__options.push_branch
 
   def __init__(self, options):
       self.__options = options
@@ -94,7 +163,7 @@ class Refresher(object):
         return None
       return result.stdout.strip()
 
-  def get_branch_name(self, name):
+  def get_local_branch_name(self, name):
       """Determine which git branch a local repository is in.
 
       Args:
@@ -142,14 +211,17 @@ class Refresher(object):
       name = repository.name
       repository_dir = get_repository_dir(name)
       upstream_user = repository.owner
+      branch = self.pull_branch
       origin_url = self.get_github_repository_url(repository, owner=owner)
       upstream_url = 'https://github.com/{upstream_user}/{name}.git'.format(
               upstream_user=upstream_user, name=name)
 
       # Dont echo because we're going to hide some failure.
-      print 'Cloning {name} from {origin_url}.'.format(
-          name=name, origin_url=origin_url)
-      shell_result = run_and_monitor('git clone ' + origin_url, echo=False)
+      print 'Cloning {name} from {origin_url} -b {branch}.'.format(
+          name=name, origin_url=origin_url, branch=branch)
+      shell_result = run_and_monitor(
+          'git clone {url} -b {branch}'.format(url=origin_url, branch=branch),
+          echo=False)
       if not shell_result.returncode:
           if shell_result.stdout:
               print shell_result.stdout
@@ -195,16 +267,14 @@ class Refresher(object):
           return
 
       print 'Updating {name} from origin'.format(name=name)
-      branch = self.get_branch_name(name)
-      if branch != 'master':
+      branch = self.get_local_branch_name(name)
+      if branch != self.pull_branch:
           sys.stderr.write(
-              'WARNING: Updating {name} branch={branch}, *NOT* "master"\n'
-                  .format(name=name, branch=branch))
-      result = run_and_monitor('git -C "{dir}" pull origin {branch}'
-                                   .format(dir=repository_dir, branch=branch),
-                               echo=True)
-      if result.returncode:
-          sys.stderr.write('Ignoring error.\n')
+              'WARNING: Updating {name} branch={branch}, *NOT* "{want}"\n'
+                  .format(name=name, branch=branch, want=self.pull_branch))
+      check_run_and_monitor('git -C "{dir}" pull origin {branch}'
+                                .format(dir=repository_dir, branch=branch),
+                            echo=True)
 
   def pull_from_upstream_if_master(self, repository):
       """Pulls the master branch fromthe upstream repository.
@@ -219,7 +289,7 @@ class Refresher(object):
       repository_dir = get_repository_dir(name)
       if not os.path.exists(repository_dir):
           self.pull_from_origin(repository)
-      branch = self.get_branch_name(name)
+      branch = self.get_local_branch_name(name)
       if branch != 'master':
           sys.stderr.write('Skipping {name} because it is in branch={branch}.\n'
                            .format(name=name, branch=branch))
@@ -230,11 +300,11 @@ class Refresher(object):
                                 .format(dir=repository_dir),
                             echo=True)
 
-  def push_to_origin_if_master(self, repository):
-      """Pushes the current master branch of the local repository to the origin.
+  def push_to_origin_if_target_branch(self, repository):
+      """Pushes the current target branch of the local repository to the origin.
 
       This will only have effect if the local repository exists
-      and is currently in the master branch.
+      and is currently in the target branch.
 
       Args:
         repository [string]: The name of the local repository to push from.
@@ -246,26 +316,27 @@ class Refresher(object):
                                .format(name=name))
           return
 
-      branch = self.get_branch_name(name)
-      if branch != 'master':
-          sys.stderr.write('Skipping {name} because it is in branch={branch}.\n'
-                               .format(name=name, branch=branch))
+      branch = self.get_local_branch_name(name)
+      if branch != self.push_branch:
+          sys.stderr.write(
+              'Skipping {name} because it is in branch={branch}, not {want}.\n'
+                  .format(name=name, branch=branch, want=self.push_branch))
           return
 
       print 'Pushing {name} to origin.'.format(name=name)
-      check_run_and_monitor('git -C "{dir}" push origin master'.format(
-                                dir=repository_dir),
+      check_run_and_monitor('git -C "{dir}" push origin {branch}'.format(
+                                dir=repository_dir, branch=self.push_branch),
                             echo=True)
 
-  def push_all_to_origin_if_master(self):
-    """Push all the local repositories current master branch to origin.
+  def push_all_to_origin_if_target_branch(self):
+    """Push all the local repositories current target branch to origin.
 
-    This will skip any local repositories that are not currently in the master
-    branch.
+    This will skip any local repositories that are not currently in the
+    target branch.
     """
     all_repos = self.__REQUIRED_REPOSITORIES + self.__extra_repositories
     for repository in all_repos:
-        self.push_to_origin_if_master(repository)
+        self.push_to_origin_if_target_branch(repository)
 
   def pull_all_from_upstream_if_master(self):
     """Pull all the upstream master branches into their local repository.
@@ -278,14 +349,24 @@ class Refresher(object):
         self.pull_from_upstream_if_master(repository)
 
   def pull_all_from_origin(self):
-    """Pull all the origin master branches into their local repository.
+    """Pull all the origin target branches into their local repository.
 
-    This will skip any local repositories that are not currently in the master
-    branch.
+    This will skip any local repositories that are not currently in the
+    target branch.
     """
     all_repos = self.__REQUIRED_REPOSITORIES + self.__extra_repositories
     for repository in all_repos:
-        self.pull_from_origin(repository)
+        try:
+          self.pull_from_origin(repository)
+        except RuntimeError as ex:
+          if repository in self.__extra_repositories and not os.path.exists(
+              get_repository_dir(repository)):
+              sys.stderr.write(
+                   'IGNORING error "{msg}" in optional repository {name}'
+                   ' because the local repository does not yet exist.\n'
+                       .format(msg=ex.message, name=repository.name))
+          else:
+              raise
 
   def __determine_spring_config_location(self):
     root = '{dir}/config'.format(
@@ -375,39 +456,19 @@ bash -c "(npm start >> '$LOG_DIR/{name}.log') 2>&1\
                           dest='pull_upstream',
                           action='store_false')
 
-      parser.add_argument('--refresh_master_from_upstream',
-                          dest='pull_upstream',
-                          help='DEPRECATED '
-                               'If the local branch is master, then refresh it'
-                               ' from the upstream repository.'
-                               ' Otherwise leave as is.')
-      parser.add_argument('--norefresh_master_from_upstream',
-                          help='DEPRECATED',
-                          dest='pull_upstream',
+      # Note we only push target branches to origin specified by --push_branch
+      # To push another branch, you must explicitly push it with git
+      # (or another invocation).
+      parser.add_argument('--push_master', action='store_true',
+                          help='Push the current branch to origin if it is'
+                          ' master. This is the same as --push_branch=master.')
+      parser.add_argument('--nopush_master', dest='push_master',
                           action='store_false')
 
-      # Note we only push master branches to origin.
-      # To push another branch, you must explicitly push it with git.
-      # Perhaps it could make sense to coordinate branches with a common name
-      # across multiple repositories to push a conceptual change touching
-      # multiple repositories, but for now we are being conservative with
-      # what we push.
-      parser.add_argument('--push_master', default=False,
-                          action='store_true',
-                          help='If the local branch is master then push it to'
-                               ' the origin repository. Otherwise do not.')
-      parser.add_argument('--nopush_master',
-                          dest='push_master')
-
-      parser.add_argument('--push_master_to_origin', default=False,
-                          dest='push_master',
-                          action='store_true',
-                          help='DEPRECATED '
-                               'If the local branch is master then push it to'
-                               ' the origin repository. Otherwise do not.')
-      parser.add_argument('--nopush_master_to_origin',
-                          help='DEPRECATED',
-                          dest='push_master_to_origin')
+      parser.add_argument('--push_branch', default='',
+                          help='If specified and the local repository is in'
+                               ' this branch then push it to the origin'
+                               ' repository. Otherwise do not push it.')
 
   @classmethod
   def init_argument_parser(cls, parser):
@@ -433,9 +494,17 @@ bash -c "(npm start >> '$LOG_DIR/{name}.log') 2>&1\
 
       parser.add_argument('--pull_origin', default=False,
                           action='store_true',
-                          help='Refresh the local branch from the origin.')
+                          help='Refresh the local branch from the origin.'
+                               ' If cloning, then clone the master branch.'
+                               ' See --pull_branch for a more general option.')
       parser.add_argument('--nopull_origin', dest='pull_origin',
                           action='store_false')
+
+      parser.add_argument('--pull_branch', default='',
+                          help='Refresh the local branch from the origin if'
+                               ' it is in the specified branch,'
+                               ' otherwise skip it.'
+                               ' If cloning, then clone this branch.')
 
       parser.add_argument(
         '--extra_repos', default=None,
@@ -464,16 +533,29 @@ bash -c "(npm start >> '$LOG_DIR/{name}.log') 2>&1\
           ' This directory is from "{url}".\n'
           ' Did you intend to be in the parent directory?\n'
         .format(url=in_repository_url))
-      sys.exit(-1)
+      return -1
+
+    try:
+      # This is ok. Really we want to look for an exception validating these
+      # properties so we can fail with a friendly error rather than stack.
+      if (refresher.pull_branch != refresher.push_branch
+          and refresher.pull_branch and refresher.push_branch):
+        sys.stderr.write(
+            'WARNING: pulling branch {pull} and pushing branch {push}'
+                .format(pull=refresher.pull_branch,
+                        push=refresher.push_branch))
+    except Exception as ex:
+      sys.stderr.write('FAILURE: {0}\n'.format(ex.message))
+      return -1
 
     nothing = True
     if options.pull_upstream:
         nothing = False
         refresher.pull_all_from_upstream_if_master()
-    if options.push_master:
+    if refresher.push_branch:
         nothing = False
-        refresher.push_all_to_origin_if_master()
-    if options.pull_origin:
+        refresher.push_all_to_origin_if_target_branch()
+    if refresher.pull_branch:
         nothing = False
         refresher.pull_all_from_origin()
     refresher.update_spinnaker_run_scripts()
@@ -482,7 +564,8 @@ bash -c "(npm start >> '$LOG_DIR/{name}.log') 2>&1\
       sys.stderr.write('No pull/push options were specified.\n')
     else:
       print 'DONE'
+    return 0
 
 
 if __name__ == '__main__':
-  Refresher.main()
+  sys.exit(Refresher.main())

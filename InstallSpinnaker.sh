@@ -8,19 +8,19 @@
 # First guess what sort of operating system
 
 if [ -f /etc/lsb-release ]; then
-    . /etc/lsb-release
-    DISTRO=$DISTRIB_ID
+  . /etc/lsb-release
+  DISTRO=$DISTRIB_ID
 elif [ -f /etc/debian_version ]; then
-    DISTRO=Debian
-    # XXX or Ubuntu
+  DISTRO=Debian
+  # XXX or Ubuntu
 elif [ -f /etc/redhat-release ]; then
-    if grep -iq cent /etc/redhat-release; then
-      DISTRO="CentOS"
-    elif grep -iq red /etc/redhat-release; then
-      DISTRO="RedHat"
-    fi
-    
-    else
+  if grep -iq cent /etc/redhat-release; then
+    DISTRO="CentOS"
+  elif grep -iq red /etc/redhat-release; then
+    DISTRO="RedHat"
+  fi
+
+  else
     DISTRO=$(uname -s)
 fi
 
@@ -38,7 +38,17 @@ else
   exit 1
 fi
 
+enableAws=$1
+defaultRegion=$2
 
+if [ "x$enableAws" == "x" ] && [ "x$defaultRegion" == "x" ]; then
+  read -p "Enable Amazon AWS? (Y|n)" enableAws
+  if [[ "${enableAws,,}" == "y" || -z "$enableAws" ]]; then
+    read -p "Default region: " defaultRegion
+  else
+    echo "Not enabling AWS"
+  fi
+fi
 
 ## PPAs ##
 # Add PPAs for software that is not necessarily in sync with Ubuntu releases
@@ -55,14 +65,15 @@ curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add -
 echo "deb http://debian.datastax.com/community/ stable main" > /etc/apt/sources.list.d/datastax.list
 
 # Java 8
-# https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa 
+# https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa
 
 add-apt-repository -y ppa:webupd8team/java
 echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
 # Spinnaker
 # DL Repo goes here
 # echo "deb http://dl.bintray.com/spinnaker/ospackages ./" > /etc/apt/sources.list.d/spinnaker.list
-echo 'deb http://jenkins.staypuft.kenzan.com:8000/ trusty main' > /etc/apt/sources.list.d/spinnaker-dev.list
+# echo 'deb http://jenkins.staypuft.kenzan.com:8000/ trusty main' > /etc/apt/sources.list.d/spinnaker-dev.list
+echo 'deb https://dl.bintray.com/kenzanlabs/spinnaker trusty spinnaker' > /etc/apt/sources.list.d/spinnaker-dev.list
 
 ## Install software
 # "service cassandra status" is currently broken in Ubuntu grep in the script is grepping for things that do not exist
@@ -80,13 +91,15 @@ nodetool enablethrift
 
 apt-get install -y --force-yes --allow-unauthenticated spinnaker
 
-read -p "Enable Amazon AWS? (Y|n)" enableAws
 if [[ "${enableAws,,}" == "y" || -z "$enableAws" ]]; then
-    setEnableAws="true"
-    read -p "Default region: " defaultRegion
-    sed -i.bak -e "s/false/$setEnableAws/" -e "s/us-west-2/$defaultRegion/" /etc/default/spinnaker
+  sed -i.bak -e "s/false/true/" -e "s/us-west-2/$defaultRegion/" /etc/default/spinnaker
 else
- echo Not enabling AWS
+  echo Not enabling AWS
+fi
+
+if [[ "${enableAws,,}" == "y" ]]; then
+  echo "enabling aws for $defaultRegion"
+  sed -i.bak -e "s/false/true/" -e "s/us-west-2/$defaultRegion/" /etc/default/spinnaker
 fi
 
 service clouddriver start
@@ -97,4 +110,3 @@ service rosco start
 service front50 start
 service igor start
 service echo start
-
