@@ -29,9 +29,9 @@ class TitanServerGroupCreator implements ServerGroupCreator {
   /**
    * Prefer composition over inheritance FTW!
    */
-  @Delegate
+  @Delegate(excludes = ['getCloudProvider'])
   @Autowired
   AmazonServerGroupCreator delegate
 
-  String cloudProvider = "titan"
+  final String cloudProvider = "titan"
 }
