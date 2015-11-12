@@ -30,6 +30,13 @@ services:
     host: ${services.default.host}
     port: 8089
     baseUrl: ${services.default.protocol}://${services.echo.host}:${services.echo.port}
+    notifications:
+      mail: 
+        enabled: false 
+      hipchat:
+        enabled: false
+      sms:
+        enabled: false
 
   front50:
     host: ${services.default.host}
