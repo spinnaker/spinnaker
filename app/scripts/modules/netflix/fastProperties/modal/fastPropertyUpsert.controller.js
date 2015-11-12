@@ -131,6 +131,10 @@ module.exports = angular
     vm.startApplicationChange = fastPropertyScopeBuilderService.createApplicationChangeFn(vm.property.startScope, vm.getStartRegions);
     vm.startApplicationSelected = fastPropertyScopeBuilderService.createApplicationSelectedFn(vm, vm.startApplicationChange);
 
+    vm.acaTargetClusterChange = fastPropertyScopeBuilderService.createClusterChangeFn(vm, vm.property.startScope, vm.startLists, angular.noop);
+    vm.acaTargetStackChange = fastPropertyScopeBuilderService.createStackChangeFn(vm, vm.property.startScope, vm.startLists, vm.acaTargetClusterChange);
+    vm.acaTargetRegionChange = fastPropertyScopeBuilderService.createRegionChangeFn(vm, vm.property.startScope, vm.startLists, vm.acaTargetStackChange);
+
 
 
     vm.applicationRemoved = (appName) => {
@@ -177,6 +181,10 @@ module.exports = angular
         fastPropertyWizardManagementService.showPages(selected.wizardScreens);
 
         Object.assign(vm.property.startScope, vm.property.targetScope);
+        if(selected.key === 'aca') {
+          vm.property.startScope = _.set(vm.property.startScope, 'stack', 'none' );
+        }
+
         vm.property.startScope.appIdList.forEach(vm.startApplicationSelected);
 
 
