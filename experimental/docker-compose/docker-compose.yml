@@ -47,15 +47,11 @@ gate:
   container_name: gate
   env_file: ./compose.env
   environment: 
-    - "SERVICES_DEFAULT_HOST=$DOCKER_IP"
-    - "SERVICES_CLOUDDRIVER_BASE_URL=http://clouddriver:7002"
-    - "SERVICES_KATO_BASE_URL=http://clouddriver:7002"
-    - "SERVICES_ECHO_BASEURL=http://echo:8089"
-    - "SERVICES_FRONT50_BASEURL=http://front50:8080"
-    - "SERVICES_OORT_BASEURL=http://clouddriver:8083"
-    - "SERVICES_MORT_BASEURL=http://clouddriver:8083"
-    - "SERVICES_IGOR_BASEURL=http://igor:8088"
-    - "SERVICES_ORCA_BASEURL=http://orca:8083"
+    - "SERVICES_CLOUDDRIVER_HOST=clouddriver"
+    - "SERVICES_ECHO_HOST=echo"
+    - "SERVICES_FRONT50_HOST=front50"
+    - "SERVICES_IGOR_HOST=igor"
+    - "SERVICES_ORCA_HOST=orca"
   image: spinnaker/gate
   links: 
     - redis
@@ -72,7 +68,7 @@ igor:
   container_name: igor
   env_file: ./compose.env
   environment: 
-    - "SERVICES_ECHO_BASEURL=http://echo:8089"
+    - "SERVICES_ECHO_HOST=echo"
   image: spinnaker/igor
   links: 
     - redis
@@ -85,10 +81,10 @@ orca:
   container_name: orca
   env_file: ./compose.env
   environment: 
-    - "CLOUDDRIVER_BASE_URL=http://clouddriver:7002"
-    - "ECHO_BASEURL=http://echo:8089"
-    - "FRONT50_BASEURL=http://front50:8080"
-    - "IGOR_BASEURL=http://igor:8088"
+    - "SERVICES_CLOUDDRIVER_HOST=clouddriver"
+    - "SERVICES_ECHO_HOST=echo"
+    - "SERVICES_FRONT50_HOST=front50"
+    - "SERVICES_IGOR_HOST=igor"
   image: spinnaker/orca
   links: 
     - redis
