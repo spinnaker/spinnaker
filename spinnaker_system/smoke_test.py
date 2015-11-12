@@ -129,7 +129,6 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
           'ipProtocol': 'TCP',
           'portRange': spec['port'],
           'loadBalancerName': load_balancer_name,
-          'providerType': 'gce',
           'healthCheck': {
               'port': spec['port'],
               'timeoutSec': spec['timeoutSec'],
@@ -218,11 +217,10 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
           'strategy':'',
           'capacity': {'min':2, 'max':2, 'desired':2},
           'targetSize': 2,
-          'providerType': 'gce',
           'image': bindings['TEST_GCE_IMAGE_NAME'],
           'zone': bindings['TEST_GCE_ZONE'], 'stack': bindings['TEST_STACK'],
           'instanceType': 'f1-micro',
-          'type': 'linearDeploy',
+          'type': 'createServerGroup',
           'loadBalancers': [bindings['TEST_APP_COMPONENT_NAME']],
           'availabilityZones': { bindings['TEST_GCE_REGION']:
                                    [bindings['TEST_GCE_ZONE']] },
