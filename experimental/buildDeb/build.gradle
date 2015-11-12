@@ -49,9 +49,10 @@ ospackage {
     into spinnakerHome + '/scripts'
     fileMode = 0755
   }  
-  from('../../tests') {
-    into spinnakerHome + '/tests'
-  }  
+
+//  from('../../tests') {
+//    into spinnakerHome + '/tests'
+//  }  
 
 //  from(file('etc/init/spinnaker.conf')) {
 //    into('/etc/init')
@@ -63,11 +64,6 @@ ospackage {
   from('../../config') {
     rename 'default-spinnaker-local.yml', 'spinnaker-local.yml'
     into spinnakerHome + '/config'
-  }
-
-  from('../../') {
-    include 'release_config.cfg'
-    into spinnakerHome
   }
 
 //  from('etc/apache2/sites-available/spinnaker.conf') {
@@ -89,10 +85,10 @@ ospackage {
 
 // Ubuntu
 buildDeb {
-  requires('python-pip')
+  // requires('python-pip')
   // requires('openjdk-8-jre', '8u45-b14-1~14.04', EQUAL)
-  requires('oracle-java8-installer')
-  requires('redis-server', '3.0.5', GREATER | EQUAL)
+  // requires('oracle-java8-installer')
+  // requires('redis-server', '3.0.5', GREATER | EQUAL)
   requires('clouddriver')
   requires('deck')
   requires('echo')
