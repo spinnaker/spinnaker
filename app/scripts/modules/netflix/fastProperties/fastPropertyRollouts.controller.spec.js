@@ -86,7 +86,6 @@ describe('fastPropertyRollout Controller:', function () {
       fastPropertyReader = _fastPropertyReader_;
 
       spyOn(fastPropertyReader, 'loadPromotions').and.callFake( function() {
-        console.log('calling fake');
         return $q.when(promotionList);
       });
 

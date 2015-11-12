@@ -54,7 +54,6 @@ module.exports = angular
     vm.loadPromotions = function loadPromotions() {
       fastPropertyReader.loadPromotions()
         .then(function(promotionList) {
-          console.info("promotions list", promotionList);
           vm.promotions = vm.filteredPromotions = promotionList;
           vm.filter();
           return vm.promotions;

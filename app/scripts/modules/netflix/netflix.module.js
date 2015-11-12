@@ -20,6 +20,7 @@ module.exports = angular
     require('./canary'),
     require('./templateOverride/templateOverrides.module.js'),
     require('./migrator/pipeline/pipeline.migrator.directive.js'),
+    require('./serverGroup/serverGroupCommandConfigurer.service.js'),
   ])
   .run(function(cloudProviderRegistry) {
     cloudProviderRegistry.overrideValue(
