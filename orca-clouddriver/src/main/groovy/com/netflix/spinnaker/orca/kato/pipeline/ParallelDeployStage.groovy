@@ -57,8 +57,15 @@ class ParallelDeployStage extends ParallelStage {
       def nextStage = newStage(
         stage.execution, context.type as String, context.name as String, new HashMap(context), stage, Stage.SyntheticStageOwner.STAGE_AFTER
       )
-      ((AbstractStage) nextStage).type = PIPELINE_CONFIG_TYPE
-      stage.execution.stages.add(nextStage)
+
+      def existingStage = stage.execution.stages.find { it.id == nextStage.id }
+      nextStage = existingStage ?: nextStage
+
+      if (!existingStage) {
+        // in the case of a restart, this stage will already have been added to the execution
+        ((AbstractStage) nextStage).type = PIPELINE_CONFIG_TYPE
+        stage.execution.stages.add(nextStage)
+      }
 
       def flowBuilder = new FlowBuilder<Flow>(context.name as String).start(
         buildStep(stage, "setupParallelDeploy", new Task() {

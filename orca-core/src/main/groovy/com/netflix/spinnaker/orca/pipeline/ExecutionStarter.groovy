@@ -63,7 +63,8 @@ abstract class ExecutionStarter<T extends Execution> {
   T startExecution(T subject) {
     def job = createJob(subject)
     persistExecution(subject)
-    if (subject.status.isComplete()) {
+    if (!subject.startTime && subject.status.isComplete()) {
+      // this execution has never been started but is already in a complete status (indicates a failure building execution graph)
       onCompleteBeforeLaunch(subject)
       return subject
     }
@@ -99,6 +100,7 @@ abstract class ExecutionStarter<T extends Execution> {
     def params = new JobParametersBuilder()
     params.addString(type, subject.id)
     params.addString("application", subject.application)
+    params.addString("timestamp", System.currentTimeMillis() as String)
     params.toJobParameters()
   }
 
