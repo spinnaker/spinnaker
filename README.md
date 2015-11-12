@@ -132,6 +132,8 @@ Sign into the [Google Developer's Console](https://console.developers.google.com
 
 ## Start Spinnaker Services
 
+( If you're running on Mac OS, please make sure that your redis server and cassandra server is up and running. Make sure that cqlsh is accessible in your path and you can connect to cassandra by calling `cqlsh` in your terminal ).
+
 ````bash
 cd $SPINNAKER_HOME/build
 ../spinnaker/dev/run_dev.sh [service]
