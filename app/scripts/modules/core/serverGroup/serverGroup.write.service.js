@@ -82,7 +82,7 @@ module.exports = angular
         description = 'Create Cloned Server Group from ' + command.source.asgName;
         command.type = 'cloneServerGroup';
       } else {
-        command.type = 'linearDeploy';
+        command.type = 'createServerGroup';
         var asgName = application.name;
         if (command.stack) {
           asgName += '-' + command.stack;
