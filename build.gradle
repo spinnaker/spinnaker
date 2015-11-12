@@ -28,9 +28,9 @@ ospackage {
   release '3'
 
 // installer scripts
-  preInstall = file('scripts/preInstall.sh')
-  postInstall = file('scripts/postInstall.sh')
-  postUninstall = file('scripts/postUninstall.sh')
+  preInstall = file('pkg_scripts/preInstall.sh')
+  postInstall = file('pkg_scripts/postInstall.sh')
+  postUninstall = file('pkg_scripts/postUninstall.sh')
 
 // files to put in the meta package
   from('pylib') {
@@ -41,35 +41,51 @@ ospackage {
     into spinnakerHome + '/cassandra'
   }
 
+  from('install') {
+    into spinnakerHome + '/install'
+  }
+
+  from('scripts') {
+    into spinnakerHome + '/scripts'
+    fileMode = 0755
+  }
+
   from('config') {
     into spinnakerHome + '/config'
   }
 
-  from(file('scripts/spinnaker.conf')) {
+  from('tests') {
+    into spinnakerHome + '/tests'
+  }  
+
+  from(file('etc/init/spinnaker.conf')) {
     into('/etc/init')
     user = 'root'
     permissionGroup = 'root'
     fileType = CONFIG | NOREPLACE
   }
 
-   from('config/default-spinnaker-local.yml') {
-    include 'default-spinnaker-local.yml'
-    rename '.*', 'spinnaker-local.yml'
+  from('config') {
+    rename 'default-spinnaker-local.yml', 'spinnaker-local.yml'
     into spinnakerHome + '/config'
   }
 
-  from('runtime/reconfigure_spinnaker.sh') {
-    into spinnakerHome + '/bin'
-    fileMode = 0755
+  from('.') {
+    include 'release_config.cfg'
+    into spinnakerHome
   }
 
-  from('config/apache2/sites-available/spinnaker.conf') {
+  from('etc/apache2/sites-available/spinnaker.conf') {
     into '/etc/apache2/sites-available'
+    user = 'root'
+    permissionGroup = 'root'    
     fileMode = 0644
   }
 
-  from('config/default/spinnaker') {
+  from('etc/default/spinnaker') {
     into '/etc/default'
+    user = 'root'
+    permissionGroup = 'root'    
     fileMode = 0644
   }  
 
