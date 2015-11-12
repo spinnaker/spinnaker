@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.core.account.accountTag.directive', [
       controller: function($scope, settings ) {
 
         $scope.getAccountType = function() {
-          if($scope.provider) {
+          if($scope.provider && settings.providers[$scope.provider]) {
             var prodAccounts = settings.providers[$scope.provider].challengeDestructiveActions || [];
             return prodAccounts.indexOf($scope.account) > -1 ? 'prod' : $scope.account;
           } else {
