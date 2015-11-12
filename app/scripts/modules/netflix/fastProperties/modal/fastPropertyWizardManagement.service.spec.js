@@ -22,7 +22,6 @@ describe('fastPropertyWizardMangagement.service', function () {
   it('should have an instantiated service', function () {
     expect(service).toBeDefined();
     expect(wizardService).toBeDefined();
-    console.log(wizardService.getWizard());
   });
 
 

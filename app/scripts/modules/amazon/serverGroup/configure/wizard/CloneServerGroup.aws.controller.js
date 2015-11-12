@@ -10,19 +10,21 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js'),
   require('../../../../core/modal/wizard/modalWizard.service.js'),
+  require('../../../../core/templateOverride/templateOverride.registry.js'),
 ])
   .controller('awsCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $state,
                                                   serverGroupWriter, modalWizardService, taskMonitorService,
-                                                  awsServerGroupConfigurationService, serverGroupCommand, application, title) {
+                                                  templateOverrideRegistry, awsServerGroupConfigurationService,
+                                                  serverGroupCommand, application, title) {
     $scope.pages = {
-      templateSelection: require('./templateSelection.html'),
-      basicSettings: require('./basicSettings.html'),
-      loadBalancers: require('./loadBalancers.html'),
-      securityGroups: require('./securityGroups.html'),
-      instanceArchetype: require('./instanceArchetype.html'),
-      instanceType: require('./instanceType.html'),
-      capacity: require('./capacity.html'),
-      advancedSettings: require('./advancedSettings.html'),
+      templateSelection: templateOverrideRegistry.getTemplate('aws.serverGroup.templateSelection', require('./templateSelection.html')),
+      basicSettings: templateOverrideRegistry.getTemplate('aws.serverGroup.basicSettings', require('./basicSettings.html')),
+      loadBalancers: templateOverrideRegistry.getTemplate('aws.serverGroup.loadBalancers', require('./loadBalancers.html')),
+      securityGroups: templateOverrideRegistry.getTemplate('aws.serverGroup.securityGroups', require('./securityGroups.html')),
+      instanceArchetype: templateOverrideRegistry.getTemplate('aws.serverGroup.instanceArchetype', require('./instanceArchetype.html')),
+      instanceType: templateOverrideRegistry.getTemplate('aws.serverGroup.instanceType', require('./instanceType.html')),
+      capacity: templateOverrideRegistry.getTemplate('aws.serverGroup.capacity', require('./capacity.html')),
+      advancedSettings: templateOverrideRegistry.getTemplate('aws.serverGroup.advancedSettings', require('./advancedSettings.html')),
     };
 
     $scope.title = title;

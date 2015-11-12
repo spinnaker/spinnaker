@@ -5,7 +5,6 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   require('../../image/image.reader.js'),
   require('../../../core/account/account.service.js'),
-  require('../../../core/diff/diff.service.js'),
   require('../../../core/naming/naming.service.js'),
   require('../../../core/securityGroup/securityGroup.read.service.js'),
   require('../../instance/awsInstanceType.service.js'),
@@ -14,11 +13,12 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   require('../../../core/loadBalancer/loadBalancer.read.service.js'),
   require('../../../core/cache/cacheInitializer.js'),
   require('../../../core/utils/lodash.js'),
+  require('../../../core/serverGroup/configure/common/serverGroupCommand.registry.js'),
 ])
   .factory('awsServerGroupConfigurationService', function($q, awsImageReader, accountService, securityGroupReader,
-                                                          awsInstanceTypeService, cacheInitializer,
-                                                          diffService, namingService,
-                                                          subnetReader, keyPairsReader, loadBalancerReader, _) {
+                                                          awsInstanceTypeService, cacheInitializer, namingService,
+                                                          subnetReader, keyPairsReader, loadBalancerReader, _,
+                                                          serverGroupCommandRegistry) {
 
 
     var healthCheckTypes = ['EC2', 'ELB'],
@@ -256,17 +256,6 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
       return result;
     }
 
-    function configureSecurityGroupDiffs(command) {
-      var currentOptions = command.backingData.filtered.securityGroups,
-          currentSecurityGroups = command.securityGroups || [];
-      var currentSecurityGroupNames = currentSecurityGroups.map(function(groupId) {
-        var match = _(currentOptions).find({id: groupId});
-        return match ? match.name : groupId;
-      });
-      var result = diffService.diffSecurityGroups(currentSecurityGroupNames, command.viewState.clusterDiff, command.source);
-      command.viewState.securityGroupDiffs = result;
-    }
-
     function refreshSecurityGroups(command, skipCommandReconfiguration) {
       return cacheInitializer.refreshCache('securityGroups').then(function() {
         return securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
@@ -349,10 +338,6 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
 
     function attachEventHandlers(command) {
 
-      command.configureSecurityGroupDiffs = function () {
-        configureSecurityGroupDiffs(command);
-      };
-
       command.usePreferredZonesChanged = function usePreferredZonesChanged() {
         var currentZoneCount = command.availabilityZones ? command.availabilityZones.length : 0;
         var result = { dirty: {} };
@@ -410,25 +395,19 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
           } else {
             angular.extend(result.dirty, command.regionChanged().dirty);
           }
-          command.clusterChanged();
         } else {
           command.region = null;
         }
         return result;
       };
 
-      command.clusterChanged = function clusterChanged() {
-        if (!command.application) {
-          return;
-        }
-        diffService.getClusterDiffForAccount(command.credentials,
-            namingService.getClusterName(command.application, command.stack, command.freeFormDetails)).then((diff) => {
-              command.viewState.clusterDiff = diff;
-              configureSecurityGroupDiffs(command);
-        });
-      };
-
       command.imageChanged = () => configureInstanceTypes(command);
+
+      serverGroupCommandRegistry.getCommandOverrides('aws').forEach((override) => {
+        if (override.attachEventHandlers) {
+          override.attachEventHandlers(command);
+        }
+      });
     }
 
     return {
