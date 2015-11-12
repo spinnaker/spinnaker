@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.DetermineSourceServerGroupTask
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
+import com.netflix.spinnaker.orca.kato.tasks.DiffTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.Immutable
 import groovy.util.logging.Slf4j
@@ -35,6 +36,9 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
 
   @Autowired
   NoStrategy noStrategy
+
+  @Autowired(required = false)
+  List<DiffTask> diffTasks
 
   AbstractDeployStrategyStage(String name) {
     super(name)
@@ -57,6 +61,16 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
     List<Step> steps = [buildStep(stage, "determineSourceServerGroup", DetermineSourceServerGroupTask)]
     if (!strategy.replacesBasicSteps()) {
       steps.addAll((basicSteps(stage) ?: []) as List<Step>)
+
+      if (diffTasks) {
+        diffTasks.each { DiffTask diffTask ->
+          try {
+            steps << buildStep(stage, getDiffTaskName(diffTask.class.simpleName), diffTask.class)
+          } catch (Exception e) {
+            log.error("Unable to build diff task (name: ${diffTask.class.simpleName}: executionId: ${stage.execution.id})", e)
+          }
+        }
+      }
     }
     return steps
   }
@@ -72,6 +86,14 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
       stage.context.putAll(stage.context.cluster as Map)
     }
     stage.context.remove("cluster")
+  }
+
+  static String getDiffTaskName(String className) {
+    try {
+      className = className[0].toLowerCase() + className.substring(1)
+      className = className.replaceAll("Task", "")
+    } catch (e) {}
+    return className
   }
 
   @Immutable

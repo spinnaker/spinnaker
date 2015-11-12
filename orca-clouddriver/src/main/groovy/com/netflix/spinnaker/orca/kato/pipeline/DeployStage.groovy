@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
+@Deprecated
 class DeployStage extends DeployStrategyStage {
   public static final String PIPELINE_CONFIG_TYPE = "linearDeploy"
 
