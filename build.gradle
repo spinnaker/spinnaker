@@ -45,6 +45,11 @@ ospackage {
     into spinnakerHome + '/install'
   }
 
+  from('runtime') {
+    into spinnakerHome + '/runtime'
+    fileMode = 0755
+  }  
+
   from('scripts') {
     into spinnakerHome + '/scripts'
     fileMode = 0755
