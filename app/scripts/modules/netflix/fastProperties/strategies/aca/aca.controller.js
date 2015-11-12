@@ -46,7 +46,7 @@ module.exports = angular
           modalInstance.close(result);
         },
         function(error) {
-          window.alert(JSON.stringify(error));
+          vm.submititionError = `There was an issue submitting your Fast Property: ${error.message}`;
         });
     };
 

@@ -62,9 +62,11 @@
           <h4>Target Cluster</h4>
           <dl class="fastProperty-scope" >
 
+            <dt ng-if="newFP.property.startScope.region">Region:</dt>
+            <dd ng-if="newFP.property.startScope.region">{{newFP.property.startScope.region}}</dd>
+
             <dt ng-if="newFP.property.startScope.cluster">Cluster:</dt>
             <dd ng-if="newFP.property.startScope.cluster">{{newFP.property.startScope.cluster}}</dd>
-
           </dl>
         </div>
 
@@ -163,7 +165,18 @@
         </dl>
       </div>
     </div>
+
+
+    <!--
+      Error message
+    -->
+    <div class="error" ng-if="newFP.submititionError">
+      {{newFP.submititionError}}
+    </div>
+
   </div>
+
+
 
   <!--
     FOOTER BUTTONS

@@ -33,7 +33,7 @@ module.exports = angular
           modalInstance.close(result);
         },
         function(error) {
-          window.alert(JSON.stringify(error));
+          vm.submititionError = `There was an issue submitting your Fast Property: ${error.message}`;
         });
     };
 
@@ -49,8 +49,10 @@ module.exports = angular
       fastPropertyWriter.upsertFastProperty(updatedParams).then(
         function(result) {
           modalInstance.close(result);
-        }
-      );
+        },
+        function(error) {
+          vm.submititionError = `There was an issue submitting your Fast Property: ${error.message}`;
+        });
     };
 
     return vm;

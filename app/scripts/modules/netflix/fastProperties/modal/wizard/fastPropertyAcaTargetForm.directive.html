@@ -1,5 +1,5 @@
 <div class="wizard-subheading">
-  <h4>Select Target Cluster</h4>
+  <h4>Select Target Region & Cluster</h4>
 </div>
 <form role="form" class="container-fluid" novalidate name="newFastPropertyForm">
   <div class="modal-body">
@@ -12,19 +12,29 @@
 
     <div class="row" style="margin-top: 15px;">
       <div class="col-sm-12">
-        <p>Select the cluster you would like to ACA this Fast Property against.</p>
+        <p>Select the region and cluster you would like to ACA this Fast Property against.</p>
       </div>
     </div>
 
 
     <div class="form-horizontal fp-canary-config-view">
 
+      <scope-region-selector
+          model="newFP.property.startScope.region"
+          regions="newFP.startLists.region"
+          on-change="newFP.acaTargetRegionChange(region, stack)"
+          allow-none="false"
+      >
+      </scope-region-selector>
+
+
       <scope-cluster-selector
           model="newFP.property.startScope.cluster"
-          get-clusters="newFP.getAppClusters()"
-          show-if="true"
+          clusters="newFP.startLists.cluster"
+          show-if="newFP.property.startScope.region"
           on-change="angular.noop()"
-          >
+          allow-none="false"
+      >
       </scope-cluster-selector>
 
     </div>

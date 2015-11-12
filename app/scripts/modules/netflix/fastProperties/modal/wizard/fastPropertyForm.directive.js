@@ -44,7 +44,7 @@ module.exports = angular
   .directive('fastPropertyAcaInstanceStrategyForm', () => {
     return {
       restrict: 'E',
-      templateUrl: require('./fastPropertyAcaInstaceStrategForm.directive.html')
+      templateUrl: require('./fastPropertyAcaInstanceStrategyForm.directive.html')
     };
   })
   .directive('fastPropertyReviewForm', () => {

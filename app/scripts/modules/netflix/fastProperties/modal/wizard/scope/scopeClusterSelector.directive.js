@@ -4,11 +4,15 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.fastProperties.scope.clusterSelector.directive', [])
+  .module('spinnaker.fastProperties.scope.clusterSelector.directive', [
+    require('../../../../../core/utils/lodash')
+  ])
   .directive('scopeClusterSelector', function() {
     return {
       restrict: 'E',
-      scope: {},
+      scope: {
+        allowNone: '=?'
+      },
       bindToController: {
         model: '=',
         clusters: '=?',
@@ -18,9 +22,11 @@ module.exports = angular
 
       },
       controllerAs: 'fp',
-      controller: function controller() {
+      controller: function controller($scope, _) {
         var vm = this;
         vm.freeFormClusterField = false;
+
+        vm.allowNone = _.isBoolean($scope.allowNone) ? $scope.allowNone : true;
 
         vm.clusterChanged = () => {
           vm.onChange({cluster: vm.model});
