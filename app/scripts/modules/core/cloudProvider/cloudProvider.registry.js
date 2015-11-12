@@ -43,6 +43,10 @@ module.exports = angular.module('spinnaker.core.cloudProvider.registry', [
       current[lastKey] = val;
     }
 
+    function hasValue(provider, key) {
+      return !!getProvider(provider) && getValue(provider, key) !== null;
+    }
+
     function getValue(provider, key) {
       if (!key) {
         return null;
@@ -76,6 +80,7 @@ module.exports = angular.module('spinnaker.core.cloudProvider.registry', [
       return {
         getProvider: getProvider,
         getValue: getValue,
+        hasValue: hasValue,
         overrideValue: overrideValue,
         listRegisteredProviders: listRegisteredProviders,
       };

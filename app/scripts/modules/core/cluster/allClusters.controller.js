@@ -67,7 +67,7 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
     };
 
     this.createServerGroup = function createServerGroup() {
-      providerSelectionService.selectProvider(app).then(function(selectedProvider) {
+      providerSelectionService.selectProvider(app, 'serverGroup').then(function(selectedProvider) {
         let provider = cloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
         $uibModal.open({
           templateUrl: provider.cloneServerGroupTemplateUrl,
