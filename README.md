@@ -103,7 +103,7 @@ Sign into the [AWS console](https://console.aws.amazon.com/), and select the reg
     - Console > Identity & Access Management > Roles > Create New Role. Select Amazon EC2.
     - You don't have to apply any policies to this role. EC2 instances launched with Spinnaker will have this role associated.
 5. Create an EC2 keyPair for connecting to your instances.
-    - Console > EC2 > Key Pairs > Create Key Pair. Name the key pair `my-aws-account-keypair` (this matches the account name in `$HOME/.spinnaker/spinnaker-local.yml`
+    - Console > EC2 > Key Pairs > Create Key Pair. Name the key pair `my-aws-account-keypair` (`my-aws-account` should match the matches the account name in `$HOME/.spinnaker/spinnaker-local.yml`, so if your account is called awsprod, the key pair should be awsprod-keyspace).
 6. Create AWS credentials for Spinnaker
     - Console > Identity & Access Management > Users > Create New Users. Enter a username.
     - Create an Access Key for the user. Save the access key and secret key into `~/.aws/credentials` as shown [here](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-config-files). Alternatively, add the keys to `$HOME/.spinnaker/spinnaker-local.yml`
