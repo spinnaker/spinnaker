@@ -38,16 +38,65 @@ else
   exit 1
 fi
 
-enableAws=$1
-defaultRegion=$2
+function process_args() {
+  while [[ $# > 0 ]]
+  do
+      local key="$1"
+      shift
+      case $key in
+         --cloud_provider)
+           CLOUD_PROVIDER="$1"
+           shift
+           ;;
+         --default_region)
+           DEFAULT_REGION="$1"
+           shift
+           ;;
+         --zone)
+           ZONE="$1"
+           shift
+           ;;
+         *)
+           echo "ERROR: Unknown argument '$key'"
+           exit -1
+      esac
+  done
+}
 
-if [ "x$enableAws" == "x" ] && [ "x$defaultRegion" == "x" ]; then
-  read -p "Enable Amazon AWS? (Y|n)" enableAws
-  if [[ "${enableAws,,}" == "y" || -z "$enableAws" ]]; then
-    read -p "Default region: " defaultRegion
-  else
-    echo "Not enabling AWS"
+function set_default_region() {
+  if [ "x$DEFAULT_REGION" == "x" ]; then
+    case $CLOUD_PROVIDER in
+      amazon)
+          DEFAULT_REGION="us-west-2"
+          ;;
+      google)
+          DEFAULT_REGION="us-central1-b"
+          ;;
+    esac
   fi
+  read -e -p "set default region: " -i "$DEFAULT_REGION" DEFAULT_REGION
+  DEFAULT_REGION=`echo $DEFAULT_REGION | tr '[:upper:]' '[:lower:]'`
+}
+
+if [ "x$CLOUD_PROVIDER" == "x" ]; then
+  read -p "Select a cloud provider: (aws|gce|none) " CLOUD_PROVIDER
+  CLOUD_PROVIDER=`echo $CLOUD_PROVIDER | tr '[:upper:]' '[:lower:]'`
+  case $CLOUD_PROVIDER in
+      a|aws|amazon)
+          CLOUD_PROVIDER="amazon"
+          set_default_region
+          ;;
+      g|gce|google)
+          CLOUD_PROVIDER="google"
+          set_default_region
+          ;;
+      n|no|none)
+          CLOUD_PROVIDER="none"
+          ;;
+      *)
+          echo "ERROR: invalid cloud provider '$CLOUD_PROVIDER'"
+          exit -1
+  esac
 fi
 
 ## PPAs ##
@@ -91,15 +140,17 @@ nodetool enablethrift
 
 apt-get install -y --force-yes --allow-unauthenticated spinnaker
 
-if [[ "${enableAws,,}" == "y" || -z "$enableAws" ]]; then
-  sed -i.bak -e "s/false/true/" -e "s/us-west-2/$defaultRegion/" /etc/default/spinnaker
+if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" ]]; then
+  case $CLOUD_PROVIDER in
+     amazon)
+        sed -i.dist -e "s/SPINNAKER_AWS_ENABLED=false/SPINNAKER_AWS_ENABLED=true/" -e "s/SPINNAKER_AWS_DEFAULT_REGION.*$/SPINNAKER_AWS_DEFAULT_REGION=${DEFAULT_REGION}/" /etc/default/spinnaker
+        ;;
+    google)
+        sed -i.dist -e "s/SPINNAKER_GCE_ENABLED=false/SPINNAKER_GCE_ENABLED=true/" -e "s/SPINNAKER_GCE_DEFAULT_REGION.*$/SPINNAKER_GCE_DEFAULT_REGION=${DEFAULT_REGION}/" /etc/default/spinnaker
+        ;;   amazon)
+  esac
 else
-  echo Not enabling AWS
-fi
-
-if [[ "${enableAws,,}" == "y" ]]; then
-  echo "enabling aws for $defaultRegion"
-  sed -i.bak -e "s/false/true/" -e "s/us-west-2/$defaultRegion/" /etc/default/spinnaker
+  echo "Not enabling a cloud provider"
 fi
 
 service clouddriver start
@@ -110,3 +161,4 @@ service rosco start
 service front50 start
 service igor start
 service echo start
+
