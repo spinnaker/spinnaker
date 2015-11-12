@@ -23,7 +23,7 @@
         <th>vCPU</th>
         <th>Mem (GiB)</th>
         <th>{{family.storageType || 'SSD'}} Storage (GB)
-          <help-field nf-if="family.storageHelpFieldKey" key="{{family.storageHelpFieldKey}}"></help-field>
+          <help-field ng-if="family.storageHelpFieldKey" key="{{family.storageHelpFieldKey}}"></help-field>
         </th>
         <th>Cost</th>
       </tr>
