@@ -6,11 +6,16 @@ module.exports = angular.module('spinnaker.providerSelection.service', [
   require('../../account/account.service.js'),
   require('../../config/settings.js'),
   require('../../utils/lodash.js'),
+  require('../cloudProvider.registry.js'),
 ])
-  .factory('providerSelectionService', function($uibModal, $q, _, accountService, settings) {
-    function selectProvider(application) {
+  .factory('providerSelectionService', function($uibModal, $q, _, accountService, settings, cloudProviderRegistry) {
+    function selectProvider(application, feature) {
       return accountService.listProviders(application).then((providers) => {
         var provider;
+
+        if (feature) {
+          providers = providers.filter((provider) => cloudProviderRegistry.hasValue(provider, feature));
+        }
 
         if (providers.length > 1) {
           provider = $uibModal.open({

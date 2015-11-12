@@ -69,5 +69,37 @@ describe('cloudProviderRegistry: API', function() {
     }));
   });
 
+  describe('hasValue', function () {
+    beforeEach(function() {
+      this.config = {
+        key: 'a',
+        nested: {
+          good: 'nice',
+          falsy: false,
+          nully: null,
+          zero: 0,
+        }
+      };
+    });
+
+    it('returns true on simple or nested properties', function() {
+      configurer.registerProvider('aws', this.config);
+      expect(configurer.$get().hasValue('aws', 'key')).toBe(true);
+      expect(configurer.$get().hasValue('aws', 'nested')).toBe(true);
+      expect(configurer.$get().hasValue('aws', 'nested.good')).toBe(true);
+      expect(configurer.$get().hasValue('aws', 'nested.falsy')).toBe(true);
+      expect(configurer.$get().hasValue('aws', 'nested.zero')).toBe(true);
+    });
+
+    it('returns false on null properties, non-existent properties or non-existent providers', function () {
+      configurer.registerProvider('aws', this.config);
+      expect(configurer.$get().hasValue('aws', 'nested.nully')).toBe(false);
+      expect(configurer.$get().hasValue('aws', 'nonexistent')).toBe(false);
+      expect(configurer.$get().hasValue('aws', 'definitely.nonexistent')).toBe(false);
+      expect(configurer.$get().hasValue('boo', 'bar')).toBe(false);
+      expect(configurer.$get().hasValue('boo', 'bar.baz')).toBe(false);
+    });
+  });
+
 
 });
