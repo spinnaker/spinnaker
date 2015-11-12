@@ -49,12 +49,6 @@ ospackage {
     into spinnakerHome + '/scripts'
     fileMode = 0755
   }  
-
-  from('scripts') {
-    into spinnakerHome + '/scripts'
-    fileMode = 0755
-  }
-
   from('tests') {
     into spinnakerHome + '/tests'
   }  
