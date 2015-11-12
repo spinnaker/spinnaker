@@ -46,3 +46,4 @@ swagger:
     - .*instanceTypes.*
     - .*vpcs.*
     - .*subnets.*
+    - .*networks.*
