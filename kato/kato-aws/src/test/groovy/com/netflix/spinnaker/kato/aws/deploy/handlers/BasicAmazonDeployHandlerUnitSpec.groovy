@@ -56,7 +56,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
   @Shared
   NetflixAmazonCredentials testCredentials = new NetflixAmazonCredentials(
-    "test", "test", "test", "test", null, null, null, null, null, null, null, null, null
+    "test", "test", "test", "test", null, null, null, null, null, null, null, null, null, null, null
   )
 
   @Shared

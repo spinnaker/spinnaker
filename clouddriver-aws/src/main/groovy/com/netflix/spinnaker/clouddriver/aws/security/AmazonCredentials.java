@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -130,14 +131,23 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
 
         private final String name;
         private final List<String> availabilityZones;
+        private final List<String> preferredZones;
 
         public AWSRegion(@JsonProperty("name") String name,
-                         @JsonProperty("availabilityZones") List<String> availabilityZones) {
+                         @JsonProperty("availabilityZones") List<String> availabilityZones,
+                         @JsonProperty("preferredZones") List<String> preferredZones) {
             if (name == null) {
                 throw new NullPointerException("name");
             }
             this.name = name;
             this.availabilityZones = availabilityZones == null ? Collections.<String>emptyList() : Collections.unmodifiableList(availabilityZones);
+            List<String> preferred = (preferredZones == null || preferredZones.isEmpty()) ? new ArrayList<>(this.availabilityZones) : new ArrayList<>(preferredZones);
+            preferred.retainAll(this.availabilityZones);
+            this.preferredZones = Collections.unmodifiableList(preferred);
+        }
+
+        public AWSRegion(String name, List<String> availabilityZones) {
+            this(name, availabilityZones, Collections.emptyList());
         }
 
         public String getName() {
@@ -148,6 +158,10 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
             return availabilityZones;
         }
 
+        public Collection<String> getPreferredZones() {
+            return preferredZones;
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -155,13 +169,18 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
 
             AWSRegion awsRegion = (AWSRegion) o;
 
-            return name.equals(awsRegion.name) && availabilityZones.equals(awsRegion.availabilityZones);
+            return name.equals(awsRegion.name) &&
+              availabilityZones.equals(awsRegion.availabilityZones) &&
+              preferredZones.equals(awsRegion.preferredZones);
         }
 
         @Override
         public int hashCode() {
             int result = name.hashCode();
-            result = 31 * result + availabilityZones.hashCode();
+            result = 31
+              * result
+              + availabilityZones.hashCode()
+              + preferredZones.hashCode();
             return result;
         }
     }

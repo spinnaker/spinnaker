@@ -37,7 +37,7 @@ class UpsertAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
 
   void setup() {
     description = new UpsertAmazonLoadBalancerDescription(credentials:
-            new NetflixAmazonCredentials('test', 'test', 'test', '12345', 'kp', [new AmazonCredentials.AWSRegion("us-west-1", ["us-west-1a"])], null, null, null, null, null, null, null))
+            new NetflixAmazonCredentials('test', 'test', 'test', '12345', 'kp', [new AmazonCredentials.AWSRegion("us-west-1", ["us-west-1a"])], null, null, null, null, null, null, null, null, null))
   }
 
   void "empty parameters fails validation"() {

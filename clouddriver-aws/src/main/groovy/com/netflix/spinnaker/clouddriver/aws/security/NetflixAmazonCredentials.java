@@ -31,6 +31,8 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
     private final boolean discoveryEnabled;
     private final String front50;
     private final boolean front50Enabled;
+    private final String bastionHost;
+    private final boolean bastionEnabled;
 
     public NetflixAmazonCredentials(@JsonProperty("name") String name,
                                     @JsonProperty("environment") String environment,
@@ -44,8 +46,10 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
                                     @JsonProperty("discovery") String discovery,
                                     @JsonProperty("discoveryEnabled") Boolean discoveryEnabled,
                                     @JsonProperty("front50") String front50,
-                                    @JsonProperty("front50Enabled") Boolean front50Enabled) {
-        this(name, environment, accountType, accountId, defaultKeyPair, regions, requiredGroupMembership, null, edda, eddaEnabled, discovery, discoveryEnabled, front50, front50Enabled);
+                                    @JsonProperty("front50Enabled") Boolean front50Enabled,
+                                    @JsonProperty("bastionHost") String bastionHost,
+                                    @JsonProperty("bastionEnabled") Boolean bastionEnabled) {
+        this(name, environment, accountType, accountId, defaultKeyPair, regions, requiredGroupMembership, null, edda, eddaEnabled, discovery, discoveryEnabled, front50, front50Enabled, bastionHost, bastionEnabled);
     }
 
     private static boolean flagValue(String serviceUrl, Boolean flag) {
@@ -53,7 +57,7 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
     }
 
     public NetflixAmazonCredentials(NetflixAmazonCredentials copy, AWSCredentialsProvider credentialsProvider) {
-        this(copy.getName(), copy.getEnvironment(), copy.getAccountType(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), copy.getRequiredGroupMembership(), credentialsProvider, copy.getEdda(), copy.getEddaEnabled(), copy.getDiscovery(), copy.getDiscoveryEnabled(), copy.getFront50(), copy.getFront50Enabled());
+        this(copy.getName(), copy.getEnvironment(), copy.getAccountType(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), copy.getRequiredGroupMembership(), credentialsProvider, copy.getEdda(), copy.getEddaEnabled(), copy.getDiscovery(), copy.getDiscoveryEnabled(), copy.getFront50(), copy.getFront50Enabled(), copy.getBastionHost(), copy.getBastionEnabled());
     }
 
     NetflixAmazonCredentials(String name,
@@ -69,7 +73,9 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
                              String discovery,
                              Boolean discoveryEnabled,
                              String front50,
-                             Boolean front50Enabled) {
+                             Boolean front50Enabled,
+                             String bastionHost,
+                             Boolean bastionEnabled) {
         super(name, environment, accountType, accountId, defaultKeyPair, regions, requiredGroupMembership, credentialsProvider);
         this.edda = edda;
         this.eddaEnabled = flagValue(edda, eddaEnabled);
@@ -77,6 +83,8 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
         this.discoveryEnabled = flagValue(discovery, discoveryEnabled);
         this.front50 = front50;
         this.front50Enabled = flagValue(front50, front50Enabled);
+        this.bastionHost = bastionHost;
+        this.bastionEnabled = flagValue(bastionHost, bastionEnabled);
     }
 
     public String getEdda() {
@@ -91,6 +99,10 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
         return front50;
     }
 
+    public String getBastionHost() {
+        return bastionHost;
+    }
+
     public boolean getEddaEnabled() {
         return eddaEnabled;
     }
@@ -101,5 +113,9 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
 
     public boolean getFront50Enabled() {
         return front50Enabled;
+    }
+
+    public boolean getBastionEnabled() {
+        return bastionEnabled;
     }
 }
