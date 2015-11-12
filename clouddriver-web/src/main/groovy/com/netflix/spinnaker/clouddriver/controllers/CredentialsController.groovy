@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -28,25 +30,50 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/credentials")
 class CredentialsController {
 
+  @Value('${credentials.primaryAccountTypes}')
+  List<String> primaryAccountTypes = []
+
+  @Value('${credentials.challengeDestructiveActionsEnvironments}')
+  List<String> challengeDestructiveActionsEnvironments = []
+
+  @Autowired
+  ObjectMapper objectMapper
+
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
   @RequestMapping(method = RequestMethod.GET)
   List<Map> list() {
-    accountCredentialsProvider.all.collect {
-      return [
-        name                   : it.name,
-        environment            : it.environment,
-        accountType            : it.accountType,
-        cloudProvider          : it.cloudProvider,
-        type                   : it.provider,
-        requiredGroupMembership: it.requiredGroupMembership
-      ]
-    }
+    accountCredentialsProvider.all.collect(this.&renderSummary)
   }
 
   @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
-  AccountCredentials getAccount(@PathVariable("name") String name) {
-    accountCredentialsProvider.getCredentials name
+  Map getAccount(@PathVariable("name") String name) {
+    renderDetail(accountCredentialsProvider.getCredentials(name))
   }
+
+  Map renderSummary(AccountCredentials accountCredentials) {
+    render(false, accountCredentials)
+  }
+
+  Map renderDetail(AccountCredentials accountCredentials) {
+    render(true, accountCredentials)
+  }
+
+  Map render(boolean includeDetail, AccountCredentials accountCredentials) {
+    if (accountCredentials == null) {
+      return null
+    }
+    Map cred = objectMapper.convertValue(accountCredentials, Map)
+    if (!includeDetail) {
+      cred.keySet().retainAll(['name', 'environment', 'accountType', 'cloudProvider', 'requiredGroupMembership'])
+    }
+
+    cred.type = accountCredentials.cloudProvider
+    cred.challengeDestructiveActions = challengeDestructiveActionsEnvironments.contains(accountCredentials.environment)
+    cred.primaryAccount = primaryAccountTypes.contains(accountCredentials.accountType)
+
+    return cred
+  }
+
 }
