@@ -44,7 +44,9 @@ You need to have [homebrew](http://brew.sh/) installed and ensure your version o
 brew install redis cassandra brew-cask packer
 brew cask install java
 cd $SPINNAKER_HOME
-spinnaker/dev/refresh_source.sh --pull_origin --use_ssh --github_user default
+mkdir build
+cd build
+../spinnaker/dev/refresh_source.sh --pull_origin --use_ssh --github_user default
 ````
 
 ### Debian-linux
