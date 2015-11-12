@@ -1,12 +1,28 @@
 <div ng-controller="gceDestroyAsgStageCtrl as destroyAsgStageCtrl" class="form-horizontal">
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Cluster</b>
-      <help-field key="pipeline.config.destroyAsg.cluster"></help-field>
+  <div ng-if="!pipeline.strategy">
+    <div class="form-group">
+      <label class="col-md-2 col-md-offset-1 sm-label-left">Account</label>
+      <div class="col-md-6">
+        <account-select-field component="stage" field="credentials" accounts="accounts" provider="'gce'" on-change="destroyAsgStageCtrl.accountUpdated()" required></account-select-field>
+      </div>
     </div>
-    <div class="col-md-6">
-      <input type="text" required ng-model="stage.cluster"
-        class="form-control input-sm" />
+    <div class="form-group">
+      <label class="col-md-2 col-md-offset-1 sm-label-left">Zones</label>
+      <div class="col-md-6" ng-if="!stage.credentials">
+        <p class="form-control-static">(Select an Account)</p>
+      </div>
+      <div class="col-md-6" ng-if="stage.credentials">
+        <checkmap item-map="zones" selected-items="stage.zones"></checkmap>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-2 col-md-offset-1 sm-label-left">
+        <b>Cluster</b>
+        <help-field key="pipeline.config.destroyAsg.cluster"></help-field>
+      </div>
+      <div class="col-md-6">
+        <input type="text" required ng-model="stage.cluster" class="form-control input-sm" />
+      </div>
     </div>
   </div>
   <div class="form-group">
@@ -15,21 +31,6 @@
     </div>
     <div class="col-md-6">
       <target-select model="stage" options="targets"></target-select>
-    </div>
-  </div>
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Account</label>
-    <div class="col-md-6">
-      <account-select-field component="stage" field="credentials" accounts="accounts" provider="'gce'" on-change="destroyAsgStageCtrl.accountUpdated()" required></account-select-field>
-    </div>
-  </div>
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Zones</label>
-    <div class="col-md-6" ng-if="!stage.credentials">
-      <p class="form-control-static">(Select an Account)</p>
-    </div>
-    <div class="col-md-6" ng-if="stage.credentials">
-      <checkmap item-map="zones" selected-items="stage.zones"></checkmap>
     </div>
   </div>
 </div>
