@@ -1,0 +1,114 @@
+buildscript {
+  repositories {
+    jcenter()
+    maven { url "http://dl.bintray.com/spinnaker/gradle" }
+  }
+  dependencies {
+    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.115'
+  }
+}
+
+group = "com.netflix.spinnaker.spinnaker"
+
+
+apply plugin: 'application'
+apply plugin: 'nebula.os-package'
+apply plugin: 'nebula.os-package-base'
+
+
+
+ospackage {
+
+// common installation paths 
+  def spinnakerHome = "/opt/" + project.applicationName
+
+// global package requirements
+  packageName = project.applicationName
+  version = project.version.replaceAll("-SNAPSHOT", "")
+  release '3'
+
+// installer scripts
+//  preInstall = file('pkg_scripts/preInstall.sh')
+//  postInstall = file('pkg_scripts/postInstall.sh')
+//  postUninstall = file('pkg_scripts/postUninstall.sh')
+
+// files to put in the meta package
+  from('../../pylib') {
+    into spinnakerHome + '/pylib'
+  }
+
+  from('../../cassandra') {
+    into spinnakerHome + '/cassandra'
+  }
+
+  from('../../install') {
+    into spinnakerHome + '/install'
+  }
+
+  from('../../runtime') {
+    into spinnakerHome + '/scripts'
+    fileMode = 0755
+  }  
+  from('../../tests') {
+    into spinnakerHome + '/tests'
+  }  
+
+//  from(file('etc/init/spinnaker.conf')) {
+//    into('/etc/init')
+//    user = 'root'
+//    permissionGroup = 'root'
+//    fileType = CONFIG | NOREPLACE
+//  }
+
+  from('../../config') {
+    rename 'default-spinnaker-local.yml', 'spinnaker-local.yml'
+    into spinnakerHome + '/config'
+  }
+
+  from('../../') {
+    include 'release_config.cfg'
+    into spinnakerHome
+  }
+
+//  from('etc/apache2/sites-available/spinnaker.conf') {
+//    into '/etc/apache2/sites-available'
+//    user = 'root'
+//    permissionGroup = 'root'    
+//    fileMode = 0644
+//  }
+
+//  from('etc/default/spinnaker') {
+//    into '/etc/default'
+//    user = 'root'
+//    permissionGroup = 'root'    
+//    fileMode = 0644
+//  }  
+
+}
+
+
+// Ubuntu
+buildDeb {
+  requires('python-pip')
+  // requires('openjdk-8-jre', '8u45-b14-1~14.04', EQUAL)
+  requires('oracle-java8-installer')
+  requires('redis-server', '3.0.5', GREATER | EQUAL)
+  requires('clouddriver')
+  requires('deck')
+  requires('echo')
+  requires('front50')
+  requires('gate')
+  requires('igor')
+  requires('orca')
+  requires('rosco')
+  requires('rush')
+//  requires('apache2')
+  
+}
+
+
+// TO DO 
+buildRpm {
+  arch = NOARCH
+  os = LINUX
+}
