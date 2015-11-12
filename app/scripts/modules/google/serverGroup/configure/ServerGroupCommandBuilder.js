@@ -187,7 +187,6 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           'monitoring.write',
         ],
         cloudProvider: 'gce',
-        providerType: 'gce',
         selectedProvider: 'gce',
         availabilityZones: [],
         viewState: {
@@ -244,7 +243,6 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         tags: [],
         availabilityZones: [],
         cloudProvider: 'gce',
-        providerType: 'gce',
         selectedProvider: 'gce',
         source: {
           account: serverGroup.account,
