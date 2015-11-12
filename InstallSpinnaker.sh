@@ -191,6 +191,5 @@ service gate start
 service rush start
 service rosco start
 service front50 start
-service igor start
 service echo start
 
