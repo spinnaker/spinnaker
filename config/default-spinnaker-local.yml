@@ -42,6 +42,7 @@ services:
     protocol: http    # Assume all spinnaker subsystems are using http
     host: localhost   # Assume all spinnaker subsystems are on localhost
     primaryAccountName: ${providers.google.primaryCredentials.name}
+    igor_enabled: false
 
   redis:
     # If you are using a remote redis server, you can set the host here.
@@ -99,7 +100,7 @@ services:
   igor:
     # If you are integrating Jenkins then you must also enable Spinnaker's
     # "igor" subsystem.
-    enabled: false
+    enabled: ${services.default.igor_enabled}
 
   rush:
     # Spinnaker's "rush" subsystem is used by the "rosco" bakery.
