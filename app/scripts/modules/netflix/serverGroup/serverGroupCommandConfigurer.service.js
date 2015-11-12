@@ -9,7 +9,7 @@ module.exports = angular
     require('../../core/naming/naming.service.js'),
     require('../../core/serverGroup/configure/common/serverGroupCommand.registry.js'),
   ])
-  .factory('netflixServerGroupCommandConfigurer', function(diffService, namingService, _) {
+  .factory('netflixServerGroupCommandConfigurer', function(diffService, namingService, _, modalWizardService) {
     function configureSecurityGroupDiffs(command) {
       var currentOptions = command.backingData.filtered.securityGroups,
           currentSecurityGroups = command.securityGroups || [];
@@ -47,8 +47,26 @@ module.exports = angular
       };
     }
 
+    let addWatches = (command) => {
+      return [
+        {
+          property: 'command.viewState.securityGroupDiffs',
+          method: function(newVal) {
+            if (newVal && newVal.length) {
+              modalWizardService.getWizard().markDirty('security-groups');
+            }
+          }
+        },
+        {
+          property: 'command.securityGroups',
+          method: command.configureSecurityGroupDiffs
+        }
+      ];
+    };
+
     return {
-      attachEventHandlers: attachEventHandlers
+      attachEventHandlers: attachEventHandlers,
+      addWatches: addWatches,
     };
 
   })
