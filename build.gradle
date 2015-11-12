@@ -1,5 +1,8 @@
-plugins {
-  id 'nebula.netflixoss' version '3.1.2'
+buildscript {
+    repositories { jcenter() }
+    dependencies {
+        classpath 'com.netflix.nebula:gradle-netflixoss-project-plugin:3.1.2'
+    }
 }
 
 apply plugin: 'nebula.netflixoss'
