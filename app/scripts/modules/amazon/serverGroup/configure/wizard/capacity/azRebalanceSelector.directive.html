@@ -1,0 +1,10 @@
+<div class="form-group">
+  <div class="col-md-4 sm-label-left"><b>AZ Rebalance</b></div>
+  <div class="col-md-7 checkbox">
+    <label><input type="checkbox"
+                  ng-click="vm.command.toggleSuspendedProcess('AZRebalance')"
+                  ng-checked="!vm.command.processIsSuspended('AZRebalance')"/>
+      Keep instances evenly distributed across zones
+    </label>
+  </div>
+</div>

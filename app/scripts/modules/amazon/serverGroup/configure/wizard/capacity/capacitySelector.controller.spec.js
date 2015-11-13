@@ -4,14 +4,13 @@ describe('Controller: ServerGroupCapacitySelector', function () {
 
   beforeEach(
     window.module(
-      require('./ServerGroupCapacity.controller.js')
+      require('./capacitySelector.directive.js')
     )
   );
 
-  beforeEach(window.inject(function ($controller, $rootScope) {
-    this.scope = $rootScope.$new();
+  beforeEach(window.inject(function ($controller) {
 
-    this.scope.command = {
+    this.command = {
       capacity: {
         min: 0,
         max: 0,
@@ -22,35 +21,25 @@ describe('Controller: ServerGroupCapacitySelector', function () {
       }
     };
 
-    this.ctrl = $controller('awsServerGroupCapacityCtrl', {
-      $scope: this.scope,
-      modalWizardService: {
-        getWizard: () => {
-          return {
-            markDirty: angular.noop,
-            markClean: angular.noop,
-            markComplete: angular.noop,
-          };
-        }
-      }
-    });
+    this.ctrl = $controller('awsServerGroupCapacitySelectorCtrl', {});
+    this.ctrl.command = this.command;
   }));
 
 
   it('synchronizes capacity only when in simple capacity mode', function() {
-    var scope = this.scope,
-        command = scope.command;
+    var command = this.command,
+        ctrl = this.ctrl;
 
     command.viewState.useSimpleCapacity = true;
     command.capacity.desired = 2;
-    scope.setMinMax(command.capacity.desired);
+    ctrl.setMinMax(command.capacity.desired);
 
     expect(command.capacity.min).toBe(2);
     expect(command.capacity.max).toBe(2);
 
     command.viewState.useSimpleCapacity = false;
     command.capacity.desired = 1;
-    scope.setMinMax(command.capacity.desired);
+    ctrl.setMinMax(command.capacity.desired);
 
     expect(command.capacity.min).toBe(2);
     expect(command.capacity.max).toBe(2);

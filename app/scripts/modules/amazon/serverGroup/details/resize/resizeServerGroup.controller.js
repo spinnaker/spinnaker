@@ -7,10 +7,12 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
   require('../../../../core/application/modal/platformHealthOverride.directive.js'),
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js'),
-  require('../../report/reservationReport.directive.js'),
+  require('./resizeCapacity.directive.js'),
+  require('./resizeFooter.directive.js'),
+  require('./verification.directive.js'),
 ])
   .controller('awsResizeServerGroupCtrl', function($scope, $modalInstance, accountService, serverGroupWriter,
-                                                   taskMonitorService, reservationReportReader,
+                                                   taskMonitorService,
                                                    application, serverGroup) {
     $scope.serverGroup = serverGroup;
     $scope.currentSize = {
@@ -21,7 +23,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
     };
 
     $scope.verification = {
-      required: accountService.challengeDestructiveActions(serverGroup.account)
+      required: accountService.challengeDestructiveActions('aws', serverGroup.account)
     };
 
     $scope.command = angular.copy($scope.currentSize);
@@ -29,7 +31,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
 
     if (application && application.attributes) {
       if (application.attributes.platformHealthOnly) {
-        $scope.command.interestingHealthProviderNames = ["Amazon"];
+        $scope.command.interestingHealthProviderNames = ['Amazon'];
       }
 
       $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;

@@ -6,6 +6,15 @@
       <h3>Resize {{serverGroup.name}}</h3>
     </div>
     <div class="modal-body container-fluid form-horizontal">
+      <div class="row">
+        <div class="col-md-12">
+          <reservation-report account="serverGroup.account"
+                              region="serverGroup.region"
+                              zones="serverGroup.asg.availabilityZones"
+                              instance-type="serverGroup.launchConfig.instanceType"></reservation-report>
+        </div>
+      </div>
+
       <aws-resize-capacity command="command" current-size="currentSize"></aws-resize-capacity>
       <div class="row" ng-if="command.platformHealthOnlyShowOverride">
         <div class="col-sm-10 col-sm-offset-1">
