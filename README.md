@@ -118,12 +118,8 @@ project and account:
 
 Sign into the [Google Developer's Console](https://console.developers.google.com).
 
-1. Enable APIs in the project that Spinnaker will be managing
-   - In the Google Developer's Console, select the project you wish Spinnaker
-     to manage.
-   - Go to the API Management page.
-   - Enable the [Compute Engine](https://console.developers.google.com/apis/api/compute_component/overview?project=_) and [Compute Engine Autoscaler](https://console.developers.google.com/apis/api/autoscaler/overview?project=_) APIs.
-2. Add and Obtain Credentials
+1. Enable the [Compute Engine](https://console.developers.google.com/apis/api/compute_component/overview?project=_) and [Compute Engine Autoscaler](https://console.developers.google.com/apis/api/autoscaler/overview?project=_) APIs in the project that Spinnaker will be managing.
+2. Add and Obtain Credentials:
    - Navigate to the Credentials tab (if using the beta console, it is in API Manager).
    - Select "Service account" and create a JSON key.
    - Download this key to a file.
