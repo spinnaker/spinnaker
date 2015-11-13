@@ -50,6 +50,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
       return 'n/a';
     };
 
+    this.hasAmazonDeployments = () => {
+      return stage.clusters.some((cluster) => cluster.provider === 'aws');
+    };
+
     this.getClusterName = function(cluster) {
       return namingService.getClusterName(cluster.application, cluster.stack, cluster.freeFormDetails);
     };
