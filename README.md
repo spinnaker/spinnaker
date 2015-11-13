@@ -102,7 +102,7 @@ Sign into the [AWS console](https://console.aws.amazon.com/), and select the reg
 1. Click on Networking > VPC
 2. Name your vpc (edit the name tag, and give it a value with no spaces or dots in the name) (e.g. defaultvpc)
 3. Name your subnets (edit the name tag and name following the pattern vpcName.internal.\<availabilityZone>)
-    - e.g. defaultvpc.internal.us-east-1a, defaultvpc.internal.us-east-1b, defaultvpc-internal.us-east-1c
+    - e.g. defaultvpc.internal.us-east-1a, defaultvpc.internal.us-east-1b, defaultvpc-internal.us-east-1c <img src="https://cloud.githubusercontent.com/assets/74310/11158314/5dcee17e-8a0c-11e5-9f2b-4d3965b4aba7.png" width="355">
 4. Create an EC2 role called BaseIAMRole
     - Console > Identity & Access Management > Roles > Create New Role. Select Amazon EC2.
     - You don't have to apply any policies to this role. EC2 instances launched with Spinnaker will have this role associated.
@@ -111,7 +111,9 @@ Sign into the [AWS console](https://console.aws.amazon.com/), and select the reg
 6. Create AWS credentials for Spinnaker
     - Console > Identity & Access Management > Users > Create New Users. Enter a username.
     - Create an Access Key for the user. Save the access key and secret key into `~/.aws/credentials` as shown [here](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-config-files). Alternatively, add the keys to `$HOME/.spinnaker/spinnaker-local.yml`
-    - Edit the users Permissions. Attach a Policy to the user granting PowerUserAccess. Create an inline policy for IAM granting PassRole on the resource '*'
+    - Edit the users Permissions. 
+    - Attach a Policy to the user granting PowerUserAccess. <img src="https://cloud.githubusercontent.com/assets/74310/11158315/5dd056f8-8a0c-11e5-8a85-bf78f6d8db94.png" width="591">
+    - Create an inline policy for IAM granting PassRole on the resource '*' <img width="500" src="https://cloud.githubusercontent.com/assets/74310/11158316/5dd1e86a-8a0c-11e5-8dc9-c06a6ec616cf.png">
 
 ## Configure your Google Cloud Platform Account
 
