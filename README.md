@@ -1,3 +1,5 @@
+[![Slack Status](http://join-spinnaker.heroku.com/badge.svg)](http://join-spinnaker.heroku.com)
+
 # Getting Started with Spinnaker
 
 These instructions cover pulling Spinnaker from source and setting up to run locally against Amazon Web Services and/or Google Cloud Platform accounts.
