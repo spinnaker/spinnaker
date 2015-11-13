@@ -272,9 +272,19 @@ class Refresher(object):
           sys.stderr.write(
               'WARNING: Updating {name} branch={branch}, *NOT* "{want}"\n'
                   .format(name=name, branch=branch, want=self.pull_branch))
-      check_run_and_monitor('git -C "{dir}" pull origin {branch}'
-                                .format(dir=repository_dir, branch=branch),
-                            echo=True)
+      try:
+        check_run_and_monitor('git -C "{dir}" pull origin {branch}'
+                                  .format(dir=repository_dir, branch=branch),
+                              echo=True)
+      except RuntimeError:
+        result = check_run_and_monitor('git -C "{dir}" branch -r'
+                                           .format(dir=repository_dir),
+                                       echo=False)
+        if result.stdout.find('origin/{branch}\n') >= 0:
+          raise
+        sys.stderr.write(
+              'WARNING {name} branch={branch} is not known to the origin.\n'
+              .format(name=name, branch=branch))
 
   def pull_from_upstream_if_master(self, repository):
       """Pulls the master branch fromthe upstream repository.
