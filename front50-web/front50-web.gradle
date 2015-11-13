@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import com.netflix.spinnaker.SpinnakerProjectPlugin.JarFinder
-
 ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
 }
@@ -24,21 +22,8 @@ tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
   systemProperty('spring.config.location', project.springConfigLocation)
 }
 
-buildscript {
-  repositories {
-    jcenter()
-  }
-  dependencies {
-    classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
-  }
-}
-
 apply plugin: 'spring-boot'
-apply plugin: 'spinnaker-debpublish'
-
-ideaConfig {
-  mainClassName = 'com.netflix.spinnaker.front50.Main'
-}
+apply plugin: 'nebula.ospackage'
 
 configurations.all {
   exclude group: 'org.slf4j', module: 'slf4j-log4j12'
@@ -85,7 +70,7 @@ applicationDistribution.from(project.file('config')) {
 
 ospackage {
   packageName = project.applicationName
-  version = project.version.replaceAll("-SNAPSHOT", "")
+  version = project.version
   release '3'
   into "/opt/${project.applicationName}"
   from "${project.buildDir}/install/${project.applicationName}"
