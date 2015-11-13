@@ -24,10 +24,6 @@ import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 
-/**
- *
- * @author sthadeshwar
- */
 @Configuration
 class EmbeddedRedisConfiguration {
 

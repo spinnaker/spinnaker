@@ -3,9 +3,6 @@ package com.netflix.spinnaker.orca.config
 import redis.clients.jedis.Protocol
 import redis.clients.util.JedisURIHelper
 
-/**
- * @author Greg Turnquist
- */
 class RedisConnectionInfo {
 
   String host

@@ -19,9 +19,7 @@ package com.netflix.spinnaker.orca.libdiffs
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
 
-/**
- * @author sthadeshwar
- */
+
 class DefaultComparableLooseVersion implements ComparableLooseVersion {
 
   @Override

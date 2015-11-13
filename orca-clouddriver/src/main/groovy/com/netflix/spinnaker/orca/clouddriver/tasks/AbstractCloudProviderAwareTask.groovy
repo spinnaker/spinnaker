@@ -20,9 +20,7 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import groovy.util.logging.Slf4j
 
-/**
- * @author sthadeshwar
- */
+
 @Slf4j
 abstract class AbstractCloudProviderAwareTask implements CloudProviderAware, Task {
 

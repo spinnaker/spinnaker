@@ -31,7 +31,6 @@ import org.springframework.stereotype.Component
 /**
  * @deprecated - Use the super class {@link DestroyServerGroupStage}
  * This class only exists so that existing persisted pipeline configs that have 'destroyAsg' configured, do not break
- * @author sthadeshwar
  */
 @Component
 @CompileStatic
