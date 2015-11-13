@@ -22,7 +22,7 @@
       <scope-region-selector
           model="newFP.property.startScope.region"
           regions="newFP.startLists.region"
-          on-change="newFP.acaTargetRegionChange(region, stack)"
+          on-change="newFP.acaTargetRegionChange(region)"
           allow-none="false"
       >
       </scope-region-selector>
@@ -32,11 +32,21 @@
           model="newFP.property.startScope.cluster"
           clusters="newFP.startLists.cluster"
           show-if="newFP.property.startScope.region"
-          on-change="angular.noop()"
+          on-change="newFP.getAffectInstancesForACATarget(cluster)"
           allow-none="false"
       >
       </scope-cluster-selector>
 
+    </div>
+
+
+    <div class="row">
+      <div class="col-sm-12">
+        <h4> The targeted Region and Cluster have <span style="color: red">{{newFP.affectedInstancesForACA.length || 0}}</span> instances.</h4>
+        <h5 style="color: red" ng-if="newFP.clusterSizeNotBigEngough">The selected cluster might not be big enough for an effective ACA rollout.
+          Select a different cluster, or try a different strategy</h5>
+
+      </div>
     </div>
 
   </div>

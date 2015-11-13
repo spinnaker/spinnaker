@@ -45,6 +45,20 @@
       </div>
     </div>
 
+    <div class="row">
+      <div class="col-sm-12">
+        <p>Select a <b>number</b> or <b>percentage</b> of instances for <b>strategy option</b>. Then enter a coma separated list for to canary aginst.</p>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-12">
+        <b>Example:</b> <br>
+        <p>There are <span style="color: red">{{newFP.affectedInstancesForACA.length || 0}}</span> instances available to canary against.</p>
+        <p>For a <b>Number Strategy Options</b> you might set <b>{{newFP.getSampleRolloutNumber()}}</b> as the rollout.</p>
+        <p>For a <b>Percentage Strategy Options</b> you might set <b>{{newFP.getSampleRolloutPercentage()}}</b> as the rollout.</p>
+      </div>
+    </div>
   </div>
 
   <!--
