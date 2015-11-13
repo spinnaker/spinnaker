@@ -8,6 +8,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.serverGroup
   require('./capacityFooter.directive.js'),
   require('./targetHealthyPercentageSelector.directive.js'),
   require('./azRebalanceSelector.directive.js'),
+  require('../availabilityZoneSelector.directive.js'),
 ])
   .controller('awsServerGroupCapacityCtrl', function($scope, modalWizardService) {
 
