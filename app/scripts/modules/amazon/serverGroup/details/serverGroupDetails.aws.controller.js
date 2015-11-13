@@ -22,7 +22,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('./scheduledAction/scheduledAction.directive.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('./scalingActivities/scalingActivities.controller.js'),
-  require('./networking/networking.module.js'),
   require('./resize/resizeServerGroup.controller'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
