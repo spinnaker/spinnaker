@@ -19,23 +19,22 @@
 # This test will use ssh to peek at the spinnaker configuration
 # to determine the managed project it should verify, and to determine
 # the spinnaker account name to use when sending it commands.
-#
 # Sample Usage:
 #     Assuming you have created $PASSPHRASE_FILE (which you should chmod 400)
 #     and $CITEST_ROOT points to the root directory of this repository
 #     (which is . if you execute this from the root). The passphrase file
 #     can be ommited if you run ssh-agent and add .ssh/compute_google_engine.
-#     
-#     Since this test runs a pipeline from a Jenkins trigger, you need to 
+#
+#     Since this test runs a pipeline from a Jenkins trigger, you need to
 #     configure Jenkins in the following way.
-#         1. Take note of your Jenkins server baseUrl, 
+#         1. Take note of your Jenkins server baseUrl,
 #            i.e <protocol>://<host>[:port]/[basePath]
 #            and store it as $JENKINS_URL.
-#         2. Create a file, fill it with 
+#         2. Create a file, fill it with
 #            <username> <password>
 #            corresponding to valid Jenkins credentials, and store its path
 #            as $JENKINS_AUTH_PATH (also chmod 400).
-#         3. Take note of the Jenkins job you have configured in Igor, 
+#         3. Take note of the Jenkins job you have configured in Igor,
 #            and store its name as $JENKINS_JOB.
 #         3. On your Jenkins server, navigate to /job/$JENKINS_JOB/configure,
 #            and under "Build Triggers", check "Trigger builds remotely". In
@@ -51,7 +50,9 @@
 #     --jenkins_url=$JENKINS_URL \
 #     --jenkins_auth_path=$JENKINS_AUTH_PATH \
 #     --jenkins_job=$JENKINS_JOB \
-#     --jenkins_token=$JENKINS_TOKEN 
+#     --jenkins_token=$JENKINS_TOKEN \
+#     --test_google \
+#     --test_aws
 # or
 #   PYTHONPATH=$CITEST_ROOT:$CITEST_ROOT/spinnaker \
 #     python $CITEST_ROOT/spinnaker/spinnaker_system/bake_and_deploy_test.py \
@@ -61,13 +62,15 @@
 #     --jenkins_url=$JENKINS_URL \
 #     --jenkins_auth_path=$JENKINS_AUTH_PATH \
 #     --jenkins_job=$JENKINS_JOB \
-#     --jenkins_token=$JENKINS_TOKEN 
+#     --jenkins_token=$JENKINS_TOKEN
+#     --test_google \
+#     --test_aws
 
 
 # Standard python modules.
 import os
 import sys
-import requests
+import logging
 
 # citest modules.
 import citest.gcp_testing as gcp
@@ -105,16 +108,22 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
       '--jenkins_job', default='TestTriggerProject',
       help='The name of the jenkins job to trigger off.')
     parser.add_argument(
-      '--jenkins_auth_path', default='~/.jenkins',
+      '--jenkins_auth_path',
       help='The path to a file containing the jenkins username password pair.'
-           + 'The contents should look like: <username> <password>.' )
+           'The contents should look like: <username> <password>.' )
     parser.add_argument(
       '--jenkins_token', default='token',
       help='The authentication token for the jenkins build trigger.')
     parser.add_argument(
       '--jenkins_url', default='http://localhost:8080/',
       help='The baseUrl of the jenkins service, '
-           + 'i.e. <protocol>://<host>[:port]/[basePath].')
+           'i.e. <protocol>://<host>[:port]/[basePath].')
+    parser.add_argument(
+      '--test_google', action='store_true',
+      help='Test Google pipelines.')
+    parser.add_argument(
+      '--test_aws', action='store_true',
+      help='Test AWS pipelines.')
 
   def __init__(self, bindings, agent=None):
     super(BakeAndDeployTestScenario, self).__init__(bindings, agent)
@@ -132,13 +141,29 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     self.aws_pipeline_id = None
     self.google_pipeline_id = None
     self.docker_pipeline_id = None
+    self.test_google = bindings['TEST_GOOGLE']
+    self.test_aws = bindings['TEST_AWS']
+    self.jenkins_agent = sk.JenkinsAgent(bindings['JENKINS_URL'],
+        bindings['JENKINS_AUTH_PATH'], self.agent)
+    self.run_tests = True
+
+    if not (self.test_google or self.test_aws):
+      self.run_tests = False
+      logger = logging.getLogger(__name__)
+      logger.warning(
+          'Neither --test_google nor --test_aws were set. '
+          'No tests will be run.')
 
   def create_app(self):
-    contract = jc.Contract()
+    builder = st.HttpContractBuilder(self.agent)
+    (builder.new_clause_builder('Has Application', retryable_for_secs=60)
+       .get_url_path('applications')
+       .contains('name', self.TEST_APP))
+
     return st.OperationContract(
         self.agent.make_create_app_operation(
             bindings=self._bindings, application=self.TEST_APP),
-        contract=contract)
+        builder.build())
 
   def delete_app(self):
     contract = jc.Contract()
@@ -149,7 +174,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
 
   def create_load_balancer(self):
     bindings = self._bindings
-    load_balancer_name = self.__short_lb_name
+    load_balancer_name = self.__full_lb_name
 
     spec = {
       'checkIntervalSec': 5,
@@ -193,9 +218,15 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
          .list_resources('http-health-checks')
          .contains('name', load_balancer_name + '-hc'))
 
+    (builder.new_clause_builder('Load Balancer Created',
+                                retryable_for_secs=60)
+         .list_resources('forwarding-rules')
+         .contains('name', self.__short_lb_name))
+
     return st.OperationContract(
         self.new_post_operation(
-            title='create_load_balancer', data=payload, path='tasks'),
+            title='create_load_balancer', data=payload,
+            path=('applications/{app}/tasks').format(app=self.TEST_APP)),
         contract=builder.build())
 
   def delete_load_balancer(self):
@@ -223,7 +254,8 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
 
     return st.OperationContract(
         self.new_post_operation(
-            title='delete_load_balancer', data=payload, path='tasks'),
+            title='delete_load_balancer', data=payload,
+            path=('applications/{app}/tasks').format(app=self.TEST_APP)),
         contract=builder.build())
 
   def make_jenkins_trigger(self):
@@ -234,10 +266,11 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
       'job': self.bindings['JENKINS_JOB']
       }
 
-  def make_bake_stage(self, package, providerType, **kwargs):
+  def make_bake_stage(self, package, providerType, requisiteStages=[],
+      **kwargs):
     result = {
-        'requisiteStageRefIds':[],
-        'refId': '1',
+        'requisiteStageRefIds':requisiteStages,
+        'refId': 'BAKE',
         'type': 'bake',
         'name': 'Bake',
         'user': '[anonymous]',
@@ -249,10 +282,10 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     result.update(kwargs)
     return result
 
-  def make_deploy_google_stage(self):
+  def make_deploy_google_stage(self, requisiteStages=[]):
     return {
-      'requisiteStageRefIds': ['1'],
-      'refId': '2',
+      'requisiteStageRefIds': requisiteStages,
+      'refId': 'DEPLOY',
       'type': 'deploy',
       'name': 'Deploy',
       'clusters':[{
@@ -269,11 +302,11 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
         },
         'zone': self.bindings['TEST_GCE_ZONE'],
         'network': 'default',
-        'instanceMetadata': [{
+        'instanceMetadata': {
           'startup-script':
             'sudo apt-get update && sudo apt-get install apache2 -y',
           'load-balancer-names': self.__full_lb_name
-        }],
+        },
         'tags': [],
         'availabilityZones': {
           self.bindings['TEST_GCE_REGION']: [self.bindings['TEST_GCE_ZONE']]
@@ -284,19 +317,38 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
         'provider': 'gce',
         'instanceType': 'f1-micro',
         'image': None,
+        'targetSize': 1,
         'account': self.bindings['GCE_CREDENTIALS']
       }]
     }
 
-  def make_disable_group_stage(self, cloudProvider, **kwargs):
+  def make_destroy_group_stage(self, cloudProvider, requisiteStages=[],
+      **kwargs):
     result = {
-      'requisiteStageRefIds': ['2'],
-      'refId': '3',
+      'cloudProvider': cloudProvider,
+      'cloudProviderType': cloudProvider,
+      'credentials': self.bindings['GCE_CREDENTIALS'],
+      'name': 'Destroy Server Group',
+      'refId': 'DESTROY',
+      'requisiteStageRefIds': requisiteStages,
+      'target': 'current_asg_dynamic',
+      'cluster': '{app}-{stack}'.format(
+          app=self.TEST_APP, stack=self.bindings['TEST_STACK']),
+      'type': 'destroyServerGroup'
+    }
+    result.update(kwargs)
+    return result
+
+  def make_disable_group_stage(self, cloudProvider, requisiteStages=[],
+      **kwargs):
+    result = {
+      'requisiteStageRefIds': requisiteStages,
+      'refId': 'DISABLE',
       'type': 'disableServerGroup',
       'name': 'Disable Server Group',
       'cloudProviderType': cloudProvider,
       'cloudProvider': cloudProvider,
-      'target': 'ancestor_asg_dynamic',
+      'target': 'current_asg_dynamic',
       'cluster': '{app}-{stack}'.format(
           app=self.TEST_APP, stack=self.bindings['TEST_STACK']),
       'credentials': self.bindings['GCE_CREDENTIALS']
@@ -340,21 +392,26 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     self.google_pipeline_id = name
     bake_stage = self.make_bake_stage(
         package='kato', providerType='gce', region='global')
-    deploy_stage = self.make_deploy_google_stage()
+    deploy_stage = self.make_deploy_google_stage(requisiteStages=['BAKE'])
     disable_stage = self.make_disable_group_stage(
-      cloudProvider='gce', zones=[self.bindings['TEST_GCE_ZONE']])
+      cloudProvider='gce', zones=[self.bindings['TEST_GCE_ZONE']],
+      requisiteStages=['DEPLOY'])
+    destroy_stage = self.make_destroy_group_stage(
+      cloudProvider='gce', zones=[self.bindings['TEST_GCE_ZONE']],
+      requisiteStages=['DISABLE'])
 
     pipeline_spec = dict(
       name=name,
-      stages=[bake_stage,  deploy_stage, disable_stage],
+      stages=[bake_stage,  deploy_stage, disable_stage, destroy_stage],
       triggers=[self.make_jenkins_trigger()],
       application=self.TEST_APP,
-      stageCounter=3,
+      stageCounter=4,
       parallel=True,
       limitConcurrent=True,
       appConfig={},
       index=3
     )
+
     payload = self.agent.make_payload(**pipeline_spec)
 
     builder = st.HttpContractBuilder(self.agent)
@@ -377,16 +434,20 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
         providerType='aws',
         regions=[self.bindings['TEST_AWS_REGION']],
         vmType='hvm', storeType='ebs')
-    deploy_stage = self.make_deploy_google_stage()
+    deploy_stage = self.make_deploy_google_stage(requisiteStages=['BAKE'])
     disable_stage = self.make_disable_group_stage(
-      cloudProvider='aws', regions=[self.bindings['TEST_AWS_REGION']])
+      cloudProvider='aws', regions=[self.bindings['TEST_AWS_REGION']],
+      requisiteStages=['DEPLOY'])
+    destroy_stage = self.make_destroy_group_stage(
+      cloudProvider='aws', zones=[self.bindings['TEST_AWS_ZONE']],
+      requisiteStages=['DISABLE'])
 
     pipeline_spec = dict(
       name=name,
-      stages=[bake_stage, deploy_stage, disable_stage],
+      stages=[bake_stage, deploy_stage, disable_stage, destroy_stage],
       triggers=[self.make_jenkins_trigger()],
       application=self.TEST_APP,
-      stageCounter=2,
+      stageCounter=4,
       parallel=True,
       index=1
     )
@@ -420,75 +481,70 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
             status_class=st.SynchronousHttpOperationStatus),
         contract=builder.build())
 
-  def trigger_jenkins_build(self):
-    jenkins_url = self.bindings["JENKINS_URL"]
-    jenkins_job = self.bindings["JENKINS_JOB"]
-    jenkins_path = 'job/{job}/build/?token={token}'.format(
-        job=jenkins_job,
-        token=self.bindings["JENKINS_TOKEN"])
+  def run_bake_and_deploy_google_pipeline(self, pipeline_id):
+    path = 'applications/{app}/pipelines'.format(app=self.TEST_APP)
 
-    jenkins_url = os.path.join(jenkins_url, jenkins_path)
-    username, password = '', ''
+    return st.OperationContract(
+        self.jenkins_agent.new_jenkins_trigger_operation(
+            title='monitor_bake_pipeline',
+            job=self.bindings['JENKINS_JOB'],
+            token=self.bindings['JENKINS_TOKEN'],
+            status_class=gate.GatePipelineStatus,
+            status_path=path),
+          contract=jc.Contract())
 
-    auth_path = self.bindings["JENKINS_AUTH_PATH"]
-    with open(auth_path, 'r') as f:
-      contents = f.read()
-      contents = contents.split()
-
-      if len(contents) != 2:
-        raise ValueError(('--jenkins_auth_path={path} is not in the correct '
-            + 'format. You must supply a file with the contents '
-            + '<username> <password').format(path=auth_path))
-
-      username, password = contents[0], contents[1]
-
-    r = requests.get(jenkins_url, auth=(username, password))
-
-    r.raise_for_status() # Will raise an HTTPError if the request failed
-
+  def new_jenkins_build_operation(self):
     return None
-    
+
 
 class BakeAndDeployTest(st.AgentTestCase):
   def test_a_create_app(self):
+    if not self.scenario.run_tests:
+      self.skipTest("No --test_{google, aws} flags were set")
     self.run_test_case(self.scenario.create_app())
 
-#  TODO(ewiseblatt):
-#  Uncomment this when it is needed later (for executing pipelines)
-#  def test_b_create_load_balancer(self):
-#    self.run_test_case(self.scenario.create_load_balancer())
+  def test_b_create_load_balancer(self):
+    if not self.scenario.run_tests:
+      self.skipTest("No --test_{google, aws} flags were set")
+    self.run_test_case(self.scenario.create_load_balancer())
 
-  def test_c1_create_bake_docker_pipeline(self):
-    self.run_test_case(self.scenario.create_bake_docker_pipeline())
-
-  def test_c2_create_bake_and_deploy_google_pipeline(self):
+  def test_c1_create_bake_and_deploy_google_pipeline(self):
+    if not self.scenario.test_google:
+      self.skipTest("--test_google flag not set")
     self.run_test_case(self.scenario.create_bake_and_deploy_google_pipeline())
 
-  def test_c3_create_bake_and_deploy_aws_pipeline(self):
+  def test_c2_create_bake_and_deploy_aws_pipeline(self):
+    if not self.scenario.test_aws:
+      self.skipTest("--test_aws flag not set")
     self.run_test_case(self.scenario.create_bake_and_deploy_aws_pipeline())
- 
-  def test_d1_trigger_pipeline(self):
-    self.scenario.trigger_jenkins_build()
 
-  def test_x1_delete_aws_pipeline(self):
-    self.run_test_case(
-        self.scenario.delete_pipeline(self.scenario.aws_pipeline_id))
+  def test_d1_run_bake_and_deploy_google_pipeline(self):
+    if not self.scenario.test_google:
+      self.skipTest("--test_google flag not set")
+    self.run_test_case(self.scenario.run_bake_and_deploy_google_pipeline(
+        self.scenario.google_pipeline_id))
 
-  def test_x2_delete_docker_pipeline(self):
-    self.run_test_case(
-        self.scenario.delete_pipeline(self.scenario.docker_pipeline_id))
-
-  def test_x3_delete_google_pipeline(self):
+  def test_x1_delete_google_pipeline(self):
+    if not self.scenario.test_google:
+      self.skipTest("--test_google flag not set")
     self.run_test_case(
         self.scenario.delete_pipeline(self.scenario.google_pipeline_id))
 
-#  TODO(ewiseblatt):
-#  Uncomment this when it is needed later (for executing pipelines)
-#  def test_y_delete_load_balancer(self):
-#    self.run_test_case(self.scenario.delete_load_balancer(),
-#                       max_retries=5)
+  def test_x2_delete_aws_pipeline(self):
+    if not self.scenario.test_aws:
+      self.skipTest("--test_aws flag not set")
+    self.run_test_case(
+        self.scenario.delete_pipeline(self.scenario.aws_pipeline_id))
+
+  def test_y_delete_load_balancer(self):
+    if not self.scenario.run_tests:
+      self.skipTest("No --test_{google, aws} flags were set")
+    self.run_test_case(self.scenario.delete_load_balancer(),
+                       max_retries=5)
 
   def test_z_delete_app(self):
+    if not self.scenario.run_tests:
+      unitest.skipTest("No --test_{google, aws} flags were set")
     # Give a total of a minute because it might also need
     # an internal cache update
     self.run_test_case(self.scenario.delete_app(),

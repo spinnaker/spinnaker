@@ -15,3 +15,10 @@
 
 from spinnaker import SpinnakerAgent
 from spinnaker_test_scenario import SpinnakerTestScenario
+
+# The jenkins_agent implementes Jenkins build triggers
+from jenkins_agent import(
+    JenkinsOperationStatus,
+    JenkinsAgent,
+    BaseJenkinsOperation,
+    JenkinsTriggerOperation)
