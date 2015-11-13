@@ -1,3 +1,5 @@
+tasks.bintrayUpload.enabled = false
+
 subprojects {
   apply plugin: 'findbugs'
   apply plugin: 'pmd'
