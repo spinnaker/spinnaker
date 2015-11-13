@@ -3,21 +3,22 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.amazon.serverGroup.configure.wizard.securityGroups.footer.directive', [
+  .module('spinnaker.amazon.serverGroup.configure.wizard.capacity.footer.directive', [
   ])
-  .directive('awsServerGroupSecurityGroupsFooter', function () {
+  .directive('awsServerGroupCapacityFooter', function () {
     return {
       restrict: 'E',
-      templateUrl: require('./securityGroupsFooter.directive.html'),
+      templateUrl: require('./capacityFooter.directive.html'),
       scope: {},
       bindToController: {
         command: '=',
         wizard: '=',
+        form: '=',
         taskMonitor: '=',
         cancel: '&',
         isValid: '&',
         showSubmitButton: '&',
-        submit: '&',
+        submit: '&'
       },
       controllerAs: 'vm',
       controller: angular.noop,

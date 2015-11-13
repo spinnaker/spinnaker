@@ -22,6 +22,7 @@ module.exports = angular
     require('./migrator/pipeline/pipeline.migrator.directive.js'),
     require('./serverGroup/serverGroupCommandConfigurer.service.js'),
     require('./serverGroup/diff/securityGroupDiff.directive.js'),
+    require('./report/reservationReport.directive.js'),
   ])
   .run(function(cloudProviderRegistry) {
     cloudProviderRegistry.overrideValue(

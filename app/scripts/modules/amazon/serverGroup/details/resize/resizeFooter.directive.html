@@ -1,0 +1,10 @@
+<div class="modal-footer">
+  <button type="submit" ng-click="vm.resize()" style="display:none"></button> <!-- Allows form submission via enter keypress-->
+  <button class="btn btn-default" ng-click="vm.cancel()">Cancel</button>
+  <button type="submit"
+          class="btn btn-primary"
+          ng-click="vm.resize()"
+          ng-disabled="!vm.isValid()">
+    Submit
+  </button>
+</div>

@@ -12,9 +12,6 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
   require('../../../../core/modal/wizard/modalWizard.service.js'),
   require('../../../../core/templateOverride/templateOverride.registry.js'),
   require('../../../../core/serverGroup/configure/common/serverGroupCommand.registry.js'),
-  require('./securityGroups/securityGroupsRemoved.directive.js'),
-  require('./securityGroups/securityGroupSelector.directive.js'),
-  require('./securityGroups/securityGroupsFooter.directive.js'),
 ])
   .controller('awsCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $state,
                                                   serverGroupWriter, modalWizardService, taskMonitorService,
@@ -28,7 +25,7 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
       securityGroups: templateOverrideRegistry.getTemplate('aws.serverGroup.securityGroups', require('./securityGroups/securityGroups.html')),
       instanceArchetype: templateOverrideRegistry.getTemplate('aws.serverGroup.instanceArchetype', require('./instanceArchetype.html')),
       instanceType: templateOverrideRegistry.getTemplate('aws.serverGroup.instanceType', require('./instanceType.html')),
-      capacity: templateOverrideRegistry.getTemplate('aws.serverGroup.capacity', require('./capacity.html')),
+      capacity: templateOverrideRegistry.getTemplate('aws.serverGroup.capacity', require('./capacity/capacity.html')),
       advancedSettings: templateOverrideRegistry.getTemplate('aws.serverGroup.advancedSettings', require('./advancedSettings.html')),
     };
 
@@ -200,20 +197,6 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
 
     this.cancel = function () {
       $modalInstance.dismiss();
-    };
-
-    this.toggleSuspendedProcess = function(process) {
-      $scope.command.suspendedProcesses = $scope.command.suspendedProcesses || [];
-      var processIndex = $scope.command.suspendedProcesses.indexOf(process);
-      if (processIndex === -1) {
-        $scope.command.suspendedProcesses.push(process);
-      } else {
-        $scope.command.suspendedProcesses.splice(processIndex, 1);
-      }
-    };
-
-    this.processIsSuspended = function(process) {
-      return $scope.command.suspendedProcesses.indexOf(process) !== -1;
     };
 
     if (!$scope.state.requiresTemplateSelection) {

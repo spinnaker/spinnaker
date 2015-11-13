@@ -1,0 +1,31 @@
+<form ng-controller="awsServerGroupCapacityCtrl" class="container-fluid form-horizontal" name="form" novalidate>
+  <div class="modal-body">
+    <div class="clearfix">
+      <div class="row">
+        <div class="col-md-12">
+          <reservation-report account="command.credentials"
+                              region="command.region"
+                              zones="command.availabilityZones"
+                              instance-type="command.instanceType"></reservation-report>
+        </div>
+      </div>
+      <aws-server-group-capacity-selector command="command"></aws-server-group-capacity-selector>
+      <aws-target-healthy-percentage-selector command="command"></aws-target-healthy-percentage-selector>
+    </div>
+    <hr/>
+    <availability-zone-selector command="command"></availability-zone-selector>
+    <az-rebalance-selector command="command"></az-rebalance-selector>
+  </div>
+  
+  <aws-server-group-capacity-footer
+      command="command"
+      wizard="wizard"
+      task-monitor="taskMonitor"
+      cancel="ctrl.cancel()"
+      is-valid="ctrl.isValid()"
+      show-submit-button="ctrl.showSubmitButton()"
+      form="form"
+      submit="ctrl.submit()"
+      >
+  </aws-server-group-capacity-footer>
+</form>

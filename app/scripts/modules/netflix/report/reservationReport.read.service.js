@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.amazon.instance.report.reservation.read.service', [
     require('exports?"restangular"!imports?_=lodash!restangular'),
-    require('../../../core/utils/lodash.js'),
+    require('../../core/utils/lodash.js'),
   ])
   .factory('reservationReportReader', function (Restangular) {
     function getReservationsFor(account, region, instanceType) {

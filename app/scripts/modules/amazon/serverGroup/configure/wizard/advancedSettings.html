@@ -100,8 +100,8 @@
       <div class="col-md-5 sm-label-left"><b>Enable Traffic</b></div>
       <div class="col-md-6 checkbox">
         <label><input type="checkbox"
-                      ng-click="settingsCtrl.toggleSuspendedProcess('AddToLoadBalancer')"
-                      ng-checked="!settingsCtrl.processIsSuspended('AddToLoadBalancer')"/>
+                      ng-click="command.toggleSuspendedProcess('AddToLoadBalancer')"
+                      ng-checked="!command.processIsSuspended('AddToLoadBalancer')"/>
           Send client requests to new instances
         </label>
       </div>

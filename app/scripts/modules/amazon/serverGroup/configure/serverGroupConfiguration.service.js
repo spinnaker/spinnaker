@@ -39,6 +39,20 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         imageLoader = command.viewState.imageId ? loadImagesFromAmi(command) : loadImagesFromApplicationName(application, command.selectedProvider);
       }
 
+      command.toggleSuspendedProcess = function(process) {
+        command.suspendedProcesses = command.suspendedProcesses || [];
+        var processIndex = command.suspendedProcesses.indexOf(process);
+        if (processIndex === -1) {
+          command.suspendedProcesses.push(process);
+        } else {
+          command.suspendedProcesses.splice(processIndex, 1);
+        }
+      };
+
+      command.processIsSuspended = function(process) {
+        return command.suspendedProcesses.indexOf(process) !== -1;
+      };
+
       return $q.all({
         regionsKeyedByAccount: accountService.getRegionsKeyedByAccount('aws'),
         securityGroups: securityGroupReader.getAllSecurityGroups(),
