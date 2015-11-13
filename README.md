@@ -2,7 +2,7 @@
 
 # Getting Started with Spinnaker
 
-These instructions cover pulling Spinnaker from source and setting up to run locally against Amazon Web Services and/or Google Cloud Platform accounts.
+These instructions cover pulling Spinnaker from source and setting up to run locally against Amazon Web Services and/or Google Cloud Platform accounts. ( If you would prefer to try a container based solution, see [docker-compose installation](https://github.com/spinnaker/spinnaker/tree/master/experimental/docker-compose) )
 
 We will clone into `$SPINNAKER_HOME` and create that as our working directory, including this repo for configuration scripts, as well as the various
 service repos.
