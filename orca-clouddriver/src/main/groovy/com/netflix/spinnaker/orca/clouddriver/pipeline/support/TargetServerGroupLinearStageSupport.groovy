@@ -101,6 +101,7 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
         // Clouddriver operations work with multiple values here, but we're choosing to only use 1 per operation.
         description.regions = [location.value]
       }
+      description.deployServerGroupsRegion = target.region
       description.targetLocation = [type: location.type.name(), value: location.value]
 
       descriptions << description

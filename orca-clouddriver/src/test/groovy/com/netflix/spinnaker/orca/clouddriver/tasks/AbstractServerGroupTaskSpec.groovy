@@ -106,7 +106,7 @@ class AbstractServerGroupTaskSpec extends Specification {
       )
       result.stageOutputs.asgName == "foo-v001"
       result.stageOutputs.serverGroupName == "foo-v001"
-      result.stageOutputs."deploy.server.groups" == ["us-west-1": ["foo-v001"], "us-east-1": ["foo-v001"]]
+      result.stageOutputs."deploy.server.groups" == ["us-east-1": ["foo-v001"]]
   }
 
 }
