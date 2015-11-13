@@ -106,3 +106,25 @@ services:
     # You'll need to provide it a Spinnaker account to use.
     # Here we are assuming the default primary acccount.
     primaryAccount: ${services.default.primaryAccountName}
+
+  echo:
+    # allow pipeline triggers to run periodically via cron expressions  
+    cron:
+      enabled: true
+    # If you wish for spinnaker to send notifications, configure the following blocks
+    notifications:
+      mail:
+        enabled: false
+        host: # the smtp host
+        fromAddress: #the address for which emails are sent from
+      hipchat:
+        enabled: false
+        url: # the hipchat server to connect to
+        token: #the hipchat auth token
+      sms:
+        enabled: false
+        account: # twilio account id
+        token: # twilio auth token
+        from: # phone number by which sms messages are sent
+
+
