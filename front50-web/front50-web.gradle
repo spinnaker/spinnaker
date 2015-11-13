@@ -68,9 +68,16 @@ applicationDistribution.from(project.file('config')) {
   into 'config'
 }
 
+String toVers(String v) {
+  int idx = v.indexOf('-')
+  if (idx != -1) {
+    return v.substring(0, idx)
+  }
+  return v
+}
 ospackage {
   packageName = project.applicationName
-  version = project.version
+  version = toVers(project.version.toString())
   release '3'
   into "/opt/${project.applicationName}"
   from "${project.buildDir}/install/${project.applicationName}"
