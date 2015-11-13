@@ -125,8 +125,8 @@ If you enabled Google for Spinnaker, perform the following steps for your projec
    - Provide a Name and click Create
    - `chmod 400` the file that downloads
 3. Add GCP credentials in `$HOME/.spinnaker/spinnaker-local.yml`:
-   - Set project_id for `provider.google.primaryCredentials.project`
-   - Set path of downloaded file for `providers.google.primaryCredentials.jsonPath`
+   - Set project ID for `provider.google.primaryCredentials.project`
+   - Set full absolute path of downloaded file for `providers.google.primaryCredentials.jsonPath`
 
 
 ## Start Spinnaker Services
