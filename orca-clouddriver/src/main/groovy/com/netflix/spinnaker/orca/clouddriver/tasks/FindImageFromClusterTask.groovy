@@ -21,11 +21,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.Location
-import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,9 +33,13 @@ import retrofit.RetrofitError
 
 @Component
 @Slf4j
-class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements Task {
+class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements RetryableTask {
 
   static String SUMMARY_TYPE = "Image"
+
+  final long backoffPeriod = 2000
+
+  final long timeout = 60000
 
   static enum SelectionStrategy {
     /**
