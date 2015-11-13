@@ -118,9 +118,9 @@ project and account:
 
 Sign into the [Google Developer's Console](https://console.developers.google.com).
 
-1. Enable the [Compute Engine](https://console.developers.google.com/apis/api/compute_component/overview?project=_) and [Compute Engine Autoscaler](https://console.developers.google.com/apis/api/autoscaler/overview?project=_) APIs in the project that Spinnaker will be managing by clicking on each link and selecting the 'Enable API' button on the overview page.
+1. Enable the [Compute Engine](https://console.developers.google.com/project/_/apiui/apiview/compute_component/overview) and [Compute Engine Autoscaler](https://console.developers.google.com/project/_/apiui/apiview/autoscaler/overview) APIs in the project that Spinnaker will be managing by clicking on each link and selecting the 'Enable API' button on the overview page.
 2. Add and Obtain Credentials:
-   - Navigate to the Credentials tab in the Developer's Console (if using the beta console, it is in API Manager).
+   - Navigate to the [Credentials](https://pantheon.corp.google.com/project/_/apiui/credential) tab (if using the beta console, it is in API Manager).
    - Select "Service account" and create a JSON key.
    - Download this key to a file.
    - `chmod 400` the file.
