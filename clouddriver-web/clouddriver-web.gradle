@@ -1,5 +1,5 @@
 apply plugin: 'spring-boot'
-apply plugin: 'spinnaker-debpublish'
+apply plugin: 'nebula.ospackage'
 apply plugin: 'groovy'
 
 ext {
@@ -61,7 +61,7 @@ startScripts {
 
 ospackage {
   packageName = project.applicationName
-  version = project.version.replaceAll('-SNAPSHOT', '')
+  version = project.version
   release '4'
   into "/opt/${project.applicationName}"
   from ("${project.buildDir}/install/${project.applicationName}")

@@ -18,5 +18,5 @@ dependencies {
   compile project(":kato:kato-core")
   compile spinnaker.dependency('jedis')
 
-  testCompile project(path: ':cats:cats-redis', configuration: 'test')
+  testCompile project(':cats:cats-test')
 }

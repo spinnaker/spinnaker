@@ -5,6 +5,4 @@ dependencies {
   compile spinnaker.dependency('bootActuator')
   compile project(":clouddriver-cf")
   compile("org.cloudfoundry:cloudfoundry-client-lib:${cloudFoundryClientVersion}")
-
-  spinnaker.group("cf")
 }
