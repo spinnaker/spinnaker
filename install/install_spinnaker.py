@@ -405,10 +405,12 @@ def main():
   if options.dependencies:
     install_runtime_dependencies.install_runtime_dependencies(options)
   else:
-      if install_runtime_dependencies.check_java_version() is not None:
-          install_runtime_dependencies.install_java(options)
-      if options.spinnaker:
-          install_runtime_dependencies.install_apache(options)
+    if install_runtime_dependencies.check_java_version() is not None:
+      install_runtime_dependencies.install_java(options)
+    if options.update_os:
+      install_runtime_dependencies.install_os_updates(options)
+    if options.spinnaker:
+      install_runtime_dependencies.install_apache(options)
 
   install_spinnaker(options)
 
