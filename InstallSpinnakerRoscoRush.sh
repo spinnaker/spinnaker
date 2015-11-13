@@ -427,7 +427,7 @@ docker tag -f $DOCKER_IMAGE_NAME $DOCKER_REGISTRY/$DOCKER_IMAGE_NAME
 docker push $DOCKER_REGISTRY/$DOCKER_IMAGE_NAME
 
 service rush stop
-service rush stop
+service rosco stop
 
 rm /opt/spinnaker/config/spinnaker-local.yml
 touch /opt/spinnaker/config/spinnaker-local.yml
@@ -651,7 +651,7 @@ google:
 EOT
 
 service rush start
-service rush start
+service rosco start
 
 #add jenkins just for example purposes
 
