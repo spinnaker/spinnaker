@@ -12,6 +12,9 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
   require('../../../../core/modal/wizard/modalWizard.service.js'),
   require('../../../../core/templateOverride/templateOverride.registry.js'),
   require('../../../../core/serverGroup/configure/common/serverGroupCommand.registry.js'),
+  require('./securityGroups/securityGroupsRemoved.directive.js'),
+  require('./securityGroups/securityGroupSelector.directive.js'),
+  require('./securityGroups/securityGroupsFooter.directive.js'),
 ])
   .controller('awsCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $state,
                                                   serverGroupWriter, modalWizardService, taskMonitorService,
@@ -22,7 +25,7 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
       templateSelection: templateOverrideRegistry.getTemplate('aws.serverGroup.templateSelection', require('./templateSelection.html')),
       basicSettings: templateOverrideRegistry.getTemplate('aws.serverGroup.basicSettings', require('./basicSettings.html')),
       loadBalancers: templateOverrideRegistry.getTemplate('aws.serverGroup.loadBalancers', require('./loadBalancers.html')),
-      securityGroups: templateOverrideRegistry.getTemplate('aws.serverGroup.securityGroups', require('./securityGroups.html')),
+      securityGroups: templateOverrideRegistry.getTemplate('aws.serverGroup.securityGroups', require('./securityGroups/securityGroups.html')),
       instanceArchetype: templateOverrideRegistry.getTemplate('aws.serverGroup.instanceArchetype', require('./instanceArchetype.html')),
       instanceType: templateOverrideRegistry.getTemplate('aws.serverGroup.instanceType', require('./instanceType.html')),
       capacity: templateOverrideRegistry.getTemplate('aws.serverGroup.capacity', require('./capacity.html')),
