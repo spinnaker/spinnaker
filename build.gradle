@@ -36,22 +36,13 @@ allprojects {
   group = "com.netflix.spinnaker.clouddriver"
   apply plugin: 'spinnaker.project'
   apply plugin: 'idea'
+  apply plugin: 'groovy'
 }
 
 subprojects { project ->
-  apply plugin: 'groovy'
 
   targetCompatibility = 1.8
   sourceCompatibility = 1.8
-
-/*
-  repositories {
-    maven { url 'http://oss.jfrog.org/repo' }
-    jcenter()
-    maven { url 'http://dl.bintray.com/spinnaker/spinnaker' }
-    maven { url 'http://repo.spring.io/repo' }
-  }
-*/
 
   configurations {
     all {
