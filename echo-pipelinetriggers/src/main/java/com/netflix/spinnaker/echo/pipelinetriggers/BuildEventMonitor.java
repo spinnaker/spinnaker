@@ -6,7 +6,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.ExtendedRegistry;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.events.EchoEventListener;
 import com.netflix.spinnaker.echo.model.BuildEvent;
 import com.netflix.spinnaker.echo.model.Event;
@@ -16,7 +16,6 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Action1;
@@ -36,12 +35,12 @@ public class BuildEventMonitor implements EchoEventListener {
 
   private final PipelineCache pipelineCache;
   private final Action1<Pipeline> subscriber;
-  private final ExtendedRegistry registry;
+  private final Registry registry;
 
   @Autowired
   public BuildEventMonitor(@NonNull PipelineCache pipelineCache,
                            @NonNull Action1<Pipeline> subscriber,
-                           @NonNull @Qualifier("extendedRegistry") ExtendedRegistry registry) {
+                           @NonNull Registry registry) {
     this.pipelineCache = pipelineCache;
     this.subscriber = subscriber;
     this.registry = registry;

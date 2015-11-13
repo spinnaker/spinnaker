@@ -18,19 +18,9 @@ ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
 }
 
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
-    }
-}
-apply from: "$rootDir/gradle/groovy-module.gradle"
-
 apply plugin: 'spring-boot'
 apply plugin: 'project-report'
-apply plugin: 'spinnaker-debpublish'
+apply plugin: 'nebula.ospackage'
 
 applicationName = 'echo'
 applicationDefaultJvmArgs = ["-Djava.security.egd=file:/dev/./urandom"]
@@ -61,10 +51,9 @@ dependencies {
     compile spinnaker.dependency('korkWeb')
     compile spinnaker.dependency('bootActuator')
     compile spinnaker.dependency('bootWeb')
-    compile commonDependencies.springWeb
-    compile commonDependencies.jacksonDatabind
-    testCompile commonDependencies.spockSpring
-    testCompile commonDependencies.springTest
+    compile spinnaker.dependency('jacksonDatabind')
+    testCompile spinnaker.dependency('spockSpring')
+    testCompile spinnaker.dependency('springTest')
 }
 
 tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
@@ -107,7 +96,7 @@ startScripts {
 
 ospackage {
     packageName = project.applicationName
-    version = project.version.replaceAll("-SNAPSHOT", "")
+    version = project.version
     release '3'
     into "/opt/${project.applicationName}"
     from "${project.buildDir}/install/${project.applicationName}"

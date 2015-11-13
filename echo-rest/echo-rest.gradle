@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/groovy-module.gradle"
-
 dependencies {
   spinnaker.group('retrofitDefault')
   compile project(':echo-model')
   compile spinnaker.dependency('korkWeb')
-  compile commonDependencies.jacksonDatabind
-  testCompile commonDependencies.spockSpring
-  testCompile commonDependencies.springTest
+  compile spinnaker.dependency('jacksonDatabind')
+  testCompile spinnaker.dependency('spockSpring')
+  testCompile spinnaker.dependency('springTest')
 }

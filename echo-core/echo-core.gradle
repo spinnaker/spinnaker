@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/groovy-module.gradle"
-
 dependencies {
     spinnaker.group("retrofitDefault")
 
     compile project(":echo-model")
-    compile commonDependencies.rxJava
-    testCompile commonDependencies.spockSpring
-    testCompile commonDependencies.springTest
+    compile spinnaker.dependency('rxJava')
+    testCompile spinnaker.dependency('spockSpring')
+    testCompile spinnaker.dependency('springTest')
 }

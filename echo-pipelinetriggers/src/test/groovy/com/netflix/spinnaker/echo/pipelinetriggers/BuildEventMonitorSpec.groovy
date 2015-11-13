@@ -1,28 +1,27 @@
 package com.netflix.spinnaker.echo.pipelinetriggers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.ExtendedRegistry
-import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spectator.api.Counter
+import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.echo.model.Pipeline
-import com.netflix.spinnaker.echo.services.Front50Service
 import com.netflix.spinnaker.echo.test.RetrofitStubs
 import rx.functions.Action1
-import rx.schedulers.Schedulers
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 import static com.netflix.spinnaker.echo.model.BuildEvent.Result.*
-import static java.util.concurrent.TimeUnit.SECONDS
-import static rx.Observable.empty
-import static rx.Observable.just
 
 class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
   def objectMapper = new ObjectMapper()
   def pipelineCache = Mock(PipelineCache)
   def subscriber = Mock(Action1)
-  def registry = new ExtendedRegistry(new NoopRegistry())
+  def registry = Stub(Registry) {
+    createId(*_) >> Stub(Id)
+    counter(*_) >> Stub(Counter)
+    gauge(*_) >> Integer.valueOf(1)
+  }
 
   @Subject
   def monitor = new BuildEventMonitor(pipelineCache, subscriber, registry)

@@ -16,18 +16,16 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers;
 
-import com.netflix.spectator.api.ExtendedRegistry;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.services.Front50Service;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.Scheduler;
 import rx.Subscription;
-import rx.functions.Action1;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -45,7 +43,7 @@ public class PipelineCache implements MonitoredPoller {
   private final Scheduler scheduler;
   private final int pollingIntervalSeconds;
   private final Front50Service front50;
-  private final ExtendedRegistry registry;
+  private final Registry registry;
 
   private transient Instant lastPollTimestamp;
   private transient Subscription subscription;
@@ -56,7 +54,7 @@ public class PipelineCache implements MonitoredPoller {
   public PipelineCache(@NonNull Scheduler scheduler,
                        int pollingIntervalSeconds,
                        @NonNull Front50Service front50,
-                       @NonNull @Qualifier("extendedRegistry") ExtendedRegistry registry) {
+                       @NonNull Registry registry) {
     this.scheduler = scheduler;
     this.pollingIntervalSeconds = pollingIntervalSeconds;
     this.front50 = front50;

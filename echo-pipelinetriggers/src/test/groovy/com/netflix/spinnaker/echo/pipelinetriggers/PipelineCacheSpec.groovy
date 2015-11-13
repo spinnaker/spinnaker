@@ -17,8 +17,9 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers
 
-import com.netflix.spectator.api.ExtendedRegistry
-import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spectator.api.Counter
+import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.services.Front50Service
 import com.netflix.spinnaker.echo.test.RetrofitStubs
@@ -35,7 +36,12 @@ import static rx.Observable.just
 class PipelineCacheSpec extends Specification implements RetrofitStubs {
   def scheduler = Schedulers.test()
   def front50 = Mock(Front50Service)
-  def registry = new ExtendedRegistry(new NoopRegistry())
+  def registry = Stub(Registry) {
+    createId(*_) >> Stub(Id)
+    counter(*_) >> Stub(Counter)
+    gauge(*_) >> Integer.valueOf(1)
+  }
+
 
   @Shared
   def interval = 30

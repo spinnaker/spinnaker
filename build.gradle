@@ -15,58 +15,22 @@
  */
 
 buildscript {
+    ext {
+        springBootVersion = "1.2.5.RELEASE"
+    }
     repositories {
-        if (project.hasProperty('internalArtifactory')) {
-            maven { url project.internalArtifactory }
-        } else {
-            jcenter()
-        }
+        jcenter()
         maven { url 'http://dl.bintray.com/spinnaker/gradle/' }
     }
     dependencies {
-        classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.102'
+        classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:2.2.0'
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
     }
 }
 
-ext {
-    springBootVersion = "1.2.5.RELEASE"
-
-    versions = [
-        batch   : "3.0.1.RELEASE",
-        guava   : "14.0.1",
-        jackson : "2.3.3",
-        okhttp  : "2.0.0",
-        retrofit: "1.6.1",
-        rx      : "0.20.2",
-        slf4j   : "1.7.5",
-        spock   : "1.0-groovy-2.3",
-        spring  : "4.0.6.RELEASE"
-    ]
-
-    commonDependencies = [
-        guava          : dependencies.create("com.google.guava:guava:$versions.guava"),
-        hamcrest       : dependencies.create("org.hamcrest:hamcrest-all:1.3"),
-        jacksonDatabind: dependencies.create("com.fasterxml.jackson.core:jackson-databind:$versions.jackson"),
-        jacksonGuava   : dependencies.create("com.fasterxml.jackson.datatype:jackson-datatype-guava:$versions.jackson"),
-        logback        : dependencies.create("ch.qos.logback:logback-classic:$versions.logback"),
-        okHttp         : dependencies.create("com.squareup.okhttp:okhttp-urlconnection:$versions.okhttp"),
-        retrofit       : dependencies.create("com.squareup.retrofit:retrofit:$versions.retrofit"),
-        rxJava         : dependencies.create("com.netflix.rxjava:rxjava-core:$versions.rx"),
-        slf4j          : dependencies.create("org.slf4j:slf4j-api:$versions.slf4j"),
-        slf4jJcl       : dependencies.create("org.slf4j:jcl-over-slf4j:$versions.slf4j"),
-        slf4jSimple    : dependencies.create("org.slf4j:slf4j-simple:$versions.slf4j"),
-        spock          : dependencies.create("org.spockframework:spock-core:$versions.spock"),
-        spockSpring    : dependencies.create("org.spockframework:spock-spring:$versions.spock"),
-        springBatch    : dependencies.create("org.springframework.batch:spring-batch-core:$versions.batch"),
-        springBatchTest: dependencies.create("org.springframework.batch:spring-batch-test:$versions.batch"),
-        springTest     : dependencies.create("org.springframework:spring-test:$versions.spring"),
-        springWeb      : dependencies.create("org.springframework:spring-web:$versions.spring"),
-        objenesis      : dependencies.create("org.objenesis:objenesis:2.1")
-    ]
-}
-
 allprojects {
-    apply plugin: "spinnaker-gradle-project"
+    apply plugin: "spinnaker.project"
+    apply plugin: "groovy"
     apply plugin: 'jacoco'
     group = "com.netflix.spinnaker.echo"
 
@@ -83,13 +47,6 @@ allprojects {
 }
 
 subprojects {
-    repositories {
-        if (project.hasProperty('internalArtifactory')) {
-            maven { url project.internalArtifactory }
-        } else {
-            jcenter()
-        }
-    }
     plugins.withType(JavaPlugin) {
         sourceCompatibility = "1.8"
         targetCompatibility = "1.8"
@@ -98,8 +55,16 @@ subprojects {
     jacoco {
         toolVersion = '0.7.0.201403182114'
     }
+
+    dependencies {
+        compile spinnaker.dependency('groovy')
+        compile spinnaker.dependency('guava')
+        compile spinnaker.dependency('slf4j')
+        testCompile spinnaker.dependency('spock')
+        testRuntime spinnaker.dependency('slf4jSimple')
+        testRuntime "org.slf4j:jcl-over-slf4j:${spinnaker.version('slf4j')}"
+    }
 }
 
-tasks.checkSnapshotDependencies.enabled = false
 
 defaultTasks ':echo-web:bootRun'
