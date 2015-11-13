@@ -20,7 +20,6 @@ import com.netflix.spinnaker.orca.RetryableTask
 /**
  * Marker interface for tasks that perform source/target diffs
  * Example, source diffs, library diffs, etc.
- * @author sthadeshwar
  */
 public interface DiffTask extends RetryableTask {
 

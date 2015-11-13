@@ -31,7 +31,6 @@ import java.util.concurrent.TimeUnit
 /**
  * A stage that suspends execution of pipeline if the current stage is restricted to run during a time window and
  * current time is within that window.
- * @author sthadeshwar
  */
 @Component
 @CompileStatic

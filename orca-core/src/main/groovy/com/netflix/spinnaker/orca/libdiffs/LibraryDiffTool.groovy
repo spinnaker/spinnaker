@@ -15,9 +15,7 @@
  */
 
 package com.netflix.spinnaker.orca.libdiffs
-/**
- * @author sthadeshwar
- */
+
 class LibraryDiffTool {
 
   private final ComparableLooseVersion comparableLooseVersion

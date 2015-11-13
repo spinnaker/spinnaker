@@ -41,10 +41,7 @@ import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initia
 import static com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask
 import static com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask.HourMinute
 import static com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask.TimeWindow
-/**
- *
- * @author sthadeshwar
- */
+
 @Unroll
 @ContextConfiguration(classes = [EmbeddedRedisConfiguration, JesqueConfiguration, EurekaComponents, OrcaConfiguration])
 class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {

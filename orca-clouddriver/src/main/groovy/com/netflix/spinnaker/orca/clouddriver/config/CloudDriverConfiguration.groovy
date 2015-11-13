@@ -38,9 +38,7 @@ import retrofit.client.Client
 import retrofit.converter.GsonConverter
 
 import static retrofit.Endpoints.newFixedEndpoint
-/**
- * @author sthadeshwar
- */
+
 @Configuration
 @Import(RetrofitConfiguration)
 @ComponentScan([
