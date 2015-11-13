@@ -50,7 +50,9 @@ class ExecutionPropagationListenerSpec extends Specification {
     1 * executionRepository.updateStatus(pipeline.id, ExecutionStatus.RUNNING)
     1 * executionRepository.updateStatus(orchestration.id, ExecutionStatus.RUNNING)
     1 * executionRepository.retrievePipeline(pipeline.id) >> { pipeline }
-    1 * executionRepository.retrieveOrchestration(orchestration.id) >> { throw new ExecutionNotFoundException("No orchestration") }
+    1 * executionRepository.retrieveOrchestration(orchestration.id) >> {
+      throw new ExecutionNotFoundException("No orchestration")
+    }
     0 * _
 
     pipelineJobExecution.executionContext.get("existing") == "context"

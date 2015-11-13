@@ -16,7 +16,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * <p>
  * If you just register this bean in the application context it should get
  * picked up by Orca and attached to whatever jobs you run. Keep a handle on
- * it an use `await()` to make sure the job completes before your assertions
+ * it and use `await()` to make sure the job completes before your assertions
  * fire. If you need to run the job more than once use `reset()` in between.
  */
 @Component

@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.batch.BatchStepStatus
 import com.netflix.spinnaker.orca.batch.ExecutionContextManager
@@ -70,6 +70,7 @@ class TaskTasklet implements Tasklet {
     try {
       if (stage.execution.canceled) {
         setStopStatus(chunkContext, ExitStatus.STOPPED, ExecutionStatus.CANCELED)
+        contribution.exitStatus = ExitStatus.STOPPED
         return cancel(stage)
       } else if (task.status.complete || task.status.halt) {
         // no-op
@@ -99,6 +100,7 @@ class TaskTasklet implements Tasklet {
 
         if (result.status == ExecutionStatus.TERMINAL) {
           setStopStatus(chunkContext, ExitStatus.FAILED, result.status)
+          executionRepository.cancel(stage.execution.id)
         }
 
         def stageOutputs = new HashMap(result.stageOutputs)
@@ -155,7 +157,7 @@ class TaskTasklet implements Tasklet {
 
   private static void setStopStatus(ChunkContext chunkContext, ExitStatus exitStatus, ExecutionStatus executionStatus) {
     chunkContext.stepContext.stepExecution.with {
-      setTerminateOnly()
+//      setTerminateOnly()
       executionContext.put("orcaTaskStatus", executionStatus)
       it.exitStatus = exitStatus
     }
