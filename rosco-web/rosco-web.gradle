@@ -6,25 +6,12 @@ tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
   systemProperty('spring.config.location', project.springConfigLocation)
 }
 
-buildscript {
-  repositories {
-    jcenter()
-  }
-  dependencies {
-    classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
-  }
-}
-
 apply plugin: 'spring-boot'
-apply plugin: 'spinnaker-debpublish'
+apply plugin: 'nebula.ospackage'
 
 configurations.all {
   exclude group: 'javax.servlet', module: 'servlet-api'
   exclude group: "org.slf4j", module: "slf4j-log4j12"
-}
-
-ideaConfig {
-  appClassName = 'com.netflix.spinnaker.rosco.Main'
 }
 
 dependencies {
@@ -60,9 +47,17 @@ startScripts {
   }
 }
 
+String toVers(String v) {
+  int idx = v.indexOf('-')
+  if (idx != -1) {
+    return v.substring(0, idx)
+  }
+  return v
+}
+
 ospackage {
   packageName = project.applicationName
-  version = project.version.replaceAll("-SNAPSHOT", "")
+  version = toVers(project.version.toString())
   release '3'
   into "/opt/${project.applicationName}"
   from "${project.buildDir}/install/${project.applicationName}"
