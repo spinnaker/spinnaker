@@ -403,13 +403,7 @@ def main():
   check_options(options)
 
   if options.dependencies:
-# update_os seems to be causing problems with gsutil, so temporarily forcing
-# it to run at the end, after install_spinnaker completes
-# TODO: identify root cause of gsutil failure due to unattended_upgrades
-    update_os_flag = options.update_os
-    options.update_os = false
     install_runtime_dependencies.install_runtime_dependencies(options)
-    options.update_os = update_os_flag
   else:
       if install_runtime_dependencies.check_java_version() is not None:
           install_runtime_dependencies.install_java(options)
@@ -417,9 +411,6 @@ def main():
           install_runtime_dependencies.install_apache(options)
 
   install_spinnaker(options)
-
-  if options.dependencies and options.update_os:
-      install_runtime_dependencies.install_os_updates(options)
 
 if __name__ == '__main__':
      main()
