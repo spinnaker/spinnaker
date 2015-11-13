@@ -119,26 +119,26 @@ sh -c 'echo deb http://pkg.jenkins-ci.org/debian binary/ > /etc/apt/sources.list
 apt-get update -y
 apt-get install jenkins -y
 
-rm /etc/default/jenkins
-touch /etc/default/jenkins
+#rm /etc/default/jenkins
+#touch /etc/default/jenkins
 
-cat <<EOT >> /etc/default/jenkins
-NAME=jenkins
-JAVA=/usr/bin/java
-JAVA_ARGS="-Djava.awt.headless=true"  # Allow graphs etc. to work even when an X server is present
-PIDFILE=/var/run/$NAME/$NAME.pid
-JENKINS_USER=$NAME
-JENKINS_GROUP=$NAME
-JENKINS_WAR=/usr/share/$NAME/$NAME.war
-JENKINS_HOME=/var/lib/$NAME
-RUN_STANDALONE=true
-JENKINS_LOG=/var/log/$NAME/$NAME.log
-MAXOPENFILES=8192
-AJP_PORT=-1
-PREFIX=/$NAME
-HTTP_PORT=9999
-JENKINS_ARGS="--webroot=/var/cache/$NAME/war --httpPort=$HTTP_PORT --ajp13Port=$AJP_PORT"
-EOT
+#cat <<EOT >> /etc/default/jenkins
+#NAME=jenkins
+#JAVA=/usr/bin/java
+#JAVA_ARGS="-Djava.awt.headless=true"  # Allow graphs etc. to work even when an X server is present
+#PIDFILE=/var/run/\$NAME/\$NAME.pid
+#JENKINS_USER=\$NAME
+#JENKINS_GROUP=\$NAME
+#JENKINS_WAR=/usr/share/\$NAME/\$NAME.war
+#JENKINS_HOME=/var/lib/\$NAME
+#RUN_STANDALONE=true
+#JENKINS_LOG=/var/log/\$NAME/\$NAME.log
+#MAXOPENFILES=8192
+#AJP_PORT=-1
+#PREFIX=/\$NAME
+#HTTP_PORT=9999
+#JENKINS_ARGS="--webroot=/var/cache/\$NAME/war --httpPort=\$HTTP_PORT --ajp13Port=\$AJP_PORT"
+#EOT
 
 
 #docker
