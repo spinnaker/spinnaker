@@ -131,10 +131,29 @@ module.exports = angular
     vm.startApplicationChange = fastPropertyScopeBuilderService.createApplicationChangeFn(vm.property.startScope, vm.getStartRegions);
     vm.startApplicationSelected = fastPropertyScopeBuilderService.createApplicationSelectedFn(vm, vm.startApplicationChange);
 
+    vm.affectedInstancesForACA = [];
+    vm.getAffectInstancesForACATarget = (clusterName) => {
+
+      vm.affectedInstancesForACA = _(objectValuesToList(vm.chosenApps))
+        .map('clusters').flatten()
+        .filter((cluster) => cluster.name === clusterName)
+        .map('serverGroups').flatten()
+        .filter((serverGroup) => serverGroup.region === vm.property.startScope.region)
+        .map('instances').flatten()
+        .compact().unique()
+        .value();
+
+      vm.affectedInstanceIdForAca = vm.affectedInstancesForACA.map((i) => i.id);
+      vm.clusterSizeNotBigEngough =  vm.affectedInstancesForACA.length < 4;
+    };
+
     vm.acaTargetClusterChange = fastPropertyScopeBuilderService.createClusterChangeFn(vm, vm.property.startScope, vm.startLists, angular.noop);
     vm.acaTargetStackChange = fastPropertyScopeBuilderService.createStackChangeFn(vm, vm.property.startScope, vm.startLists, vm.acaTargetClusterChange);
-    vm.acaTargetRegionChange = fastPropertyScopeBuilderService.createRegionChangeFn(vm, vm.property.startScope, vm.startLists, vm.acaTargetStackChange);
-
+    vm.acaTargetRegionChange = (region) => {
+      vm.property.startScope.region = region;
+      vm.getAffectInstancesForACATarget(vm.property.startScope.cluster);
+      fastPropertyScopeBuilderService.createRegionChangeFn(vm, vm.property.startScope, vm.startLists, vm.acaTargetStackChange)(region);
+    };
 
 
     vm.applicationRemoved = (appName) => {
@@ -183,6 +202,8 @@ module.exports = angular
         Object.assign(vm.property.startScope, vm.property.targetScope);
         if(selected.key === 'aca') {
           vm.property.startScope = _.set(vm.property.startScope, 'stack', 'none' );
+          vm.property.startScope = _.set(vm.property.startScope, 'zone', 'none' );
+          vm.property.startScope = _.set(vm.property.startScope, 'asg', 'none' );
         }
 
         vm.property.startScope.appIdList.forEach(vm.startApplicationSelected);
@@ -207,6 +228,22 @@ module.exports = angular
         vm.update = ctrl.update;
       }
     };
+
+    vm.getSampleRolloutNumber = () => {
+       const rng = _.range(vm.affectedInstancesForACA.length);
+       return rng.filter((n) => n % 2).join(',');
+    };
+
+    vm.getSampleRolloutPercentage = () => {
+      if (vm.affectedInstancesForACA.length < 4) {
+        return '50';
+      }
+      if (vm.affectedInstancesForACA.length > 4) {
+        return '25,50,75';
+      }
+    };
+
+
 
 
     vm.init = () => {
