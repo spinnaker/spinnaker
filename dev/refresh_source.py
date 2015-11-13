@@ -277,6 +277,7 @@ class Refresher(object):
                                   .format(dir=repository_dir, branch=branch),
                               echo=True)
       except RuntimeError:
+        # Only propagate if branch exists, otherwise warn and ignore.
         result = check_run_and_monitor('git -C "{dir}" branch -r'
                                            .format(dir=repository_dir),
                                        echo=False)
