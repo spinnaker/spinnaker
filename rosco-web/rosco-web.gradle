@@ -59,8 +59,31 @@ ospackage {
   packageName = project.applicationName
   version = toVers(project.version.toString())
   release '3'
-  into "/opt/${project.applicationName}"
-  from "${project.buildDir}/install/${project.applicationName}"
+
+  // installer scripts
+  postInstall = file('pkg_scripts/postInstall.sh')
+  postUninstall = file('pkg_scripts/postUninstall.sh')
+
+  from "${project.buildDir}/install/${project.applicationName}"  
+    into "/opt/${project.applicationName}"
+  
+  from(file('etc/init/rosco.conf')) {
+    into('/etc/init')
+    user = 'root'
+    permissionGroup = 'root'
+    fileType = CONFIG | NOREPLACE
+  }
+
+  from(file('etc/logrotate.d/rosco')) {
+    into('/etc/logrotate.d')
+    user = 'root'
+    permissionGroup = 'root'
+    fileType = CONFIG | NOREPLACE
+  }
+
+  from('../docker') {
+    into "/opt/${project.applicationName}/docker"
+  }  
 }
 
 buildDeb {
