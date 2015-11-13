@@ -37,6 +37,9 @@ allprojects {
   apply plugin: 'spinnaker.project'
   apply plugin: 'idea'
   apply plugin: 'groovy'
+  bintray {
+    publish = true
+  }
 }
 
 subprojects { project ->
