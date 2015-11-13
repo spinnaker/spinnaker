@@ -113,19 +113,19 @@ Sign into the [AWS console](https://console.aws.amazon.com/), and select the reg
 
 ## Configure your Google Cloud Platform Account
 
-If you enabled Google for Spinnaker, there are some requirements for the Google
-project and account:
+If you enabled Google for Spinnaker, perform the following steps for your project in the Google Developer's Console:
 
-Sign into the [Google Developer's Console](https://console.developers.google.com).
-
-1. Enable the [Compute Engine](https://console.developers.google.com/project/_/apiui/apiview/compute_component/overview) and [Compute Engine Autoscaler](https://console.developers.google.com/project/_/apiui/apiview/autoscaler/overview) APIs in the project that Spinnaker will be managing by clicking on each link and selecting the 'Enable API' button on the overview page.
+1. Enable APIs (click 'Enable API' button for each):
+   - [Compute Engine](https://console.developers.google.com/project/_/apiui/apiview/compute_component/overview)
+   - [Compute Engine Autoscaler](https://console.developers.google.com/project/_/apiui/apiview/autoscaler/overview)
 2. Add and Obtain Credentials:
-   - Navigate to the [Credentials](https://pantheon.corp.google.com/project/_/apiui/credential) tab (if using the beta console, it is in API Manager).
-   - Select "Service account" and create a JSON key.
-   - Download this key to a file.
-   - `chmod 400` the file.
+   - Navigate to [Credentials](https://console.developers.google.com/project/_/apiui/credential)
+   - New credentials > Service account key
+   - Select... > New service account
+   - Provide a Name and click Create
+   - `chmod 400` the file that downloads
    - Set the project and jsonPath for `providers.google.primaryCredentials`
-     in `$HOME/.spinnaker/spinnaker-local.yml`.
+     in `$HOME/.spinnaker/spinnaker-local.yml`
 
 
 ## Start Spinnaker Services
