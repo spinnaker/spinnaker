@@ -65,6 +65,8 @@ cat <<EOT >> /var/lib/jenkins/config.xml
 EOT
 service jenkins start
 
+docker run -d -p 5000:5000 --name registry registry:2
+
 wget http://127.0.0.1:9999/jnlpJars/jenkins-cli.jar
 
 echo 'jenkins.model.Jenkins.instance.securityRealm.createAccount("jenkins", "jenkins")' | java -jar jenkins-cli.jar -s http://127.0.0.1:9999/ groovy =

@@ -147,7 +147,7 @@ service docker stop
 rm /etc/default/docker
 echo 'DOCKER_OPTS="--default-ulimit nofile=1024:4096 -H tcp://0.0.0.0:7104 -H unix:///var/run/docker.sock -r=false"' >> /etc/default/docker
 service docker start
-docker run -d -p 5000:5000 --name registry registry:2
+
 
 
 a2ensite spinnaker
