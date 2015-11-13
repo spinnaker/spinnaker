@@ -115,23 +115,20 @@ Sign into the [AWS console](https://console.aws.amazon.com/), and select the reg
 
 ## Configure your Google Cloud Platform Account
 
-If you enabled Google for Spinnaker, there are some requirements for the Google
-project and account:
+If you enabled Google for Spinnaker, perform the following steps for your project in the Google Developer's Console:
 
-Sign into the [Google Developer's Console](https://console.developers.google.com).
-
-1. Enable APIs in the project that Spinnaker will be managing
-   - In the Google Developer's Console, select the project you wish Spinnaker
-     to manage.
-   - Go to the API Management page.
-   - Enable the [Compute Engine](https://console.developers.google.com/apis/api/compute_component/overview?project=_) and [Compute Engine Autoscaler](https://console.developers.google.com/apis/api/autoscaler/overview?project=_) APIs.
-2. Add and Obtain Credentials
-   - Navigate to the Credentials tab (if using the beta console, it is in API Manager).
-   - Select "Service account" and create a JSON key.
-   - Download this key to a file.
-   - `chmod 400` the file.
-   - Set the project and jsonPath for `providers.google.primaryCredentials`
-     in `$HOME/.spinnaker/spinnaker-local.yml`.
+1. Enable APIs (click 'Enable API' button for each):
+   - [Compute Engine](https://console.developers.google.com/project/_/apiui/apiview/compute_component/overview)
+   - [Compute Engine Autoscaler](https://console.developers.google.com/project/_/apiui/apiview/autoscaler/overview)
+2. Add and Obtain Credentials:
+   - Navigate to [Credentials](https://console.developers.google.com/project/_/apiui/credential)
+   - New credentials > Service account key
+   - Select... > New service account
+   - Provide a Name and click Create
+   - `chmod 400` the file that downloads
+3. Add GCP credentials in `$HOME/.spinnaker/spinnaker-local.yml`:
+   - Set project ID for `provider.google.primaryCredentials.project`
+   - Set full absolute path of downloaded file for `providers.google.primaryCredentials.jsonPath`
 
 
 ## Start Spinnaker Services
