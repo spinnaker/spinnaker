@@ -15,7 +15,7 @@
  */
 
 apply plugin: 'spring-boot'
-apply plugin: 'spinnaker-debpublish'
+apply plugin: 'nebula.ospackage'
 
 ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")
@@ -82,7 +82,7 @@ startScripts {
 
 ospackage {
   packageName = project.applicationName
-  version = project.version.replaceAll("-SNAPSHOT", "")
+  version = project.version
   release '3'
   into "/opt/${project.applicationName}"
   from "${project.buildDir}/install/${project.applicationName}"
@@ -90,10 +90,5 @@ ospackage {
 
 buildDeb {
   dependsOn installApp
-  requires("redis-server")
 }
-/*
-applicationDefaultJvmArgs = [
-  "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
-]
-*/
+
