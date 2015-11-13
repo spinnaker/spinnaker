@@ -1,6 +1,4 @@
-Spinnaker and Docker Compose 
-----------------------------
-
+# Spinnaker and Docker Compose 
 
 This is an experimental integration of Spinnaker and Docker Compose using docker images for spinnaker published on the Docker Hub.
 
@@ -8,13 +6,7 @@ It requires no installation of any software aside from the toolbox to test out S
 
 These instructions have been tested on MacOS 10.11.1 and Docker Toolbox 1.9.0b
 
-----------------------------------------
-
-Instructions.
--------------
-
-Limitations
------------
+## Limitations
 
 * The docker compose project is intended as a 'try Spinnaker now' tool. It's not intended for production use.
 
@@ -22,8 +14,7 @@ Limitations
 
 * We only support Amazon credentials set via the .aws directory or via environment variables. 
 
-Requirements:
--------------
+## Requirements
 
 Make sure you're happy with the configuration of your spinnaker-local.yml file at ../../config. The instructions to change this are in the file default-spinnaker-local.yml
 
@@ -31,8 +22,7 @@ Make sure you have followed the setup needed at the Cloud level from the directi
 
 Install the [Docker ToolBox](https://www.docker.com/docker-toolbox)
 
-Starting Spinnaker
-------------------
+## Starting Spinnaker
 
 1. Open Kitematic and click on docker cli at the bottom
 2. Export your current docker ip address as follows:
@@ -41,26 +31,22 @@ Starting Spinnaker
 4. Run ```docker-compose up -d``` , this will pull all the images needed to run Spinnaker from Docker Hub.
 5. You should see all the containers for your microservice come up one by one in Kitematic.
 
-Using Spinnaker.
-----------------
+## Using Spinnaker
 
 Under Kitematic, click on the application 'deck' -> settings -> ports. Click on the link to see Spinnaker in action.
 
 Alternatively, you can just enter ```open http://$DOCKER_IP:9000```
 
-Updating Spinnaker
-------------------
+## Updating Spinnaker
 
 Call ```docker-compose pull``` to get the latest version of Spinnaker
 Call ```docker-compose restart``` to restart all containers
 
-Stopping Spinnaker
-------------------
+## Stopping Spinnaker
 
 1. Run ```docker-compose stop```
 2. If you don't want to keep the containers around, use ```docker-compose rm -f```
 
-Helpful tips
-------------
+## Helpful tips
 
 * Spinnaker is pretty memory intensive, we suggest modifying the virtual box image used by docker machine to have more memory. You can do this by opening virtualbox and changing your base memory amount via settings -> System -> Base memory. This configuration has been tested on 8GB. 
