@@ -46,7 +46,7 @@ ospackage {
   }
 
   from('runtime') {
-    into spinnakerHome + '/scripts'
+    into spinnakerHome + '/bin'
     fileMode = 0755
   }  
   from('tests') {
