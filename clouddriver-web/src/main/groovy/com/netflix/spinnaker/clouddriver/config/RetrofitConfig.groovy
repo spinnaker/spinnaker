@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.clouddriver.config
 
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service

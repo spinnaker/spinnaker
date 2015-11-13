@@ -41,7 +41,6 @@ public class ClusteredAgentScheduler extends CatsModuleAware implements AgentSch
     private final Map<String, AgentExecutionAction> agents = new ConcurrentHashMap<>();
     private final Map<String, Long> activeAgents = new ConcurrentHashMap<>();
 
-
     public ClusteredAgentScheduler(JedisSource jedisSource, NodeIdentity nodeIdentity, AgentIntervalProvider intervalProvider) {
         this(jedisSource, nodeIdentity, intervalProvider, Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory(ClusteredAgentScheduler.class.getSimpleName())), Executors.newCachedThreadPool(new NamedThreadFactory(AgentExecutionAction.class.getSimpleName())));
     }
@@ -53,7 +52,6 @@ public class ClusteredAgentScheduler extends CatsModuleAware implements AgentSch
         this.agentExecutionPool = agentExecutionPool;
         lockPollingScheduler.scheduleAtFixedRate(this, 0, 1, TimeUnit.SECONDS);
     }
-
 
     private Map<String, Long> acquire() {
         Map<String, Long> acquired = new HashMap<>(agents.size());
@@ -174,7 +172,6 @@ public class ClusteredAgentScheduler extends CatsModuleAware implements AgentSch
         private final Agent agent;
         private final AgentExecution agentExecution;
         private final ExecutionInstrumentation executionInstrumentation;
-
 
         public AgentExecutionAction(Agent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
             this.agent = agent;

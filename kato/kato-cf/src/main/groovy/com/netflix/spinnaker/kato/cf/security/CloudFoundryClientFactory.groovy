@@ -20,7 +20,7 @@ import org.cloudfoundry.client.lib.CloudFoundryOperations
  * Factory interface for creating Cloud Foundry clients. Makes it possible to delay client
  * creation until ALL details are gathered.
  *
- * @author Greg Turnquist
+ *
  */
 interface CloudFoundryClientFactory {
 

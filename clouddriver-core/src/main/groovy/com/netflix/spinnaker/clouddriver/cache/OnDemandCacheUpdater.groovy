@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.cache
 
-
 /**
  * An on-demand cache updater. Allows some non-scheduled trigger to initiate a cache refresh for a given type. An on-demand cache request will fan-out to all available updaters.
  *
- * @author Dan Woods
+ *
  */
 interface OnDemandCacheUpdater {
 

@@ -16,8 +16,6 @@
 
 
 
-
-
 package com.netflix.spinnaker.mort.model
 
 /**

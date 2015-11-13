@@ -19,7 +19,7 @@ import org.cloudfoundry.client.lib.CloudFoundryOperations
 /**
  * Stub CF client factory. Makes it possible to inject stub client.
  *
- * @author Greg Turnquist
+ *
  */
 class TestCloudFoundryClientFactory implements CloudFoundryClientFactory {
 

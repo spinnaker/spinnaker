@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.mort.aws.model
 import com.netflix.spinnaker.mort.model.KeyPair
 import groovy.transform.Canonical

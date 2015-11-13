@@ -3,7 +3,6 @@ Cache All The Stuff
 
 Utilities for cache population
 
-
 Usage
 -----
 
@@ -13,7 +12,6 @@ A ``CatsModule`` configures the various components needed to schedule execution 
  each ``Provider``. ``new CatsModule.Builder().build(aProvider)`` comes configured with reasonable defaults for
  in-memory caching and refreshing on a fixed interval. The ``CatsModule.getView()`` returns a ``Cache`` that
  provides read access to the data populated by the ``CachingAgent``s
-
 
 To gain insight into the execution of the ``CachingAgent``s, one or more ``ExecutionInstrumentation`` can be provided which
  will receive callbacks around the start, completion, or failure of each ``CachingAgent.loadData()``

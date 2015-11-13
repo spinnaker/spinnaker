@@ -26,9 +26,6 @@ import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
 import java.util.concurrent.Callable
 
-/**
- * @author Greg Turnquist
- */
 @Component
 class CloudFoundryClusterProvider implements ClusterProvider<CloudFoundryCluster> {
 

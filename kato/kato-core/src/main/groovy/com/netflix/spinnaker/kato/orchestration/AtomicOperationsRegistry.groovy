@@ -21,7 +21,7 @@ import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 /**
  * A registry which does a lookup of AtomicOperationConverters and DescriptionValidators based on their names and
  * cloud providers
- * @author sthadeshwar
+ *
  */
 interface AtomicOperationsRegistry {
 

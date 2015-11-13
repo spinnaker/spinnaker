@@ -75,7 +75,6 @@ class ClusterController {
     clusters
   }
 
-
   @RequestMapping(value = "/{account:.+}/{name:.+}", method = RequestMethod.GET)
   Set<Cluster> getForAccountAndName(@PathVariable String application,
                                     @PathVariable String account,

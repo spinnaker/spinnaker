@@ -22,7 +22,7 @@ import groovy.transform.CompileStatic
 /**
  * Support code for Cloud Foundry testing
  *
- * @author Greg Turnquist
+ *
  */
 @CompileStatic
 class TestCredential {

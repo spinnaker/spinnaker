@@ -22,7 +22,7 @@ import com.netflix.spinnaker.oort.documentation.Empty
  * A representation of a network load balancer, which is indirectly correlated to a {@link Cluster} through its relationship to {@link ServerGroup} objects. This interface provides a contract for
  * retrieving the name of the load balancer and the names of the server groups that it is servicing.
  *
- * @author Dan Woods
+ *
  */
 interface LoadBalancer {
   /**

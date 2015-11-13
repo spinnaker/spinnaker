@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.aws.deploy.handlers
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
@@ -308,7 +307,6 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     useSource = true
     descriptionCapacity = new BasicAmazonDeployDescription.Capacity(5, 5, 5)
   }
-
 
 
 

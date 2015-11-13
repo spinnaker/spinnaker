@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration

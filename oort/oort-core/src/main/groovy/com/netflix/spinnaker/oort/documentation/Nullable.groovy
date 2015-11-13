@@ -24,7 +24,7 @@ import java.lang.annotation.Target
 /**
  * Marker annotation for documentation purposes. Methods annotated with @Nullable indicate that the method may return a null value.
  *
- * @author Dan Woods
+ *
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)

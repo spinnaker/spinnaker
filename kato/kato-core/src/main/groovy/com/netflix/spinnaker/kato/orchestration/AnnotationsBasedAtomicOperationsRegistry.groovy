@@ -23,9 +23,6 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException
 import org.springframework.beans.factory.annotation.Autowired
 import java.lang.annotation.Annotation
 
-/**
- * @author sthadeshwar
- */
 @Slf4j
 class AnnotationsBasedAtomicOperationsRegistry extends ApplicationContextAtomicOperationsRegistry {
 

@@ -36,7 +36,6 @@ class MetricsLogger {
     LOG.info(messages.join('\n\t\t'))
   }
 
-
   String pad(int chars, Object o) {
     String val = o as String
     if (val.length() >= chars) {
@@ -48,7 +47,6 @@ class MetricsLogger {
     b.append(val)
     b.toString()
   }
-
 
   String collectTimings(EndpointMetrics metric) {
     StringBuilder result = new StringBuilder()

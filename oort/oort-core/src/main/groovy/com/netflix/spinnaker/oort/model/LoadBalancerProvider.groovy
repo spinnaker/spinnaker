@@ -22,7 +22,7 @@ import com.netflix.spinnaker.oort.documentation.Empty
  * A loadBalancerProvider is an interface for the application to retrieve {@link LoadBalancer} objects. The interface provides a common contract for which one or many providers can be queried for
  * their knowledge of load balancers at a given depth of specificity.
  *
- * @author Dan Woods
+ *
  */
 interface LoadBalancerProvider<T extends LoadBalancer> {
 

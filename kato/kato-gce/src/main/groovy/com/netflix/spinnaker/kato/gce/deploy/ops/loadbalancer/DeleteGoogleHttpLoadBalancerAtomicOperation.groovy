@@ -86,7 +86,6 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
     // Start with the forwaring rule.
     task.updateStatus BASE_PHASE, "Retrieving global forwarding rule $forwardingRuleName..."
 
-
     ForwardingRule forwardingRule = compute.globalForwardingRules().get(project, forwardingRuleName).execute()
     if (!forwardingRule) {
       GCEUtil.updateStatusAndThrowNotFoundException("Global forwarding rule $forwardingRuleName not found for $project",

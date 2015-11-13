@@ -41,7 +41,6 @@ class ClusterControllerSpec extends Specification {
         getApplication("app") >> app1
       }
 
-
       def app2 = Stub(Application) {
         getName() >> "app"
         getClusterNames() >> ["prod": ["baz"] as Set]
@@ -239,7 +238,6 @@ class ClusterControllerSpec extends Specification {
         }
         cluster
       }
-
 
     when:
       def result = clusterController.getServerGroupSummary(

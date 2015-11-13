@@ -26,9 +26,7 @@ import com.netflix.titanclient.TitanRegion
 import com.netflix.titanclient.model.Job
 import spock.lang.Specification
 import spock.lang.Subject
-/**
- * @author sthadeshwar
- */
+
 class DestroyTitanServerGroupAtomicOperationSpec extends Specification {
 
   TitanClient titanClient = Mock(TitanClient)

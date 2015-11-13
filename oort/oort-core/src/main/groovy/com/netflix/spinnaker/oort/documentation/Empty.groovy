@@ -24,7 +24,7 @@ import java.lang.annotation.Target
 /**
  * Marker annotation that defines that the provided method may return an empty map, list, or set
  *
- * @author Dan Woods
+ *
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)

@@ -37,7 +37,6 @@ class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
   private static final TARGET_HTTP_PROXY_OP_NAME = "target-http-proxy-op"
   private static final DONE = "DONE"
 
-
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }

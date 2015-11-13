@@ -23,9 +23,6 @@ import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.titan.deploy.description.AbstractTitanCredentialsDescription
 import org.springframework.validation.Errors
 
-/**
- * @author sthadeshwar
- */
 abstract class AbstractTitanDescriptionValidatorSupport<T extends AbstractTitanCredentialsDescription> extends DescriptionValidator<T> {
 
   private final AccountCredentialsProvider accountCredentialsProvider

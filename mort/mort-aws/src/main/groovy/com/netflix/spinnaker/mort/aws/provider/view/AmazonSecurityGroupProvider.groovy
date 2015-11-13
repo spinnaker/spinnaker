@@ -102,7 +102,6 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
     return convertToAmazonSecurityGroup(includeRules, cacheData.attributes, parts.account, parts.region)
   }
 
-
   private AmazonSecurityGroup convertToAmazonSecurityGroup(boolean includeRules, Map<String, Object> securityGroup, String account, String region) {
     List<Rule> inboundRules = []
 

@@ -24,7 +24,7 @@ import groovy.transform.Canonical
 /**
  * Descriptor for a Cloud Foundry {@link DeployDescription}
  *
- * @author Greg Turnquist
+ *
  */
 @AutoClone
 @Canonical

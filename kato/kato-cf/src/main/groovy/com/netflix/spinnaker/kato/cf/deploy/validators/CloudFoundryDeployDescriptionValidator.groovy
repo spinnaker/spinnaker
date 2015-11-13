@@ -26,7 +26,7 @@ import org.springframework.validation.Errors
 /**
  * Validator for Cloud Foundry deploy description
  *
- * @author Greg Turnquist
+ *
  */
 @Component("cloudFoundryDeployDescriptionValidator")
 class CloudFoundryDeployDescriptionValidator extends DescriptionValidator<CloudFoundryDeployDescription> {

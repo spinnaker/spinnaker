@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cache
 
-
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 

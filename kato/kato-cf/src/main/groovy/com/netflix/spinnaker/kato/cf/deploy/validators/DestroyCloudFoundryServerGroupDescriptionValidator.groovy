@@ -9,9 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
-/**
- * @author Greg Turnquist
- */
 @CloudFoundryOperation(AtomicOperations.DESTROY_SERVER_GROUP)
 @Component("destroyCloudFoundryServerGroupDescriptionValidator")
 class DestroyCloudFoundryServerGroupDescriptionValidator extends DescriptionValidator<DestroyCloudFoundryServerGroupDescription> {

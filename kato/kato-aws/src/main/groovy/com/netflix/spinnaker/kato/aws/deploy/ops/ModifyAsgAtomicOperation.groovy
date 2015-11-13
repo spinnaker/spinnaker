@@ -88,5 +88,4 @@ class ModifyAsgAtomicOperation implements AtomicOperation<Void> {
     }
   }
 
-
 }

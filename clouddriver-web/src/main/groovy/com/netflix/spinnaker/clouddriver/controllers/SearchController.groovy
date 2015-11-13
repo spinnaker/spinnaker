@@ -65,7 +65,6 @@ class SearchController {
       int total = results.inject(0) { acc, item -> acc + item.totalMatches }
       List<Map<String, String>> allResults = results.inject([]) { acc, item -> acc.addAll(item.results); acc }
 
-
       //TODO-cfieber: this is a temporary workaround to https://github.com/spinnaker/deck/issues/128
       [new SearchResultSet(
         totalMatches: total,

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.gce.deploy.handlers
 
 import com.google.api.services.compute.Compute

@@ -26,7 +26,6 @@ public class DefaultAgentIntervalProvider implements AgentIntervalProvider {
         this(interval, interval * 2);
     }
 
-
     public DefaultAgentIntervalProvider(long interval, long timeout) {
         this.interval = interval;
         this.timeout = timeout;

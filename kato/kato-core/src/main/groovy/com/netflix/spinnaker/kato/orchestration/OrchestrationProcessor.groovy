@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.orchestration
 
 import com.netflix.spinnaker.kato.data.task.Task
@@ -23,7 +22,7 @@ import com.netflix.spinnaker.kato.data.task.Task
  * Implementations of this interface should perform orchestration of operations in a workflow. Often will be used in
  * conjunction with {@link com.netflix.spinnaker.kato.orchestration.AtomicOperation} instances.
  *
- * @author Dan Woods
+ *
  */
 public interface OrchestrationProcessor {
 

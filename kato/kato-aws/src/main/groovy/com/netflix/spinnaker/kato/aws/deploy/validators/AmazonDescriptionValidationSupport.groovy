@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.aws.deploy.validators
 
 import com.netflix.spinnaker.kato.aws.deploy.description.AbstractAmazonCredentialsDescription
@@ -24,7 +23,6 @@ import org.springframework.validation.Errors
 public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmazonCredentialsDescription> extends DescriptionValidator<T> {
 
   abstract void validate(List priorDescriptions, T description, Errors errors)
-
 
   void validateAsgNameAndRegions(T description, Errors errors) {
     if (!description.asgs) {

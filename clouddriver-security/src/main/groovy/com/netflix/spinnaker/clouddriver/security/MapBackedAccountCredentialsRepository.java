@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * An in-memory repository of {@link AccountCredentials} objects.
  *
- * @author Dan Woods
+ *
  */
 public class MapBackedAccountCredentialsRepository implements AccountCredentialsRepository {
     private final Map<String, AccountCredentials> map = new ConcurrentHashMap<>();

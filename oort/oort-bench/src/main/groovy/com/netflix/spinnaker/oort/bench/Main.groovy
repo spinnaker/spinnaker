@@ -28,7 +28,6 @@ import org.springframework.context.annotation.Configuration
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 
-
 @Configuration
 @EnableAutoConfiguration(exclude = GroovyTemplateAutoConfiguration)
 @EnableConfigurationProperties

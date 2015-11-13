@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.aws.deploy.ops
 
 import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest

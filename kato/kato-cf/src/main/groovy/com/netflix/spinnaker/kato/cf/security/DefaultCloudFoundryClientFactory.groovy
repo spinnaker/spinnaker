@@ -21,7 +21,7 @@ import org.cloudfoundry.client.lib.CloudFoundryOperations
  * A factory for creating {@link CloudFoundryClient} objects. This allows delaying the creation until ALL
  * the details are gathered (some come via {@link com.netflix.spinnaker.kato.cf.deploy.description.CloudFoundryDeployDescription}
  *
- * @author Greg Turnquist
+ *
  */
 class DefaultCloudFoundryClientFactory implements CloudFoundryClientFactory {
 

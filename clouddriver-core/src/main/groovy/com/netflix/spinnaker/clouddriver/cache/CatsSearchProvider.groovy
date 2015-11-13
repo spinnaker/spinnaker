@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cache
 
-
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.clouddriver.search.SearchProvider
 import com.netflix.spinnaker.clouddriver.search.SearchResultSet

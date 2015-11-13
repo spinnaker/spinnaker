@@ -19,9 +19,7 @@ package com.netflix.spinnaker.oort.titan.model
 import com.netflix.titanclient.model.Task
 import com.netflix.titanclient.model.TaskState
 import spock.lang.Specification
-/**
- * @author sthadeshwar
- */
+
 class TitanInstanceSpec extends Specification {
 
   void 'valid titan instance is created from a titan task'() {

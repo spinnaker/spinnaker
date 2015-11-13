@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.search
 
-
 import groovy.transform.Canonical
 
 @Canonical

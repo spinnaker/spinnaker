@@ -19,7 +19,6 @@ This description provides the inputs necessary to restart a provided container o
 }]
 ----
 
-
 ====== Description of inputs
 
 [width="100%",frame="topbot",options="header,footer"]

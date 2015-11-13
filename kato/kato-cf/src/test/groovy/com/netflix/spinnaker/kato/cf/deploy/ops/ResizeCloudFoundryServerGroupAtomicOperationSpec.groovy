@@ -9,9 +9,6 @@ import org.cloudfoundry.client.lib.CloudFoundryOperations
 import org.springframework.web.client.ResourceAccessException
 import spock.lang.Specification
 
-/**
- * @author Greg Turnquist
- */
 class ResizeCloudFoundryServerGroupAtomicOperationSpec extends Specification {
 
   CloudFoundryOperations client

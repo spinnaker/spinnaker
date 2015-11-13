@@ -36,5 +36,4 @@ class EddaConfiguration {
     new EddaApiFactory(eddaConverter)
   }
 
-
 }

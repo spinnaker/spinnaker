@@ -23,7 +23,7 @@ import com.netflix.spinnaker.oort.documentation.Nullable
  * A cluster provider is an interface for the application to retrieve implementations of {@link Cluster} objects. This interface defines the common contract for which various providers may be queried
  * for their known clusters. This interface assumes implementations may span cross account.
  *
- * @author Dan Woods
+ *
  */
 interface ClusterProvider<T extends Cluster> {
   /**

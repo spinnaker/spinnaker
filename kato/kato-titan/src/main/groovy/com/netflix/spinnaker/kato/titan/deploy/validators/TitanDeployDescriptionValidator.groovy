@@ -24,9 +24,6 @@ import com.netflix.spinnaker.kato.titan.deploy.description.TitanDeployDescriptio
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-/**
- * @author sthadeshwar
- */
 @Component
 @TitanOperation(AtomicOperations.CREATE_SERVER_GROUP)
 class TitanDeployDescriptionValidator extends AbstractTitanDescriptionValidatorSupport<TitanDeployDescription> {

@@ -273,7 +273,6 @@ public class InMemoryCache implements WriteableCache {
             return pattern;
         }
 
-
         private void toInit() {
             state = State.INIT;
             capture.setLength(0);
@@ -290,7 +289,6 @@ public class InMemoryCache implements WriteableCache {
         private void toCapturingEscape() {
             state = State.CAPTURING_ESCAPE;
         }
-
 
         private void handleDelim(String s) {
             switch (state) {

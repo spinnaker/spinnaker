@@ -26,9 +26,7 @@ import com.netflix.spinnaker.kato.titan.deploy.TitanServerGroupNameResolver
 import com.netflix.spinnaker.kato.titan.deploy.description.TitanDeployDescription
 import com.netflix.titanclient.TitanClient
 import com.netflix.titanclient.model.SubmitJobRequest
-/**
- * @author sthadeshwar
- */
+
 class TitanDeployHandler implements DeployHandler<TitanDeployDescription> {
 
   private static final String BASE_PHASE = "DEPLOY"

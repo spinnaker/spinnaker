@@ -33,9 +33,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
-/**
- * @author Greg Turnquist
- */
+
 @Slf4j
 class CloudFoundryResourceRetriever {
 
@@ -70,7 +68,6 @@ class CloudFoundryResourceRetriever {
 
   Map<String, Map<String, CloudFoundryApplicationInstance>> instancesByAccountAndId =
           [:].withDefault {[:] as Map<String, CloudFoundryApplicationInstance>}
-
 
   @PostConstruct
   void init() {
@@ -152,7 +149,6 @@ class CloudFoundryResourceRetriever {
               }
               conn.logout()
             }
-
 
             def space = tempSpaceCache.values().find {
               it?.name == credentials.space && it?.organization.name == credentials.org

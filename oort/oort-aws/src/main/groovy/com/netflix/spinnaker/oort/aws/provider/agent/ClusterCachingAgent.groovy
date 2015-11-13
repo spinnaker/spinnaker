@@ -85,7 +85,6 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
 
   final OnDemandMetricsSupport metricsSupport
 
-
   ClusterCachingAgent(AmazonCloudProvider amazonCloudProvider,
                       AmazonClientProvider amazonClientProvider,
                       NetflixAmazonCredentials account,
@@ -189,7 +188,6 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     }
 
     String asgName = data.asgName.toString()
-
 
     Map onDemandData = metricsSupport.readData {
       def clients = new AmazonClients(amazonClientProvider, account, region, true)

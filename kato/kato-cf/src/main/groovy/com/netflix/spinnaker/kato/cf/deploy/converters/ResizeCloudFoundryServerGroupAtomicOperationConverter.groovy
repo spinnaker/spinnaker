@@ -6,9 +6,7 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
-/**
- * @author Greg Turnquist
- */
+
 @CloudFoundryOperation(AtomicOperations.RESIZE_SERVER_GROUP)
 @Component("resizeCloudFoundryServerGroupDescription")
 class ResizeCloudFoundryServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {

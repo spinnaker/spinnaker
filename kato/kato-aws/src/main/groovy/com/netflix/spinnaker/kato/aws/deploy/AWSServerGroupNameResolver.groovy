@@ -22,9 +22,7 @@ import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.helpers.AbstractServerGroupNameResolver
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
-/**
- * @author sthadeshwar
- */
+
 @CompileStatic
 class AWSServerGroupNameResolver extends AbstractServerGroupNameResolver {
 

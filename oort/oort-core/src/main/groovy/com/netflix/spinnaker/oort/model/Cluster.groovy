@@ -21,7 +21,7 @@ import com.netflix.spinnaker.oort.documentation.Empty
 /**
  * A cluster is an object that provides an association between an account, many server groups, and many load balancers.
  *
- * @author Dan Woods
+ *
  */
 interface Cluster {
   /**

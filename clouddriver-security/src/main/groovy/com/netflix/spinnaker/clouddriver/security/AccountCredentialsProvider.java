@@ -22,7 +22,7 @@ import java.util.Set;
  * Implementations of this interface will provide a mechanism to store and retrieve {@link AccountCredentials}
  * objects. For manipulating the backing of this provider, consumers of this API should get access to its corresponding {@link AccountCredentialsRepository}
  *
- * @author Dan Woods
+ *
  */
 public interface AccountCredentialsProvider {
 

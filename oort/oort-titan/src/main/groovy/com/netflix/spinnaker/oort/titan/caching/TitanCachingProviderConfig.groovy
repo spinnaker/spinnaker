@@ -28,9 +28,7 @@ import com.netflix.spinnaker.oort.titan.caching.agents.TitanInstanceCachingAgent
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
-/**
- * @author sthadeshwar
- */
+
 @Configuration
 class TitanCachingProviderConfig {
 

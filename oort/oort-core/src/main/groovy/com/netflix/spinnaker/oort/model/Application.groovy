@@ -21,7 +21,7 @@ import com.netflix.spinnaker.oort.documentation.Empty
 /**
  * An application is a top-level construct that provides an association to {@link Cluster} objects.
  *
- * @author Dan Woods
+ *
  */
 interface Application {
   /**

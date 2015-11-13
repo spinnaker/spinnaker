@@ -33,7 +33,7 @@ import spock.lang.Subject
 /**
  * Test cases for {@link CloudFoundryDeployHandler}
  *
- * @author Greg Turnquist
+ *
  */
 class CloudFoundryDeployHandlerUnitSpec extends Specification {
 

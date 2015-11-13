@@ -302,7 +302,6 @@ public class CredentialsLoader<T extends AmazonCredentials> {
         }
     }
 
-
     static class StringTemplater {
         public static String render(String template, Map<String, String> substitutions) {
             String base = template;

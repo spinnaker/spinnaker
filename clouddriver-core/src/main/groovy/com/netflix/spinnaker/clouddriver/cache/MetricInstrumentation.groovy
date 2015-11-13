@@ -52,7 +52,6 @@ class MetricInstrumentation implements ExecutionInstrumentation {
     counterId = registry.createId('executionCount').withTag('className', MetricInstrumentation.simpleName)
   }
 
-
   private static String agentName(Agent agent) {
     "$agent.providerName/$agent.agentType"
   }

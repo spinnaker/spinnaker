@@ -23,7 +23,7 @@ import com.netflix.spinnaker.kato.titan.deploy.description.TerminateTitanInstanc
 import com.netflix.titanclient.TitanClient
 /**
  *
- * @author sthadeshwar
+ *
  */
 class TerminateTitanInstancesAtomicOperation implements AtomicOperation<Void> {
 

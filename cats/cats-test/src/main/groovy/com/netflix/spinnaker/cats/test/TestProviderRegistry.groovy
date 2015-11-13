@@ -21,7 +21,6 @@ import com.netflix.spinnaker.cats.provider.Provider
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.cats.provider.ProviderRegistry
 
-
 class TestProviderRegistry implements ProviderRegistry {
     Provider provider
     ProviderCache cache

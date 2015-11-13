@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cache
 
-
 import org.springframework.stereotype.Component
 
 /**

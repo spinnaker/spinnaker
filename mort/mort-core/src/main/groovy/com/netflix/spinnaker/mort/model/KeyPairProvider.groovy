@@ -15,7 +15,6 @@
  */
 
 
-
 package com.netflix.spinnaker.mort.model
 
 interface KeyPairProvider<T extends KeyPair> {

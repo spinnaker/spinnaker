@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.data.task
 
 /**
@@ -24,7 +23,7 @@ package com.netflix.spinnaker.kato.data.task
  *
  * A psuedo-composite key of a Status is its phase and status strings.
  *
- * @author Dan Woods
+ *
  */
 public interface Status {
   /**

@@ -11,7 +11,6 @@ This description provides the inputs necessary to deregister the specified insta
 NOTE: If an auto scaling group _is_ specified, instances will be deregistered from all load balancers associated with that auto scaling group. +
 If an auto scaling group _is not_ specified and a list of load balancers _is_ specified, instances will be deregistered from those load balancers.
 
-
 ====== Example Request Body (specifying all load balancers in an ASG)
 [source,javascript]
 ----

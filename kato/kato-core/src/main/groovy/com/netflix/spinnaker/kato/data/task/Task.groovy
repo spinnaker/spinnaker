@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.data.task
 
 /**
  * This interface represents the state of a given execution. Implementations must allow for updating and completing/failing
  * status, as well as providing the start time of the task.
  *
- * @author Dan Woods
+ *
  */
 public interface Task {
   /**

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.aws.deploy.ops
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.*
@@ -47,7 +46,6 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     def source = Stub(NetflixAmazonCredentials) {
       getAccountId() >> '67890'
     }
-
 
 
     def creds = Stub(AccountCredentialsProvider) {

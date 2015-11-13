@@ -23,8 +23,8 @@ import com.netflix.spinnaker.oort.documentation.Nullable
  * An application provider is an interface for which {@link Application} objects may be retrieved. This interface defines a common contract for which various providers may be queried about their
  * known applications.
  *
- * @author Dan Woods
- * @author Greg Turnquist
+ *
+ *
  */
 interface ApplicationProvider {
   /**

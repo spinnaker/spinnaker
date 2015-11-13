@@ -34,7 +34,6 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
   static final String account = 'test'
   static final String region = 'us-east-1'
 
-
   AmazonEC2 ec2 = Mock(AmazonEC2)
   AmazonCloudProvider amazonCloudProvider = new AmazonCloudProvider()
   AmazonClientProvider provider = Stub(AmazonClientProvider) {
@@ -88,11 +87,9 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
     0 * _
   }
 
-
   void "should add all from paged results"() {
     when:
     def result = agent.loadData(providerCache)
-
 
     then:
     1 * ec2.describeReservedInstancesOfferings(new DescribeReservedInstancesOfferingsRequest()) >> new DescribeReservedInstancesOfferingsResult(

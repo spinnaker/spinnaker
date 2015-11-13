@@ -91,7 +91,6 @@ class GoogleApplicationProviderSpec extends Specification {
       result2 == app2
   }
 
-
   void "missing application returns null"() {
     setup:
       def resourceRetrieverMock = Mock(GoogleResourceRetriever)

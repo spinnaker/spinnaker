@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.kato.titan.model
 
-/**
- * @author sthadeshwar
- */
 class DockerImage {
 
   public static final String IMAGE_NAME_SEPARATOR = ":"

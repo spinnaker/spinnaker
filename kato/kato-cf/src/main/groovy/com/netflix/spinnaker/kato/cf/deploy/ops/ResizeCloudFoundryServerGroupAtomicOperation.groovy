@@ -7,9 +7,6 @@ import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
-/**
- * @author Greg Turnquist
- */
 class ResizeCloudFoundryServerGroupAtomicOperation implements AtomicOperation<Void> {
 
   private static final String BASE_PHASE = "RESIZE_SERVER_GROUP"

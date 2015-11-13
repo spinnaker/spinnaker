@@ -28,9 +28,6 @@ import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
 import java.util.concurrent.Callable
 
-/**
- * @author Greg Turnquist
- */
 @Component
 @CompileStatic
 class CloudFoundryApplicationInstanceProvider implements InstanceProvider<CloudFoundryApplicationInstance> {
@@ -53,7 +50,6 @@ class CloudFoundryApplicationInstanceProvider implements InstanceProvider<CloudF
     String[] tags = ['className', this.class.simpleName]
     instancesByAccountRegionId = registry.timer('instancesByAccountRegionId', tags)
   }
-
 
   @Override
   CloudFoundryApplicationInstance getInstance(String account, String region, String id) {

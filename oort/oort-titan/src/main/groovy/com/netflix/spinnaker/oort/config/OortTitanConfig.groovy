@@ -23,9 +23,6 @@ import org.springframework.context.annotation.Configuration
 
 import javax.annotation.PostConstruct
 
-/**
- * @author sthadeshwar
- */
 @Configuration
 @ConditionalOnProperty('titan.enabled')
 @ComponentScan('com.netflix.spinnaker.oort.titan')

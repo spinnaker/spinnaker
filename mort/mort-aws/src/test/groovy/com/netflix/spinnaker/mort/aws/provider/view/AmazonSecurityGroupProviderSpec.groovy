@@ -135,7 +135,6 @@ class AmazonSecurityGroupProviderSpec extends Specification {
 
   }
 
-
   void "should add both ipRangeRules and securityGroup rules"() {
     given:
     String groupId = 'id-a'

@@ -26,7 +26,7 @@ import spock.lang.Specification
 /**
  * Test cases for {@link CloudFoundryDeployAtomicOperationConverter}
  *
- * @author Greg Turnquist
+ *
  */
 class CloudFoundryDeployAtomicOperationConverterUnitSpec extends Specification {
 

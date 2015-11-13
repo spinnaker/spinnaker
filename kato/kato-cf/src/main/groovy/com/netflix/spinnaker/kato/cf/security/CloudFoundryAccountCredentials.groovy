@@ -20,7 +20,7 @@ import org.cloudfoundry.client.lib.CloudCredentials
 /**
  * Capture {@link AccountCredentials} for a Cloud Foundry instance
  *
- * @author Greg Turnquist
+ *
  */
 class CloudFoundryAccountCredentials implements AccountCredentials<CloudCredentials> {
 

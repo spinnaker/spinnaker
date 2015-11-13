@@ -19,7 +19,7 @@ package com.netflix.spinnaker.oort.model
 /**
  * Primarily a marker interface, but provides the representation of an instance, which exists within a {@link ServerGroup}. Concrete implementations should provide more-specific data.
  *
- * @author Dan Woods
+ *
  */
 interface Instance {
   /**

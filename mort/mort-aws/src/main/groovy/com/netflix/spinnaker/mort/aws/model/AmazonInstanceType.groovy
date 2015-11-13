@@ -16,7 +16,6 @@
 
 
 
-
 package com.netflix.spinnaker.mort.aws.model
 import com.netflix.spinnaker.mort.model.InstanceType
 import groovy.transform.Canonical

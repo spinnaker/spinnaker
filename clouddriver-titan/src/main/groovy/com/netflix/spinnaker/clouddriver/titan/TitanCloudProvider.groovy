@@ -21,9 +21,6 @@ import org.springframework.stereotype.Component
 
 import java.lang.annotation.Annotation
 
-/**
- * @author sthadeshwar
- */
 @Component
 class TitanCloudProvider implements CloudProvider {
   final String id = "titan"

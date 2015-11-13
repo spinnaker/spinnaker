@@ -65,7 +65,6 @@ class InstanceLoadBalancers implements Health {
           HealthState.Up
   }
 
-
   @CompileStatic(TypeCheckingMode.SKIP)
   static List<InstanceLoadBalancers> fromLoadBalancerInstanceState(List<LoadBalancerInstanceState> loadBalancers) {
     List<List<InstanceLoadBalancerState>> instances = loadBalancers.collect { InstanceLoadBalancerState.fromLoadBalancerInstanceState(it) }

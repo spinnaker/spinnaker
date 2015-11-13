@@ -99,4 +99,3 @@ class DiscoveryInstance implements Health {
   }
 }
 
-
