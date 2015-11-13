@@ -62,7 +62,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.details.co
           }
         }
         $scope.deployed = results;
-        $scope.provider = context.providerType || 'aws';
+        $scope.provider = context.cloudProvider || context.providerType || 'aws';
       });
     }
 
