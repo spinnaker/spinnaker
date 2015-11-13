@@ -1,5 +1,4 @@
 = Spinnaker: Project Kato
-Dan Woods <danw@netflix.com>
 2013-05-12
 :toc: right
 :toclevels: 4
@@ -365,14 +364,6 @@ GET /credentials/test
   ]
 }
 ----
-
-== Extending Kato
-
-TODO
-
-== Authors
-
-Dan Woods
 
 == Copyrights and Licenses
 
