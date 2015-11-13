@@ -6,25 +6,8 @@ tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
   systemProperty('spring.config.location', project.springConfigLocation)
 }
 
-buildscript {
-  ext {
-    springBootVersion = "1.2.5.RELEASE"
-  }
-  repositories {
-    jcenter()
-  }
-  dependencies {
-    classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
-  }
-}
-
 apply plugin: 'spring-boot'
-apply plugin: 'spinnaker-debpublish'
-
-repositories {
-  jcenter()
-  maven { url "http://repo.spring.io/snapshot" }
-}
+apply plugin: 'nebula.ospackage'
 
 dependencies {
     spinnaker.group "test"
@@ -72,14 +55,6 @@ jar {
     }
 }
 
-run {
-    classpath += configurations.provided
-}
-
-ideaConfig {
-  mainClassName = 'com.netflix.spinnaker.igor.Main'
-}
-
 startScripts {
   doLast {
     unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
@@ -93,10 +68,9 @@ applicationDistribution.from(project.file('config')) {
   into 'config'
 }
 
-
 ospackage {
   packageName = project.applicationName
-  version = project.version.replaceAll("-SNAPSHOT", "")
+  version = project.version
   release '3'
   into "/opt/${project.applicationName}"
   from "${project.buildDir}/install/${project.applicationName}"
