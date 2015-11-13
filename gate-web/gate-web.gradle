@@ -36,13 +36,14 @@ configurations.all {
 
 startScripts {
   doLast {
+//    unixScript.text = unixScript.text.replace('DEFAULT_JVM_OPTS=', '\n if [ -f /etc/default/spinnaker ];then \n set -a\n . /etc/default/spinnaker \n set +a\n fi \n DEFAULT_JVM_OPTS=')
     unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
     windowsScript.text = windowsScript.text.replace('set CLASSPATH=', 'set CLASSPATH=%APP_HOME%\\config;')
   }
 }
 
 applicationName = 'gate'
-applicationDefaultJvmArgs = ["-Djava.security.egd=file:/dev/./urandom"]
+applicationDefaultJvmArgs = ["-Djava.security.egd=file:/dev/./urandom", "-Dspring.config.location=/opt/spinnaker/config/"]
 applicationDistribution.from(project.file('config')) {
   into 'config'
 }
@@ -61,10 +62,35 @@ ospackage {
   release '3'
   into "/opt/${project.applicationName}"
   from "${project.buildDir}/install/${project.applicationName}"
+
+  // installer scripts
+  postInstall = file('pkg_scripts/postInstall.sh')
+  postUninstall = file('pkg_scripts/postUninstall.sh')
+
+  from(file('etc/init/gate.conf')) {
+    into('/etc/init')
+    user = 'root'
+    permissionGroup = 'root'
+    fileType = CONFIG | NOREPLACE
+  }
+
+  from(file('etc/logrotate.d/gate')) {
+    into('/etc/logrotate.d')
+    user = 'root'
+    permissionGroup = 'root'
+    fileType = CONFIG | NOREPLACE
+  }
+
 }
+
 buildDeb {
   dependsOn installApp
 }
 
-tasks.bootRepackage.enabled = false
+buildRpm {
+  arch = NOARCH
+  os = LINUX
+  dependsOn installApp
+}
 
+tasks.bootRepackage.enabled = false
