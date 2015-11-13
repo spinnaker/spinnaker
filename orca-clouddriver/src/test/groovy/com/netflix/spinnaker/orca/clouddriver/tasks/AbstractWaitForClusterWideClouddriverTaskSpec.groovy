@@ -58,7 +58,7 @@ class AbstractWaitForClusterWideClouddriverTaskSpec extends Specification {
     where:
     serverGroups = [sg('s1', 'r1'), sg('s2', 'r1'), sg('s3', 'r2'), sg('s4', 'r2')]
     deployServerGroups = serverGroups.groupBy { it.region }.collectEntries { k, v -> [(k): v.collect { it.name }]}
-    expected = serverGroups.collect { new DeployServerGroup(new Location(Location.Type.REGION, it.region), it.name) }
+    expected = serverGroups.collect { new DeployServerGroup(it.region, it.name) }
     regions = ['r1', 'r2']
   }
 
@@ -115,7 +115,7 @@ class AbstractWaitForClusterWideClouddriverTaskSpec extends Specification {
   }
 
   DeployServerGroup dsg(String name, String r = region) {
-    new DeployServerGroup(new Location(Location.Type.REGION, r), name)
+    new DeployServerGroup(r, name)
   }
 
   Stage stage(Map context) {
