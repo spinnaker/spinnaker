@@ -125,19 +125,6 @@ curl -sSL https://get.docker.com/ | sh
 service docker stop
 rm /etc/default/docker
 echo 'DOCKER_OPTS="--default-ulimit nofile=1024:4096 -H tcp://0.0.0.0:7104 -H unix:///var/run/docker.sock -r=false"' >> /etc/default/docker
-service docker start
-
-
-
-cat <<EOT >> /etc/motd
-echo '/  ___| ___ \_   _| \ | || \ | | / _ \ | | / /|  ___| ___ \'
-echo '\ `--.| |_/ / | | |  \| ||  \| |/ /_\ \| |/ / | |__ | |_/ /'
-echo ' `--. \  __/  | | | . ` || . ` ||  _  ||    \ |  __||    / '
-echo '/\__/ / |    _| |_| |\  || |\  || | | || |\  \| |___| |\ \ '
-echo '\____/\_|    \___/\_| \_/\_| \_/\_| |_/\_| \_/\____/\_| \_|'
-echo ' '
-echo 'run sudo ~/config.sh to finish spinnaker setup'
-EOT
 
 
 
