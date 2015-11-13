@@ -34,7 +34,7 @@ import java.util.Set;
 /**
  * An implementation of ProviderCache that writes through to a provided backing
  * WriteableCache.
- * <p/>
+ *
  * This implementation will handle aggregating results from multiple sources, and
  * the view methods will merge relationships from all sources into a single relationship.
  */

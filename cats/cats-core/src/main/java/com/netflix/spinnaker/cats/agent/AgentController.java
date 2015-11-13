@@ -21,7 +21,7 @@ import com.netflix.spinnaker.cats.provider.ProviderRegistry;
 
 /**
  * AgentController schedules an AgentExecution for each Agent in each Provider in the ProviderRegistry.
- * <p/>
+ * 
  * When the AgentControllers AgentExecution is invoked, it will trigger a load and cache cycle for that agent.
  */
 public class AgentController {
