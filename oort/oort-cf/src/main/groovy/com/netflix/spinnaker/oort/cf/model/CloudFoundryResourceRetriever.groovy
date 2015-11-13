@@ -200,7 +200,8 @@ class CloudFoundryResourceRetriever {
                           healthState      : healthState,
                           health           : health,
                           nativeApplication: app,
-                          nativeInstance:   it
+                          nativeInstance:   it,
+                          logsLink         : "${credentials.console}/organizations/${space.organization.meta.guid}/spaces/${space.meta.guid}/applications/${app.meta.guid}/tailing_logs"
                   ])
                   if (tempInstancesByAccountAndId[account][instance.name]?.healthState != instance.healthState) {
                     log.info "Updating ${account}/${instance.name} to ${instance.healthState}"
