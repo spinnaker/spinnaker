@@ -28,6 +28,7 @@ import com.amazonaws.services.ec2.model.TerminateInstancesRequest
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.ops.DetachInstancesAtomicOperation
 import spock.lang.Shared
 import spock.lang.Specification
@@ -37,7 +38,7 @@ class CleanupDetachedInstancesAgentSpec extends Specification {
   @Shared
   def test = new NetflixAmazonCredentials("test", "test", "test", '1', null, [
     new AmazonCredentials.AWSRegion('us-west-1', []), new AmazonCredentials.AWSRegion('us-east-1', [])
-  ], null, null, false, null, false, null, false)
+  ], null, null, false, null, false, null, false, null, false)
 
   void "should run across all regions/accounts and terminate in each"() {
     given:

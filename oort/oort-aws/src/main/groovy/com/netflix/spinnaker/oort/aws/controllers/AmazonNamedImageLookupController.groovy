@@ -99,9 +99,6 @@ class AmazonNamedImageLookupController {
   }
 
   private List<NamedImage> render(Collection<CacheData> namedImages, Collection<CacheData> images, Collection<CacheData> imageTags, String requestedName = null, String requiredRegion = null) {
-    if (!namedImages && !images) {
-      throw new ImageNotFoundException('Not found')
-    }
     Map<String, NamedImage> byImageName = [:].withDefault { new NamedImage(imageName: it) }
     for (CacheData data : namedImages) {
       Map<String, String> keyParts = Keys.parse(data.id)
@@ -135,9 +132,6 @@ class AmazonNamedImageLookupController {
     }
 
     List<NamedImage> results = byImageName.values().findAll { requiredRegion ? it.amis.containsKey(requiredRegion) : true }
-    if (!results) {
-      throw new ImageNotFoundException('Not found')
-    }
     results.sort { a, b ->
       int a1, b1
       if (requestedName) {

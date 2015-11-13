@@ -24,7 +24,7 @@ import java.util.HashSet;
 
 /**
  * A CachingAgent loads one or more types of data.
- * <p/>
+ *
  * The data set for a caching agent is scoped to the provider and agent type. For example
  * an agent might load clusters for the AWS provider, and be scoped to a particular account
  * and region.

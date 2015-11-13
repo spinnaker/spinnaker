@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
@@ -38,7 +39,7 @@ class CredentialsControllerSpec extends Specification {
     def credsRepo = new MapBackedAccountCredentialsRepository()
     def credsProvider = new DefaultAccountCredentialsProvider(credsRepo)
     credsRepo.save("test", new TestNamedAccountCredentials())
-    def mvc = MockMvcBuilders.standaloneSetup(new CredentialsController(accountCredentialsProvider: credsProvider)).build()
+    def mvc = MockMvcBuilders.standaloneSetup(new CredentialsController(accountCredentialsProvider: credsProvider, objectMapper: new ObjectMapper())).build()
 
     when:
     def result = mvc.perform(MockMvcRequestBuilders.get("/credentials").accept(MediaType.APPLICATION_JSON)).andReturn()
@@ -48,7 +49,7 @@ class CredentialsControllerSpec extends Specification {
 
     List<Map> parsedResponse = new JsonSlurper().parseText(result.response.contentAsString) as List
 
-    parsedResponse == [[name: "test", environment: "env", accountType: "acctType", cloudProvider: "testProvider", type: "testProvider", requiredGroupMembership: ["test"]]]
+    parsedResponse == [[name: "test", environment: "env", accountType: "acctType", cloudProvider: "testProvider", type: "testProvider", requiredGroupMembership: ["test"], challengeDestructiveActions: false, primaryAccount: false]]
   }
 
   static class TestNamedAccountCredentials implements AccountCredentials<Map> {

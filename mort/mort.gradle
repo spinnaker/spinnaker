@@ -1,3 +1,4 @@
+tasks.bintrayUpload.enabled = false
 subprojects {
   dependencies {
     spinnaker.group("test")

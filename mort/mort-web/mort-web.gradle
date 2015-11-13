@@ -13,17 +13,3 @@ dependencies {
   compile spinnaker.dependency("korkSwagger")
 }
 
-sourceSets {
-  main {
-    resources {
-      srcDir 'src/main/resources'
-      srcDir 'config'
-    }
-  }
-}
-
-jar {
-  doFirst {
-    exclude "${rootProject.name}.yml"
-  }
-}

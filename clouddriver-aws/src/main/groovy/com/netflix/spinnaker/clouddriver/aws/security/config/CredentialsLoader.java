@@ -85,7 +85,14 @@ public class CredentialsLoader<T extends AmazonCredentials> {
                         }
                     }
                     if (!toLookup.isEmpty()) {
-                        result.addAll(toRegion(awsAccountInfoLookup.listRegions(toLookup)));
+                        List<Region> resolved = toRegion(awsAccountInfoLookup.listRegions(toLookup));
+                        for (Region region : resolved) {
+                            Region fromDefault = find(defaults, region.getName());
+                            if (fromDefault != null) {
+                                region.setPreferredZones(fromDefault.getPreferredZones());
+                            }
+                        }
+                        result.addAll(resolved);
                     }
                     return result;
                 }
@@ -116,7 +123,18 @@ public class CredentialsLoader<T extends AmazonCredentials> {
             }
         }
         if (!toLookup.isEmpty()) {
-            result.addAll(toRegion(awsAccountInfoLookup.listRegions(toLookup)));
+            List<Region> resolved = toRegion(awsAccountInfoLookup.listRegions(toLookup));
+            for (Region region : resolved) {
+              Region src = find(toInit, region.getName());
+              if (src == null || src.getPreferredZones() == null) {
+                src = find(defaults.get(), region.getName());
+              }
+
+              if (src != null) {
+                region.setPreferredZones(src.getPreferredZones());
+              }
+            }
+            result.addAll(resolved);
         }
         return result;
     }
@@ -138,6 +156,7 @@ public class CredentialsLoader<T extends AmazonCredentials> {
             Region region = new Region();
             region.setName(r.getName());
             region.setAvailabilityZones(new ArrayList<>(r.getAvailabilityZones()));
+            region.setPreferredZones(new ArrayList<>(r.getPreferredZones()));
             result.add(region);
         }
         return result;
@@ -163,9 +182,7 @@ public class CredentialsLoader<T extends AmazonCredentials> {
         }
 
         Lazy<List<Region>> defaultRegions = createDefaults(config.getDefaultRegions());
-
         List<T> initializedAccounts = new ArrayList<>(config.getAccounts().size());
-
         for (Account account : config.getAccounts()) {
             if (account.getAccountId() == null) {
                 if (!credentialTranslator.resolveAccountId()) {
@@ -186,7 +203,7 @@ public class CredentialsLoader<T extends AmazonCredentials> {
 
             Map<String, String> templateContext = new HashMap<>(templateValues);
             templateContext.put("name", account.getName());
-            templateContext.put("accountId", account.getAccountId().toString());
+            templateContext.put("accountId", account.getAccountId());
             templateContext.put("environment", account.getEnvironment());
             templateContext.put("accountType", account.getAccountType());
 
@@ -196,10 +213,9 @@ public class CredentialsLoader<T extends AmazonCredentials> {
             account.setDiscovery(templateFirstNonNull(templateContext, account.getDiscovery(), config.getDefaultDiscoveryTemplate()));
             account.setAssumeRole(templateFirstNonNull(templateContext, account.getAssumeRole(), config.getDefaultAssumeRole()));
             account.setSessionName(templateFirstNonNull(templateContext, account.getSessionName(), config.getDefaultSessionName()));
-
+            account.setBastionHost(templateFirstNonNull(templateContext, account.getBastionHost(), config.getDefaultBastionHostTemplate()));
             initializedAccounts.add(credentialTranslator.translate(credentialsProvider, account));
         }
-
         return initializedAccounts;
     }
 

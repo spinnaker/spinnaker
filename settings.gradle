@@ -20,7 +20,7 @@ def subs = [
   kato: ["kato-core", "kato-web", "kato-aws", "kato-gce", "kato-manual", "kato-jedis", "kato-docker", "kato-cf", "kato-titan"],
   oort: ["oort-core", "oort-web", "oort-aws", "oort-gce", "oort-bench", "oort-titan", "oort-cf"],
   mort: ["mort-web", "mort-core", "mort-aws", "mort-gce"],
-  cats: ["cats-core", "cats-redis"]
+  cats: ["cats-core", "cats-redis", "cats-test"]
 ]
 
 def topLevels = [ 'clouddriver-core', 'clouddriver-security', 'clouddriver-web', 'clouddriver-aws', 'clouddriver-titan', 'clouddriver-google', 'clouddriver-cf' ]
