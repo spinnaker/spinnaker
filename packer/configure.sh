@@ -2,33 +2,135 @@
 
 #ssh -L 9000:127.0.0.1:80 -L 9999:127.0.0.1:9999 ubuntu@
 
-service jenkins stop
+
 
 read -e -p "enter vpc id: " -i "vpc-a6e5a5c3" VPC
 read -e -p "enter subnet id: " -i "subnet-ed56219a" SUBNET
 #read -e -p "enter package repo: " -i "https://dl.bintray.com/moondev/spinnaker trusty main" REPO
 read -e -p "enter rosco trusty base ami: " -i "ami-5189a661" AMI
+read -e -p "enter bucket name where debs will be published: " -i "spinnaker-debs" BUCKET
 
 #read -e -p "enter jenkins address: " -i "http://127.0.0.1:9999" JENKINSADDRESS
 #read -e -p "enter jenkins user: " -i "jenkins" JENKINSUSERNAME
 #read -e -p "enter jenkins password: " -i "jenkins" JENKINSPASSWORD
-REPO=https://dl.bintray.com/moondev/spinnaker trusty main
+#REPO=https://dl.bintray.com/moondev/spinnaker trusty main
+REPO=https://s3-us-west-2.amazonaws.com/$BUCKET ./
 JENKINSADDRESS=http://127.0.0.1:9999
 JENKINSUSERNAME=jenkins
 JENKINSPASSWORD=jenkins
 
 
 
+#jenkins
+wget -q -O - https://jenkins-ci.org/debian/jenkins-ci.org.key | sudo apt-key add -
+sh -c 'echo deb http://pkg.jenkins-ci.org/debian binary/ > /etc/apt/sources.list.d/jenkins.list'
+apt-get update -y
+apt-get install jenkins -y
+
+service jenkins stop
+
+rm /etc/default/jenkins
+touch /etc/default/jenkins
+
+cat <<EOT >> /etc/default/jenkins
+NAME=jenkins
+JAVA=/usr/bin/java
+JAVA_ARGS="-Djava.awt.headless=true"  # Allow graphs etc. to work even when an X server is present
+PIDFILE=/var/run/\$NAME/\$NAME.pid
+JENKINS_USER=\$NAME
+JENKINS_GROUP=\$NAME
+JENKINS_WAR=/usr/share/\$NAME/\$NAME.war
+JENKINS_HOME=/var/lib/\$NAME
+RUN_STANDALONE=true
+JENKINS_LOG=/var/log/\$NAME/\$NAME.log
+MAXOPENFILES=8192
+AJP_PORT=-1
+PREFIX=/\$NAME
+HTTP_PORT=9999
+JENKINS_ARGS="--webroot=/var/cache/\$NAME/war --httpPort=\$HTTP_PORT --ajp13Port=\$AJP_PORT"
+EOT
+
+rm /var/lib/jenkins/config.xml
+touch /var/lib/jenkins/config.xml
+
+cat <<EOT >> /var/lib/jenkins/config.xml
+<?xml version='1.0' encoding='UTF-8'?>
+<hudson>
+  <disabledAdministrativeMonitors/>
+  <version>1.0</version>
+  <numExecutors>2</numExecutors>
+  <mode>NORMAL</mode>
+  <useSecurity>true</useSecurity>
+  <authorizationStrategy class="hudson.security.AuthorizationStrategy\$Unsecured"/>
+  <securityRealm class="hudson.security.HudsonPrivateSecurityRealm">
+    <disableSignup>false</disableSignup>
+    <enableCaptcha>false</enableCaptcha>
+  </securityRealm>
+  <disableRememberMe>false</disableRememberMe>
+  <projectNamingStrategy class="jenkins.model.ProjectNamingStrategy$DefaultProjectNamingStrategy"/>
+  <workspaceDir>\${JENKINS_HOME}/workspace/\${ITEM_FULLNAME}</workspaceDir>
+  <buildsDir>\${ITEM_ROOTDIR}/builds</buildsDir>
+  <markupFormatter class="hudson.markup.EscapedMarkupFormatter"/>
+  <jdks/>
+  <viewsTabBar class="hudson.views.DefaultViewsTabBar"/>
+  <myViewsTabBar class="hudson.views.DefaultMyViewsTabBar"/>
+  <clouds/>
+  <scmCheckoutRetryCount>0</scmCheckoutRetryCount>
+  <views>
+    <hudson.model.AllView>
+      <owner class="hudson" reference="../../.."/>
+      <name>All</name>
+      <filterExecutors>false</filterExecutors>
+      <filterQueue>false</filterQueue>
+      <properties class="hudson.model.View\$PropertyList"/>
+    </hudson.model.AllView>
+  </views>
+  <primaryView>All</primaryView>
+  <slaveAgentPort>50000</slaveAgentPort>
+  <label></label>
+  <nodeProperties/>
+  <globalNodeProperties/>
+</hudson>
+EOT
+
+chown jenkins:jenkins /var/lib/jenkins/config.xml
 
 service jenkins start
+sleep 10
+curl -O http://localhost:9999/api/json
+sleep 10
+content=$(curl -L http://localhost:9999/api/json)
+echo $content
 
-docker run -d -p 5000:5000 --name registry registry:2
+sleep 10
 
-wget http://127.0.0.1:9999/jnlpJars/jenkins-cli.jar
+curl -O http://localhost:9999/jnlpJars/jenkins-cli.jar
+
+sleep 10
 
 echo 'jenkins.model.Jenkins.instance.securityRealm.createAccount("jenkins", "jenkins")' | java -jar jenkins-cli.jar -s http://127.0.0.1:9999/ groovy =
 
+#APTLY REPLACEMENT
+#apt-get install dpkg-dev -y
+#mkdir /var/www/repo
+#cp deck_2.352-3_all.deb /var/www/repo/deck_2.352-3_all.deb
+#cd /var/www/repo
+#dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
+#deb file:/usr/local/mydebs ./
 
+apt-get install libgdbm-dev libncurses5-dev automake libtool bison libffi-dev sudo apt-get install build-essential ruby2.0-dev -y
+sudo gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
+curl -L https://get.rvm.io | bash -s stable
+source /etc/profile.d/rvm.sh
+rvm install 2.2.3
+rvm use 2.2.3 --default
+ruby -v
+gem install bundler
+#gem install deb-s3
+
+#deb-s3 upload --bucket my-bucket my-deb-package-1.0.0_amd64.deb
+
+docker run -d -p 5000:5000 --name registry registry:2
 
 rm /var/www/settings.js
 touch /var/www/settings.js
