@@ -35,6 +35,8 @@ Install the [Docker ToolBox](https://www.docker.com/docker-toolbox)
 
 Under Kitematic, click on the application 'deck' -> settings -> ports. Click on the link to see Spinnaker in action.
 
+<img src="https://cloud.githubusercontent.com/assets/74310/11158618/4bba7122-8a0e-11e5-83b6-8ff2297562b2.png"/>
+
 Alternatively, you can just enter ```open http://$DOCKER_IP:9000```
 
 ## Updating Spinnaker
@@ -49,4 +51,16 @@ Call ```docker-compose restart``` to restart all containers
 
 ## Helpful tips
 
-* Spinnaker is pretty memory intensive, we suggest modifying the virtual box image used by docker machine to have more memory. You can do this by opening virtualbox and changing your base memory amount via settings -> System -> Base memory. This configuration has been tested on 8GB. 
+### Adding more memory
+
+Spinnaker is pretty memory intensive, we suggest modifying the virtual box image used by docker machine to have more memory. You can do this by opening virtualbox and changing your base memory amount via settings -> System -> Base memory. This configuration has been tested on 8GB. 
+
+### GCE Setup
+
+If you're configuring the jsonpath for clouddriver for a gce installation, keep in mind that this directory will not be visible to the virtual machine used by Kitematic. To make the json file available, add a volume path under the clouddriver service. For example: 
+```volumes: 
+   - "../../config:/root/.spinnaker"
+   - "~/.aws:/root/.aws"
+   - "~/gce/json/:/root/gce"
+```
+In the example, we're mapping a new directory in your user.home/gce/json to point to /root/gce for clouddriver. In your spinnaker-local.yml, point your jsonPath to /root/gce/<name of your archive>
