@@ -1,7 +1,7 @@
 <div class="well well-sm clearfix" ng-if="!pipeline.strategy">
   <div class="row">
     <div class="col-md-12">
-      <h4 class="text-left">Clusters</h4>
+      <h4 class="text-left">Server Groups</h4>
     </div>
   </div>
   <div class="row">
@@ -13,7 +13,7 @@
           <th>Account</th>
           <th>Cluster</th>
           <th>Region</th>
-          <th>Subnet</th>
+          <th ng-if="deployStageCtrl.hasAmazonDeployments()">Subnet</th>
           <th>Strategy</th>
           <th>Capacity</th>
           <th>Actions</th>
@@ -35,8 +35,8 @@
           <td>
             {{ deployStageCtrl.getRegion(cluster) }}
           </td>
-          <td>
-            {{!cluster.providerType || cluster.providerType === 'aws' ? cluster.subnetType || '[none]' : '-'}}
+          <td ng-if="deployStageCtrl.hasAmazonDeployments()">
+            {{!cluster.providerType || cluster.provider === 'aws' || cluster.providerType === 'aws' ? cluster.subnetType || '[none]' : '-'}}
           </td>
           <td>
             {{cluster.strategy || '[none]'}}
