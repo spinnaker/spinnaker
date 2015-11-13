@@ -68,12 +68,12 @@ class SpinnakerProjectConventionsPlugin implements Plugin<Project> {
             bintray.pkg.repo = 'spinnaker'
             bintray.pkg.labels = ['Spinnaker', 'Netflix']
         }
-
+/*
         project.plugins.withType(OspackageBintrayPublishPlugin) {
             OspackageBintrayExtension bintrayPackage = (OspackageBintrayExtension) project.extensions.getByName('bintrayPackage')
             bintrayPackage.packageRepo = 'ospackages'
         }
-
+*/
         project.repositories.jcenter()
         project.repositories.maven { MavenArtifactRepository repo ->
             repo.name = 'Bintray Spinnaker repo'

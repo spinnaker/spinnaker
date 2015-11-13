@@ -28,7 +28,7 @@ class SpinnakerProjectPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.plugins.apply(SpinnakerIdeaConfigPlugin)
         project.plugins.apply(SpinnakerDependencyPlugin)
-        project.plugins.apply(OspackageBintrayPublishPlugin)
+//        project.plugins.apply(OspackageBintrayPublishPlugin)
         project.plugins.apply(SpinnakerProjectConventionsPlugin)
     }
 }
