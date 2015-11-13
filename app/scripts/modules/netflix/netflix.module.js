@@ -21,6 +21,7 @@ module.exports = angular
     require('./templateOverride/templateOverrides.module.js'),
     require('./migrator/pipeline/pipeline.migrator.directive.js'),
     require('./serverGroup/serverGroupCommandConfigurer.service.js'),
+    require('./serverGroup/diff/securityGroupDiff.directive.js'),
   ])
   .run(function(cloudProviderRegistry) {
     cloudProviderRegistry.overrideValue(
