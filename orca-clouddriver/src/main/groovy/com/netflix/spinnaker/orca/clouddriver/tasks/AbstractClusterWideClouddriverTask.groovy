@@ -23,12 +23,12 @@ import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.CloneServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.CreateServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.kato.pipeline.CopyLastAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.DeployStage
-import com.netflix.spinnaker.orca.kato.pipeline.gce.DeployGoogleServerGroupStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
@@ -154,7 +154,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
       DeployStage.PIPELINE_CONFIG_TYPE,
       CopyLastAsgStage.PIPELINE_CONFIG_TYPE,
       CloneServerGroupStage.PIPELINE_CONFIG_TYPE,
-      DeployGoogleServerGroupStage.PIPELINE_CONFIG_TYPE
+      CreateServerGroupStage.PIPELINE_CONFIG_TYPE,
     ]
     List<TargetServerGroup> deployedServerGroups = []
     if (stage.parentStageId) {
