@@ -38,66 +38,96 @@ else
   exit 1
 fi
 
+function print_usage() {
+  cat <<EOF
+usage: $0 [--cloud_provider <aws|gce>] [--default_region <region>]
+    [--quiet]
+
+    If run with no arguments you will be prompted for cloud provider and region
+
+    --cloud_provider <arg>      currently supported are google, amazon and none
+                                if "none" is specified you will need to edit
+                                /etc/default/spinnaker manually
+
+    --default_region <arg>      default region for your chosen cloud provider
+
+    --quiet                     sets cloud provider to "none", you will need to
+                                edit /etc/default/spinnaker manually
+                                cannot be used with --cloud_provider
+
+EOF
+}
+
 function process_args() {
   while [[ $# > 0 ]]
   do
-      local key="$1"
-      shift
-      case $key in
-         --cloud_provider)
-           CLOUD_PROVIDER="$1"
-           shift
-           ;;
-         --default_region)
-           DEFAULT_REGION="$1"
-           shift
-           ;;
-         --zone)
-           ZONE="$1"
-           shift
-           ;;
-         *)
-           echo "ERROR: Unknown argument '$key'"
-           exit -1
-      esac
+    local key="$1"
+    shift
+    case $key in
+      --cloud_provider)
+          CLOUD_PROVIDER="$1"
+          shift
+          ;;
+      --default_region)
+          DEFAULT_REGION="$1"
+          shift
+          ;;
+      --quiet|-q)
+          CLOUD_PROVIDER="none"
+          DEFAULT_REGION="none"
+          shift
+          ;;
+      --help|-help|-h)
+          print_usage
+          exit 13
+          ;;
+      *)
+          echo "ERROR: Unknown argument '$key'"
+          exit -1
+    esac
   done
 }
 
 function set_default_region() {
   if [ "x$DEFAULT_REGION" == "x" ]; then
     case $CLOUD_PROVIDER in
-      amazon)
+      a|aws|amazon)
           DEFAULT_REGION="us-west-2"
           ;;
-      google)
+      g|gce|google)
           DEFAULT_REGION="us-central1-b"
           ;;
     esac
   fi
-  read -e -p "set default region: " -i "$DEFAULT_REGION" DEFAULT_REGION
   DEFAULT_REGION=`echo $DEFAULT_REGION | tr '[:upper:]' '[:lower:]'`
 }
 
+process_args "$@"
 if [ "x$CLOUD_PROVIDER" == "x" ]; then
-  read -p "Select a cloud provider: (aws|gce|none) " CLOUD_PROVIDER
+  read -p "specify a cloud provider: (aws|gce|none) " CLOUD_PROVIDER
   CLOUD_PROVIDER=`echo $CLOUD_PROVIDER | tr '[:upper:]' '[:lower:]'`
-  case $CLOUD_PROVIDER in
-      a|aws|amazon)
-          CLOUD_PROVIDER="amazon"
-          set_default_region
-          ;;
-      g|gce|google)
-          CLOUD_PROVIDER="google"
-          set_default_region
-          ;;
-      n|no|none)
-          CLOUD_PROVIDER="none"
-          ;;
-      *)
-          echo "ERROR: invalid cloud provider '$CLOUD_PROVIDER'"
-          exit -1
-  esac
+  set_default_region
+  read -e -p "specify default region: " -i "$DEFAULT_REGION" DEFAULT_REGION
+  DEFAULT_REGION=`echo $DEFAULT_REGION | tr '[:upper:]' '[:lower:]'`
 fi
+
+case $CLOUD_PROVIDER in
+  a|aws|amazon)
+      CLOUD_PROVIDER="amazon"
+      set_default_region
+      ;;
+  g|gce|google)
+      CLOUD_PROVIDER="google"
+      set_default_region
+      ;;
+  n|no|none)
+      CLOUD_PROVIDER="none"
+      ;;
+  *)
+      echo "ERROR: invalid cloud provider '$CLOUD_PROVIDER'"
+      print_usage
+      exit -1
+esac
 
 ## PPAs ##
 # Add PPAs for software that is not necessarily in sync with Ubuntu releases
@@ -143,10 +173,12 @@ apt-get install -y --force-yes --allow-unauthenticated spinnaker
 if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" ]]; then
   case $CLOUD_PROVIDER in
      amazon)
-        sed -i.dist -e "s/SPINNAKER_AWS_ENABLED=false/SPINNAKER_AWS_ENABLED=true/" -e "s/SPINNAKER_AWS_DEFAULT_REGION.*$/SPINNAKER_AWS_DEFAULT_REGION=${DEFAULT_REGION}/" /etc/default/spinnaker
+        sed -i.bak -e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=true/" -e "s/SPINNAKER_AWS_DEFAULT_REGION.*$/SPINNAKER_AWS_DEFAULT_REGION=${DEFAULT_REGION}/" \
+        	-e "s/SPINNAKER_GCE_ENABLED=.*$/SPINNAKER_GCE_ENABLED=false/" /etc/default/spinnaker
         ;;
     google)
-        sed -i.dist -e "s/SPINNAKER_GCE_ENABLED=false/SPINNAKER_GCE_ENABLED=true/" -e "s/SPINNAKER_GCE_DEFAULT_REGION.*$/SPINNAKER_GCE_DEFAULT_REGION=${DEFAULT_REGION}/" /etc/default/spinnaker
+        sed -i.bak -e "s/SPINNAKER_GCE_ENABLED=.*$/SPINNAKER_GCE_ENABLED=true/" -e "s/SPINNAKER_GCE_DEFAULT_REGION.*$/SPINNAKER_GCE_DEFAULT_REGION=${DEFAULT_REGION}/" \
+        	-e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=false/" /etc/default/spinnaker
         ;;   amazon)
   esac
 else
@@ -159,6 +191,5 @@ service gate start
 service rush start
 service rosco start
 service front50 start
-service igor start
 service echo start
 
