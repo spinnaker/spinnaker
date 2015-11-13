@@ -19,9 +19,6 @@ import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentia
 import com.netflix.titanclient.TitanClient
 import groovy.transform.Canonical
 
-/**
- * @author sthadeshwar
- */
 class TitanClientProvider {
 
   private final List<TitanClientHolder> titanClientHolders

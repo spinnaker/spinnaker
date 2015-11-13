@@ -38,7 +38,6 @@ class ClusteredAgentSchedulerSpec extends Specification {
     AgentExecution exec = Mock(AgentExecution)
     ExecutionInstrumentation inst = Mock(ExecutionInstrumentation)
 
-
     def setup() {
         def interval = new DefaultAgentIntervalProvider(6000000)
         agent = new TestAgent()
@@ -57,7 +56,6 @@ class ClusteredAgentSchedulerSpec extends Specification {
         scheduler.schedule(agent, exec, inst)
         lockPollingScheduler.runAll()
         agentExecutionScheduler.runAll()
-
 
         then:
         1 * jedis.set(_ as String, _ as String, 'NX', 'PX', _ as Long) >> 'definitely not ok'

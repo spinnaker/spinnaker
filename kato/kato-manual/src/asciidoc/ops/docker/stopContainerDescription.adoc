@@ -19,7 +19,6 @@ This description provides the inputs necessary to stop a provided container on t
 }]
 ----
 
-
 ====== Description of inputs
 
 [width="100%",frame="topbot",options="header,footer"]

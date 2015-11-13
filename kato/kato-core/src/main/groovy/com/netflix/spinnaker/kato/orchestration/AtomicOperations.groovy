@@ -18,7 +18,7 @@ package com.netflix.spinnaker.kato.orchestration
 
 /**
  * A class that holds the names of ALL the kato operations as constants
- * @author sthadeshwar
+ *
  */
 final class AtomicOperations {
 

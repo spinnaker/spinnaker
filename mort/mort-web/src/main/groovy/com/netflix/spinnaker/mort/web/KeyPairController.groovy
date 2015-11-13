@@ -15,7 +15,6 @@
  */
 
 
-
 package com.netflix.spinnaker.mort.web
 import com.netflix.spinnaker.mort.model.KeyPair
 import com.netflix.spinnaker.mort.model.KeyPairProvider

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.bastion
 
-
 import com.aestasit.ssh.SshOptions
 import com.aestasit.ssh.dsl.CommandOutput
 import com.aestasit.ssh.dsl.SshDslEngine

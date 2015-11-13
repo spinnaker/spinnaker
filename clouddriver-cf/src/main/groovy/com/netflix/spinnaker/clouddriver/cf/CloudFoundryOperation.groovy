@@ -25,7 +25,7 @@ import java.lang.annotation.Target
  * {@code CloudFoundryOperation}s specify implementation classes of Spinnaker AtomicOperations for Cloud Foundry
  * operations.
  *
- * @author Greg Turnquist
+ *
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

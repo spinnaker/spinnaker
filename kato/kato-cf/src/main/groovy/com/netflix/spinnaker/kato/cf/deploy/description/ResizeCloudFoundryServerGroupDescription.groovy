@@ -18,9 +18,6 @@ package com.netflix.spinnaker.kato.cf.deploy.description
 
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryAccountCredentials
 
-/**
- * @author Greg Turnquist
- */
 class ResizeCloudFoundryServerGroupDescription {
   String serverGroupName
   int targetSize

@@ -22,9 +22,6 @@ import groovy.transform.EqualsAndHashCode
 import org.cloudfoundry.client.lib.domain.CloudApplication
 import org.cloudfoundry.client.lib.domain.InstanceInfo
 
-/**
- * @author Greg Turnquist
- */
 @EqualsAndHashCode(includes = ["name"])
 class CloudFoundryApplicationInstance implements Instance, Serializable {
 

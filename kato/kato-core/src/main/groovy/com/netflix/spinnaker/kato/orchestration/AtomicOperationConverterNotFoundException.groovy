@@ -20,9 +20,6 @@ import groovy.transform.InheritConstructors
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 
-/**
- * @author sthadeshwar
- */
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
 @InheritConstructors
 class AtomicOperationConverterNotFoundException extends RuntimeException {}

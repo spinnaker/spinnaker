@@ -20,9 +20,6 @@ import org.springframework.stereotype.Component
 
 import java.lang.annotation.Annotation
 
-/**
- * @author sthadeshwar
- */
 @Component
 class AmazonCloudProvider implements CloudProvider {
   final String id = "aws"

@@ -20,7 +20,6 @@ import spock.lang.Specification
 
 class CompositeExecutionInstrumentationSpec extends Specification {
 
-
     def 'calls all instrumentations'() {
         setup:
         ExecutionInstrumentation e1 = Mock(ExecutionInstrumentation)

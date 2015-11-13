@@ -37,4 +37,3 @@ This description provides the inputs necessary to attach Route53 DNS configurati
 
 In the case where this description is supplied in succession to a +createAmazonLoadBalancerDescription+, the DNS name of the ELB that is created will be used as the "target" for this description, and needn't be specified in advance.
 
-

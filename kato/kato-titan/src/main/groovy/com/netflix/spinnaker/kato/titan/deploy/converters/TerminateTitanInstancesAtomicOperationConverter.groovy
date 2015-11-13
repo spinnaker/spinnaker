@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component
 
 /**
  *
- * @author sthadeshwar
+ *
  */
 @TitanOperation(AtomicOperations.TERMINATE_INSTANCES)
 @Component

@@ -66,7 +66,6 @@ class ProviderUtilsSpec extends Specification {
   @Shared
   def googleAccount5 = buildGoogleNamedAccountCredentials("google-account-5")
 
-
   def setupSpec() {
     def agents = [
       new TestAgent(),

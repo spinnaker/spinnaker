@@ -20,9 +20,6 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentials    // TODO 
 import com.netflix.titanclient.TitanRegion
 import com.netflix.titanclient.security.TitanCredentials
 
-/**
- * @author sthadeshwar
- */
 class NetflixTitanCredentials implements AccountCredentials<TitanCredentials> {
   private static final String CLOUD_PROVIDER = "titan"
 

@@ -65,7 +65,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
  * operations. Uses Spring MVC Test.
  *
  * @see http://docs.spring.io/spring/docs/current/spring-framework-reference/html/testing.html#spring-mvc-test-framework
- * @author Greg Turnquist
+ *
  */
 @WebAppConfiguration
 @ContextConfiguration(classes = [TestConfiguration])

@@ -26,9 +26,7 @@ import com.netflix.titanclient.TitanRegion
 import com.netflix.titanclient.model.SubmitJobRequest
 import spock.lang.Specification
 import spock.lang.Subject
-/**
- * @author sthadeshwar
- */
+
 class TitanDeployHandlerSpec extends Specification {
 
   TitanClient titanClient = Mock(TitanClient)

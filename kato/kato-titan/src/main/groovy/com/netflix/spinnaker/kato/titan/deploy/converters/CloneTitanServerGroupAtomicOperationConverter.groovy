@@ -27,7 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 /**
  *
- * @author sthadeshwar
+ *
  */
 @TitanOperation(AtomicOperations.CLONE_SERVER_GROUP)
 @Component

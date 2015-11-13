@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.clouddriver.titan.health
 
 import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider

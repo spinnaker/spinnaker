@@ -68,7 +68,6 @@ class TimedCallable<T> implements Callable<T> {
     new TimedCallable<T>(registry, metricId, new ClosureWrapper<T>(closure))
   }
 
-
   TimedCallable(Registry registry, Id metricId, Callable<T> callable) {
     this.registry = registry
     this.metricId = metricId

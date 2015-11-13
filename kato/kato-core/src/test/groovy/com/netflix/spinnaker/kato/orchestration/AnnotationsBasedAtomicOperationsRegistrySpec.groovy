@@ -26,9 +26,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 import java.lang.annotation.Annotation
-/**
- * @author sthadeshwar
- */
+
 class AnnotationsBasedAtomicOperationsRegistrySpec extends Specification {
 
   @Subject

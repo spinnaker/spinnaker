@@ -7,9 +7,7 @@ import com.netflix.spinnaker.kato.data.task.TaskRepository
 import org.cloudfoundry.client.lib.CloudFoundryOperations
 import org.springframework.web.client.ResourceAccessException
 import spock.lang.Specification
-/**
- * @author Greg Turnquist
- */
+
 class DestroyCloudFoundryServerGroupAtomicOperationSpec extends Specification {
 
   CloudFoundryOperations client

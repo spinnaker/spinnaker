@@ -5,9 +5,6 @@ import com.netflix.spinnaker.mort.model.SecurityGroupProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-/**
- * @author Greg Turnquist
- */
 @Component
 class CloudFoundryServiceProvider implements SecurityGroupProvider<CloudFoundryService> {
 

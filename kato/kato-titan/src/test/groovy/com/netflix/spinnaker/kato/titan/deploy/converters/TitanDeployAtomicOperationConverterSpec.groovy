@@ -25,9 +25,7 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperationConverter
 import com.netflix.spinnaker.kato.titan.deploy.description.TitanDeployDescription
 import spock.lang.Specification
 import spock.lang.Subject
-/**
- * @author sthadeshwar
- */
+
 class TitanDeployAtomicOperationConverterSpec extends Specification {
 
   AccountCredentialsProvider accountCredentialsProvider = Stub(AccountCredentialsProvider) {

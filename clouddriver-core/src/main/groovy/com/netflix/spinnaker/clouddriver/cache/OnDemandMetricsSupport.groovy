@@ -31,7 +31,6 @@ class OnDemandMetricsSupport {
   public static final String CACHE_EVICT = "onDemand_evict"
   public static final String ON_DEMAND_ERROR = "onDemand_error"
 
-
   private final Timer onDemandTotal
   private final Timer dataRead
   private final Timer dataTransform
@@ -50,7 +49,6 @@ class OnDemandMetricsSupport {
     this.cacheEvict = registry.timer(CACHE_EVICT, tags)
     this.onDemandErrors = registry.counter(ON_DEMAND_ERROR, tags)
   }
-
 
   private <T> T record(Timer timer, Closure<T> closure) {
     final long start = System.nanoTime()

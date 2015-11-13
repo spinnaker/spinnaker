@@ -117,5 +117,4 @@ class JedisTaskRepository implements TaskRepository {
     }
   }
 
-
 }

@@ -25,9 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
-/**
- * @author sthadeshwar
- */
 @Component
 @TitanOperation(AtomicOperations.TERMINATE_INSTANCES)
 class TerminateTitanInstancesDescriptionValidator extends AbstractTitanDescriptionValidatorSupport<TerminateTitanInstancesDescription> {

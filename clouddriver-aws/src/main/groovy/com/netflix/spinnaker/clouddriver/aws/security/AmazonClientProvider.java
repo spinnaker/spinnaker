@@ -250,7 +250,6 @@ public class AmazonClientProvider {
     return getProxyHandler(AmazonCloudWatch.class, AmazonCloudWatchClient.class, amazonCredentials, region, skipEdda);
   }
 
-
   protected <T extends AmazonWebServiceClient, U> U getProxyHandler(Class<U> interfaceKlazz, Class<T> impl, NetflixAmazonCredentials amazonCredentials, String region) {
     return getProxyHandler(interfaceKlazz, impl, amazonCredentials, region, false);
   }

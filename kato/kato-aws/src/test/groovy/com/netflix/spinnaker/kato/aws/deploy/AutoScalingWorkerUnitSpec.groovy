@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.aws.deploy
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup

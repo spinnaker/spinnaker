@@ -20,9 +20,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
 
-/**
- * @author sthadeshwar
- */
 abstract class AbstractTitanCredentialsDescription {
   @JsonIgnore
   NetflixTitanCredentials credentials

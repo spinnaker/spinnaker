@@ -19,9 +19,6 @@ package com.netflix.spinnaker.kato.titan.deploy.description
 import com.netflix.spinnaker.kato.deploy.DeployDescription
 import groovy.transform.Canonical
 
-/**
- * @author sthadeshwar
- */
 class TitanDeployDescription extends AbstractTitanCredentialsDescription implements DeployDescription {
   String account
   String region

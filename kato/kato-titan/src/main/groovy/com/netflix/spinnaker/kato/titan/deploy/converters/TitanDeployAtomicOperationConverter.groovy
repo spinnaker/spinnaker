@@ -23,9 +23,6 @@ import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSu
 import com.netflix.spinnaker.kato.titan.deploy.description.TitanDeployDescription
 import org.springframework.stereotype.Component
 
-/**
- * @author sthadeshwar
- */
 @TitanOperation(AtomicOperations.CREATE_SERVER_GROUP)
 @Component
 class TitanDeployAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {

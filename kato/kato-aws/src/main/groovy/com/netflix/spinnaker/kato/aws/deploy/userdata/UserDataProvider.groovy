@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.aws.deploy.userdata
 
 /**
  * Implementations of this interface will provide user data to instances during the deployment process
  *
- * @author Dan Woods
+ *
  */
 public interface UserDataProvider {
   /**

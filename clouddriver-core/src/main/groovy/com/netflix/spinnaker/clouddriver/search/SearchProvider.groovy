@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.search
 
-
 /**
  * A Searchable component provides a mechanism to query for a collection of items
  *
- * @author Chris Berry
+ *
  */
 public interface SearchProvider {
 

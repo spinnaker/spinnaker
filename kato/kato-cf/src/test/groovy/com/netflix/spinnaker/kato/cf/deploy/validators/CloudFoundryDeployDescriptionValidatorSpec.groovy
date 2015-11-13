@@ -29,7 +29,7 @@ import spock.lang.Specification
 /**
  * Test cases to verify Cloud Foundry deploy validator
  *
- * @author Greg Turnquist
+ *
  */
 class CloudFoundryDeployDescriptionValidatorSpec extends Specification {
 

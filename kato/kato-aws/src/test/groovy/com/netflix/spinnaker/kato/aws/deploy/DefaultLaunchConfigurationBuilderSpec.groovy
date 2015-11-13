@@ -34,7 +34,6 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
     getUserData(_ as String, _ as String, _ as String, _ as String) >> 'userdata'
   }
 
-
   @Subject
   DefaultLaunchConfigurationBuilder builder = new DefaultLaunchConfigurationBuilder(autoScaling, asgService,
     securityGroupService, [userDataProvider], new KatoAWSConfig.DeployDefaults())
@@ -240,7 +239,6 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
         new AmazonBlockDevice(deviceName: '/dev/sdb', virtualName: 'ephemeral1'),
         new AmazonBlockDevice(deviceName: "/dev/sdc", size: 125, iops: 100, deleteOnTermination: false, volumeType: 'io1', snapshotId: 's-69')],
       securityGroups: securityGroups)
-
 
   }
 }

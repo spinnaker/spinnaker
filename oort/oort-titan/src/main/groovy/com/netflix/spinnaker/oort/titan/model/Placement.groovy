@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.oort.titan.model
 
-/**
- * @author sthadeshwar
- */
 class Placement {
   String account
   String region

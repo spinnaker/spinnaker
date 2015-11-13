@@ -84,7 +84,6 @@ class AmazonServerGroup implements ServerGroup, Serializable {
     return loadBalancerNames
   }
 
-
   @Override
   Set<String> getSecurityGroups() {
     Set<String> securityGroups = []

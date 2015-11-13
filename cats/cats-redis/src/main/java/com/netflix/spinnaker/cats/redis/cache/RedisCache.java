@@ -57,7 +57,6 @@ public class RedisCache implements WriteableCache {
     private final JedisSource source;
     private final ObjectMapper objectMapper;
 
-
     public RedisCache(String prefix, JedisSource source, ObjectMapper objectMapper) {
         this.prefix = prefix;
         this.source = source;

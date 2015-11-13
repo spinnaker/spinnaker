@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.orchestration
 
 /**
@@ -22,7 +21,7 @@ package com.netflix.spinnaker.kato.orchestration
  * should perform the simplest form of work possible, often described by a description object (like {@link com.netflix.spinnaker.kato.deploy.DeployDescription}
  *
  * @param the return type of the operation
- * @author Dan Woods
+ *
  */
 public interface AtomicOperation<R> {
   /**

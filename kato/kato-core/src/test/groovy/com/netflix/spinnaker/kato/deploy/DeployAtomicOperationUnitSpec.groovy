@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.deploy
 
 import com.netflix.spinnaker.kato.data.task.Task

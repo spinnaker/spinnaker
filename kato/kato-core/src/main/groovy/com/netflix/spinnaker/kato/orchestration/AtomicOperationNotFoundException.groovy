@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.orchestration
 
 import groovy.transform.InheritConstructors

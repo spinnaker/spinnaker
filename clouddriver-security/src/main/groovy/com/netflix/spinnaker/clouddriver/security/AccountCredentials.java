@@ -24,7 +24,7 @@ import java.util.List;
  * Implementations of this interface will provide properties specific to a named account object,
  * with capability to retrieve a type of credential object (such as AWSCredentials or GoogleCredentials).
  *
- * @author Dan Woods
+ *
  * @param <T> - type of credential object to be returned
  */
 public interface AccountCredentials<T> {

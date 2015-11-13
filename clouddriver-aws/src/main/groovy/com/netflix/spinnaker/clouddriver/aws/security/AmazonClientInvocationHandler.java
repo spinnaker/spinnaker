@@ -101,7 +101,6 @@ class AmazonClientInvocationHandler implements InvocationHandler {
         describe(request, "autoScalingGroupNames", "autoScalingGroups", AutoScalingGroup.class));
   }
 
-
   ////////////////////////////////////
   //
   // AmazonCloudWatch

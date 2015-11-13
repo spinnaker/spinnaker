@@ -34,7 +34,7 @@ sourceSets {
 }
 
 jar {
-  doFirst { 
+  doFirst {
     exclude "${rootProject.name}.yml"
   }
 }
@@ -45,5 +45,4 @@ startScripts {
     windowsScript.text = windowsScript.text.replace('set CLASSPATH=', 'set CLASSPATH=%APP_HOME%\\config;')
   }
 }
-
 

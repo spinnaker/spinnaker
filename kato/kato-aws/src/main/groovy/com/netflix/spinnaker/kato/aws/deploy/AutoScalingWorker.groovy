@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.aws.deploy
 import com.amazonaws.services.autoscaling.model.CreateAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.SuspendProcessesRequest
@@ -33,7 +32,7 @@ import com.netflix.spinnaker.kato.data.task.TaskRepository
 /**
  * A worker class dedicated to the deployment of "applications", following many of Netflix's common AWS conventions.
  *
- * @author Dan Woods
+ *
  */
 class AutoScalingWorker {
   private static final String AWS_PHASE = "AWS_DEPLOY"

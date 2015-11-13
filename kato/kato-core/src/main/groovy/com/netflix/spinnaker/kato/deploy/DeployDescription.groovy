@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.deploy
 
 /**
  * This is a marker interface for use by {@link com.netflix.spinnaker.kato.deploy.DeployHandler} implementations.
  *
  * @see com.netflix.spinnaker.kato.deploy.DeployHandler
- * @author Dan Woods
+ *
  */
 public interface DeployDescription {
 

@@ -155,7 +155,6 @@ class AsgReferenceCopierSpec extends Specification {
     ))
   }
 
-
   void 'should copy nothing when there are no scaling policies'() {
     when:
     asgReferenceCopier.copyScalingPoliciesWithAlarms(Mock(Task), 'asgard-v000', 'asgard-v001')

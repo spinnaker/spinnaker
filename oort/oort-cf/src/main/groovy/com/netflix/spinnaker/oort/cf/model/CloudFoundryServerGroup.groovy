@@ -25,7 +25,7 @@ import org.cloudfoundry.client.lib.domain.CloudApplication
 /**
  * A Cloud Foundry application combined with its org/space coordinates.
  *
- * @author Greg Turnquist
+ *
  */
 @CompileStatic
 @EqualsAndHashCode(includes = ["name"])

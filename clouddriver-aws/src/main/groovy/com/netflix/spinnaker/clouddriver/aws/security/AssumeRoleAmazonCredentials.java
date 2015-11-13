@@ -26,7 +26,7 @@ import java.util.List;
  * Provides an Amazon credential pack that uses Assume Role (http://docs.aws.amazon.com/IAM/latest/UserGuide/roles-assume-role.html) to provide API access to the account.
  * This class allows you to use your credentials, provided via the supplied {@link com.amazonaws.auth.AWSCredentialsProvider} to act-as the target account ID with the privileges desribed through the <b>assumeRole</b> role
  *
- * @author Dan Woods
+ *
  */
 public class AssumeRoleAmazonCredentials extends AmazonCredentials {
     static final String DEFAULT_SESSION_NAME = "Spinnaker";

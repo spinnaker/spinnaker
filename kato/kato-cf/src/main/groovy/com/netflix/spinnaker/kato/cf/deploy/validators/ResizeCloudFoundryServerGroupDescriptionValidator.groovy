@@ -7,9 +7,7 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
-/**
- * @author Greg Turnquist
- */
+
 @CloudFoundryOperation(AtomicOperations.RESIZE_SERVER_GROUP)
 @Component("resizeCloudFoundryServerGroupDescriptionValidator")
 class ResizeCloudFoundryServerGroupDescriptionValidator extends DescriptionValidator<ResizeCloudFoundryServerGroupDescription> {

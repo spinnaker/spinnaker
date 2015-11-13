@@ -27,7 +27,6 @@ import redis.clients.jedis.JedisPool
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
-
 @IgnoreIf({ LocalRedisCheck.redisUnavailable() })
 class RedisCacheSpec extends WriteableCacheSpec {
 

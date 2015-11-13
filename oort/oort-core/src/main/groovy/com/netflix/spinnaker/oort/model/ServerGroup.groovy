@@ -23,7 +23,7 @@ import com.netflix.spinnaker.oort.documentation.Empty
 /**
  * A server group provides a relationship to many instances, and exists within a defined region and one or more zones.
  *
- * @author Dan Woods
+ *
  */
 interface ServerGroup {
   /**

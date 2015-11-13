@@ -24,7 +24,7 @@ import java.lang.annotation.Annotation
 /**
  * Cloud Foundry declaration as a {@link CloudProvider}
  *
- * @author Greg Turnquist
+ *
  */
 @Component
 class CloudFoundryCloudProvider implements CloudProvider {

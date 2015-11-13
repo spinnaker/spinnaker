@@ -198,7 +198,6 @@ cf:
 #      username: /* CF API username, or property name */
 #      password: /* CF API password, or property name */
 
-
 ---
 
 spring:
@@ -233,7 +232,6 @@ spring:
     #   regions: #override default regions
     #     - name: us-east-1
     #     - name: ap-northeast-1
-
 
 ---
 

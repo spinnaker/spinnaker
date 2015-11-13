@@ -15,9 +15,7 @@
  */
 
 package com.netflix.spinnaker.kato.titan.deploy.description
-/**
- * @author sthadeshwar
- */
+
 class DestroyTitanServerGroupDescription extends AbstractTitanCredentialsDescription {
   String region
   String serverGroupName

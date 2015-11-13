@@ -23,7 +23,7 @@ import java.util.Set;
  * required by the {@link AccountCredentialsProvider} to get a handle on credentials objects.
  * Consumers should use this repository interface for manipulating the backing of the provider.
  *
- * @author Dan Woods
+ *
  */
 public interface AccountCredentialsRepository {
 

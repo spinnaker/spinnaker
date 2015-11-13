@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.aws.agent
 
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest

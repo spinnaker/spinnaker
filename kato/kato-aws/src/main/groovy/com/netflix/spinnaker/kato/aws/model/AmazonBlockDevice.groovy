@@ -26,7 +26,7 @@ import groovy.transform.Canonical
  * or an EBS device:
  *   (deviceName + size + (optionally) volumeType, deleteOnTermination, iops, snapshotId)
  *
- * @author Dan Woods
+ *
  */
 @Canonical
 class AmazonBlockDevice {

@@ -18,9 +18,7 @@ package com.netflix.spinnaker.kato.helpers
 
 import spock.lang.Specification
 import spock.lang.Unroll
-/**
- * @author sthadeshwar
- */
+
 class AbstractServerGroupNameResolverSpec extends Specification {
 
   static class TestServerGroupNameResolver extends AbstractServerGroupNameResolver {
@@ -35,7 +33,6 @@ class AbstractServerGroupNameResolverSpec extends Specification {
       return serverGroupName
     }
   }
-
 
   @Unroll
   void "next ASG name should be #expected when previous is #previousServerGroupName and application is 'app', stack is '#stack', and details is '#details'"() {

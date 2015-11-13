@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.deploy
 
 /**
@@ -23,7 +22,7 @@ package com.netflix.spinnaker.kato.deploy
  *
  * @param < T >      the type of the {@link DeployDescription}
  * @see DeployDescription
- * @author Dan Woods
+ *
  */
 public interface DeployHandler<T> {
   /**

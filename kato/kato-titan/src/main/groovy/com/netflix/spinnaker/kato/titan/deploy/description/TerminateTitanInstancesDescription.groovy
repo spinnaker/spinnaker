@@ -18,7 +18,7 @@ package com.netflix.spinnaker.kato.titan.deploy.description
 
 /**
  *
- * @author sthadeshwar
+ *
  */
 class TerminateTitanInstancesDescription extends AbstractTitanCredentialsDescription {
   String region

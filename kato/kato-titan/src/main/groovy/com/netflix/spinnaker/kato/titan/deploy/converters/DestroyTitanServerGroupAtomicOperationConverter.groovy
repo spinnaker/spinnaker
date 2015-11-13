@@ -25,9 +25,6 @@ import com.netflix.spinnaker.kato.titan.deploy.ops.DestroyTitanServerGroupAtomic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-/**
- * @author sthadeshwar
- */
 @TitanOperation(AtomicOperations.DESTROY_SERVER_GROUP)
 @Component
 class DestroyTitanServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {

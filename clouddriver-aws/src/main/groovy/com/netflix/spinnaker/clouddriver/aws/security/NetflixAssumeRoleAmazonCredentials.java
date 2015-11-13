@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**
- * @author Dan Woods
+ *
  * @see AssumeRoleAmazonCredentials
  */
 public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials {

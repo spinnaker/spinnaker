@@ -15,7 +15,6 @@
  */
 
 
-
 package com.netflix.spinnaker.mort.model
 
 public interface NetworkProvider<T extends Network> {

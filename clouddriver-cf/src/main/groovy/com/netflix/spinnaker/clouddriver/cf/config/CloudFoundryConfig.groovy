@@ -27,7 +27,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 /**
  * Configuration for Cloud Foundry provider.
  *
- * @author Greg Turnquist
+ *
  */
 @Configuration
 @EnableConfigurationProperties

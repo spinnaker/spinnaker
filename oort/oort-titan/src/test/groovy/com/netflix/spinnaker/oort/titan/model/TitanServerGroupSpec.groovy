@@ -20,9 +20,7 @@ import com.netflix.titanclient.model.Job
 import com.netflix.titanclient.model.Task
 import com.netflix.titanclient.model.TaskState
 import spock.lang.Specification
-/**
- * @author sthadeshwar
- */
+
 class TitanServerGroupSpec extends Specification {
 
   void 'valid server group instance is created from a titan job'() {

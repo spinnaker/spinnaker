@@ -80,7 +80,6 @@ class SecurityGroupService {
     getSecurityGroupIds(securityGroupNames, vpcId)
   }
 
-
   /**
    * Create a security group for this this application. Security Group name will equal the application's.
    * (ie. "application") name.

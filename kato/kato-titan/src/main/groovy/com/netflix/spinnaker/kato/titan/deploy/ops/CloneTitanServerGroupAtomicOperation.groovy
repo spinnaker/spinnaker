@@ -25,7 +25,7 @@ import com.netflix.spinnaker.kato.titan.deploy.handlers.TitanDeployHandler
 
 /**
  *
- * @author sthadeshwar
+ *
  */
 class CloneTitanServerGroupAtomicOperation implements AtomicOperation<DeploymentResult> {
 

@@ -25,9 +25,6 @@ import com.netflix.titanclient.TitanClient
 import com.netflix.titanclient.model.Job
 import groovy.util.logging.Slf4j
 
-/**
- * @author sthadeshwar
- */
 @Slf4j
 class DestroyTitanServerGroupAtomicOperation implements AtomicOperation<Void> {
 

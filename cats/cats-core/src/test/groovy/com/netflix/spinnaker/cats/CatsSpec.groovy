@@ -25,7 +25,6 @@ import com.netflix.spinnaker.cats.test.TestScheduler
 import spock.lang.Specification
 import spock.lang.Subject
 
-
 class CatsSpec extends Specification {
 
     private static final String SG = 'serverGroup'
@@ -126,7 +125,6 @@ class CatsSpec extends Specification {
         !app2.relationships.isEmpty()
         app2.relationships[SG]?.size() == 1
         app2.relationships[SG]?.first() == 'sg1'
-
 
     }
 }

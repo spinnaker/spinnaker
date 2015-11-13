@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component
 /**
  * Converter for a Cloud Foundry deploy operation
  *
- * @author Greg Turnquist
+ *
  */
 @Component("cloudFoundryDeployDescription")
 class CloudFoundryDeployAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {

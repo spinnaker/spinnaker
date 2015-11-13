@@ -150,7 +150,6 @@ class AmazonNamedImageLookupController {
     }
   }
 
-
   @ResponseStatus(value = HttpStatus.BAD_REQUEST)
   @InheritConstructors
   private static class InsufficientLookupOptionsException extends RuntimeException { }
@@ -158,7 +157,6 @@ class AmazonNamedImageLookupController {
   @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = 'Image not found')
   @InheritConstructors
   private static class ImageNotFoundException extends RuntimeException { }
-
 
   private static class NamedImage {
     String imageName

@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.oort.titan.model
 
-/**
- * @author sthadeshwar
- */
 class TitanInstancePlacement extends Placement {
   String zone
   String host

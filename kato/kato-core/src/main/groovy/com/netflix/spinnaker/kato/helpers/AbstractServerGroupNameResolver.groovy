@@ -20,9 +20,6 @@ import com.netflix.frigga.Names
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import groovy.transform.CompileStatic
 
-/**
- * @author sthadeshwar
- */
 @CompileStatic
 abstract class AbstractServerGroupNameResolver {
 

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.search
 
-
 class NoopSearchProvider implements SearchProvider {
 
   @Override

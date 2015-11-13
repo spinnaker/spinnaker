@@ -23,7 +23,7 @@ import org.cloudfoundry.client.lib.domain.CloudApplication
 /**
  * A Cloud Foundry application with all parts (blue/green/complete).
  *
- * @author Greg Turnquist
+ *
  */
 @CompileStatic
 @EqualsAndHashCode(includes = ["name"])

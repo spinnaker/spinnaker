@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.aws.deploy.ops.loadbalancer
 
 import com.amazonaws.AmazonServiceException
@@ -44,7 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired
 /**
  * An AtomicOperation for creating an Elastic Load Balancer from the description of {@link UpsertAmazonLoadBalancerDescription}.
  *
- * @author Dan Woods
+ *
  */
 class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertAmazonLoadBalancerResult> {
   private static final String BASE_PHASE = "CREATE_ELB"

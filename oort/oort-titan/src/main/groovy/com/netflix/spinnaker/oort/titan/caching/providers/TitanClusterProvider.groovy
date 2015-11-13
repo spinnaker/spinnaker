@@ -245,5 +245,4 @@ class TitanClusterProvider implements ClusterProvider<TitanCluster> {
     filteredRelationships ? cacheView.getAll(relationship, filteredRelationships) : []
   }
 
-
 }

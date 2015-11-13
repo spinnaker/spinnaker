@@ -36,7 +36,7 @@ import javax.annotation.PostConstruct
 /**
  * Configure the components for a Cloud Foundry configuration.
  *
- * @author Greg Turnquist
+ *
  */
 @ConditionalOnProperty('cf.enabled')
 @Configuration

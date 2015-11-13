@@ -21,9 +21,6 @@ import com.netflix.spinnaker.kato.helpers.AbstractServerGroupNameResolver
 import com.netflix.titanclient.TitanClient
 import com.netflix.titanclient.model.Job
 
-/**
- * @author sthadeshwar
- */
 class TitanServerGroupNameResolver extends AbstractServerGroupNameResolver {
 
   private final TitanClient titanClient

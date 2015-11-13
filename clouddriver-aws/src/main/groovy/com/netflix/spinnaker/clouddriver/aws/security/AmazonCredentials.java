@@ -32,7 +32,7 @@ import java.util.List;
  * If none provided, the {@link com.amazonaws.auth.DefaultAWSCredentialsProviderChain} will be used. The account's active
  * regions and availability zones can be specified as well.
  *
- * @author Dan Woods
+ *
  */
 public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
     private static final String CLOUD_PROVIDER = "aws";
@@ -57,7 +57,6 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
         return new AmazonCredentials(name, environment, accountType, accountId, defaultKeyPair, regions, null, credentialsProvider);
     }
 
-
     public AmazonCredentials(@JsonProperty("name") String name,
                              @JsonProperty("environment") String environment,
                              @JsonProperty("accountType") String accountType,
@@ -67,7 +66,6 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
                              @JsonProperty("requiredGroupMembership") List<String> requiredGroupMembership) {
         this(name, environment, accountType, accountId, defaultKeyPair, regions, requiredGroupMembership, null);
     }
-
 
     public AmazonCredentials(AmazonCredentials source, AWSCredentialsProvider credentialsProvider) {
         this(

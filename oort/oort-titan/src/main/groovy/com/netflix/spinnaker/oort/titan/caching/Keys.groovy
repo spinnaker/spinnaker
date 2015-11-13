@@ -17,9 +17,6 @@
 package com.netflix.spinnaker.oort.titan.caching
 import com.netflix.frigga.Names
 
-/**
- * @author sthadeshwar
- */
 class Keys {
 
   private static final PROVIDER = "titan"

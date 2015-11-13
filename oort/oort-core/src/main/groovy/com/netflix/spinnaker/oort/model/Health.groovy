@@ -19,7 +19,7 @@ package com.netflix.spinnaker.oort.model
 /**
  * Marker interface to represent a Health object. The concrete object will be serialized for consumers.
  *
- * @author Dan Woods
+ *
  */
 public interface Health {
 

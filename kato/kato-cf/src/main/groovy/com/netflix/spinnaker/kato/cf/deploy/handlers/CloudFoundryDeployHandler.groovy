@@ -35,7 +35,7 @@ import org.springframework.web.client.RestTemplate
 /**
  * A deployment handler for Cloud Foundry. Inspired by cf-maven-plugin's {@literal AbstractPush}
  *
- * @author Greg Turnquist
+ *
  */
 class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescription> {
   private static final String BASE_PHASE = "DEPLOY"

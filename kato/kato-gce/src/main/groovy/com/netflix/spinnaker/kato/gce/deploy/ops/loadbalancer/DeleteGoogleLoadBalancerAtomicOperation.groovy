@@ -125,5 +125,4 @@ class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
     null
   }
 
-
 }

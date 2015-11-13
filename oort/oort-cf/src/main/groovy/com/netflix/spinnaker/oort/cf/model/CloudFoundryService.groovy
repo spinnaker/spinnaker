@@ -24,7 +24,7 @@ import org.cloudfoundry.client.lib.domain.CloudService
 /**
  * Representation for a Cloud Foundry service.
  *
- * @author Greg Turnquist
+ *
  */
 @EqualsAndHashCode(includes = ["id"])
 class CloudFoundryService implements SecurityGroup {

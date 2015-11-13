@@ -25,9 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
-/**
- * @author sthadeshwar
- */
 @Component
 @TitanOperation(AtomicOperations.DESTROY_SERVER_GROUP)
 class DestroyTitanServerGroupDescriptionValidator extends AbstractTitanDescriptionValidatorSupport<DestroyTitanServerGroupDescription> {

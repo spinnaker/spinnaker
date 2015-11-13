@@ -36,7 +36,6 @@ class ModifyAsgLaunchConfigurationDescription extends AbstractAmazonCredentialsD
   Boolean instanceMonitoring
   Boolean ebsOptimized
 
-
   List<AmazonBlockDevice> blockDevices
   List<String> securityGroups
 }

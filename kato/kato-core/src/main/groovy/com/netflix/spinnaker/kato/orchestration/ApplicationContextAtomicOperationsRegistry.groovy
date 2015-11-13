@@ -23,7 +23,7 @@ import org.springframework.context.ApplicationContext
 /**
  * This class is to support older naming convention for operations. Do NOT use this for new
  * operations - this is just used until older operations are migrated to new scheme
- * @author sthadeshwar
+ *
  */
 class ApplicationContextAtomicOperationsRegistry implements AtomicOperationsRegistry {
 

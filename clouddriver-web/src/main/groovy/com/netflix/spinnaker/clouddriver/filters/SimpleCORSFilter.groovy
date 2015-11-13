@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.filters
 
-
 import org.springframework.stereotype.Component
 
 import javax.servlet.*

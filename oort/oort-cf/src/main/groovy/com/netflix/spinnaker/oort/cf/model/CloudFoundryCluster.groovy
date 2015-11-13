@@ -23,7 +23,7 @@ import groovy.transform.EqualsAndHashCode
 /**
  * One part of a Cloud Foundry application (like blue or green).
  *
- * @author Greg Turnquist
+ *
  */
 @CompileStatic
 @EqualsAndHashCode(includes = ["name", "accountName"])

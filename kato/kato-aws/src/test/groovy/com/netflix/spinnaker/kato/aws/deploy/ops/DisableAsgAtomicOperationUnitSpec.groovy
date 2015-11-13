@@ -34,7 +34,6 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     op = new DisableAsgAtomicOperation(description)
   }
 
-
   void 'should deregister instances from load balancers and suspend scaling processes'() {
     setup:
     def asg = Mock(AutoScalingGroup)

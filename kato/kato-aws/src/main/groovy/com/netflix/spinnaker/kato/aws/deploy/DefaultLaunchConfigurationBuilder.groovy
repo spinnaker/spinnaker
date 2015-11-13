@@ -181,7 +181,6 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
     data ? new String(Base64.encodeBase64(data.bytes)) : null
   }
 
-
   private String createLaunchConfiguration(String name, String userData, LaunchConfigurationSettings settings) {
 
     CreateLaunchConfigurationRequest request = new CreateLaunchConfigurationRequest()
