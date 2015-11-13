@@ -1,12 +1,75 @@
  #!/bin/bash
 
+#ssh -L 9000:127.0.0.1:80 -L 9999:127.0.0.1:9999 ubuntu@
+
+service jenkins stop
+
 read -e -p "enter vpc id: " -i "vpc-a6e5a5c3" VPC
 read -e -p "enter subnet id: " -i "subnet-ed56219a" SUBNET
-read -e -p "enter package repo: " -i "https://dl.bintray.com/moondev/spinnaker trusty main" REPO
+#read -e -p "enter package repo: " -i "https://dl.bintray.com/moondev/spinnaker trusty main" REPO
 read -e -p "enter rosco trusty base ami: " -i "ami-5189a661" AMI
-read -e -p "enter jenkins address: " -i "http://127.0.0.1:9999" JENKINSADDRESS
-read -e -p "enter jenkins user: " -i "jenkins" JENKINSUSERNAME
-read -e -p "enter jenkins password: " -i "jenkins" JENKINSPASSWORD
+
+#read -e -p "enter jenkins address: " -i "http://127.0.0.1:9999" JENKINSADDRESS
+#read -e -p "enter jenkins user: " -i "jenkins" JENKINSUSERNAME
+#read -e -p "enter jenkins password: " -i "jenkins" JENKINSPASSWORD
+REPO=https://dl.bintray.com/moondev/spinnaker trusty main
+JENKINSADDRESS=http://127.0.0.1:9999
+JENKINSUSERNAME=jenkins
+JENKINSPASSWORD=jenkins
+
+
+
+
+rm /var/lib/jenkins/config.xml
+touch /var/lib/jenkins/config.xml
+
+cat <<EOT >> /var/lib/jenkins/config.xml
+
+<?xml version='1.0' encoding='UTF-8'?>
+<hudson>
+  <disabledAdministrativeMonitors/>
+  <version>1.0</version>
+  <numExecutors>2</numExecutors>
+  <mode>NORMAL</mode>
+  <useSecurity>true</useSecurity>
+  <authorizationStrategy class="hudson.security.AuthorizationStrategy$Unsecured"/>
+  <securityRealm class="hudson.security.HudsonPrivateSecurityRealm">
+    <disableSignup>false</disableSignup>
+    <enableCaptcha>false</enableCaptcha>
+  </securityRealm>
+  <disableRememberMe>false</disableRememberMe>
+  <projectNamingStrategy class="jenkins.model.ProjectNamingStrategy$DefaultProjectNamingStrategy"/>
+  <workspaceDir>${ITEM_ROOTDIR}/workspace</workspaceDir>
+  <buildsDir>${ITEM_ROOTDIR}/builds</buildsDir>
+  <markupFormatter class="hudson.markup.EscapedMarkupFormatter"/>
+  <jdks/>
+  <viewsTabBar class="hudson.views.DefaultViewsTabBar"/>
+  <myViewsTabBar class="hudson.views.DefaultMyViewsTabBar"/>
+  <clouds/>
+  <scmCheckoutRetryCount>0</scmCheckoutRetryCount>
+  <views>
+    <hudson.model.AllView>
+      <owner class="hudson" reference="../../.."/>
+      <name>All</name>
+      <filterExecutors>false</filterExecutors>
+      <filterQueue>false</filterQueue>
+      <properties class="hudson.model.View$PropertyList"/>
+    </hudson.model.AllView>
+  </views>
+  <primaryView>All</primaryView>
+  <slaveAgentPort>50000</slaveAgentPort>
+  <label></label>
+  <nodeProperties/>
+  <globalNodeProperties/>
+</hudson>
+EOT
+service jenkins start
+
+wget http://127.0.0.1:9999/jnlpJars/jenkins-cli.jar
+
+echo 'jenkins.model.Jenkins.instance.securityRealm.createAccount("jenkins", "jenkins")' | java -jar jenkins-cli.jar -s http://127.0.0.1:9999/ groovy =
+
+
 
 rm /var/www/settings.js
 touch /var/www/settings.js
@@ -295,7 +358,7 @@ services:
   igor:
     # If you are integrating Jenkins then you must also enable Spinnaker's
     # "igor" subsystem.
-    enabled: \${services.default.igor_enabled}
+    enabled: true
 
   rush:
     # Spinnaker's "rush" subsystem is used by the "rosco" bakery.
