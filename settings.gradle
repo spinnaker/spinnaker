@@ -16,7 +16,7 @@
 
 rootProject.name = "gate"
 
-include "gate-web", "gate-manual", "gate-core", "gate-netflix"
+include "gate-web", "gate-manual", "gate-core"
 
 def setBuildFile(project) {
   project.buildFileName = "${project.name}.gradle"
