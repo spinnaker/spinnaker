@@ -20,6 +20,13 @@ allprojects {
   sourceCompatibility = 1.8
   targetCompatibility = 1.8
 
+  configurations.all {
+    resolutionStrategy {
+      force 'org.codehaus.groovy:groovy-all:2.4.5'
+      force 'org.spockframework:spock-core:1.0-groovy-2.4'
+    }
+  }
+
   group = "com.netflix.spinnaker.gate"
 }
 

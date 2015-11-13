@@ -85,19 +85,7 @@ class OAuth2SecurityConfig implements WebSecurityAugmentor {
   @Bean
   IdentityResourceServerTokenServices identityResourceServerTokenServices(RestOperations restOperations) {
     def defaultAccessTokenConverter = new DefaultAccessTokenConverter()
-    defaultAccessTokenConverter.userTokenConverter = new UserAuthenticationConverter() {
-      @Override
-      Map<String, ?> convertUserAuthentication(Authentication userAuthentication) {
-        return [:]
-      }
-
-      @Override
-      Authentication extractAuthentication(Map<String, ?> map) {
-        def allowedAccounts = (map.scope ?: []).collect { String scope -> scope.replace("spinnaker_", "")}
-        def user = new User(map.client_id as String, null, null, [], allowedAccounts)
-        return new UsernamePasswordAuthenticationToken(user, "N/A", [])
-      }
-    }
+    defaultAccessTokenConverter.userTokenConverter = new DefaultUserAuthenticationConverter()
 
     return new IdentityResourceServerTokenServices(
       identityServerConfiguration(), restOperations, defaultAccessTokenConverter
@@ -114,5 +102,19 @@ class OAuth2SecurityConfig implements WebSecurityAugmentor {
   @ConditionalOnMissingBean(RestOperations)
   RestOperations restTemplate() {
     new RestTemplate()
+  }
+
+  static class DefaultUserAuthenticationConverter implements UserAuthenticationConverter {
+    @Override
+    Map<String, ?> convertUserAuthentication(Authentication userAuthentication) {
+      return [:]
+    }
+
+    @Override
+    Authentication extractAuthentication(Map<String, ?> map) {
+      def allowedAccounts = (map.scope ?: []).collect { String scope -> scope.replace("spinnaker_", "")}
+      def user = new User(map.client_id as String, null, null, [], allowedAccounts)
+      return new UsernamePasswordAuthenticationToken(user, "N/A", [])
+    }
   }
 }
