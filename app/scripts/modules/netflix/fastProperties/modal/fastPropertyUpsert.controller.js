@@ -74,8 +74,8 @@ module.exports = angular
     vm.property.targetScope = {};
     vm.property.startScope = {};
     vm.property.strategy = {};
-    vm.property.env = 'prod';
-    vm.property.constraints = 'none';
+    vm.property.env = fastProperty.env || 'prod';
+    vm.property.constraints = fastProperty.constraints || 'none';
 
     vm.chosenApps = {};
 

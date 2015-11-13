@@ -11,13 +11,6 @@ module.exports = angular
   .controller('ScopeLadderStrategyController', function(parentVM, fastPropertyWriter, modalInstance,  _) {
     let vm = parentVM;
 
-    //vm.property = $scope.property;
-    //vm.property.targetScope = $scope.selectedScope;
-    //vm.property.impactCount = $scope.impactCount;
-    //vm.selectedScope = $scope.selectedScope;
-    //vm.clusters = $scope.clusters;
-    //vm.isEditing = $scope.isEditing;
-    //vm.appName = $scope.appName;
     vm.property.strategy.name = 'naive';
 
     vm.submit = () => {

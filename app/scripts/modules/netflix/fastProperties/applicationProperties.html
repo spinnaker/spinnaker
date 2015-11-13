@@ -97,21 +97,27 @@
              </thead>
              <tbody>
              <tr class="" ng-repeat="property in fp.filteredPage">
+
                <td style="word-wrap: break-word">
                  {{ property.key }}
                </td>
+
                <td style="word-wrap: break-word">
                  {{ property.value}}
                </td>
+
                <td>
                  {{ property.ts | fastPropertyTime }}
                </td>
+
                <td>
                  {{ property.region }}
                </td>
+
                <td>
                  {{ property.stack}}
                </td>
+
                <td class="small-fp-scopes">
                  <dl>
                    <dt ng-if="property.env">Env:</dt>
@@ -158,15 +164,18 @@
                        </i>
                    </dd>
                  </dl>
-                 <!--{{property}}-->
+
                </td>
+
                <td>
                  {{ property.ttl }}
                </td>
+
                <td>
                  <span class="clickable clickable-sm glyphicon glyphicon-pencil" ng-click="fp.editFastProperty(property)"></span>
                  <span class="clickable clickable-sm glyphicon glyphicon-trash" ng-click="fp.delete(property)"></span>
                </td>
+
              </tr>
              </tbody>
            </table>
