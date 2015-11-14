@@ -20,6 +20,7 @@ import com.jfrog.bintray.gradle.BintrayExtension
 import com.jfrog.bintray.gradle.BintrayHttpClientFactory
 import com.jfrog.bintray.gradle.BintrayPlugin
 import com.jfrog.bintray.gradle.BintrayUploadTask
+import com.jfrog.bintray.gradle.RecordingCopyTask
 import com.netflix.gradle.plugins.deb.Deb
 import groovy.transform.Canonical
 import org.gradle.api.GradleException
@@ -27,6 +28,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.tasks.Upload
+import org.gradle.util.ConfigureUtil
 
 import static groovyx.net.http.ContentType.JSON
 import static groovyx.net.http.Method.POST
@@ -45,15 +47,19 @@ class OspackageBintrayPublishPlugin implements Plugin<Project> {
         def packageExtension = project.extensions.create('bintrayPackage', OspackageBintrayExtension)
 
         project.tasks.withType(Deb) { Deb deb ->
-            def spinnakerDebians = project.configurations.maybeCreate('spinnakerDebians')
-            project.artifacts.add('spinnakerDebians', deb)
             def extension = (BintrayExtension) project.extensions.getByName('bintray')
             def buildDebPublish = project.tasks.create("publish${deb.name}", BintrayUploadTask) { BintrayUploadTask task ->
                 task.with {
                     apiUrl = extension.apiUrl
                     user = extension.user
                     apiKey = extension.key
-                    configurations = ['spinnakerDebians']
+                    RecordingCopyTask spec = project.task(type: RecordingCopyTask, RecordingCopyTask.NAME)
+                    ConfigureUtil.configure({
+                        from deb.archivePath
+                        into '/'
+                    }, spec)
+                    spec.outputs.upToDateWhen { false }
+                    filesSpec = spec
                     publish = extension.publish
                     dryRun = extension.dryRun
                     userOrg = extension.pkg.userOrg ?: extension.user
@@ -74,11 +80,7 @@ class OspackageBintrayPublishPlugin implements Plugin<Project> {
                     versionAttributes = extension.pkg.version.attributes
                     signVersion = extension.pkg.version.gpg.sign
                     gpgPassphrase = extension.pkg.version.gpg.passphrase
-                    syncToMavenCentral = extension.pkg.version.mavenCentralSync.sync == null ?
-                            true : extension.pkg.version.mavenCentralSync.sync
-                    ossUser = extension.pkg.version.mavenCentralSync.user
-                    ossPassword = extension.pkg.version.mavenCentralSync.password
-                    ossCloseRepo = extension.pkg.version.mavenCentralSync.close
+                    syncToMavenCentral = false
                 }
             }
 

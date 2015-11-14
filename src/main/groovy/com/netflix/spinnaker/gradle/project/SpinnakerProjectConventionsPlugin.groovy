@@ -39,7 +39,6 @@ class SpinnakerProjectConventionsPlugin implements Plugin<Project> {
 
         //workaround nebulaoss doing a find instead of a withType:
         project.tasks.withType(BintrayUploadTask) { BintrayUploadTask bintrayUpload ->
-            bintrayUpload.subtaskSkipPublish = false
             bintrayUpload.doFirst {
                 ScmInfoExtension scmInfo = project.extensions.findByType(ScmInfoExtension)
                 // We have to change the task directly, since they already copied from the extension in an afterEvaluate
@@ -67,7 +66,7 @@ class SpinnakerProjectConventionsPlugin implements Plugin<Project> {
 
             bintray.pkg.userOrg = 'spinnaker'
             bintray.pkg.repo = 'spinnaker'
-            bintray.pkg.labels = ['Spinnaker', 'Netflix']
+            bintray.pkg.labels = ['Spinnaker', 'Netflix', 'netflixoss']
         }
 
         project.plugins.withType(OspackageBintrayPublishPlugin) {
@@ -78,7 +77,7 @@ class SpinnakerProjectConventionsPlugin implements Plugin<Project> {
         project.repositories.jcenter()
         project.repositories.maven { MavenArtifactRepository repo ->
             repo.name = 'Bintray Spinnaker repo'
-            repo.url = 'https://dl.bintray.com/spinnaker/spinnaker'
+            repo.url = 'https://spinnaker.bintray.com/spinnaker'
         }
     }
 }
