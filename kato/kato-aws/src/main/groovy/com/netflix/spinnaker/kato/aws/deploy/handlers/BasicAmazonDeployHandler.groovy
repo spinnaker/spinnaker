@@ -107,8 +107,9 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         }
       }
 
-      if (!description.blockDevices) {
-        description.blockDevices = BlockDeviceConfig.blockDevicesByInstanceType[description.instanceType]
+      def blockDeviceMappingForInstanceType = BlockDeviceConfig.blockDevicesByInstanceType[description.instanceType]
+      if (blockDeviceMappingForInstanceType) {
+        description.blockDevices = blockDeviceMappingForInstanceType
       }
 
       // find by 1) result of a previous step (we performed allow launch)
