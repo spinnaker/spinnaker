@@ -17,13 +17,19 @@
 package com.netflix.spinnaker.gradle.ospackage
 
 import com.jfrog.bintray.gradle.BintrayExtension
+import com.jfrog.bintray.gradle.BintrayHttpClientFactory
 import com.jfrog.bintray.gradle.BintrayPlugin
 import com.jfrog.bintray.gradle.BintrayUploadTask
 import com.netflix.gradle.plugins.deb.Deb
+import groovy.transform.Canonical
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.tasks.Upload
+
+import static groovyx.net.http.ContentType.JSON
+import static groovyx.net.http.Method.POST
 
 /**
  * This is a workaround for:
@@ -85,11 +91,48 @@ class OspackageBintrayPublishPlugin implements Plugin<Project> {
             }
             buildDebPublish.group = BintrayUploadTask.GROUP
             project.rootProject.tasks.release.dependsOn(buildDebPublish)
+            def publishAllVersions = project.rootProject.tasks.maybeCreate('publishAllBintrayVersions')
+            publishAllVersions.doFirst {
+                def publishes = project.tasks.findAll { it instanceof BintrayUploadTask }.collect { BintrayUploadTask task ->
+                    new PubVer(task.userOrg, task.repoName, task.packageName, task.versionName, task.apiUrl, task.user, task.apiKey)
+                }.unique()
+
+                for (PubVer pubVer : publishes) {
+                    def http = BintrayHttpClientFactory.create(pubVer.apiUrl, pubVer.apiUser, pubVer.apiKey)
+                    String pubUri = "/content/$pubVer.org/$pubVer.repoName/$pubVer.packageName/$pubVer.version/publish"
+                    http.request(POST, JSON) {
+                        uri.path = pubUri
+                        response.success = { resp ->
+                            logger.info("Published '$pubUri'.")
+                        }
+                        response.failure = { resp, reader ->
+                            throw new GradleException("Could not publish '$pkgPath/$versionName': $resp.statusLine $reader")
+                        }
+                    }
+
+                }
+            }
             project.gradle.taskGraph.whenReady { TaskExecutionGraph graph ->
                 buildDebPublish.onlyIf {
                     graph.hasTask(':final') || graph.hasTask(':candidate')
                 }
+                publishAllVersions.onlyIf {
+                    graph.allTasks.find { it instanceof BintrayUploadTask && it.enabled } &&
+                       (graph.hasTask(':final') || graph.hasTask(':candidate'))
+                }
             }
+
         }
+    }
+
+    @Canonical
+    private static class PubVer {
+        String org
+        String repoName
+        String packageName
+        String version
+        String apiUrl
+        String apiUser
+        String apiKey
     }
 }
