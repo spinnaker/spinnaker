@@ -95,7 +95,7 @@ function set_default_region() {
           DEFAULT_REGION="us-west-2"
           ;;
       g|gce|google)
-          DEFAULT_REGION="us-central1-b"
+          DEFAULT_REGION="us-central1"
           ;;
     esac
   fi
