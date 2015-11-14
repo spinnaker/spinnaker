@@ -37,6 +37,9 @@ class DockerBakeHandlerSpec extends Specification {
   private static final String DEBIAN_REPOSITORY = "http://some-debian-repository"
 
   @Shared
+  String configDir = "/some/path"
+
+  @Shared
   RoscoDockerConfiguration.DockerBakeryDefaults dockerBakeryDefaults
 
   void setupSpec() {
@@ -139,11 +142,13 @@ class DockerBakeHandlerSpec extends Specification {
         docker_target_image: targetImageName,
         docker_target_repository: TARGET_REPOSITORY,
         deb_repo: DEBIAN_REPOSITORY,
-        packages: PACKAGE_NAME
+        packages: PACKAGE_NAME,
+        configDir: configDir
       ]
 
       @Subject
-      DockerBakeHandler dockerBakeHandler = new DockerBakeHandler(dockerBakeryDefaults: dockerBakeryDefaults,
+      DockerBakeHandler dockerBakeHandler = new DockerBakeHandler(configDir: configDir,
+                                                                  dockerBakeryDefaults: dockerBakeryDefaults,
                                                                   imageNameFactory: imageNameFactoryMock,
                                                                   packerCommandFactory: packerCommandFactoryMock,
                                                                   debianRepository: DEBIAN_REPOSITORY)
@@ -155,7 +160,7 @@ class DockerBakeHandlerSpec extends Specification {
       1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest) >> [targetImageName, null, PACKAGE_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND,
                                                       parameterMap,
-                                                      dockerBakeryDefaults.templateFile)
+                                                      "$configDir/$dockerBakeryDefaults.templateFile")
   }
 
   void 'produces packer command with all required parameters for trusty'() {
@@ -172,11 +177,13 @@ class DockerBakeHandlerSpec extends Specification {
         docker_target_image: targetImageName,
         docker_target_repository: TARGET_REPOSITORY,
         deb_repo: DEBIAN_REPOSITORY,
-        packages: PACKAGE_NAME
+        packages: PACKAGE_NAME,
+        configDir: configDir
       ]
 
       @Subject
-      DockerBakeHandler dockerBakeHandler = new DockerBakeHandler(dockerBakeryDefaults: dockerBakeryDefaults,
+      DockerBakeHandler dockerBakeHandler = new DockerBakeHandler(configDir: configDir,
+                                                                  dockerBakeryDefaults: dockerBakeryDefaults,
                                                                   imageNameFactory: imageNameFactoryMock,
                                                                   packerCommandFactory: packerCommandFactoryMock,
                                                                   debianRepository: DEBIAN_REPOSITORY)
@@ -188,7 +195,7 @@ class DockerBakeHandlerSpec extends Specification {
       1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest) >> [targetImageName, null, PACKAGE_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND,
                                                       parameterMap,
-                                                      dockerBakeryDefaults.templateFile)
+                                                      "$configDir/$dockerBakeryDefaults.templateFile")
   }
 
   void 'produces packer command with all required parameters including appversion and build_host for trusty'() {
@@ -210,12 +217,14 @@ class DockerBakeHandlerSpec extends Specification {
         docker_target_repository: TARGET_REPOSITORY,
         deb_repo: DEBIAN_REPOSITORY,
         packages: fullyQualifiedPackageName,
+        configDir: configDir,
         appversion: appVersionStr,
         build_host: buildHost
       ]
 
       @Subject
-      DockerBakeHandler dockerBakeHandler = new DockerBakeHandler(dockerBakeryDefaults: dockerBakeryDefaults,
+      DockerBakeHandler dockerBakeHandler = new DockerBakeHandler(configDir: configDir,
+                                                                  dockerBakeryDefaults: dockerBakeryDefaults,
                                                                   imageNameFactory: imageNameFactoryMock,
                                                                   packerCommandFactory: packerCommandFactoryMock,
                                                                   debianRepository: DEBIAN_REPOSITORY)
@@ -228,7 +237,7 @@ class DockerBakeHandlerSpec extends Specification {
         [targetImageName, appVersionStr, fullyQualifiedPackageName]
       1 * packerCommandFactoryMock.buildPackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND,
                                                       parameterMap,
-                                                      dockerBakeryDefaults.templateFile)
+                                                      "$configDir/$dockerBakeryDefaults.templateFile")
   }
 
   void 'throws exception when virtualization settings are not found for specified operating system'() {

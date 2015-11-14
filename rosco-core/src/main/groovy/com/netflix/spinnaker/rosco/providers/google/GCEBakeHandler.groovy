@@ -64,13 +64,18 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
       throw new IllegalArgumentException("No Google account specified for bakery.")
     }
 
-    return [
+    def parameterMap = [
       gce_project_id:   managedGoogleAccount.project,
-      gce_account_file: managedGoogleAccount.jsonPath,
       gce_zone:         gceBakeryDefaults.zone,
       gce_source_image: gceVirtualizationSettings.sourceImage,
       gce_target_image: imageName
     ]
+
+    if (managedGoogleAccount.jsonPath) {
+      parameterMap.gce_account_file = managedGoogleAccount.jsonPath
+    }
+
+    return parameterMap
   }
 
   @Override
