@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.kato.aws.deploy.AmiIdResolver
 import com.netflix.spinnaker.kato.aws.deploy.AutoScalingWorker
+import com.netflix.spinnaker.kato.aws.deploy.BlockDeviceConfig
 import com.netflix.spinnaker.kato.aws.deploy.ResolvedAmiResult
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerResult
@@ -107,12 +108,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       }
 
       if (!description.blockDevices) {
-        def blockDeviceConfig = deployDefaults.instanceClassBlockDevices.find {
-          it.handlesInstanceType(description.instanceType)
-        }
-        if (blockDeviceConfig) {
-          description.blockDevices = blockDeviceConfig.blockDevices
-        }
+        description.blockDevices = BlockDeviceConfig.blockDevicesByInstanceType[description.instanceType]
       }
 
       // find by 1) result of a previous step (we performed allow launch)
