@@ -52,6 +52,7 @@ class OspackageBintrayPublishPlugin implements Plugin<Project> {
                 from deb.archivePath
                 into '/'
             }
+            extension.filesSpec.dependsOn(deb)
             extension.publications = null
             extension.configurations = null
             String name = 'publish' + deb.name.charAt(0).toUpperCase() + deb.name.substring(1)
@@ -86,7 +87,7 @@ class OspackageBintrayPublishPlugin implements Plugin<Project> {
             }
 
             buildDebPublish.mustRunAfter('build')
-            buildDebPublish.dependsOn(deb)
+            buildDebPublish.dependsOn(deb, extension.filesSpec)
             Upload installTask = project.tasks.withType(Upload)?.findByName('install')
             if (installTask) {
                 buildDebPublish.dependsOn(installTask)
