@@ -19,12 +19,10 @@ package com.netflix.spinnaker.rosco.providers.aws.config
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
 import com.netflix.spinnaker.rosco.providers.aws.AWSBakeHandler
-import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -51,6 +49,8 @@ class RoscoAWSConfiguration {
   static class AWSBakeryDefaults {
     String awsAccessKey
     String awsSecretKey
+    String subnetId
+    String vpcId
     String templateFile
     BakeRequest.VmType defaultVirtualizationType
     List<AWSOperatingSystemVirtualizationSettings> operatingSystemVirtualizationSettings = []

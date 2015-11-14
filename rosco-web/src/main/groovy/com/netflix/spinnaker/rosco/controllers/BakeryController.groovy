@@ -24,6 +24,8 @@ import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
 import com.netflix.spinnaker.rosco.rush.api.RushService
 import com.netflix.spinnaker.rosco.rush.api.ScriptRequest
+import com.wordnik.swagger.annotations.ApiOperation
+import com.wordnik.swagger.annotations.ApiParam
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.*
@@ -61,6 +63,7 @@ class BakeryController {
       def bakeKey = cloudProviderBakeHandler.produceBakeKey(region, bakeRequest)
 
       if (rebake == "1") {
+        // TODO(duftler): Does it make sense to cancel here as well?
         bakeStore.deleteBakeByKey(bakeKey)
       } else {
         def existingBakeStatus = queryExistingBakes(bakeKey)
@@ -119,8 +122,10 @@ class BakeryController {
     throw new IllegalArgumentException("Unable to retrieve status for '$statusId'.")
   }
 
+  @ApiOperation(value = "Look up a bake", notes = "Some longer description of looking up a bake.")
   @RequestMapping(value = "/{region}/bake/{bakeId}", method = RequestMethod.GET)
-  Bake lookupBake(@PathVariable("region") String region, @PathVariable("bakeId") String bakeId) {
+  Bake lookupBake(@ApiParam(value="The region of the bake to lookup", required=true) @PathVariable("region") String region,
+                  @ApiParam(value="The id of the bake to lookup", required=true) @PathVariable("bakeId") String bakeId) {
     def bake = bakeStore.retrieveBakeDetailsById(bakeId)
 
     if (bake) {
@@ -171,8 +176,10 @@ class BakeryController {
   @RequestMapping(value = "/{region}/cancel/{statusId}", method = RequestMethod.GET)
   String cancelBake(@PathVariable("region") String region, @PathVariable("statusId") String statusId) {
     if (bakeStore.cancelBakeById(statusId)) {
-      return "Cancelled bake '$statusId'."
+      return "Canceled bake '$statusId'."
     }
+
+    // TODO(duftler): Instruct the scripting engine to kill the execution.
 
     throw new IllegalArgumentException("Unable to locate incomplete bake with id '$statusId'.")
   }

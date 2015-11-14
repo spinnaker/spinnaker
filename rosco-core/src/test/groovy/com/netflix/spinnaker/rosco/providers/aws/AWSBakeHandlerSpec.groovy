@@ -36,6 +36,9 @@ class AWSBakeHandlerSpec extends Specification {
   private static final String DEBIAN_REPOSITORY = "http://some-debian-repository"
 
   @Shared
+  String configDir = "/some/path"
+
+  @Shared
   RoscoAWSConfiguration.AWSBakeryDefaults awsBakeryDefaults
 
   void setupSpec() {
@@ -189,11 +192,13 @@ class AWSBakeHandlerSpec extends Specification {
         aws_source_ami: SOURCE_UBUNTU_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
         deb_repo: DEBIAN_REPOSITORY,
-        packages: PACKAGE_NAME
+        packages: PACKAGE_NAME,
+        configDir: configDir
       ]
 
       @Subject
-      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults,
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(configDir: configDir,
+                                                         awsBakeryDefaults: awsBakeryDefaults,
                                                          imageNameFactory: imageNameFactoryMock,
                                                          packerCommandFactory: packerCommandFactoryMock,
                                                          debianRepository: DEBIAN_REPOSITORY)
@@ -203,7 +208,7 @@ class AWSBakeHandlerSpec extends Specification {
 
     then:
       1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest) >> [targetImageName, null, PACKAGE_NAME]
-      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, awsBakeryDefaults.templateFile)
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
   void 'produces packer command with all required parameters for ubuntu, using explicit vm type'() {
@@ -225,11 +230,13 @@ class AWSBakeHandlerSpec extends Specification {
         aws_source_ami: SOURCE_UBUNTU_PV_IMAGE_NAME,
         aws_target_ami: targetImageName,
         deb_repo: DEBIAN_REPOSITORY,
-        packages: PACKAGE_NAME
+        packages: PACKAGE_NAME,
+        configDir: configDir
       ]
 
       @Subject
-      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults,
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(configDir: configDir,
+                                                         awsBakeryDefaults: awsBakeryDefaults,
                                                          imageNameFactory: imageNameFactoryMock,
                                                          packerCommandFactory: packerCommandFactoryMock,
                                                          debianRepository: DEBIAN_REPOSITORY)
@@ -239,7 +246,7 @@ class AWSBakeHandlerSpec extends Specification {
 
     then:
       1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest) >> [targetImageName, null, PACKAGE_NAME]
-      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, awsBakeryDefaults.templateFile)
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
   void 'produces packer command with all required parameters for trusty, using explicit vm type'() {
@@ -261,11 +268,13 @@ class AWSBakeHandlerSpec extends Specification {
         aws_source_ami: SOURCE_TRUSTY_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
         deb_repo: DEBIAN_REPOSITORY,
-        packages: PACKAGE_NAME
+        packages: PACKAGE_NAME,
+        configDir: configDir
       ]
 
       @Subject
-      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults,
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(configDir: configDir,
+                                                         awsBakeryDefaults: awsBakeryDefaults,
                                                          imageNameFactory: imageNameFactoryMock,
                                                          packerCommandFactory: packerCommandFactoryMock,
                                                          debianRepository: DEBIAN_REPOSITORY)
@@ -275,7 +284,7 @@ class AWSBakeHandlerSpec extends Specification {
 
     then:
       1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest) >> [targetImageName, null, PACKAGE_NAME]
-      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, awsBakeryDefaults.templateFile)
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
   void 'produces packer command with all required parameters including appversion and build_host for trusty'() {
@@ -302,12 +311,14 @@ class AWSBakeHandlerSpec extends Specification {
         aws_target_ami: targetImageName,
         deb_repo: DEBIAN_REPOSITORY,
         packages: fullyQualifiedPackageName,
+        configDir: configDir,
         appversion: appVersionStr,
         build_host: buildHost
       ]
 
       @Subject
-      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults,
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(configDir: configDir,
+                                                         awsBakeryDefaults: awsBakeryDefaults,
                                                          imageNameFactory: imageNameFactoryMock,
                                                          packerCommandFactory: packerCommandFactoryMock,
                                                          debianRepository: DEBIAN_REPOSITORY)
@@ -318,7 +329,7 @@ class AWSBakeHandlerSpec extends Specification {
     then:
       1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest) >>
         [targetImageName, appVersionStr, fullyQualifiedPackageName]
-      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, awsBakeryDefaults.templateFile)
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
   void 'throws exception when virtualization settings are not found for specified operating system'() {

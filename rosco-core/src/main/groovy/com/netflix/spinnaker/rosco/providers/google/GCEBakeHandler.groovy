@@ -19,8 +19,6 @@ package com.netflix.spinnaker.rosco.providers.google
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
-import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
-import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import com.netflix.spinnaker.rosco.providers.google.config.RoscoGoogleConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -33,6 +31,9 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
 
   @Autowired
   RoscoGoogleConfiguration.GCEBakeryDefaults gceBakeryDefaults
+
+  @Autowired
+  RoscoGoogleConfiguration.GoogleConfigurationProperties googleConfigurationProperties
 
   @Override
   String produceBakeKey(String region, BakeRequest bakeRequest) {
@@ -57,12 +58,24 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
 
   @Override
   Map buildParameterMap(String region, def gceVirtualizationSettings, String imageName) {
-    return [
-      gce_project_id:   gceBakeryDefaults.project,
+    RoscoGoogleConfiguration.ManagedGoogleAccount managedGoogleAccount = googleConfigurationProperties?.accounts?.getAt(0)
+
+    if (!managedGoogleAccount) {
+      throw new IllegalArgumentException("No Google account specified for bakery.")
+    }
+
+    def parameterMap = [
+      gce_project_id:   managedGoogleAccount.project,
       gce_zone:         gceBakeryDefaults.zone,
       gce_source_image: gceVirtualizationSettings.sourceImage,
       gce_target_image: imageName
     ]
+
+    if (managedGoogleAccount.jsonPath) {
+      parameterMap.gce_account_file = managedGoogleAccount.jsonPath
+    }
+
+    return parameterMap
   }
 
   @Override

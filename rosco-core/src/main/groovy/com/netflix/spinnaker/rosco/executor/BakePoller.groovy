@@ -91,6 +91,8 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
     )
   }
 
+  // TODO(duftler): Support retries here, or at least some number of regular-interval communication failures before
+  // considering the bake a failure.
   void updateBakeStatusAndLogs(String statusId) {
     try {
       ScriptExecution scriptExecution = rushService.scriptDetails(statusId).toBlocking().single()
@@ -111,7 +113,7 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
 
       bakeStore.updateBakeStatus(new BakeStatus(id: statusId,
                                                 resource_id: statusId,
-                                                state: BakeStatus.State.CANCELLED,
+                                                state: BakeStatus.State.CANCELED,
                                                 result: BakeStatus.Result.FAILURE))
     }
   }

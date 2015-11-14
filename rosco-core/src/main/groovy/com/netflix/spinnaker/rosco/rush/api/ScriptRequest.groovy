@@ -20,7 +20,7 @@ import groovy.transform.CompileStatic
 import groovy.transform.Immutable
 
 /**
- * A request to bake a new AMI.
+ * A request to bake a new machine image.
  *
  * @see RushService#runScript
  */

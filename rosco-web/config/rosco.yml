@@ -3,8 +3,8 @@ server:
 
 rush:
   baseUrl: http://localhost:8085
-  credentials: my-account-name
-  image: spinnaker/rosco
+  # TODO(duftler): Figure out the right way to set this dynamically.
+  configDir: /Users/duftler/spinnaker/rosco/rosco-web/config/packer
 
 executionStatusToBakeStates:
   associations:
@@ -14,10 +14,12 @@ executionStatusToBakeStates:
       bakeState: PENDING
     - executionStatus: RUNNING
       bakeState: RUNNING
+    - executionStatus: CANCELED
+      bakeState: CANCELED
     - executionStatus: SUCCESSFUL
       bakeState: COMPLETED
     - executionStatus: FAILED
-      bakeState: CANCELLED
+      bakeState: CANCELED
 
 executionStatusToBakeResults:
   associations:
@@ -33,15 +35,13 @@ defaultCloudProviderType: aws
 aws:
   enabled: ${AWS_ENABLED:false}
   bakeryDefaults:
-    # TODO(duftler): Make aws credentials-handling consistent with that of other spinnaker modules.
-    awsAccessKey: ${AWS_ACCESS_KEY:FOO}
-    awsSecretKey: ${AWS_SECRET_KEY:BAR}
     templateFile: aws-ebs.json
     defaultVirtualizationType: hvm
     operatingSystemVirtualizationSettings:
     # TODO(duftler): Identify proper base amis.
     # TODO(duftler): Support additional store types beyond ebs.
     # TODO(duftler): Support additional operating systems.
+    # TODO(duftler): Feels like just about everything here could be (optionally) specified per bake.
     - os: ubuntu
       virtualizationSettings:
       - region: us-east-1
@@ -84,16 +84,20 @@ google:
   enabled: ${GOOGLE_ENABLED:false}
   gce:
     bakeryDefaults:
-      # TODO(duftler): Parameterize the 'account_file' of the 'googlecompute' packer builder in the
-      # gce.json template. At the moment, this project name must match the project associated with
-      # the account.json file contained within the spinnaker/rosco image.
-      project: shared-spinnaker
-      zone: us-central1-a
+      zone: us-central1-f
       templateFile: gce.json
       operatingSystemVirtualizationSettings:
       - os: ubuntu
         virtualizationSettings:
-          sourceImage: ubuntu-1204-precise-v20141212
+          sourceImage: ubuntu-1204-precise-v20150910
       - os: trusty
         virtualizationSettings:
-          sourceImage: ubuntu-1404-trusty-v20141212
+          sourceImage: ubuntu-1404-trusty-v20150909a
+
+swagger:
+  enabled: true
+  title: Spinnaker Rosco API
+  description:
+  contact:
+  patterns:
+    - .*api/v1.*

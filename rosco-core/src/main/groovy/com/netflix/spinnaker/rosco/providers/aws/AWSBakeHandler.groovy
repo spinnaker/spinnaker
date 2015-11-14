@@ -70,15 +70,28 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
 
   @Override
   Map buildParameterMap(String region, def awsVirtualizationSettings, String imageName) {
-    return [
-      aws_access_key:    awsBakeryDefaults.awsAccessKey,
-      aws_secret_key:    awsBakeryDefaults.awsSecretKey,
+    def parameterMap = [
       aws_region:        region,
       aws_ssh_username:  awsVirtualizationSettings.sshUserName,
       aws_instance_type: awsVirtualizationSettings.instanceType,
       aws_source_ami:    awsVirtualizationSettings.sourceAmi,
       aws_target_ami:    imageName
     ]
+
+    if (awsBakeryDefaults.awsAccessKey && awsBakeryDefaults.awsSecretKey) {
+      parameterMap.aws_access_key = awsBakeryDefaults.awsAccessKey
+      parameterMap.aws_secret_key = awsBakeryDefaults.awsSecretKey
+    }
+
+    if (awsBakeryDefaults.subnetId) {
+      parameterMap.subnet_id = awsBakeryDefaults.subnetId
+    }
+
+    if (awsBakeryDefaults.vpcId) {
+      parameterMap.vpc_id = awsBakeryDefaults.vpcId
+    }
+
+    return parameterMap
   }
 
   @Override

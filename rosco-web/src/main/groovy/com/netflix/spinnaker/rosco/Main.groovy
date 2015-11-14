@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,8 @@ import javax.servlet.Filter
   "com.netflix.spinnaker.rosco.executor",
   "com.netflix.spinnaker.rosco.filters",
   "com.netflix.spinnaker.rosco.persistence",
-  "com.netflix.spinnaker.rosco.rush"
+  "com.netflix.spinnaker.rosco.rush",
+  "com.netflix.spinnaker.config"
 ])
 @Import([RoscoAWSConfiguration, RoscoDockerConfiguration, RoscoGoogleConfiguration])
 @EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration])

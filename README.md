@@ -1,3 +1,5 @@
-This module contains the necessary artifacts to launch [Docker](https://www.docker.com/) containers employing [Packer](https://packer.io/) to produce new vm images. It is intended to be used primarily via [rush](https://github.com/spinnaker/rush).
+Rosco is a bakery for use by Spinnaker to produce machine images.
 
-Please see the [wiki](https://github.com/spinnaker/rosco/wiki) for detailed instructions.
+It presently supports producing Google Compute Engine images and AWS amis. It relies on packer and can be easily extended to support additional platforms.
+
+It exposes a REST api which can be experimented with via the Swagger UI: http://localhost:8087/swagger/index.html

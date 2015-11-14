@@ -1,30 +1,32 @@
 {
   "variables": {
     "gce_project_id": null,
+    "gce_account_file": "",
     "gce_zone": null,
     "gce_source_image": null,
     "gce_target_image": null,
     "appversion": "",
     "build_host": "",
     "deb_repo": null,
-    "packages": ""
+    "packages": "",
+    "configDir": null
   },
   "builders": [{
     "type": "googlecompute",
-    "account_file": "account.json",
     "project_id": "{{user `gce_project_id`}}",
-    "source_image": "{{user `gce_source_image`}}",
+    "account_file": "{{user `gce_account_file`}}",
     "zone": "{{user `gce_zone`}}",
+    "source_image": "{{user `gce_source_image`}}",
     "image_name": "{{user `gce_target_image`}}",
     "image_description": "appversion: {{user `appversion`}}, build_host: {{user `build_host`}}"
   }],
   "provisioners": [{
     "type": "shell",
-    "inline": [
-      "sleep 30",
-      "echo \"deb {{user `deb_repo`}}\" | sudo tee /etc/apt/sources.list.d/spinnaker.list > /dev/null",
-      "sudo apt-get update",
-      "sudo apt-get install --force-yes -y {{user `packages`}}"
-    ]
+    "script": "{{user `configDir`}}/install_packages.sh",
+    "environment_vars": [
+      "deb_repo={{user `deb_repo`}}",
+      "packages={{user `packages`}}"
+    ],
+    "pause_before": "30s"
   }]
 }

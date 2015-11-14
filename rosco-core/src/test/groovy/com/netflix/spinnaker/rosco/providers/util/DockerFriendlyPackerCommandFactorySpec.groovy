@@ -19,10 +19,10 @@ package com.netflix.spinnaker.rosco.providers.util
 import spock.lang.Shared
 import spock.lang.Specification
 
-class DefaultPackerCommandFactorySpec extends Specification {
+class DockerFriendlyPackerCommandFactorySpec extends Specification {
 
   @Shared
-  DefaultPackerCommandFactory packerCommandFactory = new DefaultPackerCommandFactory()
+  DockerFriendlyPackerCommandFactory packerCommandFactory = new DockerFriendlyPackerCommandFactory()
 
   @Shared
   String templateFile = "some-packer-template.json"
