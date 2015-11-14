@@ -4,10 +4,10 @@ buildscript {
   }
   repositories {
     jcenter()
-    maven { url "http://dl.bintray.com/spinnaker/gradle" }
+    maven { url "http://spinnaker.bintray.com/gradle" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:2.3.0'
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:2.4.0'
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
   }
 }
@@ -15,10 +15,6 @@ buildscript {
 allprojects {
   apply plugin: 'spinnaker.project'
   apply plugin: 'groovy'
-  apply plugin: 'idea'
-
-  sourceCompatibility = 1.8
-  targetCompatibility = 1.8
 
   configurations.all {
     resolutionStrategy {

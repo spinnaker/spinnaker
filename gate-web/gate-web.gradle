@@ -8,8 +8,6 @@ tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
 
 apply plugin: 'spring-boot'
 apply plugin: 'nebula.ospackage'
-apply plugin: 'groovy'
-apply plugin: 'idea'
 
 dependencies {
   compile project(":gate-manual")
