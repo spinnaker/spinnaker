@@ -86,7 +86,6 @@ class OspackageBintrayPublishPlugin implements Plugin<Project> {
 
             buildDebPublish.mustRunAfter('build')
             buildDebPublish.dependsOn(deb)
-            buildDebPublish.dependsOn(spinnakerDebians.allArtifacts)
             Upload installTask = project.tasks.withType(Upload)?.findByName('install')
             if (installTask) {
                 buildDebPublish.dependsOn(installTask)
