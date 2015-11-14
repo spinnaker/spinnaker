@@ -23,8 +23,8 @@ providers:
     # set enabled and provide primary credentials for deploying.
     # Enabling google is independent of other providers.
     enabled: false
-    defaultRegion: us-central1
-    defaultZone: us-central1-f
+    defaultRegion: ${SPINNAKER_GOOGLE_ENABLED}
+    defaultZone: ${SPINNAKER_GOOGLE_DEFAULT_REGION}
     primaryCredentials:
       name: my-google-account
       # The project is the Google Project ID for the project to manage with Spinnaker.

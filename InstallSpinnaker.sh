@@ -40,7 +40,7 @@ fi
 
 function print_usage() {
   cat <<EOF
-usage: $0 [--cloud_provider <aws|gce>] [--default_region <region>]
+usage: $0 [--cloud_provider <amazon|google>] [--default_region <region>]
     [--quiet]
 
     If run with no arguments you will be prompted for cloud provider and region
@@ -104,7 +104,7 @@ function set_default_region() {
 
 process_args "$@"
 if [ "x$CLOUD_PROVIDER" == "x" ]; then
-  read -p "specify a cloud provider: (aws|gce|none) " CLOUD_PROVIDER
+  read -p "specify a cloud provider: (amazon|google|none) " CLOUD_PROVIDER
   CLOUD_PROVIDER=`echo $CLOUD_PROVIDER | tr '[:upper:]' '[:lower:]'`
   set_default_region
   read -e -p "specify default region: " -i "$DEFAULT_REGION" DEFAULT_REGION
@@ -174,10 +174,10 @@ if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" ]];
   case $CLOUD_PROVIDER in
      amazon)
         sed -i.bak -e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=true/" -e "s/SPINNAKER_AWS_DEFAULT_REGION.*$/SPINNAKER_AWS_DEFAULT_REGION=${DEFAULT_REGION}/" \
-        	-e "s/SPINNAKER_GCE_ENABLED=.*$/SPINNAKER_GCE_ENABLED=false/" /etc/default/spinnaker
+        	-e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=false/" /etc/default/spinnaker
         ;;
     google)
-        sed -i.bak -e "s/SPINNAKER_GCE_ENABLED=.*$/SPINNAKER_GCE_ENABLED=true/" -e "s/SPINNAKER_GCE_DEFAULT_REGION.*$/SPINNAKER_GCE_DEFAULT_REGION=${DEFAULT_REGION}/" \
+        sed -i.bak -e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=true/" -e "s/SPINNAKER_GOOGLE_DEFAULT_REGION.*$/SPINNAKER_GOOGLE_DEFAULT_REGION=${DEFAULT_REGION}/" \
         	-e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=false/" /etc/default/spinnaker
         ;;   amazon)
   esac
