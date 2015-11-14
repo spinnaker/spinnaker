@@ -36,7 +36,6 @@ import com.netflix.spinnaker.kato.aws.deploy.AutoScalingWorker
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerResult
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
-import com.netflix.spinnaker.kato.aws.model.AmazonInstanceClassBlockDevice
 import com.netflix.spinnaker.kato.aws.services.AsgService
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory.RegionScopedProvider
@@ -75,7 +74,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
         getAmazonEC2() >> amazonEC2
       }
     }
-    def defaults = new KatoAWSConfig.DeployDefaults(iamRole: 'IamRole', instanceClassBlockDevices: [new AmazonInstanceClassBlockDevice(instanceClass: "m3", blockDevices: this.blockDevices)])
+    def defaults = new KatoAWSConfig.DeployDefaults(iamRole: 'IamRole')
     def credsRepo = new MapBackedAccountCredentialsRepository()
     credsRepo.save('baz', TestCredential.named('baz'))
     this.handler = new BasicAmazonDeployHandler(rspf, credsRepo, defaults)
