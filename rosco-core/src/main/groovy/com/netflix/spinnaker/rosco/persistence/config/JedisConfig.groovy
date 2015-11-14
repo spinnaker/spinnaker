@@ -29,12 +29,13 @@ import redis.clients.jedis.JedisPool
 class JedisConfig {
 
   @Bean
-  JedisPool jedisPool(@Value('${redis.host:localhost}') String redisHost, @Value('${redis.port:6379}') int redisPort) {
+  JedisPool jedisPool(@Value('${redis.connection:redis://localhost:6379}') String connection) {
+    RedisConnectionInfo connectionInfo = RedisConnectionInfo.parseConnectionUri(connection)
     GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig()
     poolConfig.setMaxTotal(100)
     poolConfig.setMinIdle(25)
     poolConfig.setMaxIdle(100)
-    new JedisPool(poolConfig, redisHost, redisPort)
+    new JedisPool(poolConfig, connectionInfo.host, connectionInfo.port)
   }
 
   @Bean
