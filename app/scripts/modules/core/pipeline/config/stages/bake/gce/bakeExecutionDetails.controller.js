@@ -22,6 +22,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.bake.gce.executio
         $scope.provider = $scope.stage.context.cloudProviderType || 'gce';
       });
 
+      $scope.rebakeControlEnabled = settings.feature.rebakeControlEnabled;
+
       $scope.bakeryDetailUrl = $interpolate(settings.bakeryDetailUrl);
     }
 
