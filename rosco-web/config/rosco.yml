@@ -89,10 +89,10 @@ google:
       operatingSystemVirtualizationSettings:
       - os: ubuntu
         virtualizationSettings:
-          sourceImage: ubuntu-1204-precise-v20141212
+          sourceImage: ubuntu-1204-precise-v20150910
       - os: trusty
         virtualizationSettings:
-          sourceImage: ubuntu-1404-trusty-v20141212
+          sourceImage: ubuntu-1404-trusty-v20150909a
 
 swagger:
   enabled: true
