@@ -80,9 +80,29 @@ ospackage {
   packageName = project.applicationName
   version = toVers(project.version.toString())
   release '3'
-  into "/opt/${project.applicationName}"
+
+  // installer scripts
+  postInstall = file('pkg_scripts/postInstall.sh')
+  postUninstall = file('pkg_scripts/postUninstall.sh')
+
   from "${project.buildDir}/install/${project.applicationName}"
+    into "/opt/${project.applicationName}"
+
+  from(file('etc/init/igor.conf')) {
+    into('/etc/init')
+    user = 'root'
+    permissionGroup = 'root'
+    fileType = CONFIG | NOREPLACE
+  }
+
+  from(file('etc/logrotate.d/igor')) {
+    into('/etc/logrotate.d')
+    user = 'root'
+    permissionGroup = 'root'
+    fileType = CONFIG | NOREPLACE
+  }
 }
+
 buildDeb {
   dependsOn installApp
 }
