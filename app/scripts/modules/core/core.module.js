@@ -81,6 +81,7 @@ module.exports = angular
     require('./notification/notifications.module.js'),
     require('./notification/types/email/email.notification.type.module.js'),
     require('./notification/types/hipchat/hipchat.notification.type.module.js'),
+    require('./notification/types/slack/slack.notification.type.module.js'),
     require('./notification/types/sms/sms.notification.type.module.js'),
 
     require('./pageTitle/pageTitle.service.js'),
