@@ -1,0 +1,16 @@
+# Spinnaker system defaults
+
+## Amazon
+
+# If you plan on using Amazon AWS set this to true
+SPINNAKER_AWS_ENABLED=false
+# Default region you desire to operate in
+SPINNAKER_AWS_DEFAULT_REGION=us-west-2
+
+## Google
+
+# If you plan on using Google Compute Engine set this to true
+SPINNAKER_GOOGLE_ENABLED=false
+# Default region you desire to operate in
+SPINNAKER_GOOGLE_DEFAULT_REGION=us-central1-b
+
