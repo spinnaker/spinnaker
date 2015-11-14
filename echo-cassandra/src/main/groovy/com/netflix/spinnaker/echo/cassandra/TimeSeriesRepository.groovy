@@ -41,7 +41,7 @@ import org.springframework.stereotype.Repository
 @SuppressWarnings(['PropertyName', 'LineLength'])
 class TimeSeriesRepository implements ApplicationListener<ContextRefreshedEvent> {
 
-    static final int TTL_DURATION = 10800
+    static final int TTL_DURATION = 1800
 
     @Autowired
     Keyspace keyspace
