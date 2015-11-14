@@ -26,9 +26,6 @@ import com.netflix.spinnaker.echo.scheduler.actions.pipeline.impl.PipelineTrigge
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-/**
- * @author sthadeshwar
- */
 class PipelineTriggerAction extends ActionSupport {
     static final Logger LOGGER = LoggerFactory.getLogger(PipelineTriggerAction)
 

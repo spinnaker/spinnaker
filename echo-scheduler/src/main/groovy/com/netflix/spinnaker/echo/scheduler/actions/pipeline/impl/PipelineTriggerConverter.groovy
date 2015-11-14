@@ -23,9 +23,6 @@ import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.PipelineTriggerAction
 
-/**
- * @author sthadeshwar
- */
 class PipelineTriggerConverter {
 
   static Map<String, String> toParameters(Pipeline pipeline, Trigger trigger) {

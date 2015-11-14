@@ -28,8 +28,7 @@ import org.springframework.stereotype.Component
  * need to use any of the beans, then those classes need to query this bean
  * factory and get the required beans. There are few ideas to improve this and this issue being tracked
  * here: https://github.com/spinnaker/scheduled-actions/issues/2
- * @author sthadeshwar
- */
+  */
 @Component
 @ConditionalOnExpression('${scheduler.enabled:false}')
 class ActionDependencies implements BeanFactoryAware {

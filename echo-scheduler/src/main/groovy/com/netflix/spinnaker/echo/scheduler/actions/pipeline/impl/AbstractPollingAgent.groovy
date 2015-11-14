@@ -24,9 +24,6 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
-/**
- * @author sthadeshwar
- */
 public abstract class AbstractPollingAgent {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractPollingAgent.class)

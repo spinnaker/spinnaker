@@ -28,9 +28,6 @@ import spock.lang.Specification
 
 import static com.netflix.spinnaker.echo.scheduler.actions.pipeline.impl.PipelineTriggerConverter.isInSync
 
-/**
- * @author sthadeshwar
- */
 class PipelineTriggerActionConverterSpec extends Specification {
     @Shared
     def pipeline = Pipeline
