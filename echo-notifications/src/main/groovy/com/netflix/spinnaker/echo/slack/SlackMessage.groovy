@@ -14,32 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.echo.api
 
-class Notification {
-  Type notificationType
-  Collection<String> to
-  String templateGroup
-  Severity severity
+package com.netflix.spinnaker.echo.slack
 
-  Source source
-  Map<String, Object> additionalContext = [:]
+class SlackMessage {
 
-  static class Source {
-    String executionType
-    String executionId
-    String application
-  }
+  String text
+  String channel
 
-  static enum Type {
-    HIPCHAT,
-    EMAIL,
-    SMS,
-    SLACK
-  }
-
-  static enum Severity {
-    NORMAL,
-    HIGH
-  }
 }
