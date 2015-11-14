@@ -112,6 +112,8 @@ class OspackageBintrayPublishPlugin implements Plugin<Project> {
 
                 }
             }
+            publishAllVersions.dependsOn(buildDebPublish)
+            project.rootProject.release.dependsOn(publishAllVersions)
             project.gradle.taskGraph.whenReady { TaskExecutionGraph graph ->
                 buildDebPublish.onlyIf {
                     graph.hasTask(':final') || graph.hasTask(':candidate')
