@@ -37,7 +37,10 @@ allprojects {
     spinnaker.group("test")
     compile spinnaker.dependency("bootActuator")
     compile spinnaker.dependency("groovy")
+    compile spinnaker.dependency("korkSwagger")
+    compile spinnaker.dependency("korkWeb")
   }
 }
+
 
 defaultTasks ':rosco-web:bootRun'

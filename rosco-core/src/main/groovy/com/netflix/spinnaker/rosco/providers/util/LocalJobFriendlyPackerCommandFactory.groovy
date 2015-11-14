@@ -16,11 +16,24 @@
 
 package com.netflix.spinnaker.rosco.providers.util
 
-interface PackerCommandFactory {
+class LocalJobFriendlyPackerCommandFactory implements PackerCommandFactory {
 
-  /**
-   * Serialize passed parameters into a tokenized command string suitable for launching packer via rush.
-   */
-  List<String> buildPackerCommand(String baseCommand, Map<String, String> parameterMap, String absoluteTemplateFilePath)
+  @Override
+  List<String> buildPackerCommand(String baseCommand, Map<String, String> parameterMap, String absoluteTemplateFilePath) {
+    def packerCommand = ["packer", "build", "-color=false"]
+
+    parameterMap.each { key, value ->
+      if (key && value) {
+        def keyValuePair = value.contains(" ") ? "$key=\"$value\"" : "$key=$value"
+
+        packerCommand << "-var"
+        packerCommand << keyValuePair.toString()
+      }
+    }
+
+    packerCommand << absoluteTemplateFilePath
+
+    packerCommand
+  }
 
 }

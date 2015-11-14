@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.rosco.providers.util
 
-class DefaultPackerCommandFactory implements PackerCommandFactory {
+class DockerFriendlyPackerCommandFactory implements PackerCommandFactory {
 
   @Override
   List<String> buildPackerCommand(String baseCommand, Map<String, String> parameterMap, String templateFile) {

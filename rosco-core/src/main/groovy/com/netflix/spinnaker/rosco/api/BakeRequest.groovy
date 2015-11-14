@@ -18,12 +18,13 @@ package com.netflix.spinnaker.rosco.api
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.google.gson.annotations.SerializedName
+import com.wordnik.swagger.annotations.ApiModelProperty
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
 import org.springframework.beans.factory.annotation.Value
 
 /**
- * A request to bake a new AMI.
+ * A request to bake a new machine image.
  *
  * @see BakeryController#createBake
  */
@@ -32,11 +33,17 @@ import org.springframework.beans.factory.annotation.Value
 class BakeRequest {
 
   String user
-  @JsonProperty("package") @SerializedName("package") String package_name
+  @ApiModelProperty("The package(s) to install") @JsonProperty("package") @SerializedName("package")
+  String package_name
+  @ApiModelProperty("The CI server")
   String build_host
+  @ApiModelProperty("The CI job")
   String job
+  @ApiModelProperty("The CI build number")
   String build_number
+  @ApiModelProperty("The commit hash of the CI build")
   String commit_hash
+  @ApiModelProperty("The target platform")
   CloudProviderType cloud_provider_type
   Label base_label
   OperatingSystem base_os

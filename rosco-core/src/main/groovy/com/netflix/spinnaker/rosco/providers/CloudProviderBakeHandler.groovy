@@ -25,6 +25,9 @@ import org.springframework.beans.factory.annotation.Value
 
 abstract class CloudProviderBakeHandler {
 
+  @Value('${rush.configDir}')
+  String configDir
+
   @Autowired
   ImageNameFactory imageNameFactory
 
@@ -102,7 +105,9 @@ abstract class CloudProviderBakeHandler {
       parameterMap.build_host = bakeRequest.build_host
     }
 
-    return packerCommandFactory.buildPackerCommand(baseCommand, parameterMap, templateFileName)
+    parameterMap.configDir = configDir
+
+    return packerCommandFactory.buildPackerCommand(baseCommand, parameterMap, "$configDir/$templateFileName")
   }
 
 }

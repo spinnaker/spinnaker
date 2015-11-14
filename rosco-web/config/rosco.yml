@@ -3,8 +3,8 @@ server:
 
 rush:
   baseUrl: http://localhost:8085
-  credentials: my-account-name
-  image: spinnaker/rosco
+  # TODO(duftler): Figure out the right way to set this dynamically.
+  configDir: /Users/duftler/spinnaker/rosco/rosco-web/config/packer
 
 executionStatusToBakeStates:
   associations:
@@ -14,10 +14,12 @@ executionStatusToBakeStates:
       bakeState: PENDING
     - executionStatus: RUNNING
       bakeState: RUNNING
+    - executionStatus: CANCELED
+      bakeState: CANCELED
     - executionStatus: SUCCESSFUL
       bakeState: COMPLETED
     - executionStatus: FAILED
-      bakeState: CANCELLED
+      bakeState: CANCELED
 
 executionStatusToBakeResults:
   associations:
@@ -34,6 +36,7 @@ aws:
   enabled: ${AWS_ENABLED:false}
   bakeryDefaults:
     # TODO(duftler): Make aws credentials-handling consistent with that of other spinnaker modules.
+    # TODO(duftler): Externalize this into a credentials block.
     awsAccessKey: ${AWS_ACCESS_KEY:FOO}
     awsSecretKey: ${AWS_SECRET_KEY:BAR}
     templateFile: aws-ebs.json
@@ -84,11 +87,9 @@ google:
   enabled: ${GOOGLE_ENABLED:false}
   gce:
     bakeryDefaults:
-      # TODO(duftler): Parameterize the 'account_file' of the 'googlecompute' packer builder in the
-      # gce.json template. At the moment, this project name must match the project associated with
-      # the account.json file contained within the spinnaker/rosco image.
+      # TODO(duftler): Externalize this into a credentials block.
       project: shared-spinnaker
-      zone: us-central1-a
+      zone: us-central1-f
       templateFile: gce.json
       operatingSystemVirtualizationSettings:
       - os: ubuntu
@@ -97,3 +98,11 @@ google:
       - os: trusty
         virtualizationSettings:
           sourceImage: ubuntu-1404-trusty-v20141212
+
+swagger:
+  enabled: true
+  title: Spinnaker Rosco API
+  description:
+  contact:
+  patterns:
+    - .*api/v1.*

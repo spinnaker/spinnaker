@@ -19,8 +19,6 @@ package com.netflix.spinnaker.rosco.providers.google
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
-import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
-import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import com.netflix.spinnaker.rosco.providers.google.config.RoscoGoogleConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -59,6 +57,8 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
   Map buildParameterMap(String region, def gceVirtualizationSettings, String imageName) {
     return [
       gce_project_id:   gceBakeryDefaults.project,
+      // TODO(duftler): Externalize this into a credentials block.
+      gce_account_file: "$configDir/account.json",
       gce_zone:         gceBakeryDefaults.zone,
       gce_source_image: gceVirtualizationSettings.sourceImage,
       gce_target_image: imageName

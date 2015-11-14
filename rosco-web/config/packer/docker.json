@@ -5,7 +5,8 @@
     "docker_target_image_tag": "latest",
     "docker_target_repository": null,
     "deb_repo": null,
-    "packages": ""
+    "packages": "",
+    "configDir": null
   },
   "builders": [{
     "type": "docker",
@@ -14,13 +15,12 @@
   }],
   "provisioners": [{
     "type": "shell",
-    "inline": [
-      "sleep 30",
-      "apt-get install sudo",
-      "echo \"deb {{user `deb_repo`}}\" | sudo tee /etc/apt/sources.list.d/spinnaker.list > /dev/null",
-      "sudo apt-get update",
-      "sudo apt-get install --force-yes -y {{user `packages`}}"
-    ]
+    "script": "{{user `configDir`}}/install_packages.sh",
+    "environment_vars": [
+      "deb_repo={{user `deb_repo`}}",
+      "packages={{user `packages`}}"
+    ],
+    "pause_before": "30s"
   }],
   "post-processors": [[
     {

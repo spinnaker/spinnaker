@@ -24,12 +24,14 @@ import com.netflix.spinnaker.rosco.persistence.RedisBackedBakeStore
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
 import com.netflix.spinnaker.rosco.providers.registry.DefaultCloudProviderBakeHandlerRegistry
 import com.netflix.spinnaker.rosco.providers.util.DefaultImageNameFactory
-import com.netflix.spinnaker.rosco.providers.util.DefaultPackerCommandFactory
+import com.netflix.spinnaker.rosco.providers.util.DockerFriendlyPackerCommandFactory
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
+import com.netflix.spinnaker.rosco.providers.util.LocalJobFriendlyPackerCommandFactory
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -69,8 +71,15 @@ class RoscoConfiguration {
   }
 
   @Bean
-  PackerCommandFactory packerCommandFactory() {
-    return new DefaultPackerCommandFactory()
+  @ConditionalOnMissingBean(PackerCommandFactory)
+  PackerCommandFactory localJobFriendlyPackerCommandFactory() {
+    return new LocalJobFriendlyPackerCommandFactory()
+  }
+
+  @Bean
+  @ConditionalOnProperty('rush.docker.enabled')
+  PackerCommandFactory dockerFriendlyPackerCommandFactory() {
+    return new DockerFriendlyPackerCommandFactory()
   }
 
   @Bean

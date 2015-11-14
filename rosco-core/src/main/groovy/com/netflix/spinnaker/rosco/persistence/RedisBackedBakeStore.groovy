@@ -308,7 +308,7 @@ class RedisBackedBakeStore implements BakeStore {
   public boolean cancelBakeById(String bakeId) {
     def bakeStatus = new BakeStatus(id: bakeId,
                                     resource_id: bakeId,
-                                    state: BakeStatus.State.CANCELLED,
+                                    state: BakeStatus.State.CANCELED,
                                     result: BakeStatus.Result.FAILURE)
     def bakeStatusJson = mapper.writeValueAsString(bakeStatus)
     def keyList = [bakeId, "allBakes:incomplete", "allBakes"]
