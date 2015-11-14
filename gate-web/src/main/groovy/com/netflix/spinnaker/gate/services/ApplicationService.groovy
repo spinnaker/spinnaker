@@ -34,6 +34,7 @@ import rx.Observable
 import rx.Scheduler
 import rx.schedulers.Schedulers
 
+import javax.annotation.PostConstruct
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
@@ -62,18 +63,25 @@ class ApplicationService {
 
   private AtomicReference<List<Map>> allApplicationsCache = new AtomicReference<>([])
 
-  ApplicationService() {
+  @PostConstruct
+  void startMonitoring() {
     Observable
       .timer(30000, TimeUnit.MILLISECONDS, scheduler)
       .repeat()
-      .subscribe({ Long interval -> tick() })
+      .subscribe({ Long interval ->
+      try {
+        tick()
+      } catch (e) {
+        log.error("Unable to refresh application list, reason: ${e.message}")
+      }
+    })
   }
 
   void tick() {
     log.info("Refreshing Application List")
 
-    def applicationListRetrievers = buildApplicationListRetrievers()
     def applications = HystrixFactory.newListCommand(GROUP, "getAll", {
+      def applicationListRetrievers = buildApplicationListRetrievers()
       List<Future<List<Map>>> futures = executorService.invokeAll(applicationListRetrievers)
       List<List<Map>> all = futures.collect { it.get() } // spread operator doesn't work here; no clue why.
       List<Map> flat = (List<Map>) all?.flatten()?.toList()
@@ -148,10 +156,17 @@ class ApplicationService {
   }
 
   private Collection<Callable<List<Map>>> buildApplicationListRetrievers() {
-    def globalAccounts = front50Service.credentials.findAll { it.global == true }.collect { it.name } as List<String>
-    return globalAccounts.collectMany { String globalAccount ->
-      [new ApplicationListRetriever(globalAccount, front50Service), new OortApplicationsRetriever(oortService)]
-    } as Collection<Callable<List<Map>>>
+    try {
+      def globalAccounts = front50Service.credentials.findAll { it.global == true }.collect { it.name } as List<String>
+      return globalAccounts.collectMany { String globalAccount ->
+        [new ApplicationListRetriever(globalAccount, front50Service), new OortApplicationsRetriever(oortService)]
+      } as Collection<Callable<List<Map>>>
+    } catch (e) {
+      log.warn("Unable to retrieve applications from front50, falling back to clouddriver (${e.message})")
+      return [
+        new OortApplicationsRetriever(oortService)
+      ]
+    }
   }
 
   private Collection<Callable<Map>> buildApplicationRetrievers(String applicationName) {
@@ -315,7 +330,7 @@ class ApplicationService {
         try {
           oort.applications
         } catch (RetrofitError e) {
-          if (e.response.status == 404) {
+          if (e.response?.status == 404) {
             return []
           } else {
             throw e
