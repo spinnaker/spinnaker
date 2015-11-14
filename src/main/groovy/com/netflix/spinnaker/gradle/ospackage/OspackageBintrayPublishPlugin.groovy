@@ -20,7 +20,6 @@ import com.jfrog.bintray.gradle.BintrayExtension
 import com.jfrog.bintray.gradle.BintrayHttpClientFactory
 import com.jfrog.bintray.gradle.BintrayPlugin
 import com.jfrog.bintray.gradle.BintrayUploadTask
-import com.jfrog.bintray.gradle.RecordingCopyTask
 import com.netflix.gradle.plugins.deb.Deb
 import groovy.transform.Canonical
 import org.gradle.api.GradleException
@@ -28,7 +27,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.tasks.Upload
-import org.gradle.util.ConfigureUtil
 
 import static groovyx.net.http.ContentType.JSON
 import static groovyx.net.http.Method.POST
@@ -47,21 +45,15 @@ class OspackageBintrayPublishPlugin implements Plugin<Project> {
         def packageExtension = project.extensions.create('bintrayPackage', OspackageBintrayExtension)
 
         project.tasks.withType(Deb) { Deb deb ->
+            def spinnakerDebians = project.configurations.maybeCreate('spinnakerDebians')
+            project.artifacts.add('spinnakerDebians', deb)
             def extension = (BintrayExtension) project.extensions.getByName('bintray')
-            extension.filesSpec {
-                from deb.archivePath
-                into '/'
-            }
-            extension.filesSpec.dependsOn(deb)
-            extension.publications = null
-            extension.configurations = null
-            String name = 'publish' + deb.name.charAt(0).toUpperCase() + deb.name.substring(1)
-            def buildDebPublish = project.tasks.create(name, BintrayUploadTask) { BintrayUploadTask task ->
+            def buildDebPublish = project.tasks.create("publish${deb.name}", BintrayUploadTask) { BintrayUploadTask task ->
                 task.with {
                     apiUrl = extension.apiUrl
                     user = extension.user
                     apiKey = extension.key
-                    filesSpec = extension.filesSpec
+                    configurations = ['spinnakerDebians']
                     publish = extension.publish
                     dryRun = extension.dryRun
                     userOrg = extension.pkg.userOrg ?: extension.user
@@ -87,7 +79,8 @@ class OspackageBintrayPublishPlugin implements Plugin<Project> {
             }
 
             buildDebPublish.mustRunAfter('build')
-            buildDebPublish.dependsOn(deb, extension.filesSpec)
+            buildDebPublish.dependsOn(deb)
+            buildDebPublish.dependsOn(spinnakerDebians.allArtifacts)
             Upload installTask = project.tasks.withType(Upload)?.findByName('install')
             if (installTask) {
                 buildDebPublish.dependsOn(installTask)
@@ -115,8 +108,6 @@ class OspackageBintrayPublishPlugin implements Plugin<Project> {
 
                 }
             }
-            publishAllVersions.dependsOn(buildDebPublish)
-            project.rootProject.tasks.release.dependsOn(publishAllVersions)
             project.gradle.taskGraph.whenReady { TaskExecutionGraph graph ->
                 buildDebPublish.onlyIf {
                     graph.hasTask(':final') || graph.hasTask(':candidate')
