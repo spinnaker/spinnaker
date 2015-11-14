@@ -135,13 +135,20 @@ class YamlBindings(object):
     return ''.join(result)
 
 def load_bindings(installed_config_dir, user_config_dir, only_if_local=False):
-    local_yml_path = os.path.join(user_config_dir, 'spinnaker-local.yml')
-    have_local = os.path.exists(local_yml_path)
+    user_local_yml_path = os.path.join(user_config_dir, 'spinnaker-local.yml')
+    install_local_yml_path = os.path.join(installed_config_dir,
+                                          'spinnaker-local.yml')
+
+    have_user_local = os.path.exists(user_local_yml_path)
+    have_install_local = os.path.exists(install_local_yml_path)
+    have_local = have_user_local or have_install_local
     if only_if_local and not have_local:
       return None
 
     bindings = YamlBindings()
     bindings.import_path(os.path.join(installed_config_dir, 'spinnaker.yml'))
-    if have_local:
-      bindings.import_path(local_yml_path)
+    if have_install_local:
+      bindings.import_path(install_local_yml_path)
+    if have_user_local:
+      bindings.import_path(user_local_yml_path)
     return bindings

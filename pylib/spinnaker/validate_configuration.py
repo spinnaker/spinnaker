@@ -61,6 +61,7 @@ class ValidateConfig(object):
 
     self.__bindings = configurator.bindings
     self.__user_config_dir = configurator.user_config_dir
+    self.__installation_config_dir = configurator.installation_config_dir
     self.__warnings = []
     self.__errors = []
 
@@ -78,11 +79,19 @@ class ValidateConfig(object):
     self.verify_external_dependencies()
     self.verify_security()
 
-    yml_path = os.path.join(os.environ.get('HOME', '/root'),
-                            '.spinnaker/spinnaker-local.yml')
-    if not os.path.exists(yml_path):
+    found_local = False   
+    for ymldir in [self.__user_config_dir, self.__installation_config_dir]:
+      yml_path = os.path.join(ymldir, 'spinnaker-local.yml')
+      if not os.path.exists(yml_path):
+        continue
+      found_local = True
+
+    if not found_local:
       self.__warnings.append(
-         'There is no custom configuration file "{path}"'.format(path=yml_path))
+          'There is no custom spinnaker-local.yml in either'
+          ' "{user}" or "{install}"'.format(
+               user=self.__user_config_dir,
+               install=self.__installation_config_dir))
 
     if self.__warnings:
       print ('{path} has non-fatal configuration warnings:\n   * {warnings}'
@@ -291,12 +300,13 @@ class ValidateConfig(object):
 
   def verify_security(self):
     """Verify the permissions on the sensitive configuration files."""
-    ok = self.verify_user_access_only(
-      self.__bindings.get('providers.google.primaryCredentials.jsonPath'))
-    ok = self.verify_user_access_only(
-        os.path.join(self.__user_config_dir, 'spinnaker-local.yml')) and ok
-    ok = self.verify_user_access_only(
-        os.path.join(os.environ.get('HOME', '/root'),'.aws/credentials')) and ok
+    ok = True
+    for path in [
+        self.__bindings.get('providers.google.primaryCredentials.jsonPath'),
+        os.path.join(self.__user_config_dir, 'spinnaker-local.yml'),
+        os.path.join(self.__installation_config_dir,'spinnaker-local.yml'),
+        os.path.join(os.environ.get('HOME', '/root'),'.aws/credentials')]:
+      ok = self.verify_user_access_only(path) and ok
     return ok
 
 if __name__ == '__main__':
