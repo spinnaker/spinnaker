@@ -35,16 +35,13 @@ defaultCloudProviderType: aws
 aws:
   enabled: ${AWS_ENABLED:false}
   bakeryDefaults:
-    # TODO(duftler): Make aws credentials-handling consistent with that of other spinnaker modules.
-    # TODO(duftler): Externalize this into a credentials block.
-    awsAccessKey: ${AWS_ACCESS_KEY:FOO}
-    awsSecretKey: ${AWS_SECRET_KEY:BAR}
     templateFile: aws-ebs.json
     defaultVirtualizationType: hvm
     operatingSystemVirtualizationSettings:
     # TODO(duftler): Identify proper base amis.
     # TODO(duftler): Support additional store types beyond ebs.
     # TODO(duftler): Support additional operating systems.
+    # TODO(duftler): Feels like just about everything here could be (optionally) specified per bake.
     - os: ubuntu
       virtualizationSettings:
       - region: us-east-1
@@ -87,8 +84,6 @@ google:
   enabled: ${GOOGLE_ENABLED:false}
   gce:
     bakeryDefaults:
-      # TODO(duftler): Externalize this into a credentials block.
-      project: shared-spinnaker
       zone: us-central1-f
       templateFile: gce.json
       operatingSystemVirtualizationSettings:

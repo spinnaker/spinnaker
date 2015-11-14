@@ -46,7 +46,6 @@ class RoscoGoogleConfiguration {
   }
 
   static class GCEBakeryDefaults {
-    String project
     String zone
     String templateFile
     List<GCEOperatingSystemVirtualizationSettings> operatingSystemVirtualizationSettings = []
@@ -66,4 +65,19 @@ class RoscoGoogleConfiguration {
     cloudProviderBakeHandlerRegistry.register(BakeRequest.CloudProviderType.gce, gceBakeHandler)
   }
 
+  @Bean
+  @ConfigurationProperties("google")
+  GoogleConfigurationProperties googleConfigurationProperties() {
+    new GoogleConfigurationProperties()
+  }
+
+  static class GoogleConfigurationProperties {
+    List<ManagedGoogleAccount> accounts = []
+  }
+
+  static class ManagedGoogleAccount {
+    String name
+    String project
+    String jsonPath
+  }
 }

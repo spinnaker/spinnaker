@@ -63,6 +63,7 @@ class BakeryController {
       def bakeKey = cloudProviderBakeHandler.produceBakeKey(region, bakeRequest)
 
       if (rebake == "1") {
+        // TODO(duftler): Does it make sense to cancel here as well?
         bakeStore.deleteBakeByKey(bakeKey)
       } else {
         def existingBakeStatus = queryExistingBakes(bakeKey)

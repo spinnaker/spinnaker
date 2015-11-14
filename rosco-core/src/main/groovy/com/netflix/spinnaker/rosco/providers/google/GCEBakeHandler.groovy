@@ -32,6 +32,9 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
   @Autowired
   RoscoGoogleConfiguration.GCEBakeryDefaults gceBakeryDefaults
 
+  @Autowired
+  RoscoGoogleConfiguration.GoogleConfigurationProperties googleConfigurationProperties
+
   @Override
   String produceBakeKey(String region, BakeRequest bakeRequest) {
     // TODO(duftler): Work through definition of uniqueness.
@@ -55,10 +58,15 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
 
   @Override
   Map buildParameterMap(String region, def gceVirtualizationSettings, String imageName) {
+    RoscoGoogleConfiguration.ManagedGoogleAccount managedGoogleAccount = googleConfigurationProperties?.accounts?.getAt(0)
+
+    if (!managedGoogleAccount) {
+      throw new IllegalArgumentException("No Google account specified for bakery.")
+    }
+
     return [
-      gce_project_id:   gceBakeryDefaults.project,
-      // TODO(duftler): Externalize this into a credentials block.
-      gce_account_file: "$configDir/account.json",
+      gce_project_id:   managedGoogleAccount.project,
+      gce_account_file: managedGoogleAccount.jsonPath,
       gce_zone:         gceBakeryDefaults.zone,
       gce_source_image: gceVirtualizationSettings.sourceImage,
       gce_target_image: imageName
