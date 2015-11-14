@@ -1,6 +1,5 @@
 apply plugin: 'spring-boot'
 apply plugin: 'nebula.ospackage'
-apply plugin: 'groovy'
 
 ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.spinnaker/")

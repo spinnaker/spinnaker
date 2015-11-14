@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-ext {
-  springBootVersion = "1.2.5.RELEASE"
-}
-
 buildscript {
   ext {
     springBootVersion = "1.2.5.RELEASE"
   }
   repositories {
     jcenter()
-    maven { url "http://dl.bintray.com/spinnaker/gradle" }
+    maven { url "http://spinnaker.bintray.com/gradle" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:2.2.0'
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:2.5.0'
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
   }
 }
@@ -35,17 +31,10 @@ buildscript {
 allprojects {
   group = "com.netflix.spinnaker.clouddriver"
   apply plugin: 'spinnaker.project'
-  apply plugin: 'idea'
   apply plugin: 'groovy'
-  bintray {
-    publish = true
-  }
 }
 
 subprojects { project ->
-
-  targetCompatibility = 1.8
-  sourceCompatibility = 1.8
 
   configurations {
     all {
