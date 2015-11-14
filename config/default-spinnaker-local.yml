@@ -22,15 +22,15 @@ providers:
     # If you want to deploy some services to Google Cloud Platform (google),
     # set enabled and provide primary credentials for deploying.
     # Enabling google is independent of other providers.
-    enabled: false
-    defaultRegion: us-central1
-    defaultZone: us-central1-f
+    enabled: ${SPINNAKER_GOOGLE_ENABLED}
+    defaultRegion: ${SPINNAKER_GOOGLE_DEFAULT_REGION}
+    defaultZone: ${SPINNAKER_GOOGLE_DEFAULT_REGION}-b
     primaryCredentials:
       name: my-google-account
       # The project is the Google Project ID for the project to manage with Spinnaker.
       # The jsonPath is a path to the JSON service credentials downloaded from the
       # Google Developer's Console.
-      project:
+      project: ${SPINNAKER_GOOGLE_PROJECT_ID}
       jsonPath:
 
 services:
