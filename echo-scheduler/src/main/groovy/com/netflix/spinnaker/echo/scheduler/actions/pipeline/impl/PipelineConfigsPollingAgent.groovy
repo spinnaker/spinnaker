@@ -33,7 +33,6 @@ import org.springframework.stereotype.Component
 /**
  * This component does the polling of pipeline configs and does the CRUD operations on scheduled-actions
  * as needed
- * @author sthadeshwar
  */
 @Component
 @ConditionalOnExpression('${scheduler.enabled:false} && ${scheduler.pipelineConfigsPoller.enabled:true}')

@@ -22,9 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import spock.lang.Shared
 import spock.lang.Specification
 
-/**
- * @author sthadeshwar
- */
 class PipelineSpec extends Specification {
 
     @Shared ObjectMapper objectMapper = new ObjectMapper()

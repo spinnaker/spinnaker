@@ -40,9 +40,6 @@ import retrofit.client.OkClient
 
 import java.util.concurrent.TimeUnit
 
-/**
- * @author sthadeshwar
- */
 @Configuration
 @ConditionalOnExpression('${scheduler.enabled:false}')
 @ComponentScan(["com.netflix.spinnaker.echo.scheduler", "com.netflix.scheduledactions"])

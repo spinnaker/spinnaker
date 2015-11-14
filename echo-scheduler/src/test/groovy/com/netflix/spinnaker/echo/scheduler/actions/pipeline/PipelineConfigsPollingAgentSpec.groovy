@@ -26,9 +26,6 @@ import org.springframework.boot.actuate.metrics.CounterService
 import org.springframework.boot.actuate.metrics.GaugeService
 import spock.lang.Specification
 import spock.lang.Subject
-/**
- * @author sthadeshwar
- */
 class PipelineConfigsPollingAgentSpec extends Specification {
 
     def counterService = Stub(CounterService)
