@@ -237,6 +237,9 @@ def check_options(options):
     options [namespace]: The options from argparser.
   """
   install_runtime_dependencies.check_options(options)
+  if not options.spinnaker:
+      return
+
   check_release_dir(options)
   if (options.release_path.startswith('s3://')
       and not options.region):
@@ -249,7 +252,7 @@ def inject_spring_config_location(options, subsystem):
   This might be temporary. Once this is standardized perhaps the packages will
   already be shipped with this.
   """
-  if subsystem == "deck":
+  if subsystem in ['deck', 'spinnaker']:
     return
 
   path = os.path.join('/opt', subsystem, 'bin', subsystem)
@@ -352,14 +355,17 @@ def install_spinnaker(options):
 
   # Install all the dependency packages
   _install_spinnaker_packages_helper(options, bucket)
+  do_post_install(options)
 
+
+def do_post_install(options):
   spinnaker_dir = get_spinnaker_dir(options)
   install_dir = os.path.join(spinnaker_dir, 'install')
   script_dir = os.path.join(spinnaker_dir, 'scripts')
-  print 'Installing spinnaker package...'
 
   # Use chmod since +x is convienent.
   # Fork a shell to do the wildcard expansion.
+  print 'Finalizing Spinnaker install...'
   check_run_quick('sudo chmod +x {scripts}/*.sh'.format(scripts=script_dir))
   check_run_quick('sudo chmod +x {install}/*.sh'.format(install=install_dir))
 
@@ -413,6 +419,8 @@ def main():
       install_runtime_dependencies.install_apache(options)
 
   install_spinnaker(options)
+  return 0
+
 
 if __name__ == '__main__':
-     main()
+     sys.exit(main())
