@@ -19,6 +19,9 @@ dependencies {
   compile project(':kato:kato-web')
   compile project(':oort:oort-web')
   compile project(':mort:mort-web')
+
+  compile project(':clouddriver-azure')
+
   compile 'javax.ws.rs:jsr311-api:1.1.1'
   runtime spinnaker.dependency('kork')
   compile spinnaker.dependency('korkWeb')

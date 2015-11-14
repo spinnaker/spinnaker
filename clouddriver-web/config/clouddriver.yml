@@ -57,6 +57,17 @@ aws:
   # see prod profile section below for an example configuration to manage other accounts via STS assume role
   accounts: []
 
+azure:
+  enabled: ${AZURE_ENABLED:false}
+  defaults:
+
+  accounts:
+    - name: default
+      clientId: ${AZURE_CLIENT_ID}
+      appKey: ${AZURE_APPKEY}
+      tenantId: ${AZURE_TENANT_ID}
+      subscriptionId: ${AZURE_SUBSCRIPTION_ID}
+
 google:
   enabled: false
   defaults:
