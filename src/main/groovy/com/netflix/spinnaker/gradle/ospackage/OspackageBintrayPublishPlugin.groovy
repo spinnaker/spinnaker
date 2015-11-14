@@ -48,18 +48,19 @@ class OspackageBintrayPublishPlugin implements Plugin<Project> {
 
         project.tasks.withType(Deb) { Deb deb ->
             def extension = (BintrayExtension) project.extensions.getByName('bintray')
-            def buildDebPublish = project.tasks.create("publish${deb.name}", BintrayUploadTask) { BintrayUploadTask task ->
+            extension.filesSpec {
+                from deb.archivePath
+                into '/'
+            }
+            extension.publications = null
+            extension.configurations = null
+            String name = 'publish' + deb.name.charAt(0).toUpperCase() + deb.name.substring(1)
+            def buildDebPublish = project.tasks.create(name, BintrayUploadTask) { BintrayUploadTask task ->
                 task.with {
                     apiUrl = extension.apiUrl
                     user = extension.user
                     apiKey = extension.key
-                    RecordingCopyTask spec = project.task(type: RecordingCopyTask, RecordingCopyTask.NAME)
-                    ConfigureUtil.configure({
-                        from deb.archivePath
-                        into '/'
-                    }, spec)
-                    spec.outputs.upToDateWhen { false }
-                    filesSpec = spec
+                    filesSpec = extension.filesSpec
                     publish = extension.publish
                     dryRun = extension.dryRun
                     userOrg = extension.pkg.userOrg ?: extension.user
