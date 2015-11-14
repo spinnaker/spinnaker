@@ -17,10 +17,10 @@
 buildscript {
   repositories {
     jcenter()
-    maven { url "http://dl.bintray.com/spinnaker/gradle" }
+    maven { url "http://spinnaker.bintray.com/gradle" }
   }
   dependencies {
-    classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:2.2.0"
+    classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:2.5.0"
     classpath "org.springframework.boot:spring-boot-gradle-plugin:1.2.5.RELEASE"
   }
 }
@@ -64,10 +64,6 @@ allprojects {
 }
 
 subprojects {
-  plugins.withType(JavaPlugin) {
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-  }
   dependencies {
     spinnaker.group('spockBase')
     compile spinnaker.dependency('groovy')
