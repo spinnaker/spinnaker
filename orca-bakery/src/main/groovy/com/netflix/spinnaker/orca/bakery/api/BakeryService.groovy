@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.netflix.spinnaker.orca.bakery.api
 
 import retrofit.http.Body
 import retrofit.http.GET
 import retrofit.http.POST
 import retrofit.http.Path
+import retrofit.http.Query
 import rx.Observable
 
 /**
- * An interface to the Bakery's REST API. See {@link https://confluence.netflix.com/display/ENGTOOLS/Bakery+API}.
+ * An interface to the Bakery's REST API.
  */
 interface BakeryService {
 
   @POST("/api/v1/{region}/bake")
-  Observable<BakeStatus> createBake(@Path("region") String region, @Body BakeRequest bake)
+  Observable<BakeStatus> createBake(@Path("region") String region, @Body BakeRequest bake, @Query("rebake") String rebake)
 
   @GET("/api/v1/{region}/status/{statusId}")
   Observable<BakeStatus> lookupStatus(@Path("region") String region, @Path("statusId") String statusId)
