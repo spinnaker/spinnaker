@@ -17,5 +17,5 @@
 package com.netflix.spinnaker.clouddriver.security
 
 class NoopCredentialsInitializerSynchronizable implements CredentialsInitializerSynchronizable {
-  String credentialsSynchronizationBeanName = "noop"
+  String credentialsSynchronizationBeanName = null
 }

@@ -35,7 +35,9 @@ public class CredentialsRefreshListener implements ApplicationListener<ConfigRef
   @Override
   void onApplicationEvent(ConfigRefreshedEvent event) {
     for (CredentialsInitializerSynchronizable credentialsInitializer : credentialsInitializers) {
-      appContext.getBean(credentialsInitializer.credentialsSynchronizationBeanName)
+      if (credentialsInitializer.credentialsSynchronizationBeanName) {
+        appContext.getBean(credentialsInitializer.credentialsSynchronizationBeanName)
+      }
     }
   }
 }
