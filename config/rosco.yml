@@ -24,6 +24,5 @@ google:
       jsonPath: ${providers.google.primaryCredentials.jsonPath}
 
 rush:
-  credentials: ${services.rush.primaryAccount}
   baseUrl: ${services.rush.baseUrl:localhost:8085}
   configDir: ${services.rush.configDir}
