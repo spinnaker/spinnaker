@@ -45,4 +45,4 @@ Currently git credentials are used in Spinnaker pipelines to retrieve commit cha
 
 Igor requires redis server to be up and running.
 
-Start Igor via `./gradlew bootRun`. Or by following the instructions using the Spinnaker installation scripts.
+Start Igor via `./gradlew bootRun`. Or by following the instructions using the [Spinnaker installation scripts](https://www.github.com/spinnaker/spinnaker).
