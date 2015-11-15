@@ -19,6 +19,7 @@ echo:
   env_file: ./compose.env
   environment: 
     - "FRONT50_BASEURL=http://$DOCKER_IP:8080"
+    - "ORCA_BASEURL=http://$DOCKER_IP:8083"
     - "JAVA_OPTS=-javaagent:/opt/echo/lib/jamm-0.2.5.jar"
   image: spinnaker/echo
   ports: 
