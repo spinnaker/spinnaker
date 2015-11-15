@@ -165,9 +165,13 @@ echo "deb http://debian.datastax.com/community/ stable main" > /etc/apt/sources.
 
 # Java 8
 # https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa
+add-apt-repository -y ppa:openjdk-r/ppa
 
-add-apt-repository -y ppa:webupd8team/java
-echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
+# https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa
+# add-apt-repository -y ppa:webupd8team/java
+# echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
+
+
 # Spinnaker
 # DL Repo goes here
 # echo "deb http://dl.bintray.com/spinnaker/ospackages ./" > /etc/apt/sources.list.d/spinnaker.list
@@ -179,21 +183,27 @@ echo "deb $REPOSITORY_URL trusty spinnaker" > /etc/apt/sources.list.d/spinnaker-
 # Cassandra 2.x can ship with RPC disabeld to enable run "nodetool enablethrift"
 
 apt-get update
-apt-get install -y oracle-java8-installer
-apt-get install -y cassandra=2.1.11 cassandra-tools=2.1.11
 
+## Java
+# apt-get install -y oracle-java8-installer
+apt-get install -y openjdk-8-jdk
+## Cassandra
+apt-get install -y --force-yes cassandra=2.1.11 cassandra-tools=2.1.11
 # Let cassandra start
 sleep 5
 nodetool enablethrift
 # apt-get install dsc21
 
-# Install Packer
+## Packer
 apt-get install -y unzip
 wget https://releases.hashicorp.com/packer/0.8.6/packer_0.8.6_linux_amd64.zip 
-unzip packer_0.8.6_linux_amd64.zip -d /usr/bin
+unzip -q -f packer_0.8.6_linux_amd64.zip -d /usr/bin
 rm -f packer_0.8.6_linux_amd64.zip
 
+## Spinnaker
 apt-get install -y --force-yes --allow-unauthenticated spinnaker
+
+
 
 if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" || "${CLOUD_PROVIDER,,}" == "both" ]]; then
   case $CLOUD_PROVIDER in
@@ -213,6 +223,21 @@ if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" || 
 else
   echo "Not enabling a cloud provider"
 fi
+
+## Remove 
+if [ -z `getent group spinnaker` ]; then
+  groupadd spinnaker
+fi
+
+if [ -z `getent passwd spinnaker` ]; then
+  useradd --gid spinnaker -m --home-dir /home/spinnaker spinnaker
+fi
+
+if [ ! -d /home/spinnaker ]; then
+  mkdir -p /home/spinnaker/.aws
+  chown -R spinnaker:spinnaker /home/spinnaker
+fi
+##
 
 service clouddriver start
 service orca start
