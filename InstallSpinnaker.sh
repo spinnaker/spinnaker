@@ -42,8 +42,8 @@ fi
 
 function print_usage() {
   cat <<EOF
-usage: $0 [--cloud_provider <aws|gce|none|both>]
-    [--aws_region <region>] [--gce_region <region>]
+usage: $0 [--cloud_provider <aws|google|none|both>]
+    [--aws_region <region>] [--google_region <region>]
     [--quiet]
 
     If run with no arguments you will be prompted for cloud provider and region
@@ -54,7 +54,7 @@ usage: $0 [--cloud_provider <aws|gce|none|both>]
 
     --aws_region <arg>          default region for your chosen cloud provider
 
-    --gce_region <arg>          default region for your chosen cloud provider
+    --google_region <arg>          default region for your chosen cloud provider
 
     --quiet                     sets cloud provider to "none", you will need to
                                 edit /etc/default/spinnaker manually
@@ -77,8 +77,8 @@ function process_args() {
           AWS_REGION="$1"
           shift
           ;;
-      --gce_region)
-          GCE_REGION="$1"
+      --google_region)
+          GOOGLE_REGION="$1"
           shift
           ;;
       --repository)
@@ -88,7 +88,7 @@ function process_args() {
       --quiet|-q)
           CLOUD_PROVIDER="none"
           AWS_REGION="none"
-          GCE_REGION="none"
+          GOOGLE_REGION="none"
           shift
           ;;
       --help|-help|-h)
@@ -110,12 +110,12 @@ function set_aws_region() {
   AWS_REGION=`echo $AWS_REGION | tr '[:upper:]' '[:lower:]'`
 }
 
-function set_gce_region() {
-  if [ "x$GCE_REGION" == "x" ]; then
-    GCE_REGION="us-west-2"
-    read -e -p "specify GCE region: " -i "$GCE_REGION" GCE_REGION
+function set_google_region() {
+  if [ "x$GOOGLE_REGION" == "x" ]; then
+    GOOGLE_REGION="us-west-2"
+    read -e -p "specify Google region: " -i "$GOOGLE_REGION" GOOGLE_REGION
   fi
-  GCE_REGION=`echo $GCE_REGION | tr '[:upper:]' '[:lower:]'`
+  GOOGLE_REGION=`echo $GOOGLE_REGION | tr '[:upper:]' '[:lower:]'`
 }
 
 process_args "$@"
@@ -124,7 +124,7 @@ if [ "x$CLOUD_PROVIDER" == "x" ]; then
   read -p "specify a cloud provider: (aws|gce|none|both) " CLOUD_PROVIDER
   CLOUD_PROVIDER=`echo $CLOUD_PROVIDER | tr '[:upper:]' '[:lower:]'`
   set_aws_region
-  set_gce_region
+  set_google_region
 fi
 
 case $CLOUD_PROVIDER in
@@ -194,11 +194,11 @@ if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" || 
         	-e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=false/" /etc/default/spinnaker
         ;;
     google)
-        sed -i.bak -e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=true/" -e "s/SPINNAKER_GOOGLE_DEFAULT_REGION.*$/SPINNAKER_GOOGLE_DEFAULT_REGION=${GCE_REGION}/" \
+        sed -i.bak -e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=true/" -e "s/SPINNAKER_GOOGLE_DEFAULT_REGION.*$/SPINNAKER_GOOGLE_DEFAULT_REGION=${GOOGLE_REGION}/" \
         	-e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=false/" /etc/default/spinnaker
         ;;   amazon)
     both)
-        sed -i.bak -e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=true/" -e "s/SPINNAKER_GOOGLE_DEFAULT_REGION.*$/SPINNAKER_GOOGLE_DEFAULT_REGION=${GCE_REGION}/" \
+        sed -i.bak -e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=true/" -e "s/SPINNAKER_GOOGLE_DEFAULT_REGION.*$/SPINNAKER_GOOGLE_DEFAULT_REGION=${GOOGLE_REGION}/" \
         	-e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=true/"  -e "s/SPINNAKER_AWS_DEFAULT_REGION.*$/SPINNAKER_AWS_DEFAULT_REGION=${AWS_REGION}/" /etc/default/spinnaker
         ;;   amazon)
   esac
