@@ -207,5 +207,6 @@ echo "$STATUS_PREFIX  Cleaning Up"
 replace_startup_script
 
 echo "$STATUS_PREFIX  Starting Spinnaker"
+$SPINNAKER_INSTALL_DIR/scripts/stop_spinnaker.sh
 $SPINNAKER_INSTALL_DIR/scripts/start_spinnaker.sh
 echo "$STATUS_PREFIX  Spinnaker is now ready"
