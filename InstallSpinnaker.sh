@@ -121,7 +121,7 @@ function set_google_region() {
 process_args "$@"
 
 if [ "x$CLOUD_PROVIDER" == "x" ]; then
-  read -p "specify a cloud provider: (aws|gce|none|both) " CLOUD_PROVIDER
+  read -p "specify a cloud provider: (aws|google|none|both) " CLOUD_PROVIDER
   CLOUD_PROVIDER=`echo $CLOUD_PROVIDER | tr '[:upper:]' '[:lower:]'`
   set_aws_region
   set_google_region
@@ -138,7 +138,7 @@ case $CLOUD_PROVIDER in
       CLOUD_PROVIDER="none"
       ;;
   both|all)
-      CLOUD_PROVIDER="none"
+      CLOUD_PROVIDER="both"
       ;;
   *)
       echo "ERROR: invalid cloud provider '$CLOUD_PROVIDER'"
