@@ -13,6 +13,7 @@ group = "com.netflix.spinnaker.spinnaker"
 
 apply plugin: 'spinnaker.project'
 apply plugin: 'nebula.ospackage'
+apply plugin: 'java'
 
 String toVers(String v) {
   int idx = v.indexOf('-')
