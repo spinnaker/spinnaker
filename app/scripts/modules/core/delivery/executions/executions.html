@@ -70,6 +70,9 @@
     <div class="text-center" ng-if="!vm.viewState.loading && !vm.application.executions.length && !vm.application.pipelineConfigs.length">
       <h4>No pipelines configured for this application.</h4>
     </div>
+    <div class="text-center" ng-if="vm.application.executionsLoadFailure">
+      <h4>There was an error loading executions. We'll try again shortly.</h4>
+    </div>
     <execution-groups
         application="vm.application"
         ng-if="!vm.viewState.loading && (vm.application.executions.length || vm.application.pipelineConfigs.length)"></execution-groups>
