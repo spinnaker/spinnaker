@@ -48,8 +48,7 @@ class OspackageBintrayPublishPlugin implements Plugin<Project> {
             def spinnakerDebians = project.configurations.maybeCreate('spinnakerDebians')
             project.artifacts.add('spinnakerDebians', deb)
             def extension = (BintrayExtension) project.extensions.getByName('bintray')
-            String publishName = 'publish' + deb.name.charAt(0).toUpperCase() + deb.name.substring(1)
-            def buildDebPublish = project.tasks.create(publishName, BintrayUploadTask) { BintrayUploadTask task ->
+            def buildDebPublish = project.tasks.create("publish${deb.name}", BintrayUploadTask) { BintrayUploadTask task ->
                 task.with {
                     apiUrl = extension.apiUrl
                     user = extension.user
@@ -113,11 +112,11 @@ class OspackageBintrayPublishPlugin implements Plugin<Project> {
             project.rootProject.tasks.release.dependsOn(publishAllVersions)
             project.gradle.taskGraph.whenReady { TaskExecutionGraph graph ->
                 buildDebPublish.onlyIf {
-                    (project.hasProperty('force' + publishName) && (project.property('force' + publishName) as Boolean)) || graph.hasTask(':final') || graph.hasTask(':candidate')
+                    graph.hasTask(':final') || graph.hasTask(':candidate')
                 }
                 publishAllVersions.onlyIf {
                     graph.allTasks.find { it instanceof BintrayUploadTask && it.enabled } &&
-                       ((project.hasProperty('force' + publishName) && (project.property('force' + publishName) as Boolean)) || graph.hasTask(':final') || graph.hasTask(':candidate'))
+                       (graph.hasTask(':final') || graph.hasTask(':candidate'))
                 }
             }
 
