@@ -296,5 +296,19 @@
         </li>
       </ul>
     </collapsible-section>
+    <collapsible-section heading="Edda Links">
+      <ul>
+        <li>
+          <a target="_blank" ng-href="http://edda-main.{{serverGroup.region}}.{{serverGroup.account}}.netflix.net:7001/REST/v2/aws/autoScalingGroups/{{serverGroup.name}}">
+            ASG ({{serverGroup.name}})
+          </a>
+        </li>
+        <li>
+          <a target="_blank" ng-href="http://edda-main.{{serverGroup.region}}.{{serverGroup.account}}.netflix.net:7001/REST/v2/group/clusters/{{serverGroup.cluster}}">
+            Cluster ({{serverGroup.cluster}})
+          </a>
+        </li>
+      </ul>
+    </collapsible-section>
   </div>
 </div>
