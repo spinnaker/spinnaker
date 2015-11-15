@@ -30,7 +30,6 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
     }
 
     application.loadAllExecutions = true;
-    application.reloadExecutions();
     $scope.$on('$destroy', () => application.loadAllExecutions = false);
 
     this.InsightFilterStateModel = InsightFilterStateModel;
@@ -56,8 +55,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       triggeringExecution: false,
     };
 
-    let executionLoader = $q.defer();
-    $scope.$on('executions-reloaded', executionLoader.resolve);
+    let executionLoader = application.reloadExecutions(true);
 
     let configLoader = $q.when(null);
     if (application.pipelineConfigsLoading) {
@@ -66,9 +64,8 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       $scope.$on('pipelineConfigs-loaded', deferred.resolve);
     }
 
-    $q.all([executionLoader.promise, configLoader]).then(() => {
+    $q.all([executionLoader, configLoader]).then(() => {
       this.updateExecutionGroups();
-      this.viewState.loading = false;
       if ($stateParams.executionId) {
         scrollIntoView();
       }

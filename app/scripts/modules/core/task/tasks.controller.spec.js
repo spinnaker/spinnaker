@@ -9,8 +9,8 @@ describe('Controller: tasks', function () {
 
   controllerInjector = function (appData) {
     appData.registerAutoRefreshHandler = angular.noop;
-    appData.reloadTasks = angular.noop;
-    return function ($controller, $rootScope) {
+    return function ($controller, $rootScope, $q) {
+      appData.reloadTasks = () => $q.when(null);
       var viewStateCache = { createCache: function() { return { get: angular.noop, put: angular.noop }; }};
       scope = $rootScope.$new();
       controller = $controller('TasksCtrl', { app: appData, $scope: scope, viewStateCache: viewStateCache });
@@ -31,13 +31,11 @@ describe('Controller: tasks', function () {
 
   describe('initialization', function() {
     it('loading flag should be true', function() {
-      scope.$digest();
       expect(scope.viewState.loading).toBe(true);
     });
 
-    it('loading flag should be false when tasks reloaded is broadcast', function() {
+    it('loading flag should be false when tasks reloaded', function() {
       window.inject(controllerInjector({tasks: [] }));
-      scope.$broadcast('tasks-reloaded');
       scope.$digest();
       expect(scope.viewState.loading).toBe(false);
     });

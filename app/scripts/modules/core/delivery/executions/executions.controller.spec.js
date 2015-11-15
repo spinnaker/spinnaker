@@ -10,6 +10,7 @@ describe('Controller: pipelineExecutions', function () {
   var $state;
   var pipelineConfigService;
   var $q;
+  var $timeout;
 
   beforeEach(
     window.module(
@@ -18,12 +19,13 @@ describe('Controller: pipelineExecutions', function () {
   );
 
   beforeEach(
-    window.inject(function ($rootScope, $controller, _$state_, _pipelineConfigService_, _$q_) {
+    window.inject(function ($rootScope, $controller, _$state_, _pipelineConfigService_, _$q_, _$timeout_) {
       rootScope = $rootScope;
       scope = $rootScope.$new();
       $state = { go: angular.noop };
       pipelineConfigService = _pipelineConfigService_;
       $q = _$q_;
+      $timeout = _$timeout_;
 
       this.initializeController = function (application) {
         scope.application = application;
@@ -41,7 +43,7 @@ describe('Controller: pipelineExecutions', function () {
       name: 'foo',
       executionsLoaded: false,
       pipelineConfigsLoaded: false,
-      reloadExecutions: angular.noop,
+      reloadExecutions: () => $q.when(null),
     };
     spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when({ plain: function () {
       return [];
@@ -51,9 +53,10 @@ describe('Controller: pipelineExecutions', function () {
 
     expect(controller.viewState.loading).toBe(true);
 
-    rootScope.$broadcast('executions-reloaded');
     rootScope.$broadcast('pipelineConfigs-loaded');
     scope.$digest();
+    $timeout.flush();
+
     expect(controller.viewState.loading).toBe(false);
   });
 

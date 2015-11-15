@@ -80,8 +80,8 @@ module.exports = angular
           scope.$on('$destroy', () => dataLoader.dispose());
         }
 
-        function reloadTasks() {
-          if (application.tasksLoading) {
+        function reloadTasks(forceReload) {
+          if (application.tasksLoading && !forceReload) {
             $log.warn('tasks still loading, skipping reload');
             return $q.when(null);
           }
@@ -92,26 +92,28 @@ module.exports = angular
           return taskLoader
             .then(function(tasks) {
               addTasksToApplication(application, tasks);
-              if (!application.tasksLoaded) {
-                application.tasksLoaded = true;
-                $rootScope.$broadcast('tasks-loaded', application);
-              } else {
-                $rootScope.$broadcast('tasks-reloaded', application);
-              }
+              application.tasksLoaded = true;
               application.tasksLoading = false;
+              application.tasksLoadFailure = false;
+              if (application.tasksLoaded || forceReload) {
+                $rootScope.$broadcast('tasks-reloaded', application);
+              } else {
+                $rootScope.$broadcast('tasks-loaded', application);
+              }
             })
             .catch(function(rejection) {
               // Gate will send back a 429 error code (TOO_MANY_REQUESTS) and will be caught here
               // As a quick fix we are just adding an empty list to of tasks to the
-              // application, which will let the user know that no tasks where found for the app.
+              // application, which will let the user know that no tasks were found for the app.
               addTasksToApplication(application, []);
               $log.warn('Error retrieving [tasks]', rejection);
               application.tasksLoading = false;
+              application.tasksLoadFailure = true;
             });
         }
 
-        function reloadExecutions() {
-          if (application.executionsLoading) {
+        function reloadExecutions(forceReload) {
+          if (application.executionsLoading && !forceReload) {
             $log.warn('executions still loading, skipping reload');
             return $q.when(null);
           }
@@ -123,12 +125,13 @@ module.exports = angular
             .then(function(executions) {
               executionService.transformExecutions(application, executions);
               addExecutionsToApplication(application, executions);
+              application.executionsLoaded = true;
               application.executionsLoading = false;
-              if (!application.executionsLoaded) {
-                application.executionsLoaded = true;
-                $rootScope.$broadcast('executions-loaded', application);
-              } else {
+              application.executionsLoadFailure = false;
+              if (application.executionsLoaded || forceReload) {
                 $rootScope.$broadcast('executions-reloaded', application);
+              } else {
+                $rootScope.$broadcast('executions-loaded', application);
               }
             })
             .catch(function(rejection) {
@@ -136,6 +139,7 @@ module.exports = angular
               $log.warn('Error retrieving [executions]', rejection);
               $rootScope.$broadcast('executions-load-failure', application);
               application.executionsLoading = false;
+              application.executionsLoadFailure = true;
             });
         }
 
@@ -278,8 +282,10 @@ module.exports = angular
               executionService.getRunningExecutions(applicationName) :
             $q.when(null),
           tasksLoader = options && options.loadAllTasks ?
+            options.loadAllTasks ?
               taskReader.getTasks(applicationName) :
-              taskReader.getRunningTasks(applicationName);
+              taskReader.getRunningTasks(applicationName) :
+            $q.when(null);
 
       var application, securityGroupAccounts, loadBalancerAccounts, serverGroups;
 
@@ -289,8 +295,6 @@ module.exports = angular
         securityGroups: securityGroupsByApplicationNameLoader,
         loadBalancers: loadBalancerLoader,
         application: applicationLoader,
-        executions: executionsLoader,
-        tasks: tasksLoader,
       })
         .then(function(applicationLoader) {
           application = applicationLoader.application;
@@ -298,8 +302,6 @@ module.exports = angular
           // These attributes are stored as strings.
           application.attributes.platformHealthOnly = (application.attributes.platformHealthOnly === 'true');
           application.attributes.platformHealthOnlyShowOverride = (application.attributes.platformHealthOnlyShowOverride === 'true');
-
-          application.executionsLoading = false;
 
           application.lastRefresh = new Date().getTime();
           securityGroupAccounts = _(applicationLoader.securityGroups).pluck('account').unique().value();
@@ -311,14 +313,34 @@ module.exports = angular
             .value();
 
           if (options && options.tasks) {
-            addTasksToApplication(application, tasksLoader.tasks);
-            application.tasksLoaded = true;
+            tasksLoader.then(
+              (tasks) => {
+                addTasksToApplication(application, tasks);
+                application.tasksLoading = false;
+                application.tasksLoaded = true;
+                application.tasksLoadFailure = false;
+              },
+              () => {
+                application.tasksLoadFailure = true;
+                application.tasksLoading = false;
+              }
+            );
           }
 
           if (options && options.executions) {
-            executionService.transformExecutions(application, applicationLoader.executions);
-            addExecutionsToApplication(application, applicationLoader.executions);
-            application.executionsLoaded = true;
+            executionsLoader.then(
+              (executions) => {
+                executionService.transformExecutions(application, executions);
+                addExecutionsToApplication(application, executions);
+                application.executionsLoaded = true;
+                application.executionsLoadFailure = false;
+                application.executionsLoading = false;
+              },
+              () => {
+                application.executionsLoadFailure = true;
+                application.executionsLoading = false;
+              }
+            );
           }
 
           if (options && options.pipelineConfigs) {
