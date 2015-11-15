@@ -100,7 +100,7 @@ services:
     baseUrl: ${services.default.protocol}://${services.rush.host}:${services.rush.port}
     # You need to provide the fully-qualified path to the directory containing the packer templates.
     # They typically live in rosco's config/packer directory.
-    configDir:
+    configDir: /opt/rosco/config/packer
 
   bakery:
     host: ${services.rosco.host}
