@@ -1,9 +1,9 @@
 <parameter ng-repeat="parameter in pipeline.parameterConfig" parameter="parameter" pipeline="pipeline"></parameter>
 <div class="row">
-  <div class="col-md-12 text-center">
-    <span ng-if="!pipeline.parameterConfig.length">
+  <div class="col-md-12">
+    <p ng-if="!pipeline.parameterConfig.length">
       You don't have any parameters configured for {{pipeline.name}}.
-    </span>
+    </p>
     <button class="btn btn-block btn-add-trigger add-new" ng-click="parametersCtrl.addParameter()">
       <span class="glyphicon glyphicon-plus-sign"></span> Add Parameter
     </button>

@@ -1,11 +1,23 @@
+<div class="row pipeline-stage-config-heading">
+  <div class="col-md-8">
+    <h4 ng-bind="stage.name || '[new stage]'"></h4>
+    <p class="small" ng-if="stage.type"><strong>Stage type:</strong> {{label}}<br/> {{description}}</p>
+    <p class="small" ng-if="!stage.type">No stage type selected</p>
+  </div>
+  <div class="col-md-2 col-md-offset-2 text-right">
+    <button type="button" class="btn btn-sm btn-default" ng-click="pipelineConfigurerCtrl.removeStage(stage)">
+      <span class="glyphicon glyphicon-trash" uib-tooltip="Remove stage"></span> Remove stage
+    </button>
+  </div>
+</div>
 <div class="row panel-pipeline-phase no-border">
   <div class="col-md-12">
     <div class="form-horizontal">
-      <div class="form-group">
+      <div class="form-group" ng-if="stage.isNew">
         <div class="col-md-8 col-md-offset-1">
           <div class="row">
             <label class="col-md-3 sm-label-left">Type</label>
-            <div class="col-md-9" ng-if="stage.isNew">
+            <div class="col-md-9">
               <ui-select ng-model="options.selectedStageType"
                          style="width: 250px"
                          class="form-control input-sm"
@@ -18,21 +30,8 @@
                   <div>{{option.description}}</div>
                 </ui-select-choices>
               </ui-select>
-              {{ description }}
-            </div>
-            <div class="col-md-6" ng-if="!stage.isNew">
-              <p class="form-control-static" ng-if="!stage.isNew">
-                {{ label }}
-                <help-field content="{{description}}"></help-field>
-              </p>
             </div>
           </div>
-        </div>
-        <div class="col-md-1 col-md-offset-2">
-          <button type="button" class="btn-link" ng-click="pipelineConfigurerCtrl.removeStage(stage)">
-            <span class="glyphicon glyphicon-trash" uib-tooltip="Remove stage"></span><span
-              class="sr-only">Remove stage</span>
-          </button>
         </div>
       </div>
       <div class="form-group">
@@ -41,7 +40,7 @@
           <input type="text" class="form-control input-sm" required ng-model="stage.name"/>
         </div>
       </div>
-      <div class="form-group" ng-if="pipeline.parallel">
+      <div class="form-group" ng-if="pipeline.parallel" style="margin-bottom: 10px">
         <label class="col-md-2 col-md-offset-1 sm-label-left">
           Depends On
           <help-field key="pipeline.config.dependsOn"></help-field>
@@ -60,21 +59,23 @@
           </ui-select>
         </div>
       </div>
-      <div class="stage-details">
-        <div class="row">
-          <div class="stage-body"></div>
+      <div ng-show="stage.type">
+        <div class="stage-details">
+          <div class="row">
+            <div class="stage-body"></div>
+          </div>
         </div>
-      </div>
-      <div class="form-group" style="margin-top:20px">
-        <div class="col-md-2 col-md-offset-1 sm-label-left">Comments</div>
-        <div class="col-md-6">
-          <textarea class="form-control" ng-model="stage.comments" rows="3"
-                    placeholder="(Optional) anything that might be helpful to explain the purpose of this stage; HTML is okay"></textarea>
+        <div class="form-group" style="margin-top:20px">
+          <div class="col-md-2 col-md-offset-1 sm-label-left">Comments</div>
+          <div class="col-md-6">
+            <textarea class="form-control" ng-model="stage.comments" rows="3"
+                      placeholder="(Optional) anything that might be helpful to explain the purpose of this stage; HTML is okay"></textarea>
+          </div>
         </div>
+        <execution-windows stage="stage" ng-if="!pipeline.strategy"></execution-windows>
+        <override-timeout stage="stage"></override-timeout>
+        <notification-list level="stage" notifications="stage.notifications" parent="stage" ng-if="!pipeline.strategy"></notification-list>
       </div>
-      <execution-windows stage="stage" ng-if="!pipeline.strategy"></execution-windows>
-      <override-timeout stage="stage"></override-timeout>
-      <notification-list level="stage" notifications="stage.notifications" parent="stage" ng-if="!pipeline.strategy"></notification-list>
     </div>
   </div>
 </div>

@@ -18,8 +18,9 @@
 }
 
 .pipeline-footer {
-  margin-top: 0;
+  border-top: 1px solid @mid_light_grey;
   padding-top: 10px;
+  margin-top: 10px;
 
   .alert {
     display: inline-block;
@@ -35,7 +36,7 @@
 
 .pipeline-config {
   &.row {
-    border-bottom: 1px solid @light_grey;
+    border-bottom: 1px solid @mid_light_grey;
   }
 }
 
@@ -44,9 +45,14 @@ pipeline-configurer {
   display: block;
   padding: 15px;
   background-color: #ffffff;
-  border: 1px solid @light_grey;
+  border: 1px solid @mid_light_grey;
 
   .pipeline-config-heading {
+    margin-left: -15px;
+    margin-right: -15px;
+    padding: 0 15px;
+    border-bottom: 1px solid @mid_light_grey;
+    margin-bottom: 15px;
     h3 {
       margin-top: 0;
     }
@@ -54,7 +60,19 @@ pipeline-configurer {
 
   pipeline-config-view {
     display: block;
-    padding: 0 20px;
+    border-top: 1px solid @mid_light_grey;
+    margin-left: -15px;
+    margin-right: -15px;
+    padding: 15px 30px 0;
+  }
+
+  .pipeline-stage-config-heading {
+    margin-bottom: 15px;
+    padding-top: 10px;
+    h4 {
+      margin: 0;
+      font-weight: 600;
+    }
   }
 
   .stage-details {
@@ -142,7 +160,14 @@ triggers {
   h4 {
     font-weight: 600;
     margin-top: 25px;
-    margin-bottom: 0;
+    margin-bottom: 10px;
+  }
+  trigger {
+    display: block;
+    padding: 10px;
+    background-color: @lightest_grey;
+    border: 1px solid @lighter_grey;
+    margin-bottom: 15px;
   }
 }
 
@@ -206,19 +231,6 @@ pipeline-config-errors {
 }
 
 .pipeline-configurer {
-  @media (min-width: 768px) and (max-width: 992px) {
-    width: 768px;
-  }
-
-  @media (min-width: 992px) {
-    width: 792px;
-  }
-  @media (min-width: 1200px) {
-    width: 900px;
-  }
-  @media (min-width: 1400px) {
-    width: 1100px;
-  }
   .validation-warnings {
     position: relative;
     .glyphicon-exclamation-sign {
