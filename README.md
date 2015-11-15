@@ -24,6 +24,8 @@ jenkins:
       username: spindoctor
 ```
 
+Currently Jenkins is used within Spinnaker to trigger builds and provide artifact information for the bake stages. 
+
 ## Git Repositories
 
 ```
