@@ -105,7 +105,7 @@ class BakeryServiceSpec extends Specification {
     }
 
     expect: "createBake should return the status of the bake"
-    with(bakery.createBake(region, bake).toBlocking().first()) {
+    with(bakery.createBake(region, bake, null).toBlocking().first()) {
       id == statusId
       state == BakeStatus.State.PENDING
       resourceId == bakeId
@@ -129,7 +129,7 @@ class BakeryServiceSpec extends Specification {
     }
 
     expect: "createBake should return the status of the bake"
-    with(bakery.createBake(region, bake).toBlocking().first()) {
+    with(bakery.createBake(region, bake, null).toBlocking().first()) {
       id == statusId
       state == BakeStatus.State.RUNNING
       resourceId == bakeId // TODO: would we actually get a bake id if it was incomplete?
