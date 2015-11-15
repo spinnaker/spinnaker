@@ -155,17 +155,17 @@ esac
 # Redis
 # https://launchpad.net/~chris-lea/+archive/ubuntu/redis-server
 
-add-apt-repository -y ppa:chris-lea/redis-server
+sudo add-apt-repository -y ppa:chris-lea/redis-server
 
 # Cassandra
 # http://docs.datastax.com/en/cassandra/2.1/cassandra/install/installDeb_t.html
 
 curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add -
-echo "deb http://debian.datastax.com/community/ stable main" > /etc/apt/sources.list.d/datastax.list
+echo "deb http://debian.datastax.com/community/ stable main" | sudo tee /etc/apt/sources.list.d/datastax.list > /dev/null
 
 # Java 8
 # https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa
-add-apt-repository -y ppa:openjdk-r/ppa
+sudo add-apt-repository -y ppa:openjdk-r/ppa
 
 # https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa
 # add-apt-repository -y ppa:webupd8team/java
@@ -176,47 +176,47 @@ add-apt-repository -y ppa:openjdk-r/ppa
 # DL Repo goes here
 # echo "deb http://dl.bintray.com/spinnaker/ospackages ./" > /etc/apt/sources.list.d/spinnaker.list
 # echo 'deb http://jenkins.staypuft.kenzan.com:8000/ trusty main' > /etc/apt/sources.list.d/spinnaker-dev.list
-echo "deb $REPOSITORY_URL trusty spinnaker" > /etc/apt/sources.list.d/spinnaker-dev.list
+echo "deb $REPOSITORY_URL trusty spinnaker" | sudo tee /etc/apt/sources.list.d/spinnaker-dev.list > /dev/null
 
 ## Install software
 # "service cassandra status" is currently broken in Ubuntu grep in the script is grepping for things that do not exist
 # Cassandra 2.x can ship with RPC disabeld to enable run "nodetool enablethrift"
 
-apt-get update
+sudo apt-get update
 
 ## Java
 # apt-get install -y oracle-java8-installer
-apt-get install -y openjdk-8-jdk
+sudo apt-get install -y openjdk-8-jdk
 ## Cassandra
-apt-get install -y --force-yes cassandra=2.1.11 cassandra-tools=2.1.11
+sudo apt-get install -y --force-yes cassandra=2.1.11 cassandra-tools=2.1.11
 # Let cassandra start
 sleep 5
 nodetool enablethrift
 # apt-get install dsc21
 
 ## Packer
-apt-get install -y unzip
+sudo apt-get install -y unzip
 wget https://releases.hashicorp.com/packer/0.8.6/packer_0.8.6_linux_amd64.zip 
 unzip -q -f packer_0.8.6_linux_amd64.zip -d /usr/bin
 rm -f packer_0.8.6_linux_amd64.zip
 
 ## Spinnaker
-apt-get install -y --force-yes --allow-unauthenticated spinnaker
+sudo apt-get install -y --force-yes --allow-unauthenticated spinnaker
 
 
 
 if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" || "${CLOUD_PROVIDER,,}" == "both" ]]; then
   case $CLOUD_PROVIDER in
     amazon)
-        sed -i.bak -e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=true/" -e "s/SPINNAKER_AWS_DEFAULT_REGION.*$/SPINNAKER_AWS_DEFAULT_REGION=${AWS_REGION}/" \
+        sudo sed -i.bak -e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=true/" -e "s/SPINNAKER_AWS_DEFAULT_REGION.*$/SPINNAKER_AWS_DEFAULT_REGION=${AWS_REGION}/" \
         	-e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=false/" /etc/default/spinnaker
         ;;
     google)
-        sed -i.bak -e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=true/" -e "s/SPINNAKER_GOOGLE_DEFAULT_REGION.*$/SPINNAKER_GOOGLE_DEFAULT_REGION=${GOOGLE_REGION}/" \
+        sudo sed -i.bak -e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=true/" -e "s/SPINNAKER_GOOGLE_DEFAULT_REGION.*$/SPINNAKER_GOOGLE_DEFAULT_REGION=${GOOGLE_REGION}/" \
         	-e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=false/" /etc/default/spinnaker
         ;;
     both)
-        sed -i.bak -e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=true/" -e "s/SPINNAKER_GOOGLE_DEFAULT_REGION.*$/SPINNAKER_GOOGLE_DEFAULT_REGION=${GOOGLE_REGION}/" \
+        sudo sed -i.bak -e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=true/" -e "s/SPINNAKER_GOOGLE_DEFAULT_REGION.*$/SPINNAKER_GOOGLE_DEFAULT_REGION=${GOOGLE_REGION}/" \
         	-e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=true/"  -e "s/SPINNAKER_AWS_DEFAULT_REGION.*$/SPINNAKER_AWS_DEFAULT_REGION=${AWS_REGION}/" /etc/default/spinnaker
         ;;
   esac
@@ -224,25 +224,25 @@ else
   echo "Not enabling a cloud provider"
 fi
 
-## Remove 
+## Remove
 if [ -z `getent group spinnaker` ]; then
-  groupadd spinnaker
+  sudo groupadd spinnaker
 fi
 
 if [ -z `getent passwd spinnaker` ]; then
-  useradd --gid spinnaker -m --home-dir /home/spinnaker spinnaker
+  sudo useradd --gid spinnaker -m --home-dir /home/spinnaker spinnaker
 fi
 
 if [ ! -d /home/spinnaker ]; then
-  mkdir -p /home/spinnaker/.aws
-  chown -R spinnaker:spinnaker /home/spinnaker
+  sudo mkdir -p /home/spinnaker/.aws
+  sudo chown -R spinnaker:spinnaker /home/spinnaker
 fi
 ##
 
-service clouddriver start
-service orca start
-service gate start
-service rush start
-service rosco start
-service front50 start
-service echo start
+sudo service clouddriver start
+sudo service orca start
+sudo service gate start
+sudo service rush start
+sudo service rosco start
+sudo service front50 start
+sudo service echo start
