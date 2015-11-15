@@ -1,14 +1,8 @@
-Front50 SimpleDB Service
+Spinnaker Application & Project Metadata Repository
 ------------------------------------
 
-This service fronts AWS SimpleDB. It is written using [Spring Boot][0]; it only fronts one SimpleDB table: RESOURCE_REGISTRY.
+This service fronts a Spinnaker datastore. By default it's Cassandra, however, it's intended that any datastore could work. Front50 written using [Spring Boot][0]. 
 
-Supported endpoints:
 
- * `GET` `/applications` returns all Application records.
- * `GET` `/applications/name/{name}` returns a single Application record (if found).
- * `PUT` `/applications` request body must be JSON document and will update an Application record (if found).
- * `POST` `/applications` request body must be JSON document and will create an Application record (if a name is provided).
- * `DELETE` `/applications/name/{name}` removed an Application record (if found).
 
 [0]:http://projects.spring.io/spring-boot/
