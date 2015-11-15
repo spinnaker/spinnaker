@@ -191,14 +191,14 @@ if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" || 
   case $CLOUD_PROVIDER in
      amazon)
         sed -i.bak -e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=true/" -e "s/SPINNAKER_AWS_DEFAULT_REGION.*$/SPINNAKER_AWS_DEFAULT_REGION=${AWS_REGION}/" \
-        	-e "s/SPINNAKER_GCE_ENABLED=.*$/SPINNAKER_GCE_ENABLED=false/" /etc/default/spinnaker
+        	-e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=false/" /etc/default/spinnaker
         ;;
     google)
-        sed -i.bak -e "s/SPINNAKER_GCE_ENABLED=.*$/SPINNAKER_GCE_ENABLED=true/" -e "s/SPINNAKER_GCE_DEFAULT_REGION.*$/SPINNAKER_GCE_DEFAULT_REGION=${GCE_REGION}/" \
+        sed -i.bak -e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=true/" -e "s/SPINNAKER_GOOGLE_DEFAULT_REGION.*$/SPINNAKER_GOOGLE_DEFAULT_REGION=${GCE_REGION}/" \
         	-e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=false/" /etc/default/spinnaker
         ;;   amazon)
     both)
-        sed -i.bak -e "s/SPINNAKER_GCE_ENABLED=.*$/SPINNAKER_GCE_ENABLED=true/" -e "s/SPINNAKER_GCE_DEFAULT_REGION.*$/SPINNAKER_GCE_DEFAULT_REGION=${GCE_REGION}/" \
+        sed -i.bak -e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=true/" -e "s/SPINNAKER_GOOGLE_DEFAULT_REGION.*$/SPINNAKER_GOOGLE_DEFAULT_REGION=${GCE_REGION}/" \
         	-e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=true/"  -e "s/SPINNAKER_AWS_DEFAULT_REGION.*$/SPINNAKER_AWS_DEFAULT_REGION=${AWS_REGION}/" /etc/default/spinnaker
         ;;   amazon)
   esac
