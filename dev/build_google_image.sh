@@ -14,6 +14,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-PYTHONPATH=$(dirname $0)/../pylib \
-python \
-$(dirname $0)/build_google_image.py "$@"
+VARS="-var 'install_path=$(dirname $0)/../InstallSpinnaker.sh'"
+
+function process_args() {
+  PROJECT_ID="ok"
+  while [[ $# > 0 ]]
+  do
+      local key="$1"
+      shift
+      local value="$1"
+      shift
+      VARS="$VARS -var '${key#--}=$value'"
+  done
+}
+  
+process_args "$@"
+
+eval "packer build $VARS $(dirname $0)/build_google_image.packer"
+
