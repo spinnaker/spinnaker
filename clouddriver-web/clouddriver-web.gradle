@@ -75,8 +75,8 @@ ospackage {
   from ("${project.buildDir}/install/${project.applicationName}")
 
 // installer scripts
-  postInstall = file('scripts/postInstall.sh')
-  postUninstall = file('scripts/postUninstall.sh')
+  postInstall = file('pkg_scripts/postInstall.sh')
+  postUninstall = file('pkg_scripts/postUninstall.sh')
 
   from(file('src/main/resources/clouddriver.conf')) {
     into('/etc/init')
