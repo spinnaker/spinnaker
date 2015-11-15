@@ -123,22 +123,25 @@ process_args "$@"
 if [ "x$CLOUD_PROVIDER" == "x" ]; then
   read -p "specify a cloud provider: (aws|google|none|both) " CLOUD_PROVIDER
   CLOUD_PROVIDER=`echo $CLOUD_PROVIDER | tr '[:upper:]' '[:lower:]'`
-  set_aws_region
-  set_google_region
+  
 fi
 
 case $CLOUD_PROVIDER in
   a|aws|amazon)
       CLOUD_PROVIDER="amazon"
+      set_aws_region
       ;;
   g|gce|google)
       CLOUD_PROVIDER="google"
+      set_google_region
       ;;
   n|no|none)
       CLOUD_PROVIDER="none"
       ;;
   both|all)
       CLOUD_PROVIDER="both"
+      set_aws_region
+      set_google_region
       ;;
   *)
       echo "ERROR: invalid cloud provider '$CLOUD_PROVIDER'"
@@ -185,6 +188,7 @@ nodetool enablethrift
 # apt-get install dsc21
 
 # Install Packer
+apt-get install -y unzip
 wget https://releases.hashicorp.com/packer/0.8.6/packer_0.8.6_linux_amd64.zip 
 unzip packer_0.8.6_linux_amd64.zip -d /usr/bin
 rm -f packer_0.8.6_linux_amd64.zip
@@ -193,18 +197,18 @@ apt-get install -y --force-yes --allow-unauthenticated spinnaker
 
 if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" || "${CLOUD_PROVIDER,,}" == "both" ]]; then
   case $CLOUD_PROVIDER in
-     amazon)
+    amazon)
         sed -i.bak -e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=true/" -e "s/SPINNAKER_AWS_DEFAULT_REGION.*$/SPINNAKER_AWS_DEFAULT_REGION=${AWS_REGION}/" \
         	-e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=false/" /etc/default/spinnaker
         ;;
     google)
         sed -i.bak -e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=true/" -e "s/SPINNAKER_GOOGLE_DEFAULT_REGION.*$/SPINNAKER_GOOGLE_DEFAULT_REGION=${GOOGLE_REGION}/" \
         	-e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=false/" /etc/default/spinnaker
-        ;;   amazon)
+        ;;
     both)
         sed -i.bak -e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=true/" -e "s/SPINNAKER_GOOGLE_DEFAULT_REGION.*$/SPINNAKER_GOOGLE_DEFAULT_REGION=${GOOGLE_REGION}/" \
         	-e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=true/"  -e "s/SPINNAKER_AWS_DEFAULT_REGION.*$/SPINNAKER_AWS_DEFAULT_REGION=${AWS_REGION}/" /etc/default/spinnaker
-        ;;   amazon)
+        ;;
   esac
 else
   echo "Not enabling a cloud provider"

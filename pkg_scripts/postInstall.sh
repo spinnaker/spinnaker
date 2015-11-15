@@ -10,6 +10,8 @@ rm -rf /etc/apache2/sites-enabled/*.conf
 
 ln -s /etc/apache2/sites-available/spinnaker.conf /etc/apache2/sites-enabled/spinnaker.conf
 
+sed -i "s/Listen\ 80/Listen 9000/" ports.conf
+
 service apache2 restart
 
 # Install cassandra keyspaces
