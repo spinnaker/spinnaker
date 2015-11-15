@@ -45,6 +45,7 @@ class NotificationRepository implements ApplicationListener<ContextRefreshedEven
 
     static ColumnFamily<String, String> CF_NOTIFICATIONS
     static final String CF_NAME = 'notifications'
+    static final def NOTIFICATION_FORMATS = ['sms', 'email', 'hipchat', 'slack']
     ObjectMapper mapper = new ObjectMapper()
 
     @Override
@@ -91,7 +92,7 @@ class NotificationRepository implements ApplicationListener<ContextRefreshedEven
             notification = [email: []]
         }
         if (level == HierarchicalLevel.APPLICATION) {
-            ['sms', 'email', 'hipchat'].each {
+            NOTIFICATION_FORMATS.each {
                 if (getGlobal()."$it") {
                     if (!notification."${it}") {
                         notification."${it}" = []
@@ -108,7 +109,7 @@ class NotificationRepository implements ApplicationListener<ContextRefreshedEven
     }
 
     void save(HierarchicalLevel level, String name, Map notification) {
-        ['sms', 'email', 'hipchat'].each {
+        NOTIFICATION_FORMATS.each {
             if (notification."$it"?.size()) {
                 notification."$it".each { it.level = level.toString().toLowerCase() }
             }
