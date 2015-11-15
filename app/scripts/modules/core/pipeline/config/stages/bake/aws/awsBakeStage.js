@@ -23,7 +23,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.bakeStage', [
       ],
     });
   })
-  .controller('awsBakeStageCtrl', function($scope, bakeryService, $q, _, authenticationService) {
+  .controller('awsBakeStageCtrl', function($scope, bakeryService, $q, _, authenticationService, settings) {
 
     var stage = $scope.stage;
 
@@ -74,6 +74,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.bakeStage', [
         if (!$scope.stage.baseLabel && $scope.baseLabelOptions && $scope.baseLabelOptions.length) {
           $scope.stage.baseLabel = $scope.baseLabelOptions[0];
         }
+        $scope.viewState.rebakeControlEnabled = settings.feature.rebakeControlEnabled;
         $scope.viewState.loading = false;
       });
     }

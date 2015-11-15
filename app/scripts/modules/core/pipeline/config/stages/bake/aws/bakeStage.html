@@ -70,6 +70,18 @@
         </label>
       </div>
     </div>
+    <!-- Even if the rebakeControlEnabled flag is false, we should show the control if rebake is set. -->
+    <div class="form-group row" ng-if="viewState.rebakeControlEnabled || stage.rebake">
+      <div class="col-md-2 col-md-offset-1 sm-label-left">Rebake</div>
+      <div class="col-sm-6 checkbox" style="margin-bottom: 0">
+        <label>
+          <input type="checkbox"
+                 ng-model="stage.rebake">
+          </input>
+          Rebake image without regard to the status of any existing bake
+        </label>
+      </div>
+    </div>
     <div class="form-group" ng-if="stage.cloudProviderType === 'aws' || stage.cloudProviderType === undefined">
       <div class="col-md-9 col-md-offset-1">
         <div class="checkbox">

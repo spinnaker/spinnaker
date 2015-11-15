@@ -22,6 +22,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.bake.aws.executio
         $scope.provider = $scope.stage.context.cloudProviderType || 'aws';
       });
 
+      $scope.rebakeControlEnabled = settings.feature.rebakeControlEnabled;
+
       $scope.bakeryDetailUrl = $interpolate(settings.bakeryDetailUrl);
     }
 
