@@ -60,7 +60,6 @@ from spinnaker.run import run_quick
 SUBSYSTEM_LIST = ['clouddriver', 'orca', 'front50',
                   'rush', 'echo', 'rosco', 'gate', 'igor', 'deck', 'spinnaker']
 
-
 def ensure_gcs_bucket(name, project=''):
   """Ensure that the desired GCS bucket exists, creating it if needed.
 
@@ -264,6 +263,9 @@ class Builder(object):
           'Expected --bintray_repo to be in the form <owner>/<repo')
     subject, repo = parts[0], parts[1]
 
+    if package == 'rush':
+      package = 'spinnaker-rush'
+
     if debian_tags and debian_tags[0] != ';':
       debian_tags = ';' + debian_tags
 
@@ -367,7 +369,11 @@ class Builder(object):
 
       version = determine_package_version(gradle_root, submodule)
       build_dir = '{submodule}/build/distributions'.format(submodule=submodule)
-      package = '{name}_{version}_all.deb'.format(name=name, version=version)
+
+      if name != 'rush':
+        package = '{name}_{version}_all.deb'.format(name=name, version=version)
+      else:
+        package = 'spinnaker-{name}_{version}_all.deb'.format(name=name, version=version)
 
       if not os.path.exists(os.path.join(gradle_root, build_dir, package)):
           if os.path.exists(os.path.join(gradle_root, build_dir,
