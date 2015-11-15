@@ -112,7 +112,7 @@ function set_aws_region() {
 
 function set_google_region() {
   if [ "x$GOOGLE_REGION" == "x" ]; then
-    GOOGLE_REGION="us-west-2"
+    GOOGLE_REGION="us-central1"
     read -e -p "specify Google region: " -i "$GOOGLE_REGION" GOOGLE_REGION
   fi
   GOOGLE_REGION=`echo $GOOGLE_REGION | tr '[:upper:]' '[:lower:]'`
