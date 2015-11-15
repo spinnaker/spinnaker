@@ -28,5 +28,5 @@ It does so via two modules:
 * scheduler : Triggers pipelines off cron expressions. Support for cron expressions is provided by Netflix's [Fenzo](https://github.com/netflix/fenzo) library. 
 
 ## Running Echo
-This can be done locally via `./gradlew bootRun`, which will start with an embedded cassandra instance. Or by following the instructions using the [Spinnaker installation scripts](http://www.github.com/spinnaker/spinnaker].
+This can be done locally via `./gradlew bootRun`, which will start with an embedded cassandra instance. Or by following the instructions using the [Spinnaker installation scripts](http://www.github.com/spinnaker/spinnaker).
  
