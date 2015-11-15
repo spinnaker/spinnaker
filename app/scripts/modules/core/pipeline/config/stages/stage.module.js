@@ -136,6 +136,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
           let templateBody = $compile(template)(stageScope);
           $element.find('.stage-details').html(templateBody);
         }
+      } else {
+        $scope.label = null;
+        $scope.description = null;
       }
     };
 

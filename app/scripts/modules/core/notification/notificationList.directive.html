@@ -11,7 +11,7 @@
 <div class="row" ng-if="level !== 'stage' || parent.sendNotifications">
     <div ng-class="level === 'stage' ? 'col-md-11 col-md-offset-1' : 'col-md-12'">
         <table class="table table-condensed">
-            <thead>
+            <thead ng-if="notifications.length">
             <tr>
                 <th>Type</th>
                 <th>Details</th>
