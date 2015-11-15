@@ -124,5 +124,6 @@ window.spinnakerSettings = {
     fastProperty: true,
     vpcMigrator: true,
     clusterDiff: true,
+    rebakeControlEnabled: false,
   },
 };
