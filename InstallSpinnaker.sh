@@ -239,10 +239,4 @@ if [ ! -d /home/spinnaker ]; then
 fi
 ##
 
-sudo service clouddriver start
-sudo service orca start
-sudo service gate start
-sudo service rush start
-sudo service rosco start
-sudo service front50 start
-sudo service echo start
+sudo start spinnaker
