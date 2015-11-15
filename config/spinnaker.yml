@@ -114,20 +114,6 @@ services:
     # Do not include http://.
     targetRepository: # Optional, but expected in spinnaker-local.yml if specified.
 
-    # You'll need to provide it a Spinnaker account to use.
-    # Here we are assuming the default primary acccount.
-    #
-    # If you have multiple accounts using docker then you will need to
-    # provide a rush-local.yml.
-    # For more info see docker.accounts in config/rush.yml.
-    primaryAccount:
-      name: ${services.default.primaryAccountName}
-      url:  ${services.docker.baseUrl}
-      registry: ${services.dockerRegistry.baseUrl}
-
-  dockerRegistry:
-    baseUrl: #  Expected in spinnaker-local.yml
-
   jenkins:
     # The "name" entry is used for the display name when selecting
     # this server.
