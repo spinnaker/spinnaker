@@ -18,10 +18,12 @@ docker:
 
 google:
   enabled: ${providers.google.enabled:false}
-  gce:
-    bakeryDefaults:
+  accounts:
+    - name: ${providers.google.primaryCredentials.name}
       project: ${providers.google.primaryCredentials.project}
+      jsonPath: ${providers.google.primaryCredentials.jsonPath}
 
 rush:
   credentials: ${services.rush.primaryAccount}
   baseUrl: ${services.rush.baseUrl:localhost:8085}
+  configDir: ${services.rush.configDir}

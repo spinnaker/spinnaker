@@ -57,11 +57,6 @@ services:
     host: localhost
 
   docker:
-    # Spinnaker's "rush" subsystem uses docker to run internal jobs.
-    # Note that docker is not installed with Spinnaker so you must obtain this
-    # on your own if you are interested.
-    enabled: false
-    baseUrl: # Expected in spinnaker-local.yml
     # This target repository is used by the bakery to publish baked docker images.
     # Do not include http://.
     targetRepository: # Optional, but expected in spinnaker-local.yml if specified.
@@ -103,9 +98,9 @@ services:
 
   rush:
     # Spinnaker's "rush" subsystem is used by the "rosco" bakery.
-    # You'll need to provide it a Spinnaker account to use.
-    # Here we are assuming the default primary acccount.
-    primaryAccount: ${services.default.primaryAccountName}
+    # You need to provide the fully-qualified path to the directory containing the packer templates.
+    # They typically live in rosco's config/packer directory.
+    configDir:
 
   echo:
     # allow pipeline triggers to run periodically via cron expressions  
