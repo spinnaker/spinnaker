@@ -36,6 +36,7 @@ tree. However, for historical development reasons, that is not yet done.
 """
 
 import argparse
+import base64
 import collections
 import fnmatch
 import os
@@ -47,7 +48,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
-import time
+import urllib2
 import zipfile
 
 
@@ -57,7 +58,7 @@ from spinnaker.run import run_quick
 
 
 SUBSYSTEM_LIST = ['clouddriver', 'orca', 'front50',
-                  'rush', 'echo', 'rosco', 'gate', 'igor', 'deck']
+                  'rush', 'echo', 'rosco', 'gate', 'igor', 'deck', 'spinnaker']
 
 
 def ensure_gcs_bucket(name, project=''):
@@ -163,6 +164,13 @@ NO_PROCESS = BackgroundProcess('nop', None)
 def determine_project_root():
   return os.path.abspath(os.path.dirname(__file__) + '/..')
 
+def determine_package_version(gradle_root, submodule):
+  with open(os.path.join(gradle_root, submodule,
+                         'build/debian/control')) as f:
+     content = f.read()
+  match = re.search('(?m)^Version: (.*)', content)
+  return match.group(1)
+
 
 class Builder(object):
   """Knows how to coordinate a Spinnaker release."""
@@ -170,12 +178,15 @@ class Builder(object):
   def __init__(self, options, tarfile):
       self.__tarfile = tarfile
       self.__package_list = []
-      self.__config_list = []
+      self.__build_failures = []
       self.__background_processes = []
 
       os.environ['NODE_ENV'] = os.environ.get('NODE_ENV', 'dev')
       self.__options = options
       self.refresher = refresh_source.Refresher(options)
+      if options.bintray_repo:
+        self.__verify_bintray()
+
 
       # NOTE(ewiseblatt):
       # This is the GCE directory.
@@ -191,6 +202,12 @@ class Builder(object):
           ensure_s3_bucket(name=self.__release_dir[5:].split('/')[0],
                            region=options.aws_region)
 
+  def determine_gradle_root(self, name):
+      gradle_root = (name if name != 'spinnaker'
+              else os.path.join(self.__project_dir, 'experimental/buildDeb'))
+      gradle_root = name if name != 'spinnaker' else self.__project_dir
+      return gradle_root
+
   def start_build_target(self, name, target):
       """Start a subprocess to build the designated target.
 
@@ -201,13 +218,25 @@ class Builder(object):
       Returns:
         BackgroundProcess
       """
+      # Currently spinnaker is in a separate location
+      gradle_root = self.determine_gradle_root(name)
       print 'Building {name}...'.format(name=name)
       return BackgroundProcess.spawn(
           'Building {name}'.format(name=name),
-          'cd {name}; ./gradlew {target}'.format(name=name, target=target))
+          'cd "{gradle_root}"; ./gradlew {target}'.format(
+              gradle_root=gradle_root, target=target))
 
   @staticmethod
   def __filter_file(info, filter):
+    """Determine if a record should be included in the tarfile or not.
+
+    Args:
+      info [tarinfo]: The tarinfo to consider.
+      filter [string]: The file filter expression.
+
+    Returns:
+      info to include, or None.
+    """
     if info.isdir():
       return info  # keep dir so we can recurse into it
     elif fnmatch.fnmatch(info.name, filter):
@@ -216,9 +245,83 @@ class Builder(object):
       return None
 
   def tar_dir(self, source, target, filter='*'):
+    """Add contents of directory to tarfile.
+
+    Args:
+      source [string]: The path to add from.
+      target [string]: The destination path to add into.
+      filter [string]: The file filter specifying which files to include.
+    """
     fn = lambda info: self.__filter_file(info, filter)
     self.__tarfile.add(source, arcname=target, recursive=True, filter=fn)
-                         
+
+  def publish_to_bintray(self, source, package, version, path, debian_tags=''):
+    bintray_key = os.environ['BINTRAY_KEY']
+    bintray_user = os.environ['BINTRAY_USER']
+    parts = self.__options.bintray_repo.split('/')
+    if len(parts) != 2:
+      raise ValueError(
+          'Expected --bintray_repo to be in the form <owner>/<repo')
+    subject, repo = parts[0], parts[1]
+
+    if debian_tags and debian_tags[0] != ';':
+      debian_tags = ';' + debian_tags
+
+    url = ('https://api.bintray.com/content'
+               '/{subject}/{repo}/{package}/{version}/{path}'
+               '{debian_tags}'
+               ';publish=1;override=1'
+                   .format(subject=subject, repo=repo, package=package,
+                           version=version, path=path,
+                           debian_tags=debian_tags))
+
+    if False:
+        # This results in a 405
+        with open(source, 'r') as f:
+          data = f.read()
+        request = urllib2.Request(url)
+        encoded_auth = base64.encodestring('{user}:{pwd}'.format(
+            user=bintray_user, pwd=bintray_key))[:-1]  # strip eoln
+
+        request.add_header('Authorization', 'Basic ' + encoded_auth)
+        result = urllib2.urlopen(request, data)
+        request.get_method = lambda: 'PUT'
+        code = result.getcode()
+        if code < 200 or code >= 300:
+          raise ValueError('Could not write {url}\n{response}\n'.format(
+            url=url, response=result.read()))
+    else:
+        # Use curl to workaround for now.
+        command = 'curl -s -u{user}:{key} -X PUT -T "{source}" "{url}"'.format(
+            user=bintray_user, key=bintray_key, source=source, url=url)
+        check_run_quick(command, echo=False)
+
+    print 'Wrote {source} to {url}'.format(source=source, url=url)
+
+  def publish_install_script(self, source):
+    path = 'InstallSpinnaker.sh'
+    gradle_root = self.determine_gradle_root('spinnaker')
+    version = determine_package_version(gradle_root, '.')
+
+    self.publish_to_bintray(source, package='spinnaker', version=version,
+                            path='InstallSpinnaker.sh')
+
+  def publish_file(self, source, package, version):
+    """Write a file to the bintray repository.
+
+    Args:
+      source [string]: The path to the source to copy must be local.
+    """
+    dist = self.__debian_distribution
+    path = os.path.basename(source)
+    debian_tags = ';'.join(['deb_distribution={dist}'.format(dist=dist),
+                            'deb_component=spinnaker',
+                            'deb_architecture=all'])
+
+    self.publish_to_bintray(source, package=package, version=version,
+                            path=path, debian_tags=debian_tags)
+
+
   def start_copy_file(self, source, target):
       """Start a subprocess to copy the source file.
 
@@ -254,6 +357,7 @@ class Builder(object):
       Args:
         name [string]: The name of the subsystem repository.
       """
+      gradle_root = self.determine_gradle_root(name)
       if os.path.exists(os.path.join(name, '{name}-web'.format(name=name))):
           submodule = '{name}-web'.format(name=name)
       elif os.path.exists(os.path.join(name, '{name}-core'.format(name=name))):
@@ -261,15 +365,12 @@ class Builder(object):
       else:
           submodule = '.'
 
-      with open(os.path.join(name, submodule, 'build/debian/control')) as f:
-         content = f.read()
-      match = re.search('(?m)^Version: (.*)', content)
-      version = match.group(1)
+      version = determine_package_version(gradle_root, submodule)
       build_dir = '{submodule}/build/distributions'.format(submodule=submodule)
       package = '{name}_{version}_all.deb'.format(name=name, version=version)
 
-      if not os.path.exists(os.path.join(name, build_dir, package)):
-          if os.path.exists(os.path.join(name, build_dir,
+      if not os.path.exists(os.path.join(gradle_root, build_dir, package)):
+          if os.path.exists(os.path.join(gradle_root, build_dir,
                             '{submodule}_{version}_all.deb'
                             .format(submodule=submodule, version=version))):
               # This is for front50 only
@@ -280,16 +381,23 @@ class Builder(object):
                        .format(name=name, version=version))
               raise AssertionError(error)
 
-      from_path = os.path.join(name, build_dir, package)
-      to_path = os.path.join(self.__release_dir, package)
-
+      from_path = os.path.join(gradle_root, build_dir, package)
       print 'Adding {path}'.format(path=from_path)
       self.__package_list.append(package)
-      return self.start_copy_file(from_path, to_path)
+      if self.__options.bintray_repo:
+        self.publish_file(from_path, name, version)
 
+      if self.__release_dir:
+        to_path = os.path.join(self.__release_dir, package)
+        return self.start_copy_file(from_path, to_path)
+      else:
+        return NO_PROCESS
 
   def __do_build(self, subsys):
+    try:
       self.start_build_target(subsys, 'buildDeb').check_wait()
+    except Exception as ex:
+      self.__build_failures.append(subsys)
 
   def build_packages(self):
       """Build all the Spinnaker packages."""
@@ -301,26 +409,32 @@ class Builder(object):
                         self.__options.cpu_ratio * multiprocessing.cpu_count()))
         pool.map(self.__do_build, SUBSYSTEM_LIST)
 
+      if self.__build_failures:
+        raise RuntimeError('Builds failed for {0!r}'.format(
+          self.__build_failures))
+
       source_config_dir = self.__options.config_source
       processes = []
 
-      # Copy global spinnaker config (and sample local).
-      for yml in [ 'default-spinnaker-local.yml', 'spinnaker.yml']:
-          source_config = os.path.join(source_config_dir, yml)
-          self.__tarfile.add(source_config, os.path.join('config', yml))
-          self.__config_list.append(yml)
+      if self.__tarfile:
+          # Copy global spinnaker config (and sample local).
+          for yml in ['default-spinnaker-local.yml']:
+            source_config = os.path.join(source_config_dir, yml)
+            self.__tarfile.add(source_config, os.path.join('config', yml))
 
       # Copy subsystem configuration files.
       for subsys in SUBSYSTEM_LIST:
           processes.append(self.start_copy_debian_target(subsys))
+          if not self.__tarfile:
+            continue
+
           if subsys == 'deck':
               source_config = os.path.join(source_config_dir, 'settings.js')
-              self.__tarfile.add(source_config,'config/settings.js')
+              self.__tarfile.add(source_config, 'config/settings.js')
           else:
               source_config = os.path.join(source_config_dir, subsys + '.yml')
               yml = os.path.basename(source_config)
               self.__tarfile.add(source_config, os.path.join('config', yml))
-              self.__config_list.append(yml)
 
       print 'Waiting for package copying to finish....'
       for p in processes:
@@ -353,10 +467,8 @@ class Builder(object):
     # Which acts as manifest to inform the installer what packages to install.
     fd, temp_file = tempfile.mkstemp()
     os.write(fd, '# This file is not intended to be user-modified.\n'
-                 'CONFIG_LIST="{configs}"\n'
                  'PACKAGE_LIST="{packages}"\n'
-                 .format(configs=' '.join(self.__config_list),
-                    packages=' '.join(self.__package_list)))
+                 .format(packages=' '.join(self.__package_list)))
     os.close(fd)
     self.__tarfile.add(temp_file, 'release_config.cfg')
     os.remove(temp_file)
@@ -397,9 +509,14 @@ class Builder(object):
     for the time being. This is useful for testing them, or validating the
     initial installation and configuration.
     """
-    fd, zip_path = tempfile.mkstemp()
-    os.close(fd)
+    test_py = '{test_name}.py'.format(test_name=test_name)
+    testdir = os.path.join(self.__project_dir, 'build/tests')
+    try:
+      os.makedirs(testdir)
+    except OSError:
+      pass
 
+    zip_path = os.path.join(testdir, test_py + '.zip')
     zip = zipfile.ZipFile(zip_path, 'w')
 
     try:
@@ -421,15 +538,17 @@ if __name__ == '__main__':
       self.__zip_dir(zip,
                      'citest/spinnaker/spinnaker_testing', 'spinnaker_testing')
       self.__zip_dir(zip, 'pylib/yaml', 'yaml')
-      test_py = '{test_name}.py'.format(test_name=test_name)
+
       zip.write('citest/spinnaker/spinnaker_system/' + test_py, test_py)
       zip.close()
 
-      self.__tarfile.add(zip_path, 'tests/{py}.zip'.format(py=test_py))
+      if self.__tarfile:
+        self.__tarfile.add(zip_path, 'tests/{py}.zip'.format(py=test_py))
     finally:
-      os.remove(zip_path)
+      pass
 
-  def add_test_zip_files(self):
+
+  def build_tests(self):
      if not os.path.exists('citest'):
         print 'Adding citest repository'
         try:
@@ -455,14 +574,13 @@ if __name__ == '__main__':
         help='Number of concurrent threads as ratio of available cores.')
 
       parser.add_argument('--nobuild', dest='build', action='store_false')
+      config_path = os.path.join(determine_project_root(), 'config')
 
-      config_path= os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                '../config'))
       parser.add_argument(
           '--config_source', default=config_path,
           help='Path to directory for release config file templates.')
 
-      parser.add_argument('--release_path', required=True,
+      parser.add_argument('--release_path', default='',
                           help='Specifies the path to the release to build.'
                              ' The release name is assumed to be the basename.'
                              ' The path can be a directory, GCS URI or S3 URI.')
@@ -477,31 +595,87 @@ if __name__ == '__main__':
         help='If release repository is a S3 bucket then this is the AWS'
         ' region to add the bucket to if the bucket did not already exist.')
 
+      parser.add_argument(
+        '--bintray_repo', default='',
+        help='Publish to this bintray repo.\n'
+             'This requires BINTRAY_USER and BINTRAY_KEY are set.')
+
+
+  def __verify_bintray(self):
+    if not os.environ.get('BINTRAY_KEY', None):
+      raise ValueError('BINTRAY_KEY environment variable not defined')
+    if not os.environ.get('BINTRAY_USER', None):
+      raise ValueError('BINTRAY_USER environment variable not defined')
+
+    # We are currently limited to ubuntu because of assumptions in
+    # how we publish to bintray.
+    if not os.path.exists('/etc/lsb-release'):
+      raise ValueError('This does not appear to be an ubuntu distribution.')
+    with open('/etc/lsb-release', 'r') as f:
+      content = f.read()
+    match = re.search('DISTRIB_CODENAME=(.+)', content)
+    if match is None:
+      raise ValueError('Could not determine debian distribution name')
+    self.__debian_distribution = match.group(1)
+    result = check_run_quick('uname -m', echo=False)
+
+
   @classmethod
   def main(cls):
     parser = argparse.ArgumentParser()
     cls.init_argument_parser(parser)
     options = parser.parse_args()
 
-    if not options.release_path:
-      sys.stderr.write('ERROR: --release_path cannot be empty.\n')
+    if not (options.release_path or options.bintray_repo):
+      sys.stderr.write(
+           'ERROR: Missing either a --release_path or --bintray_repo')
       return -1
 
-    fd, tarfile_path = tempfile.mkstemp()
-    os.close(fd)
-    tz = tarfile.open(tarfile_path, mode='w:gz')
+    tz = None
+    if options.release_path:
+      fd, tarfile_path = tempfile.mkstemp()
+      os.close(fd)
+      tz = tarfile.open(tarfile_path, mode='w:gz')
+
     builder = cls(options, tz)
     if options.pull_origin:
         builder.refresher.pull_all_from_origin()
 
+    builder.build_tests()
     builder.build_packages()
+
+    if options.bintray_repo:
+      fd, temp_path = tempfile.mkstemp()
+      with open(os.path.join(determine_project_root(), 'InstallSpinnaker.sh'),
+                'r') as f:
+          content = f.read()
+          match = re.search(
+                'REPOSITORY_URL="https://dl\.bintray\.com/(.+)"',
+                content)
+          content = ''.join([content[0:match.start(1)],
+                             options.bintray_repo,
+                             content[match.end(1):]])
+          os.write(fd, content)
+      os.close(fd)
+
+      try:
+        builder.publish_install_script(
+          os.path.join(determine_project_root(), temp_path))
+      finally:
+        os.remove(temp_path)
+
+      print '\nFINISHED writing release to {rep}'.format(
+        rep=options.bintray_repo)
+
+    if not tz:
+      return 0
+
 
     print 'Building spinnaker.tar.gz'
     builder.copy_dependency_files()
     builder.copy_install_scripts()
     builder.copy_admin_scripts()
     builder.copy_release_config()
-    builder.add_test_zip_files()
 
     tz.close()
     processes = []
