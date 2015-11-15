@@ -229,7 +229,7 @@ rm -f /etc/apache2/sites-available/*.conf
 touch /etc/apache2/sites-available/spinnaker.conf
 
 cat <<EOT >> /etc/apache2/sites-available/spinnaker.conf
-<VirtualHost *:80>
+<VirtualHost 127.0.0.1:9000>
   DocumentRoot /var/www
 
 <Location /gate>
