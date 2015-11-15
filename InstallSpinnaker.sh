@@ -184,6 +184,9 @@ sleep 5
 nodetool enablethrift
 # apt-get install dsc21
 
+# Install Packer
+wget https://releases.hashicorp.com/packer/0.8.6/packer_0.8.6_linux_amd64.zip 
+unzip packer_0.8.6_linux_amd64.zip -d /usr/bin
 
 apt-get install -y --force-yes --allow-unauthenticated spinnaker
 
