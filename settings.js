@@ -104,6 +104,15 @@ window.spinnakerSettings = {
         }
       }
     },
+   gce: {
+      defaults: {
+        account: 'my-google-account',
+        region: 'us-central1',
+        zone: 'us-central1-f',
+      },
+      primaryAccounts: ['my-google-account'],
+      challengeDestructiveActions: ['my-google-account'],
+    },
     titan: {
       defaults: {
         account: 'titantest',
