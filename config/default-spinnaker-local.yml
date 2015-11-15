@@ -24,14 +24,14 @@ providers:
     # Enabling google is independent of other providers.
     enabled: ${SPINNAKER_GOOGLE_ENABLED}
     defaultRegion: ${SPINNAKER_GOOGLE_DEFAULT_REGION}
-    defaultZone: ${SPINNAKER_GOOGLE_DEFAULT_REGION}-b
+    defaultZone: ${SPINNAKER_GOOGLE_DEFAULT_ZONE}
     primaryCredentials:
       name: my-google-account
       # The project is the Google Project ID for the project to manage with Spinnaker.
       # The jsonPath is a path to the JSON service credentials downloaded from the
       # Google Developer's Console.
       project: ${SPINNAKER_GOOGLE_PROJECT_ID}
-      jsonPath:
+      jsonPath: ${SPINNAKER_GOOGLE_PROJECT_CREDENTIALS_PATH}
 
 services:
   default:
