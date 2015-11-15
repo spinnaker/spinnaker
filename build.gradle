@@ -94,7 +94,7 @@ buildDeb {
   requires('igor')
   requires('orca')
   requires('rosco')
-  requires('rush')
+  requires('spinnaker-rush')
   requires('apache2')
   
 }
