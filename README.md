@@ -43,4 +43,4 @@ Currently git credentials are used in Spinnaker pipelines to retrieve commit cha
 
 Igor requires redis server to be up and running.
 
-This can be done locally via `./gradlew bootRun`, which will start with an embedded cassandra instance. Or by following the instructions using the Spinnaker installation scripts.
+This can be done locally via `./gradlew bootRun`. Or by following the instructions using the Spinnaker installation scripts.
