@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver
 
+
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConfig
+import com.netflix.spinnaker.clouddriver.azure.AzureConfiguration
 import com.netflix.spinnaker.clouddriver.config.RetrofitConfig
 import com.netflix.spinnaker.clouddriver.core.CloudDriverConfig
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
@@ -46,6 +48,7 @@ import java.security.Security
   TitanConfiguration,
   GoogleConfiguration,
   CloudFoundryConfig,
+  AzureConfiguration,
   SecurityConfig,
   com.netflix.spinnaker.kato.Main,
   com.netflix.spinnaker.mort.Main,

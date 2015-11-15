@@ -10,3 +10,4 @@ TestScript.groovy
 application.yml
 *.hprof
 README.html
+*~
