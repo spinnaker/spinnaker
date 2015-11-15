@@ -14,5 +14,5 @@ fi
 
 if [ ! -d /home/spinnaker ]; then
   mkdir -p /home/spinnkaker/.aws
-  chown -R spinnaker:spinnaker
+  chown -R spinnaker:spinnaker /home/spinnkaker
 fi
