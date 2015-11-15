@@ -8,7 +8,7 @@ fi
 
 # check that user exists
 if [ -z `getent passwd spinnaker` ]; then
-  useradd --gid spinnaker spinnaker
+  useradd --gid spinnaker spinnaker -m --home-dir /home/spinnaker
 fi
 
-install  --mode=755 --owner=spinnaker --group=spinnaker --directory  /var/log/spinnaker/rosco
+install --mode=755 --owner=spinnaker --group=spinnaker --directory  /var/log/spinnaker/rosco
