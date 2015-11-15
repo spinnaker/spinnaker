@@ -1,4 +1,4 @@
- #!/bin/bash
+#!/bin/bash
 
 #run install script
 #wget https://dl.bintray.com/kenzanlabs/spinnaker_scripts/InstallSpinnaker.sh
@@ -46,7 +46,8 @@ fi
 
 function print_usage() {
   cat <<EOF
-usage: $0 [--cloud_provider <aws|gce>] [--default_region <region>]
+usage: $0 [--cloud_provider <aws|gce|none|both>]
+    [--aws_region <region>] [--gce_region <region>]
     [--quiet]
 
     If run with no arguments you will be prompted for cloud provider and region
@@ -55,7 +56,9 @@ usage: $0 [--cloud_provider <aws|gce>] [--default_region <region>]
                                 if "none" is specified you will need to edit
                                 /etc/default/spinnaker manually
 
-    --default_region <arg>      default region for your chosen cloud provider
+    --aws_region <arg>          default region for your chosen cloud provider
+
+    --gce_region <arg>          default region for your chosen cloud provider
 
     --quiet                     sets cloud provider to "none", you will need to
                                 edit /etc/default/spinnaker manually
@@ -74,13 +77,18 @@ function process_args() {
           CLOUD_PROVIDER="$1"
           shift
           ;;
-      --default_region)
-          DEFAULT_REGION="$1"
+      --aws_region)
+          AWS_REGION="$1"
+          shift
+          ;;
+      --gce_region)
+          GCE_REGION="$1"
           shift
           ;;
       --quiet|-q)
           CLOUD_PROVIDER="none"
-          DEFAULT_REGION="none"
+          AWS_REGION="none"
+          GCE_REGION="none"
           shift
           ;;
       --help|-help|-h)
@@ -94,39 +102,42 @@ function process_args() {
   done
 }
 
-function set_default_region() {
-  if [ "x$DEFAULT_REGION" == "x" ]; then
-    case $CLOUD_PROVIDER in
-      a|aws|amazon)
-          DEFAULT_REGION="us-west-2"
-          ;;
-      g|gce|google)
-          DEFAULT_REGION="us-central1-b"
-          ;;
-    esac
+function set_aws_region() {
+  if [ "x$AWS_REGION" == "x" ]; then
+    AWS_REGION="us-west-2"
+    read -e -p "specify AWS region: " -i "$AWS_REGION" AWS_REGION
   fi
-  DEFAULT_REGION=`echo $DEFAULT_REGION | tr '[:upper:]' '[:lower:]'`
+  AWS_REGION=`echo $AWS_REGION | tr '[:upper:]' '[:lower:]'`
+}
+
+function set_gce_region() {
+  if [ "x$GCE_REGION" == "x" ]; then
+    GCE_REGION="us-west-2"
+    read -e -p "specify GCE region: " -i "$GCE_REGION" GCE_REGION
+  fi
+  GCE_REGION=`echo $GCE_REGION | tr '[:upper:]' '[:lower:]'`
 }
 
 process_args "$@"
+
 if [ "x$CLOUD_PROVIDER" == "x" ]; then
-  read -p "specify a cloud provider: (aws|gce|none) " CLOUD_PROVIDER
+  read -p "specify a cloud provider: (aws|gce|none|both) " CLOUD_PROVIDER
   CLOUD_PROVIDER=`echo $CLOUD_PROVIDER | tr '[:upper:]' '[:lower:]'`
-  set_default_region
-  read -e -p "specify default region: " -i "$DEFAULT_REGION" DEFAULT_REGION
-  DEFAULT_REGION=`echo $DEFAULT_REGION | tr '[:upper:]' '[:lower:]'`
+  set_aws_region
+  set_gce_region
 fi
 
 case $CLOUD_PROVIDER in
   a|aws|amazon)
       CLOUD_PROVIDER="amazon"
-      set_default_region
       ;;
   g|gce|google)
       CLOUD_PROVIDER="google"
-      set_default_region
       ;;
   n|no|none)
+      CLOUD_PROVIDER="none"
+      ;;
+  both|all)
       CLOUD_PROVIDER="none"
       ;;
   *)
@@ -176,15 +187,19 @@ nodetool enablethrift
 
 apt-get install -y --force-yes --allow-unauthenticated spinnaker
 
-if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" ]]; then
+if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" || "${CLOUD_PROVIDER,,}" == "both" ]]; then
   case $CLOUD_PROVIDER in
      amazon)
-        sed -i.bak -e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=true/" -e "s/SPINNAKER_AWS_DEFAULT_REGION.*$/SPINNAKER_AWS_DEFAULT_REGION=${DEFAULT_REGION}/" \
+        sed -i.bak -e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=true/" -e "s/SPINNAKER_AWS_DEFAULT_REGION.*$/SPINNAKER_AWS_DEFAULT_REGION=${AWS_REGION}/" \
         	-e "s/SPINNAKER_GCE_ENABLED=.*$/SPINNAKER_GCE_ENABLED=false/" /etc/default/spinnaker
         ;;
     google)
-        sed -i.bak -e "s/SPINNAKER_GCE_ENABLED=.*$/SPINNAKER_GCE_ENABLED=true/" -e "s/SPINNAKER_GCE_DEFAULT_REGION.*$/SPINNAKER_GCE_DEFAULT_REGION=${DEFAULT_REGION}/" \
+        sed -i.bak -e "s/SPINNAKER_GCE_ENABLED=.*$/SPINNAKER_GCE_ENABLED=true/" -e "s/SPINNAKER_GCE_DEFAULT_REGION.*$/SPINNAKER_GCE_DEFAULT_REGION=${GCE_REGION}/" \
         	-e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=false/" /etc/default/spinnaker
+        ;;   amazon)
+    both)
+        sed -i.bak -e "s/SPINNAKER_GCE_ENABLED=.*$/SPINNAKER_GCE_ENABLED=true/" -e "s/SPINNAKER_GCE_DEFAULT_REGION.*$/SPINNAKER_GCE_DEFAULT_REGION=${GCE_REGION}/" \
+        	-e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=true/"  -e "s/SPINNAKER_AWS_DEFAULT_REGION.*$/SPINNAKER_AWS_DEFAULT_REGION=${AWS_REGION}/" /etc/default/spinnaker
         ;;   amazon)
   esac
 else
