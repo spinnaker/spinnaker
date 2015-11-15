@@ -3,8 +3,6 @@
 # deck settings
 /opt/spinnaker/bin/reconfigure_spinnaker.sh
 
-# Create config
-cp /opt/spinnaker/config/default-spinnaker-local.yml /opt/spinnaker/config/spinnaker-local.yml
 # vhosts
 rm -rf /etc/apache2/sites-enabled/*.conf
 
