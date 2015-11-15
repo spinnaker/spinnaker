@@ -49,9 +49,6 @@ ospackage {
     into spinnakerHome + '/bin'
     fileMode = 0755
   }  
-  from('tests') {
-    into spinnakerHome + '/tests'
-  }  
 
   from(file('etc/init/spinnaker.conf')) {
     into('/etc/init')
@@ -61,14 +58,10 @@ ospackage {
   }
 
   from('config') {
-    rename 'default-spinnaker-local.yml', 'spinnaker-local.yml'
     into spinnakerHome + '/config'
+    fileMode = 0644
   }
 
-  from('.') {
-    include 'release_config.cfg'
-    into spinnakerHome
-  }
 
   from('etc/apache2/sites-available/spinnaker.conf') {
     into '/etc/apache2/sites-available'
