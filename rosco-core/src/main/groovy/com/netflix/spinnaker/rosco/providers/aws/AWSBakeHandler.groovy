@@ -57,8 +57,7 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
     }
 
     def awsVirtualizationSettings = awsOperatingSystemVirtualizationSettings?.virtualizationSettings.find {
-      it.region == region
-      it.virtualizationType == vm_type
+      it.region == region && it.virtualizationType == vm_type
     }
 
     if (!awsVirtualizationSettings) {
