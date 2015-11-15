@@ -172,7 +172,15 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
                   }
                   return 0;
                 },
-                // same highest parent, so sort by number of children (more first)
+                // same highest parent, prefer fewer terminal children if any
+                function(node) {
+                  return node.children.filter((child) => !child.children.length).length || 100;
+                },
+                // same highest parent, same number of terminal children, prefer fewer parents
+                function(node) {
+                  return node.parents.length;
+                },
+                // same highest parent, same number of terminal children and parents
                 function(node) {
                   return 1 - node.children.length;
                 },
