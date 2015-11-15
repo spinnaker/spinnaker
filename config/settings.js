@@ -61,6 +61,7 @@ window.spinnakerSettings = {
     parallelPipelines: true,
     fastProperty: false,
     vpcMigrator: false,
+    rebakeControlEnabled: true,
   },
 };
 
