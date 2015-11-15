@@ -61,17 +61,21 @@ class SpinnakerProjectConventionsPlugin implements Plugin<Project> {
             convention.targetCompatibility = JavaVersion.VERSION_1_8
         }
 
+        Closure<String> propOrDefault = { String propertyName, String defaultValue ->
+            project.hasProperty(propertyName) ? project.property(propertyName) : defaultValue
+        }
+
         project.plugins.withType(BintrayPlugin) {
             BintrayExtension bintray = (BintrayExtension) project.extensions.getByName('bintray')
 
-            bintray.pkg.userOrg = 'spinnaker'
-            bintray.pkg.repo = 'spinnaker'
+            bintray.pkg.userOrg = propOrDefault('bintrayOrg', 'spinnaker')
+            bintray.pkg.repo = propOrDefault('bintrayJarRepo', 'spinnaker')
             bintray.pkg.labels = ['Spinnaker', 'Netflix', 'netflixoss']
         }
 
         project.plugins.withType(OspackageBintrayPublishPlugin) {
             OspackageBintrayExtension bintrayPackage = (OspackageBintrayExtension) project.extensions.getByName('bintrayPackage')
-            bintrayPackage.packageRepo = 'ospackages'
+            bintrayPackage.packageRepo = propOrDefault('bintrayPackageRepo', 'ospackages')
         }
 
         project.repositories.jcenter()
