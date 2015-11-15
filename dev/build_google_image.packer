@@ -1,13 +1,13 @@
 {
  "variables": {
-    "release_path": null,
+    "debian_repo": "https://dl.bintray.com/spinnaker-team/ewiseblatt",
+    "install_path": null,
     "project_id": null,
-    "installer_path": null,
+    "update_os": "false",
     "json_credentials":  "",
     "zone": "us-central1-f",
     "source_image": "ubuntu-1404-trusty-v20150909a",
-    "target_image": "{{env `USER`}}-spinnaker-{{timestamp}}",
-    "install_args": ""
+    "target_image": "{{env `USER`}}-spinnaker-{{timestamp}}"
  },
 
  "builders": [{
@@ -22,13 +22,21 @@
  "provisioners": [
   {
     "type": "file",
-    "source": "{{user `installer_path`}}",
+    "source": "{{user `install_path`}}",
     "destination": "/tmp/install_spinnaker.sh"
   },
   {
     "type": "shell",
-    "inline": ["chmod +x /tmp/install_spinnaker.sh",
-               "/tmp/install_spinnaker.sh --release_path {{user `release_path`}} --package_manager {{user `install_args`}}"]
+    "inline": [
+        "chmod +x /tmp/install_spinnaker.sh",
+        "/tmp/install_spinnaker.sh --repository {{user `debian_repo`}} --cloud_provider google --google_region us-central1 --quiet"
+     ]
+  },
+  {
+    "type": "shell",
+    "inline": [
+        "if [ '{{user `update_os`}}' = 'true' ]; then apt-get update -y; apt-get -y dist-upgrade; fi"
+     ]
   }
  ]
 }
