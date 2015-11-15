@@ -263,8 +263,10 @@ class Builder(object):
           'Expected --bintray_repo to be in the form <owner>/<repo')
     subject, repo = parts[0], parts[1]
 
-    if package == 'rush':
-      package = 'spinnaker-rush'
+    deb_filename = os.path.basename(path)
+    if (deb_filename.startswith('spinnaker-')
+        and not package.startswith('spinnaker')):
+      package = 'spinnaker-' + package
 
     if debian_tags and debian_tags[0] != ';':
       debian_tags = ';' + debian_tags
@@ -370,31 +372,29 @@ class Builder(object):
       version = determine_package_version(gradle_root, submodule)
       build_dir = '{submodule}/build/distributions'.format(submodule=submodule)
 
-      if name != 'rush':
-        package = '{name}_{version}_all.deb'.format(name=name, version=version)
+      deb_dir = os.path.join(gradle_root, build_dir)
+      non_spinnaker_name = '{name}_{version}_all.deb'.format(
+            name=name, version=version)
+
+      if os.path.exists(os.path.join(deb_dir,
+                                     'spinnaker-' + non_spinnaker_name)):
+        deb_file = 'spinnaker-' + non_spinnaker_name
       else:
-        package = 'spinnaker-{name}_{version}_all.deb'.format(name=name, version=version)
+        deb_file = non_spinnaker_name
 
-      if not os.path.exists(os.path.join(gradle_root, build_dir, package)):
-          if os.path.exists(os.path.join(gradle_root, build_dir,
-                            '{submodule}_{version}_all.deb'
-                            .format(submodule=submodule, version=version))):
-              # This is for front50 only
-              package = '{submodule}_{version}_all.deb'.format(
-                submodule=submodule, version=version)
-          else:
-              error = ('Cannot find .deb for name={name} version={version}\n'
-                       .format(name=name, version=version))
-              raise AssertionError(error)
+      if not os.path.exists(os.path.join(deb_dir, deb_file)):
+         error = ('.deb for name={name} version={version} is not in {dir}\n'
+                  .format(name=name, version=version, dir=deb_dir))
+         raise AssertionError(error)
 
-      from_path = os.path.join(gradle_root, build_dir, package)
+      from_path = os.path.join(gradle_root, build_dir, deb_file)
       print 'Adding {path}'.format(path=from_path)
-      self.__package_list.append(package)
+      self.__package_list.append(deb_file)
       if self.__options.bintray_repo:
         self.publish_file(from_path, name, version)
 
       if self.__release_dir:
-        to_path = os.path.join(self.__release_dir, package)
+        to_path = os.path.join(self.__release_dir, deb_file)
         return self.start_copy_file(from_path, to_path)
       else:
         return NO_PROCESS
