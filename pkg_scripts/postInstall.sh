@@ -1,5 +1,12 @@
 #!/bin/sh
 
+# This doesnt belong here, but I cannot figure out where it goes
+# and how other files have it set.
+chmod +x /opt/spinnaker/install/first_google_boot.sh
+
+# Deprecated. Will be removed in the future.
+ln -s /opt/spinnaker/bin /opt/spinnaker/scripts
+
 # deck settings
 /opt/spinnaker/bin/reconfigure_spinnaker.sh
 
