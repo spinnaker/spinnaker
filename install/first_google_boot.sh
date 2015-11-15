@@ -22,9 +22,9 @@ set -e
 set -u
 
 # We're running as root, but HOME might not be defined.
-HOME=${HOME:-"/root"}
+HOME=${HOME:-"/home/spinnaker"}
 SPINNAKER_INSTALL_DIR=/opt/spinnaker
-CONFIG_DIR=$HOME/.spinnaker
+LOCAL_CONFIG_DIR=$SPINNAKER_INSTALL_DIR/config
 
 # This status prefix provides a hook to inject output signals with status
 # messages for consumers like the Google Deployment Manager Coordinator.
@@ -34,12 +34,16 @@ STATUS_PREFIX="*"
 
 METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
 INSTANCE_METADATA_URL="$METADATA_URL/instance"
-if full_zone=$(curl -s -H "Metadata-Flavor: Google" "$INSTANCE_METADATA_URL/zone"); then
-  MY_ZONE=$(basename $full_zone)
-else
-  echo "Not running on Google Cloud Platform."
-  MY_ZONE=""
-fi
+
+function write_default_value() {
+  name="$1"
+  value="$2"
+  if egrep "^$name=" /etc/default/spinnaker > /dev/null; then
+      sed -i "s/^$name=.*/$name=$value/" /etc/default/spinnaker
+  else
+      echo "$name=$value" >> /etc/default/spinnaker
+  fi
+}
 
 function get_instance_metadata_attribute() {
   local name="$1"
@@ -66,6 +70,7 @@ function clear_metadata_to_file() {
 
   if [[ "$value" != "" ]]; then
      echo "$value" > $path
+     chown spinnaker:spinnaker $path
      clear_instance_metadata "$key"
      if [[ $? -ne 0 ]]; then
        die "Could not clear metadata from $key"
@@ -88,8 +93,9 @@ function replace_startup_script() {
   # From now on, all we need to do is start_spinnaker
   local original=$(get_instance_metadata_attribute "startup-script")
   echo "$original" > "$SPINNAKER_INSTALL_DIR/scripts/original_startup_script.sh"
-  write_instance_metadata \
-      "startup-script=$SPINNAKER_INSTALL_DIR/scripts/start_spinnaker.sh"
+  clear_instance_metadata "startup-script"
+#  write_instance_metadata \
+#      "startup-script=$SPINNAKER_INSTALL_DIR/scripts/start_spinnaker.sh"
 }
 
 function extract_spinnaker_local_yaml() {
@@ -98,9 +104,10 @@ function extract_spinnaker_local_yaml() {
     return 1
   fi
 
-  local config="$CONFIG_DIR/spinnaker-local.yml"
-  mkdir -p $(dirname $config)
+  local config="$LOCAL_CONFIG_DIR/spinnaker-local.yml"
+  sudo -u spinnaker mkdir -p $(dirname $config)
   echo "$value" > $config
+  chown spinnaker:spinnaker $config
   chmod 600 $config
 
   clear_instance_metadata "spinnaker_local"
@@ -113,7 +120,7 @@ function extract_spinnaker_credentials() {
 }
 
 function extract_spinnaker_google_credentials() {
-  local json_path="$CONFIG_DIR/ManagedProjectCredentials.json"
+  local json_path="$LOCAL_CONFIG_DIR/google-credentials.json"
   mkdir -p $(dirname $json_path)
   if clear_metadata_to_file "managed_project_credentials" $json_path; then
     # This is a workaround for difficulties using the Google Deployment Manager
@@ -124,6 +131,7 @@ function extract_spinnaker_google_credentials() {
     sed -i s/^None$//g $json_path
     if [[ -s $json_path ]]; then
       chmod 400 $json_path
+      chown spinnaker $json_path
       echo "Extracted google credentials to $json_path"
     else
        rm $json_path
@@ -138,9 +146,9 @@ function extract_spinnaker_google_credentials() {
   # Remove the old line, if one existed, and replace it with a new one.
   # This way it does not matter whether the user supplied it or not
   # (and might have had it point to something client side).
-  if [[ -f "$CONFIG_DIR/spinnaker-local.yml" ]]; then
+  if [[ -f "$LOCAL_CONFIG_DIR/spinnaker-local.yml" ]]; then
       sed -i "s/\( \+jsonPath:\).\+/\1 ${json_path//\//\\\/}/g" \
-          $CONFIG_DIR/spinnaker-local.yml
+          $LOCAL_CONFIG_DIR/spinnaker-local.yml
   fi
 }
 
@@ -156,10 +164,12 @@ function extract_spinnaker_aws_credentials() {
     sed -i s/^None$//g $credentials_path
     if [[ -s $credentials_path ]]; then
       chmod 400 $credentials_path
+      chown spinnaker:spinnaker $credentials_path
       echo "Extracted aws credentials to $credentials_path"
     else
        rm $credentials_path
     fi
+    write_default_value "SPINNAKER_AWS_ENABLED" "true"
   else
     clear_instance_metadata "aws_credentials"
   fi
@@ -184,12 +194,25 @@ function process_args() {
   done
 }
 
+if full_zone=$(curl -s -H "Metadata-Flavor: Google" "$INSTANCE_METADATA_URL/zone"); then
+  MY_ZONE=$(basename $full_zone)
+  MY_PROJECT=$(curl -s -H "Metadata-Flavor: Google" "$METADATA_URL/project/project-id")
+
+  write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
+  write_default_value "SPINNAKER_GOOGLE_PROJECT_ID" "$MY_PROJECT"
+  write_default_value "SPINNAKER_GOOGLE_DEFAULT_ZONE" "$MY_ZONE"
+  write_default_value "SPINNAKER_GOOGLE_DEFAULT_REGION" "${MY_ZONE%-*}"
+else
+  echo "Not running on Google Cloud Platform."
+  exit -1
+  MY_ZONE=""
+fi
+
 # apply outstanding updates since time of image creation
-apt-get -y update
-apt-get -y dist-upgrade
+# apt-get -y update
+# apt-get -y dist-upgrade
 
 process_args
-mkdir -p /root/.spinnaker
 
 echo "$STATUS_PREFIX  Extracting Configuration Info"
 extract_spinnaker_local_yaml
@@ -206,6 +229,8 @@ $SPINNAKER_INSTALL_DIR/scripts/reconfigure_spinnaker.sh
 echo "$STATUS_PREFIX  Cleaning Up"
 replace_startup_script
 
-echo "$STATUS_PREFIX  Starting Spinnaker"
-$SPINNAKER_INSTALL_DIR/scripts/start_spinnaker.sh
-echo "$STATUS_PREFIX  Spinnaker is now ready"
+echo "$STATUS_PREFIX  Restarting Spinnaker"
+service clouddriver stop || true
+service clouddriver start
+#$SPINNAKER_INSTALL_DIR/scripts/start_spinnaker.sh
+#echo "$STATUS_PREFIX  Spinnaker is now ready"
