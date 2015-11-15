@@ -1,5 +1,7 @@
 #!/bin/bash
 
+REPOSITORY_URL="https://dl.bintray.com/kenzanlabs/spinnaker"
+
 ## This script install pre-requisites for Spinnaker
 # To you put this file in the root of a web server
 # curl -L https://foo.com/InstallSpinnaker.sh| sudo bash
@@ -72,6 +74,10 @@ function process_args() {
           DEFAULT_REGION="$1"
           shift
           ;;
+      --repository)
+         REPOSITORY_URL="$1"
+         shift
+         ;;
       --quiet|-q)
           CLOUD_PROVIDER="none"
           DEFAULT_REGION="none"
@@ -152,7 +158,7 @@ echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | su
 # DL Repo goes here
 # echo "deb http://dl.bintray.com/spinnaker/ospackages ./" > /etc/apt/sources.list.d/spinnaker.list
 # echo 'deb http://jenkins.staypuft.kenzan.com:8000/ trusty main' > /etc/apt/sources.list.d/spinnaker-dev.list
-echo 'deb https://dl.bintray.com/kenzanlabs/spinnaker trusty spinnaker' > /etc/apt/sources.list.d/spinnaker-dev.list
+echo "deb $REPOSITORY_URL trusty spinnaker" > /etc/apt/sources.list.d/spinnaker-dev.list
 
 ## Install software
 # "service cassandra status" is currently broken in Ubuntu grep in the script is grepping for things that do not exist
