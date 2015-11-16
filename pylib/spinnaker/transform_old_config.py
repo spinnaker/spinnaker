@@ -1,0 +1,139 @@
+# Copyright 2015 Google Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import os
+import re
+import sys
+import yaml_util
+from run import check_run_quick
+
+
+class Processor(object):
+  def __init__(self, config, environ_path, yml_path, aws_path):
+      with open(environ_path, 'r') as f:
+          self.__environ_content = f.read()
+          if not self.__environ_content.endswith('\n'):
+              self.__environ_content += '\n'
+
+      with open(yml_path, 'r') as f:
+          self.__output = f.read()
+
+      self.__bindings = yaml_util.YamlBindings()
+      self.__bindings.import_string(config)
+      self.__write_yml_path = yml_path
+      self.__write_aws_path = aws_path
+      self.__write_environ_path = environ_path
+
+  def update_environ(self, key, name):
+      value = self.lookup(key)
+      if value is None:
+          return
+
+      assignment = '{name}={value}'.format(name=name, value=value)
+      match = re.search('^{name}=.+'.format(name=name),
+                        self.__environ_content,
+                        re.MULTILINE)
+      if match:
+        self.__environ_content = ''.join([
+            self.__environ_content[0:match.start(0)],
+            assignment,
+            self.__environ_content[match.end(0):]
+        ])
+      else:
+        self.__environ_content += assignment + '\n'
+
+  def update_in_place(self, key):
+      value = self.lookup(key)
+      if value is None:
+          return
+      parts = key.split('.')
+      offset = 0
+      s = self.__output
+      for attr in parts:
+          match = re.search('^ *{attr}:(.*)'.format(attr=attr), s, re.MULTILINE)
+          if not match:
+              raise ValueError(
+                  'Could not find {key}. Failed on {attr} at {offset}'
+                  .format(key=key, attr=attr, offset=offset))
+          offset += match.start(0)
+          s = self.__output[offset:]
+
+      offset -= match.start(0)
+      value_start = match.start(1) + offset
+      value_end = match.end(0) + offset
+      self.__output = ''.join([
+          self.__output[0:value_start],
+          ' {value}'.format(value=value),
+          self.__output[value_end:]
+      ])
+
+  def lookup(self, key):
+      try:
+          return self.__bindings.get(key)
+      except KeyError:
+          return None
+
+  def process(self):
+      self.update_environ('providers.aws.enabled', 'SPINNAKER_AWS_ENABLED')
+      self.update_environ('providers.aws.defaultRegion',
+                          'SPINNAKER_AWS_DEFAULT_REGION')
+      self.update_environ('providers.google.enabled',
+                          'SPINNAKER_GOOGLE_ENABLED')
+      self.update_environ('providers.google.primaryCredentials.project',
+                          'SPINNAKER_GOOGLE_PROJECT_ID')
+      self.update_environ('providers.google.defaultRegion',
+                          'SPINNAKER_GOOGLE_PROJECT_DEFAULT_REGION')
+      self.update_environ('providers.google.defaultZone',
+                          'SPINNAKER_GOOGLE_PROJECT_DEFAULT_ZONE')
+
+      self.update_in_place('providers.aws.primaryCredentials.name')
+      aws_name = self.lookup('providers.aws.primaryCredentials.name')
+      aws_key = self.lookup('providers.aws.primaryCredentials.access_key_id')
+      aws_secret = self.lookup('providers.aws.primaryCredentials.secret_key')
+      if aws_key and aws_secret:
+          with open(self.__write_aws_path, 'w') as f:
+              f.write("""
+[{name}]
+aws_secret_access_key = {secret}
+aws_access_key_id = {key}
+""".format(name=aws_name, secret=aws_secret, key=aws_key))
+    
+      self.update_in_place('providers.aws.defaultIAMRole')
+      self.update_in_place('providers.google.primaryCredentials.name')
+      self.update_in_place('providers.google.primaryCredentials.project')
+      self.update_in_place('services.jenkins.defaultMaster.baseUrl')
+      self.update_in_place('services.jenkins.defaultMaster.username')
+      self.update_in_place('services.jenkins.defaultMaster.password')
+      self.update_in_place('services.igor.enabled')
+
+      with open(self.__write_environ_path, 'w') as f:
+          f.write(self.__environ_content)
+
+      with open(self.__write_yml_path, 'w') as f:
+          f.write(self.__output)
+
+
+if __name__ == '__main__':
+  if len(sys.argv) != 5:
+      sys.stderr.write('Usage: <content> <environ-path> <local-yml-path> <aws-cred-path>\n')
+      sys.exit(-1)
+
+  content = sys.argv[1]
+  environ_path = sys.argv[2]
+  local_yml_path = sys.argv[3]
+  aws_credentials_path = sys.argv[4]
+  processor = Processor(content,
+                        environ_path, local_yml_path, aws_credentials_path)
+  processor.process()
+  sys.exit(0)

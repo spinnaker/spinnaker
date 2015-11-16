@@ -12,11 +12,7 @@ providers:
     defaultIAMRole: BaseIAMRole
     primaryCredentials:
       name: my-aws-account
-      # You can use a standard $HOME/.aws/credentials file instead of providing
-      # these here. If provided here, then start_spinnaker will set environment
-      # variables before starting up the subsystems that interact with AWS.
-      access_key_id:
-      secret_key:
+      # Store actual credentials in /home/spinnaker/.aws/credentials
 
   google:
     # If you want to deploy some services to Google Cloud Platform (google),
@@ -24,14 +20,14 @@ providers:
     # Enabling google is independent of other providers.
     enabled: ${SPINNAKER_GOOGLE_ENABLED}
     defaultRegion: ${SPINNAKER_GOOGLE_DEFAULT_REGION}
-    defaultZone: ${SPINNAKER_GOOGLE_DEFAULT_REGION}-b
+    defaultZone: ${SPINNAKER_GOOGLE_DEFAULT_ZONE}
     primaryCredentials:
       name: my-google-account
       # The project is the Google Project ID for the project to manage with Spinnaker.
       # The jsonPath is a path to the JSON service credentials downloaded from the
       # Google Developer's Console.
       project: ${SPINNAKER_GOOGLE_PROJECT_ID}
-      jsonPath:
+      jsonPath: ${SPINNAKER_GOOGLE_PROJECT_CREDENTIALS_PATH}
 
 services:
   default:

@@ -151,18 +151,8 @@ providers:
     defaultRegion: us-east-1
     defaultSimpleDBDomain: CLOUD_APPLICATIONS
     primaryCredentials:
-      # TODO(ewiseblatt):
-      # This only works for root credentials, which you arent supposed to use.
-      # I havent been able to figure out how to get normal user accounts to
-      # work.  I'm leaving this broken for now hoping that once this gets
-      # mainlined somebody else will be able to fix it.
-
       name: default
-      # You can use a standard $HOME/.aws/credentials file instead of providing
-      # these here. If provided here, then start_spinnaker will set environment
-      # variables before starting up the subsystems that interact with AWS.
-      access_key_id:
-      secret_key:
+      # Add credentials to /home/spinnaker/.aws/credentials
 
   google:
     # If you want to deploy some services to Google Cloud Platform (google),
