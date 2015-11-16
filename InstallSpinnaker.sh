@@ -52,9 +52,10 @@ usage: $0 [--cloud_provider <aws|google|none|both>]
                                 if "none" is specified you will need to edit
                                 /etc/default/spinnaker manually
 
-    --aws_region <arg>          default region for your chosen cloud provider
+    --aws_region <arg>          default region for aws
 
-    --google_region <arg>          default region for your chosen cloud provider
+    --google_region <arg>       default region for google
+    --google_zone <arg>         default zone for google
 
     --quiet                     sets cloud provider to "none", you will need to
                                 edit /etc/default/spinnaker manually
@@ -81,6 +82,10 @@ function process_args() {
           GOOGLE_REGION="$1"
           shift
           ;;
+      --google_zone)
+          GOOGLE_ZONE="$1"
+          shift
+          ;;
       --repository)
          REPOSITORY_URL="$1"
          shift
@@ -89,6 +94,7 @@ function process_args() {
           CLOUD_PROVIDER="none"
           AWS_REGION="none"
           GOOGLE_REGION="none"
+          GOOGLE_ZONE="none"
           shift
           ;;
       --help|-help|-h)
@@ -105,25 +111,91 @@ function process_args() {
 function set_aws_region() {
   if [ "x$AWS_REGION" == "x" ]; then
     AWS_REGION="us-west-2"
-    read -e -p "specify AWS region: " -i "$AWS_REGION" AWS_REGION
+    read -e -p "Specify default aws region: " -i "$AWS_REGION" AWS_REGION
   fi
   AWS_REGION=`echo $AWS_REGION | tr '[:upper:]' '[:lower:]'`
 }
 
 function set_google_region() {
-  if [ "x$GOOGLE_REGION" == "x" ]; then
-    GOOGLE_REGION="us-central1"
-    read -e -p "specify Google region: " -i "$GOOGLE_REGION" GOOGLE_REGION
+  if [ "x$DEFAULT_GOOGLE_REGION" == "x" ]; then
+    DEFAULT_GOOGLE_REGION="us-central1"
   fi
+
+  read -e -p "Specify default google region: " -i "$DEFAULT_GOOGLE_REGION" GOOGLE_REGION
   GOOGLE_REGION=`echo $GOOGLE_REGION | tr '[:upper:]' '[:lower:]'`
 }
+
+function set_google_zone() {
+  if [ "x$DEFAULT_GOOGLE_ZONE" == "x" ]; then
+    DEFAULT_GOOGLE_ZONE="us-central1-f"
+  fi
+
+  read -e -p "Specify default google zone: " -i "$DEFAULT_GOOGLE_ZONE" GOOGLE_ZONE
+  GOOGLE_ZONE=`echo $GOOGLE_ZONE | tr '[:upper:]' '[:lower:]'`
+}
+
+GOOGLE_METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
+function get_google_metadata_value() {
+  local path="$1"
+  local value=$(curl -s -f -H "Metadata-Flavor: Google" \
+      $GOOGLE_METADATA_URL/$path)
+
+  if [[ $? -eq 0 ]]; then
+    echo "$value"
+  else
+    echo ""
+  fi
+}
+
+function write_default_value() {
+  local name="$1"
+  local value="$2"
+
+  if egrep "^$name=" /etc/default/spinnaker > /dev/null; then
+      sudo sed -i.bak "s/^$name=.*/$name=$value/" /etc/default/spinnaker
+  else
+      sudo bash -c "echo $name=$value >> /etc/default/spinnaker"
+  fi
+}
+
+function set_google_defaults_from_environ() {
+  local qualified_zone=$(get_google_metadata_value "instance/zone")
+  local zone=$(basename $qualified_zone)
+  local region=${zone%-*}
+
+  write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
+  write_default_value "SPINNAKER_GOOGLE_PROJECT_ID" \
+      $(get_google_metadata_value "project/project-id")
+
+  DEFAULT_CLOUD_PROVIDER="google"
+  DEFAULT_GOOGLE_REGION="$region"
+  DEFAULT_GOOGLE_ZONE="$zone"
+}
+
+function set_defaults_from_environ() {
+  local on_platform=""
+  local google_project_id=$(get_google_metadata_value "/project/project-id")
+
+  if [[ -n "$google_project_id" ]]; then
+      on_platform="google"
+      set_google_defaults_from_environ
+  fi
+
+  if [[ "$on_platform" != "" ]]; then
+      echo "Determined that you are running in a $on_platform environment."
+  else
+      echo "No providers are enabled by default."
+  fi
+}
+set_defaults_from_environ
 
 process_args "$@"
 
 if [ "x$CLOUD_PROVIDER" == "x" ]; then
-  read -p "specify a cloud provider: (aws|google|none|both) " CLOUD_PROVIDER
+  read -e -p "Specify a cloud provider (aws|google|none|both): " -i "$DEFAULT_CLOUD_PROVIDER" CLOUD_PROVIDER
   CLOUD_PROVIDER=`echo $CLOUD_PROVIDER | tr '[:upper:]' '[:lower:]'`
-  
+  CLOUD_PROVIDER="${CLOUD_PROVIDER:=$DEFAULT_CLOUD_PROVIDER}"
+
 fi
 
 case $CLOUD_PROVIDER in
@@ -134,6 +206,7 @@ case $CLOUD_PROVIDER in
   g|gce|google)
       CLOUD_PROVIDER="google"
       set_google_region
+      set_google_zone
       ;;
   n|no|none)
       CLOUD_PROVIDER="none"
@@ -142,6 +215,7 @@ case $CLOUD_PROVIDER in
       CLOUD_PROVIDER="both"
       set_aws_region
       set_google_region
+      set_google_zone
       ;;
   *)
       echo "ERROR: invalid cloud provider '$CLOUD_PROVIDER'"
@@ -196,28 +270,32 @@ nodetool enablethrift
 
 ## Packer
 sudo apt-get install -y unzip
-wget https://releases.hashicorp.com/packer/0.8.6/packer_0.8.6_linux_amd64.zip 
+wget https://releases.hashicorp.com/packer/0.8.6/packer_0.8.6_linux_amd64.zip
 unzip -q -f packer_0.8.6_linux_amd64.zip -d /usr/bin
 rm -f packer_0.8.6_linux_amd64.zip
 
 ## Spinnaker
 sudo apt-get install -y --force-yes --allow-unauthenticated spinnaker
 
-
-
 if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" || "${CLOUD_PROVIDER,,}" == "both" ]]; then
   case $CLOUD_PROVIDER in
     amazon)
-        sudo sed -i.bak -e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=true/" -e "s/SPINNAKER_AWS_DEFAULT_REGION.*$/SPINNAKER_AWS_DEFAULT_REGION=${AWS_REGION}/" \
-        	-e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=false/" /etc/default/spinnaker
+        write_default_value "SPINNAKER_AWS_ENABLED" "true"
+        write_default_value "SPINNAKER_AWS_DEFAULT_REGION" $AWS_REGION
+        write_default_value "SPINNAKER_GOOGLE_ENABLED" "false"
         ;;
     google)
-        sudo sed -i.bak -e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=true/" -e "s/SPINNAKER_GOOGLE_DEFAULT_REGION.*$/SPINNAKER_GOOGLE_DEFAULT_REGION=${GOOGLE_REGION}/" \
-        	-e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=false/" /etc/default/spinnaker
+        write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
+        write_default_value "SPINNAKER_GOOGLE_DEFAULT_REGION" $GOOGLE_REGION
+        write_default_value "SPINNAKER_GOOGLE_DEFAULT_ZONE" $GOOGLE_ZONE
+        write_default_value "SPINNAKER_AWS_ENABLED" "false"
         ;;
     both)
-        sudo sed -i.bak -e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=true/" -e "s/SPINNAKER_GOOGLE_DEFAULT_REGION.*$/SPINNAKER_GOOGLE_DEFAULT_REGION=${GOOGLE_REGION}/" \
-        	-e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=true/"  -e "s/SPINNAKER_AWS_DEFAULT_REGION.*$/SPINNAKER_AWS_DEFAULT_REGION=${AWS_REGION}/" /etc/default/spinnaker
+        write_default_value "SPINNAKER_AWS_ENABLED" "true"
+        write_default_value "SPINNAKER_AWS_DEFAULT_REGION" $AWS_REGION
+        write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
+        write_default_value "SPINNAKER_GOOGLE_DEFAULT_REGION" $GOOGLE_REGION
+        write_default_value "SPINNAKER_GOOGLE_DEFAULT_ZONE" $GOOGLE_ZONE
         ;;
   esac
 else
@@ -240,3 +318,14 @@ fi
 ##
 
 sudo start spinnaker
+  cat <<EOF
+
+To modify the available cloud providers:
+  Edit:   /etc/default/spinnaker
+  And/Or: /opt/spinnaker/config/spinnaker-local.yml
+
+  Then restart clouddriver and rosco with:
+    sudo service clouddriver restart
+    sudo service rosco restart
+EOF
+

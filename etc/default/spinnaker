@@ -11,6 +11,10 @@ SPINNAKER_AWS_DEFAULT_REGION=us-west-2
 
 # If you plan on using Google Compute Engine set this to true
 SPINNAKER_GOOGLE_ENABLED=false
+# GCP project you intend to manage
+SPINNAKER_GOOGLE_PROJECT_ID=
 # Default region you desire to operate in
-SPINNAKER_GOOGLE_DEFAULT_REGION=us-central1-b
+SPINNAKER_GOOGLE_DEFAULT_REGION=us-central1
+# Default zone you desire to operate in
+SPINNAKER_GOOGLE_DEFAULT_ZONE=us-central1-f
 
