@@ -256,5 +256,5 @@ echo "$STATUS_PREFIX  Cleaning Up"
 replace_startup_script
 
 echo "$STATUS_PREFIX  Restarting Spinnaker"
-service clouddriver restart
+restart spinnaker
 echo "$STATUS_PREFIX  Spinnaker is now configured"
