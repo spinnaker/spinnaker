@@ -172,15 +172,13 @@ function write_default_value() {
 }
 
 function set_google_defaults_from_environ() {
+  local project_id = $(get_google_metadata_value "project/project-id")
   local qualified_zone=$(get_google_metadata_value "instance/zone")
   local zone=$(basename $qualified_zone)
   local region=${zone%-*}
 
-  write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
-  write_default_value "SPINNAKER_GOOGLE_PROJECT_ID" \
-      $(get_google_metadata_value "project/project-id")
-
   DEFAULT_CLOUD_PROVIDER="google"
+  GOOGLE_PROJECT_ID=$project_id
   DEFAULT_GOOGLE_REGION="$region"
   DEFAULT_GOOGLE_ZONE="$zone"
 }
@@ -188,9 +186,6 @@ function set_google_defaults_from_environ() {
 function set_aws_defaults_from_environ() {
   # TODO (dstengle): Do aws magic here...
   local region=$(get_aws_metadata_value "/other/brother/darrell")
-
-  write_default_value "SPINNAKER_AWS_ENABLED" "true"
-  write_default_value "SPINNAKER_AWS_DEFAULT_REGION" $region
 
   DEFAULT_CLOUD_PROVIDER="aws"
   DEFAULT_AWS_REGION="$region"
@@ -316,6 +311,7 @@ if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" || 
         ;;
     google)
         write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
+        write_default_value "SPINNAKER_GOOGLE_PROJECT_ID" $GOOGLE_PROJECT_ID
         write_default_value "SPINNAKER_GOOGLE_DEFAULT_REGION" $GOOGLE_REGION
         write_default_value "SPINNAKER_GOOGLE_DEFAULT_ZONE" $GOOGLE_ZONE
         write_default_value "SPINNAKER_AWS_ENABLED" "false"
@@ -324,6 +320,7 @@ if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" || 
         write_default_value "SPINNAKER_AWS_ENABLED" "true"
         write_default_value "SPINNAKER_AWS_DEFAULT_REGION" $AWS_REGION
         write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
+        write_default_value "SPINNAKER_GOOGLE_PROJECT_ID" $GOOGLE_PROJECT_ID
         write_default_value "SPINNAKER_GOOGLE_DEFAULT_REGION" $GOOGLE_REGION
         write_default_value "SPINNAKER_GOOGLE_DEFAULT_ZONE" $GOOGLE_ZONE
         ;;
@@ -349,6 +346,12 @@ fi
 
 sudo start spinnaker
   cat <<EOF
+
+To stop all spinnaker subsystems:
+  sudo stop spinnaker
+
+To start all spinnaker subsystems:
+  sudo start spinnaker
 
 To modify the available cloud providers:
   Edit:   /etc/default/spinnaker
