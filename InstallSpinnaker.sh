@@ -311,7 +311,11 @@ if ! nc -z localhost 7199; then
     done
     echo "Cassandra is ready."
 fi
-nodetool enablethrift
+while ! nodetool enablethrift; do
+    sleep 1
+    echo "Retrying..."
+done
+
 # apt-get install dsc21
 
 ## Packer
