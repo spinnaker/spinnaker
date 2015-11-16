@@ -8,8 +8,8 @@ account. In the managing account, the AWS credentials need to have an IAM policy
 that grants the ability to STS assumeRole to the target accounts.
 
 In each managed account there needs to exist an IAM role that provides access to
-all the AWS operations that Spinnaker perform against that account. That IAM role
-as to have a trust relationship to the IAM ARN in the managing account (either a
+all the AWS operations that Spinnaker performs against that account. That IAM role
+has to have a trust relationship to the IAM ARN in the managing account (either a
 user ARN if connecting with an access key, or a role ARN if authenticating with an EC2
 instance profile).
 
