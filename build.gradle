@@ -4,7 +4,7 @@ buildscript {
     maven { url "http://dl.bintray.com/spinnaker/gradle" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:2.6.0'
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.1.0'
     classpath 'com.moowork.gradle:gradle-node-plugin:0.8'
     classpath 'be.filipblondeel.gradle:gradle-gulp-plugin:0.1'
   }
