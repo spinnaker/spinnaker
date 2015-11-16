@@ -296,7 +296,7 @@ nodetool enablethrift
 ## Packer
 sudo apt-get install -y unzip
 wget https://releases.hashicorp.com/packer/0.8.6/packer_0.8.6_linux_amd64.zip
-unzip -q -f packer_0.8.6_linux_amd64.zip -d /usr/bin
+sudo unzip -q packer_0.8.6_linux_amd64.zip -d /usr/bin
 rm -f packer_0.8.6_linux_amd64.zip
 
 ## Spinnaker
