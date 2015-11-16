@@ -37,24 +37,6 @@ class SpinnakerProjectConventionsPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.plugins.apply(NetflixOssProjectPlugin)
 
-        //workaround nebulaoss doing a find instead of a withType:
-        project.tasks.withType(BintrayUploadTask) { BintrayUploadTask bintrayUpload ->
-            bintrayUpload.doFirst {
-                ScmInfoExtension scmInfo = project.extensions.findByType(ScmInfoExtension)
-                // We have to change the task directly, since they already copied from the extension in an afterEvaluate
-
-                if (scmInfo) {
-                    // Assuming scmInfo.origin is something like git@github.com:netflix/project.git
-                    bintrayUpload.packageName = PublishingPlugin.calculateRepoFromOrigin(scmInfo.origin) ?: project.rootProject.name
-
-                    def url = PublishingPlugin.calculateUrlFromOrigin(scmInfo.origin)
-                    bintrayUpload.packageWebsiteUrl = url
-                    bintrayUpload.packageIssueTrackerUrl = "${url}/issues"
-                    bintrayUpload.packageVcsUrl = "${url}.git"
-                }
-            }
-        }
-
         project.plugins.withType(JavaPlugin) {
             JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
             convention.sourceCompatibility = JavaVersion.VERSION_1_8
@@ -69,11 +51,35 @@ class SpinnakerProjectConventionsPlugin implements Plugin<Project> {
         String bintrayJarRepo = propOrDefault('bintrayJarRepo', 'spinnaker')
 
         project.plugins.withType(BintrayPlugin) {
+            ScmInfoExtension scmInfo = project.extensions.findByType(ScmInfoExtension)
+            String projectUrl = PublishingPlugin.calculateUrlFromOrigin(scmInfo.origin)
+            String issuesUrl = "$projectUrl/issues"
+            String vcsUrl = "${projectUrl}.git"
+
+            //workaround nebulaoss doing a find instead of a withType:
+            project.tasks.withType(BintrayUploadTask) { BintrayUploadTask bintrayUpload ->
+                bintrayUpload.doFirst {
+                    // We have to change the task directly, since they already copied from the extension in an afterEvaluate
+
+                    if (scmInfo) {
+                        // Assuming scmInfo.origin is something like git@github.com:netflix/project.git
+                        bintrayUpload.packageName = PublishingPlugin.calculateRepoFromOrigin(scmInfo.origin) ?: project.rootProject.name
+
+                        bintrayUpload.packageWebsiteUrl = projectUrl
+                        bintrayUpload.packageIssueTrackerUrl = issuesUrl
+                        bintrayUpload.packageVcsUrl = vcsUrl
+                    }
+                }
+            }
+
             BintrayExtension bintray = (BintrayExtension) project.extensions.getByName('bintray')
 
             bintray.pkg.userOrg = bintrayOrg
             bintray.pkg.repo = bintrayJarRepo
             bintray.pkg.labels = ['Spinnaker', 'Netflix', 'netflixoss']
+            bintray.pkg.websiteUrl = projectUrl
+            bintray.pkg.issueTrackerUrl = issuesUrl
+            bintray.pkg.vcsUrl = vcsUrl
         }
 
         project.plugins.withType(OspackageBintrayPublishPlugin) {
