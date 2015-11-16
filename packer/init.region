@@ -7,16 +7,16 @@ sudo sed -i.bak "s/^SPINNAKER_AWS_DEFAULT_REGION=.*/SPINNAKER_AWS_DEFAULT_REGION
 
 echo
 echo
-echo "######### WELCOME TO SPINNAKER ############"
+echo '######### WELCOME TO SPINNAKER ############'
 echo
-echo "Default region is configured for Amazon AWS region: " $region
+echo 'Default region is configured for Amazon AWS region: ' $region
 echo 
-echo "Edit /etc/default/spinnaker and restart Spinnaker if you wish to change this"
-echo "Then execute: "
-echo "sudo service clouddriver restart"
-echo "sudo service rosco restart"
+echo 'Edit /etc/default/spinnaker and restart Spinnaker if you wish to change this'
+echo 'Then execute: '
+echo 'sudo service clouddriver restart'
+echo 'sudo service rosco restart'
 echo
-echo "Doing that now....."
+echo 'Doing that now.....'
 echo
 
 sudo service clouddriver restart
@@ -24,10 +24,23 @@ sudo service rosco restart
 
 echo
 echo
-echo "------ You should be ready to go -----"
-echo "To connect create a SSH tunnel from your host to "$public_hostname" remote port 9000"
+echo '------ You should be ready to go -----'
+echo 'To connect create a SSH tunnel from your host to "$public_hostname" remote ports 9000 and 8084'
 echo
-echo "This message will now self-destruct. Enjoy"
+echo 'You may add this to ~/.ssh/config: '
+echo 'Host spinnaker'
+echo '    HostName 52.34.95.36'
+echo '    IdentityFile /path/to/private/key'
+echo '    LocalForward 8081 127.0.0.1:9000'
+echo '    LocalForward 8084 127.0.0.1:8084'
+echo '    User ubuntu'
+echo
+echo 'If the ssh cofig file is new. Ensure it is chmod 400'
+echo
+echo 'Execute: ssh -f -N spinnaker'
+echo 'Open http://localhost:8081/ in your web browser'
+echo
+echo 'This message will now self-destruct. Enjoy'
 echo
 
 sed -i "s/\.\ \.init-region//" $HOME/.bashrc
