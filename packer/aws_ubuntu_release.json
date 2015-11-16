@@ -46,7 +46,7 @@
                 "sa-east-1"
             ],
 
-            "ami_users":[
+            "ami_groups":[
                 "all"
             ]
 
@@ -70,7 +70,7 @@
         },
         {
             "type": "file",
-            "source": "init.region",
+            "source": "init.aws.region",
             "destination": "/home/ubuntu/.init-region"
         },
         {
