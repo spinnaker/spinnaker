@@ -176,7 +176,7 @@ function extract_spinnaker_aws_credentials() {
     # got in the way.
     sed -i s/^None$//g $credentials_path
     if [[ -s $credentials_path ]]; then
-      chmod 400 $credentials_path
+      chmod 600 $credentials_path
       chown spinnaker:spinnaker $credentials_path
       echo "Extracted aws credentials to $credentials_path"
     else
@@ -224,6 +224,7 @@ fi
 # apply outstanding updates since time of image creation
 apt-get -y update
 apt-get -y dist-upgrade
+sed -i "s/start_rpc: false/start_rpc: true/" /etc/cassandra/cassandra.yaml
 nodetool enablethrift
 
 process_args
