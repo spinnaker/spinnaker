@@ -18,6 +18,7 @@ releases to Google Cloud Storage buckets. The Amazon credentials are
 discussed below in link:#configure-your-aws-account[Configure your AWS Account].
 
 These scripts are tested on:
+
 * Ubuntu 14.04 LTS
 * Mac OS X 10.11
 
@@ -141,6 +142,28 @@ If you enabled Google for Spinnaker, perform the following steps for your projec
 . Add GCP credentials in `$HOME/.spinnaker/spinnaker-local.yml`:
 * Set project ID for `provider.google.primaryCredentials.project`
 * Set full absolute path of downloaded file for `providers.google.primaryCredentials.jsonPath`
+
+== Configure your Cloud Foundry Account
+
+If you want to enable Cloud Foundry for Spinnaker, perform the following steps:
+
+. Add Cloud Foundry settings in `$HOME/.spinnaker/spinnaker-local.yml`.
++
+NOTE: If you are targeting a single Cloud Foundry space, then the settings in `spinnaker-local.yml` will be enough.
++
+* Set `cf.enabled` to true
+* Set `cf.defaultOrg` and `cf.defaultSpace` to match your Cloud Foundry instance's coordinates.
+* Set `cf.primaryCredentials.name` to the name you wish to assign.
+* Set `cf.primaryCredentials.api` to the same API URL used for the Cloud Foundry CLI.
+* Set `cf.primaryCredentials.console` to the base URL for the console. On https://run.pivotal.io/[PWS] this is https://console.run.pivotal.io.
+. These settings don't actually contain username and password, to avoid accidentally pushing them into a public location. To supply them, run the scripts below prefixed with `CF_ACCOUNT_USERNAME=<your username> CF_ACCOUNT_PASSWORD=<your password>`.
+
+Do you want to monitor more than one Cloud Foundry space? Then you need to do a few extra steps.
+
+. Create a local copy of `clouddriver.yml` with this command: `cp $HOME/.spinnaker/clouddriver.yml $HOME/.spinnaker/clouddriver-local.yml`
+. Copy the `accounts` entry for each space you need to target. By default, you have a single one that uses the property settings just configured. Override as needed.
+
+NOTE: If you are reusing the same username and password, you can reuse `${cf.account.name}` and `${cf.account.password}` in each of those entries. If you need to use different credentials, you can do so. Just supply them similarly when running Spinnaker.
 
 == Start Spinnaker Services
 
