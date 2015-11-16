@@ -224,6 +224,7 @@ fi
 # apply outstanding updates since time of image creation
 apt-get -y update
 apt-get -y dist-upgrade
+nodetool enablethrift
 
 process_args
 
