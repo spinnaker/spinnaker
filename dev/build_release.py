@@ -14,25 +14,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Coordinates a global build of a Spinnaker release.
+"""Coordinates a global build of a Spinnaker "release".
 
-Spinnaker components use Gradle. This particular script might be more
-appropriate to be a Gradle script. However this script came from a
-context in which writing it in python was more convenient. It could be
-replaced with a gradle script in the future without impacting other scripts
-or the overall development process if having this be a Gradle script
-is more maintainable.
+The term "release" here is more of an encapsulated build. This is not
+an official release. It is meant for developers.
 
-This script builds all the components, and squirrels them away into a filesystem
-somewhere (local, Amazon Simple Storage Service or Google Cloud Storage).
-The individual components are built using their respective repository's Gradle
-build. This script coordinates those builds and adds additional runtime
-administrative scripts into the release.
+The gradle script does not yet coordinate a complete build, so
+this script fills that gap for the time being. It triggers all
+the subsystem builds and then publishes the resulting artifacts.
 
-TODO(ewiseblatt): 20151007
-This should [also] generate a Debian package that can be installed.
-The default should be to generate a .deb package rather than write a filesystem
-tree. However, for historical development reasons, that is not yet done.
+Publishing is typically to bintray. It is currently possible to publish
+to a filesystem or storage bucket but this option will be removed soon
+since the installation from these sources is no longer supported.
+
+Usage:
+  export BINTRAY_USER=
+  export BINTRAY_KEY=
+
+  # subject/repository are the specific bintray repository
+  # owner and name components that specify the repository you are updating.
+  # The repository must already exist, but can be empty.
+  BINTRAY_REPOSITORY=subject/repository
+
+  # cd <build root containing subsystem subdirectories>
+  # this is where you ran refresh_source.sh from
+
+  ./spinnaker/dev/build_release.sh --bintray_repo=$BINTRAY_REPOSITORY
 """
 
 import argparse
@@ -50,7 +57,7 @@ import tarfile
 import tempfile
 import urllib2
 import zipfile
-
+from urllib2 import HTTPError
 
 import refresh_source
 from spinnaker.run import check_run_quick
@@ -279,26 +286,51 @@ class Builder(object):
                            version=version, path=path,
                            debian_tags=debian_tags))
 
-    if False:
-        # This results in a 405
-        with open(source, 'r') as f:
-          data = f.read()
-        request = urllib2.Request(url)
+    with open(source, 'r') as f:
+        data = f.read()
+        put_request = urllib2.Request(url)
         encoded_auth = base64.encodestring('{user}:{pwd}'.format(
             user=bintray_user, pwd=bintray_key))[:-1]  # strip eoln
 
-        request.add_header('Authorization', 'Basic ' + encoded_auth)
-        result = urllib2.urlopen(request, data)
-        request.get_method = lambda: 'PUT'
+        put_request.add_header('Authorization', 'Basic ' + encoded_auth)
+        put_request.get_method = lambda: 'PUT'
+        try:
+            result = urllib2.urlopen(put_request, data)
+        except HTTPError as put_error:
+            if put_error.code != 400:
+              raise
+
+            # Try creating the package and retrying.
+            pkg_url = os.path.join('https://api.bintray.com/packages',
+                                   subject, repo)
+            print 'Creating an entry for {package} with {pkg_url}...'.format(
+                package=package, pkg_url=pkg_url)
+
+            # All the packages are from spinnaker so we'll hardcode it.
+            pkg_data = """{{
+              "name": "{package}",
+              "licenses": ["Apache-2.0"],
+              "vcs_url": "https://github.com/spinnaker/{gitname}.git",
+              "website_url": "http://spinnaker.io",
+              "github_repo": "spinnaker/{gitname}",
+              "public_download_numbers": false,
+              "public_stats": false
+            }}'""".format(package=package,
+                          gitname=package.replace('spinnaker-', ''))
+
+            pkg_request = urllib2.Request(pkg_url)
+            pkg_request.add_header('Authorization', 'Basic ' + encoded_auth)
+            pkg_request.add_header('Content-Type', 'application/json')
+            pkg_request.get_method = lambda: 'POST'
+            pkg_result = urllib2.urlopen(pkg_request, pkg_data)
+            pkg_code = pkg_result.getcode()
+            if pkg_code >= 200 and pkg_code < 300:
+                result = urllib2.urlopen(put_request, data)
+
         code = result.getcode()
         if code < 200 or code >= 300:
-          raise ValueError('Could not write {url}\n{response}\n'.format(
-            url=url, response=result.read()))
-    else:
-        # Use curl to workaround for now.
-        command = 'curl -s -u{user}:{key} -X PUT -T "{source}" "{url}"'.format(
-            user=bintray_user, key=bintray_key, source=source, url=url)
-        check_run_quick(command, echo=False)
+          raise ValueError('{code}: Could not add version to {url}\n{msg}'
+                           .format(code=code, url=url, msg=result.read()))
 
     print 'Wrote {source} to {url}'.format(source=source, url=url)
 
