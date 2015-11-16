@@ -311,7 +311,7 @@ if ! nc -z localhost 7199; then
     done
     echo "Cassandra is ready."
 fi
-while ! nodetool enablethrift; do
+while ! $(nodetool enablethrift > /dev/null); do
     sleep 1
     echo "Retrying..."
 done
