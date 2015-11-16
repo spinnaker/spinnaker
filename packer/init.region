@@ -29,13 +29,13 @@ echo 'To connect create a SSH tunnel from your host to "$public_hostname" remote
 echo
 echo 'You may add this to ~/.ssh/config: '
 echo 'Host spinnaker'
-echo '    HostName 52.34.95.36'
+echo '    HostName '$public_hostname
 echo '    IdentityFile /path/to/private/key'
 echo '    LocalForward 8081 127.0.0.1:9000'
 echo '    LocalForward 8084 127.0.0.1:8084'
 echo '    User ubuntu'
 echo
-echo 'If the ssh cofig file is new. Ensure it is chmod 400'
+echo 'If the ssh config file is new. Ensure it is chmod 400'
 echo
 echo 'Execute: ssh -f -N spinnaker'
 echo 'Open http://localhost:8081/ in your web browser'
