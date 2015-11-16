@@ -110,28 +110,35 @@ function process_args() {
 
 function set_aws_region() {
   if [ "x$AWS_REGION" == "x" ]; then
-    AWS_REGION="us-west-2"
-    read -e -p "Specify default aws region: " -i "$AWS_REGION" AWS_REGION
+    if [ "x$DEFAULT_AWS_REGION" == "x" ]; then
+      DEFAULT_AWS_REGION="us-west-2"
+    fi
+
+    read -e -p "Specify default aws region: " -i "$DEFAULT_AWS_REGION" AWS_REGION
+    AWS_REGION=`echo $AWS_REGION | tr '[:upper:]' '[:lower:]'`
   fi
-  AWS_REGION=`echo $AWS_REGION | tr '[:upper:]' '[:lower:]'`
 }
 
 function set_google_region() {
-  if [ "x$DEFAULT_GOOGLE_REGION" == "x" ]; then
-    DEFAULT_GOOGLE_REGION="us-central1"
-  fi
+  if [ "x$GOOGLE_REGION" == "x" ]; then
+    if [ "x$DEFAULT_GOOGLE_REGION" == "x" ]; then
+      DEFAULT_GOOGLE_REGION="us-central1"
+    fi
 
-  read -e -p "Specify default google region: " -i "$DEFAULT_GOOGLE_REGION" GOOGLE_REGION
-  GOOGLE_REGION=`echo $GOOGLE_REGION | tr '[:upper:]' '[:lower:]'`
+    read -e -p "Specify default google region: " -i "$DEFAULT_GOOGLE_REGION" GOOGLE_REGION
+    GOOGLE_REGION=`echo $GOOGLE_REGION | tr '[:upper:]' '[:lower:]'`
+  fi
 }
 
 function set_google_zone() {
-  if [ "x$DEFAULT_GOOGLE_ZONE" == "x" ]; then
-    DEFAULT_GOOGLE_ZONE="us-central1-f"
-  fi
+  if [ "x$GOOGLE_ZONE" == "x" ]; then
+    if [ "x$DEFAULT_GOOGLE_ZONE" == "x" ]; then
+      DEFAULT_GOOGLE_ZONE="us-central1-f"
+    fi
 
-  read -e -p "Specify default google zone: " -i "$DEFAULT_GOOGLE_ZONE" GOOGLE_ZONE
-  GOOGLE_ZONE=`echo $GOOGLE_ZONE | tr '[:upper:]' '[:lower:]'`
+    read -e -p "Specify default google zone: " -i "$DEFAULT_GOOGLE_ZONE" GOOGLE_ZONE
+    GOOGLE_ZONE=`echo $GOOGLE_ZONE | tr '[:upper:]' '[:lower:]'`
+  fi
 }
 
 GOOGLE_METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
@@ -145,6 +152,11 @@ function get_google_metadata_value() {
   else
     echo ""
   fi
+}
+
+function get_aws_metadata_value() {
+  # TODO (dstengle): Do aws magic here...
+  echo 'some-value'
 }
 
 function write_default_value() {
@@ -172,6 +184,17 @@ function set_google_defaults_from_environ() {
   DEFAULT_GOOGLE_ZONE="$zone"
 }
 
+function set_aws_defaults_from_environ() {
+  # TODO (dstengle): Do aws magic here...
+  local region=$(get_aws_metadata_value "/other/brother/darrell")
+
+  write_default_value "SPINNAKER_AWS_ENABLED" "true"
+  write_default_value "SPINNAKER_AWS_DEFAULT_REGION" $region
+
+  DEFAULT_CLOUD_PROVIDER="aws"
+  DEFAULT_AWS_REGION="$region"
+}
+
 function set_defaults_from_environ() {
   local on_platform=""
   local google_project_id=$(get_google_metadata_value "/project/project-id")
@@ -181,8 +204,16 @@ function set_defaults_from_environ() {
       set_google_defaults_from_environ
   fi
 
+  # TODO (dstengle): Do aws magic here...
+  local some_aws_thing=$(get_aws_metadata_value "/some/path/maybe")
+
+  if [[ -n "$some_aws_thing" ]]; then
+      on_platform="aws"
+      set_aws_defaults_from_environ
+  fi
+
   if [[ "$on_platform" != "" ]]; then
-      echo "Determined that you are running in a $on_platform environment."
+      echo "Determined that you are running on $on_platform infrastructure."
   else
       echo "No providers are enabled by default."
   fi
@@ -194,8 +225,6 @@ process_args "$@"
 if [ "x$CLOUD_PROVIDER" == "x" ]; then
   read -e -p "Specify a cloud provider (aws|google|none|both): " -i "$DEFAULT_CLOUD_PROVIDER" CLOUD_PROVIDER
   CLOUD_PROVIDER=`echo $CLOUD_PROVIDER | tr '[:upper:]' '[:lower:]'`
-  CLOUD_PROVIDER="${CLOUD_PROVIDER:=$DEFAULT_CLOUD_PROVIDER}"
-
 fi
 
 case $CLOUD_PROVIDER in
