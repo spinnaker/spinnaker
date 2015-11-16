@@ -93,9 +93,9 @@ class Processor(object):
       self.update_environ('providers.google.primaryCredentials.project',
                           'SPINNAKER_GOOGLE_PROJECT_ID')
       self.update_environ('providers.google.defaultRegion',
-                          'SPINNAKER_GOOGLE_PROJECT_DEFAULT_REGION')
+                          'SPINNAKER_GOOGLE_DEFAULT_REGION')
       self.update_environ('providers.google.defaultZone',
-                          'SPINNAKER_GOOGLE_PROJECT_DEFAULT_ZONE')
+                          'SPINNAKER_GOOGLE_DEFAULT_ZONE')
 
       self.update_in_place('providers.aws.primaryCredentials.name')
       aws_name = self.lookup('providers.aws.primaryCredentials.name')
@@ -104,7 +104,7 @@ class Processor(object):
       if aws_key and aws_secret:
           with open(self.__write_aws_path, 'w') as f:
               f.write("""
-[{name}]
+[default]
 aws_secret_access_key = {secret}
 aws_access_key_id = {key}
 """.format(name=aws_name, secret=aws_secret, key=aws_key))
