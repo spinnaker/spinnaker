@@ -22,7 +22,7 @@ set -e
 set -u
 
 # We're running as root, but HOME might not be defined.
-HOME=${HOME:-"/home/spinnaker"}
+AWS_DIR=/home/spinnaker/.aws
 SPINNAKER_INSTALL_DIR=/opt/spinnaker
 LOCAL_CONFIG_DIR=$SPINNAKER_INSTALL_DIR/config
 
@@ -94,8 +94,6 @@ function replace_startup_script() {
   local original=$(get_instance_metadata_attribute "startup-script")
   echo "$original" > "$SPINNAKER_INSTALL_DIR/scripts/original_startup_script.sh"
   clear_instance_metadata "startup-script"
-#  write_instance_metadata \
-#      "startup-script=$SPINNAKER_INSTALL_DIR/scripts/start_spinnaker.sh"
 }
 
 function extract_spinnaker_local_yaml() {
@@ -104,11 +102,25 @@ function extract_spinnaker_local_yaml() {
     return 1
   fi
 
+  local yml_path=$LOCAL_CONFIG_DIR/spinnaker-local.yml
+  sudo cp $SPINNAKER_INSTALL_DIR/config/default-spinnaker-local.yml $yml_path
+  chown spinnaker:spinnaker $yml_path
+  chmod 600 $yml_path
+
+  mkdir -p $AWS_DIR
+  chown -R spinnaker:spinnaker /home/spinnaker
+  
+  PYTHONPATH=$SPINNAKER_INSTALL_DIR/pylib python \
+      $SPINNAKER_INSTALL_DIR/pylib/spinnaker/transform_old_config.py \
+      "$value" /etc/default/spinnaker $yml_path $AWS_DIR/credentials
+
+  if [[ -f $AWS_DIR/credentials ]]; then
+      chown spinnaker:spinnaker $AWS_DIR/credentials
+      chmod 600 $AWS_DIR/credentials
+  fi
   local config="$LOCAL_CONFIG_DIR/spinnaker-local.yml"
   sudo -u spinnaker mkdir -p $(dirname $config)
   echo "$value" > $config
-  chown spinnaker:spinnaker $config
-  chmod 600 $config
 
   clear_instance_metadata "spinnaker_local"
   return 0
@@ -153,7 +165,7 @@ function extract_spinnaker_google_credentials() {
 }
 
 function extract_spinnaker_aws_credentials() {
-  local credentials_path="$HOME/.aws/credentials"
+  local credentials_path="$AWS_DIR/credentials"
   mkdir -p $(dirname $credentials_path)
   if clear_metadata_to_file "aws_credentials" $credentials_path; then
     # This is a workaround for difficulties using the Google Deployment Manager
@@ -209,8 +221,8 @@ else
 fi
 
 # apply outstanding updates since time of image creation
-# apt-get -y update
-# apt-get -y dist-upgrade
+apt-get -y update
+apt-get -y dist-upgrade
 
 process_args
 
@@ -230,7 +242,5 @@ echo "$STATUS_PREFIX  Cleaning Up"
 replace_startup_script
 
 echo "$STATUS_PREFIX  Restarting Spinnaker"
-service clouddriver stop || true
-service clouddriver start
-#$SPINNAKER_INSTALL_DIR/scripts/start_spinnaker.sh
-#echo "$STATUS_PREFIX  Spinnaker is now ready"
+service clouddriver restart
+echo "$STATUS_PREFIX  Spinnaker is now configured"
