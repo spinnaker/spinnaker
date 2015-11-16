@@ -93,7 +93,7 @@ module.exports = angular.module('spinnaker.core.account.service', [
 
     function getRegionsForAccount(accountName) {
       return getAccountDetails(accountName).then(function(details) {
-        return details ? details.regions : null;
+        return details ? details.regions : [];
       });
     }
 

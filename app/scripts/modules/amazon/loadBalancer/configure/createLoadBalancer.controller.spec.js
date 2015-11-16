@@ -15,7 +15,7 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
     this.ctrl = $controller('awsCreateLoadBalancerCtrl', {
       $scope: this.$scope,
       $modalInstance: { dismiss: angular.noop, result: { then: angular.noop } },
-      application: {name: 'app'},
+      application: {name: 'app', defaultCredentials: {}, defaultRegions: {}},
       loadBalancer: null,
       isNew: true
     });

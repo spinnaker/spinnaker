@@ -26,7 +26,7 @@ describe('awsServerGroupCommandBuilder', function() {
 
     it('initializes to default values, setting usePreferredZone flag to true', function () {
       var command = null;
-      this.awsServerGroupCommandBuilder.buildNewServerGroupCommand({name: 'appo'}, 'aws').then(function(result) {
+      this.awsServerGroupCommandBuilder.buildNewServerGroupCommand({name: 'appo', defaultCredentials: {}, defaultRegions: {}}, 'aws').then(function(result) {
         command = result;
       });
 

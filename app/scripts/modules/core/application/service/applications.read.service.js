@@ -188,27 +188,39 @@ module.exports = angular
     }
 
     function addDefaultRegion(application) {
-      var fromServerGroups = _.pluck(application.serverGroups, 'region'),
-          fromLoadBalancers = _.pluck(application.loadBalancers, 'region'),
-          fromSecurityGroups = _.pluck(application.securityGroups, 'region');
+      application.defaultRegions = {};
+      var serverGroupProviders = _.pluck(application.serverGroups, 'provider'),
+          loadBalancerProviders = _.pluck(application.loadBalancers, 'type'),
+          securityGroupProviders = _.pluck(application.securityGroups, 'type');
 
-      var allRegions = _.union(fromServerGroups, fromLoadBalancers, fromSecurityGroups);
-
-      if (allRegions.length === 1) {
-        application.defaultRegion = allRegions[0];
-      }
+      var allProviders = _.union(serverGroupProviders, loadBalancerProviders, securityGroupProviders);
+      allProviders.forEach((provider) => {
+        var fromServerGroups = _.pluck(_.filter(application.serverGroups, {provider: provider}), 'region'),
+            fromLoadBalancers = _.pluck(_.filter(application.loadBalancers, {type: provider}), 'region'),
+            fromSecurityGroups = _.pluck(_.filter(application.securityGroups, {type: provider}), 'region');
+        var allRegions = _.union(fromServerGroups, fromLoadBalancers, fromSecurityGroups);
+        if (allRegions.length === 1) {
+          application.defaultRegions[provider] = allRegions[0];
+        }
+      });
     }
 
     function addDefaultCredentials(application) {
-      var fromServerGroups = _.pluck(application.serverGroups, 'account'),
-          fromLoadBalancers = _.pluck(application.loadBalancers, 'account'),
-          fromSecurityGroups = _.pluck(application.securityGroups, 'accountName');
+      application.defaultCredentials = {};
+      var serverGroupProviders = _.pluck(application.serverGroups, 'provider'),
+          loadBalancerProviders = _.pluck(application.loadBalancers, 'type'),
+          securityGroupProviders = _.pluck(application.securityGroups, 'type');
 
-      var allCredentials = _.union(fromServerGroups, fromLoadBalancers, fromSecurityGroups);
-
-      if (allCredentials.length === 1) {
-        application.defaultCredentials = allCredentials[0];
-      }
+      var allProviders = _.union(serverGroupProviders, loadBalancerProviders, securityGroupProviders);
+      allProviders.forEach((provider) => {
+        var fromServerGroups = _.pluck(_.filter(application.serverGroups, {provider: provider}), 'account'),
+            fromLoadBalancers = _.pluck(_.filter(application.loadBalancers, {type: provider}), 'account'),
+            fromSecurityGroups = _.pluck(_.filter(application.securityGroups, {type: provider}), 'accountName');
+        var allRegions = _.union(fromServerGroups, fromLoadBalancers, fromSecurityGroups);
+        if (allRegions.length === 1) {
+          application.defaultCredentials[provider] = allRegions[0];
+        }
+      });
     }
 
     function addTasksToApplication(application, tasks) {
