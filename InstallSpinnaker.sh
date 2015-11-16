@@ -311,7 +311,6 @@ if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" || 
         ;;
     google)
         write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
-        write_default_value "SPINNAKER_GOOGLE_PROJECT_ID" $GOOGLE_PROJECT_ID
         write_default_value "SPINNAKER_GOOGLE_DEFAULT_REGION" $GOOGLE_REGION
         write_default_value "SPINNAKER_GOOGLE_DEFAULT_ZONE" $GOOGLE_ZONE
         write_default_value "SPINNAKER_AWS_ENABLED" "false"
@@ -320,13 +319,16 @@ if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" || 
         write_default_value "SPINNAKER_AWS_ENABLED" "true"
         write_default_value "SPINNAKER_AWS_DEFAULT_REGION" $AWS_REGION
         write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
-        write_default_value "SPINNAKER_GOOGLE_PROJECT_ID" $GOOGLE_PROJECT_ID
         write_default_value "SPINNAKER_GOOGLE_DEFAULT_REGION" $GOOGLE_REGION
         write_default_value "SPINNAKER_GOOGLE_DEFAULT_ZONE" $GOOGLE_ZONE
         ;;
   esac
 else
   echo "Not enabling a cloud provider"
+fi
+
+if [ "x$GOOGLE_PROJECT_ID" != "x" ]; then
+  write_default_value "SPINNAKER_GOOGLE_PROJECT_ID" $GOOGLE_PROJECT_ID
 fi
 
 ## Remove
