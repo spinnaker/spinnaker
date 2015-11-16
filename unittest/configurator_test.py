@@ -36,6 +36,18 @@ class ConfiguratorTest(unittest.TestCase):
             # The test isnt run from  a build directory so this raises
             configurator.deck_install_dir
 
+    def test_export_environment_variables(self):
+        content = """
+# comment
+FIRST=one
+# WRONG=another
+SECOND=two
+"""
+        Configurator.export_environment_variables(content)
+        self.assertEqual('one', os.environ.get('FIRST', None))
+        self.assertEqual('two', os.environ.get('SECOND', None))
+        self.assertIsNone(os.environ.get('WRONG', None))
+
     def test_update_deck_settings(self):
         temp_sourcedir = tempfile.mkdtemp()
         temp_targetdir = tempfile.mkdtemp()

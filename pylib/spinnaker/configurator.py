@@ -63,6 +63,7 @@ class InstallationParameters(object):
 
   DECK_INSTALL_DIR = '/var/www'
   HACK_DECK_SETTINGS_FILENAME = 'settings.js'
+  ENVIRONMENT_VARIABLE_PATH = '/etc/default/spinnaker'
 
 
 class Configurator(object):
@@ -145,7 +146,24 @@ class Configurator(object):
 
     self.__installation = installation_parameters
     self.__bindings = bindings   # Either injected or loaded on demand.
+    self.load_environment_variables()
 
+  @staticmethod
+  def export_environment_variables(content):
+    for match in re.finditer('^([^\s]+?)=([^\n]*)(?:\#.+)?', content,
+                             re.MULTILINE):
+      os.environ[match.group(1)] = match.group(2)
+
+  def load_environment_variables(self, path=None):
+    if not path:
+      path = self.__installation.ENVIRONMENT_VARIABLE_PATH
+    try:
+      with open(path, 'r') as f:
+        content = f.read()
+      self.export_environment_variables(content)
+    except IOError:
+      pass
+      
   def update_deck_settings(self):
     """Update the settings.js file from configuration info."""
     source_path = os.path.join(self.installation_config_dir, 'settings.js')

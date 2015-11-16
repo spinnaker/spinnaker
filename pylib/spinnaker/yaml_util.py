@@ -75,7 +75,9 @@ class YamlBindings(object):
     return yaml.load('x: {0}'.format(value_text), Loader=yaml.Loader)['x']
 
   def __get_value(self, field, saw, original):
-    value = self.__get_node(field)
+    value = os.environ.get(field, None)
+    if value is None:
+      value = self.__get_node(field)
     if not isinstance(value, basestring) or not value.startswith('$'):
       return value
 

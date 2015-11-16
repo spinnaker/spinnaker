@@ -122,6 +122,12 @@ e:
     bindings.import_dict({'field': '${injected.value:HELLO}'})
     self.assertEqual('HELLO', bindings.get('field'))
 
+  def test_environ(self):
+    os.environ['TEST_VARIABLE'] = 'TEST_VALUE'
+    bindings = YamlBindings()
+    bindings.import_dict({'field': '${TEST_VARIABLE}'})
+    self.assertEqual('TEST_VALUE', bindings.get('field'))
+
   def test_load_transitive(self):
     bindings = YamlBindings()
     bindings.import_dict({'field': '${injected.value}'})
