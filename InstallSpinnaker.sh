@@ -1,6 +1,6 @@
 #!/bin/bash
 
-REPOSITORY_URL="https://dl.bintray.com/kenzanlabs/spinnaker"
+REPOSITORY_URL="https://dl.bintray.com/spinnaker/debians"
 
 ## This script install pre-requisites for Spinnaker
 # To you put this file in the root of a web server
@@ -36,7 +36,7 @@ if [ "$DISTRO" = "Ubuntu" ]; then
   fi
 else
   echo "Not a supported operating system"
-  echo "Recommend you use Ubuntu 14.10 or higher"
+  echo "Recommend you use Ubuntu 14.04 or higher"
   exit 1
 fi
 
@@ -285,8 +285,11 @@ sudo add-apt-repository -y ppa:openjdk-r/ppa
 
 # Spinnaker
 # DL Repo goes here
-# echo "deb http://dl.bintray.com/spinnaker/ospackages ./" > /etc/apt/sources.list.d/spinnaker.list
-# echo 'deb http://jenkins.staypuft.kenzan.com:8000/ trusty main' > /etc/apt/sources.list.d/spinnaker-dev.list
+REPOSITORY_HOST=$(echo $REPOSITORY_URL | cut -d/ -f3)
+if [ "$REPOSITORY_HOST" == "dl.bintray.com" ]; then
+  REPOSITORY_ORG=$(echo $REPOSITORY_URL | cut -d/ -f4)
+  curl "https://bintray.com/user/downloadSubjectPublicKey?username=$REPOSITORY_ORG" | sudo apt-key add -
+fi
 echo "deb $REPOSITORY_URL trusty spinnaker" | sudo tee /etc/apt/sources.list.d/spinnaker-dev.list > /dev/null
 
 ## Install software
