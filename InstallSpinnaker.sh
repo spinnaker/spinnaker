@@ -156,7 +156,8 @@ function get_google_metadata_value() {
 
 function get_aws_metadata_value() {
   # TODO (dstengle): Do aws magic here...
-  echo 'some-value'
+#  echo 'some-value'
+  echo ''
 }
 
 function write_default_value() {
