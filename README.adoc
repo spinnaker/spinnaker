@@ -1,6 +1,6 @@
 :doctype: book
 
-image:http://join-spinnaker.heroku.com/badge.svg[Slack Status,link=http://join-spinnaker.heroku.com]
+image:http://join.spinnaker.io/badge.svg[Slack Status,link=http://join.spinnaker.io]
 
 = Getting Started with Spinnaker
 
