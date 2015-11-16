@@ -53,7 +53,7 @@
         },
         {
             "type": "file",
-            "source": "init.region",
+            "source": "init.aws.region",
             "destination": "/home/ubuntu/.init-region"
         },
         {
