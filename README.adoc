@@ -2,7 +2,7 @@
 
 image:http://join.spinnaker.io/badge.svg[Slack Status,link=http://join.spinnaker.io]
 
-= Getting Started with Spinnaker
+= Setting Up Spinnaker For Development
 
 These instructions cover pulling Spinnaker from source and setting up to run locally against Amazon Web Services and/or Google Cloud Platform accounts. 
 
