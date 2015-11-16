@@ -49,22 +49,7 @@ To finish the installation, follow these steps:
   source /opt/spinnaker/install/bootstrap_dev.sh
 
 
-(4a) Build and run directly from the sources:
-
-  ../spinnaker/dev/run_dev.sh
-
-- or -
-
-(4b) Build a release:
-
-  ../spinnaker/dev/build_release.sh --release_path=$RELEASE_PATH
-
-  A release can be used to produce a cloud provider image or installed directly.
-
-
-For more help, see the Spinnaker Build & Run Book:
-
-  https://docs.google.com/document/d/1Q_ah8eG3Imyw-RWS1DSp_ItM2pyn56QEepCeaOAPaKA
+For more information about Spinnaker, see http://spinnaker.io
 
 """
 
