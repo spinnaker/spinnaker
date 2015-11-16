@@ -1,6 +1,6 @@
 #!/bin/bash
 
-URL=https://dl.bintray.com/kenzanlabs/spinnaker/InstallSpinnaker.sh
+URL="https://dl.bintray.com/kenzanlabs/spinnaker/InstallSpinnaker.sh"
 
 function download {
   scratch=$(mktemp -d -t tmp.XXXXXXXXXX) || exit
