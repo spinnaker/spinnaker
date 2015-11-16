@@ -310,6 +310,14 @@ class Builder(object):
     self.publish_to_bintray(source, package='spinnaker', version=version,
                             path='InstallSpinnaker.sh')
 
+  def publish_bootstrap_script(self, source):
+    path = 'BootstrapSpinnaker.sh'
+    gradle_root = self.determine_gradle_root('spinnaker')
+    version = determine_package_version(gradle_root, '.')
+
+    self.publish_to_bintray(source, package='spinnaker', version=version,
+                            path='BootstrapSpinnaker.sh')
+
   def publish_file(self, source, package, version):
     """Write a file to the bintray repository.
 
@@ -666,6 +674,27 @@ if __name__ == '__main__':
 
       try:
         builder.publish_install_script(
+          os.path.join(determine_project_root(), temp_path))
+      finally:
+        os.remove(temp_path)
+
+    if options.bintray_repo:
+      fd, temp_path = tempfile.mkstemp()
+      with open(os.path.join(determine_project_root(), 'BootstrapSpinnaker.sh'),
+                'r') as f:
+          content = f.read()
+          match = re.search(
+                'URL="https://dl\.bintray\.com/(.+)"',
+                content)
+          content = ''.join([content[0:match.start(1)],
+                             options.bintray_repo,
+                             '/InstallSpinnaker.sh',
+                             content[match.end(1):]])
+          os.write(fd, content)
+      os.close(fd)
+
+      try:
+        builder.publish_bootstrap_script(
           os.path.join(determine_project_root(), temp_path))
       finally:
         os.remove(temp_path)
