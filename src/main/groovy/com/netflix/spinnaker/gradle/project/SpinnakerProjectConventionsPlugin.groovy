@@ -48,7 +48,7 @@ class SpinnakerProjectConventionsPlugin implements Plugin<Project> {
         }
 
         String bintrayOrg = propOrDefault('bintrayOrg', 'spinnaker')
-        String bintrayJarRepo = propOrDefault('bintrayJarRepo', 'maven')
+        String bintrayJarRepo = propOrDefault('bintrayJarRepo', 'spinnaker')
         ScmInfoExtension scmInfo = project.extensions.getByType(ScmInfoExtension)
         String projectUrl = PublishingPlugin.calculateUrlFromOrigin(scmInfo.origin)
         String issuesUrl = "$projectUrl/issues"
