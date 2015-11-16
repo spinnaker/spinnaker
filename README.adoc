@@ -18,14 +18,14 @@ The app will start up on localhost:9000.
 Environment variables can be used to configure application behavior. The following lists those variables and their possible values:
 
 * `AUTH` enable/disable authentication (default is disabled, enable by setting `AUTH=enabled`).
-* `CANARY` enable/disable canary (default is enabled, disable by setting `CANARY=disabled`).
+* `TIMEZONE` set the default timezone (default is 'America/Los_Angeles' - see http://momentjs.com/timezone/docs/#/data-utilities/ for options)
 
 The following external resources can be specified with environment variables:
 
-* `FEEDBACK_URL` overrides the default feedback posting url.
 * `API_HOST` overrides the default Spinnaker API host.
+* `AUTH_ENABLED` determines whether Deck will attempt to authenticate users via Gate.
 
-For example, `API_HOST=spinnaker.prod.netflix.net npm start` will run service with `spinnaker.prod.netflix.net` as the API host.
+For example, `API_HOST=http://spinnaker.prod.netflix.net npm start` will run Deck with `http://spinnaker.prod.netflix.net` as the API host.
 
 == Testing
 
@@ -36,7 +36,7 @@ To run the tests within the application, run `npm test`.
 Developing things locally? You will want to run https://github.com/spinnaker/gate[gate] locally (which runs on port 8084) as well. It's the gateway to clouddriver. Then run deck like this:
 
 ```
-API_HOST=localhost:8084 PROTOCOL=http npm start
+API_HOST=http://localhost:8084 npm start
 ```
 ====
 
@@ -45,4 +45,14 @@ API_HOST=localhost:8084 PROTOCOL=http npm start
 
 To build the application, run `npm run build`. The built application lives in `dist/`.
 
-== https://github.com/spinnaker/deck/wiki/Conventions[Conventions]
+== Conventions
+
+It's a work in progress, but please try to follow the https://github.com/spinnaker/deck/wiki/Conventions[conventions here].
+
+== Customizing the UI
+
+It's certainly doable - we're in the middle of some significant changes to our build process, which should make it easier.
+For now, you can look at the https://github.com/spinnaker/deck/tree/master/app/scripts/modules/netflix[netflix module] to
+get an idea how we are customizing Deck internally. Expect a lot of this to change, though, as we figure out better, cleaner
+hooks and integration points. And we're happy to provide new integration points (or accept pull requests) following
+those existing conventions if you need an integration point that doesn't already exist.
