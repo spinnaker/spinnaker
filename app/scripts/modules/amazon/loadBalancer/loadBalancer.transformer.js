@@ -139,8 +139,8 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
     }
 
     function constructNewLoadBalancerTemplate(application) {
-      var defaultCredentials = application.defaultCredentials || settings.providers.aws.defaults.account,
-          defaultRegion = application.defaultRegion || settings.providers.aws.defaults.region;
+      var defaultCredentials = application.defaultCredentials.aws || settings.providers.aws.defaults.account,
+          defaultRegion = application.defaultRegions.aws || settings.providers.aws.defaults.region;
       return {
         stack: '',
         detail: '',

@@ -59,11 +59,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableAsgSta
       stage.interestingHealthProviderNames = ['Google'];
     }
 
-    if (!stage.credentials && $scope.application.defaultCredentials) {
-      stage.credentials = $scope.application.defaultCredentials;
+    if (!stage.credentials && $scope.application.defaultCredentials.gce) {
+      stage.credentials = $scope.application.defaultCredentials.gce;
     }
-    if (!stage.zones.length && $scope.application.defaultRegion) {
-      stage.zones.push($scope.application.defaultRegion);
+    if (!stage.zones.length && $scope.application.defaultRegions.gce) {
+      stage.zones.push($scope.application.defaultRegions.gce);
     }
 
     if (stage.credentials) {

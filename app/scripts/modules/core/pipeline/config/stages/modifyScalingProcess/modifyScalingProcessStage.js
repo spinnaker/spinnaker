@@ -67,11 +67,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.modifyScalingProc
     stage.target = stage.target || $scope.targets[0].val;
     stage.cloudProvider = 'aws';
 
-    if (!stage.credentials && $scope.application.defaultCredentials) {
-      stage.credentials = $scope.application.defaultCredentials;
+    if (!stage.credentials && $scope.application.defaultCredentials.aws) {
+      stage.credentials = $scope.application.defaultCredentials.aws;
     }
-    if (!stage.regions.length && $scope.application.defaultRegion) {
-      stage.regions.push($scope.application.defaultRegion);
+    if (!stage.regions.length && $scope.application.defaultRegions.aws) {
+      stage.regions.push($scope.application.defaultRegions.aws);
     }
 
     if (stage.credentials) {

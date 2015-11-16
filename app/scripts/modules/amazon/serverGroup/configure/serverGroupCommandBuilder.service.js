@@ -19,7 +19,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
       defaults = defaults || {};
       var regionsKeyedByAccountLoader = accountService.getRegionsKeyedByAccount('aws');
 
-      var defaultCredentials = defaults.account || application.defaultCredentials || settings.providers.aws.defaults.account;
+      var defaultCredentials = defaults.account || application.defaultCredentials.aws || settings.providers.aws.defaults.account;
       var defaultRegion = defaults.region || application.defaultRegion || settings.providers.aws.defaults.region;
 
       var preferredZonesLoader = accountService.getAvailabilityZonesForAccountAndRegion('aws', defaultCredentials, defaultRegion);
