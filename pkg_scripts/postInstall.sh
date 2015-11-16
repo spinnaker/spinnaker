@@ -7,11 +7,12 @@ chmod +x /opt/spinnaker/install/first_google_boot.sh
 # Deprecated. Will be removed in the future.
 ln -s /opt/spinnaker/bin /opt/spinnaker/scripts
 
+# Create master config
+cp /opt/spinnaker/config/default-spinnaker-local.yml /opt/spinnaker/config/spinnaker-local.yml
+
 # deck settings
 /opt/spinnaker/bin/reconfigure_spinnaker.sh
 
-# Create master config
-cp /opt/spinnaker/config/default-spinnaker-local.yml /opt/spinnaker/config/spinnaker-local.yml
 # vhosts
 rm -rf /etc/apache2/sites-enabled/*.conf
 
