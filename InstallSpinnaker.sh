@@ -301,7 +301,13 @@ sudo apt-get install -y openjdk-8-jdk
 ## Cassandra
 sudo apt-get install -y --force-yes cassandra=2.1.11 cassandra-tools=2.1.11
 # Let cassandra start
-sleep 5
+if ! nc -z localhost 7199; then
+    echo "Waiting for Cassandra to start..."
+    while ! nc -z localhost 7199; do
+       sleep 1
+    done
+    echo "Cassandra is ready."
+fi
 nodetool enablethrift
 # apt-get install dsc21
 

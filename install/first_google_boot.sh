@@ -225,6 +225,13 @@ fi
 apt-get -y update
 apt-get -y dist-upgrade
 sed -i "s/start_rpc: false/start_rpc: true/" /etc/cassandra/cassandra.yaml
+if ! nc -z localhost 7199; then
+    echo "Waiting for Cassandra to start..."
+    while ! nc -z localhost 7199; do
+       sleep 1
+    done
+    echo "Cassandra is ready."
+fi
 nodetool enablethrift
 
 process_args
