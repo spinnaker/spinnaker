@@ -1,0 +1,33 @@
+#!/bin/bash
+
+region=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone/|sed '$s/.$//')
+public_hostname=$(curl -s 'http://169.254.169.254/latest/meta-data/public-hostname')
+sudo sed -i.bak "s/^SPINNAKER_AWS_DEFAULT_REGION=.*/SPINNAKER_AWS_DEFAULT_REGION=$region/" /etc/default/spinnaker
+
+
+echo
+echo
+echo "######### WELCOME TO SPINNAKER ############"
+echo
+echo "Default region is configured for Amazon AWS region: " $region
+echo 
+echo "Edit /etc/default/spinnaker and restart Spinnaker if you wish to change this"
+echo "Then execute: "
+echo "sudo service clouddriver restart"
+echo "sudo service rosco restart"
+echo
+echo "Doing that now....."
+echo
+
+sudo service clouddriver restart
+sudo service rosco restart
+
+echo
+echo
+echo "------ You should be ready to go -----"
+echo "To connect create a SSH tunnel from your host to "$public_hostname" remote port 9000"
+echo
+echo "This message will now self-destruct. Enjoy"
+echo
+
+sed -i "s/\.\ \.init-region//" $HOME/.bashrc
