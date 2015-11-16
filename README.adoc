@@ -42,7 +42,8 @@ You need to have http://brew.sh/[homebrew] installed and ensure your version of 
 
 [source,bash]
 ----
-brew install redis cassandra brew-cask packer
+brew install caskroom/cask/brew-cask
+brew install redis cassandra packer
 brew cask install java
 cd $SPINNAKER_HOME
 mkdir build
