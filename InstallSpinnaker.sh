@@ -172,7 +172,7 @@ function write_default_value() {
 }
 
 function set_google_defaults_from_environ() {
-  local project_id = $(get_google_metadata_value "project/project-id")
+  local project_id=$(get_google_metadata_value "project/project-id")
   local qualified_zone=$(get_google_metadata_value "instance/zone")
   local zone=$(basename $qualified_zone)
   local region=${zone%-*}
