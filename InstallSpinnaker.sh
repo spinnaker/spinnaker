@@ -118,6 +118,11 @@ function set_google_region() {
   GOOGLE_REGION=`echo $GOOGLE_REGION | tr '[:upper:]' '[:lower:]'`
 }
 
+
+if [[ "$0" == "bash" ]]; then
+    CLOUD_PROVIDER="auto"
+fi
+
 process_args "$@"
 
 if [ "x$CLOUD_PROVIDER" == "x" ]; then
@@ -143,6 +148,8 @@ case $CLOUD_PROVIDER in
       set_aws_region
       set_google_region
       ;;
+  auto)
+      ;;       
   *)
       echo "ERROR: invalid cloud provider '$CLOUD_PROVIDER'"
       print_usage
@@ -204,9 +211,65 @@ rm -f packer_0.8.6_linux_amd64.zip
 sudo apt-get install -y --force-yes --allow-unauthenticated spinnaker
 
 
+function write_default_value() {
+  name="$1"
+  value="$2"
+  if egrep "^$name=" /etc/default/spinnaker > /dev/null; then
+      sudo sed -i "s/^$name=.*/$name=$value/" /etc/default/spinnaker
+  else
+      sudo bash -c "echo $name=$value >> /etc/default/spinnaker"
+  fi
+}
 
-if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" || "${CLOUD_PROVIDER,,}" == "both" ]]; then
+GOOGLE_METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
+function get_google_metadata_value() {
+  local path="$1"
+  local value=$(curl -s -f -H "Metadata-Flavor: Google" \
+                     $GOOGLE_METADATA_URL/$path)
+  if [[ $? -eq 0 ]]; then
+    echo "$value"
+  else
+    echo ""
+  fi
+}
+
+function set_google_defaults_from_environ() {
+    full_zone=$(get_google_metadata_value "$GOOGLE_METADATA_URL/instance/zone"
+
+    write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
+    write_default_value "SPINNAKER_GOOGLE_PROJECT_ID" \
+        $(get_google_metadata_value "project/project-id")
+    write_default_value "SPINNAKER_GOOGLE_DEFAULT_ZONE" $(basename $full_zone)
+    write_default_value "SPINNAKER_GOOGLE_DEFAULT_REGION" \
+        ${SPINNAKER_GOOGLE_DEFAULT_ZONE%-*}
+}
+
+function set_defaults_from_environ() {
+  local on_platform=""
+  if get_google_metadata_attribute "/project/project-id"; then
+      on_platform="google"
+      set_google_defaults_from_environ
+  fi
+
+  if [[ "$on_platform" != "" ]]; then
+      echo "Customized to manage your local $on_platform environment."
+  else
+      echo "No providers are enabled by default."
+  fi
+  cat <<EOF
+To modify the available cloud providers:
+   Edit /opt/spinnaker/config/spinnaker-local.yml
+   And/Or  /etc/default/spinnaker
+
+   Then restart clouddriver with sudo service clouddriver restart
+EOF
+}
+
+if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" || "${CLOUD_PROVIDER,,}" == "both" || "${CLOUD_PROVIDER,,}" == "auto" ]]; then
   case $CLOUD_PROVIDER in
+    auto)
+        set_defaults_from_environ
+        ;;
     amazon)
         sudo sed -i.bak -e "s/SPINNAKER_AWS_ENABLED=.*$/SPINNAKER_AWS_ENABLED=true/" -e "s/SPINNAKER_AWS_DEFAULT_REGION.*$/SPINNAKER_AWS_DEFAULT_REGION=${AWS_REGION}/" \
         	-e "s/SPINNAKER_GOOGLE_ENABLED=.*$/SPINNAKER_GOOGLE_ENABLED=false/" /etc/default/spinnaker
