@@ -15,8 +15,9 @@
               class="form-control input-sm"
               required
               ng-model="newFP.property.strategy.option"
+              ng-select="number"
               >
-            <option value="number">number</option>
+            <option value="number" selected>number</option>
             <option value="percentage">percentage</option>
           </select>
         </div>
@@ -37,6 +38,7 @@
           <input
               type="text"
               class="form-control input-sm"
+              placeholder="{{newFP.property.strategy.option === 'percentage' ? newFP.getSampleRolloutPercentage() : newFP.getSampleRolloutNumber()}}"
               required
               ng-model="newFP.property.strategy.rolloutListString"
               />
@@ -47,16 +49,25 @@
 
     <div class="row">
       <div class="col-sm-12">
-        <p>Select a <b>number</b> or <b>percentage</b> of instances for <b>strategy option</b>. Then enter a coma separated list for to canary aginst.</p>
+        <p>Select <b>number</b> or <b>percentage</b> of instances for the<b>strategy option</b>. </p>
+        <p>Enter a coma separated list of number or percentages for the rollout.</p>
+        <p>This determines the how the fast property will be rolled out across your selected cluster and how many ACA will be performed.</p>
       </div>
     </div>
 
-    <div class="row">
+    <div class="row" >
       <div class="col-sm-12">
-        <b>Example:</b> <br>
         <p>There are <span style="color: red">{{newFP.affectedInstancesForACA.length || 0}}</span> instances available to canary against.</p>
-        <p>For a <b>Number Strategy Options</b> you might set <b>{{newFP.getSampleRolloutNumber()}}</b> as the rollout.</p>
-        <p>For a <b>Percentage Strategy Options</b> you might set <b>{{newFP.getSampleRolloutPercentage()}}</b> as the rollout.</p>
+        <div ng-if="newFP.affectedInstancesForACA.length > 1">
+          <b>Example:</b> <br>
+          <p>For a <b>Number Strategy Options</b> you might set <b>{{newFP.getSampleRolloutNumber()}}</b> as the rollout.
+            This will do {{newFP.getSampleRolloutNumber().split(',').length}} ACAs with the Fast Property applied to the the set number of instances at each step.</p>
+
+          <p>For a <b>Percentage Strategy Options</b> you might set <b>{{newFP.getSampleRolloutPercentage()}}</b> as the rollout.
+            This will do {{newFP.getSampleRolloutPercentage().split(',').length}} ACAs with the Fast Property applied to the the set percentage of instances at each step.</p>
+
+          <p>Once all the ACAs pass the Fast Property will be set at the selected target scope.</p>
+        </div>
       </div>
     </div>
   </div>
