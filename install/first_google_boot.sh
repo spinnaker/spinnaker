@@ -114,13 +114,14 @@ function extract_spinnaker_local_yaml() {
       $SPINNAKER_INSTALL_DIR/pylib/spinnaker/transform_old_config.py \
       "$value" /etc/default/spinnaker $yml_path $AWS_DIR/credentials
 
+  # Be extra sure we're protecting this
+  chown spinnaker:spinnaker $yml_path
+  chmod 600 $yml_path
+
   if [[ -f $AWS_DIR/credentials ]]; then
       chown spinnaker:spinnaker $AWS_DIR/credentials
       chmod 600 $AWS_DIR/credentials
   fi
-  local config="$LOCAL_CONFIG_DIR/spinnaker-local.yml"
-  sudo -u spinnaker mkdir -p $(dirname $config)
-  echo "$value" > $config
 
   clear_instance_metadata "spinnaker_local"
   return 0
