@@ -35,7 +35,7 @@
   {
     "type": "shell",
     "inline": [
-        "if [ '{{user `update_os`}}' = 'true' ]; then apt-get update -y; apt-get -y dist-upgrade; fi"
+        "if [ '{{user `update_os`}}' = 'true' ]; then apt-get update -y; apt-get -y dist-upgrade; sed -i 's/start_rpc: false/start_rpc: true/' /etc/cassandra/cassandra.yaml; fi"
      ]
   }
  ]
