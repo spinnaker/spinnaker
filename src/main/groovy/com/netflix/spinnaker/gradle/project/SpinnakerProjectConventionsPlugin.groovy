@@ -62,6 +62,8 @@ class SpinnakerProjectConventionsPlugin implements Plugin<Project> {
         bintray.pkg.issueTrackerUrl = issuesUrl
         bintray.pkg.vcsUrl = vcsUrl
 
+        project.logger.info("Set bintray project URL to ${projectUrl}")
+
         project.plugins.withType(OspackageBintrayPublishPlugin) {
             OspackageBintrayExtension bintrayPackage = (OspackageBintrayExtension) project.extensions.getByName('bintrayPackage')
             bintrayPackage.packageRepo = propOrDefault('bintrayPackageRepo', 'debians')
