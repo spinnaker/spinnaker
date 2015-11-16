@@ -16,6 +16,9 @@
 // var googleDefaultRegion = ${providers.google.defaultRegion};
 // var googleDefaultZone = ${providers.google.defaultZone};
 // var googlePrimaryAccount = ${providers.google.primaryCredentials.name};
+// let cfDefaultRegion = ${providers.cf.defaultOrg};
+// let cfDefaultZone = ${providers.cf.defaultSpace};
+// let cfPrimaryAccount = ${providers.cf.primaryCredentials.name};
 
 // END reconfigure_spinnaker
 /**
@@ -41,6 +44,12 @@ window.spinnakerSettings = {
         account: awsPrimaryAccount,
         region: awsDefaultRegion
       }
+    },
+    cf: {
+      defaults: {
+        account: cfPrimaryAccount,
+        region: cfDefaultRegion
+      },
     }
   },
   authEnabled: false,

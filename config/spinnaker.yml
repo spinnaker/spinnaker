@@ -1,3 +1,4 @@
+
 # This file is intended to serve as a master configuration for a Spinnaker deployment.
 # Customizations to the deployment should be made in another file named
 # "spinnaker-local.yml". The distribution has a prototype called
@@ -143,7 +144,6 @@ services:
     embedded: false
     cluster: CASS_SPINNAKER
 
-
 providers:
   aws:
     # If you want to deploy some services to Amazon Web Services (AWS),
@@ -176,3 +176,15 @@ providers:
       # downloaded from the Google Developer's Console.
       project:
       jsonPath:
+  cf:
+    # If you want to deploy some services to Cloud Foundry (cf),
+    # set enabled and provide primary credentials for deploying.
+    # Enabling cf is independent of other providers.
+    enabled: false
+    defaultOrg: spinnaker-cf-org
+    defaultSpace: spinnaker-cf-space
+    primaryCredentials:
+      name: my-cf-account
+      api: my-cf-api-uri
+      console: my-cf-console-base-url
+    # You must also supply cf.account.username and cf.account.password through env properties
