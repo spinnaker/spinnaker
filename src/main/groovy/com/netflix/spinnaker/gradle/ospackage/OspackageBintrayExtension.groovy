@@ -18,4 +18,7 @@ package com.netflix.spinnaker.gradle.ospackage
 
 class OspackageBintrayExtension {
     String packageRepo
+    String debDistribution
+    String debComponent
+    String debArchitectures
 }

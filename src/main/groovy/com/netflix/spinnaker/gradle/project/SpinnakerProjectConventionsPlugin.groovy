@@ -37,24 +37,6 @@ class SpinnakerProjectConventionsPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.plugins.apply(NetflixOssProjectPlugin)
 
-        //workaround nebulaoss doing a find instead of a withType:
-        project.tasks.withType(BintrayUploadTask) { BintrayUploadTask bintrayUpload ->
-            bintrayUpload.doFirst {
-                ScmInfoExtension scmInfo = project.extensions.findByType(ScmInfoExtension)
-                // We have to change the task directly, since they already copied from the extension in an afterEvaluate
-
-                if (scmInfo) {
-                    // Assuming scmInfo.origin is something like git@github.com:netflix/project.git
-                    bintrayUpload.packageName = PublishingPlugin.calculateRepoFromOrigin(scmInfo.origin) ?: project.rootProject.name
-
-                    def url = PublishingPlugin.calculateUrlFromOrigin(scmInfo.origin)
-                    bintrayUpload.packageWebsiteUrl = url
-                    bintrayUpload.packageIssueTrackerUrl = "${url}/issues"
-                    bintrayUpload.packageVcsUrl = "${url}.git"
-                }
-            }
-        }
-
         project.plugins.withType(JavaPlugin) {
             JavaPluginConvention convention = project.convention.getPlugin(JavaPluginConvention)
             convention.sourceCompatibility = JavaVersion.VERSION_1_8
@@ -65,23 +47,30 @@ class SpinnakerProjectConventionsPlugin implements Plugin<Project> {
             project.hasProperty(propertyName) ? project.property(propertyName) : defaultValue
         }
 
+        String bintrayOrg = propOrDefault('bintrayOrg', 'spinnaker')
+        String bintrayJarRepo = propOrDefault('bintrayJarRepo', 'spinnaker')
+
         project.plugins.withType(BintrayPlugin) {
             BintrayExtension bintray = (BintrayExtension) project.extensions.getByName('bintray')
 
-            bintray.pkg.userOrg = propOrDefault('bintrayOrg', 'spinnaker')
-            bintray.pkg.repo = propOrDefault('bintrayJarRepo', 'spinnaker')
+            bintray.pkg.userOrg = bintrayOrg
+            bintray.pkg.repo = bintrayJarRepo
             bintray.pkg.labels = ['Spinnaker', 'Netflix', 'netflixoss']
         }
 
         project.plugins.withType(OspackageBintrayPublishPlugin) {
             OspackageBintrayExtension bintrayPackage = (OspackageBintrayExtension) project.extensions.getByName('bintrayPackage')
-            bintrayPackage.packageRepo = propOrDefault('bintrayPackageRepo', 'ospackages')
+            bintrayPackage.packageRepo = propOrDefault('bintrayPackageRepo', 'debians')
+            bintrayPackage.debDistribution = 'trusty'
+            bintrayPackage.debComponent = 'spinnaker'
+            bintrayPackage.debArchitectures = 'i386,amd64'
         }
 
         project.repositories.jcenter()
         project.repositories.maven { MavenArtifactRepository repo ->
             repo.name = 'Bintray Spinnaker repo'
-            repo.url = 'https://spinnaker.bintray.com/spinnaker'
+            //TODO url matching org + jarRepo
+            repo.url = "https://dl.bintray.com/$bintrayOrg/$bintrayJarRepo"
         }
     }
 }
