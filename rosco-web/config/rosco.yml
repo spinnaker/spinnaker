@@ -49,11 +49,22 @@ aws:
         instanceType: t2.micro
         sourceAmi: ami-d4aed0bc
         sshUserName: ubuntu
+      - region: us-west-2
+        virtualizationType: hvm
+        instanceType: t2.micro
+        sourceAmi: ami-59396769
+        sshUserName: ubuntu
       - region: us-east-1
         virtualizationType: pv
         instanceType: m3.medium
         sourceAmi: ami-8007b2e8
         sshUserName: ubuntu
+#      No exact equivalent available in us-west-2
+#      - region: us-west-2
+#        virtualizationType: pv
+#        instanceType: m3.medium
+#        sourceAmi: 
+#        sshUserName: ubuntu
     - os: trusty
       virtualizationSettings:
       - region: us-east-1
@@ -61,10 +72,20 @@ aws:
         instanceType: t2.micro
         sourceAmi: ami-9eaa1cf6
         sshUserName: ubuntu
+      - region: us-west-2
+        virtualizationType: hvm
+        instanceType: t2.micro
+        sourceAmi: ami-3d50120d
+        sshUserName: ubuntu
       - region: us-east-1
         virtualizationType: pv
         instanceType: m3.medium
         sourceAmi: ami-98aa1cf0
+        sshUserName: ubuntu
+      - region: us-west-2
+        virtualizationType: pv
+        instanceType: m3.medium
+        sourceAmi: ami-37501207
         sshUserName: ubuntu
 
 docker:

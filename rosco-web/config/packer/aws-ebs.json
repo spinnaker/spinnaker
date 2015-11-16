@@ -2,8 +2,8 @@
   "variables": {
     "aws_access_key": "",
     "aws_secret_key": "",
-    "subnet_id": "",
-    "vpc_id": "",
+    "subnet_id": "{{env `AWS_SUBNET_ID`}}",
+    "vpc_id": "{{env `AWS_VPC_ID`}}",
     "aws_region": null,
     "aws_ssh_username": null,
     "aws_instance_type": null,
