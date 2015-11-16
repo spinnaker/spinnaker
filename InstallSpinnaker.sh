@@ -154,10 +154,16 @@ function get_google_metadata_value() {
   fi
 }
 
+AWS_METADATA_URL="http://169.254.169.254/latest/meta-data"
 function get_aws_metadata_value() {
-  # TODO (dstengle): Do aws magic here...
-#  echo 'some-value'
-  echo ''
+  local path="$1"
+  local value=$(curl -s -f $AWS_METADATA_URL/$path)
+
+  if [[ $? -eq 0 ]]; then
+    echo "$value"
+  else
+    echo ""
+  fi
 }
 
 function write_default_value() {
@@ -184,11 +190,17 @@ function set_google_defaults_from_environ() {
 }
 
 function set_aws_defaults_from_environ() {
-  # TODO (dstengle): Do aws magic here...
-  local region=$(get_aws_metadata_value "/other/brother/darrell")
+  local zone=$(get_aws_metadata_value "/placement/availability-zone")
+  local region=${zone%?}
+  local mac_addr=$(get_aws_metadata_value "/network/interfaces/macs/")
+  local vpc_id=$(get_aws_metadata_value "/network/interfaces/macs/${mac_addr}vpc-id")
+  local subnet_id=$(get_aws_metadata_value "/network/interfaces/macs/${mac_addr}subnet-id")
 
   DEFAULT_CLOUD_PROVIDER="aws"
   DEFAULT_AWS_REGION="$region"
+  AWS_VPC_ID="$vpc_id"
+  AWS_SUBNET_ID="$subnet_id"
+  
 }
 
 function set_defaults_from_environ() {
@@ -200,10 +212,10 @@ function set_defaults_from_environ() {
       set_google_defaults_from_environ
   fi
 
-  # TODO (dstengle): Do aws magic here...
-  local some_aws_thing=$(get_aws_metadata_value "/some/path/maybe")
 
-  if [[ -n "$some_aws_thing" ]]; then
+  local aws_az=$(get_aws_metadata_value "/placement/availability-zone")
+
+  if [[ -n "$aws_az" ]]; then
       on_platform="aws"
       set_aws_defaults_from_environ
   fi
@@ -308,6 +320,8 @@ if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" || 
         write_default_value "SPINNAKER_AWS_ENABLED" "true"
         write_default_value "SPINNAKER_AWS_DEFAULT_REGION" $AWS_REGION
         write_default_value "SPINNAKER_GOOGLE_ENABLED" "false"
+        write_default_value "AWS_VPC_ID" $AWS_VPC_ID
+        write_default_value "AWS_SUBNET_ID" $AWS_SUBNET_ID
         ;;
     google)
         write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
@@ -321,6 +335,8 @@ if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" || 
         write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
         write_default_value "SPINNAKER_GOOGLE_DEFAULT_REGION" $GOOGLE_REGION
         write_default_value "SPINNAKER_GOOGLE_DEFAULT_ZONE" $GOOGLE_ZONE
+        write_default_value "AWS_VPC_ID" $AWS_VPC_ID
+        write_default_value "AWS_SUBNET_ID" $AWS_SUBNET_ID
         ;;
   esac
 else
