@@ -2,6 +2,11 @@
 
 image:http://join.spinnaker.io/badge.svg[Slack Status,link=http://join.spinnaker.io]
 
+= Using Spinnaker
+
+If you are only interested in using Spinnaker, please refer to the main
+Spinnaker site and [Getting Started](http://spinnaker.io/documentation/getting_started.html) guide.
+
 = Setting Up Spinnaker For Development
 
 These instructions cover pulling Spinnaker from source and setting up to run locally against Amazon Web Services and/or Google Cloud Platform accounts. 
