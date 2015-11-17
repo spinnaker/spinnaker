@@ -62,7 +62,7 @@ String toVers(String v) {
 }
 
 ospackage {
-  packageName = "deck"
+  packageName = "spinnaker-deck"
   version = toVers(project.version.toString())
   release '3'
   into "/var/www"
