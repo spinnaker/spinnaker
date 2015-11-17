@@ -1,7 +1,7 @@
 # Igor
 Igor provides a single point of integration with Jenkins and Git repositories ( Stash and Github ) within Spinnaker.
 
-Igor keeps track of the credentials for multiple Jenkins hosts and send events to [echo](http://www.github.com/echo) whenever build information has changed. 
+Igor keeps track of the credentials for multiple Jenkins hosts and send events to [echo](http://www.github.com/spinnaker/echo) whenever build information has changed. 
 
 ## Configuring Jenkins Masters
 
