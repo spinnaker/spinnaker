@@ -35,7 +35,15 @@
                 }
             ],
             "ami_regions":[
-                "us-east-1"
+                "us-east-1",
+                "us-west-1",
+                "us-west-2",
+                "eu-west-1",
+                "eu-central-1",
+                "ap-southeast-1",
+                "ap-southeast-2",
+                "ap-northeast-1",
+                "sa-east-1"
             ],
 
             "ami_groups":[
@@ -75,7 +83,7 @@
             "inline_shebang": "/bin/bash",
             "inline": [
                 "sudo chmod 755 /tmp/InstallSpinnaker.sh",
-                "sudo /tmp/InstallSpinnaker.sh --cloud_provider aws --aws_region {{user `region`}}",
+                "sudo /tmp/InstallSpinnaker.sh --cloud_provider none",
                 "echo . .init-region >> /home/ubuntu/.bashrc",
                 "sudo mv /tmp/99-footer /etc/update-motd.d/99-footer",
                 "sudo chmod 755 /etc/update-motd.d/99-footer",
