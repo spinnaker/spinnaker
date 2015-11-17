@@ -218,11 +218,10 @@ EOF
 }
 
 
-function print_run_book_reference() {
+function print_spinnaker_reference() {
 cat <<EOF
 
-For more help, see the Spinnaker Build & Run Book:
-  https://docs.google.com/document/d/1Q_ah8eG3Imyw-RWS1DSp_ItM2pyn56QEepCeaOAPaKA
+For more information about Spinnaker, see http://spinnaker.io
 
 EOF
 }
@@ -237,7 +236,7 @@ else
   print_source_instructions
 fi
 
-print_run_book_reference
+print_spinnaker_reference
 
 # Let path changes take effect in calling shell (if we source'd this)
 exec bash -l
