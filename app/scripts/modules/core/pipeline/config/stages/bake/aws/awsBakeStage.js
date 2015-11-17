@@ -19,7 +19,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.bakeStage', [
       defaultTimeoutMs: 60 * 60 * 1000, // 60 minutes
       validators: [
         { type: 'requiredField', fieldName: 'package', },
-        { type: 'requiredField', fieldName: 'regions', }
+        { type: 'requiredField', fieldName: 'regions', },
+        { type: 'stageOrTriggerBeforeType',
+          stageType: 'jenkins',
+          message: 'Bake stages should always have a Jenkins stage or trigger preceding them.<br> Otherwise, ' +
+        'Spinnaker will bake and deploy the most-recently built package.'}
       ],
     });
   })

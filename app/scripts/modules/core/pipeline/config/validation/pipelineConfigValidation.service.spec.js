@@ -105,6 +105,99 @@ describe('pipelineConfigValidator', function () {
 
   describe('validators', function () {
 
+    describe('stageOrTriggerBeforeType', function () {
+      beforeEach(function() {
+        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (stage) {
+          if (stage.type === 'withValidation') {
+            return {
+              validators: [
+                {
+                  type: 'stageOrTriggerBeforeType',
+                  stageType: 'prereq',
+                  message: 'need a prereq',
+                },
+              ]
+            };
+          } else {
+            return {};
+          }
+        });
+
+        this.pipeline = {
+          stages: [
+            {type: 'withValidation', refId: 1, requisiteStageRefIds: []},
+            {type: 'no-validation', refId: 2, requisiteStageRefIds: []}
+          ],
+          triggers: []
+        };
+      });
+
+      it('fails if no stage/trigger is first or not preceded by declared stage type', function () {
+
+        var messages = this.validator.validatePipeline(this.pipeline);
+        expect(messages.length).toBe(1);
+        expect(messages[0]).toBe('need a prereq');
+
+        this.pipeline.stages = [
+          {type: 'wrongType', refId: 1, requisiteStageRefIds: []},
+          {type: 'withValidation', refId: 2, requisiteStageRefIds: [1]}
+        ];
+
+        messages = this.validator.validatePipeline(this.pipeline);
+        expect(messages.length).toBe(1);
+        expect(messages[0]).toBe('need a prereq');
+      });
+
+      it('succeeds if preceding stage type matches', function () {
+        this.pipeline.stages[0].type = 'prereq';
+        var messages = this.validator.validatePipeline(this.pipeline);
+        expect(messages.length).toBe(0);
+
+        this.pipeline.stages = [
+          {type: 'prereq', refId: 1, requisiteStageRefIds: []},
+          {type: 'somethingElse', refId: 2, requisiteStageRefIds: [1]},
+          {type: 'withValidation', refId: 3, requisiteStageRefIds: [2]}
+        ];
+
+        messages = this.validator.validatePipeline(this.pipeline);
+        expect(messages.length).toBe(0);
+      });
+
+      it('succeeds if trigger type matches', function () {
+        this.pipeline.stages[0].type = 'prereq';
+        var messages = this.validator.validatePipeline(this.pipeline);
+        expect(messages.length).toBe(0);
+
+        this.pipeline.stages = [
+          {type: 'withValidation', refId: 1, requisiteStageRefIds: []}
+        ];
+        this.pipeline.triggers = [
+          {type: 'prereq'}
+        ];
+
+        messages = this.validator.validatePipeline(this.pipeline);
+        expect(messages.length).toBe(0);
+      });
+
+      it('fails if no preceding stage type matches and no trigger type matches', function () {
+        this.pipeline.stages[0].type = 'prereq';
+        var messages = this.validator.validatePipeline(this.pipeline);
+        expect(messages.length).toBe(0);
+
+        this.pipeline.stages = [
+          {type: 'noValidation', refId: 1, requisiteStageRefIds: []},
+          {type: 'withValidation', refId: 2, requisiteStageRefIds: [1]}
+        ];
+        this.pipeline.triggers = [
+          {type: 'alsoNotValidation'}
+        ];
+
+        messages = this.validator.validatePipeline(this.pipeline);
+        expect(messages.length).toBe(1);
+        expect(messages[0]).toBe('need a prereq');
+      });
+    });
+
     describe('stageBeforeType', function () {
       it('fails if no stage is first or not preceded by declared stage type', function () {
         spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (stage) {

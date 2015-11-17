@@ -11,6 +11,18 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.servic
   .factory('pipelineConfigValidator', function($log, _, pipelineConfig, pipelineConfigService, namingService) {
 
     var validators = {
+      stageOrTriggerBeforeType: function(pipeline, index, validationConfig, messages) {
+        var stageTypes = validationConfig.stageTypes || [validationConfig.stageType];
+        var stagesToTest = pipeline.stages.slice(0, index+1);
+        if (pipeline.parallel) {
+          stagesToTest = pipelineConfigService.getAllUpstreamDependencies(pipeline, pipeline.stages[index]);
+        }
+        stagesToTest = stagesToTest.concat(pipeline.triggers);
+
+        if (stagesToTest.every((stage) => stageTypes.indexOf(stage.type) === -1)) {
+          messages.push(validationConfig.message);
+        }
+      },
       stageBeforeType: function(pipeline, index, validationConfig, messages) {
         if (pipeline.strategy === true && pipeline.stages[index].type === 'deploy') {
           return;
@@ -21,12 +33,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.servic
         if (pipeline.parallel) {
           stagesToTest = pipelineConfigService.getAllUpstreamDependencies(pipeline, pipeline.stages[index]);
         }
-        for (var i = 0; i < stagesToTest.length; i++) {
-          if (stageTypes.indexOf(stagesToTest[i].type) !== -1) {
-            return;
-          }
+        if (stagesToTest.every((stage) => stageTypes.indexOf(stage.type) === -1)) {
+          messages.push(validationConfig.message);
         }
-        messages.push(validationConfig.message);
       },
       checkRequiredField: function(pipeline, stage, validationConfig, config, messages) {
        if (pipeline.strategy === true && ['cluster', 'regions', 'zones', 'credentials'].indexOf(validationConfig.fieldName) > -1) {
@@ -113,6 +122,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.servic
         if (config && config.validators) {
           config.validators.forEach(function(validator) {
             switch(validator.type) {
+              case 'stageOrTriggerBeforeType':
+                validators.stageOrTriggerBeforeType(pipeline, index, validator, messages);
+                break;
               case 'stageBeforeType':
                 validators.stageBeforeType(pipeline, index, validator, messages);
                 break;
