@@ -40,8 +40,7 @@ abstract class AbstractHystrixCommand<T> extends HystrixCommand<T> {
                                 Closure fallback) {
     super(HystrixCommand.Setter.withGroupKey(toGroupKey(groupKey))
         .andCommandKey(HystrixCommandKey.Factory.asKey(commandKey))
-        .andCommandPropertiesDefaults(createHystrixCommandPropertiesSetter()
-        .withExecutionIsolationThreadTimeoutInMilliseconds(60000)))
+        .andCommandPropertiesDefaults(createHystrixCommandPropertiesSetter()))
     this.groupKey = groupKey
     this.commandKey = commandKey
     this.work = work
@@ -54,7 +53,7 @@ abstract class AbstractHystrixCommand<T> extends HystrixCommand<T> {
   }
 
   protected T getFallback() {
-    return (fallback.call() as T) ?: null
+    return (fallback.call() as T)
   }
 
   @Override
