@@ -81,14 +81,14 @@ ospackage {
   postInstall = file('pkg_scripts/postInstall.sh')
   postUninstall = file('pkg_scripts/postUninstall.sh')
 
-  from(file('src/main/resources/clouddriver.conf')) {
+  from(file('etc/init/clouddriver.conf')) {
     into('/etc/init')
     user = 'root'
     permissionGroup = 'root'
     fileType = CONFIG | NOREPLACE
   }
 
-  from(file('src/main/resources/clouddriver')) {
+  from(file('etc/logrotate.d/clouddriver')) {
     into('/etc/logrotate.d')
     user = 'root'
     permissionGroup = 'root'
@@ -97,5 +97,5 @@ ospackage {
 }
 
 buildDeb {
-  dependsOn installApp
+  dependsOn installDist
 }
