@@ -111,7 +111,7 @@ String toVers(String v) {
 }
 
 ospackage {
-    packageName = project.applicationName
+    packageName = "spinnaker-" + project.applicationName
     version = toVers(project.version.toString())
     release '3'
 
