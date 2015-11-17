@@ -196,15 +196,15 @@ titan:
   enabled: ${TITAN_ENABLED:false}
 
 cf:
-  enabled: false
-#  accounts:
-#    -
-#      name: /* name for this CF space */
-#      api: /* URL for this CF API */
-#      org: /* CF org name */
-#      space: /* CF space name */
-#      username: /* CF API username, or property name */
-#      password: /* CF API password, or property name */
+  enabled: ${providers.cf.enabled:false}
+  accounts:
+    - name: ${providers.cf.primaryCredentials.name}
+      api: ${providers.cf.primaryCredentials.api}
+      console: ${providers.cf.primaryCredentials.console}
+      org: ${providers.cf.defaultOrg}
+      space: ${providers.cf.defaultSpace}
+      username: ${cf.account.name}
+      password: ${cf.account.password}
 
 ---
 
