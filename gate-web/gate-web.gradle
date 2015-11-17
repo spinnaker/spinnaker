@@ -98,4 +98,8 @@ buildRpm {
   dependsOn installDist
 }
 
+tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
+  classpath configurations.runtime + file('config')
+}
+
 tasks.bootRepackage.enabled = false

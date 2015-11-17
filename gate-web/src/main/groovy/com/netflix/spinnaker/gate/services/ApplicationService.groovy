@@ -80,19 +80,15 @@ class ApplicationService {
   void tick() {
     log.info("Refreshing Application List")
 
-    def applications = HystrixFactory.newListCommand(GROUP, "getAll", {
-      def applicationListRetrievers = buildApplicationListRetrievers()
-      List<Future<List<Map>>> futures = executorService.invokeAll(applicationListRetrievers)
-      List<List<Map>> all = futures.collect { it.get() } // spread operator doesn't work here; no clue why.
-      List<Map> flat = (List<Map>) all?.flatten()?.toList()
-      def mergedApplications = mergeApps(flat, serviceConfiguration.getService('front50')).collect {
-        it.attributes
-      } as List<Map>
+    def applicationListRetrievers = buildApplicationListRetrievers()
+    List<Future<List<Map>>> futures = executorService.invokeAll(applicationListRetrievers)
+    List<List<Map>> all = futures.collect { it.get() } // spread operator doesn't work here; no clue why.
+    List<Map> flat = (List<Map>) all?.flatten()?.toList()
+    def mergedApplications = mergeApps(flat, serviceConfiguration.getService('front50')).collect {
+      it.attributes
+    } as List<Map>
 
-      return mergedApplications
-    }, { return allApplicationsCache.get() }).execute()
-
-    allApplicationsCache.set(applications)
+    allApplicationsCache.set(mergedApplications)
     log.info("Refreshed Application List")
   }
 
@@ -102,19 +98,11 @@ class ApplicationService {
 
   Map get(String name) {
     def applicationRetrievers = buildApplicationRetrievers(name)
+    def futures = executorService.invokeAll(applicationRetrievers)
+    List<Map> applications = (List<Map>) futures.collect { it.get() }
 
-    HystrixFactory.newMapCommand(GROUP, "getAppByName", {
-      try {
-        def futures = executorService.invokeAll(applicationRetrievers)
-        List<Map> applications = (List<Map>) futures.collect { it.get() }
-
-        List<Map> mergedApps = mergeApps(applications, serviceConfiguration.getService('front50'))
-        return mergedApps ? mergedApps[0] : null
-      } catch (Exception e) {
-        log.error("Unable to retrieve application '${name}'", e)
-        throw e
-      }
-    }, { allApplicationsCache.get().find { it.name.toString().equalsIgnoreCase(name) } }).execute()
+    List<Map> mergedApps = mergeApps(applications, serviceConfiguration.getService('front50'))
+    return mergedApps ? mergedApps[0] : null
   }
 
   List<Map> getPipelineConfigs(String app) {
@@ -146,37 +134,39 @@ class ApplicationService {
     } execute()
   }
 
-  Map getStrategyConfig(String app, String strategyName) {
-    if (!front50Service) {
-      return null
-    }
-    HystrixFactory.newMapCommand(GROUP, "getStrategyConfigForApplicationAndStrategy") {
-      front50Service.getStrategyConfigs(app).find { it.name == strategyName }
-    } execute()
-  }
-
   private Collection<Callable<List<Map>>> buildApplicationListRetrievers() {
-    try {
-      def globalAccounts = front50Service.credentials.findAll { it.global == true }.collect { it.name } as List<String>
+    def oortApplicationsRetriever = new OortApplicationsRetriever(oortService, allApplicationsCache)
+    def globalAccounts = fetchGlobalAccounts()
+
+    if (globalAccounts) {
       return globalAccounts.collectMany { String globalAccount ->
-        [new ApplicationListRetriever(globalAccount, front50Service), new OortApplicationsRetriever(oortService)]
+        [new ApplicationListRetriever(globalAccount, front50Service, allApplicationsCache), oortApplicationsRetriever]
       } as Collection<Callable<List<Map>>>
-    } catch (e) {
-      log.warn("Unable to retrieve applications from front50, falling back to clouddriver (${e.message})")
-      return [
-        new OortApplicationsRetriever(oortService)
-      ]
     }
+
+    return [oortApplicationsRetriever]
   }
 
   private Collection<Callable<Map>> buildApplicationRetrievers(String applicationName) {
-    def globalAccounts = front50Service.credentials.findAll { it.global == true }.collect { it.name } as List<String>
-    return globalAccounts.collectMany { String globalAccount ->
-      [
-        new Front50ApplicationRetriever(globalAccount, applicationName, front50Service),
-        new OortApplicationRetriever(applicationName, oortService)
-      ]
-    } as Collection<Callable<Map>>
+    def oortApplicationRetriever = new OortApplicationRetriever(applicationName, oortService)
+    def globalAccounts = fetchGlobalAccounts()
+
+    if (globalAccounts) {
+      return globalAccounts.collectMany { String globalAccount ->
+        [
+          new Front50ApplicationRetriever(globalAccount, applicationName, front50Service, allApplicationsCache),
+          oortApplicationRetriever
+        ]
+      } as Collection<Callable<Map>>
+    }
+
+    return [oortApplicationRetriever]
+  }
+
+  private Collection<String> fetchGlobalAccounts() {
+    HystrixFactory.newListCommand(GROUP, "fetchGlobalAccounts", {
+      front50Service.credentials.findAll { it.global == true }.collect { it.name }
+    }, { [] }).execute()
   }
 
   @CompileDynamic
@@ -250,33 +240,39 @@ class ApplicationService {
   static class ApplicationListRetriever implements Callable<List<Map>> {
     private final String account
     private final Front50Service front50
+    private final AtomicReference<List<Map>> allApplicationsCache
     private final Object principal
 
-    ApplicationListRetriever(String account, Front50Service front50) {
+    ApplicationListRetriever(String account, Front50Service front50, AtomicReference<List<Map>> allApplicationsCache) {
       this.account = account
       this.front50 = front50
+      this.allApplicationsCache = allApplicationsCache
       this.principal = SecurityContextHolder.context?.authentication?.principal
     }
 
     @Override
     List<Map> call() throws Exception {
-      AuthenticatedRequest.propagate({
-        try {
-          def apps = front50.getAll(account)
-          return apps.collect {
-            if (!it.accounts) {
-              it.accounts = account
+      HystrixFactory.newListCommand(GROUP, "getApplicationsFromFront50", {
+        AuthenticatedRequest.propagate({
+          try {
+            def apps = front50.getAll(account)
+            return apps.collect {
+              if (!it.accounts) {
+                it.accounts = account
+              }
+              it
             }
-            it
+          } catch (RetrofitError e) {
+            if (e.response.status == 404) {
+              return []
+            } else {
+              throw e
+            }
           }
-        } catch (RetrofitError e) {
-          if (e.response.status == 404) {
-            return []
-          } else {
-            throw e
-          }
-        }
-      }, false, principal).call() as List<Map>
+        }, false, principal).call() as List<Map>
+      }, {
+        return allApplicationsCache.get()
+      }).execute()
     }
   }
 
@@ -284,59 +280,72 @@ class ApplicationService {
     private final String account
     private final String name
     private final Front50Service front50
+    private final AtomicReference<List<Map>> allApplicationsCache
     private final Object principal
 
-    Front50ApplicationRetriever(String account, String name, Front50Service front50) {
+    Front50ApplicationRetriever(String account,
+                                String name,
+                                Front50Service front50,
+                                AtomicReference<List<Map>> allApplicationsCache) {
       this.account = account
       this.name = name
       this.front50 = front50
+      this.allApplicationsCache = allApplicationsCache
       this.principal = SecurityContextHolder.context?.authentication?.principal
     }
 
     @Override
     Map call() throws Exception {
-      AuthenticatedRequest.propagate({
-        try {
-          def metadata = front50.getMetaData(account, name)
-          if (metadata && !metadata.accounts) {
-            metadata.accounts = account
-          }
-          metadata ?: [:]
-        } catch (ConversionException e) {
-          return [:]
-        } catch (RetrofitError e) {
-          if ((e.cause instanceof ConversionException) || e.response.status == 404) {
+      HystrixFactory.newMapCommand(GROUP, "getApplicationFromFront50", {
+        AuthenticatedRequest.propagate({
+          try {
+            def metadata = front50.getMetaData(account, name)
+            if (metadata && !metadata.accounts) {
+              metadata.accounts = account
+            }
+            metadata ?: [:]
+          } catch (ConversionException ignored) {
             return [:]
-          } else {
-            throw e
+          } catch (RetrofitError e) {
+            if ((e.cause instanceof ConversionException) || e.response.status == 404) {
+              return [:]
+            } else {
+              throw e
+            }
           }
-        }
-      }, false, principal).call() as Map
+        }, false, principal).call() as Map
+      }, {
+        allApplicationsCache.get().find { name.equalsIgnoreCase(it.name as String)}
+      }).execute()
     }
   }
 
   static class OortApplicationsRetriever implements Callable<List<Map>> {
     private final OortService oort
     private final Object principal
+    private final AtomicReference<List<Map>> allApplicationsCache
 
-    OortApplicationsRetriever(OortService oort) {
+    OortApplicationsRetriever(OortService oort, AtomicReference<List<Map>> allApplicationsCache) {
       this.oort = oort
+      this.allApplicationsCache = allApplicationsCache
       this.principal = SecurityContextHolder.context?.authentication?.principal
     }
 
     @Override
     List<Map> call() throws Exception {
-      AuthenticatedRequest.propagate({
-        try {
-          oort.applications
-        } catch (RetrofitError e) {
-          if (e.response?.status == 404) {
-            return []
-          } else {
-            throw e
+      HystrixFactory.newListCommand(GROUP, "getApplicationsFromCloudDriver", {
+        AuthenticatedRequest.propagate({
+          try {
+            oort.applications
+          } catch (RetrofitError e) {
+            if (e.response?.status == 404) {
+              return []
+            } else {
+              throw e
+            }
           }
-        }
-      }, false, principal).call() as List<Map>
+        }, false, principal).call() as List<Map>
+      }, { return allApplicationsCache.get() }).execute()
     }
   }
 
@@ -354,17 +363,19 @@ class ApplicationService {
 
     @Override
     Map call() throws Exception {
-      AuthenticatedRequest.propagate({
-        try {
-          return oort.getApplication(name)
-        } catch (RetrofitError e) {
-          if (e.response?.status == 404) {
-            return [:]
-          } else {
-            throw e
+      HystrixFactory.newMapCommand(GROUP, "getApplicationFromCloudDriver", {
+        AuthenticatedRequest.propagate({
+          try {
+            return oort.getApplication(name)
+          } catch (RetrofitError e) {
+            if (e.response?.status == 404) {
+              return [:]
+            } else {
+              throw e
+            }
           }
-        }
-      }, false, principal).call() as Map
+        }, false, principal).call() as Map
+      }, { [:] }).execute()
     }
   }
 }
