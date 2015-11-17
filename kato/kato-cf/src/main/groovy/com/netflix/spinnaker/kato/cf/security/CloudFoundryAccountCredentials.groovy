@@ -28,6 +28,7 @@ class CloudFoundryAccountCredentials implements AccountCredentials<CloudCredenti
 
   String name
   String api
+  String console
   String org
   String space
   String username
