@@ -139,9 +139,8 @@ EOF
 }
 
 have_packer=$(which packer)
-if [[ ! $have_packer ]] \
-    && prompt_YN "N" "Install packer (to build images)?"; then
-  echo "Getting packer"
+if [[ ! $have_packer ]]; then
+  echo "Installing packer"
   url=https://dl.bintray.com/mitchellh/packer/packer_0.8.6_linux_amd64.zip
   pushd $HOME
   if ! curl -s --location -O "$url"; then
