@@ -39,7 +39,6 @@ module.exports = angular.module('spinnaker.aws.instance.details.scalingPolicy.di
           adjuster.absAdjustment = Math.abs(adjuster.scalingAdjustment);
         }
 
-        policy.cooldownSeconds = policy.cooldown ? policy.cooldown : 0;
         policy.alarms.forEach(addComparator);
         policy.minAdjustmentStep = policy.minAdjustmentStep || 1;
         addAdjustmentAttributes(policy);
