@@ -20,7 +20,7 @@ dependencies {
 }
 
 applicationName = 'rosco'
-applicationDefaultJvmArgs = ["-Djava.security.egd=file:/dev/./urandom", "-Dspring.config.location=/opt/spinnaker/config/"]
+applicationDefaultJvmArgs = ["-Djava.security.egd=file:/dev/./urandom"]
 applicationDistribution.from(project.file('config')) {
   into "config"
 }
@@ -41,8 +41,15 @@ jar {
 }
 
 startScripts {
+  defaultJvmOpts = applicationDefaultJvmArgs + ["-Dspring.config.location=/opt/spinnaker/config/"]
   doLast {
-    unixScript.text = unixScript.text.replace('DEFAULT_JVM_OPTS=', '\n if [ -f /etc/default/spinnaker ];then \n set -a\n . /etc/default/spinnaker \n set +a\n fi \n DEFAULT_JVM_OPTS=')
+    unixScript.text = unixScript.text.replace('DEFAULT_JVM_OPTS=', '''\
+        if [ -f /etc/default/spinnaker ]; then
+          set -a
+          . /etc/default/spinnaker
+          set +a
+        fi
+        DEFAULT_JVM_OPTS='''.stripIndent())
     unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
     windowsScript.text = windowsScript.text.replace('set CLASSPATH=', 'set CLASSPATH=%APP_HOME%\\config;')
   }
@@ -88,5 +95,5 @@ ospackage {
 }
 
 buildDeb {
-  dependsOn installApp
+  dependsOn installDist
 }
