@@ -204,6 +204,7 @@ module.exports = angular
           vm.property.startScope = _.set(vm.property.startScope, 'stack', 'none' );
           vm.property.startScope = _.set(vm.property.startScope, 'zone', 'none' );
           vm.property.startScope = _.set(vm.property.startScope, 'asg', 'none' );
+          vm.property.strategy.option = 'number';
         }
 
         vm.property.startScope.appIdList.forEach(vm.startApplicationSelected);
