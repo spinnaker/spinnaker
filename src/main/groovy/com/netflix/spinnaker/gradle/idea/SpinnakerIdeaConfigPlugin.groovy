@@ -35,6 +35,20 @@ class SpinnakerIdeaConfigPlugin implements Plugin<Project> {
                     idea.model.project.languageLevel = convention.targetCompatibility
                 }
                 idea.model.project.vcs = 'Git'
+                idea.model.project.ipr.withXml {
+                    def node = it.asNode()
+                    def parser = new XmlParser()
+                    node.append(parser.parse('''
+                        <component name="GradleSettings">
+                          <option name="linkedExternalProjectsSettings">
+                            <GradleProjectSettings>
+                              <option name="distributionType" value="DEFAULT_WRAPPED" />
+                              <option name="externalProjectPath" value="$PROJECT_DIR$" />
+                              <option name="useAutoImport" value="true" />
+                            </GradleProjectSettings>
+                          </option>
+                        </component>'''))
+                }
             }
         }
     }
