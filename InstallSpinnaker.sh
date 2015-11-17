@@ -44,7 +44,9 @@ function print_usage() {
   cat <<EOF
 usage: $0 [--cloud_provider <aws|google|none|both>]
     [--aws_region <region>] [--google_region <region>]
-    [--quiet]
+    [--quiet] [--dependencies_only]
+    [--repository <debian repository url>]
+
 
     If run with no arguments you will be prompted for cloud provider and region
 
@@ -61,7 +63,20 @@ usage: $0 [--cloud_provider <aws|google|none|both>]
                                 edit /etc/default/spinnaker manually
                                 cannot be used with --cloud_provider
 
+    --repository <url>          Obtain Spinnaker packages from the <url>
+                                rather than the default repository, which is
+                                $REPOSITORY_URL
+
+    --dependencies_only         Do not install any Spinnaker services.
+                                Only install the dependencies. This is intended
+                                for development scenarios only
 EOF
+}
+
+function echo_status() {
+  if [ "x$QUIET" != "xtrue" ]; then
+      echo "$@"
+  fi
 }
 
 function process_args() {
@@ -90,7 +105,12 @@ function process_args() {
          REPOSITORY_URL="$1"
          shift
          ;;
+      --dependencies_only)
+         CLOUD_PROVIDER="none"
+         DEPENDENCIES_ONLY=true
+         ;;
       --quiet|-q)
+          QUIET="true"
           CLOUD_PROVIDER="none"
           AWS_REGION="none"
           GOOGLE_REGION="none"
@@ -200,7 +220,6 @@ function set_aws_defaults_from_environ() {
   DEFAULT_AWS_REGION="$region"
   AWS_VPC_ID="$vpc_id"
   AWS_SUBNET_ID="$subnet_id"
-  
 }
 
 function set_defaults_from_environ() {
@@ -305,15 +324,15 @@ sudo apt-get install -y openjdk-8-jdk
 sudo apt-get install -y --force-yes cassandra=2.1.11 cassandra-tools=2.1.11
 # Let cassandra start
 if ! nc -z localhost 7199; then
-    echo "Waiting for Cassandra to start..."
+    echo_status "Waiting for Cassandra to start..."
     while ! nc -z localhost 7199; do
        sleep 1
     done
-    echo "Cassandra is ready."
+    echo_status "Cassandra is ready."
 fi
 while ! $(nodetool enablethrift >& /dev/null); do
     sleep 1
-    echo "Retrying..."
+    echo_status "Retrying..."
 done
 
 # apt-get install dsc21
@@ -323,6 +342,10 @@ sudo apt-get install -y unzip
 wget https://releases.hashicorp.com/packer/0.8.6/packer_0.8.6_linux_amd64.zip
 sudo unzip -q packer_0.8.6_linux_amd64.zip -d /usr/bin
 rm -f packer_0.8.6_linux_amd64.zip
+
+if [[ "x$DEPENDENCIES_ONLY" != "x" ]]; then
+    exit 0
+fi
 
 ## Spinnaker
 sudo apt-get install -y --force-yes --allow-unauthenticated spinnaker
@@ -392,4 +415,3 @@ To modify the available cloud providers:
     sudo service clouddriver restart
     sudo service rosco restart
 EOF
-
