@@ -78,7 +78,8 @@ class ContextParameterProcessor {
     if (context.execution) {
       def deployedServerGroups = []
       context.execution.stages.findAll {
-        it.context.type == 'linearDeploy'
+        it.context.type == 'linearDeploy' ||
+        it.context.type == 'deploy'
       }.each { deployStage ->
         if (deployStage.context.'deploy.server.groups' && !deployStage.context.amiName) {
           Map deployDetails = [
