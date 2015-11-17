@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @Slf4j
-class ModifyAsgLaunchConfigurationTask implements Task {
+class ModifyAsgLaunchConfigurationTask implements Task, DeploymentDetailsAware {
   @Autowired
   KatoService kato
 
@@ -39,30 +39,42 @@ class ModifyAsgLaunchConfigurationTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def deploymentDetails = (stage.context.deploymentDetails ?: []) as List<Map>
     def operationConfig = new HashMap(stage.context)
-    if (!stage.context.amiName && deploymentDetails) {
-      operationConfig.amiName = deploymentDetails.find { it.region == stage.context.region }?.ami
-    }
+    operationConfig.amiName = getImage(stage)
+
     def ops = []
     if (stage.context.credentials != defaultBakeAccount) {
-      ops << [allowLaunchDescription: convertAllowLaunch(stage.context.credentials, defaultBakeAccount, stage.context.region, operationConfig.amiName)]
+      ops << [allowLaunchDescription: convertAllowLaunch(stage.context.credentials, defaultBakeAccount,
+                                                         stage.context.region, operationConfig.amiName)]
       log.info("Generated `allowLaunchDescription` (allowLaunchDescription: ${ops})")
     }
 
     ops << [modifyAsgLaunchConfigurationDescription: operationConfig]
 
     def taskId = kato.requestOperations(CloudProviderAware.DEFAULT_CLOUD_PROVIDER, ops)
-      .toBlocking()
-      .first()
+                     .toBlocking()
+                     .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-      "notification.type"     : "modifyasglaunchconfiguration",
+      "notification.type"                        : "modifyasglaunchconfiguration",
       "modifyasglaunchconfiguration.account.name": stage.context.credentials,
       "modifyasglaunchconfiguration.region"      : stage.context.region,
-      "kato.last.task.id"     : taskId,
-      "kato.task.id"          : taskId, // TODO retire this.
-      "deploy.server.groups"  : [(stage.context.region): [stage.context.asgName]]
+      "kato.last.task.id"                        : taskId,
+      "kato.task.id"                             : taskId, // TODO retire this.
+      "deploy.server.groups"                     : [(stage.context.region): [stage.context.asgName]]
     ])
+  }
+
+  private String getImage(Stage stage) {
+    String amiName = stage.context.amiName
+    String targetRegion = stage.context.region
+    withImageFromPrecedingStage(stage, targetRegion) {
+      amiName = amiName ?: it.amiName
+    }
+
+    withImageFromDeploymentDetails(stage, targetRegion) {
+      amiName = amiName ?: it.amiName
+    }
+    return amiName
   }
 
   private static Map convertAllowLaunch(String targetAccount, String sourceAccount, String region, String ami) {

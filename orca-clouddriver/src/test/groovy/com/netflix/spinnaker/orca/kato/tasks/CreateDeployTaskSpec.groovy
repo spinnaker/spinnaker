@@ -19,9 +19,9 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.google.common.collect.Maps
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import rx.Observable
@@ -36,12 +36,13 @@ class CreateDeployTaskSpec extends Specification {
   def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
+  def deployRegion = "us-east-1"
   def deployConfig = [
     application      : "hodor",
     amiName          : "hodor-ubuntu-1",
     instanceType     : "large",
     securityGroups   : ["a", "b", "c"],
-    availabilityZones: ["us-east-1": ["a", "d"]],
+    availabilityZones: [(deployRegion): ["a", "d"]],
     capacity         : [
       min    : 1,
       max    : 20,
@@ -58,6 +59,7 @@ class CreateDeployTaskSpec extends Specification {
 
     stage.execution.stages.add(stage)
     stage.context = deployConfig
+    stage.requisiteStageRefIds = []
   }
 
   def cleanup() {
@@ -68,8 +70,8 @@ class CreateDeployTaskSpec extends Specification {
   def "creates a deployment based on job parameters"() {
     given:
     def operations = []
-    task.kato = Mock(KatoService) {
-      1 * requestOperations(*_) >> {
+    task.kato = Stub(KatoService) {
+      requestOperations(*_) >> {
         operations.addAll(it[1].flatten())
         Observable.from(taskId)
       }
@@ -95,8 +97,8 @@ class CreateDeployTaskSpec extends Specification {
 
     and:
     def operations = []
-    task.kato = Mock(KatoService) {
-      1 * requestOperations(*_) >> {
+    task.kato = Stub(KatoService) {
+      requestOperations(*_) >> {
         operations.addAll(it[1].flatten())
         Observable.from(taskId)
       }
@@ -123,8 +125,8 @@ class CreateDeployTaskSpec extends Specification {
 
     and:
     def operations = []
-    task.kato = Mock(KatoService) {
-      1 * requestOperations(*_) >> {
+    task.kato = Stub(KatoService) {
+      requestOperations(*_) >> {
         operations.addAll(it[1].flatten())
         Observable.from(taskId)
       }
@@ -143,8 +145,8 @@ class CreateDeployTaskSpec extends Specification {
     stage.context.subnetType = subnetTypeValue
 
     def operations = []
-    task.kato = Mock(KatoService) {
-      1 * requestOperations(*_) >> {
+    task.kato = Stub(KatoService) {
+      requestOperations(*_) >> {
         operations.addAll(it[1].flatten())
         Observable.from(taskId)
       }
@@ -180,8 +182,8 @@ class CreateDeployTaskSpec extends Specification {
     given:
     stage.context.amiName = null
     def operations = []
-    task.kato = Mock(KatoService) {
-      1 * requestOperations(*_) >> {
+    task.kato = Stub(KatoService) {
+      requestOperations(*_) >> {
         operations.addAll(it[1].flatten())
         Observable.from(taskId)
       }
@@ -189,7 +191,7 @@ class CreateDeployTaskSpec extends Specification {
     stage.context.deploymentDetails = [
       ["ami": "not-my-ami", "region": "us-west-1"],
       ["ami": "definitely-not-my-ami", "region": "us-west-2"],
-      ["ami": amiName, "region": deployConfig.availabilityZones.keySet()[0]]
+      ["ami": amiName, "region": deployRegion]
     ]
 
     when:
@@ -208,8 +210,8 @@ class CreateDeployTaskSpec extends Specification {
     given:
     stage.context.amiName = null
     def operations = []
-    task.kato = Mock(KatoService) {
-      1 * requestOperations(*_) >> {
+    task.kato = Stub(KatoService) {
+      requestOperations(*_) >> {
         operations.addAll(it[1].flatten())
         Observable.from(taskId)
       }
@@ -243,6 +245,105 @@ class CreateDeployTaskSpec extends Specification {
     then:
     result.status == ExecutionStatus.SUCCEEDED
     result.stageOutputs."kato.last.task.id" == taskId
+  }
+
+  def "prefers the ami from an upstream stage to one from deployment details"() {
+    given:
+    stage.context.amiName = null
+    def operations = []
+    task.kato = Stub(KatoService) {
+      requestOperations(*_) >> {
+        operations.addAll(it[1].flatten())
+        Observable.from(taskId)
+      }
+    }
+    stage.context.deploymentDetails = [
+      ["ami": "not-my-ami", "region": deployRegion],
+      ["ami": "also-not-my-ami", "region": deployRegion]
+    ]
+
+    and:
+    def bakeStage1 = new PipelineStage(stage.execution, "bake")
+    bakeStage1.id = UUID.randomUUID()
+    bakeStage1.refId = "1a"
+    stage.execution.stages << bakeStage1
+
+    def bakeSynthetic1 = new PipelineStage(stage.execution, "bake in $deployRegion", [ami: amiName, region: deployRegion])
+    bakeSynthetic1.id = UUID.randomUUID()
+    bakeSynthetic1.parentStageId = bakeStage1.id
+    stage.execution.stages << bakeSynthetic1
+
+    def bakeStage2 = new PipelineStage(stage.execution, "bake")
+    bakeStage2.id = UUID.randomUUID()
+    bakeStage2.refId = "2a"
+    stage.execution.stages << bakeStage2
+
+    def bakeSynthetic2 = new PipelineStage(stage.execution, "bake in $deployRegion", [ami: "parallel-branch-ami", region: deployRegion])
+    bakeSynthetic2.id = UUID.randomUUID()
+    bakeSynthetic2.parentStageId = bakeStage2.id
+    stage.execution.stages << bakeSynthetic2
+
+    def intermediateStage = new PipelineStage(stage.execution, "whatever")
+    intermediateStage.id = UUID.randomUUID()
+    intermediateStage.refId = "1b"
+    stage.execution.stages << intermediateStage
+
+    and:
+    intermediateStage.requisiteStageRefIds = [bakeStage1.refId]
+    stage.requisiteStageRefIds = [intermediateStage.refId]
+
+    when:
+    task.execute(stage.asImmutable())
+
+    then:
+    operations.find {
+      it.containsKey("createServerGroup")
+    }.createServerGroup.amiName == amiName
+
+    where:
+    amiName = "ami-name-from-bake"
+  }
+
+  def "prefers the deployment details from an upstream stage to one from global context"() {
+    given:
+    stage.context.amiName = null
+    def operations = []
+    task.kato = Stub(KatoService) {
+      requestOperations(*_) >> {
+        operations.addAll(it[1].flatten())
+        Observable.from(taskId)
+      }
+    }
+    stage.execution.context.deploymentDetails = [
+      ["ami": "not-my-ami", "region": deployRegion],
+      ["ami": "also-not-my-ami", "region": deployRegion]
+    ]
+
+    and:
+    def findImageStage = new PipelineStage(stage.execution, "findImage", [region: deployRegion, amiDetails: [ami: amiName]])
+    findImageStage.id = UUID.randomUUID()
+    findImageStage.refId = "1a"
+    stage.execution.stages << findImageStage
+
+    def intermediateStage = new PipelineStage(stage.execution, "whatever")
+    intermediateStage.id = UUID.randomUUID()
+    intermediateStage.refId = "1b"
+    stage.execution.stages << intermediateStage
+
+    and:
+    intermediateStage.requisiteStageRefIds = [findImageStage.refId]
+    stage.requisiteStageRefIds = [intermediateStage.refId]
+
+    when:
+    task.execute(stage.asImmutable())
+
+    then:
+    operations.find {
+      it.containsKey("createServerGroup")
+    }.createServerGroup.amiName == amiName
+
+    where:
+    amiName = "ami-name-from-find-image"
   }
 
 }
