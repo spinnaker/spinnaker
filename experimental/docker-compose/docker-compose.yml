@@ -12,7 +12,7 @@ clouddriver:
   ports: 
     - "7002:7002"
   volumes: 
-    - "../../config:/root/.spinnaker"
+    - "../../config:/opt/spinnaker/config"
     - "~/.aws:/root/.aws"
 echo: 
   container_name: echo
@@ -25,7 +25,7 @@ echo:
   ports: 
     - "8089:8089"
   volumes: 
-    - "../../config:/root/.spinnaker"
+    - "../../config:/opt/spinnaker/config"
 front50: 
   container_name: front50
   env_file: ./compose.env
@@ -35,7 +35,7 @@ front50:
   ports: 
     - "8080:8080"
   volumes: 
-    - "../../config:/root/.spinnaker"
+    - "../../config:/opt/spinnaker/config"
 frontend: 
   container_name: deck
   environment: 
@@ -67,7 +67,7 @@ gate:
   ports: 
     - "8084:8084"
   volumes: 
-    - "../../config:/root/.spinnaker"
+    - "../../config:/opt/spinnaker/config"
 igor: 
   container_name: igor
   env_file: ./compose.env
@@ -80,7 +80,7 @@ igor:
   ports: 
     - "8088:8088"
   volumes: 
-    - "../../config:/root/.spinnaker"
+    - "../../config:/opt/spinnaker/config"
 orca: 
   container_name: orca
   env_file: ./compose.env
@@ -99,7 +99,7 @@ orca:
   ports: 
     - "8083:8083"
   volumes: 
-    - "../../config:/root/.spinnaker"
+    - "../../config:/opt/spinnaker/config"
 redis: 
   container_name: redis
   command: "redis-server --appendonly yes"
@@ -115,7 +115,7 @@ rosco:
   ports: 
     - "8087:8087"
   volumes: 
-    - "../../config:/root/.spinnaker"  
+    - "../../config:/opt/spinnaker/config"
   links:
     - "redis"
     - "rush"
@@ -128,4 +128,4 @@ rush:
   ports: 
     - "8085:8085"
   volumes: 
-    - "../../config:/root/.spinnaker"  
+    - "../../config:/opt/spinnaker/config"
