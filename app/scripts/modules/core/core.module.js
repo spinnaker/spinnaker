@@ -101,8 +101,6 @@ module.exports = angular
     require('./pipeline/config/stages/jenkins/jenkinsStage.module.js'),
     require('./pipeline/config/stages/manualJudgment/manualJudgmentStage.module.js'),
     require('./pipeline/config/stages/pipeline/pipelineStage.module.js'),
-    require('./pipeline/config/stages/quickPatchAsg/bulkQuickPatchStage/bulkQuickPatchStage.module.js'),
-    require('./pipeline/config/stages/quickPatchAsg/quickPatchAsgStage.module.js'),
     require('./pipeline/config/stages/resizeAsg/resizeAsgStage.module.js'),
     require('./pipeline/config/stages/scaleDownCluster/scaleDownClusterStage.module.js'),
     require('./pipeline/config/stages/script/scriptStage.module.js'),

@@ -2,7 +2,9 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.quickPatchAsg.bulkQuickPatchStage', [])
+module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsg.bulkQuickPatchStage', [
+  require('../../../../../core/pipeline/config/pipelineConfigProvider.js'),
+])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       synthetic: true,

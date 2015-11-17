@@ -2,7 +2,9 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.quickPatchAsgStage', [])
+module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsgStage', [
+  require('../../../../core/pipeline/config/pipelineConfigProvider.js'),
+])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Quick Patch Server Group',
