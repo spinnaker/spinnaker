@@ -56,7 +56,7 @@ class InstallationParameters(object):
 
   SUBSYSTEM_ROOT_DIR = '/opt'
   SPINNAKER_INSTALL_DIR = '/opt/spinnaker'
-  UTILITY_SCRIPT_DIR = '/opt/spinnaker/scripts'
+  UTILITY_SCRIPT_DIR = '/opt/spinnaker/bin'
   EXTERNAL_DEPENDENCY_SCRIPT_DIR = '/opt/spinnaker/scripts'
 
   INSTALLED_CONFIG_DIR = SPINNAKER_INSTALL_DIR + '/config'

@@ -43,6 +43,7 @@ function write_default_value() {
 set_aws_defaults_from_environ
 
 write_default_value "SPINNAKER_AWS_DEFAULT_REGION" $DEFAULT_AWS_REGION
+write_default_value "SPINNAKER_AWS_ENABLED" "true"
 write_default_value "SPINNAKER_GOOGLE_ENABLED" "false"
 
 
@@ -50,11 +51,17 @@ echo
 echo
 echo '######### WELCOME TO SPINNAKER ############'
 echo
+echo 'Initializing systems!'
+echo
 echo 'Default region is configured for Amazon AWS region: ' $region
 echo 
-echo 'GCE is disabled.'
+echo 'GCE is disabled on this host. Refer to http://spinnaker.io/'
+echo 'for more specific instructions.'
 echo
-if [[ -n "AWS_VPC_ID" ]]; then
+
+# Set VPC if in a VPC
+if [[ -n "$AWS_VPC_ID" ]]; then
+    echo 'You are in a VPC setting this . . .'
     write_default_value "AWS_VPC_ID" $AWS_VPC_ID
     write_default_value "AWS_SUBNET_ID" $AWS_SUBNET_ID
     echo 'Amazon VPC ID is set to: '$AWS_VPC_ID
@@ -62,18 +69,23 @@ if [[ -n "AWS_VPC_ID" ]]; then
     echo 'Amazon AWS Subnet is set to: '$AWS_SUBNET_ID
     echo
 fi
+
+# Configure Deck
+echo 'Reconfiguring deck . . . . '
+echo
+sudo /opt/spinnaker/bin/reconfigure_spinnaker.sh
+
+# Restart Spinnaker
+echo 'Restarting Spinnaker . . . '
+echo
+sudo restart spinnaker
+
+## Helper text
+echo
 echo 'Edit /etc/default/spinnaker and restart Spinnaker if you wish to change this'
 echo 'Then execute: '
 echo 'sudo service clouddriver restart'
 echo 'sudo service rosco restart'
-echo
-echo 'Doing that now.....'
-echo
-
-sudo service clouddriver restart
-sudo service rosco restart
-
-echo
 echo
 echo '------ You should be ready to go -----'
 echo 'To connect create a SSH tunnel from your host to' $public_hostname 'remote ports 9000 and 8084'
@@ -84,6 +96,7 @@ echo '    HostName' $public_hostname
 echo '    IdentityFile /path/to/private/key'
 echo '    LocalForward 8081 127.0.0.1:9000'
 echo '    LocalForward 8084 127.0.0.1:8084'
+echo '    LocalForward 8084 127.0.0.1:8087'
 echo '    User ubuntu'
 echo
 echo 'If the ssh config file is new. Ensure it is chmod 400'

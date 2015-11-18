@@ -66,7 +66,7 @@
             "inline_shebang": "/bin/bash",
             "inline": [
                 "sudo chmod 755 /tmp/InstallSpinnaker.sh",
-                "sudo /tmp/InstallSpinnaker.sh --cloud_provider aws --aws_region {{user `region`}}",
+                "sudo /tmp/InstallSpinnaker.sh --cloud_provider none",
                 "echo . .init-region >> /home/ubuntu/.bashrc",
                 "sudo mv /tmp/99-footer /etc/update-motd.d/99-footer",
                 "sudo chmod 755 /etc/update-motd.d/99-footer",
