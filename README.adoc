@@ -60,18 +60,9 @@ cd build
 [source,bash]
 ----
 cd $SPINNAKER_HOME
-spinnaker/dev/install_development.sh --package_manager
+spinnaker/dev/install_development.sh
 spinnaker/dev/bootstrap_dev.sh
 ----
-
-The `--package_manager` argument requests the Debian Package Manager be used
-to the greatest extent possible. This permits adding new source repositories
-where package dependencies are distributed from non-standard repositories
-(e.g. cassandra). The alternative is `--nopackage_manager` to use the
-Package Manager for standard dependencies but explicitly install packages
-that come from other sources. `--nopackage_manager` is intended for
-installations where IT policies discourage or forbid adding additional
-source locations.
 
 The `bootstrap_dev.sh` script will ask to install additional components. `gcloud`
 is only needed to write releases to Google Cloud Storage, but is convenient
@@ -94,6 +85,14 @@ chmod 600 $HOME/.spinnaker/spinnaker-local.yml
 ----
 
 Edit `$HOME/.spinnaker/spinnaker-local.yml` and set the enabled option for the cloud provider(s) of your choice.
+
+The default-spinnaker-local.yml file contains some references to environment
+variables (e.g. `${SPINNAKER_AWS_ENABLED}` and all the other upper case names
+in the providers section). These are added by the spinnaker install, which
+isnt used in a developer environment so you will need to replace these with
+literals (e.g. `true`). Minimally, set the provider `${*_ENABLED}` values. If
+they are `false` then you dont need to worry about the other attributes.
+
 
 == Start Spinnaker Services
 
