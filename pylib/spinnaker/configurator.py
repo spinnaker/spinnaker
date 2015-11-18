@@ -51,7 +51,7 @@ class InstallationParameters(object):
         is non-standard and recorded here for the time being.
   """
 
-  USER_CONFIG_DIR = '/root/.spinnaker'
+  USER_CONFIG_DIR = '/home/spinnaker/.spinnaker'
   LOG_DIR = '/opt/spinnaker/logs'
 
   SUBSYSTEM_ROOT_DIR = '/opt'
@@ -93,16 +93,6 @@ class Configurator(object):
   @property
   def deck_install_dir(self):
     """Returns the location of the deck directory for the active settings.js"""
-    if not self.__installation.DECK_INSTALL_DIR:
-       pwd = os.environ.get('PWD', '.')
-       deck_path = os.path.join(pwd, 'deck')
-       if not os.path.exists(deck_path):
-          error = ('To operate on deck, this program must be run from your'
-                   ' build directory containing the deck project subdirectory'
-                   ', not "{pwd}".'.format(pwd=pwd))
-          raise RuntimeError(error)
-       self.__installation.DECK_INSTALL_DIR = deck_path
-
     return self.__installation.DECK_INSTALL_DIR
 
   @property
@@ -121,28 +111,39 @@ class Configurator(object):
     if not installation_parameters:
       installation_parameters = InstallationParameters()
       if os.geteuid():
-         # If we are not running as root and there is an installation on
-         # this machine as well as a user/.spinnaker directory then it is
-         # ambguous which we are validating. For saftey we'll force this
-         # to be the normal system installation. Warn that we are doing this.
-        user_config = os.path.join(os.environ['HOME'], '.spinnaker')
-        deck_dir = installation_parameters.DECK_INSTALL_DIR
-        if os.path.exists('/root/.spinnaker'):
-            user_config = '/root/.spinnaker'
-            if os.path.exists(user_config):
+          # If we are not running as root and there is an installation on
+          # this machine as well as a user/.spinnaker directory then it is
+          # ambiguous which we are validating. For saftey we'll force this
+          # to be the normal system installation. Warn that we are doing this.
+          installed_bindings = yaml_util.load_bindings(
+               installation_parameters.INSTALLED_CONFIG_DIR,
+               installation_parameters.USER_CONFIG_DIR,
+               only_if_local=True)
+          user_config = os.path.join(os.environ['HOME'], '.spinnaker')
+          personal_path = os.path.join(user_config, 'spinnaker-local.yml')
+          deck_dir = installation_parameters.DECK_INSTALL_DIR
+          if os.path.exists(personal_path):
+            if installed_bindings is not None:
                 sys.stderr.write(
                   'WARNING: You have both personal and system Spinnaker'
-                  ' configurations on this machine. Assuming the system'
-                  ' configuration.\n')
-        else:
-            # Discover it from build directory if needed.
-            deck_dir = None
+                  ' configurations on this machine.\n'
+                  'Choosing the personal configuration in "{path}".\n'
+                  .format(path=user_config))
+            deck_dir = os.path.join(os.environ.get('PWD', '.'), 'deck')
+            if not os.path.exists(deck_dir):
+              raise RuntimeError(
+                       'To use a personal configuration, this program must be'
+                       ' run from your top-level build directory that you'
+                       ' cloned the repositories to.\n'
+                       'We assume you are a developer since you have a'
+                       ' $HOME/.spinnaker directory. If you meant to operate on'
+                       ' the installed Spinnaker, run this with sudo.')
 
-        # If we arenot root, allow for a non-standard installation location.
-        installation_parameters.INSTALLED_CONFIG_DIR = os.path.abspath(
-           os.path.join(os.path.dirname(__file__), '../../config'))
-        installation_parameters.USER_CONFIG_DIR = user_config
-        installation_parameters.DECK_INSTALL_DIR = deck_dir
+          # If we are not root, allow for a non-standard installation location.
+          installation_parameters.INSTALLED_CONFIG_DIR = os.path.abspath(
+             os.path.join(os.path.dirname(__file__), '../../config'))
+          installation_parameters.USER_CONFIG_DIR = user_config
+          installation_parameters.DECK_INSTALL_DIR = deck_dir
 
     self.__installation = installation_parameters
     self.__bindings = bindings   # Either injected or loaded on demand.
@@ -163,7 +164,7 @@ class Configurator(object):
       self.export_environment_variables(content)
     except IOError:
       pass
-      
+
   def update_deck_settings(self):
     """Update the settings.js file from configuration info."""
     source_path = os.path.join(self.installation_config_dir, 'settings.js')

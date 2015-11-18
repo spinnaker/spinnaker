@@ -20,5 +20,10 @@ import sys
 from configurator import Configurator
 
 if __name__ == '__main__':
-  configurator = Configurator()
-  configurator.update_deck_settings()
+  try:
+    configurator = Configurator()
+    configurator.update_deck_settings()
+  except (RuntimeError, IOError) as e:
+    sys.stderr.write(str(e) + '\n')
+    sys.exit(-1)
+
