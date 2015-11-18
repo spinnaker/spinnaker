@@ -41,7 +41,7 @@ class Processor(object):
           return
 
       assignment = '{name}={value}'.format(name=name, value=value)
-      match = re.search('^{name}=.+'.format(name=name),
+      match = re.search('^{name}=.*'.format(name=name),
                         self.__environ_content,
                         re.MULTILINE)
       if match:
@@ -111,7 +111,6 @@ aws_access_key_id = {key}
     
       self.update_in_place('providers.aws.defaultIAMRole')
       self.update_in_place('providers.google.primaryCredentials.name')
-      self.update_in_place('providers.google.primaryCredentials.project')
       self.update_in_place('services.jenkins.defaultMaster.baseUrl')
       self.update_in_place('services.jenkins.defaultMaster.username')
       self.update_in_place('services.jenkins.defaultMaster.password')
