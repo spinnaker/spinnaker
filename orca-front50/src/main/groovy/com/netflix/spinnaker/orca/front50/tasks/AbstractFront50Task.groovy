@@ -72,7 +72,7 @@ abstract class AbstractFront50Task implements Task {
     try {
       return front50Service.get(account, applicationName)
     } catch (RetrofitError e) {
-      if (e.response.status == 404) {
+      if (e.response?.status == 404) {
         return null
       }
 
