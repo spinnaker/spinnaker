@@ -307,7 +307,7 @@ class Runner(object):
         if pid:
           started_list.append((subsys, pid))
 
-    docker_address = self.__bindings.get('services.docker.baseUrl')
+    docker_address = self.__bindings.get('services.docker.targetRepository')
     jenkins_address = self.__bindings.get(
         'services.jenkins.defaultMaster.baseUrl')
     igor_enabled = self.__bindings.get('services.igor.enabled')
