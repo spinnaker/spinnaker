@@ -1,0 +1,18 @@
+<div class="form-group">
+  <div class="col-md-{{labelColumns}} sm-label-left">
+    VPC Subnet
+    <help-field key="{{helpKey}}"></help-field>
+  </div>
+  <div class="col-md-7" ng-if="!region">(Select an account)</div>
+  <div class="col-md-7" ng-if="region">
+    <select class="form-control input-sm" ng-model="component[field]"
+            ng-change="onChange()"
+            ng-if="!readOnly">
+      <option value="">None (EC2 Classic)</option>
+      <option ng-repeat="subnet in activeSubnets | orderBy: 'label'" value="{{subnet.purpose}}" ng-selected="component[field] === subnet.purpose">{{subnet.label}}</option>
+      <option ng-if="activeSubnets.length && deprecatedSubnets.length" disabled>---------------</option>
+      <option ng-repeat="subnet in deprecatedSubnets | orderBy: 'label'" value="{{subnet.purpose}}" ng-selected="component[field] === subnet.purpose">{{subnet.label}}</option>
+    </select>
+    <p ng-if="readOnly" class="form-control-static">{{component[field]}}</p>
+  </div>
+</div>

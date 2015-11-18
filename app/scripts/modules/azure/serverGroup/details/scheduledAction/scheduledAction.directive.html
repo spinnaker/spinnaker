@@ -1,0 +1,18 @@
+<dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-narrow'" style="margin-bottom: 20px">
+  <dt>Schedule</dt>
+  <dd>
+    {{action.recurrence}}
+  </dd>
+  <dt ng-if="action.minSize !== undefined">Min Size</dt>
+  <dd ng-if="action.minSize !== undefined">
+    {{action.minSize}}
+  </dd>
+  <dt ng-if="action.maxSize !== undefined">Max Size</dt>
+  <dd ng-if="action.maxSize !== undefined">
+    {{action.maxSize}}
+  </dd>
+  <dt ng-if="action.desiredCapacity !== undefined">Desired Size</dt>
+  <dd ng-if="action.desiredCapacity !== undefined">
+    {{action.desiredCapacity}}
+  </dd>
+</dl>

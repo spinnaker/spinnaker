@@ -1,0 +1,20 @@
+<form ng-controller="azureServerGroupSecurityGroupsCtrl as serverGroupSecurityGroupsCtrl" class="container-fluid form-horizontal" name="form" novalidate>
+  <div class="modal-body">
+    <azure-server-group-security-groups-selector command="command"></azure-server-group-security-groups-selector>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default pull-left"
+            ng-click="wizard.previousPage(form.$valid)">
+      <span class="glyphicon glyphicon-chevron-left"></span> Back
+    </button>
+    <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
+    <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="form.$invalid || !ctrl.isValid() || taskMonitor.submitting"
+                   label="command.viewState.submitButtonLabel"
+                   submitting="taskMonitor.submitting" on-click="ctrl.submit()" is-new="true"></submit-button>
+    <button class="btn btn-primary"
+            ng-disabled="form.$invalid"
+            ng-click="wizard.nextPage(form.$valid)">
+      Next <span class="glyphicon glyphicon-chevron-right"></span>
+    </button>
+  </div>
+</form>

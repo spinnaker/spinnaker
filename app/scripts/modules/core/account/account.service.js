@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.core.account.service', [
     }
 
     function getAvailabilityZonesForAccountAndRegion(providerName, accountName, regionName) {
-
+	console.log('-------------------------------' + providerName + ':' + accountName + ':' + regionName + '------------');
       return getPreferredZonesByAccount(providerName).then( function(defaults) {
         if (defaults[accountName] && defaults[accountName][regionName]) {
           return {preferredZones: defaults[accountName][regionName]};
@@ -28,7 +28,12 @@ module.exports = angular.module('spinnaker.core.account.service', [
       })
       .then(function(zonesCollection) {
         return getRegionsForAccount(accountName).then(function(regions){
-          zonesCollection.actualZones = _.find(regions, {name: regionName}).availabilityZones;
+          if (providerName === 'azure') {
+            zonesCollection.actualZones = [regionName];
+          }
+          else {
+            zonesCollection.actualZones = _.find(regions, {name: regionName}).availabilityZones;
+          }
           return zonesCollection;
         });
       })
@@ -56,6 +61,7 @@ module.exports = angular.module('spinnaker.core.account.service', [
       return listAccounts().then(function(accounts) {
         let allProviders = _.uniq(_.pluck(accounts, 'type'));
         let availableRegisteredProviders = _.intersection(allProviders, cloudProviderRegistry.listRegisteredProviders());
+         console.log('availableRegisteredProviders', availableRegisteredProviders, 'allProviders', allProviders, 'cloudProviderRegistry', cloudProviderRegistry.listRegisteredProviders() );
         if (application) {
           let appProviders = application.attributes.cloudProviders ?
             application.attributes.cloudProviders.split(',') :

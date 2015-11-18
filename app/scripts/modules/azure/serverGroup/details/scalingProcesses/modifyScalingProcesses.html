@@ -1,0 +1,31 @@
+<div modal-page>
+  <task-monitor monitor="taskMonitor"></task-monitor>
+  <form role="form">
+    <modal-close></modal-close>
+    <div class="modal-header">
+      <h3>Modify Scaling Processes for {{serverGroup.name}}</h3>
+    </div>
+    <div class="modal-body container-fluid form-horizontal">
+      <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+          <div class="checkbox" ng-repeat="process in command">
+            <label>
+              <input type="checkbox" ng-model="process.enabled">
+              {{process.name}}
+            </label>
+            <help-field content="{{process.description}}" placement="right"></help-field>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+      <button type="submit"
+              class="btn btn-primary"
+              ng-disabled="!ctrl.isDirty()"
+              ng-click="ctrl.submit()">
+        Submit
+      </button>
+    </div>
+  </form>
+</div>

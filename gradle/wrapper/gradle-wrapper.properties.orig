@@ -1,0 +1,14 @@
+<<<<<<< HEAD
+#Sun Nov 15 09:34:01 PST 2015
+=======
+#Thu Oct 08 12:32:11 PDT 2015
+>>>>>>> dev/larrygug/AzureRefactorTemp
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+<<<<<<< HEAD
+distributionUrl=https\://services.gradle.org/distributions/gradle-2.8-bin.zip
+=======
+distributionUrl=https\://services.gradle.org/distributions/gradle-1.12-bin.zip
+>>>>>>> dev/larrygug/AzureRefactorTemp

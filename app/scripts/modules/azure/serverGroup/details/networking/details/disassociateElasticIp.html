@@ -1,0 +1,45 @@
+<div modal-page>
+  <task-monitor monitor="taskMonitor"></task-monitor>
+  <form role="form">
+    <modal-close></modal-close>
+    <div class="modal-header">
+      <h3>Disassociate Elastic IP with Cluster</h3>
+    </div>
+    <div class="modal-body container-fluid">
+      <div class="form-group">
+        <div class="col-sm-12">
+          <dl class="dl-horizontal dl-narrow">
+            <dt>Elastic IP:</dt>
+            <dd>{{elasticIp.address}} ({{elasticIp.type}})</dd>
+            <dt>Cluster:</dt>
+            <dd>{{elasticIp.cluster}}</dd>
+            <dt>Region:</dt>
+            <dd>{{elasticIp.region}}</dd>
+            <dt>Account:</dt>
+            <dd>{{elasticIp.account}}</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="form-group" ng-if="verification.requireAccountEntry">
+        <div class="col-sm-offset-1 col-sm-10">
+          <p class="confirmation-modal">Type the name of the account ( <account-tag account="serverGroup.account"></account-tag> ) below to continue.</p>
+          <div class="form-inline">
+            <div class="form-group">
+              <input type="text" auto-focus ng-model="verification.verifyAccount" class="form-control input-sm highlight-pristine" ng-class="{'ng-invalid': verification.verifyAccount !== serverGroup.account.toUpperCase()}"/>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+      <button type="submit"
+              class="btn btn-primary"
+              ng-click="ctrl.disassociate()"
+              ng-disabled="!ctrl.isValid()">
+        Disassociate
+      </button>
+    </div>
+  </form>
+</div>

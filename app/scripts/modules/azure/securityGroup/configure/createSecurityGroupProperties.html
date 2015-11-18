@@ -1,0 +1,75 @@
+  <form role="form" class="container-fluid form-horizontal" name="form" novalidate>
+    <div class="modal-body">
+      <div class="form-group">
+        <div class="col-md-12 well" ng-class="{'alert-danger': form.securityGroupName.$error.validateUnique, 'alert-info': !form.securityGroupName.$error.validateUnique}">
+          <strong>Your security group will be named:</strong>
+          <span ng-bind="namePreview"></span>
+          <input type="hidden" class="form-control input-sm"
+                 ng-model="securityGroup.name"
+                 validate-unique="existingSecurityGroupNames"
+                 validate-ignore-case="true"
+                 name="securityGroupName"
+                 ng-pattern="ctrl.namePattern"
+                 trigger-validation="securityGroup.subnet"
+                 required/>
+          <validation-error ng-if="form.securityGroupName.$error.validateUnique && securityGroup.credentials" message="A security group named '{{namePreview}}' already exists in one or more of the selected regions"></validation-error>
+          <validation-error ng-if="form.securityGroupName.$error.pattern" message="Name must match {{ctrl.getCurrentNamePattern().toString()}}"></validation-error>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-4 sm-label-left">Detail (optional)</div>
+        <div class="col-md-4">
+          <input type="text" class="form-control input-sm"
+                 ng-model="securityGroup.detail"
+                 ng-change="ctrl.updateName()"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-4 sm-label-left">Description</div>
+        <div class="col-md-8">
+          <input type="text" required class="form-control input-sm" ng-model="securityGroup.description" />
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-4 sm-label-left">Account</div>
+        <div class="col-md-8">
+          <account-select-field component="securityGroup" field="credentials" accounts="accounts" provider="'azure'" on-change="ctrl.accountUpdated()"></account-select-field>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-4 sm-label-left">Regions</div>
+        <div class="col-md-8">
+          <input type="hidden" ng-model="securityGroup.regions[0]" required/>
+          <checklist ng-if="securityGroup.credentials" items="regions" model="securityGroup.regions" inline="true" on-change="ctrl.regionUpdated()"></checklist>
+          <p class="form-control-static" ng-if="!securityGroup.credentials">(Select an account)</p>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-4 sm-label-left">VPC <help-field key="azure.securityGroup.vpc"></help-field></div>
+        <div class="col-md-8">
+          <select class="form-control input-sm" ng-model="securityGroup.vpcId"
+                  ng-change="ctrl.vpcUpdated()"
+                  ng-if="securityGroup.regions.length">
+            <option value="">None (EC2 Classic)</option>
+            <option ng-repeat="vpc in activeVpcs | orderBy: 'label'" value="{{vpc.ids[0]}}" ng-selected="securityGroup.vpcId === vpc.ids[0]">{{vpc.label}}</option>
+            <option ng-if="activeVpcs.length && deprecatedVpcs.length" disabled>---------------</option>
+            <option ng-repeat="vpc in deprecatedVpcs | orderBy: 'label'" value="{{vpc.ids[0]}}" ng-selected="securityGroup.vpcId === vpc.ids[0]">{{vpc.label}}</option>
+          </select>
+          <p class="form-control-static" ng-if="!securityGroup.credentials">(Select an account)</p>
+          <p class="form-control-static" ng-if="securityGroup.credentials && !securityGroup.regions.length">(Select at least one region)</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default pull-left"
+              ng-click="ctrl.cancel()">Cancel
+      </button>
+      <submit-button is-disabled="form.$invalid || !wizard.isComplete() || state.submitting"
+                     submitting="state.submitting" on-click="ctrl.upsert()" is-new="isNew"></submit-button>
+      <button type="submit" class="btn btn-primary"
+              ng-disabled="form.$invalid"
+              ng-click="wizard.markComplete('Location'); wizard.nextPage()">
+        <span class="glyphicon glyphicon-chevron-right"></span> Next
+      </button>
+    </div>
+  </form>

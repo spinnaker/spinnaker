@@ -1,0 +1,96 @@
+<form class="container-fluid form-horizontal" name="form" novalidate>
+  <div class="modal-body">
+    <div class="form-group">
+      <div class="wizard-subheading">
+        <h4>Health Check</h4>
+      </div>
+      <div class="nest">
+        <div class="col-md-4 sm-label-left">Ping</div> <div class="col-md-8">
+          <table class="table table-condensed packed">
+            <thead>
+            <tr>
+              <th width="35%">Protocol</th>
+              <th width="30%">Port</th>
+              <th><span ng-if="ctrl.requiresHealthCheckPath()">Path</span></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <td><select class="form-control input-sm" ng-model="loadBalancer.healthCheckProtocol" required
+                          ng-options="protocol for protocol in ['HTTP', 'HTTPS', 'SSL', 'TCP']"></select></td>
+              <td><input class="form-control input-sm" type="number" ng-model="loadBalancer.healthCheckPort"
+                         required min="0"/></td>
+              <td><input ng-if="ctrl.requiresHealthCheckPath()" class="form-control input-sm" type="text" ng-model="loadBalancer.healthCheckPath"
+                         required/></td>
+            </tr>
+            </tbody>
+
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="wizard-subheading">
+        <h4>Advanced Settings</h4>
+      </div>
+
+      <div class="col-md-8 nest">
+
+        <div class="form-group">
+          <div class="col-md-6 sm-label-left">
+            <b>Timeout</b><help-field key="loadBalancer.advancedSettings.healthTimeout"/>
+          </div>
+          <div class="col-md-4">
+            <input class="form-control input-sm" type="number" min="0" ng-model="loadBalancer.healthTimeout"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-md-6 sm-label-left">
+            <b>Interval</b><help-field key="loadBalancer.advancedSettings.healthInterval"/>
+          </div>
+          <div class="col-md-4">
+            <input class="form-control input-sm" type="number" min="0" ng-model="loadBalancer.healthInterval"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-md-6 sm-label-left">
+            <b>Healthy Threshold</b><help-field key="loadBalancer.advancedSettings.healthyThreshold"/>
+          </div>
+          <div class="col-md-4">
+            <input class="form-control input-sm" type="number" min="0" ng-model="loadBalancer.healthyThreshold"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-md-6 sm-label-left">
+            <b>Unhealthy Threshold</b><help-field key="loadBalancer.advancedSettings.unhealthyThreshold"/>
+          </div>
+          <div class="col-md-4">
+            <input class="form-control input-sm" type="number" min="0" ng-model="loadBalancer.unhealthyThreshold"/>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+
+   </div>
+
+  </div>
+
+
+  <div class="modal-footer">
+    <button ng-disabled="taskMonitor.submitting" class="btn btn-default pull-left"
+            ng-click="ctrl.cancel()">Cancel
+    </button>
+    <button class="btn btn-default"
+            ng-click="wizard.previousPage()">
+      <span class="glyphicon glyphicon-chevron-left"></span> Back
+    </button>
+    <submit-button is-disabled="form.$invalid || !wizard.isComplete() || taskMonitor.submitting"
+                   submitting="taskMonitor.submitting" on-click="ctrl.submit()" is-new="isNew"></submit-button>
+  </div>
+</form>
