@@ -48,7 +48,6 @@ write_default_value "SPINNAKER_GOOGLE_ENABLED" "false"
 
 
 echo
-echo
 echo '######### WELCOME TO SPINNAKER ############'
 echo
 echo 'Initializing systems!'
@@ -94,15 +93,15 @@ echo 'You may add this to ~/.ssh/config: '
 echo 'Host spinnaker'
 echo '    HostName' $public_hostname
 echo '    IdentityFile /path/to/private/key'
-echo '    LocalForward 8081 127.0.0.1:9000'
+echo '    LocalForward 9000 127.0.0.1:9000'
 echo '    LocalForward 8084 127.0.0.1:8084'
-echo '    LocalForward 8084 127.0.0.1:8087'
+echo '    LocalForward 8087 127.0.0.1:8087'
 echo '    User ubuntu'
 echo
 echo 'If the ssh config file is new. Ensure it is chmod 400'
 echo
 echo 'Execute: ssh -f -N spinnaker'
-echo 'Open http://localhost:8081/ in your web browser'
+echo 'Open http://localhost:9000/ in your web browser'
 echo
 echo 'This message will now self-destruct. Enjoy'
 echo
