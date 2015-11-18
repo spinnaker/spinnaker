@@ -178,6 +178,48 @@ e:
      self.assertEqual(234, bindings.get('def'))
      self.assertEqual(123, bindings.get('indirect'))
 
+  def test_transform_ok(self):
+     bindings = YamlBindings()
+     bindings.import_dict({'a': {'b': { 'space': 'WithSpace',
+                                        'nospace': 'WithoutSpace',
+                                        'empty': 'Empty'}},
+                           'x' : {'unique': True}})
+     template = """
+a:
+  b:
+    space: {space}
+    nospace:{nospace}
+    empty:{empty}
+unique:
+  b:
+     space: A
+     nospace:B
+     empty:
+"""
+     source = template.format(space='SPACE', nospace='NOSPACE', empty='')
+     expect = template.format(space='WithSpace',
+                              nospace=' WithoutSpace',
+                              empty=' Empty')
+     got = source
+     for key in [ 'a.b.space', 'a.b.nospace', 'a.b.empty' ]:
+       got = bindings.transform_yaml_source(got, key)
+
+     self.assertEqual(expect, bindings.transform_yaml_source(expect, 'bogus'))
+     self.assertEqual(expect, got)
+                      
+
+  def test_transform_fail(self):
+     bindings = YamlBindings()
+     bindings.import_dict({'a': {'b': { 'child': 'Hello, World!'}},
+                           'x' : {'unique': True}})
+     yaml = """
+a:
+  b:
+     child: Hello
+"""
+     with self.assertRaises(ValueError):
+       bindings.transform_yaml_source(yaml, 'x.unique')
+
   def test_list(self):
      bindings = YamlBindings()
      bindings.import_string(
@@ -185,6 +227,7 @@ e:
      self.assertEqual([{'elem': 'first'}, {'elem': 2}],
                       bindings.get('root'))
      self.assertEqual(bindings.get('root'), bindings.get('copy'))
+
 
 if __name__ == '__main__':
   loader = unittest.TestLoader()

@@ -54,29 +54,7 @@ class Processor(object):
         self.__environ_content += assignment + '\n'
 
   def update_in_place(self, key):
-      value = self.lookup(key)
-      if value is None:
-          return
-      parts = key.split('.')
-      offset = 0
-      s = self.__output
-      for attr in parts:
-          match = re.search('^ *{attr}:(.*)'.format(attr=attr), s, re.MULTILINE)
-          if not match:
-              raise ValueError(
-                  'Could not find {key}. Failed on {attr} at {offset}'
-                  .format(key=key, attr=attr, offset=offset))
-          offset += match.start(0)
-          s = self.__output[offset:]
-
-      offset -= match.start(0)
-      value_start = match.start(1) + offset
-      value_end = match.end(0) + offset
-      self.__output = ''.join([
-          self.__output[0:value_start],
-          ' {value}'.format(value=value),
-          self.__output[value_end:]
-      ])
+      self.__output = self.__bindings.transform_yaml_source(self.__output, key)
 
   def lookup(self, key):
       try:
