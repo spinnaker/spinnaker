@@ -25,9 +25,8 @@
       </h3>
 
       <copy-to-clipboard
-          ng-if="instance.provider === 'aws'"
           class="copy-to-clipboard"
-          text="ssh -t {{ctrl.getBastionAddressForAccount(instance.account)}} 'oq-ssh --region {{instance.region}} {{instance.instanceId}}'"
+          text="ssh -t {{ctrl.bastionHost}} 'oq-ssh --region {{instance.region}} {{instance.instanceId}}'"
           tool-tip="Copy SSH command to clipboard">
       </copy-to-clipboard>
 
@@ -69,7 +68,7 @@
         <dd ng-if="!instance.launchTime">(Unknown)</dd>
         <dt>In:</dt>
         <dd>
-          <account-tag account="instance.account" provider="instance.provider" pad="right"></account-tag>
+          <account-tag account="instance.account" pad="right"></account-tag>
           {{instance.placement.availabilityZone || '(Unknown)'}}
         </dd>
         <dt>Type:</dt>

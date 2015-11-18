@@ -142,7 +142,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
     function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
       mode = mode || 'clone';
 
-      var preferredZonesLoader = accountService.getPreferredZonesByAccount();
+      var preferredZonesLoader = accountService.getPreferredZonesByAccount('aws');
       var subnetsLoader = subnetReader.listSubnets();
 
       var serverGroupName = namingService.parseServerGroupName(serverGroup.asg.autoScalingGroupName);

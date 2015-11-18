@@ -4,7 +4,7 @@
       class="form-control input-sm" />
   </stage-config-field>
   <stage-config-field label="Account">
-    <account-select-field component="stage" field="credentials" accounts="accounts" on-change="findAmiCtrl.accountUpdated()" required></account-select-field>
+    <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="findAmiCtrl.accountUpdated()" required></account-select-field>
   </stage-config-field>
   <stage-config-field label="Server Group Selection">
     <ui-select ng-model="stage.selectionStrategy" class="form-control input-sm">

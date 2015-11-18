@@ -59,9 +59,13 @@ module.exports = angular.module('spinnaker.core.confirmationModal.service', [
     }
 
     $scope.verification = {
-      requireAccountEntry: accountService.challengeDestructiveActions(params.provider, params.account),
+      requireAccountEntry: false,
       verifyAccount: ''
     };
+
+    accountService.challengeDestructiveActions(params.account).then((challenge) => {
+      $scope.verification.requireAccountEntry = challenge;
+    });
 
     this.formDisabled = function () {
       return $scope.verification.requireAccountEntry && $scope.verification.verifyAccount !== params.account.toUpperCase();

@@ -19,8 +19,13 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.resize.con
     };
 
     $scope.verification = {
-      required: accountService.challengeDestructiveActions(serverGroup.account)
+      required: false,
+      verifyAccount: '',
     };
+
+    accountService.challengeDestructiveActions(serverGroup.account).then((challenge) => {
+      $scope.verification.required = challenge;
+    });
 
     $scope.command = angular.copy($scope.currentSize);
     $scope.command.advancedMode = serverGroup.asg.minSize !== serverGroup.asg.maxSize;

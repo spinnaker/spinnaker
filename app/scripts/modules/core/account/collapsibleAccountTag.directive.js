@@ -10,16 +10,23 @@ module.exports = angular
     return {
       restrict: 'E',
       templateUrl: require('./collapsibleAccountTag.directive.html'),
-      scope: {
+      scope: {},
+      bindToController: {
         account: '@',
-        provider: '@',
         state: '=',
       },
+      controllerAs: 'vm',
       controller: function ($scope, accountService) {
-        const isProdAccount = accountService.challengeDestructiveActions($scope.provider, $scope.account);
-        $scope.accountType = isProdAccount ? 'prod' : $scope.account;
+        this.getIcon = () => this.state.expanded ? 'down' : 'up';
 
-        $scope.getIcon = () => $scope.state.expanded ? 'down' : 'up';
+        let getAccountType = () => {
+          accountService.challengeDestructiveActions(this.account).then((challenge) => {
+            this.accountType = challenge ? 'prod' : $scope.account;
+          });
+        };
+
+        $scope.$watch(() => this.account, getAccountType);
+
       }
     };
   })

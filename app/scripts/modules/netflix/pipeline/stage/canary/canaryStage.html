@@ -116,7 +116,7 @@
           <tbody>
           <tr ng-repeat="clusterPair in stage.clusterPairs">
             <td>
-              <account-tag account="clusterPair.baseline.account" provider="'aws'"></account-tag>
+              <account-tag account="clusterPair.baseline.account"></account-tag>
               {{canaryStageCtrl.getRegion(clusterPair.baseline)}}
             </td>
             <td>
