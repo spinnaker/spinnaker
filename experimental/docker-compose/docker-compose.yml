@@ -6,6 +6,7 @@ clouddriver:
     - AWS_SECRET_ACCESS_KEY
     - CF_ACCOUNT_USERNAME
     - CF_ACCOUNT_PASSWORD
+    - "SERVICES_FRONT50_BASEURL=http://$DOCKER_IP:8080"  
   image: spinnaker/clouddriver
   links: 
     - redis
