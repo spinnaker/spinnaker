@@ -1,17 +1,72 @@
 #!/bin/bash
-#
-# Copyright 2015 Google Inc. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-PYTHONPATH=$(dirname $0)/../pylib:$(dirname $0)/../ python $(dirname $0)/install_development.py $@
+# This script assumes that the external dependencies were already installed.
+# to get these, run sudo InstallSpinnaker.sh --dependencies_only
+
+NVM_VERSION=v0.26.0
+
+function process_args() {
+  while [[ $# > 0 ]]
+  do
+    local key="$1"
+    shift
+    case $key in
+        --no_awscli)
+            NO_AWSCLI=true
+            ;;
+        # Keep around for compatability with docs people have.
+        --package_manager)
+            echo "--package_manager option is no longer needed and deprecated."
+            ;;
+        --nopackage_manager)
+            echo "--nopackage_manager is not currently supported,"
+            echo "                    but will be re-introduced in the future."
+            ;;
+      *)
+          echo "ERROR: Unknown argument '$key'"
+          exit -1
+    esac
+  done
+}
+
+
+process_args "$@"
+
+sudo apt-get install -y git
+sudo apt-get install -y zip
+sudo apt-get install -y build-essential
+
+# redis normally comes in from a dependency on spinnaker,
+# which we have not installed.
+sudo apt-get install -y redis-server
+
+
+# Add shortcut devvm host for convienence
+if ! egrep '(^| )devvm( |$)' /etc/hosts; then
+    sed -i 's/^127.0.0.1 /127.0.0.1 devvm /'
+fi
+
+# Install nvm (for deck UI)
+sudo chmod 775 /usr/local
+sudo mkdir -m 777 -p /usr/local/node /usr/local/nvm
+
+sudo bash -c "curl -o- https://raw.githubusercontent.com/creationix/nvm/$NVM_VERSION/install.sh | NVM_DIR=/usr/local/nvm bash"
+
+content=$(cat <<EOF
+export NVM_DIR=/usr/local/nvm
+source /usr/local/nvm/nvm.sh
+
+export NPM_CONFIG_PREFIX=/usr/local/node
+export PATH="/usr/local/node/bin:\$PATH"
+EOF
+)
+sudo bash -c "echo '$content' > /etc/profile.d/nvm.sh"
+
+
+# Install aws command-line tool (for convienence)
+if [ "x$NO_AWSCLI" = "x" ] && ! aws --version >& /dev/null; then
+    sudo apt-get install -y awscli
+fi
+
+# Install google command-line tool (for convienence)
+# in the bootstrap_dev.sh because it typically is not installed as root.

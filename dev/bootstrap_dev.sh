@@ -138,6 +138,17 @@ EOF
   fi
 }
 
+
+#####################
+# Start script
+
+# Install node
+NODE_VERSION=0.12
+source /etc/profile.d/nvm.sh
+nvm install $NODE_VERSION
+nvm alias default $NODE_VERSION
+
+# Install packer
 have_packer=$(which packer)
 if [[ ! $have_packer ]]; then
   echo "Installing packer"
@@ -158,12 +169,16 @@ if [[ ! $have_packer ]]; then
   fi
 fi
 
+
+# Setup git
 prepare_git
 
+
+# setup Google SDK
 if prompt_YN "Y" "Install (or update) Google Cloud Platform SDK?"; then
    # Download gcloud to ensure it is a recent version.
    # Note that this is in this script because the gcloud install method isn't
-   # system-wide. The awscli is installed in the install_development.py script.
+   # system-wide. The awscli is installed in the install_development.sh script.
    pushd $HOME
    echo "*** BEGIN installing gcloud..."
    curl https://sdk.cloud.google.com | bash
@@ -178,6 +193,18 @@ if prompt_YN "Y" "Install (or update) Google Cloud Platform SDK?"; then
    popd
 fi
 
+# Setup AWS SDK
+# If awscli isnt installed, give a second chance here for consistency
+if ! aws --version >& /dev/null && prompt_YN "Y" "Install AWS Platform SDK?"; then
+    sudo apt-get install -y awscli
+fi
+
+
+# Setup source code
+mkdir -p build
+cd build
+echo "Setting up Spinnaker source code in $PWD"
+
 # This is a bootstrap pull of the development scripts.
 if [[ ! -e "spinnaker" ]]; then
   git_clone $CONFIRMED_GITHUB_REPOSITORY_OWNER "spinnaker" "spinnaker"
@@ -186,9 +213,7 @@ else
 fi
 
 # Pull the spinnaker source into a fresh build directory.
-mkdir -p build
-cd build
-../spinnaker/dev/refresh_source.sh --pull_origin \
+./spinnaker/dev/refresh_source.sh --pull_origin \
     --github_user $CONFIRMED_GITHUB_REPOSITORY_OWNER
 
 # Some dependencies of Deck rely on Bower to manage their dependencies. Bower
@@ -200,9 +225,11 @@ echo "{\"interactive\":false}" > ~/.bowerrc
 # dont have the environment variables we set, and arent in the build directory.
 function print_invoke_instructions() {
 cat <<EOF
+
+
 To initiate a build and run spinnaker:
   cd build
-  ../spinnaker/dev/run_dev.sh
+  ./spinnaker/dev/run_dev.sh
 EOF
 }
 
@@ -211,8 +238,9 @@ EOF
 function print_source_instructions() {
 cat <<EOF
 
+
 To initiate a build and run spinnaker:
-  ../spinnaker/dev/run_dev.sh
+  ./spinnaker/dev/run_dev.sh
 EOF
 }
 
@@ -229,13 +257,11 @@ EOF
 # The /bogus prefix here is because eval seems to make $0 -bash,
 # which basename thinks are flags. So since basename ignores the
 # leading path, we'll just add a bogus one in.
-if [[ "$(basename '/bogus/$0')" == "bootstrap_dev.sh" ]]; then
+if [[ $(basename "/bogus/$0") == "bootstrap_dev.sh" ]]; then
   print_invoke_instructions
 else
+  exec bash -l
   print_source_instructions
 fi
 
 print_spinnaker_reference
-
-# Let path changes take effect in calling shell (if we source'd this)
-exec bash -l
