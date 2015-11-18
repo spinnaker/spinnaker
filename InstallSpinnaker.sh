@@ -322,6 +322,7 @@ sudo apt-get update
 sudo apt-get install -y openjdk-8-jdk
 ## Cassandra
 sudo apt-get install -y --force-yes cassandra=2.1.11 cassandra-tools=2.1.11
+sudo apt-mark hold cassandra cassandra-tools
 # Let cassandra start
 if ! nc -z localhost 7199; then
     echo_status "Waiting for Cassandra to start..."
