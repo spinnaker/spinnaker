@@ -112,8 +112,12 @@ class ParallelDeployStage extends ParallelStage {
         }
         Map cluster = parentStage.context as Map
         cluster.strategy = 'none'
-        if (!cluster.amiName) {
+        if (!cluster.amiName && trigger.parameters.amiName) {
           cluster.amiName = trigger.parameters.amiName
+        }
+        if (!cluster.image && trigger.parameters.imageId) {
+          // GCE uses 'image' as the ID key to clouddriver.
+          cluster.image = trigger.parameters.imageId
         }
         stage.context.clusters = [cluster as Map<String, Object>]
       }

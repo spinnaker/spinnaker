@@ -46,6 +46,13 @@ class CustomStrategy implements Strategy {
       parentStageId                          : stage.id
     ]
 
+    if (stage.context.image) {
+      parameters += [
+          imageId: stage.context.image,
+          capacity: stage.context.capacity,
+      ]
+    }
+
     if(stage.context.pipelineParameters){
       parameters.putAll(stage.context.pipelineParameters as Map)
     }

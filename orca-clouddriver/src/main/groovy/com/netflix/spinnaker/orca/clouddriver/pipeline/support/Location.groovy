@@ -45,4 +45,12 @@ class Location {
   String singularType() {
     return this.type.toString().toLowerCase()
   }
+
+  static Location zone(String value) {
+    return new Location(type: Location.Type.ZONE, value: value)
+  }
+
+  static Location region(String value) {
+    return new Location(type: Location.Type.REGION, value: value)
+  }
 }
