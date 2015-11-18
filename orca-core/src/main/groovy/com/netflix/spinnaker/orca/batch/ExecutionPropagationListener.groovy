@@ -89,7 +89,9 @@ class ExecutionPropagationListener extends JobExecutionListenerSupport implement
       orcaTaskStatus = SUCCEEDED
     }
 
-    if (!orcaTaskStatus) orcaTaskStatus = TERMINAL
+    if (!orcaTaskStatus) {
+      orcaTaskStatus = TERMINAL
+    }
 
     executionRepository.updateStatus(id, orcaTaskStatus)
 

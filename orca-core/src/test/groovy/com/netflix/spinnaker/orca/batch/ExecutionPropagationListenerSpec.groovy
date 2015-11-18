@@ -95,12 +95,14 @@ class ExecutionPropagationListenerSpec extends Specification {
     ]              | BatchStatus.STOPPED        || ExecutionStatus.CANCELED
   }
 
-  def "should set executionStatus if execution was canceled"() {
+  @Unroll
+  def "should set executionStatus to #expectedStatus if execution was canceled and a stage was #stageStatus"() {
     given:
     def pipeline = new Pipeline(id: "PIPELINE-1")
     def pipelineJobExecution = new JobExecution(1L, new JobParameters([
       "pipeline": new JobParameter(pipeline.id)
     ]))
+    pipelineJobExecution.addStepExecutions([stepExecution("whatever", new Date(), BatchStatus.COMPLETED, stageStatus)])
 
     and:
     executionRepository.isCanceled(pipeline.id) >> true
@@ -109,7 +111,13 @@ class ExecutionPropagationListenerSpec extends Specification {
     listener.afterJob(pipelineJobExecution)
 
     then:
-    1 * executionRepository.updateStatus(pipeline.id, ExecutionStatus.CANCELED)
+    1 * executionRepository.updateStatus(pipeline.id, expectedStatus)
+
+    where:
+    stageStatus | expectedStatus
+    ExecutionStatus.CANCELED | ExecutionStatus.CANCELED
+    ExecutionStatus.TERMINAL | ExecutionStatus.TERMINAL
+    ExecutionStatus.FAILED | ExecutionStatus.CANCELED
   }
 
   private static StepExecution stepExecution(String stepName,

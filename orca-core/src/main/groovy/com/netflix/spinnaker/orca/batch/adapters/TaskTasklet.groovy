@@ -100,6 +100,8 @@ class TaskTasklet implements Tasklet {
 
         if (result.status == ExecutionStatus.TERMINAL) {
           setStopStatus(chunkContext, ExitStatus.FAILED, result.status)
+          // cancel execution which will halt any parallel branches and run
+          // cancellation routines hopefully leaving clusters in a good state
           executionRepository.cancel(stage.execution.id)
         }
 
@@ -157,7 +159,6 @@ class TaskTasklet implements Tasklet {
 
   private static void setStopStatus(ChunkContext chunkContext, ExitStatus exitStatus, ExecutionStatus executionStatus) {
     chunkContext.stepContext.stepExecution.with {
-//      setTerminateOnly()
       executionContext.put("orcaTaskStatus", executionStatus)
       it.exitStatus = exitStatus
     }
