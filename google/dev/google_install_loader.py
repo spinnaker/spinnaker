@@ -188,15 +188,16 @@ def __unpack_and_run():
     if script_keys:
       clear_instance_metadata('startup_loader_files')
 
-    startup_py_command = get_instance_metadata_attribute('startup_py_command')
-    if not startup_py_command:
-        sys.stderr.write('No "startup_py_command" metadata key.\n')
-        raise SystemExit('No "startup_py_command" metadata key.')
+    startup_command = get_instance_metadata_attribute('startup_command')
+    if not startup_command:
+        sys.stderr.write('No "startup_command" metadata key.\n')
+        raise SystemExit('No "startup_command" metadata key.')
 
     # Change the startup script to the final command that we run
     # so that future boots will just run that command. And take down
     # the rest of the boostrap metadata since we dont need it anymore.
-    command = 'python ' + startup_py_command.replace('+', ' ')
+    command = ('chmod gou+rx /opt/spinnaker/install/*.sh; '
+               + startup_command.replace('+', ' '))
 
     with open('__startup_script__.sh', 'w') as f:
         f.write('#!/bin/bash\ncd /opt/spinnaker/install\n{command}\n'
@@ -204,7 +205,7 @@ def __unpack_and_run():
     os.chmod('__startup_script__.sh', 0555)
     write_instance_metadata('startup-script',
                             '/opt/spinnaker/install/__startup_script__.sh')
-    clear_instance_metadata('startup_py_command')
+    clear_instance_metadata('startup_command')
 
     # Now run the command (which is also the future startup script).
     p = subprocess.Popen(command, shell=True, close_fds=True)
@@ -228,5 +229,4 @@ if __name__ == '__main__':
     # since other scripts will reference it that way.
     shutil.copyfile('/var/run/google.startup.script',
                     '/opt/spinnaker/install/google_install_loader.py')
-    print 'RUNNING with argv={0}'.format(sys.argv)
     sys.exit(__unpack_and_run())

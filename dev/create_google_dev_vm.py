@@ -173,52 +173,32 @@ def create_instance(options):
 
     google_dev_dir = os.path.join(os.path.dirname(__file__), '../google/dev')
     dev_dir = os.path.dirname(__file__)
+    project_dir = os.path.join(dev_dir, '..')
+
     install_dir = '{dir}/../install'.format(dir=dev_dir)
-    pylib_spinnaker_dir = '{dir}/../pylib/spinnaker'.format(dir=dev_dir)
 
-    with open('{dir}/install_development.py'.format(dir=dev_dir), 'r') as f:
-        # Remove leading install. package reference to module imports
-        # because we're going to place this in the same package as
-        # the things it is importing (no need for PYTHONPATH)
-        content = f.read()
-        content = content.replace('install.install', 'install')
-        content = content.replace('from spinnaker.', 'from ')
-
-    fd, temp_install_development = tempfile.mkstemp()
-    os.write(fd, content)
+    startup_command = ['/opt/spinnaker/install/install_spinnaker.sh'
+                           ' --dependencies_only',
+                       '/opt/spinnaker/install/install_development.sh']
+    fd, temp_startup = tempfile.mkstemp()
+    os.write(fd, ';'.join(startup_command))
     os.close(fd)
-    with open('{dir}/install_runtime_dependencies.py'.format(dir=install_dir),
-              'r') as f:
-        content = f.read()
-        content = content.replace('install.install', 'install')
-        content = content.replace('from spinnaker.', 'from ')
-    fd, temp_install_runtime = tempfile.mkstemp()
-    os.write(fd, content)
-    os.close(fd)
-
-    startup_command = ['install_development.py',
-                       '--package_manager']
 
     metadata_files = [
         'startup-script={google_dev_dir}/google_install_loader.py'
-        ',py_fetch={pylib_spinnaker_dir}/fetch.py'
-        ',py_run={pylib_spinnaker_dir}/run.py'
-        ',py_install_development={temp_install_development}'
         ',sh_bootstrap_dev={dev_dir}/bootstrap_dev.sh'
-        ',py_install_runtime_dependencies={temp_install_runtime}'
+        ',sh_install_spinnaker={project_dir}/InstallSpinnaker.sh'
+        ',sh_install_development={dev_dir}/install_development.sh'
+        ',startup_command={temp_startup}'
         .format(google_dev_dir=google_dev_dir,
-                dev_dir=dev_dir, pylib_spinnaker_dir=pylib_spinnaker_dir,
-                temp_install_runtime=temp_install_runtime,
-                temp_install_development=temp_install_development)]
+                dev_dir=dev_dir,
+                project_dir=project_dir,
+                temp_startup=temp_startup)]
 
     metadata = ','.join([
-        'startup_py_command={startup_command}'.format(
-            startup_command='+'.join(startup_command)),
         'startup_loader_files='
-        'py_fetch'
-        '+py_run'
-        '+py_install_development'
-        '+py_install_runtime_dependencies'
+        'sh_install_spinnaker'
+        '+sh_install_development'
         '+sh_bootstrap_dev'])
 
     command = ['gcloud', 'compute', 'instances', 'create',
@@ -236,11 +216,7 @@ def create_instance(options):
     if options.address:
         command.extend(['--address', options.address])
 
-    try:
-      check_run_quick(' '.join(command), echo=True)
-    finally:
-      os.remove(temp_install_development)
-      os.remove(temp_install_runtime)
+    check_run_quick(' '.join(command), echo=True)
 
 
 def copy_master_yml(options):
