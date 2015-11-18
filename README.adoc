@@ -73,8 +73,7 @@ that come from other sources. `--nopackage_manager` is intended for
 installations where IT policies discourage or forbid adding additional
 source locations.
 
-The `bootstrap_dev.sh` script will ask to install additional components.
-`packer` is only needed if you plan on building VM images. `gcloud`
+The `bootstrap_dev.sh` script will ask to install additional components. `gcloud`
 is only needed to write releases to Google Cloud Storage, but is convenient
 to have if you plan on using or accessing Google Cloud Platform resources
 from your development environment. These could be installed at a system level
