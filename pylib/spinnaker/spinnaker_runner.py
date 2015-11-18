@@ -323,18 +323,23 @@ class Runner(object):
 
     # Conditionally run igor only if jenkins is configured.
     # A '$' indicates an unbound variable so it wasnt configured.
-    if jenkins_address and jenkins_address[0] != '$':
-        if not igor_enabled:
-            sys.stderr.write(
-                'WARNING: Not starting igor because IGOR_ENABLED=false'
-                ' even though JENKINS_ADDRESS="{address}"\n'.format(
-                      address=jenkins_address))
-        else:
-            pid = self.maybe_start_job(jobs, 'igor')
-            if pid:
-               started_list.append(('igor', pid))
-    else:
-      print 'Not using igor because jenkins is not configured.'
+    have_jenkins = jenkins_address and jenkins_address[0] != '$'
+    if igor_enabled != have_jenkins:
+      if igor_enabled:
+        igor_enabled = False
+        sys.stderr.write(
+          'WARNING: Not starting igor because services.jenkins.baseUrl is'
+          ' not set even though services.igor.enabled = true\n')
+      else:
+        sys.stderr.write(
+          'WARNING: Not starting igor because services.igor.enabled = false'
+          ' even though services.jenkins.baseUrl = {address}\n'.format(
+              address=jenkins_address))
+
+    if igor_enabled:
+      pid = self.maybe_start_job(jobs, 'igor')
+      if pid:
+        started_list.append(('igor', pid))
 
     for subsystem in started_list:
       self.wait_for_service(subsystem[0], pid=subsystem[1])
