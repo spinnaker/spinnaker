@@ -5,7 +5,7 @@ image:http://join.spinnaker.io/badge.svg[Slack Status,link=http://join.spinnaker
 = Using Spinnaker
 
 If you are only interested in using Spinnaker, please refer to the main
-Spinnaker site and [Getting Started](http://spinnaker.io/documentation/getting_started.html) guide.
+Spinnaker site and http://spinnaker.io/documentation/getting_started.html[Getting Started] guide.
 
 = Setting Up Spinnaker For Development
 
