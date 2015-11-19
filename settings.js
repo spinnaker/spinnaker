@@ -134,5 +134,6 @@ window.spinnakerSettings = {
     vpcMigrator: true,
     clusterDiff: true,
     rebakeControlEnabled: false,
+    netflixMode: false,
   },
 };
