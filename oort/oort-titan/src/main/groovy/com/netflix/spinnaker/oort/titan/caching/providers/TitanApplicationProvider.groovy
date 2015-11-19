@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.titan.TitanCloudProvider
 import com.netflix.spinnaker.oort.model.Application
 import com.netflix.spinnaker.oort.model.ApplicationProvider
 import com.netflix.spinnaker.oort.titan.caching.Keys
@@ -32,19 +34,23 @@ import static com.netflix.spinnaker.oort.titan.caching.Keys.Namespace.CLUSTERS
 
 @Component
 class TitanApplicationProvider implements ApplicationProvider {
-
+  TitanCloudProvider titanCloudProvider
   private final Cache cacheView
   private final ObjectMapper objectMapper
 
   @Autowired
-  TitanApplicationProvider(Cache cacheView, ObjectMapper objectMapper) {
+  TitanApplicationProvider(TitanCloudProvider titanCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
+    this.titanCloudProvider = titanCloudProvider
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }
 
   @Override
   Set<Application> getApplications(boolean expand) {
-    Collection<CacheData> applications = cacheView.getAll(APPLICATIONS.ns, RelationshipCacheFilter.include(CLUSTERS.ns))
+    def relationships = expand ? RelationshipCacheFilter.include(CLUSTERS.ns) : RelationshipCacheFilter.none()
+    Collection<CacheData> applications = cacheView.getAll(
+      APPLICATIONS.ns, cacheView.filterIdentifiers(APPLICATIONS.ns, "${titanCloudProvider.id}:*"), relationships
+    )
     applications.collect this.&translate
   }
 
