@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.model.Application
 import com.netflix.spinnaker.oort.model.ApplicationProvider
@@ -32,12 +33,13 @@ import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.*
 
 @Component
 class CatsApplicationProvider implements ApplicationProvider {
-
+  private final AmazonCloudProvider amazonCloudProvider
   private final Cache cacheView
   private final ObjectMapper objectMapper
 
   @Autowired
-  CatsApplicationProvider(Cache cacheView, ObjectMapper objectMapper) {
+  CatsApplicationProvider(AmazonCloudProvider amazonCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
+    this.amazonCloudProvider = amazonCloudProvider
     this.cacheView = cacheView
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
   }
@@ -45,8 +47,9 @@ class CatsApplicationProvider implements ApplicationProvider {
   @Override
   Set<Application> getApplications(boolean expand) {
     def relationships = expand ? RelationshipCacheFilter.include(CLUSTERS.ns) : RelationshipCacheFilter.none()
-    Collection<CacheData> applications = cacheView.getAll(APPLICATIONS.ns, relationships)
-
+    Collection<CacheData> applications = cacheView.getAll(
+      APPLICATIONS.ns, cacheView.filterIdentifiers(APPLICATIONS.ns, "${amazonCloudProvider.id}:*"), relationships
+    )
     applications.collect this.&translate
   }
 
