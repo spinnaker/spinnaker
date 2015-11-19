@@ -7,7 +7,7 @@
     "gce_target_image": null,
     "appversion": "",
     "build_host": "",
-    "deb_repo": null,
+    "deb_repo": "",
     "packages": "",
     "configDir": null
   },

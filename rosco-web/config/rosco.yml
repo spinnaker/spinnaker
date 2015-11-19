@@ -28,7 +28,10 @@ executionStatusToBakeResults:
     - executionStatus: FAILED
       bakeResult: FAILURE
 
-debianRepository: http://dl.bintray.com/spinnaker/ospackages ./
+# If a repository is set here, it will be added by packer as an apt repository when baking images for GCE and AWS.
+# It is safe to leave this out (or blank) if you do not need to configure your own apt repository.
+# The following commented-out line is an example of what a valid entry looks like.
+# debianRepository: http://dl.bintray.com/spinnaker/ospackages ./
 
 defaultCloudProviderType: aws
 
