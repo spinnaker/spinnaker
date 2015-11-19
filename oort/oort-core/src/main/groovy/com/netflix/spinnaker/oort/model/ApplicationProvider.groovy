@@ -30,10 +30,11 @@ interface ApplicationProvider {
   /**
    * Looks up all of the {@link Application} objects known to this provider
    *
+   * @param expand Whether application relationships (ie. cluster names) should be included
    * @return a set of applications or an empty set if none are known to this provider
    */
   @Empty
-  Set<? extends Application> getApplications()
+  Set<? extends Application> getApplications(boolean expand)
 
   /**
    * Looks up a particular application by name

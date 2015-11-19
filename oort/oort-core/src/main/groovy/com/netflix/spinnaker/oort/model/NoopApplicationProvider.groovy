@@ -18,7 +18,7 @@ package com.netflix.spinnaker.oort.model
 
 class NoopApplicationProvider implements ApplicationProvider {
   @Override
-  Set<Application> getApplications() {
+  Set<Application> getApplications(boolean expand) {
     Collections.emptySet()
   }
 

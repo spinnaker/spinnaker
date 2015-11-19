@@ -43,8 +43,9 @@ class CatsApplicationProvider implements ApplicationProvider {
   }
 
   @Override
-  Set<Application> getApplications() {
-    Collection<CacheData> applications = cacheView.getAll(APPLICATIONS.ns, RelationshipCacheFilter.include(CLUSTERS.ns))
+  Set<Application> getApplications(boolean expand) {
+    def relationships = expand ? RelationshipCacheFilter.include(CLUSTERS.ns) : RelationshipCacheFilter.none()
+    Collection<CacheData> applications = cacheView.getAll(APPLICATIONS.ns, relationships)
 
     applications.collect this.&translate
   }

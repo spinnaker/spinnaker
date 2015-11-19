@@ -44,9 +44,9 @@ class ApplicationsController {
   MessageSource messageSource
 
   @RequestMapping(method = RequestMethod.GET)
-  List<Application> list() {
+  List<Application> list(@RequestParam(required = false, value = 'expand', defaultValue = 'true') boolean expand) {
     def results = applicationProviders.collectMany {
-      it.applications ?: []
+      it.getApplications(expand) ?: []
     }
     results.removeAll([null])
     results.sort { a, b -> a?.name?.toLowerCase() <=> b?.name?.toLowerCase() }
