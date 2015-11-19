@@ -81,11 +81,11 @@
     FOOTER BUTTONS
   -->
   <div class="modal-footer">
-    <button ng-disabled="taskMonitor.submitting" class="btn btn-default pull-left"
+    <button tabindex="-1" ng-disabled="taskMonitor.submitting" class="btn btn-default pull-left"
             ng-click="$dismiss()">Cancel
     </button>
 
-    <button class="btn btn-default"
+    <button tabindex="-1" class="btn btn-default"
             ng-click="wizard.previousPage()">
       <span class="glyphicon glyphicon-chevron-left"></span> Back
     </button>
