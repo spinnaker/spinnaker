@@ -230,11 +230,10 @@ class ApplicationServiceSpec extends Specification {
     def front50App = [name: name.toLowerCase(), email: email]
 
     when:
-    service.tick()
     def apps = service.getAll()
 
     then:
-    1 * oort.getApplications() >> [oortApp]
+    1 * oort.getApplications(false) >> [oortApp]
     1 * front50.getAll(account) >> [front50App] >> { throw new SocketTimeoutException() }
     1 * front50.credentials >> [globalAccount]
 
@@ -244,7 +243,6 @@ class ApplicationServiceSpec extends Specification {
     apps[0].clusters == null
 
     when: "should return last known good values if an exception is thrown"
-    service.tick()
     def allApps = service.getAll()
     def singleApp = service.get(name)
 
