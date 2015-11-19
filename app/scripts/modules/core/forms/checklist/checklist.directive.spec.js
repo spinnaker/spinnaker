@@ -83,4 +83,64 @@ describe('Directives: checklist', function () {
     expect(scope.model.selections).toEqual(['b']);
   });
 
+  it('selects all items when clicking "Select All"', function() {
+    var scope = this.scope,
+        compile = this.compile;
+
+    scope.model = {
+      selections: ['a', 'b', 'c']
+    };
+
+    scope.items = ['a', 'b', 'c', 'd'];
+
+    var html = '<checklist model="model.selections" items="items" include-select-all-button="true"></checklist>';
+    var checklist = compile(html)(scope);
+    scope.$digest();
+
+    expect(checklist.find('input:checked').size()).toBe(3);
+    $(checklist.find('a')[0]).click();
+    expect(checklist.find('input:checked').size()).toBe(4);
+  });
+
+  it('deselects all items when clicking "Deselect All"', function() {
+    var scope = this.scope,
+        compile = this.compile;
+
+    scope.model = {
+      selections: ['a', 'b', 'c', 'd']
+    };
+
+    scope.items = ['a', 'b', 'c', 'd'];
+
+    var html = '<checklist model="model.selections" items="items" inline="true" include-select-all-button="true"></checklist>';
+    var checklist = compile(html)(scope);
+    scope.$digest();
+
+    expect(checklist.find('input:checked').size()).toBe(4);
+    $(checklist.find('a')[0]).click();
+    expect(checklist.find('input:checked').size()).toBe(0);
+  });
+
+  it('shows correct text for "Deselect" or "Select" based on current selection', function() {
+    var scope = this.scope,
+        compile = this.compile;
+
+    scope.model = {
+      selections: ['a', 'b', 'c']
+    };
+
+    scope.items = ['a', 'b', 'c', 'd'];
+
+    var html = '<checklist model="model.selections" items="items" include-select-all-button="true"></checklist>';
+    var checklist = compile(html)(scope);
+    scope.$digest();
+
+    var selectButton = checklist.find('a')[0]
+
+    expect(selectButton.text).toBe('Select All'); // Some items selected
+    $(selectButton).click();
+    expect(selectButton.text).toBe('Deselect All'); // All items selected
+    $(selectButton).click();
+    expect(selectButton.text).toBe('Select All'); // No items selected
+  });
 });
