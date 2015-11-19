@@ -4,24 +4,27 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsgStage', [
   require('../../../../core/pipeline/config/pipelineConfigProvider.js'),
+  require('../../../../core/config/settings.js'),
 ])
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
-      label: 'Quick Patch Server Group',
-      description: 'Quick Patches a server group',
-      key: 'quickPatch',
-      controller: 'QuickPatchAsgStageCtrl',
-      controllerAs: 'QuickPatchAsgStageCtrl',
-      templateUrl: require('./quickPatchAsgStage.html'),
-      executionDetailsUrl: require('./quickPatchAsgExecutionDetails.html'),
-      validators: [
-        { type: 'requiredField', fieldName: 'clusterName', fieldLabel: 'cluster' },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
-        { type: 'requiredField', fieldName: 'region', },
-        { type: 'requiredField', fieldName: 'package', },
-        { type: 'requiredField', fieldName: 'baseOs', },
-      ],
-    });
+  .config(function(pipelineConfigProvider, settings) {
+    if (settings.feature && settings.feature.netflixMode) {
+      pipelineConfigProvider.registerStage({
+        label: 'Quick Patch Server Group',
+        description: 'Quick Patches a server group',
+        key: 'quickPatch',
+        controller: 'QuickPatchAsgStageCtrl',
+        controllerAs: 'QuickPatchAsgStageCtrl',
+        templateUrl: require('./quickPatchAsgStage.html'),
+        executionDetailsUrl: require('./quickPatchAsgExecutionDetails.html'),
+        validators: [
+          {type: 'requiredField', fieldName: 'clusterName', fieldLabel: 'cluster'},
+          {type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+          {type: 'requiredField', fieldName: 'region'},
+          {type: 'requiredField', fieldName: 'package'},
+          {type: 'requiredField', fieldName: 'baseOs'},
+        ],
+      });
+    }
   }).controller('QuickPatchAsgStageCtrl', function($scope, stage, bakeryService, accountService) {
     $scope.stage = stage;
     $scope.baseOsOptions = ['ubuntu', 'centos'];
