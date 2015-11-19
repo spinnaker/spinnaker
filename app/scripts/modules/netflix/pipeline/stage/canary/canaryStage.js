@@ -5,8 +5,10 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', [
   require('../../../../core/serverGroup/configure/common/serverGroupCommandBuilder.js'),
   require('../../../../core/cloudProvider/cloudProvider.registry.js'),
+  require('../../../../core/config/settings.js'),
 ])
-  .config(function (pipelineConfigProvider) {
+  .config(function (pipelineConfigProvider, settings) {
+    if (settings.feature && settings.feature.netflixMode) {
       pipelineConfigProvider.registerStage({
         label: 'Canary',
         description: 'Canary tests new changes against a baseline version',
@@ -25,6 +27,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
           },
         ],
       });
+    }
   })
   .controller('CanaryStageCtrl', function ($scope, $uibModal, stage, _,
                                            namingService, providerSelectionService,
