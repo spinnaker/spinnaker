@@ -8,7 +8,7 @@ elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" == "" ]; then
   echo -e 'Build Branch with Snapshot => Branch ['$TRAVIS_BRANCH']'
   #TODO(cfieber) - enable snapshot publish once sync to jcenter is enabled
   #./gradlew -Prelease.travisci=true -PbintrayUser="${bintrayUser}" -PbintrayKey="${bintrayKey}" build snapshot --stacktrace 
-  ./gradlew -Prelease.travisci=true build snapshot --stacktrace -xartifactoryUpload
+  ./gradlew -Prelease.useLastTag=true build
 elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" != "" ]; then
   echo -e 'Build Branch for Release => Branch ['$TRAVIS_BRANCH']  Tag ['$TRAVIS_TAG']'
   ./gradlew -Prelease.travisci=true -Prelease.useLastTag=true -PbintrayUser="${bintrayUser}" -PbintrayKey="${bintrayKey}" final --stacktrace
