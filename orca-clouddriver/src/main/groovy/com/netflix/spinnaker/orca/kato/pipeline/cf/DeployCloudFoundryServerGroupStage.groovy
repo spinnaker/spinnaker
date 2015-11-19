@@ -7,9 +7,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
-/**
- * @author Greg Turnquist
- */
 @Component
 @CompileStatic
 class DeployCloudFoundryServerGroupStage extends LinearStage {

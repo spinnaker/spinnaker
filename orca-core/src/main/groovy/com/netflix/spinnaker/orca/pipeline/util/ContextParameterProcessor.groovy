@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline.util
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.ExecutionStatus
 import org.springframework.expression.AccessException
 import org.springframework.expression.EvaluationContext
 import org.springframework.expression.Expression
@@ -78,16 +79,16 @@ class ContextParameterProcessor {
     if (context.execution) {
       def deployedServerGroups = []
       context.execution.stages.findAll {
-        it.context.type == 'linearDeploy'
+        it.type == 'deploy' && it.status == ExecutionStatus.SUCCEEDED
       }.each { deployStage ->
-        if (deployStage.context.'deploy.server.groups' && !deployStage.context.amiName) {
+        if (deployStage.context.'deploy.server.groups') {
           Map deployDetails = [
             account    : deployStage.context.account,
             capacity   : deployStage.context.capacity,
             parentStage: deployStage.parentStageId,
             region     : deployStage.context.region ?: deployStage.context.availabilityZones.keySet().first(),
           ]
-          deployDetails.putAll(deployStage.context.deploymentDetails.find { it.region == deployDetails.region } ?: [:])
+          deployDetails.putAll(context.execution?.context?.deploymentDetails?.find { it.region == deployDetails.region } ?: [:])
           deployDetails.serverGroup = deployStage.context.'deploy.server.groups'."${deployDetails.region}".first()
           deployedServerGroups << deployDetails
         }

@@ -23,12 +23,12 @@ import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.CloneServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.CreateServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.kato.pipeline.CopyLastAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.DeployStage
-import com.netflix.spinnaker.orca.kato.pipeline.gce.DeployGoogleServerGroupStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
@@ -118,10 +118,11 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
       return DefaultTaskResult.SUCCEEDED
     }
 
+    // "deploy.server.groups" is keyed by region, and all TSGs will have this value.
     def locationGroups = filteredServerGroups.groupBy {
-      it.getLocation()
-    }.collectEntries { Location location, List<TargetServerGroup> serverGroup ->
-      [(location.value): serverGroup.collect { it.name }]
+      it.region
+    }.collectEntries { String region, List<TargetServerGroup> serverGroup ->
+      [(region): serverGroup.collect { it.name }]
     }
 
     def taskId = katoService.requestOperations(clusterSelection.cloudProvider, katoOps).toBlocking().first()
@@ -148,13 +149,16 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     return serverGroups.findAll { !isActive(it) }
   }
 
-  protected List<TargetServerGroup> filterParentDeploys(Stage stage, String account, Location location, List<TargetServerGroup> serverGroups) {
+  protected List<TargetServerGroup> filterParentDeploys(Stage stage,
+                                                        String account,
+                                                        Location location,
+                                                        List<TargetServerGroup> serverGroups) {
     //if we are a synthetic stage child of a deploy, don't operate on what we just deployed
     final Set<String> deployStageTypes = [
       DeployStage.PIPELINE_CONFIG_TYPE,
       CopyLastAsgStage.PIPELINE_CONFIG_TYPE,
       CloneServerGroupStage.PIPELINE_CONFIG_TYPE,
-      DeployGoogleServerGroupStage.PIPELINE_CONFIG_TYPE
+      CreateServerGroupStage.PIPELINE_CONFIG_TYPE,
     ]
     List<TargetServerGroup> deployedServerGroups = []
     if (stage.parentStageId) {
@@ -166,15 +170,25 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
           it.context.'deploy.account.name' == account
       }
       if (parentDeployStage) {
-        Set<String> names = (parentDeployStage.context.'deploy.server.groups'[location.value] ?: []) as Set
-        deployedServerGroups = serverGroups.findAll { it.getLocation() == location && names.contains(it.name) }
+        Map<String, String> dsgs = (parentDeployStage.context.'deploy.server.groups' ?: [:]) as Map
+        switch(location.type) {
+          case Location.Type.ZONE:
+            deployedServerGroups = serverGroups.findAll { it.zones.contains(location.value) && dsgs[it.region].contains(it.name)}
+            break;
+          case Location.Type.REGION:
+            deployedServerGroups = serverGroups.findAll { it.region == location.value && dsgs[location.value].contains(it.name) }
+            break;
+        }
       }
     }
 
     return serverGroups - deployedServerGroups
   }
 
-  List<TargetServerGroup> filterServerGroups(Stage stage, String account, Location location, List<TargetServerGroup> serverGroups) {
+  List<TargetServerGroup> filterServerGroups(Stage stage,
+                                             String account,
+                                             Location location,
+                                             List<TargetServerGroup> serverGroups) {
     if (!serverGroups) {
       return []
     }

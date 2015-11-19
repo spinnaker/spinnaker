@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.orca.libdiffs
 
-/**
- * @author sthadeshwar
- */
+
 class LibraryDiffs {
   List<Diff> unknown = []
   List<Diff> unchanged = []

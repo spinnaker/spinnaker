@@ -56,7 +56,8 @@ class CreateBakeTask implements RetryableTask {
     def bake = bakeFromContext(stage)
 
     try {
-      def bakeStatus = bakery.createBake(region, bake).toBlocking().single()
+      String rebake = stage.context.rebake ? "1" : null
+      def bakeStatus = bakery.createBake(region, bake, rebake).toBlocking().single()
 
       def stageOutputs = [
         status: bakeStatus,

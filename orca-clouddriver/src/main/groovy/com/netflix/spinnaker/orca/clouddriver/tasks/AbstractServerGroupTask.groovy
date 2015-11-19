@@ -86,6 +86,7 @@ abstract class AbstractServerGroupTask extends AbstractCloudProviderAwareTask im
       operation.serverGroupName = tsg.name
 
       def location = tsg.getLocation()
+      operation.deployServerGroupsRegion = tsg.region
       if (location.type == Location.Type.ZONE) {
         operation.zone = location.value
         operation.remove("zones")
@@ -100,7 +101,9 @@ abstract class AbstractServerGroupTask extends AbstractCloudProviderAwareTask im
    */
   static Map deployServerGroups(Map operation) {
     def collection
-    if (operation.region) {
+    if (operation.deployServerGroupsRegion) {
+      collection = [operation.deployServerGroupsRegion]
+    } else if (operation.region) {
       collection = [operation.region]
     } else if (operation.regions) {
       collection = operation.regions

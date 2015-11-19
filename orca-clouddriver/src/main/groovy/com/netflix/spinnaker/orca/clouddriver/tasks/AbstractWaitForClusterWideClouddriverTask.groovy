@@ -38,23 +38,35 @@ abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudPr
   @Autowired
   OortHelper oortHelper
 
-  protected TaskResult missingClusterResult(Stage stage, AbstractClusterWideClouddriverTask.ClusterSelection clusterSelection) {
+  protected TaskResult missingClusterResult(Stage stage,
+                                            AbstractClusterWideClouddriverTask.ClusterSelection clusterSelection) {
     throw new IllegalStateException("no cluster details found for $clusterSelection")
   }
 
-  protected TaskResult emptyClusterResult(Stage stage, AbstractClusterWideClouddriverTask.ClusterSelection clusterSelection, Map cluster) {
+  protected TaskResult emptyClusterResult(Stage stage,
+                                          AbstractClusterWideClouddriverTask.ClusterSelection clusterSelection,
+                                          Map cluster) {
     throw new IllegalStateException("No ServerGroups found in cluster $clusterSelection")
   }
 
-  boolean isServerGroupOperationInProgress(List<TargetServerGroup> currentServerGroups, List<Map> interestingHealthProviderNames, DeployServerGroup deployServerGroup) {
-    isServerGroupOperationInProgress(interestingHealthProviderNames, Optional.ofNullable(currentServerGroups.find { it.getLocation() == deployServerGroup.location && it.name == deployServerGroup.name }))
+  boolean isServerGroupOperationInProgress(List<TargetServerGroup> currentServerGroups,
+                                           List<Map> interestingHealthProviderNames,
+                                           DeployServerGroup deployServerGroup) {
+    isServerGroupOperationInProgress(interestingHealthProviderNames,
+                                     Optional.ofNullable(currentServerGroups.find {
+                                       // Possible issue here for GCE if multiple server groups are named the same in
+                                       // different zones but with the same region. However, this is not allowable by
+                                       // Spinnaker constraints, so we're accepting the risk.
+                                       it.region == deployServerGroup.region && it.name == deployServerGroup.name
+                                     }))
   }
 
-  abstract boolean isServerGroupOperationInProgress(List<Map> interestingHealthProviderNames, Optional<TargetServerGroup> serverGroup)
+  abstract boolean isServerGroupOperationInProgress(List<Map> interestingHealthProviderNames,
+                                                    Optional<TargetServerGroup> serverGroup)
 
   @Canonical
   static class DeployServerGroup {
-    Location location
+    String region
     String name
   }
 
@@ -71,8 +83,8 @@ abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudPr
 
     if (!remainingDeployServerGroups) {
       Map<String, List<String>> dsg = stage.context.'deploy.server.groups' as Map
-      remainingDeployServerGroups = dsg?.collect { String location, List<String> groups ->
-        groups?.collect { new DeployServerGroup(TargetServerGroup.Support.locationFromCloudProviderValue(clusterSelection.cloudProvider, location), it) } ?: []
+      remainingDeployServerGroups = dsg?.collect { String region, List<String> groups ->
+        groups?.collect { new DeployServerGroup(region, it) } ?: []
       }?.flatten() ?: []
     }
 

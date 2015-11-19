@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.libdiffs
 
 /**
  * Implementation of this interface provides a way to compare two "loose" library versions
- * @author sthadeshwar
  */
 public interface ComparableLooseVersion {
 

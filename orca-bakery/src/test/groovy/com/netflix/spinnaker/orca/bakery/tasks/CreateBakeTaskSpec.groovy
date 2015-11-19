@@ -62,6 +62,17 @@ class CreateBakeTaskSpec extends Specification {
   ]
 
   @Shared
+  def bakeConfigWithRebake = [
+    region            : "us-west-1",
+    package           : "hodor",
+    user              : "bran",
+    cloudProviderType : "aws",
+    baseOs            : OperatingSystem.ubuntu.name(),
+    baseLabel         : BakeRequest.Label.release.name(),
+    rebake            : true
+  ]
+
+  @Shared
   def buildInfo = [
     artifacts: [
       [fileName: 'hodor_1.1_all.deb'],
@@ -164,7 +175,7 @@ class CreateBakeTaskSpec extends Specification {
     task.execute(stage)
 
     then:
-    1 * task.bakery.createBake(bakeConfig.region, _ as BakeRequest) >> Observable.from(runningStatus)
+    1 * task.bakery.createBake(bakeConfig.region, _ as BakeRequest, null) >> Observable.from(runningStatus)
   }
 
   def "gets bake configuration from job context"() {
@@ -464,7 +475,8 @@ class CreateBakeTaskSpec extends Specification {
                                  it.job == "SPINNAKER-package-echo" &&
                                  it.buildNumber == "69"
                                  it.commitHash == null
-                               }) >> Observable.from(runningStatus)
+                               },
+                               null) >> Observable.from(runningStatus)
 
     where:
     triggerInfo      | contextInfo
@@ -495,7 +507,8 @@ class CreateBakeTaskSpec extends Specification {
                                  it.job == null &&
                                  it.buildNumber == null &&
                                  it.commitHash == null
-                               }) >> Observable.from(runningStatus)
+                               },
+                               null) >> Observable.from(runningStatus)
 
     where:
     triggerInfo      | contextInfo
@@ -526,7 +539,8 @@ class CreateBakeTaskSpec extends Specification {
                                  it.job == null &&
                                  it.buildNumber == null &&
                                  it.commitHash == null
-                               }) >> Observable.from(runningStatus)
+                               },
+                               null) >> Observable.from(runningStatus)
 
     where:
     triggerInfo | contextInfo
@@ -561,6 +575,26 @@ class CreateBakeTaskSpec extends Specification {
     propagateCloudProviderType | expectedCloudProviderType
     false                      | null
     true                       | BakeRequest.CloudProviderType.aws
+  }
+
+  def "sets rebake query parameter if rebake flag is set in job context"() {
+    given:
+    Stage stage = new PipelineStage(new Pipeline(), "bake", bakeConfigWithRebake).asImmutable()
+    task.bakery = Mock(BakeryService)
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * task.bakery.createBake(bakeConfig.region,
+                               {
+                                 println "** it=$it packageName=$it.packageName"
+                                 it.user == "bran" &&
+                                 it.packageName == "hodor" &&
+                                 it.baseLabel == BakeRequest.Label.release &&
+                                 it.baseOs == OperatingSystem.ubuntu
+                               },
+                               "1") >> Observable.from(runningStatus)
   }
 
 }

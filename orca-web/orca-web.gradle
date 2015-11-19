@@ -74,7 +74,15 @@ jar {
 }
 
 startScripts {
+  defaultJvmOpts = applicationDefaultJvmArgs + ["-Dspring.config.location=/opt/spinnaker/config/"]
   doLast {
+    unixScript.text = unixScript.text.replace('DEFAULT_JVM_OPTS=', '''\
+        if [ -f /etc/default/spinnaker ]; then
+          set -a
+          . /etc/default/spinnaker
+          set +a
+        fi
+        DEFAULT_JVM_OPTS='''.stripIndent())
     unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
     windowsScript.text = windowsScript.text.replace('set CLASSPATH=', 'set CLASSPATH=%APP_HOME%\\config;')
   }
@@ -89,14 +97,32 @@ String toVers(String v) {
 }
 
 ospackage {
-  packageName = project.applicationName
+  packageName = "spinnaker-" + project.applicationName
   version = toVers(project.version.toString())
   release '3'
-  into "/opt/${project.applicationName}"
+  // installer scripts
+  postInstall = file('pkg_scripts/postInstall.sh')
+  postUninstall = file('pkg_scripts/postUninstall.sh')
+
   from "${project.buildDir}/install/${project.applicationName}"
+    into "/opt/${project.applicationName}"
+
+  from(file('etc/init/orca.conf')) {
+    into('/etc/init')
+    user = 'root'
+    permissionGroup = 'root'
+    fileType = CONFIG | NOREPLACE
+  }
+
+  from(file('etc/logrotate.d/orca')) {
+    into('/etc/logrotate.d')
+    user = 'root'
+    permissionGroup = 'root'
+    fileType = CONFIG | NOREPLACE
+  }
 }
 
 buildDeb {
-  dependsOn installApp
+  dependsOn installDist
 }
 

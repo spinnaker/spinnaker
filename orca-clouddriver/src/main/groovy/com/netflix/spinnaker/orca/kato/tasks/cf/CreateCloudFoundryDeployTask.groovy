@@ -19,8 +19,6 @@ import org.springframework.stereotype.Component
 
 /**
  * Craft a deployment task for Cloud Foundry.
- *
- * @author Greg Turnquist
  */
 @Slf4j
 @Component

@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.orca.pipeline.util
 
+import com.netflix.spinnaker.orca.ExecutionStatus
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -36,9 +37,9 @@ class ContextParameterProcessorSpec extends Specification {
     'can make any string alphanumerical for deploy' | '${ #alphanumerical(replaceTest) }'   | 'stackwithhyphens'
   }
 
-  def "should replace the keys in a map"(){
+  def "should replace the keys in a map"() {
     given:
-    def source = [ '${replaceMe}' : 'somevalue', '${replaceMe}again' : ['cats':'dogs'] ]
+    def source = ['${replaceMe}': 'somevalue', '${replaceMe}again': ['cats': 'dogs']]
 
     when:
     def result = ContextParameterProcessor.process(source, [replaceMe: 'newVal'])
@@ -158,8 +159,33 @@ class ContextParameterProcessorSpec extends Specification {
 
     where:
     execution = [
-      "stages": [
+      "context": [
+        "deploymentDetails": [
+          [
+            "ami"      : "ami-06362b6e",
+            "amiSuffix": "201505150627",
+            "baseLabel": "candidate",
+            "baseOs"   : "ubuntu",
+            "package"  : "flex",
+            "region"   : "us-east-1",
+            "storeType": "ebs",
+            "vmType"   : "pv"
+          ],
+          [
+            "ami"      : "ami-f759b7b3",
+            "amiSuffix": "201505150627",
+            "baseLabel": "candidate",
+            "baseOs"   : "ubuntu",
+            "package"  : "flex",
+            "region"   : "us-west-1",
+            "storeType": "ebs",
+            "vmType"   : "pv"
+          ]
+        ]
+      ],
+      "stages" : [
         [
+          "status"       : ExecutionStatus.SUCCEEDED,
           "type"         : "deploy",
           "name"         : "Deploy in us-east-1",
           "context"      : [
@@ -181,28 +207,6 @@ class ContextParameterProcessorSpec extends Specification {
             "deploy.server.groups": [
               "us-east-1": [
                 "flex-test-v043"
-              ]
-            ],
-            "deploymentDetails"   : [
-              [
-                "ami"      : "ami-06362b6e",
-                "amiSuffix": "201505150627",
-                "baseLabel": "candidate",
-                "baseOs"   : "ubuntu",
-                "package"  : "flex",
-                "region"   : "us-east-1",
-                "storeType": "ebs",
-                "vmType"   : "pv"
-              ],
-              [
-                "ami"      : "ami-f759b7b3",
-                "amiSuffix": "201505150627",
-                "baseLabel": "candidate",
-                "baseOs"   : "ubuntu",
-                "package"  : "flex",
-                "region"   : "us-west-1",
-                "storeType": "ebs",
-                "vmType"   : "pv"
               ]
             ],
             "stack"               : "test",
@@ -229,7 +233,7 @@ class ContextParameterProcessorSpec extends Specification {
           "name"         : "Deploy in us-west-1",
           "startTime"    : 1431672074613,
           "endTime"      : 1431672487124,
-          "status"       : "SUCCEEDED",
+          "status"       : ExecutionStatus.SUCCEEDED,
           "context"      : [
             "account"             : "prod",
             "application"         : "flex",
@@ -249,28 +253,6 @@ class ContextParameterProcessorSpec extends Specification {
             "deploy.server.groups": [
               "us-west-1": [
                 "flex-prestaging-v011"
-              ]
-            ],
-            "deploymentDetails"   : [
-              [
-                "ami"      : "ami-f759b7b3",
-                "amiSuffix": "201505150627",
-                "baseLabel": "candidate",
-                "baseOs"   : "ubuntu",
-                "package"  : "flex",
-                "region"   : "us-west-1",
-                "storeType": "ebs",
-                "vmType"   : "pv"
-              ],
-              [
-                "ami"      : "ami-06362b6e",
-                "amiSuffix": "201505150627",
-                "baseLabel": "candidate",
-                "baseOs"   : "ubuntu",
-                "package"  : "flex",
-                "region"   : "us-east-1",
-                "storeType": "ebs",
-                "vmType"   : "pv"
               ]
             ],
             "keyPair"             : "nf-prod-keypair-a",
@@ -298,169 +280,11 @@ class ContextParameterProcessorSpec extends Specification {
     ]
   }
 
-  def "ignores deployment details from baseline canary phases"() {
-
-
-    given:
-    def source = ['deployed': '${deployedServerGroups}']
-    def context = [execution: execution]
-
-    when:
-    def result = ContextParameterProcessor.process(source, context)
-
-    then:
-    result.deployed.size == 1
-    result.deployed.serverGroup == ['flex-prestaging-v011']
-
-    where:
-    execution = [
-      "stages": [
-        [
-          "type"         : "deploy",
-          "name"         : "Deploy in us-east-1",
-          "context"      : [
-            "amiName"             : "ami-24afbd4c",
-            "account"             : "test",
-            "application"         : "flex",
-            "availabilityZones"   : [
-              "us-east-1": [
-                "us-east-1c",
-                "us-east-1d",
-                "us-east-1e"
-              ]
-            ],
-            "capacity"            : [
-              "desired": 1,
-              "max"    : 1,
-              "min"    : 1
-            ],
-            "deploy.account.name" : "test",
-            "deploy.server.groups": [
-              "us-east-1": [
-                "flex-test-v043"
-              ]
-            ],
-            "deploymentDetails"   : [
-              [
-                "ami"      : "ami-06362b6e",
-                "amiSuffix": "201505150627",
-                "baseLabel": "candidate",
-                "baseOs"   : "ubuntu",
-                "package"  : "flex",
-                "region"   : "us-east-1",
-                "storeType": "ebs",
-                "vmType"   : "pv"
-              ],
-              [
-                "ami"      : "ami-f759b7b3",
-                "amiSuffix": "201505150627",
-                "baseLabel": "candidate",
-                "baseOs"   : "ubuntu",
-                "package"  : "flex",
-                "region"   : "us-west-1",
-                "storeType": "ebs",
-                "vmType"   : "pv"
-              ]
-            ],
-            "stack"               : "test",
-            "strategy"            : "highlander",
-            "subnetType"          : "internal",
-            "suspendedProcesses"  : [],
-            "terminationPolicies" : [
-              "Default"
-            ],
-            "type"                : "linearDeploy"
-          ],
-          "parentStageId": "dca27ddd-ce7d-42a0-a1db-5b43c6b2f0c7",
-        ],
-        [
-          "id"     : "dca27ddd-ce7d-42a0-a1db-5b43c6b2f0c7-2-destroyAsg",
-          "type"   : "destroyAsg",
-          "name"   : "destroyAsg",
-          "context": [
-          ]
-        ],
-        [
-          "id"           : "68ad3566-4857-4c76-839e-f4afc14410c5-1-Deployinuswest1",
-          "type"         : "deploy",
-          "name"         : "Deploy in us-west-1",
-          "startTime"    : 1431672074613,
-          "endTime"      : 1431672487124,
-          "status"       : "SUCCEEDED",
-          "context"      : [
-            "account"             : "prod",
-            "application"         : "flex",
-            "availabilityZones"   : [
-              "us-west-1": [
-                "us-west-1a",
-                "us-west-1c"
-              ]
-            ],
-            "capacity"            : [
-              "desired": 1,
-              "max"    : 1,
-              "min"    : 1
-            ],
-            "cooldown"            : 10,
-            "deploy.account.name" : "prod",
-            "deploy.server.groups": [
-              "us-west-1": [
-                "flex-prestaging-v011"
-              ]
-            ],
-            "deploymentDetails"   : [
-              [
-                "ami"      : "ami-f759b7b3",
-                "amiSuffix": "201505150627",
-                "baseLabel": "candidate",
-                "baseOs"   : "ubuntu",
-                "package"  : "flex",
-                "region"   : "us-west-1",
-                "storeType": "ebs",
-                "vmType"   : "pv"
-              ],
-              [
-                "ami"      : "ami-06362b6e",
-                "amiSuffix": "201505150627",
-                "baseLabel": "candidate",
-                "baseOs"   : "ubuntu",
-                "package"  : "flex",
-                "region"   : "us-east-1",
-                "storeType": "ebs",
-                "vmType"   : "pv"
-              ]
-            ],
-            "keyPair"             : "nf-prod-keypair-a",
-            "loadBalancers"       : [
-              "flex-prestaging-frontend"
-            ],
-            "provider"            : "aws",
-            "securityGroups"      : [
-              "sg-d2c3dfbe",
-              "sg-d3c3dfbf"
-            ],
-            "stack"               : "prestaging",
-            "strategy"            : "highlander",
-            "subnetType"          : "internal",
-            "suspendedProcesses"  : [],
-            "terminationPolicies" : [
-              "Default"
-            ],
-            "type"                : "linearDeploy"
-          ],
-          "parentStageId": "68ad3566-4857-4c76-839e-f4afc14410c5",
-          "scheduledTime": 0
-        ]
-      ]
-    ]
-
-  }
-
-  def 'helper method to convert objects into json'(){
+  def 'helper method to convert objects into json'() {
 
     given:
     def source = ['json': '${#toJson( map )}']
-    def context = [map: [ [ "v1":"k1" ], [ "v2":"k2" ] ]]
+    def context = [map: [["v1": "k1"], ["v2": "k2"]]]
 
     when:
     def result = ContextParameterProcessor.process(source, context)
@@ -471,7 +295,7 @@ class ContextParameterProcessorSpec extends Specification {
   }
 
   @Unroll
-  def 'helper method to convert Strings into Integers'(){
+  def 'helper method to convert Strings into Integers'() {
     given:
     def source = [intParam: '${#toInt( str )}']
     def context = [str: str]
@@ -490,7 +314,7 @@ class ContextParameterProcessorSpec extends Specification {
   }
 
   @Unroll
-  def 'helper method to convert Strings into Floats'(){
+  def 'helper method to convert Strings into Floats'() {
     given:
     def source = [floatParam: '${#toFloat( str )}']
     def context = [str: str]

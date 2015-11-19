@@ -25,7 +25,6 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
-import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
@@ -37,7 +36,7 @@ import org.springframework.stereotype.Component
 @Slf4j
 @Component
 @Deprecated
-class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task {
+class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task, DeploymentDetailsAware {
 
   static final List<String> DEFAULT_VPC_SECURITY_GROUPS = ["nf-infrastructure-vpc", "nf-datacenter-vpc"]
   static final List<String> DEFAULT_SECURITY_GROUPS = ["nf-infrastructure", "nf-datacenter"]
@@ -64,9 +63,9 @@ class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task {
     TaskId taskId = deploy(cloudProvider, deployOperations)
 
     Map outputs = [
-      "notification.type"  : "createdeploy",
+      "notification.type": "createdeploy",
       "kato.result.expected": true,
-      "kato.last.task.id"  : taskId,
+      "kato.last.task.id": taskId,
       "deploy.account.name": deployOperations.credentials
     ]
 
@@ -89,12 +88,14 @@ class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task {
     }
 
     def targetRegion = operation.region ?: (operation.availabilityZones as Map<String, Object>).keySet()[0]
-    def deploymentDetails = (context.deploymentDetails ?: []) as List<Map>
-    if (!operation.amiName && deploymentDetails) {
-      operation.amiName = deploymentDetails.find { it.region == targetRegion }?.ami
+    withImageFromPrecedingStage(stage, targetRegion) {
+      operation.amiName = operation.amiName ?: it.amiName
+      operation.imageId = operation.imageId ?: it.imageId
     }
-    if (!operation.imageId && deploymentDetails) {
-      operation.imageId = deploymentDetails[0]?.imageId // Because docker image ids are not region or cloud provider specific
+
+    withImageFromDeploymentDetails(stage, targetRegion) {
+      operation.amiName = operation.amiName ?: it.amiName
+      operation.imageId = operation.imageId ?: it.imageId
     }
 
     log.info("Deploying ${operation.amiName ?: operation.imageId} to ${targetRegion}")
@@ -122,7 +123,8 @@ class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task {
     if (deployOperation.credentials != defaultBakeAccount) {
       if (deployOperation.availabilityZones) {
         descriptions.addAll(deployOperation.availabilityZones.collect { String region, List<String> azs ->
-          [allowLaunchDescription: convertAllowLaunch(deployOperation.credentials, defaultBakeAccount, region, deployOperation.amiName)]
+          [allowLaunchDescription: convertAllowLaunch(deployOperation.credentials, defaultBakeAccount, region,
+                                                      deployOperation.amiName)]
         })
 
         log.info("Generated `allowLaunchDescriptions` (allowLaunchDescriptions: ${descriptions})")
