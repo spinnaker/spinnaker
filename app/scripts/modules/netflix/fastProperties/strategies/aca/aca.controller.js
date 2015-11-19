@@ -17,8 +17,16 @@ module.exports = angular
 
     vm.property.canary = {
       name: `${vm.appName}-${vm.property.key}-${vm.isEditing ? 'update' : 'create'}`,
-      successfulScore: 100,
-      unhealthyScore: 100,
+      successfulScore: 90,
+      unhealthyScore: 60,
+      lifetimeHours: 1,
+      resultStrategy: 'LOWEST',
+      canaryAnalysisConfig: {
+        name: 'generic-canary',
+        beginCanaryAnalysisAfterMins: 0,
+        notificationHours:1,
+        canaryAnalysisIntervalMins: 15,
+      }
     };
 
     vm.clusterIsSet = () => {

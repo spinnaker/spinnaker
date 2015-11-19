@@ -140,6 +140,7 @@ module.exports = angular
         .map('serverGroups').flatten()
         .filter((serverGroup) => serverGroup.region === vm.property.startScope.region)
         .map('instances').flatten()
+        .filter((instance) => instance.healthState === "Up")
         .compact().unique()
         .value();
 
@@ -242,6 +243,10 @@ module.exports = angular
       if (vm.affectedInstancesForACA.length > 4) {
         return '25,50,75';
       }
+    };
+
+    vm.getRolloutList = () => {
+      return vm.property.strategy.rolloutListString ? _.compact(vm.property.strategy.rolloutListString.split(',')) : [];
     };
 
 

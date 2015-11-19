@@ -15,12 +15,13 @@
               class="form-control input-sm"
               required
               ng-model="newFP.property.strategy.option"
-              ng-select="number"
+              ng-change="newFP.property.strategy.rolloutListString = ''"
               >
-            <option value="number" selected>number</option>
-            <option value="percentage">percentage</option>
+            <option value="number">Number of instances in the {{newFP.property.startScope.cluster}} cluster in {{newFP.property.startScope.region}}</option>
+            <option value="percentage">Percentage of instances in the <b>{{newFP.property.startScope.cluster}} cluster in <b>{{newFP.property.startScope.region}}</option>
           </select>
         </div>
+
 
       </div>
     </div>
@@ -30,7 +31,7 @@
       <div class="form-group">
 
         <div class="small-label-left col-md-3">
-          <b>Rollout {{newFP.property.strategy.option}}</b>
+          <b>Rollout List</b>
           <help-field key="fastProperty.canary.strategy.rolloutList"></help-field>
         </div>
 
@@ -38,39 +39,50 @@
           <input
               type="text"
               class="form-control input-sm"
-              placeholder="{{newFP.property.strategy.option === 'percentage' ? newFP.getSampleRolloutPercentage() : newFP.getSampleRolloutNumber()}}"
+              placeholder="exapmle: {{newFP.property.strategy.option === 'percentage' ? newFP.getSampleRolloutPercentage() : newFP.getSampleRolloutNumber()}}"
               required
               ng-model="newFP.property.strategy.rolloutListString"
               />
         </div>
 
-      </div>
-    </div>
+        <div class="col-md-9 col-md-offset-3" ng-if="newFP.property.strategy.option">
+            <p>
+              This <b>{{newFP.property.strategy.option}} strategy</b> rollout will perform
+              <b>{{newFP.property.strategy.rolloutListString ? newFP.property.strategy.rolloutListString.split(',').length : 0}}</b>
+              ACAs.
+            </p>
 
-    <div class="row">
-      <div class="col-sm-12">
-        <p>Select <b>number</b> or <b>percentage</b> of instances for the<b>strategy option</b>. </p>
-        <p>Enter a coma separated list of number or percentages for the rollout.</p>
-        <p>This determines the how the fast property will be rolled out across your selected cluster and how many ACA will be performed.</p>
-      </div>
-    </div>
+            <p
+              ng-if="newFP.property.strategy.option === 'number' && newFP.property.strategy.rolloutListString"
+              ng-repeat="rolloutNum in newFP.getRolloutList() track by $index">
 
-    <div class="row" >
-      <div class="col-sm-12">
-        <p>There are <span style="color: red">{{newFP.affectedInstancesForACA.length || 0}}</span> instances available to canary against.</p>
-        <div ng-if="newFP.affectedInstancesForACA.length > 1">
-          <b>Example:</b> <br>
-          <p>For a <b>Number Strategy Options</b> you might set <b>{{newFP.getSampleRolloutNumber()}}</b> as the rollout.
-            This will do {{newFP.getSampleRolloutNumber().split(',').length}} ACAs with the Fast Property applied to the the set number of instances at each step.</p>
+              <span ng-if="rolloutNum <= newFP.affectedInstancesForACA.length">
+                <b>ACA #{{$index + 1}}</b> will rollout to <b>{{rolloutNum}}</b> of <b>{{newFP.affectedInstancesForACA.length}}</b> instances.
+              </span>
 
-          <p>For a <b>Percentage Strategy Options</b> you might set <b>{{newFP.getSampleRolloutPercentage()}}</b> as the rollout.
-            This will do {{newFP.getSampleRolloutPercentage().split(',').length}} ACAs with the Fast Property applied to the the set percentage of instances at each step.</p>
+              <span ng-if="rolloutNum > newFP.affectedInstancesForACA.length" style="color: red">
+                The selected number of instances(<b>{{rolloutNum}}</b>) for ACA exceeds the number of instances available in the cluster(<b>{{newFP.affectedInstancesForACA.length}})</b>.
+              </span>
+            </p>
 
-          <p>Once all the ACAs pass the Fast Property will be set at the selected target scope.</p>
+            <p
+              ng-if="newFP.property.strategy.option === 'percentage' && newFP.property.strategy.rolloutListString"
+              ng-repeat="rolloutPct in newFP.getRolloutList() track by $index">
+
+              <span ng-if="rolloutPct <= 100">
+                <b>ACA #{{$index + 1}}</b> will rollout to <b>{{rolloutPct}}%</b> of <b>{{newFP.affectedInstancesForACA.length}}</b> instances.
+              </span>
+
+              <span ng-if="rolloutPct > 100" style="color: red">
+                The selected percentage of instances(<b>{{rolloutPct}}</b>) for ACA exceeds 100%.
+              </span>
+            </p>
+
         </div>
+
       </div>
     </div>
-  </div>
+
 
   <!--
     FOOTER BUTTONS
