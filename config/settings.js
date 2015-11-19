@@ -57,11 +57,10 @@ window.spinnakerSettings = {
   feature: {
     pipelines: true,
     notifications: false,
-    canary: false,
-    parallelPipelines: true,
     fastProperty: false,
     vpcMigrator: false,
     rebakeControlEnabled: true,
+    netflixMode: false,
   },
 };
 
