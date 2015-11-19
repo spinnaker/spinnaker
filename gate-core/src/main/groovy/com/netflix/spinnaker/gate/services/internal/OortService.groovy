@@ -22,7 +22,7 @@ interface OortService {
 
   @Headers("Accept: application/json")
   @GET("/applications")
-  List getApplications()
+  List getApplications(@Query("expand") boolean expand)
 
   @Headers("Accept: application/json")
   @GET("/applications/{name}")

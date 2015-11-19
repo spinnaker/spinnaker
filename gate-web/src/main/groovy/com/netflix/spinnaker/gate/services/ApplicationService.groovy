@@ -66,11 +66,13 @@ class ApplicationService {
   @PostConstruct
   void startMonitoring() {
     Observable
-      .timer(30000, TimeUnit.MILLISECONDS, scheduler)
+      .timer(60000, TimeUnit.MILLISECONDS, scheduler)
       .repeat()
       .subscribe({ Long interval ->
       try {
+        log.info("Refreshing Application List")
         tick()
+        log.info("Refreshed Application List")
       } catch (e) {
         log.error("Unable to refresh application list, reason: ${e.message}")
       }
@@ -78,21 +80,23 @@ class ApplicationService {
   }
 
   void tick() {
-    log.info("Refreshing Application List")
-
     def applicationListRetrievers = buildApplicationListRetrievers()
     List<Future<List<Map>>> futures = executorService.invokeAll(applicationListRetrievers)
-    List<List<Map>> all = futures.collect { it.get() } // spread operator doesn't work here; no clue why.
+    List<List<Map>> all = futures.collect { it.get() }
     List<Map> flat = (List<Map>) all?.flatten()?.toList()
     def mergedApplications = mergeApps(flat, serviceConfiguration.getService('front50')).collect {
       it.attributes
     } as List<Map>
 
     allApplicationsCache.set(mergedApplications)
-    log.info("Refreshed Application List")
   }
 
   List<Map> getAll() {
+    try {
+      tick()
+    } catch (ignored) {
+      // do nothing
+    }
     return allApplicationsCache.get()
   }
 
@@ -315,7 +319,7 @@ class ApplicationService {
           }
         }, false, principal).call() as Map
       }, {
-        allApplicationsCache.get().find { name.equalsIgnoreCase(it.name as String)}
+        allApplicationsCache.get().find { name.equalsIgnoreCase(it.name as String) }
       }).execute()
     }
   }
@@ -336,7 +340,7 @@ class ApplicationService {
       HystrixFactory.newListCommand(GROUP, "getApplicationsFromCloudDriver", {
         AuthenticatedRequest.propagate({
           try {
-            oort.applications
+            oort.getApplications(false)
           } catch (RetrofitError e) {
             if (e.response?.status == 404) {
               return []
