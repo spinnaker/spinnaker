@@ -1,4 +1,4 @@
-FROM node
+FROM node:4.2
 
 COPY . deck/
 
