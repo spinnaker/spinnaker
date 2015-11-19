@@ -53,7 +53,6 @@ import re
 import shutil
 import subprocess
 import sys
-import tarfile
 import tempfile
 import urllib2
 import zipfile
@@ -181,8 +180,7 @@ def determine_package_version(gradle_root, submodule):
 class Builder(object):
   """Knows how to coordinate a Spinnaker release."""
 
-  def __init__(self, options, tarfile):
-      self.__tarfile = tarfile
+  def __init__(self, options):
       self.__package_list = []
       self.__build_failures = []
       self.__background_processes = []
@@ -231,35 +229,6 @@ class Builder(object):
           'Building {name}'.format(name=name),
           'cd "{gradle_root}"; ./gradlew {target}'.format(
               gradle_root=gradle_root, target=target))
-
-  @staticmethod
-  def __filter_file(info, filter):
-    """Determine if a record should be included in the tarfile or not.
-
-    Args:
-      info [tarinfo]: The tarinfo to consider.
-      filter [string]: The file filter expression.
-
-    Returns:
-      info to include, or None.
-    """
-    if info.isdir():
-      return info  # keep dir so we can recurse into it
-    elif fnmatch.fnmatch(info.name, filter):
-      return info
-    else:
-      return None
-
-  def tar_dir(self, source, target, filter='*'):
-    """Add contents of directory to tarfile.
-
-    Args:
-      source [string]: The path to add from.
-      target [string]: The destination path to add into.
-      filter [string]: The file filter specifying which files to include.
-    """
-    fn = lambda info: self.__filter_file(info, filter)
-    self.__tarfile.add(source, arcname=target, recursive=True, filter=fn)
 
   def publish_to_bintray(self, source, package, version, path, debian_tags=''):
     bintray_key = os.environ['BINTRAY_KEY']
@@ -459,65 +428,14 @@ class Builder(object):
         raise RuntimeError('Builds failed for {0!r}'.format(
           self.__build_failures))
 
-      source_config_dir = self.__options.config_source
+      # Copy subsystem packages.
       processes = []
-
-      if self.__tarfile:
-          # Copy global spinnaker config (and sample local).
-          for yml in ['default-spinnaker-local.yml']:
-            source_config = os.path.join(source_config_dir, yml)
-            self.__tarfile.add(source_config, os.path.join('config', yml))
-
-      # Copy subsystem configuration files.
       for subsys in SUBSYSTEM_LIST:
           processes.append(self.start_copy_debian_target(subsys))
-          if not self.__tarfile:
-            continue
-
-          if subsys == 'deck':
-              source_config = os.path.join(source_config_dir, 'settings.js')
-              self.__tarfile.add(source_config, 'config/settings.js')
-          else:
-              source_config = os.path.join(source_config_dir, subsys + '.yml')
-              yml = os.path.basename(source_config)
-              self.__tarfile.add(source_config, os.path.join('config', yml))
 
       print 'Waiting for package copying to finish....'
       for p in processes:
         p.check_wait()
-
-  def copy_dependency_files(self):
-    """Copy additional files used by external dependencies into release."""
-    source_dir = os.path.join(self.__project_dir, 'cassandra')
-    self.tar_dir(source_dir, 'cassandra')
-
-  def copy_install_scripts(self):
-    """Copy installation scripts into release."""
-    source_dir = os.path.join(self.__project_dir, 'install')
-    self.tar_dir(source_dir, 'install', filter='*.py')
-    self.tar_dir(source_dir, 'install', filter='*.sh')
-
-  def copy_admin_scripts(self):
-    """Copy administrative/operational support scripts into release."""
-    self.tar_dir(os.path.join(self.__project_dir, 'pylib'),
-                 'pylib', filter='*.py')
-    self.tar_dir(os.path.join(self.__project_dir, 'runtime'),
-                 'scripts', filter='*.sh')
-
-  def copy_release_config(self):
-    """Copy configuration files into release."""
-    source_dir = self.__options.config_source
-    self.tar_dir(source_dir, 'config')
-
-    # This is the contents of the release_config.cfg file.
-    # Which acts as manifest to inform the installer what packages to install.
-    fd, temp_file = tempfile.mkstemp()
-    os.write(fd, '# This file is not intended to be user-modified.\n'
-                 'PACKAGE_LIST="{packages}"\n'
-                 .format(packages=' '.join(self.__package_list)))
-    os.close(fd)
-    self.__tarfile.add(temp_file, 'release_config.cfg')
-    os.remove(temp_file)
 
   @staticmethod
   def __zip_dir(zip_file, source_path, arcname=''):
@@ -588,8 +506,6 @@ if __name__ == '__main__':
       zip.write('citest/spinnaker/spinnaker_system/' + test_py, test_py)
       zip.close()
 
-      if self.__tarfile:
-        self.__tarfile.add(zip_path, 'tests/{py}.zip'.format(py=test_py))
     finally:
       pass
 
@@ -677,13 +593,7 @@ if __name__ == '__main__':
            'ERROR: Missing either a --release_path or --bintray_repo')
       return -1
 
-    tz = None
-    if options.release_path:
-      fd, tarfile_path = tempfile.mkstemp()
-      os.close(fd)
-      tz = tarfile.open(tarfile_path, mode='w:gz')
-
-    builder = cls(options, tz)
+    builder = cls(options)
     if options.pull_origin:
         builder.refresher.pull_all_from_origin()
 
@@ -734,35 +644,10 @@ if __name__ == '__main__':
       print '\nFINISHED writing release to {rep}'.format(
         rep=options.bintray_repo)
 
-    if not tz:
-      return 0
 
-
-    print 'Building spinnaker.tar.gz'
-    builder.copy_dependency_files()
-    builder.copy_install_scripts()
-    builder.copy_admin_scripts()
-    builder.copy_release_config()
-
-    tz.close()
-    processes = []
-    try:
-      print 'Copying spinnaker.tar.gz'
-      processes.append(builder.start_copy_file(
-        tarfile_path, os.path.join(options.release_path, 'spinnaker.tar.gz')))
-      processes.append(builder.start_copy_file(
-        os.path.join(determine_project_root(),
-                     'install/install_spinnaker.sh'),
-        os.path.join(options.release_path, 'install_spinnaker.sh')))
-      for p in processes:
-        p.check_wait()
-    finally:
-      shutil.copy(tarfile_path, './created_spinnaker.tar.gz')   # !!!
-      os.remove(tarfile_path)
-
-    print '\nFINISHED writing release to {dir}'.format(
+    if options.release_path:
+      print '\nFINISHED writing release to {dir}'.format(
         dir=builder.__release_dir)
-    return 0
 
 if __name__ == '__main__':
   sys.exit(Builder.main())
