@@ -23,10 +23,69 @@ import subprocess
 import sys
 import time
 
-from spinnaker.fetch import fetch
 from spinnaker.configurator import InstallationParameters
+from spinnaker.fetch import AWS_METADATA_URL
+from spinnaker.fetch import GOOGLE_METADATA_URL
+from spinnaker.fetch import GOOGLE_INSTANCE_METADATA_URL
+from spinnaker.fetch import is_aws_instance
+from spinnaker.fetch import is_google_instance
+from spinnaker.fetch import check_fetch
+from spinnaker.fetch import fetch
+from spinnaker.yaml_util import YamlBindings
 from spinnaker.validate_configuration import ValidateConfig
 from spinnaker import spinnaker_runner
+
+def populate_aws_yml(content):
+  aws_dict = {'enabled': False}
+  if is_aws_instance():
+      zone = (check_fetch(AWS_METADATA_URL + '/placement/availability-zone')
+              .content)
+      aws_dict['enabled'] = 'true'
+      aws_dict['defaultRegion'] = zone[:-1]
+  elif os.path.exists(os.path.join(os.environ['HOME'], '.aws/credentials')):
+      aws_dict['enabled'] = 'true'
+      aws_dict['defaultRegion'] = 'us-east-1'
+
+  bindings = YamlBindings()
+  bindings.import_dict({'providers': {'aws': aws_dict}})
+  content = bindings.transform_yaml_source(content, 'providers.aws.enabled')
+  content = bindings.transform_yaml_source(content,
+                                           'providers.aws.defaultRegion')
+
+  return content
+
+
+def populate_google_yml(content):
+  credentials = {'project': '', 'jsonPath': ''}
+  google_dict = {'enabled': False,
+                 'defaultRegion': 'us-central1',
+                 'defaultZone': 'us-central1-f',}
+
+  google_dict['primaryCredentials'] = credentials
+
+  if is_google_instance():
+      zone = os.path.basename(
+           check_fetch(GOOGLE_INSTANCE_METADATA_URL + '/zone',
+                       google=True).content)
+      google_dict['enabled'] = 'true'
+      google_dict['defaultRegion'] = zone[:-2]
+      google_dict['defaultZone'] = zone
+      credentials['project'] = check_fetch(
+            GOOGLE_METADATA_URL + '/project/project-id', google=True).content
+
+  bindings = YamlBindings()
+  bindings.import_dict({'providers': {'google': google_dict}})
+  content = bindings.transform_yaml_source(content, 'providers.google.enabled')
+  content = bindings.transform_yaml_source(
+      content, 'providers.google.defaultRegion')
+  content = bindings.transform_yaml_source(
+      content, 'providers.google.defaultZone')
+  content = bindings.transform_yaml_source(
+      content, 'providers.google.primaryCredentials.project')
+  content = bindings.transform_yaml_source(
+      content, 'providers.google.primaryCredentials.jsonPath')
+
+  return content
 
 
 class DevInstallationParameters(InstallationParameters):
@@ -77,7 +136,30 @@ class DevRunner(spinnaker_runner.Runner):
   will remain running, and continue logging to the logs directory.
   """
 
+  @staticmethod
+  def maybe_generate_clean_user_local():
+    """Generate a spinnaker-local.yml file without environment variables refs"""
+    user_dir = DevInstallationParameters.USER_CONFIG_DIR
+    user_config_path = os.path.join(user_dir, 'spinnaker-local.yml')
+    if os.path.exists(user_config_path):
+      return
+    if not os.path.exists(user_dir):
+      os.mkdir(user_dir)
+
+    with open('{config_dir}/default-spinnaker-local.yml'.format(
+                  config_dir=DevInstallationParameters.INSTALLED_CONFIG_DIR),
+              'r') as f:
+      content = f.read()
+
+    content = populate_aws_yml(content)
+    content = populate_google_yml(content)
+
+    with open(user_config_path, 'w') as f:
+      f.write(content)
+    os.chmod(user_config_path, 0600)
+
   def __init__(self, installation_parameters=None):
+    self.maybe_generate_clean_user_local()
     installation = installation_parameters or DevInstallationParameters
     super(DevRunner, self).__init__(installation)
 

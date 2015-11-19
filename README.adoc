@@ -85,14 +85,11 @@ cp spinnaker/config/default-spinnaker-local.yml $HOME/.spinnaker/spinnaker-local
 chmod 600 $HOME/.spinnaker/spinnaker-local.yml
 ----
 
-Edit `$HOME/.spinnaker/spinnaker-local.yml` and set the enabled option for the cloud provider(s) of your choice.
-
-The default-spinnaker-local.yml file contains some references to environment
-variables (e.g. `${SPINNAKER_AWS_ENABLED}` and all the other upper case names
-in the providers section). These are added by the spinnaker install, which
-isnt used in a developer environment so you will need to replace these with
-literals (e.g. `true`). Minimally, set the provider `${*_ENABLED}` values. If
-they are `false` then you dont need to worry about the other attributes.
+If you are deployed onto a supported cloud provider (e.g. AWS or Google)
+and you only wish to deploy on that platform then you do not need
+to perform additional configuration. Otherwise, edit
+`$HOME/.spinnaker/spinnaker-local.yml` and set the enabled option for the
+cloud provider(s) of your choice and configure the attributes for that provider.
 
 
 == Start Spinnaker Services
