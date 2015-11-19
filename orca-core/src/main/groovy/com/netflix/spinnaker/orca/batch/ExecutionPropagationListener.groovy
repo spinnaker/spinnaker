@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundExceptio
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.listener.JobExecutionListenerSupport
@@ -83,6 +84,7 @@ class ExecutionPropagationListener extends JobExecutionListenerSupport implement
 
     if (executionRepository.isCanceled(id) && orcaTaskStatus != TERMINAL) {
       orcaTaskStatus = CANCELED
+      jobExecution.exitStatus = ExitStatus.STOPPED
     }
 
     if (orcaTaskStatus == STOPPED) {
