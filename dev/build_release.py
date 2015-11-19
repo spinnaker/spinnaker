@@ -311,24 +311,15 @@ class Builder(object):
     self.publish_to_bintray(source, package='spinnaker', version=version,
                             path='InstallSpinnaker.sh')
 
-  def publish_bootstrap_script(self, source):
-    path = 'BootstrapSpinnaker.sh'
-    gradle_root = self.determine_gradle_root('spinnaker')
-    version = determine_package_version(gradle_root, '.')
-
-    self.publish_to_bintray(source, package='spinnaker', version=version,
-                            path='BootstrapSpinnaker.sh')
-
   def publish_file(self, source, package, version):
     """Write a file to the bintray repository.
 
     Args:
       source [string]: The path to the source to copy must be local.
     """
-    dist = self.__debian_distribution
     path = os.path.basename(source)
-    debian_tags = ';'.join(['deb_distribution={dist}'.format(dist=dist),
-                            'deb_component=spinnaker',
+    debian_tags = ';'.join(['deb_component=spinnaker',
+                            'deb_distribution=trusty,utopic,vivid,wily',
                             'deb_architecture=all'])
 
     self.publish_to_bintray(source, package=package, version=version,
@@ -569,18 +560,6 @@ if __name__ == '__main__':
     if not os.environ.get('BINTRAY_USER', None):
       raise ValueError('BINTRAY_USER environment variable not defined')
 
-    # We are currently limited to ubuntu because of assumptions in
-    # how we publish to bintray.
-    if not os.path.exists('/etc/lsb-release'):
-      raise ValueError('This does not appear to be an ubuntu distribution.')
-    with open('/etc/lsb-release', 'r') as f:
-      content = f.read()
-    match = re.search('DISTRIB_CODENAME=(.+)', content)
-    if match is None:
-      raise ValueError('Could not determine debian distribution name')
-    self.__debian_distribution = match.group(1)
-    result = check_run_quick('uname -m', echo=False)
-
 
   @classmethod
   def main(cls):
@@ -616,27 +595,6 @@ if __name__ == '__main__':
 
       try:
         builder.publish_install_script(
-          os.path.join(determine_project_root(), temp_path))
-      finally:
-        os.remove(temp_path)
-
-    if options.bintray_repo:
-      fd, temp_path = tempfile.mkstemp()
-      with open(os.path.join(determine_project_root(), 'BootstrapSpinnaker.sh'),
-                'r') as f:
-          content = f.read()
-          match = re.search(
-                'URL="https://dl\.bintray\.com/(.+)"',
-                content)
-          content = ''.join([content[0:match.start(1)],
-                             options.bintray_repo,
-                             '/InstallSpinnaker.sh',
-                             content[match.end(1):]])
-          os.write(fd, content)
-      os.close(fd)
-
-      try:
-        builder.publish_bootstrap_script(
           os.path.join(determine_project_root(), temp_path))
       finally:
         os.remove(temp_path)

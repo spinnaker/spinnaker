@@ -1,12 +1,12 @@
 {
  "variables": {
-    "debian_repo": "https://dl.bintray.com/spinnaker-team/ewiseblatt",
+    "debian_repo": "https://dl.bintray.com/spinnaker/debians",
     "install_path": null,
     "project_id": null,
     "update_os": "false",
     "json_credentials":  "",
     "zone": "us-central1-f",
-    "source_image": "ubuntu-1404-trusty-v20150909a",
+    "source_image": "ubuntu-1404-trusty-v20151113",
     "target_image": "{{env `USER`}}-spinnaker-{{timestamp}}"
  },
 
