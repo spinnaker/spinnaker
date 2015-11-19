@@ -101,7 +101,7 @@ class TaskTasklet implements Tasklet {
         if (result.status == ExecutionStatus.TERMINAL) {
           setStopStatus(chunkContext, ExitStatus.FAILED, result.status)
           // cancel execution which will halt any parallel branches and run
-          // cancellation routines hopefully leaving clusters in a good state
+          // cancellation routines
           executionRepository.cancel(stage.execution.id)
         }
 
