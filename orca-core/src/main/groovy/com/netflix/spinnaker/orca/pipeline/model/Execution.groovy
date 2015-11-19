@@ -88,12 +88,12 @@ abstract class Execution<T> implements Serializable {
   }
 
   ExecutionStatus getStatus() {
-    if (canceled) {
-      return CANCELED
-    }
-
     if (version > 1) {
       return executionStatus
+    }
+
+    if (canceled) {
+      return CANCELED
     }
 
     if (stages.status.any { it == TERMINAL }) {

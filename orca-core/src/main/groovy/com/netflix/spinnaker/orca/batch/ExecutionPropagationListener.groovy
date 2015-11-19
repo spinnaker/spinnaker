@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundExceptio
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.listener.JobExecutionListenerSupport
@@ -73,18 +74,25 @@ class ExecutionPropagationListener extends JobExecutionListenerSupport implement
     def id = executionId(jobExecution)
 
     def orcaTaskStatus
-    if (executionRepository.isCanceled(id)) {
-      orcaTaskStatus = CANCELED
-    } else if (jobExecution.failureExceptions) {
+    if (jobExecution.failureExceptions) {
       orcaTaskStatus = TERMINAL
     } else {
       def stepExecutions = new ArrayList<StepExecution>(jobExecution.stepExecutions).sort { it.lastUpdated }.reverse()
       def stepExecution = stepExecutions.find { it.status == jobExecution.status } ?: stepExecutions[0]
-      orcaTaskStatus = stepExecution?.executionContext?.get("orcaTaskStatus") as ExecutionStatus ?: TERMINAL
+      orcaTaskStatus = stepExecution?.executionContext?.get("orcaTaskStatus") as ExecutionStatus
+    }
+
+    if (executionRepository.isCanceled(id) && orcaTaskStatus != TERMINAL) {
+      orcaTaskStatus = CANCELED
+      jobExecution.exitStatus = ExitStatus.STOPPED
     }
 
     if (orcaTaskStatus == STOPPED) {
       orcaTaskStatus = SUCCEEDED
+    }
+
+    if (!orcaTaskStatus) {
+      orcaTaskStatus = TERMINAL
     }
 
     executionRepository.updateStatus(id, orcaTaskStatus)

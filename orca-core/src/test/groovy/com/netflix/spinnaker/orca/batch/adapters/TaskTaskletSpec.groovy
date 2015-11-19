@@ -34,7 +34,6 @@ import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
 import org.springframework.batch.repeat.RepeatStatus
 import redis.clients.jedis.Jedis
-import redis.clients.jedis.JedisPool
 import redis.clients.util.Pool
 import spock.lang.*
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
@@ -108,7 +107,6 @@ class TaskTaskletSpec extends Specification {
 
     then:
     0 * task.execute(_)
-    chunkContext.stepContext.stepExecution.terminateOnly == taskStatus.halt
     chunkContext.stepContext.stepExecution.exitStatus == (taskStatus.halt ? taskStatus.exitStatus : ExitStatus.EXECUTING)
 
     where:

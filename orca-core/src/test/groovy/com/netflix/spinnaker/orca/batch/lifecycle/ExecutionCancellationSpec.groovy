@@ -33,7 +33,7 @@ import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initia
 class ExecutionCancellationSpec extends AbstractBatchLifecycleSpec {
   def startTask = Mock(Task)
   def endTask = Mock(Task)
-  def detailsTask = Mock(Task) {
+  def detailsTask = Stub(Task) {
     execute(_) >> { new DefaultTaskResult(ExecutionStatus.SUCCEEDED ) }
   }
 
