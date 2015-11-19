@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
+import java.util.concurrent.atomic.AtomicInteger
 import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.JsonNode
@@ -28,9 +29,6 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import groovy.transform.CompileStatic
 import groovy.transform.ToString
-
-import java.util.concurrent.atomic.AtomicInteger
-
 import static ExecutionStatus.NOT_STARTED
 import static java.util.Collections.EMPTY_MAP
 
@@ -43,6 +41,9 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
   Long startTime
   Long endTime
   ExecutionStatus status = NOT_STARTED
+  void setStatus(ExecutionStatus status) {
+    this.status = status
+  }
   @JsonBackReference
   T execution
   Map<String, Object> context = [:]

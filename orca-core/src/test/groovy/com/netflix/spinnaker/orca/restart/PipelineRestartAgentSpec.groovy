@@ -108,7 +108,7 @@ class PipelineRestartAgentSpec extends Specification {
     where:
     status = CANCELED
     instanceId = "i-06ce57cd"
-    pipeline = new Pipeline(id: "pipeline1", executingInstance: instanceId, canceled: true)
+    pipeline = new Pipeline(id: "pipeline1", executingInstance: instanceId, canceled: true, status: status)
   }
 
   def "if the executing instance is in discovery it is assumed to still be running the pipeline"() {

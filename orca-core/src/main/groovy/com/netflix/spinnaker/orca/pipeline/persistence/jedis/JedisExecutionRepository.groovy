@@ -1,11 +1,5 @@
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
-import com.netflix.spinnaker.orca.batch.StageBuilder
-import com.netflix.spinnaker.orca.pipeline.LinearStage
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
-import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import redis.clients.jedis.Response
-
 import java.util.function.Function
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -16,6 +10,8 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -25,6 +21,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.stereotype.Component
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCommands
+import redis.clients.jedis.Response
 import redis.clients.util.Pool
 import rx.Observable
 import rx.Scheduler
@@ -40,8 +37,7 @@ import static java.lang.System.currentTimeMillis
 class JedisExecutionRepository implements ExecutionRepository {
 
   private static final TypeReference<List<Task>> LIST_OF_TASKS = new TypeReference<List<Task>>() {}
-  private static final TypeReference<Map<String, Object>> MAP_STRING_TO_OBJECT = new TypeReference<Map<String, Object>>() {
-  }
+  private static final TypeReference<Map<String, Object>> MAP_STRING_TO_OBJECT = new TypeReference<Map<String, Object>>() {}
   private final Pool<Jedis> jedisPool
   private final ObjectMapper mapper = new OrcaObjectMapper()
   private final int chunkSize
@@ -120,18 +116,12 @@ class JedisExecutionRepository implements ExecutionRepository {
       } else {
         throw new ExecutionNotFoundException("No execution found with id $id")
       }
-      if (isNewSchemaVersion(jedis, key)) {
-        def data = [canceled: "true"]
-        def currentStatus = ExecutionStatus.valueOf(jedis.hget(key, "status"))
-        if (currentStatus == ExecutionStatus.NOT_STARTED) {
-          data.status = ExecutionStatus.CANCELED.name()
-        }
-        jedis.hmset(key, data)
-      } else {
-        def data = mapper.readValue(jedis.hget(key, "config"), Map)
-        data.canceled = "true"
-        jedis.hset(key, "config", mapper.writeValueAsString(data))
+      def data = [canceled: "true"]
+      def currentStatus = ExecutionStatus.valueOf(jedis.hget(key, "status"))
+      if (currentStatus == ExecutionStatus.NOT_STARTED) {
+        data.status = ExecutionStatus.CANCELED.name()
       }
+      jedis.hmset(key, data)
     }
   }
 
@@ -146,18 +136,13 @@ class JedisExecutionRepository implements ExecutionRepository {
       } else {
         throw new ExecutionNotFoundException("No execution found with id $id")
       }
-      if (isNewSchemaVersion(jedis, key)) {
-        Boolean.valueOf(jedis.hget(key, "canceled"))
-      } else {
-        def data = mapper.readValue(jedis.hget(key, "config"), Map)
-        Boolean.valueOf(data.canceled.toString())
-      }
+      Boolean.valueOf(jedis.hget(key, "canceled"))
     }
   }
 
   @Override
   void updateStatus(String id, ExecutionStatus status) {
-    withJedis {Jedis jedis->
+    withJedis { Jedis jedis ->
       String key
       if (jedis.exists("pipeline:$id")) {
         key = "pipeline:$id"
@@ -166,22 +151,14 @@ class JedisExecutionRepository implements ExecutionRepository {
       } else {
         throw new ExecutionNotFoundException("No execution found with id $id")
       }
-      if (isNewSchemaVersion(jedis, key)) {
-        Map<String, String> map = [status: status.name()]
-        if (status == ExecutionStatus.RUNNING) {
-          map.startTime = String.valueOf(currentTimeMillis())
-        } else if (status.complete) {
-          map.endTime = String.valueOf(currentTimeMillis())
-        }
-        jedis.hmset(key, map)
-      } else {
-        // TODO: is a no-op the right thing here? Old version derives status from stages.
+      Map<String, String> map = [status: status.name()]
+      if (status == ExecutionStatus.RUNNING) {
+        map.startTime = String.valueOf(currentTimeMillis())
+      } else if (status.complete) {
+        map.endTime = String.valueOf(currentTimeMillis())
       }
+      jedis.hmset(key, map)
     }
-  }
-
-  boolean isNewSchemaVersion(JedisCommands jedis, String key) {
-    !jedis.hexists(key, "config")
   }
 
   @Override
@@ -243,7 +220,9 @@ class JedisExecutionRepository implements ExecutionRepository {
         def allowedExecutionStatuses = criteria.statuses*.toString() as Set<String>
 
         def pipeline = jedis.pipelined()
-        def fetches = pipelineKeys.collect { pipeline.hget("pipeline:${it}" as String, "status") }
+        def fetches = pipelineKeys.collect {
+          pipeline.hget("pipeline:${it}" as String, "status")
+        }
         pipeline.sync()
 
         fetches.eachWithIndex { Response<String> entry, int index ->
@@ -297,7 +276,9 @@ class JedisExecutionRepository implements ExecutionRepository {
         def allowedExecutionStatuses = criteria.statuses*.toString() as Set<String>
 
         def pipeline = jedis.pipelined()
-        def fetches = orchestrationKeys.collect { pipeline.hget("orchestration:${it}" as String, "status") }
+        def fetches = orchestrationKeys.collect {
+          pipeline.hget("orchestration:${it}" as String, "status")
+        }
         pipeline.sync()
 
         fetches.eachWithIndex { Response<String> entry, int index ->
@@ -330,43 +311,37 @@ class JedisExecutionRepository implements ExecutionRepository {
 
     String key = "${prefix}:$execution.id"
 
-    if (!jedis.exists(key) || isNewSchemaVersion(jedis, key)) {
-      Map<String, String> map = [
-        version          : String.valueOf(execution.version ?: 2),
-        application      : execution.application,
-        appConfig        : mapper.writeValueAsString(execution.appConfig),
-        canceled         : String.valueOf(execution.canceled),
-        parallel         : String.valueOf(execution.parallel),
-        limitConcurrent  : String.valueOf(execution.limitConcurrent),
-        buildTime        : Long.toString(execution.buildTime ?: 0L),
-        // TODO: modify these lines once we eliminate dynamic time properties
-        startTime        : (execution.executionStartTime ?: execution.startTime)?.toString(),
-        endTime          : (execution.executionEndTime ?: execution.endTime)?.toString(),
-        executingInstance: execution.executingInstance,
-        status           : execution.executionStatus?.name(),
-        authentication   : mapper.writeValueAsString(execution.authentication)
-      ]
-      // TODO: store separately? Seems crazy to be using a hash rather than a set
-      map.stageIndex = execution.stages.id.join(",")
-      execution.stages.each { stage ->
-        map.putAll(serializeStage(stage))
-      }
-      if (execution instanceof Pipeline) {
-        map.name = execution.name
-        map.pipelineConfigId = execution.pipelineConfigId
-        map.trigger = mapper.writeValueAsString(execution.trigger)
-        map.notifications = mapper.writeValueAsString(execution.notifications)
-        map.initialConfig = mapper.writeValueAsString(execution.initialConfig)
-      } else if (execution instanceof Orchestration) {
-        map.description = execution.description
-      }
-
-      jedis.hdel(key, "config")
-      jedis.hmset(key, filterValues(map, notNull()))
-    } else {
-      execution.version = 1
-      jedis.hset(key, "config", mapper.writeValueAsString(execution))
+    Map<String, String> map = [
+      application      : execution.application,
+      appConfig        : mapper.writeValueAsString(execution.appConfig),
+      canceled         : String.valueOf(execution.canceled),
+      parallel         : String.valueOf(execution.parallel),
+      limitConcurrent  : String.valueOf(execution.limitConcurrent),
+      buildTime        : Long.toString(execution.buildTime ?: 0L),
+      // TODO: modify these lines once we eliminate dynamic time properties
+      startTime        : (execution.startTime ?: execution.startTime)?.toString(),
+      endTime          : (execution.endTime ?: execution.endTime)?.toString(),
+      executingInstance: execution.executingInstance,
+      status           : execution.status?.name(),
+      authentication   : mapper.writeValueAsString(execution.authentication)
+    ]
+    // TODO: store separately? Seems crazy to be using a hash rather than a set
+    map.stageIndex = execution.stages.id.join(",")
+    execution.stages.each { stage ->
+      map.putAll(serializeStage(stage))
     }
+    if (execution instanceof Pipeline) {
+      map.name = execution.name
+      map.pipelineConfigId = execution.pipelineConfigId
+      map.trigger = mapper.writeValueAsString(execution.trigger)
+      map.notifications = mapper.writeValueAsString(execution.notifications)
+      map.initialConfig = mapper.writeValueAsString(execution.initialConfig)
+    } else if (execution instanceof Orchestration) {
+      map.description = execution.description
+    }
+
+    jedis.hdel(key, "config")
+    jedis.hmset(key, filterValues(map, notNull()))
   }
 
   private Map<String, String> serializeStage(Stage stage) {
@@ -397,23 +372,10 @@ class JedisExecutionRepository implements ExecutionRepository {
   private <T extends Execution> T retrieveInternal(Jedis jedis, Class<T> type, String id) throws ExecutionNotFoundException {
     def prefix = type.simpleName.toLowerCase()
     def key = "$prefix:$id"
-    if (!isNewSchemaVersion(jedis, key)) {
-      def json = jedis.hget(key, "config")
-      def execution = mapper.readValue(json, type)
-      execution.version = 1
-      // PATCH to handle https://jira.netflix.com/browse/SPIN-784
-      def originalStageCount = execution.stages.size()
-      execution.stages = execution.stages.unique({ it.id })
-      if (execution.stages.size() != originalStageCount) {
-        log.warn(
-          "Pipeline ${id} has duplicate stages (original count: ${originalStageCount}, unique count: ${execution.stages.size()})")
-      }
-      return sortStages(jedis, execution, type)
-    } else if (jedis.exists(key)) {
+    if (jedis.exists(key)) {
       Map<String, String> map = jedis.hgetAll(key)
       def execution = type.newInstance()
       execution.id = id
-      execution.version = Integer.parseInt(map.version ?: "${type instanceof Pipeline ? Pipeline.CURRENT_VERSION : Orchestration.CURRENT_VERSION}")
       execution.application = map.application
       execution.appConfig.putAll(mapper.readValue(map.appConfig, Map))
       execution.context.putAll(map.context ? mapper.readValue(map.context, Map) : [:])
@@ -421,10 +383,10 @@ class JedisExecutionRepository implements ExecutionRepository {
       execution.parallel = Boolean.parseBoolean(map.parallel)
       execution.limitConcurrent = Boolean.parseBoolean(map.limitConcurrent)
       execution.buildTime = map.buildTime?.toLong()
-      execution.executionStartTime = map.startTime?.toLong()
-      execution.executionEndTime = map.endTime?.toLong()
+      execution.startTime = map.startTime?.toLong()
+      execution.endTime = map.endTime?.toLong()
       execution.executingInstance = map.executingInstance
-      execution.executionStatus = map.status ? ExecutionStatus.valueOf(map.status) : null
+      execution.status = map.status ? ExecutionStatus.valueOf(map.status) : null
       execution.authentication = mapper.readValue(map.authentication, Execution.AuthenticationDetails)
       def stageIds = map.stageIndex.tokenize(",")
       stageIds.each { stageId ->
@@ -467,8 +429,12 @@ class JedisExecutionRepository implements ExecutionRepository {
   private <T extends Execution> T sortStages(JedisCommands jedis, T execution, Class<T> type) {
     List<Stage<T>> reorderedStages = []
 
-    def childStagesByParentStageId = execution.stages.findAll { it.parentStageId != null }.groupBy { it.parentStageId }
-    execution.stages.findAll { it.parentStageId == null }.each { Stage<T> parentStage ->
+    def childStagesByParentStageId = execution.stages.findAll {
+      it.parentStageId != null
+    }.groupBy { it.parentStageId }
+    execution.stages.findAll {
+      it.parentStageId == null
+    }.each { Stage<T> parentStage ->
       reorderedStages << parentStage
 
       def children = childStagesByParentStageId[parentStage.id] ?: []
@@ -479,8 +445,12 @@ class JedisExecutionRepository implements ExecutionRepository {
       }
     }
 
-    List<Stage<T>> retrievedStages = retrieveStages(jedis, type, reorderedStages.collect { it.id })
-    def retrievedStagesById = retrievedStages.findAll { it?.id }.groupBy { it.id } as Map<String, Stage>
+    List<Stage<T>> retrievedStages = retrieveStages(jedis, type, reorderedStages.collect {
+      it.id
+    })
+    def retrievedStagesById = retrievedStages.findAll { it?.id }.groupBy {
+      it.id
+    } as Map<String, Stage>
     execution.stages = reorderedStages.collect {
       def explicitStage = retrievedStagesById[it.id] ? retrievedStagesById[it.id][0] : it
       explicitStage.execution = execution

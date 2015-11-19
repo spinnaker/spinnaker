@@ -86,8 +86,8 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
   def "can retrieve pipelines by status"() {
     given:
-    def runningExecution = new Pipeline(executionStatus: RUNNING, pipelineConfigId: "pipeline-1", buildTime: 0)
-    def succeededExecution = new Pipeline(executionStatus: SUCCEEDED, pipelineConfigId: "pipeline-1", buildTime: 0)
+    def runningExecution = new Pipeline(status: RUNNING, pipelineConfigId: "pipeline-1", buildTime: 0)
+    def succeededExecution = new Pipeline(status: SUCCEEDED, pipelineConfigId: "pipeline-1", buildTime: 0)
 
     when:
     repository.store(runningExecution)
@@ -118,8 +118,8 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
   def "can retrieve orchestrations by status"() {
     given:
-    def runningExecution = new Orchestration(executionStatus: RUNNING, buildTime: 0, application: "application")
-    def succeededExecution = new Orchestration(executionStatus: SUCCEEDED, buildTime: 0, application: "application")
+    def runningExecution = new Orchestration(status: RUNNING, buildTime: 0, application: "application")
+    def succeededExecution = new Orchestration(status: SUCCEEDED, buildTime: 0, application: "application")
 
     when:
     repository.store(runningExecution)
@@ -267,7 +267,6 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     expect:
     with (repository."retrieve$type"(execution.id)) {
       startTime == null
-      executionStartTime == null
     }
 
     when:
@@ -275,8 +274,8 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     then:
     with(repository."retrieve$type"(execution.id)) {
-      executionStatus == RUNNING
-      executionStartTime != null
+      status == RUNNING
+      startTime != null
     }
 
     where:
@@ -291,7 +290,6 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     expect:
     with (repository."retrieve$type"(execution.id)) {
       endTime == null
-      executionEndTime == null
     }
 
     when:
@@ -299,8 +297,8 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     then:
     with(repository."retrieve$type"(execution.id)) {
-      executionStatus == status
-      executionEndTime != null
+      status == status
+      endTime != null
     }
 
     where:
@@ -320,7 +318,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     expect:
     with(repository.retrievePipeline(execution.id)) {
-      executionStatus == NOT_STARTED
+      status == NOT_STARTED
     }
 
     when:
@@ -330,7 +328,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     then:
     with(repository.retrievePipeline(execution.id)) {
       canceled
-      executionStatus == CANCELED
+      status == CANCELED
     }
   }
 
@@ -342,7 +340,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     expect:
     with(repository.retrievePipeline(execution.id)) {
-      executionStatus == RUNNING
+      status == RUNNING
     }
 
     when:
@@ -352,7 +350,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     then:
     with(repository.retrievePipeline(execution.id)) {
       canceled
-      executionStatus == RUNNING
+      status == RUNNING
     }
   }
 }

@@ -68,7 +68,7 @@ class ParallelCompletionSpec extends Specification {
     with(repository.retrievePipeline(id)) {
       status == failureStatus
       stages.find { it.name == failAtStage }.status == failureStatus
-      stages.find { it.name == "${otherBranch}1" }.status == CANCELED
+      stages.find { it.name == stageThatShouldGetCanceled }.status == CANCELED
       stages.find { it.name == "A2" }.status == NOT_STARTED
       stages.find { it.name == "B2" }.status == NOT_STARTED
       stages.find { it.name == "B3" }.status == NOT_STARTED
@@ -76,10 +76,12 @@ class ParallelCompletionSpec extends Specification {
     }
 
     where:
-    failAtStage << ["A1", "B1"]
-    failureStatus = TERMINAL
+    failAtStage | stageThatShouldGetCanceled
+    "A1"        | "B1"
+    "B1"        | "A1"
+
     branch = failAtStage.substring(0, 1)
-    otherBranch = branch == "A" ? "B" : "A"
+    failureStatus = TERMINAL
   }
 
   @Shared pipelineDefinition = [

@@ -21,8 +21,6 @@ import groovy.transform.CompileStatic
 
 @CompileStatic
 class Pipeline extends Execution<Pipeline> {
-  static final int CURRENT_VERSION = 2
-
   String application
   String name
   String pipelineConfigId
@@ -95,7 +93,6 @@ class Pipeline extends Execution<Pipeline> {
     Pipeline build() {
       pipeline.buildTime = System.currentTimeMillis()
       pipeline.authentication = Execution.AuthenticationDetails.build().orElse(new Execution.AuthenticationDetails())
-      pipeline.version = CURRENT_VERSION
 
       pipeline
     }

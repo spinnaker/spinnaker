@@ -21,12 +21,11 @@ import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileStatic
-import static com.netflix.spinnaker.orca.ExecutionStatus.*
+import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 
 @CompileStatic
 abstract class Execution<T> implements Serializable {
   String id
-  Integer version
   String application
   String executingInstance
 
@@ -40,9 +39,9 @@ abstract class Execution<T> implements Serializable {
   final Map<String, Object> context = [:]
   List<Stage<T>> stages = []
 
-  Long executionStartTime
-  Long executionEndTime
-  ExecutionStatus executionStatus = NOT_STARTED
+  Long startTime
+  Long endTime
+  ExecutionStatus status = NOT_STARTED
 
   AuthenticationDetails authentication
 
@@ -54,82 +53,6 @@ abstract class Execution<T> implements Serializable {
   Stage namedStage(String type) {
     stages.find {
       it.type == type
-    }
-  }
-
-  Long getStartTime() {
-    if (version > 1) {
-      return executionStartTime
-    }
-    Long startTime = stages ? stages.first().startTime : null
-    if (!startTime && stages.find { it.startTime != null }) {
-      startTime = stages.findAll { it.startTime != null }.collect { it.startTime }.sort {}.get(0)
-    }
-    startTime
-  }
-
-  Long getEndTime() {
-    if (version > 1) {
-      return executionEndTime
-    }
-    if (stages && getStartTime()) {
-      if (stages.every { it.endTime }) {
-        return stages.endTime.max()
-      } else {
-        return stages.findAll {
-          it.status.halt
-        }.collect {
-          it.endTime
-        }.max()
-      }
-    } else {
-      return null
-    }
-  }
-
-  ExecutionStatus getStatus() {
-    if (version > 1) {
-      return executionStatus
-    }
-
-    if (canceled) {
-      return CANCELED
-    }
-
-    if (stages.status.any { it == TERMINAL }) {
-      return TERMINAL
-    }
-
-    if (stages.status.any { it == FAILED }) {
-      return FAILED
-    }
-
-    List<Stage<T>> nonEmptyStages = stages.findAll {
-      it.tasks.size() > 0
-    } as List
-
-    if (!nonEmptyStages) {
-      return NOT_STARTED
-    }
-
-    if (nonEmptyStages.status.every { it == SUCCEEDED }) {
-      return SUCCEEDED
-    }
-
-    if (nonEmptyStages.status.any { it == RUNNING }) {
-      return RUNNING
-    }
-
-    def lastStartedStatus = nonEmptyStages.status.reverse().find {
-      it != NOT_STARTED
-    }
-
-    if (!lastStartedStatus) {
-      NOT_STARTED
-    } else if (lastStartedStatus == SUCCEEDED && nonEmptyStages.status.reverse().find { it != SUCCEEDED }) {
-      return nonEmptyStages.status.any { it == SUSPENDED } ? SUSPENDED : RUNNING
-    } else {
-      lastStartedStatus
     }
   }
 

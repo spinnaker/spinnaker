@@ -18,14 +18,10 @@ package com.netflix.spinnaker.orca.batch.pipeline
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.ExecutionJobBuilder
-import com.netflix.spinnaker.orca.pipeline.ExecutionStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
-import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import org.springframework.batch.core.JobExecutionListener
 import org.springframework.batch.core.configuration.support.MapJobRegistry
 import org.springframework.batch.core.job.SimpleJob
@@ -148,11 +144,6 @@ class PipelineStarterSpec extends Specification {
       @Override
       protected Pipeline create(Map config) {
         def pipeline = new Pipeline()
-        pipeline.stages << new PipelineStage(pipeline, "bake")
-        pipeline.stages.each {
-          it.tasks << new DefaultTask()
-          it.status = executionStatus
-        }
         pipeline.id = "ID"
         if (config.id) {
           pipeline.pipelineConfigId = config.id
@@ -160,6 +151,7 @@ class PipelineStarterSpec extends Specification {
         if (config.limitConcurrent) {
           pipeline.limitConcurrent = config.limitConcurrent
         }
+        pipeline.status = executionStatus
         return pipeline
       }
     }

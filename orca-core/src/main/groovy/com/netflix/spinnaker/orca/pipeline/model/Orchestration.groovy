@@ -20,7 +20,5 @@ import groovy.transform.CompileStatic
 
 @CompileStatic
 class Orchestration extends Execution<Orchestration> {
-  static final int CURRENT_VERSION = 2
-
   String description
 }
