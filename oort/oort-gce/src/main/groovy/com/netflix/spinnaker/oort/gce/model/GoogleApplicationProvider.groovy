@@ -49,7 +49,7 @@ class GoogleApplicationProvider implements ApplicationProvider {
   }
 
   @Override
-  Set<GoogleApplication> getApplications() {
+  Set<GoogleApplication> getApplications(boolean expand) {
     applications.record({
       Collections.unmodifiableSet(googleResourceRetriever.getApplicationsMap().values() as Set)
     } as Callable<Set<GoogleApplication>>)

@@ -47,7 +47,7 @@ class CloudFoundryApplicationProvider implements ApplicationProvider {
   }
 
   @Override
-  Set<? extends Application> getApplications() {
+  Set<? extends Application> getApplications(boolean expand) {
     applications.record({
       Collections.unmodifiableSet(
         cloudFoundryResourceRetriever.applicationByName.values() as Set)

@@ -43,11 +43,11 @@ class ApplicationControllerSpec extends Specification {
     applicationsController.applicationProviders = [appProvider1, appProvider2]
 
     when:
-    applicationsController.list()
+    applicationsController.list(false)
 
     then:
-    1 * appProvider1.getApplications()
-    1 * appProvider2.getApplications()
+    1 * appProvider1.getApplications(false)
+    1 * appProvider2.getApplications(false)
   }
 
   Should "merge clusterNames and attributes when multiple apps are found"() {

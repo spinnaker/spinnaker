@@ -27,8 +27,8 @@ import com.netflix.spinnaker.oort.titan.model.TitanApplication
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import static Keys.Namespace.APPLICATIONS
-import static Keys.Namespace.CLUSTERS
+import static com.netflix.spinnaker.oort.titan.caching.Keys.Namespace.APPLICATIONS
+import static com.netflix.spinnaker.oort.titan.caching.Keys.Namespace.CLUSTERS
 
 @Component
 class TitanApplicationProvider implements ApplicationProvider {
@@ -43,7 +43,7 @@ class TitanApplicationProvider implements ApplicationProvider {
   }
 
   @Override
-  Set<Application> getApplications() {
+  Set<Application> getApplications(boolean expand) {
     Collection<CacheData> applications = cacheView.getAll(APPLICATIONS.ns, RelationshipCacheFilter.include(CLUSTERS.ns))
     applications.collect this.&translate
   }

@@ -54,7 +54,7 @@ class GoogleApplicationProviderSpec extends Specification {
       appMap[appName2] = app2
 
     when:
-      def resultSet = applicationProvider.getApplications()
+      def resultSet = applicationProvider.getApplications(true)
 
     then:
       1 * resourceRetrieverMock.getApplicationsMap() >> appMap
