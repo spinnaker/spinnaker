@@ -27,21 +27,25 @@ module.exports = angular
     require('./serverGroup/diff/securityGroupDiff.directive.js'),
     require('./serverGroup/networking/networking.module.js'),
     require('./report/reservationReport.directive.js'),
+
+    require('../core/config/settings.js'),
   ])
-  .run(function(cloudProviderRegistry) {
-    cloudProviderRegistry.overrideValue(
-      'aws',
-      'instance.detailsTemplateUrl',
-      require('./instance/aws/instanceDetails.html')
-    );
-    cloudProviderRegistry.overrideValue(
-      'aws',
-      'instance.detailsController',
-      'netflixAwsInstanceDetailsCtrl'
-    );
-    cloudProviderRegistry.overrideValue(
-      'aws',
-      'serverGroup.detailsTemplateUrl',
-      require('./serverGroup/awsServerGroupDetails.html')
-    );
+  .run(function(cloudProviderRegistry, settings) {
+    if (settings.feature && settings.feature.netflixMode) {
+      cloudProviderRegistry.overrideValue(
+        'aws',
+        'instance.detailsTemplateUrl',
+        require('./instance/aws/instanceDetails.html')
+      );
+      cloudProviderRegistry.overrideValue(
+        'aws',
+        'instance.detailsController',
+        'netflixAwsInstanceDetailsCtrl'
+      );
+      cloudProviderRegistry.overrideValue(
+        'aws',
+        'serverGroup.detailsTemplateUrl',
+        require('./serverGroup/awsServerGroupDetails.html')
+      );
+    }
   }).name;

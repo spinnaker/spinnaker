@@ -37,20 +37,25 @@ module.exports = angular.module('spinnaker.core.cache.initializer', [
       Object.keys(cacheConfig).forEach((key) => {
         setConfigDefaults(key, cacheConfig[key]);
       });
-      cloudProviderRegistry.listRegisteredProviders().forEach((provider) => {
-        if (serviceDelegate.hasDelegate(provider, 'cache.configurer')) {
-          let providerConfig = serviceDelegate.getDelegate(provider, 'cache.configurer');
-          Object.keys(providerConfig).forEach(function(key) {
-            setConfigDefaults(key, providerConfig[key]);
-            if (!cacheConfig[key]) {
-              cacheConfig[key] = providerConfig[key];
-            }
-            cacheConfig[key].initializers = _.uniq((cacheConfig[key].initializers).concat(providerConfig[key].initializers));
-            cacheConfig[key].onReset = _.uniq((cacheConfig[key].onReset).concat(providerConfig[key].onReset));
-            cacheConfig[key].version = Math.max(cacheConfig[key].version, providerConfig[key].version);
-            cacheConfig[key].maxAge = Math.min(cacheConfig[key].maxAge, providerConfig[key].maxAge);
-          });
-        }
+      accountService.listProviders().then((availableProviders) => {
+        cloudProviderRegistry.listRegisteredProviders().forEach((provider) => {
+          if (availableProviders.indexOf(provider) < 0) {
+            return;
+          }
+          if (serviceDelegate.hasDelegate(provider, 'cache.configurer')) {
+            let providerConfig = serviceDelegate.getDelegate(provider, 'cache.configurer');
+            Object.keys(providerConfig).forEach(function(key) {
+              setConfigDefaults(key, providerConfig[key]);
+              if (!cacheConfig[key]) {
+                cacheConfig[key] = providerConfig[key];
+              }
+              cacheConfig[key].initializers = _.uniq((cacheConfig[key].initializers).concat(providerConfig[key].initializers));
+              cacheConfig[key].onReset = _.uniq((cacheConfig[key].onReset).concat(providerConfig[key].onReset));
+              cacheConfig[key].version = Math.max(cacheConfig[key].version, providerConfig[key].version);
+              cacheConfig[key].maxAge = Math.min(cacheConfig[key].maxAge, providerConfig[key].maxAge);
+            });
+          }
+        });
       });
     }
 
