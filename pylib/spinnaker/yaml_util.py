@@ -136,6 +136,46 @@ class YamlBindings(object):
 
     return ''.join(result)
 
+  def transform_yaml_source(self, source, key):
+    """Transform the given yaml source so its value of key matches the binding.
+
+    Has no effect if key is not among the bindings.
+    But raises a KeyError if it is in the bindings but not in the source.
+
+    Args:
+      source [string]: A YAML document
+      key [string]: A key into the bindings.
+
+    Returns:
+      Transformed source with value of key replaced to match the bindings.
+    """
+    try:
+      value = self.get(key)
+    except KeyError:
+      return source
+
+    parts = key.split('.')
+    offset = 0
+    s = source
+    for attr in parts:
+        match = re.search('^ *{attr}:(.*)'.format(attr=attr), s, re.MULTILINE)
+        if not match:
+            raise ValueError(
+                'Could not find {key}. Failed on {attr} at {offset}'
+                .format(key=key, attr=attr, offset=offset))
+        offset += match.start(0)
+        s = source[offset:]
+
+    offset -= match.start(0)
+    value_start = match.start(1) + offset
+    value_end = match.end(0) + offset
+    return ''.join([
+        source[0:value_start],
+        ' {value}'.format(value=value),
+        source[value_end:]
+    ])
+
+
 def load_bindings(installed_config_dir, user_config_dir, only_if_local=False):
     user_local_yml_path = os.path.join(user_config_dir, 'spinnaker-local.yml')
     install_local_yml_path = os.path.join(installed_config_dir,
