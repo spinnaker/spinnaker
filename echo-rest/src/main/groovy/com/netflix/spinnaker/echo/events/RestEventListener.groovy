@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.echo.events
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.echo.config.RestUrls
 import com.netflix.spinnaker.echo.model.Event
-import com.netflix.spinnaker.echo.rest.RestService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -37,17 +37,30 @@ class RestEventListener implements EchoEventListener {
   ObjectMapper mapper = new ObjectMapper()
 
   @Autowired
-  RestService restService
+  RestUrls restUrls
 
-  @Value('${rest.eventName:spinnaker_events}')
+  @Value('${rest.defaultEventName:spinnaker_events}')
   String eventName
+
+  @Value('${rest.defaultFieldName:payload}')
+  String fieldName
 
   @Override
   void processEvent(Event event) {
     Map eventAsMap = mapper.convertValue(event, Map)
-    restService.recordEvent([
-      "eventName": eventName,
-      "payload"  : eventAsMap
-    ])
+    restUrls.services.each { service ->
+      try {
+        Map sentEvent = eventAsMap
+        if (service.config.wrap) {
+          sentEvent = [
+            "eventName": "${service.config.eventName ?: eventName}",
+          ]
+          sentEvent["${service.config.fieldName ?: fieldName}" as String] = eventAsMap
+        }
+        service.client.recordEvent(sentEvent)
+      } catch (e) {
+        log.error("Could not send event ${eventAsMap} to ${service.url}")
+      }
+    }
   }
 }
