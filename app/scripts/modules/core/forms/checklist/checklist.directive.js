@@ -54,13 +54,37 @@ module.exports = angular.module('spinnaker.core.forms.checklist.checklist.direct
           }
         }
 
-        scope.selectAll = function () {
+        function allItemsSelected() {
+          var allSelected = true;
           scope.items.forEach(function (key) {
-            scope.modelHolder[key] = true;
+            if (!scope.modelHolder[key]) {
+              allSelected = false;
+            }
           });
+          return allSelected;
+        }
+
+        scope.selectAllOrNone = function () {
+          if (allItemsSelected()) {
+            scope.items.forEach(function (key) {
+              scope.modelHolder[key] = false;
+            });
+          } else {
+            scope.items.forEach(function (key) {
+              scope.modelHolder[key] = true;
+            });
+          }
           updateModel();
         };
 
+        scope.selectButtonText = function () {
+          if (allItemsSelected()) {
+            return 'Deselect All';
+          }
+          return 'Select All';
+        };
+
+        scope.allItemsSelected = allItemsSelected;
         scope.updateModel = updateModel;
 
         scope.$watch('model', initializeModelHolder);
