@@ -52,11 +52,14 @@
 # security).
 
 # Standard python modules.
+import base64
 import json
 import logging
 import os
 import os.path
 import re
+import tarfile
+from StringIO import StringIO
 
 import citest.gcp_testing.gce_util as gce_util
 import citest.service_testing as service_testing
@@ -64,6 +67,14 @@ import citest.gcp_testing as gcp
 
 import spinnaker_testing.yaml_util as yaml_util
 
+
+def name_value_to_dict(content):
+    result = {}
+    for match in re.finditer('^([A-Za-z_][A-Za-z0-9_]*) *= *([^#]*)',
+                             content,
+                             re.MULTILINE):
+        result[match.group(1)] = match.group(2).strip()
+    return result
 
 class SpinnakerStatus(service_testing.HttpOperationStatus):
   """Provides access to Spinnaker's asynchronous task status.
@@ -339,47 +350,6 @@ class SpinnakerAgent(service_testing.HttpAgent):
             else self.__default_status_factory(operation, http_response))
 
   @staticmethod
-  def _get_gce_config_file_contents(gcloud, instance):
-    """Return the contents of the spinnaker configuration file.
-
-    Args:
-      gcloud: Specifies project and zone. Capable of remote fetching if needed.
-      instance: The GCE instance name containing the configuration file.
-
-    Returns:
-      None or the configuration file contents.
-    """
-    logger = logging.getLogger(__name__)
-    if gce_util.am_i(gcloud.project, gcloud.zone, instance):
-      config_file = os.path.expanduser('~/.spinnaker/spinnaker_config.cfg')
-      logger.debug('We are the instance. Config from %s', config_file)
-      try:
-        with open(config_file, 'r') as f:
-          return '\n'.join(f.readlines())
-      except IOError as e:
-        logger.error('Failed to load from %s: %s', config_file, e)
-        return None
-
-      logger.debug('Load config from instance %s', instance)
-
-    # If this is a production installation, look in /root/.spinnaker
-    # Otherwise look in ~/.spinnaker for a development installation.
-    response = gcloud.remote_command(
-        instance,
-        'if sudo stat /root/.spinnaker/spinnaker_config.cfg >& /dev/null; then'
-        ' sudo cat /root/.spinnaker/spinnaker_config.cfg; '
-        'else '
-        ' cat ~/.spinnaker/spinnaker_config.cfg; '
-        'fi')
-    if response.retcode != 0:
-      logger.error(
-        'Could not determine configuration:\n%s', response.error)
-      return None
-
-    return response.output
-
-
-  @staticmethod
   def _get_deployed_local_yaml_bindings(gcloud, instance):
     """Return the contents of the spinnaker-local.yml configuration file.
 
@@ -409,27 +379,36 @@ class SpinnakerAgent(service_testing.HttpAgent):
 
       logger.debug('Load spinnaker-local.yml from instance %s', instance)
 
-    # If this is a production installation, look in /root/.spinnaker
+    # If this is a production installation, look in:
+    #    /home/spinnaker/.spinnaker
+    # or /opt/spinnaker/config
+    # or /etc/default/spinnaker (name/value)
     # Otherwise look in ~/.spinnaker for a development installation.
     response = gcloud.remote_command(
         instance,
-        'if sudo stat /root/.spinnaker/spinnaker-local.yml >& /dev/null; then'
-        ' sudo cat /root/.spinnaker/spinnaker-local.yml; '
-        'elif sudo stat ~/.spinnaker/spinnaker-local.yml >& /dev/null; then'
-        ' cat ~/.spinnaker/spinnaker-local.yml; '
-        'fi')
+        'LIST=""'
+        '; for i in /etc/default/spinnaker'
+           ' /home/spinnaker/.spinnaker/spinnaker-local.yml'
+           ' /opt/spinnaker/config/spinnaker-local.yml'
+           ' $HOME/.spinnaker/spinnaker-local.yml'
+        '; do'
+            ' if sudo stat $i >& /dev/null; then'
+            '   LIST="$LIST $i"'
+            '; fi'
+        '; done'
+        # tar emits warnings about the absolute paths, so we'll filter them out
+        # We need to base64 the binary results so we return text.
+        '; (sudo tar czf - $LIST 2> /dev/null | base64)')
+
     if response.retcode != 0:
       logger.error(
         'Could not determine configuration:\n%s', response.error)
       return None
 
-    bindings = yaml_util.YamlBindings()
-
-    got = response.output
-
     # gcloud prints an info message about upgrades to the output stream.
     # There seems to be no way to supress this!
     # Look for it and truncate the stream there if we see it.
+    got = response.output
     update_msg_offset = got.find('Updates are available')
     if update_msg_offset > 0:
       got = got[0:update_msg_offset]
@@ -443,7 +422,30 @@ class SpinnakerAgent(service_testing.HttpAgent):
     if not got:
       return None
 
-    bindings.import_string(got)
+    tar = tarfile.open(mode='r', fileobj=StringIO(base64.b64decode(got)))
+    bindings = yaml_util.YamlBindings()
+
+    try:
+        file = tar.extractfile('etc/default/spinnaker')
+    except KeyError:
+        pass
+    else:
+      logger.info('Importing configuration from /etc/default/spinnaker')
+      values = name_value_to_dict(file.read())
+      bindings.import_dict(values)
+        
+    for member in ['home/spinnaker/.spinnaker/spinnaker-local.yml',
+                   'opt/spinnaker/config/spinnaker-local.yml',
+                   os.path.join('home', os.environ['LOGNAME'],
+                                '.spinnaker/spinnaker-local.yml')]:
+        try:
+            file = tar.extractfile(member)
+        except KeyError:
+            continue
+
+        logger.info('Importing configuration from ' + member)
+        bindings.import_string(file.read())
+
     return bindings
 
 
@@ -484,18 +486,4 @@ class SpinnakerAgent(service_testing.HttpAgent):
       logger.debug('Collected configuration from bindings %s', spinnaker_config)
       return spinnaker_config
 
-    contents = SpinnakerAgent._get_gce_config_file_contents(gcloud, instance)
-    if contents == None:
-      return None
-
-    for key in ['GOOGLE_PRIMARY_MANAGED_PROJECT_ID',
-                'GOOGLE_PRIMARY_ACCOUNT_NAME']:
-      m = re.search(key + '=([-\w]+)', contents)
-      if m:
-        spinnaker_config[key] = m.group(1)
-      else:
-        logger.debug(
-          'Seems to be using the default %s=%s', key, spinnaker_config[key])
-
-    logger.debug('Collected old-style configuration %s', spinnaker_config)
-    return spinnaker_config
+    return None
