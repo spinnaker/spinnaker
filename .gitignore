@@ -7,3 +7,6 @@ build/
 #*
 config/spinnaker-local.yml
 .DS_Store
+packer/ami_table.md
+packer/ami_table.json
+packer/example_output.txt
