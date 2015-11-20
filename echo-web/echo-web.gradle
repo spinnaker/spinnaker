@@ -42,7 +42,6 @@ configurations.all {
 dependencies {
     compile project(':echo-core')
     compile project(':echo-model')
-    compile project(':echo-cassandra')
     compile project(':echo-notifications')
     compile project(':echo-pipelinetriggers')
     compile project(':echo-scheduler')
@@ -136,7 +135,7 @@ ospackage {
         fileType = CONFIG | NOREPLACE
     }
 
-}    
+}
 
 
 buildDeb {
