@@ -51,10 +51,7 @@ class StartPipelineTask implements Task {
 
     if (isStrategy) {
       def deploymentDetails = stage.context.deploymentDetails?.collect { Map it ->
-        def base = [ami: it.ami, imageName: it.imageName]
-        if (it.imageId) {
-          base.imageId = it.imageId
-        }
+        def base = [ami: it.ami, imageName: it.imageName, imageId: it.imageId]
         if (it.region) {
           base.region = it.region
         } else if (it.zone) {
@@ -63,7 +60,7 @@ class StartPipelineTask implements Task {
         return base
       } ?: [:]
 
-      if (!deploymentDetails.empty) {
+      if (!deploymentDetails?.isEmpty()) {
         parameters.deploymentDetails = deploymentDetails
         if (!parameters.amiName && (parameters.region || parameters.zone)) {
           def details = deploymentDetails.find { (it.region && it.region == parameters.region) ||
