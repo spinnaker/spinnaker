@@ -93,6 +93,7 @@ function git_clone() {
   else
     git -C $git_project remote add upstream \
         https://github.com/$upstream_user/${git_project}.git
+    git -C $git_project remote set-url --push upstream disabled
   fi
 }
 
@@ -103,20 +104,25 @@ function prepare_git() {
   if [[ -f ~/.git-credentials ]]; then
     GITHUB_USER=$(sed 's/https:\/\/\([^:]\+\):.*@github.com/\1/' ~/.git-credentials)
   else
-    read -p 'Please enter your GitHub User ID: ' GITHUB_USER
-    read -p 'Please enter your GitHub Access Token: ' ACCESS_TOKEN
-    cat <<EOF > ~/.git-credentials
+    GITHUB_USER=""
+    while [[ "$GITHUB_USER" == "" ]]; do
+      read -p 'Please enter your GitHub User ID (or 'none'): ' GITHUB_USER
+    done
+    if [[ "$GITHUB_USER" != "none" ]]; then
+      read -p 'Please enter your GitHub Access Token: ' ACCESS_TOKEN
+      cat <<EOF > ~/.git-credentials
 https://$GITHUB_USER:$ACCESS_TOKEN@github.com
 EOF
-    chmod 600 ~/.git-credentials
+      chmod 600 ~/.git-credentials
 
-    if prompt_YN "Y" "Cache git credentials?"; then
-      git config --global credential.helper store
+      if prompt_YN "Y" "Cache git credentials?"; then
+        git config --global credential.helper store
+      fi
     fi
   fi
 
   # If specified then use this as the user owning github repositories when
-  # cloning them. If the owner is "default" then use the default owner for the
+  # cloning them. If the owner is "upstream" then use the default owner for the
   # given repository. If this is not defined, then use GITHUB_USER which is
   # intended to be the github user account for the user running this script.
   GITHUB_REPOSITORY_OWNER=${GITHUB_REPOSITORY_OWNER:-"$GITHUB_USER"}
@@ -129,12 +135,14 @@ When selecting a repository owner, you can use "upstream" to use
 each of the authoritative repositories rather than your own forks.
 However, you will not be able to push any changes "upstream".
 This selection is only used if this script will be cloning repositories.
+If you want to use your own pre-existing forks, enter "$GITHUB_REPOSITORY_OWNER".
+To fork a repository, goto the repository page on http://github.com.
 
 EOF
-  read -p "Github repository owner [$GITHUB_REPOSITORY_OWNER] " \
+  read -p "Github repository owner [upstream] " \
     CONFIRMED_GITHUB_REPOSITORY_OWNER
   if [[ "$CONFIRMED_GITHUB_REPOSITORY_OWNER" == "" ]]; then
-    CONFIRMED_GITHUB_REPOSITORY_OWNER=$GITHUB_REPOSITORY_OWNER
+    CONFIRMED_GITHUB_REPOSITORY_OWNER=upstream
   fi
 }
 
@@ -144,7 +152,7 @@ EOF
 
 # Install node
 NODE_VERSION=0.12
-source /etc/profile.d/nvm.sh
+. /etc/profile.d/nvm.sh
 nvm install $NODE_VERSION
 nvm alias default $NODE_VERSION
 
@@ -182,12 +190,13 @@ if prompt_YN "Y" "Install (or update) Google Cloud Platform SDK?"; then
    pushd $HOME
    echo "*** BEGIN installing gcloud..."
    curl https://sdk.cloud.google.com | bash
-   if ! $(gcloud auth list 2>&1 | grep "No credential"); then
+   if [[ ! -f $HOME/.config/gcloud/credentials ]]; then
       echo "Running gcloud authentication..."
       gcloud auth login
    else
       echo "*** Using existing gcloud authentication:"
       gcloud auth list
+      echo "To add another account, run gcloud auth login"
    fi
    echo "*** FINISHED installing gcloud..."
    popd
@@ -201,20 +210,22 @@ fi
 
 
 # Setup source code
-mkdir -p build
-cd build
-echo "Setting up Spinnaker source code in $PWD"
+if [[ "$CONFIRMED_GITHUB_REPOSITORY_OWNER" != "none" ]]; then
+  mkdir -p build
+  cd build
+  echo "Setting up Spinnaker source code in $PWD"
 
-# This is a bootstrap pull of the development scripts.
-if [[ ! -e "spinnaker" ]]; then
-  git_clone $CONFIRMED_GITHUB_REPOSITORY_OWNER "spinnaker" "spinnaker"
-else
-  echo "spinnaker/ already exists. Don't clone it."
+  # This is a bootstrap pull of the development scripts.
+  if [[ ! -e "spinnaker" ]]; then
+    git_clone $CONFIRMED_GITHUB_REPOSITORY_OWNER "spinnaker" "spinnaker"
+  else
+    echo "spinnaker/ already exists. Don't clone it."
+  fi
+
+  # Pull the spinnaker source into a fresh build directory.
+  ./spinnaker/dev/refresh_source.sh --pull_origin \
+      --github_user $CONFIRMED_GITHUB_REPOSITORY_OWNER
 fi
-
-# Pull the spinnaker source into a fresh build directory.
-./spinnaker/dev/refresh_source.sh --pull_origin \
-    --github_user $CONFIRMED_GITHUB_REPOSITORY_OWNER
 
 # Some dependencies of Deck rely on Bower to manage their dependencies. Bower
 # annoyingly prompts the user to collect some stats, so this disables that.
@@ -257,11 +268,30 @@ EOF
 # The /bogus prefix here is because eval seems to make $0 -bash,
 # which basename thinks are flags. So since basename ignores the
 # leading path, we'll just add a bogus one in.
-if [[ $(basename "/bogus/$0") == "bootstrap_dev.sh" ]]; then
+if [[ "$CONFIRMED_GITHUB_REPOSITORY_OWNER" == "none" ]]; then
+    cat <<EOF
+NOTE: You chose not to download the Spinnaker source code at this time.
+To download them in the future, execute the following:
+    mkdir build
+    cd build
+    git clone https://github.com/spinnaker/spinnaker.git
+    ./spinnaker/dev/refresh_source.sh --github_user=upstream --pull_origin
+
+Then, to initiate a build and run spinnaker:
+  ./spinnaker/dev/run_dev.sh
+EOF
+elif [[ $(basename "/bogus/$0") == "bootstrap_dev.sh" ]]; then
   print_invoke_instructions
 else
-  exec bash -l
   print_source_instructions
 fi
 
 print_spinnaker_reference
+
+if [[ $(basename "/bogus/$0") == "bootstrap_dev.sh" ]]; then
+  echo "Restart your shell to pick up path changes."
+  echo "   exec $SHELL"
+else
+  echo "Restarting shell to pick up path changes."
+  exec $SHELL -l
+fi
