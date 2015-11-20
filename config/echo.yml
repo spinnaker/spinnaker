@@ -14,6 +14,10 @@ orca:
 
 endpoints.health.sensitive: false
 
+slack:
+  enabled: ${services.echo.notifications.slack.enabled:false}
+  host: ${services.echo.notifications.slack.token}
+
 mail:
   enabled: ${services.echo.notifications.mail.enabled:false}
   host: ${services.echo.notifications.mail.host}
