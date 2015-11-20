@@ -26,7 +26,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Scope
-import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.RestAdapter.LogLevel
 import retrofit.client.Client
@@ -54,20 +53,28 @@ class RestConfig {
   }
 
   @Bean
-  Endpoint restEndpoint(
-    @Value('${rest.endpoint}') String restBaseUrl) {
-    newFixedEndpoint(restBaseUrl)
-  }
+  RestUrls restServices(RestProperties restProperties, Client retrofitClient, LogLevel retrofitLogLevel) {
 
-  @Bean
-  RestService restService(Endpoint restEndpoint, Client retrofitClient, LogLevel retrofitLogLevel) {
-    new RestAdapter.Builder()
-      .setEndpoint(restEndpoint)
-      .setClient(retrofitClient)
-      .setLogLevel(retrofitLogLevel)
-      .setConverter(new JacksonConverter())
-      .build()
-      .create(RestService)
+    RestUrls restUrls = new RestUrls()
+
+    restProperties
+
+    restProperties.endpoints.each { endpoint ->
+      restUrls.services.add(
+        [
+          client: new RestAdapter.Builder()
+            .setEndpoint(newFixedEndpoint(endpoint.url as String))
+            .setClient(retrofitClient)
+            .setLogLevel(retrofitLogLevel)
+            .setConverter(new JacksonConverter())
+            .build()
+            .create(RestService),
+          config: endpoint
+        ]
+      )
+    }
+
+    restUrls
   }
 
 }
