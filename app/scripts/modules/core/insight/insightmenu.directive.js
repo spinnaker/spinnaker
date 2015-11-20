@@ -14,5 +14,8 @@ module.exports = angular.module('spinnaker.core.insightMenu.directive', [])
         icon: '@',
         rightAlign: '&',
       },
+      link: function(scope) {
+        scope.status = {isOpen: false};
+      }
     };
   }).name;

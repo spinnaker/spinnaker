@@ -10,8 +10,10 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   require('./project/infrastructureProject.directive.js'),
   require('../searchRank.filter.js'),
   require('../../cluster/filter/clusterFilter.service.js'),
+  require('../../cache/cacheInitializer.js'),
 ])
   .controller('InfrastructureCtrl', function($scope, infrastructureSearchService, $stateParams, $location, searchService,
+                                             cacheInitializer,
                                              pageTitleService, _, recentHistoryService, $uibModal, $state, clusterFilterService) {
 
     var search = infrastructureSearchService();
@@ -124,6 +126,20 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
       );
     }
 
+    let refreshMenuItem = {
+      displayName: 'Refresh all caches',
+      disableAutoClose: true,
+    };
+
+    refreshMenuItem.action = (status) => {
+      let originalDisplayName = refreshMenuItem.displayName;
+      refreshMenuItem.displayName = '<span class="small glyphicon glyphicon-spinning glyphicon-refresh"></span> Refreshing...';
+      cacheInitializer.refreshCaches().then(() => {
+        refreshMenuItem.displayName = originalDisplayName;
+        status.isOpen = false;
+      });
+    };
+
     this.menuActions = [
       {
         displayName: 'Create Application',
@@ -132,7 +148,8 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
       {
         displayName: 'Create Project',
         action: this.createProject
-      }
+      },
+      refreshMenuItem,
     ];
 
     this.hasResults = () => {
@@ -148,7 +165,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
       this.loadRecentItems();
     };
 
-    this.removeRecentProject = (id, index) => {
+    this.removeRecentProject = (id) => {
       recentHistoryService.removeItem('projects', id);
       this.loadRecentItems();
     };
