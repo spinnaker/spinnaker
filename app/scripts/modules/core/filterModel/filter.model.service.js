@@ -130,7 +130,9 @@ module.exports = angular
             return _.chain(obj)
               .collect(function (val, key) {
                 if (val) {
-                  return key;
+                  // replace any commas in the string with their uri-encoded version ('%2c'), since
+                  // we use commas as our separator in the URL
+                  return key.replace(/,/g, '%2c');
                 }
               })
               .remove(undefined)
@@ -143,7 +145,9 @@ module.exports = angular
           var paramList = getParamVal(property);
           if (paramList) {
             return _.reduce(paramList.split(','), function (acc, value) {
-              acc[value] = true;
+              // replace any uri-encoded commas in the string ('%2c') with actual commas, since
+              // we use commas as our separator in the URL
+              acc[value.replace(/%2c/g, ',')] = true;
               return acc;
             }, {});
           } else {
