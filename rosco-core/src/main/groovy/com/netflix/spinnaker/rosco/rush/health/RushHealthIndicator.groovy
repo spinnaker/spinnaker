@@ -52,7 +52,7 @@ class RushHealthIndicator implements HealthIndicator {
     new Health.Builder().up().build()
   }
 
-  @Scheduled(fixedDelay = 300000L)
+  @Scheduled(initialDelay = 300000L, fixedDelay = 300000L)
   void checkHealth() {
     try {
       // TODO(duftler): Use less-expensive health check.
