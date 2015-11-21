@@ -213,6 +213,26 @@ class AmazonClientInvocationHandler implements InvocationHandler {
         describe(request, "vpcIds", "vpcs", Vpc.class));
   }
 
+  public DescribeVpcClassicLinkResult describeVpcClassicLink() {
+    return describeVpcClassicLink(null);
+  }
+
+  public DescribeVpcClassicLinkResult describeVpcClassicLink(DescribeVpcClassicLinkRequest request) {
+    return new DescribeVpcClassicLinkResult()
+      .withVpcs(
+        describe(request, "vpcIds", "vpcClassicLinks", VpcClassicLink.class));
+  }
+
+  public DescribeClassicLinkInstancesResult describeClassicLinkInstances() {
+    return describeClassicLinkInstances(null);
+  }
+
+  public DescribeClassicLinkInstancesResult describeClassicLinkInstances(DescribeClassicLinkInstancesRequest request) {
+    return new DescribeClassicLinkInstancesResult()
+      .withInstances(
+        describe(request, "instanceIds", "classicLinkInstances", ClassicLinkInstance.class));
+  }
+
   ////////////////////////////////////
   //
   // AmazonElasticLoadBalancing
