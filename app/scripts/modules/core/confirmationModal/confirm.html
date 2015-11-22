@@ -8,6 +8,14 @@
     <form role="form" class="container-fluid" ng-submit="ctrl.confirm()">
       <div ng-if="params.body" ng-bind-html="params.body">
       </div>
+      <div class="row" ng-if="params.platformHealthOnlyShowOverride">
+        <div class="col-sm-offset-1 col-sm-10">
+          <platform-health-override command="params"
+                                    platform-health-type="params.platformHealthType"
+                                    show-help-details="true">
+          </platform-health-override>
+        </div>
+      </div>
       <div class="row" ng-if="verification.requireAccountEntry">
         <div class="col-sm-offset-1 col-sm-10">
           <p>Type the name of the account ( <account-tag account="params.account" provider="params.provider"></account-tag> ) below to continue.</p>
@@ -16,16 +24,6 @@
               <input type="text" auto-focus ng-model="verification.verifyAccount" class="form-control input-sm highlight-pristine" ng-class="{'ng-invalid': verification.verifyAccount !== params.account.toUpperCase()}"/>
             </div>
           </div>
-        </div>
-      </div>
-      <div class="row" ng-if="params.platformHealthOnlyShowOverride">
-        <div class="col-sm-offset-1 col-sm-10">
-          <platform-health-override command="params"
-                                    platform-health-type="params.platformHealthType"
-                                    field-columns="12"
-                                    show-help-details="true"
-                                    label-offset="col-sm-offset-1">
-          </platform-health-override>
         </div>
       </div>
     </form>

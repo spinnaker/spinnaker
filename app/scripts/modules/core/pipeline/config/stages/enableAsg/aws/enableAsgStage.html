@@ -33,11 +33,8 @@
       <target-select model="stage" options="targets"></target-select>
     </div>
   </div>
-  <platform-health-override ng-if="application.attributes.platformHealthOnlyShowOverride"
-                            command="stage"
-                            platform-health-type="'Amazon'"
-                            label-text="Task Completion"
-                            label-columns="2"
-                            label-offset="col-md-offset-1">
-  </platform-health-override>
+  <stage-platform-health-override application="application"
+                                  stage="stage"
+                                  platform-health-type="'Amazon'">
+  </stage-platform-health-override>
 </div>
