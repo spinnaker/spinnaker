@@ -77,10 +77,12 @@ Ssh into the box:
 
 And move the copied files into /root/spinnakerconfig
 
-```sudo su
- cp -r /home/ubuntu/spinnakerconfig/ /root/spinnakerconfig/
+```
+sudo su
+cp -r /home/ubuntu/spinnakerconfig/ /root/spinnakerconfig/
 chmod 666 /root/spinnakerconfig
-chmod 444 /root/spinnakerconfig/*```
+chmod 444 /root/spinnakerconfig/*
+```
 
 ## Configure firewall rules
 This will allow the Spinnaker ports used by docker compose to become available to the outside world.
