@@ -1,5 +1,5 @@
 # Echo
-
+[![Build Status](https://api.travis-ci.org/spinnaker/echo.svg?branch=master)](https://travis-ci.org/spinnaker/echo)
 Echo serves as a router for events that happen within Spinnaker. 
 
 ## Outgoing Events
