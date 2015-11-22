@@ -1,5 +1,6 @@
 Orca
 ====
+[![Build Status](https://api.travis-ci.org/spinnaker/orca.svg?branch=master)](https://travis-ci.org/spinnaker/orca)
 
 ![Orca Logo](http://i62.photobucket.com/albums/h100/dallastt/MEME/265899.jpg)
 
