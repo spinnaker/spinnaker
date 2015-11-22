@@ -1,5 +1,6 @@
 = Spinnaker UI
-[![Build Status](https://api.travis-ci.org/spinnaker/deck.svg?branch=master)](https://travis-ci.org/spinnaker/deck)
+
+image::https://api.travis-ci.org/spinnaker/deck.svg?branch=master["Build Status", link="https://travis-ci.org/spinnaker/deck"]
 
 == Prerequisites
 
