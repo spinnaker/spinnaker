@@ -43,9 +43,14 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
   void composeTargets(Stage stage) {
     if(stage.execution instanceof Pipeline && stage.execution.trigger.parameters?.strategy == true){
       Map trigger = ((Pipeline) stage.execution).trigger
-      stage.context.regions = [trigger.parameters.region]
+      stage.context.cloudProvider = trigger.parameters.cloudProvider
       stage.context.cluster = trigger.parameters.cluster
       stage.context.credentials = trigger.parameters.credentials
+      if (trigger.parameters.region) {
+        stage.context.regions = [trigger.parameters.region]
+      } else if (trigger.parameters.zone) {
+        stage.context.zones = [trigger.parameters.zone]
+      }
     }
     def params = TargetServerGroup.Params.fromStage(stage)
     if (TargetServerGroup.isDynamicallyBound(stage)) {

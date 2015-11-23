@@ -58,6 +58,7 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
     })
     strategy.composeFlow(stage)
 
+    // TODO(ttomsu): This is currently an AWS-only stage. I need to add and support the "useSourceCapacity" option.
     List<Step> steps = [buildStep(stage, "determineSourceServerGroup", DetermineSourceServerGroupTask)]
     if (!strategy.replacesBasicSteps()) {
       steps.addAll((basicSteps(stage) ?: []) as List<Step>)

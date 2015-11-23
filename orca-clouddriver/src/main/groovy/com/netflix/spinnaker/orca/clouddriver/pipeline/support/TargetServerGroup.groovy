@@ -145,23 +145,16 @@ class TargetServerGroup {
     static Params fromStage(Stage stage) {
       Params p = stage.mapTo(Params)
 
-      def toZones = { String z ->
-        return new Location(type: Location.Type.ZONE, value: z)
-      }
-      def toRegions = { String r ->
-        return new Location(type: Location.Type.REGION, value: r)
-      }
-
       if (stage.context.zones) {
         if (stage.context.regions && stage.context.cloudProvider != "gce") {
           // Prefer regions if both are specified, except for GCE.
-          p.locations = stage.context.regions.collect(toRegions)
+          p.locations = stage.context.regions.collect { String r -> Location.region(r) }
         } else {
-          p.locations = stage.context.zones.collect(toZones)
+          p.locations = stage.context.zones.collect { String z -> Location.zone(z) }
         }
       } else {
         // Default to regions.
-        p.locations = stage.context.regions.collect(toRegions)
+        p.locations = stage.context.regions.collect { String r -> Location.region(r) }
       }
       p
     }

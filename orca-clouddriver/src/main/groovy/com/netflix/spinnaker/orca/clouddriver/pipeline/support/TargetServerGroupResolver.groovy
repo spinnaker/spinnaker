@@ -68,7 +68,7 @@ class TargetServerGroupResolver {
         params.target.name())
     }
     if (!tsgMap) {
-      throw new TargetServerGroup.NotFoundException("Unable to locate ${params.target.name()} in $params.credentials/$location/$params.cluster")
+      throw new TargetServerGroup.NotFoundException("Unable to locate ${params.target.name()} in $params.credentials/$location.value/$params.cluster")
     }
     return new TargetServerGroup(serverGroup: tsgMap)
   }
