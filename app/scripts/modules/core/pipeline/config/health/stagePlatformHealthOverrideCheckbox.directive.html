@@ -1,10 +1,5 @@
-<div class="form-group" ng-if="vm.application.attributes.platformHealthOnlyShowOverride">
-  <div class="col-md-2 col-md-offset-1 sm-label-left">
-    <b>Task Completion</b>
-  </div>
-  <div class="col-md-6">
-    <platform-health-override command="vm.stage"
-                              platform-health-type="vm.platformHealthType">
-    </platform-health-override>
-  </div>
-</div>
+<stage-config-field label="Task Completion" ng-if="vm.application.attributes.platformHealthOnlyShowOverride">
+  <platform-health-override command="vm.stage"
+                            platform-health-type="vm.platformHealthType">
+  </platform-health-override>
+</stage-config-field>

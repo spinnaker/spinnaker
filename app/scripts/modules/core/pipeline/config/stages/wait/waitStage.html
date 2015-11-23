@@ -1,9 +1,6 @@
 <div class="form-horizontal">
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Wait Time</label>
-    <div class="col-md-2">
-      <input type="number" class="form-control input-sm" ng-model="stage.waitTime"/>
-    </div>
-    <div class="form-control-static">seconds</div>
-  </div>
+  <stage-config-field label="Wait Time" field-columns="3">
+      <input type="number" class="form-control input-sm" ng-model="stage.waitTime" style="width: 50%; display: inline-block"/>
+      <span class="form-control-static"> seconds</span>
+  </stage-config-field>
 </div>

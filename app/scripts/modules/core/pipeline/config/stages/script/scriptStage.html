@@ -4,84 +4,36 @@
   </h4>
 </div>
 <div class="form-horizontal" ng-if="!viewState.loading">
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Script Path</b>
-      <help-field key="pipeline.config.script.path"></help-field>
-    </div>
-    <div class="col-md-6">
-      <input type="text" class="form-control input-sm"
-             ng-model="stage.scriptPath"/>
-    </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Command</b>
-      <help-field key="pipeline.config.script.command"></help-field>
-    </div>
-    <div class="col-md-6">
-      <textarea class="form-control input-sm"
-             ng-model="stage.command"/>
-    </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Output File</b>
-      <help-field key="pipeline.config.script.propertyFile"></help-field>
-    </div>
-    <div class="col-md-6">
-      <input type="text" class="form-control input-sm"
-             ng-model="stage.propertyFile"/>
-    </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Image</b>
-      <help-field key="pipeline.config.script.image"></help-field>
-    </div>
-    <div class="col-md-6">
-      <input type="text" class="form-control input-sm"
-             ng-model="stage.image"/>
-    </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Account</b>
-      <help-field key="pipeline.config.script.account"></help-field>
-    </div>
-    <div class="col-md-6">
-      <input type="text" class="form-control input-sm"
-             ng-model="stage.account"/>
-    </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Region</b>
-      <help-field key="pipeline.config.script.region"></help-field>
-    </div>
-    <div class="col-md-6">
-      <input type="text" class="form-control input-sm"
-             ng-model="stage.region"/>
-    </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Cluster</b>
-      <help-field key="pipeline.config.script.cluster"></help-field>
-    </div>
-    <div class="col-md-6">
-      <input type="text" class="form-control input-sm"
-             ng-model="stage.cluster"/>
-    </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Cmc</b>
-      <help-field key="pipeline.config.script.cmc"></help-field>
-    </div>
-    <div class="col-md-6">
-      <input type="text" class="form-control input-sm"
-             ng-model="stage.cmc"/>
-    </div>
-  </div>
+  <stage-config-field label="Script Path" help-key="pipeline.config.script.path">
+    <input type="text" class="form-control input-sm"
+           ng-model="stage.scriptPath"/>
+  </stage-config-field>
+  <stage-config-field label="Command" help-key="pipeline.config.script.command">
+    <textarea class="form-control input-sm"
+           ng-model="stage.command"/>
+  </stage-config-field>
+  <stage-config-field label="Output File" help-key="pipeline.config.script.propertyFile">
+    <input type="text" class="form-control input-sm"
+           ng-model="stage.propertyFile"/>
+  </stage-config-field>
+  <stage-config-field label="Image" help-key="pipeline.config.script.image">
+    <input type="text" class="form-control input-sm"
+           ng-model="stage.image"/>
+  </stage-config-field>
+  <stage-config-field label="Account" help-key="pipeline.config.script.account">
+    <input type="text" class="form-control input-sm"
+           ng-model="stage.account"/>
+  </stage-config-field>
+  <stage-config-field label="Region" help-key="pipeline.config.script.region">
+    <input type="text" class="form-control input-sm"
+           ng-model="stage.region"/>
+  </stage-config-field>
+  <stage-config-field label="Cluster" help-key="pipeline.config.script.cluster">
+    <input type="text" class="form-control input-sm"
+           ng-model="stage.cluster"/>
+  </stage-config-field>
+  <stage-config-field label="Cmc" help-key="pipeline.config.script.cmc">
+    <input type="text" class="form-control input-sm"
+           ng-model="stage.cmc"/>
+  </stage-config-field>
 </div>

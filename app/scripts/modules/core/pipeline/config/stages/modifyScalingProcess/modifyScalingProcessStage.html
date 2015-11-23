@@ -1,57 +1,33 @@
 <div class="form-horizontal">
   <div ng-if="!pipeline.strategy">
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Account</label>
-    <div class="col-md-6">
+    <stage-config-field label="Account">
       <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="accountUpdated" required></account-select-field>
-    </div>
-  </div>
-  <div class="form-group" ng-if="stage.credentials">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Regions</label>
-    <div class="col-md-8">
+    </stage-config-field>
+    <stage-config-field label="Regions" field-columns="8" ng-if="stage.credentials">
       <checklist items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
-    </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Cluster</b>
-      <help-field key="pipeline.config.modifyScalingProcess.cluster"></help-field>
-    </div>
-    <div class="col-md-6">
+    </stage-config-field>
+    <stage-config-field label="Cluster" help-key="pipeline.config.modifyScalingProcess.cluster">
       <input type="text" required ng-model="stage.cluster"
         class="form-control input-sm" />
-    </div>
+    </stage-config-field>
   </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Target</b>
-    </div>
-    <div class="col-md-6">
-      <target-select model="stage" options="targets"></target-select>
-    </div>
-  </div>
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Action</label>
-    <div class="col-md-6">
-      <select class="form-control input-sm"
-              required
-              ng-model="stage.action"
-              ng-options="a.val as a.label for a in actions">
-        <option>Select an action...</option>
-      </select>
-    </div>
-  </div>
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Processes</label>
-    <div class="col-md-8" ng-if="!stage.credentials" ng-if="!stage.credentials">
+  <stage-config-field label="Target">
+    <target-select model="stage" options="targets"></target-select>
+  </stage-config-field>
+  <stage-config-field label="Action">
+    <select class="form-control input-sm"
+            required
+            ng-model="stage.action"
+            ng-options="a.val as a.label for a in actions">
+      <option>Select an action...</option>
+    </select>
+  </stage-config-field>
+  <stage-config-field label="Processes" field-columns="8">
+    <p ng-if="!stage.credentials">
       Please select an account to pick processes.
+    </p>
+    <div ng-if="stage.credentials" class="checkbox" style="padding-left:0;">
+      <checklist model="stage.processes" items="processes"></checklist>
     </div>
-    <div class="col-md-8" ng-if="stage.credentials">
-      <div class="col-md-8 checkbox" style="padding-left:0;">
-        <checklist model="stage.processes" items="processes"></checklist>
-      </div>
-    </div>
-  </div>
-
+  </stage-config-field>
 </div>
