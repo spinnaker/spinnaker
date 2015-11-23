@@ -164,11 +164,12 @@ def try_until_ready(command):
         result = run_quick(command, echo=False)
         if not result.returncode:
             break
-        if result.stderr.find('refused') > 0:
+        msg = result.stderr or result.stdout
+        if msg.find('refused') > 0:
             print 'New instance does not seem ready yet...retry in 5s.'
         else:
-            print result.stderr
-            print 'retry in 5s.'
+            print msg.strip()
+            print 'Retrying in 5s.'
         time.sleep(5)
 
 
@@ -372,6 +373,11 @@ def maybe_copy_master_yml(options):
     # Replace all the occurances of the original credentials path with the
     # path that we are going to place the file in on the new instance.
     if json_credential_path:
+        if not os.path.exists(json_credential_path):
+            raise ValueError('{0} specifies google credentials in {1},'
+                             ' which does not exist.'
+                                 .format(options.master_yml,
+                                         json_credential_path))
         content = content.replace(json_credential_path, gcp_credential_path)
 
     fd, temp_path = tempfile.mkstemp()
