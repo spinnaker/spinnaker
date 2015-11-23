@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gradle.dependency
 
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
+import org.codehaus.groovy.runtime.GStringImpl
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.yaml.snakeyaml.Yaml
@@ -29,7 +30,9 @@ import java.util.concurrent.locks.ReentrantLock
 
 class SpinnakerDependency {
 
-    private static final String DEFAULT_DEPENDENCIES_YAML = 'com.netflix.spinnaker:spinnaker-dependencies:latest.release@yml'
+    private static final String OVERRIDE_PROJECT_PROPERTY = 'spinnaker.dependenciesVersion'
+    private static final String DEFAULT_DEPENDENCIES_VERSION = 'latest.release'
+    private static final GString DEFAULT_DEPENDENCIES_YAML = "com.netflix.spinnaker:spinnaker-dependencies:${DEFAULT_DEPENDENCIES_VERSION}@yml"
     private final Project project
     private final Map dependencyConfig = [:]
     private final SimpleTemplateEngine templateEngine = new SimpleTemplateEngine()
@@ -40,6 +43,7 @@ class SpinnakerDependency {
 
 
 
+    public Object dependenciesVersion
     public Object dependenciesYaml
 
     SpinnakerDependency(Project project) {
@@ -57,7 +61,10 @@ class SpinnakerDependency {
                 return dependencyConfig
             }
 
-            def conf = project.configurations.detachedConfiguration(project.dependencies.create(dependenciesYaml ?: DEFAULT_DEPENDENCIES_YAML))
+            String dependenciesVersion = project.hasProperty(OVERRIDE_PROJECT_PROPERTY) ? project.property(OVERRIDE_PROJECT_PROPERTY) : dependenciesVersion ?: DEFAULT_DEPENDENCIES_VERSION
+            Object dependencyString = dependenciesYaml ?: new GStringImpl([dependenciesVersion] as Object[], DEFAULT_DEPENDENCIES_YAML.strings)
+
+            def conf = project.configurations.detachedConfiguration(project.dependencies.create(dependencyString))
 
             Map config = conf.singleFile.withReader {
                 return (Map) new Yaml().load(it)

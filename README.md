@@ -31,8 +31,8 @@ apply plugin: 'spinnaker.project'
 
 The spinnaker extension exposes dependency resolution utilities. By default the artifact
 'com.netflix.spinnaker:spinnaker-dependencies:latest.release@yml' is resolved and used as
-common dependency configuration (this can be overridden by setting `dependenciesYaml` on the 
-spinnaker extension).
+common dependency configuration (this can be overridden by setting `dependenciesYaml` or
+`dependenciesVersion` on the spinnaker extension)
 
 The dependency yaml format supports three sections:
 * versions - a map of name to version string
