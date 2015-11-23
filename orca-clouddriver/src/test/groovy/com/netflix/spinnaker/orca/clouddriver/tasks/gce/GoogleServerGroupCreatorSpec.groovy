@@ -46,5 +46,42 @@ class GoogleServerGroupCreatorSpec extends Specification {
               ],
           ]
       ]
+
+    when: "fallback to non-zone matching image"
+      ctx.zone = "south-pole-1"
+      stage = new PipelineStage(new Pipeline(), "whatever", ctx)
+      ops = new GoogleServerGroupCreator().getOperations(stage)
+
+    then:
+      ops == [
+          [
+              "createServerGroup": [
+                  account          : "abc",
+                  credentials      : "abc",
+                  image            : "testImageId",
+                  zone             : "south-pole-1",
+                  deploymentDetails: [[imageId: "testImageId", zone: "north-pole-1"]],
+              ],
+          ]
+      ]
+
+    when: "throw error if >1 image"
+      ctx.deploymentDetails = [[imageId: "testImageId-1", zone: "east-pole-1"],
+                               [imageId: "testImageId-2", zone: "west-pole-1"]]
+      stage = new PipelineStage(new Pipeline(), "whatever", ctx)
+      ops = new GoogleServerGroupCreator().getOperations(stage)
+
+    then:
+      IllegalStateException ise = thrown()
+      ise.message.startsWith("Ambiguous choice of deployment images")
+
+    when: "throw error if no image found"
+      ctx.deploymentDetails = []
+      stage = new PipelineStage(new Pipeline(), "whatever", ctx)
+      ops = new GoogleServerGroupCreator().getOperations(stage)
+
+    then:
+      ise = thrown()
+      ise.message == "No image could be found in south-pole-1."
   }
 }
