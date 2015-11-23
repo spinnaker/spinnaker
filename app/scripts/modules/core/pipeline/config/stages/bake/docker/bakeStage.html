@@ -1,37 +1,23 @@
 <div ng-controller="dockerBakeStageCtrl as bakeStageCtrl">
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Package</b>
-      <help-field key="pipeline.config.bake.package"></help-field>
-    </div>
-    <div class="col-md-6">
+  <stage-config-field label="Package" help-key="pipeline.config.bake.package">
       <input type="text" class="form-control input-sm"
              ng-model="stage.package"/>
-    </div>
-  </div>
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Base OS</label>
+  </stage-config-field>
+  <stage-config-field label="Base OS">
+    <label class="radio-inline" ng-repeat="baseOsOption in baseOsOptions">
+      <input type="radio"
+             ng-model="stage.baseOs"
+             ng-value="baseOsOption"/>
+      {{baseOsOption}}
+    </label>
+  </stage-config-field>
 
-    <div class="col-md-6">
-      <label class="radio-inline" ng-repeat="baseOsOption in baseOsOptions">
-        <input type="radio"
-               ng-model="stage.baseOs"
-               ng-value="baseOsOption"/>
-        {{baseOsOption}}
-      </label>
-    </div>
-  </div>
-
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Base Label</label>
-
-    <div class="col-md-6">
-      <label class="radio-inline" ng-repeat="baseLabel in baseLabelOptions">
-        <input type="radio"
-               ng-model="stage.baseLabel"
-               ng-value="baseLabel"/>
-        {{baseLabel}}
-      </label>
-    </div>
-  </div>
+  <stage-config-field label="Base Label">
+    <label class="radio-inline" ng-repeat="baseLabel in baseLabelOptions">
+      <input type="radio"
+             ng-model="stage.baseLabel"
+             ng-value="baseLabel"/>
+      {{baseLabel}}
+    </label>
+  </stage-config-field>
 </div>

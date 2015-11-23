@@ -1,60 +1,50 @@
 <div class="form-horizontal">
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Instructions</b>
-      <help-field key="pipeline.config.manualJudgment.instructions"></help-field>
-    </div>
-    <div class="col-md-6">
+  <stage-config-field label="Instructions" help-key="pipeline.config.manualJudgment.instructions">
       <textarea
         class="form-control input-sm"
         ng-model="stage.instructions"
         placeholder="Provide any instructional text that would assist making a manual judgment (can contain HTML)">
       </textarea>
+  </stage-config-field>
+  <stage-config-field label="Fail Pipeline" help-key="pipeline.config.manualJudgment.failPipeline">
+    <div class="checkbox">
+      <label>
+        <input type="checkbox" ng-model="stage.failPipeline">
+      </label>
     </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">Fail Pipeline <help-field key="pipeline.config.manualJudgment.failPipeline"></help-field></div>
-    <div class="col-md-6">
-      <input type="checkbox" ng-model="stage.failPipeline">
-    </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      Notifications
-    </div>
-    <div class="col-md-6">
-      <table class="table table-condensed">
-        <thead>
-        <tr>
-          <th>Type</th>
-          <th>Details</th>
-          <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr ng-repeat="notification in stage.notifications">
-          <td>
-            {{notification.type}}
-          </td>
-          <td>
-            {{notification.address}}
-          </td>
-          <td>
-            <a class="btn btn-xs btn-link pad-left" href
-               ng-click="manualJudgmentStageCtrl.removeNotification($index)">Remove</a>
-          </td>
-        </tr>
-        </tbody>
-        <tfoot>
-        <tr>
-          <td colspan="7">
-            <button class="btn btn-block btn-sm add-new" ng-click="manualJudgmentStageCtrl.addNotification()">
-              <span class="glyphicon glyphicon-plus-sign"></span> Add notification
-            </button>
-          </td>
-        </tr>
-        </tfoot>
-      </table>
-    </div>
-  </div>
+  </stage-config-field>
+  <stage-config-field label="Notifications">
+    <table class="table table-condensed">
+      <thead>
+      <tr>
+        <th>Type</th>
+        <th>Details</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr ng-repeat="notification in stage.notifications">
+        <td>
+          {{notification.type}}
+        </td>
+        <td>
+          {{notification.address}}
+        </td>
+        <td>
+          <a class="btn btn-xs btn-link pad-left" href
+             ng-click="manualJudgmentStageCtrl.removeNotification($index)">Remove</a>
+        </td>
+      </tr>
+      </tbody>
+      <tfoot>
+      <tr>
+        <td colspan="7">
+          <button class="btn btn-block btn-sm add-new" ng-click="manualJudgmentStageCtrl.addNotification()">
+            <span class="glyphicon glyphicon-plus-sign"></span> Add notification
+          </button>
+        </td>
+      </tr>
+      </tfoot>
+    </table>
+  </stage-config-field>
 </div>

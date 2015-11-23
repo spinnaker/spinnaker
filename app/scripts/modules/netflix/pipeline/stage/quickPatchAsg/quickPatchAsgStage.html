@@ -1,10 +1,7 @@
 <div class="form-horizontal">
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Account</label>
-    <div class="col-md-6">
-      <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="quickPatchAsgStageCtrl.accountUpdated()" required></account-select-field>
-    </div>
-  </div>
+  <stage-config-field label="Account">
+    <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="quickPatchAsgStageCtrl.accountUpdated()" required></account-select-field>
+  </stage-config-field>
   <region-select-field component="stage"
                        field="region"
                        account="stage.credentials"
@@ -12,58 +9,36 @@
                        regions="regions"
                        label-columns="2 col-md-offset-1"
                        field-columns="6"></region-select-field>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Cluster</b>
-      <help-field key="pipeline.config.quickPatchAsg.cluster"></help-field>
-    </div>
-    <div class="col-md-6">
-      <input type="text" required ng-model="stage.clusterName"
-        class="form-control input-sm" />
-    </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Package</b>
-      <help-field key="pipeline.config.quickPatchAsg.package"></help-field>
-    </div>
-    <div class="col-md-6">
-      <input type="text" required ng-model="stage.package"
-             class="form-control input-sm" />
-    </div>
-  </div>
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Base OS<help-field key="pipeline.config.quickPatchAsg.baseOs"></help-field>
+  <stage-config-field label="Cluster" help-key="pipeline.config.quickPatchAsg.cluster">
+    <input type="text" required ng-model="stage.clusterName"
+      class="form-control input-sm" />
+  </stage-config-field>
+  <stage-config-field label="Package" help-key="pipeline.config.quickPatchAsg.package">
+    <input type="text" required ng-model="stage.package"
+           class="form-control input-sm" />
+  </stage-config-field>
+  <stage-config-field label="Base OS" help-key="pipeline.config.quickPatchAsg.baseOs">
+    <label class="radio-inline" ng-repeat="baseOsOption in baseOsOptions">
+      <input type="radio"
+             ng-model="stage.baseOs"
+             ng-value="baseOsOption"/>
+      {{baseOsOption}}
     </label>
-    <div class="col-md-6">
-      <label class="radio-inline" ng-repeat="baseOsOption in baseOsOptions">
-        <input type="radio"
-               ng-model="stage.baseOs"
-               ng-value="baseOsOption"/>
-        {{baseOsOption}}
-      </label>
-    </div>
-  </div>
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Rolling Patch<help-field key="pipeline.config.quickPatchAsg.rollingPatch"></help-field></label>
-    <div class="col-md-6">
-      <label class="checkbox-inline">
-        <input
-          type="checkbox"
-          ng-model="stage.rollingPatch"
-          name="rollingPatch"/> &nbsp;
-      </label>
-    </div>
-  </div>
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Skip If UpToDate<help-field key="pipeline.config.quickPatchAsg.skipUpToDate"></help-field></label>
-    <div class="col-md-6">
-      <label class="checkbox-inline">
-        <input
-          type="checkbox"
-          ng-model="stage.skipUpToDate"
-          name="skipUpToDate"/> &nbsp;
-      </label>
-    </div>
-  </div>
+  </stage-config-field>
+  <stage-config-field label="Rolling Patch" help-key="pipeline.config.quickPatchAsg.rollingPatch">
+    <label class="checkbox-inline">
+      <input
+        type="checkbox"
+        ng-model="stage.rollingPatch"
+        name="rollingPatch"/> &nbsp;
+    </label>
+  </stage-config-field>
+  <stage-config-field label="Skip If UpToDate" help-key="pipeline.config.quickPatchAsg.skipUpToDate">
+    <label class="checkbox-inline">
+      <input
+        type="checkbox"
+        ng-model="stage.skipUpToDate"
+        name="skipUpToDate"/> &nbsp;
+    </label>
+  </stage-config-field>
 </div>

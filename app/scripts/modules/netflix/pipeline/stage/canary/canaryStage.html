@@ -1,42 +1,24 @@
 <div class="form-horizontal canary-config-view">
   <h4>Canary Config</h4>
+  <stage-config-field label="Name" field-columns="3">
+    <input type="text" required ng-model="stage.canary.canaryConfig.name"
+           class="form-control input-sm" />
+  </stage-config-field>
+  <stage-config-field label="Canary Lifetime" field-columns="3">
+    <input type="text" required ng-model="stage.canary.canaryConfig.lifetimeHours"
+           class="form-control input-sm" style="display: inline-block; width: 33%" />
+    <span class="form-control-static">hours</span>
+  </stage-config-field>
+  <stage-config-field label="Result Strategy" help-key="pipeline.config.canary.resultStrategy" field-columns="3">
+    <select class="form-control input-sm"
+            ng-model="stage.canary.canaryConfig.combinedCanaryResultStrategy">
+      <option value="LOWEST">lowest</option>
+      <option value="AGGREGATE">average</option>
+    </select>
+  </stage-config-field>
   <div class="form-group">
     <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Name</b>
-    </div>
-    <div class="col-md-3">
-      <input type="text" required ng-model="stage.canary.canaryConfig.name"
-             class="form-control input-sm" />
-    </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Canary Lifetime</b>
-    </div>
-    <div class="col-md-1">
-      <input type="text" required ng-model="stage.canary.canaryConfig.lifetimeHours"
-             class="form-control input-sm" />
-    </div>
-    <div class="col-md-2 form-control-static">
-      hours
-    </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Result Strategy</b>
-      <help-field key="pipeline.config.canary.resultStrategy"></help-field>
-    </div>
-    <div class="col-md-3">
-      <select class="form-control input-sm"
-              ng-model="stage.canary.canaryConfig.combinedCanaryResultStrategy">
-        <option value="LOWEST">lowest</option>
-        <option value="AGGREGATE">average</option>
-      </select>
-    </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Successful Score</b>
+      <label>Successful Score</label>
       <help-field key="pipeline.config.canary.successfulScore"></help-field>
     </div>
     <div class="col-md-1">
@@ -44,7 +26,7 @@
              class="form-control input-sm" />
     </div>
     <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Unhealthy Score</b>
+      <label>Unhealthy Score</label>
       <help-field key="pipeline.config.canary.unhealthyScore"></help-field>
     </div>
     <div class="col-md-1">
@@ -61,7 +43,7 @@
   </div>
   <div class="form-group" ng-if="stage.scaleUp.enabled" style="margin-top: 10px;">
     <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Capacity</b>
+      <label>Capacity</label>
       <help-field key="pipeline.config.canary.scaleUpCapacity"></help-field>
     </div>
     <div class="col-md-1">
@@ -69,7 +51,7 @@
              class="form-control input-sm" />
     </div>
     <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Scale Up Delay</b>
+      <label>Scale Up Delay</label>
       <help-field key="pipeline.config.canary.scaleUpDelay"></help-field>
     </div>
     <div class="col-md-1">
@@ -80,83 +62,43 @@
   </div>
   <h5>Analysis Config</h5>
   <div class="horizontal-rule"></div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Name</b><help-field key="pipeline.config.canary.canaryConfigurationName"></help-field>
-    </div>
-    <div class="col-md-3">
-
-      <canary-analysis-name-selector
-          model="stage.canary.canaryConfig.canaryAnalysisConfig.name"
-          class-name="form-control input-sm"
-          >
-      </canary-analysis-name-selector>
-
-    </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Delay</b>
-    </div>
-    <div class="col-md-1">
-      <input type="text" required ng-model="stage.canary.canaryConfig.canaryAnalysisConfig.beginCanaryAnalysisAfterMins"
-             class="form-control input-sm" />
-    </div>
-    <div class="col-md-5 form-control-static">
+  <stage-config-field label="Name" help-key="pipeline.config.canary.canaryConfigurationName" field-columns="3">
+    <canary-analysis-name-selector
+        model="stage.canary.canaryConfig.canaryAnalysisConfig.name"
+        class-name="form-control input-sm">
+    </canary-analysis-name-selector>
+  </stage-config-field>
+  <stage-config-field label="Delay">
+    <input type="text" required ng-model="stage.canary.canaryConfig.canaryAnalysisConfig.beginCanaryAnalysisAfterMins"
+           class="form-control input-sm" style="display: inline-block; width: 20%"/>
+    <span class="form-control-static">
       minutes before starting analysis <help-field key="pipeline.config.canary.delayBeforeAnalysis"></help-field>
-    </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Notification Hours</b><help-field key="pipeline.config.canary.notificationHours"></help-field>
-    </div>
-    <div class="col-md-3">
-      <input type="text" ng-model="notificationHours"
-             class="form-control input-sm" ng-change="canaryStageCtrl.splitNotificationHours()" />
-    </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Frequency</b><help-field key="pipeline.config.canary.canaryInterval"></help-field>
-    </div>
-    <div class="col-md-1">
-      <input type="text" required ng-model="stage.canary.canaryConfig.canaryAnalysisConfig.canaryAnalysisIntervalMins"
-             class="form-control input-sm" />
-    </div>
-    <div class="col-md-2 form-control-static">
-      minutes
-    </div>
-  </div>
+    </span>
+  </stage-config-field>
+  <stage-config-field label="Notification Hours" help-key="pipeline.config.canary.notificationHours" field-columns="3">
+    <input type="text" ng-model="notificationHours"
+           class="form-control input-sm" ng-change="canaryStageCtrl.splitNotificationHours()" />
+  </stage-config-field>
+  <stage-config-field label="Frequency" help-key="pipeline.config.canary.canaryInterval" field-columns="3">
+    <input type="text" required ng-model="stage.canary.canaryConfig.canaryAnalysisConfig.canaryAnalysisIntervalMins"
+           class="form-control input-sm" style="width: 33%; display: inline-block"/>
+    <span class="form-control-static"> minutes</span>
+  </stage-config-field>
   <h5>Owner</h5>
   <div class="horizontal-rule"></div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Email</b>
-    </div>
-    <div class="col-md-6">
-      <input type="email" required ng-model="stage.canary.owner"
-             class="form-control input-sm" />
-    </div>
-  </div>
-  <h5>Baseline Version<help-field key="pipeline.config.canary.baselineVersion"></help-field></h5>
+  <stage-config-field label="Email">
+    <input type="email" required ng-model="stage.canary.owner"
+           class="form-control input-sm" />
+  </stage-config-field>
+  <h5>Baseline Version <help-field key="pipeline.config.canary.baselineVersion"></help-field></h5>
   <div class="horizontal-rule"></div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Account</b>
-    </div>
-    <div class="col-md-6">
-      <account-select-field component="stage.baseline" field="account" accounts="accounts" provider="'aws'" on-change="angular.noop()"required ></account-select-field>
-    </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Cluster</b>
-    </div>
-    <div class="col-md-6">
-      <input type="text" required ng-model="stage.baseline.cluster"
-             class="form-control input-sm" />
-    </div>
-  </div>
+  <stage-config-field label="Account">
+    <account-select-field component="stage.baseline" field="account" accounts="accounts" provider="'aws'" on-change="angular.noop()"required ></account-select-field>
+  </stage-config-field>
+  <stage-config-field label="Cluster">
+    <input type="text" required ng-model="stage.baseline.cluster"
+           class="form-control input-sm" />
+  </stage-config-field>
   <h5>Canary / Baseline Cluster Pairs <help-field key="pipeline.config.canary.clusterPairs"></help-field></h5>
   <div class="horizontal-rule"></div>
   <div class="row">

@@ -1,32 +1,26 @@
 <div class="form-horizontal">
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Application</label>
-    <div class="col-md-6">
-      <ui-select ng-model="stage.application" class="form-control input-sm">
-        <ui-select-match placeholder="None">{{$select.selected}}</ui-select-match>
+  <stage-config-field label="Application">
+    <ui-select ng-model="stage.application" class="form-control input-sm">
+      <ui-select-match placeholder="None">{{$select.selected}}</ui-select-match>
 
-        <ui-select-choices
-          repeat="application in applications | filter: $select.search | limitTo: viewState.infiniteScroll.currentItems"
-          infinite-scroll="pipelineStageCtrl.addMoreItems()"
-          infinite-scroll-distance="2" >
-          <div ng-bind-html="application | highlight: $select.search"></div>
-        </ui-select-choices>
+      <ui-select-choices
+        repeat="application in applications | filter: $select.search | limitTo: viewState.infiniteScroll.currentItems"
+        infinite-scroll="pipelineStageCtrl.addMoreItems()"
+        infinite-scroll-distance="2" >
+        <div ng-bind-html="application | highlight: $select.search"></div>
+      </ui-select-choices>
+    </ui-select>
+  </stage-config-field>
+  <stage-config-field label="Pipeline">
+    <div ng-if="stage.application && viewState.pipelinesLoaded">
+      <ui-select class="form-control input-sm"
+                 ng-model="stage.pipeline">
+        <ui-select-match placeholder="Select a pipeline...">{{$select.selected.name}}</ui-select-match>
+        <ui-select-choices repeat="pipeline.id as pipeline in pipelines | filter: $select.search | orderBy: 'index'"><span
+          ng-bind-html="pipeline.name | highlight: $select.search"></span></ui-select-choices>
       </ui-select>
     </div>
-  </div>
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Pipeline</label>
-    <div class="col-md-6">
-      <div ng-if="stage.application && viewState.pipelinesLoaded">
-        <ui-select class="form-control input-sm"
-                   ng-model="stage.pipeline">
-          <ui-select-match placeholder="Select a pipeline...">{{$select.selected.name}}</ui-select-match>
-          <ui-select-choices repeat="pipeline.id as pipeline in pipelines | filter: $select.search | orderBy: 'index'"><span
-            ng-bind-html="pipeline.name | highlight: $select.search"></span></ui-select-choices>
-        </ui-select>
-      </div>
-    </div>
-  </div>
+  </stage-config-field>
   <div class="well well-sm clearfix ng-scope col-md-offset-1 col-md-10" ng-if="pipelineParameters.length">
     <h4 class="text-left">Pipeline Parameters</h4>
 
