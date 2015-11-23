@@ -12,10 +12,6 @@ module.exports = angular.module('spinnaker.application.platformHealthOverrideChe
       scope: {
         command: '=',
         platformHealthType: '=',
-        labelText: '@',
-        labelColumns: '@',
-        labelOffset: '@',
-        fieldColumns: '@',
         showHelpDetails: '=',
       },
       controller: 'PlatformHealthOverrideCtrl as platformHealthOverrideCtrl',
