@@ -67,7 +67,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
         'healthCheck': False
       }],
       'name': self.__lb_name,
-      'type': 'upsertAmazonLoadBalancer',
+      'type': 'upsertLoadBalancer',
       'availabilityZones': {self.TEST_REGION: []},
       'user': 'integration-tests'
     }]
