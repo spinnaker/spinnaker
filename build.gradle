@@ -21,7 +21,7 @@ buildscript {
     maven { url 'http://dl.bintray.com/spinnaker/gradle/' }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:2.2.0'
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.3.0'
   }
 }
 
@@ -29,16 +29,13 @@ allprojects {
   apply plugin: 'spinnaker.project'
   apply plugin: 'groovy'
   apply plugin: 'jacoco'
-  apply plugin: 'idea'
 
   group = 'com.netflix.spinnaker.kork'
 
-  repositories {
-    jcenter()
+  spinnaker {
+    dependenciesVersion = "0.19.0"
   }
 
-  sourceCompatibility = 1.8
-  targetCompatibility = 1.8
   jacoco {
     toolVersion = '0.7.0.201403182114'
   }
