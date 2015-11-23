@@ -36,6 +36,11 @@ interface CloudProviderBakeHandlerRegistry {
   public CloudProviderBakeHandler lookup(BakeRequest.CloudProviderType cloudProviderType)
 
   /**
+   * Return all registered CloudProviderBakeHandlers.
+   */
+  public List<CloudProviderBakeHandler> list()
+
+  /**
    * Return a CloudProviderBakeHandler that could have produced the passed logs content.
    */
   public CloudProviderBakeHandler findProducer(String logsContentFirstLine)

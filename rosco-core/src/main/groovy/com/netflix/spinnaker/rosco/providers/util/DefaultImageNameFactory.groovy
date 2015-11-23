@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.rosco.providers.util
 
 import com.netflix.frigga.ami.AppVersion
+import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,7 +34,7 @@ public class DefaultImageNameFactory implements ImageNameFactory {
   Clock clock
 
   @Override
-  def deriveImageNameAndAppVersion(BakeRequest bakeRequest) {
+  def deriveImageNameAndAppVersion(BakeRequest bakeRequest, BakeOptions.Selected selectedOptions) {
     // TODO(duftler): This is a placeholder. Need to properly support naming conventions.
     def timestamp = clock.millis()
 
@@ -48,7 +49,7 @@ public class DefaultImageNameFactory implements ImageNameFactory {
       firstPackageName = packageNameList[0]
 
       // Passing in firstPackageName here to avoid tokenizing the package name list twice.
-      osPackageName = PackageNameConverter.buildOsPackageName(bakeRequest, firstPackageName)
+      osPackageName = PackageNameConverter.buildOsPackageName(selectedOptions.baseImage.packageType, firstPackageName)
       appVersionStr = PackageNameConverter.buildAppVersionStr(bakeRequest, osPackageName)
       appVersion = AppVersion.parseName(appVersionStr)
 

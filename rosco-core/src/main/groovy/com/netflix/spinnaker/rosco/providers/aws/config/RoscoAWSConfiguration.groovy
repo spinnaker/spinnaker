@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.rosco.providers.aws.config
 
+import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
-import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
 import com.netflix.spinnaker.rosco.providers.aws.AWSBakeHandler
+import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -54,11 +55,11 @@ class RoscoAWSConfiguration {
     Boolean awsAssociatePublicIpAddress
     String templateFile
     BakeRequest.VmType defaultVirtualizationType
-    List<AWSOperatingSystemVirtualizationSettings> operatingSystemVirtualizationSettings = []
+    List<AWSOperatingSystemVirtualizationSettings> baseImages = []
   }
 
   static class AWSOperatingSystemVirtualizationSettings {
-    BakeRequest.OperatingSystem os
+    BakeOptions.BaseImage baseImage
     List<AWSVirtualizationSettings> virtualizationSettings = []
   }
 

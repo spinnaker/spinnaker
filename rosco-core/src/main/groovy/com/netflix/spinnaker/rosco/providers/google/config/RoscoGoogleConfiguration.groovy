@@ -16,9 +16,10 @@
 
 package com.netflix.spinnaker.rosco.providers.google.config
 
+import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
-import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
 import com.netflix.spinnaker.rosco.providers.google.GCEBakeHandler
+import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -49,11 +50,11 @@ class RoscoGoogleConfiguration {
     String zone
     Boolean useInternalIp
     String templateFile
-    List<GCEOperatingSystemVirtualizationSettings> operatingSystemVirtualizationSettings = []
+    List<GCEOperatingSystemVirtualizationSettings> baseImages = []
   }
 
   static class GCEOperatingSystemVirtualizationSettings {
-    BakeRequest.OperatingSystem os
+    BakeOptions.BaseImage baseImage
     GCEVirtualizationSettings virtualizationSettings
   }
 

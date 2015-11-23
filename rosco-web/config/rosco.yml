@@ -41,12 +41,16 @@ aws:
     awsAssociatePublicIpAddress: true
     templateFile: aws-ebs.json
     defaultVirtualizationType: hvm
-    operatingSystemVirtualizationSettings:
+    baseImages:
     # TODO(duftler): Identify proper base amis.
     # TODO(duftler): Support additional store types beyond ebs.
     # TODO(duftler): Support additional operating systems.
     # TODO(duftler): Feels like just about everything here could be (optionally) specified per bake.
-    - os: ubuntu
+    - baseImage:
+        id: ubuntu
+        shortDescription: v12.04
+        detailedDescription: Ubuntu Precise Pangolin v12.04
+        packageType: deb
       virtualizationSettings:
       - region: us-east-1
         virtualizationType: hvm
@@ -69,7 +73,11 @@ aws:
 #        instanceType: m3.medium
 #        sourceAmi: 
 #        sshUserName: ubuntu
-    - os: trusty
+    - baseImage:
+        id: trusty
+        shortDescription: v14.04
+        detailedDescription: Ubuntu Trusty Tahr v14.04
+        packageType: deb
       virtualizationSettings:
       - region: us-east-1
         virtualizationType: hvm
@@ -97,11 +105,19 @@ docker:
   bakeryDefaults:
     targetRepository: ${DOCKER_TARGET_REPOSITORY:}
     templateFile: docker.json
-    operatingSystemVirtualizationSettings:
-    - os: ubuntu
+    baseImages:
+    - baseImage:
+        id: precise
+        shortDescription: v12.04
+        detailedDescription: Ubuntu Precise Pangolin v12.04
+        packageType: deb
       virtualizationSettings:
         sourceImage: ubuntu:precise
-    - os: trusty
+    - baseImage:
+        id: trusty
+        shortDescription: v14.04
+        detailedDescription: Ubuntu Trusty Tahr v14.04
+        packageType: deb
       virtualizationSettings:
         sourceImage: ubuntu:trusty
 
@@ -112,11 +128,19 @@ google:
       zone: us-central1-f
       useInternalIp: false
       templateFile: gce.json
-      operatingSystemVirtualizationSettings:
-      - os: ubuntu
+      baseImages:
+      - baseImage:
+          id: precise
+          shortDescription: v12.04
+          detailedDescription: Ubuntu Precise Pangolin v12.04
+          packageType: deb
         virtualizationSettings:
           sourceImage: ubuntu-1204-precise-v20150910
-      - os: trusty
+      - baseImage:
+          id: trusty
+          shortDescription: v14.04
+          detailedDescription: Ubuntu Trusty Tahr v14.04
+          packageType: deb
         virtualizationSettings:
           sourceImage: ubuntu-1404-trusty-v20150909a
 
@@ -127,3 +151,4 @@ swagger:
   contact:
   patterns:
     - .*api/v1.*
+    - /bakeOptions.*

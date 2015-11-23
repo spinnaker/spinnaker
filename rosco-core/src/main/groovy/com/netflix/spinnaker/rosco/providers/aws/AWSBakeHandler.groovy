@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.rosco.providers.aws
 
 import com.netflix.spinnaker.rosco.api.Bake
+import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.aws.config.RoscoAWSConfiguration
@@ -31,6 +32,19 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
 
   @Autowired
   RoscoAWSConfiguration.AWSBakeryDefaults awsBakeryDefaults
+
+  @Override
+  def getBakeryDefaults() {
+    return awsBakeryDefaults
+  }
+
+  @Override
+  BakeOptions getBakeOptions() {
+    new BakeOptions(
+      cloudProvider: BakeRequest.CloudProviderType.aws,
+      baseImages: awsBakeryDefaults?.baseImages?.collect { it.baseImage }
+    )
+  }
 
   @Override
   String produceBakeKey(String region, BakeRequest bakeRequest) {
@@ -48,8 +62,8 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
   def findVirtualizationSettings(String region, BakeRequest bakeRequest) {
     BakeRequest.VmType vm_type = bakeRequest.vm_type ?: awsBakeryDefaults.defaultVirtualizationType
 
-    def awsOperatingSystemVirtualizationSettings = awsBakeryDefaults?.operatingSystemVirtualizationSettings.find {
-      it.os == bakeRequest.base_os
+    def awsOperatingSystemVirtualizationSettings = awsBakeryDefaults?.baseImages.find {
+      it.baseImage.id == bakeRequest.base_os
     }
 
     if (!awsOperatingSystemVirtualizationSettings) {
@@ -70,11 +84,11 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
   @Override
   Map buildParameterMap(String region, def awsVirtualizationSettings, String imageName) {
     def parameterMap = [
-      aws_region:        region,
-      aws_ssh_username:  awsVirtualizationSettings.sshUserName,
+      aws_region       : region,
+      aws_ssh_username : awsVirtualizationSettings.sshUserName,
       aws_instance_type: awsVirtualizationSettings.instanceType,
-      aws_source_ami:    awsVirtualizationSettings.sourceAmi,
-      aws_target_ami:    imageName
+      aws_source_ami   : awsVirtualizationSettings.sourceAmi,
+      aws_target_ami   : imageName
     ]
 
     if (awsBakeryDefaults.awsAccessKey && awsBakeryDefaults.awsSecretKey) {

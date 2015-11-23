@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.rosco.providers.docker.config
 
+import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.docker.DockerBakeHandler
-import com.netflix.spinnaker.rosco.providers.google.GCEBakeHandler
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -49,11 +49,11 @@ class RoscoDockerConfiguration {
   static class DockerBakeryDefaults {
     String targetRepository
     String templateFile
-    List<DockerOperatingSystemVirtualizationSettings> operatingSystemVirtualizationSettings = []
+    List<DockerOperatingSystemVirtualizationSettings> baseImages = []
   }
 
   static class DockerOperatingSystemVirtualizationSettings {
-    BakeRequest.OperatingSystem os
+    BakeOptions.BaseImage baseImage
     DockerVirtualizationSettings virtualizationSettings
   }
 

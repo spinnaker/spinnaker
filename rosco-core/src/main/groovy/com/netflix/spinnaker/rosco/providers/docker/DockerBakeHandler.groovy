@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.rosco.providers.docker
 
 import com.netflix.spinnaker.rosco.api.Bake
+import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.docker.config.RoscoDockerConfiguration
@@ -35,6 +36,18 @@ public class DockerBakeHandler extends CloudProviderBakeHandler {
   RoscoDockerConfiguration.DockerBakeryDefaults dockerBakeryDefaults
 
   @Override
+  def getBakeryDefaults() {
+    return dockerBakeryDefaults
+  }
+
+  BakeOptions getBakeOptions() {
+    new BakeOptions(
+      cloudProvider: BakeRequest.CloudProviderType.docker,
+      baseImages: dockerBakeryDefaults?.baseImages?.collect { it.baseImage }
+    )
+  }
+
+  @Override
   String produceBakeKey(String region, BakeRequest bakeRequest) {
     // TODO(duftler): Work through definition of uniqueness.
     bakeRequest.with {
@@ -44,8 +57,8 @@ public class DockerBakeHandler extends CloudProviderBakeHandler {
 
   @Override
   def findVirtualizationSettings(String region, BakeRequest bakeRequest) {
-    def virtualizationSettings = dockerBakeryDefaults?.operatingSystemVirtualizationSettings.find {
-      it.os == bakeRequest.base_os
+    def virtualizationSettings = dockerBakeryDefaults?.baseImages.find {
+      it.baseImage.id == bakeRequest.base_os
     }?.virtualizationSettings
 
     if (!virtualizationSettings) {
@@ -58,8 +71,8 @@ public class DockerBakeHandler extends CloudProviderBakeHandler {
   @Override
   Map buildParameterMap(String region, def dockerVirtualizationSettings, String imageName) {
     return [
-      docker_source_image: dockerVirtualizationSettings.sourceImage,
-      docker_target_image: imageName,
+      docker_source_image     : dockerVirtualizationSettings.sourceImage,
+      docker_target_image     : imageName,
       docker_target_repository: dockerBakeryDefaults.targetRepository
     ]
   }
