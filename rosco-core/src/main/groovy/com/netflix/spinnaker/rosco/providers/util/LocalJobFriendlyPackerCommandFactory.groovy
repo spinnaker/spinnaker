@@ -24,7 +24,7 @@ class LocalJobFriendlyPackerCommandFactory implements PackerCommandFactory {
 
     parameterMap.each { key, value ->
       if (key && value) {
-        def keyValuePair = value.contains(" ") ? "$key=\"$value\"" : "$key=$value"
+        def keyValuePair = value instanceof String && value.contains(" ") ? "$key=\"$value\"" : "$key=$value"
 
         packerCommand << "-var"
         packerCommand << keyValuePair.toString()

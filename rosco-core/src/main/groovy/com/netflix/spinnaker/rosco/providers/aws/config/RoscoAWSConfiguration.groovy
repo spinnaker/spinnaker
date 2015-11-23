@@ -49,8 +49,9 @@ class RoscoAWSConfiguration {
   static class AWSBakeryDefaults {
     String awsAccessKey
     String awsSecretKey
-    String subnetId
-    String vpcId
+    String awsSubnetId
+    String awsVpcId
+    Boolean awsAssociatePublicIpAddress
     String templateFile
     BakeRequest.VmType defaultVirtualizationType
     List<AWSOperatingSystemVirtualizationSettings> operatingSystemVirtualizationSettings = []

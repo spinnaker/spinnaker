@@ -25,7 +25,7 @@ class DockerFriendlyPackerCommandFactory implements PackerCommandFactory {
 
     parameterMap.each { key, value ->
       if (key && value) {
-        def keyValuePair = value.contains(" ") ? "\"$key=$value\"" : "$key=$value"
+        def keyValuePair = value instanceof String && value.contains(" ") ? "\"$key=$value\"" : "$key=$value"
 
         shellCommandStr += " -var $keyValuePair"
       }
