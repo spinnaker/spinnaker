@@ -378,9 +378,11 @@ def maybe_copy_master_yml(options):
                              ' which does not exist.'
                                  .format(options.master_yml,
                                          json_credential_path))
+
         content = content.replace(json_credential_path, gcp_credential_path)
 
     fd, temp_path = tempfile.mkstemp()
+    os.fchmod(fd, os.stat(options.master_yml).st_mode)  # Copy original mode
     os.write(fd, content)
     os.close(fd)
     actual_path = temp_path
