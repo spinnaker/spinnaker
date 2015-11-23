@@ -11,6 +11,12 @@
       </a>
       <pipeline-config-errors pipeline="pipeline"></pipeline-config-errors>
     </h3>
+
+
+    <div class="permalink">
+      <a target="_blank" ng-href="{{pipelineConfigurerCtrl.getUrl()}}">Permalink</a>
+      <copy-to-clipboard text="{{pipelineConfigurerCtrl.getUrl()}}" tool-tip="Copy permalink to clipboard"></copy-to-clipboard>
+    </div>
     <div class="create-action">
       <create-new application="application"></create-new>
     </div>
@@ -81,6 +87,8 @@
         </button>
         <span ng-if="!viewState.isDirty" class="btn btn-link disabled"><span class="glyphicon glyphicon-ok-circle"></span> In sync with server</span>
       </div>
+
     </div>
   </div>
 </div>
+
