@@ -3,15 +3,15 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.amazon.serverGroup.details.resize.footer.directive', [
+  .module('spinnaker.amazon.footer.directive', [
   ])
-  .directive('awsResizeFooter', function () {
+  .directive('awsFooter', function () {
     return {
       restrict: 'E',
-      templateUrl: require('./resizeFooter.directive.html'),
+      templateUrl: require('./footer.directive.html'),
       scope: {},
       bindToController: {
-        resize: '&',
+        action: '&',
         isValid: '&',
         cancel: '&',
       },

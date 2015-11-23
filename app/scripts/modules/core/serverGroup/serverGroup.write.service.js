@@ -60,6 +60,20 @@ module.exports = angular
       });
     }
 
+    function rollbackServerGroup(serverGroup, application, params={}) {
+      params.type = 'rollbackServerGroup';
+      params.regions = [serverGroup.region];
+      params.zones = serverGroup.zones;
+      params.credentials = serverGroup.account;
+      params.cloudProvider = serverGroup.type;
+
+      return taskExecutor.executeTask({
+        job: [params],
+        application: application,
+        description: 'Rollback Server Group: ' + serverGroup.name
+      });
+    }
+
     function resizeServerGroup(serverGroup, application, params={}) {
       params.asgName = serverGroup.name;
       params.serverGroupName = serverGroup.name;
@@ -110,6 +124,7 @@ module.exports = angular
       destroyServerGroup: destroyServerGroup,
       disableServerGroup: disableServerGroup,
       enableServerGroup: enableServerGroup,
+      rollbackServerGroup: rollbackServerGroup,
       resizeServerGroup: resizeServerGroup,
       cloneServerGroup: cloneServerGroup
     };

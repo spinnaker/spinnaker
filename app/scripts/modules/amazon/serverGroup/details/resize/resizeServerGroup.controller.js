@@ -8,8 +8,8 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js'),
   require('./resizeCapacity.directive.js'),
-  require('./resizeFooter.directive.js'),
-  require('./verification.directive.js'),
+  require('../../../common/footer.directive.js'),
+  require('../../../common/verification.directive.js'),
 ])
   .controller('awsResizeServerGroupCtrl', function($scope, $modalInstance, accountService, serverGroupWriter,
                                                    taskMonitorService,

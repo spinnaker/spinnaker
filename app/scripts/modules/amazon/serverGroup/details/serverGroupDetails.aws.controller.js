@@ -23,6 +23,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('../../../core/insight/insightFilterState.model.js'),
   require('./scalingActivities/scalingActivities.controller.js'),
   require('./resize/resizeServerGroup.controller'),
+  require('./rollback/rollbackServerGroup.controller'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup, InsightFilterStateModel,
@@ -267,6 +268,21 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
       }
 
       confirmationModalService.confirm(confirmationModalParams);
+    };
+
+    this.rollbackServerGroup = function rollbackServerGroup() {
+      $uibModal.open({
+        templateUrl: templateOverrideRegistry.getTemplate('aws.rollback.modal', require('./rollback/rollbackServerGroup.html')),
+        controller: 'awsRollbackServerGroupCtrl as ctrl',
+        resolve: {
+          serverGroup: function() { return $scope.serverGroup; },
+          disabledServerGroups: function() {
+            var cluster = _.find(app.clusters, {name: $scope.serverGroup.cluster, account: $scope.serverGroup.account});
+            return _.filter(cluster.serverGroups, {isDisabled: true, region: $scope.serverGroup.region});
+          },
+          application: function() { return app; }
+        }
+      });
     };
 
     this.toggleScalingProcesses = function toggleScalingProcesses() {
