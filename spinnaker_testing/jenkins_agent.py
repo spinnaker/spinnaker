@@ -17,7 +17,6 @@ import collections
 import logging
 import urllib2
 import os
-import requests
 
 from citest.base.scribe import Scribable
 from citest.service_testing import (testable_agent, http_agent)
@@ -96,20 +95,28 @@ class JenkinsAgent(testable_agent.TestableAgent):
   """A specialization of TestableAgent for interacting with Jenkins."""
   def __init__(self, baseUrl, authPath, ownerAgent):
     super(JenkinsAgent, self).__init__()
-    self._baseUrl = baseUrl
-    self.__authPath = authPath
+    self.__jenkinsAgent = http_agent.HttpAgent(baseUrl)
     self.__ownerAgent = ownerAgent
 
-    with open(self.__authPath, 'r') as f:
-      contents = f.read()
-      contents = contents.split()
+    if authPath is None:
+        auth_info = [os.environ.get('JENKINS_USER', None),
+                     os.environ.get('JENNKINS_PASSWORD', None)]
+        if auth_info[0] is None or auth_info[1] is None:
+          raise ValueError(
+                'You must either supply --jenins_auth_path'
+                ' or JENKINS_USER and JENKINS_PASSWORD environment variables.')
+    else:
+        with open(authPath, 'r') as f:
+          auth_info = f.read().split()
 
-      if len(contents) != 2:
-        raise ValueError(('--jenkins_auth_path={path} is not in the correct '
-            'format. You must supply a file with the contents '
-            '<username> <password').format(path=auth_path))
+          if len(auth_info) != 2:
+            raise ValueError(
+                '--jenkins_auth_path={path} is not in the correct '
+                'format. You must supply a file with the contents '
+                '<username> <password'
+                    .format(path=auth_path))
 
-      self._username, self._password = contents[0], contents[1]
+    self.__jenkinsAgent.add_basic_auth_header(auth_info[0], auth_info[1])
 
   def get(self, path, trace=True):
     return self.__ownerAgent.get(path, trace)
@@ -117,15 +124,14 @@ class JenkinsAgent(testable_agent.TestableAgent):
   def _trigger_jenkins_build(self, job, token):
     jenkins_path = 'job/{job}/build/?token={token}'.format(job=job, token=token)
 
-    jenkins_url = os.path.join(self._baseUrl, jenkins_path)
-
-    r = requests.get(jenkins_url, auth=(self._username, self._password))
-    r.raise_for_status() # Will raise an HTTPError if the request failed
-    return http_agent.HttpResponseType(r.status_code, "", "")
+    result = self.__jenkinsAgent.get(jenkins_path, trace=False)
+    result.check_ok()
+    return result
 
 
   def _make_scribe_parts(self, scribe):
-    return ([scribe.build_control_part('Jenkins', self._baseUrl)]
+    return ([scribe.build_control_part(
+                'baseURL', self.__jenkinsAagent.baseUrl)]
             + super(JenkinsAgent, self)._make_scribe_parts(scribe))
 
   def new_jenkins_trigger_operation(self, title, job, token, status_class,
@@ -173,7 +179,8 @@ class BaseJenkinsOperation(testable_agent.AgentOperation):
     self.__data = {}
 
   def _make_scribe_parts(self, scribe):
-    return ([scribe.build_part('Jenkins BaseUrl', self._agent._baseUrl),
+    return ([scribe.part_builder.build_mechanism_part(
+                  'Jenkins Agent', self.agent),
              scribe.build_json_part('Payload Data', self.__data)]
             + super(BaseJenkinsOperation, self)._make_scribe_parts(scribe))
 
