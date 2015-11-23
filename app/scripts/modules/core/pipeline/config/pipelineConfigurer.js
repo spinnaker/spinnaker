@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     };
   })
   .controller('PipelineConfigurerCtrl', function($scope, $uibModal, $timeout, _,
-                                                 dirtyPipelineTracker, pipelineConfigService, viewStateCache, templateOverrideRegistry) {
+                                                 dirtyPipelineTracker, pipelineConfigService, viewStateCache, templateOverrideRegistry, $location) {
 
     this.actionsTemplateUrl = templateOverrideRegistry.getTemplate('pipelineConfigActions', require('./actions/pipelineConfigActions.html'));
 
@@ -305,5 +305,10 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     $scope.$watch('pipeline.name', cacheViewState);
 
     this.navigateTo({section: $scope.viewState.section, index: $scope.viewState.stageIndex});
+
+
+    this.getUrl = () => {
+      return $location.absUrl();
+    };
 
   }).name;
