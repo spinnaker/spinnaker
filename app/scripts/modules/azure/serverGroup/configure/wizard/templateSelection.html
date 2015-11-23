@@ -1,0 +1,69 @@
+<div modal-page ng-controller="azureDeployInitializerCtrl as deployInitializerCtrl">
+  <modal-close></modal-close>
+  <div ng-if="state.loaded">
+    <div class="modal-header">
+      <h3>Template Selection</h3>
+    </div>
+    <div class="modal-body">
+      <form class="form-horizontal">
+        <div class="form-group">
+          <div class="col-md-4 col-md-offset-1 sm-label-left">
+            <b>Copy configuration from</b>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-md-10 col-md-offset-1">
+            <ui-select ng-model="command.viewState.template"
+                       class="form-control input-sm">
+              <ui-select-match placeholder="Select...">
+              <span ng-if="!$select.selected.label">
+                <account-tag account="$select.selected.account"></account-tag>
+                <span ng-if="$select.selected.serverGroup">{{$select.selected.serverGroupName}}</span>
+                ({{$select.selected.region}})
+              </span>
+                <span ng-if="$select.selected.label">{{$select.selected.label}}</span>
+              </ui-select-match>
+              <ui-select-choices repeat="template in templates | anyFieldFilter: {label: $select.search, serverGroupName: $select.search}">
+                <h5 ng-if="!template.label"><account-tag account="template.account"></account-tag> {{template.cluster}} ({{template.region}})</h5>
+                <h5 ng-if="template.label">{{template.label}}</h5>
+                <div ng-if="template.serverGroup">
+                  <b>Most recent server group: </b> {{template.serverGroupName}}
+                </div>
+              </ui-select-choices>
+            </ui-select>
+          </div>
+        </div>
+        <div class="form-group" ng-if="command.viewState.customTemplateMessage">
+          <p class="col-md-10 col-md-offset-1" ng-bind-html="command.viewState.customTemplateMessage"></p>
+        </div>
+        <div class="form-group" ng-if="command.viewState.template.serverGroup" style="margin-top: 20px">
+          <div class="col-md-10 col-md-offset-1 well">
+            These fields <strong>will be</strong> copied over from the most recent server group:
+            <ul>
+              <li>account, region, subnet, cluster name (stack, details)</li>
+              <li>load balancers</li>
+              <li>security groups</li>
+              <li>instance type</li>
+              <li>all fields on the Advanced Settings page</li>
+            </ul>
+            These fields <strong>will NOT</strong> be copied over, and will be reset to defaults:
+            <ul>
+              <li>suspended processes</li>
+              <li ng-if="!command.viewState.disableStrategySelection">the deployment strategy (if any) used to deploy the most recent server group</li>
+            </ul>
+            If a server group exists in this cluster at the time of deployment, its scaling policies will be copied over to the new server group.
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary"
+              ng-click="deployInitializerCtrl.useTemplate()"
+              ng-if="command.viewState.template.serverGroup || !command.viewState.disableNoTemplateSelection">
+        <span ng-if="command.viewState.template.serverGroup">Use this template</span>
+        <span ng-if="!command.viewState.template.serverGroup">Continue without a template</span>
+        <span class="glyphicon glyphicon-chevron-right"></span>
+      </button>
+    </div>
+  </div>
+</div>

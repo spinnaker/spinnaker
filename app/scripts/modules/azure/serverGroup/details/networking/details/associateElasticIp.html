@@ -1,0 +1,68 @@
+<div modal-page>
+  <task-monitor monitor="taskMonitor"></task-monitor>
+  <modal-close></modal-close>
+  <div class="modal-header">
+    <h3>Associate Elastic IP with Cluster</h3>
+  </div>
+  <form role="form">
+    <div class="modal-body container-fluid form-horizontal">
+      <div class="form-group">
+        <label class="col-md-2 col-md-offset-1 control-label-left">Cluster</label>
+        <div class="col-md-3">
+          <p class="form-control-static">
+            {{serverGroup.cluster}}
+          </p>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-md-2 col-md-offset-1 control-label-left">Region</div>
+        <div class="col-md-3">
+          <p class="form-control-static">
+            {{serverGroup.region}}
+          </p>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-md-2 col-md-offset-1 control-label-left">Account</div>
+        <div class="col-md-3">
+          <p class="form-control-static">
+            {{serverGroup.account}}
+          </p>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-md-2 col-md-offset-1 control-label-left">Type <help-field key="azure.associateElasticIp.type"></help-field></div>
+        <div class="col-md-3">
+          <p>
+          <select class="form-control input-sm" ng-model="elasticIp.type">
+            <option value="standard">standard</option>
+            <option value="vpc">vpc</option>
+          </select>
+          </p>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-md-2 col-md-offset-1 control-label-left">Elastic IP <help-field key="azure.associateElasticIp.elasticIp"></help-field></div>
+        <div class="col-md-4">
+          <p>
+          <input type="text" class="form-control input-sm" maxlength="15" ng-model="elasticIp.address" placeholder="xxx.xxx.xxx.xxx">
+          </p>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+      <button type="submit"
+              class="btn btn-primary"
+              ng-click="ctrl.associate()"
+              ng-disabled="!elasticIp.type">
+        Associate
+      </button>
+    </div>
+  </form>
+</div>

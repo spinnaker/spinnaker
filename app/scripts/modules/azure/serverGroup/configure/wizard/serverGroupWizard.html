@@ -1,0 +1,32 @@
+<div>
+  <div ng-if="state.requiresTemplateSelection">
+    <ng-include src="pages.templateSelection"></ng-include>
+  </div>
+  <div ng-if="!state.loaded" style="height: 200px">
+    <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
+  </div>
+    <modal-wizard ng-show="state.loaded && !state.requiresTemplateSelection" heading="{{title}}">
+      <wizard-page key="location" label="Basic Settings" hide-subheading="true">
+        <ng-include src="pages.basicSettings"></ng-include>
+      </wizard-page>
+      <wizard-page key="load-balancers" label="Load Balancers">
+        <ng-include src="pages.loadBalancers"></ng-include>
+      </wizard-page>
+      <wizard-page key="security-groups" label="Security Groups">
+        <ng-include src="pages.securityGroups"></ng-include>
+      </wizard-page>
+      <wizard-page key="instance-profile" label="Instance Profile">
+        <ng-include src="pages.instanceArchetype"></ng-include>
+      </wizard-page>
+      <wizard-page key="instance-type" label="Instance Type" render="command.viewState.instanceProfile && command.viewState.instanceProfile !== 'custom'">
+        <ng-include src="pages.instanceType"></ng-include>
+      </wizard-page>
+      <wizard-page key="capacity" label="Capacity, Zones">
+        <ng-include src="pages.capacity"></ng-include>
+      </wizard-page>
+      <wizard-page key="advanced" label="Advanced Settings" mandatory="false">
+        <ng-include src="pages.advancedSettings"></ng-include>
+      </wizard-page>
+
+    </modal-wizard>
+</div>

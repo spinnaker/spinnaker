@@ -1,0 +1,113 @@
+<ng-form name="basicSettings">
+  <div class="form-group">
+    <div class="col-md-3 sm-label-left">
+      Account
+    </div>
+    <div class="col-md-7">
+      <account-select-field read-only="command.viewState.readOnlyFields.credentials" component="command" field="credentials" accounts="command.backingData.accounts" provider="'azure'"></account-select-field>
+    </div>
+  </div>
+  <region-select-field read-only="command.viewState.readOnlyFields.region" label-columns="3" component="command" field="region" account="command.credentials" provider="'azure'" regions="command.backingData.filtered.regions"></region-select-field>
+  <subnet-select-field read-only="command.viewState.readOnlyFields.subnet" label-columns="3" help-key="azure.serverGroup.subnet" component="command" field="subnetType" region="command.region" subnets="command.backingData.filtered.subnetPurposes"></subnet-select-field>
+  <div class="form-group">
+    <div class="col-md-3 sm-label-left">
+      Stack
+      <help-field key="azure.serverGroup.stack"></help-field>
+    </div>
+    <div class="col-md-7"><input type="text"
+                                 class="form-control input-sm"
+                                 ng-pattern="basicSettingsCtrl.stackPattern"
+                                 name="stack"
+                                 ng-model="command.stack"/></div>
+  </div>
+  <div class="form-group row slide-in animated" ng-if="basicSettings.stack.$error.pattern">
+    <div class="col-sm-9 col-sm-offset-2 error-message">
+      <span>Only dot(.) and underscore(_) special characters are allowed in the Stack field.</span>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-3 sm-label-left">
+      Detail
+      <help-field key="azure.serverGroup.detail"></help-field>
+    </div>
+    <div class="col-md-7"><input type="text"
+                                 class="form-control input-sm"
+                                 ng-pattern="basicSettingsCtrl.detailPattern"
+                                 name="details"
+                                 ng-model="command.freeFormDetails"/></div>
+  </div>
+  <div class="form-group row slide-in animated" ng-if="basicSettings.details.$error.pattern">
+    <div class="col-sm-9 col-sm-offset-2 error-message">
+      <span>Only dot(.), underscore(_), and dash(-) special characters are allowed in the Detail field.</span>
+    </div>
+  </div>
+  <div class="form-group" ng-if="!command.viewState.disableImageSelection">
+    <div class="col-md-3 sm-label-left">
+      Image
+      <help-field key="azure.serverGroup.imageName"></help-field>
+    </div>
+    <div class="col-md-9" ng-if="command.viewState.useAllImageSelection">
+      <ui-select ng-model="command.viewState.allImageSelection"
+                 class="form-control input-sm"
+                 required>
+        <ui-select-match placeholder="Search for an image...">{{$select.selected.imageName || $select.selected}}</ui-select-match>
+        <ui-select-choices repeat="result.imageName as result in allImageSearchResults track by $index"
+                           refresh="basicSettingsCtrl.searchImages($select.search)"
+                           ui-disable-choice="result.message"
+                           reset-search-input="false"
+                           refresh-delay="0">
+          <span ng-bind-html="result.message"></span>
+          <span ng-bind-html="result.imageName | highlight: $select.search"></span>
+          <span ng-if="result.ami">(<span ng-bind-html="result.ami | highlight: $select.search"></span>)</span>
+        </ui-select-choices>
+      </ui-select>
+          <span ng-if="command.backingData.filtered.images.length > 0">
+            <help-field key="azure.serverGroup.filterImages"></help-field>
+          </span>
+    </div>
+    <div class="col-md-9" ng-if="!command.viewState.useAllImageSelection">
+      <ui-select ng-model="command.amiName" class="form-control input-sm" required>
+        <ui-select-match placeholder="Pick an image">{{$select.selected.imageName}}</ui-select-match>
+        <ui-select-choices repeat="image.imageName as image in command.backingData.filtered.images | anyFieldFilter: {imageName: $select.search, ami: $select.search } | orderBy: '-imageName'">
+          <span ng-bind-html="image.imageName | highlight: $select.search"></span>
+          (<span ng-bind-html="image.ami | highlight: $select.search"></span>)
+        </ui-select-choices>
+      </ui-select>
+      <a href ng-click="command.viewState.useAllImageSelection = true">Search All Images</a><help-field key="azure.serverGroup.allImages"></help-field>
+    </div>
+  </div>
+  <deployment-strategy-selector label-columns="3" field-columns="9" ng-if="!command.viewState.disableStrategySelection && command.selectedProvider" command="command"></deployment-strategy-selector>
+  <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
+    <div class="col-md-12">
+      <div class="well-compact" ng-class="basicSettingsCtrl.showPreviewAsWarning() ? 'alert alert-warning' : 'well'">
+        <h5 class="text-center">
+          <p>Your server group will be in the cluster:</p>
+          <p>
+            <strong>
+              {{basicSettingsCtrl.getNamePreview()}}
+              <span ng-if="basicSettingsCtrl.createsNewCluster()"> (new cluster)</span>
+            </strong>
+          </p>
+          <div class="text-left" ng-if="!basicSettingsCtrl.createsNewCluster() && command.viewState.mode === 'create' && latestServerGroup">
+            <p>
+              There is already a server group in this cluster. Do you want to clone it?
+            </p>
+            <p>
+              Cloning copies the entire configuration from the selected server group, allowing you
+              modify whichever fields (e.g. image) you need to change in the new server group.
+            </p>
+            <p>
+              To clone a server group, select "Clone" from the "Server Group Actions" menu in the details view of the
+              server group.
+            </p>
+            <p>
+              <a href ng-click="basicSettingsCtrl.navigateToLatestServerGroup()">
+                Go to details for {{latestServerGroup.name}}
+              </a>
+            </p>
+          </div>
+        </h5>
+      </div>
+    </div>
+  </div>
+</ng-form>

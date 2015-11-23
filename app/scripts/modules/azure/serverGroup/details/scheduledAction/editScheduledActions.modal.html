@@ -1,0 +1,70 @@
+<div modal-page>
+  <task-monitor monitor="taskMonitor"></task-monitor>
+  <form role="form" name="form">
+    <modal-close></modal-close>
+    <div class="modal-header">
+      <h3>Edit Scheduled Actions for {{serverGroup.name}}</h3>
+    </div>
+    <div class="modal-body container-fluid form-horizontal">
+      <div class="form-group">
+        <div class="col-md-12">
+          <p>You must specify at least one of: Min Size, Max Size, Desired Capacity</p>
+          <p><strong>Note:</strong> CRON expressions are evaluated in UTC.</p>
+          <table class="table table-condensed packed">
+            <thead>
+            <tr>
+              <th>Recurrence (CRON)</th>
+              <th>Min Size</th>
+              <th>Max Size</th>
+              <th>Desired Capacity</th>
+              <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="action in command.scheduledActions">
+              <td><input class="form-control input-sm" type="text" ng-model="action.recurrence" name="recurrence-{{$index}}"
+                         required/>
+                <!-- TODO: Add cron-validator when endpoint is fixed -->
+                <div class="form-group row slide-in animated" ng-if="form['recurrence-' + $index].$error.cronExpression">
+                  <div class="error-message">
+                    {{cronErrors['action.recurrence.cronExpression']}}
+                  </div>
+                </div>
+              </td>
+              <td><input class="form-control input-sm" type="number" min="0" max="{{action.maxSize || Infinity}}" ng-model="action.minSize"
+                         /></td>
+              <td><input class="form-control input-sm" type="number" min="{{action.minSize || 0}}" ng-model="action.maxSize"
+                         /></td>
+              <td><input class="form-control input-sm" type="number" ng-model="action.desiredCapacity"
+                         min="{{command.minSize || 0}}"
+                         max="{{command.maxSize || Infinity}}"
+                         /></td>
+              <td><a href class="sm-label" ng-click="ctrl.removeScheduledAction()"><span
+                  class="glyphicon glyphicon-trash"></span></a></td>
+            </tr>
+            </tbody>
+            <tfoot>
+            <tr>
+              <td colspan="5">
+                <button class="add-new col-md-12" ng-click="ctrl.addScheduledAction()"><span
+                    class="glyphicon glyphicon-plus-sign"></span> Add new Scheduled Action
+                </button>
+              </td>
+            </tr>
+            </tfoot>
+          </table>
+
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+      <button type="submit"
+              class="btn btn-primary"
+              ng-disabled="form.$invalid"
+              ng-click="ctrl.submit()">
+        Submit
+      </button>
+    </div>
+  </form>
+</div>

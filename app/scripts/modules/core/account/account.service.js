@@ -16,7 +16,6 @@ module.exports = angular.module('spinnaker.core.account.service', [
     }
 
     function getAvailabilityZonesForAccountAndRegion(providerName, accountName, regionName) {
-
       return getPreferredZonesByAccount(providerName).then( function(defaults) {
         if (defaults[accountName] && defaults[accountName][regionName]) {
           return {preferredZones: defaults[accountName][regionName]};
@@ -28,7 +27,14 @@ module.exports = angular.module('spinnaker.core.account.service', [
       })
       .then(function(zonesCollection) {
         return getRegionsForAccount(accountName).then(function(regions){
-          zonesCollection.actualZones = _.find(regions, {name: regionName}).availabilityZones;
+          //TODO(chrisberry)
+          //Make this pluggable to remove the need for provider tests
+          if (providerName === 'azure') {
+            zonesCollection.actualZones = [regionName];
+          }
+          else {
+            zonesCollection.actualZones = _.find(regions, {name: regionName}).availabilityZones;
+          }
           return zonesCollection;
         });
       })

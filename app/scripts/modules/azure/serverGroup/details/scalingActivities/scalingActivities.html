@@ -1,0 +1,30 @@
+<div modal-page>
+  <modal-close></modal-close>
+  <div class="modal-header">
+    <h3>Scaling Activities for {{serverGroup.name}}</h3>
+  </div>
+  <div class="modal-body">
+    <div class="loading" ng-if="!activities.length">
+      <span us-spinner="{radius:5, width:2, length: 3}"></span>
+    </div>
+    <div ng-repeat="activity in activities" ng-if="activities.length">
+        <p class="clearfix">
+          <span class="label label-{{ctrl.isSuccessful(activity) ? 'success' : 'danger'}} pull-left">{{activity.statusCode}}</span>
+          <span class="label label-default pull-right">{{activity.startTime | timestamp}}</span>
+        </p>
+        <p>{{activity.cause}}</p>
+        <p>Summary of activities:
+          <ul>
+            <li ng-repeat="event in activity.events | orderBy: ['availabilityZone', 'description']">
+              {{event.description}}
+              <span ng-if="event.availabilityZone"> ({{event.availabilityZone}})</span>
+            </li>
+          </ul>
+        </p>
+        <hr ng-if="!$last"/>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" ng-click="close()">Close</button>
+  </div>
+</div>

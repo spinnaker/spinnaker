@@ -1,0 +1,128 @@
+<div class="details-panel">
+
+  <div ng-if="state.loading" class="header">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <h4 class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
+  </div>
+
+  <div ng-if="!state.loading" class="header">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text">
+      <span class="icon icon-elb"></span>
+      <h3 select-on-dbl-click>
+        {{loadBalancer.name}}
+      </h3>
+    </div>
+    <div>
+      <div class="actions">
+        <div class="dropdown" dropdown>
+          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" dropdown-toggle>
+            Load Balancer Actions <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href ng-click="ctrl.editLoadBalancer()">Edit Load Balancer</a></li>
+            <!--<li><a href ng-click="ctrl.cloneLoadBalancer()">Clone Load Balancer</a></li>-->
+            <li ng-if="!loadBalancer.instances.length"><a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a></li>
+            <li ng-if="loadBalancer.instances.length" class="disabled" tooltip="You must detach all instances before you can delete this load balancer.">
+              <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div ng-if="!state.loading" class="content">
+    <collapsible-section heading="Load Balancer Details" expanded="true">
+      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+        <dt>Created:</dt>
+        <dd>{{loadBalancer.elb.createdTime | timestamp}}</dd>
+        <dt>In:</dt>
+        <dd><account-tag account="loadBalancer.account" pad="right" provider="loadBalancer.type"></account-tag> {{loadBalancer.region}}</dd>
+        <dt>VPC:</dt>
+        <dd><vpc-tag vpc-id="loadBalancer.elb.vpcid"></vpc-tag></dd>
+      </dl>
+      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+        <dt>Availability Zones:</dt>
+        <dd>
+          <ul ng-style="{'margin-left': InsightFilterStateModel.filtersExpanded ? '30px' : 0}">
+            <li ng-repeat="availabilityZone in loadBalancer.elb.availabilityZones">{{availabilityZone}}</li>
+          </ul>
+        </dd>
+      </dl>
+      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+        <dt ng-if="loadBalancer.serverGroups">Server Groups:</dt>
+        <dd ng-if="loadBalancer.serverGroups">
+          <ul ng-style="{'margin-left': InsightFilterStateModel.filtersExpanded ? '30px' : 0}">
+            <li ng-repeat="serverGroup in loadBalancer.serverGroups | orderBy: ['isDisabled', '-name']">
+              <a ui-sref="^.serverGroup({region: serverGroup.region,
+                                          accountId: serverGroup.account,
+                                          serverGroup: serverGroup.name,
+                                          provider: 'azure'})">
+              {{serverGroup.name}}
+              </a>
+            </li>
+          </ul>
+        </dd>
+      </dl>
+      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+        <dt ng-if="loadBalancer.elb.dnsname">DNS Name:</dt>
+        <dd>
+          <a target=_blank href="http://{{loadBalancer.elb.dnsname}}">{{loadBalancer.elb.dnsname}}</a>
+          <copy-to-clipboard
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="http://{{loadBalancer.elb.dnsname}}"
+              tool-tip="Copy DNS Name to clipboard">
+          </copy-to-clipboard>
+        </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Status" expanded="true">
+      <health-counts class="pull-left" container="loadBalancer.healthCounts"></health-counts>
+    </collapsible-section>
+    <collapsible-section heading="Listeners">
+      <dl>
+        <dt>Load Balancer &rarr; Instance</dt>
+        <dd ng-repeat="listener in loadBalancer.elb.listenerDescriptions">
+          {{listener.listener.protocol}}:{{listener.listener.loadBalancerPort}}
+          &rarr;
+          {{listener.listener.instanceProtocol}}:{{listener.listener.instancePort}}
+        </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Security Groups">
+      <ul>
+        <li ng-repeat="securityGroup in securityGroups | orderBy:'name'">
+          <a ui-sref="^.securityGroupDetails({name:securityGroup.name, accountId: loadBalancer.account, region: loadBalancer.region, vpcId: loadBalancer.vpcId, provider: loadBalancer.provider})">
+            {{securityGroup.name}} ({{securityGroup.id}})
+          </a>
+        </li>
+      </ul>
+    </collapsible-section>
+    <collapsible-section heading="Health Checks">
+      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+        <dt>Target</dt>
+        <dd>{{loadBalancer.elb.healthCheck.target}}</dd>
+        <dt>Timeout</dt>
+        <dd>{{loadBalancer.elb.healthCheck.timeout}} seconds</dd>
+        <dt>Interval</dt>
+        <dd>{{loadBalancer.elb.healthCheck.interval}} seconds</dd>
+        <dt>Healthy Threshold</dt>
+        <dd>{{loadBalancer.elb.healthCheck.healthyThreshold}}</dd>
+        <dt>Unhealthy Threshold</dt>
+        <dd>{{loadBalancer.elb.healthCheck.unhealthyThreshold}}</dd>
+      </dl>
+    </collapsible-section>
+  </div>
+</div>

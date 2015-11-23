@@ -14,6 +14,30 @@ window.spinnakerSettings = {
   pollSchedule: 30000,
   defaultTimeZone: process.env.TIMEZONE || 'America/Los_Angeles', // see http://momentjs.com/timezone/docs/#/data-utilities/
   providers: {
+    azure: {
+      defaults: {
+        account: 'azure-test',
+        region: 'West US'
+      },
+      primaryAccounts: ['azure-test'],
+      primaryRegions: ['West US', 'East US', 'Central US', 'North Central US', 'South Central US'],
+      preferredZonesByAccount: {
+	test: {
+           'West US': ['West US'],
+           'East US': ['East US'],
+           'Central US': ['Central US'],
+           'North Central US': ['North Central US'],
+           'South Central US': ['South Central US']
+        },
+	default: {
+           'West US': ['West US'],
+           'East US': ['East US'],
+           'Central US': ['Central US'],
+           'North Central US': ['North Central US'],
+           'South Central US': ['South Central US']
+	}
+     }
+    },
     aws: {
       defaults: {
         account: 'test',

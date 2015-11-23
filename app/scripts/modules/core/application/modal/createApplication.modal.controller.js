@@ -80,6 +80,10 @@ module.exports = angular
 
       vm.application.name = vm.application.name.toLowerCase();
 
+      if (vm.cloudProviders.length === 1) {
+        vm.application.cloudProviders = vm.cloudProviders;
+      }
+
       vm.createAppForAccount(vm.application, vm.application.account).then(
         routeToApplication,
         extractErrorMsg

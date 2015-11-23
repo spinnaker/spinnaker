@@ -13,4 +13,5 @@ build
 *.swp
 *.DS_Store
 coverage/
+*~
 

@@ -1,0 +1,97 @@
+  <form role="form" class="container-fluid form-horizontal" name="form" novalidate>
+    <div class="modal-body">
+      <div class="row">
+        <div class="col-md-12" ng-if="state.removedRules.length">
+          <div class="alert alert-warning">
+            <p><span class="glyphicon glyphicon-warning-sign"></span>
+              The following security groups could not be found in the selected account/region/VPC and were removed:
+            </p>
+            <ul>
+              <li ng-repeat="securityGroup in state.removedRules">{{securityGroup}}</li>
+            </ul>
+            <p class="text-right">
+              <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="ctrl.dismissRemovedRules()">Okay</a>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <p class="info">
+          <span class="glyphicon glyphicon-info-sign"></span> IP range rules can only be edited through the Azure Console.
+          </p>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-12">
+          <table class="table table-condensed packed">
+            <thead>
+            <tr>
+              <th style="width: 50%">Security Group</th>
+              <th style="width: 15%">Protocol</th>
+              <th style="width: 15%">Start Port</th>
+              <th style="width: 15%">End Port</th>
+              <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="rule in securityGroup.securityGroupIngress">
+              <td>
+                <ui-select ng-model="rule.name" class="form-control input-sm" style="width: 244px">
+                  <ui-select-match>{{$select.selected}}</ui-select-match>
+                  <ui-select-choices repeat="securityGroup as securityGroup in availableSecurityGroups | filter: $select.search | limitTo: state.infiniteScroll.currentItems"
+                                     infinite-scroll="ctrl.addMoreItems()"
+                                     infinite-scroll-container="'.ui-select-choices-content'"
+                                     infinite-scroll-distance="2">
+                    <span ng-bind-html="securityGroup | highlight: $select.search"></span>
+                  </ui-select-choices>
+                </ui-select>
+              </td>
+              <td><select class="form-control input-sm" ng-model="rule.type"
+                          ng-options="protocol as protocol.toUpperCase() for protocol in ['tcp', 'udp', 'icmp']"></select></td>
+              <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.startPort" required/></td>
+              <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.endPort" required/></td>
+              <td><a class="btn btn-link sm-label"
+                     ng-click="ctrl.removeRule(securityGroup.securityGroupIngress, $index)"><span
+                class="glyphicon glyphicon-trash"></span></a></td>
+            </tr>
+            </tbody>
+            <tfoot>
+            <tr>
+              <td colspan="5">
+                <button class="add-new col-md-12" ng-click="ctrl.addRule(securityGroup.securityGroupIngress)"><span
+                  class="glyphicon glyphicon-plus-sign"></span> Add new Security Group Rule
+                </button>
+              </td>
+            </tr>
+            </tfoot>
+          </table>
+
+        </div>
+      </div>
+      <div class="form-group small" style="margin-top: 20px">
+        <div class="col-md-12">
+          <p>
+            <span ng-if="state.refreshingSecurityGroups"><span class="small glyphicon glyphicon-refresh glyphicon-spinning"></span></span>
+            Security groups
+            <span ng-if="!state.refreshingSecurityGroups">last refreshed {{ ctrl.getSecurityGroupRefreshTime() | timestamp }}</span>
+            <span ng-if="state.refreshingSecurityGroups"> refreshing...</span>
+          </p>
+          <p>If you're not finding a security group that was recently added,
+            <a href ng-click="ctrl.refreshSecurityGroups()">click here</a> to refresh the list.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default pull-left"
+              ng-click="ctrl.cancel()">Cancel
+      </button>
+      <button class="btn btn-default"
+              ng-click="wizard.previousPage()">
+        <span class="glyphicon glyphicon-chevron-left"></span> Back
+      </button>
+      <submit-button is-disabled="form.$invalid || !wizard.isComplete() || state.submitting"
+                     submitting="state.submitting" on-click="ctrl.upsert()" is-new="isNew"></submit-button>
+    </div>
+  </form>

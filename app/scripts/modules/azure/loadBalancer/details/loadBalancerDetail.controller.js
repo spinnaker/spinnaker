@@ -1,0 +1,128 @@
+'use strict';
+
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller', [
+  require('angular-ui-router'),
+  require('../../../core/securityGroup/securityGroup.read.service.js'),
+  require('../../../core/loadBalancer/loadBalancer.write.service.js'),
+  require('../../../core/loadBalancer/loadBalancer.read.service.js'),
+  require('../../../core/utils/lodash.js'),
+  require('../../../core/confirmationModal/confirmationModal.service.js'),
+  require('../../../core/insight/insightFilterState.model.js'),
+  require('../../../core/presentation/collapsibleSection/collapsibleSection.directive.js'),
+  require('../../../core/utils/selectOnDblClick.directive.js'),
+])
+  .controller('azureLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, app, InsightFilterStateModel,
+                                                   securityGroupReader, _, confirmationModalService, loadBalancerWriter, loadBalancerReader, $q) {
+
+    $scope.state = {
+      loading: true
+    };
+
+    $scope.InsightFilterStateModel = InsightFilterStateModel;
+
+    function extractLoadBalancer() {
+      if (!loadBalancer.vpcId) {
+        loadBalancer.vpcId = null;
+      }
+      $scope.loadBalancer = app.loadBalancers.filter(function (test) {
+        var testVpc = test.vpcId || null;
+        return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.accountId && testVpc === loadBalancer.vpcId;
+      })[0];
+
+      if ($scope.loadBalancer) {
+        var detailsLoader = loadBalancerReader.getLoadBalancerDetails($scope.loadBalancer.provider, loadBalancer.accountId, loadBalancer.region, loadBalancer.name);
+        return detailsLoader.then(function(details) {
+          $scope.state.loading = false;
+          var securityGroups = [];
+          var filtered = details.filter(function(test) {
+            return test.vpcid === loadBalancer.vpcId || (!test.vpcid && !loadBalancer.vpcId);
+          });
+          if (filtered.length) {
+            $scope.loadBalancer.elb = filtered[0];
+            $scope.loadBalancer.account = loadBalancer.accountId;
+
+            if ($scope.loadBalancer.elb.availabilityZones) {
+              $scope.loadBalancer.elb.availabilityZones.sort();
+            }
+
+            $scope.loadBalancer.elb.securityGroups.forEach(function (securityGroupId) {
+              var match = securityGroupReader.getApplicationSecurityGroup(app, loadBalancer.accountId, loadBalancer.region, securityGroupId);
+              if (match) {
+                securityGroups.push(match);
+              }
+            });
+            $scope.securityGroups = _.sortBy(securityGroups, 'name');
+          }
+        });
+      }
+      if (!$scope.loadBalancer) {
+        $state.go('^');
+      }
+
+      return $q.when(null);
+    }
+
+    extractLoadBalancer();
+
+    app.registerAutoRefreshHandler(extractLoadBalancer, $scope);
+
+    //BEN_TODO
+
+    this.editLoadBalancer = function editLoadBalancer() {
+      $modal.open({
+        templateUrl: require('../configure/editLoadBalancer.html'),
+        controller: 'azureCreateLoadBalancerCtrl as ctrl',
+        resolve: {
+          application: function() { return app; },
+          loadBalancer: function() { return angular.copy($scope.loadBalancer); },
+          isNew: function() { return false; }
+        }
+      });
+    };
+
+    this.cloneLoadBalancer = function () {
+      $modal.open({
+        templateUrl: require('../configure/createLoadBalancer.html'),
+        controller: 'azureCreateLoadBalancerCtrl as ctrl',
+        resolve: {
+          application: function() { return app; },
+          loadBalancer: function() { return angular.copy($scope.loadBalancer); },
+          isNew: function() { return true; }
+        }
+      });
+    };
+
+    this.deleteLoadBalancer = function deleteLoadBalancer() {
+      if ($scope.loadBalancer.instances && $scope.loadBalancer.instances.length) {
+        return;
+      }
+
+      var taskMonitor = {
+        application: app,
+        title: 'Deleting ' + loadBalancer.name,
+        forceRefreshMessage: 'Refreshing application...',
+        forceRefreshEnabled: true
+      };
+
+      var submitMethod = function () {
+        loadBalancer.providerType = $scope.loadBalancer.type;
+        let vpcId = angular.isDefined($scope.loadBalancer.elb) ? $scope.loadBalancer.elb.vpcid : loadBalancer.vpcId || null;
+        return loadBalancerWriter.deleteLoadBalancer(loadBalancer, app, { vpcId: vpcId });
+      };
+
+      confirmationModalService.confirm({
+        header: 'Really delete ' + loadBalancer.name + '?',
+        buttonText: 'Delete ' + loadBalancer.name,
+        destructive: true,
+        provider: 'azure',
+        account: loadBalancer.accountId,
+        applicationName: app.name,
+        taskMonitorConfig: taskMonitor,
+        submitMethod: submitMethod
+      });
+    };
+
+  }
+).name;

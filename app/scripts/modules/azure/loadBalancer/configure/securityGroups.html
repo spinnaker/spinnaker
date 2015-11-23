@@ -1,0 +1,65 @@
+<form class="container-fluid form-horizontal" name="form" novalidate>
+  <div class="modal-body" ng-if="!state.securityGroupsLoaded">
+    <h3><span us-spinner="{radius:8, width:3, length: 5}"></span></h3>
+  </div>
+  <div class="modal-body" ng-if="state.securityGroupsLoaded">
+    <div class="form-group" ng-if="state.removedSecurityGroups.length">
+    <div class="col-md-12">
+      <div class="alert alert-warning">
+        <p><span class="glyphicon glyphicon-warning-sign"></span>
+          The following security groups could not be found in the selected account/region/VPC and were removed:
+        </p>
+        <ul>
+          <li ng-repeat="securityGroup in state.removedSecurityGroups">{{securityGroup}}</li>
+        </ul>
+        <p class="text-right">
+          <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="state.removedSecurityGroups = []; wizard.markClean('Security Groups');">Okay</a>
+        </p>
+      </div>
+    </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-left">Security Groups</div>
+      <div class="col-md-9">
+        <ui-select multiple ng-model="loadBalancer.securityGroups" class="form-control input-sm">
+          <ui-select-match>{{$item.name}} ({{$item.id}})</ui-select-match>
+          <ui-select-choices repeat="securityGroup.name as securityGroup in availableSecurityGroups | anyFieldFilter: {name: $select.search, id: $select.search}">
+            <span ng-bind-html="securityGroup.name | highlight: $select.search"></span>
+            (<span ng-bind-html="securityGroup.id  | highlight: $select.search"></span>)
+          </ui-select-choices>
+        </ui-select>
+      </div>
+    </div>
+
+    <div class="form-group small" style="margin-top: 20px">
+      <div class="col-md-9 col-md-offset-3">
+        <p>
+          <span ng-if="state.refreshingSecurityGroups"><span class="small glyphicon glyphicon-refresh glyphicon-spinning"></span></span>
+          Security groups
+          <span ng-if="!state.refreshingSecurityGroups">last refreshed {{ ctrl.getSecurityGroupRefreshTime() | timestamp }}</span>
+          <span ng-if="state.refreshingSecurityGroups"> refreshing...</span>
+        </p>
+        <p>If you're not finding a security group that was recently added,
+          <a href ng-click="ctrl.refreshSecurityGroups()">click here</a> to refresh the list.
+        </p>
+      </div>
+    </div>
+
+  </div>
+  <div class="modal-footer">
+    <button ng-disabled="taskMonitor.submitting" class="btn btn-default pull-left" ng-click="ctrl.cancel()">Cancel</button>
+    <button class="btn btn-default"
+            ng-click="wizard.previousPage()"
+            ng-if="!wizard.isFirstPage('Security Groups')">
+      <span class="glyphicon glyphicon-chevron-left"></span> Back
+    </button>
+
+    <submit-button is-disabled="form.$invalid || !wizard.isComplete() || taskMonitor.submitting"
+                   submitting="state.submitting" on-click="ctrl.submit()" is-new="isNew"></submit-button>
+    <button class="btn btn-primary"
+          ng-disabled="form.$invalid"
+          ng-click="wizard.markComplete('Security Groups'); wizard.nextPage()">
+      Next <span class="glyphicon glyphicon-chevron-right"></span>
+    </button>
+  </div>
+</form>
