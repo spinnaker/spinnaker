@@ -82,6 +82,6 @@ class GoogleServerGroupCreatorSpec extends Specification {
 
     then:
       ise = thrown()
-      ise.message == "No image could be found in south-pole-1"
+      ise.message == "No image could be found in south-pole-1."
   }
 }
