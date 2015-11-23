@@ -4,7 +4,7 @@ server:
 rush:
   baseUrl: http://localhost:8085
   # TODO(duftler): Figure out the right way to set this dynamically.
-  configDir: /Users/duftler/spinnaker/rosco/rosco-web/config/packer
+  configDir: /some/path/to/config/packer
 
 executionStatusToBakeStates:
   associations:
@@ -38,6 +38,7 @@ defaultCloudProviderType: aws
 aws:
   enabled: ${AWS_ENABLED:false}
   bakeryDefaults:
+    awsAssociatePublicIpAddress: true
     templateFile: aws-ebs.json
     defaultVirtualizationType: hvm
     operatingSystemVirtualizationSettings:
@@ -109,6 +110,7 @@ google:
   gce:
     bakeryDefaults:
       zone: us-central1-f
+      useInternalIp: false
       templateFile: gce.json
       operatingSystemVirtualizationSettings:
       - os: ubuntu

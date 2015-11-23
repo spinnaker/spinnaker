@@ -82,12 +82,16 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
       parameterMap.aws_secret_key = awsBakeryDefaults.awsSecretKey
     }
 
-    if (awsBakeryDefaults.subnetId) {
-      parameterMap.subnet_id = awsBakeryDefaults.subnetId
+    if (awsBakeryDefaults.awsSubnetId) {
+      parameterMap.aws_subnet_id = awsBakeryDefaults.awsSubnetId
     }
 
-    if (awsBakeryDefaults.vpcId) {
-      parameterMap.vpc_id = awsBakeryDefaults.vpcId
+    if (awsBakeryDefaults.awsVpcId) {
+      parameterMap.aws_vpc_id = awsBakeryDefaults.awsVpcId
+    }
+
+    if (awsBakeryDefaults.awsAssociatePublicIpAddress != null) {
+      parameterMap.aws_associate_public_ip_address = awsBakeryDefaults.awsAssociatePublicIpAddress
     }
 
     return parameterMap

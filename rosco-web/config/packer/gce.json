@@ -5,6 +5,7 @@
     "gce_zone": null,
     "gce_source_image": null,
     "gce_target_image": null,
+    "gce_use_internal_ip": "false",
     "appversion": "",
     "build_host": "",
     "deb_repo": "",
@@ -18,6 +19,7 @@
     "zone": "{{user `gce_zone`}}",
     "source_image": "{{user `gce_source_image`}}",
     "image_name": "{{user `gce_target_image`}}",
+    "use_internal_ip": "{{user `gce_use_internal_ip`}}",
     "image_description": "appversion: {{user `appversion`}}, build_host: {{user `build_host`}}"
   }],
   "provisioners": [{

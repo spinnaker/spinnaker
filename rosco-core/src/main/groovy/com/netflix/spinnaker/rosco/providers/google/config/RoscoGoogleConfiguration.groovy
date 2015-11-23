@@ -47,6 +47,7 @@ class RoscoGoogleConfiguration {
 
   static class GCEBakeryDefaults {
     String zone
+    Boolean useInternalIp
     String templateFile
     List<GCEOperatingSystemVirtualizationSettings> operatingSystemVirtualizationSettings = []
   }
