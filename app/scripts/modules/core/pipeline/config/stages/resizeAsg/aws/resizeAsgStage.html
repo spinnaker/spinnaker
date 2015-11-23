@@ -6,67 +6,39 @@
       </h4>
     </div>
     <div ng-if="viewState.accountsLoaded">
-      <div class="form-group">
-        <label class="col-md-2 col-md-offset-1 sm-label-left">Account</label>
-        <div class="col-md-6">
-          <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="resizeAsgStageCtrl.accountUpdated()" required></account-select-field>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="col-md-2 col-md-offset-1 sm-label-left">Regions</label>
-        <div class="col-md-6" ng-if="!stage.credentials">
-          <p class="form-control-static">(Select an Account)</p>
-        </div>
-        <div class="col-md-6" ng-if="stage.credentials">
-          <checklist items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
-        </div>
-      </div>
-      <div class="form-group">
-        <div class="col-md-2 col-md-offset-1 sm-label-left">
-          <b>Cluster</b>
-          <help-field key="pipeline.config.resizeAsg.cluster"></help-field>
-        </div>
-        <div class="col-md-6">
-          <input type="text" required ng-model="stage.cluster" class="form-control input-sm" />
-        </div>
-      </div>
+      <stage-config-field label="Account">
+        <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="resizeAsgStageCtrl.accountUpdated()" required></account-select-field>
+      </stage-config-field>
+      <stage-config-field label="Regions">
+        <p ng-if="!stage.credentials" class="form-control-static">(Select an Account)</p>
+        <checklist ng-if="stage.credentials" items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
+      </stage-config-field>
+      <stage-config-field label="Cluster" help-key="pipeline.config.resizeAsg.cluster">
+        <input type="text" required ng-model="stage.cluster" class="form-control input-sm" />
+      </stage-config-field>
     </div>
-    <div class="form-group">
-      <div class="col-md-2 col-md-offset-1 sm-label-left">
-        <b>Target</b>
-      </div>
-      <div class="col-md-6">
-        <target-select model="stage" options="resizeTargets"></target-select>
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="col-md-2 col-md-offset-1 sm-label-left">Action
-        <help-field key="pipeline.config.resizeAsg.action"></help-field>
-      </label>
-      <div class="col-md-6">
+    <stage-config-field label="Target">
+      <target-select model="stage" options="resizeTargets"></target-select>
+    </stage-config-field>
+    <stage-config-field label="Action" help-key="pipeline.config.resizeAsg.action">
+      <select class="form-control input-sm"
+              required
+              ng-model="stage.action"
+              ng-change="resizeAsgStageCtrl.updateResizeType()"
+              ng-options="a.val as a.label for a in scaleActions">
+        <option>Select an action...</option>
+      </select>
+    </stage-config-field>
+    <div ng-if="stage.action !== 'scale_exact'">
+      <stage-config-field label="{{stage.action === 'scale_to_cluster' ? 'Additional Capacity' : 'Type'}}">
         <select class="form-control input-sm"
                 required
-                ng-model="stage.action"
+                ng-model="stage.resizeType"
                 ng-change="resizeAsgStageCtrl.updateResizeType()"
-                ng-options="a.val as a.label for a in scaleActions">
+                ng-options="t.val as t.label for t in resizeTypes">
           <option>Select an action...</option>
         </select>
-      </div>
-    </div>
-    <div ng-if="stage.action !== 'scale_exact'">
-      <div class="form-group">
-        <label ng-if="stage.action !== 'scale_to_cluster'" class="col-md-2 col-md-offset-1 sm-label-left">Type</label>
-        <label ng-if="stage.action === 'scale_to_cluster'" class="col-md-2 col-md-offset-1 sm-label-left">Additional Capacity</label>
-        <div class="col-md-6">
-          <select class="form-control input-sm"
-                  required
-                  ng-model="stage.resizeType"
-                  ng-change="resizeAsgStageCtrl.updateResizeType()"
-                  ng-options="t.val as t.label for t in resizeTypes">
-            <option>Select an action...</option>
-          </select>
-        </div>
-      </div>
+      </stage-config-field>
       <div class="form-group" ng-if="stage.resizeType === 'pct'">
         <div class="col-md-9 col-md-offset-3">
           <label class="col-md-2 sm-label-left" style="font-size:12px;line-height:13px;margin-left:0;padding-left:0">Resize Percentage</label>
@@ -118,12 +90,9 @@
         <em class="subinput-note">This is the exact amount to which the target server group will be scaled</em>
       </div>
     </div>
-    <platform-health-override ng-if="application.attributes.platformHealthOnlyShowOverride"
-                              command="stage"
-                              platform-health-type="'Amazon'"
-                              label-text="Task Completion"
-                              label-columns="2"
-                              label-offset="col-md-offset-1">
-    </platform-health-override>
+    <stage-platform-health-override application="application"
+                                    stage="stage"
+                                    platform-health-type="'Amazon'">
+    </stage-platform-health-override>
   </div>
 </div>

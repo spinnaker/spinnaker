@@ -271,7 +271,7 @@ module.exports = angular
       original.securityGroups = newApplication.securityGroups;
       original.lastRefresh = newApplication.lastRefresh;
       original.securityGroupsIndex = newApplication.securityGroupsIndex;
-      original.defaultRegion = newApplication.defaultRegion;
+      original.defaultRegions = newApplication.defaultRegions;
       original.defaultCredentials = newApplication.defaultCredentials;
 
       clusterService.addTasksToServerGroups(original);

@@ -1,5 +1,7 @@
 = Spinnaker UI
 
+image::https://api.travis-ci.org/spinnaker/deck.svg?branch=master["Build Status", link="https://travis-ci.org/spinnaker/deck"]
+
 == Prerequisites
 
 Make sure that node and npm are installed on your system (http://nodejs.org/download/[download]). The minimum versions for each are listed in package.json.

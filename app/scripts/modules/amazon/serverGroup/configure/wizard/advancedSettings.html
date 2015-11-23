@@ -106,14 +106,14 @@
         </label>
       </div>
     </div>
-
-
-    <platform-health-override ng-if="application.attributes.platformHealthOnlyShowOverride"
-                              command="command"
-                              platform-health-type="'Amazon'"
-                              label-text="Task Completion"
-                              label-columns="5">
-    </platform-health-override>
+    <div class="form-group" ng-if="application.attributes.platformHealthOnlyShowOverride">
+      <div class="col-md-5 sm-label-left"><b>Task Completion</b></div>
+      <div class="col-md-6">
+        <platform-health-override command="command"
+                                  platform-health-type="'Amazon'">
+        </platform-health-override>
+      </div>
+    </div>
   </div>
 
   <div class="modal-footer">
