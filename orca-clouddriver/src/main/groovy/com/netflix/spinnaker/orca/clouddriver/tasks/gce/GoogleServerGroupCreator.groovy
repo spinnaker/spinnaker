@@ -55,6 +55,21 @@ class GoogleServerGroupCreator implements ServerGroupCreator {
       if (!operation.image && stage.context.zone) {
         operation.image = deploymentDetails.find { it.zone == stage.context.zone }?.imageId
       }
+
+      // Lastly, fall back to any image within deploymentDetails, so long as it's unambiguous.
+      if (!operation.image) {
+        if (deploymentDetails.size() != 1) {
+          throw new IllegalStateException("Ambiguous choice of deployment images found for deployment to " +
+                                              "'${stage.context.zone}'. Images found from cluster in " +
+                                              "${deploymentDetails.collect{it.zone}.join(",") } - " +
+                                              "only 1 should be available.")
+        }
+        operation.image = deploymentDetails[0].imageId
+      }
+    }
+
+    if (!operation.image) {
+      throw new IllegalStateException("No image could be found in ${stage.context.zone}")
     }
 
     return [[(ServerGroupCreator.OPERATION): operation]]

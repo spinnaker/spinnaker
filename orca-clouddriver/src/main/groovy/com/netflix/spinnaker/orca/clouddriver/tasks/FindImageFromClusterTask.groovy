@@ -102,7 +102,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
         return [(location): lookupResults]
       } catch (RetrofitError e) {
         if (e.response.status == 404) {
-          def message = "Could not find cluster '$cluster' in account '$account'"
+          def message = "Could not find cluster '$cluster' for '$account' in '$location.value'"
           try {
             Map reason = objectMapper.readValue(e.response.body.in(), new TypeReference<Map<String, Object>>() {})
             if (reason.error.contains("target.fail.strategy")){
