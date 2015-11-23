@@ -202,7 +202,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
               'healthyThreshold': spec['healthyThreshold'],
               'unhealthyThreshold': spec['unhealthyThreshold'],
           },
-          'type': 'upsertAmazonLoadBalancer',
+          'type': 'upsertLoadBalancer',
           'availabilityZones': { bindings['TEST_GCE_REGION']: [] },
           'user': '[anonymous]'
       }],
@@ -312,7 +312,6 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
         },
 
         'cloudProvider': 'gce',
-        'providerType': 'gce',
         'provider': 'gce',
         'instanceType': 'f1-micro',
         'image': None,
@@ -359,7 +358,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     name = 'BakeDocker'
     self.docker_pipeline_id = name
     bake_stage = self.make_bake_stage(
-        package='kato', providerType='docker', region='global')
+        package='vim', providerType='docker', region='global')
 
     pipeline_spec = dict(
       name=name,
@@ -390,7 +389,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     name = 'BakeAndDeployGoogle'
     self.google_pipeline_id = name
     bake_stage = self.make_bake_stage(
-        package='kato', providerType='gce', region='global')
+        package='vim', providerType='gce', region='global')
     deploy_stage = self.make_deploy_google_stage(requisiteStages=['BAKE'])
     disable_stage = self.make_disable_group_stage(
       cloudProvider='gce', zones=[self.bindings['TEST_GCE_ZONE']],
@@ -429,7 +428,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     name = 'BakeAndDeployAws'
     self.aws_pipeline_id = name
     bake_stage = self.make_bake_stage(
-        package='kato',
+        package='vim',
         providerType='aws',
         regions=[self.bindings['TEST_AWS_REGION']],
         vmType='hvm', storeType='ebs')
