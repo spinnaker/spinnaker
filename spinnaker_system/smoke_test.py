@@ -136,7 +136,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
               'healthyThreshold': spec['healthyThreshold'],
               'unhealthyThreshold': spec['unhealthyThreshold'],
           },
-          'type': 'upsertAmazonLoadBalancer',
+          'type': 'upsertLoadBalancer',
           'availabilityZones': { bindings['TEST_GCE_REGION']: [] },
           'user': '[anonymous]'
       }],
