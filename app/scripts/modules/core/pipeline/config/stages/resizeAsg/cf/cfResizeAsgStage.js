@@ -92,8 +92,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.resizeAsgStage
     if (!stage.credentials && $scope.application.defaultCredentials) {
       stage.credentials = $scope.application.defaultCredentials;
     }
-    if (!stage.regions.length && $scope.application.defaultRegion) {
-      stage.regions.push($scope.application.defaultRegion);
+    if (!stage.regions.length && $scope.application.defaultRegions.cf) {
+      stage.regions.push($scope.application.defaultRegions.cf);
     }
 
     if (stage.credentials) {

@@ -64,7 +64,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.disableAsgSta
       stage.credentials = $scope.application.defaultCredentials.aws;
     }
     if (!stage.regions.length && $scope.application.defaultRegions.aws) {
-      stage.regions.push($scope.application.defaultRegion.aws);
+      stage.regions.push($scope.application.defaultRegions.aws);
     }
 
     if (stage.credentials) {
