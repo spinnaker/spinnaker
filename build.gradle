@@ -7,7 +7,7 @@ buildscript {
     maven { url "http://spinnaker.bintray.com/gradle" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.1.0'
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.3.0'
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
   }
 }
@@ -15,6 +15,10 @@ buildscript {
 allprojects {
   apply plugin: 'spinnaker.project'
   apply plugin: 'groovy'
+
+  spinnaker {
+    dependenciesVersion = "0.19.0"
+  }
 
   configurations.all {
     resolutionStrategy {
