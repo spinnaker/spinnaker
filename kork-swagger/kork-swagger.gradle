@@ -1,6 +1,5 @@
 dependencies {
   compile spinnaker.dependency('bootAutoConfigure')
-
-  compile "com.mangofactory:swagger-springmvc:0.9.5"
-  compile "com.mangofactory:swagger-models:0.9.5"
+  compile "io.springfox:springfox-swagger2:2.2.2"
+  compile "io.springfox:springfox-swagger-ui:2.2.2"
 }
