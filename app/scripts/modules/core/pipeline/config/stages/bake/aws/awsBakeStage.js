@@ -63,11 +63,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.bakeStage', [
         } else if ($scope.regions.indexOf($scope.stage.region) === -1) {
           delete $scope.stage.region;
         }
-        if (!$scope.stage.regions.length && $scope.application.defaultRegion) {
-          $scope.stage.regions.push($scope.application.defaultRegion);
+        if (!$scope.stage.regions.length && $scope.application.defaultRegions.aws) {
+          $scope.stage.regions.push($scope.application.defaultRegions.aws);
         }
-        if (!$scope.stage.regions.length && $scope.application.defaultRegion) {
-          $scope.stage.regions.push($scope.application.defaultRegion);
+        if (!$scope.stage.regions.length && $scope.application.defaultRegions.aws) {
+          $scope.stage.regions.push($scope.application.defaultRegions.aws);
         }
         $scope.baseOsOptions = results.baseOsOptions;
         $scope.baseLabelOptions = results.baseLabelOptions;
