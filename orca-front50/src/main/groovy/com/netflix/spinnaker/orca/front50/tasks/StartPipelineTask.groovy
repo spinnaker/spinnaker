@@ -60,7 +60,7 @@ class StartPipelineTask implements Task {
         return base
       } ?: [:]
 
-      if (!deploymentDetails?.isEmpty()) {
+      if (deploymentDetails) {
         parameters.deploymentDetails = deploymentDetails
         if (!parameters.amiName && (parameters.region || parameters.zone)) {
           def details = deploymentDetails.find { (it.region && it.region == parameters.region) ||
