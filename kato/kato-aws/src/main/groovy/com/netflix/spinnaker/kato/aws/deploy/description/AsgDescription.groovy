@@ -17,6 +17,22 @@
 package com.netflix.spinnaker.kato.aws.deploy.description
 
 class AsgDescription {
-  String asgName
+  String serverGroupName
   String region
+
+  @Deprecated
+  String asgName
+
+  String getServerGroupName() {
+    return serverGroupName ?: this.asgName
+  }
+
+  @Deprecated
+  String getAsgName() {
+    return getServerGroupName()
+  }
+
+  public String toString() {
+    return "${region}:${getServerGroupName()}"
+  }
 }

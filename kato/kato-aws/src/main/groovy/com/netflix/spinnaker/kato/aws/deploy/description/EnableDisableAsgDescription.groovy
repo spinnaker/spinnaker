@@ -25,9 +25,21 @@ package com.netflix.spinnaker.kato.aws.deploy.description
 class EnableDisableAsgDescription extends AbstractAmazonCredentialsDescription {
   List<AsgDescription> asgs = []
 
+  String serverGroupName
+
   @Deprecated
   String asgName
 
   @Deprecated
   List<String> regions = []
+
+  List<AsgDescription> getAsgs() {
+    if (asgs) {
+      return asgs
+    }
+
+    return regions.collect {
+      new AsgDescription(serverGroupName: (serverGroupName ?: asgName), region: it)
+    }
+  }
 }
