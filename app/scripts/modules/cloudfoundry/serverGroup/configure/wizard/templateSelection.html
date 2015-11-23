@@ -20,14 +20,14 @@
                        class="form-control input-sm">
               <ui-select-match placeholder="Select...">
               <span ng-if="!$select.selected.label">
-                <account-tag account="$select.selected.account" provider="'cf'"></account-tag>
+                <account-tag account="$select.selected.account"></account-tag>
                 <span ng-if="$select.selected.serverGroup">{{$select.selected.serverGroupName}}</span>
                 ({{$select.selected.region}})
               </span>
                 <span ng-if="$select.selected.label">{{$select.selected.label}}</span>
               </ui-select-match>
               <ui-select-choices repeat="template in templates | anyFieldFilter: {label: $select.search, serverGroupName: $select.search}">
-                <h5 ng-if="!template.label"><account-tag account="template.account" provider="'cf'"></account-tag> {{template.cluster}} ({{template.region}})</h5>
+                <h5 ng-if="!template.label"><account-tag account="template.account"></account-tag> {{template.cluster}} ({{template.region}})</h5>
                 <h5 ng-if="template.label">{{template.label}}</h5>
                 <div ng-if="template.serverGroup">
                   <b>Most recent server group: </b> {{template.serverGroupName}}

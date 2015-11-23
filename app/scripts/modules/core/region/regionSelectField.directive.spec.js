@@ -32,63 +32,14 @@ describe('Directives: regionSelectField', function () {
             initialize: angular.noop
           };
         });
-        $provide.constant('settings', {
-          providers: { aws: { primaryRegions: ['us-east-1', 'us-east-2', 'us-west-1'] } }
-      });
-    });
+      }
+    );
   });
-
-
 
   beforeEach(window.inject(function ($rootScope, $compile) {
     this.scope = $rootScope.$new();
     this.compile = $compile;
-    this.divider = '---------------';
   }));
-
-  it('groups regions into primary, secondary buckets', function() {
-    var scope = this.scope;
-
-    scope.regions = [{name: 'us-east-1'}, {name: 'eu-west-1'}, {name: 'sa-east-1'}];
-
-    scope.model = { regionField: 'sa-east-1', accountField: 'a'};
-
-    var html = '<region-select-field regions="regions" component="model" field="regionField" account="model.accountField" provider="\'aws\'" label-columns="2"></region-select-field>';
-
-    var elem = this.compile(html)(scope);
-    scope.$digest();
-
-    var options = elem.find('option');
-    var expected = ['us-east-1', this.divider, 'eu-west-1', 'sa-east-1'];
-
-    expect(options.length).toBe(4);
-    options.each(function(idx, option) {
-      expect(option.value).toBe(expected[idx]);
-    });
-    expect(elem.find('option[disabled]')[0].value).toBe(this.divider);
-    expect(elem.find('option[selected]')[0].value).toBe('sa-east-1');
-  });
-
-  it('does not group if only primary or secondary regions are available', function() {
-    var scope = this.scope;
-
-    scope.regions = [{name: 'us-east-1'}, {name: 'us-east-2'}];
-
-    scope.model = { regionField: 'us-east-1', accountField: 'a'};
-
-    var html = '<region-select-field regions="regions" component="model" field="regionField" account="model.accountField" provider="\'aws\'" label-columns="2"></region-select-field>';
-
-    var elem = this.compile(html)(scope);
-    scope.$digest();
-
-    var options = elem.find('option');
-    var expected = ['us-east-1', 'us-east-2'];
-
-    expect(options.length).toBe(2);
-    options.each(function(idx, option) {
-      expect(option.value).toBe(expected[idx]);
-    });
-  });
 
   it('updates values when regions change', function() {
     var scope = this.scope;
@@ -115,6 +66,4 @@ describe('Directives: regionSelectField', function () {
       expect(option.value).toBe(expected[idx]);
     });
   });
-
-
 });

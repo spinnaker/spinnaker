@@ -4,7 +4,7 @@
            class="form-control input-sm" />
   </stage-config-field>
   <stage-config-field label="Account">
-      <account-select-field component="stage" field="credentials" accounts="accounts" on-change="disableClusterStageCtrl.accountUpdated()" required></account-select-field>
+      <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="disableClusterStageCtrl.accountUpdated()" required></account-select-field>
   </stage-config-field>
   <stage-config-field label="Regions">
     <p ng-if="!stage.credentials" class="form-control-static">(Select an Account)</p>

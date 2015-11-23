@@ -103,7 +103,7 @@
     <collapsible-section heading="Placement Constraints" expanded="true">
       <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
         <dt>Account:</dt>
-        <dd><account-tag account="serverGroup.account" provider="serverGroup.type" pad="right"></account-tag></dd>
+        <dd><account-tag account="serverGroup.account" pad="right"></account-tag></dd>
         <dt>Region:</dt>
         <dd>{{serverGroup.region}}</dd>
         <dt ng-if="serverGroup.placement.zones">Zones:</dt>

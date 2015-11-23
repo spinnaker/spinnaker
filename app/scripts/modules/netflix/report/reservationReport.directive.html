@@ -2,7 +2,7 @@
 <!-- TODO: Remove error switch when feature flagging is available to toggle this directive on and off -->
 <div class="small reservation-report" ng-if="!vm.viewState.loading && !vm.viewState.error">
   <div ng-if="!vm.viewState.error">
-    <h4>Reservations for {{vm.instanceType}} in <account-tag account="vm.account" provider="'aws'"></account-tag></h4>
+    <h4>Reservations for {{vm.instanceType}} in <account-tag account="vm.account"></account-tag></h4>
     <table class="table table-condensed">
       <thead>
       <tr>

@@ -58,7 +58,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         securityGroups: securityGroupReader.getAllSecurityGroups(),
         loadBalancers: loadBalancerReader.listLoadBalancers('aws'),
         subnets: subnetReader.listSubnets(),
-        preferredZones: accountService.getPreferredZonesByAccount(),
+        preferredZones: accountService.getPreferredZonesByAccount('aws'),
         keyPairs: keyPairsReader.listKeyPairs(),
         packageImages: imageLoader,
         instanceTypes: awsInstanceTypeService.getAllTypesByRegion(),

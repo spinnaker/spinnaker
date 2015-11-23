@@ -11,7 +11,7 @@ describe('Service: accountService ', function () {
   );
 
   beforeEach(
-    window.inject(function (_$rootScope_, _accountService_, $httpBackend, infrastructureCaches, _$q_, _settings_,
+    window.inject(function (_$rootScope_, _accountService_, $httpBackend, _$q_, _settings_,
                             _cloudProviderRegistry_) {
       $rootScope = _$rootScope_;
       accountService = _accountService_;
@@ -20,9 +20,6 @@ describe('Service: accountService ', function () {
       settings = _settings_;
       cloudProviderRegistry = _cloudProviderRegistry_;
 
-      if (infrastructureCaches.credentials) {
-        infrastructureCaches.credentials.removeAll();
-      }
     })
   );
 
@@ -45,166 +42,60 @@ describe('Service: accountService ', function () {
     expect(_.pluck(accounts, 'name')).toEqual(['test', 'prod']);
   });
 
-  describe('get Availability Zones For Account And Region', function () {
+  describe('getAllAccountDetailsForProvider', function () {
 
+    it('should return details for each account', function () {
+      $http.expectGET('/credentials').respond(200, [
+        {name: 'test', type: 'aws'},
+        {name: 'prod', type: 'aws'},
+      ]);
 
-    it('should return intersection of preferred and actual AZ when: actual count > preferred count', function () {
+      $http.expectGET('/credentials/test').respond(200, { a: 1});
+      $http.expectGET('/credentials/prod').respond(200, { a: 2});
 
-      var accountName = 'prod';
-      var regionName = 'us-east-1';
-
-      settings.providers.aws.preferredZonesByAccount = {
-        prod: {
-          'us-east-1': ['us-east-1c', 'us-east-1d', 'us-east-1e'],
-        }
-      };
-
-      $http.whenGET('/credentials/' + accountName).respond(200,
-        {
-          regions: [
-            {
-              name: regionName,
-              availabilityZones: [
-                'us-east-1a',
-                'us-east-1b',
-                'us-east-1c',
-                'us-east-1d',
-                'us-east-1e',
-              ]
-            },
-          ]
-        }
-      );
-
-      var test = function (result) {
-        expect(result).toEqual(['us-east-1c', 'us-east-1d', 'us-east-1e']);
-      };
-
-      accountService.getAvailabilityZonesForAccountAndRegion('aws', accountName, regionName).then(test);
+      var details = null;
+      accountService.getAllAccountDetailsForProvider('aws').then((results) => {
+        details = results;
+      });
 
       $http.flush();
+
+      expect(details.length).toBe(2);
+      expect(details[0].a).toBe(1);
+      expect(details[1].a).toBe(2);
+
     });
 
+    it('should fall back to an empty array if an exception occurs when listing accounts', function () {
+      $http.expectGET('/credentials').respond(429, null);
 
-    it('should return intersection of preferred and actual AZ when: actual count < preferred count', function () {
-
-      var accountName = 'prod';
-      var regionName = 'us-east-1';
-
-      settings.providers.aws.preferredZonesByAccount = {
-        prod: {
-          'us-east-1': ['us-east-1a', 'us-east-1b', 'us-east-1c'],
-        }
-      };
-
-      $http.whenGET('/credentials/' + accountName).respond(200,
-        {
-          regions: [
-            {
-              name: regionName,
-              availabilityZones: [
-                'us-east-1a',
-              ]
-            },
-          ]
-        }
-      );
-
-      var test = function (result) {
-        expect(result).toEqual(['us-east-1a']);
-      };
-
-      accountService.getAvailabilityZonesForAccountAndRegion('aws', accountName, regionName).then(test);
+      var details = null;
+      accountService.getAllAccountDetailsForProvider('aws').then((results) => {
+        details = results;
+      });
 
       $http.flush();
+
+      expect(details).toEqual([]);
     });
 
-    it('should return intersection of preferred and actual AZ when: actual count === preferred count', function () {
+    it('should fall back to an empty array if an exception occurs when getting details for an account', function () {
+      $http.expectGET('/credentials').respond(200, [
+        {name: 'test', type: 'aws'},
+        {name: 'prod', type: 'aws'},
+      ]);
 
-      var accountName = 'prod';
-      var regionName = 'us-east-1';
+      $http.expectGET('/credentials/test').respond(500, null);
+      $http.expectGET('/credentials/prod').respond(200, { a: 2});
 
-      settings.providers.aws.preferredZonesByAccount = {
-        prod: {
-          'us-east-1': ['us-east-1a', 'us-east-1b', 'us-east-1c'],
-        }
-      };
-
-      $http.whenGET('/credentials/' + accountName).respond(200,
-        {
-          regions: [
-            {
-              name: regionName,
-              availabilityZones: ['us-east-1a', 'us-east-1b', 'us-east-1c']
-            },
-          ]
-        }
-      );
-
-      var test = function (result) {
-        expect(result).toEqual(['us-east-1a', 'us-east-1b', 'us-east-1c']);
-      };
-
-      accountService.getAvailabilityZonesForAccountAndRegion('aws', accountName, regionName).then(test);
+      var details = null;
+      accountService.getAllAccountDetailsForProvider('aws').then((results) => {
+        details = results;
+      });
 
       $http.flush();
-    });
 
-    it('should return an empty list when there is no intersection', function () {
-
-      var accountName = 'prod';
-      var regionName = 'us-east-1';
-
-      settings.providers.aws.preferredZonesByAccount = {
-        prod: {
-          'us-east-1': ['us-east-1a'],
-        }
-      };
-
-      $http.whenGET('/credentials/' + accountName).respond(200,
-        {
-          regions: [
-            {
-              name: regionName,
-              availabilityZones: ['us-east-1d', 'us-east-1e']
-            },
-          ]
-        }
-      );
-
-      var test = function (result) {
-        expect(result).toEqual([]);
-      };
-
-      accountService.getAvailabilityZonesForAccountAndRegion('aws', accountName, regionName).then(test);
-
-      $http.flush();
-    });
-
-
-    it('should return the default AZ if the credential fetch fails for an account', function () {
-
-      var accountName = 'prod';
-      var regionName = 'us-east-1';
-
-      settings.providers.aws.preferredZonesByAccount = {
-        prod: {
-          'us-east-1': ['us-east-1b'],
-        },
-        default: {
-          'us-east-1': ['us-east-1a'],
-        }
-      };
-
-      $http.whenGET('/credentials/' + accountName).respond(500);
-
-      var test = function (result) {
-        expect(result).toEqual(settings.providers.aws.preferredZonesByAccount.default[regionName]);
-      };
-
-      accountService.getAvailabilityZonesForAccountAndRegion('aws', accountName, regionName).then(test);
-
-      $http.flush();
+      expect(details).toEqual([]);
     });
 
   });

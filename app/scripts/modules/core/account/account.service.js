@@ -9,40 +9,43 @@ module.exports = angular.module('spinnaker.core.account.service', [
   require('../config/settings.js'),
   require('../cloudProvider/cloudProvider.registry.js'),
 ])
-  .factory('accountService', function(settings, _, Restangular, $q, infrastructureCaches, cloudProviderRegistry) {
+  .factory('accountService', function(settings, $log, _, Restangular, $q, infrastructureCaches, cloudProviderRegistry) {
 
-    function getPreferredZonesByAccount(providerName='aws') {
-      return $q.when(settings.providers[providerName].preferredZonesByAccount);
-    }
+    let getAllAccountDetailsForProvider = _.memoize((providerName) => {
+      return listAccounts(providerName)
+        .then((accounts) => $q.all(accounts.map((account) => getAccountDetails(account.name))))
+        .catch((e) => {
+          $log.warn('Failed to load accounts for provider "' + providerName + '"; exception:', e);
+          return [];
+        });
+    });
+
+    let getPreferredZonesByAccount = _.memoize((providerName) => {
+      let preferredZonesByAccount = {};
+      return getAllAccountDetailsForProvider(providerName)
+        .then((accounts) => {
+          accounts.forEach((account) => {
+            preferredZonesByAccount[account.name] = {};
+            account.regions.forEach((region) => {
+              let preferredZones = region.availabilityZones;
+              //TODO(chrisberry)
+              //Make this pluggable to remove the need for provider tests
+              if (providerName === 'azure') {
+                preferredZones = [region.name];
+              }
+              if (region.preferredZones) {
+                preferredZones = _.intersection(region.preferredZones, region.availabilityZones);
+              }
+              preferredZonesByAccount[account.name][region.name] = preferredZones;
+            });
+          });
+          return preferredZonesByAccount;
+        });
+    });
 
     function getAvailabilityZonesForAccountAndRegion(providerName, accountName, regionName) {
-      return getPreferredZonesByAccount(providerName).then( function(defaults) {
-        if (defaults[accountName] && defaults[accountName][regionName]) {
-          return {preferredZones: defaults[accountName][regionName]};
-        }
-        if (!defaults[accountName] && defaults.default && defaults.default[regionName]) {
-          return {preferredZones: defaults.default[regionName]};
-        }
-        return {preferredZones: []};
-      })
-      .then(function(zonesCollection) {
-        return getRegionsForAccount(accountName).then(function(regions){
-          //TODO(chrisberry)
-          //Make this pluggable to remove the need for provider tests
-          if (providerName === 'azure') {
-            zonesCollection.actualZones = [regionName];
-          }
-          else {
-            zonesCollection.actualZones = _.find(regions, {name: regionName}).availabilityZones;
-          }
-          return zonesCollection;
-        });
-      })
-      .then(function(zonesCollection) {
-        return _.intersection(zonesCollection.preferredZones, zonesCollection.actualZones);
-      })
-      .catch(function() {
-         return settings.providers[providerName].preferredZonesByAccount.default[regionName];
+      return getPreferredZonesByAccount(providerName).then( function(result) {
+        return result[accountName] ? result[accountName][regionName] : [];
       });
     }
 
@@ -58,7 +61,7 @@ module.exports = angular.module('spinnaker.core.account.service', [
         .getList();
     }
 
-    function listProviders(application) {
+    let listProviders = _.memoize((application) => {
       return listAccounts().then(function(accounts) {
         let allProviders = _.uniq(_.pluck(accounts, 'type'));
         let availableRegisteredProviders = _.intersection(allProviders, cloudProviderRegistry.listRegisteredProviders());
@@ -72,9 +75,9 @@ module.exports = angular.module('spinnaker.core.account.service', [
         }
         return availableRegisteredProviders;
       });
-    }
+    });
 
-    function getRegionsKeyedByAccount(provider) {
+    let getRegionsKeyedByAccount = _.memoize((provider) => {
       var deferred = $q.defer();
       listAccounts(provider).then(function(accounts) {
         $q.all(accounts.reduce(function(acc, account) {
@@ -89,7 +92,7 @@ module.exports = angular.module('spinnaker.core.account.service', [
         });
       });
       return deferred.promise;
-    }
+    });
 
     function getAccountDetails(accountName) {
       return Restangular.one('credentials', accountName)
@@ -103,18 +106,23 @@ module.exports = angular.module('spinnaker.core.account.service', [
       });
     }
 
-    function challengeDestructiveActions(provider, account) {
-      return account &&
-        settings.providers[provider] &&
-        settings.providers[provider].challengeDestructiveActions &&
-        settings.providers[provider].challengeDestructiveActions.indexOf(account) > -1;
-    }
+    let challengeDestructiveActions = _.memoize((account) => {
+      if (!account) {
+        return $q.when(false);
+      }
+      let deferred = $q.defer();
+      getAccountDetails(account).then(
+        (details) => deferred.resolve(details ? details.challengeDestructiveActions : false),
+        () => deferred.resolve(false));
+      return deferred.promise;
+    });
 
     return {
       challengeDestructiveActions: challengeDestructiveActions,
       listAccounts: listAccounts,
       listProviders: listProviders,
       getAccountDetails: getAccountDetails,
+      getAllAccountDetailsForProvider: getAllAccountDetailsForProvider,
       getRegionsForAccount: getRegionsForAccount,
       getRegionsKeyedByAccount: getRegionsKeyedByAccount,
       getPreferredZonesByAccount: getPreferredZonesByAccount,

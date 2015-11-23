@@ -8,13 +8,17 @@ module.exports = angular.module('spinnaker.aws.serverGroup.details.elasticIp.con
   require('../../../core/task/monitor/taskMonitorService.js')
 ])
   .controller('ElasticIpCtrl', function($scope, $modalInstance, accountService, elasticIpWriter, taskMonitorService,
-                                                application, serverGroup, elasticIp, onTaskComplete) {
+                                        application, serverGroup, elasticIp, onTaskComplete) {
     $scope.serverGroup = serverGroup;
     $scope.elasticIp = elasticIp;
 
     $scope.verification = {
-      requireAccountEntry: accountService.challengeDestructiveActions(serverGroup.account)
+      requireAccountEntry: false
     };
+
+    accountService.challengeDestructiveActions(serverGroup.account).then((challenge) => {
+      $scope.verification.requireAccountEntry = challenge;
+    });
 
     this.isValid = function () {
       if ($scope.verification.requireAccountEntry && $scope.verification.verifyAccount !== serverGroup.account.toUpperCase()) {

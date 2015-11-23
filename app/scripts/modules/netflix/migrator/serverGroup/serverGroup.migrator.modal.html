@@ -19,7 +19,7 @@
       <div class="row preview" ng-if="preview && !viewState.computing && !viewState.executing && !viewState.error">
         <div class="col-md-10 col-md-offset-1">
           <div ng-if="!viewState.migrationComplete">
-            <p>This will migrate <strong>{{source.asgName}}</strong> in {{source.region}} <account-tag account="source.account" provider="'aws'"></account-tag> to VPC0.</p>
+            <p>This will migrate <strong>{{source.asgName}}</strong> in {{source.region}} <account-tag account="source.account"></account-tag> to VPC0.</p>
             <p>As part of this migration, the following items will be created:</p>
           </div>
           <div ng-if="viewState.migrationComplete">

@@ -12,11 +12,11 @@ module.exports = angular
       template: '<span class="account-tag account-tag-{{accountType}}">{{account}}</span>',
       scope: {
         account: '@',
-        provider: '@'
       },
       controller: function ($scope, accountService) {
-        const isProdAccount = accountService.challengeDestructiveActions($scope.provider, $scope.account);
-        $scope.accountType = isProdAccount ? 'prod' : $scope.account;
+        accountService.challengeDestructiveActions($scope.account).then((isProdAccount) => {
+          $scope.accountType = isProdAccount ? 'prod' : $scope.account;
+        });
       }
     };
   })

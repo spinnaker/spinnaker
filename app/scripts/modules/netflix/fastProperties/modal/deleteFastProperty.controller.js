@@ -15,9 +15,13 @@ module.exports = angular
     vm.fastProperty = fastProperty;
 
     vm.verification = {
-      requireAccountEntry: accountService.challengeDestructiveActions('aws', vm.fastProperty.env),
+      requireAccountEntry: false,
       verifyAccount: ''
     };
+
+    accountService.challengeDestructiveActions(vm.fastProperty.env).then((challenge) => {
+      vm.verification.requireAccountEntry = challenge;
+    });
 
     vm.cancel = function() {
       $modalInstance.dismiss();

@@ -6,6 +6,7 @@ module.exports = angular.module('spinnaker.netflix.instance.aws.controller', [
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
   require('../../../core/utils/lodash.js'),
+  require('../../../core/account/account.service.js'),
   require('../../../core/instance/instance.write.service.js'),
   require('../../../core/instance/instance.read.service.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
@@ -16,10 +17,12 @@ module.exports = angular.module('spinnaker.netflix.instance.aws.controller', [
   require('../../../amazon/instance/details/instance.details.controller.js'),
 ])
   .controller('netflixAwsInstanceDetailsCtrl', function ($scope, $state, $uibModal, InsightFilterStateModel, settings,
-                                                  instanceWriter, confirmationModalService, recentHistoryService,
-                                                  instanceReader, _, instance, app, $q, $controller) {
+                                                         instanceWriter, confirmationModalService, recentHistoryService,
+                                                         accountService,
+                                                         instanceReader, _, instance, app, $q, $controller) {
 
     this.instanceDetailsLoaded = () => {
+      this.getBastionAddressForAccount($scope.instance.account);
       var discoveryMetric = _.find($scope.healthMetrics, function(metric) { return metric.type === 'Discovery'; });
       if (discoveryMetric && discoveryMetric.vipAddress) {
         var vipList = discoveryMetric.vipAddress;
@@ -52,9 +55,10 @@ module.exports = angular.module('spinnaker.netflix.instance.aws.controller', [
       }
     }));
 
-    this.getBastionAddressForAccount = function(account) {
-      let accountBastions = settings.providers.aws.accountBastions || {};
-      return accountBastions[account] || 'unknown';
+    this.getBastionAddressForAccount = (account) => {
+      return accountService.getAccountDetails(account).then((details) => {
+        this.bastionHost = details.bastionHost || 'unknown';
+      });
     };
 
   }
