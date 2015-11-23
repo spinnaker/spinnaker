@@ -108,7 +108,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
       '--jenkins_job', default='TestTriggerProject',
       help='The name of the jenkins job to trigger off.')
     parser.add_argument(
-      '--jenkins_auth_path',
+      '--jenkins_auth_path', default=None,
       help='The path to a file containing the jenkins username password pair.'
            'The contents should look like: <username> <password>.' )
     parser.add_argument(
@@ -188,7 +188,6 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
       job=[{
           'cloudProvider': 'gce',
           'provider': 'gce',
-          'providerType': 'gce',
           'stack': bindings['TEST_STACK'],
           'detail': self.__short_lb_name,
           'credentials': bindings['GCE_CREDENTIALS'],
@@ -544,7 +543,7 @@ class BakeAndDeployTest(st.AgentTestCase):
 
   def test_z_delete_app(self):
     if not self.scenario.run_tests:
-      unitest.skipTest("No --test_{google, aws} flags were set")
+      self.skipTest("No --test_{google, aws} flags were set")
     # Give a total of a minute because it might also need
     # an internal cache update
     self.run_test_case(self.scenario.delete_app(),

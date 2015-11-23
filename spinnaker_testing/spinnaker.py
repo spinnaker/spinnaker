@@ -212,11 +212,13 @@ class SpinnakerAgent(service_testing.HttpAgent):
     """
     host_platform = cls.determine_host_platform(bindings)
     if host_platform == 'native':
+      baseUrl = (None if not bindings['NATIVE_HOSTNAME']
+                 else 'http://{host}:{port}'
+                      .format(host=bindings['NATIVE_HOSTNAME'],
+                              port=bindings['NATIVE_PORT'] or port))
       return cls.new_native_instance(
-        name, status_factory,
-        host=bindings['NATIVE_HOSTNAME'],
-        port=bindings['NATIVE_PORT'] or port,
-        bindings=bindings)
+          name, status_factory=status_factory,
+          baseUrl=baseUrl, bindings=bindings)
 
     if host_platform == 'gce':
       return cls.new_gce_instance(
@@ -254,42 +256,43 @@ class SpinnakerAgent(service_testing.HttpAgent):
     logger.info('Locating %s...', name)
     gcloud = gcp.GCloudAgent(
       project=project, zone=zone, ssh_passphrase_file=ssh_passphrase_file)
-    address = gce_util.establish_network_connectivity(
+    netloc = gce_util.establish_network_connectivity(
       gcloud=gcloud, instance=instance, target_port=port)
-    if not address:
+    if not netloc:
       error = 'Could not locate {0}.'.format(name)
       logger.error(error)
       raise RuntimeError(error)
 
-    logger.info('%s is available at %s', name, address)
-    spinnaker_agent = cls(address, status_factory)
     config = cls._determine_spinnaker_configuration(gcloud, instance)
+    protocol = config.get('SPINNAKER_DEFAULT_SERVICE_PROTOCOL', 'http')
+    baseUrl = '{protocol}://{netloc}'.format(protocol=protocol, netloc=netloc)
+    logger.info('%s is available at %s', name, baseUrl)
+    spinnaker_agent = cls(baseUrl, status_factory)
+
     spinnaker_agent.init_runtime_config(config_bindings, overrides=config)
     return spinnaker_agent
 
   @classmethod
-  def new_native_instance(cls, name, status_factory, host, port, bindings):
+  def new_native_instance(cls, name, status_factory, baseUrl, bindings):
     """Create a new Spinnaker HttpAgent talking to the specified server port.
 
     Args:
       name: The name of agent we are creating, for logging purposes only.
       status_factory: Factory method (agent, original_response) for creating
          specialized SpinnakerStatus instances.
-      host: The hostname to connect to.
-      port: The port of the endpoint we want to connect to.
+      baseUrl: The service baseUrl to send messages to.
 
     Returns:
       A SpinnakerAgent connected to the specified instance port.
     """
     logger = logging.getLogger(__name__)
     logger.info('Locating %s...', name)
-    address = '{0}:{1}'.format(host, port)
-    if not address:
+    if not baseUrl:
       logger.error('Could not locate %s.', name)
       return None
 
-    logger.info('%s is available at %s', name, address)
-    spinnaker_agent = cls(address, status_factory)
+    logger.info('%s is available at %s', baseUrl)
+    spinnaker_agent = cls(baseUrl, status_factory)
     spinnaker_agent.init_runtime_config(bindings)
 
     return spinnaker_agent
@@ -328,7 +331,7 @@ class SpinnakerAgent(service_testing.HttpAgent):
 
     self._config_dict = config_dict
 
-  def __init__(self, address, status_factory):
+  def __init__(self, baseUrl, status_factory):
     """Construct a an agent for talking to spinnaker.
 
     This could really be any spinnaker subsystem, not just the master process.
@@ -337,10 +340,10 @@ class SpinnakerAgent(service_testing.HttpAgent):
     GET requests on those urls to return status details.
 
     Args:
-      address: The host:port string spinnaker is running on.
+      baseUrl: The baseUrl string spinnaker is running on.
       status_factory: Creates status instances from this agent.
     """
-    super(SpinnakerAgent, self).__init__(address)
+    super(SpinnakerAgent, self).__init__(baseUrl)
     self.__default_status_factory = status_factory
     self._default_max_wait_secs = 240
 
@@ -480,6 +483,12 @@ class SpinnakerAgent(service_testing.HttpAgent):
       try:
         spinnaker_config['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'] = (
               bindings.get('providers.google.primaryCredentials.project'))
+      except KeyError:
+          pass
+
+      try:
+        spinnaker_config['SPINNAKER_DEFAULT_SERVICE_PROTOCOL'] = (
+              bindings.get('default.service.protocol'))
       except KeyError:
           pass
 
