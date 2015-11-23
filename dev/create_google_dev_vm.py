@@ -159,6 +159,19 @@ def init_argument_parser(parser):
         ' scripts. This is currently "compute-rw,storage-rw".')
 
 
+def try_until_ready(command):
+    while True:
+        result = run_quick(command, echo=False)
+        if not result.returncode:
+            break
+        if result.stderr.find('refused') > 0:
+            print 'New instance does not seem ready yet...retry in 5s.'
+        else:
+            print result.stderr
+            print 'retry in 5s.'
+        time.sleep(5)
+
+
 def make_remote_directories(options):
     all = []
     if options.copy_personal_files:
@@ -178,12 +191,8 @@ def make_remote_directories(options):
             '--zone', get_zone(options),
             '--command=\'bash -c "for i in {0}; do mkdir -p \\$i; done"\''.format(' '.join(all))])
 
-        while True:
-            result = run_quick(command, echo=False)
-            if not result.returncode:
-                break
-            print 'New instance does not seem ready yet...retry in 5s.'
-            time.sleep(5)
+        try_until_ready(command)
+
 
 
 def copy_custom_file(options, source, target):
@@ -194,13 +203,7 @@ def copy_custom_file(options, source, target):
         source,
         '{instance}:{target}'.format(instance=options.instance,
                                      target=target)])
-
-    while True:
-        result = run_quick(command, echo=False)
-        if not result.returncode:
-            break
-        print 'New instance does not seem ready yet...retry in 5s.'
-        time.sleep(5)
+    try_until_ready(command)
 
 
 def copy_home_file_list(options, type, base_dir, sources):
