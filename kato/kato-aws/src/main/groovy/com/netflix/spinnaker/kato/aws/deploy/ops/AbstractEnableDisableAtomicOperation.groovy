@@ -57,16 +57,11 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
   @Override
   Void operate(List priorOutputs) {
     String verb = disable ? 'Disable' : 'Enable'
-    String descriptor = description.asgName ?: description.asgs.collect { it.toString() }
+    String descriptor = description.asgs.collect { it.toString() }
     task.updateStatus phaseName, "Initializing ${verb} ASG operation for $descriptor..."
     boolean allSucceeded = true
-    for (region in description.regions) {
-      def asgName = description.asgName
-      allSucceeded = allSucceeded && operateOnAsg(asgName, region)
-    }
-
     for (asg in description.asgs) {
-      allSucceeded = allSucceeded && operateOnAsg(asg.asgName, asg.region)
+      allSucceeded = allSucceeded && operateOnAsg(asg.serverGroupName, asg.region)
     }
 
     if (!allSucceeded && (!task.status || !task.status.isFailed())) {
@@ -75,7 +70,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     task.updateStatus phaseName, "Finished ${verb} ASG operation for $descriptor."
   }
 
-  private boolean operateOnAsg(String asgName, String region) {
+  private boolean operateOnAsg(String serverGroupName, String region) {
     String presentParticipling = disable ? 'Disabling' : 'Enabling'
     String verb = disable ? 'Disable' : 'Enable'
     def credentials = description.credentials
@@ -84,23 +79,23 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
       def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(credentials, region, true)
 
       def asgService = regionScopedProvider.asgService
-      def asg = asgService.getAutoScalingGroup(asgName)
+      def asg = asgService.getAutoScalingGroup(serverGroupName)
       if (!asg) {
-        task.updateStatus phaseName, "No ASG named '$asgName' found in $region"
+        task.updateStatus phaseName, "No ASG named '$serverGroupName' found in $region"
         return true
       }
 
       if (asg.status) {
         // a non-null status indicates that a DeleteAutoScalingGroup action is in progress
-        task.updateStatus phaseName, "ASG '$asgName' is currently being destroyed and cannot be modified (status: ${asg.status})"
+        task.updateStatus phaseName, "ASG '$serverGroupName' is currently being destroyed and cannot be modified (status: ${asg.status})"
         return true
       }
 
-      task.updateStatus phaseName, "${presentParticipling} ASG '$asgName' in $region..."
+      task.updateStatus phaseName, "${presentParticipling} ASG '$serverGroupName' in $region..."
       if (disable) {
-        asgService.suspendProcesses(asgName, AutoScalingProcessType.getDisableProcesses())
+        asgService.suspendProcesses(serverGroupName, AutoScalingProcessType.getDisableProcesses())
       } else {
-        asgService.resumeProcesses(asgName, AutoScalingProcessType.getDisableProcesses())
+        asgService.resumeProcesses(serverGroupName, AutoScalingProcessType.getDisableProcesses())
       }
 
       if (disable) {
@@ -121,22 +116,22 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
       if (credentials.discoveryEnabled && asg.instances) {
         def status = disable ? DiscoverySupport.DiscoveryStatus.Disable : DiscoverySupport.DiscoveryStatus.Enable
-        task.updateStatus phaseName, "Marking ASG $asgName as $status with Discovery"
+        task.updateStatus phaseName, "Marking ASG $serverGroupName as $status with Discovery"
 
         def enableDisableInstanceDiscoveryDescription = new EnableDisableInstanceDiscoveryDescription(
             credentials: credentials,
             region: region,
-            asgName: asgName,
+            asgName: serverGroupName,
             instanceIds: asg.instances*.instanceId
         )
         discoverySupport.updateDiscoveryStatusForInstances(
             enableDisableInstanceDiscoveryDescription, task, phaseName, status, asg.instances*.instanceId
         )
       }
-      task.updateStatus phaseName, "Finished ${presentParticipling} ASG $asgName."
+      task.updateStatus phaseName, "Finished ${presentParticipling} ASG $serverGroupName."
       return true
     } catch (e) {
-      def errorMessage = "Could not ${verb} ASG '$asgName' in region $region! Failure Type: ${e.class.simpleName}; Message: ${e.message}"
+      def errorMessage = "Could not ${verb} ASG '$serverGroupName' in region $region! Failure Type: ${e.class.simpleName}; Message: ${e.message}"
       log.error(errorMessage, e)
       if (task.status && (!task.status || !task.status.isFailed())) {
         task.updateStatus phaseName, errorMessage

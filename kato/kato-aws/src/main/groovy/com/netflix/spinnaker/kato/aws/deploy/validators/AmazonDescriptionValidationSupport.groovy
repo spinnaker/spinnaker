@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.kato.aws.deploy.validators
 
 import com.netflix.spinnaker.kato.aws.deploy.description.AbstractAmazonCredentialsDescription
+import com.netflix.spinnaker.kato.aws.deploy.description.AsgDescription
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import org.springframework.validation.Errors
 
@@ -24,16 +25,32 @@ public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmaz
 
   abstract void validate(List priorDescriptions, T description, Errors errors)
 
-  void validateAsgNameAndRegions(T description, Errors errors) {
+  static void validateAsgNameAndRegions(T description, Errors errors) {
     if (!description.asgs) {
       validateAsgName description, errors
       validateRegions description, errors
     } else {
       if (!description.asgs.size()) {
         errors.rejectValue("asgs", "${description.getClass().simpleName}.empty")
+      } else {
+        description.asgs.each { AsgDescription asgDescription ->
+          validateAsgDescription description, asgDescription, errors
+        }
       }
     }
+  }
 
+  static void validateAsgDescription(T description, AsgDescription asgDescription, Errors errors) {
+    def key = description.getClass().simpleName
+    if (!asgDescription.serverGroupName) {
+      errors.rejectValue("serverGroupName", "${key}.serverGroupName.empty")
+    }
+
+    if (!asgDescription.region) {
+      errors.rejectValue("regions", "${key}.regions.empty")
+    } else {
+      validateRegions description, [asgDescription.region], key, errors
+    }
   }
 
   static void validateAsgName(T description, Errors errors) {
@@ -43,16 +60,16 @@ public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmaz
     }
   }
 
-  void validateRegions(T description, Errors errors) {
+  static void validateRegions(T description, Errors errors) {
     def key = description.getClass().simpleName
     validateRegions(description, description.regions, key, errors)
   }
 
-  void validateRegion(T description, String regionName, String errorKey, Errors errors) {
+  static void validateRegion(T description, String regionName, String errorKey, Errors errors) {
     validateRegions(description, regionName ? [regionName] : [], errorKey, errors, "region")
   }
 
-  void validateRegions(T description, Collection<String> regionNames, String errorKey, Errors errors, String attributeName = "regions") {
+  static void validateRegions(T description, Collection<String> regionNames, String errorKey, Errors errors, String attributeName = "regions") {
     if (!regionNames) {
       errors.rejectValue(attributeName, "${errorKey}.${attributeName}.empty")
     } else {
@@ -63,7 +80,7 @@ public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmaz
     }
   }
 
-  void validateAsgNameAndRegionAndInstanceIds(T description, Errors errors) {
+  static void validateAsgNameAndRegionAndInstanceIds(T description, Errors errors) {
     def key = description.class.simpleName
     if (description.asgName) {
       validateAsgName(description, errors)
