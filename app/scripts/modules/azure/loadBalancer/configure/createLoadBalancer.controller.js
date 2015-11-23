@@ -252,9 +252,6 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
     };
 
     this.accountUpdated = function() {
-      //TODO(larrygug)
-      //When the account is updated it needs to retrieve the regions for the selected
-      //account. This isn't happening yet.
       accountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function(regions) {
         $scope.regions = regions;
         clearSecurityGroups();

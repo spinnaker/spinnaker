@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.capacityS
       controller: 'ServerGroupCapacitySelectorCtrl as serverGroupCapacityCtrl',
     };
   })
-  .controller('ServerGroupCapacitySelectorCtrl', function($scope) {
+  .controller('azureServerGroupCapacitySelectorCtrl', function($scope) {
     $scope.setSimpleCapacity = function(simpleCapacity) {
       $scope.command.viewState.useSimpleCapacity = simpleCapacity;
       $scope.command.useSourceCapacity = false;

@@ -21,7 +21,7 @@ module.exports = angular
       controller: 'ServerGroupBasicSettingsSelectorCtrl as basicSettingsCtrl',
     };
   })
-  .controller('ServerGroupBasicSettingsSelectorCtrl', function($scope, $controller, RxService, imageReader, namingService, $modalStack, $state) {
+  .controller('azureServerGroupBasicSettingsSelectorCtrl', function($scope, $controller, RxService, imageReader, namingService, $modalStack, $state) {
 
     angular.extend(this, $controller('BasicSettingsMixin', {
       $scope: $scope,

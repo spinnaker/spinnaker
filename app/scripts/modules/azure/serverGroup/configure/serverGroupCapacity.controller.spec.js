@@ -22,7 +22,7 @@ describe('Controller: ServerGroupCapacitySelector', function () {
       }
     };
 
-    this.ctrl = $controller('ServerGroupCapacitySelectorCtrl', {
+    this.ctrl = $controller('azureServerGroupCapacitySelectorCtrl', {
       $scope: this.scope,
     });
   }));
