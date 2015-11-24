@@ -119,5 +119,5 @@ buildDeb {
 bootRun {
   // jamm is required when using prepared statements with in-memory C*
   def jamm = project.configurations.compile.find { it.name.startsWith('jamm') }
-  jvmArgs applicationDefaultJvmArgs.join(" ") + " -javaagent:${jamm}"
+  jvmArgs applicationDefaultJvmArgs + "-javaagent:${jamm}"
 }
