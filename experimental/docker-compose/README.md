@@ -53,7 +53,7 @@ Create a project that will hold your Spinnaker install and keep track of the pro
 
 ## Set up Docker Machine Environment for GCP
 
-If you haven't already, obtain and set your CCP credentials following [these instructions](https://developers.google.com/identity/protocols/application-default-credentials#howtheywork). 
+If you haven't already, obtain and set your GCP credentials following [these instructions](https://developers.google.com/identity/protocols/application-default-credentials#howtheywork). 
 
 Run ```docker-machine create  --driver google --google-project [your project name] --google-machine-type n1-standard-4 goocker ```
 
