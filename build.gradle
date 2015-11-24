@@ -28,6 +28,12 @@ allprojects {
   }
 
   group = "com.netflix.spinnaker.gate"
+
+  test {
+    testLogging {
+      exceptionFormat = 'full'
+    }
+  }
 }
 
 defaultTasks ':gate-web:bootRun'
