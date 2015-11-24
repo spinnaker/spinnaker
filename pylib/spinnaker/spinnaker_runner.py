@@ -68,7 +68,7 @@ class Runner(object):
   # These are all the standard spinnaker subsystems that can be started
   # independent of one another.
   INDEPENDENT_SUBSYSTEM_LIST=['clouddriver', 'front50', 'orca', 'rosco',
-                              'echo']
+                              'echo', 'rush']
 
   # Denotes a process running on an external host
   EXTERNAL_PID = -123
@@ -147,7 +147,7 @@ class Runner(object):
     result = list(cls.INDEPENDENT_SUBSYSTEM_LIST)
 
     # These are additional, optional subsystems.
-    result.extend(['rush', 'igor'])
+    result.extend(['igor'])
 
     # Gate is started after everything else is up and available.
     result.append('gate')
@@ -307,19 +307,9 @@ class Runner(object):
         if pid:
           started_list.append((subsys, pid))
 
-    docker_address = self.__bindings.get('services.docker.targetRepository')
     jenkins_address = self.__bindings.get(
         'services.jenkins.defaultMaster.baseUrl')
     igor_enabled = self.__bindings.get('services.igor.enabled')
-
-    # Conditionally run rush only if docker is configured.
-    # A '$' indicates an unbound variable so it wasnt configured.
-    if docker_address and docker_address[0] != '$':
-      pid = self.maybe_start_job(jobs, 'rush')
-      if pid:
-         started_list.append(('rush', pid))
-    else:
-      print 'Not using rush because docker is not configured.'
 
     # Conditionally run igor only if jenkins is configured.
     # A '$' indicates an unbound variable so it wasnt configured.
