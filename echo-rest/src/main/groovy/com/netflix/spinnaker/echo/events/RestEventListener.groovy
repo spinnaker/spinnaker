@@ -53,7 +53,7 @@ class RestEventListener implements EchoEventListener {
         Map sentEvent = eventAsMap
         if (service.config.wrap) {
           sentEvent = [
-            "eventName": "${service.config.eventName ?: eventName}",
+            "eventName": "${service.config.eventName ?: eventName}" as String,
           ]
           sentEvent["${service.config.fieldName ?: fieldName}" as String] = eventAsMap
         }
