@@ -143,20 +143,17 @@
         </dd>
       </dl>
     </collapsible-section>
+    <collapsible-section heading="Services">
+      <ul>
+        <li ng-repeat="service in serverGroup.services">
+            {{service.name}} ({{service.nativeService.label}})
+        </li>
+      </ul>
+    </collapsible-section>
     <collapsible-section heading="Launch Configuration">
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
         <dt>Name</dt>
         <dd>{{serverGroup.launchConfig.launchConfigurationName}}</dd>
-        <dt>Image</dt>
-        <dd>{{serverGroup.launchConfig.imageId}}</dd>
-        <dt>Instance Type</dt>
-        <dd>{{serverGroup.launchConfig.instanceType}}</dd>
-        <dt ng-if="serverGroup.launchConfig.keyName">Key Name</dt>
-        <dd ng-if="serverGroup.launchConfig.keyName">{{serverGroup.launchConfig.keyName}}</dd>
-        <dt ng-if="serverGroup.launchConfig.kernelId">Kernel ID</dt>
-        <dd ng-if="serverGroup.launchConfig.kernelId">{{serverGroup.launchConfig.kernelId}}</dd>
-        <dt ng-if="serverGroup.launchConfig.ramdiskId">Ramdisk ID</dt>
-        <dd ng-if="serverGroup.launchConfig.ramdiskId">{{serverGroup.launchConfig.ramdiskId}}</dd>
         <dt>User Data</dt>
         <dd ng-if="serverGroup.launchConfig.userData"><a href ng-click="ctrl.showUserData()">Show User Data</a></dd>
         <dd ng-if="!serverGroup.launchConfig.userData">[none]</dd>
@@ -179,11 +176,16 @@
         <dd ng-repeat="tag in serverGroup.launchConfig.instanceTemplate.properties.tags.items">{{tag}}</dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Custom Metadata">
-      <div ng-if="!serverGroup.launchConfig.instanceTemplate.properties.metadata.items.length">No custom metadata associated with this server group</div>
-      <dl ng-if="serverGroup.launchConfig.instanceTemplate.properties.metadata.items.length">
-        <dt ng-repeat-start="metadata in serverGroup.launchConfig.instanceTemplate.properties.metadata.items">{{metadata.key}}</dt>
-        <dd ng-repeat-end>{{metadata.value}}</dd>
+    <collapsible-section heading="Environment Variables" expanded="true">
+      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+        <div ng-repeat="(key, value) in serverGroup.envVariables">
+          <!-- env variables starting with 'SPINNAKER' are part of Spinnaker and not for user consumption -->
+          <div ng-if="!key.startsWith('SPINNAKER')">
+            <dt>{{key}}</dt>
+            <dd ng-if="ctrl.isSecret(key)">************</dd>
+            <dd ng-if="!ctrl.isSecret(key)">{{value}}</dd>
+          </div>
+        </div>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Package">
@@ -197,14 +199,19 @@
         <dd ng-if="serverGroup.buildInfo.jenkins">{{serverGroup.buildInfo.jenkins.number}}</dd>
         <dt>Commit</dt>
         <dd>{{ctrl.truncateCommitHash()}}</dd>
+        <dt>Branch</dt>
+        <dd>{{serverGroup.buildInfo.branch}}</dd>
         <dt>Version</dt>
         <dd>{{serverGroup.buildInfo.version}}</dd>
         <dt ng-if="serverGroup.buildInfo.jenkins">Build Link</dt>
-        <dd ng-if="serverGroup.buildInfo.jenkins"><a target=_blank href="{{ctrl.buildJenkinsLink()}}">{{ctrl.buildJenkinsLink()}}</a></dd>
+        <dd ng-if="serverGroup.buildInfo.jenkins"><a target=_blank href="{{serverGroup.buildInfo.jenkins.fullUrl}}">{{serverGroup.buildInfo.jenkins.fullUrl}}</a></dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Logs">
       <ul>
+        <li ng-if="serverGroup.consoleLink">
+          <a href="{{serverGroup.consoleLink}}" target="_blank">Application Console</a>
+        </li>
         <li ng-if="serverGroup.logsLink">
           <a href="{{serverGroup.logsLink}}" target="_blank">Developers Console Logs</a>
         </li>

@@ -9,5 +9,20 @@
     <wizard-page key="location" label="Basic Settings" hide-subheading="true">
       <ng-include src="pages.basicSettings"></ng-include>
     </wizard-page>
+    <wizard-page key="loadBalancers" label="Load Balancers" hide-subheading="true">
+      <ng-include src="pages.loadBalancers"></ng-include>
+    </wizard-page>
+    <wizard-page key="artifact" label="Artifact">
+      <ng-include src="pages.artifact"></ng-include>
+    </wizard-page>
+    <wizard-page key="services" label="Services" hide-subheading="true" mandatory="false">
+      <ng-include src="pages.services"></ng-include>
+    </wizard-page>
+    <wizard-page key="envs" label="Environment Variables" hide-subheading="true" mandatory="false">
+      <ng-include src="pages.envs"></ng-include>
+    </wizard-page>
+    <wizard-page key="advanced" label="Advanced" hide-subheading="true" mandatory="false">
+      <ng-include src="pages.advanced"></ng-include>
+    </wizard-page>
   </modal-wizard>
 </div>

@@ -44,12 +44,20 @@ module.exports = angular.module('spinnaker.core.serverGroup.serverGroup.directiv
             instances: filteredInstances,
           };
 
-          if (serverGroup.buildInfo && serverGroup.buildInfo.jenkins && serverGroup.buildInfo.jenkins.host) {
+          if (serverGroup.buildInfo && serverGroup.buildInfo.jenkins &&
+              (serverGroup.buildInfo.jenkins.host || serverGroup.buildInfo.jenkins.fullUrl)) {
             var jenkins = serverGroup.buildInfo.jenkins;
+
             viewModel.jenkins = {
-              href: [jenkins.host + 'job', jenkins.name, jenkins.number, ''].join('/'),
-              number: jenkins.number,
+              number: jenkins.number
             };
+
+            if (serverGroup.buildInfo.jenkins.host) {
+              viewModel.jenkins.href = [jenkins.host + 'job', jenkins.name, jenkins.number, ''].join('/');
+            }
+            if (serverGroup.buildInfo.jenkins.fullUrl) {
+              viewModel.jenkins.href = serverGroup.buildInfo.jenkins.fullUrl;
+            }
           }
 
           let modelStringVal = JSON.stringify(viewModel, serverGroupTransformer.jsonReplacer);

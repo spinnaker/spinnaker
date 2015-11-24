@@ -89,6 +89,15 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
         providerType: 'cf',
         selectedProvider: 'cf',
         availabilityZones: [],
+        loadBalancers: '',
+        services: [],
+        envs: [],
+        repository: '',
+        artifact: '',
+        username: '',
+        password: '',
+        buildpackUrl: '',
+        memory: 1024,
         viewState: {
           instanceProfile: 'custom',
           allImageSelection: null,
@@ -125,6 +134,9 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
           stack: serverGroupName.stack,
           freeFormDetails: serverGroupName.freeFormDetails,
           credentials: serverGroup.account,
+          loadBalancers: serverGroup.loadBalancers,
+          services: serverGroup.services,
+          envs: serverGroup.envs,
           securityGroups: serverGroup.securityGroups,
           region: serverGroup.region,
           capacity: {
@@ -146,6 +158,12 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
             serverGroupName: serverGroup.name,
             asgName: serverGroup.name
           },
+          repository: serverGroup.repository,
+          artifact: serverGroup.artifact,
+          username: serverGroup.username,
+          password: serverGroup.password,
+          buildpackUrl: serverGroup.buildpackUrl,
+          memory: serverGroup.memory,
           viewState: {
             allImageSelection: null,
             useAllImageSelection: false,

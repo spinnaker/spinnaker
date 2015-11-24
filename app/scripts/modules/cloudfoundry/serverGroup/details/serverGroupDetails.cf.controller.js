@@ -179,7 +179,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
         var submitMethod = function () {
           return serverGroupWriter.disableServerGroup(serverGroup, application, {
             cloudProvider: 'cf',
-            replicaPoolName: serverGroup.name,
+            nativeLoadBalancers: serverGroup.nativeLoadBalancers,
             region: serverGroup.region,
             zone: serverGroup.zones[0],
           });
@@ -209,6 +209,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
         var submitMethod = function () {
           return serverGroupWriter.enableServerGroup(serverGroup, application, {
             cloudProvider: 'cf',
+            nativeLoadBalancers: serverGroup.nativeLoadBalancers,
             replicaPoolName: serverGroup.name,
             region: serverGroup.region,
             zone: serverGroup.zones[0],
@@ -246,14 +247,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
         });
       };
 
-      this.buildJenkinsLink = function() {
-        if ($scope.serverGroup && $scope.serverGroup.buildInfo && $scope.serverGroup.buildInfo.jenkins) {
-          var jenkins = $scope.serverGroup.buildInfo.jenkins;
-          return jenkins.host + 'job/' + jenkins.name + '/' + jenkins.number;
-        }
-        return null;
-      };
-
       this.truncateCommitHash = function() {
         if ($scope.serverGroup && $scope.serverGroup.buildInfo && $scope.serverGroup.buildInfo.commit) {
           return $scope.serverGroup.buildInfo.commit.substring(0, 8);
@@ -277,5 +270,12 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
         }
         return null;
       };
+
+      this.isSecret = function(value) {
+        return value.toLowerCase().includes('password') ||
+            value.toLowerCase().includes('secret') ||
+            value.toLowerCase().includes('key');
+      };
+
     }
 ).name;

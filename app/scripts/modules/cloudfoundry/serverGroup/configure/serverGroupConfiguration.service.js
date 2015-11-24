@@ -10,17 +10,15 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
   require('../../instance/cfInstanceTypeService.js'),
 ])
   .factory('cfServerGroupConfigurationService', function(cfImageReader, accountService, securityGroupReader,
-                                                          cfInstanceTypeService, cacheInitializer,
-                                                          $q, _) {
+                                                         cfInstanceTypeService, cacheInitializer,
+                                                         $q, _) {
 
 
     function configureCommand(command) {
-      command.image = command.viewState.imageId;
       return $q.all({
         regionsKeyedByAccount: accountService.getRegionsKeyedByAccount('cf'),
         securityGroups: securityGroupReader.getAllSecurityGroups(),
-        instanceTypes: cfInstanceTypeService.getAllTypesByRegion(),
-        images: cfImageReader.findImages({provider: 'cf'}),
+        instanceTypes: cfInstanceTypeService.getAllTypesByRegion()
       }).then(function(backingData) {
         var securityGroupReloader = $q.when(null);
         backingData.accounts = _.keys(backingData.regionsKeyedByAccount);
@@ -58,20 +56,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
     }
 
     function configureImages(command) {
-      var result = { dirty: {} };
-      if (command.viewState.disableImageSelection) {
-        return result;
-      }
-      if (command.credentials !== command.viewState.lastImageAccount) {
-        command.viewState.lastImageAccount = command.credentials;
-        var filtered = extractFilteredImageNames(command);
-        command.backingData.filtered.imageNames = filtered;
-        if (filtered.indexOf(command.image) === -1) {
-          command.image = null;
-          result.dirty.imageName = true;
-        }
-      }
-      return result;
+      return { dirty: {} };
     }
 
     function configureZones(command) {
