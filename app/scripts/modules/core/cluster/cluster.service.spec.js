@@ -68,6 +68,28 @@ describe('Service: InstanceType', function () {
   });
 
   describe('addTasksToServerGroups', function() {
+    describe('rollback tasks', function () {
+      it('attaches to source and target', function () {
+        var app = this.application;
+        app.tasks = [
+          this.buildTask({status: 'RUNNING', variables: [
+            { key: 'credentials', value: 'test' },
+            { key: 'regions', value: ['us-east-1'] },
+            { key: 'targetop.asg.disableServerGroup.name', value: 'the-source' },
+            { key: 'targetop.asg.enableServerGroup.name', value: 'the-target' }
+          ]})
+        ];
+
+        app.tasks[0].execution = {stages: [ { type: 'rollbackServerGroup', context: {} }] };
+        clusterService.addTasksToServerGroups(app);
+        expect(app.serverGroups[0].runningTasks.length).toBe(0);
+        expect(app.serverGroups[1].runningTasks.length).toBe(0);
+        expect(app.serverGroups[2].runningTasks.length).toBe(1);
+        expect(app.serverGroups[3].runningTasks.length).toBe(0);
+        expect(app.serverGroups[4].runningTasks.length).toBe(1);
+      });
+    });
+
     describe('createcopylastasg tasks', function() {
       it('attaches to source and target', function() {
         var app = this.application;

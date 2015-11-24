@@ -132,11 +132,23 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
       'enableservergroup': baseTaskMatcher,
       'enablegoogleservergroup': baseTaskMatcher,
       'disablegoogleservergroup': baseTaskMatcher,
+      'rollbackServerGroup': function(task, serverGroup) {
+        var account = task.getValueFor('credentials'),
+            region = task.getValueFor('regions') ? task.getValueFor('regions')[0] : null;
+
+        if (account && serverGroup.account === account && region && serverGroup.region === region) {
+          return serverGroup.name === task.getValueFor('targetop.asg.disableServerGroup.name') ||
+            serverGroup.name === task.getValueFor('targetop.asg.enableServerGroup.name');
+        }
+        return false;
+      },
     };
 
     function taskMatches(task, serverGroup) {
       let notificationType = _.has(task, 'execution.stages') ?
-        task.execution.stages[0].context['notification.type'] :
+        task.execution.stages[0].context['notification.type'] ?
+          task.execution.stages[0].context['notification.type'] :
+          task.execution.stages[0].type : // TODO: good grief
         task.getValueFor('notification.type');
       var matcher = taskMatchers[notificationType];
       return matcher ? matcher(task, serverGroup) : false;

@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.rollback.c
                                                         taskMonitorService,
                                                         application, serverGroup, disabledServerGroups) {
       $scope.serverGroup = serverGroup;
-      $scope.disabledServerGroups = disabledServerGroups;
+      $scope.disabledServerGroups = disabledServerGroups.sort((a, b) => b.name.localeCompare(a.name));
       $scope.verification = {
         required: accountService.challengeDestructiveActions('aws', serverGroup.account)
       };
