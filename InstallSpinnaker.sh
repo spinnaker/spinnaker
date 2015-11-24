@@ -18,7 +18,7 @@ elif [ -f /etc/debian_version ]; then
 elif [ -f /etc/redhat-release ]; then
   if grep -iq cent /etc/redhat-release; then
     DISTRO="CentOS"
-  elif grep -iq red /etc/redhat-release; then
+elif grep -iq red /etc/redhat-release; then
     DISTRO="RedHat"
   fi
 
@@ -46,6 +46,7 @@ usage: $0 [--cloud_provider <aws|google|none|both>]
     [--aws_region <region>] [--google_region <region>]
     [--quiet] [--dependencies_only]
     [--repository <debian repository url>]
+    [--local-install]
 
 
     If run with no arguments you will be prompted for cloud provider and region
@@ -70,6 +71,13 @@ usage: $0 [--cloud_provider <aws|google|none|both>]
     --dependencies_only         Do not install any Spinnaker services.
                                 Only install the dependencies. This is intended
                                 for development scenarios only
+
+    --local-install             For Spinnaker and Java packages, download
+                                packages and install using dpkg instead of
+                                apt. Use this option only if you are having
+                                issues with the bintray repositories.
+                                If you use this option you must manually
+                                install openjdk-8-jdk.
 EOF
 }
 
@@ -102,13 +110,16 @@ function process_args() {
           shift
           ;;
       --repository)
-         REPOSITORY_URL="$1"
-         shift
-         ;;
+          REPOSITORY_URL="$1"
+          shift
+          ;;
       --dependencies_only)
-         CLOUD_PROVIDER="none"
-         DEPENDENCIES_ONLY=true
-         ;;
+          CLOUD_PROVIDER="none"
+          DEPENDENCIES_ONLY=true
+          ;;
+      --local-install)
+          DOWNLOAD="true"
+          ;;
       --quiet|-q)
           QUIET="true"
           CLOUD_PROVIDER="none"
@@ -245,6 +256,48 @@ function set_defaults_from_environ() {
       echo "No providers are enabled by default."
   fi
 }
+
+function add_apt_repositories() {
+  # Redis
+  # https://launchpad.net/~chris-lea/+archive/ubuntu/redis-server
+  sudo add-apt-repository -y ppa:chris-lea/redis-server
+  # Cassandra
+  # http://docs.datastax.com/en/cassandra/2.1/cassandra/install/installDeb_t.html
+  curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add -
+  echo "deb http://debian.datastax.com/community/ stable main" | sudo tee /etc/apt/sources.list.d/datastax.list > /dev/null
+  # Java 8
+  # https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa
+  sudo add-apt-repository -y ppa:openjdk-r/ppa
+
+  if [ "$DOWNLOAD" != "true" ];then
+    # Spinnaker
+    # DL Repo goes here
+    REPOSITORY_HOST=$(echo $REPOSITORY_URL | cut -d/ -f3)
+    if [ "$REPOSITORY_HOST" == "dl.bintray.com" ]; then
+      REPOSITORY_ORG=$(echo $REPOSITORY_URL | cut -d/ -f4)
+      curl "https://bintray.com/user/downloadSubjectPublicKey?username=$REPOSITORY_ORG" | sudo apt-key add -
+    fi
+    echo "deb $REPOSITORY_URL trusty spinnaker" | sudo tee /etc/apt/sources.list.d/spinnaker-dev.list > /dev/null
+  fi
+  sudo apt-get update
+}
+
+function install_spinnaker() {
+  if [ "$DOWNLOAD" != "true" ];then
+    sudo apt-get install -y --force-yes --allow-unauthenticated spinnaker
+  else
+    apt-get -y --force-yes install redis-server apache2
+    install_packages="spinnaker-clouddriver spinnaker-deck spinnaker-echo spinnaker-front50 spinnaker-gate spinnaker-igor spinnaker-orca spinnaker-rosco spinnaker-rush spinnaker"
+    for package in $install_packages;do
+      latest=`curl $REPOSITORY_URL/dists/trusty/spinnaker/binary-amd64/Packages | grep "/$package/${package}_" | grep Filename | awk '{print $2}' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1`
+      debfile=`echo $latest | awk -F "/" '{print $NF}'`
+      curl -L -O $REPOSITORY_URL/$latest
+      dpkg -i $debfile && rm -f $debfile
+    done
+  fi
+
+}
+
 set_defaults_from_environ
 
 process_args "$@"
@@ -279,50 +332,25 @@ case $CLOUD_PROVIDER in
       exit -1
 esac
 
-## PPAs ##
-# Add PPAs for software that is not necessarily in sync with Ubuntu releases
 
-# Redis
-# https://launchpad.net/~chris-lea/+archive/ubuntu/redis-server
+add_apt_repositories
 
-sudo add-apt-repository -y ppa:chris-lea/redis-server
-
-# Cassandra
-# http://docs.datastax.com/en/cassandra/2.1/cassandra/install/installDeb_t.html
-
-curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add -
-echo "deb http://debian.datastax.com/community/ stable main" | sudo tee /etc/apt/sources.list.d/datastax.list > /dev/null
-
-# Java 8
-# https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa
-sudo add-apt-repository -y ppa:openjdk-r/ppa
-
-# https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa
-# add-apt-repository -y ppa:webupd8team/java
-# echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
-
-
-# Spinnaker
-# DL Repo goes here
-REPOSITORY_HOST=$(echo $REPOSITORY_URL | cut -d/ -f3)
-if [ "$REPOSITORY_HOST" == "dl.bintray.com" ]; then
-  REPOSITORY_ORG=$(echo $REPOSITORY_URL | cut -d/ -f4)
-  curl "https://bintray.com/user/downloadSubjectPublicKey?username=$REPOSITORY_ORG" | sudo apt-key add -
+# java
+if [ "$DOWNLOAD" != "true" ];then
+  sudo apt-get install -y --force-yes openjdk-8-jdk
+elif [ "x`dpkg --get-selections | grep openjdk-8-jdk | awk -F':' '{print $1}'`" != "xopenjdk-8-jdk" ];then
+  echo "you must manually install openjdk-8-jdk; exiting"
+  exit 13
 fi
-echo "deb $REPOSITORY_URL trusty spinnaker" | sudo tee /etc/apt/sources.list.d/spinnaker-dev.list > /dev/null
 
 ## Install software
 # "service cassandra status" is currently broken in Ubuntu grep in the script is grepping for things that do not exist
 # Cassandra 2.x can ship with RPC disabeld to enable run "nodetool enablethrift"
 
-sudo apt-get update
-
-## Java
-# apt-get install -y oracle-java8-installer
-sudo apt-get install -y openjdk-8-jdk
 ## Cassandra
 sudo apt-get install -y --force-yes cassandra=2.1.11 cassandra-tools=2.1.11
 sudo apt-mark hold cassandra cassandra-tools
+sleep 1
 # Let cassandra start
 if ! nc -z localhost 7199; then
     echo_status "Waiting for Cassandra to start..."
@@ -336,8 +364,6 @@ while ! $(nodetool enablethrift >& /dev/null); do
     echo_status "Retrying..."
 done
 
-# apt-get install dsc21
-
 ## Packer
 sudo apt-get install -y unzip
 wget https://releases.hashicorp.com/packer/0.8.6/packer_0.8.6_linux_amd64.zip
@@ -349,7 +375,8 @@ if [[ "x$DEPENDENCIES_ONLY" != "x" ]]; then
 fi
 
 ## Spinnaker
-sudo apt-get install -y --force-yes --allow-unauthenticated spinnaker
+install_spinnaker
+
 
 if [[ "${CLOUD_PROVIDER,,}" == "amazon" || "${CLOUD_PROVIDER,,}" == "google" || "${CLOUD_PROVIDER,,}" == "both" ]]; then
   case $CLOUD_PROVIDER in
