@@ -27,11 +27,9 @@ If you're using Google Compute Platform, create a directory called gcp under the
 # Local Installation
 
 1. Open Kitematic and click on docker cli at the bottom
-2. Export your current docker ip address as follows:
-   ``` export DOCKER_IP=`docker-machine ip default` ```
-3. Make sure you are under the experimental/docker-compose directory
-4. Run ```docker-compose up -d``` , this will pull all the images needed to run Spinnaker from Docker Hub.
-5. You should see all the containers for your microservice come up one by one in Kitematic.
+2. Make sure you are under the experimental/docker-compose directory
+3. Run ```DOCKER_IP=`docker-machine ip default` docker-compose up -d``` , this will pull all the images needed to run Spinnaker from Docker Hub.
+4. You should see all the containers for your microservice come up one by one in Kitematic.
 
 ## Using Spinnaker locally
 
