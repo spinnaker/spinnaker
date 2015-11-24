@@ -4,7 +4,7 @@ jdk:
 sudo: false
 install: gradle/installViaTravis.sh
 script: gradle/buildViaTravis.sh
-script: gradle/prepCaches.sh
+before_cache: gradle/prepCaches.sh
 cache:
   directories:
   - $HOME/.gradle
