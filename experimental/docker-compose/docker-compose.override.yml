@@ -8,8 +8,8 @@ clouddriver:
     - "SERVICES_FRONT50_BASEURL=http://$DOCKER_IP:8080"
   volumes: 
     - "../../config:/opt/spinnaker/config"
-    - "../../aws:/root/.aws"
-    - "../../gcp:/root/.gcp"
+    - "../../config/aws:/root/.aws"
+    - "../../config/gcp:/root/.gcp"
 echo: 
   env_file: ./compose.env
   volumes: 
