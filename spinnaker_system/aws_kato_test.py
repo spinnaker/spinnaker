@@ -70,13 +70,15 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
 
   def __init__(self, bindings, agent=None):
     super(AwsKatoTestScenario, self).__init__(bindings, agent)
+    self.TEST_AWS_REGION = self.agent.deployed_config.get(
+      'providers.aws.defaultRegion', 'us-east-1')
 
   def upsert_load_balancer(self):
     detail_raw_name = 'katotestlb' + self.test_id
     self._use_lb_name = detail_raw_name
 
     bindings = self.bindings
-    region = bindings['TEST_AWS_REGION']
+    region = self.TEST_AWS_REGION
     avail_zones = [region + 'a', region + 'b']
 
     listener = {
@@ -100,7 +102,7 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
         'credentials': bindings['AWS_CREDENTIALS'],
         'clusterName': bindings['TEST_APP'],
         'name': detail_raw_name,
-        'availabilityZones': { bindings['TEST_AWS_REGION']: avail_zones },
+        'availabilityZones': { self.TEST_AWS_REGION: avail_zones },
         'listeners': [{
                 'internalProtocol': 'HTTP',
                 'internalPort': listener['Listener']['InstancePort'],
@@ -139,7 +141,7 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
           'deleteAmazonLoadBalancerDescription',
           {
             'credentials': self.bindings['AWS_CREDENTIALS'],
-            'regions': [self.bindings['TEST_AWS_REGION']],
+            'regions': [self.TEST_AWS_REGION],
             'loadBalancerName': self._use_lb_name
           })
 
