@@ -217,13 +217,18 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         self._bindings[key] = value
 
     if not self._bindings['GCE_CREDENTIALS']:
-      self._bindings['GCE_CREDENTIALS'] = self._bindings.get(
-          'GOOGLE_PRIMARY_ACCOUNT_NAME', None)
+      self._bindings['GCE_CREDENTIALS'] = self.agent.deployed_config.get(
+        'providers.google.primaryCredentials.name', None)
+
+    if not self._bindings['AWS_CREDENTIALS']:
+      self._bindings['AWS_CREDENTIALS'] = self.agent.deployed_config.get(
+        'providers.aws.primaryCredentials.name', None)
 
     if not self._bindings.get('GOOGLE_PRIMARY_MANAGED_PROJECT_ID'):
       # Default to the project we are managing.
-      self._bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'] = agent.runtime_config.get(
-          'GOOGLE_PRIMARY_MANAGED_PROJECT_ID')
+      self._bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'] = (
+        self.agent.deployed_config.get(
+            'providers.google.primaryCredentials.project', None))
       if not self._bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID']:
         # But if that wasnt defined then default to the subsystem's project.
         self._bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'] = self._bindings['GCE_PROJECT']

@@ -53,28 +53,38 @@
 
 # Standard python modules.
 import base64
-import json
 import logging
 import os
 import os.path
 import re
 import tarfile
+import urllib2
+from json import JSONDecoder
 from StringIO import StringIO
 
 import citest.gcp_testing.gce_util as gce_util
 import citest.service_testing as service_testing
 import citest.gcp_testing as gcp
 
-import spinnaker_testing.yaml_util as yaml_util
+import spinnaker_testing.yaml_accumulator as yaml_accumulator
+from scrape_spring_config import scrape_spring_config
+from spinnaker_testing.expression_dict import ExpressionDict
 
 
 def name_value_to_dict(content):
+    """Converts a list of name=value pairs to a dictionary.
+
+    Args:
+      content: A list of name=value pairs with one per line.
+               This is blank lines ignored, as is anything to right of '#'.
+    """
     result = {}
     for match in re.finditer('^([A-Za-z_][A-Za-z0-9_]*) *= *([^#]*)',
                              content,
                              re.MULTILINE):
         result[match.group(1)] = match.group(2).strip()
     return result
+
 
 class SpinnakerStatus(service_testing.HttpOperationStatus):
   """Provides access to Spinnaker's asynchronous task status.
@@ -158,7 +168,7 @@ class SpinnakerStatus(service_testing.HttpOperationStatus):
       self._current_state = 'Unknown'
       return
 
-    decoder = json.JSONDecoder()
+    decoder = JSONDecoder()
     self._json_doc = decoder.decode(http_response.output)
     self._update_response_from_json(self._json_doc)
 
@@ -263,13 +273,14 @@ class SpinnakerAgent(service_testing.HttpAgent):
       logger.error(error)
       raise RuntimeError(error)
 
-    config = cls._determine_spinnaker_configuration(gcloud, instance)
-    protocol = config.get('SPINNAKER_DEFAULT_SERVICE_PROTOCOL', 'http')
+    approx_config = cls._get_deployed_local_yaml_bindings(gcloud, instance)
+    protocol = approx_config.get('services.default.protocol', 'http')
     baseUrl = '{protocol}://{netloc}'.format(protocol=protocol, netloc=netloc)
     logger.info('%s is available at %s', name, baseUrl)
+    deployed_config = scrape_spring_config(os.path.join(baseUrl, 'env'))
     spinnaker_agent = cls(baseUrl, status_factory)
+    spinnaker_agent.__deployed_config = deployed_config
 
-    spinnaker_agent.init_runtime_config(config_bindings, overrides=config)
     return spinnaker_agent
 
   @classmethod
@@ -291,45 +302,21 @@ class SpinnakerAgent(service_testing.HttpAgent):
       logger.error('Could not locate %s.', name)
       return None
 
-    logger.info('%s is available at %s', baseUrl)
+    logger.info('%s is available at %s', name, baseUrl)
+    env_url = os.path.join(baseUrl, 'env')
+    deployed_config = scrape_spring_config(env_url)
     spinnaker_agent = cls(baseUrl, status_factory)
-    spinnaker_agent.init_runtime_config(bindings)
+    spinnaker_agent.__deployed_config = deployed_config
 
     return spinnaker_agent
 
   @property
+  def deployed_config(self):
+      return self.__deployed_config
+
+  @property
   def runtime_config(self):
     return self._config_dict
-
-  # This method needs to be thought out.
-  # For now, the only runtime config is managed project id and account name
-  # but this is specific to GCE and is limited to the tests we currently have.
-  # In general, it should be able to accomodate the runtime configuration for
-  # a given subsystem especially to configure an observer to validate behavior.
-  def init_runtime_config(self, bindings, overrides=None):
-    config_dict = {}
-    if overrides:
-      config_dict.update(overrides)
-
-    logger = logging.getLogger(__name__)
-    missing = []
-    host_platform = self.determine_host_platform(bindings)
-    logger.info('Spinnaker host_platform=%s', host_platform)
-
-    if host_platform == 'gce':
-      if not bindings['GCE_INSTANCE']:
-        missing.append('--gce_instance')
-      if not bindings['GCE_ZONE']:
-        missing.append('--gce_zone')
-
-    if missing:
-      error = ('Additional configuration information is required.'
-               ' Please specify spinnaker runtime bindings with:\n'
-               '  {0}'.format('\n  '.join(missing)))
-      logger.error(error)
-      raise ValueError(error)
-
-    self._config_dict = config_dict
 
   def __init__(self, baseUrl, status_factory):
     """Construct a an agent for talking to spinnaker.
@@ -344,6 +331,7 @@ class SpinnakerAgent(service_testing.HttpAgent):
       status_factory: Creates status instances from this agent.
     """
     super(SpinnakerAgent, self).__init__(baseUrl)
+    self.__deployed_config = {}
     self.__default_status_factory = status_factory
     self._default_max_wait_secs = 240
 
@@ -351,6 +339,10 @@ class SpinnakerAgent(service_testing.HttpAgent):
     return (operation.status_class(operation, http_response)
             if operation.status_class
             else self.__default_status_factory(operation, http_response))
+
+  @staticmethod
+  def _derive_spring_config_from_url(url):
+      return {}
 
   @staticmethod
   def _get_deployed_local_yaml_bindings(gcloud, instance):
@@ -363,7 +355,9 @@ class SpinnakerAgent(service_testing.HttpAgent):
     Returns:
       None or the configuration file contents.
     """
+    config_dict = ExpressionDict()
     logger = logging.getLogger(__name__)
+
     if gce_util.am_i(gcloud.project, gcloud.zone, instance):
       yaml_file = os.path.expanduser('~/.spinnaker/spinnaker-local.yml')
       logger.debug('We are the instance. Config from %s', yaml_file)
@@ -373,9 +367,8 @@ class SpinnakerAgent(service_testing.HttpAgent):
         return None
 
       try:
-        bindings = yaml_util.YamlBindings()
-        bindings.import_path(yaml_file)
-        return bindings
+        yaml_accumulator.load_path(yaml_file, config_dict)
+        return config_dict
       except IOError as e:
         logger.error('Failed to load from %s: %s', yaml_file, e)
         return None
@@ -426,7 +419,6 @@ class SpinnakerAgent(service_testing.HttpAgent):
       return None
 
     tar = tarfile.open(mode='r', fileobj=StringIO(base64.b64decode(got)))
-    bindings = yaml_util.YamlBindings()
 
     try:
         file = tar.extractfile('etc/default/spinnaker')
@@ -434,65 +426,22 @@ class SpinnakerAgent(service_testing.HttpAgent):
         pass
     else:
       logger.info('Importing configuration from /etc/default/spinnaker')
-      values = name_value_to_dict(file.read())
-      bindings.import_dict(values)
-        
-    for member in ['home/spinnaker/.spinnaker/spinnaker-local.yml',
-                   'opt/spinnaker/config/spinnaker-local.yml',
-                   os.path.join('home', os.environ['LOGNAME'],
-                                '.spinnaker/spinnaker-local.yml')]:
+      config_dict.update(name_value_to_dict(file.read()))
+
+    file_list = ['home/spinnaker/.spinnaker/spinnaker-local.yml',
+                 'opt/spinnaker/config/spinnaker-local.yml']
+    log_name = os.environ.get('LOGNAME')
+    if log_name is not None:
+        file_list.append(os.path.join('home', log_name,
+                                      '.spinnaker/spinnaker-local.yml'))
+
+    for member in file_list:
         try:
             file = tar.extractfile(member)
         except KeyError:
             continue
 
         logger.info('Importing configuration from ' + member)
-        bindings.import_string(file.read())
+        yaml_accumulator.load_string(file.read(), config_dict)
 
-    return bindings
-
-
-  @staticmethod
-  def _determine_spinnaker_configuration(gcloud, instance):
-    """Connect to the actual spinnaker instance and grab its configuration.
-
-    Args:
-      gcloud: gcp.GCloudAgent instance configured for spinnaker's project.
-      instance: The name of the spinnaker instance.
-
-    Returns:
-      Dictionary with upper-case keys (as they appear in spinnaker)
-    """
-    logger = logging.getLogger(__name__)
-    spinnaker_config = {
-      # Assume the default name.
-      'GOOGLE_PRIMARY_ACCOUNT_NAME': 'my-account-name',
-      # Assume the default managed project is itself.
-      'GOOGLE_PRIMARY_MANAGED_PROJECT_ID': gcloud.project
-    }
-
-    bindings = SpinnakerAgent._get_deployed_local_yaml_bindings(
-        gcloud, instance)
-
-    if bindings:
-      try:
-        spinnaker_config['GOOGLE_PRIMARY_ACCOUNT_NAME'] = (
-              bindings.get('providers.google.primaryCredentials.name'))
-      except KeyError:
-          pass
-      try:
-        spinnaker_config['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'] = (
-              bindings.get('providers.google.primaryCredentials.project'))
-      except KeyError:
-          pass
-
-      try:
-        spinnaker_config['SPINNAKER_DEFAULT_SERVICE_PROTOCOL'] = (
-              bindings.get('default.service.protocol'))
-      except KeyError:
-          pass
-
-      logger.debug('Collected configuration from bindings %s', spinnaker_config)
-      return spinnaker_config
-
-    return None
+    return config_dict
