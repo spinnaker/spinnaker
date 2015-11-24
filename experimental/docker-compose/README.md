@@ -22,7 +22,7 @@ Navigate to the config directory at the root of this project ( one directory up 
 
 If you're using aws, create a directory called aws under the config directory. Copy over your credentials from the .aws directory into this directory. If you don't have a .aws directory, follow the instructions here to create those credentials. 
 
-If you're using Google Compute Platform, create a directory called gcp under the config directory. Copy your json credentials into this directory as gcp.json
+If you're using Google Compute Platform, create a directory called gcp under the config directory. Copy your json credentials into this directory as gcp.json. Set your jsonPath for google in spinnaker-local.yml to be ```/root/.gcp/gcp.json```
 
 # Local Installation
 
