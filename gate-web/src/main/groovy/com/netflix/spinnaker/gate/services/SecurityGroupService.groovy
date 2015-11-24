@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.MortService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,7 +29,7 @@ class SecurityGroupService {
   private static final String GROUP = "security"
 
   @Autowired
-  MortService mortService
+  ClouddriverService clouddriverService
 
   @Autowired
   OrcaService orcaService
@@ -39,19 +39,19 @@ class SecurityGroupService {
    */
   Map getAll() {
     HystrixFactory.newMapCommand(GROUP, "getAllSecurityGroups") {
-      mortService.securityGroups
+      clouddriverService.securityGroups
     } execute()
   }
 
   /**
-   * Looks for a security group by its id (uses mort's search api)
+   * Looks for a security group by its id (uses clouddriver's search api)
    *
    * @param id
    * @return
    */
   Map getById(String id) {
     HystrixFactory.newMapCommand(GROUP, "getSecurityGroupById".toString()) {
-      def result = mortService.search(id, "securityGroups", null, 10000, 1)[0]
+      def result = clouddriverService.search(id, "securityGroups", null, 10000, 1)[0]
       if (result.results) {
         String uriString = ((List<Map>)result.results)[0].url
         def uri = new URI(uriString)
@@ -76,7 +76,7 @@ class SecurityGroupService {
    */
   Map getForAccountAndProviderAndRegion(String account, String provider, String region) {
     HystrixFactory.newMapCommand(GROUP, "getSecurityGroupsForAccountAndProvider") {
-      mortService.getSecurityGroups(account, provider, region)
+      clouddriverService.getSecurityGroups(account, provider, region)
     } execute()
   }
 
@@ -88,7 +88,7 @@ class SecurityGroupService {
    */
   Map getSecurityGroup(String account, String provider, String name, String region, String vpcId = null) {
     HystrixFactory.newMapCommand(GROUP, "getSecurityGroupByIdentifiers") {
-      mortService.getSecurityGroup(account, provider, name, region, vpcId)
+      clouddriverService.getSecurityGroup(account, provider, name, region, vpcId)
     } execute()
   }
 }

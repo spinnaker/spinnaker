@@ -19,7 +19,7 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.config.InsightConfiguration
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.OortService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -30,14 +30,14 @@ class InstanceService {
   private static final String GROUP = "instances"
 
   @Autowired
-  OortService oortService
+  ClouddriverService clouddriverService
 
   @Autowired
   InsightConfiguration insightConfiguration
 
   Map getForAccountAndRegion(String account, String region, String instanceId) {
     HystrixFactory.newMapCommand(GROUP, "getInstancesForAccountAndRegion") {
-      def instanceDetails = oortService.getInstanceDetails(account, region, instanceId)
+      def instanceDetails = clouddriverService.getInstanceDetails(account, region, instanceId)
       def instanceContext = instanceDetails.collectEntries {
         return it.value instanceof String ? [it.key, it.value] : [it.key, ""]
       } as Map<String, String>
@@ -51,7 +51,7 @@ class InstanceService {
 
   Map getConsoleOutput(String account, String region, String instanceId, String provider) {
     HystrixFactory.newMapCommand(GROUP, "getConsoleOutput") {
-      return  oortService.getConsoleOutput(account, region, instanceId, provider)
+      return  clouddriverService.getConsoleOutput(account, region, instanceId, provider)
     } execute()
   }
 

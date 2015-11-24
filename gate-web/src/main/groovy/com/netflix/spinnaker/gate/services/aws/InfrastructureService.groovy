@@ -18,7 +18,7 @@ package com.netflix.spinnaker.gate.services.aws
 
 import com.netflix.hystrix.HystrixCommand
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.MortService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -30,7 +30,7 @@ class InfrastructureService {
   private static final String GROUP = "infrastructure"
 
   @Autowired
-  MortService mortService
+  ClouddriverService clouddriverService
 
   private static <T extends List> HystrixCommand<T> command(String type, Closure<T> work) {
     (HystrixCommand<T>)HystrixFactory.newListCommand(GROUP, type, work)
@@ -38,26 +38,26 @@ class InfrastructureService {
 
   List<Map> getInstanceTypes() {
     command("instanceTypes") {
-      mortService.instanceTypes
+      clouddriverService.instanceTypes
     } execute()
   }
 
   List<Map> getKeyPairs() {
     command("keyPairs") {
-      mortService.keyPairs
+      clouddriverService.keyPairs
     } execute()
   }
 
   List<Map> getSubnets() {
     command("subnets") {
-      mortService.subnets
+      clouddriverService.subnets
     } execute()
   }
 
   @Deprecated
   List<Map> getVpcs() {
     command("vpcs") {
-      mortService.getNetworks('aws')
+      clouddriverService.getNetworks('aws')
     } execute()
   }
 }

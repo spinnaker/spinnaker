@@ -16,21 +16,21 @@
 
 package com.netflix.spinnaker.gate.security
 
-import com.netflix.spinnaker.gate.services.internal.KatoService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 class AnonymousAccountsService {
 
-  private final KatoService katoService
+  private final ClouddriverService clouddriverService
 
   @Autowired
-  AnonymousAccountsService(KatoService katoService) {
-    this.katoService = katoService
+  AnonymousAccountsService(ClouddriverService clouddriverService) {
+    this.clouddriverService = clouddriverService
   }
 
   public Collection<String> getAllowedAccounts() {
-    return katoService.accounts.findAll { !it.requiredGroupMembership }*.name
+    return clouddriverService.accounts.findAll { !it.requiredGroupMembership }*.name
   }
 }

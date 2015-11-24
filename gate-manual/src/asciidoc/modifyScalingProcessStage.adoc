@@ -21,11 +21,11 @@ AutoScaling Process Types:
 
 ====== Services Involved
 
-_orca_, _kato_, _oort_
+_orca_, _clouddriver_
 
 ====== Steps
 
-_suspendScalingProcess_, _monitorKato_ *or* _resumeScalingProcess_, _monitorKato_
+_suspendScalingProcess_, _monitorSuspend_ *or* _resumeScalingProcess_, _monitorResume_
 
 ====== Example Request Body
 [source,javascript]
@@ -34,7 +34,7 @@ _suspendScalingProcess_, _monitorKato_ *or* _resumeScalingProcess_, _monitorKato
   "type": "modifyScalingProcess",
   "action": "resume",
   "processes": ["Terminate"],
-  "asgName": "kato-main-v000",
+  "asgName": "myapp-main-v000",
   "regions": ["us-west-1", "us-east-1"],
   "credentials": "test"
 }

@@ -26,7 +26,7 @@ _upsertApplication_, _waitForMultiAccountPropagation_, _sendNotification_
   "type": "upsertApplication",
   "account": "test",
   "application": {
-    "name": "KATO",
+    "name": "MYAPP",
     "description": "Deployment services",
     "email": "delivery-engineering@netflix.com",
     "owner": "Delivery Engineering",

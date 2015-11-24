@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.OortService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -29,17 +29,17 @@ class ImageService {
   private static final String GROUP = "images"
 
   @Autowired
-  OortService oortService
+  ClouddriverService clouddriverService
 
   List<Map> getForAccountAndRegion(String provider, String account, String region, String imageId) {
     HystrixFactory.newListCommand(GROUP, "getImagesForAccountAndRegion") {
-      oortService.getImageDetails(provider, account, region, imageId)
+      clouddriverService.getImageDetails(provider, account, region, imageId)
     } execute()
   }
 
   List<Map> search(String provider, String query, String region, String account) {
     HystrixFactory.newListCommand(GROUP, "searchImages") {
-      oortService.findImages(provider, query, region, account)
+      clouddriverService.findImages(provider, query, region, account)
     } execute()
   }
 }

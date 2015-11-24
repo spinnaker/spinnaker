@@ -18,15 +18,14 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.config.InsightConfiguration
-import com.netflix.spinnaker.gate.services.InstanceService
-import com.netflix.spinnaker.gate.services.internal.OortService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import spock.lang.Specification
 
 class InstanceServiceSpec extends Specification {
   void "should include relevant insight actions for instance"() {
     given:
     def service = new InstanceService(
-        oortService: Mock(OortService) {
+        clouddriverService: Mock(ClouddriverService) {
           1 * getInstanceDetails(_, _, _) >> { return [privateIpAddress: "10.0.0.1", map: [:]] }
         },
         insightConfiguration: new InsightConfiguration(

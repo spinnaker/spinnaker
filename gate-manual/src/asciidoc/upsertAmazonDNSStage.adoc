@@ -12,7 +12,7 @@ NOTE: If this stage follows an +upsertAmazonLoadBalancer+ stage, then the DNS na
 
 ====== Services Involved
 
-_orca_, _kato_
+_orca_, _clouddriver_
 
 ====== Steps
 
@@ -24,9 +24,9 @@ _upsertAmazonDNS_, _monitorUpsertDNS_, _sendNotification_
 {
   "type": "upsertAmazonDNS",
   "recordType": "CNAME",
-  "name": "kato.test.netflix.net.",
-  "target": "internal-kato-main-frontend-xxx.us-east-1.elb.amazonaws.com",
-  "hostedZoneName": "test.netflix.net.",
+  "name": "myapp.test.mydomain.net.",
+  "target": "internal-myapp-main-frontend-xxx.us-east-1.elb.amazonaws.com",
+  "hostedZoneName": "test.mydomain.net.",
   "credentials": "test"
 }
 ----

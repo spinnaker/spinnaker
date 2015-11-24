@@ -19,7 +19,7 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.config.InsightConfiguration
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.OortService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -31,7 +31,7 @@ class ServerGroupService {
   private static final String GROUP = "serverGroups"
 
   @Autowired
-  OortService oortService
+  ClouddriverService clouddriverService
 
   @Autowired
   InsightConfiguration insightConfiguration
@@ -39,7 +39,7 @@ class ServerGroupService {
   List getForApplication(String applicationName, String expand) {
     String commandKey = Boolean.valueOf(expand) ? "getExpandedServerGroupsForApplication" : "getServerGroupsForApplication"
     HystrixFactory.newListCommand(GROUP, commandKey) {
-      oortService.getServerGroups(applicationName, expand)
+      clouddriverService.getServerGroups(applicationName, expand)
     } execute()
   }
 
@@ -47,7 +47,7 @@ class ServerGroupService {
     HystrixFactory.newMapCommand(GROUP, "getServerGroupsForApplicationAccountAndRegion") {
       try {
         def context = getContext(applicationName, account, region, serverGroupName)
-        return oortService.getServerGroupDetails(applicationName, account, region, serverGroupName) + [
+        return clouddriverService.getServerGroupDetails(applicationName, account, region, serverGroupName) + [
           "insightActions": insightConfiguration.serverGroup.collect { it.applyContext(context) }
         ]
       } catch (RetrofitError e) {

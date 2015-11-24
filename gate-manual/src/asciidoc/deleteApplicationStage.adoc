@@ -22,7 +22,7 @@ _deleteApplication_, _forceCacheRefresh_
 {
   "type": "deleteApplication",
   "account": "test",
-  "name": "kato"
+  "name": "myapp"
 }
 ----
 

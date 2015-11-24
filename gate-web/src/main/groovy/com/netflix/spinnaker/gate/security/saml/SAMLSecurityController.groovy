@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.security.saml
 
 import com.netflix.spinnaker.gate.config.Headers
-import com.netflix.spinnaker.gate.services.internal.KatoService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.security.AnonymousAccountsService
 import com.netflix.spinnaker.gate.security.anonymous.AnonymousSecurityConfig
 import com.netflix.spinnaker.security.User
@@ -49,14 +49,14 @@ class SAMLSecurityController {
   private final String url
   private final String certificate
   private final SAMLSecurityConfig.SAMLSecurityConfigProperties samlSecurityConfigProperties
-  private final KatoService katoService
+  private final ClouddriverService clouddriverService
 
   @Autowired
-  SAMLSecurityController(SAMLSecurityConfig.SAMLSecurityConfigProperties properties, KatoService katoService) {
+  SAMLSecurityController(SAMLSecurityConfig.SAMLSecurityConfigProperties properties, ClouddriverService clouddriverService) {
     this.url = properties.url
     this.certificate = properties.certificate
     this.samlSecurityConfigProperties = properties
-    this.katoService = katoService
+    this.clouddriverService = clouddriverService
   }
 
   @Autowired
@@ -101,7 +101,7 @@ class SAMLSecurityController {
               HttpServletRequest request,
               HttpServletResponse response) {
     def assertion = SAMLUtils.buildAssertion(samlResponse, SAMLUtils.loadCertificate(samlSecurityConfigProperties.certificate))
-    def user = buildUser(assertion, samlSecurityConfigProperties.userAttributeMapping, anonymousAccountsService.getAllowedAccounts(), katoService.getAccounts())
+    def user = buildUser(assertion, samlSecurityConfigProperties.userAttributeMapping, anonymousAccountsService.getAllowedAccounts(), clouddriverService.getAccounts())
     if (!hasRequiredRole(anonymousSecurityConfig, samlSecurityConfigProperties, user)) {
       SecurityContextHolder.clearContext()
       rememberMeServices.loginFail(request, response)
@@ -153,7 +153,7 @@ class SAMLSecurityController {
   static User buildUser(Assertion assertion,
                         SAMLSecurityConfig.UserAttributeMapping userAttributeMapping,
                         Collection<String> anonymousAllowedAccounts,
-                        Collection<KatoService.Account> allAccounts) {
+                        Collection<ClouddriverService.Account> allAccounts) {
     def attributes = SAMLUtils.extractAttributes(assertion)
     def roles = attributes[userAttributeMapping.roles].collect { String roles ->
       def commonNames = roles.split(";")

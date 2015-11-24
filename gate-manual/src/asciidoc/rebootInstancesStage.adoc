@@ -10,7 +10,7 @@ This stage orchestrates the reboot of a number of named instances within a regio
 
 ====== Services Involved
 
-_orca_, _kato_, _oort_
+_orca_, _clouddriver_
 
 ====== Steps
 

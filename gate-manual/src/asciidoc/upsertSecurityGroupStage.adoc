@@ -10,7 +10,7 @@ This stage will orchestrate the creation and update of a security group and its 
 
 ====== Services Involved
 
-_orca_, _kato_, _mort_
+_orca_, _clouddriver_
 
 ====== Steps
 
@@ -21,8 +21,8 @@ _upsertAmazonLoadBalancer_, _monitorUpsert_, _extrapolateUpsertResult_, _forceCa
 ----
 {
   "type": "upsertSecurityGroup",
-  "name": "kato",
-  "description": "Spinnaker deployment engine",
+  "name": "myapp",
+  "description": "My Application",
   "region": "us-west-1",
   "securityGroupIngress": [{
       "name": "nf-infrastructure",

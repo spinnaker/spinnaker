@@ -12,7 +12,7 @@ CAUTION: This operation marks the end of a Load Balancer's life. The process can
 
 ====== Services Involved
 
-_orca_, _kato_, _oort_
+_orca_, _clouddriver_
 
 ====== Steps
 
@@ -23,7 +23,7 @@ _deleteAmazonLoadBalancer_, _forceCacheRefresh_, _monitorDelete_
 ----
 {
   "type": "deleteLoadBalancer",
-  "loadBalancerName": "kato-main-frontend",
+  "loadBalancerName": "myapp-main-frontend",
   "regions": ["us-east-1", "us-west-1", "us-west-2", "eu-west-1"],
   "credentials": "test"
 }

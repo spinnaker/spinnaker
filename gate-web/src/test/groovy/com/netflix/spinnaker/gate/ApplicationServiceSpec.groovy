@@ -20,34 +20,30 @@ import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spinnaker.gate.config.Service
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.services.ApplicationService
-import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
-import com.netflix.spinnaker.gate.services.internal.KatoService
-import com.netflix.spinnaker.gate.services.internal.OortService
-import com.netflix.spinnaker.gate.services.internal.OrcaService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.util.concurrent.Executors
 
 class ApplicationServiceSpec extends Specification {
 
-  void "should properly aggregate application data from Front50 and Oort"() {
+  void "should properly aggregate application data from Front50 and Clouddriver"() {
     setup:
     HystrixRequestContext.initializeContext()
 
     def service = new ApplicationService()
     def front50 = Mock(Front50Service)
-    def oort = Mock(OortService)
+    def clouddriver = Mock(ClouddriverService)
     def config = new ServiceConfiguration(services: [front50: new Service()])
 
     service.serviceConfiguration = config
     service.front50Service = front50
-    service.oortService = oort
+    service.clouddriverService = clouddriver
     service.executorService = Executors.newFixedThreadPool(1)
 
     and:
-    def oortApp = [name: name, attributes: [oortName: name, name: "bad"], clusters: [(account): [cluster]]]
+    def clouddriverApp = [name: name, attributes: [clouddriverName: name, name: "bad"], clusters: [(account): [cluster]]]
     def front50App = [name: name, email: email, owner: owner]
 
     when:
@@ -55,10 +51,10 @@ class ApplicationServiceSpec extends Specification {
 
     then:
     1 * front50.credentials >> [[name: account, global: true]]
-    1 * oort.getApplication(name) >> oortApp
+    1 * clouddriver.getApplication(name) >> clouddriverApp
     1 * front50.getMetaData(account, name) >> front50App
 
-    app == [name: name, attributes: (oortApp.attributes + front50App), clusters: oortApp.clusters]
+    app == [name: name, attributes: (clouddriverApp.attributes + front50App), clusters: clouddriverApp.clusters]
 
     where:
     name = "foo"
@@ -69,22 +65,22 @@ class ApplicationServiceSpec extends Specification {
     providerType = "aws"
   }
 
-  void "should include accounts from front50 and from oort clusters"() {
+  void "should include accounts from front50 and from clouddriver clusters"() {
     setup:
     HystrixRequestContext.initializeContext()
 
     def service = new ApplicationService()
     def front50 = Mock(Front50Service)
-    def oort = Mock(OortService)
+    def clouddriver = Mock(ClouddriverService)
     def config = new ServiceConfiguration(services: [front50: new Service()])
 
     service.serviceConfiguration = config
     service.front50Service = front50
-    service.oortService = oort
+    service.clouddriverService = clouddriver
     service.executorService = Executors.newFixedThreadPool(1)
 
     and:
-    def oortApp = [name: name, attributes: [oortName: name, name: "bad"], clusters: [(oortAccount): [cluster]]]
+    def clouddriverApp = [name: name, attributes: [clouddriverName: name, name: "bad"], clusters: [(clouddriverAccount): [cluster]]]
     def front50App = [name: name, email: email, owner: owner]
 
     when:
@@ -92,17 +88,17 @@ class ApplicationServiceSpec extends Specification {
 
     then:
     1 * front50.credentials >> [[name: front50Account, global: true]]
-    1 * oort.getApplication(name) >> oortApp
+    1 * clouddriver.getApplication(name) >> clouddriverApp
     1 * front50.getMetaData(front50Account, name) >> front50App
 
-    app == [name: name, attributes: (oortApp.attributes + front50App + [accounts: [oortAccount, front50Account].toSet().sort().join(',')]), clusters: oortApp.clusters]
+    app == [name: name, attributes: (clouddriverApp.attributes + front50App + [accounts: [clouddriverAccount, front50Account].toSet().sort().join(',')]), clusters: clouddriverApp.clusters]
 
     where:
     name = "foo"
     email = "bar@baz.bz"
     owner = "danw"
     cluster = "cluster1"
-    oortAccount = "test"
+    clouddriverAccount = "test"
     front50Account = "prod"
     providerType = "aws"
 
@@ -114,12 +110,12 @@ class ApplicationServiceSpec extends Specification {
 
     def service = new ApplicationService()
     def front50 = Mock(Front50Service)
-    def oort = Mock(OortService)
+    def clouddriver = Mock(ClouddriverService)
     def config = new ServiceConfiguration(services: [front50: new Service(config: [includedAccounts: includedAccount])])
 
     service.serviceConfiguration = config
     service.front50Service = front50
-    service.oortService = oort
+    service.clouddriverService = clouddriver
     service.executorService = Executors.newFixedThreadPool(1)
 
     when:
@@ -127,7 +123,7 @@ class ApplicationServiceSpec extends Specification {
 
     then:
     1 * front50.credentials >> [[name: account, global: true]]
-    1 * oort.getApplication(name) >> null
+    1 * clouddriver.getApplication(name) >> null
     1 * front50.getMetaData(account, name) >> [name: name, foo: 'bar']
 
     (app == null) == expectedNull
@@ -152,12 +148,12 @@ class ApplicationServiceSpec extends Specification {
 
     def service = new ApplicationService()
     def front50 = Mock(Front50Service)
-    def oort = Mock(OortService)
+    def clouddriver = Mock(ClouddriverService)
     def config = new ServiceConfiguration(services: [front50: new Service()])
 
     service.serviceConfiguration = config
     service.front50Service = front50
-    service.oortService = oort
+    service.clouddriverService = clouddriver
     service.executorService = Executors.newFixedThreadPool(1)
 
     when:
@@ -165,7 +161,7 @@ class ApplicationServiceSpec extends Specification {
 
     then:
     1 * front50.credentials >> [[name: account, global: true]]
-    1 * oort.getApplication(name) >> null
+    1 * clouddriver.getApplication(name) >> null
     1 * front50.getMetaData(account, name) >> null
 
     app == null
@@ -211,29 +207,29 @@ class ApplicationServiceSpec extends Specification {
     account = "global"
   }
 
-  void "should properly merge retrieved apps from oort and front50"() {
+  void "should properly merge retrieved apps from clouddriver and front50"() {
     setup:
     HystrixRequestContext.initializeContext()
 
     def service = new ApplicationService()
     def front50 = Mock(Front50Service)
-    def oort = Mock(OortService)
+    def clouddriver = Mock(ClouddriverService)
     def config = new ServiceConfiguration(services: [front50: new Service()])
 
     service.serviceConfiguration = config
     service.front50Service = front50
-    service.oortService = oort
+    service.clouddriverService = clouddriver
     service.executorService = Executors.newFixedThreadPool(1)
 
     and:
-    def oortApp = [name: name.toUpperCase(), attributes: [name: name], clusters: [prod: [[name: "cluster-name"]]]]
+    def clouddriverApp = [name: name.toUpperCase(), attributes: [name: name], clusters: [prod: [[name: "cluster-name"]]]]
     def front50App = [name: name.toLowerCase(), email: email]
 
     when:
     def apps = service.getAll()
 
     then:
-    1 * oort.getApplications(false) >> [oortApp]
+    1 * clouddriver.getApplications(false) >> [clouddriverApp]
     1 * front50.getAll(account) >> [front50App] >> { throw new SocketTimeoutException() }
     1 * front50.credentials >> [globalAccount]
 

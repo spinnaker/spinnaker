@@ -10,7 +10,7 @@ This stage orchestrates the creation of an Amazon Elastic Load Balancer. This st
 
 ====== Services Involved
 
-_orca_, _kato_, _oort_
+_orca_, _clouddriver_
 
 ====== Steps
 
@@ -21,7 +21,7 @@ _upsertAmazonLoadBalancer_, _monitorUpsert_, _extrapolateUpsertResult_, _forceCa
 ----
 {
   "type": "upsertAmazonLoadBalancer",
-  "name": "kato-main-frontend",
+  "name": "myapp-main-frontend",
   "subnetType": "internal",
   "securityGroups": ["nf-infrastructure-vpc", "nf-datacenter-vpc"],
   "availabilityZones": {

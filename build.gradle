@@ -7,7 +7,7 @@ buildscript {
     maven { url "http://spinnaker.bintray.com/gradle" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.3.0'
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.4.0'
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
   }
 }
@@ -21,6 +21,8 @@ allprojects {
   }
 
   configurations.all {
+    exclude group: 'javax.servlet', module: 'servlet-api'
+    exclude group: 'javax.servlet', module: 'javax.servlet-api'
     resolutionStrategy {
       force 'org.codehaus.groovy:groovy-all:2.4.5'
       force 'org.spockframework:spock-core:1.0-groovy-2.4'
