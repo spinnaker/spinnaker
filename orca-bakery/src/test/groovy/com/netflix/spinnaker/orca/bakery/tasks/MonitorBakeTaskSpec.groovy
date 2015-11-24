@@ -63,7 +63,8 @@ class MonitorBakeTaskSpec extends Specification {
     id = randomUUID().toString()
   }
 
-  def "should attempt a new bake when previous status is PENDING and current status is CANCELLED"() {
+  @Unroll
+  def "should attempt a new bake when previous status is PENDING and current status is CANCELED or CANCELLED"() {
     given:
     def id = randomUUID().toString()
     def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
@@ -72,7 +73,7 @@ class MonitorBakeTaskSpec extends Specification {
     and:
     task.bakery = Stub(BakeryService) {
       lookupStatus(stage.context.region, id) >> Observable.from(
-        new BakeStatus(id: id, state: BakeStatus.State.CANCELLED, result: null)
+        new BakeStatus(id: id, state: state, result: null)
       )
     }
     task.createBakeTask = Mock(CreateBakeTask) {
@@ -86,6 +87,9 @@ class MonitorBakeTaskSpec extends Specification {
     result.status == ExecutionStatus.RUNNING
     (result.stageOutputs as Map) == [stage: 1]
     (result.globalOutputs as Map) == [global: 2]
+
+    where:
+    state << [BakeStatus.State.CANCELED, BakeStatus.State.CANCELLED]
   }
 
   def "outputs the updated bake status"() {
