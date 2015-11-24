@@ -4,9 +4,10 @@ jdk:
 sudo: false
 install: gradle/installViaTravis.sh
 script: gradle/buildViaTravis.sh
+script: gradle/prepCaches.sh
 cache:
   directories:
-  - $HOME/.gradle/caches
+  - $HOME/.gradle
 env:
   global:
   - secure: gTHusq0eFVNQx2yr3QdajJYth4iNuCtqWwKp22YISu5G3lcxUr+I2v0aWsYEfm0eXxG5s3FQXfW0TihY1gGFIqd4OXyjfPkwmphi6gNPFWGKc3sCGzKvsiWZ7+2x8A/o4WsBhwoALMTnjqun8CbFgeY70qPzbkdGyaXnpTkpsC7mWTML2e6H+LpRRBn2azVDCZDSBFUNNUqPDYEDvr6b8TrmyrwLNE5HCLMf9O2nPzIQTFdamYF2xASACD2x873EpOtw8WJRBWvfu/Pl7vstUrhdPZVJ1xF5tIRzVF/a5t2yn3ynvnwecKTVfWr+WddsAMkrxMmmvwSfomUofWHUN4iK8QZ4Rg3lc1oc41myt1tyLQ/HppnSxY1Xj5dFSIHHjUF67yHmK5tRQxSgIcmsDhsGsqIueKJrEzcjWmDZzQ8K5gofuQY7Hfm9gfEbxKYF/vnAhVVqR1cMwN+IZHaUJbhvT/C4RoNU3iiEdYReg+1ggjLX6dlk3Fagcb1LA6jfglADKaWA0JimCu2kAciRUJzpsGb9xIZt/SpbWxX7Wk5DV0A7b5Ra1EhuOScF6sAmwsgXXdxf0em/Bgn8ehHCRYaKUkVtSvKvUaw9t1g3ctyBqRdrNsb0Kio5wP9rJLEXpEBiGaTtiUX00vgH1vO1f79evRsupmCCVOSslsAmmHE=
