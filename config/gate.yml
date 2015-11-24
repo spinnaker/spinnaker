@@ -4,16 +4,12 @@ server:
 
 # Circular references since we're already using 'services'
 # services:
-#   oort:
-#     baseUrl: ${services.oort.baseUrl:localhost:7002}
+#   clouddriver:
+#     baseUrl: ${services.clouddriver.baseUrl:localhost:7002}
 #   orca:
 #     baseUrl: ${services.orca.baseUrl:localhost:8083}
 #   front50:
 #     baseUrl: ${services.front50.baseUrl:localhost:8080}
-#   mort:
-#     baseUrl: ${services.mort.baseUrl:localhost:7002}
-#   kato:
-#     baseUrl: ${services.kato.baseUrl:localhost:7002}
 # #optional services:
 #   echo:
 #     enabled: ${services.echo.enabled:true}
