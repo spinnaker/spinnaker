@@ -40,6 +40,11 @@ allprojects {
     compile spinnaker.dependency("korkSwagger")
     compile spinnaker.dependency("korkWeb")
   }
+  test {
+    testLogging {
+      exceptionFormat = 'full'
+    }
+  }
 }
 
 
