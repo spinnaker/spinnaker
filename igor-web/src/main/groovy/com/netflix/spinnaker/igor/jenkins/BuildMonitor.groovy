@@ -148,22 +148,38 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
                         cachedBuild = cache.getLastBuild(master, project.name)
                         if ((project.lastBuild.building != cachedBuild.lastBuildBuilding) ||
                             (project.lastBuild.number != Integer.valueOf(cachedBuild.lastBuildLabel))) {
+
+                            addToCache = true
+
                             log.info "Build changed: ${master}: ${project.name} : ${project.lastBuild.number} : ${project.lastBuild.building}"
-                            if (echoService && cachedBuild.lastBuildBuilding && (project.lastBuild.number != Integer.valueOf(cachedBuild.lastBuildLabel))) {
-                                // we cached a build in progress, but missed the build result (a new build is underway or complete)
-                                // fetch the final old build status and post the final result to echo
-                                log.info "fetching missed completed build info for ${cachedBuild.lastBuildLabel}"
+
+                            if (echoService) {
+                                int currentBuild = project.lastBuild.number
+                                int lastBuild = Integer.valueOf(cachedBuild.lastBuildLabel)
+
+                                log.info "sending build events for builds between ${lastBuild} and ${currentBuild}"
+
                                 try {
-                                    Build finishedBuild = jenkinsMasters.map[master].getBuild(project.name, Integer.valueOf(cachedBuild.lastBuildLabel))
-                                    Project oldProject = new Project(name: project.name, lastBuild: finishedBuild)
-                                    echoService.postBuild(
-                                        new BuildDetails(content: new BuildContent(project: oldProject, master: master)))
-                                    // don't add to cache since we already have a newer build to cache
+                                    jenkinsMasters.map[master].getBuilds(project.name).list.sort {
+                                        it.number
+                                    }.each { build ->
+                                        if (build.number >= lastBuild && build.number < currentBuild){
+                                            try {
+                                                Project oldProject = new Project(name: project.name, lastBuild: build)
+                                                if( build.number != lastBuild
+                                                    || ( build.number == lastBuild && cachedBuild.lastBuildBuilding != build.building )) {
+                                                   echoService.postBuild(
+                                                        new BuildDetails(content: new BuildContent(project: oldProject, master: master)))
+                                                }
+                                            } catch (e) {
+                                                log.error("An error occurred fetching ${master}:${project.name}:${build.number}", e)
+                                            }
+                                        }
+                                    }
                                 } catch (e) {
-                                    log.error("An error occurred fetching ${master}:${project.name}:${cachedBuild.lastBuildLabel}", e)
+                                    log.error("failed getting builds for ${master}", e)
                                 }
                             }
-                            addToCache = true
                         }
                     } else {
                         log.info "New Build: ${master}: ${project.name} : ${project.lastBuild.number} : " +
