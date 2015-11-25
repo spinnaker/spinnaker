@@ -177,7 +177,7 @@ function get_google_metadata_value() {
 AWS_METADATA_URL="http://169.254.169.254/latest/meta-data"
 function get_aws_metadata_value() {
   local path="$1"
-  local value=$(curl -s -f $AWS_METADATA_URL/$path)
+  local value=$(curl --connect-timeout 2 -s -f $AWS_METADATA_URL/$path)
 
   if [[ $? -eq 0 ]]; then
     echo "$value"
