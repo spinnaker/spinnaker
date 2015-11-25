@@ -100,7 +100,7 @@ class JenkinsAgent(testable_agent.TestableAgent):
 
     if authPath is None:
         auth_info = [os.environ.get('JENKINS_USER', None),
-                     os.environ.get('JENNKINS_PASSWORD', None)]
+                     os.environ.get('JENKINS_PASSWORD', None)]
         if auth_info[0] is None or auth_info[1] is None:
           raise ValueError(
                 'You must either supply --jenins_auth_path'
