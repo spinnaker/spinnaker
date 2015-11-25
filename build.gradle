@@ -83,6 +83,11 @@ ospackage {
     fileMode = 0644
   }  
 
+  File configDir
+  FileCollection collection = files { configDir.listFiles() }
+
+  configDir = file('config')
+  collection.each { configurationFile(spinnakerHome + '/' + relativePath(it) + '\n') }
 }
 
 
