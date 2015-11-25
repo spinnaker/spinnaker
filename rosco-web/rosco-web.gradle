@@ -69,6 +69,7 @@ ospackage {
   release '3'
 
   // installer scripts
+  preInstall = file('pkg_scripts/preInstall.sh')
   postInstall = file('pkg_scripts/postInstall.sh')
   postUninstall = file('pkg_scripts/postUninstall.sh')
 
