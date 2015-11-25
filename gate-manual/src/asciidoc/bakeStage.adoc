@@ -21,7 +21,7 @@ _createBake_, _monitorBake_, _completeBake_
 ----
 {
   "type": "bake",
-  "package": "kato",
+  "package": "myapp",
   "user": "orca",
   "baseLabel": "release",
   "baseOs": "ubuntu",

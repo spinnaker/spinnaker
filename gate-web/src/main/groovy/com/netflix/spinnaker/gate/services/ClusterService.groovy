@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.services
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.OortService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -28,24 +28,24 @@ class ClusterService {
   private static final String GROUP = "clusters"
 
   @Autowired
-  OortService oortService
+  ClouddriverService clouddriverService
 
   Map getClusters(String app) {
     HystrixFactory.newMapCommand(GROUP, "getClustersForApplication") {
-      oortService.getClusters(app)
+      clouddriverService.getClusters(app)
     } execute()
   }
 
   List<Map> getClustersForAccount(String app, String account) {
     HystrixFactory.newListCommand(GROUP, "getClustersForApplicationInAccount") {
-      oortService.getClustersForAccount(app, account)
+      clouddriverService.getClustersForAccount(app, account)
     } execute()
   }
 
   Map getCluster(String app, String account, String clusterName) {
     HystrixFactory.newMapCommand(GROUP, "getCluster") {
       try {
-        oortService.getCluster(app, account, clusterName)?.getAt(0) as Map
+        clouddriverService.getCluster(app, account, clusterName)?.getAt(0) as Map
       } catch (RetrofitError e) {
         if (e.response?.status == 404) {
           return [:]
@@ -62,7 +62,7 @@ class ClusterService {
 
   List<Map> getScalingActivities(String app, String account, String clusterName, String serverGroupName, String provider, String region) {
     HystrixFactory.newListCommand(GROUP, "getScalingActivitiesForCluster") {
-      oortService.getScalingActivities(app, account, clusterName, provider, serverGroupName, region)
+      clouddriverService.getScalingActivities(app, account, clusterName, provider, serverGroupName, region)
     } execute()
   }
 }

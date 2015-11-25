@@ -81,7 +81,7 @@ class ClusterController {
                             @PathVariable("account") String account,
                             @PathVariable("clusterName") String clusterName,
                             @PathVariable("serverGroupName") String serverGroupName) {
-    // TODO this crappy logic needs to be here until the "type" field is removed in Oort
+    // TODO this crappy logic needs to be here until the "type" field is removed in Clouddriver
     clusterService.getClusterServerGroups(app, account, clusterName).findAll {
       it.name == serverGroupName
     }

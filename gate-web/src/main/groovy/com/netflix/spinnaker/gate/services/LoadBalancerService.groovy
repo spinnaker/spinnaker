@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.OortService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -28,37 +28,37 @@ class LoadBalancerService {
   private static final String GROUP = "loadBalancers"
 
   @Autowired
-  OortService oortService
+  ClouddriverService clouddriverService
 
   List<Map> getAll(String provider = "aws") {
     HystrixFactory.newListCommand(GROUP, "getAllLoadBalancersForProvider") {
-      oortService.getLoadBalancers(provider)
+      clouddriverService.getLoadBalancers(provider)
     } execute()
   }
 
   Map get(String name, String provider = "aws") {
     HystrixFactory.newMapCommand(GROUP, "getLoadBalancer") {
-      oortService.getLoadBalancer(provider, name)
+      clouddriverService.getLoadBalancer(provider, name)
     } execute()
   }
 
   List<Map> getDetailsForAccountAndRegion(String account, String region, String name, String provider = "aws") {
     HystrixFactory.newListCommand(GROUP, "getLoadBalancerDetails") {
-      oortService.getLoadBalancerDetails(provider, account, region, name)
+      clouddriverService.getLoadBalancerDetails(provider, account, region, name)
     } execute()
   }
 
   List getClusterLoadBalancers(String appName, String account, String provider, String clusterName) {
     HystrixFactory.newListCommand(GROUP,
         "getClusterLoadBalancers") {
-      oortService.getClusterLoadBalancers(appName, account, clusterName, provider)
+      clouddriverService.getClusterLoadBalancers(appName, account, clusterName, provider)
     } execute()
   }
 
   List getApplicationLoadBalancers(String appName) {
     HystrixFactory.newListCommand(GROUP,
       "getApplicationLoadBalancers") {
-      oortService.getApplicationLoadBalancers(appName)
+      clouddriverService.getApplicationLoadBalancers(appName)
     } execute()
   }
 }

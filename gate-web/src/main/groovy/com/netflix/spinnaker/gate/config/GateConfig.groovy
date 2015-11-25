@@ -108,11 +108,6 @@ class GateConfig {
   }
 
   @Bean
-  OortService oortDeployService(OkHttpClient okHttpClient) {
-    createClient "oort", OortService, okHttpClient
-  }
-
-  @Bean
   OrcaService orcaService(OkHttpClient okHttpClient) {
     createClient "orca", OrcaService, okHttpClient
   }
@@ -123,13 +118,8 @@ class GateConfig {
   }
 
   @Bean
-  MortService mortService(OkHttpClient okHttpClient) {
-    createClient "mort", MortService, okHttpClient
-  }
-
-  @Bean
-  KatoService katoService(OkHttpClient okHttpClient) {
-    createClient "kato", KatoService, okHttpClient
+  ClouddriverService clouddriverService(OkHttpClient okHttpClient) {
+    createClient "clouddriver", ClouddriverService, okHttpClient
   }
 
   //---- optional backend components:

@@ -12,7 +12,7 @@ CAUTION: This operation marks the end of a Security Group's life. The process ca
 
 ====== Services Involved
 
-_orca_, _kato_, _mort_
+_orca_, _clouddriver_
 
 ====== Steps
 

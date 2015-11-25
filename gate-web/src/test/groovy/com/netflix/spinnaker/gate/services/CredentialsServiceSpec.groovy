@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.spinnaker.gate.services.CredentialsService
-import com.netflix.spinnaker.gate.services.internal.KatoService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
 import spock.lang.Shared
@@ -26,27 +25,27 @@ import spock.lang.Unroll
 
 class CredentialsServiceSpec extends Specification {
   @Shared
-  List<KatoService.Account> accounts = [
-    new KatoService.Account(name: "account1", type: "aws"),
-    new KatoService.Account(name: "account2", type: "aws")
+  List<ClouddriverService.Account> accounts = [
+    new ClouddriverService.Account(name: "account1", type: "aws"),
+    new ClouddriverService.Account(name: "account2", type: "aws")
   ]
 
-  KatoService katoService = Mock(KatoService) {
+  ClouddriverService clouddriverService = Mock(ClouddriverService) {
     1 * getAccounts() >> { accounts }
     0 * _
   }
 
   void "should return all accounts if no authenticated user"() {
     expect:
-    new CredentialsService(katoService: katoService).getAccounts() == accounts
+    new CredentialsService(clouddriverService: clouddriverService).getAccounts() == accounts
   }
 
   @Unroll
   void "should filter accounts based on authenticated user"() {
     expect:
     AuthenticatedRequest.propagate({
-      new CredentialsService(katoService: katoService).getAccounts()
-    }, false, new User("email", null, null, [], userAccounts)).call() as List<KatoService.Account> == allowedACcounts
+      new CredentialsService(clouddriverService: clouddriverService).getAccounts()
+    }, false, new User("email", null, null, [], userAccounts)).call() as List<ClouddriverService.Account> == allowedACcounts
 
     where:
     userAccounts                         || allowedACcounts

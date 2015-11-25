@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,9 +16,30 @@
 
 package com.netflix.spinnaker.gate.services.internal
 
-import retrofit.http.*
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import retrofit.http.GET
+import retrofit.http.Headers
+import retrofit.http.Path
+import retrofit.http.Query
 
-interface OortService {
+interface ClouddriverService {
+
+  @GET('/credentials')
+  List<Account> getAccounts()
+
+  @GET('/credentials/{account}')
+  Map getAccount(@Path("account") String account)
+
+  @GET('/task/{taskDetailsId}')
+  Map getTaskDetails(@Path("taskDetailsId") String taskDetailsId)
+
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  static class Account {
+    String name
+    String type
+    Collection<String> requiredGroupMembership
+  }
+
 
   @Headers("Accept: application/json")
   @GET("/applications")
@@ -114,9 +135,9 @@ interface OortService {
   @Headers("Accept: application/json")
   @GET("/instances/{account}/{region}/{instanceId}/console")
   Map getConsoleOutput(@Path("account") String account,
-                          @Path("region") String region,
-                          @Path("instanceId") String instanceId,
-                          @Query("provider") String provider)
+                       @Path("region") String region,
+                       @Path("instanceId") String instanceId,
+                       @Query("provider") String provider)
 
   @Headers("Accept: application/json")
   @GET("/{provider}/images/{account}/{region}/{imageId}")
@@ -143,4 +164,29 @@ interface OortService {
                    @Query("platform") String platform,
                    @Query("pageSize") Integer size,
                    @Query("page") Integer offset)
+
+  @GET('/securityGroups')
+  Map getSecurityGroups()
+
+  @GET('/securityGroups/{account}/{type}')
+  Map getSecurityGroups(@Path("account") String account, @Path("type") String type, @Query("region") String region)
+
+  @GET('/securityGroups/{account}/{type}/{region}/{name}')
+  Map getSecurityGroup(@Path("account") String account, @Path("type") String type, @Path("name") String name,
+                       @Path("region") String region, @Query("vpcId") String vpcId)
+
+  @GET('/instanceTypes')
+  List<Map> getInstanceTypes()
+
+  @GET('/keyPairs')
+  List<Map> getKeyPairs()
+
+  @GET('/subnets')
+  List<Map> getSubnets()
+
+  @GET('/networks')
+  Map getNetworks()
+
+  @GET('/networks/{cloudProvider}')
+  List<Map> getNetworks(@Path("cloudProvider") String cloudProvider)
 }

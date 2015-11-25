@@ -26,9 +26,7 @@ import com.netflix.spinnaker.gate.services.PipelineService
 import com.netflix.spinnaker.gate.services.TaskService
 import com.netflix.spinnaker.gate.services.commands.ThrottledRequestException
 import com.netflix.spinnaker.gate.services.internal.Front50Service
-import com.netflix.spinnaker.gate.services.internal.KatoService
-import com.netflix.spinnaker.gate.services.internal.MortService
-import com.netflix.spinnaker.gate.services.internal.OortService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
@@ -54,12 +52,10 @@ class FunctionalSpec extends Specification {
   static ExecutionHistoryService executionHistoryService
   static ExecutorService executorService
   static Front50Service front50Service
-  static MortService mortService
+  static ClouddriverService clouddriverService
   static TaskService taskService
-  static OortService oortService
   static OrcaService orcaService
   static CredentialsService credentialsService
-  static KatoService katoService
   static PipelineService pipelineService
   static ServiceConfiguration serviceConfiguration
 
@@ -70,11 +66,9 @@ class FunctionalSpec extends Specification {
     executionHistoryService = new ExecutionHistoryService(orcaService: orcaService)
     executorService = Mock(ExecutorService)
     taskService = Mock(TaskService)
-    oortService = Mock(OortService)
+    clouddriverService = Mock(ClouddriverService)
     orcaService = Mock(OrcaService)
-    mortService = Mock(MortService)
     credentialsService = Mock(CredentialsService)
-    katoService = Mock(KatoService)
     pipelineService = Mock(PipelineService)
     serviceConfiguration = new ServiceConfiguration()
 
@@ -185,13 +179,8 @@ class FunctionalSpec extends Specification {
   static class FunctionalConfiguration {
 
     @Bean
-    OortService oortService() {
-      oortService
-    }
-
-    @Bean
-    MortService mortService() {
-      mortService
+    ClouddriverService clouddriverService() {
+      clouddriverService
     }
 
     @Bean
@@ -222,11 +211,6 @@ class FunctionalSpec extends Specification {
     @Bean
     CredentialsService credentialsService() {
       credentialsService
-    }
-
-    @Bean
-    KatoService katoService() {
-      katoService
     }
 
     @Bean

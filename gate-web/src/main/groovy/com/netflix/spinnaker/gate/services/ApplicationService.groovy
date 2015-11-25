@@ -20,7 +20,7 @@ import com.netflix.spinnaker.gate.config.Service
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.Front50Service
-import com.netflix.spinnaker.gate.services.internal.OortService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
@@ -53,7 +53,7 @@ class ApplicationService {
   ServiceConfiguration serviceConfiguration
 
   @Autowired
-  OortService oortService
+  ClouddriverService clouddriverService
 
   @Autowired
   Front50Service front50Service
@@ -139,32 +139,32 @@ class ApplicationService {
   }
 
   private Collection<Callable<List<Map>>> buildApplicationListRetrievers() {
-    def oortApplicationsRetriever = new OortApplicationsRetriever(oortService, allApplicationsCache)
+    def clouddriverApplicationsRetriever = new ClouddriverApplicationsRetriever(clouddriverService, allApplicationsCache)
     def globalAccounts = fetchGlobalAccounts()
 
     if (globalAccounts) {
       return globalAccounts.collectMany { String globalAccount ->
-        [new ApplicationListRetriever(globalAccount, front50Service, allApplicationsCache), oortApplicationsRetriever]
+        [new ApplicationListRetriever(globalAccount, front50Service, allApplicationsCache), clouddriverApplicationsRetriever]
       } as Collection<Callable<List<Map>>>
     }
 
-    return [oortApplicationsRetriever]
+    return [clouddriverApplicationsRetriever]
   }
 
   private Collection<Callable<Map>> buildApplicationRetrievers(String applicationName) {
-    def oortApplicationRetriever = new OortApplicationRetriever(applicationName, oortService)
+    def clouddriverApplicationRetriever = new ClouddriverApplicationRetriever(applicationName, clouddriverService)
     def globalAccounts = fetchGlobalAccounts()
 
     if (globalAccounts) {
       return globalAccounts.collectMany { String globalAccount ->
         [
           new Front50ApplicationRetriever(globalAccount, applicationName, front50Service, allApplicationsCache),
-          oortApplicationRetriever
+          clouddriverApplicationRetriever
         ]
       } as Collection<Callable<Map>>
     }
 
-    return [oortApplicationRetriever]
+    return [clouddriverApplicationRetriever]
   }
 
   private Collection<String> fetchGlobalAccounts() {
@@ -191,7 +191,7 @@ class ApplicationService {
         }
         Map mergedApp = (Map) merged[key]
         if (app.containsKey("clusters") || app.containsKey("clusterNames")) {
-          // Oort
+          // Clouddriver
           if (app.clusters) {
             (mergedApp.clusters as Map).putAll(app.clusters as Map)
           }
@@ -202,7 +202,7 @@ class ApplicationService {
 
           (app["attributes"] as Map).entrySet().each {
             if (it.value && !(mergedApp.attributes as Map)[it.key]) {
-              // don't overwrite existing attributes with metadata from oort
+              // don't overwrite existing attributes with metadata from clouddriver
               (mergedApp.attributes as Map)[it.key] = it.value
             }
           }
@@ -324,13 +324,13 @@ class ApplicationService {
     }
   }
 
-  static class OortApplicationsRetriever implements Callable<List<Map>> {
-    private final OortService oort
+  static class ClouddriverApplicationsRetriever implements Callable<List<Map>> {
+    private final ClouddriverService clouddriver
     private final Object principal
     private final AtomicReference<List<Map>> allApplicationsCache
 
-    OortApplicationsRetriever(OortService oort, AtomicReference<List<Map>> allApplicationsCache) {
-      this.oort = oort
+    ClouddriverApplicationsRetriever(ClouddriverService clouddriver, AtomicReference<List<Map>> allApplicationsCache) {
+      this.clouddriver = clouddriver
       this.allApplicationsCache = allApplicationsCache
       this.principal = SecurityContextHolder.context?.authentication?.principal
     }
@@ -340,7 +340,7 @@ class ApplicationService {
       HystrixFactory.newListCommand(GROUP, "getApplicationsFromCloudDriver", {
         AuthenticatedRequest.propagate({
           try {
-            oort.getApplications(false)
+            clouddriver.getApplications(false)
           } catch (RetrofitError e) {
             if (e.response?.status == 404) {
               return []
@@ -353,15 +353,15 @@ class ApplicationService {
     }
   }
 
-  static class OortApplicationRetriever implements Callable<Map> {
+  static class ClouddriverApplicationRetriever implements Callable<Map> {
     private final String name
-    private final OortService oort
+    private final ClouddriverService clouddriver
     private final Object principal
 
 
-    OortApplicationRetriever(String name, OortService oort) {
+    ClouddriverApplicationRetriever(String name, ClouddriverService clouddriver) {
       this.name = name
-      this.oort = oort
+      this.clouddriver = clouddriver
       this.principal = SecurityContextHolder.context?.authentication?.principal
     }
 
@@ -370,7 +370,7 @@ class ApplicationService {
       HystrixFactory.newMapCommand(GROUP, "getApplicationFromCloudDriver", {
         AuthenticatedRequest.propagate({
           try {
-            return oort.getApplication(name)
+            return clouddriver.getApplication(name)
           } catch (RetrofitError e) {
             if (e.response?.status == 404) {
               return [:]

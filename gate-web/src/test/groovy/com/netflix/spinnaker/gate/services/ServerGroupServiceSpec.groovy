@@ -18,14 +18,14 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.config.InsightConfiguration
-import com.netflix.spinnaker.gate.services.internal.OortService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import spock.lang.Specification
 
 class ServerGroupServiceSpec extends Specification {
   void "should include relevant insight actions for server group"() {
     given:
     def service = new ServerGroupService(
-        oortService: Mock(OortService) {
+        clouddriverService: Mock(ClouddriverService) {
           1 * getServerGroupDetails(_, _, _, _) >> { return [:] }
         },
         insightConfiguration: new InsightConfiguration(

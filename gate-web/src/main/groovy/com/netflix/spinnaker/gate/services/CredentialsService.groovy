@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.KatoService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -27,11 +27,11 @@ class CredentialsService {
   private static final String GROUP = "credentials"
 
   @Autowired
-  KatoService katoService
+  ClouddriverService clouddriverService
 
-  List<KatoService.Account> getAccounts() {
+  List<ClouddriverService.Account> getAccounts() {
     HystrixFactory.newListCommand(GROUP, "getAccounts") {
-      def allAccounts = katoService.accounts
+      def allAccounts = clouddriverService.accounts
 
       if (!AuthenticatedRequest.getSpinnakerUser().present) {
         // if the request is unauthenticated, return only anonymously accessible accounts (no group membership required)
@@ -48,7 +48,7 @@ class CredentialsService {
 
   Map getAccount(String account) {
     HystrixFactory.newMapCommand(GROUP, "getAccount") {
-      katoService.getAccount(account)
+      clouddriverService.getAccount(account)
     } execute()
   }
 }

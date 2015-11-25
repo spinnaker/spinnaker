@@ -10,7 +10,7 @@ This stage provides orchestration to the copy of an ancestor ASG to a subsequent
 
 ====== Services Involved
 
-_orca_, _kato_, _oort_
+_orca_, _clouddriver_
 
 ====== Steps
 
@@ -21,7 +21,7 @@ _createCopyLastAsg_, _monitorDeploy_, _forceCacheRefresh_, _waitForUpInstances_,
 ----
 {
   "type": "copyLastAsg",
-  "application": "kato",
+  "application": "myapp",
   "amiName": "ami-2848a840",
   "credentials": "test",
   "availabilityZones": {
@@ -51,7 +51,7 @@ _createCopyLastAsg_, _monitorDeploy_, _forceCacheRefresh_, _waitForUpInstances_,
 |stack                    | string  | false    | The "stack" to which this deployment is applicable. A stack is some arbitrarily named "environment" that many applications may be a part of. This value, in conjunction with the "application" comprise the "cluster name" in Asgard's view of the Cloud.
 |associatePublicIpAddress | boolean | false    | Specifies whether to assign a public IP address to each instance launched in a VPC. A subnetType must be specified.
 |ramdiskId                | string  | false    | The ramdiskId to use for this ASG. This should only be specified when entirely sure what this value should exactly be.
-|terminationPolicies      | array   | false    | The http://docs.aws.amazon.com/AutoScaling/latest/DeveloperGuide/AutoScalingBehavior.InstanceTermination.html[termination policies] to apply to the launch configuration of this ASG. 
+|terminationPolicies      | array   | false    | The http://docs.aws.amazon.com/AutoScaling/latest/DeveloperGuide/AutoScalingBehavior.InstanceTermination.html[termination policies] to apply to the launch configuration of this ASG.
 |suspendedProcesses       | array   | false    | There are two primary auto scaling process types: Launch and Terminate. The former creates a new instance within an ASG, while the latter destroys one. When these processes are sususpended, those operations will no longer take place. There are six additional process types that can be suspended: AddToLoadBalancer; AlarmNotification; AZRebalance; HealthCheck; ReplaceUnhealthy; and ScheduledActions. If you suspend Launch and/or Terminate, each of the six additional processes will be affected to some degree. Consult the AWS developer guide for more details.
 |spotPrice                | string  | false    | The spot price to apply to the create ASG request. Only send this value if you're absolutely sure of what you're doing.
 |healthCheckType          | string  | false    | Valid values are: EC2 or ELB. Indicates whether an autoscaling group should derive instance health from Amazon itself or from the ELB. The latter may give you more granular application-level capabilities, while the former may be more accurate from a system perspective.

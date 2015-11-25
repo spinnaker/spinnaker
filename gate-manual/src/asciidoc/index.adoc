@@ -27,20 +27,20 @@ Presently, all orchestrated stages need to be scoped to an application, and wrap
 [source,javascript]
 ----
 {
-    "application": "kato",
+    "application": "myapp",
     "description": "bake",
     "job": [{
         "type": "bake",
         "region": "us-east-1",
         "user": "orca",
-        "package": "kato",
+        "package": "mypkg",
         "baseOs": "ubuntu",
         "baseLabel": "release"
     }]
 }
 ----
 
-This payload should be an HTTP `POST` request to the `/applications/kato/tasks` endpoint of the Spinnaker Gateway API. Since all orchestrations within Spinnaker are asynchronous, this operation will return a task reference, which can be polled for successful completion.
+This payload should be an HTTP `POST` request to the `/applications/myapp/tasks` endpoint of the Spinnaker Gateway API. Since all orchestrations within Spinnaker are asynchronous, this operation will return a task reference, which can be polled for successful completion.
 
 === Working with Tasks
 
@@ -133,20 +133,20 @@ An example payload of chained stages can be seen in Listing 1.3.
 [source,javascript]
 ----
 {
-    "application": "kato",
+    "application": "myapp",
     "description": "bake and deploy",
     "job": [{
         "type": "bake",
         "region": "us-east-1",
         "user": "orca",
-        "package": "kato",
+        "package": "mypkg",
         "baseOs": "ubuntu",
         "baseLabel": "release"
     }, {
         "type": "deploy",
         "cluster": {
             "strategy": "redblack",
-            "application": "kato",
+            "application": "myapp",
             "stack": "prestaging",
             "instanceType": "m3.medium",
             "securityGroups": [
@@ -164,7 +164,7 @@ An example payload of chained stages can be seen in Listing 1.3.
                 "desired": 1
             },
             "loadBalancers": [
-                "kato-prestaging-frontend"
+                "myapp-prestaging-frontend"
             ]
         },
         "account": "prod"

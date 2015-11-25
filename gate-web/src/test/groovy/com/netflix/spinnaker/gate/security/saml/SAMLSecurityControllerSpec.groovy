@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.security.saml
 
-import com.netflix.spinnaker.gate.services.internal.KatoService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.security.anonymous.AnonymousSecurityConfig
 
 import com.netflix.spinnaker.security.User
@@ -65,9 +65,9 @@ class SAMLSecurityControllerSpec extends Specification {
   void "should parse LDAP CN's into roles"() {
     given:
     def allAccounts = [
-      new KatoService.Account(name: "test", requiredGroupMembership: ["groupA"]),
-      allowedAnonymousAccounts.collect { new KatoService.Account(name: it) }
-    ].flatten() as List<KatoService.Account>
+      new ClouddriverService.Account(name: "test", requiredGroupMembership: ["groupA"]),
+      allowedAnonymousAccounts.collect { new ClouddriverService.Account(name: it) }
+    ].flatten() as List<ClouddriverService.Account>
 
     def assertion = SAMLUtils.buildAssertion(new String(new org.apache.commons.codec.binary.Base64().encode(samlResponse.bytes)))
     def userAttributeMapping = new SAMLSecurityConfig.UserAttributeMapping(

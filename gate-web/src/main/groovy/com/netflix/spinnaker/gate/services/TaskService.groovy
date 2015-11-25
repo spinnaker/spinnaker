@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.KatoService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,7 +32,7 @@ class TaskService {
   OrcaService orcaService
 
   @Autowired
-  KatoService katoService
+  ClouddriverService clouddriverService
 
   Map create(Map body) {
     orcaService.doOperation(body)
@@ -61,7 +61,7 @@ class TaskService {
 
   Map getTaskDetails(String taskDetailsId) {
     HystrixFactory.newMapCommand(GROUP, "getTaskDetails") {
-      katoService.getTaskDetails(taskDetailsId)
+      clouddriverService.getTaskDetails(taskDetailsId)
     } execute()
   }
 

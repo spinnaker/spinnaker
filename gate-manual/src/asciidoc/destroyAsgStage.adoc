@@ -14,7 +14,7 @@ TIP: Only use this operation if you're expecting that everything (EVERYTHING) in
 
 ====== Services Involved
 
-_orca_, _kato_, _oort_
+_orca_, _clouddriver_
 
 ====== Steps
 
@@ -25,7 +25,7 @@ _destroyAsg_, _monitorAsg_, _forceCacheRefresh_, _sendNotification_
 ----
 {
     "type": "destroyAsg",
-    "asgName": "kato-main-v000",
+    "asgName": "myapp-main-v000",
     "regions": ["us-east-1"],
     "credentials": "test"
 }

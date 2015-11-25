@@ -12,7 +12,7 @@ NOTE: If no auto scaling group is specified, the ASG associated with each instan
 
 ====== Services Involved
 
-_orca_, _kato_, _oort_
+_orca_, _clouddriver_
 
 ====== Steps
 
@@ -23,7 +23,7 @@ _deregisterInstances_, _monitorInstances_, _waitForLoadBalancerState_
 ----
 {
   "type": "deregisterInstancesFromLoadBalancer",
-  "asgName": "kato-main-v000",
+  "asgName": "myapp-main-v000",
   "instanceIds": ["i-123456", "i-234567"],
   "region": "us-east-1",
   "credentials": "test"
