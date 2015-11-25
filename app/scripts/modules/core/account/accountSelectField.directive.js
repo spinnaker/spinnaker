@@ -50,7 +50,7 @@ module.exports = angular.module('spinnaker.core.account.accountSelectField.direc
       }
 
       scope.groupBy = function(account) {
-        if(scope.secondaryAccounts.indexOf(account) > -1) {
+        if(scope.secondaryAccounts && scope.secondaryAccounts.indexOf(account) > -1) {
           return '---------------';
         }
 
