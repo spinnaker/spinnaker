@@ -69,7 +69,6 @@ ospackage {
   release '3'
 
   // installer scripts
-  preInstall = file('pkg_scripts/preInstall.sh')
   postInstall = file('pkg_scripts/postInstall.sh')
   postUninstall = file('pkg_scripts/postUninstall.sh')
 
@@ -89,6 +88,10 @@ ospackage {
     permissionGroup = 'root'
     fileType = CONFIG | NOREPLACE
   }
+
+  configurationFile('/opt/rosco/config/packer/aws-ebs.json')
+  configurationFile('/opt/rosco/config/packer/gce.json')
+  configurationFile('/opt/rosco/config/packer/install_packages.sh')
 
   from('../docker') {
     into "/opt/${project.applicationName}/docker"
