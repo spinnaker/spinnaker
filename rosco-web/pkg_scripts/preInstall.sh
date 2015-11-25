@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# backup install_packages.sh
+# backup everything in /opt/rosco/config/packer
 if [ -d /opt/rosco/config/packer ]; then
   if [ -d /opt/rosco/config/packer/backup ]; then
     rm -rf /opt/rosco/config/packer/backup/*
