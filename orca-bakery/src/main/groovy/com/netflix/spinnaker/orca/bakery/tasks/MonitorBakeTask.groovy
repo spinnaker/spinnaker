@@ -50,8 +50,8 @@ class MonitorBakeTask implements RetryableTask {
 
     try {
       def newStatus = bakery.lookupStatus(region, previousStatus.id).toBlocking().single()
-      if (newStatus.state == BakeStatus.State.CANCELLED && previousStatus.state == BakeStatus.State.PENDING) {
-        log.info("Original bake was 'cancelled', re-baking (executionId: ${stage.execution.id}, previousStatus: ${previousStatus.state})")
+      if (isCanceled(newStatus.state) && previousStatus.state == BakeStatus.State.PENDING) {
+        log.info("Original bake was 'canceled', re-baking (executionId: ${stage.execution.id}, previousStatus: ${previousStatus.state})")
         def rebakeResult = createBakeTask.execute(stage)
         return new DefaultTaskResult(ExecutionStatus.RUNNING, rebakeResult.stageOutputs, rebakeResult.globalOutputs)
       }
@@ -65,10 +65,18 @@ class MonitorBakeTask implements RetryableTask {
     }
   }
 
+  static boolean isCanceled(BakeStatus.State state) {
+    return [BakeStatus.State.CANCELED, BakeStatus.State.CANCELLED].contains(state)
+  }
+
   private ExecutionStatus mapStatus(BakeStatus newStatus) {
     switch (newStatus.state) {
       case BakeStatus.State.COMPLETED:
         return newStatus.result == BakeStatus.Result.SUCCESS ? ExecutionStatus.SUCCEEDED : ExecutionStatus.FAILED
+      // Rosco returns CANCELED.
+      case BakeStatus.State.CANCELED:
+        return ExecutionStatus.FAILED
+      // Netflix's internal bakery returns CANCELLED.
       case BakeStatus.State.CANCELLED:
         return ExecutionStatus.FAILED
       default:
