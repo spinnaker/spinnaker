@@ -16,12 +16,15 @@
 
 package com.netflix.spinnaker.igor.jenkins
 
+import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
+import com.netflix.spinnaker.igor.jenkins.client.model.BuildsList
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import spock.lang.Specification
+import spock.lang.IgnoreRest
 
 /**
  * Tests for BuildMonitor
@@ -101,6 +104,142 @@ class BuildMonitorSpec extends Specification {
         then:
         1 * cache.remove(MASTER, 'job3')
         1 * cache.remove(MASTER, 'job4')
+    }
+
+    void 'sends an event for every intermediate build'(){
+        given:
+        1 * cache.getJobNames(MASTER) >> ['job']
+        1 * client.projects >> new ProjectsList(
+            list: [new Project(name: 'job', lastBuild: new Build(number: 6, building: false))]
+        )
+        1 * client.getBuilds('job') >> new BuildsList(
+            list: [
+                new Build(number: 1),
+                new Build(number: 2),
+                new Build(number: 3, building: false),
+                new Build(number: 4),
+                new Build(number: 5),
+                new Build(number: 6)
+            ]
+        )
+
+        monitor.echoService = Mock(EchoService)
+
+        when:
+        List<Map> builds = monitor.changedBuilds(MASTER)
+
+        then:
+        1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 3, lastBuildRunning: true]
+        1 * cache.setLastBuild(MASTER, 'job', 6, false)
+        1 * monitor.echoService.postBuild({it.content.project.lastBuild.number == 3})
+        1 * monitor.echoService.postBuild({it.content.project.lastBuild.number == 4})
+        1 * monitor.echoService.postBuild({it.content.project.lastBuild.number == 5})
+        1 * monitor.echoService.postBuild({it.content.project.lastBuild.number == 6})
+    }
+
+    void 'emits events only for builds in list'(){
+        given:
+        1 * cache.getJobNames(MASTER) >> ['job']
+        1 * client.projects >> new ProjectsList(
+            list: [new Project(name: 'job', lastBuild: new Build(number: 6, building: false))]
+        )
+        1 * client.getBuilds('job') >> new BuildsList(
+            list: [
+                new Build(number: 1),
+                new Build(number: 3, building: false),
+                new Build(number: 6)
+            ]
+        )
+
+        monitor.echoService = Mock(EchoService)
+
+        when:
+        List<Map> builds = monitor.changedBuilds(MASTER)
+
+        then:
+        1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 3, lastBuildRunning: true]
+        1 * cache.setLastBuild(MASTER, 'job', 6, false)
+        1 * monitor.echoService.postBuild({it.content.project.lastBuild.number == 3})
+        1 * monitor.echoService.postBuild({it.content.project.lastBuild.number == 6})
+    }
+
+    void 'does not send event for current unchanged build'(){
+        given:
+        1 * cache.getJobNames(MASTER) >> ['job']
+        1 * client.projects >> new ProjectsList(
+            list: [new Project(name: 'job', lastBuild: new Build(number: 3, building: true))]
+        )
+
+        monitor.echoService = Mock(EchoService)
+
+        when:
+        List<Map> builds = monitor.changedBuilds(MASTER)
+
+        then:
+        1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 3, lastBuildBuilding: true]
+        0 * client.getBuilds('job')
+        0 * monitor.echoService.postBuild(_)
+    }
+
+    void 'does not send event for past build with already sent event'(){
+        given:
+        1 * cache.getJobNames(MASTER) >> ['job']
+        1 * client.projects >> new ProjectsList(
+            list: [new Project(name: 'job', lastBuild: new Build(number: 6, building: true))]
+        )
+        1 * client.getBuilds('job') >> new BuildsList(
+            list: [
+                new Build(number: 5, building: false),
+                new Build(number: 6)
+            ]
+        )
+
+        monitor.echoService = Mock(EchoService)
+
+        when:
+        List<Map> builds = monitor.changedBuilds(MASTER)
+
+        then:
+        1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 5, lastBuildBuilding: false]
+        1 * cache.setLastBuild(MASTER, 'job', 6, true)
+        0 * monitor.echoService.postBuild({it.content.project.lastBuild.number == 5})
+        1 * monitor.echoService.postBuild({it.content.project.lastBuild.number == 6})
+    }
+
+    void 'does not send event for same build'(){
+        given:
+        1 * cache.getJobNames(MASTER) >> ['job']
+        1 * client.projects >> new ProjectsList(
+            list: [new Project(name: 'job', lastBuild: new Build(number: 6, building: true))]
+        )
+
+        monitor.echoService = Mock(EchoService)
+
+        when:
+        List<Map> builds = monitor.changedBuilds(MASTER)
+
+        then:
+        1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 6, lastBuildBuilding: true]
+        0 * client.getBuilds('job')
+        0 * monitor.echoService.postBuild({_})
+    }
+
+
+    void 'sends event for same build that has finished'(){
+        given:
+        1 * cache.getJobNames(MASTER) >> ['job']
+        1 * client.projects >> new ProjectsList(
+            list: [new Project(name: 'job', lastBuild: new Build(number: 6, building: true))]
+        )
+
+        monitor.echoService = Mock(EchoService)
+
+        when:
+        List<Map> builds = monitor.changedBuilds(MASTER)
+
+        then:
+        1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 6, lastBuildBuilding: false]
+        1 * monitor.echoService.postBuild({it.content.project.lastBuild.number == 6})
     }
 
 }
