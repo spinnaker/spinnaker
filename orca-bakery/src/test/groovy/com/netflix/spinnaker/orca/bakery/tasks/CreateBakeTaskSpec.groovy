@@ -24,12 +24,17 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
+import retrofit.RetrofitError
+import retrofit.client.Response
+import retrofit.mime.TypedInput
+import retrofit.mime.TypedString
 import rx.Observable
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.bakery.api.BakeStatus.State.RUNNING
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND
 import static java.util.UUID.randomUUID
 
 class CreateBakeTaskSpec extends Specification {
@@ -162,6 +167,14 @@ class CreateBakeTaskSpec extends Specification {
     ]
   ]
 
+  @Shared
+  def error404 = RetrofitError.httpError(
+    null,
+    new Response("", HTTP_NOT_FOUND, "Not Found", [], new TypedString("{ \"messages\": [\"Error Message\"]}")),
+    null,
+    null
+  )
+
   def setup() {
     task.mapper = mapper
     stage = new PipelineStage(pipeline, "bake", bakeConfig).asImmutable()
@@ -176,6 +189,21 @@ class CreateBakeTaskSpec extends Specification {
 
     then:
     1 * task.bakery.createBake(bakeConfig.region, _ as BakeRequest, null) >> Observable.from(runningStatus)
+  }
+
+  def "should surface error message (if available) on a 404"() {
+    given:
+    task.bakery = Mock(BakeryService)
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * task.bakery.createBake(bakeConfig.region, _ as BakeRequest, null) >> {
+      throw error404
+    }
+    IllegalStateException e = thrown()
+    e.message == "Error Message"
   }
 
   def "gets bake configuration from job context"() {
