@@ -316,7 +316,7 @@ class SpinnakerAgent(service_testing.HttpAgent):
 
   @property
   def runtime_config(self):
-    return self._config_dict
+    return self.config_dict
 
   def __init__(self, baseUrl, status_factory):
     """Construct a an agent for talking to spinnaker.
@@ -333,9 +333,10 @@ class SpinnakerAgent(service_testing.HttpAgent):
     super(SpinnakerAgent, self).__init__(baseUrl)
     self.__deployed_config = {}
     self.__default_status_factory = status_factory
-    self._default_max_wait_secs = 240
+    self.default_max_wait_secs = 240
 
-  def _new_invoke_status(self, operation, http_response):
+  def _new_messaging_status(self, operation, http_response):
+    """Implements HttpAgent interface."""
     return (operation.status_class(operation, http_response)
             if operation.status_class
             else self.__default_status_factory(operation, http_response))
