@@ -35,7 +35,8 @@ To finish the installation, follow these steps:
 
   gcloud compute ssh --project {project} --zone {zone} {instance}\
  --ssh-flag="-L 9000:localhost:9000"\
- --ssh-flag="-L 8084:localhost:8084"
+ --ssh-flag="-L 8084:localhost:8084"\
+ --ssh-flag="-L 8087:localhost:8087"
 
 
 (2) Wait for the installation to complete:
