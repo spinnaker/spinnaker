@@ -18,7 +18,7 @@ buildscript {
   }
 
   dependencies {
-    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:latest.release'
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:latest.release'
   }
 }
 
