@@ -23,6 +23,7 @@ import com.netflix.spinnaker.rosco.persistence.RedisBackedBakeStore
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
 import com.netflix.spinnaker.rosco.rush.api.RushService
+import com.netflix.spinnaker.rosco.rush.api.ScriptExecution
 import com.netflix.spinnaker.rosco.rush.api.ScriptId
 import com.netflix.spinnaker.rosco.rush.api.ScriptRequest
 import rx.Observable
@@ -49,6 +50,7 @@ class BakeryControllerSpec extends Specification {
       def bakeStoreMock = Mock(RedisBackedBakeStore)
       def rushServiceMock = Mock(RushService)
       def runScriptObservable = Observable.from(new ScriptId(id: SCRIPT_ID))
+      def scriptDetailsObservable = Observable.from(new ScriptExecution(status: "RUNNING"))
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: BakeRequest.OperatingSystem.ubuntu,
@@ -70,8 +72,46 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> ["packer build ..."]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
       1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, tokenizedCommand: ["packer build ..."])) >> runScriptObservable
+      1 * rushServiceMock.scriptDetails(SCRIPT_ID) >> scriptDetailsObservable
       1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, SCRIPT_ID) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
       bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
+  }
+
+  void 'create bake fails fast if script engine returns FAILED'() {
+    setup:
+    def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
+    def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
+    def bakeStoreMock = Mock(RedisBackedBakeStore)
+    def rushServiceMock = Mock(RushService)
+    def scriptRequest = new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, tokenizedCommand: ["packer build ..."])
+    def runScriptObservable = Observable.from(new ScriptId(id: SCRIPT_ID))
+    def scriptDetailsObservable = Observable.from(new ScriptExecution(status: "FAILED"))
+    def getLogsObservable = Observable.from([logsContent: "Some kind of failure..."])
+    def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                      package_name: PACKAGE_NAME,
+                                      base_os: BakeRequest.OperatingSystem.ubuntu,
+                                      cloud_provider_type: BakeRequest.CloudProviderType.gce)
+
+    @Subject
+    def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
+                                                baseScriptRequest: new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME),
+                                                bakeStore: bakeStoreMock,
+                                                rushService: rushServiceMock)
+
+    when:
+    bakeryController.createBake(REGION, bakeRequest, null)
+
+    then:
+    1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
+    1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
+    1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
+    1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> ["packer build ..."]
+    1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
+    1 * rushServiceMock.runScript(scriptRequest) >> runScriptObservable
+    1 * rushServiceMock.scriptDetails(SCRIPT_ID) >> scriptDetailsObservable
+    1 * rushServiceMock.getLogs(SCRIPT_ID, scriptRequest) >> getLogsObservable
+    IllegalArgumentException e = thrown()
+    e.message == "Some kind of failure..."
   }
 
   void 'create bake polls for status when lock cannot be acquired'() {
@@ -112,6 +152,7 @@ class BakeryControllerSpec extends Specification {
       def bakeStoreMock = Mock(RedisBackedBakeStore)
       def rushServiceMock = Mock(RushService)
       def runScriptObservable = Observable.from(new ScriptId(id: SCRIPT_ID))
+      def scriptDetailsObservable = Observable.from(new ScriptExecution(status: "RUNNING"))
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: BakeRequest.OperatingSystem.ubuntu,
@@ -135,6 +176,7 @@ class BakeryControllerSpec extends Specification {
       (10.._) * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
       1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, tokenizedCommand: ["packer build ..."])) >> runScriptObservable
+      1 * rushServiceMock.scriptDetails(SCRIPT_ID) >> scriptDetailsObservable
       1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, SCRIPT_ID) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
       bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
   }
@@ -250,6 +292,7 @@ class BakeryControllerSpec extends Specification {
       def bakeStoreMock = Mock(RedisBackedBakeStore)
       def rushServiceMock = Mock(RushService)
       def runScriptObservable = Observable.from(new ScriptId(id: SCRIPT_ID))
+      def scriptDetailsObservable = Observable.from(new ScriptExecution(status: "RUNNING"))
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: BakeRequest.OperatingSystem.ubuntu,
@@ -271,6 +314,7 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> ["packer build ..."]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
       1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, tokenizedCommand: ["packer build ..."])) >> runScriptObservable
+      1 * rushServiceMock.scriptDetails(SCRIPT_ID) >> scriptDetailsObservable
       1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, SCRIPT_ID) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
       bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
   }
@@ -283,6 +327,7 @@ class BakeryControllerSpec extends Specification {
       def bakeStoreMock = Mock(RedisBackedBakeStore)
       def rushServiceMock = Mock(RushService)
       def runScriptObservable = Observable.from(new ScriptId(id: SCRIPT_ID))
+      def scriptDetailsObservable = Observable.from(new ScriptExecution(status: "RUNNING"))
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: BakeRequest.OperatingSystem.ubuntu,
@@ -304,6 +349,7 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> ["packer build ..."]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
       1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, tokenizedCommand: ["packer build ..."])) >> runScriptObservable
+      1 * rushServiceMock.scriptDetails(SCRIPT_ID) >> scriptDetailsObservable
       1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, SCRIPT_ID) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
       bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
 
@@ -318,6 +364,7 @@ class BakeryControllerSpec extends Specification {
       def bakeStoreMock = Mock(RedisBackedBakeStore)
       def rushServiceMock = Mock(RushService)
       def runScriptObservable = Observable.from(new ScriptId(id: SCRIPT_ID))
+      def scriptDetailsObservable = Observable.from(new ScriptExecution(status: "RUNNING"))
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: BakeRequest.OperatingSystem.ubuntu,
@@ -339,6 +386,7 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> ["packer build ..."]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
       1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, tokenizedCommand: ["packer build ..."])) >> runScriptObservable
+      1 * rushServiceMock.scriptDetails(SCRIPT_ID) >> scriptDetailsObservable
       1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, SCRIPT_ID) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
       bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
   }
