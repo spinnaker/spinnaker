@@ -23,6 +23,7 @@ import com.netflix.spinnaker.rosco.persistence.BakeStore
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
 import com.netflix.spinnaker.rosco.rush.api.RushService
+import com.netflix.spinnaker.rosco.rush.api.ScriptExecution
 import com.netflix.spinnaker.rosco.rush.api.ScriptRequest
 import com.wordnik.swagger.annotations.ApiOperation
 import com.wordnik.swagger.annotations.ApiParam
@@ -108,6 +109,23 @@ class BakeryController {
   private BakeStatus runBake(String bakeKey, String region, BakeRequest bakeRequest, ScriptRequest scriptRequest) {
     def scriptId = rushService.runScript(scriptRequest).toBlocking().single()
 
+    // Give the script engine some time to kick off the execution.
+    // The goal here is to fail fast. If it takes too much time, no point in waiting here.
+    sleep(1000)
+
+    ScriptExecution scriptExecution = rushService.scriptDetails(scriptId.id).toBlocking().single()
+
+    if (scriptExecution.status == "FAILED") {
+      def logs = rushService.getLogs(scriptId.id, scriptRequest).toBlocking().single()
+
+      if (logs?.logsContent) {
+        throw new IllegalArgumentException(logs.logsContent)
+      }
+
+      // If we don't have logs content to return here, just let the poller try again on the next iteration.
+    }
+
+    // Ok, it didn't fail right away. The bake is underway.
     return bakeStore.storeNewBakeStatus(bakeKey, region, bakeRequest, scriptId.id)
   }
 
