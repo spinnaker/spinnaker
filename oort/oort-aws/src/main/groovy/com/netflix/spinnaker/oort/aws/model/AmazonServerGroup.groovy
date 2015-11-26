@@ -123,8 +123,8 @@ class AmazonServerGroup implements ServerGroup, Serializable {
     def bi = buildInfo
     return new ServerGroup.ImageSummary() {
       String serverGroupName = name
-      String imageName = i.name
-      String imageId = i.imageId
+      String imageName = i?.name
+      String imageId = i?.imageId
 
       @Override
       Map<String, Object> getBuildInfo() {
