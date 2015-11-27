@@ -15,10 +15,12 @@ module.exports = angular
     require('../../delivery/service/execution.service.js'),
     require('../../serverGroup/serverGroup.transformer.js'),
     require('../../pipeline/config/services/pipelineConfigService.js'),
+    require('../../utils/rx.js'),
+    require('../../utils/lodash.js'),
   ])
   .factory('applicationReader', function ($q, $log, $window,  $rootScope, Restangular, _, clusterService, taskReader,
                                           loadBalancerReader, loadBalancerTransformer, securityGroupReader, scheduler,
-                                          pipelineConfigService,
+                                          pipelineConfigService, rx,
                                           infrastructureCaches, settings, executionService, serverGroupTransformer) {
 
     function listApplications() {
@@ -43,6 +45,7 @@ module.exports = angular
           return getApplication(application.name).then(function (newApplication) {
             if (newApplication && !newApplication.notFound) {
               deepCopyApplication(application, newApplication);
+              application.autoRefreshStream.onNext();
               application.autoRefreshHandlers.forEach((handler) => handler.call());
               application.oneTimeRefreshHandlers.forEach((handler) => handler.call());
               application.oneTimeRefreshHandlers = [];
@@ -92,14 +95,10 @@ module.exports = angular
           return taskLoader
             .then(function(tasks) {
               addTasksToApplication(application, tasks);
+              application.taskRefreshStream.onNext();
               application.tasksLoaded = true;
               application.tasksLoading = false;
               application.tasksLoadFailure = false;
-              if (application.tasksLoaded || forceReload) {
-                $rootScope.$broadcast('tasks-reloaded', application);
-              } else {
-                $rootScope.$broadcast('tasks-loaded', application);
-              }
             })
             .catch(function(rejection) {
               // Gate will send back a 429 error code (TOO_MANY_REQUESTS) and will be caught here
@@ -107,6 +106,7 @@ module.exports = angular
               // application, which will let the user know that no tasks were found for the app.
               addTasksToApplication(application, []);
               $log.warn('Error retrieving [tasks]', rejection);
+              application.taskRefreshStream.onError(rejection);
               application.tasksLoading = false;
               application.tasksLoadFailure = true;
             });
@@ -128,16 +128,12 @@ module.exports = angular
               application.executionsLoaded = true;
               application.executionsLoading = false;
               application.executionsLoadFailure = false;
-              if (application.executionsLoaded || forceReload) {
-                $rootScope.$broadcast('executions-reloaded', application);
-              } else {
-                $rootScope.$broadcast('executions-loaded', application);
-              }
+              application.executionRefreshStream.onNext(true);
             })
             .catch(function(rejection) {
               // Gate will send back a 429 error code (TOO_MANY_REQUESTS) and will be caught here.
               $log.warn('Error retrieving [executions]', rejection);
-              $rootScope.$broadcast('executions-load-failure', application);
+              application.executionRefreshStream.onError(rejection);
               application.executionsLoading = false;
               application.executionsLoadFailure = true;
             });
@@ -156,9 +152,10 @@ module.exports = angular
               application.pipelineConfigs = configs.pipelines;
               application.strategyConfigs = configs.strategies;
               application.pipelineConfigsLoading = false;
-              $rootScope.$broadcast('pipelineConfigs-loaded', application);
+              application.pipelineConfigRefreshStream.onNext();
             }).catch(function(rejection) {
               $log.warn('Error retrieving [pipelineConfigs]', rejection);
+              application.pipelineConfigRefreshStream.onError();
               application.pipelineConfigsLoading = false;
             });
         }
@@ -173,11 +170,16 @@ module.exports = angular
         application.reloadTasks = reloadTasks;
         application.reloadExecutions = reloadExecutions;
         application.reloadPipelineConfigs = reloadPipelineConfigs;
+        application.autoRefreshStream = new rx.Subject();
+        application.taskRefreshStream = new rx.Subject();
+        application.executionRefreshStream = new rx.Subject();
+        application.pipelineConfigRefreshStream = new rx.Subject();
 
-        if (application.fromServer && application.clusters) {
-          application.accounts = Object.keys(application.clusters);
+        // These attributes are stored as strings.
+        if (application.fromServer) {
+          application.attributes.platformHealthOnly = application.attributes.platformHealthOnly === 'true';
+          application.attributes.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride === 'true';
         }
-
         return application;
 
       });
@@ -283,7 +285,7 @@ module.exports = angular
       newApplication.securityGroups = null;
     }
 
-    function getApplication(applicationName, options) {
+    function getApplicationLoaders(applicationName, options) {
       var securityGroupsByApplicationNameLoader = securityGroupReader.loadSecurityGroupsByApplicationName(applicationName),
           loadBalancerLoader = loadBalancerReader.loadLoadBalancers(applicationName),
           applicationLoader = getApplicationEndpoint(applicationName).get(),
@@ -299,103 +301,107 @@ module.exports = angular
               taskReader.getRunningTasks(applicationName) :
             $q.when(null);
 
-      var application, securityGroupAccounts, loadBalancerAccounts, serverGroups;
-
-      var securityGroupLoader;
-
-      return $q.all({
+      return {
         securityGroups: securityGroupsByApplicationNameLoader,
+        serverGroups: serverGroupLoader,
+        executions: executionsLoader,
+        tasks: tasksLoader,
         loadBalancers: loadBalancerLoader,
         application: applicationLoader,
+      };
+    }
+
+    function applyExecutionsAndTasks(options, dataLoaders, application) {
+      if (options && options.tasks) {
+        dataLoaders.tasks.then(
+          (tasks) => {
+            addTasksToApplication(application, tasks);
+            application.tasksLoading = false;
+            application.tasksLoaded = true;
+            application.tasksLoadFailure = false;
+          },
+          () => {
+            application.tasksLoadFailure = true;
+            application.tasksLoading = false;
+          }
+        );
+      }
+
+      if (options && options.executions) {
+        dataLoaders.executions.then(
+          (executions) => {
+            executionService.transformExecutions(application, executions);
+            addExecutionsToApplication(application, executions);
+            application.executionsLoaded = true;
+            application.executionsLoadFailure = false;
+            application.executionsLoading = false;
+          },
+          () => {
+            application.executionsLoadFailure = true;
+            application.executionsLoading = false;
+          }
+        );
+      }
+    }
+
+    function setApplicationAccounts(applicationData) {
+      var application = applicationData.application,
+          securityGroupAccounts = _(applicationData.securityGroups).pluck('account').unique().value(),
+          loadBalancerAccounts = _(applicationData.loadBalancers).pluck('account').unique().value();
+
+      application.accounts = _([applicationData.application.accounts, securityGroupAccounts, loadBalancerAccounts])
+        .flatten()
+        .compact()
+        .unique()
+        .value();
+    }
+
+    function getApplication(applicationName, options) {
+      let dataSources = getApplicationLoaders(applicationName, options);
+
+      return $q.all({
+        securityGroups: dataSources.securityGroups,
+        loadBalancers: dataSources.loadBalancers,
+        application: dataSources.application,
       })
-        .then(function(applicationLoader) {
-          application = applicationLoader.application;
+        .then(function(applicationData) {
+          var application = applicationData.application,
+              securityGroupLoader = securityGroupReader.loadSecurityGroups(application);
 
-          // These attributes are stored as strings.
-          application.attributes.platformHealthOnly = (application.attributes.platformHealthOnly === 'true');
-          application.attributes.platformHealthOnlyShowOverride = (application.attributes.platformHealthOnlyShowOverride === 'true');
-
-          application.lastRefresh = new Date().getTime();
-          securityGroupAccounts = _(applicationLoader.securityGroups).pluck('account').unique().value();
-          loadBalancerAccounts = _(applicationLoader.loadBalancers).pluck('account').unique().value();
-          application.accounts = _([applicationLoader.application.accounts, securityGroupAccounts, loadBalancerAccounts])
-            .flatten()
-            .compact()
-            .unique()
-            .value();
-
-          if (options && options.tasks) {
-            tasksLoader.then(
-              (tasks) => {
-                addTasksToApplication(application, tasks);
-                application.tasksLoading = false;
-                application.tasksLoaded = true;
-                application.tasksLoadFailure = false;
-              },
-              () => {
-                application.tasksLoadFailure = true;
-                application.tasksLoading = false;
-              }
-            );
-          }
-
-          if (options && options.executions) {
-            executionsLoader.then(
-              (executions) => {
-                executionService.transformExecutions(application, executions);
-                addExecutionsToApplication(application, executions);
-                application.executionsLoaded = true;
-                application.executionsLoadFailure = false;
-                application.executionsLoading = false;
-              },
-              () => {
-                application.executionsLoadFailure = true;
-                application.executionsLoading = false;
-              }
-            );
-          }
+          setApplicationAccounts(applicationData);
 
           if (options && options.pipelineConfigs) {
             application.reloadPipelineConfigs();
           }
 
-          securityGroupLoader = securityGroupReader.loadSecurityGroups(application);
-
           return $q.all({
-            serverGroups: serverGroupLoader,
+            serverGroups: dataSources.serverGroups,
             securityGroups: securityGroupLoader,
           })
             .then(function(results) {
-              serverGroups = results.serverGroups;
+              let serverGroups = results.serverGroups;
               serverGroups.forEach((serverGroup) => serverGroup.stringVal = JSON.stringify(serverGroup, serverGroupTransformer.jsonReplacer));
               application.serverGroups = serverGroups;
               application.clusters = clusterService.createServerGroupClusters(serverGroups);
-              application.loadBalancers = applicationLoader.loadBalancers;
+              application.loadBalancers = applicationData.loadBalancers;
 
               clusterService.normalizeServerGroupsWithLoadBalancers(application);
-              // If the tasks were loaded already, add them to the server groups
-              if (application.tasks) {
-                clusterService.addTasksToServerGroups(application);
-              }
-              return securityGroupReader.attachSecurityGroups(application, results.securityGroups, applicationLoader.securityGroups, true)
-                .then(
-                function() {
-                  addDefaultRegion(application);
-                  addDefaultCredentials(application);
-                  return application;
-                },
-                function(err) {
-                  $log.error(err, 'Failed to load application');
-                }
-              );
-            }, function(err) {
-              $log.error(err, 'Failed to load application');
-            });
-        },
-        () => {
-          $log.warn('Application failed to load. Will retry on next scheduler execution.');
-        }
-      );
+              applyExecutionsAndTasks(options, dataSources, application);
+              return securityGroupReader.attachSecurityGroups(application, results.securityGroups, applicationData.securityGroups, true)
+                .then(() => applicationLoadSuccess(application), applicationLoadError);
+            }, applicationLoadError);
+        }, applicationLoadError);
+    }
+
+    function applicationLoadSuccess(application) {
+      addDefaultRegion(application);
+      addDefaultCredentials(application);
+      application.lastRefresh = new Date().getTime();
+      return application;
+    }
+
+    function applicationLoadError(err) {
+      $log.error(err, 'Failed to load application, will retry on next scheduler execution.');
     }
 
     function applyNewServerGroups(application, serverGroups) {

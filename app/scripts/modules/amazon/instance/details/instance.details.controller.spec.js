@@ -3,12 +3,12 @@
 
 describe('Controller: awsInstanceDetailsCtrl', function () {
 
-  //NOTE: This is only testing the controllers dependencies. Please add more tests.
-
   var controller;
   var scope;
   var instanceReader;
   var $q;
+  var rx;
+  var refreshStream;
 
   beforeEach(
     window.module(
@@ -17,22 +17,24 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
   );
 
   beforeEach(
-    window.inject(function ($rootScope, $controller, _instanceReader_, _$q_) {
+    window.inject(function ($rootScope, $controller, _instanceReader_, _$q_, _rx_) {
       scope = $rootScope.$new();
       instanceReader = _instanceReader_;
       $q = _$q_;
+      rx = _rx_;
+      refreshStream = new rx.Subject();
 
       controller = $controller('awsInstanceDetailsCtrl', {
         $scope: scope,
         instance: {},
         app: {
-          registerAutoRefreshHandler: angular.noop
+          autoRefreshStream: refreshStream
         },
         overrides: {},
       });
 
       this.createController = function(application, instance) {
-        application.registerAutoRefreshHandler = application.registerAutoRefreshHandler || angular.noop;
+        application.autoRefreshStream = application.autoRefreshStream || refreshStream;
         controller = $controller('awsInstanceDetailsCtrl', {
           $scope: scope,
           instance: instance,
