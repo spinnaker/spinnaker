@@ -54,20 +54,20 @@ SECOND=two
         template = """
 preamble
 // BEGIN reconfigure_spinnaker
-// let gateUrl = ${{services.gate.baseUrl}};
+// var gateUrl = ${{services.gate.baseUrl}};
 {gate_url_value}
-// let bakeryBaseUrl = ${{services.bakery.baseUrl}};
+// var bakeryBaseUrl = ${{services.bakery.baseUrl}};
 {bakery_url_value}
 // END reconfigure_spinnaker
-// let gateUrl = ${{services.gate.baseUrl}};
+// var gateUrl = ${{services.gate.baseUrl}};
 stuff here is left along.
 """
         # This was originally just a comment, which was preserved.
-        bakery_url_assignment = ("let bakeryBaseUrl = 'BAKERY_BASE_URL';"
+        bakery_url_assignment = ("var bakeryBaseUrl = 'BAKERY_BASE_URL';"
                                  "\n# comment")
 
         # This was originally a different let statement that was removed.
-        gate_url_assignment = "let gateUrl = 'GATE_BASE_URL';"
+        gate_url_assignment = "var gateUrl = 'GATE_BASE_URL';"
         bindings = YamlBindings()
         bindings.import_dict({
             'services': {
@@ -82,7 +82,7 @@ stuff here is left along.
             source_settings_path = os.path.join(temp_sourcedir, 'settings.js')
             target_settings_path = os.path.join(temp_targetdir, 'settings.js')
             with open(source_settings_path, 'w') as f:
-                f.write(template.format(gate_url_value="let gateUrl='old';",
+                f.write(template.format(gate_url_value="var gateUrl='old';",
                                         bakery_url_value='# comment'))
 
             configurator.update_deck_settings()
