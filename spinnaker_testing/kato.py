@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+# TODO(ewiseblatt): 20151125
+# This could probably become clouddriver.
+"""Specialization of SpinnakerAgent for interacting with Kato subsystem."""
+
+
 import json
 import spinnaker_testing.spinnaker as sk
 
@@ -65,13 +71,13 @@ class _KatoStatus(sk.SpinnakerStatus):
       pass
 
     if isinstance(doc, dict):
-      self._detail_path = doc['resourceUri']
-      self._request_id = doc['id']
+      self._bind_detail_path(doc['resourceUri'])
+      self._bind_id(doc['id'])
     else:
       self._error = 'Invalid response="{0}"'.format(original_response)
       self._finished = True
       self._failed = True
-      self._current_state = 'CITEST_INTERNAL_ERROR'
+      self.current_state = 'CITEST_INTERNAL_ERROR'
 
   def _update_response_from_json(self, doc):
     """Updates abstract SpinnakerStatus attributes from a Kato response.
@@ -79,9 +85,8 @@ class _KatoStatus(sk.SpinnakerStatus):
     This is called by the base class.
     """
     status = doc['status']
-    completed = status['completed']
     failed = status['failed']
-    self._current_state = status['phase']
+    self.current_state = status['phase']
     self._exception_details = None
     if status['completed']:
       self._finished = True
@@ -108,7 +113,7 @@ class KatoAgent(sk.SpinnakerAgent):
     Returns:
        JSON encoded payload string for Kato request.
     """
-    return KatoAgent.make_payload([{ name: payload_dict }])
+    return KatoAgent.make_payload([{name: payload_dict}])
 
   @staticmethod
   def make_payload(payload_dict_list):

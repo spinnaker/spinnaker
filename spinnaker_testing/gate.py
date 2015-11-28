@@ -12,7 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+"""Specialization of SpinnakerAgent for interacting with Kato subsystem."""
+
+
 import json
+import logging
 
 from . import spinnaker as sk
 
@@ -25,8 +30,8 @@ class GateTaskStatus(sk.SpinnakerStatus):
     """Factory method.
 
     Args:
-      operation: The operation this status is for.
-      original_response: The original JSON string with the status identifier.
+      operation: [AgentOperation] The operation this status is for.
+      original_response: [string] The original JSON with the status identifier.
 
     Returns:
       sk.SpinnakerStatus for handling status from a Gate request.
@@ -42,19 +47,19 @@ class GateTaskStatus(sk.SpinnakerStatus):
   @property
   def finished(self):
     """True if status indicates the request has finished."""
-    return not self._current_state in ["NOT_STARTED", "RUNNING", None]
+    return not self.current_state in ["NOT_STARTED", "RUNNING", None]
 
   @property
   def finished_ok(self):
     """True if status indicates the request has finished successfully."""
-    return self._current_state == 'SUCCEEDED'
+    return self.current_state == 'SUCCEEDED'
 
   def __init__(self, operation, original_response=None):
     """Construct a new Gate request status.
 
     Args:
-      operation: The operation this status is for.
-      original_response: The original JSON string with the status identifier.
+      operation: [AgentOperation] The operation this status is for.
+      original_response: [string] The original JSON with the status identifier.
     """
     super(GateTaskStatus, self).__init__(operation, original_response)
 
@@ -67,11 +72,11 @@ class GateTaskStatus(sk.SpinnakerStatus):
       pass
 
     if isinstance(doc, dict):
-      self._detail_path = doc['ref']
-      self._request_id = self._detail_path
+      self._bind_detail_path(doc['ref'])
+      self._bind_id(self.detail_path)
     else:
       self._error = "Invalid response='{0}'".format(original_response)
-      self._current_state = 'CITEST_INTERNAL_ERROR'
+      self.current_state = 'CITEST_INTERNAL_ERROR'
 
   def _update_response_from_json(self, doc):
     """Updates abstract sk.SpinnakerStatus attributes from a Gate response.
@@ -79,13 +84,13 @@ class GateTaskStatus(sk.SpinnakerStatus):
     This is called by the base class.
 
     Args:
-       doc: JSON Document object read from response payload.
+       doc: [dict] JSON Document object read from response payload.
     """
-    self._current_state = doc['status']
+    self.current_state = doc['status']
     self._exception_details = None
 
     exception_details = None
-    kato_exception = None
+    gate_exception = None
     variables = doc['variables']
     if variables:
       for elem in variables:
@@ -96,21 +101,23 @@ class GateTaskStatus(sk.SpinnakerStatus):
           value = elem['value']
           for task in value:
             if 'exception' in task:
-              kato_exception = task['exception']['message']
+              gate_exception = task['exception']['message']
               break
 
-    self._exception_details = exception_details or kato_exception
+    self._exception_details = exception_details or gate_exception
+
 
 class GatePipelineStatus(sk.SpinnakerStatus):
-  """Specialization of sk.SpinnakerStatus for accessing Gate 'pipelines' status."""
+  """Specialization of SpinnakerStatus for accessing Gate 'pipelines' status.
+  """
 
   @classmethod
   def new(cls, operation, original_response):
     """Factory method.
 
     Args:
-      operation: The operation this status is for.
-      original_response: The original JSON string with the status identifier.
+      operation: [AgentOperation] The operation this status is for.
+      original_response: [string] The original JSON with the status identifier.
 
     Returns:
       sk.SpinnakerStatus for handling status from a Gate request.
@@ -126,21 +133,22 @@ class GatePipelineStatus(sk.SpinnakerStatus):
   @property
   def finished(self):
     """True if status indicates the request has finished."""
-    return not self._current_state in ["NOT_STARTED", "RUNNING", None]
+    return not self.current_state in ["NOT_STARTED", "RUNNING", None]
 
   @property
   def finished_ok(self):
     """True if status indicates the request has finished successfully."""
-    return self._current_state == 'SUCCEEDED'
+    return self.current_state == 'SUCCEEDED'
 
   def __init__(self, operation, original_response=None):
     """Construct a new Gate request status.
 
     Args:
-      operation: The operation this status is for.
-      original_response: The original JSON string with the status identifier.
+      operation: [AgentOperation] The operation this status is for.
+      original_response: [string] The original JSON with the status identifier.
     """
     super(GatePipelineStatus, self).__init__(operation, original_response)
+    self.__saw_pipeline = False
 
   def _update_response_from_json(self, doc):
     """Updates abstract sk.SpinnakerStatus attributes from a Gate response.
@@ -148,22 +156,30 @@ class GatePipelineStatus(sk.SpinnakerStatus):
     This is called by the base class.
 
     Args:
-       doc: JSON Document object read from response payload.
+       doc: [dict] JSON Document object read from response payload.
     """
     self._exception_details = None
-    
+
     if not isinstance(doc, list):
       self._error = "Invalid response='{0}'".format(doc)
-      self._current_state = 'CITEST_INTERNAL_ERROR'
+      self.current_state = 'CITEST_INTERNAL_ERROR'
 
     # It can take a while for the running pipelines to show up.
     if len(doc) == 0:
       return
-    
+
+    if not self.__saw_pipeline:
+      logger = logging.getLogger(__name__)
+      logger.info('Pipeline is now visible.')
+      self.__saw_pipeline = True
+
     # TODO(lwander): We need a way to ensure we are monitoring the correct
     #                pipeline.
     doc = doc[0]
-    self._current_state = doc['status']
+    if self.current_state != doc['status']:
+      self.current_state = doc['status']
+      logger = logging.getLogger(__name__)
+      logger.info('Pipeline state is now %s', self.current_state)
 
     # TODO(ewiseblatt): Not sure what these look like yet.
     exception_details = None
@@ -181,7 +197,7 @@ class GateAgent(sk.SpinnakerAgent):
     """Make a gate operation JSON payload string from Python objects.
 
     Args:
-       kwargs: The dictionary defining the payload to send.
+       kwargs: [dict] The dictionary defining the payload to send.
           The payload will be the dictionary encoded as json.
     Returns:
        JSON encoded payload string for Gate request.
@@ -189,70 +205,71 @@ class GateAgent(sk.SpinnakerAgent):
     payload_dict = kwargs
     return json.JSONEncoder().encode(payload_dict)
 
-  def make_create_app_operation(
-        self, bindings, application, description=None):
+  def make_create_app_operation(self, bindings, application, description=None):
     """Create a Gate operation that will create a new application.
 
     Args:
-      bindings: dictionary containing key/value pairs for
-          GCE_CREDENTIALS and optional TEST_EMAIL.
-      application: Name of application to create.
-      description: Text description field for the operation payload.
+      bindings: [dict] key/value pairs including GCE_CREDENTIALS
+          and optional TEST_EMAIL.
+      application: [string] Name of application to create.
+      description: [string] Text description field for the operation payload.
+
     Returns:
       AgentOperation.
     """
     account_name = bindings['GCE_CREDENTIALS']
     email = bindings.get('TEST_EMAIL', 'testuser@testhost.org')
     payload = self.make_payload(
-      job=[{
-          'type': 'createApplication',
-          'account': account_name,
-          'application': {
-              'name': application,
-              'description': description or 'Gate Testing Application',
-              'email': email
-           },
-          'user': '[anonymous]'
-      }],
-      description='Create Application: ' + application,
-      application=application)
+        job=[{
+            'type': 'createApplication',
+            'account': account_name,
+            'application': {
+                'name': application,
+                'description': description or 'Gate Testing Application',
+                'email': email
+            },
+            'user': '[anonymous]'
+        }],
+        description='Create Application: ' + application,
+        application=application)
 
     return self.new_post_operation(
-            title='create_app', data=payload, path='tasks')
+        title='create_app', data=payload, path='tasks')
 
   def make_delete_app_operation(self, bindings, application):
     """Create a Gate operation that will delete an existing application.
 
     Args:
-      bindings: dictionary containing key/value pairs for
-          GCE_CREDENTIALS and optional TEST_EMAIL.
-      application: Name of application to create.
+      bindings: [dict] key/value pairs including GCE_CREDENTIALS
+          and optional TEST_EMAIL.
+      application: [string] Name of application to create.
+
     Returns:
       AgentOperation.
     """
     account_name = bindings['GCE_CREDENTIALS']
     payload = self.make_payload(
-      job=[{
-          'type': 'deleteApplication',
-          'account': account_name,
-          'application': { 'name': application },
-          'user': '[anonymous]'
-      }],
-      description='Delete Application: ' + application,
-      application=application)
+        job=[{
+            'type': 'deleteApplication',
+            'account': account_name,
+            'application': {'name': application},
+            'user': '[anonymous]'
+        }],
+        description='Delete Application: ' + application,
+        application=application)
 
     return self.new_post_operation(
-            title='delete_app', data=payload, path='tasks')
+        title='delete_app', data=payload, path='tasks')
 
 
 def new_agent(bindings, port=8084):
   """Create an agent to interact with a Spinnaker Gate server.
 
   Args:
-    bindings: Bindings that specify how to connect to the server.
+    bindings: [dict] Bindings that specify how to connect to the server.
        The actual parameters used depend on the hosting platform.
        The hosting platform is specified with 'host_platform'.
-    port: The port the server is listening on.
+    port: [int] The port the server is listening on.
 
   Returns:
     sk.SpinnakerAgent connected to the specified gate server, or None.

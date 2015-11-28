@@ -14,26 +14,37 @@
 
 """Derives a spinnaker subsystem spring configuration."""
 
-import os
 import re
-import sys
 import urllib2
-import yaml
 from json import JSONDecoder
 
 from .expression_dict import ExpressionDict
 
 
 def infer(json):
-  applicationConfig = {}
-  for name,value in json.items():
-      match = re.match('applicationConfig: \[(.+)\](.*)', name)
-      if not match:
-        continue
-      key = match.group(1)
-      decorator = match.group(2) or ''
-      applicationConfig[key + decorator] = value
+  """Infer the configuration from the json document.
 
+  This ordering is to mimick
+  https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html
+
+  Args:
+    json: [dict] A JSON document specifying the configuration.
+        This is assumed to be the result of spinnaker system '/env' URLs
+        that return the configuration information that spring uses.
+  """
+  # Build a dictionary keyed by the different config sources so
+  # that we can look them up later.
+  application_config = {}
+  for name, value in json.items():
+    match = re.match(r'applicationConfig: \[(.+)\](.*)', name)
+    if not match:
+      continue
+    key = match.group(1)
+    decorator = match.group(2) or ''
+    application_config[key + decorator] = value
+
+  # Load global properties into the dictionary.
+  # The ordering here is lower to higher precedence.
   expr_dict = ExpressionDict()
   expr_dict.update(json.get('defaultProperties', {}))
   expr_dict.update(json.get('systemProperties', {}))
@@ -43,35 +54,40 @@ def infer(json):
   profiles = expr_dict['spring.profiles.active'].split(',')
   locations = expr_dict['spring.config.location'].split(',')
 
+  # Mix in the different profile locations.
+  #
+  # TODO(ewiseblatt):
+  # Actually, this is wrong. We only want one profile.
   for location in locations:
-      location_names = names if location.endswith('/') else ['']
-      for name in location_names:
-          root_filename = 'file:{location}{name}'.format(
-              location=location, name=name)
-          expr_dict.update(
-              applicationConfig.get(root_filename + '.yml', {}))
-          for profile in profiles:
-              key = root_filename + '-' + profile + '.yml'
-              expr_dict.update(applicationConfig.get(key, {}))
+    location_names = names if location.endswith('/') else ['']
+    for name in location_names:
+        # pylint: disable=bad-indentation
+        root_filename = 'file:{location}{name}'.format(
+            location=location, name=name)
+        expr_dict.update(
+            application_config.get(root_filename + '.yml', {}))
+        for profile in profiles:
+            key = root_filename + '-' + profile + '.yml'
+            expr_dict.update(application_config.get(key, {}))
 
   return expr_dict
 
 
 def scrape_spring_config(url):
-    """Construct a config binding dictionary from a running instance's baseUrl.
+  """Construct a config binding dictionary from a running instance's baseUrl.
 
-    Args:
-      url: The url to construct from.
+  Args:
+    url: The url to construct from.
 
-    Raises:
-      urlib2.URLError if url is bad.
-    """
-    request = urllib2.Request(url=url)
-    response = urllib2.urlopen(request)
-    http_code = response.getcode()
-    content = response.read()
-    if http_code < 200 or http_code >= 300:
-        raise ValueError('Invalid HTTP={code} from {url}:\n{msg}'.format(
-            code=http_code, url=url, msg=content))
-    json = JSONDecoder().decode(content)
-    return infer(json)
+  Raises:
+    urlib2.URLError if url is bad.
+  """
+  request = urllib2.Request(url=url)
+  response = urllib2.urlopen(request)
+  http_code = response.getcode()
+  content = response.read()
+  if http_code < 200 or http_code >= 300:
+    raise ValueError('Invalid HTTP={code} from {url}:\n{msg}'.format(
+        code=http_code, url=url, msg=content))
+  json = JSONDecoder().decode(content)
+  return infer(json)

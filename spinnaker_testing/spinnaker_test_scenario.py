@@ -12,6 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+"""Specialization of AgentTestScenario to facilitate testing Spinnaker.
+
+This provides means for locating spinnaker and extracting configuration
+information so that the tests can adapt to the deployment information
+to make appropriate observations.
+"""
+
 import logging
 
 import citest.service_testing as sk
@@ -21,13 +29,42 @@ import citest.gcp_testing as gcp
 
 
 class SpinnakerTestScenario(sk.AgentTestScenario):
+  """Specialization of AgentTestScenario to facilitate testing Spinnaker.
+
+  Adds standard command line arguments for locating the deployed system, and
+  setting up observers.
+  """
   @classmethod
   def new_post_operation(cls, title, data, path, status_class=None):
+    """Creates an operation that posts data to the given path when executed.
+
+    The base_url will come from the agent that the operation is eventually
+    executed on.
+
+    Args:
+      title: [string] The name of the operation for reporting purposes.
+      data: [string] The payload to send in the HTTP POST.
+      path: [string] The path relative to the base url provided later.
+      status_class: [class AgentOperationStatus] If provided, a specialization
+         of the AgentOperationStatus to use for tracking the execution.
+    """
     return http_agent.HttpPostOperation(title=title, data=data, path=path,
                                         status_class=status_class)
 
   @classmethod
   def new_delete_operation(cls, title, data, path, status_class=None):
+    """Creates an operation that deletes from the given path when executed.
+
+    The base_url will come from the agent that the operation is eventually
+    executed on.
+
+    Args:
+      title: [string] The name of the operation for reporting purposes.
+      data: [string] The payload to send in the HTTP DELETE.
+      path: [string] The path relative to the base url provided later.
+      status_class: [class AgentOperationStatus] If provided, a specialization
+         of the AgentOperationStatus to use for tracking the execution.
+    """
     return http_agent.HttpDeleteOperation(title=title, data=data, path=path,
                                           status_class=status_class)
 
@@ -36,8 +73,8 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     """Initialize command line argument parser.
 
     Args:
-      parser: argparse.ArgumentParser
-      defaults: a dictionary of default binding value overrides.
+      parser: [argparse.ArgumentParser]
+      defaults: [dict] Default binding value overrides.
          This is used to initialize the default commandline parameters.
     """
     super(SpinnakerTestScenario, cls).initArgumentParser(
@@ -46,10 +83,10 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     defaults = defaults or {}
     subsystem_name = 'the server to test'
     parser.add_argument(
-      '--host_platform', default=defaults.get('HOST_PLATFORM', None),
-      help='Platform running spinnaker (gce, native).'
-           ' If this is not explicitly set, then try to'
-           ' guess based on other parameters set.')
+        '--host_platform', default=defaults.get('HOST_PLATFORM', None),
+        help='Platform running spinnaker (gce, native).'
+             ' If this is not explicitly set, then try to'
+             ' guess based on other parameters set.')
 
     # Native provider paramters used to locate Spinnaker.
     parser.add_argument(
@@ -123,8 +160,8 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     parser.add_argument(
         '--test_gce_region',
         default=defaults.get('TEST_GCE_REGION', ''),
-        help='The GCE region to test generated instances in (when managing GCE).'
-             ' If not specified, then derive it fro --test_gce_zone.')
+        help='The GCE region to test generated instances in (when managing'
+             ' GCE). If not specified, then derive it fro --test_gce_zone.')
 
     parser.add_argument(
         '--test_aws_zone',
@@ -135,8 +172,8 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     parser.add_argument(
         '--test_aws_region',
         default=defaults.get('TEST_AWS_REGION', ''),
-        help='The GCE region to test generated instances in (when managing AWS).'
-             ' If not specified, then derive it fro --test_aws_zone.')
+        help='The GCE region to test generated instances in (when managing'
+             ' AWS). If not specified, then derive it fro --test_aws_zone.')
 
     parser.add_argument(
         '--test_gce_image_name',
@@ -156,18 +193,21 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
 
   @property
   def gce_observer(self):
+    """The observer for inspecting GCE platform state, if configured."""
     return self._gce_observer
 
   @property
   def aws_observer(self):
+    """The observer for inspecting AWS platform state, if configured."""
     return self._aws_observer
 
   def __init__(self, bindings, agent=None):
     """Constructor
 
     Args:
-      bindings: The parameter bindings for overriding the test scenario config.
-      agent: The Spinnaker agent to bind to the scenario.
+      bindings: [dict] The parameter bindings for overriding the test
+         scenario configuration.
+      agent: [SpinnakerAgent] The Spinnaker agent to bind to the scenario.
     """
     super(SpinnakerTestScenario, self).__init__(bindings, agent)
     agent = self.agent
@@ -208,7 +248,14 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
           ' Therefore, we will not be able to observe Amazon Web Services.')
 
   def _update_bindings_with_subsystem_configuration(self, agent):
-    for key,value in agent.runtime_config.items():
+    """Helper function for setting agent bindings from actual configuration.
+
+    This uses the agent's runtime_config, if available, to supply some
+    abstract binding information so that the test can adapt to the deployment
+    it is testing.
+    """
+    # pylint: disable=bad-indentation
+    for key, value in agent.runtime_config.items():
         try:
           if self._bindings[key]:
             continue
@@ -218,18 +265,18 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
 
     if not self._bindings['GCE_CREDENTIALS']:
       self._bindings['GCE_CREDENTIALS'] = self.agent.deployed_config.get(
-        'providers.google.primaryCredentials.name', None)
+          'providers.google.primaryCredentials.name', None)
 
     if not self._bindings['AWS_CREDENTIALS']:
       self._bindings['AWS_CREDENTIALS'] = self.agent.deployed_config.get(
-        'providers.aws.primaryCredentials.name', None)
+          'providers.aws.primaryCredentials.name', None)
 
     if not self._bindings.get('GOOGLE_PRIMARY_MANAGED_PROJECT_ID'):
       # Default to the project we are managing.
       self._bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'] = (
-        self.agent.deployed_config.get(
-            'providers.google.primaryCredentials.project', None))
+          self.agent.deployed_config.get(
+              'providers.google.primaryCredentials.project', None))
       if not self._bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID']:
         # But if that wasnt defined then default to the subsystem's project.
-        self._bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'] = self._bindings['GCE_PROJECT']
-
+        self._bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'] = (
+            self._bindings['GCE_PROJECT'])

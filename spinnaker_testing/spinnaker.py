@@ -13,43 +13,46 @@
 # limitations under the License.
 
 
-# Provides Spinnaker interactions (using http requests).
-# This module is intended to provide a base class supported
-# by specializations for the individual subsystems.
-#
-# (e.g. gate.py)
-#
-# To talk to spinnaker, we make HTTP calls using urllib2
-# (via SpinnakerAgent abstraction). To talk to GCE we use gcloud
-# (via GCloudAgent abstraction) for convenience, especially auth.
-#
-# In order to talk to spinnaker, it must have network access. If you are
-# running outside the project (e.g. on a laptop) then you'll probably need
-# to create an ssh tunnel into the spinnaker VM because the ports are not
-# exposed by default.
-#
-# Rather than setting up this tunnel yourself, the test will set up the
-# tunnel itself. This not only guarantees the tunnel is available, but
-# also ensures that the tunnel is in fact going to the instance being tested
-# as opposed to some other stray tunnel. Furthermore, the test will use
-# a unique local port so running this test will not interfere with other
-# accesses to spinnaker.
-#
-# When using ssh, you must provide ssh a passphrase for the credentials.
-# You can either run eval `ssh-agent -s` > /dev/null then ssh-add with the
-# credentials, or you can create a file that contains the passphrase and
-# pass the file with --ssh_passphrase_file. If you create a file, chmod 400
-# it to keep it safe.
-#
-# If spinnaker is reachable without tunnelling then it will talk directly to
-# it. This is determined by looking up the IP address of the instance, and
-# trying to connect to gate directly.
-#
-# In short, run the test with the spinnaker instance project/zone/instance
-# name and it will figure out the rest of the configuration needed. To do so,
-# you will also need to provide it ssh credentials, either implicitly by
-# running ssh-agent, or explicitly by giving it a passphrase (via file for
-# security).
+"""Provides Spinnaker interactions (using http requests).
+
+This module is intended to provide a base class supported
+by specializations for the individual subsystems.
+
+(e.g. gate.py)
+
+To talk to spinnaker, we make HTTP calls (via SpinnakerAgent abstraction).
+To talk to GCE we use gcloud(via GCloudAgent abstraction) for convenience,
+especially auth.
+
+In order to talk to spinnaker, it must have network access. If you are
+running outside the project (e.g. on a laptop) then you'll probably need
+to create an ssh tunnel into the spinnaker VM because the ports are not
+exposed by default.
+
+Rather than setting up this tunnel yourself, the test will set up the
+tunnel itself. This not only guarantees the tunnel is available, but
+also ensures that the tunnel is in fact going to the instance being tested
+as opposed to some other stray tunnel. Furthermore, the test will use
+a unique local port so running this test will not interfere with other
+accesses to spinnaker.
+
+When using ssh, you must provide ssh a passphrase for the credentials.
+You can either run eval `ssh-agent -s` > /dev/null then ssh-add with the
+credentials, or you can create a file that contains the passphrase and
+pass the file with --ssh_passphrase_file. If you create a file, chmod 400
+it to keep it safe.
+
+If spinnaker is reachable without tunnelling then it will talk directly to
+it. This is determined by looking up the IP address of the instance, and
+trying to connect to gate directly.
+
+In short, run the test with the spinnaker instance project/zone/instance
+name and it will figure out the rest of the configuration needed. To do so,
+you will also need to provide it ssh credentials, either implicitly by
+running ssh-agent, or explicitly by giving it a passphrase (via file for
+security).
+"""
+
 
 # Standard python modules.
 import base64
@@ -58,7 +61,6 @@ import os
 import os.path
 import re
 import tarfile
-import urllib2
 from json import JSONDecoder
 from StringIO import StringIO
 
@@ -67,23 +69,23 @@ import citest.service_testing as service_testing
 import citest.gcp_testing as gcp
 
 import spinnaker_testing.yaml_accumulator as yaml_accumulator
-from scrape_spring_config import scrape_spring_config
 from spinnaker_testing.expression_dict import ExpressionDict
+
+from .scrape_spring_config import scrape_spring_config
 
 
 def name_value_to_dict(content):
-    """Converts a list of name=value pairs to a dictionary.
+  """Converts a list of name=value pairs to a dictionary.
 
-    Args:
-      content: A list of name=value pairs with one per line.
-               This is blank lines ignored, as is anything to right of '#'.
-    """
-    result = {}
-    for match in re.finditer('^([A-Za-z_][A-Za-z0-9_]*) *= *([^#]*)',
-                             content,
-                             re.MULTILINE):
-        result[match.group(1)] = match.group(2).strip()
-    return result
+  Args:
+    content: [string] A list of name=value pairs with one per line.
+             This is blank lines ignored, as is anything to right of '#'.
+  """
+  result = {}
+  for match in re.finditer('^([A-Za-z_][A-Za-z0-9_]*) *= *([^#]*)',
+                           content, re.MULTILINE):
+    result[match.group(1)] = match.group(2).strip()
+  return result
 
 
 class SpinnakerStatus(service_testing.HttpOperationStatus):
@@ -94,26 +96,47 @@ class SpinnakerStatus(service_testing.HttpOperationStatus):
   from its bound reference.
   This instance must explicitly refresh() in order to update its value.
   It will only poll the server within refresh().
-
-  Attributes:
-    current_state: The value of the JSON "state" field, or None if not known.
-    exception_details: If the spinnaker task status is an error,
-        this is just the exceptions clause from the detail.
   """
   @property
   def current_state(self):
-    return self._current_state
+    """The value of the JSON "state" field, or None if not known."""
+    return self.__current_state
+
+  @current_state.setter
+  def current_state(self, state):
+    """Updates the current state."""
+    self.__current_state = state
 
   @property
   def exception_details(self):
+    """The exceptions clause from the detail if the task status is an error."""
     return self._exception_details
 
   @property
   def id(self):
-    return self._request_id
+    """The underlying request ID."""
+    return self.__request_id
+
+  def _bind_id(self, request_id):
+    """Bind the request id.
+
+    Args:
+      request_id: [string] The request ID is obtained in the subsystem
+          response.
+    """
+    self.__request_id = request_id
+
+  @property
+  def detail_path(self):
+    return self.__detail_path
+
+  def _bind_detail_path(self, path):
+    """Bind the detail path."""
+    self.__detail_path = path
 
   def _make_scribe_parts(self, scribe):
-    parts = [scribe.build_json_part('Status Detail', self._json_doc,
+    """Implements Scribbable._make_scribe_parts."""
+    parts = [scribe.build_json_part('Status Detail', self.__json_doc,
                                     relation=scribe.part_builder.OUTPUT)]
     inherited = super(SpinnakerStatus, self)._make_scribe_parts(scribe)
     return inherited + parts
@@ -122,55 +145,55 @@ class SpinnakerStatus(service_testing.HttpOperationStatus):
     """Initialize status tracker.
 
     Args:
-      operation: The operation returning the status.
-      original_response: JSON identifier object returned from the
-          Spinnaker request to track. This can be none to indicate an error
-          making the original request.
+      operation: [AgentOperation]  The operation returning the status.
+      original_response: [HttpResponseType] Contains JSON identifier object
+          returned from the Spinnaker request to track. This can be none to
+          indicate an error making the original request.
     """
     super(SpinnakerStatus, self).__init__(operation, original_response)
-    self._request_id = original_response  # Identifies original request.
-    self._current_state = None  # Last known state (after last refresh()).
-    self._detail_path = None    # The URL path on spinnaker for this status.
+    self.__request_id = original_response  # Identifies original request.
+    self.__current_state = None  # Last known state (after last refresh()).
+    self.__detail_path = None    # The URL path on spinnaker for this status.
     self._exception_details = None
-    self._json_doc = None
+    self.__json_doc = None
 
     if not original_response or original_response.retcode < 0:
-      self._current_state = 'REQUEST_FAILED'
+      self.__current_state = 'REQUEST_FAILED'
       return
 
   def __str__(self):
     """Convert status to string"""
     return ('id={id} current_state={current}'
             ' error=[{error}] detail=[{detail}]').format(
-      id=self.id, current=self._current_state,
-      error=self.error, detail=self.detail)
+                id=self.id, current=self.__current_state,
+                error=self.error, detail=self.detail)
 
   def refresh(self, trace=True):
     """Refresh the status with the current data from spinnaker.
 
     Args:
-      trace: Whether or not to log the call into spinnaker.
+      trace: [bool] Whether or not to log the call into spinnaker.
     """
     if self.finished:
       return
 
-    http_response = self.agent.get(self._detail_path, trace)
+    http_response = self.agent.get(self.detail_path, trace)
     self.set_http_response(http_response)
 
   def set_http_response(self, http_response):
     """Updates specialized fields from http_response.
 
     Args:
-      http_response: The HttpResponse from the last status update.
+      http_response: [HttpResponseType] From the last status update.
     """
     # super(SpinnakerStatus, self).set_http_response(http_response)
     if http_response.retcode < 0:
-      self._current_state = 'Unknown'
+      self.__current_state = 'Unknown'
       return
 
     decoder = JSONDecoder()
-    self._json_doc = decoder.decode(http_response.output)
-    self._update_response_from_json(self._json_doc)
+    self.__json_doc = decoder.decode(http_response.output)
+    self._update_response_from_json(self.__json_doc)
 
   def _update_response_from_json(self, doc):
     """Updates abstract SpinnakerStatus attributes.
@@ -178,8 +201,9 @@ class SpinnakerStatus(service_testing.HttpOperationStatus):
     This is called by the base class.
 
     Args:
-      doc: JSON document object from response payload.
+      doc: [dict] JSON document object from response payload.
     """
+    # pylint: disable=unused-argument
     raise Exception("_update_response_from_json is not specialized.")
 
 
@@ -194,7 +218,11 @@ class SpinnakerAgent(service_testing.HttpAgent):
   """
 
   @classmethod
-  def determine_host_platform(cls, bindings):
+  def __determine_host_platform(cls, bindings):
+    """Helper function to determine the platform spinnaker is hosted on.
+
+    This is used while figuring out how to connect to the instance.
+    """
     host_platform = bindings.get('HOST_PLATFORM', None)
     if not host_platform:
       if bindings['GCE_PROJECT']:
@@ -209,26 +237,26 @@ class SpinnakerAgent(service_testing.HttpAgent):
   def new_instance_from_bindings(cls, name, status_factory, bindings, port):
     """Create a new Spinnaker HttpAgent talking to the specified server port.
     Args:
-      name: The name of agent we are creating, for logging purposes only.
-      status_factory: Factory method (agent, original_response) for creating
-         specialized SpinnakerStatus instances.
-      bindings: Bindings that specify how to connect to the server
+      name:[string] The name of agent we are creating for reporting only.
+      status_factory: [SpinnakerStatus (SpinnakerAgent, HttpResponseType)]
+         Factory method for creating specialized SpinnakerStatus instances.
+      bindings: [dict] Specify how to connect to the server.
          The actual parameters used depend on the hosting platform.
          The hosting platform is specified with 'host_platform'
-      port: The port of the endpoint we want to connect to.
+      port: [int] The port of the endpoint we want to connect to.
 
     Returns:
       A SpinnakerAgent connected to the specified instance port.
     """
-    host_platform = cls.determine_host_platform(bindings)
+    host_platform = cls.__determine_host_platform(bindings)
     if host_platform == 'native':
-      baseUrl = (None if not bindings['NATIVE_HOSTNAME']
-                 else 'http://{host}:{port}'
-                      .format(host=bindings['NATIVE_HOSTNAME'],
-                              port=bindings['NATIVE_PORT'] or port))
+      base_url = (None if not bindings['NATIVE_HOSTNAME']
+                  else 'http://{host}:{port}'.format(
+                      host=bindings['NATIVE_HOSTNAME'],
+                      port=bindings['NATIVE_PORT'] or port))
+
       return cls.new_native_instance(
-          name, status_factory=status_factory,
-          baseUrl=baseUrl, bindings=bindings)
+          name, status_factory=status_factory, base_url=base_url)
 
     if host_platform == 'gce':
       return cls.new_gce_instance(
@@ -237,26 +265,24 @@ class SpinnakerAgent(service_testing.HttpAgent):
           zone=bindings['GCE_ZONE'],
           instance=bindings['GCE_INSTANCE'],
           port=port,
-          ssh_passphrase_file=bindings.get('GCE_SSH_PASSPHRASE_FILE', None),
-          config_bindings=bindings)
+          ssh_passphrase_file=bindings.get('GCE_SSH_PASSPHRASE_FILE', None))
 
     raise ValueError('Unknown host_platform={0}'.format(host_platform))
 
   @classmethod
   def new_gce_instance(cls, name, status_factory,
-                       project, zone, instance, port, ssh_passphrase_file,
-                       config_bindings):
+                       project, zone, instance, port, ssh_passphrase_file):
     """Create a new Spinnaker HttpAgent talking to the specified server port.
 
     Args:
-      name: The name of agent we are creating, for logging purposes only.
-      status_factory: Factory method (agent, original_response) for creating
-         specialized SpinnakerStatus instances.
-      project: The GCE project ID that the endpoint is in.
-      zone: The GCE zone that the endpoint is in.
-      instance: The GCE instance that the endpoint is in.
-      port: The port of the endpoint we want to connect to.
-      ssh_passphrase_file: If not empty, the SSH passphrase key
+      name: [string] The name of agent we are creating for reporting only.
+      status_factory: [SpinnakerStatus (SpinnakerAgent, HttpResponseType)]
+         Factory method for creating specialized SpinnakerStatus instances.
+      project: [string] The GCE project ID that the endpoint is in.
+      zone: [string] The GCE zone that the endpoint is in.
+      instance: [string] The GCE instance that the endpoint is in.
+      port: [int] The port of the endpoint we want to connect to.
+      ssh_passphrase_file: [string] If not empty, the SSH passphrase key
          for tunneling if needed in order to connect through a GCE firewall.
 
     Returns:
@@ -265,60 +291,69 @@ class SpinnakerAgent(service_testing.HttpAgent):
     logger = logging.getLogger(__name__)
     logger.info('Locating %s...', name)
     gcloud = gcp.GCloudAgent(
-      project=project, zone=zone, ssh_passphrase_file=ssh_passphrase_file)
+        project=project, zone=zone, ssh_passphrase_file=ssh_passphrase_file)
     netloc = gce_util.establish_network_connectivity(
-      gcloud=gcloud, instance=instance, target_port=port)
+        gcloud=gcloud, instance=instance, target_port=port)
     if not netloc:
       error = 'Could not locate {0}.'.format(name)
       logger.error(error)
       raise RuntimeError(error)
 
-    approx_config = cls._get_deployed_local_yaml_bindings(gcloud, instance)
+    approx_config = cls.__get_deployed_local_yaml_bindings(gcloud, instance)
     protocol = approx_config.get('services.default.protocol', 'http')
-    baseUrl = '{protocol}://{netloc}'.format(protocol=protocol, netloc=netloc)
-    logger.info('%s is available at %s', name, baseUrl)
-    deployed_config = scrape_spring_config(os.path.join(baseUrl, 'env'))
-    spinnaker_agent = cls(baseUrl, status_factory)
+    base_url = '{protocol}://{netloc}'.format(protocol=protocol, netloc=netloc)
+    logger.info('%s is available at %s', name, base_url)
+    deployed_config = scrape_spring_config(os.path.join(base_url, 'env'))
+    spinnaker_agent = cls(base_url, status_factory)
     spinnaker_agent.__deployed_config = deployed_config
 
     return spinnaker_agent
 
   @classmethod
-  def new_native_instance(cls, name, status_factory, baseUrl, bindings):
+  def new_native_instance(cls, name, status_factory, base_url):
     """Create a new Spinnaker HttpAgent talking to the specified server port.
 
     Args:
-      name: The name of agent we are creating, for logging purposes only.
-      status_factory: Factory method (agent, original_response) for creating
-         specialized SpinnakerStatus instances.
-      baseUrl: The service baseUrl to send messages to.
+      name: [string] The name of agent we are creating for reporting only.
+      status_factory: [SpinnakerStatus (SpinnakerAgent, HttpResponseType)]
+         Factory method for creating specialized SpinnakerStatus instances.
+      base_url: [string] The service base URL to send messages to.
 
     Returns:
       A SpinnakerAgent connected to the specified instance port.
     """
     logger = logging.getLogger(__name__)
     logger.info('Locating %s...', name)
-    if not baseUrl:
+    if not base_url:
       logger.error('Could not locate %s.', name)
       return None
 
-    logger.info('%s is available at %s', name, baseUrl)
-    env_url = os.path.join(baseUrl, 'env')
+    logger.info('%s is available at %s', name, base_url)
+    env_url = os.path.join(base_url, 'env')
     deployed_config = scrape_spring_config(env_url)
-    spinnaker_agent = cls(baseUrl, status_factory)
+    spinnaker_agent = cls(base_url, status_factory)
     spinnaker_agent.__deployed_config = deployed_config
 
     return spinnaker_agent
 
   @property
   def deployed_config(self):
-      return self.__deployed_config
+    """The configuration dictionary gleaned from the deployed service."""
+    return self.__deployed_config
 
   @property
   def runtime_config(self):
+    """Confguration dictionary approxmation from static config files.
+
+    This might not be available at all, depending on how we can access the
+    service. This does not consider how the service was actually invoked
+    so may be incomplete or wrong. However it is probably close enough for
+    our needs, and certainly close enough to locate the service to obtain
+    the actual |deploy_config| data.
+    """
     return self.config_dict
 
-  def __init__(self, baseUrl, status_factory):
+  def __init__(self, base_url, status_factory):
     """Construct a an agent for talking to spinnaker.
 
     This could really be any spinnaker subsystem, not just the master process.
@@ -327,10 +362,11 @@ class SpinnakerAgent(service_testing.HttpAgent):
     GET requests on those urls to return status details.
 
     Args:
-      baseUrl: The baseUrl string spinnaker is running on.
-      status_factory: Creates status instances from this agent.
+      base_url: [string] The base URL string spinnaker is running on.
+      status_factory: [SpinnakerStatus (SpinnakerAgent, HttpResponseType)]
+         Factory method for creating specialized SpinnakerStatus instances.
     """
-    super(SpinnakerAgent, self).__init__(baseUrl)
+    super(SpinnakerAgent, self).__init__(base_url)
     self.__deployed_config = {}
     self.__default_status_factory = status_factory
     self.default_max_wait_secs = 240
@@ -342,16 +378,13 @@ class SpinnakerAgent(service_testing.HttpAgent):
             else self.__default_status_factory(operation, http_response))
 
   @staticmethod
-  def _derive_spring_config_from_url(url):
-      return {}
-
-  @staticmethod
-  def _get_deployed_local_yaml_bindings(gcloud, instance):
+  def __get_deployed_local_yaml_bindings(gcloud, instance):
     """Return the contents of the spinnaker-local.yml configuration file.
 
     Args:
-      gcloud: Specifies project and zone. Capable of remote fetching if needed.
-      instance: The GCE instance name containing the configuration file.
+      gcloud: [GCloudAgent] Specifies project and zone.
+          Capable of remote fetching if needed.
+      instance: [string] The GCE instance name containing the deployment.
 
     Returns:
       None or the configuration file contents.
@@ -370,8 +403,8 @@ class SpinnakerAgent(service_testing.HttpAgent):
       try:
         yaml_accumulator.load_path(yaml_file, config_dict)
         return config_dict
-      except IOError as e:
-        logger.error('Failed to load from %s: %s', yaml_file, e)
+      except IOError as ex:
+        logger.error('Failed to load from %s: %s', yaml_file, ex)
         return None
 
       logger.debug('Load spinnaker-local.yml from instance %s', instance)
@@ -381,6 +414,7 @@ class SpinnakerAgent(service_testing.HttpAgent):
     # or /opt/spinnaker/config
     # or /etc/default/spinnaker (name/value)
     # Otherwise look in ~/.spinnaker for a development installation.
+    # pylint: disable=bad-continuation
     response = gcloud.remote_command(
         instance,
         'LIST=""'
@@ -399,7 +433,7 @@ class SpinnakerAgent(service_testing.HttpAgent):
 
     if response.retcode != 0:
       logger.error(
-        'Could not determine configuration:\n%s', response.error)
+          'Could not determine configuration:\n%s', response.error)
       return None
 
     # gcloud prints an info message about upgrades to the output stream.
@@ -422,27 +456,27 @@ class SpinnakerAgent(service_testing.HttpAgent):
     tar = tarfile.open(mode='r', fileobj=StringIO(base64.b64decode(got)))
 
     try:
-        file = tar.extractfile('etc/default/spinnaker')
+      entry = tar.extractfile('etc/default/spinnaker')
     except KeyError:
-        pass
+      pass
     else:
       logger.info('Importing configuration from /etc/default/spinnaker')
-      config_dict.update(name_value_to_dict(file.read()))
+      config_dict.update(name_value_to_dict(entry.read()))
 
     file_list = ['home/spinnaker/.spinnaker/spinnaker-local.yml',
                  'opt/spinnaker/config/spinnaker-local.yml']
     log_name = os.environ.get('LOGNAME')
     if log_name is not None:
-        file_list.append(os.path.join('home', log_name,
-                                      '.spinnaker/spinnaker-local.yml'))
+      file_list.append(os.path.join('home', log_name,
+                                    '.spinnaker/spinnaker-local.yml'))
 
     for member in file_list:
-        try:
-            file = tar.extractfile(member)
-        except KeyError:
-            continue
+      try:
+        entry = tar.extractfile(member)
+      except KeyError:
+        continue
 
-        logger.info('Importing configuration from ' + member)
-        yaml_accumulator.load_string(file.read(), config_dict)
+      logger.info('Importing configuration from ' + member)
+      yaml_accumulator.load_string(entry.read(), config_dict)
 
     return config_dict
