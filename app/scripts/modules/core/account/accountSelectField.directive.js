@@ -2,64 +2,71 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.account.accountSelectField.directive', [
-  require('./account.service.js'),
-])
-  .directive('accountSelectField', function($q, _, accountService) {
-  return {
-    restrict: 'E',
-    templateUrl: require('./accountSelectField.directive.html'),
-    scope: {
-      accounts: '=',
-      component: '=',
-      field: '@',
-      provider: '=',
-      loading: '=',
-      onChange: '&',
-      labelColumns: '@',
-      labelAlign: '@',
-      readOnly: '=',
-      multiselect: '='
-    },
-    link: function(scope) {
-      scope.mergedAccounts = [];
+module.exports = angular
+  .module('spinnaker.core.account.accountSelectField.directive', [
+    require('./account.service.js'),
+  ])
+  .directive('accountSelectField', function() {
+    return {
+      restrict: 'E',
+      templateUrl: require('./accountSelectField.directive.html'),
+      controller: 'AccountSelectFieldCtrl',
+      controllerAs: 'vm',
+      scope: {},
+      bindToController: {
+        accounts: '=',
+        component: '=',
+        field: '@',
+        provider: '=',
+        loading: '=',
+        onChange: '&',
+        labelColumns: '@',
+        labelAlign: '@',
+        readOnly: '=',
+        multiselect: '='
+      },
+    };
+  })
+  .controller('AccountSelectFieldCtrl', function($scope, $q, _, accountService) {
+    this.mergedAccounts = [];
 
-      function groupAccounts(accounts) {
-        let getAccountDetails = scope.provider ?
-          accountService.getAllAccountDetailsForProvider(scope.provider) :
-          $q.when([]);
-
-        getAccountDetails.then((details) => {
-          let accountNames = accounts;
-
-          if (accounts && accounts[0] && accounts[0].name) {
-            accountNames = _.pluck(accounts, 'name');
-          }
-          scope.mergedAccounts = accountNames;
-          if (accountNames) {
-            scope.primaryAccounts = accountNames.sort();
-          }
-          if (accountNames && accountNames.length && details.length) {
-            scope.primaryAccounts = accountNames.filter(function(account) {
-              return details.some((detail) => detail.name === account && detail.primaryAccount);
-            }).sort();
-            scope.secondaryAccounts = _.xor(accountNames, scope.primaryAccounts).sort();
-            scope.mergedAccounts = _.flatten([scope.primaryAccounts, scope.secondaryAccounts]);
-          }
-        });
+    let groupAccounts = (accounts) => {
+      if (!accounts || !accounts.length) {
+        return;
+      }
+      let accountsAreObjects = accounts[0].name;
+      let getAccountDetails = this.provider ? accountService.getAllAccountDetailsForProvider(this.provider) : $q.when([]);
+      if (!this.provider && accountsAreObjects) {
+        let providers = _.uniq(_.pluck(accounts, 'type'));
+        getAccountDetails = $q.all(providers.map(accountService.getAllAccountDetailsForProvider))
+          .then((details) => _.flatten(details));
       }
 
-      scope.groupBy = function(account) {
-        if(scope.secondaryAccounts && scope.secondaryAccounts.indexOf(account) > -1) {
-          return '---------------';
+      getAccountDetails.then((details) => {
+        let accountNames = accountsAreObjects ? _.pluck(accounts, 'name') : accounts;
+        this.mergedAccounts = accountNames;
+        if (accountNames) {
+          this.primaryAccounts = accountNames.sort();
         }
-
-        if(scope.primaryAccounts.indexOf(account) > -1) {
-          return undefined;
+        if (accountNames && accountNames.length && details.length) {
+          this.primaryAccounts = accountNames.filter(function(account) {
+            return details.some((detail) => detail.name === account && detail.primaryAccount);
+          }).sort();
+          this.secondaryAccounts = _.xor(accountNames, this.primaryAccounts).sort();
+          this.mergedAccounts = _.flatten([this.primaryAccounts, this.secondaryAccounts]);
         }
-      };
+      });
+    };
 
-      scope.$watch('accounts', groupAccounts);
-    }
-  };
-}).name;
+    this.groupBy = (account) => {
+      if (this.secondaryAccounts && this.secondaryAccounts.indexOf(account) > -1) {
+        return '---------------';
+      }
+
+      if (this.primaryAccounts.indexOf(account) > -1) {
+        return undefined;
+      }
+    };
+
+    $scope.$watch(() => this.accounts, groupAccounts);
+  }).name;

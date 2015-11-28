@@ -1,23 +1,23 @@
-<div ng-if="!multiselect">
+<div ng-if="!vm.multiselect">
 <select class="form-control input-sm"
-        ng-model="component[field]"
-        ng-change="onChange()"
-        ng-if="!readOnly"
+        ng-model="vm.component[vm.field]"
+        ng-change="vm.onChange()"
+        ng-if="!vm.readOnly"
         required>
-  <option ng-repeat="account in primaryAccounts" value="{{account}}" ng-selected="component[field] === account">{{account}}</option>
-  <option ng-if="primaryAccounts.length && secondaryAccounts.length" disabled>---------------</option>
-  <option ng-repeat="account in secondaryAccounts" value="{{account}}" ng-selected="component[field] === account">{{account}}</option>
+  <option ng-repeat="account in vm.primaryAccounts" value="{{account}}" ng-selected="vm.component[vm.field] === account">{{account}}</option>
+  <option ng-if="vm.primaryAccounts.length && vm.secondaryAccounts.length" disabled>---------------</option>
+  <option ng-repeat="account in vm.secondaryAccounts" value="{{account}}" ng-selected="vm.component[vm.field] === account">{{account}}</option>
 </select>
 
-  <p class="form-control-static" ng-if="readOnly">{{component[field]}}</p>
+  <p class="form-control-static" ng-if="readOnly">{{vm.component[vm.field]}}</p>
 </div>
 
-<div ng-if="multiselect">
-  <ui-select multiple required name="accounts" ng-model="component[field]" class="form-control input-sm" style="width:200px" >
+<div ng-if="vm.multiselect">
+  <ui-select multiple required name="vm.accounts" ng-model="vm.component[vm.field]" class="form-control input-sm" style="width:200px" >
     <ui-select-match >
       {{$item}}
     </ui-select-match>
-    <ui-select-choices group-by="groupBy" repeat="account in mergedAccounts | filter: $select.search">
+    <ui-select-choices group-by="vm.groupBy" repeat="account in vm.mergedAccounts | filter: $select.search">
         {{account}}
     </ui-select-choices>
   </ui-select>
