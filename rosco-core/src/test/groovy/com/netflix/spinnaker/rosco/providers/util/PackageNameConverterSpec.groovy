@@ -84,12 +84,12 @@ class PackageNameConverterSpec extends Specification {
       def parsedDebPackageName = PackageNameConverter.parseDebPackageName(debPackageName)
       def parsedRpmPackageName = PackageNameConverter.parseRpmPackageName(rpmPackageName)
       def appVersionStrFromDebPackageName = PackageNameConverter.buildAppVersionStr(
-        new BakeRequest(base_os: BakeRequest.OperatingSystem.ubuntu,
+        new BakeRequest(base_os: "ubuntu",
                         build_number: "12",
                         commit_hash: "170cdbd"),
         parsedDebPackageName)
       def appVersionStrFromRpmPackageName = PackageNameConverter.buildAppVersionStr(
-        new BakeRequest(base_os: BakeRequest.OperatingSystem.centos,
+        new BakeRequest(base_os: "centos",
                         build_number: "12",
                         commit_hash: "170cdbd"),
         parsedRpmPackageName)
@@ -104,13 +104,14 @@ class PackageNameConverterSpec extends Specification {
     setup:
       def debPackageName = "nflx-djangobase-enhanced_0.1-h123.170cdbd_all"
       def appVersionStr = "nflx-djangobase-enhanced-0.1-h123.170cdbd/some-job-name/123"
-      def bakeRequest = new BakeRequest(base_os: BakeRequest.OperatingSystem.ubuntu,
+      def packageType = BakeRequest.PackageType.DEB
+      def bakeRequest = new BakeRequest(base_os: "ubuntu",
                                         job: "some-job-name",
                                         build_number: "123",
                                         commit_hash: "170cdbd")
 
     when:
-      def parsedDebPackageName = PackageNameConverter.buildOsPackageName(bakeRequest, debPackageName)
+      def parsedDebPackageName = PackageNameConverter.buildOsPackageName(packageType, debPackageName)
       def appVersionStrFromDebPackageName = PackageNameConverter.buildAppVersionStr(bakeRequest, parsedDebPackageName)
 
     then:
@@ -120,13 +121,14 @@ class PackageNameConverterSpec extends Specification {
   void "if job is missing, app version string leaves off both job and build_number"() {
     setup:
       def debPackageName = "nflx-djangobase-enhanced_0.1-h12.170cdbd_all"
+      def packageType = BakeRequest.PackageType.DEB
       def appVersionStr = "nflx-djangobase-enhanced-0.1-h12.170cdbd"
 
     when:
-      def bakeRequest = new BakeRequest(base_os: BakeRequest.OperatingSystem.ubuntu,
+      def bakeRequest = new BakeRequest(base_os: "ubuntu",
                                         build_number: "12",
                                         commit_hash: "170cdbd")
-      def parsedDebPackageName = PackageNameConverter.buildOsPackageName(bakeRequest, debPackageName)
+      def parsedDebPackageName = PackageNameConverter.buildOsPackageName(packageType, debPackageName)
       def appVersionStrFromDebPackageName = PackageNameConverter.buildAppVersionStr(bakeRequest, parsedDebPackageName)
 
     then:

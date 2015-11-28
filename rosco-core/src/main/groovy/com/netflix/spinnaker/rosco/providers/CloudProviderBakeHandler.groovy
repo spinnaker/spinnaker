@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.rosco.providers
 
 import com.netflix.spinnaker.rosco.api.Bake
+import com.netflix.spinnaker.rosco.api.BakeOptions
+import com.netflix.spinnaker.rosco.api.BakeOptions.BaseImage
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
@@ -36,6 +38,16 @@ abstract class CloudProviderBakeHandler {
 
   @Value('${debianRepository:}')
   String debianRepository
+
+  /**
+   * @return A cloud provider-specific set of defaults.
+   */
+  abstract def getBakeryDefaults()
+
+  /**
+   * @return A BakeOptions object describing what options are available for this specific cloud provider.
+   */
+  abstract BakeOptions getBakeOptions()
 
   /**
    * Build provider-specific key used to determine uniqueness. If a prior (or in-flight) bake exists
@@ -86,7 +98,8 @@ abstract class CloudProviderBakeHandler {
   List<String> producePackerCommand(String region, BakeRequest bakeRequest) {
     def virtualizationSettings = findVirtualizationSettings(region, bakeRequest)
 
-    def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest)
+    BakeOptions.Selected selectedOptions = new BakeOptions.Selected(baseImage: findBaseImage(bakeRequest))
+    def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest, selectedOptions)
 
     def parameterMap = buildParameterMap(region, virtualizationSettings, imageName)
 
@@ -110,4 +123,13 @@ abstract class CloudProviderBakeHandler {
     return packerCommandFactory.buildPackerCommand(baseCommand, parameterMap, "$configDir/$templateFileName")
   }
 
+  BaseImage findBaseImage(BakeRequest bakeRequest) {
+    def osVirtualizationSettings = getBakeryDefaults().baseImages.find {
+      it.baseImage.id == bakeRequest.base_os
+    }
+    if (!osVirtualizationSettings) {
+      throw new IllegalArgumentException("No virtualization settings found for '$bakeRequest.base_os'.")
+    }
+    return osVirtualizationSettings.baseImage
+  }
 }

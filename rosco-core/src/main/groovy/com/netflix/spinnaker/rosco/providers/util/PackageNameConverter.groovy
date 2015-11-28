@@ -80,15 +80,14 @@ class PackageNameConverter {
     osPackageName
   }
 
-  public static OsPackageName buildOsPackageName(BakeRequest bakeRequest, String packageName) {
-    BakeRequest.PackageType packageType = bakeRequest.base_os.packageType
-
-    if (packageType == BakeRequest.PackageType.DEB) {
-      return PackageNameConverter.parseDebPackageName(packageName)
-    } else if (packageType == BakeRequest.PackageType.RPM) {
-      return PackageNameConverter.parseRpmPackageName(packageName)
-    } else {
-      throw new IllegalArgumentException("Unrecognized packageType '$packageType'.")
+  public static OsPackageName buildOsPackageName(BakeRequest.PackageType packageType, String packageName) {
+    switch(packageType) {
+      case BakeRequest.PackageType.DEB:
+        return PackageNameConverter.parseDebPackageName(packageName)
+      case BakeRequest.PackageType.RPM:
+        return PackageNameConverter.parseRpmPackageName(packageName)
+      default:
+        throw new IllegalArgumentException("Unrecognized packageType '$packageType'.")
     }
   }
 

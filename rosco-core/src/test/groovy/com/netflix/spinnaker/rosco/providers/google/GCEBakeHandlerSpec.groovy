@@ -48,13 +48,19 @@ class GCEBakeHandlerSpec extends Specification {
     def gceBakeryDefaultsJson = [
       zone: "us-central1-a",
       templateFile: "gce_template.json",
-      operatingSystemVirtualizationSettings: [
+      baseImages: [
         [
-          os: "ubuntu",
+          baseImage: [
+            id: "ubuntu",
+            packageType: "DEB",
+          ],
           virtualizationSettings: [sourceImage: SOURCE_UBUNTU_IMAGE_NAME]
         ],
         [
-          os: "trusty",
+          baseImage: [
+            id: "trusty",
+            packageType: "DEB",
+          ],
           virtualizationSettings: [sourceImage: SOURCE_TRUSTY_IMAGE_NAME]
         ]
       ]
@@ -139,7 +145,7 @@ class GCEBakeHandlerSpec extends Specification {
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
-                                        base_os: BakeRequest.OperatingSystem.ubuntu,
+                                        base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
       def targetImageName = "kato-x8664-timestamp-ubuntu"
       def parameterMap = [
@@ -164,7 +170,7 @@ class GCEBakeHandlerSpec extends Specification {
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest) >> [targetImageName, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
   }
 
@@ -174,7 +180,7 @@ class GCEBakeHandlerSpec extends Specification {
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
-                                        base_os: BakeRequest.OperatingSystem.trusty,
+                                        base_os: "trusty",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
       def targetImageName = "kato-x8664-timestamp-trusty"
       def parameterMap = [
@@ -199,7 +205,7 @@ class GCEBakeHandlerSpec extends Specification {
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest) >> [targetImageName, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
   }
 
@@ -212,7 +218,7 @@ class GCEBakeHandlerSpec extends Specification {
       def buildHost = "http://some-build-server:8080"
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: fullyQualifiedPackageName,
-                                        base_os: BakeRequest.OperatingSystem.trusty,
+                                        base_os: "trusty",
                                         build_host: buildHost,
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
       def targetImageName = "kato-x8664-timestamp-trusty"
@@ -240,7 +246,7 @@ class GCEBakeHandlerSpec extends Specification {
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest) >>
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >>
         [targetImageName, appVersionStr, fullyQualifiedPackageName]
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
   }
@@ -251,7 +257,7 @@ class GCEBakeHandlerSpec extends Specification {
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
-                                        base_os: BakeRequest.OperatingSystem.centos,
+                                        base_os: "centos",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
 
       @Subject
@@ -274,7 +280,7 @@ class GCEBakeHandlerSpec extends Specification {
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
-                                        base_os: BakeRequest.OperatingSystem.trusty,
+                                        base_os: "trusty",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
       def targetImageName = "kato-x8664-timestamp-trusty"
 
@@ -289,7 +295,7 @@ class GCEBakeHandlerSpec extends Specification {
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-    1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest) >> [targetImageName, null, PACKAGE_NAME]
+    1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
       IllegalArgumentException e = thrown()
       e.message == "No Google account specified for bakery."
   }

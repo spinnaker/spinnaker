@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.rosco.controllers
 
 import com.netflix.spinnaker.rosco.api.Bake
+import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.api.BakeStatus
 import com.netflix.spinnaker.rosco.persistence.BakeStore
@@ -27,12 +28,14 @@ import com.netflix.spinnaker.rosco.rush.api.ScriptExecution
 import com.netflix.spinnaker.rosco.rush.api.ScriptRequest
 import com.wordnik.swagger.annotations.ApiOperation
 import com.wordnik.swagger.annotations.ApiParam
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/api/v1")
+@Slf4j
 class BakeryController {
 
   @Autowired
@@ -50,7 +53,27 @@ class BakeryController {
   @Value('${defaultCloudProviderType:aws}')
   BakeRequest.CloudProviderType defaultCloudProviderType
 
-  @RequestMapping(value = '/{region}/bake', method = RequestMethod.POST)
+  @RequestMapping(value = '/bakeOptions', method = RequestMethod.GET)
+  List<BakeOptions> bakeOptions() {
+    cloudProviderBakeHandlerRegistry.list().collect { it.getBakeOptions() }
+  }
+
+  @RequestMapping(value = '/bakeOptions/{cloudProvider}', method = RequestMethod.GET)
+  BakeOptions bakeOptionsByCloudProvider(@PathVariable("cloudProvider") BakeRequest.CloudProviderType cloudProvider) {
+    def bakeHandler = cloudProviderBakeHandlerRegistry.lookup(cloudProvider)
+    if (!bakeHandler) {
+      throw new BakeOptions.Exception("cloud provider $cloudProvider not found")
+    }
+    return bakeHandler.getBakeOptions()
+  }
+
+  @ExceptionHandler
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  Map handleBakeOptionsException(BakeOptions.Exception _) {
+    [error: "bake.options.not.found", status: HttpStatus.NOT_FOUND, message: "Bake options not found"]
+  }
+
+  @RequestMapping(value = '/api/v1/{region}/bake', method = RequestMethod.POST)
   BakeStatus createBake(@PathVariable("region") String region,
                         @RequestBody BakeRequest bakeRequest,
                         @RequestParam(value = "rebake", defaultValue = "0") String rebake) {
@@ -99,7 +122,7 @@ class BakeryController {
         }
 
         throw new IllegalArgumentException("Unable to acquire lock and unable to determine id of lock holder for bake " +
-                                           "key '$bakeKey'.")
+          "key '$bakeKey'.")
       }
     } else {
       throw new IllegalArgumentException("Unknown provider type '$bakeRequest.cloud_provider_type'.")
@@ -129,7 +152,7 @@ class BakeryController {
     return bakeStore.storeNewBakeStatus(bakeKey, region, bakeRequest, scriptId.id)
   }
 
-  @RequestMapping(value = "/{region}/status/{statusId}", method = RequestMethod.GET)
+  @RequestMapping(value = "/api/v1/{region}/status/{statusId}", method = RequestMethod.GET)
   BakeStatus lookupStatus(@PathVariable("region") String region, @PathVariable("statusId") String statusId) {
     def bakeStatus = bakeStore.retrieveBakeStatusById(statusId)
 
@@ -141,9 +164,9 @@ class BakeryController {
   }
 
   @ApiOperation(value = "Look up a bake", notes = "Some longer description of looking up a bake.")
-  @RequestMapping(value = "/{region}/bake/{bakeId}", method = RequestMethod.GET)
-  Bake lookupBake(@ApiParam(value="The region of the bake to lookup", required=true) @PathVariable("region") String region,
-                  @ApiParam(value="The id of the bake to lookup", required=true) @PathVariable("bakeId") String bakeId) {
+  @RequestMapping(value = "/api/v1/{region}/bake/{bakeId}", method = RequestMethod.GET)
+  Bake lookupBake(@ApiParam(value = "The region of the bake to lookup", required = true) @PathVariable("region") String region,
+                  @ApiParam(value = "The id of the bake to lookup", required = true) @PathVariable("bakeId") String bakeId) {
     def bake = bakeStore.retrieveBakeDetailsById(bakeId)
 
     if (bake) {
@@ -154,7 +177,7 @@ class BakeryController {
   }
 
   // TODO(duftler): Synchronize this with existing bakery api.
-  @RequestMapping(value = "/{region}/logs/{statusId}", method = RequestMethod.GET)
+  @RequestMapping(value = "/api/v1/{region}/logs/{statusId}", method = RequestMethod.GET)
   String lookupLogs(@PathVariable("region") String region,
                     @PathVariable("statusId") String statusId,
                     @RequestParam(value = "html", defaultValue = "false") Boolean html) {
@@ -169,7 +192,7 @@ class BakeryController {
   }
 
   // TODO(duftler): Synchronize this with existing bakery api.
-  @RequestMapping(value = '/{region}/bake', method = RequestMethod.DELETE)
+  @RequestMapping(value = '/api/v1/{region}/bake', method = RequestMethod.DELETE)
   String deleteBake(@PathVariable("region") String region, @RequestBody BakeRequest bakeRequest) {
     if (!bakeRequest.cloud_provider_type) {
       bakeRequest = bakeRequest.copyWith(cloud_provider_type: defaultCloudProviderType)
@@ -191,7 +214,7 @@ class BakeryController {
   }
 
   // TODO(duftler): Synchronize this with existing bakery api.
-  @RequestMapping(value = "/{region}/cancel/{statusId}", method = RequestMethod.GET)
+  @RequestMapping(value = "/api/v1/{region}/cancel/{statusId}", method = RequestMethod.GET)
   String cancelBake(@PathVariable("region") String region, @PathVariable("statusId") String statusId) {
     if (bakeStore.cancelBakeById(statusId)) {
       return "Canceled bake '$statusId'."

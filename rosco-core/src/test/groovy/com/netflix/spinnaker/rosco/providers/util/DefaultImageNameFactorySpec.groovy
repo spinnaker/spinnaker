@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.rosco.providers.util
 
+import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import spock.lang.Specification
 
@@ -27,13 +28,14 @@ class DefaultImageNameFactorySpec extends Specification {
     setup:
       def clockMock = Mock(Clock)
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
+      def selectedOptions = new BakeOptions.Selected(baseImage: new BakeOptions.BaseImage(id: "ubuntu", packageType: "DEB"))
       def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced_0.1-3_all",
                                         build_number: "12",
                                         commit_hash: "170cdbd",
-                                        base_os: BakeRequest.OperatingSystem.ubuntu)
+                                        base_os: "ubuntu")
 
     when:
-      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest)
+      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest, selectedOptions)
 
     then:
       1 * clockMock.millis() >> 123456
@@ -46,12 +48,13 @@ class DefaultImageNameFactorySpec extends Specification {
     setup:
       def clockMock = Mock(Clock)
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
+      def selectedOptions = new BakeOptions.Selected(baseImage: new BakeOptions.BaseImage(id: "ubuntu", packageType: "DEB"))
       def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced_0.1-3_all",
                                         build_number: "12",
-                                        base_os: BakeRequest.OperatingSystem.ubuntu)
+                                        base_os: "ubuntu")
 
     when:
-      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest)
+      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest, selectedOptions)
 
     then:
       1 * clockMock.millis() >> 123456
@@ -64,11 +67,12 @@ class DefaultImageNameFactorySpec extends Specification {
     setup:
       def clockMock = Mock(Clock)
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
+      def selectedOptions = new BakeOptions.Selected(baseImage: new BakeOptions.BaseImage(id: "ubuntu", packageType: "DEB"))
       def bakeRequest = new BakeRequest(package_name: "reno-server",
-                                        base_os: BakeRequest.OperatingSystem.ubuntu)
+                                        base_os: "ubuntu")
 
     when:
-      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest)
+      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest, selectedOptions)
 
     then:
       1 * clockMock.millis() >> 123456
@@ -81,13 +85,14 @@ class DefaultImageNameFactorySpec extends Specification {
     setup:
       def clockMock = Mock(Clock)
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
+      def selectedOptions = new BakeOptions.Selected(baseImage: new BakeOptions.BaseImage(id: "ubuntu", packageType: "DEB"))
       def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced_0.1-3_all kato redis-server",
                                         build_number: "12",
                                         commit_hash: "170cdbd",
-                                        base_os: BakeRequest.OperatingSystem.ubuntu)
+                                        base_os: "ubuntu")
 
     when:
-      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest)
+      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest, selectedOptions)
 
     then:
       1 * clockMock.millis() >> 123456
@@ -100,13 +105,14 @@ class DefaultImageNameFactorySpec extends Specification {
     setup:
       def clockMock = Mock(Clock)
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
+      def selectedOptions = new BakeOptions.Selected(baseImage: new BakeOptions.BaseImage(id: "ubuntu", packageType: "DEB"))
       def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced_0.1-3_all some-package_0.3-h15.290fcab_all",
                                         build_number: "12",
                                         commit_hash: "170cdbd",
-                                        base_os: BakeRequest.OperatingSystem.ubuntu)
+                                        base_os: "ubuntu")
 
     when:
-      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest)
+      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest, selectedOptions)
 
     then:
       1 * clockMock.millis() >> 123456
@@ -119,11 +125,12 @@ class DefaultImageNameFactorySpec extends Specification {
     setup:
       def clockMock = Mock(Clock)
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
+      def selectedOptions = new BakeOptions.Selected(baseImage: new BakeOptions.BaseImage(id: "ubuntu", packageType: "DEB"))
       def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced_0.1-3_all",
-                                        base_os: BakeRequest.OperatingSystem.ubuntu)
+                                        base_os: "ubuntu")
 
     when:
-      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest)
+      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest, selectedOptions)
 
     then:
       1 * clockMock.millis() >> 123456
@@ -136,13 +143,14 @@ class DefaultImageNameFactorySpec extends Specification {
     setup:
       def clockMock = Mock(Clock)
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
+      def selectedOptions = new BakeOptions.Selected(baseImage: new BakeOptions.BaseImage(id: "centos", packageType: "RPM"))
       def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced-0.1-3-all",
                                         build_number: "12",
                                         commit_hash: "170cdbd",
-                                        base_os: BakeRequest.OperatingSystem.centos)
+                                        base_os: "centos")
 
     when:
-      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest)
+      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest, selectedOptions)
 
     then:
       1 * clockMock.millis() >> 123456
@@ -155,12 +163,13 @@ class DefaultImageNameFactorySpec extends Specification {
     setup:
       def clockMock = Mock(Clock)
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
+      def selectedOptions = new BakeOptions.Selected(baseImage: new BakeOptions.BaseImage(id: "centos", packageType: "RPM"))
       def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced-0.1-3-all",
                                         build_number: "12",
-                                        base_os: BakeRequest.OperatingSystem.centos)
+                                        base_os: "centos")
 
     when:
-      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest)
+      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest, selectedOptions)
 
     then:
       1 * clockMock.millis() >> 123456
@@ -173,13 +182,14 @@ class DefaultImageNameFactorySpec extends Specification {
     setup:
       def clockMock = Mock(Clock)
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
+      def selectedOptions = new BakeOptions.Selected(baseImage: new BakeOptions.BaseImage(id: "centos", packageType: "RPM"))
       def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced-0.1-3-all kato redis-server",
                                         build_number: "12",
                                         commit_hash: "170cdbd",
-                                        base_os: BakeRequest.OperatingSystem.centos)
+                                        base_os: "centos")
 
     when:
-      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest)
+      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest, selectedOptions)
 
     then:
       1 * clockMock.millis() >> 123456
@@ -192,11 +202,12 @@ class DefaultImageNameFactorySpec extends Specification {
     setup:
       def clockMock = Mock(Clock)
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
+      def selectedOptions = new BakeOptions.Selected(baseImage: new BakeOptions.BaseImage(id: "centos", packageType: "RPM"))
       def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced-0.1-3-all kato redis-server",
-                                        base_os: BakeRequest.OperatingSystem.centos)
+                                        base_os: "centos")
 
     when:
-      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest)
+      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest, selectedOptions)
 
     then:
       1 * clockMock.millis() >> 123456

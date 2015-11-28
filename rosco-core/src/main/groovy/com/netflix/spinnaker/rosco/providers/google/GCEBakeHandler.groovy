@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.rosco.providers.google
 
 import com.netflix.spinnaker.rosco.api.Bake
+import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.google.config.RoscoGoogleConfiguration
@@ -36,6 +37,19 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
   RoscoGoogleConfiguration.GoogleConfigurationProperties googleConfigurationProperties
 
   @Override
+  def getBakeryDefaults() {
+    return gceBakeryDefaults
+  }
+
+  @Override
+  BakeOptions getBakeOptions() {
+    new BakeOptions(
+      cloudProvider: BakeRequest.CloudProviderType.gce,
+      baseImages: gceBakeryDefaults?.baseImages?.collect { it.baseImage }
+    )
+  }
+
+  @Override
   String produceBakeKey(String region, BakeRequest bakeRequest) {
     // TODO(duftler): Work through definition of uniqueness.
     bakeRequest.with {
@@ -45,8 +59,8 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
 
   @Override
   def findVirtualizationSettings(String region, BakeRequest bakeRequest) {
-    def virtualizationSettings = gceBakeryDefaults?.operatingSystemVirtualizationSettings.find {
-      it.os == bakeRequest.base_os
+    def virtualizationSettings = gceBakeryDefaults?.baseImages.find {
+      it.baseImage.id == bakeRequest.base_os
     }?.virtualizationSettings
 
     if (!virtualizationSettings) {
@@ -65,8 +79,8 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
     }
 
     def parameterMap = [
-      gce_project_id:   managedGoogleAccount.project,
-      gce_zone:         gceBakeryDefaults.zone,
+      gce_project_id  : managedGoogleAccount.project,
+      gce_zone        : gceBakeryDefaults.zone,
       gce_source_image: gceVirtualizationSettings.sourceImage,
       gce_target_image: imageName
     ]
@@ -106,4 +120,5 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
 
     return new Bake(id: bakeId, image_name: imageName)
   }
+
 }

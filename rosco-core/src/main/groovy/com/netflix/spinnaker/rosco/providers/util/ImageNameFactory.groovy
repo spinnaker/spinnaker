@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.rosco.providers.util
 
+import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
 
 interface ImageNameFactory {
@@ -40,6 +41,6 @@ interface ImageNameFactory {
    *
    * Returns [imageName, appVersionStr, packagesParameter].
    */
-  def deriveImageNameAndAppVersion(BakeRequest bakeRequest)
+  def deriveImageNameAndAppVersion(BakeRequest bakeRequest, BakeOptions.Selected selectedOptions)
 
 }

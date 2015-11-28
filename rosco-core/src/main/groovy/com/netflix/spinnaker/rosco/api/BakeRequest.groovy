@@ -46,7 +46,7 @@ class BakeRequest {
   @ApiModelProperty("The target platform")
   CloudProviderType cloud_provider_type
   Label base_label
-  OperatingSystem base_os
+  String base_os
   String base_name
   String base_ami
   VmType vm_type
@@ -81,20 +81,6 @@ class BakeRequest {
 
     String getVersionDelimiter() {
       return this.versionDelimiter
-    }
-  }
-
-  static enum OperatingSystem {
-
-    centos(PackageType.RPM), ubuntu(PackageType.DEB), trusty(PackageType.DEB)
-
-    private final PackageType packageType
-    private OperatingSystem(PackageType packageType) {
-      this.packageType = packageType
-    }
-
-    PackageType getPackageType() {
-      return packageType
     }
   }
 
