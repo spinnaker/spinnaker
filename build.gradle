@@ -21,7 +21,7 @@ buildscript {
     maven { url 'http://dl.bintray.com/spinnaker/gradle/' }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.3.0'
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.5.0'
   }
 }
 
