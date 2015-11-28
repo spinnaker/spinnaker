@@ -1,0 +1,13 @@
+dependencies {
+  compile spinnaker.dependency('groovy')
+  compile spinnaker.dependency('spectatorApi')
+
+  compile "org.springframework:spring-context:${spinnaker.version('spring')}"
+  compile "org.springframework:spring-beans:${spinnaker.version('spring')}"
+  compile 'com.netflix.hystrix:hystrix-core:1.4.21'
+  compile 'com.netflix.hystrix:hystrix-javanica:1.4.21'
+
+  spinnaker.group('spockBase')
+}
+
+apply plugin: 'groovy'
