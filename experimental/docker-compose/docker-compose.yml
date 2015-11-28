@@ -1,23 +1,14 @@
 clouddriver: 
   container_name: clouddriver
-  env_file: ./compose.env
   environment: 
-    - AWS_ACCESS_KEY_ID
-    - AWS_SECRET_ACCESS_KEY
-    - CF_ACCOUNT_USERNAME
-    - CF_ACCOUNT_PASSWORD
-    - "SERVICES_FRONT50_BASEURL=http://$DOCKER_IP:8080"  
+    - "SERVICES_FRONT50_BASEURL=http://$DOCKER_IP:8080"
   image: spinnaker/clouddriver
   links: 
     - redis
   ports: 
     - "7002:7002"
-  volumes: 
-    - "../../config:/opt/spinnaker/config"
-    - "~/.aws:/root/.aws"
 echo: 
   container_name: echo
-  env_file: ./compose.env
   environment: 
     - "FRONT50_BASEURL=http://$DOCKER_IP:8080"
     - "ORCA_BASEURL=http://$DOCKER_IP:8083"
@@ -25,38 +16,31 @@ echo:
   image: spinnaker/echo
   ports: 
     - "8089:8089"
-  volumes: 
-    - "../../config:/opt/spinnaker/config"
 front50: 
   container_name: front50
-  env_file: ./compose.env
-  environment:
+  environment: 
     - "JAVA_OPTS=-javaagent:/opt/front50/lib/jamm-0.2.5.jar"
   image: spinnaker/front50
   ports: 
     - "8080:8080"
-  volumes: 
-    - "../../config:/opt/spinnaker/config"
-frontend: 
+deck: 
   container_name: deck
   environment: 
-    - "API_HOST=$DOCKER_IP:8084"
+    - "API_HOST=http://$DOCKER_IP:8084"
     - DECK_HOST=0.0.0.0
     - DECK_PORT=9000
     - PROTOCOL=http
-    - AUTH=false
   image: spinnaker/deck
   ports: 
     - "9000:9000"
 gate: 
   container_name: gate
-  env_file: ./compose.env
   environment: 
-    - "SERVICES_CLOUDDRIVER_HOST=clouddriver"
-    - "SERVICES_ECHO_HOST=echo"
-    - "SERVICES_FRONT50_HOST=front50"
-    - "SERVICES_IGOR_HOST=igor"
-    - "SERVICES_ORCA_HOST=orca"
+    - SERVICES_CLOUDDRIVER_HOST=clouddriver
+    - SERVICES_ECHO_HOST=echo
+    - SERVICES_FRONT50_HOST=front50
+    - SERVICES_IGOR_HOST=igor
+    - SERVICES_ORCA_HOST=orca
   image: spinnaker/gate
   links: 
     - redis
@@ -67,29 +51,23 @@ gate:
     - orca
   ports: 
     - "8084:8084"
-  volumes: 
-    - "../../config:/opt/spinnaker/config"
 igor: 
   container_name: igor
-  env_file: ./compose.env
   environment: 
-    - "SERVICES_ECHO_HOST=echo"
+    - SERVICES_ECHO_HOST=echo
   image: spinnaker/igor
   links: 
     - redis
     - echo
   ports: 
     - "8088:8088"
-  volumes: 
-    - "../../config:/opt/spinnaker/config"
 orca: 
   container_name: orca
-  env_file: ./compose.env
   environment: 
-    - "SERVICES_CLOUDDRIVER_HOST=clouddriver"
-    - "SERVICES_ECHO_HOST=echo"
-    - "SERVICES_FRONT50_HOST=front50"
-    - "SERVICES_IGOR_HOST=igor"
+    - SERVICES_CLOUDDRIVER_HOST=clouddriver
+    - SERVICES_ECHO_HOST=echo
+    - SERVICES_FRONT50_HOST=front50
+    - SERVICES_IGOR_HOST=igor
   image: spinnaker/orca
   links: 
     - redis
@@ -99,34 +77,26 @@ orca:
     - igor
   ports: 
     - "8083:8083"
-  volumes: 
-    - "../../config:/opt/spinnaker/config"
 redis: 
-  container_name: redis
   command: "redis-server --appendonly yes"
+  container_name: redis
   expose: 
     - "6379"
   image: redis
 rosco: 
   container_name: rosco
-  env_file: ./compose.env
-  environment:
-    - "SERVICES_RUSH_HOST=rush"
+  environment: 
+    - SERVICES_RUSH_HOST=rush
   image: spinnaker/rosco
+  links: 
+    - redis
+    - rush
   ports: 
     - "8087:8087"
-  volumes: 
-    - "../../config:/opt/spinnaker/config"
-  links:
-    - "redis"
-    - "rush"
 rush: 
   container_name: rush
-  env_file: ./compose.env
   environment: 
     - "JAVA_OPTS=-javaagent:/opt/rush/lib/jamm-0.2.5.jar"
   image: spinnaker/rush
   ports: 
     - "8085:8085"
-  volumes: 
-    - "../../config:/opt/spinnaker/config"
