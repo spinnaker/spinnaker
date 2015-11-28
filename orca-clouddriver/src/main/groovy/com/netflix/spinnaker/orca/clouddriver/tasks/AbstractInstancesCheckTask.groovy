@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
 import groovy.util.logging.Slf4j
@@ -40,6 +40,12 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
 
   @Autowired
   ObjectMapper objectMapper
+
+  @Autowired
+  ServerGroupCacheForceRefreshTask serverGroupCacheForceRefreshTask
+
+  @Autowired
+  OortHelper oortHelper
 
   /**
    * @return A map of location (region or zone) --> list of serverGroup properties.
@@ -73,7 +79,7 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
         String zones = serverGroup.zones ?: []
         String name = serverGroup.name
 
-        def matches = serverGroups.find {String location, List<String> sgName ->
+        def matches = serverGroups.find { String location, List<String> sgName ->
           return (region == location || zones.contains(location)) && sgName.contains(name)
         }
         if (!matches) {
@@ -91,10 +97,10 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
           if (seenServerGroup && !stage.context.capacitySnapshot) {
             newContext = [
               zeroDesiredCapacityCount: 0,
-              capacitySnapshot: [
-                minSize: serverGroup.capacity.min,
+              capacitySnapshot        : [
+                minSize        : serverGroup.capacity.min,
                 desiredCapacity: serverGroup.capacity.desired,
-                maxSize: serverGroup.capacity.max
+                maxSize        : serverGroup.capacity.max
               ]
             ]
           }
@@ -108,6 +114,9 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
           return new DefaultTaskResult(ExecutionStatus.RUNNING, newContext)
         }
       }
+
+      verifyServerGroupsExist(stage)
+
       if (seenServerGroup.values().contains(false)) {
         new DefaultTaskResult(ExecutionStatus.RUNNING)
       } else {
@@ -126,4 +135,24 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
     }
   }
 
+  /**
+   * Assert that the server groups being acted upon still exist.
+   *
+   * Will raise an exception in the event that a server group is being modified and is destroyed by an external process.
+   */
+  void verifyServerGroupsExist(Stage stage) {
+    def forceCacheRefreshResult = serverGroupCacheForceRefreshTask.execute(stage)
+
+    Map<String, List<String>> serverGroups = getServerGroups(stage)
+    String account = getCredentials(stage)
+
+    serverGroups.each { String location, List<String> serverGroupNames ->
+      serverGroupNames.each {
+        if (!oortHelper.getTargetServerGroup(account, it, location, getCloudProvider(stage)).isPresent()) {
+          log.error("Server group '${location}:${it}' does not exist (forceCacheRefreshResult: ${forceCacheRefreshResult.stageOutputs}")
+          throw new IllegalStateException("Server group '${location}:${it}' does not exist")
+        }
+      }
+    }
+  }
 }

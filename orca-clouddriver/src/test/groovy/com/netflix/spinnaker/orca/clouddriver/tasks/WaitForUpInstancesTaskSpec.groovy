@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
@@ -28,7 +29,12 @@ import spock.lang.Unroll
 
 class WaitForUpInstancesTaskSpec extends Specification {
 
-  @Subject task = new WaitForUpInstancesTask()
+  @Subject task = new WaitForUpInstancesTask() {
+    @Override
+    void verifyServerGroupsExist(Stage stage) {
+      // do nothing
+    }
+  }
 
   def mapper = new OrcaObjectMapper()
 

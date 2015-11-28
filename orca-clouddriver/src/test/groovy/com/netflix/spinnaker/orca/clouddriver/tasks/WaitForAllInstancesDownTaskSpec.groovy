@@ -16,8 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
+import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
+import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
@@ -41,7 +44,7 @@ class WaitForAllInstancesDownTaskSpec extends Specification {
         name        : 'front50',
         serverGroups: [
           [
-            region   : 'us-east1',
+            region   : 'us-east-1',
             name     : 'front50-v000',
             asg      : [
               minSize: 1
@@ -58,16 +61,32 @@ class WaitForAllInstancesDownTaskSpec extends Specification {
       task.oortService = Stub(OortService) {
         getCluster(*_) >> new Response('oort', 200, 'ok', [], new TypedString(response))
       }
+      task.serverGroupCacheForceRefreshTask = Mock(ServerGroupCacheForceRefreshTask) {
+        2 * execute(_) >> new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+        0 * _
+      }
+      task.oortHelper = Mock(OortHelper) {
+        1 * getTargetServerGroup("test", "front50-v000", "us-east-1", "aws") >> Optional.of(new TargetServerGroup())
+        1 * getTargetServerGroup("test", "front50-v000", "us-east-1", "aws") >> Optional.empty()
+        0 * _
+      }
 
     and:
       def stage = new PipelineStage(pipeline, 'asgActionWaitForDownInstances', [
         'targetop.asg.disableAsg.name'   : 'front50-v000',
-        'targetop.asg.disableAsg.regions': ['us-east1'],
+        'targetop.asg.disableAsg.regions': ['us-east-1'],
         'account.name'                   : 'test'
       ]).asImmutable()
 
     expect:
       task.execute(stage).status == ExecutionStatus.SUCCEEDED
+
+    when:
+      task.execute(stage)
+
+    then:
+      IllegalStateException e = thrown()
+      e.message.startsWith("Server group 'us-east-1:front50-v000' does not exist")
   }
 
   @Unroll
