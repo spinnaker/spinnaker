@@ -92,6 +92,7 @@ Go to your GCP developers console and click on your instance, then network name 
 * Source IP ranges: the ip address of your local workstation (you can find the ip address of your local workstation via `curl myip4.com`)
 * Allowed protocols and ports: `tcp:8080-9000`
 * Target tags: `docker-machine`
+
 Click "Create".
 
 ## Launch Spinnaker via Docker Compose
