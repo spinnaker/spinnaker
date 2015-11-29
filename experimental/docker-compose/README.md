@@ -85,9 +85,14 @@ chmod 444 /root/spinnakerconfig/*
 ```
 
 ## Configure firewall rules
-This will allow the Spinnaker ports used by docker compose to become available to the outside world.
+This will allow the Spinnaker ports used by docker compose to become available to your workstation.
 
-Go to your GCP admin console and click on your instance, then network name ( mine says default ). Add a firewall rule and put `0.0.0.0/0` in Source and `tcp:8080-9000` in Allowed protocols and ports. Save your firewall rules. 
+Go to your GCP developers console and click on your instance, then network name ( it should say `default` ). Click "Add firewall rule" and fill in the following values:
+* Name: `my-docker-machine`
+* Source IP ranges: the ip address of your local workstation (you can find the ip address of your local workstation via `curl myip4.com`)
+* Allowed protocols and ports: `tcp:8080-9000`
+* Target tags: `docker-machine`
+Click "Create".
 
 ## Launch Spinnaker via Docker Compose
 
