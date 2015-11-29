@@ -37,7 +37,7 @@ Under Kitematic, click on the application 'deck' -> settings -> ports. Click on 
 
 <img src="https://cloud.githubusercontent.com/assets/74310/11158618/4bba7122-8a0e-11e5-83b6-8ff2297562b2.png"/>
 
-Alternatively, you can just enter ```open http://$DOCKER_IP:9000```
+Alternatively, you can just enter ```DOCKER_IP=`docker-machine ip default` && open http://$DOCKER_IP:9000```
 
 # Installing via Docker Compose on the Google Compute Platform
 
@@ -63,17 +63,19 @@ You should see an IP address returned and an instance running in GCP.
 
 ## Copy configuration files to the GCP instance
 
-The next step is to copy over the configuration files from our local machine to our instance.  We'll use the gcloud cli tool to do this. 
+The next step is to copy over the configuration files from our local machine to our instance.  We'll use the `gcloud` cli tool to do this. 
 
-```gcloud compute --project "spinnakergce" copy-files ../../config/* ubuntu@goocker:~/spinnakerconfig --zone "us-central1-a"```
+```gcloud compute ssh --project spinnakergce --zone us-central1-a --command "mkdir /home/ubuntu/spinnakerconfig" ubuntu@goocker```
 
-```gcloud compute --project "spinnakergce" copy-files compose.env ubuntu@goocker:~/spinnakerconfig --zone "us-central1-a"```
+```gcloud compute copy-files --project spinnakergce --zone us-central1-a ../../config/* ubuntu@goocker:~/spinnakerconfig```
+
+```gcloud compute copy-files --project spinnakergce --zone us-central1-a compose.env ubuntu@goocker:~/spinnakerconfig```
 
 Ssh into the box:
 
-```gcloud compute --project "spinnakergce" ssh --zone "us-central1-a" "goocker"```
+```gcloud compute ssh --project spinnakergce --zone us-central1-a ubuntu@goocker```
 
-And move the copied files into /root/spinnakerconfig
+And move the copied files into /root/spinnakerconfig:
 
 ```
 sudo su
