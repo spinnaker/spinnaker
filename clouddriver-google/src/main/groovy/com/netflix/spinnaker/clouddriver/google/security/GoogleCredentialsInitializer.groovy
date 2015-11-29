@@ -71,8 +71,8 @@ class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizab
       try {
         def jsonKey = GoogleCredentialsInitializer.getJsonKey(managedAccount)
         def googleAccount = new GoogleNamedAccountCredentials(managedAccount.name,
-                                                              managedAccount.environment,
-                                                              managedAccount.accountType,
+                                                              managedAccount.environment ?: managedAccount.name,
+                                                              managedAccount.accountType ?: managedAccount.name,
                                                               managedAccount.project,
                                                               jsonKey,
                                                               googleApplicationName)
