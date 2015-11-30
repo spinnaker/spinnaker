@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.igor.jenkins.client
 
+import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
+
 /**
  * Wrapper class for a collection of jenkins clients
  */
 class JenkinsMasters {
 
-    Map<String, JenkinsClient> map
+    Map<String, JenkinsService> map
 
 }
