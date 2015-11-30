@@ -1,0 +1,54 @@
+<div modal-page class="confirmation-modal">
+  <task-monitor monitor="taskMonitor"></task-monitor>
+  <form role="form">
+    <modal-close></modal-close>
+    <div class="modal-header">
+      <h3>Rollback {{serverGroup.name}}</h3>
+    </div>
+    <div class="modal-body confirmation-modal">
+      <div class="row">
+        <div class="col-sm-4 col-sm-offset-1">
+          <strong>Restore Server Group</strong>
+        </div>
+        <div class="col-sm-6">
+          <ui-select ng-model="command.rollbackContext.restoreServerGroupName" class="form-control input-sm">
+            <ui-select-match placeholder="Select...">{{$select.selected.name}}</ui-select-match>
+            <ui-select-choices repeat="serverGroup.name as serverGroup in disabledServerGroups">
+              <span ng-bind-html="serverGroup.name"></span>
+            </ui-select-choices>
+          </ui-select>
+        </div>
+      </div>
+      <div class="row" ng-if="command.platformHealthOnlyShowOverride">
+        <div class="col-sm-10 col-sm-offset-1">
+          <platform-health-override command="command"
+                                    platform-health-type="'Google'"
+                                    show-help-details="true"
+                                    field-columns="12">
+          </platform-health-override>
+        </div>
+      </div>
+      <div class="row verification" ng-if="verification.required" style="margin-top: 10px">
+        <div class="col-sm-offset-1 col-sm-10">
+          <p>Type the name of the account ( <account-tag account="serverGroup.account"></account-tag> ) below to continue.</p>
+          <div class="form-inline">
+            <div class="form-group">
+              <input type="text" ng-model="verification.verifyAccount" class="form-control input-sm highlight-pristine"
+                     ng-class="{'ng-invalid': verification.verifyAccount !== serverGroup.account.toUpperCase()}"/>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="submit" ng-click="ctrl.rollback()" style="display:none"></button> <!-- Allows form submission via enter keypress-->
+      <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+      <button type="submit"
+              class="btn btn-primary"
+              ng-click="ctrl.rollback()"
+              ng-disabled="!ctrl.isValid()">
+        Submit
+      </button>
+    </div>
+  </form>
+</div>
