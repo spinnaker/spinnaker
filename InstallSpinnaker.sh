@@ -338,8 +338,8 @@ add_apt_repositories
 # java
 if [ "$DOWNLOAD" != "true" ];then
   sudo apt-get install -y --force-yes openjdk-8-jdk
-elif [ "x`dpkg --get-selections | grep openjdk-8-jdk | awk -F':' '{print $1}'`" != "xopenjdk-8-jdk" ];then
-  echo "you must manually install openjdk-8-jdk; exiting"
+elif [[ "x`java -version|grep -i version`" != *"1.8.0"* ]];then
+  echo "you must manually install jdk-8; exiting"
   exit 13
 fi
 
