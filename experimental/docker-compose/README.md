@@ -97,11 +97,9 @@ Click "Create".
 
 ## Launch Spinnaker via Docker Compose
 
-Now that everything is set up, you should switch to using the goocker docker machine.
-``` eval "$(docker-machine env goocker)" ```
+Now that everything is set up, you should switch to using the goocker docker machine: ``` eval "$(docker-machine env goocker)" ```
 
-Launch docker-compose using the remote configuration and the remote host ip. 
-``` DOCKER_IP=`docker-machine ip goocker` docker-compose -f docker-compose.yml -f docker-compose.remote.yml up -d  ```
+Launch docker-compose using the remote configuration and the remote host ip: ``` DOCKER_IP=`docker-machine ip goocker` docker-compose -f docker-compose.yml -f docker-compose.remote.yml up -d  ```
 
 Once you have completed the above configuration, you should be able to resolve the Spinnaker web application from your local workstation: ```DOCKER_IP=`docker-machine ip goocker` && open http://$DOCKER_IP:9000```
 
@@ -109,7 +107,7 @@ Once you have completed the above configuration, you should be able to resolve t
 
 If you no longer want an instance of Spinnaker running on your GCP account, remember to disable your docker machine instance by typing:
 
-```docker-machine rm goocker``` 
+`docker-machine rm goocker`
 
 This will not remove any instances deployed by Spinnaker, only the docker compose services that were deployed.
 
@@ -117,16 +115,16 @@ This will not remove any instances deployed by Spinnaker, only the docker compos
 
 ## Updating Spinnaker
 
-Call ```docker-compose pull``` to get the latest version of Spinnaker
-Call ```docker-compose restart``` to restart all containers
+1. Get the latest version of Spinnaker: `docker-compose pull`
+2. Restart all containers: `docker-compose restart`
 
 ## Stopping Spinnaker
 
-1. Run ```docker-compose stop```
-2. If you don't want to keep the containers around, use ```docker-compose rm -f```
+1. Stop all containers: `docker-compose stop`
+2. If you don't want to keep the containers around, use: ```docker-compose rm -f```
 
 ## Helpful tips
 
 ### Adding more memory to your local machine
 
-Spinnaker is pretty memory intensive, we suggest modifying the virtual box image used by docker machine to have more memory. You can do this by opening virtualbox and changing your base memory amount via settings -> System -> Base memory. This configuration has been tested on 8GB. 
+Spinnaker is pretty memory-intensive, we suggest modifying the virtual box image used by docker machine to have more memory. You can do this by opening virtualbox and changing your base memory amount via settings -> System -> Base memory. This configuration has been tested on 8GB. 
