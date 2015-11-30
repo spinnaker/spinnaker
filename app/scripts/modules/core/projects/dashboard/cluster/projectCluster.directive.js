@@ -42,6 +42,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
     this.clearFilters = clusterFilterService.overrideFiltersForUrl;
 
     this.refreshTooltipTemplate = require('./projectClusterRefresh.tooltip.html');
+    this.inconsistentBuildsTemplate = require('./inconsistentBuilds.tooltip.html');
 
     this.state = {
       loaded: false,
@@ -90,7 +91,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
 
     let addInstanceCounts = (container) => {
       container.instanceCounts = {
-        totalCount: 0,
+          totalCount: 0,
           upCount: 0,
           downCount: 0,
           outOfServiceCount: 0,
@@ -110,11 +111,12 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
     };
 
     let makeBuildModel = (serverGroup) => {
-      let buildModel = { number: -1 };
+      let buildModel = { number: 0 };
       if (serverGroup && serverGroup.buildInfo && serverGroup.buildInfo.jenkins) {
         let jenkins = serverGroup.buildInfo.jenkins;
         buildModel.number = Number(jenkins.number);
         buildModel.url = [jenkins.host + 'job', jenkins.name, jenkins.number, ''].join('/');
+        buildModel.deployed = serverGroup.createdTime;
       }
       return buildModel;
     };
@@ -145,7 +147,9 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
     let applyRegionsAndInstanceCounts = (clusters, application) => {
       let clusterData = clusters[application];
       let serverGroups = clusterData.serverGroups || [];
-      clusterData.serverGroups = serverGroups.filter((serverGroup) => serverGroup && serverGroup.instances.length > 0);
+      clusterData.serverGroups = serverGroups.filter((serverGroup) =>
+        serverGroup && !serverGroup.disabled && serverGroup.instances.length > 0
+      );
       let applicationData = _.find(this.clusterData.applications, (appData) => appData.name === application);
       applicationData.build = makeBuildModel();
       let serverGroupsByRegion = _.groupBy(clusterData.serverGroups, 'region');
@@ -157,6 +161,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
         let serverGroups = serverGroupsByRegion[region];
         let regionInfo = {
           build: makeBuildModel(),
+          otherBuilds: [],
         };
         if (serverGroups && serverGroups.length) {
           regionInfo.lastCreatedTime = _.sortBy(serverGroups, 'createdTime').pop().createdTime;
@@ -166,8 +171,18 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
         applicationData.lastCreatedTime = _.sortBy(serverGroups, 'createdTime').pop().createdTime;
         serverGroups.forEach((serverGroup) => {
           serverGroup.build = makeBuildModel(serverGroup);
-          if (serverGroup.build.number > regionInfo.build.number) {
+          if (!regionInfo.build.number) {
             regionInfo.build = serverGroup.build;
+          } else {
+            if (serverGroup.build.number > regionInfo.build.number) {
+              regionInfo.otherBuilds.push(regionInfo.build);
+              regionInfo.build = serverGroup.build;
+            }
+            if (serverGroup.build.number < regionInfo.build.number) {
+              if (regionInfo.otherBuilds.every((build) => build.number !== serverGroup.build.number)) {
+                regionInfo.otherBuilds.push(serverGroup.build);
+              }
+            }
           }
           incrementInstanceCounts(regionInfo, serverGroup);
           incrementInstanceCounts(this.clusterData, serverGroup);
@@ -179,11 +194,12 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
     };
 
     let applyInconsistentBuildFlag = (application) => {
-      application.inconsistentBuilds = false;
+      application.hasInconsistentBuilds = false;
       Object.keys(application.regions).forEach((regionName) => {
         let region = application.regions[regionName];
-        if (region.build.number !== application.build.number) {
-          application.inconsistentBuilds = true;
+        if (region.build.number !== application.build.number || region.otherBuilds.length) {
+          application.hasInconsistentBuilds = true;
+          region.inconsistentBuilds = region.otherBuilds.length ? region.otherBuilds : [region.build];
         }
       });
     };
@@ -220,10 +236,8 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
           });
         });
       } else {
-        return clusterService.getCluster(
-          application,
-          this.cluster.account,
-          this.cluster.stack ? [application, this.cluster.stack].join('-') : application);
+        let clusterName = namingService.getClusterName(application, this.cluster.stack, this.cluster.detail);
+        return clusterService.getCluster(application, this.cluster.account, clusterName);
       }
     };
 

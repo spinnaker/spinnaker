@@ -10,23 +10,18 @@ module.exports = angular
   .factory('projectReader', function ($q, Restangular, _) {
 
     function listProjects() {
-      if (!arguments.length) {
-        return Restangular.all('projects').getList();
-      }
-      return $q.when([{ name: 'API' }]);
+      return Restangular.all('projects').getList();
     }
 
     function getProjectConfig(projectName) {
-      if (arguments.length === 1) {
-        return listProjects().then((projects) => {
-          let project = _.find(projects, (test) => test.name.toLowerCase() === projectName.toLowerCase());
-          if (project) {
-            return Restangular.one('projects', project.id).get();
-          } else {
-            return $q.reject(projectName);
-          }
-        });
-      }
+      return listProjects().then((projects) => {
+        let project = _.find(projects, (test) => test.name.toLowerCase() === projectName.toLowerCase());
+        if (project) {
+          return Restangular.one('projects', project.id).get();
+        } else {
+          return $q.reject(projectName);
+        }
+      });
     }
 
     return {
