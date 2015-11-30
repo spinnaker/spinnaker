@@ -15,6 +15,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
   require('../../../core/utils/lodash.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('./resize/resizeServerGroup.controller'),
+  require('./rollback/rollbackServerGroup.controller'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('gceServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup, InsightFilterStateModel,
@@ -319,6 +320,21 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       }
 
       confirmationModalService.confirm(confirmationModalParams);
+    };
+
+    this.rollbackServerGroup = function rollbackServerGroup() {
+      $uibModal.open({
+        templateUrl: require('./rollback/rollbackServerGroup.html'),
+        controller: 'gceRollbackServerGroupCtrl as ctrl',
+        resolve: {
+          serverGroup: function() { return $scope.serverGroup; },
+          disabledServerGroups: function() {
+            var cluster = _.find(app.clusters, {name: $scope.serverGroup.cluster, account: $scope.serverGroup.account});
+            return _.filter(cluster.serverGroups, {isDisabled: true, region: $scope.serverGroup.region});
+          },
+          application: function() { return app; }
+        }
+      });
     };
 
     this.resizeServerGroup = function resizeServerGroup() {
