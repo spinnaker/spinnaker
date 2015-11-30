@@ -18,11 +18,8 @@ package com.netflix.spinnaker.igor.config
 
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
-import com.squareup.okhttp.Authenticator
+import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.squareup.okhttp.Credentials
-import com.squareup.okhttp.OkHttpClient
-import com.squareup.okhttp.Request
-import com.squareup.okhttp.Response
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.context.annotation.Bean
@@ -47,11 +44,15 @@ class JenkinsConfig {
     JenkinsMasters jenkinsMasters(@Valid JenkinsProperties jenkinsProperties) {
         new JenkinsMasters(map: jenkinsProperties?.masters?.collectEntries { JenkinsProperties.JenkinsHost host ->
             log.info "bootstrapping ${host.address} as ${host.name}"
-            [(host.name): jenkinsClient(host.address, host.username, host.password)]
+            [(host.name): jenkinsService(host.name, jenkinsClient(host.address, host.username, host.password))]
         })
     }
 
-    JenkinsClient jenkinsClient(String address, String username, String password) {
+    static JenkinsService jenkinsService(String jenkinsHostId, JenkinsClient jenkinsClient) {
+        return new JenkinsService(jenkinsHostId, jenkinsClient)
+    }
+
+    static JenkinsClient jenkinsClient(String address, String username, String password) {
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(address))
             .setRequestInterceptor(new BasicAuthRequestInterceptor(username, password))

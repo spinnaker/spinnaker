@@ -23,6 +23,7 @@ dependencies {
     compile spinnaker.dependency("rxJava")
     compile spinnaker.dependency("retrofit")
     compile spinnaker.dependency("eurekaClient")
+    compile spinnaker.dependency("korkHystrix")
 
     compile 'org.yaml:snakeyaml:1.15'
     compile 'com.squareup.retrofit:converter-simplexml:1.5.1'
@@ -70,7 +71,7 @@ startScripts {
           . /etc/default/spinnaker
           set +a
         fi
-        DEFAULT_JVM_OPTS='''.stripIndent())  
+        DEFAULT_JVM_OPTS='''.stripIndent())
     unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
     windowsScript.text = windowsScript.text.replace('set CLASSPATH=', 'set CLASSPATH=%APP_HOME%\\config;')
   }

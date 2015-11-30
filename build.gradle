@@ -31,9 +31,9 @@ buildscript {
 allprojects {
     apply plugin: 'spinnaker.project'
     apply plugin: 'groovy'
-    
+
     spinnaker {
-        dependenciesVersion = "0.19.0"
+        dependenciesVersion = "0.20.0"
     }
     test {
       testLogging {

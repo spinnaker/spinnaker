@@ -16,15 +16,20 @@
 
 package com.netflix.spinnaker.igor.config
 
+import com.netflix.hystrix.exception.HystrixRuntimeException
 import groovy.transform.CompileStatic
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ControllerAdvice
+import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.ResponseBody
+import org.springframework.web.bind.annotation.ResponseStatus
+import retrofit.RetrofitError
+
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.MediaType
-import org.springframework.web.servlet.HandlerExceptionResolver
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
-import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver
 
 /**
  * Converts validation errors into REST Messages
@@ -35,5 +40,33 @@ class IgorConfig extends WebMvcConfigurerAdapter {
     @Bean
     ExecutorService executorService() {
         Executors.newCachedThreadPool()
+    }
+
+    @Bean
+    HystrixRuntimeExceptionHandler hystrixRuntimeExceptionHandler() {
+        return new HystrixRuntimeExceptionHandler()
+    }
+
+    @ControllerAdvice
+    static class HystrixRuntimeExceptionHandler {
+        @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
+        @ResponseBody
+        @ExceptionHandler(HystrixRuntimeException)
+        public Map handleHystrix(HystrixRuntimeException exception) {
+            def failureCause = exception.cause
+            if (failureCause instanceof RetrofitError) {
+                failureCause = failureCause.cause ?: failureCause
+            }
+
+            return [
+                fallbackException: exception.fallbackException.toString(),
+                failureType: exception.failureType,
+                failureCause: failureCause.toString(),
+                error: "Hystrix Failure",
+                message: exception.message,
+                status: HttpStatus.TOO_MANY_REQUESTS.value(),
+                timestamp: System.currentTimeMillis()
+            ]
+        }
     }
 }
