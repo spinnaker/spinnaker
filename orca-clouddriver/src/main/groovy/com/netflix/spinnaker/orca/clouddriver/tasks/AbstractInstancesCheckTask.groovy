@@ -48,7 +48,10 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
   OortHelper oortHelper
 
   /**
-   * @return A map of location (region or zone) --> list of serverGroup properties.
+   * Other components (namely: deck) require this map to be region --> serverGroups, rather than location -->
+   * serverGroups, regardless of cloud provider.
+   *
+   * @return A map of region --> list of serverGroup names.
    */
   abstract protected Map<String, List<String>> getServerGroups(Stage stage)
 
@@ -76,11 +79,10 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
       Map<String, Boolean> seenServerGroup = serverGroups.values().flatten().collectEntries { [(it): false] }
       for (Map serverGroup in cluster.serverGroups) {
         String region = serverGroup.region
-        String zones = serverGroup.zones ?: []
         String name = serverGroup.name
 
-        def matches = serverGroups.find { String location, List<String> sgName ->
-          return (region == location || zones.contains(location)) && sgName.contains(name)
+        def matches = serverGroups.find { String sgRegion, List<String> sgName ->
+          return region == sgRegion && sgName.contains(name)
         }
         if (!matches) {
           continue
@@ -146,11 +148,11 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
     Map<String, List<String>> serverGroups = getServerGroups(stage)
     String account = getCredentials(stage)
 
-    serverGroups.each { String location, List<String> serverGroupNames ->
+    serverGroups.each { String region, List<String> serverGroupNames ->
       serverGroupNames.each {
-        if (!oortHelper.getTargetServerGroup(account, it, location, getCloudProvider(stage)).isPresent()) {
-          log.error("Server group '${location}:${it}' does not exist (forceCacheRefreshResult: ${forceCacheRefreshResult.stageOutputs}")
-          throw new IllegalStateException("Server group '${location}:${it}' does not exist")
+        if (!oortHelper.getTargetServerGroup(account, it, region, getCloudProvider(stage)).isPresent()) {
+          log.error("Server group '${region}:${it}' does not exist (forceCacheRefreshResult: ${forceCacheRefreshResult.stageOutputs}")
+          throw new IllegalStateException("Server group '${region}:${it}' does not exist")
         }
       }
     }

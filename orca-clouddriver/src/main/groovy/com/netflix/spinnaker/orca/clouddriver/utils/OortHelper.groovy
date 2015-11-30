@@ -46,12 +46,11 @@ class OortHelper {
                                                    String serverGroupName,
                                                    String location,
                                                    String cloudProvider) {
-    def targetLocation = TargetServerGroup.Support.locationFromCloudProviderValue(cloudProvider, location)
     def name = Names.parseName(serverGroupName)
     return convertedResponse(List) { oortService.getServerGroup(name.app, account, name.cluster, serverGroupName, null, cloudProvider) }
     .map({ List<Map> serverGroups ->
       serverGroups.find {
-        TargetServerGroup.Support.locationFromServerGroup(it) == targetLocation
+        it.region == location || it.zones?.contains(location)
       }
     }).map({ Map serverGroup ->
       new TargetServerGroup(serverGroup: serverGroup)
