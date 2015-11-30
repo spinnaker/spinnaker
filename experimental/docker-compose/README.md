@@ -95,6 +95,8 @@ Go to your GCP developers console and click on your instance, then network name 
 
 Click "Create".
 
+*Note: You should be aware of the implications of opening up your virtual machines to the public internet prior to configuring firewall rules. Several more secure options (e.g. SSH tunnel, SOCKS proxy) are described [here](https://cloud.google.com/solutions/connecting-securely).*
+
 ## Launch Spinnaker via Docker Compose
 
 Now that everything is set up, you should switch to using the goocker docker machine: ``` eval "$(docker-machine env goocker)" ```
