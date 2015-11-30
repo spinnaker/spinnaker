@@ -47,7 +47,7 @@ def main(argv):
         exit(1)
 
     if not os.path.isdir(artifact_file_location):
-        print "ERROR: Artifact directory give does not exist (" + artifact_file_location + ").\n\tusage: " + sys.argv[0] + " <jenkinsoutputfilelocation> <wheretoputtheartifacts> <build_number> <ubuntu_version>\n"
+        print "ERROR: Artifact directory given does not exist (" + artifact_file_location + ").\n\tusage: " + sys.argv[0] + " <jenkinsoutputfilelocation> <wheretoputtheartifacts> <build_number> <ubuntu_version>\n"
         exit(1)
 
 
