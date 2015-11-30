@@ -33,7 +33,6 @@
           </button>
           <ul class="uib-dropdown-menu" role="menu">
             <li><a href ng-click="ctrl.editLoadBalancer()">Edit Load Balancer</a></li>
-            <!--<li><a href ng-click="ctrl.cloneLoadBalancer()">Clone Load Balancer</a></li>-->
             <li ng-if="!loadBalancer.instances.length"><a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a></li>
             <li ng-if="loadBalancer.instances.length" class="disabled" tooltip="You must detach all instances before you can delete this load balancer.">
               <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
@@ -50,16 +49,6 @@
         <dd>{{loadBalancer.elb.createdTime | timestamp}}</dd>
         <dt>In:</dt>
         <dd><account-tag account="loadBalancer.account" pad="right" provider="loadBalancer.type"></account-tag> {{loadBalancer.region}}</dd>
-        <dt>VPC:</dt>
-        <dd><vpc-tag vpc-id="loadBalancer.elb.vpcid"></vpc-tag></dd>
-      </dl>
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
-        <dt>Availability Zones:</dt>
-        <dd>
-          <ul ng-style="{'margin-left': InsightFilterStateModel.filtersExpanded ? '30px' : 0}">
-            <li ng-repeat="availabilityZone in loadBalancer.elb.availabilityZones">{{availabilityZone}}</li>
-          </ul>
-        </dd>
       </dl>
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
         <dt ng-if="loadBalancer.serverGroups">Server Groups:</dt>
@@ -79,7 +68,7 @@
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
         <dt ng-if="loadBalancer.elb.dnsname">DNS Name:</dt>
         <dd>
-          <a target=_blank href="http://{{loadBalancer.elb.dnsname}}">{{loadBalancer.elb.dnsname}}</a>
+          <a target=_blank href="http://{{loadBalancer.elb.dnsname}}">{{loadBalancer.elb.dnsName}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
               text="http://{{loadBalancer.elb.dnsname}}"
@@ -94,10 +83,8 @@
     <collapsible-section heading="Listeners">
       <dl>
         <dt>Load Balancer &rarr; Instance</dt>
-        <dd ng-repeat="listener in loadBalancer.elb.listenerDescriptions">
-          {{listener.listener.protocol}}:{{listener.listener.loadBalancerPort}}
-          &rarr;
-          {{listener.listener.instanceProtocol}}:{{listener.listener.instancePort}}
+        <dd ng-repeat="loadBalancingRule in loadBalancer.elb.loadBalancingRules">
+          {{loadBalancingRule.protocol}}:{{loadBalancingRule.externalPort}} &rarr; {{loadBalancingRule.backendPort}}
         </dd>
       </dl>
     </collapsible-section>
@@ -113,15 +100,11 @@
     <collapsible-section heading="Health Checks">
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
         <dt>Target</dt>
-        <dd>{{loadBalancer.elb.healthCheck.target}}</dd>
-        <dt>Timeout</dt>
-        <dd>{{loadBalancer.elb.healthCheck.timeout}} seconds</dd>
+        <dd>{{loadBalancer.elb.probes[0].probeProtocol}}</dd>
         <dt>Interval</dt>
-        <dd>{{loadBalancer.elb.healthCheck.interval}} seconds</dd>
-        <dt>Healthy Threshold</dt>
-        <dd>{{loadBalancer.elb.healthCheck.healthyThreshold}}</dd>
+        <dd>{{loadBalancer.elb.probes[0].probeInterval}} seconds</dd>
         <dt>Unhealthy Threshold</dt>
-        <dd>{{loadBalancer.elb.healthCheck.unhealthyThreshold}}</dd>
+        <dd>{{loadBalancer.elb.probes[0].unhealthyThreshold}}</dd>
       </dl>
     </collapsible-section>
   </div>

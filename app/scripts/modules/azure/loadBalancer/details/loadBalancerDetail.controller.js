@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller', [
   require('angular-ui-router'),
   require('../../../core/securityGroup/securityGroup.read.service.js'),
-  require('../../../core/loadBalancer/loadBalancer.write.service.js'),
+  require('../loadBalancer.write.service.js'),
   require('../../../core/loadBalancer/loadBalancer.read.service.js'),
   require('../../../core/utils/lodash.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('azureLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, app, InsightFilterStateModel,
-                                                   securityGroupReader, _, confirmationModalService, loadBalancerWriter, loadBalancerReader, $q) {
+                                                   securityGroupReader, _, confirmationModalService, azureLoadBalancerWriter, loadBalancerReader, $q) {
 
     $scope.state = {
       loading: true
@@ -23,37 +23,36 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller
     $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractLoadBalancer() {
-      if (!loadBalancer.vpcId) {
-        loadBalancer.vpcId = null;
-      }
+
       $scope.loadBalancer = app.loadBalancers.filter(function (test) {
-        var testVpc = test.vpcId || null;
-        return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.accountId && testVpc === loadBalancer.vpcId;
+        return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.accountId;
       })[0];
 
       if ($scope.loadBalancer) {
         var detailsLoader = loadBalancerReader.getLoadBalancerDetails($scope.loadBalancer.provider, loadBalancer.accountId, loadBalancer.region, loadBalancer.name);
+
         return detailsLoader.then(function(details) {
           $scope.state.loading = false;
           var securityGroups = [];
+
           var filtered = details.filter(function(test) {
-            return test.vpcid === loadBalancer.vpcId || (!test.vpcid && !loadBalancer.vpcId);
+            return test.name === loadBalancer.name;
           });
+
           if (filtered.length) {
             $scope.loadBalancer.elb = filtered[0];
+
             $scope.loadBalancer.account = loadBalancer.accountId;
 
-            if ($scope.loadBalancer.elb.availabilityZones) {
-              $scope.loadBalancer.elb.availabilityZones.sort();
+            if($scope.loadBalancer.elb.securityGroups){
+              $scope.loadBalancer.elb.securityGroups.forEach(function (securityGroupId) {
+                var match = securityGroupReader.getApplicationSecurityGroup(app, loadBalancer.accountId, loadBalancer.region, securityGroupId);
+                if (match) {
+                  securityGroups.push(match);
+                }
+              });
+              $scope.securityGroups = _.sortBy(securityGroups, 'name');
             }
-
-            $scope.loadBalancer.elb.securityGroups.forEach(function (securityGroupId) {
-              var match = securityGroupReader.getApplicationSecurityGroup(app, loadBalancer.accountId, loadBalancer.region, securityGroupId);
-              if (match) {
-                securityGroups.push(match);
-              }
-            });
-            $scope.securityGroups = _.sortBy(securityGroups, 'name');
           }
         });
       }
@@ -68,8 +67,6 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller
 
     app.registerAutoRefreshHandler(extractLoadBalancer, $scope);
 
-    //BEN_TODO
-
     this.editLoadBalancer = function editLoadBalancer() {
       $modal.open({
         templateUrl: require('../configure/editLoadBalancer.html'),
@@ -78,18 +75,6 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller
           application: function() { return app; },
           loadBalancer: function() { return angular.copy($scope.loadBalancer); },
           isNew: function() { return false; }
-        }
-      });
-    };
-
-    this.cloneLoadBalancer = function () {
-      $modal.open({
-        templateUrl: require('../configure/createLoadBalancer.html'),
-        controller: 'azureCreateLoadBalancerCtrl as ctrl',
-        resolve: {
-          application: function() { return app; },
-          loadBalancer: function() { return angular.copy($scope.loadBalancer); },
-          isNew: function() { return true; }
         }
       });
     };
@@ -109,7 +94,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller
       var submitMethod = function () {
         loadBalancer.providerType = $scope.loadBalancer.type;
         let vpcId = angular.isDefined($scope.loadBalancer.elb) ? $scope.loadBalancer.elb.vpcid : loadBalancer.vpcId || null;
-        return loadBalancerWriter.deleteLoadBalancer(loadBalancer, app, { vpcId: vpcId });
+        return azureLoadBalancerWriter.deleteLoadBalancer(loadBalancer, app, { vpcId: vpcId });
       };
 
       confirmationModalService.confirm({

@@ -16,11 +16,11 @@
             </thead>
             <tbody>
             <tr>
-              <td><select class="form-control input-sm" ng-model="loadBalancer.healthCheckProtocol" required
+              <td><select class="form-control input-sm" ng-model="loadBalancer.probes[0].probeProtocol" required
                           ng-options="protocol for protocol in ['HTTP', 'HTTPS', 'SSL', 'TCP']"></select></td>
-              <td><input class="form-control input-sm" type="number" ng-model="loadBalancer.healthCheckPort"
+              <td><input class="form-control input-sm" type="number" ng-model="loadBalancer.probes[0].probePort"
                          required min="0"/></td>
-              <td><input ng-if="ctrl.requiresHealthCheckPath()" class="form-control input-sm" type="text" ng-model="loadBalancer.healthCheckPath"
+              <td><input ng-if="ctrl.requiresHealthCheckPath()" class="form-control input-sm" type="text" ng-model="loadBalancer.probes[0].probePath"
                          required/></td>
             </tr>
             </tbody>
@@ -39,37 +39,19 @@
 
         <div class="form-group">
           <div class="col-md-6 sm-label-left">
-            <b>Timeout</b><help-field key="loadBalancer.advancedSettings.healthTimeout"/>
+            <b>Interval</b><help-field key="loadBalancer.probes.probeInterval"/>
           </div>
           <div class="col-md-4">
-            <input class="form-control input-sm" type="number" min="0" ng-model="loadBalancer.healthTimeout"/>
+            <input class="form-control input-sm" type="number" min="0" ng-model="loadBalancer.probes[0].probeInterval"/>
           </div>
         </div>
 
         <div class="form-group">
           <div class="col-md-6 sm-label-left">
-            <b>Interval</b><help-field key="loadBalancer.advancedSettings.healthInterval"/>
+            <b>Unhealthy Threshold</b><help-field key="loadBalancer.probes.unhealthyThreshold"/>
           </div>
           <div class="col-md-4">
-            <input class="form-control input-sm" type="number" min="0" ng-model="loadBalancer.healthInterval"/>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <div class="col-md-6 sm-label-left">
-            <b>Healthy Threshold</b><help-field key="loadBalancer.advancedSettings.healthyThreshold"/>
-          </div>
-          <div class="col-md-4">
-            <input class="form-control input-sm" type="number" min="0" ng-model="loadBalancer.healthyThreshold"/>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <div class="col-md-6 sm-label-left">
-            <b>Unhealthy Threshold</b><help-field key="loadBalancer.advancedSettings.unhealthyThreshold"/>
-          </div>
-          <div class="col-md-4">
-            <input class="form-control input-sm" type="number" min="0" ng-model="loadBalancer.unhealthyThreshold"/>
+            <input class="form-control input-sm" type="number" min="0" ng-model="loadBalancer.probes[0].unhealthyThreshold"/>
           </div>
         </div>
 
