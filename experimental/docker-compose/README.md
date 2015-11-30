@@ -103,9 +103,7 @@ Now that everything is set up, you should switch to using the goocker docker mac
 Launch docker-compose using the remote configuration and the remote host ip. 
 ``` DOCKER_IP=`docker-machine ip goocker` docker-compose -f docker-compose.yml -f docker-compose.remote.yml up -d  ```
 
-Once you have completed the above configuration, you should be able to deploy Spinnaker.
-First, get the IP address of your remote instance via
-```docker-machine ip goocker```
+Once you have completed the above configuration, you should be able to resolve the Spinnaker web application from your local workstation: ```DOCKER_IP=`docker-machine ip goocker` && open http://$DOCKER_IP:9000```
 
 ## Removing Docker Machine Environment
 
