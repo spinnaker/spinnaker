@@ -120,23 +120,25 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
         extraData.account = account;
         extraData.region = region;
         recentHistoryService.addExtraDataToLatest('instances', extraData);
-        return instanceReader.getInstanceDetails(account, region, instance.instanceId).then(function(details) {
-          details = details.plain();
-          $scope.state.loading = false;
-          extractHealthMetrics(instanceSummary, details);
-          $scope.instance = _.defaults(details, instanceSummary);
-          $scope.instance.account = account;
-          $scope.instance.region = region;
-          $scope.instance.vpcId = vpcId;
-          $scope.instance.loadBalancers = loadBalancers;
+        return instanceReader.getInstanceDetails(account, region, instance.instanceId).then(
+          (details) => {
+            if ($scope.$$destroyed) {
+              return;
+            }
+            details = details.plain();
+            $scope.state.loading = false;
+            extractHealthMetrics(instanceSummary, details);
+            $scope.instance = _.defaults(details, instanceSummary);
+            $scope.instance.account = account;
+            $scope.instance.region = region;
+            $scope.instance.vpcId = vpcId;
+            $scope.instance.loadBalancers = loadBalancers;
 
-          $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
-          if (overrides.instanceDetailsLoaded) {
-            overrides.instanceDetailsLoaded();
-          }
-        },
-          autoClose
-        );
+            $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
+            if (overrides.instanceDetailsLoaded) {
+              overrides.instanceDetailsLoaded();
+            }
+          }, autoClose);
       }
 
       if (!instanceSummary) {
@@ -361,7 +363,10 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
       );
     };
 
-    retrieveInstance().then(() => app.registerAutoRefreshHandler(retrieveInstance, $scope));
+    retrieveInstance().then(() => {
+       let refreshWatcher = app.autoRefreshStream.subscribe(retrieveInstance);
+       $scope.$on('$destroy', () => refreshWatcher.dispose());
+     });
 
     $scope.account = instance.account;
 

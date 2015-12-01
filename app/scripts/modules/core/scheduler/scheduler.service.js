@@ -6,12 +6,12 @@ module.exports = angular.module('spinnaker.core.scheduler', [
   require('../utils/rx.js'),
   require('../config/settings.js')
 ])
-  .factory('scheduler', function(RxService, settings, $q, $log, $window, $timeout) {
-    var scheduler = new RxService.Subject();
+  .factory('scheduler', function(rx, settings, $q, $log, $window, $timeout) {
+    var scheduler = new rx.Subject();
 
     let lastRun = new Date().getTime();
 
-    let source = RxService.Observable
+    let source = rx.Observable
       .timer(0, settings.pollSchedule)
       .pausable(scheduler);
 

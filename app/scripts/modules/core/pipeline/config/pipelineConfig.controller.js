@@ -29,26 +29,19 @@ module.exports = angular.module('spinnaker.core.pipeline.config.controller', [
       this.state.pipelinesLoaded = true;
     };
 
-    let configLoader = $q.when(null);
-    if (!application.pipelineConfigs) {
-      let deferred = $q.defer();
-      configLoader = deferred.promise;
-      if (!application.pipelineConfigsLoading) {
-        application.reloadPipelineConfigs();
-      }
-      $scope.$on('pipelineConfigs-loaded', deferred.resolve);
+    if (!application.pipelineConfigs || !application.pipelineConfigs.length) {
+      application.pipelineConfigRefreshStream.take(1).subscribe(this.initialize);
+    } else {
+      this.initialize();
     }
 
-    configLoader.then(this.initialize);
-
-    function constructBaseWarningMessage() {
+    function getWarningMessage() {
       return 'You have unsaved changes.\nAre you sure you want to navigate away from this page?';
     }
 
     var confirmPageLeave = $rootScope.$on('$stateChangeStart', function(event) {
       if (dirtyPipelineTracker.hasDirtyPipelines()) {
-        var message = constructBaseWarningMessage();
-        if (!$window.confirm(message)) {
+        if (!$window.confirm(getWarningMessage())) {
           event.preventDefault();
           pageTitleService.handleRoutingSuccess({
             pageTitleMain: { label: $stateParams.application },
@@ -61,7 +54,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.controller', [
 
     $window.onbeforeunload = function() {
       if (dirtyPipelineTracker.hasDirtyPipelines()) {
-        return constructBaseWarningMessage();
+        return getWarningMessage();
       }
     };
 

@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
   require('../../application/service/applications.read.service.js'),
   require('../../cloudProvider/serviceDelegate.service.js'),
 ])
-  .factory('infrastructureSearchService', function(RxService, $q, searchService, urlBuilderService, applicationReader, serviceDelegate) {
+  .factory('infrastructureSearchService', function(rx, $q, searchService, urlBuilderService, applicationReader, serviceDelegate) {
     return function() {
       var deferred;
 
@@ -77,7 +77,7 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
         };
       }
 
-      var querySubject = new RxService.Subject();
+      var querySubject = new rx.Subject();
 
       let initializeCategories = () => {
         let categories = {};
@@ -103,10 +103,10 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
       querySubject
         .flatMapLatest(function(query) {
           if (!query || !angular.isDefined(query) || query.length < 1) {
-            return RxService.Observable.just(searchService.getFallbackResults());
+            return rx.Observable.just(searchService.getFallbackResults());
           }
 
-          return RxService.Observable.fromPromise(searchService.search({
+          return rx.Observable.fromPromise(searchService.search({
            q: query,
            type: Object.keys(searchConfig),
           }));

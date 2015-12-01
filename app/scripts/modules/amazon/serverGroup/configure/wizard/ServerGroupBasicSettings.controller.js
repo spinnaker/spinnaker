@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.basicSettin
   require('../../../../core/naming/naming.service.js'),
 ])
   .controller('awsServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state,
-                                                          modalWizardService, RxService, imageReader, namingService) {
+                                                          modalWizardService, rx, imageReader, namingService) {
 
     function searchImages(q) {
       $scope.command.backingData.filtered.images = [
@@ -20,7 +20,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.basicSettin
           message: '<span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span> Finding results matching "' + q + '"...'
         }
       ];
-      return RxService.Observable.fromPromise(
+      return rx.Observable.fromPromise(
         imageReader.findImages({
           provider: $scope.command.selectedProvider,
           q: q,
@@ -29,7 +29,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.basicSettin
       );
     }
 
-    var imageSearchResultsStream = new RxService.Subject();
+    var imageSearchResultsStream = new rx.Subject();
 
     imageSearchResultsStream
       .throttle(250)
@@ -63,7 +63,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.basicSettin
 
     angular.extend(this, $controller('BasicSettingsMixin', {
       $scope: $scope,
-      RxService: RxService,
       imageReader: imageReader,
       namingService: namingService,
       $uibModalStack: $uibModalStack,

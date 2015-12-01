@@ -16,10 +16,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.basicSett
       controller: 'titanServerGroupBasicSettingsSelectorCtrl as basicSettingsCtrl',
     };
   })
-  .controller('titanServerGroupBasicSettingsSelectorCtrl', function($scope, $controller, RxService, namingService, $uibModalStack, $state) {
+  .controller('titanServerGroupBasicSettingsSelectorCtrl', function($scope, $controller, namingService, $uibModalStack, $state) {
     angular.extend(this, $controller('BasicSettingsMixin', {
       $scope: $scope,
-      RxService: RxService,
       namingService: namingService,
       $uibModalStack: $uibModalStack,
       $state: $state,
