@@ -63,20 +63,20 @@ class CassandraApplicationDAOSpec extends Specification {
 
   void "application name should be based on the 'id' rather than the 'name' attribute"() {
     when:
-    def newApplication = cassandraApplicationDAO.create("MY-APP", newApplicationAttrs)
+    def newApplication = cassandraApplicationDAO.create("MY-APP", new Application(newApplicationAttrs))
 
     then:
     def foundApplication = cassandraApplicationDAO.findByName("MY-APP")
-    foundApplication.allSetColumnProperties() == newApplication.allSetColumnProperties()
+    foundApplication.persistedProperties == newApplication.persistedProperties
   }
 
   void "find application by name returns a single application"() {
     when:
-    def newApplication = cassandraApplicationDAO.create(newApplicationAttrs.name, newApplicationAttrs)
+    def newApplication = cassandraApplicationDAO.create(newApplicationAttrs.name, new Application(newApplicationAttrs))
 
     then:
     def foundApplication = cassandraApplicationDAO.findByName(newApplicationAttrs.name)
-    foundApplication.allSetColumnProperties() == newApplication.allSetColumnProperties()
+    foundApplication.persistedProperties == newApplication.persistedProperties
   }
 
   void "find application by name should throw exception when it does not exist"() {
@@ -89,10 +89,10 @@ class CassandraApplicationDAOSpec extends Specification {
 
   void "all applications can be retrieved"() {
     when:
-    def newApplication = cassandraApplicationDAO.create(newApplicationAttrs.name, newApplicationAttrs)
+    def newApplication = cassandraApplicationDAO.create(newApplicationAttrs.name, new Application(newApplicationAttrs))
 
     then:
-    cassandraApplicationDAO.all()*.allColumnProperties() == [newApplication]*.allColumnProperties()
+    cassandraApplicationDAO.all()*.persistedProperties == [newApplication]*.persistedProperties
   }
 
   void "find all applications should throw exception when no applications exist"() {
@@ -105,7 +105,7 @@ class CassandraApplicationDAOSpec extends Specification {
 
   void "applications can be deleted"() {
     when:
-    cassandraApplicationDAO.create(newApplicationAttrs.name, newApplicationAttrs)
+    cassandraApplicationDAO.create(newApplicationAttrs.name, new Application(newApplicationAttrs))
     cassandraApplicationDAO.delete(newApplicationAttrs.name)
     cassandraApplicationDAO.findByName(newApplicationAttrs.name)
 
@@ -115,19 +115,19 @@ class CassandraApplicationDAOSpec extends Specification {
 
   void "applications can be case-insensitively searched for by one or more attributes"() {
     given:
-    def newApplication = cassandraApplicationDAO.create(newApplicationAttrs.name, newApplicationAttrs)
+    def newApplication = cassandraApplicationDAO.create(newApplicationAttrs.name, new Application(newApplicationAttrs))
 
     when:
     def foundApplications = cassandraApplicationDAO.search([name: newApplicationAttrs.name])
 
     then:
-    foundApplications*.allColumnProperties() == [newApplication]*.allColumnProperties()
+    foundApplications*.persistedProperties == [newApplication]*.persistedProperties
 
     when:
     foundApplications = cassandraApplicationDAO.search([email: newApplicationAttrs.email.toUpperCase()])
 
     then:
-    foundApplications*.allColumnProperties() == [newApplication]*.allColumnProperties()
+    foundApplications*.persistedProperties == [newApplication]*.persistedProperties
 
     when:
     cassandraApplicationDAO.search([name: newApplicationAttrs.name, group: "does not exist"])
@@ -139,16 +139,16 @@ class CassandraApplicationDAOSpec extends Specification {
     foundApplications = cassandraApplicationDAO.search([name: "app"])
 
     then:
-    foundApplications*.allColumnProperties() == [newApplication]*.allColumnProperties()
+    foundApplications*.persistedProperties == [newApplication]*.persistedProperties
   }
 
   @Unroll
   void "applications can be searched for by account"() {
     given:
-    cassandraApplicationDAO.create(newApplicationAttrs.name, newApplicationAttrs)
-    cassandraApplicationDAO.create("another-app", [
+    cassandraApplicationDAO.create(newApplicationAttrs.name, new Application(newApplicationAttrs))
+    cassandraApplicationDAO.create("another-app", new Application([
         name: "another-app", email: "another@netflix.com", accounts: "prod,test,extra"
-    ])
+    ]))
 
     when:
     def foundApplications = cassandraApplicationDAO.search([accounts: searchAccounts])
@@ -167,11 +167,11 @@ class CassandraApplicationDAOSpec extends Specification {
   @Unroll
   void "application '#attribute' can be updated"() {
     given:
-    def newApplication = cassandraApplicationDAO.create(newApplicationAttrs.name, newApplicationAttrs)
+    def newApplication = cassandraApplicationDAO.create(newApplicationAttrs.name, new Application(newApplicationAttrs))
 
     when:
     newApplication."${attribute}" = value
-    cassandraApplicationDAO.update(newApplicationAttrs.name, [(attribute): value])
+    cassandraApplicationDAO.update(newApplicationAttrs.name, new Application([(attribute): value]))
 
     then:
     def foundApplication = cassandraApplicationDAO.findByName(newApplicationAttrs.name)
@@ -181,6 +181,23 @@ class CassandraApplicationDAOSpec extends Specification {
     attribute                        | value
     "email"                          | "updated@netflix.com"
     "description"                    | null
+  }
+
+  @Unroll
+  void "dynamic attribute '#attribute' can be updated"() {
+    given:
+    def newApplication = cassandraApplicationDAO.create(newApplicationAttrs.name, new Application(newApplicationAttrs))
+
+    when:
+    newApplication."${attribute}" = value
+    cassandraApplicationDAO.update(newApplicationAttrs.name, new Application([(attribute): value]))
+
+    then:
+    def foundApplication = cassandraApplicationDAO.findByName(newApplicationAttrs.name)
+    foundApplication.details()."${attribute}" == value
+
+    where:
+    attribute                        | value
     "pdApiKey"                       | "another pdApiKey"
     "repoProjectKey"                 | "project-key"
     "repoSlug"                       | "repo"
@@ -188,52 +205,9 @@ class CassandraApplicationDAOSpec extends Specification {
     "cloudProviders"                 | "aws,titan"
     "platformHealthOnly"             | "true"
     "platformHealthOnlyShowOverride" | "false"
-
+    "adHocField"                     | "postHocValidation"
+    "someMap"                        | [ key1: "a", key2: 2, nested: [ subkey: "33", something: true]]
   }
 
-  void "application updates should merge with existing details"() {
-    given:
-    cassandraApplicationDAO.create(name, [
-        name: name,
-        email: email,
-        owner: owner,
-        repoType: repoType,
-        repoSlug: repoSlug,
-        cloudProviders: "aws,titan"
-    ])
-
-    when:
-    cassandraApplicationDAO.update(name, [
-        pdApiKey: pdApiKey,
-        repoProjectKey: "project-key",
-        repoSlug: "repo",
-        repoType: "stash",
-        cloudProviders: "titan",
-        platformHealthOnly: "true",
-        platformHealthOnlyShowOverride: "true"
-    ])
-
-    then:
-    def foundApplication = cassandraApplicationDAO.findByName(name)
-    foundApplication.email == email
-    foundApplication.owner == owner
-    foundApplication.pdApiKey == pdApiKey
-    foundApplication.repoProjectKey  == "project-key"
-    foundApplication.repoSlug == "repo"
-    foundApplication.repoType == "stash"
-    foundApplication.cloudProviders == cloudProviders
-    foundApplication.platformHealthOnly == "true"
-    foundApplication.platformHealthOnlyShowOverride == "true"
-
-    where:
-    name = "another-app"
-    email = "another@netflix.com"
-    owner = "owner"
-    pdApiKey = "pdApiKey"
-    repoProjectKey = "project-key"
-    repoSlug = "repo"
-    repoType = "github"
-    cloudProviders = "titan"
-  }
 }
 

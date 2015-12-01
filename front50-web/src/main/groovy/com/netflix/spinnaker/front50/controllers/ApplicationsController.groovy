@@ -77,7 +77,7 @@ public class ApplicationsController {
     def application = getApplication()
     Application existingApplication = application.findByName(app.getName())
     application.initialize(existingApplication).withName(app.getName()).update(app)
-    return application
+    return app
   }
 
   @ApiOperation(value = "", notes = "Create an application within a specific `account`")

@@ -58,8 +58,8 @@ class ApplicationsControllerSpec extends Specification {
 
   void 'a put should update an application'() {
     setup:
-    def sampleApp = new Application("SAMPLEAPP", null, "web@netflix.com", "Andy McEntee",
-      null, null, null, null, null, null, null, null, null, null, null, null, null, null, null)
+    def owner = "Andy McEntee"
+    def sampleApp = new Application(name: "SAMPLEAPP", email: "web@netflix.com", owner: owner)
 
     when:
     def response = mockMvc.perform(put("/default/applications").
@@ -69,13 +69,12 @@ class ApplicationsControllerSpec extends Specification {
     response.andExpect status().isOk()
     response.andExpect content().string(new ObjectMapper().writeValueAsString(sampleApp))
     1 * dao.findByName(_) >> sampleApp
-    1 * dao.update("SAMPLEAPP", ["name": "SAMPLEAPP", "email": "web@netflix.com", "owner": "Andy McEntee"])
+    1 * dao.update("SAMPLEAPP", { it.name == sampleApp.name && it.email == sampleApp.email && it.details().owner == owner})
   }
 
   void 'a put should not update an application if no name is provided'() {
     setup:
-    def sampleApp = new Application(null, null, "web@netflix.com", "Andy McEntee",
-      null, null, null, null, null, null, null, null, null, null, null, null, null, null, null)
+    def sampleApp = new Application(email: "web@netflix.com", owner: "Andy McEntee")
 
     when:
     def response = mockMvc.perform(put("/default/applications").
@@ -85,11 +84,51 @@ class ApplicationsControllerSpec extends Specification {
     response.andExpect status().is4xxClientError()
   }
 
+  void 'a put should merge properties with existing ones'() {
+    setup:
+    def app = "SAMPLEAPP"
+    def newEmail = "new@netflix.com"
+    def dynamicPropertyToUpdate = "new dynamic property"
+    def description = "old"
+    def unchangedDynamicProperty = "no change"
+    def brandNewDynamicProperty = "brand new"
+    def existingApp = new Application(name: app, email: "old@netflix.com", description: description,
+        dynamicPropertyToUpdate: "old dynamic property",
+        unchangedDynamicProperty: unchangedDynamicProperty)
+    def updates = new Application(name: app, email: newEmail,
+        dynamicPropertyToUpdate: dynamicPropertyToUpdate,
+        brandNewDynamicProperty: brandNewDynamicProperty)
+
+    when:
+    def response = mockMvc.perform(put("/default/applications").
+        contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(updates)))
+
+    then:
+    response.andExpect status().isOk()
+    response.andExpect content().string(new ObjectMapper().writeValueAsString(
+        new Application(
+            name: app,
+            description: description,
+            email: newEmail,
+            dynamicPropertyToUpdate: dynamicPropertyToUpdate,
+            unchangedDynamicProperty: unchangedDynamicProperty,
+            brandNewDynamicProperty: brandNewDynamicProperty
+        ))
+    )
+    1 * dao.findByName(app) >> existingApp
+    1 * dao.update("SAMPLEAPP", { it.name == app &&
+        it.email == newEmail &&
+        it.description == description &&
+        it.details().dynamicPropertyToUpdate == dynamicPropertyToUpdate &&
+        it.details().unchangedDynamicProperty == unchangedDynamicProperty &&
+        it.details().brandNewDynamicProperty == brandNewDynamicProperty
+    })
+  }
+
   void 'a post w/o a name will throw an error'() {
     setup:
-    def sampleApp = new Application(null, "Standalone App", "web@netflix.com", "Kevin McEntee",
-      "netflix.com application", "Standalone Application", null, null, null, null, null, null, null, null, null, null,
-      null, null, null)
+    def sampleApp = new Application(type: "Standalone App", email: "web@netflix.com", owner: "Kevin McEntee",
+      description: "netflix.com application", group: "Standalone Application")
 
     when:
     def response = mockMvc.perform(post("/default/applications/name/app").
@@ -101,9 +140,7 @@ class ApplicationsControllerSpec extends Specification {
 
   void 'a post w/an existing application will throw an error'() {
     setup:
-    def sampleApp = new Application("SAMPLEAPP", "Standalone App", "web@netflix.com", "Kevin McEntee",
-        "netflix.com application", "Standalone Application", null, null, null, null, null, null, null, null, null, null,
-        null, null, null)
+    def sampleApp = new Application(name: "SAMPLEAPP", email: "web@netflix.com", description: "an application")
 
     when:
     def response = mockMvc.perform(post("/default/applications/name/SAMPLEAPP").
@@ -116,9 +153,7 @@ class ApplicationsControllerSpec extends Specification {
 
   void 'a post w/a new application should yield a success'() {
     setup:
-    def sampleApp = new Application("SAMPLEAPP", "Standalone App", "web@netflix.com", "Kevin McEntee",
-      "netflix.com application", "Standalone Application", null, null, null, null, null, null, null, null, null, null,
-      null, null, null)
+    def sampleApp = new Application(name: "SAMPLEAPP", type: "Standalone App", email: "web@netflix.com")
     dao.create(_, _) >> sampleApp
 
     when:
@@ -133,9 +168,8 @@ class ApplicationsControllerSpec extends Specification {
 
   void 'a get w/a name should return a JSON document for the found app'() {
     setup:
-    def sampleApp = new Application("SAMPLEAPP", "Standalone App", "web@netflix.com", "Kevin McEntee",
-      "netflix.com application", "Standalone Application", null, null, null, null, null, "1265752693581l",
-      "1265752693581l", null, null, null, null, null, null)
+    def sampleApp = new Application(name:"SAMPLEAPP", type: "Standalone App", email: "web@netflix.com",
+        createTs: "1265752693581l", updateTs: "1265752693581l")
 
     when:
     def response = mockMvc.perform(get("/default/applications/name/SAMPLEAPP"))
@@ -168,12 +202,10 @@ class ApplicationsControllerSpec extends Specification {
 
   void 'index should return a list of applications'() {
     setup:
-    def sampleApps = [new Application("SAMPLEAPP", "Standalone App", "web@netflix.com", "Kevin McEntee",
-      "netflix.com application", "Standalone Application", null, null, null, null, null, "1265752693581l",
-      "1265752693581l", null, null, null, null, null, null),
-                      new Application("SAMPLEAPP-2", "Standalone App", "web@netflix.com", "Kevin McEntee",
-      "netflix.com application", "Standalone Application", null, null, null, null, null, "1265752693581l",
-      "1265752693581l", null, null, null, null, null, null)]
+    def sampleApps = [new Application(name: "SAMPLEAPP", email: "web@netflix.com", createTs: "1265752693581l",
+      updateTs: "1265752693581l"),
+                      new Application(name: "SAMPLEAPP-2", email: "web@netflix.com", createTs: "1265752693581l",
+      updateTs: "1265752693581l")]
 
     when:
     def response = mockMvc.perform(get("/${account}/applications"))
@@ -189,12 +221,10 @@ class ApplicationsControllerSpec extends Specification {
 
   void "search hits the dao"() {
     setup:
-    def sampleApps = [new Application("SAMPLEAPP", "Standalone App", "web@netflix.com", "Kevin McEntee",
-      "netflix.com application", "Standalone Application", null, null, null, null, null, "1265752693581l",
-      "1265752693581l", null, null, null, null, null, null),
-                      new Application("SAMPLEAPP-2", "Standalone App", "web@netflix.com", "Kevin McEntee",
-      "netflix.com application", "Standalone Application", null, null, null, null, null, "1265752693581l",
-      "1265752693581l", null, null, null, null, null, null)]
+    def sampleApps = [new Application(name: "SAMPLEAPP", email: "web@netflix.com", createTs: "1265752693581l",
+      updateTs: "1265752693581l"),
+                      new Application(name: "SAMPLEAPP-2", email: "web@netflix.com", createTs:  "1265752693581l",
+      updateTs: "1265752693581l")]
 
     when:
     def response = mockMvc.perform(get("/${account}/applications/search?q=p"))

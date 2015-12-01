@@ -56,24 +56,21 @@ class ApplicationModelSpec extends Specification {
     application.name == null
   }
 
-  void 'should support obtaining list of properties who have values'() {
+  void 'should support adding dynamic properties'() {
     def application = new Application()
-    application.setName("TEST_APP")
-    application.email = 'aglover@netflix.com'
     application.pdApiKey = ''
     application.owner = null
     application.repoProjectKey = "project-key"
     application.repoSlug = "repo"
     application.repoType = "github"
 
-    def props = application.allSetColumnProperties()
+    def props = application.details()
 
     expect:
     props != null
-    props.size() == 6
-    props['name'] == 'TEST_APP'
-    props['email'] == "aglover@netflix.com"
+    props.size() == 5
     props['pdApiKey'] == ''
+    props['owner'] == null
     props['repoProjectKey'] == "project-key"
     props['repoSlug'] == "repo"
     props['repoType'] == 'github'

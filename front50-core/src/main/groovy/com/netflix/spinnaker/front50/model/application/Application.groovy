@@ -17,9 +17,9 @@
 
 package com.netflix.spinnaker.front50.model.application
 
-import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonAnyGetter
+import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.front50.events.ApplicationEventListener
 import com.netflix.spinnaker.front50.exception.ApplicationAlreadyExistsException
 import com.netflix.spinnaker.front50.exception.NotFoundException
@@ -32,31 +32,40 @@ import groovy.transform.stc.SimpleType
 import groovy.util.logging.Slf4j
 import org.springframework.validation.Errors
 
-import java.lang.reflect.Field
-import java.lang.reflect.Modifier
-
 @ToString
 @Slf4j
 class Application {
   String name
   String description
   String email
-  String owner
-  String type
-  String group
-  String monitorBucketType
-  String pdApiKey
+  String accounts
   String updateTs
   String createTs
-  String tags
-  String regions
-  String accounts
-  String repoProjectKey
-  String repoSlug
-  String repoType
-  String cloudProviders
-  String platformHealthOnly
-  String platformHealthOnlyShowOverride
+
+  private Map<String, Object> details = new HashMap<String, Object>()
+
+  @JsonAnyGetter
+  public Map<String,Object> details() {
+    return details;
+  }
+
+  @JsonAnySetter
+  public void set(String name, Object value) {
+    details.put(name, value);
+  }
+
+  @JsonIgnore
+  public Map<String, Object> getPersistedProperties() {
+    [
+        name: this.name,
+        description: this.description,
+        email: this.email,
+        accounts: this.accounts,
+        updateTs: this.updateTs,
+        createTs: this.createTs,
+        details: this.details
+    ]
+  }
 
   @JsonIgnore
   ApplicationDAO dao
@@ -67,74 +76,39 @@ class Application {
   @JsonIgnore
   Collection<ApplicationEventListener> applicationEventListeners
 
-  Application() {} //forces Groovy to add LinkedHashMap constructor
-
-  @JsonCreator
-  Application(@JsonProperty("name") String name,
-              @JsonProperty("description") String description,
-              @JsonProperty("email") String email,
-              @JsonProperty("owner") String owner,
-              @JsonProperty("type") String type,
-              @JsonProperty("group") String group,
-              @JsonProperty("monitorBucketType") String monitorBucketType,
-              @JsonProperty("pdApiKey") String pdApiKey,
-              @JsonProperty("regions") String regions,
-              @JsonProperty("tags") String tags,
-              @JsonProperty("accounts") String accounts,
-              @JsonProperty("createTs") String createdAt,
-              @JsonProperty("updateTs") String updatedAt,
-              @JsonProperty("repoProjectKey") String repoProjectKey,
-              @JsonProperty("repoSlug") String repoSlug,
-              @JsonProperty("repoType") String repoType,
-              @JsonProperty("cloudProviders") String cloudProviders,
-              @JsonProperty("platformHealthOnly") String platformHealthOnly,
-              @JsonProperty("platformHealthOnlyShowOverride") String platformHealthOnlyShowOverride
-
-  ) {
-    this.group = group
-    this.monitorBucketType = monitorBucketType
-    this.pdApiKey = pdApiKey
-    this.name = name
-    this.description = description
-    this.email = email
-    this.owner = owner
-    this.type = type
-    this.regions = regions
-    this.tags = tags
-    this.accounts = accounts
-    this.createTs = createdAt
-    this.updateTs = updatedAt
-    this.repoProjectKey = repoProjectKey
-    this.repoSlug = repoSlug
-    this.repoType = repoType
-    this.cloudProviders = cloudProviders
-    this.platformHealthOnly = platformHealthOnly
-    this.platformHealthOnlyShowOverride = platformHealthOnlyShowOverride
-  }
-
   void update(Application updatedApplication) {
-    def newAttributes = updatedApplication.allSetColumnProperties()
-    validate(new Application(allColumnProperties() << newAttributes))
 
-    updatedApplication = perform(
+    updatedApplication.name = this.name
+    updatedApplication.createTs = this.createTs
+    updatedApplication.description = updatedApplication.description ?: this.description
+    updatedApplication.email = updatedApplication.email ?: this.email
+    updatedApplication.accounts = updatedApplication.accounts ?: this.accounts
+    mergeDetails(updatedApplication, this)
+    validate(updatedApplication)
+
+    perform(
         applicationEventListeners.findAll { it.supports(ApplicationEventListener.Type.PRE_UPDATE) },
         applicationEventListeners.findAll { it.supports(ApplicationEventListener.Type.POST_UPDATE) },
         { Application originalApplication, Application modifiedApplication ->
           // onSuccess
-          this.dao.update(originalApplication.name.toUpperCase(), modifiedApplication.allSetColumnProperties())
+          this.dao.update(originalApplication.name.toUpperCase(), modifiedApplication)
+          updatedApplication.updateTs = originalApplication.updateTs
           return modifiedApplication
         },
         { Application originalApplication, Application modifiedApplication ->
           // onRollback
-          this.dao.update(originalApplication.name.toUpperCase(), originalApplication.allColumnProperties())
+          this.dao.update(originalApplication.name.toUpperCase(), originalApplication)
         },
         this,
         updatedApplication
     )
+  }
 
-    updatedApplication.allSetColumnProperties().each { String key, String value ->
-      // apply updates locally (in addition to DAO persistence)
-      this[key] = value
+  private static void mergeDetails(Application target, Application source) {
+    source.details.each { String key, Object value ->
+      if (!target.details.containsKey(key)) {
+        target.details[key] = value
+      }
     }
   }
 
@@ -161,7 +135,7 @@ class Application {
         },
         { Application originalApplication, Application modifiedApplication ->
           // onRollback
-          this.dao.create(currentApplication.name, currentApplication.allColumnProperties())
+          this.dao.create(currentApplication.name, currentApplication)
           return null
         },
         currentApplication,
@@ -170,11 +144,10 @@ class Application {
   }
 
   Application clear() {
-    Application.declaredFields.each { field ->
-      if (isColumnProperty(field)) {
-        this."$field.name" = null
-      }
+    getPersistedProperties().keySet().each { field ->
+      this[field] = null
     }
+    this.details = [:]
     return this
   }
 
@@ -183,13 +156,8 @@ class Application {
    */
   Application initialize(Application app) {
     this.clear()
-    Application.declaredFields.each { field ->
-      if (isColumnProperty(field)) {
-        def value = app."$field.name"
-        if (value) {
-          this."$field.name" = value
-        }
-      }
+    getPersistedProperties().keySet().each { key ->
+      this[key] = app[key]
     }
     return this
   }
@@ -208,7 +176,7 @@ class Application {
         applicationEventListeners.findAll { it.supports(ApplicationEventListener.Type.POST_CREATE) },
         { Application originalApplication, Application modifiedApplication ->
           // onSuccess
-          return dao.create(modifiedApplication.name.toUpperCase(), modifiedApplication.allSetColumnProperties())
+          return dao.create(modifiedApplication.name.toUpperCase(), modifiedApplication)
         },
         { Application originalApplication, Application modifiedApplication ->
           // onRollback
@@ -247,24 +215,6 @@ class Application {
   Application withName(String name) {
     this.name = name
     return this
-  }
-
-  Map<String, String> allSetColumnProperties() {
-    return allColumnProperties(true)
-  }
-
-  Map<String, String> allColumnProperties(boolean onlySet = false) {
-    Application.declaredFields.toList().findResults {
-      if (isColumnProperty(it)) {
-        def value = this."$it.name"
-        if (onlySet) {
-          // consider empty strings to be 'set' values
-          return (value != null) ? [it.name, value] : null
-        }
-        return [it.name, value]
-      }
-      null
-    }.collectEntries()
   }
 
   private void validate(Application application) {
@@ -325,11 +275,7 @@ class Application {
   }
 
   private static Application copy(Application source) {
-    return source ? new Application(source.allColumnProperties()) : null
-  }
-
-  private static boolean isColumnProperty(Field field) {
-    (field.modifiers == Modifier.PRIVATE) && (field.genericType == String.class)
+    return source ? new Application(source.getPersistedProperties()) : null
   }
 
   @Canonical
