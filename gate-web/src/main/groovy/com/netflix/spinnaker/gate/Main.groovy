@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate
 
-import com.netflix.config.ConfigurationManager
 import com.netflix.hystrix.contrib.metrics.eventstream.HystrixMetricsStreamServlet
 import com.netflix.spinnaker.hystrix.spectator.HystrixSpectatorConfig
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
@@ -48,10 +47,6 @@ class Main extends SpringBootServletInitializer {
           'spring.config.name': 'spinnaker,${spring.application.name}',
           'spring.profiles.active': '${netflix.environment},local'
   ]
-
-  static {
-    ConfigurationManager.loadCascadedPropertiesFromResources("hystrix")
-  }
 
   static void main(String... args) {
     new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main).run(args)

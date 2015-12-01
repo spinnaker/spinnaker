@@ -43,3 +43,13 @@ swagger:
     - .*vpcs.*
     - .*subnets.*
     - .*networks.*
+
+hystrix:
+  command:
+## Hystrix Global Defaults
+    default:
+      execution.isolation.thread.timeoutInMilliseconds: 60000
+## Command-specific overrides
+    fetchGlobalAccounts:
+      execution.isolation.thread.timeoutInMilliseconds: 2000
+
