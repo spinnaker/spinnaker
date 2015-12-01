@@ -86,9 +86,9 @@ class BuildController {
         masters.map[master].getBuilds(job).list
     }
 
-    @RequestMapping(value = '/masters/{name}/jobs/{job:.+}', method = RequestMethod.PUT)
+    @RequestMapping(value = '/masters/{master}/jobs/{job:.+}', method = RequestMethod.PUT)
     String build(
-        @PathVariable("name") String master,
+        @PathVariable("master") String master,
         @PathVariable String job, @RequestParam Map<String, String> requestParams) {
         if (!masters.map.containsKey(master)) {
             throw new MasterNotFoundException()

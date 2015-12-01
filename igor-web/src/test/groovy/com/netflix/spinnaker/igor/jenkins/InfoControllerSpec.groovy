@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.jenkins
 
+import com.netflix.config.ConfigurationManager
 import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.squareup.okhttp.mockwebserver.MockResponse
@@ -36,6 +37,9 @@ import spock.lang.Specification
  */
 @SuppressWarnings(['UnnecessaryBooleanExpression', 'LineLength'])
 class InfoControllerSpec extends Specification {
+    static {
+        System.setProperty("hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds", "30000")
+    }
 
     MockMvc mockMvc
     JenkinsCache cache
