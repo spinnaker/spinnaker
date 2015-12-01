@@ -49,8 +49,6 @@ class CloudFoundryDeployDescription implements DeployDescription {
 
   Integer memory = 1024
 
-  String org
-
   String stack
 
   String freeFormDetails
@@ -65,8 +63,19 @@ class CloudFoundryDeployDescription implements DeployDescription {
     this.credentials.name
   }
 
-  Map<String, Object> targetPackage
-
   String serverGroupName
+
+  String strategy
+
+  Map<String, Object> trigger
+
+  /**
+   * Repository-specific details
+   */
+
+  String repository
+  String artifact
+  String username
+  String password
 
 }

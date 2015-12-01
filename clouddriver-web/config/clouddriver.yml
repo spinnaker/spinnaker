@@ -197,9 +197,6 @@ titan:
 
 cf:
   enabled: false
-#  jenkins:
-#    username: /* your jenkins username, or property name here */
-#    password: /* your jenkins password or property name here */
 #  accounts:
 #    -
 #      name: /* name for this CF space */

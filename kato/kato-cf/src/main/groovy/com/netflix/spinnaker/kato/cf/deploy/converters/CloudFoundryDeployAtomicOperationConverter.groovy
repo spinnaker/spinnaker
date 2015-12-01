@@ -15,9 +15,11 @@
  */
 package com.netflix.spinnaker.kato.cf.deploy.converters
 
+import com.netflix.spinnaker.clouddriver.cf.CloudFoundryOperation
 import com.netflix.spinnaker.kato.cf.deploy.description.CloudFoundryDeployDescription
 import com.netflix.spinnaker.kato.deploy.DeployAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
@@ -26,6 +28,7 @@ import org.springframework.stereotype.Component
  *
  *
  */
+@CloudFoundryOperation(AtomicOperations.CREATE_SERVER_GROUP)
 @Component("cloudFoundryDeployDescription")
 class CloudFoundryDeployAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 

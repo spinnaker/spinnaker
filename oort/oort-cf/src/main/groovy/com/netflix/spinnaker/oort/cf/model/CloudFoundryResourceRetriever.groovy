@@ -22,6 +22,7 @@ import com.netflix.spinnaker.kato.cf.security.CloudFoundryAccountCredentials
 import com.netflix.spinnaker.oort.model.HealthState
 import groovy.util.logging.Slf4j
 import org.cloudfoundry.client.lib.CloudFoundryClient
+import org.cloudfoundry.client.lib.domain.CloudApplication
 import org.cloudfoundry.client.lib.domain.CloudService
 import org.cloudfoundry.client.lib.domain.CloudSpace
 import org.cloudfoundry.client.lib.domain.InstanceState
@@ -280,6 +281,98 @@ class CloudFoundryResourceRetriever {
     }
 
     log.info "Finished loading CF resources."
+
+  }
+
+  /**
+   * Update the status of a particular server group by connecting to CF.
+   * @param data
+   */
+  void handleCacheUpdate(Map<String, ? extends Object> data) {
+    log.info "Refreshing cache for server group $data.serverGroupName in account $data.account..."
+
+    if (cacheLock.tryLock()) {
+      log.info "Acquired cacheLock for updating cache."
+
+      try {
+        def accountCredentials = accountCredentialsProvider.getCredentials(data.account)
+
+        if (accountCredentials instanceof CloudFoundryAccountCredentials) {
+          CloudFoundryAccountCredentials credentials = (CloudFoundryAccountCredentials) accountCredentials
+
+          log.info "Logging in to ${credentials.api} as ${credentials.name}"
+
+          def client = new CloudFoundryClient(credentials.credentials, credentials.api.toURL(), true)
+
+          CloudApplication app = client.getApplication(data.serverGroupName)
+          CloudSpace space = client.getSpace(credentials.space)
+
+          app.space = space
+          def account = credentials.name
+
+          Names names = Names.parseName(app.name)
+
+          def serverGroup = new CloudFoundryServerGroup([
+              name: app.name,
+              nativeApplication: app,
+              envVariables: app.envAsMap
+          ])
+
+          // TODO: Also update services
+
+          try {
+            serverGroup.instances = client.getApplicationInstances(app)?.instances.collect {
+              def healthState = instanceStateToHealthState(it.state)
+              def health = [[
+                                state      : healthState.toString(),
+                                type       : 'serverGroup',
+                                description: 'State of the CF server group'
+                            ]]
+
+              def instance = new CloudFoundryApplicationInstance([
+                  name             : "${app.name}:${it.index}",
+                  healthState      : healthState,
+                  health           : health,
+                  nativeApplication: app,
+                  nativeInstance:   it,
+                  logsLink         : "${credentials.console}/organizations/${space.organization.meta.guid}/spaces/${space.meta.guid}/applications/${app.meta.guid}/tailing_logs"
+              ])
+
+              if (instancesByAccountAndId[account][instance.name]?.healthState != instance.healthState) {
+                log.info "Updating ${account}/${instance.name} to ${instance.healthState}"
+              }
+              instancesByAccountAndId[account][instance.name] = instance
+              instance
+            } as Set<CloudFoundryApplicationInstance>
+          } catch (HttpServerErrorException e) {
+            log.warn "Unable to retrieve instance data about ${app.name} in ${account} => ${e.message}"
+          }
+
+          serverGroupByAccountAndServerGroupName[account][serverGroup.name] = serverGroup
+
+          if (serverGroupsByAccount[account].contains(serverGroup)) {
+            serverGroupsByAccount[account].remove(serverGroup)
+          }
+          serverGroupsByAccount[account].add(serverGroup)
+
+          if (serverGroupsByAccountAndClusterName[account][names.cluster].contains(serverGroup)) {
+            serverGroupsByAccountAndClusterName[account][names.cluster].remove(serverGroup)
+          }
+          serverGroupsByAccountAndClusterName[account][names.cluster].add(serverGroup)
+
+          if (clusterByAccountAndClusterName[account][names.cluster].serverGroups.contains(serverGroup)) {
+            clusterByAccountAndClusterName[account][names.cluster].serverGroups.remove(serverGroup)
+          }
+          clusterByAccountAndClusterName[account][names.cluster].serverGroups.add(serverGroup)
+
+          log.info "Finished refreshing cache for server group $data.serverGroupName in account $data.account."
+        }
+      } finally {
+        cacheLock.unlock()
+      }
+    } else {
+      log.info "Unable to acquire cacheLock for updating cache."
+    }
 
   }
 
