@@ -57,11 +57,12 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
 
     let executionLoader = application.reloadExecutions(true);
 
-    let configLoader = $q.when(null);
-    if (application.pipelineConfigsLoading) {
-      let deferred = $q.defer();
-      configLoader = deferred.promise;
-      $scope.$on('pipelineConfigs-loaded', deferred.resolve);
+    let deferred = $q.defer();
+    let configLoader = deferred.promise;
+    if (application.pipelineConfigs) {
+      deferred.resolve();
+    } else {
+      application.pipelineConfigRefreshStream.take(1).subscribe(deferred.resolve);
     }
 
     $q.all([executionLoader, configLoader]).then(() => {
@@ -97,8 +98,8 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       this.viewState.initializationError = true;
     };
 
-    $scope.$on('executions-load-failure', dataInitializationFailure);
-    $scope.$on('executions-reloaded', normalizeExecutionNames);
+    let executionWatcher = this.application.executionRefreshStream.subscribe(normalizeExecutionNames, dataInitializationFailure);
+    $scope.$on('$destroy', () => executionWatcher.dispose());
 
     this.toggleExpansion = (expand) => {
       $scope.$broadcast('toggle-expansion', expand);

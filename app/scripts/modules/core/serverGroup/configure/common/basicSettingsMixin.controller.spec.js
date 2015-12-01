@@ -9,13 +9,12 @@ describe('Basic Settings Mixin Controller:', function () {
     )
   );
 
-  beforeEach(window.inject(function($controller, $rootScope, RxService, namingService) {
+  beforeEach(window.inject(function($controller, $rootScope, namingService) {
     $scope = $rootScope.$new();
     $scope.application = { name: 'app', serverGroups: [] };
     $scope.command = { viewState: { }};
     controller = $controller('BasicSettingsMixin',{
       $scope: $scope,
-      RxService: RxService,
       namingService: namingService,
       $uibModalStack: { dismissAll: angular.noop },
     });

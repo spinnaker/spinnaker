@@ -45,8 +45,14 @@ module.exports = angular.module('spinnaker.core.delivery.filter.executionFilter.
       this.updateExecutionGroups();
     };
 
-    $scope.$on('executions-reloaded', this.initialize);
-    $scope.$on('pipelineConfigs-reloaded', this.initialize);
+    var executionWatcher = this.application.executionRefreshStream.subscribe(this.initialize);
+    var pipelineConfigWatcher = this.application.pipelineConfigRefreshStream.subscribe(this.initialize);
+
+    $scope.$on('$destroy', () => {
+      executionWatcher.dispose();
+      pipelineConfigWatcher.dispose();
+    });
+
     this.initialize();
 
     $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', () => {

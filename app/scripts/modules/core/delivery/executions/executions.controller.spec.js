@@ -11,6 +11,7 @@ describe('Controller: pipelineExecutions', function () {
   var pipelineConfigService;
   var $q;
   var $timeout;
+  var rx;
 
   beforeEach(
     window.module(
@@ -19,13 +20,14 @@ describe('Controller: pipelineExecutions', function () {
   );
 
   beforeEach(
-    window.inject(function ($rootScope, $controller, _$state_, _pipelineConfigService_, _$q_, _$timeout_) {
+    window.inject(function ($rootScope, $controller, _$state_, _pipelineConfigService_, _$q_, _$timeout_, _rx_) {
       rootScope = $rootScope;
       scope = $rootScope.$new();
       $state = { go: angular.noop };
       pipelineConfigService = _pipelineConfigService_;
       $q = _$q_;
       $timeout = _$timeout_;
+      rx = _rx_;
 
       this.initializeController = function (application) {
         scope.application = application;
@@ -39,11 +41,16 @@ describe('Controller: pipelineExecutions', function () {
   );
 
   it('should not set loading flag to false until executions and pipeline configs have been loaded', function () {
+    var executionRefreshStream = new rx.Subject(),
+        pipelineConfigRefreshStream = new rx.Subject();
     var application = {
       name: 'foo',
       executionsLoaded: false,
       pipelineConfigsLoaded: false,
-      reloadExecutions: () => $q.when(null),
+      executionRefreshStream: executionRefreshStream,
+      pipelineConfigRefreshStream: pipelineConfigRefreshStream,
+      reloadExecutions: () => executionRefreshStream.onNext(),
+      reloadPipelineConfigs: () => pipelineConfigRefreshStream.onNext(),
     };
     spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when({ plain: function () {
       return [];
@@ -53,7 +60,8 @@ describe('Controller: pipelineExecutions', function () {
 
     expect(controller.viewState.loading).toBe(true);
 
-    rootScope.$broadcast('pipelineConfigs-loaded');
+    executionRefreshStream.onNext();
+    pipelineConfigRefreshStream.onNext();
     scope.$digest();
     $timeout.flush();
 
@@ -61,11 +69,16 @@ describe('Controller: pipelineExecutions', function () {
   });
 
   it('should update execution name when pipelineConfigId is present and name differs in config', function () {
+    var executionRefreshStream = new rx.Subject(),
+        pipelineConfigRefreshStream = new rx.Subject();
     var application = {
       name: 'foo',
       pipelineConfigsLoading: false,
       executionsLoaded: true,
-      reloadExecutions: angular.noop,
+      executionRefreshStream: executionRefreshStream,
+      pipelineConfigRefreshStream: pipelineConfigRefreshStream,
+      reloadExecutions: () => executionRefreshStream.onNext(),
+      reloadPipelineConfigs: () => pipelineConfigRefreshStream.onNext(),
       pipelineConfigs: [
         {
           id: 'a1',
@@ -95,8 +108,8 @@ describe('Controller: pipelineExecutions', function () {
       ],
     };
     this.initializeController(application);
-    rootScope.$broadcast('executions-reloaded');
-    scope.$digest();
+
+    executionRefreshStream.onNext();
 
     expect(application.executions[0].name).toBe('updated name');
     expect(application.executions[1].name).toBe('unchanged');
