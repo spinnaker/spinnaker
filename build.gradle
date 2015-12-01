@@ -15,7 +15,7 @@
  */
 
 buildscript {
-  
+
   repositories {
     jcenter()
     maven { url 'http://dl.bintray.com/spinnaker/gradle/' }
@@ -33,7 +33,7 @@ allprojects {
   group = 'com.netflix.spinnaker.kork'
 
   spinnaker {
-    dependenciesVersion = "0.19.0"
+    dependenciesVersion = "0.22.0"
   }
 
   jacoco {
