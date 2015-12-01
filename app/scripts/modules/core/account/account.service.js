@@ -61,7 +61,7 @@ module.exports = angular.module('spinnaker.core.account.service', [
         .getList();
     }
 
-    let listProviders = _.memoize((application) => {
+    let listProviders = (application) => {
       return listAccounts().then(function(accounts) {
         let allProviders = _.uniq(_.pluck(accounts, 'type'));
         let availableRegisteredProviders = _.intersection(allProviders, cloudProviderRegistry.listRegisteredProviders());
@@ -75,7 +75,7 @@ module.exports = angular.module('spinnaker.core.account.service', [
         }
         return availableRegisteredProviders;
       });
-    });
+    };
 
     let getRegionsKeyedByAccount = _.memoize((provider) => {
       var deferred = $q.defer();
