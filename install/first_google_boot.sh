@@ -222,8 +222,10 @@ else
 fi
 
 # apply outstanding updates since time of image creation
+apt-mark hold spinnaker-clouddriver spinnaker-deck spinnaker-echo spinnaker-front50 spinnaker-gate spinnaker-igor spinnaker-orca spinnaker-rosco spinnaker-rush spinnaker
 apt-get -y update
 apt-get -y dist-upgrade
+apt-mark unhold spinnaker-clouddriver spinnaker-deck spinnaker-echo spinnaker-front50 spinnaker-gate spinnaker-igor spinnaker-orca spinnaker-rosco spinnaker-rush spinnaker
 sed -i "s/start_rpc: false/start_rpc: true/" /etc/cassandra/cassandra.yaml
 if ! nc -z localhost 7199; then
     echo "Waiting for Cassandra to start..."
