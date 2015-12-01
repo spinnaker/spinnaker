@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor
 
+import com.netflix.config.ConfigurationManager
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
@@ -39,6 +40,10 @@ class Main extends SpringBootServletInitializer {
         'spring.config.name'     : 'spinnaker,${spring.application.name}',
         'spring.profiles.active' : '${netflix.environment},local'
     ]
+
+    static {
+        ConfigurationManager.loadCascadedPropertiesFromResources("hystrix")
+    }
 
     static void main(String... args) {
         new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main).run(args)
