@@ -95,6 +95,8 @@ Click "Create".
 
 *Note: You should be aware of the implications of opening up your virtual machines to the public internet prior to configuring firewall rules. Several more secure options (e.g. SSH tunnel, SOCKS proxy) are described [here](https://cloud.google.com/solutions/connecting-securely).*
 
+# Working with Spinnaker and Docker Compose
+
 ## Launch Spinnaker via Docker Compose
 
 Now that everything is set up, you should switch to using the spinnakergcp docker machine: ``` eval "$(docker-machine env spinnakergcp)" ```
