@@ -10,28 +10,30 @@
   </stage-config-field>
   <stage-config-field label="Command" help-key="pipeline.config.script.command">
     <textarea class="form-control input-sm"
-           ng-model="stage.command"/>
+              ng-model="stage.command"/>
   </stage-config-field>
   <stage-config-field label="Output File" help-key="pipeline.config.script.propertyFile">
     <input type="text" class="form-control input-sm"
            ng-model="stage.propertyFile"/>
   </stage-config-field>
-  <stage-config-field label="Image" help-key="pipeline.config.script.image">
-    <input type="text" class="form-control input-sm"
-           ng-model="stage.image"/>
-  </stage-config-field>
-  <stage-config-field label="Account" help-key="pipeline.config.script.account">
-    <input type="text" class="form-control input-sm"
-           ng-model="stage.account"/>
-  </stage-config-field>
-  <stage-config-field label="Region" help-key="pipeline.config.script.region">
-    <input type="text" class="form-control input-sm"
-           ng-model="stage.region"/>
-  </stage-config-field>
-  <stage-config-field label="Cluster" help-key="pipeline.config.script.cluster">
-    <input type="text" class="form-control input-sm"
-           ng-model="stage.cluster"/>
-  </stage-config-field>
+  <div ng-if="!pipeline.strategy">
+    <stage-config-field label="Image" help-key="pipeline.config.script.image">
+      <input type="text" class="form-control input-sm"
+             ng-model="stage.image"/>
+    </stage-config-field>
+    <stage-config-field label="Account" help-key="pipeline.config.script.account">
+      <input type="text" class="form-control input-sm"
+             ng-model="stage.account"/>
+    </stage-config-field>
+    <stage-config-field label="Region" help-key="pipeline.config.script.region">
+      <input type="text" class="form-control input-sm"
+             ng-model="stage.region"/>
+    </stage-config-field>
+    <stage-config-field label="Cluster" help-key="pipeline.config.script.cluster">
+      <input type="text" class="form-control input-sm"
+             ng-model="stage.cluster"/>
+    </stage-config-field>
+  </div>
   <stage-config-field label="Cmc" help-key="pipeline.config.script.cmc">
     <input type="text" class="form-control input-sm"
            ng-model="stage.cmc"/>

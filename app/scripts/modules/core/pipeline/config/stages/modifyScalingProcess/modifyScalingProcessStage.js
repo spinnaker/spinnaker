@@ -22,6 +22,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.modifyScalingProc
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
       cloudProvider: 'aws',
+      strategy: true,
     });
   }).controller('ModifyScalingProcessStageCtrl', function($scope, stage, accountService, stageConstants, _) {
     $scope.stage = stage;
