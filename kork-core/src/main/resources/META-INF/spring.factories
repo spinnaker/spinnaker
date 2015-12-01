@@ -1,4 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  com.netflix.spinnaker.kork.PlatformComponents,\
-  com.netflix.spinnaker.kork.eureka.StandardEurekaComponents,\
-  com.netflix.spinnaker.kork.metrics.SpectatorConfiguration
+  com.netflix.spinnaker.kork.PlatformComponents

@@ -16,8 +16,13 @@
 
 package com.netflix.spinnaker.kork.metrics;
 
+import com.netflix.spectator.api.Clock;
+import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Spectator;
+import com.netflix.spectator.gc.GcLogger;
+import com.netflix.spectator.jvm.Jmx;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.metrics.writer.CompositeMetricWriter;
 import org.springframework.boot.actuate.metrics.writer.MetricWriter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -27,16 +32,20 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+import javax.annotation.PreDestroy;
 import java.util.List;
 
 @Configuration
 @ConditionalOnClass(Registry.class)
 public class SpectatorConfiguration {
 
+  @Value("${spectator.gc.loggingEnabled:true}")
+  boolean jmxLoggingEnabled = true;
+
   @Bean
   @ConditionalOnMissingBean(Registry.class)
   Registry registry() {
-    return Spectator.globalRegistry();
+    return new DefaultRegistry(Clock.SYSTEM);
   }
 
   @Bean
@@ -50,5 +59,31 @@ public class SpectatorConfiguration {
   @ConditionalOnMissingBean(name = "primaryMetricWriter")
   public MetricWriter primaryMetricWriter(List<MetricWriter> writers) {
     return new CompositeMetricWriter(writers);
+  }
+
+  @Bean
+  RegistryInitializer registryInitializer(Registry registry) {
+    return new RegistryInitializer(registry, jmxLoggingEnabled);
+  }
+
+  private static class RegistryInitializer {
+    private final Registry registry;
+    private final GcLogger gcLogger;
+
+    public RegistryInitializer(Registry registry, boolean enableJmxLogging) {
+      this.registry = registry;
+      Spectator.globalRegistry().add(registry);
+      if (enableJmxLogging) {
+        Jmx.registerStandardMXBeans(registry);
+      }
+      gcLogger = new GcLogger();
+      gcLogger.start(null);
+    }
+
+    @PreDestroy
+    public void destroy() {
+      gcLogger.stop();
+      Spectator.globalRegistry().remove(registry);
+    }
   }
 }

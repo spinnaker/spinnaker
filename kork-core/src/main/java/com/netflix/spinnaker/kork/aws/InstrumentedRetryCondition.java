@@ -21,6 +21,7 @@ import com.amazonaws.AmazonWebServiceRequest;
 import com.amazonaws.retry.PredefinedRetryPolicies;
 import com.amazonaws.retry.RetryPolicy;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.kork.internal.Precondition;
 
 public class InstrumentedRetryCondition implements RetryPolicy.RetryCondition {
   private final Registry registry;
@@ -31,16 +32,8 @@ public class InstrumentedRetryCondition implements RetryPolicy.RetryCondition {
   }
 
   public InstrumentedRetryCondition(Registry registry, RetryPolicy.RetryCondition delegate) {
-    if (registry == null) {
-      throw new NullPointerException("registry");
-    }
-
-    if (delegate == null) {
-      throw new NullPointerException("delegate");
-    }
-
-    this.registry = registry;
-    this.delegate = delegate;
+    this.registry = Precondition.notNull(registry, "registry");
+    this.delegate = Precondition.notNull(delegate, "delegate");
   }
 
   @Override

@@ -1,10 +1,13 @@
 dependencies {
     compile spinnaker.dependency('bootAutoConfigure')
     compile spinnaker.dependency('bootActuator')
+    compile spinnaker.dependency('archaiusCore')
     compile spinnaker.dependency('eurekaClient')
     compile spinnaker.dependency('awsCore')
     compile spinnaker.dependency('spectatorApi')
     compile spinnaker.dependency('spectatorAws')
+    compile spinnaker.dependency('spectatorGc')
+    compile spinnaker.dependency('spectatorJvm')
     testCompile spinnaker.dependency('junit')
     testRuntime spinnaker.dependency('slf4jSimple')
 }

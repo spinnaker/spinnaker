@@ -60,7 +60,7 @@ public class AstyanaxComponents {
                 .setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE)
                 .setConnectionPoolType(ConnectionPoolType.TOKEN_AWARE)
                 .setCqlVersion("3.0.0")
-                .setTargetCassandraVersion("1.2");
+                .setTargetCassandraVersion("2.0");
     }
 
     @Bean

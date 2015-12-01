@@ -16,91 +16,142 @@
 
 package com.netflix.spinnaker.kork.eureka;
 
-import com.netflix.appinfo.ApplicationInfoManager;
-import com.netflix.appinfo.EurekaInstanceConfig;
-import com.netflix.appinfo.InstanceInfo;
-import com.netflix.appinfo.MyDataCenterInstanceConfig;
+import com.netflix.appinfo.*;
 import com.netflix.discovery.DefaultEurekaClientConfig;
+import com.netflix.discovery.DiscoveryClient;
 import com.netflix.discovery.EurekaClientConfig;
-import com.netflix.discovery.shared.Application;
-import com.netflix.discovery.shared.Applications;
-import com.netflix.discovery.shared.LookupService;
-import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
+import com.netflix.discovery.StatusChangeEvent;
+import com.netflix.eventbus.impl.EventBusImpl;
+import com.netflix.eventbus.spi.EventBus;
+import com.netflix.eventbus.spi.InvalidSubscriberException;
+import com.netflix.eventbus.spi.Subscribe;
+import com.netflix.spinnaker.kork.internal.Precondition;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.AbstractFactoryBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
+import org.springframework.boot.actuate.health.HealthAggregator;
+import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.*;
+
+import javax.annotation.PreDestroy;
+import java.util.Map;
 
 @Configuration
-@Import(StandardEurekaComponents.class)
+@ConditionalOnProperty("eureka.enabled")
 public class EurekaComponents {
 
-    @Bean
-    @Qualifier("appInfoManager")
-    @ConditionalOnMissingBean(ApplicationInfoManager.class)
-    public ApplicationInfoManagerFactoryBean applicationInfoManager(EurekaInstanceConfig eurekaInstanceConfig) {
-        return new ApplicationInfoManagerFactoryBean(eurekaInstanceConfig);
+  @Autowired
+  HealthAggregator healthAggregator;
+
+  @Autowired
+  Map<String, HealthIndicator> healthIndicators;
+
+  @Autowired
+  ApplicationEventPublisher publisher;
+
+  @Value("${eureka.instance.namespace:netflix.appinfo.}")
+  String appInfoNamespace = "netflix.appinfo.";
+
+  @Value("${eureka.instance.namespace:netflix.discovery.}")
+  String clientConfigNamespace = "netflix.discovery.";
+
+  @Bean
+  public EventBus eventBus() {
+    return new EventBusImpl();
+  }
+
+  @Bean
+  public DiscoveryClient discoveryClient(ApplicationInfoManager applicationInfoManager, EurekaClientConfig eurekaClientConfig, DiscoveryClient.DiscoveryClientOptionalArgs optionalArgs) {
+    return new DiscoveryClient(applicationInfoManager, eurekaClientConfig, optionalArgs);
+  }
+
+  @Bean
+  public ApplicationInfoManager applicationInfoManager(EurekaInstanceConfig eurekaInstanceConfig) {
+    return new ApplicationInfoManager(eurekaInstanceConfig);
+  }
+
+  @Bean
+  public InstanceInfo instanceInfo(ApplicationInfoManager applicationInfoManager) {
+    return applicationInfoManager.getInfo();
+  }
+
+  @Bean
+  @DependsOn("environmentBackedConfig")
+  EurekaInstanceConfig eurekaInstanceConfig() {
+    return new CloudInstanceConfig(fixNamespace(appInfoNamespace));
+  }
+
+  @Bean
+  @DependsOn("environmentBackedConfig")
+  EurekaClientConfig eurekaClientConfig() {
+    return new DefaultEurekaClientConfig(fixNamespace(clientConfigNamespace));
+  }
+
+  @Bean
+  DiscoveryClient.DiscoveryClientOptionalArgs optionalArgs(EventBus eventBus, HealthCheckHandler healthCheckHandler) {
+    DiscoveryClient.DiscoveryClientOptionalArgs args = new DiscoveryClient.DiscoveryClientOptionalArgs();
+    args.setEventBus(eventBus);
+    args.setHealthCheckHandlerProvider(new StaticProvider<>(healthCheckHandler));
+    return args;
+  }
+
+  @Bean
+  EurekaStatusSubscriber eurekaStatusSubscriber(EventBus eventBus, DiscoveryClient discoveryClient) {
+    return new EurekaStatusSubscriber(publisher, eventBus, discoveryClient);
+  }
+
+  @Bean
+  HealthCheckHandler healthCheckHandler(ApplicationInfoManager applicationInfoManager) {
+    return new BootHealthCheckHandler(applicationInfoManager, healthAggregator, healthIndicators);
+  }
+
+  private static class StaticProvider<T> implements com.google.inject.Provider<T> {
+    private final T instance;
+
+    public StaticProvider(T instance) {
+      this.instance = Precondition.notNull(instance, "instance");
     }
 
-    @Bean
-    @ConditionalOnMissingBean(InstanceInfo.class)
-    public InstanceInfo instanceInfo(ApplicationInfoManager applicationInfoManager) {
-        return applicationInfoManager.getInfo();
+    @Override
+    public T get() {
+      return instance;
+    }
+  }
+
+  private static class EurekaStatusSubscriber {
+    private final ApplicationEventPublisher publisher;
+    private final EventBus eventBus;
+
+    public EurekaStatusSubscriber(ApplicationEventPublisher publisher, EventBus eventBus, DiscoveryClient discoveryClient) {
+      this.publisher = Precondition.notNull(publisher, "publisher");
+      this.eventBus = Precondition.notNull(eventBus, "eventBus");
+      publish(new StatusChangeEvent(
+        InstanceInfo.InstanceStatus.UNKNOWN,
+        discoveryClient.getInstanceRemoteStatus()));
+      try {
+        eventBus.registerSubscriber(this);
+      } catch (InvalidSubscriberException ise) {
+        throw new RuntimeException(ise);
+      }
     }
 
-    @Bean
-    @ConditionalOnMissingBean(EurekaInstanceConfig.class)
-    public EurekaInstanceConfig eurekaInstanceConfig(@Value("${eureka.instance.namespace:netflix.appinfo.}") String namespace) {
-        return new MyDataCenterInstanceConfig(fixNamespace(namespace));
+    @PreDestroy
+    public void shutdown() {
+      eventBus.unregisterSubscriber(this);
     }
 
-    @Bean
-    @ConditionalOnMissingBean(EurekaClientConfig.class)
-    public EurekaClientConfig eurekaClientConfig(@Value("${eureka.instance.namespace:netflix.discovery.}") String namespace) {
-        return new DefaultEurekaClientConfig(fixNamespace(namespace));
+    private void publish(StatusChangeEvent event) {
+      publisher.publishEvent(new RemoteStatusChangedEvent(event));
     }
 
-    @Bean
-    @ConditionalOnMissingBean(LookupService.class)
-    public LookupService lookupService(Applications applications) {
-        return new StaticLookupService(applications);
+    @Subscribe(name = "eurekaStatusSubscriber")
+    public void onStatusChange(StatusChangeEvent event) {
+      publish(event);
     }
+  }
 
-    @Bean
-    @ConditionalOnMissingBean(Applications.class)
-    public Applications applications(ListableBeanFactory beanFactory) {
-        Applications applications = new Applications();
-        for (Application application : beanFactory.getBeansOfType(Application.class).values()) {
-            applications.addApplication(application);
-        }
-        applications.shuffleInstances(false);
-        return applications;
-    }
-
-    private static String fixNamespace(String namespace) {
-        return namespace.endsWith(".") ? namespace : namespace + ".";
-    }
-
-    private static class ApplicationInfoManagerFactoryBean extends AbstractFactoryBean<ApplicationInfoManager> {
-        private final EurekaInstanceConfig config;
-
-        private ApplicationInfoManagerFactoryBean(EurekaInstanceConfig config) {
-            this.config = config;
-        }
-
-        @Override
-        public Class<?> getObjectType() {
-            return ApplicationInfoManager.class;
-        }
-
-        @Override
-        protected ApplicationInfoManager createInstance() throws Exception {
-            ApplicationInfoManager.getInstance().initComponent(config);
-            return ApplicationInfoManager.getInstance();
-        }
-    }
+  private static String fixNamespace(String namespace) {
+    return namespace.endsWith(".") ? namespace : namespace + ".";
+  }
 }

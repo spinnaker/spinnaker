@@ -50,7 +50,6 @@ class AstyanaxComponentsSpec extends Specification {
 
         where:
         description             | properties
-        "by default"            | [:]
         "if explicitly enabled" | ["cassandra.embedded": "true"]
     }
 
