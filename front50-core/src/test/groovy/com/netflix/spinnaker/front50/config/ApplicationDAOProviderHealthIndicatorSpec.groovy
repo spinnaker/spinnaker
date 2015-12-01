@@ -40,7 +40,7 @@ class ApplicationDAOProviderHealthIndicatorSpec extends Specification {
     def result = healthCheck.health()
 
     then:
-    1 * dao.isHealthly() >> false
+    1 * dao.isHealthy() >> false
     result.status == Status.DOWN
   }
 
@@ -50,7 +50,7 @@ class ApplicationDAOProviderHealthIndicatorSpec extends Specification {
     def result = healthCheck.health()
 
     then:
-    1 * dao.isHealthly() >> true
+    1 * dao.isHealthy() >> true
     result.status == Status.UP
   }
 }

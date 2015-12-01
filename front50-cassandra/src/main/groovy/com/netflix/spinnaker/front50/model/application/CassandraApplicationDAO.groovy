@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.front50.model.application
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.astyanax.Keyspace
 import com.netflix.astyanax.connectionpool.OperationResult
 import com.netflix.astyanax.connectionpool.exceptions.BadRequestException
@@ -44,13 +45,14 @@ import org.springframework.stereotype.Component
 class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<ContextRefreshedEvent> {
   private static final MapSerializer<String, String> mapSerializer = new MapSerializer<String, String>(UTF8Type.instance, UTF8Type.instance)
   private static final ListSerializer<String> listSerializer = new ListSerializer(UTF8Type.instance)
-  private static final Set<String> BUILT_IN_FIELDS = ["name", "description", "email", "updatets", "createts"]
 
   private static final String CF_NAME = 'application'
   private static final String TEST_QUERY = '''select * from application;'''
   private static ColumnFamily<Integer, String> CF_APPLICATION = ColumnFamily.newColumnFamily(
       CF_NAME, IntegerSerializer.get(), StringSerializer.get()
   )
+
+  private static final Integer VERSION = 2
 
   @Value('${spinnaker.cassandra.exponentialBaseSleepTimeMs:250}')
   long exponentialBaseSleepTimeMs
@@ -60,6 +62,9 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
 
   @Autowired
   Keyspace keyspace
+
+  @Autowired
+  ObjectMapper objectMapper
 
   @Override
   void onApplicationEvent(ContextRefreshedEvent event) {
@@ -74,16 +79,21 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
                 updatets varchar,
                 createts varchar,
                 accounts list<text>,
-                details map<text,text>,
+                details_json varchar,
+                version int,
                 PRIMARY KEY (name)
              ) with compression={};''').execute()
     }
 
     try {
-      // migrate schema on the fly, will be removed once all environments are done.
-      runQuery("select accounts from application")
+      // TODO: migrate schema on the fly, remove any time after 2/1/16.
+      runQuery("select details_json from application")
     } catch (BadRequestException ignored) {
-      runQuery("ALTER TABLE application ADD accounts list<text>")
+      runQuery("ALTER TABLE application ADD details_json varchar")
+      runQuery("ALTER TABLE application ADD version int")
+      all().each { Application application ->
+        update(application.name, application)
+      }
     }
   }
 
@@ -108,26 +118,23 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
   }
 
   @Override
-  Application create(String id, Map<String, String> attributes) {
-    if (!attributes.createTs) {
+  Application create(String id, Application application) {
+    if (!application.createTs) {
       // support the migration use-case where we don't want to arbitrarily reset an applications createTs.
-      attributes.createTs = System.currentTimeMillis() as String
+      application.createTs = System.currentTimeMillis() as String
     }
 
-    attributes.name = id
-    runQuery(buildInsertQuery(attributes))
-    return new Application(attributes)
+    application.name = id
+    runQuery(buildInsertQuery(application))
+    return application
   }
 
   @Override
-  void update(String id, Map<String, String> attributes) {
-    attributes.name = id
-    attributes.updateTs = System.currentTimeMillis() as String
+  void update(String id, Application application) {
+    application.name = id
+    application.updateTs = System.currentTimeMillis() as String
 
-    def existingApplication = findByName(id)
-    def properties = existingApplication.allSetColumnProperties() + attributes
-
-    runQuery(buildInsertQuery(properties))
+    runQuery(buildInsertQuery(application))
   }
 
   @Override
@@ -136,7 +143,7 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
   }
 
   @Override
-  boolean isHealthly() {
+  boolean isHealthy() {
     try {
       runQuery(TEST_QUERY)
       return true
@@ -169,8 +176,11 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
         if (!v) {
           return
         }
-
-        if (app.hasProperty(k) && (!app[k] || !(app[k].toString().toLowerCase().contains(v.toLowerCase())))) {
+        if (!app.hasProperty(k) && !app.details().containsKey(k)) {
+          result = false
+        }
+        def appVal = app.hasProperty(k) ? app[k] : app.details()[k] ?: ""
+        if (!appVal.toString().toLowerCase().contains(v.toLowerCase())) {
           result = false
         }
       }
@@ -197,10 +207,16 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
         return column.hasValue() ? (column.stringValue ?: null) : null
       }
 
-      def detailsColumn = columns.getColumnByName("details")
       def details = [:]
-      if (detailsColumn?.hasValue()) {
-        details.putAll(detailsColumn.getValue(mapSerializer))
+      def detailsJson = columns.getColumnByName("details_json")
+      if (detailsJson?.hasValue()) {
+        details = objectMapper.readValue(detailsJson.stringValue ?: null, Map)
+      } else {
+        // TODO: Remove this else block after 2/1/16
+        def detailsColumn = columns.getColumnByName("details")
+        if (detailsColumn?.hasValue()) {
+          details.putAll(detailsColumn.getValue(mapSerializer))
+        }
       }
 
       def accountsColumn = columns.getColumnByName("accounts")
@@ -213,22 +229,10 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
           name: getStringValue('name'),
           description: getStringValue('description'),
           email: getStringValue('email'),
-          owner: details.owner ?: null,
-          type: details.type ?: null,
-          group: details.group ?: null,
-          monitorBucketType: details.monitorBucketType ?: null,
-          pdApiKey: details.pdApiKey ?: null,
-          repoProjectKey: details.repoProjectKey ?: null,
-          repoSlug: details.repoSlug ?: null,
-          repoType: details.repoType ?: null,
-          tags: details.tags ?: null,
-          regions: details.regions ?: null,
-          cloudProviders: details.cloudProviders ?: null,
-          platformHealthOnly: details.platformHealthOnly ?: null,
-          platformHealthOnlyShowOverride: details.platformHealthOnlyShowOverride ?: null,
           accounts: accounts ? accounts.join(",") : null,
           updateTs: getStringValue('updatets'),
-          createTs: getStringValue('createts')
+          createTs: getStringValue('createts'),
+          details: details
       )
     }
   }
@@ -250,6 +254,8 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
     query.values.each {
       if (it instanceof String) {
         preparedQuery = preparedQuery.withStringValue(it)
+      } else if (it instanceof Integer) {
+        preparedQuery = preparedQuery.withIntegerValue(it)
       } else if (it instanceof Map) {
         preparedQuery = preparedQuery.withValue(mapSerializer.toByteBuffer(it))
       } else if (it instanceof List) {
@@ -260,25 +266,26 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
     return preparedQuery.execute()
   }
 
-  private static Query buildInsertQuery(Map<String, String> attributes) {
-    def insertAttributes = new HashMap<String, String>(attributes)
-
-    def fields = insertAttributes.keySet().findAll { BUILT_IN_FIELDS.contains(it.toLowerCase()) }
-    def values = fields.collect { attributes[it] ?: '' } as List<Object>
-
-    def accounts = insertAttributes.remove("accounts")
-    if (accounts) {
-      fields << "accounts"
-      values << accounts.split(",").collect { it.trim().toLowerCase() }
+  private Query buildInsertQuery(Application application) {
+    def keys = ["version"]
+    def values = [VERSION]
+    application.getPersistedProperties().each { key, value ->
+      switch (key) {
+        case "accounts":
+          keys << key
+          values << (value ? value.split(",").collect { it.trim().toLowerCase() } : [])
+          break
+        case "details":
+          keys << "details_json"
+          values << objectMapper.writeValueAsString(value) ?: null
+          break
+        default:
+          keys << key
+          values << (value ?: "")
+      }
     }
 
-    def detailFields = insertAttributes.keySet() - fields
-    if (detailFields) {
-      fields << "details"
-      values << attributes.subMap(detailFields)
-    }
-
-    def cql = """INSERT INTO application (${fields.join(",")}) VALUES (${fields.collect { "?" }.join(",")});"""
+    def cql = """INSERT INTO application (${keys.join(",")}) VALUES (${keys.collect { "?" }.join(",")});"""
     return new Query(cql: cql, values: values)
   }
 

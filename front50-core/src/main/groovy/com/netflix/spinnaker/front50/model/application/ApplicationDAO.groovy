@@ -25,13 +25,13 @@ public interface ApplicationDAO {
 
   Set<Application> all() throws NotFoundException
 
-  Application create(String id, Map<String, String> attributes)
+  Application create(String id, Application application)
 
-  void update(String id, Map<String, String> attributes)
+  void update(String id, Application application)
 
   void delete(String id)
 
-  boolean isHealthly()
+  boolean isHealthy()
 
   Set<Application> search(Map<String, String> attributes)
 

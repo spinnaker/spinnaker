@@ -47,7 +47,7 @@ public class ApplicationDAOProviderHealthIndicator implements HealthIndicator {
     def healthBuilder = new Health.Builder().up()
 
     try {
-      if (applicationDAO.healthly) {
+      if (applicationDAO.healthy) {
         healthBuilder.withDetail(applicationDAO.class.simpleName, "Healthy")
       } else {
         healthBuilder.down().withDetail(applicationDAO.class.simpleName, "Unhealthy")
