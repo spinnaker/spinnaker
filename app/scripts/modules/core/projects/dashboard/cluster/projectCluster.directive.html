@@ -49,15 +49,15 @@
       <tbody>
       <tr ng-repeat="application in vm.clusterData.applications | orderBy: 'name'">
         <td>
-          <a class="heavy" ng-click="vm.clearFilters(application.metadata)" ng-href="{{application.metadata.href}}" ng-class="application.inconsistentBuilds ? 'text-warning' : ''">
+          <a class="heavy" ng-click="vm.clearFilters(application.metadata)" ng-href="{{application.metadata.href}}" ng-class="application.hasInconsistentBuilds ? 'text-warning' : ''">
             {{application.name | uppercase}}
           </a>
         </td>
         <td>
-          <a class="heavy" ng-if="application.build.number > -1" href="{{application.build.url}}" target="_blank">
+          <a class="heavy" ng-if="application.build.number" href="{{application.build.url}}" target="_blank">
             <span ng-if="vm.state.loaded">#</span>{{application.build.number}}
           </a>
-          <span ng-if="application.inconsistentBuilds"
+          <span ng-if="application.hasInconsistentBuilds"
                 class="glyphicon glyphicon-warning-sign text-warning"
                 uib-tooltip="Some server groups are deployed with an older build."></span>
         </td>
@@ -76,20 +76,16 @@
         </td>
         <td ng-repeat="region in vm.clusterData.regions">
           <span ng-if="application.regions[region]">
-            <a  ng-click="vm.clearFilters(application.regions[region].metadata)" ng-href="{{application.regions[region].metadata.href}}">
+            <a ng-click="vm.clearFilters(application.regions[region].metadata)" ng-href="{{application.regions[region].metadata.href}}">
               <health-counts container="application.regions[region].instanceCounts"
                              additional-legend-text="(Click to view cluster in this region)"
                              legend-placement="right"></health-counts>
             </a>
-            <span class="text-warning"
-                  ng-if="application.inconsistentBuilds && application.regions[region].build.number !== application.build.number"
-                  uib-tooltip="Build {{application.regions[region].build.number > -1 ?
-                  '#' + application.regions[region].build.number
-                  : ''}} last deployed {{application.regions[region].lastCreatedTime | relativeTime }}">
-              <span ng-if="application.regions[region].build.number > -1">(#{{application.regions[region].build.number}})</span>
-              <span ng-if="application.regions[region].build.number === -1">(N/A)</span>
+            <span ng-if="application.regions[region].inconsistentBuilds.length">
+              <span class="glyphicon glyphicon-warning-sign text-warning"
+                    uib-tooltip-template="vm.inconsistentBuildsTemplate">
+              </span>
             </span>
-
           </span>
           <span ng-if="!application.regions[region]">
             -
