@@ -53,27 +53,25 @@ Create a project that will hold your Spinnaker install and keep track of the pro
 
 If you haven't already, obtain and set your GCP credentials following [these instructions](https://developers.google.com/identity/protocols/application-default-credentials#howtheywork). 
 
-Run ```docker-machine create  --driver google --google-project [your project name] --google-machine-type n1-standard-4 goocker ```
+Run ```docker-machine create  --driver google --google-project [your project name] --google-machine-type n1-standard-4 spinnakergcp ```
 
 Verify that this is running correctly by running
 
-```docker-machine ip goocker``` ( goocker is the name of my docker machine ).
+```docker-machine ip spinnakergcp``` ( spinnakergcp is the name of my docker machine ).
 
 You should see an IP address returned and an instance running in GCP.
 
 ## Copy configuration files to the GCP instance
 
-The next step is to copy over the configuration files from our local machine to our instance.  We'll use the `gcloud` cli tool to do this. 
+The next step is to copy over the configuration files from our local machine to our instance.  
 
-```gcloud compute ssh --project spinnakergce --zone us-central1-a --command "mkdir /home/ubuntu/spinnakerconfig" ubuntu@goocker```
+```docker-machine scp -r ../../config spinnakergcp:/home/ubuntu/spinnakerconfig```
 
-```gcloud compute copy-files --project spinnakergce --zone us-central1-a ../../config/* ubuntu@goocker:~/spinnakerconfig```
-
-```gcloud compute copy-files --project spinnakergce --zone us-central1-a compose.env ubuntu@goocker:~/spinnakerconfig```
+```docker-machine scp compose.env spinnakergcp:/home/ubuntu/spinnakerconfig```
 
 Ssh into the box:
 
-```gcloud compute ssh --project spinnakergce --zone us-central1-a ubuntu@goocker```
+```docker-machine ssh spinnakergcp```
 
 And move the copied files into /root/spinnakerconfig:
 
@@ -99,21 +97,19 @@ Click "Create".
 
 ## Launch Spinnaker via Docker Compose
 
-Now that everything is set up, you should switch to using the goocker docker machine: ``` eval "$(docker-machine env goocker)" ```
+Now that everything is set up, you should switch to using the spinnakergcp docker machine: ``` eval "$(docker-machine env spinnakergcp)" ```
 
-Launch docker-compose using the remote configuration and the remote host ip: ``` DOCKER_IP=`docker-machine ip goocker` docker-compose -f docker-compose.yml -f docker-compose.remote.yml up -d  ```
+Launch docker-compose using the remote configuration and the remote host ip: ``` DOCKER_IP=`docker-machine ip spinnakergcp` docker-compose -f docker-compose.yml -f docker-compose.remote.yml up -d  ```
 
-Once you have completed the above configuration, you should be able to resolve the Spinnaker web application from your local workstation: ```DOCKER_IP=`docker-machine ip goocker` && open http://$DOCKER_IP:9000```
+Once you have completed the above configuration, you should be able to resolve the Spinnaker web application from your local workstation: ```DOCKER_IP=`docker-machine ip spinnakergcp` && open http://$DOCKER_IP:9000```
 
 ## Removing Docker Machine Environment
 
 If you no longer want an instance of Spinnaker running on your GCP account, remember to disable your docker machine instance by typing:
 
-`docker-machine rm goocker`
+`docker-machine rm spinnakergcp`
 
 This will not remove any instances deployed by Spinnaker, only the docker compose services that were deployed.
-
-# Working with Spinnaker and Docker Compose
 
 ## Updating Spinnaker
 
