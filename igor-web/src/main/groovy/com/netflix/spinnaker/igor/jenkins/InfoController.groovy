@@ -68,24 +68,24 @@ class InfoController {
     List<String> getJobs(@PathVariable String master) {
         log.info('Getting list of jobs for master: {}', master)
 
-        def jenkinsClient = masters.map[master]
-        if (!jenkinsClient) {
+        def jenkinsService = masters.map[master]
+        if (!jenkinsService) {
             throw new MasterNotFoundException("Master '${master}' does not exist")
         }
 
-        jenkinsClient.jobs.list.collect { it.name }
+        jenkinsService.jobs.list.collect { it.name }
     }
 
     @RequestMapping(value = '/jobs/{master}/{job:.+}')
     JobConfig getJobConfig(@PathVariable String master, @PathVariable String job) {
         log.info('Getting the job config for {} at {}', job, master)
 
-        def jenkinsClient = masters.map[master]
-        if (!jenkinsClient) {
+        def jenkinsService = masters.map[master]
+        if (!jenkinsService) {
             throw new MasterNotFoundException("Master '${master}' does not exist")
         }
 
-        jenkinsClient.getJobConfig(job)
+        jenkinsService.getJobConfig(job)
     }
 
     static class MasterResults {

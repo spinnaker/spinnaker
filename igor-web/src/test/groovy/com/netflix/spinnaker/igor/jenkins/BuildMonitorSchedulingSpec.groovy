@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.igor.jenkins
 
-import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
+import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import org.springframework.context.event.ContextRefreshedEvent
 import rx.schedulers.TestScheduler
 import spock.lang.Specification
@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit
 class BuildMonitorSchedulingSpec extends Specification {
 
     JenkinsCache cache = Mock(JenkinsCache)
-    JenkinsClient client = Mock(JenkinsClient)
+    JenkinsService jenkinsService = Mock(JenkinsService)
     BuildMonitor monitor
 
     final MASTER = 'MASTER'
@@ -42,7 +42,7 @@ class BuildMonitorSchedulingSpec extends Specification {
     void 'scheduller polls periodically'() {
         given:
         cache.getJobNames(MASTER) >> []
-        monitor = new BuildMonitor(cache: cache, jenkinsMasters: new JenkinsMasters(map: [MASTER: client]))
+        monitor = new BuildMonitor(cache: cache, jenkinsMasters: new JenkinsMasters(map: [MASTER: jenkinsService]))
         monitor.worker = scheduler.createWorker()
         monitor.pollInterval = 1
 
@@ -51,25 +51,25 @@ class BuildMonitorSchedulingSpec extends Specification {
         scheduler.advanceTimeBy(1L, TimeUnit.SECONDS.MILLISECONDS)
 
         then: 'initial poll'
-        1 * client.projects >> PROJECTS
+        1 * jenkinsService.projects >> PROJECTS
 
         when:
         scheduler.advanceTimeBy(998L, TimeUnit.SECONDS.MILLISECONDS)
 
         then:
-        0 * client.projects >> PROJECTS
+        0 * jenkinsService.projects >> PROJECTS
 
         when: 'poll at 1 second'
         scheduler.advanceTimeBy(2L, TimeUnit.SECONDS.MILLISECONDS)
 
         then:
-        1 * client.projects >> PROJECTS
+        1 * jenkinsService.projects >> PROJECTS
 
         when: 'poll at 2 and 3 second'
         scheduler.advanceTimeBy(4000L, TimeUnit.SECONDS.MILLISECONDS)
 
         then:
-        4 * client.projects >> PROJECTS
+        4 * jenkinsService.projects >> PROJECTS
 
         cleanup:
         monitor.stop()
