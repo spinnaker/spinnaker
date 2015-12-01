@@ -49,10 +49,10 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
       $scope.accounts = accounts;
     });
 
-    $scope.notificationHours = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours.join(',');
+    this.notificationHours = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours.join(',');
 
-    this.splitNotificationHours = function() {
-      var hoursField = $scope.notificationHours || '';
+    this.splitNotificationHours = () => {
+      var hoursField = this.notificationHours || '';
       $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours = _.map(hoursField.split(','), function(str) {
         if (!parseInt(str.trim()).isNaN) {
           return parseInt(str.trim());

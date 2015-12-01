@@ -76,7 +76,7 @@
     </span>
   </stage-config-field>
   <stage-config-field label="Notification Hours" help-key="pipeline.config.canary.notificationHours" field-columns="3">
-    <input type="text" ng-model="notificationHours"
+    <input type="text" ng-model="canaryStageCtrl.notificationHours"
            class="form-control input-sm" ng-change="canaryStageCtrl.splitNotificationHours()" />
   </stage-config-field>
   <stage-config-field label="Frequency" help-key="pipeline.config.canary.canaryInterval" field-columns="3">
