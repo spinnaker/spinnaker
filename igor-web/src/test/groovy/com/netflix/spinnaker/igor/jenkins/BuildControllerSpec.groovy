@@ -16,16 +16,14 @@
 
 package com.netflix.spinnaker.igor.jenkins
 
-import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
-import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.ParameterDefinition
+import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import retrofit.client.Header
 import retrofit.client.Response
 import spock.lang.Specification
 
-import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 
 /**
@@ -35,7 +33,7 @@ import java.util.concurrent.Executors
 class BuildControllerSpec extends Specification {
 
     JenkinsCache cache = Mock(JenkinsCache)
-    JenkinsClient client = Mock(JenkinsClient)
+    JenkinsService jenkinsService = Mock(JenkinsService)
     BuildController controller
 
     final MASTER = 'MASTER'
@@ -45,13 +43,13 @@ class BuildControllerSpec extends Specification {
     final JOB_NAME = "job1"
 
     void setup() {
-        controller = new BuildController(executor: Executors.newSingleThreadExecutor(), masters: new JenkinsMasters(map: [MASTER: client]))
+        controller = new BuildController(executor: Executors.newSingleThreadExecutor(), masters: new JenkinsMasters(map: [MASTER: jenkinsService]))
     }
 
     void 'trigger a build without parameters'() {
         given:
-        1 * client.getJobConfig(JOB_NAME) >> new JobConfig()
-        1 * client.build(JOB_NAME) >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${QUEUED_JOB_NUMBER}")], null)
+        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig()
+        1 * jenkinsService.build(JOB_NAME) >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${QUEUED_JOB_NUMBER}")], null)
 
         expect:
         controller.build(MASTER,JOB_NAME,null) == QUEUED_JOB_NUMBER.toString()
@@ -60,8 +58,8 @@ class BuildControllerSpec extends Specification {
 
     void 'trigger a build with parameters to a job with parameters'() {
         given:
-        1 * client.getJobConfig(JOB_NAME) >> new JobConfig(parameterDefinitionList: [new ParameterDefinition(defaultName: "name", defaultValue: null, description: "description")])
-        1 * client.buildWithParameters(JOB_NAME,[name:"myName"]) >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${QUEUED_JOB_NUMBER}")], null)
+        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(parameterDefinitionList: [new ParameterDefinition(defaultName: "name", defaultValue: null, description: "description")])
+        1 * jenkinsService.buildWithParameters(JOB_NAME,[name:"myName"]) >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${QUEUED_JOB_NUMBER}")], null)
 
         expect:
         controller.build(MASTER,JOB_NAME, [name:"myName"]) == QUEUED_JOB_NUMBER.toString()
@@ -69,8 +67,8 @@ class BuildControllerSpec extends Specification {
 
     void 'trigger a build without parameters to a job with parameters with default values'() {
         given:
-        1 * client.getJobConfig(JOB_NAME) >> new JobConfig(parameterDefinitionList: [new ParameterDefinition(defaultName: "name", defaultValue: "value", description: "description")])
-        1 * client.buildWithParameters(JOB_NAME, ['startedBy' : "igor"]) >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${QUEUED_JOB_NUMBER}")], null)
+        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(parameterDefinitionList: [new ParameterDefinition(defaultName: "name", defaultValue: "value", description: "description")])
+        1 * jenkinsService.buildWithParameters(JOB_NAME, ['startedBy': "igor"]) >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${QUEUED_JOB_NUMBER}")], null)
 
         expect:
         controller.build(MASTER, JOB_NAME, null)  == QUEUED_JOB_NUMBER.toString()
@@ -78,7 +76,7 @@ class BuildControllerSpec extends Specification {
 
     void 'trigger a build with parameters to a job without parameters'() {
         given:
-        1 * client.getJobConfig(JOB_NAME) >> new JobConfig()
+        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig()
 
         when:
         controller.build(MASTER, JOB_NAME, [foo:"bar"])

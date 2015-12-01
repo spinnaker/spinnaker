@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.igor.jenkins
 
 import com.netflix.spinnaker.igor.config.JenkinsConfig
-import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
+import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import spock.lang.Shared
@@ -30,7 +30,6 @@ import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
-import spock.lang.Unroll
 
 /**
  * tests for the info controller
@@ -43,7 +42,7 @@ class InfoControllerSpec extends Specification {
     JenkinsMasters masters
 
     @Shared
-    JenkinsClient client
+    JenkinsService service
 
     @Shared
     MockWebServer server
@@ -93,7 +92,7 @@ class InfoControllerSpec extends Specification {
                 .setHeader('Content-Type', 'text/xml;charset=UTF-8')
         )
         server.play()
-        client = new JenkinsConfig().jenkinsClient(server.getUrl('/').toString(), 'username', 'password')
+        service = new JenkinsConfig().jenkinsService("jenkins", new JenkinsConfig().jenkinsClient(server.getUrl('/').toString(), 'username', 'password'))
     }
 
     void 'is able to get a job config'() {
@@ -105,7 +104,7 @@ class InfoControllerSpec extends Specification {
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * masters.map >> ['master2': [], 'build.masters.blah': [], 'master1': client]
+        1 * masters.map >> ['master2': [], 'build.masters.blah': [], 'master1': service]
         response.contentAsString == '{"description":null,"displayName":"My-Build","name":"My-Build","buildable":true,"color":"red","url":"http://jenkins.builds.net/job/My-Build/","parameterDefinitionList":[{"defaultName":"pullRequestSourceBranch","defaultValue":"master","name":"pullRequestSourceBranch","description":null,"type":"StringParameterDefinition"},{"defaultName":"generation","defaultValue":"4","name":"generation","description":null,"type":"StringParameterDefinition"}],"upstreamProjectList":[{"name":"Upstream-Build","url":"http://jenkins.builds.net/job/Upstream-Build/","color":"blue"}],"downstreamProjectList":[{"name":"First-Downstream-Build","url":"http://jenkins.builds.net/job/First-Downstream-Build/","color":"blue"},{"name":"Second-Downstream-Build","url":"http://jenkins.builds.net/job/Second-Downstream-Build/","color":"blue"},{"name":"Third-Downstream-Build","url":"http://jenkins.builds.net/job/Third-Downstream-Build/","color":"red"}],"concurrentBuild":false}'
     }
 

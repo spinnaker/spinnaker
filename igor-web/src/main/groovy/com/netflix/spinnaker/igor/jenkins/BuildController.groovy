@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.igor.jenkins
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
@@ -96,16 +95,16 @@ class BuildController {
         }
 
         def response
-        JenkinsClient client = masters.map[master]
-        JobConfig jobConfig = client.getJobConfig(job)
+        def jenkinsService = masters.map[master]
+        JobConfig jobConfig = jenkinsService.getJobConfig(job)
 
         if (requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
-            response = client.buildWithParameters(job, requestParams)
+            response = jenkinsService.buildWithParameters(job, requestParams)
         } else if (!requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
             // account for when you just want to fire a job with the default parameter values by adding a dummy param
-            response = client.buildWithParameters(job, ['startedBy': "igor"])
+            response = jenkinsService.buildWithParameters(job, ['startedBy': "igor"])
         } else if (!requestParams && (!jobConfig.parameterDefinitionList || jobConfig.parameterDefinitionList.size() == 0)) {
-            response = client.build(job)
+            response = jenkinsService.build(job)
         } else { // Jenkins will reject the build, so don't even try
             log.error("job : ${job}, passing params to a job which doesn't need them")
             // we should throw a BuildJobError, but I get a bytecode error : java.lang.VerifyError: Bad <init> method call from inside of a branch
@@ -135,12 +134,12 @@ class BuildController {
         }
         Map<String, Object> map = [:]
         try {
-            JenkinsClient jenkinsClient = masters.map[master]
-            String path = jenkinsClient.getBuild(job, buildNumber).artifacts.find {
+            def jenkinsService = masters.map[master]
+            String path = jenkinsService.getBuild(job, buildNumber).artifacts.find {
                 it.fileName == fileName
             }?.relativePath
 
-            def propertyStream = jenkinsClient.getPropertyFile(job, buildNumber, path).body.in()
+            def propertyStream = jenkinsService.getPropertyFile(job, buildNumber, path).body.in()
 
             if (fileName.endsWith('.yml') || fileName.endsWith('.yaml')) {
                 Yaml yml = new Yaml()
