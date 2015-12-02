@@ -293,7 +293,7 @@ function install_dependencies() {
   # java
   if [ "$DOWNLOAD" != "true" ];then
     apt-get install -y --force-yes openjdk-8-jdk
-  elif [[ "x`java -version|grep -i version`" != *"1.8.0"* ]];then
+  elif [[ "x`java -version 2>&1|head -1`" != *"1.8.0"* ]];then
     echo "you must manually install jdk-8; exiting"
     exit 13
   fi
@@ -304,7 +304,7 @@ function install_cassandra() {
   # "service cassandra status" is currently broken in Ubuntu grep in the script is grepping for things that do not exist
   # Cassandra 2.x can ship with RPC disabeld to enable run "nodetool enablethrift"
 
-  if [[ "x`java -version|grep -i version`" != *"1.8.0"* ]];then
+  if [[ "x`java -version 2>&1|head -1`" != *"1.8.0"* ]];then
     cat <<EOF
 java 8 is not installed, cannot install cassandra
 
