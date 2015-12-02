@@ -193,6 +193,6 @@ class GetCommitsTask implements DiffTask {
     def globalAccount = front50Service.credentials.find { it.global }
     def applicationAccount = globalAccount?.name ?: account
     Application app = front50Service.get(applicationAccount, application)
-    return [repoType : app?.repoType, projectKey : app?.repoProjectKey, repositorySlug : app?.repoSlug]
+    return [repoType : app?.details().repoType, projectKey : app?.details().repoProjectKey, repositorySlug : app?.details().repoSlug]
   }
 }

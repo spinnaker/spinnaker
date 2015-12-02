@@ -18,28 +18,29 @@
 
 package com.netflix.spinnaker.orca.front50.model
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter
+import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
 
 class Application {
   String name
   String description
   String email
-  String owner
-  String type
-  String group
-  String monitorBucketType
-  String pdApiKey
+  String accounts
   String updateTs
   String createTs
-  String tags
-  String accounts
-  String regions
-  String repoProjectKey
-  String repoSlug
-  String repoType
-  String cloudProviders
-  String platformHealthOnly
-  String platformHealthOnlyShowOverride
+
+  private Map<String, Object> details = new HashMap<String, Object>()
+
+  @JsonAnyGetter
+  public Map<String,Object> details() {
+    return details;
+  }
+
+  @JsonAnySetter
+  public void set(String name, Object value) {
+    details.put(name, value);
+  }
 
   @JsonIgnore
   Set<String> listAccounts() {
