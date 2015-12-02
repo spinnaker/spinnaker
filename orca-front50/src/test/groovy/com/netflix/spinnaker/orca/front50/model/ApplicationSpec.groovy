@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.orca.front50.model
 
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -54,5 +55,30 @@ class ApplicationSpec extends Specification {
     ["prod"]                  | "prod"
     []                        | null
     null                      | null
+  }
+
+  void 'dynamic properties should be marshalled at root of application'() {
+    setup:
+    def mapper = new OrcaObjectMapper()
+    application.someBoolean = true
+    application.someMap = [ a: 'some string', b: 4 ]
+    def expected = [
+        name: null,
+        email: null,
+        description: null,
+        updateTs: null,
+        createTs: null,
+        accounts: "prod,test",
+        someBoolean: true,
+        someMap: [a: 'some string', b: 4]
+    ]
+
+    def applicationString = mapper.writeValueAsString(application)
+    def applicationAsMap = mapper.readValue(applicationString, Map)
+
+    expect:
+    application.details().someBoolean == true
+    application.details().someMap == expected.someMap
+    applicationAsMap == expected
   }
 }
