@@ -19,9 +19,8 @@ package com.netflix.spinnaker.orca.jackson
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.datatype.guava.GuavaModule
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-
-
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 
 class OrcaObjectMapper extends ObjectMapper {
@@ -31,6 +30,7 @@ class OrcaObjectMapper extends ObjectMapper {
 
   OrcaObjectMapper() {
     super()
+    registerModule(new Jdk8Module())
     registerModule(simpleModule)
     registerModule(new GuavaModule())
     configure(FAIL_ON_UNKNOWN_PROPERTIES, false)

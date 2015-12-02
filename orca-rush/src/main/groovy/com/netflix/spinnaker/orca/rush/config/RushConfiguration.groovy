@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.orca.rush.config
 
-import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
-import groovy.transform.CompileStatic
-import java.lang.reflect.Type
-import com.google.gson.*
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
+import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import com.netflix.spinnaker.orca.rush.api.RushService
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -34,14 +33,14 @@ import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.RestAdapter.LogLevel
 import retrofit.client.Client
-import retrofit.converter.GsonConverter
+import retrofit.converter.JacksonConverter
 import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @Import([OrcaConfiguration, RetrofitConfiguration])
 @ComponentScan([
-    "com.netflix.spinnaker.orca.rush.pipeline",
-    "com.netflix.spinnaker.orca.rush.tasks"
+  "com.netflix.spinnaker.orca.rush.pipeline",
+  "com.netflix.spinnaker.orca.rush.tasks"
 ])
 @ConditionalOnProperty("rush.baseUrl")
 @CompileStatic
@@ -54,28 +53,20 @@ class RushConfiguration {
 
   @Bean
   Endpoint rushEndpoint(
-      @Value('${rush.baseUrl}') String rushBaseUrl) {
+    @Value('${rush.baseUrl}') String rushBaseUrl) {
     newFixedEndpoint(rushBaseUrl)
   }
 
   @Bean
-  RushService rushService(Endpoint rushEndpoint) {
-    def gson = new GsonBuilder()
-        .registerTypeAdapter(Date.class, new JsonDeserializer<Date>() {
-      Date deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-        new Date(json.getAsJsonPrimitive().getAsLong());
-      }
-    })
-        .create()
-
+  RushService rushService(Endpoint rushEndpoint, ObjectMapper mapper) {
     new RestAdapter.Builder()
-        .setEndpoint(rushEndpoint)
-        .setConverter(new GsonConverter(gson))
-        .setClient(retrofitClient)
-        .setLogLevel(retrofitLogLevel)
-        .setLog(new RetrofitSlf4jLog(RushService))
-        .build()
-        .create(RushService)
+      .setEndpoint(rushEndpoint)
+      .setConverter(new JacksonConverter(mapper))
+      .setClient(retrofitClient)
+      .setLogLevel(retrofitLogLevel)
+      .setLog(new RetrofitSlf4jLog(RushService))
+      .build()
+      .create(RushService)
   }
 
 }

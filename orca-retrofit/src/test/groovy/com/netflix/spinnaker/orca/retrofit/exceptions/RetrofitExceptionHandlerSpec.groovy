@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.retrofit.exceptions
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.gson.Gson
 import retrofit.RetrofitError
 import retrofit.client.Response
-import retrofit.converter.GsonConverter
+import retrofit.converter.JacksonConverter
 import retrofit.mime.TypedByteArray
 import spock.lang.Specification
 import spock.lang.Subject
@@ -49,7 +47,7 @@ class RetrofitExceptionHandlerSpec extends Specification {
     given:
     def body = new TypedByteArray(null, OBJECT_MAPPER.writeValueAsBytes([error: error, errors: errors]))
     def retrofitError = RetrofitError.httpError(
-      url, new Response(url, status, reason, [], body), new GsonConverter(new Gson()), Map
+      url, new Response(url, status, reason, [], body), new JacksonConverter(), Map
     )
 
     expect:
@@ -80,7 +78,7 @@ class RetrofitExceptionHandlerSpec extends Specification {
       error: error, exception: rootException, message: message
     ]))
     def retrofitError = RetrofitError.httpError(
-      url, new Response(url, status, reason, [], body), new GsonConverter(new Gson()), Map
+      url, new Response(url, status, reason, [], body), new JacksonConverter(), Map
     )
 
     expect:

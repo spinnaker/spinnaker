@@ -16,12 +16,14 @@
 
 package com.netflix.spinnaker.orca.bakery.config
 
-import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
-import groovy.transform.CompileStatic
-import com.google.gson.GsonBuilder
+import java.text.SimpleDateFormat
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.PropertyNamingStrategy.LowerCaseWithUnderscoresStrategy
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
+import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -32,15 +34,15 @@ import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.RestAdapter.LogLevel
 import retrofit.client.Client
-import retrofit.converter.GsonConverter
-import static com.google.gson.FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES
+import retrofit.converter.JacksonConverter
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @Import([OrcaConfiguration, RetrofitConfiguration])
 @ComponentScan([
-    "com.netflix.spinnaker.orca.bakery.pipeline",
-    "com.netflix.spinnaker.orca.bakery.tasks"
+  "com.netflix.spinnaker.orca.bakery.pipeline",
+  "com.netflix.spinnaker.orca.bakery.tasks"
 ])
 @CompileStatic
 class BakeryConfiguration {
@@ -55,18 +57,18 @@ class BakeryConfiguration {
 
   @Bean
   BakeryService bakery(Endpoint bakeryEndpoint) {
-    def gson = new GsonBuilder()
-        .setFieldNamingPolicy(LOWER_CASE_WITH_UNDERSCORES)
-        .setDateFormat("YYYYMMDDHHmm")
-        .create()
+    def objectMapper = new ObjectMapper()
+      .setPropertyNamingStrategy(new LowerCaseWithUnderscoresStrategy())
+      .setDateFormat(new SimpleDateFormat("YYYYMMDDHHmm"))
+      .disable(FAIL_ON_UNKNOWN_PROPERTIES)
 
     new RestAdapter.Builder()
-        .setEndpoint(bakeryEndpoint)
-        .setConverter(new GsonConverter(gson))
-        .setClient(retrofitClient)
-        .setLogLevel(retrofitLogLevel)
-        .setLog(new RetrofitSlf4jLog(BakeryService))
-        .build()
-        .create(BakeryService)
+      .setEndpoint(bakeryEndpoint)
+      .setConverter(new JacksonConverter(objectMapper))
+      .setClient(retrofitClient)
+      .setLogLevel(retrofitLogLevel)
+      .setLog(new RetrofitSlf4jLog(BakeryService))
+      .build()
+      .create(BakeryService)
   }
 }

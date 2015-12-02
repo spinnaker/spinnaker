@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.tide.config
 
-import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
-import groovy.transform.CompileStatic
-import com.google.gson.Gson
-import com.netflix.spinnaker.orca.tide.TideService
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
+import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
+import com.netflix.spinnaker.orca.tide.TideService
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -30,14 +30,14 @@ import org.springframework.context.annotation.Import
 import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.client.Client
-import retrofit.converter.GsonConverter
+import retrofit.converter.JacksonConverter
 import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @Import(RetrofitConfiguration)
 @ComponentScan([
-    "com.netflix.spinnaker.orca.tide.pipeline",
-    "com.netflix.spinnaker.orca.tide.tasks"
+  "com.netflix.spinnaker.orca.tide.pipeline",
+  "com.netflix.spinnaker.orca.tide.tasks"
 ])
 @CompileStatic
 class TideConfiguration {
@@ -45,19 +45,21 @@ class TideConfiguration {
   @Autowired Client retrofitClient
   @Autowired RestAdapter.LogLevel retrofitLogLevel
 
-  @Bean Endpoint tideEndpoint(
-      @Value('${tide.baseUrl}') String front50BaseUrl) {
+  @Bean
+  Endpoint tideEndpoint(
+    @Value('${tide.baseUrl}') String front50BaseUrl) {
     newFixedEndpoint(front50BaseUrl)
   }
 
-  @Bean TideService tideService(Endpoint tideEndpoint, Gson gson) {
+  @Bean
+  TideService tideService(Endpoint tideEndpoint, ObjectMapper mapper) {
     new RestAdapter.Builder()
-        .setEndpoint(tideEndpoint)
-        .setClient(retrofitClient)
-        .setLogLevel(retrofitLogLevel)
-        .setLog(new RetrofitSlf4jLog(TideService))
-        .setConverter(new GsonConverter(gson))
-        .build()
-        .create(TideService)
+      .setEndpoint(tideEndpoint)
+      .setClient(retrofitClient)
+      .setLogLevel(retrofitLogLevel)
+      .setLog(new RetrofitSlf4jLog(TideService))
+      .setConverter(new JacksonConverter(mapper))
+      .build()
+      .create(TideService)
   }
 }
