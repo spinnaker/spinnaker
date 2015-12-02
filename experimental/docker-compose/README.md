@@ -47,7 +47,7 @@ One of the trickier bits of setting up spinnaker is to get the cloud providers c
 
 ## 1. Set up Docker Machine Environment
 
-### Google Compute Engine ###
+### Google Compute Platform ###
 
 If you don't already have a Google Compute Platform account, you can create one [here](https://cloud.google.com/compute/). 
 
@@ -57,17 +57,29 @@ If you haven't already, obtain and set your GCP credentials following [these ins
 
 Run ```docker-machine create  --driver google --google-project [your project id] --google-machine-type n1-standard-4 spinnakerremote ```
 
+### Microsoft Azure
+
+If you don't already have an Azure account, you can create one [here](https://azure.microsoft.com/en-us)
+
+Create and add a subscription key following the instructions [here](https://docs.docker.com/machine/drivers/azure/)
+
+Copy your subscription id
+
+Run ```docker-machine create --driver azure --azure-subscription-id="xxxx-xxxx-xxxx-xxxx" --azure-subscription-cert="mycert.pem" --azure-location="East US"  spinnakerremote```
+
+Wait until docker machine finished and then log into your Azure portal, select the machine that was created, click on Configure and change the machine size to be 'Standard_A6 (4 cores, 28 GB memory)'.
+
+## 2. Copy configuration files to the remote docker machine instance
+
 Verify that this is running correctly by running
 
 ```docker-machine ip spinnakerremote``` ( spinnakerremote is the name of my docker machine ).
 
-You should see an IP address returned and an instance running in GCP.
-
-## 2. Copy configuration files to the remote docker machine instance
+You should see an IP address returned.
 
 The next step is to copy over the configuration files from our local machine to our instance.  
 
-```docker-machine scp -r ../../config spinnakergcp:~/spinnakerconfig```
+```docker-machine scp -r ../../config spinnakerremote:~/spinnakerconfig```
 
 Ssh into the box:
 
@@ -82,11 +94,13 @@ chmod 666 /root/spinnakerconfig
 chmod 444 /root/spinnakerconfig/*
 ```
 
-## 3. Configure firewall rules
+## 3. Configure access rules
 
 This will allow the Spinnaker ports used by docker compose to become available to your workstation.
 
-### Google Compute Engine ###
+*Note: You should be aware of the implications of opening up your virtual machines to the public internet prior to configuring firewall rules. Several more secure options (e.g. SSH tunnel, SOCKS proxy) are described [here](https://cloud.google.com/solutions/connecting-securely).*
+
+### Google Compute Platform ###
 
 Go to your GCP developers console and click on your instance, then network name ( it should say `default` ). Click "Add firewall rule" and fill in the following values:
 * Name: `my-docker-machine`
@@ -96,7 +110,12 @@ Go to your GCP developers console and click on your instance, then network name 
 
 Click "Create".
 
-*Note: You should be aware of the implications of opening up your virtual machines to the public internet prior to configuring firewall rules. Several more secure options (e.g. SSH tunnel, SOCKS proxy) are described [here](https://cloud.google.com/solutions/connecting-securely).*
+### Microsoft Azure ###
+
+Go to your Azure portal and select your remotespinnaker instance ( under Virtual Machines ).
+Navigate to endpoints.
+Create a new endpoint for each of following ports: 9000, 8080 and 8084
+Click on Manage ACL for each of these endpoints and add a permit ACL for your local workstation  (you can find the ip address of your local workstation via `curl myip4.com`).
 
 ## 4. Launch Spinnaker via Docker Compose
 
