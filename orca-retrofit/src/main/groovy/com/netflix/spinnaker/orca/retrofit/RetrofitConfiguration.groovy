@@ -22,13 +22,8 @@ import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
 import com.squareup.okhttp.Interceptor
 import com.squareup.okhttp.Response
 import groovy.transform.CompileStatic
-import com.google.common.base.Optional
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.netflix.spinnaker.orca.retrofit.gson.GsonOptionalDeserializer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
-import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -62,12 +57,6 @@ class RetrofitConfiguration {
 
   @Bean LogLevel retrofitLogLevel(@Value('${retrofit.logLevel:BASIC}') String retrofitLogLevel) {
     return LogLevel.valueOf(retrofitLogLevel)
-  }
-
-  @Bean Gson gson() {
-    new GsonBuilder()
-        .registerTypeAdapter(Optional, new GsonOptionalDeserializer())
-        .create()
   }
 
   @Bean @Order(Ordered.HIGHEST_PRECEDENCE) RetrofitExceptionHandler retrofitExceptionHandler() {

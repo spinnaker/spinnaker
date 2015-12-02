@@ -15,15 +15,15 @@
  */
 
 package com.netflix.spinnaker.orca.clouddriver
-import com.google.gson.Gson
+
 import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfiguration
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.test.httpserver.HttpServerRule
 import org.junit.Rule
 import retrofit.RequestInterceptor
 import retrofit.client.OkClient
 import spock.lang.Specification
 import spock.lang.Subject
-
 import static java.net.HttpURLConnection.HTTP_ACCEPTED
 import static java.net.HttpURLConnection.HTTP_OK
 import static retrofit.RestAdapter.LogLevel.FULL
@@ -48,7 +48,7 @@ class KatoServiceSpec extends Specification {
   def setup() {
     service = new CloudDriverConfiguration(
       retrofitClient: new OkClient(), retrofitLogLevel: FULL, spinnakerRequestInterceptor: noopInterceptor
-    ).katoDeployService(httpServer.baseURI, new Gson())
+    ).katoDeployService(httpServer.baseURI, new OrcaObjectMapper())
   }
 
   def "can interpret the response from an operation request"() {

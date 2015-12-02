@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.orca.echo.config
 
-import groovy.transform.CompileStatic
-import com.google.gson.Gson
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingPipelineExecutionListener
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageExecutionListener
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -34,9 +33,8 @@ import org.springframework.context.annotation.Import
 import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.client.Client as RetrofitClient
-import static retrofit.Endpoints.newFixedEndpoint
-
 import retrofit.converter.JacksonConverter
+import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @Import([RetrofitConfiguration])
@@ -48,12 +46,14 @@ class EchoConfiguration {
   @Autowired RetrofitClient retrofitClient
   @Autowired RestAdapter.LogLevel retrofitLogLevel
 
-  @Bean Endpoint echoEndpoint(
+  @Bean
+  Endpoint echoEndpoint(
     @Value('${echo.baseUrl}') String echoBaseUrl) {
     newFixedEndpoint(echoBaseUrl)
   }
 
-  @Bean EchoService echoService(Endpoint echoEndpoint, Gson gson) {
+  @Bean
+  EchoService echoService(Endpoint echoEndpoint) {
     new RestAdapter.Builder()
       .setEndpoint(echoEndpoint)
       .setClient(retrofitClient)
@@ -64,7 +64,8 @@ class EchoConfiguration {
       .create(EchoService)
   }
 
-  @Bean EchoNotifyingStageExecutionListener echoNotifyingStageExecutionListener(
+  @Bean
+  EchoNotifyingStageExecutionListener echoNotifyingStageExecutionListener(
     ExecutionRepository executionRepository,
     EchoService echoService) {
     new EchoNotifyingStageExecutionListener(executionRepository, echoService)

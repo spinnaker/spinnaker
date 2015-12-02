@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.igor.config
 
-import com.google.gson.Gson
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
@@ -31,9 +31,7 @@ import org.springframework.context.annotation.Import
 import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.client.Client
-import retrofit.converter.GsonConverter
-
-
+import retrofit.converter.JacksonConverter
 import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
@@ -46,18 +44,20 @@ class IgorConfiguration {
   @Autowired Client retrofitClient
   @Autowired RestAdapter.LogLevel retrofitLogLevel
 
-  @Bean Endpoint igorEndpoint(
+  @Bean
+  Endpoint igorEndpoint(
     @Value('${igor.baseUrl}') String igorBaseUrl) {
     newFixedEndpoint(igorBaseUrl)
   }
 
-  @Bean IgorService igorService(Endpoint igorEndpoint, Gson gson) {
+  @Bean
+  IgorService igorService(Endpoint igorEndpoint, ObjectMapper mapper) {
     new RestAdapter.Builder()
       .setEndpoint(igorEndpoint)
       .setClient(retrofitClient)
       .setLogLevel(retrofitLogLevel)
       .setLog(new RetrofitSlf4jLog(IgorService))
-      .setConverter(new GsonConverter(gson))
+      .setConverter(new JacksonConverter(mapper))
       .build()
       .create(IgorService)
   }
