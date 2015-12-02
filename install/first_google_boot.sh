@@ -221,7 +221,8 @@ else
   MY_ZONE=""
 fi
 
-# apply outstanding updates since time of image creation
+# Apply outstanding OS updates since time of image creation
+# but keep spinnaker version itself intact only during forced dist-upgrade
 apt-mark hold spinnaker-clouddriver spinnaker-deck spinnaker-echo spinnaker-front50 spinnaker-gate spinnaker-igor spinnaker-orca spinnaker-rosco spinnaker-rush spinnaker
 apt-get -y update
 apt-get -y dist-upgrade
