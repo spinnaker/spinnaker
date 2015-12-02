@@ -1,0 +1,21 @@
+<div class="row footer">
+  <div class="col-md-3">
+    <button class="btn btn-default" ng-click="vm.revert()"
+            ng-if="vm.isDirty"
+            style="visibility: visible;"><span class="glyphicon glyphicon-flash"></span> Revert
+    </button>
+  </div>
+  <div class="col-md-9 text-right">
+    <button class="btn btn-primary" ng-if="vm.viewState.isDirty"
+            ng-click="vm.save()">
+              <span ng-if="!vm.viewState.saving">
+                <span class="glyphicon glyphicon-ok-circle"></span> Save Changes
+              </span>
+              <span ng-if="vm.viewState.saving" class="pulsing">
+                <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span> Saving&hellip;
+              </span>
+    </button>
+    <div class="error-message" ng-if="vm.viewState.saveError">There was an error saving your changes. Please try again.</div>
+    <span ng-if="!vm.viewState.isDirty" class="btn btn-link disabled"><span class="glyphicon glyphicon-ok-circle"></span> In sync with server</span>
+  </div>
+</div>

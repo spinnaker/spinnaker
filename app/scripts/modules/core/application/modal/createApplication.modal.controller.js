@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.application.create.modal.controller', [
-    //require('angular-ui-router'),
+    require('angular-ui-router'),
     require('../service/applications.write.service.js'),
     require('../service/applications.read.service.js'),
     require('../../utils/lodash.js'),
@@ -14,26 +14,32 @@ module.exports = angular
     var vm = this;
 
     let applicationLoader = applicationReader.listApplications();
-    applicationLoader.then((applications) => vm.appNameList = _.pluck(applications, 'name'));
+    applicationLoader.then((applications) => vm.data.appNameList = _.pluck(applications, 'name'));
 
     let accountLoader = accountService.listAccounts();
-    accountLoader.then((accounts) => vm.accounts = accounts);
+    accountLoader.then((accounts) => vm.data.accounts = accounts);
 
     let providerLoader = accountService.listProviders();
-    providerLoader.then((providers) => vm.cloudProviders = providers);
+    providerLoader.then((providers) => vm.data.cloudProviders = providers);
 
-    $q.all([accountLoader, applicationLoader, providerLoader]).then(() => vm.initializing = false);
+    $q.all([accountLoader, applicationLoader, providerLoader]).then(() => vm.state.initializing = false);
 
-    vm.initializing = true;
+    vm.state = {
+      initializing: true,
+      submitting: false,
+      errorMsgs: [],
+      emailErrorMsg: []
+    };
+    vm.data = {
+
+    };
     vm.submitting = false;
     vm.application = {
       cloudProviders: [],
     };
-    vm.errorMsgs = [];
-    vm.emailErrorMsg = [];
 
     vm.clearEmailMsg = function() {
-      vm.emailErrorMsg = '';
+      vm.state.emailErrorMsg = '';
     };
 
 
@@ -55,13 +61,13 @@ module.exports = angular
                   vm.createAppForAccount(application, tailAccounts, deferred);
                 },
                 (error) => {
-                  vm.errorMsgs.push('Could not create application in ' + account + ': ' + error.failureMessage);
+                  vm.state.errorMsgs.push('Could not create application in ' + account + ': ' + error.failureMessage);
                   goIdle();
                   deferred.reject();
                 });
             },
             function() {
-              vm.errorMsgs.push('Could not create application');
+              vm.state.errorMsgs.push('Could not create application');
               goIdle();
               return deferred.reject();
             }
@@ -80,8 +86,8 @@ module.exports = angular
 
       vm.application.name = vm.application.name.toLowerCase();
 
-      if (vm.cloudProviders.length === 1) {
-        vm.application.cloudProviders = vm.cloudProviders;
+      if (vm.data.cloudProviders.length === 1) {
+        vm.application.cloudProviders = vm.data.cloudProviders;
       }
 
       vm.createAppForAccount(vm.application, vm.application.account).then(

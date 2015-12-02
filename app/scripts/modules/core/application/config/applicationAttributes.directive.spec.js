@@ -4,13 +4,12 @@ describe('Controller: Config', function () {
 
   var $controller;
   var configController;
-  var notificationService;
   var $rootScope;
   var $uibModal;
   var application;
 
   beforeEach(window.module(
-    require('./applicationConfig.controller.js')
+    require('./applicationAttributes.directive.js')
   ));
 
   beforeEach(
@@ -29,10 +28,9 @@ describe('Controller: Config', function () {
           accounts: 'test'
         };
 
-        configController = $controller('ApplicationConfigController', {
-          app: application,
+        configController = $controller('ApplicationAttributesCtrl', {
           $uibModal: $uibModal,
-        });
+        }, {application: application});
       }
     );
 

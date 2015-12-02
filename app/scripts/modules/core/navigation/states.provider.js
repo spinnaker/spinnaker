@@ -12,6 +12,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
   require('../projects/project.controller.js'),
   require('../projects/dashboard/dashboard.controller.js'),
   require('../projects/service/project.read.service.js'),
+  require('../overrideRegistry/override.registry.js'),
 ])
   .provider('states', function($stateProvider, $urlRouterProvider, stateHelperProvider, deliveryStates) {
 
@@ -322,7 +323,10 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
         url: '/config',
         views: {
           'insight': {
-            templateUrl: require('../application/applicationConfig.view.html'),
+            templateProvider: ['$templateCache', 'overrideRegistry', function($templateCache, overrideRegistry) {
+              let template = overrideRegistry.getTemplate('applicationConfigView', require('../application/config/applicationConfig.view.html'));
+              return $templateCache.get(template);
+            }],
             controller: 'ApplicationConfigController',
             controllerAs: 'config'
           },

@@ -20,9 +20,10 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.help.helpField.directive', [
-    require('./helpContents.js')
+    require('./helpContents.js'),
+    require('./helpContents.registry.js'),
   ])
-  .directive('helpField', function (helpContents) {
+  .directive('helpField', function (helpContents, helpContentsRegistry) {
     return {
       restrict: 'E',
       templateUrl: require('./helpField.directive.html'),
@@ -37,7 +38,7 @@ module.exports = angular
         pre: function (scope) {
           function applyContents() {
             if (!scope.content && scope.key) {
-              scope.content = helpContents[scope.key] || scope.fallback;
+              scope.content = helpContentsRegistry.getHelpField(scope.key) || helpContents[scope.key] || scope.fallback;
             }
             scope.contents = {
               content: scope.content,

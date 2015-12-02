@@ -71,12 +71,21 @@
       </div>
 
       <div class="form-group row">
+        <div class="col-sm-3 sm-label-left" id="pagerDutyApiKeyLabel">PagerDuty API Key</div>
+        <div class="col-sm-9">
+          <input type="text"
+                 class="form-control input-sm"
+                 ng-model="newAppModal.application.pdApiKey"
+                 placeholder="Enter your PagerDuty API key"/>
+        </div>
+      </div>
+      <div class="form-group row">
         <div class="col-sm-3 sm-label-left">Repo Type</div>
         <div class="col-sm-9">
           <select
-            class="form-control input-sm"
-            ng-options="repoType for repoType in ['stash', 'github']"
-            ng-model="newAppModal.application.repoType">
+              class="form-control input-sm"
+              ng-options="repoType for repoType in ['stash', 'github']"
+              ng-model="newAppModal.application.repoType">
             <option value="">Select Repo Type</option>
           </select>
         </div>
@@ -108,14 +117,30 @@
         </div>
       </div>
 
+      <div class="form-group row" ng-if="newAppModal.chaosEnabled">
+        <div class="col-sm-3 sm-label-left">
+          Chaos Monkey
+          <help-field key="application.chaos.enabled"></help-field>
+        </div>
+        <div class="col-sm-9" style="margin-bottom: 0">
+          <div class="checkbox" style="margin-top: 5px">
+            <label>
+              <input type="checkbox"
+                     ng-model="newAppModal.application.chaosMonkey.enabled"/>
+              Enabled
+            </label>
+          </div>
+        </div>
+      </div>
+
       <div class="form-group row">
         <div class="col-sm-3 sm-label-left">Description</div>
         <div class="col-sm-9">
           <textarea
-                 class="form-control input-sm"
-                 ng-model="newAppModal.application.description"
-                 placeholder="Enter a description"
-                 data-purpose="application-description">
+              class="form-control input-sm"
+              ng-model="newAppModal.application.description"
+              placeholder="Enter a description"
+              data-purpose="application-description">
           </textarea>
         </div>
       </div>
@@ -142,7 +167,7 @@
 
       <div class="form-group row">
         <div class="col-sm-3 sm-label-left">Instance Health</div>
-        <div class="col-sm-9 checkbox" style="margin-bottom: 0">
+        <div class="col-sm-9 checkbox" style="margin-top: 5px; margin-bottom: 0">
           <label>
             <input type="checkbox"
                    ng-model="newAppModal.application.platformHealthOnly"/>

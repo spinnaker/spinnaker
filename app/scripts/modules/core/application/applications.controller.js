@@ -9,9 +9,10 @@ module.exports = angular.module('spinnaker.applications.controller', [
   require('../cache/viewStateCache.js'),
   require('../presentation/sortToggle/sorttoggle.directive.js'),
   require('../insight/insightmenu.directive.js'),
+  require('../overrideRegistry/override.registry.js'),
 ])
   .controller('ApplicationsCtrl', function($scope, $uibModal, $log, $filter, accountService,
-                                           $state, applicationReader, viewStateCache) {
+                                           $state, applicationReader, viewStateCache, overrideRegistry) {
 
     var applicationsViewStateCache = viewStateCache.applications || viewStateCache.createCache('applications', { version: 1 });
 
@@ -48,8 +49,8 @@ module.exports = angular.module('spinnaker.applications.controller', [
         action: function() {
           $uibModal.open({
             scope: $scope,
-            templateUrl: require('./modal/newapplication.html'),
-            controller: 'CreateApplicationModalCtrl',
+            templateUrl: overrideRegistry.getTemplate('createApplicationModal', require('./modal/newapplication.html')),
+            controller: overrideRegistry.getController('CreateApplicationModalCtrl'),
             controllerAs: 'newAppModal'
           }).result.then(routeToApplication);
         }

@@ -28,6 +28,12 @@ module.exports = angular
     require('./serverGroup/networking/networking.module.js'),
     require('./report/reservationReport.directive.js'),
 
+    require('./application/netflixCreateApplicationModal.controller.js'),
+
+    require('./help/netflixHelpContents.registry.js'),
+
+    require('./chaosMonkey/chaosMonkeyConfig.directive.js'),
+
     require('../core/config/settings.js'),
   ])
   .run(function(cloudProviderRegistry, settings) {

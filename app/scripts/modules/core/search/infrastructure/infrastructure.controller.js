@@ -11,9 +11,10 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   require('../searchRank.filter.js'),
   require('../../cluster/filter/clusterFilter.service.js'),
   require('../../cache/cacheInitializer.js'),
+  require('../../overrideRegistry/override.registry.js'),
 ])
   .controller('InfrastructureCtrl', function($scope, infrastructureSearchService, $stateParams, $location, searchService,
-                                             cacheInitializer,
+                                             cacheInitializer, overrideRegistry,
                                              pageTitleService, _, recentHistoryService, $uibModal, $state, clusterFilterService) {
 
     var search = infrastructureSearchService();
@@ -112,8 +113,8 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
     this.createApplication = () => {
       $uibModal.open({
         scope: $scope,
-        templateUrl: require('../../application/modal/newapplication.html'),
-        controller: 'CreateApplicationModalCtrl',
+        templateUrl: overrideRegistry.getTemplate('createApplicationModal', require('../../application/modal/newapplication.html')),
+        controller: overrideRegistry.getController('CreateApplicationModalCtrl'),
         controllerAs: 'newAppModal'
       }).result.then(routeToApplication);
     };

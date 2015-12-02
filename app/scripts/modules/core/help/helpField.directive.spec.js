@@ -20,6 +20,8 @@ describe('Directives: helpField', function () {
 
   require('./helpField.directive.html');
 
+  var helpContentsRegistry;
+
   beforeEach(function() {
     window.module(
       require('./helpField.directive.js'),
@@ -28,7 +30,8 @@ describe('Directives: helpField', function () {
       });
   });
 
-  beforeEach(window.inject(function ($rootScope, $compile) {
+  beforeEach(window.inject(function ($rootScope, $compile, _helpContentsRegistry_) {
+    helpContentsRegistry = _helpContentsRegistry_;
     this.executeTest = function executeTest(htmlString, expected, attr='uib-popover') {
       var $scope = $rootScope.$new();
       var helpField = $compile(htmlString)($scope);
@@ -37,7 +40,6 @@ describe('Directives: helpField', function () {
     };
   }));
 
-
   it('uses provided content if supplied', function() {
     this.executeTest('<help-field content="some content"></help-field>', 'some content');
   });
@@ -45,6 +47,12 @@ describe('Directives: helpField', function () {
   it('uses key to look up content if supplied', function() {
     this.executeTest('<help-field key="aws.serverGroup.stack"></help-field>', 'expected stack help');
   });
+
+  it('prefers overrides', function() {
+    spyOn(helpContentsRegistry, 'getHelpField').and.returnValue('override content');
+    this.executeTest('<help-field key="aws.serverGroup.stack"></help-field>', 'override content');
+  });
+
 
   it('uses fallback if key not present', function() {
     this.executeTest('<help-field key="nonexistent.key" fallback="the fallback"></help-field>', 'the fallback');

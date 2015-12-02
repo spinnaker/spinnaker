@@ -1,0 +1,55 @@
+<div class="row" ng-if="vm.chaosEnabled">
+  <div class="col-md-7">
+    <h4>
+      Chaos Monkey
+      <span class="small"><label><input type="checkbox" ng-model="vm.config.enabled"/> Enabled</label></span>
+    </h4>
+    <div class="panel panel-default">
+      <div class="panel-body form-inline">
+        <h5 class="first-header">Kill frequency</h5>
+        <div class="row">
+          <div class="col-md-5 col-md-offset-1">
+            <label>Mean time between kills</label>
+            <input type="number" class="form-control input-sm"
+                   min="0"
+                   ng-model="vm.config.meanTimeBetweenKillsInWorkDays"/>
+            days <help-field key="chaos.meanTime"></help-field>
+          </div>
+          <div class="col-md-6">
+            <label>Minimum time between kills</label>
+            <input type="number" class="form-control input-sm"
+                   min="0"
+                   ng-model="vm.config.minTimeBetweenKillsInWorkDays"/>
+            days <help-field key="chaos.minTime"></help-field>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-5 col-md-offset-1">
+            <label class="control-label">Grouping <help-field key="chaos.grouping"></help-field></label>
+            <label class="radio-inline" ng-repeat="grouping in vm.groupingOptions">
+              <input type="radio"
+                     ng-model="vm.config.grouping"
+                     ng-value="grouping.key"/>
+              {{grouping.label}}
+            </label>
+          </div>
+          <div class="col-md-6">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox"
+                       ng-model="vm.config.regionsAreIndependent"/>
+                Regions are independent
+                <help-field key="chaos.regions"></help-field>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <chaos-monkey-exceptions config="vm.config"></chaos-monkey-exceptions>
+        <chaos-monkey-config-footer application="vm.application"
+                                    config="vm.config"
+                                    view-state="vm.viewState"></chaos-monkey-config-footer>
+      </div>
+    </div>
+  </div>
+</div>
