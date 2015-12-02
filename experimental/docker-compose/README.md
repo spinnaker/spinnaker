@@ -39,7 +39,7 @@ Under Kitematic, click on the application 'deck' -> settings -> ports. Click on 
 
 Alternatively, you can just enter ```DOCKER_IP=`docker-machine ip default` && open http://$DOCKER_IP:9000```
 
-# Installing via Docker Compose
+# Deploying Spinnaker on the Cloud via Docker Compose
 
 These instructions show you how to install the docker-compose setup in the cloud using docker-machine.
 
