@@ -271,9 +271,6 @@ function add_apt_repositories() {
   # http://docs.datastax.com/en/cassandra/2.1/cassandra/install/installDeb_t.html
   curl -L http://debian.datastax.com/debian/repo_key | apt-key add -
   echo "deb http://debian.datastax.com/community/ stable main" | tee /etc/apt/sources.list.d/datastax.list > /dev/null
-  # Java 8
-  # https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa
-  add-apt-repository -y ppa:openjdk-r/ppa
 
   if [ "$DOWNLOAD" != "true" ];then
     # Spinnaker
@@ -284,6 +281,9 @@ function add_apt_repositories() {
       curl "https://bintray.com/user/downloadSubjectPublicKey?username=$REPOSITORY_ORG" | apt-key add -
     fi
     echo "deb $REPOSITORY_URL $DISTRIB_CODENAME spinnaker" | tee /etc/apt/sources.list.d/spinnaker-dev.list > /dev/null
+    # Java 8
+    # https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa
+    add-apt-repository -y ppa:openjdk-r/ppa
   fi
   apt-get update
 }
