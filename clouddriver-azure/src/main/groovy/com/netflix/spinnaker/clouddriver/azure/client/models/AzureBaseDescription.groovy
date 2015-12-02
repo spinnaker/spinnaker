@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.azure
+package com.netflix.spinnaker.clouddriver.azure.client.models
 
-import java.lang.annotation.ElementType
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-import java.lang.annotation.Target
+import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@interface AzureOperation {
-  String value()
+class AzureBaseDescription {
+  String cloudProvider
+  String providerType
+  String appName
+  AzureCredentials credentials
+  String region
+  String name
+  String user
+
+  public AzureBaseDescription() {}
 }

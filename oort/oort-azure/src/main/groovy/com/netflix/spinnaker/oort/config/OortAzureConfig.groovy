@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.azure
+package com.netflix.spinnaker.oort.config
 
-import java.lang.annotation.ElementType
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-import java.lang.annotation.Target
 
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@interface AzureOperation {
-  String value()
+import com.netflix.spinnaker.oort.azure.model.AzureResourceRetriever
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
+
+@Configuration
+@ConditionalOnProperty('azure.enabled')
+@ComponentScan('com.netflix.spinnaker.oort.azure')
+class OortAzureConfig {
+
+  @Bean
+  AzureResourceRetriever azureResourceRetriever() {
+    new AzureResourceRetriever()
+  }
+
 }

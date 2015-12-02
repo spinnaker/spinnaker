@@ -20,6 +20,7 @@ import com.microsoft.azure.management.network.NetworkResourceProviderClient
 import com.microsoft.azure.management.network.NetworkResourceProviderService
 import com.microsoft.azure.management.network.models.LoadBalancer
 import com.microsoft.azure.utility.NetworkHelper
+import com.microsoft.windowsazure.core.OperationResponse
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import groovy.transform.CompileStatic
 
@@ -30,26 +31,37 @@ class AzureNetworkClient extends AzureBaseClient {
   }
 
   Collection<LoadBalancer> getLoadBalancersAll(AzureCredentials creds) {
-    return this.getNetworkResourceProviderClient(creds).getLoadBalancersOperations().listAll().getLoadBalancers()
+    this.getNetworkResourceProviderClient(creds).getLoadBalancersOperations().listAll().getLoadBalancers()
   }
 
   Collection<LoadBalancer> getLoadBalancersForResourceGroup(AzureCredentials creds, String resourceGroupName) {
-    return this.getNetworkResourceProviderClient(creds).getLoadBalancersOperations().list(resourceGroupName).getLoadBalancers()
+    this.getNetworkResourceProviderClient(creds).getLoadBalancersOperations().list(resourceGroupName).getLoadBalancers()
   }
 
   LoadBalancer getLoadBalancer(AzureCredentials creds, String loadBalancerName) {
-    return findLoadBalancer(getLoadBalancersAll(creds), loadBalancerName)
+    findLoadBalancer(getLoadBalancersAll(creds), loadBalancerName)
   }
 
   LoadBalancer getLoadBalancerInResourceGroup(AzureCredentials creds, String resourceGroupName, String loadBalanacerName) {
-    return findLoadBalancer(getLoadBalancersForResourceGroup(creds, resourceGroupName), loadBalanacerName)
+    findLoadBalancer(getLoadBalancersForResourceGroup(creds, resourceGroupName), loadBalanacerName)
+  }
+
+  String getLoadBalancerHealthState(AzureCredentials creds, String loadBalancerName) {
+    getLoadBalancer(creds, loadBalancerName).getProvisioningState();
   }
 
   protected NetworkResourceProviderClient getNetworkResourceProviderClient(AzureCredentials creds) {
-    return NetworkResourceProviderService.create(this.buildConfiguration(creds))
+    NetworkResourceProviderService.create(this.buildConfiguration(creds))
   }
 
   private static LoadBalancer findLoadBalancer(Collection<LoadBalancer> loadBalancers, String loadBalancerName) {
-    return loadBalancers.find { it.name == loadBalancerName }
+    loadBalancers.find { it.name == loadBalancerName }
   }
+
+  OperationResponse deleteLoadBalancer(AzureCredentials creds, String appName, String loadBalancerName, String region) {
+    String resourceGroupName = appName // TODO region will be capture as part of the Azure resource group name
+
+    this.getNetworkResourceProviderClient(creds).getLoadBalancersOperations().delete(resourceGroupName, loadBalancerName)
+  }
+
 }

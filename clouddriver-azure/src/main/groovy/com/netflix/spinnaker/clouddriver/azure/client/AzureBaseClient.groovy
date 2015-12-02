@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.azure.client
 
+import com.microsoft.azure.management.compute.ComputeManagementClient
+import com.microsoft.azure.management.compute.ComputeManagementService
+import com.microsoft.azure.management.resources.ResourceManagementClient
+import com.microsoft.azure.management.resources.ResourceManagementService
 import com.microsoft.windowsazure.Configuration
 import com.microsoft.windowsazure.management.configuration.ManagementConfiguration
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials

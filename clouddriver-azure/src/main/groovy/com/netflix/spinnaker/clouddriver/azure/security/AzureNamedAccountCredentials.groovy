@@ -32,6 +32,7 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
   final String subscriptionId
   final String clientId
   final String appKey
+  final List<AzureRegion> regions
   final String applicationName
   final List<String> requiredGroupMembership
   final AzureCredentials credentials
@@ -44,6 +45,7 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
                                String appKey,
                                String tenantId,
                                String subscriptionId,
+                               List<String> regions,
                                String applicationName,
                                List<String> requiredGroupMembership = null) {
     this.accountName = accountName
@@ -53,6 +55,7 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
     this.appKey = appKey
     this.tenantId = tenantId
     this.subscriptionId = subscriptionId
+    this.regions = buildRegions(regions)
     this.applicationName = applicationName
     this.requiredGroupMembership = requiredGroupMembership ?: [] as List<String>
     this.credentials = appKey.isEmpty() ? null : buildCredentials()
@@ -80,4 +83,37 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
 
     return new AzureCredentials(this.tenantId, this.clientId, this.appKey, rmClient, networkClient, computeClient)
   }
+
+  private List<AzureRegion> buildRegions(List<String> regions) {
+    return regions?.collect {new AzureRegion(it)}
+  }
+
+  public static class AzureRegion {
+    public final String name;
+
+    public AzureRegion(String name) {
+      if (name == null) {
+        throw new NullPointerException("name");
+      }
+      this.name = name
+    }
+
+    public String getName() {return name}
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      AzureRegion awsRegion = (AzureRegion) o;
+
+      return name.equals(awsRegion.name)
+    }
+
+    @Override
+    public int hashCode() {
+      return name.hashCode();
+    }
+  }
+
 }

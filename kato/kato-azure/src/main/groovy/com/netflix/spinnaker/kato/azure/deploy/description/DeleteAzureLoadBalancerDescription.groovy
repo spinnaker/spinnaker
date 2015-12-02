@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.azure
+package com.netflix.spinnaker.kato.azure.deploy.description
 
-import java.lang.annotation.ElementType
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-import java.lang.annotation.Target
+import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@interface AzureOperation {
-  String value()
+class DeleteAzureLoadBalancerDescription {
+  String cloudProvider
+  String providerType
+  String loadBalancerName
+  String region
+  String appName
+  AzureCredentials credentials
 }

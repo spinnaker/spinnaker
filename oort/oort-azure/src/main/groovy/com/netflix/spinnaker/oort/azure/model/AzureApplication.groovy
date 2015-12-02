@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 The original authors.
+ * Copyright 2014 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.azure
+package com.netflix.spinnaker.oort.azure.model
 
-import java.lang.annotation.ElementType
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-import java.lang.annotation.Target
+import com.netflix.spinnaker.oort.model.Application
+import groovy.transform.CompileStatic
+import groovy.transform.EqualsAndHashCode
 
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@interface AzureOperation {
-  String value()
+@CompileStatic
+@EqualsAndHashCode(includes = ["name"])
+class AzureApplication implements Application, Serializable {
+  String name
+  Map<String, Set<String>> clusterNames = Collections.synchronizedMap(new HashMap<String, Set<String>>())
+  Map<String, String> attributes = Collections.synchronizedMap(new HashMap<String, String>())
 }
