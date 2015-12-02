@@ -39,51 +39,54 @@ Under Kitematic, click on the application 'deck' -> settings -> ports. Click on 
 
 Alternatively, you can just enter ```DOCKER_IP=`docker-machine ip default` && open http://$DOCKER_IP:9000```
 
-# Installing via Docker Compose on the Google Compute Platform
+# Installing via Docker Compose
 
-These instructions show you how to install the docker-compose setup in the cloud using docker-machine. Instructions for other providers should be similar. 
+These instructions show you how to install the docker-compose setup in the cloud using docker-machine.
 
 One of the trickier bits of setting up spinnaker is to get the cloud providers configured correctly. It's recommended that you test out your configuration first on your local machine and then push to the cloud once you're happy with the results. 
+
+## Set up Docker Machine Environment
+
+### Google Compute Engine ###
 
 If you don't already have a Google Compute Platform account, you can create one [here](https://cloud.google.com/compute/). 
 
 Create a project that will hold your Spinnaker install and keep track of the project id ( which might be different than the project name ).
 
-## Set up Docker Machine Environment for GCP
-
 If you haven't already, obtain and set your GCP credentials following [these instructions](https://developers.google.com/identity/protocols/application-default-credentials#howtheywork). 
 
-Run ```docker-machine create  --driver google --google-project [your project name] --google-machine-type n1-standard-4 spinnakergcp ```
+Run ```docker-machine create  --driver google --google-project [your project id] --google-machine-type n1-standard-4 spinnakerremote ```
 
 Verify that this is running correctly by running
 
-```docker-machine ip spinnakergcp``` ( spinnakergcp is the name of my docker machine ).
+```docker-machine ip spinnakerremote``` ( spinnakerremote is the name of my docker machine ).
 
 You should see an IP address returned and an instance running in GCP.
 
-## Copy configuration files to the GCP instance
+## Copy configuration files to the remote docker machine instance
 
 The next step is to copy over the configuration files from our local machine to our instance.  
 
-```docker-machine scp -r ../../config spinnakergcp:/home/ubuntu/spinnakerconfig```
-
-```docker-machine scp compose.env spinnakergcp:/home/ubuntu/spinnakerconfig```
+```docker-machine scp -r ../../config spinnakergcp:~/spinnakerconfig```
 
 Ssh into the box:
 
-```docker-machine ssh spinnakergcp```
+```docker-machine ssh spinnakerremote```
 
 And move the copied files into /root/spinnakerconfig:
 
 ```
 sudo su
-cp -r /home/ubuntu/spinnakerconfig/ /root/spinnakerconfig/
+cp -r spinnakerconfig/ /root/
 chmod 666 /root/spinnakerconfig
 chmod 444 /root/spinnakerconfig/*
 ```
 
 ## Configure firewall rules
+
 This will allow the Spinnaker ports used by docker compose to become available to your workstation.
+
+### Google Compute Engine ###
 
 Go to your GCP developers console and click on your instance, then network name ( it should say `default` ). Click "Add firewall rule" and fill in the following values:
 * Name: `my-docker-machine`
@@ -99,17 +102,17 @@ Click "Create".
 
 ## Launch Spinnaker via Docker Compose
 
-Now that everything is set up, you should switch to using the spinnakergcp docker machine: ``` eval "$(docker-machine env spinnakergcp)" ```
+Now that everything is set up, you should switch to using the spinnakerremote docker machine: ``` eval "$(docker-machine env spinnakerremote)" ```
 
-Launch docker-compose using the remote configuration and the remote host ip: ``` DOCKER_IP=`docker-machine ip spinnakergcp` docker-compose -f docker-compose.yml -f docker-compose.remote.yml up -d  ```
+Launch docker-compose using the remote configuration and the remote host ip: ``` DOCKER_IP=`docker-machine ip spinnakerremote` docker-compose -f docker-compose.yml -f docker-compose.remote.yml up -d  ```
 
-Once you have completed the above configuration, you should be able to resolve the Spinnaker web application from your local workstation: ```DOCKER_IP=`docker-machine ip spinnakergcp` && open http://$DOCKER_IP:9000```
+Once you have completed the above configuration, you should be able to resolve the Spinnaker web application from your local workstation: ```DOCKER_IP=`docker-machine ip spinnakerremote` && open http://$DOCKER_IP:9000```
 
 ## Removing Docker Machine Environment
 
 If you no longer want an instance of Spinnaker running on your GCP account, remember to disable your docker machine instance by typing:
 
-`docker-machine rm spinnakergcp`
+`docker-machine rm spinnakerremote`
 
 This will not remove any instances deployed by Spinnaker, only the docker compose services that were deployed.
 
