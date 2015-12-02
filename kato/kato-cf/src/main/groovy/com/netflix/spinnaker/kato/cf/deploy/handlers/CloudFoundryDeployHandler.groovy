@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.kato.cf.deploy.handlers
 
+import com.netflix.frigga.NameBuilder
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.kato.cf.deploy.description.CloudFoundryDeployDescription
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryClientFactory
 import com.netflix.spinnaker.kato.data.task.Task
@@ -22,29 +24,33 @@ import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DeployDescription
 import com.netflix.spinnaker.kato.deploy.DeployHandler
 import com.netflix.spinnaker.kato.deploy.DeploymentResult
+import com.netflix.spinnaker.kato.helpers.OperationPoller
 import org.apache.commons.codec.binary.Base64
 import org.cloudfoundry.client.lib.CloudFoundryClient
 import org.cloudfoundry.client.lib.CloudFoundryException
 import org.cloudfoundry.client.lib.domain.CloudApplication
 import org.cloudfoundry.client.lib.domain.Staging
+import org.jets3t.service.S3Service
+import org.jets3t.service.impl.rest.httpclient.RestS3Service
+import org.jets3t.service.model.S3Object
+import org.jets3t.service.security.AWSCredentials
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.*
 import org.springframework.http.client.SimpleClientHttpRequestFactory
+import org.springframework.util.StreamUtils
 import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.RestTemplate
 
 /**
- * A deployment handler for Cloud Foundry. Inspired by cf-maven-plugin's {@literal AbstractPush}
- *
- *
+ * A deployment handler for Cloud Foundry.
  */
 class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescription> {
   private static final String BASE_PHASE = "DEPLOY"
 
-  private static final Integer DEFAULT_MEMORY = 512
-  private static final Integer DEFAULT_APP_STARTUP_TIMEOUT = 5  // minutes
-
-  private final String username
-  private final String password
+  @Autowired
+  @Qualifier('cloudFoundryOperationPoller')
+  OperationPoller operationPoller
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -52,10 +58,8 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
 
   private CloudFoundryClientFactory clientFactory
 
-  CloudFoundryDeployHandler(CloudFoundryClientFactory clientFactory, String username, String password) {
+  CloudFoundryDeployHandler(CloudFoundryClientFactory clientFactory) {
     this.clientFactory = clientFactory
-    this.username = username
-    this.password = password
   }
 
   void setClientFactory(CloudFoundryClientFactory clientFactory) {
@@ -64,14 +68,29 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
 
   @Override
   DeploymentResult handle(CloudFoundryDeployDescription description, List priorOutputs) {
+    def deploymentResult = new DeploymentResult()
+
     CloudFoundryClient client = clientFactory.createCloudFoundryClient(description.credentials, true)
 
     task.updateStatus BASE_PHASE, "Initializing handler..."
-    def deploymentResult = new DeploymentResult()
 
-    task.updateStatus BASE_PHASE, "Preparing deployment of ${description.serverGroupName}"
+    def nameBuilder = new NameBuilder() {
+      @Override
+      public String combineAppStackDetail(String appName, String stack, String detail) {
+        return super.combineAppStackDetail(appName, stack, detail)
+      }
+    }
+
+    def clusterName = nameBuilder.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
+    def nextSequence = getNextSequence(clusterName, client)
+    task.updateStatus BASE_PHASE, "Found next sequence ${nextSequence}."
+
+    description.serverGroupName = "${clusterName}-v${nextSequence}".toString()
+
     if (description.urls.empty) {
       description.urls = ["${description.serverGroupName}.${client.defaultDomain.name}".toString()]
+    } else {
+      description.urls = description.urls
     }
 
     task.updateStatus BASE_PHASE, "Adding domains..."
@@ -82,12 +101,20 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
 
     task.updateStatus BASE_PHASE, "Creating application ${description.serverGroupName}"
 
-    createApplication(description.serverGroupName, description, client)
+    createApplication(description, client)
 
     try {
-      uploadApplication(description.serverGroupName, description, client)
+      uploadApplication(description, client)
     } catch (CloudFoundryException e) {
       def message = "Error while creating application '%${description.serverGroupName}'. Error message: '${e.message}'. Description: '${e.description}'"
+
+      try {
+        task.updateStatus BASE_PHASE, "Failed to upload, so deleting ${description.serverGroupName}"
+        client.deleteApplication(description.serverGroupName)
+      } catch (Exception ex) {
+        task.updateStatus BASE_PHASE, "${description.serverGroupName} cleaned up."
+      }
+
       throw new RuntimeException(message, e)
     }
 
@@ -106,7 +133,14 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
 
     client.startApplication(description.serverGroupName)
 
-    deploymentResult.serverGroupNames = [description.serverGroupName]
+    client.getApplication(description.serverGroupName).state
+
+    operationPoller.waitForOperation(
+        {client.getApplication(description.serverGroupName)},
+        {CloudApplication app -> app.state == CloudApplication.AppState.STARTED},
+        null, task, description.serverGroupName, BASE_PHASE)
+
+    deploymentResult.serverGroupNames << "${description.credentials.org}:${description.serverGroupName}".toString()
     deploymentResult.serverGroupNameByRegion[description.credentials.org] = description.serverGroupName
     deploymentResult.messages = task.history.collect { "${it.phase} : ${it.status}".toString() }
 
@@ -132,17 +166,17 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
     // TODO Add support for creating services
   }
 
-  def createApplication(String serverGroupName, CloudFoundryDeployDescription description, CloudFoundryClient client) {
+  def createApplication(CloudFoundryDeployDescription description, CloudFoundryClient client) {
     CloudApplication application = null
     try {
-      application = client.getApplication(serverGroupName)
+      application = client.getApplication(description.serverGroupName)
     } catch (HttpServerErrorException e) {
       if (e.statusCode == HttpStatus.SERVICE_UNAVAILABLE) {
-        task.updateStatus BASE_PHASE, "${serverGroupName} is unavailable."
+        task.updateStatus BASE_PHASE, "${description.serverGroupName} is unavailable."
       }
     } catch (CloudFoundryException e) {
       if (e.statusCode != HttpStatus.NOT_FOUND) {
-        def message = "Error while checking for existing application '${serverGroupName}'. Error message: '${e.message}'. Description: '${e.description}'"
+        def message = "Error while checking for existing application '${description.serverGroupName}'. Error message: '${e.message}'. Description: '${e.description}'"
         throw new RuntimeException(message, e)
       }
     }
@@ -150,7 +184,7 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
     try {
       Staging staging = new Staging() // TODO evaluate if we need command, buildpack, etc.
       if (application == null) {
-        client.createApplication(serverGroupName, staging, description.memory, description.urls, null)
+        client.createApplication(description.serverGroupName, staging, description.memory, description.urls, null)
 //        // TODO Add support for configuring application env
 //      } else {
 //        client.stopApplication(description.application)
@@ -164,52 +198,123 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
 //        // TODO Add support for updating application env
       }
     } catch (CloudFoundryException e) {
-      def message = "Error while creating application '${serverGroupName}'. Error message: '${e.message}'. Description: '${e.description}'"
+      def message = "Error while creating application '${description.serverGroupName}'. Error message: '${e.message}'. Description: '${e.description}'"
       throw new RuntimeException(message, e)
     }
   }
 
-  def uploadApplication(String serverGroupName, CloudFoundryDeployDescription description, CloudFoundryClient client) {
+  def uploadApplication(CloudFoundryDeployDescription description, CloudFoundryClient client) {
     try {
-      def path = "${description.targetPackage.buildUrl}artifact/${description.targetPackage.relativePath}"
-      HttpHeaders requestHeaders = new HttpHeaders()
-      requestHeaders.set(HttpHeaders.AUTHORIZATION, "Basic " + Base64.encodeBase64String("${username}:${password}".getBytes()))
+      def results
 
-      def requestEntity = new HttpEntity<>(requestHeaders)
+      /**
+       * Barebones templating to allow user to tap into build details
+       */
+      description.repository = description.repository.replace('{job}', description.trigger.job)
+      description.repository = description.repository.replace('{buildNumber}', description.trigger.buildNumber as String)
 
-      def restTemplate = new RestTemplate()
-      def factory = new SimpleClientHttpRequestFactory()
-      factory.bufferRequestBody = false
-      restTemplate.requestFactory = factory
-
-      long contentLength = -1
-      ResponseEntity<byte[]> responseBytes
-
-      while (contentLength == -1 || contentLength != responseBytes?.headers?.getContentLength()) {
-        if (contentLength > -1) {
-          task.updateStatus BASE_PHASE, "Downloaded ${contentLength} bytes, but ${responseBytes.headers.getContentLength()} expected! Retry..."
-        }
-        responseBytes = restTemplate.exchange(path, HttpMethod.GET, requestEntity, byte[])
-        contentLength = responseBytes != null ? responseBytes.getBody().length : 0;
+      if (description.repository.startsWith('http')) {
+        results = downloadJarFileFromWeb(description)
+      } else if (description.repository.startsWith('s3')) {
+        results = downloadJarFileFromS3(description)
+      }  else {
+        throw new RuntimeException("Repository '${description.repository}' is not a recognized protocol.")
       }
 
-      task.updateStatus BASE_PHASE, "Successfully downloaded ${contentLength} bytes"
+      task.updateStatus BASE_PHASE, "Uploading ${results.contentLength} bytes to ${description.serverGroupName}"
 
-      File file = File.createTempFile(description.targetPackage.package, null)
-      FileOutputStream fout = new FileOutputStream(file)
-      fout.write(responseBytes.body)
-      fout.close()
-
-      task.updateStatus BASE_PHASE, "Uploading ${contentLength} bytes to ${serverGroupName}"
-
-      client.uploadApplication(serverGroupName, description.targetPackage.package, file.newInputStream())
+      client.uploadApplication(description.serverGroupName, results.file.name, results.file.newInputStream())
     } catch (IOException e) {
       throw new IllegalStateException("Error uploading application => ${e.message}.", e)
     }
+  }
+
+  def downloadJarFileFromWeb(CloudFoundryDeployDescription description) {
+    HttpHeaders requestHeaders = new HttpHeaders()
+    requestHeaders.set(HttpHeaders.AUTHORIZATION, "Basic " + Base64.encodeBase64String("${description.username}:${description.password}".getBytes()))
+
+    def requestEntity = new HttpEntity<>(requestHeaders)
+
+    def restTemplate = new RestTemplate()
+    def factory = new SimpleClientHttpRequestFactory()
+    factory.bufferRequestBody = false
+    restTemplate.requestFactory = factory
+
+    long contentLength = -1
+    ResponseEntity<byte[]> responseBytes
+
+    while (contentLength == -1 || contentLength != responseBytes?.headers?.getContentLength()) {
+      if (contentLength > -1) {
+        task.updateStatus BASE_PHASE, "Downloaded ${contentLength} bytes, but ${responseBytes.headers.getContentLength()} expected! Retry..."
+      }
+      def basePath = description.repository + (description.repository.endsWith('/') ? '' : '/')
+      responseBytes = restTemplate.exchange("${basePath}${description.artifact}".toString(), HttpMethod.GET, requestEntity, byte[])
+      contentLength = responseBytes != null ? responseBytes.getBody().length : 0;
+    }
+
+    task.updateStatus BASE_PHASE, "Successfully downloaded ${contentLength} bytes"
+
+    File file = File.createTempFile(description.serverGroupName, null)
+    FileOutputStream fout = new FileOutputStream(file)
+    fout.write(responseBytes.body)
+    fout.close()
+
+    [
+        contentLength: contentLength,
+        file: file
+    ]
+  }
+
+  def downloadJarFileFromS3(CloudFoundryDeployDescription description) {
+    AWSCredentials awsCredentials = new AWSCredentials(description.username, description.password, description.credentials.name)
+
+    S3Service s3 = new RestS3Service(awsCredentials)
+
+    def baseBucket = description.repository + (description.repository.endsWith('/') ? '' : '/') - 's3://'
+    baseBucket = baseBucket.getAt(0..baseBucket.length()-2)
+
+    S3Object object = s3.getObject(baseBucket, description.artifact)
+
+    task.updateStatus BASE_PHASE, "Successfully downloaded ${object.contentLength} bytes"
+
+    File file = File.createTempFile(description.serverGroupName, null)
+    FileOutputStream fout = new FileOutputStream(file)
+    StreamUtils.copy(object.dataInputStream, fout)
+    fout.close()
+
+    [
+        contentLength: object.contentLength,
+        file: file
+    ]
+
   }
 
   @Override
   boolean handles(DeployDescription description) {
     return description instanceof CloudFoundryDeployDescription
   }
+
+  /**
+   * Scan through all the apps in this space, and find the maximum one with a matching cluster name
+   *
+   * @param clusterName
+   * @param project
+   * @param region
+   * @param client
+   * @return
+   */
+  private def getNextSequence(String clusterName, CloudFoundryClient client) {
+    def maxSeqNumber = -1
+
+    client.applications.each { app ->
+      def names = Names.parseName(app.name)
+
+      if (names.cluster == clusterName) {
+        maxSeqNumber = Math.max(maxSeqNumber, names.sequence)
+      }
+    }
+
+    String.format("%03d", ++maxSeqNumber)
+  }
+
 }

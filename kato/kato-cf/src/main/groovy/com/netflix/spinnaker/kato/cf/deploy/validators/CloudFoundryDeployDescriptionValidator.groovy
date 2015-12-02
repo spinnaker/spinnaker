@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.kato.cf.deploy.validators
-
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.cf.deploy.description.CloudFoundryDeployDescription
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryAccountCredentials
@@ -22,7 +21,6 @@ import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
-
 /**
  * Validator for Cloud Foundry deploy description
  *
@@ -46,6 +44,7 @@ class CloudFoundryDeployDescriptionValidator extends DescriptionValidator<CloudF
         errors.rejectValue("credentials", "cloudFoundryDeployDescription.credentials.invalid")
       }
     }
+
     // TODO Reinstate the validator after the operation if verified
 //    if (!description.api) {
 //      errors.rejectValue "api", "cloudFoundryDepoyDescription.api.empty"

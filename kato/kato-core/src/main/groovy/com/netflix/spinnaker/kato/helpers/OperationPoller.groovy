@@ -1,0 +1,100 @@
+package com.netflix.spinnaker.kato.helpers
+import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.exception.OperationTimedOutException
+/**
+ * A poller with an upper time limit combined with a Fibonacci-based backoff.
+ * Let's you wrap the operation in a Groovy closure and the "if complete" operation in another.
+ * The "if complete" closure is fed the results of the first.
+ */
+class OperationPoller {
+
+  final int asyncOperationTimeoutSecondsDefault
+  final int asyncOperationMaxPollingIntervalSeconds
+
+  ThreadSleeper threadSleeper = new ThreadSleeper()
+
+  OperationPoller(int asyncOperationTimeoutSecondsDefault, int asyncOperationMaxPollingIntervalSeconds) {
+    this.asyncOperationTimeoutSecondsDefault = asyncOperationTimeoutSecondsDefault
+    this.asyncOperationMaxPollingIntervalSeconds = asyncOperationMaxPollingIntervalSeconds
+  }
+
+  OperationPoller(int asyncOperationTimeoutSecondsDefault, int asyncOperationMaxPollingIntervalSeconds, ThreadSleeper threadSleeper) {
+    this(asyncOperationTimeoutSecondsDefault, asyncOperationMaxPollingIntervalSeconds)
+    this.threadSleeper = threadSleeper
+  }
+/**
+   * Wrap an operational closure with a back off algorithm to check until completed.
+   *
+   * @param operation - a closure to perform an operation and return a testable value
+   * @param ifDone - a closure that receives the operation's results, and returns true/false if completed
+   * @param timeoutSeconds
+   * @param task
+   * @param resourceString
+   * @param basePhase
+   * @return results of operation
+   */
+  Object waitForOperation(Closure operation, Closure ifDone,
+                          Long timeoutSeconds, Task task, String resourceString, String basePhase) {
+    return handleFinishedAsyncOperation(
+        pollOperation(operation, ifDone, getTimeout(timeoutSeconds)), task, resourceString, basePhase)
+  }
+
+  private long getTimeout(Long timeoutSeconds) {
+    // Note that we cannot use an Elvis operator here because we might have a timeoutSeconds value of
+    // zero. In that case, we still want to pass that value. So we use null comparison here instead.
+    Math.max(timeoutSeconds != null ? timeoutSeconds : asyncOperationTimeoutSecondsDefault, 0)
+  }
+
+  private static handleFinishedAsyncOperation(Object operation, Task task, String resourceString, String basePhase) {
+    if (!operation) {
+      String errorMsg = "Operation on $resourceString timed out."
+      task.updateStatus basePhase, errorMsg
+      throw new OperationTimedOutException(errorMsg)
+    }
+
+    task.updateStatus basePhase, "Done operating on $resourceString."
+
+    operation
+  }
+
+  private Object pollOperation(Closure operation, Closure ifDone, long timeoutSeconds) {
+    int totalTimePollingSeconds = 0
+    boolean timeoutExceeded = false
+
+    // Fibonacci backoff in seconds, up to asyncOperationMaxPollingIntervalSeconds interval.
+    int pollInterval = 1
+    int pollIncrement = 0
+
+    while (!timeoutExceeded) {
+      threadSleeper.sleep(pollInterval)
+
+      totalTimePollingSeconds += pollInterval
+
+      Object results = operation()
+
+      if (ifDone(results)) {
+        return results
+      }
+
+      if (totalTimePollingSeconds > timeoutSeconds) {
+        timeoutExceeded = true
+      } else {
+        // Update polling interval.
+        int oldIncrement = pollIncrement
+        pollIncrement = pollInterval
+        pollInterval += oldIncrement
+        pollInterval = Math.min(pollInterval, asyncOperationMaxPollingIntervalSeconds)
+      }
+    }
+
+    return null
+  }
+
+  // This only exists to facilitate testing.
+  static class ThreadSleeper {
+    void sleep(long seconds) {
+      Thread.currentThread().sleep(seconds * 1000)
+    }
+  }
+
+}

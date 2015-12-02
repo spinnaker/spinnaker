@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.kato.config
-
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.kato.cf.deploy.handlers.CloudFoundryDeployHandler
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryAccountCredentials
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryClientFactory
 import com.netflix.spinnaker.kato.cf.security.DefaultCloudFoundryClientFactory
 import com.netflix.spinnaker.kato.deploy.DeployHandler
+import com.netflix.spinnaker.kato.helpers.OperationPoller
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -32,7 +31,6 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
 import javax.annotation.PostConstruct
-
 /**
  * Configure the components for a Cloud Foundry configuration.
  *
@@ -64,9 +62,16 @@ class KatoCloudFoundryConfig {
 
   @Bean
   @ConditionalOnMissingBean(CloudFoundryDeployHandler)
-  DeployHandler deployHandler(CloudFoundryClientFactory clientFactory, @Value('${cf.jenkins.username}') String username,
-                              @Value('${cf.jenkins.password}') String password) {
-    new CloudFoundryDeployHandler(clientFactory, username, password)
+  DeployHandler deployHandler(CloudFoundryClientFactory clientFactory) {
+    new CloudFoundryDeployHandler(clientFactory)
+  }
+
+  @Bean
+  OperationPoller cloudFoundryOperationPoller(com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConfigurationProperties properties) {
+    new OperationPoller(
+        asyncOperationMaxPollingIntervalSeconds: properties.asyncOperationMaxPollingIntervalSeconds,
+        asyncOperationTimeoutSecondsDefault: properties.asyncOperationTimeoutSecondsDefault
+    )
   }
 
   @ConfigurationProperties('cf')
