@@ -45,7 +45,7 @@ These instructions show you how to install the docker-compose setup in the cloud
 
 One of the trickier bits of setting up spinnaker is to get the cloud providers configured correctly. It's recommended that you test out your configuration first on your local machine and then push to the cloud once you're happy with the results. 
 
-## Set up Docker Machine Environment
+## 1. Set up Docker Machine Environment
 
 ### Google Compute Engine ###
 
@@ -63,7 +63,7 @@ Verify that this is running correctly by running
 
 You should see an IP address returned and an instance running in GCP.
 
-## Copy configuration files to the remote docker machine instance
+## 2. Copy configuration files to the remote docker machine instance
 
 The next step is to copy over the configuration files from our local machine to our instance.  
 
@@ -82,7 +82,7 @@ chmod 666 /root/spinnakerconfig
 chmod 444 /root/spinnakerconfig/*
 ```
 
-## Configure firewall rules
+## 3. Configure firewall rules
 
 This will allow the Spinnaker ports used by docker compose to become available to your workstation.
 
@@ -98,9 +98,7 @@ Click "Create".
 
 *Note: You should be aware of the implications of opening up your virtual machines to the public internet prior to configuring firewall rules. Several more secure options (e.g. SSH tunnel, SOCKS proxy) are described [here](https://cloud.google.com/solutions/connecting-securely).*
 
-# Working with Spinnaker and Docker Compose
-
-## Launch Spinnaker via Docker Compose
+## 4. Launch Spinnaker via Docker Compose
 
 Now that everything is set up, you should switch to using the spinnakerremote docker machine: ``` eval "$(docker-machine env spinnakerremote)" ```
 
@@ -108,13 +106,15 @@ Launch docker-compose using the remote configuration and the remote host ip: ```
 
 Once you have completed the above configuration, you should be able to resolve the Spinnaker web application from your local workstation: ```DOCKER_IP=`docker-machine ip spinnakerremote` && open http://$DOCKER_IP:9000```
 
-## Removing Docker Machine Environment
+## 5. Removing Docker Machine Environment
 
 If you no longer want an instance of Spinnaker running on your GCP account, remember to disable your docker machine instance by typing:
 
 `docker-machine rm spinnakerremote`
 
 This will not remove any instances deployed by Spinnaker, only the docker compose services that were deployed.
+
+# Working with Spinnaker and Docker Compose
 
 ## Updating Spinnaker
 
