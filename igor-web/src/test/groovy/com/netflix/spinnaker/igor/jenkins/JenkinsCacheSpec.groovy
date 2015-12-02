@@ -15,12 +15,16 @@
  */
 
 package com.netflix.spinnaker.igor.jenkins
-
-import static com.netflix.spinnaker.igor.jenkins.network.Network.isReachable
-
-import com.netflix.spinnaker.igor.Main
+import com.netflix.spinnaker.igor.config.IgorConfig
+import com.netflix.spinnaker.igor.config.JedisConfig
+import com.netflix.spinnaker.igor.config.JenkinsConfig
+import com.netflix.spinnaker.igor.config.JenkinsProperties
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.web.WebAppConfiguration
 import redis.clients.jedis.Jedis
@@ -29,8 +33,10 @@ import spock.lang.IgnoreIf
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static com.netflix.spinnaker.igor.jenkins.network.Network.isReachable
+
 @WebAppConfiguration
-@ContextConfiguration(classes = [Main])
+@ContextConfiguration(classes = [TestConfiguration])
 @SuppressWarnings(['DuplicateNumberLiteral', 'UnnecessaryBooleanExpression', 'DuplicateListLiteral'])
 @Slf4j
 @IgnoreIf( {!isReachable('redis://localhost:6379')} )
@@ -155,6 +161,13 @@ class JenkinsCacheSpec extends Specification {
 
         then:
         secondInstance.getJobNames(master) == ['job1']
+    }
+
+    @Configuration
+    @EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration])
+    @Import([JenkinsCache, JenkinsConfig, JenkinsProperties, IgorConfig, JedisConfig])
+    static class TestConfiguration {
+
     }
 
 }
