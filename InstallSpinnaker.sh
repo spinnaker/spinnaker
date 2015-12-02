@@ -9,6 +9,12 @@ REPOSITORY_URL="https://dl.bintray.com/spinnaker/debians"
 # We can only currently support limited releases
 # First guess what sort of operating system
 
+# must have root perms
+if [[ `/usr/bin/id -u` -ne 0 ]];then
+  echo "$0 must be executed with root permissions; exiting"
+  exit 1
+fi
+
 if [ -f /etc/lsb-release ]; then
   . /etc/lsb-release
   DISTRO=$DISTRIB_ID
@@ -202,9 +208,9 @@ function write_default_value() {
   local value="$2"
 
   if egrep "^$name=" /etc/default/spinnaker > /dev/null; then
-      sudo sed -i.bak "s/^$name=.*/$name=$value/" /etc/default/spinnaker
+      sed -i.bak "s/^$name=.*/$name=$value/" /etc/default/spinnaker
   else
-      sudo bash -c "echo $name=$value >> /etc/default/spinnaker"
+      bash -c "echo $name=$value >> /etc/default/spinnaker"
   fi
 }
 
@@ -260,14 +266,14 @@ function set_defaults_from_environ() {
 function add_apt_repositories() {
   # Redis
   # https://launchpad.net/~chris-lea/+archive/ubuntu/redis-server
-  sudo add-apt-repository -y ppa:chris-lea/redis-server
+  add-apt-repository -y ppa:chris-lea/redis-server
   # Cassandra
   # http://docs.datastax.com/en/cassandra/2.1/cassandra/install/installDeb_t.html
-  curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add -
-  echo "deb http://debian.datastax.com/community/ stable main" | sudo tee /etc/apt/sources.list.d/datastax.list > /dev/null
+  curl -L http://debian.datastax.com/debian/repo_key | apt-key add -
+  echo "deb http://debian.datastax.com/community/ stable main" | tee /etc/apt/sources.list.d/datastax.list > /dev/null
   # Java 8
   # https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa
-  sudo add-apt-repository -y ppa:openjdk-r/ppa
+  add-apt-repository -y ppa:openjdk-r/ppa
 
   if [ "$DOWNLOAD" != "true" ];then
     # Spinnaker
@@ -275,24 +281,68 @@ function add_apt_repositories() {
     REPOSITORY_HOST=$(echo $REPOSITORY_URL | cut -d/ -f3)
     if [ "$REPOSITORY_HOST" == "dl.bintray.com" ]; then
       REPOSITORY_ORG=$(echo $REPOSITORY_URL | cut -d/ -f4)
-      curl "https://bintray.com/user/downloadSubjectPublicKey?username=$REPOSITORY_ORG" | sudo apt-key add -
+      curl "https://bintray.com/user/downloadSubjectPublicKey?username=$REPOSITORY_ORG" | apt-key add -
     fi
-    echo "deb $REPOSITORY_URL trusty spinnaker" | sudo tee /etc/apt/sources.list.d/spinnaker-dev.list > /dev/null
+    echo "deb $REPOSITORY_URL $DISTRIB_CODENAME spinnaker" | tee /etc/apt/sources.list.d/spinnaker-dev.list > /dev/null
   fi
-  sudo apt-get update
+  apt-get update
+}
+
+function install_dependencies() {
+  apt-get -y --force-yes install redis-server apache2
+  # java
+  if [ "$DOWNLOAD" != "true" ];then
+    apt-get install -y --force-yes openjdk-8-jdk
+  elif [[ "x`java -version|grep -i version`" != *"1.8.0"* ]];then
+    echo "you must manually install jdk-8; exiting"
+    exit 13
+  fi
+
+}
+
+function install_cassandra() {
+  # "service cassandra status" is currently broken in Ubuntu grep in the script is grepping for things that do not exist
+  # Cassandra 2.x can ship with RPC disabeld to enable run "nodetool enablethrift"
+
+  if [[ "x`java -version|grep -i version`" != *"1.8.0"* ]];then
+    cat <<EOF
+java 8 is not installed, cannot install cassandra
+
+after installing java 8 run the following to install cassandra:
+
+sudo apt-get install -y --force-yes cassandra=2.1.11 cassandra-tools=2.1.11
+sudo apt-mark hold cassandra cassandra-tools
+
+EOF
+  else
+    apt-get install -y --force-yes cassandra=2.1.11 cassandra-tools=2.1.11
+    apt-mark hold cassandra cassandra-tools
+    sleep 1
+    # Let cassandra start
+    if ! nc -z localhost 7199; then
+      echo_status "Waiting for Cassandra to start..."
+      while ! nc -z localhost 7199; do
+        sleep 1
+      done
+      echo_status "Cassandra is ready."
+    fi
+    while ! $(nodetool enablethrift >& /dev/null); do
+      sleep 1
+      echo_status "Retrying..."
+    done
+  fi
 }
 
 function install_spinnaker() {
   if [ "$DOWNLOAD" != "true" ];then
-    sudo apt-get install -y --force-yes --allow-unauthenticated spinnaker
+    apt-get install -y --force-yes --allow-unauthenticated spinnaker
   else
-    apt-get -y --force-yes install redis-server apache2
     install_packages="spinnaker-clouddriver spinnaker-deck spinnaker-echo spinnaker-front50 spinnaker-gate spinnaker-igor spinnaker-orca spinnaker-rosco spinnaker-rush spinnaker"
     for package in $install_packages;do
-      latest=`curl $REPOSITORY_URL/dists/trusty/spinnaker/binary-amd64/Packages | grep "/$package/${package}_" | grep Filename | awk '{print $2}' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1`
+      latest=`curl $REPOSITORY_URL/dists/$DISTRIB_CODENAME/spinnaker/binary-amd64/Packages | grep "/$package/${package}_" | grep Filename | awk '{print $2}' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1`
       debfile=`echo $latest | awk -F "/" '{print $NF}'`
-      curl -L -O $REPOSITORY_URL/$latest
-      dpkg -i $debfile && rm -f $debfile
+      curl -L -o /tmp/$debfile $REPOSITORY_URL/$latest
+      dpkg -i /tmp/$debfile && rm -f /tmp/$debfile
     done
   fi
 
@@ -333,42 +383,20 @@ case $CLOUD_PROVIDER in
 esac
 
 
+# add all apt repositories.
+# if download_only is true then then dependency repos are still added
+# while the spinnaker repos are excluded
 add_apt_repositories
 
-# java
-if [ "$DOWNLOAD" != "true" ];then
-  sudo apt-get install -y --force-yes openjdk-8-jdk
-elif [[ "x`java -version|grep -i version`" != *"1.8.0"* ]];then
-  echo "you must manually install jdk-8; exiting"
-  exit 13
-fi
-
-## Install software
-# "service cassandra status" is currently broken in Ubuntu grep in the script is grepping for things that do not exist
-# Cassandra 2.x can ship with RPC disabeld to enable run "nodetool enablethrift"
-
-## Cassandra
-sudo apt-get install -y --force-yes cassandra=2.1.11 cassandra-tools=2.1.11
-sudo apt-mark hold cassandra cassandra-tools
-sleep 1
-# Let cassandra start
-if ! nc -z localhost 7199; then
-    echo_status "Waiting for Cassandra to start..."
-    while ! nc -z localhost 7199; do
-       sleep 1
-    done
-    echo_status "Cassandra is ready."
-fi
-while ! $(nodetool enablethrift >& /dev/null); do
-    sleep 1
-    echo_status "Retrying..."
-done
 
 ## Packer
-sudo apt-get install -y unzip
+apt-get install -y unzip
 wget https://releases.hashicorp.com/packer/0.8.6/packer_0.8.6_linux_amd64.zip
-sudo unzip -q packer_0.8.6_linux_amd64.zip -d /usr/bin
+unzip -q packer_0.8.6_linux_amd64.zip -d /usr/bin
 rm -f packer_0.8.6_linux_amd64.zip
+
+install_dependencies
+install_cassandra
 
 if [[ "x$DEPENDENCIES_ONLY" != "x" ]]; then
     exit 0
@@ -413,20 +441,20 @@ fi
 
 ## Remove
 if [ -z `getent group spinnaker` ]; then
-  sudo groupadd spinnaker
+  groupadd spinnaker
 fi
 
 if [ -z `getent passwd spinnaker` ]; then
-  sudo useradd --gid spinnaker -m --home-dir /home/spinnaker spinnaker
+  useradd --gid spinnaker -m --home-dir /home/spinnaker spinnaker
 fi
 
 if [ ! -d /home/spinnaker ]; then
-  sudo mkdir -p /home/spinnaker/.aws
-  sudo chown -R spinnaker:spinnaker /home/spinnaker
+  mkdir -p /home/spinnaker/.aws
+  chown -R spinnaker:spinnaker /home/spinnaker
 fi
 ##
 
-sudo start spinnaker
+start spinnaker
   cat <<EOF
 
 To stop all spinnaker subsystems:
@@ -438,7 +466,7 @@ To start all spinnaker subsystems:
 To configure the available cloud providers:
   Edit:   /etc/default/spinnaker
   And/Or: /opt/spinnaker/config/spinnaker-local.yml
-    
+
   Next, ensure that the regions configured in deck are up-to-date:
     sudo /opt/spinnaker/bin/reconfigure_spinnaker.sh
 
