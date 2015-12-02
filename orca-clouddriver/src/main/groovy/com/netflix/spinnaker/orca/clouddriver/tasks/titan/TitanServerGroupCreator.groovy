@@ -34,4 +34,8 @@ class TitanServerGroupCreator implements ServerGroupCreator {
   AmazonServerGroupCreator delegate
 
   final String cloudProvider = "titan"
+
+  String getCloudProvider() {
+    return cloudProvider
+  }
 }
