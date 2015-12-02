@@ -67,7 +67,9 @@ Copy your subscription id
 
 Run ```docker-machine create --driver azure --azure-subscription-id="xxxx-xxxx-xxxx-xxxx" --azure-subscription-cert="mycert.pem" --azure-location="East US"  spinnakerremote```
 
-Wait until docker machine finished and then log into your Azure portal, select the machine that was created, click on Configure and change the machine size to be 'Standard_A6 (4 cores, 28 GB memory)'.
+Wait until docker machine finished and then log into your Azure portal, 
+* select the machine that was created
+* click on Configure and change the machine size to be 'Standard_A6 (4 cores, 28 GB memory)'.
 
 ## 2. Copy configuration files to the remote docker machine instance
 
@@ -113,9 +115,9 @@ Click "Create".
 ### Microsoft Azure ###
 
 Go to your Azure portal and select your remotespinnaker instance ( under Virtual Machines ).
-Navigate to endpoints.
-Create a new endpoint for each of following ports: 9000, 8080 and 8084
-Click on Manage ACL for each of these endpoints and add a permit ACL for your local workstation  (you can find the ip address of your local workstation via `curl myip4.com`).
+* Navigate to endpoints.
+* Create a new endpoint for each of following ports: 9000, 8080 and 8084
+* Click on Manage ACL for each of these endpoints and add a permit ACL for your local workstation  (you can find the ip address of your local workstation via `curl myip4.com`).
 
 ## 4. Launch Spinnaker via Docker Compose
 
