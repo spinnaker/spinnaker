@@ -52,7 +52,7 @@ usage: $0 [--cloud_provider <aws|google|none|both>]
     [--aws_region <region>] [--google_region <region>]
     [--quiet] [--dependencies_only]
     [--repository <debian repository url>]
-    [--local-install]
+    [--local-install] [--home_dir <path>]
 
 
     If run with no arguments you will be prompted for cloud provider and region
@@ -84,6 +84,9 @@ usage: $0 [--cloud_provider <aws|google|none|both>]
                                 issues with the bintray repositories.
                                 If you use this option you must manually
                                 install openjdk-8-jdk.
+
+    --home_dir                  Override where user home directories reside
+                                example: /export/home vs /home
 EOF
 }
 
@@ -133,6 +136,9 @@ function process_args() {
           GOOGLE_REGION="none"
           GOOGLE_ZONE="none"
           shift
+          ;;
+      --home_dir)
+          homebase="$1"
           ;;
       --help|-help|-h)
           print_usage
@@ -481,17 +487,21 @@ if [ "x$GOOGLE_PROJECT_ID" != "x" ]; then
 fi
 
 ## Remove
+if [ "x$homebase" == "x"  ]; then
+  homebase="/home"
+fi
+
 if [ -z `getent group spinnaker` ]; then
   groupadd spinnaker
 fi
 
 if [ -z `getent passwd spinnaker` ]; then
-  useradd --gid spinnaker -m --home-dir /home/spinnaker spinnaker
+  useradd --gid spinnaker -m --home-dir $homebase/spinnaker spinnaker
 fi
 
-if [ ! -d /home/spinnaker ]; then
-  mkdir -p /home/spinnaker/.aws
-  chown -R spinnaker:spinnaker /home/spinnaker
+if [ ! -d $homebase/spinnaker ]; then
+  mkdir -p $homebase/spinnaker/.aws
+  chown -R spinnaker:spinnaker $homebase/spinnaker
 fi
 ##
 
