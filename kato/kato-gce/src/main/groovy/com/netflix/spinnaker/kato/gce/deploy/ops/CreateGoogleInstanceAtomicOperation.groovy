@@ -89,12 +89,15 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
 
     def serviceAccount = GCEUtil.buildServiceAccount(description.authScopes)
 
+    def scheduling = GCEUtil.buildScheduling(description)
+
     def instance = new Instance(name: description.instanceName,
                                 machineType: machineType.getSelfLink(),
                                 disks: attachedDisks,
                                 networkInterfaces: [networkInterface],
                                 metadata: metadata,
                                 tags: tags,
+                                scheduling: scheduling,
                                 serviceAccounts: [serviceAccount])
 
     task.updateStatus BASE_PHASE, "Creating instance $description.instanceName..."
