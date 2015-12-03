@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.bakery.config
 
+import com.fasterxml.jackson.annotation.JsonInclude
+
 import java.text.SimpleDateFormat
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.PropertyNamingStrategy.LowerCaseWithUnderscoresStrategy
@@ -60,6 +62,7 @@ class BakeryConfiguration {
     def objectMapper = new ObjectMapper()
       .setPropertyNamingStrategy(new LowerCaseWithUnderscoresStrategy())
       .setDateFormat(new SimpleDateFormat("YYYYMMDDHHmm"))
+      .setSerializationInclusion(JsonInclude.Include.NON_NULL)
       .disable(FAIL_ON_UNKNOWN_PROPERTIES)
 
     new RestAdapter.Builder()
