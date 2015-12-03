@@ -176,15 +176,6 @@
         </li>
       </ul>
     </collapsible-section>
-    <collapsible-section heading="Tags">
-      <div ng-if="!serverGroup.launchConfig.instanceTemplate.properties.tags.items.length">No tags associated with this server group</div>
-      <dl ng-if="serverGroup.launchConfig.instanceTemplate.properties.tags.items.length">
-        <dd ng-repeat="tag in serverGroup.launchConfig.instanceTemplate.properties.tags.items">
-          {{tag}}
-          <help-field content="{{serverGroup.launchConfig.instanceTemplate.properties.tags.helpMap[tag]}}"></help-field>
-        </dd>
-      </dl>
-    </collapsible-section>
     <collapsible-section heading="Custom Metadata">
       <div ng-if="!serverGroup.launchConfig.instanceTemplate.properties.metadata.items.length">No custom metadata associated with this server group</div>
       <dl ng-if="serverGroup.launchConfig.instanceTemplate.properties.metadata.items.length">
@@ -194,6 +185,35 @@
         </dt>
         <dd ng-repeat-end>{{metadata.value.length > 90 ? metadata.value.substring(0, 90) + "..." : metadata.value}}</dd>
       </dl>
+    </collapsible-section>
+    <collapsible-section heading="Tags">
+      <div ng-if="!serverGroup.launchConfig.instanceTemplate.properties.tags.items.length">No tags associated with this server group</div>
+      <dl ng-if="serverGroup.launchConfig.instanceTemplate.properties.tags.items.length">
+        <dd ng-repeat="tag in serverGroup.launchConfig.instanceTemplate.properties.tags.items">
+          {{tag}}
+          <help-field content="{{serverGroup.launchConfig.instanceTemplate.properties.tags.helpMap[tag]}}"></help-field>
+        </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Availability Policies">
+      <div ng-if="!serverGroup.availabilityPolicies">No availability policies associated with this server group</div>
+      <div ng-if="serverGroup.availabilityPolicies">
+        <dt>
+          Preemptibility
+          <help-field key="gce.serverGroup.preemptibility"></help-field>
+        </dt>
+        <dd>{{serverGroup.availabilityPolicies.preemptibility}}</dd>
+        <dt>
+          Automatic Restart
+          <help-field key="gce.serverGroup.automaticRestart"></help-field>
+        </dt>
+        <dd>{{serverGroup.availabilityPolicies.automaticRestart}}</dd>
+        <dt>
+          On Host Maintenance
+          <help-field key="gce.serverGroup.onHostMaintenance"></help-field>
+        </dt>
+        <dd>{{serverGroup.availabilityPolicies.onHostMaintenance}}</dd>
+      </div>
     </collapsible-section>
     <collapsible-section heading="Package">
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'"

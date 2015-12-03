@@ -61,6 +61,10 @@
       </tr>
       </tfoot>
     </table>
+  </div>
+</div>
+<div class="form-group">
+  <div class="col-md-12">
     <table class="table table-condensed packed tags">
       <b>Tags</b>
       <tbody>
@@ -81,6 +85,60 @@
       </tr>
       </tfoot>
     </table>
+  </div>
+</div>
+<div class="form-group">
+  <div class="col-md-5 sm-label-left">
+    <b>Preemptibility</b>
+    <help-field key="gce.serverGroup.preemptibility"></help-field>
+  </div>
+  <div class="col-md-2 radio">
+    <label>
+      <input type="radio" ng-model="command.preemptible" ng-value="false" id="preemptibleFalse"/>
+      Off
+    </label>
+  </div>
+  <div class="col-md-2 radio">
+    <label>
+      <input type="radio" ng-model="command.preemptible" ng-value="true" id="preemptibleTrue" ng-change="advancedSettingsCtrl.setPreemptible()"/>
+      On
+    </label>
+  </div>
+</div>
+<div class="form-group">
+  <div class="col-md-5 sm-label-left">
+    <b>Automatic Restart</b>
+    <help-field key="gce.serverGroup.automaticRestart"></help-field>
+  </div>
+  <div class="col-md-2 radio">
+    <label>
+      <input type="radio" ng-model="command.automaticRestart" ng-value="false" id="automaticRestartFalse"/>
+      Off
+    </label>
+  </div>
+  <div class="col-md-2 radio">
+    <label>
+      <input type="radio" ng-model="command.automaticRestart" ng-value="true" id="automaticRestartTrue"/>
+      On
+    </label>
+  </div>
+</div>
+<div class="form-group">
+  <div class="col-md-5 sm-label-left">
+    <b>On Host Maintenance</b>
+    <help-field key="gce.serverGroup.onHostMaintenance"></help-field>
+  </div>
+  <div class="col-md-2 radio">
+    <label>
+      <input type="radio" ng-model="command.onHostMaintenance" ng-value="'MIGRATE'" id="onHostMaintenanceMigrate"/>
+      Migrate
+    </label>
+  </div>
+  <div class="col-md-2 radio">
+    <label>
+      <input type="radio" ng-model="command.onHostMaintenance" ng-value="'TERMINATE'" id="onHostMaintenanceTerminate"/>
+      Terminate
+    </label>
   </div>
 </div>
 <div class="form-group">

@@ -33,4 +33,8 @@ module.exports = angular
       $scope.command.tags.splice(index, 1);
     };
 
+    this.setPreemptible = function() {
+      $scope.command.automaticRestart = false;
+      $scope.command.onHostMaintenance = 'TERMINATE';
+    };
   }).name;
