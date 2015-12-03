@@ -92,6 +92,8 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
       runQuery("ALTER TABLE application ADD details_json varchar")
       runQuery("ALTER TABLE application ADD version int")
       all().each { Application application ->
+        application.platformHealthOnly = new Boolean(application.details().platformHealthOnly)
+        application.platformHealthOnlyShowOverride = new Boolean(application.details().platformHealthOnlyShowOverride)
         update(application.name, application)
       }
     }
