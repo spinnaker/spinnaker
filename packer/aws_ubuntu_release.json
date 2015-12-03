@@ -88,8 +88,10 @@
                 "sudo mv /tmp/99-footer /etc/update-motd.d/99-footer",
                 "sudo chmod 755 /etc/update-motd.d/99-footer",
                 "sudo chown root:root /etc/update-motd.d/99-footer",
-                "sudo rm -rf /home/ubuntu/.ssh"
+                "sudo rm -rf /home/ubuntu/.ssh",
+                "sudo rm -rf /root/.ssh"
             ]
         }
     ]
 }
+

@@ -41,12 +41,12 @@ class FetchResult(collections.namedtuple(
       return self.httpcode >= 200 and self.httpcode < 300
 
 
-def fetch(url, google=False):
+def fetch(url, google=False, timeout=None):
     request = urllib2.Request(url)
     if google:
       request.add_header('Metadata-Flavor', 'Google')
     try:
-      response = urllib2.urlopen(request)
+      response = urllib2.urlopen(request, timeout=timeout)
       return FetchResult(response.getcode(), response.read())
 
     except urllib2.HTTPError as e:
@@ -56,8 +56,8 @@ def fetch(url, google=False):
       return FetchResult(-1, e)
 
 
-def check_fetch(url, google=False):
-    response = fetch(url, google)
+def check_fetch(url, google=False, timeout=None):
+    response = fetch(url, google=google, timeout=timeout)
     if not response.ok():
         sys.stderr.write('{code}: {url}\n{result}\n'.format(
             code=response.httpcode, url=url, result=response.content))
@@ -82,7 +82,7 @@ def is_aws_instance():
   """Determine if we are running on an Amazon Web Services instance."""
   global __IS_ON_AWS
   if __IS_ON_AWS == None:
-    __IS_ON_AWS = fetch(AWS_METADATA_URL).ok()
+    __IS_ON_AWS = fetch(AWS_METADATA_URL, timeout=1).ok()
   return __IS_ON_AWS
 
 
@@ -94,7 +94,7 @@ def check_write_instance_metadata(name, value):
     value [string]: The key value.
 
   Raises
-    UnsupportedError if not on a platform with metadata.
+    NotImplementedError if not on a platform with metadata.
   """
   if is_google_instance():
     check_run_quick(
@@ -117,7 +117,7 @@ def check_write_instance_metadata(name, value):
     check_run_quick(' '.join(command), echo=False)
 
   else:
-    raise UnsupportedError('This platform does not support metadata.')
+    raise NotImplementedError('This platform does not support metadata.')
 
 
 def get_google_project():
@@ -136,5 +136,5 @@ def check_get_zone():
       result = check_fetch(AWS_METADATA_URL + '/placement/availability-zone')
       __ZONE = result.content
     else:
-      raise UnsupportedError('This platform does not support zones.')
+      raise NotImplementedError('This platform does not support zones.')
   return __ZONE

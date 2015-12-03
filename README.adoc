@@ -15,7 +15,7 @@ Please ensure you have set up your target environment correctly by following ste
 
 If you do not wish to build from source, please follow the http://spinnaker.io/documentation/getting_started.html#step-3-install-and-run-spinnaker[Install and Run Spinnaker] section of the getting started guide for a one line deployment in Ubuntu.
 
-If you would prefer to try a container based solution, see https://github.com/spinnaker/spinnaker/tree/master/experimental/docker-compose[docker-compose installation]
+If you would prefer to try a container based solution, see https://github.com/spinnaker/spinnaker/tree/master/experimental/docker-compose[docker-compose installation].
 
 These scripts are tested on:
 
@@ -41,7 +41,7 @@ The Spinnaker platform has a few prerequisites, which are installed as a part of
 * http://cassandra.apache.org/[Cassandra]
 * https://www.packer.io/[Packer]
 
-=== MacOSX
+=== Mac OS X
 
 You need to have http://brew.sh/[homebrew] installed and ensure your version of git is above 2.0.
 
@@ -56,7 +56,7 @@ cd build
 ../spinnaker/dev/refresh_source.sh --pull_origin --use_ssh --github_user default
 ----
 
-=== Debian-linux
+=== Ubuntu Linux
 
 [source,bash]
 ----
@@ -74,8 +74,9 @@ so is performed here.
 
 == Configure Spinnaker
 
-We will create a directory for Spinnaker configuration overrides, copy the default configuration template there, and edit to select
-the appropriate cloud provider(s).
+We will create a directory for Spinnaker configuration overrides, copy the
+default configuration template there, and edit to select the appropriate cloud
+provider(s).
 
 [source,bash]
 ----
@@ -85,16 +86,17 @@ cp spinnaker/config/default-spinnaker-local.yml $HOME/.spinnaker/spinnaker-local
 chmod 600 $HOME/.spinnaker/spinnaker-local.yml
 ----
 
-If you are deployed onto a supported cloud provider (e.g. AWS or Google)
-and you only wish to deploy on that platform then you do not need
-to perform additional configuration. Otherwise, edit
-`$HOME/.spinnaker/spinnaker-local.yml` and set the enabled option for the
-cloud provider(s) of your choice and configure the attributes for that provider.
-
+If you are deployed onto a supported cloud provider (e.g., AWS or Google) and
+you only wish to deploy on that platform then you do not need to perform
+additional configuration. Otherwise, edit `$HOME/.spinnaker/spinnaker-local.yml`
+and set the enabled option for the cloud provider(s) of your choice and
+configure the attributes for that provider.
 
 == Start Spinnaker Services
 
-( If you're running on Mac OS, please make sure that your redis server and cassandra server is up and running. Make sure that cqlsh is accessible in your path and you can connect to cassandra by calling `cqlsh` in your terminal ).
+If you're running on Mac OS X, please make sure that your Redis and Cassandra
+servers are up and running. Make sure that `cqlsh` is accessible in your path
+and you can connect to Cassandra by calling `cqlsh` in your terminal.
 
 [source,bash]
 ----
@@ -104,12 +106,13 @@ cd $SPINNAKER_HOME/build
 
 If a service is provided, then just that one service will be started.
 If no service is provided, then all the services will be started
-(including redis and cassandra unless they are specified with a remote host).
+(including Redis and Cassandra unless they are specified with a remote host).
 If a service is already running (even if not yet available) then it will
 not be restarted.
 
-*Note* `run_dev.sh` might get stuck waiting on a service to start. Hitting CTRL-C just stops the waiting on service it doesn't terminate the services. If it seems stuck
-stop and restart run_dev.sh.
+*Note* `run_dev.sh` might get stuck waiting on a service to start. Hitting
+CTRL-C just stops the waiting on service, it doesn't terminate the services. If
+it seems stuck, stop and restart `run_dev.sh`.
 
 == Stop Spinnaker Services
 
@@ -121,4 +124,4 @@ cd $SPINNAKER_HOME/build
 
 If a service is provided, then just that one service will be stopped.
 If no service is provided then all the spinnaker services will be stopped.
-Cassandra and redis are not affected by stop_dev.sh
+Cassandra and Redis are not affected by `stop_dev.sh`.

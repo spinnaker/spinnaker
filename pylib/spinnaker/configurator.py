@@ -192,17 +192,17 @@ class Configurator(object):
     original_block = source[offset:end]
     # Remove all the explicit declarations in this block
     # Leaving us with just comments
-    block = re.sub('\n\s*let\s+\w+\s*=(.+)\n', '\n', original_block)
+    block = re.sub('\n\s*var\s+\w+\s*=(.+)\n', '\n', original_block)
     settings = [source[:offset]]
 
-    # Now iterate over the comments looking for let specifications
+    # Now iterate over the comments looking for var specifications
     offset = 0
-    for match in re.finditer('//\s*let\s+(\w+)\s*=\s*(.+?);?\n', block) or []:
+    for match in re.finditer('//\s*var\s+(\w+)\s*=\s*(.+?);?\n', block) or []:
       settings.append(block[offset:match.end()])
       offset = match.end()
       name = match.group(1)
       value = self.bindings.replace(match.group(2))
-      settings.append('let {name} = {value!r};\n'.format(
+      settings.append('var {name} = {value!r};\n'.format(
          name=name, value=value))
 
     settings.append(block[offset:])

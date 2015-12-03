@@ -34,12 +34,14 @@ class Processor(object):
       self.__write_yml_path = yml_path
       self.__write_aws_path = aws_path
       self.__write_environ_path = environ_path
+      self.__environ_keys = set()
 
   def update_environ(self, key, name):
       value = self.lookup(key)
       if value is None:
           return
 
+      self.__environ_keys.add(key)
       assignment = '{name}={value}'.format(name=name, value=value)
       match = re.search('^{name}=.*'.format(name=name),
                         self.__environ_content,
@@ -61,6 +63,21 @@ class Processor(object):
           return self.__bindings.get(key)
       except KeyError:
           return None
+
+  def update_remaining_keys(self):
+    stack = [('', self.__bindings.map)]
+    while stack:
+        prefix, root = stack.pop()
+        for name, value in root.items():
+          key = '{prefix}{child}'.format(prefix=prefix, child=name)
+          if isinstance(value, dict):
+              stack.append((key + '.', value))
+          elif not key in self.__environ_keys:
+              try:
+                self.update_in_place(key)
+              except ValueError:
+                pass
+
 
   def process(self):
       self.update_environ('providers.aws.enabled', 'SPINNAKER_AWS_ENABLED')
@@ -86,13 +103,8 @@ class Processor(object):
 aws_secret_access_key = {secret}
 aws_access_key_id = {key}
 """.format(name=aws_name, secret=aws_secret, key=aws_key))
-    
-      self.update_in_place('providers.aws.defaultIAMRole')
-      self.update_in_place('providers.google.primaryCredentials.name')
-      self.update_in_place('services.jenkins.defaultMaster.baseUrl')
-      self.update_in_place('services.jenkins.defaultMaster.username')
-      self.update_in_place('services.jenkins.defaultMaster.password')
-      self.update_in_place('services.igor.enabled')
+
+      self.update_remaining_keys()
 
       with open(self.__write_environ_path, 'w') as f:
           f.write(self.__environ_content)
