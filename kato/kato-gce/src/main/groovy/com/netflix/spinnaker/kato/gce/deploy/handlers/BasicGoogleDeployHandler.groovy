@@ -34,6 +34,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescription> {
+
   // TODO(duftler): This should move to a common location.
   private static final String BASE_PHASE = "DEPLOY"
 
@@ -135,11 +136,14 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def serviceAccount = GCEUtil.buildServiceAccount(description.authScopes)
 
+    def scheduling = GCEUtil.buildScheduling(description)
+
     def instanceProperties = new InstanceProperties(machineType: machineType.name,
                                                     disks: attachedDisks,
                                                     networkInterfaces: [networkInterface],
                                                     metadata: metadata,
                                                     tags: tags,
+                                                    scheduling: scheduling,
                                                     serviceAccounts: [serviceAccount])
 
     def instanceTemplate = new InstanceTemplate(name: "$serverGroupName-${System.currentTimeMillis()}",

@@ -31,7 +31,14 @@ class BaseGoogleInstanceDescription {
   List<String> tags
   String network
   List<String> authScopes
+  Boolean preemptible
+  Boolean automaticRestart
+  OnHostMaintenance onHostMaintenance
 
   String accountName
   GoogleCredentials credentials
+
+  enum OnHostMaintenance {
+    MIGRATE, TERMINATE
+  }
 }

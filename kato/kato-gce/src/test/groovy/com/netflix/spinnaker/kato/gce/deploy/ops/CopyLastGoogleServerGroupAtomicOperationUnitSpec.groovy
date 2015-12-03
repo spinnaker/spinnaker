@@ -22,12 +22,14 @@ import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.Network
+import com.google.api.services.compute.model.Scheduling
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DeploymentResult
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
+import com.netflix.spinnaker.kato.gce.deploy.description.BaseGoogleInstanceDescription
 import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.kato.gce.deploy.handlers.BasicGoogleDeployHandler
 import com.netflix.spinnaker.kato.gce.model.GoogleDisk
@@ -81,6 +83,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private def networkInterface
   private def instanceMetadata
   private def tags
+  private def scheduling
   private def serviceAccount
   private def instanceProperties
   private def instanceTemplate
@@ -112,12 +115,16 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     networkInterface = GCEUtil.buildNetworkInterface(network, ACCESS_CONFIG_NAME, ACCESS_CONFIG_TYPE)
     instanceMetadata = GCEUtil.buildMetadataFromMap(INSTANCE_METADATA)
     tags = GCEUtil.buildTagsFromList(TAGS)
+    scheduling = new Scheduling(preemptible: false,
+                                automaticRestart: true,
+                                onHostMaintenance: "MIGRATE")
     serviceAccount = GCEUtil.buildServiceAccount(AUTH_SCOPES)
     instanceProperties = new InstanceProperties(machineType: INSTANCE_TYPE,
                                                 disks: attachedDisks,
                                                 networkInterfaces: [networkInterface],
                                                 metadata: instanceMetadata,
                                                 tags: tags,
+                                                scheduling: scheduling,
                                                 serviceAccounts: [serviceAccount])
     instanceTemplate = new InstanceTemplate(name: INSTANCE_TEMPLATE_NAME,
                                             properties: instanceProperties)
@@ -138,6 +145,9 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          zone: ZONE,
                                                          instanceMetadata: ["differentKey": "differentValue"],
                                                          tags: ["new-tag-1", "new-tag-2"],
+                                                         preemptible: true,
+                                                         automaticRestart: false,
+                                                         onHostMaintenance: BaseGoogleInstanceDescription.OnHostMaintenance.TERMINATE,
                                                          authScopes: ["some-scope", "some-other-scope"],
                                                          network: "other-network",
                                                          loadBalancers: ["testlb-west-1", "testlb-west-2"],
@@ -187,6 +197,9 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.zone = ZONE
       newDescription.instanceMetadata = INSTANCE_METADATA
       newDescription.tags = TAGS
+      newDescription.preemptible = false
+      newDescription.automaticRestart = true
+      newDescription.onHostMaintenance = BaseGoogleInstanceDescription.OnHostMaintenance.MIGRATE
       newDescription.authScopes = AUTH_SCOPES
       newDescription.network = DEFAULT_NETWORK_NAME
       newDescription.loadBalancers = LOAD_BALANCERS

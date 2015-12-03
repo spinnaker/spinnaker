@@ -77,6 +77,10 @@ class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizab
                                                               jsonKey,
                                                               googleApplicationName)
 
+        if (!managedAccount.project) {
+          throw new IllegalArgumentException("No project was specified for Google account $managedAccount.name.");
+        }
+
         accountCredentialsRepository.save(managedAccount.name, googleAccount)
       } catch (e) {
         log.info "Could not load account ${managedAccount.name} for Google.", e

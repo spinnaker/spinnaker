@@ -427,6 +427,24 @@ class GCEUtil {
     return authScopes ? new ServiceAccount(email: "default", scopes: resolveAuthScopes(authScopes)) : null
   }
 
+  static ServiceAccount buildScheduling(BaseGoogleInstanceDescription description) {
+    def scheduling = new Scheduling()
+
+    if (description.preemptible != null) {
+      scheduling.preemptible = description.preemptible
+    }
+
+    if (description.automaticRestart != null) {
+      scheduling.automaticRestart = description.automaticRestart
+    }
+
+    if (description.onHostMaintenance) {
+      scheduling.onHostMaintenance = description.onHostMaintenance
+    }
+
+    return scheduling
+  }
+
   // TODO(duftler/odedmeri): We should determine if there is a better approach than this naming convention.
   static List<String> deriveNetworkLoadBalancerNamesFromTargetPoolUrls(List<String> targetPoolUrls) {
     if (targetPoolUrls) {
