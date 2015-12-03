@@ -7,6 +7,9 @@ describe('Service: applicationReader', function () {
   var securityGroupReader;
   var loadBalancerReader;
   var clusterService;
+  var executionService;
+  var pipelineConfigService;
+  var taskReader;
   var $http;
   var $q;
   var $scope;
@@ -18,12 +21,17 @@ describe('Service: applicationReader', function () {
   );
 
   beforeEach(
-    window.inject(function (_applicationReader_, _securityGroupReader_, _clusterService_, $httpBackend, _$q_, _loadBalancerReader_, $rootScope) {
+    window.inject(function (_applicationReader_, _securityGroupReader_, _clusterService_, $httpBackend, _$q_,
+                            _loadBalancerReader_, _executionService_, _taskReader_, _pipelineConfigService_,
+                            $rootScope) {
       applicationReader = _applicationReader_;
       securityGroupReader = _securityGroupReader_;
       clusterService = _clusterService_;
       loadBalancerReader = _loadBalancerReader_;
       $http = $httpBackend;
+      executionService = _executionService_;
+      pipelineConfigService = _pipelineConfigService_;
+      taskReader = _taskReader_;
       $q = _$q_;
       application = {};
       $scope = $rootScope.$new();
@@ -32,7 +40,7 @@ describe('Service: applicationReader', function () {
 
   describe('load application', function () {
 
-    function loadApplication(serverGroups, loadBalancers, securityGroupsByApplicationName) {
+    function loadApplication(serverGroups, loadBalancers, securityGroupsByApplicationName, options) {
       $http.expectGET('/applications/deck').respond(200, {name: 'deck', attributes: {}});
       spyOn(securityGroupReader, 'loadSecurityGroupsByApplicationName').and.returnValue($q.when(securityGroupsByApplicationName));
       spyOn(loadBalancerReader, 'loadLoadBalancers').and.returnValue($q.when(loadBalancers));
@@ -43,8 +51,221 @@ describe('Service: applicationReader', function () {
         return $q.when(app);
       });
 
-      return applicationReader.getApplication('deck');
+      return applicationReader.getApplication('deck', options);
     }
+
+    describe('loading executions', function () {
+      it('loads executions and sets appropriate flags', function () {
+        spyOn(executionService, 'getRunningExecutions').and.returnValue($q.when([{status: 'COMPLETED', stages: []}]));
+        var result = null;
+        loadApplication([], [], [], {executions: true}).then((app) => {
+          result = app;
+        });
+        $scope.$digest();
+        $http.flush();
+        expect(result.executionsLoaded).toBe(true);
+        expect(result.executionsLoading).toBe(false);
+        expect(result.executionsLoadFailure).toBe(false);
+      });
+
+      it('sets appropriate flags when execution load fails', function () {
+        spyOn(executionService, 'getRunningExecutions').and.returnValue($q.reject(null));
+        var result = null;
+        loadApplication([], [], [], {executions: true}).then((app) => {
+          result = app;
+        });
+        $scope.$digest();
+        $http.flush();
+        expect(result.executionsLoaded).toBe(false);
+        expect(result.executionsLoading).toBe(false);
+        expect(result.executionsLoadFailure).toBe(true);
+      });
+    });
+
+    describe('reload executions', function () {
+      it('reloads executions and sets appropriate flags', function () {
+        spyOn(executionService, 'getRunningExecutions').and.returnValue($q.when([{status: 'COMPLETED', stages: []}]));
+        var result    = null,
+            nextCalls = 0;
+        loadApplication([], [], [], {executions: true}).then((app) => {
+          result = app;
+          result.executionRefreshStream.subscribe(() => nextCalls++);
+        });
+        $scope.$digest();
+        $http.flush();
+        expect(result.executionsLoaded).toBe(true);
+        expect(result.executionsLoading).toBe(false);
+        expect(result.executionsLoadFailure).toBe(false);
+
+        result.reloadExecutions();
+        expect(result.executionsLoading).toBe(true);
+
+        $scope.$digest();
+        expect(result.executionsLoaded).toBe(true);
+        expect(result.executionsLoading).toBe(false);
+        expect(result.executionsLoadFailure).toBe(false);
+
+        expect(nextCalls).toBe(1);
+      });
+
+      it('sets appropriate flags when executions reload fails; subscriber is responsible for error checking', function () {
+        spyOn(executionService, 'getRunningExecutions').and.returnValue($q.reject(null));
+        var result        = null,
+            errorsHandled = 0;
+        loadApplication([], [], []).then((app) => {
+          result = app;
+          result.executionRefreshStream.subscribe(() => {
+            if (result.executionsLoadFailure) {
+              errorsHandled++;
+            }
+          });
+        });
+        $scope.$digest();
+        $http.flush();
+
+        result.reloadExecutions();
+        $scope.$digest();
+
+        expect(result.executionsLoading).toBe(false);
+        expect(result.executionsLoadFailure).toBe(true);
+
+        result.reloadExecutions();
+        $scope.$digest();
+
+        expect(errorsHandled).toBe(2);
+      });
+    });
+
+    describe('loading tasks', function () {
+      it('loads tasks and sets appropriate flags', function () {
+        spyOn(taskReader, 'getRunningTasks').and.returnValue($q.when([{status: 'COMPLETED'}]));
+        var result = null;
+        loadApplication([], [], [], {tasks: true}).then((app) => {
+          result = app;
+        });
+        $scope.$digest();
+        $http.flush();
+        expect(result.tasksLoaded).toBe(true);
+        expect(result.tasksLoading).toBe(false);
+        expect(result.tasksLoadFailure).toBe(false);
+      });
+
+      it('sets appropriate flags when task load fails', function () {
+        spyOn(taskReader, 'getRunningTasks').and.returnValue($q.reject(null));
+        var result = null;
+        loadApplication([], [], [], {tasks: true}).then((app) => {
+          result = app;
+        });
+        $scope.$digest();
+        $http.flush();
+        expect(result.tasksLoaded).toBe(false);
+        expect(result.tasksLoading).toBe(false);
+        expect(result.tasksLoadFailure).toBe(true);
+      });
+    });
+
+    describe('reload tasks', function () {
+      it('reloads tasks and sets appropriate flags', function () {
+        spyOn(taskReader, 'getRunningTasks').and.returnValue($q.when([{status: 'COMPLETED'}]));
+        var result = null,
+            nextCalls = 0;
+        loadApplication([], [], [], {tasks: true}).then((app) => {
+          result = app;
+          result.taskRefreshStream.subscribe(() => nextCalls++);
+        });
+        $scope.$digest();
+        $http.flush();
+        expect(result.tasksLoaded).toBe(true);
+        expect(result.tasksLoading).toBe(false);
+        expect(result.tasksLoadFailure).toBe(false);
+
+        result.reloadTasks();
+        expect(result.tasksLoading).toBe(true);
+
+        $scope.$digest();
+        expect(result.tasksLoaded).toBe(true);
+        expect(result.tasksLoading).toBe(false);
+        expect(result.tasksLoadFailure).toBe(false);
+
+        expect(nextCalls).toBe(1);
+      });
+
+      it('sets appropriate flags when task reload fails; subscriber is responsible for error checking', function () {
+        spyOn(taskReader, 'getRunningTasks').and.returnValue($q.reject(null));
+        var result = null,
+            errorsHandled = 0;
+        loadApplication([], [], []).then((app) => {
+          result = app;
+          result.taskRefreshStream.subscribe(() => {
+            if (result.tasksLoadFailure) {
+              errorsHandled++;
+            }
+          });
+        });
+        $scope.$digest();
+        $http.flush();
+
+        result.reloadTasks();
+        $scope.$digest();
+
+        expect(result.tasksLoading).toBe(false);
+        expect(result.tasksLoadFailure).toBe(true);
+
+        result.reloadTasks();
+        $scope.$digest();
+
+        expect(errorsHandled).toBe(2);
+      });
+    });
+
+    describe('loading pipeline configs', function () {
+      it('loads configs and sets appropriate flags', function () {
+        spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([]));
+        spyOn(pipelineConfigService, 'getStrategiesForApplication').and.returnValue($q.when([]));
+        var result = null;
+        loadApplication([], [], []).then((app) => {
+          result = app;
+        });
+        $scope.$digest();
+        $http.flush();
+
+        result.reloadPipelineConfigs();
+        expect(result.pipelineConfigsLoading).toBe(true);
+        $scope.$digest();
+
+        expect(result.pipelineConfigsLoaded).toBe(true);
+        expect(result.pipelineConfigsLoading).toBe(false);
+        expect(result.pipelineConfigsLoadFailure).toBe(false);
+      });
+
+      it('sets appropriate flags when pipeline config reload fails; subscriber is responsible for error checking', function () {
+        spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when([]));
+        spyOn(pipelineConfigService, 'getStrategiesForApplication').and.returnValue($q.reject([]));
+        var result = null,
+            errorsHandled = 0;
+        loadApplication([], [], []).then((app) => {
+          result = app;
+          result.pipelineConfigRefreshStream.subscribe(() => {
+            if (result.pipelineConfigsLoadFailure) {
+              errorsHandled++;
+            }
+          });
+        });
+        $scope.$digest();
+        $http.flush();
+
+        result.reloadPipelineConfigs();
+        $scope.$digest();
+
+        expect(result.pipelineConfigsLoading).toBe(false);
+        expect(result.pipelineConfigsLoadFailure).toBe(true);
+
+        result.reloadPipelineConfigs();
+        $scope.$digest();
+
+        expect(errorsHandled).toBe(2);
+      });
+    });
 
     describe('setting default credentials and regions', function () {
       it('sets default credentials and region from server group when only one account/region found', function () {

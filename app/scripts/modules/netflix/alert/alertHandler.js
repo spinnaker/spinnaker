@@ -14,6 +14,14 @@ module.exports = angular
         if (!settings.alert) {
           return;
         }
+        let message = exception.message;
+        if (!message) {
+          try {
+            message = JSON.stringify(exception);
+          } catch (e) {
+            message = '[No message available - could not convert exception to JSON string]';
+          }
+        }
         let payload = {
           alertName: 'Spinnaker',
           details: {
@@ -21,9 +29,9 @@ module.exports = angular
             user: authenticationService.getAuthenticatedUser().name,
           },
           exception: {
-            classes: [exception.name],
-            messages: [exception.message],
-            stackTraces: [exception.stack],
+            classes: [exception.name || '[no name on exception]'],
+            messages: [message],
+            stackTraces: [exception.stack || '[no stacktrace available]'],
             callerClass: 'Spinnaker',
             callerMethod: '[see stack trace]',
           },

@@ -37,6 +37,9 @@ module.exports = angular.module('spinnaker.core.delivery.filter.executionFilter.
     };
 
     this.initialize = () => {
+      if (this.application.pipelineConfigsLoadFailure) {
+        return;
+      }
       let allOptions = _.sortBy(this.application.pipelineConfigs, 'index')
         .concat(this.application.executions)
         .filter((option) => option && option.name)

@@ -78,7 +78,15 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
 
     });
 
+    let dataInitializationFailure = () => {
+      this.viewState.loading = false;
+      this.viewState.initializationError = true;
+    };
+
     function normalizeExecutionNames() {
+      if (application.executionsLoadFailure) {
+        dataInitializationFailure();
+      }
       let executions = application.executions || [];
       var configurations = application.pipelineConfigs || [];
       executions.forEach(function(execution) {
@@ -92,11 +100,6 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
         }
       });
     }
-
-    let dataInitializationFailure = () => {
-      this.viewState.loading = false;
-      this.viewState.initializationError = true;
-    };
 
     let executionWatcher = this.application.executionRefreshStream.subscribe(normalizeExecutionNames, dataInitializationFailure);
     $scope.$on('$destroy', () => executionWatcher.dispose());
