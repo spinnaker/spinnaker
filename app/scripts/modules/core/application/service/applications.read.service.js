@@ -177,14 +177,7 @@ module.exports = angular
         application.taskRefreshStream = new rx.Subject();
         application.executionRefreshStream = new rx.Subject();
         application.pipelineConfigRefreshStream = new rx.Subject();
-
-        // These attributes are stored as strings.
-        if (application.fromServer) {
-          application.attributes.platformHealthOnly = application.attributes.platformHealthOnly === 'true';
-          application.attributes.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride === 'true';
-        }
         return application;
-
       });
     });
 
