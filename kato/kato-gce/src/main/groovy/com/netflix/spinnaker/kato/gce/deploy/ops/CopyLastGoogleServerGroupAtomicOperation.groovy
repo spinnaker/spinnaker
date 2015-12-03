@@ -146,6 +146,23 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
         newDescription.tags = description.tags != null ? description.tags : tags.items
       }
 
+      def scheduling = ancestorInstanceProperties.scheduling
+
+      if (scheduling) {
+        newDescription.preemptible =
+            description.preemptible != null
+            ? description.preemptible
+            : scheduling.preemptible
+        newDescription.automaticRestart =
+            description.automaticRestart != null
+            ? description.automaticRestart
+            : scheduling.automaticRestart
+        newDescription.onHostMaintenance =
+            description.onHostMaintenance != null
+            ? description.onHostMaintenance
+            : scheduling.onHostMaintenance
+      }
+
       newDescription.authScopes =
           description.authScopes != null
           ? description.authScopes

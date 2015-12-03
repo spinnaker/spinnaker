@@ -135,11 +135,14 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def serviceAccount = GCEUtil.buildServiceAccount(description.authScopes)
 
+    def scheduling = GCEUtil.buildScheduling(description)
+
     def instanceProperties = new InstanceProperties(machineType: machineType.name,
                                                     disks: attachedDisks,
                                                     networkInterfaces: [networkInterface],
                                                     metadata: metadata,
                                                     tags: tags,
+                                                    scheduling: scheduling,
                                                     serviceAccounts: [serviceAccount])
 
     def instanceTemplate = new InstanceTemplate(name: "$serverGroupName-${System.currentTimeMillis()}",
