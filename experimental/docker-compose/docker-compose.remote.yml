@@ -1,5 +1,4 @@
 clouddriver: 
-  env_file: ./compose.env
   environment: 
     - AWS_ACCESS_KEY_ID
     - AWS_SECRET_ACCESS_KEY
@@ -11,33 +10,26 @@ clouddriver:
     - "/root/spinnakerconfig/aws:/root/.aws"
     - "/root/spinnakerconfig/gcp:/root/.gcp"
 echo: 
-  env_file: ./compose.env
   volumes: 
     - "/root/spinnakerconfig:/opt/spinnaker/config"
 #deck:
 #  volumes: 
-#    - "./settings.js:/deck/settings.js"
+#    - "/root/spinnakerconfig/settings.js:/deck/settings.js"
 front50: 
-  env_file: ./compose.env
   volumes: 
     - "/root/spinnakerconfig:/opt/spinnaker/config"
 gate: 
-  env_file: ./compose.env
   volumes: 
     - "/root/spinnakerconfig:/opt/spinnaker/config"
 igor: 
-  env_file: ./compose.env
   volumes: 
     - "/root/spinnakerconfig:/opt/spinnaker/config"
 orca: 
-  env_file: ./compose.env
   volumes: 
     - "/root/spinnakerconfig:/opt/spinnaker/config"
 rosco: 
-  env_file: ./compose.env
   volumes: 
     - "/root/spinnakerconfig:/opt/spinnaker/config"
 rush: 
-  env_file: ./compose.env
   volumes: 
     - "/root/spinnakerconfig:/opt/spinnaker/config"
