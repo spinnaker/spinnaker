@@ -93,6 +93,18 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       }
     }
 
+    function populateAvailabilityPolicies(scheduling, command) {
+      if (scheduling) {
+        command.preemptible = scheduling.preemptible;
+        command.automaticRestart = scheduling.automaticRestart;
+        command.onHostMaintenance = scheduling.onHostMaintenance;
+      } else {
+        command.preemptible = false;
+        command.automaticRestart = true;
+        command.onHostMaintenance = 'MIGRATE';
+      }
+    }
+
     function populateCustomMetadata(metadataItems, command) {
       if (metadataItems) {
         if (angular.isArray(metadataItems)) {
@@ -180,6 +192,9 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         localSSDCount: 1,
         instanceMetadata: [],
         tags: [],
+        preemptible: false,
+        automaticRestart: true,
+        onHostMaintenance: 'MIGRATE',
         authScopes: [
           'cloud.useraccounts.readonly',
           'devstorage.read_only',
@@ -271,6 +286,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         });
         command.viewState.imageId = serverGroup.launchConfig.imageId;
         return determineInstanceCategoryFromInstanceType(command).then(function() {
+          populateAvailabilityPolicies(serverGroup.launchConfig.instanceTemplate.properties.scheduling, command);
           populateCustomMetadata(serverGroup.launchConfig.instanceTemplate.properties.metadata.items, command);
           populateTags(serverGroup.launchConfig.instanceTemplate.properties.tags, command);
           populateAuthScopes(serverGroup.launchConfig.instanceTemplate.properties.serviceAccounts, command);

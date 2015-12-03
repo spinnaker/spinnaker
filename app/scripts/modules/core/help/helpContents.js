@@ -104,6 +104,9 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'gce.serverGroup.capacity': 'The number of instances that the instance group manager will attempt to maintain. Deleting or abandoning instances will affect this number, as will resizing the group.',
     'gce.serverGroup.customMetadata.load-balancer-names': 'This field is used to "remember" what load balancers this server group is associated with, even if the instances are deregistered.',
     'gce.serverGroup.customMetadata.startup-script': 'This script will run automatically on every boot.',
+    'gce.serverGroup.preemptibility': 'A preemptible VM costs much less, but lasts only 24 hours. It can be terminated sooner due to system demands.',
+    'gce.serverGroup.automaticRestart': 'Compute Engine can automatically restart VM instances if they are terminated for non-user-initiated reasons (maintenance event, hardware failure, software failure, etc.).',
+    'gce.serverGroup.onHostMaintenance': 'When Compute Engine performs periodic infrastructure maintenance it can migrate your VM instances to other hardware without downtime.',
     'gce.serverGroup.securityGroups.implicit': 'Firewall rules with no target tags defined will permit incoming connections that match the ingress rules to all instances in the network.',
     'pipeline.config.checkPreconditions.failPipeline': '' +
       '<p><strong>Checked</strong> - the overall pipeline will fail whenever this precondition is false.</p>' +

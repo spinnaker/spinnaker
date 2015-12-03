@@ -1,11 +1,10 @@
 <form name="form" class="container-fluid form-horizontal" ng-controller="gceServerGroupAdvancedSettingsCtrl as settingsCtrl" novalidate>
   <div class="modal-body">
     <gce-server-group-advanced-settings-selector command="command"></gce-server-group-advanced-settings-selector>
-    <div class="form-group">
+    <div class="form-group" ng-if="application.attributes.platformHealthOnlyShowOverride">
       <div class="col-md-5 sm-label-left"><b>Task Completion</b></div>
       <div class="col-md-6">
-        <platform-health-override ng-if="application.attributes.platformHealthOnlyShowOverride"
-                                  command="command"
+        <platform-health-override command="command"
                                   platform-health-type="'Google'">
         </platform-health-override>
       </div>

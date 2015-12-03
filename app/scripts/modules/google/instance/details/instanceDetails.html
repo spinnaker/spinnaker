@@ -151,15 +151,6 @@
           </li>
         </ul>
     </collapsible-section>
-    <collapsible-section heading="Tags">
-      <div ng-if="!instance.tags.items.length">No tags associated with this instance</div>
-      <dl ng-if="instance.tags.items.length">
-        <dd ng-repeat="tag in instance.tags.items">
-          {{tag}}
-          <help-field content="{{instance.tags.helpMap[tag]}}"></help-field>
-        </dd>
-      </dl>
-    </collapsible-section>
     <collapsible-section heading="Custom Metadata">
       <div ng-if="!instance.metadata.items.length">No custom metadata associated with this instance</div>
       <dl ng-if="instance.metadata.items.length">
@@ -168,6 +159,15 @@
           <help-field key="gce.instance.customMetadata.{{metadata.key}}"></help-field>
         </dt>
         <dd ng-repeat-end>{{metadata.value.length > 90 ? metadata.value.substring(0, 90) + "..." : metadata.value}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Tags">
+      <div ng-if="!instance.tags.items.length">No tags associated with this instance</div>
+      <dl ng-if="instance.tags.items.length">
+        <dd ng-repeat="tag in instance.tags.items">
+          {{tag}}
+          <help-field content="{{instance.tags.helpMap[tag]}}"></help-field>
+        </dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="SSH" ng-if="!instance.notFound">

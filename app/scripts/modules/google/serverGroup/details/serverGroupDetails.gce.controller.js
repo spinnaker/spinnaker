@@ -77,6 +77,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
           findStartupScript();
           prepareDiskDescriptions();
+          prepareAvailabilityPolicies();
           prepareAuthScopes();
           augmentTagsWithHelp();
         } else {
@@ -136,6 +137,18 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         });
 
         $scope.serverGroup.diskDescriptions = diskDescriptions;
+      }
+    }
+
+    function prepareAvailabilityPolicies() {
+      if (_.has($scope.serverGroup, 'launchConfig.instanceTemplate.properties.scheduling')) {
+        let scheduling = $scope.serverGroup.launchConfig.instanceTemplate.properties.scheduling;
+
+        $scope.serverGroup.availabilityPolicies = {
+          preemptibility: scheduling.preemptible ? "On" : "Off",
+          automaticRestart: scheduling.automaticRestart ? "On" : "Off",
+          onHostMaintenance: scheduling.onHostMaintenance === "MIGRATE" ? "Migrate" : "Terminate",
+        };
       }
     }
 
