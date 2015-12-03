@@ -102,13 +102,13 @@ module.exports = angular
             })
             .catch(function(rejection) {
               // Gate will send back a 429 error code (TOO_MANY_REQUESTS) and will be caught here
-              // As a quick fix we are just adding an empty list to of tasks to the
+              // As a quick fix we are just adding an empty list to the
               // application, which will let the user know that no tasks were found for the app.
               addTasksToApplication(application, []);
               $log.warn('Error retrieving [tasks]', rejection);
-              application.taskRefreshStream.onError(rejection);
               application.tasksLoading = false;
               application.tasksLoadFailure = true;
+              application.taskRefreshStream.onNext(rejection);
             });
         }
 
@@ -128,14 +128,14 @@ module.exports = angular
               application.executionsLoaded = true;
               application.executionsLoading = false;
               application.executionsLoadFailure = false;
-              application.executionRefreshStream.onNext(true);
+              application.executionRefreshStream.onNext();
             })
             .catch(function(rejection) {
               // Gate will send back a 429 error code (TOO_MANY_REQUESTS) and will be caught here.
               $log.warn('Error retrieving [executions]', rejection);
-              application.executionRefreshStream.onError(rejection);
               application.executionsLoading = false;
               application.executionsLoadFailure = true;
+              application.executionRefreshStream.onNext(rejection);
             });
         }
 
@@ -151,12 +151,15 @@ module.exports = angular
             .then((configs) => {
               application.pipelineConfigs = configs.pipelines;
               application.strategyConfigs = configs.strategies;
+              application.pipelineConfigsLoaded = true;
               application.pipelineConfigsLoading = false;
+              application.pipelineConfigsLoadFailure = false;
               application.pipelineConfigRefreshStream.onNext();
             }).catch(function(rejection) {
               $log.warn('Error retrieving [pipelineConfigs]', rejection);
-              application.pipelineConfigRefreshStream.onError();
               application.pipelineConfigsLoading = false;
+              application.pipelineConfigsLoadFailure = true;
+              application.pipelineConfigRefreshStream.onNext();
             });
         }
 
@@ -295,7 +298,7 @@ module.exports = angular
               executionService.getExecutions(applicationName) :
               executionService.getRunningExecutions(applicationName) :
             $q.when(null),
-          tasksLoader = options && options.loadAllTasks ?
+          tasksLoader = options && options.tasks ?
             options.loadAllTasks ?
               taskReader.getTasks(applicationName) :
               taskReader.getRunningTasks(applicationName) :
@@ -321,8 +324,9 @@ module.exports = angular
             application.tasksLoadFailure = false;
           },
           () => {
-            application.tasksLoadFailure = true;
+            application.tasksLoaded = false;
             application.tasksLoading = false;
+            application.tasksLoadFailure = true;
           }
         );
       }
@@ -337,6 +341,7 @@ module.exports = angular
             application.executionsLoading = false;
           },
           () => {
+            application.executionsLoaded = false;
             application.executionsLoadFailure = true;
             application.executionsLoading = false;
           }
