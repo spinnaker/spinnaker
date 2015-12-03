@@ -272,37 +272,53 @@ function add_apt_repositories() {
   curl -L http://debian.datastax.com/debian/repo_key | apt-key add -
   echo "deb http://debian.datastax.com/community/ stable main" | tee /etc/apt/sources.list.d/datastax.list > /dev/null
 
-  if [ "$DOWNLOAD" != "true" ];then
-    # Spinnaker
-    # DL Repo goes here
-    REPOSITORY_HOST=$(echo $REPOSITORY_URL | cut -d/ -f3)
-    if [ "$REPOSITORY_HOST" == "dl.bintray.com" ]; then
-      REPOSITORY_ORG=$(echo $REPOSITORY_URL | cut -d/ -f4)
-      curl "https://bintray.com/user/downloadSubjectPublicKey?username=$REPOSITORY_ORG" | apt-key add -
-    fi
-    echo "deb $REPOSITORY_URL $DISTRIB_CODENAME spinnaker" | tee /etc/apt/sources.list.d/spinnaker-dev.list > /dev/null
-    # Java 8
-    # https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa
-    add-apt-repository -y ppa:openjdk-r/ppa
+  # Spinnaker
+  # DL Repo goes here
+  REPOSITORY_HOST=$(echo $REPOSITORY_URL | cut -d/ -f3)
+  if [ "$REPOSITORY_HOST" == "dl.bintray.com" ]; then
+    REPOSITORY_ORG=$(echo $REPOSITORY_URL | cut -d/ -f4)
+    curl "https://bintray.com/user/downloadSubjectPublicKey?username=$REPOSITORY_ORG" | apt-key add -
   fi
+  echo "deb $REPOSITORY_URL $DISTRIB_CODENAME spinnaker" | tee /etc/apt/sources.list.d/spinnaker-dev.list > /dev/null
+  # Java 8
+  # https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa
+  add-apt-repository -y ppa:openjdk-r/ppa
   apt-get update
 }
 
-function install_dependencies() {
-  apt-get -y --force-yes install redis-server apache2
-  # java
+function install_java() {
   if [ "$DOWNLOAD" != "true" ];then
     apt-get install -y --force-yes openjdk-8-jdk
   elif [[ "x`java -version 2>&1|head -1`" != *"1.8.0"* ]];then
-    echo "you must manually install jdk-8; exiting"
+    echo "you must manually install java 8 and then rerun this script; exiting"
     exit 13
   fi
+}
 
+function install_dependencies() {
+  # java
+  if [ "$DOWNLOAD" != "true" ];then
+    apt-get install -y --force-yes redis-server apache2 unzip
+  else
+    # these are for cassandra only
+    # if download is truee then neither redis or apache2 are installed
+    # this is dirty hackish and hard coded
+    mkdir /tmp/deppkgs && pushd /tmp/deppkgs
+    curl -L -O http://mirrors.kernel.org/ubuntu/pool/main/a/autogen/libopts25_5.18-2ubuntu2_amd64.deb
+    curl -L -O http://security.ubuntu.com/ubuntu/pool/main/n/ntp/ntp_4.2.6.p5+dfsg-3ubuntu2.14.04.5_amd64.deb
+    curl -L -O http://mirrors.kernel.org/ubuntu/pool/universe/p/python-support/python-support_1.0.15_all.deb
+    curl -L -O http://security.ubuntu.com/ubuntu/pool/main/u/unzip/unzip_6.0-9ubuntu1.5_amd64.deb
+    dpkg -i *.deb
+    popd
+    rm -rf /tmp/deppkgs
+  fi
 }
 
 function install_cassandra() {
   # "service cassandra status" is currently broken in Ubuntu grep in the script is grepping for things that do not exist
   # Cassandra 2.x can ship with RPC disabeld to enable run "nodetool enablethrift"
+
+  local package_url="http://debian.datastax.com/community/pool"
 
   if [[ "x`java -version 2>&1|head -1`" != *"1.8.0"* ]];then
     cat <<EOF
@@ -314,23 +330,47 @@ sudo apt-get install -y --force-yes cassandra=2.1.11 cassandra-tools=2.1.11
 sudo apt-mark hold cassandra cassandra-tools
 
 EOF
+    exit 13
+  fi
+
+  if [ "$DOWNLOAD" == "true" ];then
+    mkdir /tmp/casspkgs && pushd /tmp/casspkgs
+    for pkg in cassandra cassandra-tools;do
+      curl -L -O $package_url/${pkg}_2.1.11_all.deb
+    done
+    dpkg -i *.deb
+    apt-mark hold cassandra cassandra-tools
+    popd
+    rm -rf /tmp/casspkgs
   else
     apt-get install -y --force-yes cassandra=2.1.11 cassandra-tools=2.1.11
     apt-mark hold cassandra cassandra-tools
     sleep 1
-    # Let cassandra start
+  fi
+
+  # Let cassandra start
+  if ! nc -z localhost 7199; then
+    echo_status "Waiting for Cassandra to start..."
+    count=0
+    while ! nc -z localhost 7199; do
+      sleep 1
+      count=`expr $count + 1`
+      if [ $count -eq 30  ];then
+        break
+      fi
+    done
     if ! nc -z localhost 7199; then
-      echo_status "Waiting for Cassandra to start..."
-      while ! nc -z localhost 7199; do
-        sleep 1
-      done
+      echo "Cassandra has failed to start; exiting"
+      exit 13
+    else
       echo_status "Cassandra is ready."
     fi
-    while ! $(nodetool enablethrift >& /dev/null); do
-      sleep 1
-      echo_status "Retrying..."
-    done
   fi
+
+  while ! $(nodetool enablethrift >& /dev/null); do
+    sleep 1
+    echo_status "Retrying..."
+  done
 }
 
 function install_spinnaker() {
@@ -383,18 +423,19 @@ case $CLOUD_PROVIDER in
 esac
 
 
-# add all apt repositories.
-# if download_only is true then then dependency repos are still added
-# while the spinnaker repos are excluded
-add_apt_repositories
-
+# add all apt repositories, if
+if [ "$DOWNLOAD" != "true" ];then
+  add_apt_repositories
+fi
 
 ## Packer
-apt-get install -y unzip
-wget https://releases.hashicorp.com/packer/0.8.6/packer_0.8.6_linux_amd64.zip
+mkdir /tmp/packer && pushd /tmp/packer
+curl -L -O https://releases.hashicorp.com/packer/0.8.6/packer_0.8.6_linux_amd64.zip
 unzip -q packer_0.8.6_linux_amd64.zip -d /usr/bin
-rm -f packer_0.8.6_linux_amd64.zip
+popd
+rm -rf /tmp/packer
 
+install_java
 install_dependencies
 install_cassandra
 
