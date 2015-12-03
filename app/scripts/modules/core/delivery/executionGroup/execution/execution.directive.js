@@ -90,7 +90,7 @@ module.exports = angular
         header: 'Really stop execution of ' + this.execution.name + '?',
         buttonText: 'Stop running ' + this.execution.name,
         destructive: false,
-        submitMethod: () => executionService.cancelExecution(this.execution.id)
+        submitMethod: () => executionService.cancelExecution(this.application, this.execution.id)
       });
     };
 
