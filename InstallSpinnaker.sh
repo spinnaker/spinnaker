@@ -481,17 +481,23 @@ if [ "x$GOOGLE_PROJECT_ID" != "x" ]; then
 fi
 
 ## Remove
+if [ -d /usr/local/google ]; then
+  homebase=/usr/local/google
+else
+  homebase=/home
+fi
+
 if [ -z `getent group spinnaker` ]; then
   groupadd spinnaker
 fi
 
 if [ -z `getent passwd spinnaker` ]; then
-  useradd --gid spinnaker -m --home-dir /home/spinnaker spinnaker
+  useradd --gid spinnaker -m --home-dir $homebase/spinnaker spinnaker
 fi
 
-if [ ! -d /home/spinnaker ]; then
-  mkdir -p /home/spinnaker/.aws
-  chown -R spinnaker:spinnaker /home/spinnaker
+if [ ! -d $homebase/spinnaker ]; then
+  mkdir -p $homebase/spinnaker/.aws
+  chown -R spinnaker:spinnaker $homebase/spinnaker
 fi
 ##
 
