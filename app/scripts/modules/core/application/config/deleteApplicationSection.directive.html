@@ -1,0 +1,22 @@
+<div class="row">
+  <div class="col-md-7">
+    <h4>Delete Application</h4>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <p ng-if="!vm.hasServerGroups">
+          Deleting the application only removes the associated metadata around the application.
+          It will <strong>not</strong> delete any security groups, load balancers, or pipeline configurations you
+          may have created.
+        </p>
+
+        <p ng-if="vm.hasServerGroups">
+          You cannot delete this application because it has server groups.
+        </p>
+        <button class="btn btn-link" ng-click="vm.deleteApplication()" ng-if="!vm.hasServerGroups"><span
+            class="glyphicon glyphicon-trash"></span>
+          Delete Application
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

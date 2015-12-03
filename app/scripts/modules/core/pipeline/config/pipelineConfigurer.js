@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigurer', [
-  require('../../templateOverride/templateOverride.registry.js'),
+  require('../../overrideRegistry/override.registry.js'),
 ])
   .directive('pipelineConfigurer', function() {
     return {
@@ -17,9 +17,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     };
   })
   .controller('PipelineConfigurerCtrl', function($scope, $uibModal, $timeout, _,
-                                                 dirtyPipelineTracker, pipelineConfigService, viewStateCache, templateOverrideRegistry, $location) {
+                                                 dirtyPipelineTracker, pipelineConfigService, viewStateCache, overrideRegistry, $location) {
 
-    this.actionsTemplateUrl = templateOverrideRegistry.getTemplate('pipelineConfigActions', require('./actions/pipelineConfigActions.html'));
+    this.actionsTemplateUrl = overrideRegistry.getTemplate('pipelineConfigActions', require('./actions/pipelineConfigActions.html'));
 
     var configViewStateCache = viewStateCache.pipelineConfig;
 

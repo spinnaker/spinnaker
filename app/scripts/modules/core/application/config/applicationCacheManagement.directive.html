@@ -1,0 +1,78 @@
+<div class="row">
+  <div class="col-md-7">
+    <h4>Cache Management</h4>
+    <div class="panel panel-default">
+      <div class="panel-body">
+
+        <p>We use local storage to speed up performance throughout the application.
+        </p>
+
+        <p>If you're not seeing one of those in a dropdown, it may be because our cached versions are too old.</p>
+
+        <div class="row">
+          <div class="col-md-3 col-md-offset-1"><strong>Cache Type</strong></div>
+          <div class="col-md-3"><strong>Last Updated</strong></div>
+          <div class="col-md-1 text-center"><strong>Refresh</strong></div>
+        </div>
+        <div class="row">
+          <div class="col-md-3 col-md-offset-1">Instance Types</div>
+          <div class="col-md-3">{{vm.getCacheInfo('instanceTypes').ageMax | timestamp}}</div>
+          <div class="col-md-1 text-center">
+            <a href ng-click="vm.refreshCache('instanceTypes')">
+                  <span ng-class="{'glyphicon-spinning':vm.clearingCache['instanceTypes']}"
+                        class="glyphicon glyphicon-refresh"></span>
+            </a>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-3 col-md-offset-1">Load Balancers</div>
+          <div class="col-md-3">{{vm.getCacheInfo('loadBalancers').ageMax | timestamp}}</div>
+          <div class="col-md-1 text-center">
+            <a href ng-click="vm.refreshCache('loadBalancers')">
+                  <span ng-class="{'glyphicon-spinning':vm.clearingCache['loadBalancers']}"
+                        class="glyphicon glyphicon-refresh"></span>
+            </a>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-3 col-md-offset-1">Security Groups</div>
+          <div class="col-md-3">{{vm.getCacheInfo('securityGroups').ageMax | timestamp}}</div>
+          <div class="col-md-1 text-center">
+            <a href ng-click="vm.refreshCache('securityGroups')">
+                  <span ng-class="{'glyphicon-spinning':vm.clearingCache['securityGroups']}"
+                        class="glyphicon glyphicon-refresh"></span>
+            </a>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-3 col-md-offset-1">Subnets</div>
+          <div class="col-md-3">{{vm.getCacheInfo('subnets').ageMax | timestamp}}</div>
+          <div class="col-md-1 text-center">
+            <a href ng-click="vm.refreshCache('subnets')">
+                  <span ng-class="{'glyphicon-spinning':vm.clearingCache['subnets']}"
+                        class="glyphicon glyphicon-refresh"></span>
+            </a>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-3 col-md-offset-1">VPCs/Networks</div>
+          <div class="col-md-3">{{vm.getCacheInfo('networks').ageMax | timestamp}}</div>
+          <div class="col-md-1 text-center">
+            <a href ng-click="vm.refreshCache('networks')">
+                  <span ng-class="{'glyphicon-spinning':vm.clearingCache['networks']}"
+                        class="glyphicon glyphicon-refresh"></span>
+            </a>
+          </div>
+        </div>
+        <div class="row" style="margin-top:20px">
+          <div class="col-md-10">
+            <button class="btn btn-link" ng-if="!vm.clearingCaches" ng-click="vm.refreshCaches()"><span
+                class="glyphicon glyphicon-refresh"></span>
+              Refresh all caches
+            </button>
+            <button disabled class="btn btn-link" ng-if="vm.clearingCaches"><span class="glyphicon glyphicon-refresh glyphicon-spinning"></span>
+              Refreshing caches...</button>
+          </div>
+        </div>
+      </div>
+    </div>

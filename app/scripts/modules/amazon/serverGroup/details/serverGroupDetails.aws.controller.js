@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../core/serverGroup/details/serverGroupWarningMessage.service.js'),
-  require('../../../core/templateOverride/templateOverride.registry.js'),
+  require('../../../core/overrideRegistry/override.registry.js'),
   require('../../../core/utils/lodash.js'),
   require('../../vpc/vpcTag.directive.js'),
   require('./scalingProcesses/autoScalingProcess.service.js'),
@@ -29,7 +29,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup, InsightFilterStateModel,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $uibModal, confirmationModalService, _, serverGroupWriter,
                                                      subnetReader, autoScalingProcessService, runningExecutionsService, serverGroupWarningMessageService,
-                                                     templateOverrideRegistry) {
+                                                     overrideRegistry) {
 
     $scope.state = {
       loading: true
@@ -272,7 +272,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
 
     this.rollbackServerGroup = function rollbackServerGroup() {
       $uibModal.open({
-        templateUrl: templateOverrideRegistry.getTemplate('aws.rollback.modal', require('./rollback/rollbackServerGroup.html')),
+        templateUrl: overrideRegistry.getTemplate('aws.rollback.modal', require('./rollback/rollbackServerGroup.html')),
         controller: 'awsRollbackServerGroupCtrl as ctrl',
         resolve: {
           serverGroup: function() { return $scope.serverGroup; },
@@ -299,7 +299,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
 
     this.resizeServerGroup = function resizeServerGroup() {
       $uibModal.open({
-        templateUrl: templateOverrideRegistry.getTemplate('aws.resize.modal', require('./resize/resizeServerGroup.html')),
+        templateUrl: overrideRegistry.getTemplate('aws.resize.modal', require('./resize/resizeServerGroup.html')),
         controller: 'awsResizeServerGroupCtrl as ctrl',
         resolve: {
           serverGroup: function() { return $scope.serverGroup; },

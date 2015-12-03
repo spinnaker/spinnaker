@@ -24,7 +24,8 @@
                  data-purpose="application-email"
                  ng-model="editApp.applicationAttributes.email"
                  placeholder="Enter an email address"
-                 required/>
+                 required>
+          </input>
         </div>
       </div>
 
@@ -42,12 +43,22 @@
       </div>
 
       <div class="form-group row">
+        <div class="col-sm-3 sm-label-left" id="pagerDutyApiKeyLabel">PagerDuty API Key</div>
+        <div class="col-sm-9">
+          <input type="text"
+                 class="form-control input-sm"
+                 ng-model="editApp.applicationAttributes.pdApiKey"
+                 placeholder="Enter your PagerDuty API key">
+          </input>
+        </div>
+      </div>
+      <div class="form-group row">
         <div class="col-sm-3 sm-label-left">Repo Type</div>
         <div class="col-sm-9">
           <select
-            class="form-control input-sm"
-            ng-options="repoType for repoType in ['stash', 'github']"
-            ng-model="editApp.applicationAttributes.repoType">
+              class="form-control input-sm"
+              ng-options="repoType for repoType in ['stash', 'github']"
+              ng-model="editApp.applicationAttributes.repoType">
             <option value="">Select Repo Type</option>
           </select>
         </div>
@@ -83,10 +94,10 @@
         <div class="col-sm-3 sm-label-left">Description</div>
         <div class="col-sm-9">
           <textarea
-                 class="form-control input-sm"
-                 ng-model="editApp.applicationAttributes.description"
-                 placeholder="Enter a description"
-                 data-purpose="application-description">
+              class="form-control input-sm"
+              ng-model="editApp.applicationAttributes.description"
+              placeholder="Enter a description"
+              data-purpose="application-description">
           </textarea>
         </div>
       </div>
@@ -116,7 +127,9 @@
         <div class="col-sm-9 checkbox" style="margin-bottom: 0">
           <label>
             <input type="checkbox"
-                   ng-model="editApp.applicationAttributes.platformHealthOnly"/>
+                   ng-model="editApp.applicationAttributes.platformHealthOnly"
+                   id="applicationPlatformHealthOnly">
+            </input>
             Consider only cloud provider health when executing tasks
             <help-field key="application.platformHealthOnly"></help-field>
           </label>
@@ -127,7 +140,9 @@
         <div class="col-sm-9 col-sm-offset-3 checkbox" style="margin-top: 0">
           <label>
             <input type="checkbox"
-                   ng-model="editApp.applicationAttributes.platformHealthOnlyShowOverride"/>
+                   ng-model="editApp.applicationAttributes.platformHealthOnlyShowOverride"
+                   id="applicationPlatformHealthOnlyShowOverride">
+            </input>
             Show health override option for each operation
             <help-field key="application.showPlatformHealthOverride"></help-field>
           </label>

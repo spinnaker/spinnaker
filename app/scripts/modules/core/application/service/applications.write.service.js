@@ -10,30 +10,15 @@ module.exports = angular
   .factory('applicationWriter', function($q, taskExecutor, _) {
 
     function createApplication(app, account) {
+      var command = _.cloneDeep(app);
+      command.cloudProviders = command.cloudProviders.join(',');
+      delete command.account;
       return taskExecutor.executeTask({
         job: [
           {
             type: 'createApplication',
             account: account,
-            application: {
-              name: app.name,
-              description: app.description,
-              email: app.email,
-              owner: app.owner,
-              type: app.type,
-              group: app.group,
-              monitorBucketType: app.monitorBucketType,
-              pdApiKey: app.pdApiKey,
-              updateTs: app.updateTs,
-              createTs: app.createTs,
-              tags: app.tags,
-              repoProjectKey: app.repoProjectKey,
-              repoSlug: app.repoSlug,
-              repoType: app.repoType,
-              cloudProviders: app.cloudProviders.join(','),
-              platformHealthOnly: app.platformHealthOnly,
-              platformHealthOnlyShowOverride: app.platformHealthOnlyShowOverride,
-            }
+            application: command,
           }
         ],
         application: app,
@@ -44,6 +29,11 @@ module.exports = angular
     function updateApplication (app) {
       var taskList = [];
       var accounts = app.accounts.split(',');
+      var command = _.cloneDeep(app);
+      if (command.cloudProviders) {
+        command.cloudProviders = command.cloudProviders.join(',');
+      }
+      delete command.account;
 
       accounts.forEach(function(account) {
         taskList.push(taskExecutor.executeTask({
@@ -51,25 +41,7 @@ module.exports = angular
             {
               type: 'updateApplication',
               account: account,
-              application: {
-                name: app.name,
-                description: app.description,
-                email: app.email,
-                owner: app.owner,
-                type: app.type,
-                group: app.group,
-                monitorBucketType: app.monitorBucketType,
-                pdApiKey: app.pdApiKey,
-                updateTs: app.updateTs,
-                createTs: app.createTs,
-                tags: app.tags,
-                repoProjectKey: app.repoProjectKey,
-                repoSlug: app.repoSlug,
-                repoType: app.repoType,
-                cloudProviders: app.cloudProviders.join(','),
-                platformHealthOnly: app.platformHealthOnly,
-                platformHealthOnlyShowOverride: app.platformHealthOnlyShowOverride,
-              }
+              application: command,
             }
           ],
           application: app,

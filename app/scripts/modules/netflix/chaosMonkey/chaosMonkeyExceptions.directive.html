@@ -1,0 +1,49 @@
+<h5>Exceptions <help-field key="chaos.exceptions"></help-field></h5>
+<div class="row">
+  <div class="col-md-10 col-md-offset-1">
+    <table class="table table-condensed">
+      <thead>
+      <tr>
+        <th>Account</th>
+        <th>Stack</th>
+        <th>Cluster</th>
+        <th>Region</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr ng-repeat="exception in vm.config.exceptions">
+        <td>
+          <account-select-field
+              component="exception"
+              field="account"
+              provider="'aws'"
+              accounts="vm.accounts"></account-select-field>
+        </td>
+        <td>
+          <input type="text" class="form-control input-sm"
+                 ng-model="exception.stack"
+                 required/>
+        </td>
+        <td>
+          <input type="text" class="form-control input-sm"
+                 ng-model="exception.cluster"
+                 required/>
+        </td>
+        <td>
+          <span ng-if="!exception.account">(select account)</span>
+          <select class="form-control input-sm"
+                  ng-model="exception.region"
+                  ng-if="exception.account"
+                  ng-options="region for region in vm.regionsByAccount[exception.account]"
+              ></select>
+        </td>
+        <td><a href ng-click="vm.removeException($index)"><span class="glyphicon glyphicon-trash" uib-tooltip="Remove exception"></span></a></td>
+      </tr>
+      </tbody>
+    </table>
+    <button class="btn btn-block btn-add-trigger add-new" ng-click="vm.addException()">
+      <span class="glyphicon glyphicon-plus-sign"></span> Add Exception
+    </button>
+  </div>
+</div>
