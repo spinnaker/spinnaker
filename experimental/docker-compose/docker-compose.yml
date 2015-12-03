@@ -1,5 +1,6 @@
 clouddriver: 
   container_name: clouddriver
+  env_file: ./compose.env
   environment: 
     - "SERVICES_FRONT50_BASEURL=http://$DOCKER_IP:8080"
   image: spinnaker/clouddriver
@@ -7,22 +8,6 @@ clouddriver:
     - redis
   ports: 
     - "7002:7002"
-echo: 
-  container_name: echo
-  environment: 
-    - "FRONT50_BASEURL=http://$DOCKER_IP:8080"
-    - "ORCA_BASEURL=http://$DOCKER_IP:8083"
-    - "JAVA_OPTS=-javaagent:/opt/echo/lib/jamm-0.2.5.jar"
-  image: spinnaker/echo
-  ports: 
-    - "8089:8089"
-front50: 
-  container_name: front50
-  environment: 
-    - "JAVA_OPTS=-javaagent:/opt/front50/lib/jamm-0.2.5.jar"
-  image: spinnaker/front50
-  ports: 
-    - "8080:8080"
 deck: 
   container_name: deck
   environment: 
@@ -33,8 +18,27 @@ deck:
   image: spinnaker/deck
   ports: 
     - "9000:9000"
+echo: 
+  container_name: echo
+  env_file: ./compose.env
+  environment: 
+    - "FRONT50_BASEURL=http://$DOCKER_IP:8080"
+    - "ORCA_BASEURL=http://$DOCKER_IP:8083"
+    - "JAVA_OPTS=-javaagent:/opt/echo/lib/jamm-0.2.5.jar"
+  image: spinnaker/echo
+  ports: 
+    - "8089:8089"
+front50: 
+  container_name: front50
+  env_file: ./compose.env
+  environment: 
+    - "JAVA_OPTS=-javaagent:/opt/front50/lib/jamm-0.2.5.jar"
+  image: spinnaker/front50
+  ports: 
+    - "8080:8080"
 gate: 
   container_name: gate
+  env_file: ./compose.env
   environment: 
     - SERVICES_CLOUDDRIVER_HOST=clouddriver
     - SERVICES_ECHO_HOST=echo
@@ -53,6 +57,7 @@ gate:
     - "8084:8084"
 igor: 
   container_name: igor
+  env_file: ./compose.env
   environment: 
     - SERVICES_ECHO_HOST=echo
   image: spinnaker/igor
@@ -63,6 +68,7 @@ igor:
     - "8088:8088"
 orca: 
   container_name: orca
+  env_file: ./compose.env
   environment: 
     - SERVICES_CLOUDDRIVER_HOST=clouddriver
     - SERVICES_ECHO_HOST=echo
@@ -85,6 +91,7 @@ redis:
   image: redis
 rosco: 
   container_name: rosco
+  env_file: ./compose.env
   environment: 
     - SERVICES_RUSH_HOST=rush
   image: spinnaker/rosco
@@ -95,6 +102,7 @@ rosco:
     - "8087:8087"
 rush: 
   container_name: rush
+  env_file: ./compose.env
   environment: 
     - "JAVA_OPTS=-javaagent:/opt/rush/lib/jamm-0.2.5.jar"
   image: spinnaker/rush
