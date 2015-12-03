@@ -105,6 +105,13 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
          () =>  pipelineGraphService.generateConfigGraph(scope.pipeline, scope.viewState) :
          () =>  pipelineGraphService.generateExecutionGraph(scope.execution, scope.viewState);
 
+        function getLastPhase (node) {
+          if (!node.children.length) {
+            return node.phase;
+          }
+          return _.max(node.children.map(getLastPhase));
+        }
+
         /**
          * Sets phases and adds children/parents to nodes
          * Probably blows the stack if circular dependencies exist, maybe not
@@ -149,6 +156,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
               node.children = _.uniq(node.children);
               node.parents = _.uniq(node.parents);
               node.leaf = node.children.length === 0;
+              node.lastPhase = getLastPhase(node);
             });
 
             var grouped = _.groupBy(nodes, 'phase');
@@ -171,6 +179,10 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
                     return (firstParent.phase * 100) + firstParent.row;
                   }
                   return 0;
+                },
+                // same highest parent, prefer farthest last node
+                function(node) {
+                  return 1 - node.lastPhase;
                 },
                 // same highest parent, prefer fewer terminal children if any
                 function(node) {
