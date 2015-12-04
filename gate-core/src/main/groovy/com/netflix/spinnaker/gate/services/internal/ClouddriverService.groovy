@@ -89,6 +89,17 @@ interface ClouddriverService {
                       @Path("serverGroupName") String serverGroupName)
 
   @Headers("Accept: application/json")
+  @GET("/applications/{name}/clusters/{account}/{cluster}/{type}/{scope}/serverGroups/target/{target}")
+  Map getTargetServerGroup(@Path("name") String application,
+                           @Path("account") String account,
+                           @Path("cluster") String cluster,
+                           @Path("type") String type,
+                           @Path("scope") String scope,
+                           @Path("target") String target,
+                           @Query("onlyEnabled") Boolean onlyEnabled,
+                           @Query("validateOldest") Boolean validateOldest)
+
+  @Headers("Accept: application/json")
   @GET("/applications/{name}/serverGroups")
   List getServerGroups(@Path("name") String name, @Query("expand") String expand)
 
