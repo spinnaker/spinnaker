@@ -35,7 +35,9 @@ module.exports = angular
         .then((details) => {
           this.accounts = details;
           this.regionsByAccount = {};
-          details.forEach((account) => this.regionsByAccount[account.name] = account.regions.map((region) => region.name));
+          details.forEach((account) => {
+            this.regionsByAccount[account.name] = ['*'].concat(account.regions.map((region) => region.name));
+          });
         });
     });
 

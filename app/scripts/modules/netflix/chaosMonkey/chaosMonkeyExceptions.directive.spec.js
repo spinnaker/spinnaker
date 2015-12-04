@@ -27,7 +27,7 @@ describe('Controller: ChaosMonkeyExceptions', function () {
 
   describe('data initialization', function () {
 
-    it('gets all accounts, then adds regions per account to vm', function () {
+    it('gets all accounts, then adds wildcard and regions per account to vm', function () {
       let accounts = [ {name: 'prod'}, {name: 'test'} ];
       let details = {
         prod: { name: 'prod', regions: [ {name: 'us-east-1'}, {name: 'us-west-1'}] },
@@ -44,8 +44,8 @@ describe('Controller: ChaosMonkeyExceptions', function () {
 
       expect(vm.accounts).toEqual([details.prod, details.test]);
       expect(vm.regionsByAccount).toEqual({
-        prod: [ 'us-east-1', 'us-west-1'],
-        test: [ 'us-west-2', 'eu-west-1']
+        prod: [ '*', 'us-east-1', 'us-west-1'],
+        test: [ '*', 'us-west-2', 'eu-west-1']
       });
     });
   });
