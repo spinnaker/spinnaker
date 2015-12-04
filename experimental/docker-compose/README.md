@@ -37,7 +37,51 @@ Under Kitematic, click on the application 'deck' -> settings -> ports. Click on 
 
 <img src="https://cloud.githubusercontent.com/assets/74310/11158618/4bba7122-8a0e-11e5-83b6-8ff2297562b2.png"/>
 
-Alternatively, you can just enter ```DOCKER_IP=`docker-machine ip default` && open http://$DOCKER_IP:9000```
+Alternatively, you can just enter ```open http://`docker-machine ip default`:9000```
+
+## Using locally built images
+
+Sometimes it is useful to use the docker compose configuration to test changes that span multiple services locally.
+
+We provide a development configuration that will build a service from source instead of downloading an image from the remote repository. 
+
+The setup is similar to the local configuration outlined at the root of this project.
+
+* Open Kitematic and click on docker cli at the bottom
+
+* Create a directory called build as a sibling to the spinnaker directory.
+
+* Call `../spinnaker/dev/refresh_source.sh --pull_origin --use_ssh --github_user default` to download Spinnaker source files. 
+
+* Navigate back to the `docker-compose` directory.
+
+*Build a single service*
+
+```docker-compose -f docker-compose.dev.yml build [service name]```
+
+*Build all services*
+
+```docker-compose -f docker-compose.dev.yml build```
+
+*Start a service*
+
+``` DOCKER_IP=`docker-machine ip default` docker-compose  -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.dev.yml up [service name]```
+
+*Start all services*
+
+``` DOCKER_IP=`docker-machine ip default` docker-compose  -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.dev.yml up -d```
+
+( It might be useful to create an alias for your docker dev environment in your shell, see the tips section at the end of this document ).
+
+### Preloading library dependencies for development
+
+If building from source, the gradle setup will download a wrapper and individual libraries every time you issue a build. You can avoid this by precaching your build directory.
+
+Navigate to the build folder and select a service, for example, igor will be at build/igor.
+
+Call ```GRADLE_USER_HOME=cache ./gradlew compileGroovy clean -x test --refresh-dependencies```. This will download the gradle wrapper and all the dependencies for the project into the cache directory. 
+
+Now, when you build a service, it will just build the source code and not download the libraries. This will be much faster. 
 
 # Deploying Spinnaker on the Cloud via Docker Compose
 
@@ -152,3 +196,19 @@ This will not remove any instances deployed by Spinnaker, only the docker compos
 ### Adding more memory to your local machine
 
 Spinnaker is pretty memory-intensive, we suggest modifying the virtual box image used by docker machine to have more memory. You can do this by opening virtualbox and changing your base memory amount via settings -> System -> Base memory. This configuration has been tested on 8GB. 
+
+### Add shortcuts to your shell
+
+In my profile, I have added the following aliases:
+
+```
+alias spin='DOCKER_IP=`docker-machine ip default` docker-compose'
+
+alias spindev='DOCKER_IP=`docker-machine ip default` docker-compose  -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.dev.yml'
+
+alias spinremote='DOCKER_IP=`docker-machine ip spinnakerremote` docker-compose  -f docker-compose.yml -f docker-compose.remote.yml'
+
+alias spincache='GRADLE_USER_HOME=cache ./gradlew compileGroovy clean -x test --refresh-dependencies'
+```
+
+This way, I can simply call `spindev build igor` to build my local igor file from source. Also `spin up -d` will launch my docker-compose configuration. 

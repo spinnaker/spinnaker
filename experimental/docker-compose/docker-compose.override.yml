@@ -1,10 +1,4 @@
 clouddriver: 
-  environment: 
-    - AWS_ACCESS_KEY_ID
-    - AWS_SECRET_ACCESS_KEY
- #   - CF_ACCOUNT_USERNAME
- #   - CF_ACCOUNT_PASSWORD
-    - "SERVICES_FRONT50_BASEURL=http://$DOCKER_IP:8080"
   volumes: 
     - "../../config:/opt/spinnaker/config"
     - "../../config/aws:/root/.aws"
