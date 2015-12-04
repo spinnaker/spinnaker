@@ -8,12 +8,12 @@
 
     <div ng-if="stageSummary.masterStage.context.canary.status.status === 'LAUNCHED' ||
                 stageSummary.masterStage.context.canary.status.status === 'RUNNING' ||
-                stageSummary.masterStage.context.canary.status.status === 'DISABLED'" uib-dropdown class="btn-group pull-right" dropdown>
+                stageSummary.masterStage.context.canary.status.status === 'DISABLED'" uib-dropdown class="btn-group pull-right">
       <button type="button" class="btn btn-default btn-sm dropdown-toggle" aria-expanded="false" uib-dropdown-toggle>
         Actions
         <span class="caret"></span>
       </button>
-      <ul class="dropdown-menu" role="menu">
+      <ul class="uib-dropdown-menu" role="menu">
         <li><a href ng-click="canaryExecutionSummaryCtrl.generateCanaryScore()">Generate Canary Result</a></li>
         <li><a href ng-click="canaryExecutionSummaryCtrl.endCanary()">End Canary</a></li>
       </ul>

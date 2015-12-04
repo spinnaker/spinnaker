@@ -2,7 +2,7 @@
     <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
         Configure <span class="caret"></span>
     </button>
-    <ul class="dropdown-menu" role="menu">
+    <ul class="uib-dropdown-menu" role="menu">
         <li><create-pipeline-button application="application"></create-pipeline-button></li>
         <li class="dropdown-header" style="margin-top:0" ng-if="application.pipelineConfigs.length">PIPELINES</li>
         <li ng-repeat="pipeline in application.pipelineConfigs"><a href

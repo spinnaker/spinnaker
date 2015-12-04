@@ -27,11 +27,11 @@
     </div>
     <div>
       <div class="actions">
-        <div class="dropdown" uib-dropdown>
+        <div class="dropdown" uib-dropdown dropdown-append-to-body>
           <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
             Load Balancer Actions <span class="caret"></span>
           </button>
-          <ul class="dropdown-menu" role="menu">
+          <ul class="uib-dropdown-menu" role="menu">
             <li ng-if="!loadBalancer.instances.length"><a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a></li>
             <li ng-if="loadBalancer.instances.length" class="disabled" uib-tooltip="You must detach all instances before you can delete this load balancer.">
               <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
