@@ -47,23 +47,29 @@ We provide a development configuration that will build a service from source ins
 
 The setup is similar to the local configuration outlined at the root of this project.
 
-* Create a directory called build that sits at the same level as the spinnaker directory ( ../../../build/ from the docker-compose directory ).
+* Open Kitematic and click on docker cli at the bottom
+
+* Create a directory called build as a sibling to the spinnaker directory.
 
 * Call `../spinnaker/dev/refresh_source.sh --pull_origin --use_ssh --github_user default` to download Spinnaker source files. 
 
-* Navigate back to the docker-compose directory.
+* Navigate back to the `docker-compose` directory.
 
-Build a single service by calling 
+*Build a single service*
 
 ```docker-compose -f docker-compose.dev.yml build [service name]```
 
-Build all services via 
+*Build all services*
 
 ```docker-compose -f docker-compose.dev.yml build```
 
-Start a service 
+*Start a service*
 
 ``` DOCKER_IP=`docker-machine ip default` docker-compose  -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.dev.yml up [service name]```
+
+*Start all services*
+
+``` DOCKER_IP=`docker-machine ip default` docker-compose  -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.dev.yml up -d```
 
 ( It might be useful to create an alias for your docker dev environment in your shell, see the tips section at the end of this document ).
 
