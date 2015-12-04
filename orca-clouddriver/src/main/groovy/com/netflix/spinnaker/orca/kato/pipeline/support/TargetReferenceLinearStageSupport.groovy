@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.pipeline.support.DeploymentStrategyParameterSupport
 import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
 import com.netflix.spinnaker.orca.pipeline.LinearStage
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -39,13 +39,7 @@ abstract class TargetReferenceLinearStageSupport extends LinearStage {
   }
 
   void composeTargets(Stage stage) {
-
-    if(stage.execution instanceof Pipeline && stage.execution.trigger.parameters?.strategy == true){
-      Map trigger = ((Pipeline) stage.execution).trigger
-      stage.context.regions = [trigger.parameters.region]
-      stage.context.cluster = trigger.parameters.cluster
-      stage.context.credentials = trigger.parameters.credentials
-    }
+    DeploymentStrategyParameterSupport.resolveStrategyParams(stage)
     if (targetReferenceSupport.isDynamicallyBound(stage)) {
       composeDynamicTargets(stage)
     } else {

@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.support.DeploymentStrategyParameterSupport
 import com.netflix.spinnaker.orca.pipeline.tasks.PreconditionTask
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,6 +39,7 @@ class CheckPreconditionsStage extends ParallelStage implements StepProvider {
 
   @Override
   List<Step> buildSteps(Stage stage) {
+    DeploymentStrategyParameterSupport.resolveStrategyParams(stage)
     String preconditionType = stage.context.preconditionType
     if (!preconditionType) {
       throw new IllegalStateException("no preconditionType specified for stage $stage.id")
