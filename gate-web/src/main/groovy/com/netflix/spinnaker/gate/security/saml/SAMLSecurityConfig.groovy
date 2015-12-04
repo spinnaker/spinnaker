@@ -24,6 +24,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -77,6 +78,7 @@ class SAMLSecurityConfig implements WebSecurityAugmentor {
 
     if (samlSecurityConfigProperties.requireAuthentication) {
       http.authorizeRequests()
+        .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
         .antMatchers('/auth/**').permitAll()
         .antMatchers('/health').permitAll()
         .antMatchers('/**').authenticated()
