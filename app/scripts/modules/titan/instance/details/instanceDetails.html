@@ -24,11 +24,11 @@
     </div>
     <div>
       <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }" ng-if="instance.placement">
-        <div class="dropdown" uib-dropdown>
+        <div class="dropdown" uib-dropdown dropdown-append-to-body>
           <button type="button" class="btn btn-sm btn-primary dropdown-toggle" ng-disabled="disabled" uib-dropdown-toggle>
             Titan Task Actions <span class="caret"></span>
           </button>
-          <ul class="dropdown-menu" role="menu">
+          <ul class="uib-dropdown-menu" role="menu">
             <li><a href ng-click="ctrl.enableInstanceInDiscovery()" ng-if="ctrl.canRegisterWithDiscovery()">Enable in Discovery</a></li>
             <li><a href ng-click="ctrl.disableInstanceInDiscovery()" ng-if="ctrl.hasHealthState('Discovery', 'Up')">Disable in Discovery</a></li>
             <!--<li><a href ng-click="ctrl.registerInstanceWithLoadBalancer()" ng-if="ctrl.canRegisterWithLoadBalancer()">Register with Load Balancer</a></li>-->
@@ -37,11 +37,11 @@
             <li><a href ng-click="ctrl.terminateInstance()">Terminate</a></li>
           </ul>
         </div>
-        <!--<div class="dropdown" ng-if="instance.insightActions.length > 0" dropdown>-->
-          <!--<button type="button" class="btn btn-sm btn-default dropdown-toggle" dropdown-toggle>-->
+        <!--<div class="dropdown" ng-if="instance.insightActions.length > 0" uib-dropdown>-->
+          <!--<button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>-->
             <!--Insight <span class="caret"></span>-->
           <!--</button>-->
-          <!--<ul class="dropdown-menu" role="menu">-->
+          <!--<ul class="uib-dropdown-menu" role="menu">-->
             <!--<li ng-repeat="action in instance.insightActions"><a target=_blank href="{{action.url}}">{{action.label}}</a></li>-->
           <!--</ul>-->
         <!--</div>-->

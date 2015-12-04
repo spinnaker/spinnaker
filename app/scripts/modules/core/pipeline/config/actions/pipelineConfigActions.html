@@ -2,7 +2,7 @@
   <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
     {{pipeline.strategy === true ? 'Strategy' : 'Pipeline'}} Actions <span class="caret"></span>
   </button>
-  <ul class="dropdown-menu">
+  <ul class="uib-dropdown-menu">
     <li><a href ng-click="pipelineConfigurerCtrl.renamePipeline()">Rename</a></li>
     <li><a href ng-click="pipelineConfigurerCtrl.deletePipeline()">Delete</a></li>
     <li><a href ng-click="pipelineConfigurerCtrl.editPipelineJson()">Edit as JSON</a></li>

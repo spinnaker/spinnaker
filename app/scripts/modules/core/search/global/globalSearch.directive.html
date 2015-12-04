@@ -13,12 +13,12 @@
       </div>
     </div>
   </form>
-  <ul class="dropdown-menu"
+  <ul class="uib-dropdown-menu"
       role="menu"
       ng-if="querying">
     <li class="loader">searching..</li>
   </ul>
-  <ul class="dropdown-menu"
+  <ul class="uib-dropdown-menu"
       role="menu"
       ng-if="!querying && showRecentItems">
     <li ng-repeat-start="category in recentItems" class="category-heading">
@@ -36,7 +36,7 @@
       </a>
     </li>
   </ul>
-  <ul class="dropdown-menu"
+  <ul class="uib-dropdown-menu"
       role="menu"
       ng-if="!querying && showSearchResults">
     <li ng-repeat-start="category in categories | orderBy: 'order'" class="category-heading">
