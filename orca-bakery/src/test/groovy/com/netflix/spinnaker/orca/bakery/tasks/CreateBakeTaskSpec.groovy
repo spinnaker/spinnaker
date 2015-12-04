@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks
 
+import static com.netflix.spinnaker.orca.bakery.api.BakeStatus.State.COMPLETED
+
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
@@ -26,7 +28,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import retrofit.RetrofitError
 import retrofit.client.Response
-import retrofit.mime.TypedInput
 import retrofit.mime.TypedString
 import rx.Observable
 import spock.lang.Shared
@@ -43,7 +44,12 @@ class CreateBakeTaskSpec extends Specification {
     task = new CreateBakeTask()
   Stage stage
   def mapper = new OrcaObjectMapper()
+
+  @Shared
   def runningStatus = new BakeStatus(id: randomUUID(), state: RUNNING)
+
+  @Shared
+  def completedStatus = new BakeStatus(id: randomUUID(), state: COMPLETED)
 
   @Shared
   Pipeline pipeline = new Pipeline()
@@ -603,6 +609,26 @@ class CreateBakeTaskSpec extends Specification {
     propagateCloudProviderType | expectedCloudProviderType
     false                      | null
     true                       | BakeRequest.CloudProviderType.aws
+  }
+
+  @Unroll
+  def "sets previouslyBaked flag to #previouslyBaked when status is #status.state"() {
+    given:
+    task.bakery = Stub(BakeryService) {
+      createBake(*_) >> Observable.from(status)
+    }
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.stageOutputs.status == status
+    result.stageOutputs.previouslyBaked == previouslyBaked
+
+    where:
+    status          | previouslyBaked
+    runningStatus   | false
+    completedStatus | true
   }
 
   def "sets rebake query parameter if rebake flag is set in job context"() {
