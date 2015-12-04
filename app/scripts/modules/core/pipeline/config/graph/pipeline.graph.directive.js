@@ -156,6 +156,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
               node.children = _.uniq(node.children);
               node.parents = _.uniq(node.parents);
               node.leaf = node.children.length === 0;
+            });
+            nodes.forEach((node) => {
               node.lastPhase = getLastPhase(node);
             });
 
