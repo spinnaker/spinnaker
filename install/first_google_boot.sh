@@ -99,7 +99,7 @@ function replace_startup_script() {
 function extract_spinnaker_local_yaml() {
   local value=$(get_instance_metadata_attribute "spinnaker_local")
   if [[ "$value" == "" ]]; then
-    return 1
+    return 0
   fi
 
   local yml_path=$LOCAL_CONFIG_DIR/spinnaker-local.yml
