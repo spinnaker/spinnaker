@@ -202,7 +202,7 @@ alias spindev='DOCKER_IP=`docker-machine ip default` docker-compose  -f docker-c
 
 alias spinremote='DOCKER_IP=`docker-machine ip spinnakerremote` docker-compose  -f docker-compose.yml -f docker-compose.remote.yml'
 
-alias spincache=`GRADLE_USER_HOME=cache ./gradlew compileGroovy clean -x test --refresh-dependencies`
+alias spincache='GRADLE_USER_HOME=cache ./gradlew compileGroovy clean -x test --refresh-dependencies'
 ```
 
 This way, I can simply call `spindev build igor` to build my local igor file from source. Also `spin up -d` will launch my docker-compose configuration. 
