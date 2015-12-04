@@ -385,7 +385,7 @@ function install_spinnaker() {
   else
     install_packages="spinnaker-clouddriver spinnaker-deck spinnaker-echo spinnaker-front50 spinnaker-gate spinnaker-igor spinnaker-orca spinnaker-rosco spinnaker-rush spinnaker"
     for package in $install_packages;do
-      latest=`curl $REPOSITORY_URL/dists/$DISTRIB_CODENAME/spinnaker/binary-amd64/Packages | grep "/$package/${package}_" | grep Filename | awk '{print $2}' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1`
+      latest=`curl $REPOSITORY_URL/dists/$DISTRIB_CODENAME/spinnaker/binary-amd64/Packages | grep "^Filename" | grep $package | awk '{print $2}' | awk -F'/' '{print $NF}' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1`
       debfile=`echo $latest | awk -F "/" '{print $NF}'`
       curl -L -o /tmp/$debfile $REPOSITORY_URL/$latest
       dpkg -i /tmp/$debfile && rm -f /tmp/$debfile
