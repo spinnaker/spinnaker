@@ -5,9 +5,9 @@
       <thead>
       <tr>
         <th>Account</th>
-        <th>Stack</th>
-        <th>Cluster</th>
         <th>Region</th>
+        <th>Stack</th>
+        <th>Detail</th>
         <th></th>
       </tr>
       </thead>
@@ -21,22 +21,22 @@
               accounts="vm.accounts"></account-select-field>
         </td>
         <td>
-          <input type="text" class="form-control input-sm"
-                 ng-model="exception.stack"
-                 required/>
-        </td>
-        <td>
-          <input type="text" class="form-control input-sm"
-                 ng-model="exception.cluster"
-                 required/>
-        </td>
-        <td>
           <span ng-if="!exception.account">(select account)</span>
           <select class="form-control input-sm"
                   ng-model="exception.region"
                   ng-if="exception.account"
                   ng-options="region for region in vm.regionsByAccount[exception.account]"
               ></select>
+        </td>
+        <td>
+          <input type="text" class="form-control input-sm"
+                 ng-model="exception.stack"
+                 required/>
+        </td>
+        <td>
+          <input type="text" class="form-control input-sm"
+                 ng-model="exception.detail"
+                 required/>
         </td>
         <td><a href ng-click="vm.removeException($index)"><span class="glyphicon glyphicon-trash" uib-tooltip="Remove exception"></span></a></td>
       </tr>
