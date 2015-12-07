@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.bakery.config
 
-import com.fasterxml.jackson.annotation.JsonInclude
-
 import java.text.SimpleDateFormat
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.PropertyNamingStrategy.LowerCaseWithUnderscoresStrategy
@@ -37,6 +35,7 @@ import retrofit.RestAdapter
 import retrofit.RestAdapter.LogLevel
 import retrofit.client.Client
 import retrofit.converter.JacksonConverter
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import static retrofit.Endpoints.newFixedEndpoint
 
@@ -62,7 +61,7 @@ class BakeryConfiguration {
     def objectMapper = new ObjectMapper()
       .setPropertyNamingStrategy(new LowerCaseWithUnderscoresStrategy())
       .setDateFormat(new SimpleDateFormat("YYYYMMDDHHmm"))
-      .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+      .setSerializationInclusion(NON_NULL)
       .disable(FAIL_ON_UNKNOWN_PROPERTIES)
 
     new RestAdapter.Builder()
