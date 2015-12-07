@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import com.netflix.spinnaker.orca.pipeline.util.PackageInfo
 import groovy.transform.CompileDynamic
@@ -60,8 +61,9 @@ class CreateBakeTask implements RetryableTask {
       def bakeStatus = bakery.createBake(region, bake, rebake).toBlocking().single()
 
       def stageOutputs = [
-        status         : bakeStatus,
-        bakePackageName: bake.packageName ?: ""
+        status          : bakeStatus,
+        bakePackageName : bake.packageName ?: "",
+        previouslyBaked : bakeStatus.state == BakeStatus.State.COMPLETED
       ] as Map<String, ? extends Object>
 
       if (bake.buildHost) {
