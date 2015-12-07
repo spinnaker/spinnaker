@@ -18,11 +18,15 @@ package com.netflix.spinnaker.gate.services.commands
 
 import com.netflix.hystrix.HystrixCommand
 import com.netflix.hystrix.HystrixCommandKey
+import com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import org.springframework.http.HttpStatus
+import retrofit.RetrofitError
 
 import static HystrixFactory.createHystrixCommandPropertiesSetter
 import static HystrixFactory.toGroupKey
+import static retrofit.RetrofitError.Kind.HTTP
 
 @Slf4j
 @CompileStatic
@@ -49,7 +53,11 @@ abstract class AbstractHystrixCommand<T> extends HystrixCommand<T> {
 
   @Override
   protected T run() throws Exception {
-    return work()
+    try {
+      return work()
+    } catch (RetrofitError error) {
+      throw UpstreamBadRequest.classifyError(error, HttpStatus.values().findAll { it.is4xxClientError() }*.value() as Collection<Integer>)
+    }
   }
 
   protected T getFallback() {
