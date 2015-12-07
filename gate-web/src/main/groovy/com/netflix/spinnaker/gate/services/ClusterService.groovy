@@ -15,11 +15,16 @@
  */
 
 package com.netflix.spinnaker.gate.services
+
+import com.netflix.hystrix.exception.HystrixBadRequestException
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import groovy.transform.CompileStatic
+import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
+import org.springframework.web.bind.annotation.ResponseStatus
 import retrofit.RetrofitError
 
 @CompileStatic
@@ -65,4 +70,21 @@ class ClusterService {
       clouddriverService.getScalingActivities(app, account, clusterName, provider, serverGroupName, region)
     } execute()
   }
+
+  Map getTargetServerGroup(String app, String account, String clusterName, String cloudProviderType, String scope, String target, Boolean onlyEnabled, Boolean validateOldest) {
+    HystrixFactory.newMapCommand(GROUP, "getTargetServerGroup") {
+      try {
+        return clouddriverService.getTargetServerGroup(app, account, clusterName, cloudProviderType, scope, target, onlyEnabled, validateOldest)
+      } catch (RetrofitError re) {
+        if (re.kind == RetrofitError.Kind.HTTP && re.response?.status == 404) {
+          throw new ServerGroupNotFound("unable to find $target in $cloudProviderType/$account/$scope/$clusterName")
+        }
+        throw re
+      }
+    } execute()
+  }
+
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  @InheritConstructors
+  static class ServerGroupNotFound extends HystrixBadRequestException {}
 }

@@ -86,4 +86,16 @@ class ClusterController {
       it.name == serverGroupName
     }
   }
+
+  @RequestMapping(value = "/{account:.+}/{clusterName:.+}/{cloudProvider}/{scope}/serverGroups/target/{target:.+}", method = RequestMethod.GET)
+  Map getTargetServerGroup(@PathVariable("application") String app,
+                           @PathVariable("account") String account,
+                           @PathVariable("clusterName") String clusterName,
+                           @PathVariable("cloudProvider") String cloudProvider,
+                           @PathVariable("scope") String scope,
+                           @PathVariable("target") String target,
+                           @RequestParam(value = "onlyEnabled", required = false) Boolean onlyEnabled,
+                           @RequestParam(value = "validateOldest", required = false) Boolean validateOldest) {
+    clusterService.getTargetServerGroup(app, account, clusterName, cloudProvider, scope, target, onlyEnabled, validateOldest)
+  }
 }
