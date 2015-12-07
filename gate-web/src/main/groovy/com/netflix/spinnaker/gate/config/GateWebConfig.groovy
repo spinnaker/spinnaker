@@ -16,16 +16,27 @@
 
 package com.netflix.spinnaker.gate.config
 
+import com.netflix.hystrix.exception.HystrixRuntimeException
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ControllerAdvice
+import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.ResponseBody
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.filter.ShallowEtagHeaderFilter
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
+import retrofit.RetrofitError
+
 import javax.servlet.Filter
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 @Configuration
 @ComponentScan
@@ -45,5 +56,37 @@ public class GateWebConfig extends WebMvcConfigurerAdapter {
   @Bean
   Filter eTagFilter() {
     new ShallowEtagHeaderFilter()
+  }
+
+  @Bean
+  UpstreamBadRequestExceptionHandler upstreamBadRequestExceptionHandler() {
+    return new UpstreamBadRequestExceptionHandler()
+  }
+
+  @ControllerAdvice
+  static class UpstreamBadRequestExceptionHandler {
+    @ResponseBody
+    @ExceptionHandler(UpstreamBadRequest)
+    public Map handleUpstreamBadRequest(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      UpstreamBadRequest exception
+    ) {
+      response.setStatus(exception.status)
+
+      def failureCause = exception.cause
+      if (failureCause instanceof RetrofitError) {
+        failureCause = failureCause.cause ?: failureCause
+      }
+
+      return [
+        failureCause: failureCause.toString(),
+        error: HttpStatus.valueOf(exception.status).reasonPhrase,
+        message: exception.message,
+        status: exception.status,
+        url: exception.url,
+        timestamp: System.currentTimeMillis()
+      ]
+    }
   }
 }

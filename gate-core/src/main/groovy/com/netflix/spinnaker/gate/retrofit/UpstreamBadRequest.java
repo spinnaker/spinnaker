@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.retrofit;
 
 import com.netflix.hystrix.exception.HystrixBadRequestException;
 import retrofit.RetrofitError;
+import java.util.Collection;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static retrofit.RetrofitError.Kind.HTTP;
 
@@ -42,6 +43,14 @@ public class UpstreamBadRequest extends HystrixBadRequestException {
 
   public static Exception classifyError(RetrofitError error) {
     if (error.getKind() == HTTP && error.getResponse().getStatus() < INTERNAL_SERVER_ERROR.value()) {
+      return new UpstreamBadRequest(error);
+    } else {
+      return error;
+    }
+  }
+
+  public static Exception classifyError(RetrofitError error, Collection<Integer> supportedHttpStatuses) {
+    if (error.getKind() == HTTP && supportedHttpStatuses.contains(error.getResponse().getStatus())) {
       return new UpstreamBadRequest(error);
     } else {
       return error;
