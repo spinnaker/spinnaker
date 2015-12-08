@@ -88,10 +88,10 @@ class JenkinsService {
     }
 
     QueuedJob getQueuedItem(Integer item) {
-        new SimpleHystrixCommand<QueuedJob>(
-            groupKey, "getQueuedItem", {
+//        new SimpleHystrixCommand<QueuedJob>(
+//            groupKey, "getQueuedItem", {
             return jenkinsClient.getQueuedItem(item)
-        }).execute()
+//        }).execute()
     }
 
     Response build(String jobName) {
