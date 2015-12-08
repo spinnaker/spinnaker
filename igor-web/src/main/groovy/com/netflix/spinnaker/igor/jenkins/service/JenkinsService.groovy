@@ -101,6 +101,6 @@ class JenkinsService {
     }
 
     Response getPropertyFile(String jobName, Integer buildNumber, String fileName) {
-        return jenkinsClient.getPropertyFile(jobName, buildNumber, fileName)emove
+        return jenkinsClient.getPropertyFile(jobName, buildNumber, fileName)
     }
 }
