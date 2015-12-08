@@ -67,7 +67,7 @@ abstract class AbstractEventNotificationAgent implements EchoEventListener {
         return
       }
 
-      if (config.type == 'pipeline' && event.content.execution?.canceled == true) {
+      if (config.type == 'pipeline' && event.content.execution?.status == 'CANCELED') {
         return
       }
 
