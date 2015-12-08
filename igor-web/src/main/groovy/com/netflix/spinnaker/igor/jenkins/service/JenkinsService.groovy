@@ -88,31 +88,19 @@ class JenkinsService {
     }
 
     QueuedJob getQueuedItem(Integer item) {
-//        new SimpleHystrixCommand<QueuedJob>(
-//            groupKey, "getQueuedItem", {
-            return jenkinsClient.getQueuedItem(item)
-//        }).execute()
+        return jenkinsClient.getQueuedItem(item)
     }
 
     Response build(String jobName) {
-        new SimpleHystrixCommand<Response>(
-            groupKey, "build", {
-            return jenkinsClient.build(jobName)
-        }).execute()
+        return jenkinsClient.build(jobName)
     }
 
     Response buildWithParameters(String jobName, Map<String, String> queryParams) {
-        new SimpleHystrixCommand<Response>(
-            groupKey, "buildWithParameters", {
-            return jenkinsClient.buildWithParameters(jobName, queryParams)
-        }).execute()
+        return jenkinsClient.buildWithParameters(jobName, queryParams)
     }
 
     JobConfig getJobConfig(String jobName) {
-        new SimpleHystrixCommand<JobConfig>(
-            groupKey, "getJobConfig", {
-            return jenkinsClient.getJobConfig(jobName)
-        }).execute()
+        return jenkinsClient.getJobConfig(jobName)
     }
 
     Response getPropertyFile(String jobName, Integer buildNumber, String fileName) {
