@@ -170,8 +170,6 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
             idleTimeout: 4,
           }
         ],
-        name: '',
-        user: 'anonymous',
       };
     }
 
