@@ -172,22 +172,6 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
         ],
         name: '',
         user: 'anonymous',
-        stageDetails: {
-          name: null,
-          type: 'upsertLoadBalancer',
-          startTime: '',
-          isSynthetic: false,
-        },
-        batch:
-        {
-          task:
-          {
-            id:
-            {
-              stageStart: 41,
-            },
-          },
-        },
       };
     }
 

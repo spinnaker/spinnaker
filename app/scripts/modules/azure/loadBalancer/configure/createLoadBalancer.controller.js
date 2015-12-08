@@ -325,14 +325,12 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
 
           $scope.loadBalancer.probes[0].probeName = probeName;
 
-          for(var i = 0; i < $scope.loadBalancer.loadBalancingRules.length; i++)
-          {
-            $scope.loadBalancer.loadBalancingRules[i].ruleName = ruleNameBase + i;
-            $scope.loadBalancer.loadBalancingRules[i].probeName = probeName;
-          }
+          $scope.loadBalancer.loadBalancingRules.forEach((rule, index) => {
+            rule.ruleName = ruleNameBase + index;
+            rule.probeName = probeName;
+          });
 
-          if($scope.loadBalancer.probes[0].probeProtocol === 'TCP')
-          {
+          if ($scope.loadBalancer.probes[0].probeProtocol === 'TCP'){
             $scope.loadBalancer.probes[0].probePath = undefined;
           }
 

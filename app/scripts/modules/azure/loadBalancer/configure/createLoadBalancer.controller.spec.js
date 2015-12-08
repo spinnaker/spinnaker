@@ -37,7 +37,7 @@ describe('Controller: azureCreateLoadBalancerCtrl', function () {
     expect(lb.loadBalancingRules[0].protocol).toEqual('TCP');
     
     expect(this.$scope.existingLoadBalancerNames).toEqual(undefined);
-    expect(lb.ProviderType).toEqual(undefined);
+    expect(lb.providerType).toEqual(undefined);
   });
   
   it('makes the expected REST calls for data for a new loadbalancer', function(){
