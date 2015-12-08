@@ -5,38 +5,29 @@
         <table class="table table-condensed packed">
           <thead>
           <tr>
-            <th>External Protocol</th>
+            <th>Protocol</th>
             <th>External Port</th>
             <th></th>
-            <th>Internal Protocol</th>
             <th>Internal Port</th>
-            <th ng-if="ctrl.showSslCertificateIdField()" width="30%">SSL Certificate ARN</th>
             <th></th>
           </tr>
           </thead>
           <tbody>
-          <tr ng-repeat="listener in loadBalancer.listeners">
-            <td><select class="form-control input-sm" ng-model="listener.externalProtocol"
-                        ng-options="protocol for protocol in ['HTTP','HTTPS','TCP','SSL']"></select></td>
-            <td><input class="form-control input-sm" type="number" min="0" ng-model="listener.externalPort"
+          <tr ng-repeat="rule in loadBalancer.loadBalancingRules">
+            <td><select class="form-control input-sm" ng-model="rule.protocol"
+                        ng-options="protocol for protocol in ['UDP','TCP']"></select></td>
+            <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.externalPort"
                        required/></td>
             <td class="small" style="padding-top: 10px;">&rarr;</td>
-            <td><select class="form-control input-sm" ng-model="listener.internalProtocol"
-                        ng-options="protocol for protocol in ['HTTP','HTTPS','TCP','SSL']"></select></td>
-            <td><input class="form-control input-sm" type="number" min="0" ng-model="listener.internalPort"
+            <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.backendPort"
                        required/></td>
-            <td ng-if="ctrl.showSslCertificateIdField() && listener.externalProtocol !== 'HTTPS' && listener.externalProtocol !== 'SSL'"></td>
-            <td ng-if="listener.externalProtocol === 'HTTPS' || listener.externalProtocol === 'SSL'">
-              <input class="form-control input-sm" type="text" ng-model="listener.sslCertificateId"
-                     required/></td>
-            </td>
             <td><a href class="sm-label" ng-click="ctrl.removeListener($index)"><span
               class="glyphicon glyphicon-trash"></span></a></td>
           </tr>
           </tbody>
           <tfoot>
           <tr>
-            <td colspan="{{ctrl.showSslCertificateIdField() ? 6 : 5}}">
+            <td colspan="5">
               <button class="add-new col-md-12" ng-click="ctrl.addListener()"><span
                 class="glyphicon glyphicon-plus-sign"></span> Add new port mapping
               </button>

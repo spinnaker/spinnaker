@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller', [
-  require('../../../core/loadBalancer/loadBalancer.write.service.js'),
+  require('../loadBalancer.write.service.js'),
   require('../../../core/loadBalancer/loadBalancer.read.service.js'),
   require('../../../core/account/account.service.js'),
   require('../loadBalancer.transformer.js'),
@@ -21,7 +21,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
   .controller('azureCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, _,
                                                     accountService, azureLoadBalancerTransformer, securityGroupReader,
                                                     cacheInitializer, infrastructureCaches, loadBalancerReader,
-                                                    modalWizardService, loadBalancerWriter, taskMonitorService,
+                                                    modalWizardService, azureLoadBalancerWriter, taskMonitorService,
                                                     azureSubnetReader, namingService,
                                                     application, loadBalancer, isNew) {
 
@@ -58,7 +58,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
     function initializeEditMode() {
       if ($scope.loadBalancer.vpcId) {
         preloadSecurityGroups().then(function() {
-          updateAvailableSecurityGroups([$scope.loadBalancer.vpcId]);
+          updateAvailableSecurityGroups([$scope.loadBalancer.vnet]);
         });
       }
     }
@@ -203,14 +203,14 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
     }
 
     function setSubnetTypeFromVpc(subnetOptions) {
-      if ($scope.loadBalancer.vpcId) {
+      if ($scope.loadBalancer.vnet) {
         var currentSelection = _.find(subnetOptions, function(option) {
-          return option.vpcIds.indexOf($scope.loadBalancer.vpcId) !== -1;
+          return option.vpcIds.indexOf($scope.loadBalancer.vnet) !== -1;
         });
         if (currentSelection) {
           $scope.loadBalancer.subnetType = currentSelection.purpose;
         }
-        delete $scope.loadBalancer.vpcId;
+        delete $scope.loadBalancer.vnet;
       }
     }
 
@@ -238,7 +238,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
     };
 
     this.requiresHealthCheckPath = function () {
-      return $scope.loadBalancer.healthCheckProtocol && $scope.loadBalancer.healthCheckProtocol.indexOf('HTTP') === 0;
+      return $scope.loadBalancer.probes[0].probeProtocol && $scope.loadBalancer.probes[0].probeProtocol.indexOf('HTTP') === 0;
     };
 
     this.updateName = function() {
@@ -280,17 +280,11 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
     };
 
     this.removeListener = function(index) {
-      $scope.loadBalancer.listeners.splice(index, 1);
+      $scope.loadBalancer.loadBalancingRules.splice(index, 1);
     };
 
     this.addListener = function() {
-      $scope.loadBalancer.listeners.push({internalProtocol: 'HTTP', externalProtocol: 'HTTP'});
-    };
-
-    this.showSslCertificateIdField = function() {
-      return $scope.loadBalancer.listeners.some(function(listener) {
-        return listener.externalProtocol === 'HTTPS' || listener.externalProtocol === 'SSL';
-      });
+      $scope.loadBalancer.loadBalancingRules.push({protocol: 'HTTP'});
     };
 
     $scope.taskMonitor.onApplicationRefresh = function handleApplicationRefreshComplete() {
@@ -299,7 +293,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
         name: $scope.loadBalancer.name,
         accountId: $scope.loadBalancer.credentials,
         region: $scope.loadBalancer.region,
-        vpcId: $scope.loadBalancer.vpcId,
+        vpcId: $scope.loadBalancer.vnet,
         provider: 'azure',
       };
 
@@ -316,11 +310,31 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
 
       $scope.taskMonitor.submit(
         function() {
-          let params = { cloudProvider: 'azure', providerType: 'azure', appName: application.name, clusterName: $scope.loadBalancer.clusterName,
+          let params = { cloudProvider: 'azure', appName: application.name, clusterName: $scope.loadBalancer.clusterName,
             resourceGroupName: $scope.loadBalancer.clusterName,
             loadBalancerName: $scope.loadBalancer.name
           };
-          return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
+
+          var name = $scope.loadBalancer.clusterName || $scope.loadBalancer.name;
+          var probeName = name + '_probe';
+          var ruleNameBase = name + '_rule_';
+          $scope.loadBalancer.type = 'upsertLoadBalancer';
+          if (!$scope.loadBalancer.vnet && !$scope.loadBalancer.subnetType) {
+            $scope.loadBalancer.securityGroups = null;
+          }
+
+          $scope.loadBalancer.probes[0].probeName = probeName;
+
+          $scope.loadBalancer.loadBalancingRules.forEach((rule, index) => {
+            rule.ruleName = ruleNameBase + index;
+            rule.probeName = probeName;
+          });
+
+          if ($scope.loadBalancer.probes[0].probeProtocol === 'TCP'){
+            $scope.loadBalancer.probes[0].probePath = undefined;
+          }
+
+          return azureLoadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
         }
       );
     };

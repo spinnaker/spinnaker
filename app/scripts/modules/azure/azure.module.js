@@ -2,6 +2,12 @@
 
 let angular = require('angular');
 
+// load all templates into the $templateCache
+var templates = require.context('./', true, /\.html$/);
+templates.keys().forEach(function(key) {
+  templates(key);
+});
+
 module.exports = angular.module('spinnaker.azure', [
   require('../core/cloudProvider/cloudProvider.registry.js'),
   require('./serverGroup/details/serverGroup.details.module.js'),
