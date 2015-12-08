@@ -10,7 +10,7 @@ module.exports = angular
   .controller('FastPropertiesController', function ($filter, applicationReader, settings) {
     var vm = this;
 
-    vm.isOn = settings.feature.fastProperties;
+    vm.isOn = settings.feature.fastProperty;
 
     vm.applicationsLoaded = false;
 
