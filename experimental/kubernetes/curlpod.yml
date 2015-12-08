@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: curlpod
+spec:
+  containers:
+  - image: ubuntu
+    imagePullPolicy: IfNotPresent
+    name: curlcontainer
+  restartPolicy: Always
