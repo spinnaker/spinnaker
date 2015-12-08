@@ -4,27 +4,25 @@
     <div class="panel panel-default">
       <div class="panel-body">
         <div class="row">
-          <div class="col-md-7">
-            <dl class="dl-horizontal">
-              <dt>Description</dt>
-              <dd>{{vm.application.attributes.description}}</dd>
-              <dt>Account(s)</dt>
-              <dd>{{vm.application.attributes.accounts}}</dd>
-              <dt>Owner</dt>
-              <dd>{{vm.application.attributes.email}}</dd>
-              <dt ng-if="vm.application.attributes.repoType">Source Repo Type</dt>
-              <dd ng-if="vm.application.attributes.repoType">{{vm.application.attributes.repoType}}</dd>
-              <dt ng-if="vm.application.attributes.repoProjectKey">Source Repo Project</dt>
-              <dd ng-if="vm.application.attributes.repoProjectKey">{{vm.application.attributes.repoProjectKey}}</dd>
-              <dt ng-if="vm.application.attributes.repoSlug">Source Repo</dt>
-              <dd ng-if="vm.application.attributes.repoSlug">{{vm.application.attributes.repoSlug}}</dd>
-              <dt ng-if="vm.application.attributes.cloudProviders">Cloud Provider(s)</dt>
-              <dd ng-if="vm.application.attributes.cloudProviders">{{vm.application.attributes.cloudProviders}}</dd>
-            </dl>
-            <button class="btn btn-link" ng-click="vm.editApplication()"><span class="glyphicon glyphicon-cog"></span>
-              Edit Application Attributes
-            </button>
-          </div>
+          <dl class="dl-horizontal">
+            <dt>Description</dt>
+            <dd>{{vm.application.attributes.description}}</dd>
+            <dt>Account(s)</dt>
+            <dd>{{vm.application.attributes.accounts}}</dd>
+            <dt>Owner</dt>
+            <dd>{{vm.application.attributes.email}}</dd>
+            <dt ng-if="vm.application.attributes.repoType">Source Repo Type</dt>
+            <dd ng-if="vm.application.attributes.repoType">{{vm.application.attributes.repoType}}</dd>
+            <dt ng-if="vm.application.attributes.repoProjectKey">Source Repo Project</dt>
+            <dd ng-if="vm.application.attributes.repoProjectKey">{{vm.application.attributes.repoProjectKey}}</dd>
+            <dt ng-if="vm.application.attributes.repoSlug">Source Repo</dt>
+            <dd ng-if="vm.application.attributes.repoSlug">{{vm.application.attributes.repoSlug}}</dd>
+            <dt ng-if="vm.application.attributes.cloudProviders">Cloud Provider(s)</dt>
+            <dd ng-if="vm.application.attributes.cloudProviders">{{vm.application.attributes.cloudProviders}}</dd>
+          </dl>
+          <button class="btn btn-link" ng-click="vm.editApplication()"><span class="glyphicon glyphicon-cog"></span>
+            Edit Application Attributes
+          </button>
         </div>
       </div>
     </div>
