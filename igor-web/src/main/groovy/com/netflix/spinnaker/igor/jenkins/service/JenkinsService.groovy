@@ -67,10 +67,7 @@ class JenkinsService {
     }
 
     Build getBuild(String jobName, Integer buildNumber) {
-        new SimpleHystrixCommand<Build>(
-            groupKey, "getBuild", {
-            return jenkinsClient.getBuild(jobName, buildNumber)
-        }).execute()
+        return jenkinsClient.getBuild(jobName, buildNumber)
     }
 
     ScmDetails getGitDetails(String jobName, Integer buildNumber) {
@@ -104,10 +101,6 @@ class JenkinsService {
     }
 
     Response getPropertyFile(String jobName, Integer buildNumber, String fileName) {
-        new SimpleHystrixCommand<Response>(
-            groupKey, "getPropertyFile", {
-            return jenkinsClient.getPropertyFile(jobName, buildNumber, fileName)
-        }).execute()
-
+        return jenkinsClient.getPropertyFile(jobName, buildNumber, fileName)emove
     }
 }
