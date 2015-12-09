@@ -9,7 +9,7 @@ gate:
 igor: 
   build: ../../../build/igor
 orca: 
-  build: ../../../build/igor
+  build: ../../../build/orca
 rosco: 
   build: ../../../build/rosco
 rush: 
