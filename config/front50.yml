@@ -1,5 +1,5 @@
 server:
-  port: ${services.front50.port:7002}
+  port: ${services.front50.port:8080}
   address: ${services.front50.host:localhost}
 
 cassandra:
