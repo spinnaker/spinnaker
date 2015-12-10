@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline
 
-import com.netflix.spinnaker.orca.pipeline.support.DeploymentStrategyParameterSupport
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractClusterWideClouddriverTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractWaitForClusterWideClouddriverTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
@@ -45,7 +44,7 @@ abstract class AbstractClusterWideClouddriverOperationStage extends LinearStage 
 
   @Override
   List<Step> buildSteps(Stage stage) {
-    DeploymentStrategyParameterSupport.resolveStrategyParams(stage)
+    stage.resolveStrategyParams()
     def operationTask = clusterOperationTask
     String name = getStepName(operationTask.simpleName)
     String opName = Introspector.decapitalize(name)

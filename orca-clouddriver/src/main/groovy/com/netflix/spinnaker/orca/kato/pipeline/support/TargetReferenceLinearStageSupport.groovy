@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.pipeline.support.DeploymentStrategyParameterSupport
 import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -39,7 +38,7 @@ abstract class TargetReferenceLinearStageSupport extends LinearStage {
   }
 
   void composeTargets(Stage stage) {
-    DeploymentStrategyParameterSupport.resolveStrategyParams(stage)
+    stage.resolveStrategyParams()
     if (targetReferenceSupport.isDynamicallyBound(stage)) {
       composeDynamicTargets(stage)
     } else {

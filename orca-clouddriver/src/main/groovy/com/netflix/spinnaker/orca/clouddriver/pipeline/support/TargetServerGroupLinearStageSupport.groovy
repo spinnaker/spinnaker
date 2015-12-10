@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.DetermineTargetServerGrou
 import com.netflix.spinnaker.orca.kato.pipeline.Nameable
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.support.DeploymentStrategyParameterSupport
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -41,7 +40,7 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
   }
 
   void composeTargets(Stage stage) {
-    DeploymentStrategyParameterSupport.resolveStrategyParams(stage)
+    stage.resolveStrategyParams()
     def params = TargetServerGroup.Params.fromStage(stage)
     if (TargetServerGroup.isDynamicallyBound(stage)) {
       composeDynamicTargets(stage, params)

@@ -106,6 +106,11 @@ class ImmutableStageSupport {
     }
 
     @Override
+    void resolveStrategyParams() {
+
+    }
+
+    @Override
     Stage preceding(String type) {
       self.preceding(type)?.asImmutable()
     }
