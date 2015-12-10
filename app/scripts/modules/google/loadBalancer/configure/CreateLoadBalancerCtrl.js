@@ -143,6 +143,10 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
     };
 
     $scope.taskMonitor.onApplicationRefresh = function handleApplicationRefreshComplete() {
+      // If the user has already closed the modal, do not navigate to the new details view
+      if ($scope.$$destroyed) {
+        return;
+      }
       $modalInstance.close();
       var newStateParams = {
         name: $scope.loadBalancer.name,

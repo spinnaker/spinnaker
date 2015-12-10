@@ -12,13 +12,14 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
   require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/history/recentHistory.service.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
+  require('../../../core/cloudProvider/cloudProvider.registry.js'),
 ])
-  .controller('cfInstanceDetailsCtrl', function ($scope, $state, $uibModal, InsightFilterStateModel,
-                                               instanceWriter, confirmationModalService, recentHistoryService,
-                                               instanceReader, _, instance, app) {
+  .controller('cfInstanceDetailsCtrl', function ($scope, $q, $state, $uibModal, InsightFilterStateModel,
+                                                 instanceWriter, confirmationModalService, recentHistoryService,
+                                                 cloudProviderRegistry, instanceReader, _, instance, app) {
 
     // needed for standalone instances
-    $scope.detailsTemplateUrl = require('./instanceDetails.html');
+    $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('cf', 'instance.detailsTemplateUrl');
 
     $scope.state = {
       loading: true,
@@ -116,7 +117,7 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
         extraData.account = account;
         extraData.region = region;
         recentHistoryService.addExtraDataToLatest('instances', extraData);
-        instanceReader.getInstanceDetails(account, region, instance.instanceId).then(function(details) {
+        return instanceReader.getInstanceDetails(account, region, instance.instanceId).then(function(details) {
           details = details.plain();
           $scope.state.loading = false;
           extractHealthMetrics(instanceSummary, details);
@@ -139,6 +140,7 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
       if (!instanceSummary) {
         autoClose();
       }
+      return $q.when(null);
     }
 
     function autoClose() {
@@ -347,9 +349,16 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
       );
     };
 
-    retrieveInstance();
-
-    app.registerAutoRefreshHandler(retrieveInstance, $scope);
+    retrieveInstance().then(() => {
+      // Two things to look out for here:
+      //  1. If the retrieveInstance call completes *after* the user has navigated away from the view, there
+      //     is no point in subscribing to the autoRefreshStream
+      //  2. If this is a standalone instance, there is no application that will refresh
+      if (!$scope.$$destroyed && !app.isStandalone) {
+        let refreshWatcher = app.autoRefreshStream.subscribe(retrieveInstance);
+        $scope.$on('$destroy', () => refreshWatcher.dispose());
+      }
+    });
 
     $scope.account = instance.account;
 

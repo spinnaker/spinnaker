@@ -13,14 +13,16 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
   require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/history/recentHistory.service.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
-  require('../../../core/config/settings.js')
+  require('../../../core/config/settings.js'),
+  require('../../../core/cloudProvider/cloudProvider.registry.js'),
 ])
   .controller('awsInstanceDetailsCtrl', function ($scope, $state, $uibModal, InsightFilterStateModel, settings,
                                                instanceWriter, confirmationModalService, recentHistoryService,
+                                                  cloudProviderRegistry,
                                                instanceReader, _, instance, app, $q, overrides) {
 
     // needed for standalone instances
-    $scope.detailsTemplateUrl = require('./instanceDetails.html');
+    $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('aws', 'instance.detailsTemplateUrl');
 
     $scope.state = {
       loading: true,
@@ -364,8 +366,14 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
     };
 
     retrieveInstance().then(() => {
-       let refreshWatcher = app.autoRefreshStream.subscribe(retrieveInstance);
-       $scope.$on('$destroy', () => refreshWatcher.dispose());
+      // Two things to look out for here:
+      //  1. If the retrieveInstance call completes *after* the user has navigated away from the view, there
+      //     is no point in subscribing to the autoRefreshStream
+      //  2. If this is a standalone instance, there is no application that will refresh
+      if (!$scope.$$destroyed && !app.isStandalone) {
+        let refreshWatcher = app.autoRefreshStream.subscribe(retrieveInstance);
+        $scope.$on('$destroy', () => refreshWatcher.dispose());
+      }
      });
 
     $scope.account = instance.account;
