@@ -152,6 +152,10 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
     return stageNavigator ? stageNavigator.findAll(this, matcher) :[]
   }
 
+  @Override
+  void resolveStrategyParams() {
+  }
+
   private JsonNode getPointer(String pointer, ObjectNode rootNode = contextToNode()) {
     pointer ? rootNode.at(pointer) : rootNode
   }

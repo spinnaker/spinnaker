@@ -28,6 +28,7 @@ interface Stage<T extends Execution> {
   public static final String STAGE_TIMEOUT_OVERRIDE_KEY = "stageTimeoutMs"
 
   String getRefId()
+
   void setRefId(String refId)
 
   /**
@@ -203,6 +204,7 @@ interface Stage<T extends Execution> {
   void setParentStageId(String id)
 
   Collection<String> getRequisiteStageRefIds()
+
   void setRequisiteStageRefIds(Collection<String> requisiteStageRefIds)
 
   /**
@@ -215,4 +217,10 @@ interface Stage<T extends Execution> {
    * @param scheduledTime
    */
   void setScheduledTime(long scheduledTime)
+
+  /**
+   * Enriches stage context if it supports strategies
+   */
+  void resolveStrategyParams()
+
 }

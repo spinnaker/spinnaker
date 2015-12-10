@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.igor.IgorService
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -51,6 +52,14 @@ class StartScriptTask implements Task {
     String account = stage.context.account
     String cluster = stage.context.cluster
     String cmc = stage.context.cmc
+
+    if(stage.execution instanceof Pipeline && stage.execution.trigger.parameters?.strategy == true){
+      Map trigger = ((Pipeline) stage.execution).trigger
+      image = image ?: trigger.parameters.amiName ?: trigger.parameters.imageId ?: ''
+      cluster = cluster ?: trigger.parameters.cluster ?: ''
+      account = account ?: trigger.parameters.credentials ?: ''
+      region = region ?: trigger.parameters.region ?: trigger.parameters.zone ?: ''
+    }
 
     def parameters = [
       SCRIPT_PATH  : scriptPath,
