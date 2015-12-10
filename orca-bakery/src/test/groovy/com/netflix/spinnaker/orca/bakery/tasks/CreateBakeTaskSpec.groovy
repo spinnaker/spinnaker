@@ -642,13 +642,41 @@ class CreateBakeTaskSpec extends Specification {
     then:
     1 * task.bakery.createBake(bakeConfig.region,
                                {
-                                 println "** it=$it packageName=$it.packageName"
                                  it.user == "bran" &&
                                  it.packageName == "hodor" &&
                                  it.baseLabel == BakeRequest.Label.release &&
                                  it.baseOs == OperatingSystem.ubuntu
                                },
                                "1") >> Observable.from(runningStatus)
+    0 * _
+  }
+
+  @Unroll
+  def "sets rebake query parameter to #queryParameter when trigger is #trigger"() {
+    given:
+    Pipeline pipeline = Pipeline.builder().withTrigger(trigger).build()
+    Stage stage = new PipelineStage(pipeline, "bake", bakeConfig).asImmutable()
+    task.bakery = Mock(BakeryService)
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * task.bakery.createBake(bakeConfig.region,
+                               {
+                                 it.user == "bran" &&
+                                 it.packageName == "hodor" &&
+                                 it.baseLabel == BakeRequest.Label.release &&
+                                 it.baseOs == OperatingSystem.ubuntu
+                               },
+                               queryParameter) >> Observable.from(runningStatus)
+    0 * _
+
+    where:
+    trigger         | queryParameter
+    [rebake: true]  | "1"
+    [rebake: false] | null
+    null            | null
   }
 
 }
