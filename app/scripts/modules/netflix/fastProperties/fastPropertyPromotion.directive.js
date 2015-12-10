@@ -4,6 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.fastProperties.promotion.directive', [
+    require('../../../modules/core/confirmationModal/confirmationModal.service'),
     require('../../core/utils/lodash.js'),
     require('./fastProperty.write.service.js'),
     require('./fastPropertyScope.service.js')
@@ -23,7 +24,7 @@ module.exports = angular
       controllerAs: 'fpPromotion',
     };
   })
-  .controller('fastPropertyPromotionController', function(_, fastPropertyWriter, $timeout, FastPropertyScopeService) {
+  .controller('fastPropertyPromotionController', function(_, fastPropertyWriter, $timeout, FastPropertyScopeService, confirmationModalService) {
     let vm = this;
 
     let refreshApp = () => {
@@ -69,6 +70,16 @@ module.exports = angular
       promotion.isPromoting = true;
       fastPropertyWriter.stopPromotion(promotion.id)
         .then(refreshApp, refreshApp);
+    };
+
+    vm.deletePromotion = function($event, promotion) {
+      $event.stopPropagation();
+      confirmationModalService.confirm({
+        header: 'Really delete promotion?',
+        buttonText: 'Delete',
+        body: '<p>This will permanently delete the promotion.</p>',
+        submitMethod: () => fastPropertyWriter.deletePromotion(promotion.id).then(refreshApp, refreshApp)
+      });
     };
 
   })

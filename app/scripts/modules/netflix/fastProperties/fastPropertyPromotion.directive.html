@@ -55,11 +55,25 @@
                   <button class="btn btn-primary btn-xs" ng-if="promotion.state === 'Running' && promotion.range.currentStep !== promotion.range.totalSteps" ng-click="fpPromotion.continue($event, promotion)" ng-disabled="promotion.isPromoting">continue</button>
                   <button class="btn btn-primary btn-xs" ng-if="promotion.state === 'Running' && promotion.range.currentStep === promotion.range.totalSteps" ng-click="fpPromotion.continue($event, promotion)" ng-disabled="promotion.isPromoting">finalize</button>
                   <button class="btn btn-danger btn-xs" ng-if="promotion.state === 'Running'" ng-click="fpPromotion.stop($event, promotion)" ng-disabled="promotion.isPromoting">rollback</button>
+                  <a href
+                     class="pull-right"
+                     style="margin-top:2px;"
+                     ng-click="fpPromotion.deletePromotion($event, promotion)"
+                     uib-tooltip="Delete Promotion">
+                    <span class="glyphicon glyphicon-trash"></span>
+                  </a>
                 </span>
 
                 <span ng-if="promotion.strategy.name === 'aca'">
                   <button class="btn btn-primary btn-xs" ng-if="promotion.state === 'Running' && promotion.range.currentStep === promotion.range.totalSteps" ng-click="fpPromotion.continue($event, promotion)" ng-disabled="promotion.isPromoting">finalize</button>
                   <button class="btn btn-danger btn-xs" ng-if="promotion.state === 'Running'" ng-click="fpPromotion.stop($event, promotion)" ng-disabled="promotion.isPromoting">rollback</button>
+                  <a href
+                     class="pull-right"
+                     style="margin-top:2px;"
+                     ng-click="fpPromotion.deletePromotion($event, promotion)"
+                     uib-tooltip="Delete Promotion">
+                    <span class="glyphicon glyphicon-trash"></span>
+                  </a>
                 </span>
 
               </span>

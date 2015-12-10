@@ -206,6 +206,8 @@ module.exports = angular
           vm.property.startScope = _.set(vm.property.startScope, 'zone', 'none' );
           vm.property.startScope = _.set(vm.property.startScope, 'asg', 'none' );
           vm.property.strategy.option = 'number';
+        } else {
+          delete vm.property.canary;
         }
 
         vm.property.startScope.appIdList.forEach(vm.startApplicationSelected);
