@@ -17,17 +17,21 @@
 package com.netflix.spinnaker.kork.astyanax;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Supplier;
 import com.google.common.cache.*;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.netflix.astyanax.AstyanaxConfiguration;
 import com.netflix.astyanax.AstyanaxContext;
 import com.netflix.astyanax.Keyspace;
 import com.netflix.astyanax.connectionpool.ConnectionPoolConfiguration;
-import com.netflix.astyanax.connectionpool.ConnectionPoolMonitor;
+import com.netflix.astyanax.connectionpool.Host;
 import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
 import com.netflix.astyanax.connectionpool.exceptions.UnknownException;
+import com.netflix.astyanax.connectionpool.impl.ConnectionPoolConfigurationImpl;
 import com.netflix.astyanax.thrift.ThriftFamilyFactory;
 
 import javax.annotation.PreDestroy;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class DefaultAstyanaxKeyspaceFactory implements AstyanaxKeyspaceFactory {
@@ -36,11 +40,13 @@ public class DefaultAstyanaxKeyspaceFactory implements AstyanaxKeyspaceFactory {
 
     public DefaultAstyanaxKeyspaceFactory(final AstyanaxConfiguration astyanaxConfiguration,
                                           final ConnectionPoolConfiguration connectionPoolConfiguration,
-                                          final ConnectionPoolMonitor connectionPoolMonitor) {
+                                          final KeyspaceConnectionPoolMonitorFactory connectionPoolMonitorFactory,
+                                          final ClusterHostSupplierFactory clusterHostSupplierFactory,
+                                          final KeyspaceInitializer keyspaceInitializer) {
         keyspaces = CacheBuilder
                 .newBuilder()
                 .removalListener(createRemovalListener())
-                .build(createCacheLoader(astyanaxConfiguration, connectionPoolConfiguration, connectionPoolMonitor));
+                .build(createCacheLoader(astyanaxConfiguration, connectionPoolConfiguration, connectionPoolMonitorFactory, clusterHostSupplierFactory, keyspaceInitializer));
     }
 
     @Override
@@ -52,6 +58,9 @@ public class DefaultAstyanaxKeyspaceFactory implements AstyanaxKeyspaceFactory {
                 throw (ConnectionException) ex.getCause();
             }
             throw new UnknownException(ex.getCause());
+        } catch (UncheckedExecutionException uee) {
+          uee.printStackTrace();
+          throw uee;
         }
     }
 
@@ -114,18 +123,27 @@ public class DefaultAstyanaxKeyspaceFactory implements AstyanaxKeyspaceFactory {
 
     CacheLoader<KeyspaceKey, AstyanaxContext<Keyspace>> createCacheLoader(final AstyanaxConfiguration astyanaxConfiguration,
                                                                           final ConnectionPoolConfiguration connectionPoolConfiguration,
-                                                                          final ConnectionPoolMonitor connectionPoolMonitor) {
+                                                                          final KeyspaceConnectionPoolMonitorFactory connectionPoolMonitorFactory,
+                                                                          final ClusterHostSupplierFactory clusterHostSupplierFactory,
+                                                                          final KeyspaceInitializer keyspaceInitializer) {
         return new CacheLoader<KeyspaceKey, AstyanaxContext<Keyspace>>() {
             @Override
             public AstyanaxContext<Keyspace> load(KeyspaceKey key) throws Exception {
+                Supplier<List<Host>> hostSupplier = clusterHostSupplierFactory.createHostSupplier(key.getClusterName());
+                if (hostSupplier != null) {
+                  hostSupplier.get();
+                  ((ConnectionPoolConfigurationImpl) connectionPoolConfiguration).setSeeds(null);
+                }
                 AstyanaxContext<Keyspace> context = new AstyanaxContext.Builder()
                         .forCluster(key.getClusterName())
                         .forKeyspace(key.getKeyspaceName())
                         .withAstyanaxConfiguration(astyanaxConfiguration)
                         .withConnectionPoolConfiguration(connectionPoolConfiguration)
-                        .withConnectionPoolMonitor(connectionPoolMonitor)
+                        .withConnectionPoolMonitor(connectionPoolMonitorFactory.createMonitorForKeyspace(key.getClusterName(), key.getKeyspaceName()))
+                        .withHostSupplier(hostSupplier)
                         .buildKeyspace(ThriftFamilyFactory.getInstance());
                 context.start();
+                keyspaceInitializer.initKeyspace(context.getClient());
                 return context;
             }
         };

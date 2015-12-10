@@ -23,7 +23,6 @@ import com.netflix.astyanax.AstyanaxConfiguration;
 import com.netflix.astyanax.AstyanaxContext;
 import com.netflix.astyanax.Keyspace;
 import com.netflix.astyanax.connectionpool.ConnectionPoolConfiguration;
-import com.netflix.astyanax.connectionpool.ConnectionPoolMonitor;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -71,14 +70,17 @@ public class DefaultAstyanaxKeyspaceFactoryTest {
         public final AtomicInteger removeCount = new AtomicInteger();
 
         public TestDAKF(AstyanaxComponents comp) {
-            super(comp.astyanaxConfiguration(), comp.connectionPoolConfiguration(9160, "127.0.0.1", 3), comp.connectionPoolMonitor());
+            super(comp.astyanaxConfiguration(comp.cassandraAsyncExecutor(5)), comp.connectionPoolConfiguration(), comp.countingConnectionPoolMonitor(), comp.clusterHostSupplierFactory(), comp.noopKeyspaceInitializer());
         }
 
         @Override
         CacheLoader<DefaultAstyanaxKeyspaceFactory.KeyspaceKey, AstyanaxContext<Keyspace>> createCacheLoader(AstyanaxConfiguration astyanaxConfiguration,
                                                                                                              ConnectionPoolConfiguration connectionPoolConfiguration,
-                                                                                                             ConnectionPoolMonitor connectionPoolMonitor) {
-            final CacheLoader<KeyspaceKey, AstyanaxContext<Keyspace>> delegate = super.createCacheLoader(astyanaxConfiguration, connectionPoolConfiguration, connectionPoolMonitor);
+                                                                                                             KeyspaceConnectionPoolMonitorFactory connectionPoolMonitorFactory,
+                                                                                                             ClusterHostSupplierFactory hostSupplierFactory,
+                                                                                                             KeyspaceInitializer keyspaceInitializer) {
+
+            final CacheLoader<KeyspaceKey, AstyanaxContext<Keyspace>> delegate = super.createCacheLoader(astyanaxConfiguration, connectionPoolConfiguration, connectionPoolMonitorFactory, hostSupplierFactory, keyspaceInitializer);
             return new CacheLoader<KeyspaceKey, AstyanaxContext<Keyspace>>() {
                 @Override
                 public AstyanaxContext<Keyspace> load(KeyspaceKey key) throws Exception {
