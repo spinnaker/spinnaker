@@ -42,7 +42,13 @@ module.exports = angular
         .customPUT(null, null, {pass:false});
     }
 
-
+    function deletePromotion(promotionId) {
+      return Restangular.all('fastproperties')
+        .all('promote')
+        .remove({
+          promotionId: promotionId
+        });
+    }
 
     function createPromotedPayload(fastProperty) {
       return _(fastProperty)
@@ -86,5 +92,6 @@ module.exports = angular
       extractScopeIntoSelectedScope: extractScopeIntoSelectedScope,
       continuePromotion: continuePromotion,
       stopPromotion: stopPromotion,
+      deletePromotion: deletePromotion,
     };
   }).name;
