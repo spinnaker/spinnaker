@@ -44,7 +44,7 @@ pipeline-graph {
         stroke: @unhealthy_red;
       }
       &.completed {
-        stroke: @stage_complete;
+        stroke: @stage-completed;
       }
       &.not_started, &.suspended, &.canceled, &.unknown {
         stroke: @mid_light_grey;
@@ -52,13 +52,8 @@ pipeline-graph {
     }
 
     g {
-      circle, rect {
-        fill: @mid_light_grey;
-      }
-      &.connected {
-        circle, rect {
-          fill: @mid_lighter_grey;
-        }
+      rect {
+        fill: @stage-default;
       }
       &.active, &.highlighted {
         circle, rect {
@@ -67,7 +62,6 @@ pipeline-graph {
         }
         &.has-status {
           circle {
-            fill: #ffffff;
             fill-opacity: 1;
             stroke: @mid_grey;
             stroke-width: 2px;

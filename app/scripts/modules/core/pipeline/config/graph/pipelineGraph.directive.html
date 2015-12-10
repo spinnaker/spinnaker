@@ -29,9 +29,8 @@
     </foreignobject>
 
     <circle ng-attr-r="{{nodeRadius}}"
-            class="clickable"
+            class="clickable stage-type-{{stage.masterStage.type.toLowerCase()}} execution-marker execution-marker-{{stage.status.toLowerCase()}}"
             ng-class="{active: stage.isActive}"
-            ng-style="{fill: stage.color}"
             ng-attr-fill-opacity="{{!stage.isActive && stage.executionStage ? 0.4: 1}}"
             ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
             ng-click="nodeClicked(stage)"></circle>

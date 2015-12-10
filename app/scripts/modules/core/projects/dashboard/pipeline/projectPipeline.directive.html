@@ -7,7 +7,7 @@
   (<execution-build-number execution="vm.execution"></execution-build-number><span ng-if="vm.hasBuildInfo">, </span>started {{vm.execution.startTime | timestamp }})
   <div class="execution-bar">
     <div ng-repeat="stage in vm.execution.stageSummaries"
-         class="clickable stage execution-status execution-status-{{stage.status.toLowerCase()}}"
+         class="clickable stage execution-marker execution-marker-{{stage.status.toLowerCase()}}"
          ng-style="{width: vm.stageWidth, 'background-color': stage.color}"
          uib-tooltip-template="stage.labelTemplateUrl"
          tooltip-title="(Click for details)"
