@@ -13,13 +13,14 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
   require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/history/recentHistory.service.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
+  require('../../../core/cloudProvider/cloudProvider.registry.js'),
 ])
   .controller('azureInstanceDetailsCtrl', function ($scope, $state, $modal, InsightFilterStateModel,
-                                               instanceWriter, confirmationModalService, recentHistoryService,
-                                               instanceReader, _, instance, app, $q) {
+                                                    instanceWriter, confirmationModalService, recentHistoryService,
+                                                    cloudProviderRegistry, instanceReader, _, instance, app, $q) {
 
     // needed for standalone instances
-    $scope.detailsTemplateUrl = require('./instanceDetails.html');
+    $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('azure', 'instance.detailsTemplateUrl');
 
     $scope.state = {
       loading: true,
@@ -368,7 +369,16 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
       );
     };
 
-    retrieveInstance().then(() => app.registerAutoRefreshHandler(retrieveInstance, $scope));
+    retrieveInstance().then(() => {
+      // Two things to look out for here:
+      //  1. If the retrieveInstance call completes *after* the user has navigated away from the view, there
+      //     is no point in subscribing to the autoRefreshStream
+      //  2. If this is a standalone instance, there is no application that will refresh
+      if (!$scope.$$destroyed && !app.isStandalone) {
+        let refreshWatcher = app.autoRefreshStream.subscribe(retrieveInstance);
+        $scope.$on('$destroy', () => refreshWatcher.dispose());
+      }
+    });
 
     $scope.account = instance.account;
 

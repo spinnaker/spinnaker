@@ -44,7 +44,14 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.con
       $state.go('^');
     }
 
-    extractSecurityGroup().then(() => application.registerAutoRefreshHandler(extractSecurityGroup, $scope));
+    extractSecurityGroup().then(() => {
+      // If the user navigates away from the view before the initial extractSecurityGroup call completes,
+      // do not bother subscribing to the autoRefreshStream
+      if (!$scope.$$destroyed) {
+        let refreshWatcher = app.autoRefreshStream.subscribe(extractSecurityGroup);
+        $scope.$on('$destroy', () => refreshWatcher.dispose());
+      }
+    });
 
     this.editInboundRules = function editInboundRules() {
       $modal.open({

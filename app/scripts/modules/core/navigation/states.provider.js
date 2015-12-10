@@ -493,10 +493,10 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
           app: function() {
             return {
               name: '(standalone instance)',
-              registerAutoRefreshHandler: angular.noop,
               isStandalone: true,
             };
-          }
+          },
+          overrides: () => { return {}; },
         },
         data: {
           pageTitleDetails: {

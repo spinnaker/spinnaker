@@ -73,8 +73,9 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
     };
 
     $scope.pipelineSelected = () => {
-      let pipeline = $scope.command.pipeline;
-      $scope.currentlyRunningExecutions = application.executions
+      let pipeline = $scope.command.pipeline,
+          executions = application.executions || [];
+      $scope.currentlyRunningExecutions = executions
         .filter((execution) => execution.pipelineConfigId === pipeline.id && execution.isActive);
       addTriggers();
       $scope.triggerUpdated();

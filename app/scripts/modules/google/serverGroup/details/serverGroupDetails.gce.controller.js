@@ -196,7 +196,14 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       }
     }
 
-    retrieveServerGroup().then(() => application.registerAutoRefreshHandler(retrieveServerGroup, $scope));
+    retrieveServerGroup().then(() => {
+      // If the user navigates away from the view before the initial retrieveServerGroup call completes,
+      // do not bother subscribing to the autoRefreshStream
+      if (!$scope.$$destroyed) {
+        let refreshWatcher = app.autoRefreshStream.subscribe(retrieveServerGroup);
+        $scope.$on('$destroy', () => refreshWatcher.dispose());
+      }
+    });
 
     this.destroyServerGroup = function destroyServerGroup() {
       var serverGroup = $scope.serverGroup;
