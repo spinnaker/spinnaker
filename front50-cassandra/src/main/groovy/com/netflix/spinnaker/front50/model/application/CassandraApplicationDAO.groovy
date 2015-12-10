@@ -35,14 +35,14 @@ import org.apache.cassandra.db.marshal.UTF8Type
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
-import org.springframework.context.ApplicationListener
-import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.stereotype.Component
+
+import javax.annotation.PostConstruct
 
 @Slf4j
 @Component
 @ConditionalOnExpression('${spinnaker.cassandra.enabled:false}')
-class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<ContextRefreshedEvent> {
+class CassandraApplicationDAO implements ApplicationDAO {
   private static final MapSerializer<String, String> mapSerializer = new MapSerializer<String, String>(UTF8Type.instance, UTF8Type.instance)
   private static final ListSerializer<String> listSerializer = new ListSerializer(UTF8Type.instance)
 
@@ -66,8 +66,8 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
   @Autowired
   ObjectMapper objectMapper
 
-  @Override
-  void onApplicationEvent(ContextRefreshedEvent event) {
+  @PostConstruct
+  void init() {
     try {
       runQuery(TEST_QUERY)
     } catch (BadRequestException ignored) {

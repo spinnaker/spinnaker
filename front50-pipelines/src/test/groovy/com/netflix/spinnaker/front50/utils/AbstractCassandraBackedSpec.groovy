@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.front50.utils
 
 import com.netflix.astyanax.Keyspace
+import com.netflix.astyanax.connectionpool.impl.ConnectionPoolConfigurationImpl
 import com.netflix.spinnaker.kork.astyanax.AstyanaxComponents
 import com.netflix.spinnaker.kork.astyanax.AstyanaxComponents.EmbeddedCassandraRunner
 import spock.lang.Ignore
@@ -25,19 +26,24 @@ class AbstractCassandraBackedSpec extends Specification {
         int port = 9160
         int storagePort = 7000
         String host = '127.0.0.1'
-
-        AstyanaxComponents components = new AstyanaxComponents()
-        keyspace = components.keyspaceFactory(
-            components.astyanaxConfiguration(),
-            components.connectionPoolConfiguration(port, host, 3),
-            components.connectionPoolMonitor()
-        ).getKeyspace('workflow', 'test')
-
         try {
             new Socket(host, port)
         } catch (ConnectException e) {
-            runner = new EmbeddedCassandraRunner(keyspace, port, storagePort, host)
+            runner = new EmbeddedCassandraRunner(port, storagePort, host)
             runner.init()
         }
+
+        AstyanaxComponents components = new AstyanaxComponents()
+        ConnectionPoolConfigurationImpl poolCfg = components.connectionPoolConfiguration()
+        poolCfg.setPort(port)
+        poolCfg.setSeeds(host)
+
+        keyspace = components.keyspaceFactory(
+            components.astyanaxConfiguration(components.cassandraAsyncExecutor(5)),
+            poolCfg,
+            components.countingConnectionPoolMonitor(),
+            components.clusterHostSupplierFactory(),
+            runner ?: components.noopKeyspaceInitializer()).getKeyspace('workflow', 'test')
+
     }
 }

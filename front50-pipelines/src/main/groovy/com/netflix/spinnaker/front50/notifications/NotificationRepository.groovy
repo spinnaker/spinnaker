@@ -29,16 +29,16 @@ import com.netflix.astyanax.serializers.StringSerializer
 import com.netflix.astyanax.util.RangeBuilder
 import com.netflix.spinnaker.front50.utils.Zip
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationListener
-import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.stereotype.Repository
+
+import javax.annotation.PostConstruct
 
 /**
  * Repository for presets
  */
 @Repository
 @SuppressWarnings('PropertyName')
-class NotificationRepository implements ApplicationListener<ContextRefreshedEvent> {
+class NotificationRepository {
 
     @Autowired
     Keyspace keyspace
@@ -48,8 +48,8 @@ class NotificationRepository implements ApplicationListener<ContextRefreshedEven
     static final def NOTIFICATION_FORMATS = ['sms', 'email', 'hipchat', 'slack']
     ObjectMapper mapper = new ObjectMapper()
 
-    @Override
-    void onApplicationEvent(ContextRefreshedEvent event) {
+    @PostConstruct
+    void init() {
         CF_NOTIFICATIONS = ColumnFamily.newColumnFamily(CF_NAME, StringSerializer.get(), StringSerializer.get())
         List<String> columnFamilyNames = keyspace.describeKeyspace().columnFamilyList*.name
         if (!columnFamilyNames.contains(CF_NOTIFICATIONS.name)) {

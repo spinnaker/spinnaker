@@ -27,9 +27,9 @@ import com.netflix.astyanax.serializers.IntegerSerializer
 import com.netflix.astyanax.serializers.StringSerializer
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationListener
-import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.stereotype.Repository
+
+import javax.annotation.PostConstruct
 
 /**
  * Repository for presets
@@ -37,7 +37,7 @@ import org.springframework.stereotype.Repository
 @Repository
 @SuppressWarnings('PropertyName')
 @Slf4j
-class StrategyRepository implements ApplicationListener<ContextRefreshedEvent> {
+class StrategyRepository {
 
     @Autowired
     Keyspace keyspace
@@ -46,8 +46,8 @@ class StrategyRepository implements ApplicationListener<ContextRefreshedEvent> {
     static final String CF_NAME = 'strategyConfigs'
     ObjectMapper mapper = new ObjectMapper()
 
-    @Override
-    void onApplicationEvent(ContextRefreshedEvent event) {
+    @PostConstruct
+    void init() {
         CF_PIPELINES = ColumnFamily.newColumnFamily(CF_NAME, IntegerSerializer.get(), StringSerializer.get())
         try {
             runQuery '''select * from strategy limit 1;'''

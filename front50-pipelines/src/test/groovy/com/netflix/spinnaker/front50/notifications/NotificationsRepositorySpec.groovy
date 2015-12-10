@@ -26,7 +26,7 @@ class NotificationsRepositorySpec extends AbstractCassandraBackedSpec {
     void setupSpec() {
         repo = new NotificationRepository()
         repo.keyspace = keyspace
-        repo.onApplicationEvent(null)
+        repo.init()
     }
 
     void cleanup() {
