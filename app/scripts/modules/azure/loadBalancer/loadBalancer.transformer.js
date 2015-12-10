@@ -86,53 +86,24 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
         editMode: true,
         region: loadBalancer.region,
         credentials: loadBalancer.account,
-        listeners: [],
+        loadBalancingRules: [],
         name: loadBalancer.name,
-        regionZones: loadBalancer.availabilityZones
+        stack: loadBalancer.stack,
+        detail: loadBalancer.detail,
+        probes: []
       };
 
       if (loadBalancer.elb) {
         var elb = loadBalancer.elb;
 
         toEdit.securityGroups = elb.securityGroups;
-        toEdit.vpcId = elb.vpcid;
+        toEdit.vnet = elb.vnet;
 
-        if (elb.listenerDescriptions) {
-          toEdit.listeners = elb.listenerDescriptions.map(function (description) {
-            var listener = description.listener;
-            return {
-              internalProtocol: listener.instanceProtocol,
-              internalPort: listener.instancePort,
-              externalProtocol: listener.protocol,
-              externalPort: listener.loadBalancerPort,
-              sslCertificateId: listener.sslcertificateId
-            };
-          });
+        if (elb.loadBalancingRules) {
+          toEdit.loadBalancingRules = elb.loadBalancingRules;
         }
 
-        if (elb.healthCheck && elb.healthCheck.target) {
-          toEdit.healthTimeout = elb.healthCheck.timeout;
-          toEdit.healthInterval = elb.healthCheck.interval;
-          toEdit.healthyThreshold = elb.healthCheck.healthyThreshold;
-          toEdit.unhealthyThreshold = elb.healthCheck.unhealthyThreshold;
-
-          var healthCheck = loadBalancer.elb.healthCheck.target;
-          var protocolIndex = healthCheck.indexOf(':'),
-            pathIndex = healthCheck.indexOf('/');
-
-          if (pathIndex === -1) {
-            pathIndex = healthCheck.length;
-          }
-
-          if (protocolIndex !== -1) {
-            toEdit.healthCheckProtocol = healthCheck.substring(0, protocolIndex);
-            toEdit.healthCheckPort = healthCheck.substring(protocolIndex + 1, pathIndex);
-            toEdit.healthCheckPath = healthCheck.substring(pathIndex);
-            if (!isNaN(toEdit.healthCheckPort)) {
-              toEdit.healthCheckPort = Number(toEdit.healthCheckPort);
-            }
-          }
-        }
+        toEdit.probes = elb.probes;
       }
       return toEdit;
     }

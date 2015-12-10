@@ -16,19 +16,19 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
       basicSettings: require('./basicSettings.html'),
-      loadBalancers: require('./loadBalancers.html'),
+/*      loadBalancers: require('./loadBalancers.html'),
       securityGroups: require('./securityGroups.html'),
       instanceArchetype: require('./instanceArchetype.html'),
       instanceType: require('./instanceType.html'),
       capacity: require('./capacity.html'),
       advancedSettings: require('./advancedSettings.html'),
+      */
     };
 
     $scope.title = title;
 
     $scope.applicationName = application.name;
     $scope.application = application;
-
     $scope.command = serverGroupCommand;
 
     $scope.state = {
@@ -75,6 +75,7 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: 'Creating your server group',
+      forceRefreshMessage: 'Getting your new server group from Azure...',
       modalInstance: $modalInstance,
       onTaskComplete: onTaskComplete,
     });
@@ -127,7 +128,6 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
       $scope.$watch('command.securityGroups', $scope.command.configureSecurityGroupDiffs);
     }
 
-    // TODO: Move to service
     function initializeSelectOptions() {
       processCommandUpdateResult($scope.command.credentialsChanged());
       processCommandUpdateResult($scope.command.regionChanged());
@@ -152,7 +152,6 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
       }
     }
 
-    // TODO: Move to service, or don't
     function initializeCommand() {
       if (serverGroupCommand.viewState.imageId) {
         var foundImage = $scope.command.backingData.packageImages.filter(function(image) {
@@ -165,6 +164,7 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
     }
 
     this.isValid = function () {
+      //TODO:larrygug - modify to fit Azure model. Need to change the command object completely.
       return $scope.command &&
         ($scope.command.viewState.useAllImageSelection ? $scope.command.viewState.allImageSelection !== null : $scope.command.amiName !== null) &&
         ($scope.command.application !== null) &&
