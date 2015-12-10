@@ -40,4 +40,18 @@ class PipelineStage extends AbstractStage<Pipeline> {
   PipelineStage(Pipeline pipeline, String type, Map<String, Object> context) {
     super(pipeline, type, context)
   }
+
+  @Override
+  void resolveStrategyParams() {
+    if (execution.trigger.parameters && execution.trigger.parameters['strategy'] == true) {
+      context.cloudProvider = execution.trigger.parameters['cloudProvider']
+      context.cluster = execution.trigger.parameters['cluster']
+      context.credentials = execution.trigger.parameters['credentials']
+      if (execution.trigger.parameters['region']) {
+        context.regions = [execution.trigger.parameters['region']]
+      } else if (execution.trigger.parameters['zone']) {
+        context.zones = [execution.trigger.parameters['zone']]
+      }
+    }
+  }
 }

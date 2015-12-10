@@ -44,6 +44,7 @@ abstract class AbstractClusterWideClouddriverOperationStage extends LinearStage 
 
   @Override
   List<Step> buildSteps(Stage stage) {
+    stage.resolveStrategyParams()
     def operationTask = clusterOperationTask
     String name = getStepName(operationTask.simpleName)
     String opName = Introspector.decapitalize(name)
