@@ -23,8 +23,6 @@ module.exports = angular
           children: [],
           parentLinks: [],
           childLinks: [],
-          color: stage.color,
-          strokeColor: stage.color,
           isActive: viewState.activeStageId === stage.index && viewState.executionId === execution.id,
           isHighlighted: false,
           status: stage.status,
@@ -32,9 +30,6 @@ module.exports = angular
           hasNotStarted: stage.hasNotStarted,
           executionId: execution.id,
         };
-        if (node.isActive) {
-          node.strokeColor = '#ffffff';
-        }
         if (!node.parentIds.length) {
           node.root = true;
         }

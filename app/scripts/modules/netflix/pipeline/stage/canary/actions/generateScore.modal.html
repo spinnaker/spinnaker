@@ -43,9 +43,7 @@
               ng-if="state !== 'success'"
               ng-click="ctrl.generateCanaryScore()"
               ng-disabled="state === 'submitting' || !command.duration || command.duration < 1">
-        <span ng-if="state === 'submitting'" style="display: inline-block; position: relative; width: 16px; height: 15px">
-          <span us-spinner="{color: '#ffffff', left: '3px', top: '10px', radius:3, width: 2, length: 3}"></span>
-        </span>
+        <button-busy-indicator ng-if="state === 'submitting'"></button-busy-indicator>
         Submit
       </button>
     </div>

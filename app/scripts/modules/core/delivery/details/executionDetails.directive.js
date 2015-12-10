@@ -11,6 +11,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionDetails.direct
       restrict: 'E',
       scope: {
         execution: '=',
+        application: '=',
       },
       templateUrl: require('./executionDetails.html'),
       controller: 'executionDetails as ctrl',

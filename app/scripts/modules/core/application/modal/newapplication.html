@@ -188,9 +188,7 @@
               ng-disabled="newApplicationForm.$invalid || !newAppModal.application.hasOwnProperty('account') || (newAppModal.application.hasOwnProperty('account') && newAppModal.application.account.length < 1)|| newAppModal.state.submitting"
               ng-click="newAppModal.submit()">
         <span class="glyphicon glyphicon-ok-circle" ng-if="!newAppModal.state.submitting"></span>
-        <span ng-if="newAppModal.state.submitting" style="display: inline-block; position: relative; width: 16px; height: 15px">
-          <span us-spinner="{color: '#ffffff', left: '3px', top: '10px', radius:3, width: 2, length: 3}"></span>
-        </span>
+        <button-busy-indicator ng-if="newAppModal.state.submitting"></button-busy-indicator>
         Create
       </button>
     </div>

@@ -17,25 +17,25 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
     }
 
     function getExecutions(applicationName, statuses=[]) {
-
-      var deferred = $q.defer();
       let url = [ settings.gateUrl, 'applications', applicationName, 'pipelines'].join('/');
       if (statuses.length) {
         url += '?statuses=' + statuses.map((status) => status.toUpperCase()).join(',');
       }
-      $http({
+      return $http({
         method: 'GET',
         url: url,
         timeout: settings.pollSchedule * 2 + 5000, // TODO: replace with apiHost call
-      }).then(
-        function(resp) {
-          deferred.resolve(resp.data);
-        },
-        function(resp) {
-          deferred.reject(resp);
-        }
-      );
-      return deferred.promise;
+      })
+        .then((resp) => resp.data);
+    }
+
+    function getExecution(executionId) {
+      const url = [ settings.gateUrl, 'pipelines', executionId].join('/');
+      return $http({
+        method: 'GET',
+        url: url,
+        timeout: settings.pollSchedule * 2 + 5000, // TODO: replace with apiHost call
+      }).then((resp) => resp.data);
     }
 
     function transformExecutions(application, executions) {
@@ -131,6 +131,17 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       return deferred.promise;
     }
 
+    function waitUntilExecutionMatches(executionId, closure) {
+      return getExecution(executionId).then(
+        (execution) => {
+          if (closure(execution)) {
+            return execution;
+          }
+          return $timeout(() => waitUntilExecutionMatches(executionId, closure), 1000);
+        }
+      );
+    }
+
     function getSectionCacheKey(groupBy, application, heading) {
       return ['pipeline', groupBy, application, heading].join('#');
     }
@@ -166,6 +177,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       deleteExecution: deleteExecution,
       forceRefresh: scheduler.scheduleImmediate,
       waitUntilNewTriggeredPipelineAppears: waitUntilNewTriggeredPipelineAppears,
+      waitUntilExecutionMatches: waitUntilExecutionMatches,
       getSectionCacheKey: getSectionCacheKey,
       getProjectExecutions: getProjectExecutions,
     };
