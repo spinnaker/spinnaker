@@ -2,6 +2,8 @@
 
 describe('Controller: azureCreateLoadBalancerCtrl', function () {
 
+  var $http;
+
   // load the controller's module
   beforeEach(
     window.module(
@@ -20,51 +22,37 @@ describe('Controller: azureCreateLoadBalancerCtrl', function () {
       isNew: true
     });
   }));
+  
+  beforeEach(window.inject(function($httpBackend) {
+     // Set up the mock http service responses
+     $http = $httpBackend;
+   }));
 
-  it('requires health check path for HTTP/S', function () {
-    var loadBalancer = {
-      healthCheckProtocol: 'HTTP'
-    };
-
-    this.$scope.loadBalancer = loadBalancer;
-
-    expect(this.ctrl.requiresHealthCheckPath()).toBe(true);
-
-    loadBalancer.healthCheckProtocol = 'HTTPS';
-    expect(this.ctrl.requiresHealthCheckPath()).toBe(true);
-
-    loadBalancer.healthCheckProtocol = 'SSL';
-    expect(this.ctrl.requiresHealthCheckPath()).toBe(false);
-
-    loadBalancer.healthCheckProtocol = 'TCP';
-    expect(this.ctrl.requiresHealthCheckPath()).toBe(false);
-
+  it('correctly creates a default loadbalancer', function() {
+    var lb = this.$scope.loadBalancer;
+    
+    expect(lb.probes.length).toEqual(1);
+    expect(lb.loadBalancingRules.length).toEqual(1);
+    
+    expect(lb.loadBalancingRules[0].protocol).toEqual('TCP');
+    
+    expect(this.$scope.existingLoadBalancerNames).toEqual(undefined);
+    expect(lb.providerType).toEqual(undefined);
   });
-
-  it('includes SSL Certificate field when any listener is HTTPS or SSL', function() {
-    var loadBalancer = {
-      listeners: [],
-    };
-
-    this.$scope.loadBalancer = loadBalancer;
-
-    expect(this.ctrl.showSslCertificateIdField()).toBe(false);
-
-    loadBalancer.listeners.push({ externalProtocol: 'HTTP' });
-    expect(this.ctrl.showSslCertificateIdField()).toBe(false);
-
-    loadBalancer.listeners.push({ externalProtocol: 'TCP' });
-    expect(this.ctrl.showSslCertificateIdField()).toBe(false);
-
-    loadBalancer.listeners.push({ externalProtocol: 'SSL' });
-    expect(this.ctrl.showSslCertificateIdField()).toBe(true);
-
-    loadBalancer.listeners = [{externalProtocol: 'HTTP'}];
-    loadBalancer.listeners.push({ externalProtocol: 'HTTPS' });
-    expect(this.ctrl.showSslCertificateIdField()).toBe(true);
-
-    loadBalancer.listeners = [ { externalProtocol: 'HTTPS' }, { externalProtocol: 'HTTPS' }];
-    expect(this.ctrl.showSslCertificateIdField()).toBe(true);
+  
+  it('makes the expected REST calls for data for a new loadbalancer', function(){
+    $http.when('GET','/loadBalancers?provider=azure').respond([]);
+    $http.when('GET','/securityGroups').respond({});
+    $http.when('GET','/credentials').respond([]);
+    $http.when('GET','/credentials/azure-test').respond([]);
+    $http.when('GET','/subnets').respond([]);
+    
+    $http.expectGET('/loadBalancers?provider=azure');
+    $http.expectGET('/securityGroups');
+    $http.expectGET('/credentials');
+    $http.expectGET('/credentials/azure-test');
+    $http.expectGET('/subnets');
+    $http.flush();
   });
 
 });

@@ -146,24 +146,30 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
         detail: 'frontend',
         credentials: defaultCredentials,
         region: defaultRegion,
-        vpcId: null,
-        healthCheckProtocol: 'HTTP',
-        healthCheckPort: 7001,
-        healthCheckPath: '/healthcheck',
-        healthTimeout: 5,
-        healthInterval: 10,
-        healthyThreshold: 10,
-        unhealthyThreshold: 2,
-        regionZones: [],
-        securityGroups: [],
-        listeners: [
+        cloudProvider: 'azure',
+        vnet: null,
+        probes: [
           {
-            internalProtocol: 'HTTP',
-            internalPort: 7001,
-            externalProtocol: 'HTTP',
-            externalPort: 80
+            probeName: '',
+            probeProtocol: 'HTTP',
+            probePort: 7001,
+            probePath: '/healthcheck',
+            probeInterval: 10,
+            unhealthyThreshold: 2
           }
-        ]
+        ],
+        securityGroups: [],
+        loadBalancingRules: [
+          {
+            ruleName: '',
+            protocol: 'TCP',
+            externalPort: 80,
+            backendPort: 8080,
+            probeName: '',
+            persistence: 'None',
+            idleTimeout: 4,
+          }
+        ],
       };
     }
 
