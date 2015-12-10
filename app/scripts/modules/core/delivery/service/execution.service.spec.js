@@ -148,6 +148,81 @@ describe('Service: executionService', function () {
           expect(result).toBeDefined();// only reject should be called
         });
     });
+  });
+
+  describe('waitUntilExecutionMatches', function () {
+
+    it('resolves when the execution matches the closure', function () {
+      let executionId = 'abc',
+          url = [settings.gateUrl, 'pipelines', executionId].join('/'),
+          succeeded = false;
+
+      $httpBackend.expectGET(url).respond(200, { thingToMatch: true });
+
+      executionService.waitUntilExecutionMatches(executionId, (execution) => execution.thingToMatch)
+      .then(() => succeeded = true);
+
+      expect(succeeded).toBe(false);
+
+      $httpBackend.flush();
+      expect(succeeded).toBe(true);
+    });
+
+    it('polls until the execution matches, then resolves', function () {
+      let executionId = 'abc',
+          url = [settings.gateUrl, 'pipelines', executionId].join('/'),
+          succeeded = false;
+
+      $httpBackend.expectGET(url).respond(200, { thingToMatch: false });
+
+      executionService.waitUntilExecutionMatches(executionId, (execution) => execution.thingToMatch)
+        .then(() => succeeded = true);
+
+      expect(succeeded).toBe(false);
+
+      $httpBackend.flush();
+      expect(succeeded).toBe(false);
+
+      // no match, retrying
+      $httpBackend.expectGET(url).respond(200, { thingToMatch: false });
+      timeout.flush();
+      $httpBackend.flush();
+
+      expect(succeeded).toBe(false);
+
+      // still no match, retrying again
+      $httpBackend.expectGET(url).respond(200, { thingToMatch: true });
+      timeout.flush();
+      $httpBackend.flush();
+
+      expect(succeeded).toBe(true);
+    });
+
+    it('rejects if execution retrieval fails', function () {
+      let executionId = 'abc',
+          url = [settings.gateUrl, 'pipelines', executionId].join('/'),
+          succeeded = false,
+          failed = false;
+
+      $httpBackend.expectGET(url).respond(200, { thingToMatch: false });
+
+      executionService.waitUntilExecutionMatches(executionId, (execution) => execution.thingToMatch)
+        .then(() => succeeded = true, () => failed = true);
+
+      expect(succeeded).toBe(false);
+      expect(failed).toBe(false);
+
+      $httpBackend.flush();
+
+      // no match, retrying
+      expect(succeeded).toBe(false);
+      expect(failed).toBe(false);
+      $httpBackend.expectGET(url).respond(500, '');
+      timeout.flush();
+      $httpBackend.flush();
+      expect(succeeded).toBe(false);
+      expect(failed).toBe(true);
+    });
 
   });
 });

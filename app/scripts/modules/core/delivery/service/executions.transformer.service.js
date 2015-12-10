@@ -211,29 +211,13 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
       }
     }
 
-    var colorMapping = {
-      completed: '#769D3E',
-      failed: '#b82525',
-      running: '#2275b8',
-      'not_started': '#cccccc',
-      canceled: '#cccccc',
-      suspended: '#cccccc',
-      unknown: '#cccccc',
-      stopped: '#777777',
-    };
-
     function addStageWidths(execution) {
       execution.stageWidth = 100 / execution.stageSummaries.length + '%';
     }
 
     function styleStage(stage) {
       var stageConfig = pipelineConfig.getStageConfig(stage);
-      var status = stage.status || 'UNKNOWN';
-      stage.color = colorMapping[status.toLowerCase()] || '#cccccc';
       if (stageConfig) {
-        if (stageConfig.executionBarColorProvider && stageConfig.executionBarColorProvider(stage)) {
-          stage.color = stageConfig.executionBarColorProvider(stage);
-        }
         stage.labelTemplateUrl = stageConfig.executionLabelTemplateUrl || executionBarLabelTemplate;
       }
     }

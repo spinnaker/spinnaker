@@ -2,13 +2,22 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgment.executionDetails.controller', [
-  require('angular-ui-router'),
-  require('../../../../delivery/details/executionDetailsSection.service.js'),
-  require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
-])
-  .controller('ManualJudgmentExecutionDetailsCtrl', function ($scope, $stateParams, $http, settings, executionDetailsSectionService, _) {
+module.exports = angular
+    .module('spinnaker.core.pipeline.stage.manualJudgment.executionDetails.controller', [
+    require('angular-ui-router'),
+    require('./manualJudgment.service.js'),
+    require('../../../../delivery/details/executionDetailsSection.service.js'),
+    require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
+  ])
+  .controller('ManualJudgmentExecutionDetailsCtrl', function ($scope, $stateParams, manualJudgmentService,
+                                                              executionDetailsSectionService) {
+
     $scope.configSections = ['manualJudgment', 'taskStatus'];
+    $scope.viewState = {
+      submitting: false,
+      judgmentDecision: null,
+      error: false,
+    };
 
     function initialize() {
       executionDetailsSectionService.synchronizeSection($scope.configSections);
@@ -18,31 +27,23 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgment.ex
     initialize();
     $scope.$on('$stateChangeSuccess', initialize, true);
 
-    function provideJudgment(judgmentStatus, executionStatus) {
-      var targetUrl = [settings.gateUrl, 'pipelines', $stateParams.executionId, 'stages', $scope.stage.id].join('/');
-      $http({
-        method: 'PATCH',
-        url: targetUrl,
-        data: angular.toJson({judgmentStatus: judgmentStatus}),
-        timeout: settings.pollSchedule * 2 + 5000, // TODO: replace with apiHost call
-      }).success(function() {
-        $scope.stage.context.judgmentStatus = judgmentStatus;
-        $scope.stage.status = executionStatus;
-
-        var stageSummary = _.find($scope.execution.stageSummaries, function (stageSummary) {
-          return stageSummary.id === $scope.stage.id;
-        });
-        if (stageSummary) {
-          stageSummary.status = $scope.stage.status;
-        }
-      });
+    function judgmentMade() {
+      // do not update the submitting state - the reload of the executions will clear it out; otherwise,
+      // there is a flash on the screen when we go from submitting to not submitting to the buttons not being there.
+      $scope.application.reloadExecutions();
     }
 
-    this.continue = function () {
-      provideJudgment('continue', 'SUCCEEDED');
+    function judgmentFailure() {
+      $scope.viewState.submitting = false;
+      $scope.viewState.error = true;
+    }
+
+    this.provideJudgment = (judgmentDecision) => {
+      $scope.viewState.submitting = true;
+      $scope.viewState.error = false;
+      $scope.viewState.judgmentDecision = judgmentDecision;
+      return manualJudgmentService.provideJudgment($scope.execution, $scope.stage, judgmentDecision)
+        .then(judgmentMade, judgmentFailure);
     };
 
-    this.stop = function () {
-      provideJudgment('stop', 'TERMINAL');
-    };
   }).name;

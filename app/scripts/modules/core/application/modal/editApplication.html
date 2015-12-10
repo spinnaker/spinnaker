@@ -156,9 +156,7 @@
               ng-disabled="!editApplicationForm.$valid || editApp.submitting"
               ng-click="editApp.submit()">
         <span class="glyphicon glyphicon-ok-circle" ng-if="!editApp.submitting"></span>
-        <span ng-if="editApp.submitting" style="display: inline-block; position: relative; width: 16px; height: 15px">
-          <span us-spinner="{color: '#ffffff', left: '3px', top: '10px', radius:3, width: 2, length: 3}"></span>
-        </span>
+        <button-busy-indicator ng-if="editApp.submitting"></button-busy-indicator>
         Update
       </button>
     </div>

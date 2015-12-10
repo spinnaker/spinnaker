@@ -15,8 +15,17 @@
         </dl>
       </div>
       <div class="col-md-9" ng-if="!stage.context.judgmentStatus && stage.status === 'RUNNING'">
-        <button class="btn btn-primary" ng-click="manualCtrl.continue()">Continue</button>
-        <button class="btn btn-danger" ng-click="manualCtrl.stop()">Stop</button>
+        <button class="btn btn-primary" ng-click="manualCtrl.provideJudgment('continue')" ng-disabled="viewState.submitting">
+          <button-busy-indicator ng-if="viewState.submitting && viewState.judgmentDecision === 'continue'"></button-busy-indicator>
+          Continue
+        </button>
+        <button class="btn btn-danger" ng-click="manualCtrl.provideJudgment('stop')" ng-disabled="viewState.submitting">
+          <button-busy-indicator ng-if="viewState.submitting && viewState.judgmentDecision === 'stop'"></button-busy-indicator>
+          Stop
+        </button>
+      </div>
+      <div class="col-md-12 error-message" ng-if="viewState.error">
+        There was an error recording your decision. Please try again.
       </div>
     </div>
 
@@ -29,4 +38,3 @@
     </div>
   </div>
 </div>
-

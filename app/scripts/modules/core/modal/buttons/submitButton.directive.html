@@ -2,8 +2,6 @@
         ng-disabled="isDisabled"
         ng-click="onClick()">
   <span ng-if="!submitting" class="glyphicon glyphicon-ok-circle"></span>
-  <span ng-if="submitting" style="display: inline-block; position: relative; width: 16px; height: 15px">
-    <span us-spinner="{color: '#ffffff', left: '3px', top: '10px', radius:3, width: 2, length: 3}"></span>
-  </span>
+  <button-busy-indicator ng-if="submitting"></button-busy-indicator>
   {{label || (isNew ? 'Create' : 'Update')}}
 </button>

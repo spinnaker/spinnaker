@@ -14,13 +14,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentSta
       templateUrl: require('./manualJudgmentStage.html'),
       executionDetailsUrl: require('./manualJudgmentExecutionDetails.html'),
       strategy: true,
-      executionBarColorProvider: function (stageSummary) {
-        if (stageSummary.status === 'RUNNING') {
-          return '#F0AD4E';
-        }
-
-        return undefined;
-      }
     });
   })
   .controller('ManualJudgmentStageCtrl', function($scope, $uibModal) {

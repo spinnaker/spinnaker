@@ -7,4 +7,5 @@ module.exports = angular.module('spinnaker.core.forms', [
   require('./checklist/checklist.directive.js'),
   require('./checkmap/checkmap.directive.js'),
   require('./ignoreEmptyDelete.directive.js'),
+  require('./buttonBusyIndicator/buttonBusyIndicator.directive.js'),
 ]).name;

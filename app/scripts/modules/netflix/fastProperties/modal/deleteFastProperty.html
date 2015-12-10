@@ -49,9 +49,7 @@
             ng-disabled="delete.formDisabled()"
             ng-click="delete.confirm()">
       <span ng-if="params.glyphicon" class="glyphicon glyphicon-{{params.glyphicon}}"></span>
-        <span ng-if="state.submitting" style="display: inline-block; position: relative; width: 16px; height: 15px">
-          <span us-spinner="{color: '#ffffff', left: '3px', top: '10px', radius:3, width: 2, length: 3}"></span>
-        </span>
+      <button-busy-indicator ng-if="state.submitting"></button-busy-indicator>
       Delete
     </button>
   </div>

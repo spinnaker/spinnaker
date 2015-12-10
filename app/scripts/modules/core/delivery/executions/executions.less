@@ -56,3 +56,23 @@ executions {
   color: @healthy_green_border;
 }
 
+.execution-marker {
+  fill: @stage-default;
+  background-color: @stage-default;
+  &.execution-marker-failed {
+    fill: @stage-failed;
+    background-color: @stage-failed;
+  }
+  &.execution-marker-completed {
+    fill: @stage-completed;
+    background-color: @stage-completed;
+  }
+  &.execution-marker-running {
+    fill: @stage-running;
+    background-color: @stage-running;
+  }
+  &.execution-marker-stopped {
+    fill: @stage-stopped;
+    background-color: @stage-stopped;
+  }
+}

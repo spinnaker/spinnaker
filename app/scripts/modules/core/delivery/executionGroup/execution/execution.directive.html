@@ -4,7 +4,7 @@
   <div class="execution-bar">
     <div class="stages">
       <div ng-repeat="stage in vm.execution.stageSummaries"
-           class="clickable stage execution-status execution-status-{{stage.status.toLowerCase()}}"
+           class="clickable stage stage-type-{{stage.type.toLowerCase()}} execution-marker execution-marker-{{stage.status.toLowerCase()}}"
            ng-class="{active: vm.isActive($index), glowing: stage.isRunning}"
            ng-style="{width: 100/vm.execution.stageSummaries.length + '%', 'background-color': stage.color}"
            uib-tooltip-template="stage.labelTemplateUrl"
@@ -53,7 +53,7 @@
 
   <div ng-if="vm.showDetails()" class="execution-details">
     <div class="row">
-      <execution-details execution="vm.execution">
+      <execution-details execution="vm.execution" application="vm.application">
       </execution-details>
     </div>
     <div class="row permalinks text-right">
