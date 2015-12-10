@@ -1,0 +1,12 @@
+<span class="stage-label">
+  {{ stage.name }}
+  {{ stage.context | json}}
+  <span class="small" ng-if="stage.masterStage.context.allPreviouslyBaked">
+    <br/>
+    (previously baked)
+  </span>
+  <span class="small" ng-if="stage.masterStage.context.somePreviouslyBaked">
+    <br/>
+    (some previously baked)
+  </span>
+</span>

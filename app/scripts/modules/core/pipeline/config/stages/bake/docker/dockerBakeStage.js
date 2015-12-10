@@ -21,6 +21,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.docker.bakeStage'
       description: 'Bakes an image in the specified region',
       templateUrl: require('./bakeStage.html'),
       executionDetailsUrl: require('./bakeExecutionDetails.html'),
+      executionLabelTemplateUrl: require('../bakeExecutionLabel.html'),
       defaultTimeoutMs: 60 * 60 * 1000, // 60 minutes
       validators: [
         { type: 'requiredField', fieldName: 'package', },

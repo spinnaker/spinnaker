@@ -222,4 +222,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'project.cluster.detail': '<p>(Optional field)</p><p>Filters displayed clusters by detail.</p><p>Enter <samp>*</samp> to include all details; leave blank to omit any clusters with a detail.</p>',
     'instanceType.unavailable': '<p>This instance type is not available for the selected configuration.</p>',
     'fastProperty.canary.strategy.rolloutList': '<p>A comma separated list of numbers or percentages of instance canary against.</p>',
+    'execution.forceRebake': '<p>By default, the bakery will <b>not</b> create a new image if the contents of the package have not changed; ' +
+      'instead, it will return the previously baked image.</p>' +
+      '<p>Select this option to force the bakery to create a new image, regardless of whether or not the selected package exists.</p>',
   }).name;

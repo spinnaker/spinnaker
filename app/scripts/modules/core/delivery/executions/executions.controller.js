@@ -128,7 +128,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
     this.triggerPipeline = () => {
       $uibModal.open({
         templateUrl: require('../manualExecution/manualPipelineExecution.html'),
-        controller: 'ManualPipelineExecutionCtrl as ctrl',
+        controller: 'ManualPipelineExecutionCtrl as vm',
         resolve: {
           pipeline: () => null,
           application: () => this.application,
