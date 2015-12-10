@@ -46,7 +46,8 @@ class BakeStatus implements Serializable {
   String resourceId
 
   static enum State {
-    PENDING, RUNNING, COMPLETED, SUSPENDED, CANCELLED
+    // Rosco returns CANCELED, and Netflix's internal bakery returns CANCELLED.
+    PENDING, RUNNING, COMPLETED, SUSPENDED, CANCELED, CANCELLED
   }
 
   static enum Result {

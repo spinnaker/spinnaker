@@ -16,11 +16,7 @@
 
 package com.netflix.spinnaker.orca.front50.config
 
-import org.springframework.core.annotation.Order
-
-import static retrofit.Endpoints.newFixedEndpoint
-
-import com.google.gson.Gson
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.spring.DependentPipelineExecutionListener
@@ -37,7 +33,8 @@ import org.springframework.context.annotation.Import
 import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.client.Client
-import retrofit.converter.GsonConverter
+import retrofit.converter.JacksonConverter
+import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @Import(RetrofitConfiguration)
@@ -62,13 +59,13 @@ class Front50Configuration {
   }
 
   @Bean
-  Front50Service front50Service(Endpoint front50Endpoint, Gson gson) {
+  Front50Service front50Service(Endpoint front50Endpoint, ObjectMapper mapper) {
     new RestAdapter.Builder()
       .setEndpoint(front50Endpoint)
       .setClient(retrofitClient)
       .setLogLevel(retrofitLogLevel)
       .setLog(new RetrofitSlf4jLog(Front50Service))
-      .setConverter(new GsonConverter(gson))
+      .setConverter(new JacksonConverter(mapper))
       .build()
       .create(Front50Service)
   }

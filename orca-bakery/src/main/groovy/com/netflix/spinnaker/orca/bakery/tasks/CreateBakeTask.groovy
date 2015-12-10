@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import com.netflix.spinnaker.orca.pipeline.util.PackageInfo
 import groovy.transform.CompileDynamic
@@ -60,14 +61,15 @@ class CreateBakeTask implements RetryableTask {
       def bakeStatus = bakery.createBake(region, bake, rebake).toBlocking().single()
 
       def stageOutputs = [
-        status: bakeStatus,
-        bakePackageName: bake.packageName ?: ""
+        status          : bakeStatus,
+        bakePackageName : bake.packageName ?: "",
+        previouslyBaked : bakeStatus.state == BakeStatus.State.COMPLETED
       ] as Map<String, ? extends Object>
 
       if (bake.buildHost) {
         stageOutputs << [
-          buildHost: bake.buildHost,
-          job      : bake.job,
+          buildHost  : bake.buildHost,
+          job        : bake.job,
           buildNumber: bake.buildNumber
         ]
 
@@ -79,6 +81,16 @@ class CreateBakeTask implements RetryableTask {
       new DefaultTaskResult(ExecutionStatus.SUCCEEDED, stageOutputs)
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
+        try {
+          def exceptionResult = mapper.readValue(e.response.body.in().text, Map)
+          def exceptionMessages = (exceptionResult.messages ?: []) as List<String>
+          if (exceptionMessages) {
+            throw new IllegalStateException(exceptionMessages[0])
+          }
+        } catch (IOException ignored) {
+          // do nothing
+        }
+
         return new DefaultTaskResult(ExecutionStatus.RUNNING)
       }
       throw e

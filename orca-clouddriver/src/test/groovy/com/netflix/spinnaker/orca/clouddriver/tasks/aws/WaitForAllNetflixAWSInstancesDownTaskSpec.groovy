@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Shared
@@ -30,11 +31,13 @@ import spock.lang.Unroll
 
 import java.util.concurrent.TimeUnit
 
-/**
- * Created by aglover on 7/10/14.
- */
 class WaitForAllNetflixAWSInstancesDownTaskSpec extends Specification {
-  @Subject task = new WaitForAllNetflixAWSInstancesDownTask()
+  @Subject task = new WaitForAllNetflixAWSInstancesDownTask() {
+    @Override
+    void verifyServerGroupsExist(Stage stage) {
+      // do nothing
+    }
+  }
 
   @Shared
   def oneHourAgo = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(1)

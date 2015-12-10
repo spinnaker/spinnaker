@@ -57,16 +57,6 @@ class UpsertApplicationTask extends AbstractFront50Task {
     outputs
   }
 
-  @CompileStatic(TypeCheckingMode.SKIP)
-  private static void mergeApplicationProperties(Application source, Application target) {
-    source.properties.each { k, v ->
-      // merge in any properties from the global registry that have not been overridden by the application.
-      if (!target."${k}") {
-        target."${k}" = v
-      }
-    }
-  }
-
   @Override
   String getNotificationType() {
     return "upsertapplication"

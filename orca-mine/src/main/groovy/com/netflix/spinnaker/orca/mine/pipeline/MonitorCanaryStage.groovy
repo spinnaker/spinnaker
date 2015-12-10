@@ -57,7 +57,7 @@ class MonitorCanaryStage extends LinearStage implements CancellableStage {
   @Override
   CancellableStage.Result cancel(Stage stage) {
     def cancelCanaryResults = mineService.cancelCanary(stage.context.canary.id as String, "Pipeline execution (${stage.execution?.id}) canceled")
-    log.info("Cancelled canary in mine (canaryId: ${stage.context.canary.id}, stageId: ${stage.id}, executionId: ${stage.execution.id})")
+    log.info("Canceled canary in mine (canaryId: ${stage.context.canary.id}, stageId: ${stage.id}, executionId: ${stage.execution.id})")
 
     def canary = stage.ancestors { Stage s, StageBuilder stageBuilder -> stageBuilder instanceof CanaryStage }[0]
     def cancelResult = ((CanaryStage) canary.stageBuilder).cancel(canary.stage)

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Shared
@@ -33,7 +34,16 @@ class WaitForCapacityMatchTaskSpec extends Specification {
 
   @Shared OortService oort
   @Shared ObjectMapper mapper = new OrcaObjectMapper()
-  @Subject WaitForCapacityMatchTask task = new WaitForCapacityMatchTask(objectMapper: mapper)
+  @Subject WaitForCapacityMatchTask task = new WaitForCapacityMatchTask() {
+    {
+      objectMapper = mapper
+    }
+
+    @Override
+    void verifyServerGroupsExist(Stage stage) {
+      // do nothing
+    }
+  }
 
   void "should properly wait for a scale up operation"() {
     setup:
