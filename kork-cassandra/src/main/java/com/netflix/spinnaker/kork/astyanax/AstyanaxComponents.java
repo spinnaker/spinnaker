@@ -95,6 +95,7 @@ public class AstyanaxComponents {
 
     @Bean
     @ConditionalOnBean(Registry.class)
+    @ConditionalOnProperty("cassandra.metrics.enabled")
     public KeyspaceConnectionPoolMonitorFactory spectatorConnectionPoolMonitor(Registry registry) {
       return SpectatorConnectionPoolMonitor.factory(registry);
     }
