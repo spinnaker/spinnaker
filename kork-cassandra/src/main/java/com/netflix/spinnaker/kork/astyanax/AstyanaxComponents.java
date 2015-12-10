@@ -17,25 +17,28 @@
 package com.netflix.spinnaker.kork.astyanax;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.astyanax.AstyanaxConfiguration;
 import com.netflix.astyanax.Keyspace;
 import com.netflix.astyanax.connectionpool.ConnectionPoolConfiguration;
-import com.netflix.astyanax.connectionpool.ConnectionPoolMonitor;
 import com.netflix.astyanax.connectionpool.NodeDiscoveryType;
 import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
 import com.netflix.astyanax.connectionpool.impl.ConnectionPoolConfigurationImpl;
 import com.netflix.astyanax.connectionpool.impl.ConnectionPoolType;
-import com.netflix.astyanax.connectionpool.impl.CountingConnectionPoolMonitor;
 import com.netflix.astyanax.impl.AstyanaxConfigurationImpl;
+import com.netflix.astyanax.model.ConsistencyLevel;
 import com.netflix.astyanax.test.EmbeddedCassandra;
+import com.netflix.discovery.DiscoveryClient;
+import com.netflix.spectator.api.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.*;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Lazy;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -43,41 +46,78 @@ import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @Configuration
-@ConditionalOnMissingClass(name = {"com.netflix.cassandra.NFAstyanaxManager"})
+@EnableConfigurationProperties
 @ConditionalOnClass(AstyanaxConfiguration.class)
 public class AstyanaxComponents {
 
+    @Value("${cassandra.host:127.0.0.1}")
+    String seeds;
+
     @Bean
-    public AstyanaxConfiguration astyanaxConfiguration() {
+    public ExecutorService cassandraAsyncExecutor(@Value("${cassandra.asyncExecutorPoolSize:5}") int asyncPoolSize) {
+      return Executors.newFixedThreadPool(asyncPoolSize,
+        new ThreadFactoryBuilder().setDaemon(true)
+          .setNameFormat("AstyanaxAsync-%d")
+          .build());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(AstyanaxConfiguration.class)
+    @ConfigurationProperties("cassandra")
+    public AstyanaxConfiguration astyanaxConfiguration(@Qualifier("cassandraAsyncExecutor") ExecutorService cassandraAsyncExecutor) {
         return new AstyanaxConfigurationImpl()
+                .setDefaultReadConsistencyLevel(ConsistencyLevel.CL_LOCAL_QUORUM)
+                .setDefaultWriteConsistencyLevel(ConsistencyLevel.CL_LOCAL_QUORUM)
                 .setDiscoveryType(NodeDiscoveryType.RING_DESCRIBE)
                 .setConnectionPoolType(ConnectionPoolType.TOKEN_AWARE)
                 .setCqlVersion("3.0.0")
-                .setTargetCassandraVersion("2.0");
+                .setTargetCassandraVersion("2.0")
+                .setAsyncExecutor(cassandraAsyncExecutor);
+    }
+
+
+
+    @Bean
+    @ConditionalOnBean(DiscoveryClient.class)
+    @ConditionalOnProperty("cassandra.eureka.enabled")
+    public ClusterHostSupplierFactory eurekaHostSupplier(DiscoveryClient discoveryClient) {
+      return EurekaHostSupplier.factory(discoveryClient);
     }
 
     @Bean
-    public ConnectionPoolMonitor connectionPoolMonitor() {
-        return new CountingConnectionPoolMonitor();
+    @ConditionalOnMissingBean(ClusterHostSupplierFactory.class)
+    public ClusterHostSupplierFactory clusterHostSupplierFactory() {
+      return ClusterHostSupplierFactory.nullSupplierFactory();
     }
 
     @Bean
-    public ConnectionPoolConfiguration connectionPoolConfiguration(@Value("${cassandra.port:9160}") int port, @Value("${cassandra.host:127.0.0.1}") String seeds, @Value("${cassandra.maxConns:3}") int maxConns) {
-        return new ConnectionPoolConfigurationImpl("cpConfig").setPort(port).setSeeds(seeds).setMaxConns(maxConns);
+    @ConditionalOnBean(Registry.class)
+    public KeyspaceConnectionPoolMonitorFactory spectatorConnectionPoolMonitor(Registry registry) {
+      return SpectatorConnectionPoolMonitor.factory(registry);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(KeyspaceConnectionPoolMonitorFactory.class)
+    public KeyspaceConnectionPoolMonitorFactory countingConnectionPoolMonitor() {
+      return KeyspaceConnectionPoolMonitorFactory.defaultFactory();
+    }
+
+    @Bean
+    @ConfigurationProperties("cassandra")
+    public ConnectionPoolConfiguration connectionPoolConfiguration() {
+        return new ConnectionPoolConfigurationImpl("cpConfig").setSeeds(seeds);
     }
 
     @Bean
     public AstyanaxKeyspaceFactory keyspaceFactory(AstyanaxConfiguration config,
                                                    ConnectionPoolConfiguration poolConfig,
-                                                   ConnectionPoolMonitor poolMonitor,
+                                                   KeyspaceConnectionPoolMonitorFactory connectionPoolMonitorFactory,
+                                                   ClusterHostSupplierFactory clusterHostSupplierFactory,
                                                    KeyspaceInitializer keyspaceInitializer) {
-        return new DefaultAstyanaxKeyspaceFactory(config, poolConfig, poolMonitor, keyspaceInitializer);
+        return new DefaultAstyanaxKeyspaceFactory(config, poolConfig, connectionPoolMonitorFactory, clusterHostSupplierFactory, keyspaceInitializer);
     }
 
     @ConditionalOnExpression("${cassandra.embedded:true} and '${cassandra.host:127.0.0.1}' == '127.0.0.1'")
