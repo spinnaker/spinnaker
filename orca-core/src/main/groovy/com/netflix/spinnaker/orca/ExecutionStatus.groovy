@@ -21,7 +21,6 @@ import org.springframework.batch.core.ExitStatus
 
 @CompileStatic
 enum ExecutionStatus {
-
   /**
    * The task has yet to start.
    */
@@ -84,9 +83,15 @@ enum ExecutionStatus {
 
   final ExitStatus exitStatus
 
+  private static final Collection<ExecutionStatus> SUCCESSFUL = [SUCCEEDED, STOPPED]
+
   ExecutionStatus(boolean complete, boolean halt, ExitStatus exitStatus) {
     this.complete = complete
     this.halt = halt
     this.exitStatus = exitStatus
+  }
+
+  boolean isSuccessful() {
+    return SUCCESSFUL.contains(this)
   }
 }
