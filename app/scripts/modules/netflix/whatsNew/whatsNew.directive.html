@@ -1,14 +1,12 @@
-<ul class="nav navbar-nav navbar-right feedback-nav" ng-if="fileLastUpdated">
-  <li>
-    <a href ng-if="!updatesUnread()"
-       ng-click="showWhatsNew()">
-      <span class="glyphicon glyphicon-info-sign"></span>
-      <span class="hidden-xs hidden-sm">What's New</span>
-    </a>
-    <a href class="unread" ng-if="updatesUnread()" ng-click="showWhatsNew()">
-      <span class="glyphicon glyphicon-info-sign"></span>
-      <span class="hidden-xs hidden-sm">What's New</span>
-      <span class="timestamp hidden-sm">({{lastUpdatedDate | timestamp}})</span>
-    </a>
-  </li>
-</ul>
+<li class="feedback-nav" ng-if="fileLastUpdated">
+  <a href ng-if="!updatesUnread()"
+     ng-click="showWhatsNew()">
+    <span class="glyphicon glyphicon-info-sign"></span>
+    <span class="hidden-xs hidden-sm">What's New</span>
+  </a>
+  <a href class="unread" ng-if="updatesUnread()" ng-click="showWhatsNew()">
+    <span class="glyphicon glyphicon-info-sign"></span>
+    <span class="hidden-xs hidden-sm">What's New</span>
+    <span class="timestamp hidden-sm hidden-md">({{lastUpdatedDate | timestamp}})</span>
+  </a>
+</li>

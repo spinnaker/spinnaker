@@ -17,6 +17,7 @@ module.exports = angular
   .directive('whatsNew', function (whatsNewReader, viewStateCache) {
     return {
       restrict: 'E',
+      replace: true,
       templateUrl: require('./whatsNew.directive.html'),
       controller: function($scope, $uibModal) {
 

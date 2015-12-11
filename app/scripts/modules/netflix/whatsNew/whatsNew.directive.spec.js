@@ -21,6 +21,17 @@ describe('Directives: whatsNew', function () {
     this.$uibModal = $uibModal;
   }));
 
+  function createWhatsNew(compile, scope) {
+    var domNode;
+
+    domNode = compile('<whats-new></whats-new>')(scope);
+    scope.$digest();
+
+    // ng-if creates a sibling if used on the root element in the directive
+    // so grab the sibling with .next()
+    return domNode.next();
+  }
+
   describe('with content', function() {
 
     beforeEach(function() {
@@ -37,14 +48,17 @@ describe('Directives: whatsNew', function () {
     });
 
     it('should show updated label when view state has not been cached', function() {
-      var domNode = this.compile('<whats-new></whats-new>')(this.scope);
-      this.scope.$digest();
+      var domNode;
+
+      domNode = createWhatsNew(this.compile, this.scope);
 
       expect(domNode.find('a.unread').size()).toBe(1);
       expect(domNode.find('a.unread').html().indexOf(this.expectedDate)).not.toBe(-1);
     });
 
     it('should show updated label when view state has different lastUpdated value than file', function() {
+      var domNode;
+
       this.viewStateCache.whatsNew = {
         get: function() {
           return {
@@ -53,15 +67,16 @@ describe('Directives: whatsNew', function () {
         }
       };
 
-      var domNode = this.compile('<whats-new></whats-new>')(this.scope);
-      this.scope.$digest();
+      domNode = createWhatsNew(this.compile, this.scope);
 
       expect(domNode.find('a.unread').size()).toBe(1);
       expect(domNode.find('a.unread').html().indexOf(this.expectedDate)).not.toBe(-1);
     });
 
     it('should NOT show updated label when view state has same lastUpdated value as file', function() {
-      var lastUpdated = this.lastUpdated;
+      var lastUpdated, domNode;
+
+      lastUpdated = this.lastUpdated;
       this.viewStateCache.whatsNew = {
         get: function() {
           return {
@@ -70,14 +85,15 @@ describe('Directives: whatsNew', function () {
         }
       };
 
-      var domNode = this.compile('<whats-new></whats-new>')(this.scope);
-      this.scope.$digest();
+      domNode = createWhatsNew(this.compile, this.scope);
 
       expect(domNode.find('a.unread').size()).toBe(0);
     });
 
     it('should open modal when clicked, update and cache view state, then hide unread label', function() {
-      var writtenToCache = null;
+      var writtenToCache, domNode;
+
+      writtenToCache = null;
       this.viewStateCache.whatsNew = {
         get: function() {
           return {
@@ -90,8 +106,7 @@ describe('Directives: whatsNew', function () {
       };
       spyOn(this.$uibModal, 'open').and.returnValue({});
 
-      var domNode = this.compile('<whats-new></whats-new>')(this.scope);
-      this.scope.$digest();
+      domNode = createWhatsNew(this.compile, this.scope);
 
       expect(domNode.find('a.unread').size()).toBe(1);
       domNode.find('a').click();
@@ -108,10 +123,11 @@ describe('Directives: whatsNew', function () {
 
   describe('no content', function() {
     it('should not render the <ul>', function() {
+      var domNode;
+
       spyOn(this.whatsNewReader, 'getWhatsNewContents').and.returnValue(this.$q.when(null));
 
-      var domNode = this.compile('<whats-new></whats-new>')(this.scope);
-      this.scope.$digest();
+      domNode = createWhatsNew(this.compile, this.scope);
 
       expect(domNode.find('ul').size()).toBe(0);
     });

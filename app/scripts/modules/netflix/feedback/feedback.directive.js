@@ -7,6 +7,7 @@ module.exports = angular.module('spinnaker.netflix.feedback.directive', [
   .directive('feedback', function($location) {
     return {
       restrict: 'E',
+      replace: true,
       templateUrl: require('./feedback.html'),
       controller: function($scope, $uibModal) {
 
