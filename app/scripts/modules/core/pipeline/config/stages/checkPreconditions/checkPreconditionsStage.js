@@ -13,6 +13,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.checkPreconditionsSta
       controllerAs: 'checkPreconditionsStageCtrl',
       templateUrl: require('./checkPreconditionsStage.html'),
       executionDetailsUrl: require('./checkPreconditionsExecutionDetails.html'),
+      strategy: true,
     });
   })
   .controller('CheckPreconditionsStageCtrl', function($scope, $modal) {

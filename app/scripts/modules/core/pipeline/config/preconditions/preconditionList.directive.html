@@ -21,7 +21,7 @@
         </td>
         <td>
           <a class="btn btn-xs btn-link" href
-             ng-click="preconditionListCtrl.editPrecondition(precondition)">Edit</a>
+             ng-click="preconditionListCtrl.editPrecondition(precondition, strategy)">Edit</a>
           <a class="btn btn-xs btn-link pad-left" href
              ng-click="preconditionListCtrl.removePrecondition(precondition)">Remove</a>
         </td>
@@ -30,7 +30,7 @@
       <tfoot>
       <tr>
         <td colspan="7">
-          <button class="btn btn-block add-new" ng-click="preconditionListCtrl.addPrecondition()">
+          <button class="btn btn-block add-new" ng-click="preconditionListCtrl.addPrecondition(strategy)">
             <span class="glyphicon glyphicon-plus-sign"></span> Add Precondition
           </button>
         </td>

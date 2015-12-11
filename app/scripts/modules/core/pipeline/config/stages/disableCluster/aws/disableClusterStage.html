@@ -1,15 +1,17 @@
 <div ng-controller="awsDisableClusterStageCtrl as disableClusterStageCtrl" class="form-horizontal">
-  <stage-config-field label="Cluster" help-key="pipeline.config.disableCluster.cluster">
-    <input type="text" required ng-model="stage.cluster"
-           class="form-control input-sm" />
-  </stage-config-field>
+  <div ng-if="!pipeline.strategy">
   <stage-config-field label="Account">
-      <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="disableClusterStageCtrl.accountUpdated()" required></account-select-field>
+    <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="disableClusterStageCtrl.accountUpdated()" required></account-select-field>
   </stage-config-field>
   <stage-config-field label="Regions">
     <p ng-if="!stage.credentials" class="form-control-static">(Select an Account)</p>
     <checklist ng-if="stage.credentials" items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
   </stage-config-field>
+  <stage-config-field label="Cluster" help-key="pipeline.config.disableCluster.cluster">
+    <input type="text" required ng-model="stage.cluster"
+           class="form-control input-sm" />
+  </stage-config-field>
+  </div>
   <stage-config-field label="Disable Options">
     <div class="form-inline">
       Keep the
