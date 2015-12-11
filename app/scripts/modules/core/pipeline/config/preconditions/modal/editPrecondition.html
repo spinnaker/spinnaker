@@ -6,7 +6,7 @@
 
   <form role="form" class="container-fluid" novalidate name="editPreconditionForm">
     <div class="modal-body">
-      <precondition-selector precondition="editPrecondition.precondition"></precondition-selector>
+      <precondition-selector precondition="editPrecondition.precondition" strategy="editPrecondition.strategy"></precondition-selector>
     </div>
     <div class="modal-footer">
       <span ng-show="editApp.submitting" us-spinner="{radius:20, width:6, length: 12}"></span>

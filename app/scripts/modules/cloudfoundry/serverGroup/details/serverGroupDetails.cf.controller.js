@@ -50,7 +50,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
 
       function retrieveServerGroup() {
         var summary = extractServerGroupSummary();
-        serverGroupReader.getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
+        return serverGroupReader.getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
           cancelLoader();
 
           var restangularlessDetails = details.plain();
@@ -94,7 +94,14 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
         $scope.state.loading = false;
       }
 
-      retrieveServerGroup();
+      retrieveServerGroup().then(() => {
+        // If the user navigates away from the view before the initial retrieveServerGroup call completes,
+        // do not bother subscribing to the autoRefreshStream
+        if (!$scope.$$destroyed) {
+          let refreshWatcher = app.autoRefreshStream.subscribe(retrieveServerGroup);
+          $scope.$on('$destroy', () => refreshWatcher.dispose());
+        }
+      });
 
       application.registerAutoRefreshHandler(retrieveServerGroup, $scope);
 

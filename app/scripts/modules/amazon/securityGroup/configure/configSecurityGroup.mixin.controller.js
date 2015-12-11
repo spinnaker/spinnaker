@@ -57,6 +57,10 @@ module.exports = angular
     $scope.securityGroup = securityGroup;
 
     $scope.taskMonitor.onApplicationRefresh = function handleApplicationRefreshComplete() {
+      // If the user has already closed the modal, do not navigate to the new details view
+      if ($scope.$$destroyed) {
+        return;
+      }
       $modalInstance.close();
       var newStateParams = {
         name: $scope.securityGroup.name,

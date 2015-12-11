@@ -38,7 +38,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
 
     function retrieveServerGroup() {
       var summary = extractServerGroupSummary();
-      serverGroupReader.getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
+      return serverGroupReader.getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
         cancelLoader();
 
         var restangularlessDetails = details.plain();
@@ -77,9 +77,14 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
       $scope.state.loading = false;
     }
 
-    retrieveServerGroup();
-
-    application.registerAutoRefreshHandler(retrieveServerGroup, $scope);
+    retrieveServerGroup().then(() => {
+      // If the user navigates away from the view before the initial retrieveServerGroup call completes,
+      // do not bother subscribing to the autoRefreshStream
+      if (!$scope.$$destroyed) {
+        let refreshWatcher = app.autoRefreshStream.subscribe(retrieveServerGroup);
+        $scope.$on('$destroy', () => refreshWatcher.dispose());
+      }
+    });
 
     this.destroyServerGroup = function destroyServerGroup() {
       var serverGroup = $scope.serverGroup;

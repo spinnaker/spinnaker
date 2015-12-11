@@ -74,9 +74,14 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
       $state.go('^', null, {location: 'replace'});
     }
 
-    extractLoadBalancer();
-
-    app.registerAutoRefreshHandler(extractLoadBalancer, $scope);
+    extractLoadBalancer().then(() => {
+      // If the user navigates away from the view before the initial extractLoadBalancer call completes,
+      // do not bother subscribing to the autoRefreshStream
+      if (!$scope.$$destroyed) {
+        let refreshWatcher = app.autoRefreshStream.subscribe(extractLoadBalancer);
+        $scope.$on('$destroy', () => refreshWatcher.dispose());
+      }
+    });
 
     this.editLoadBalancer = function editLoadBalancer() {
       $uibModal.open({

@@ -11,7 +11,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.pr
         restrict: 'E',
         scope: {
           preconditions: '=',
-          parent: '='
+          parent: '=',
+          strategy: '='
         },
         templateUrl: require('./preconditionList.directive.html'),
         controller: 'PreconditionListCtrl',
@@ -22,7 +23,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.pr
 
       var vm = this;
 
-      vm.editPrecondition = function (precondition) {
+      vm.editPrecondition = function (precondition, strategy) {
         var modalInstance = $modal.open({
           templateUrl: require('./modal/editPrecondition.html'),
           controller: 'EditPreconditionController',
@@ -30,6 +31,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.pr
           resolve: {
             precondition: function () {
               return precondition;
+            },
+            strategy: function(){
+              return strategy;
             },
           }
         });
@@ -44,11 +48,11 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.pr
         });
       };
 
-      vm.addPrecondition = function () {
+      vm.addPrecondition = function (strategy) {
         if ($scope.parent && !$scope.parent.preconditions) {
           $scope.parent.preconditions = [];
         }
-        vm.editPrecondition(undefined);
+        vm.editPrecondition(undefined, strategy);
       };
 
       vm.removePrecondition = function (precondition) {

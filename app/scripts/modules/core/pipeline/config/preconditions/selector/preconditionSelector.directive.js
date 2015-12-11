@@ -11,7 +11,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.se
       restrict: 'E',
       scope: {
         precondition: '=',
-        level: '='
+        level: '=',
+        strategy: '=',
       },
       templateUrl: require('./preconditionSelector.html'),
       controller: 'PreconditionSelectorCtrl',

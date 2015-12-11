@@ -124,7 +124,14 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
       $scope.state.loading = false;
     }
 
-    retrieveServerGroup().then(() => app.registerAutoRefreshHandler(retrieveServerGroup, $scope));
+    retrieveServerGroup().then(() => {
+      // If the user navigates away from the view before the initial retrieveServerGroup call completes,
+      // do not bother subscribing to the autoRefreshStream
+      if (!$scope.$$destroyed) {
+        let refreshWatcher = app.autoRefreshStream.subscribe(retrieveServerGroup);
+        $scope.$on('$destroy', () => refreshWatcher.dispose());
+      }
+    });
 
     this.destroyServerGroup = function destroyServerGroup() {
       var serverGroup = $scope.serverGroup;
