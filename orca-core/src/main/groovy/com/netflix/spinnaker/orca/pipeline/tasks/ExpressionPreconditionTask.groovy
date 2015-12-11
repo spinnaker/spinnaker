@@ -20,7 +20,9 @@ package com.netflix.spinnaker.orca.pipeline.tasks
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import org.springframework.stereotype.Component
 
 @Component
@@ -30,11 +32,26 @@ class ExpressionPreconditionTask implements PreconditionTask {
   @Override
   TaskResult execute(Stage stage) {
     def stageData = stage.mapTo("/context", StageData)
-    if (Boolean.valueOf(stageData.expression)) {
-      return DefaultTaskResult.SUCCEEDED
+
+    def augmentedContext = [:] + stage.context
+    if (stage.execution instanceof Pipeline) {
+      augmentedContext.put('trigger', ((Pipeline) stage.execution).trigger)
+      augmentedContext.put('execution', stage.execution)
     }
 
-    return new DefaultTaskResult(ExecutionStatus.TERMINAL)
+    String expression = ContextParameterProcessor.process([
+        "expression": '${' + stageData.expression + '}'
+    ], augmentedContext).expression
+
+    def matcher = expression =~ /\$\{(.*)\}/
+    if (matcher.matches()) {
+      expression = matcher.group(1)
+    }
+
+    def status = Boolean.valueOf(expression) ? ExecutionStatus.SUCCEEDED : ExecutionStatus.TERMINAL
+    return new DefaultTaskResult(status, [
+        expressionResult: expression
+    ])
   }
 
   static class StageData {
