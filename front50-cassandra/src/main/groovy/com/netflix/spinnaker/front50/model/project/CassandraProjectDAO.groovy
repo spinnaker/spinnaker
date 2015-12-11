@@ -31,13 +31,13 @@ import com.netflix.spinnaker.front50.exception.NotFoundException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.ApplicationListener
-import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.stereotype.Component
+
+import javax.annotation.PostConstruct
 
 @Slf4j
 @Component
-class CassandraProjectDAO implements ProjectDAO, ApplicationListener<ContextRefreshedEvent> {
+class CassandraProjectDAO implements ProjectDAO {
   private static final String CF_NAME = 'project'
   private static final String TEST_QUERY = '''select * from project;'''
   private static ColumnFamily<Integer, String> CF_PROJECT = ColumnFamily.newColumnFamily(
@@ -56,8 +56,8 @@ class CassandraProjectDAO implements ProjectDAO, ApplicationListener<ContextRefr
   @Autowired
   ObjectMapper objectMapper
 
-  @Override
-  void onApplicationEvent(ContextRefreshedEvent event) {
+  @PostConstruct
+  void init() {
     try {
       runQuery(TEST_QUERY)
     } catch (BadRequestException ignored) {

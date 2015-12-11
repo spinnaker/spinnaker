@@ -15,7 +15,6 @@
 
 package com.netflix.spinnaker.front50.pipeline
 
-import com.netflix.astyanax.Keyspace
 import com.netflix.spinnaker.front50.utils.AbstractCassandraBackedSpec
 import spock.lang.Shared
 
@@ -33,7 +32,7 @@ class PipelineRepositorySpec extends AbstractCassandraBackedSpec {
 
     void setupSpec() {
         repo = new PipelineRepository(keyspace: keyspace)
-        repo.onApplicationEvent(null)
+        repo.init()
     }
 
     void setup() {
