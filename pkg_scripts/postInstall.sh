@@ -5,7 +5,9 @@
 chmod +x /opt/spinnaker/install/first_google_boot.sh
 
 # Deprecated. Will be removed in the future.
-ln -s /opt/spinnaker/bin /opt/spinnaker/scripts
+if [ `readlink -f /opt/spinnaker/scripts` != "/opt/spinnaker/bin" ]; then
+  ln -s /opt/spinnaker/bin /opt/spinnaker/scripts
+fi
 
 # Create master config
 cp /opt/spinnaker/config/default-spinnaker-local.yml /opt/spinnaker/config/spinnaker-local.yml
