@@ -20,6 +20,7 @@ dependencies {
   compile project(':mort:mort-web')
 
   compile project(':clouddriver-azure')
+  compile project(':clouddriver-kubernetes')
 
   compile 'javax.ws.rs:jsr311-api:1.1.1'
   runtime spinnaker.dependency('kork')

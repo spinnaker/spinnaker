@@ -29,6 +29,7 @@ swagger:
     - .*applications.*
     - .*aws.*
     - .*gce.*
+    - .*kubernetes.*
     - .*instances.*
     - .*reports.*
 
@@ -188,6 +189,9 @@ google:
       disks:
       - type: pd-standard
         sizeGb: 10
+
+kubernetes:
+  enabled: false
 
 docker:
   enabled: ${DOCKER_ENABLED:false}

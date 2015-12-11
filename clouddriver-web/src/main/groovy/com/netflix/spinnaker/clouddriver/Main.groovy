@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.azure.AzureConfiguration
 import com.netflix.spinnaker.clouddriver.config.RetrofitConfig
 import com.netflix.spinnaker.clouddriver.core.CloudDriverConfig
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesConfiguration
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
 import com.netflix.spinnaker.clouddriver.titan.TitanConfiguration
 import org.springframework.boot.actuate.autoconfigure.ManagementSecurityAutoConfiguration
@@ -47,6 +48,7 @@ import java.security.Security
   AwsConfiguration,
   TitanConfiguration,
   GoogleConfiguration,
+  KubernetesConfiguration,
   CloudFoundryConfig,
   AzureConfiguration,
   SecurityConfig,

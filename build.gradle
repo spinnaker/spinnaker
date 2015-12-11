@@ -77,6 +77,8 @@ subprojects { project ->
 
   dependencies {
     compile spinnaker.dependency('groovy')
+// TODO (move to https://github.com/spinnaker/spinnaker-dependencies/blob/master/src/spinnaker-dependencies.yml)
+    compile 'io.fabric8:kubernetes-api:2.2.70'
     spinnaker.group('test')
   }
 }
