@@ -54,7 +54,7 @@ class EchoNotifyingPipelineExecutionListener implements JobExecutionListener {
         echoService.recordEvent(
           details: [
             source     : "orca",
-            type       : "orca:pipeline:${(wasSuccessful(jobExecution) ? "complete" : "failed")}".toString(),
+            type       : "orca:pipeline:${(wasSuccessful(jobExecution, execution) ? "complete" : "failed")}".toString(),
             application: execution.application,
           ],
           content: [
@@ -84,7 +84,7 @@ class EchoNotifyingPipelineExecutionListener implements JobExecutionListener {
    * even if the Orca task failed we'll get a `jobExecution.status` of
    * `COMPLETED` as the error was handled.
    */
-  private static boolean wasSuccessful(JobExecution jobExecution) {
-    jobExecution.exitStatus.exitCode == ExitStatus.COMPLETED.exitCode
+  private static boolean wasSuccessful(JobExecution jobExecution, Execution currentExecution) {
+    jobExecution.exitStatus.exitCode == ExitStatus.COMPLETED.exitCode || currentExecution.status.isSuccessful()
   }
 }

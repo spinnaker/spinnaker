@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.orca.echo.spring
 
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.batch.StageExecutionListener
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
@@ -82,6 +83,7 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
    * `COMPLETED` as the error was handled.
    */
   private static boolean wasSuccessful(StepExecution stepExecution) {
-    stepExecution.exitStatus.exitCode == ExitStatus.COMPLETED.exitCode
+    ExecutionStatus orcaTaskStatus = (ExecutionStatus) stepExecution.executionContext.get("orcaTaskStatus")
+    stepExecution.exitStatus.exitCode == ExitStatus.COMPLETED.exitCode || orcaTaskStatus?.isSuccessful()
   }
 }
