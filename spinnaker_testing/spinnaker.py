@@ -134,6 +134,11 @@ class SpinnakerStatus(service_testing.HttpOperationStatus):
     """Bind the detail path."""
     self.__detail_path = path
 
+  def export_to_json_snapshot(self, snapshot, entity):
+    super(SpinnakerStatus, self).export_to_json_snapshot(snapshot, entity)
+    snapshot.edge_builder.make_output(entity, 'Status Detail', self.__json_doc,
+                                      format='json')
+
   def _make_scribe_parts(self, scribe):
     """Implements Scribbable._make_scribe_parts."""
     parts = [scribe.build_json_part('Status Detail', self.__json_doc,
