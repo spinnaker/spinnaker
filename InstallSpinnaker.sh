@@ -387,7 +387,8 @@ function install_spinnaker() {
     for package in $install_packages;do
       latest=`curl $REPOSITORY_URL/dists/$DISTRIB_CODENAME/spinnaker/binary-amd64/Packages | grep "^Filename" | grep $package | awk '{print $2}' | awk -F'/' '{print $NF}' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1`
       debfile=`echo $latest | awk -F "/" '{print $NF}'`
-      curl -L -o /tmp/$debfile $REPOSITORY_URL/$latest
+      filelocation=`curl $REPOSITORY_URL/dists/$DISTRIB_CODENAME/spinnaker/binary-amd64/Packages | grep "^Filename" | grep $latest | awk '{print $2}'`
+      curl -L -o /tmp/$debfile $REPOSITORY_URL/$filelocation
       dpkg -i /tmp/$debfile && rm -f /tmp/$debfile
     done
   fi
