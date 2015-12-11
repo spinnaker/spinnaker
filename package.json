@@ -6,9 +6,11 @@
     "registry": "http://artifacts.netflix.com/api/npm/npm-local"
   },
   "dependencies": {
+    "Select2": "git://github.com/select2/select2.git#3.4.8",
     "angular": "^1.4.1",
     "angular-animate": "^1.4.1",
     "angular-cache": "^4.2.2",
+    "angular-debounce": "git://github.com/shahata/angular-debounce.git#0.1.7",
     "angular-filter": "^0.5.4",
     "angular-hotkeys": "^1.5.0",
     "angular-marked": "0.0.17",
@@ -28,14 +30,13 @@
     "loader-utils": "^0.2.11",
     "lodash": "^3.10.1",
     "moment-timezone": "^0.4.0",
-    "ng-debounce": "git://github.com/shahata/angular-debounce.git#0.1.7",
     "ng-infinite-scroll": "^1.2.0",
     "restangular": "~1.4.0",
     "rx": "^2.5.3",
     "select2-bootstrap-css": "git://github.com/t0m/select2-bootstrap-css.git#v1.3.1",
     "source-map": "^0.4.4",
     "source-sans-pro": "^2.0.10",
-    "spin": "git://github.com/fgnass/spin.js.git#2.3.1",
+    "spin.js": "git://github.com/fgnass/spin.js.git#2.3.1",
     "ui-select": "git://github.com/angular-ui/ui-select.git#v0.12.1"
   },
   "engines": {
@@ -87,7 +88,6 @@
     "phantomjs": "^1.9.17",
     "phantomjs-polyfill": "0.0.1",
     "protractor": "^2.2.0",
-    "select2": "git://github.com/select2/select2.git#3.4.8",
     "style-loader": "^0.12.3",
     "url-loader": "^0.5.6",
     "webpack": "^1.9.11",
