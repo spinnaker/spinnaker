@@ -66,4 +66,21 @@ describe('Directives: regionSelectField', function () {
       expect(option.value).toBe(expected[idx]);
     });
   });
+
+  it('selects correct initial value', function () {
+    var scope = this.scope;
+
+    scope.regions = [{name: 'us-east-1'}, {name: 'us-west-1'}];
+
+    scope.model = { regionField: 'us-west-1', accountField: 'a'};
+
+    var html = '<region-select-field regions="regions" component="model" field="regionField" account="model.accountField" provider="\'aws\'" label-columns="2"></region-select-field>';
+
+    var elem = this.compile(html)(scope);
+    scope.$digest();
+
+    var options = elem.find('option');
+    expect(options[1].selected).toBe(true);
+
+  });
 });
