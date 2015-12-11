@@ -238,6 +238,16 @@ function print_invoke_instructions() {
 cat <<EOF
 
 
+EOF
+if [[ $(basename "/bogus/$0") == "bootstrap_dev.sh" ]]; then
+cat <<EOF
+Restart your shell to pick up path changes:
+  exec $SHELL
+
+EOF
+fi
+
+cat <<EOF
 To initiate a build and run spinnaker:
   cd build
   ./spinnaker/dev/run_dev.sh
@@ -288,10 +298,7 @@ fi
 
 print_spinnaker_reference
 
-if [[ $(basename "/bogus/$0") == "bootstrap_dev.sh" ]]; then
-  echo "Restart your shell to pick up path changes."
-  echo "   exec $SHELL"
-else
+if [[ $(basename "/bogus/$0") != "bootstrap_dev.sh" ]]; then
   echo "Restarting shell to pick up path changes."
   exec $SHELL -l
 fi
