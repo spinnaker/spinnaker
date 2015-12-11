@@ -74,7 +74,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     }
 
     private KubernetesCredentials buildCredentials() {
-      Config config = new ConfigBuilder().withMasterUrl(master).withUsername(username).withPassword(password).build();
+      Config config = new ConfigBuilder().withMasterUrl(master).withUsername(username).withPassword(password).withTrustCerts(true).build();
       KubernetesClient client;
       try {
         client = new DefaultKubernetesClient(config);
