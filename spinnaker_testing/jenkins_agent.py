@@ -13,7 +13,6 @@
 # limitations under the License.
 
 
-import logging
 import os
 
 from citest.service_testing import (testable_agent, http_agent)
@@ -84,6 +83,12 @@ class JenkinsOperationStatus(testable_agent.AgentOperationStatus):
   def __str__(self):
     return 'jenkins_status_agent={0}'.format(self.__trigger_status)
 
+  def export_to_json_snapshot(self, snapshot, entity):
+    snapshot.edge_builder.make_output(
+        entity, 'Jenkins Status', self.__trigger_status)
+    super(JenkinsOperationStatus, self).export_to_json_snapshot(
+        snapshot, entity)
+
   def _make_scribe_parts(self, scribe):
     return ([scribe.build_part('Jenkins Status', self.__trigger_status)]
             + super(JenkinsOperationStatus, self)._make_scribe_parts(scribe))
@@ -127,6 +132,11 @@ class JenkinsAgent(testable_agent.TestableAgent):
     result = self.__http_agent.get(jenkins_path, trace=True)
     result.check_ok()
     return result
+
+  def export_to_json_snapshot(self, snapshot, entity):
+    snapshot.edge_builder.make_control(
+        entity, 'baseUrl', self.__http_agent.baseUrl)
+    super(JenkinsAgent, self).export_to_json_snapshot(snapshot, entity)
 
   def _make_scribe_parts(self, scribe):
     parts = [
@@ -182,6 +192,13 @@ class BaseJenkinsOperation(testable_agent.AgentOperation):
     self.__status_class = status_class
     self.__data = {}
 
+  def export_to_json_snapshot(self, snapshot, entity):
+    snapshot.edge_builder.make_mechanism('Jenkins Agent', self.agent)
+    # TODO(ewiseblatt): Not sure if this is input or output.
+    snapshot.edge_builder.make_data(
+        'Payload Data', self.__data, format='json')
+    super(BaseJenkinsOperation, self).export_to_json_snapshot(snapshot, entity)
+
   def _make_scribe_parts(self, scribe):
     parts = [
         scribe.part_builder.build_mechanism_part('Jenkins Agent', self.agent),
@@ -197,10 +214,13 @@ class BaseJenkinsOperation(testable_agent.AgentOperation):
                         + agent.__class__.__name__)
       self.bind_agent(agent)
 
-    status = self._do_invoke(agent, trace)
+    status = self._do_execute(agent, trace)
     if trace:
       agent.logger.debug('Returning status %s', status)
     return status
+
+  def _do_execute(self, agent, trace=True):
+    raise UnimplementedError('{0}._do_execute'.format(type(self)))
 
 
 class JenkinsTriggerOperation(BaseJenkinsOperation):
@@ -229,7 +249,7 @@ class JenkinsTriggerOperation(BaseJenkinsOperation):
     self.__status_class = status_class
     self.__status_path = status_path
 
-  def _do_invoke(self, agent, trace=True):
+  def _do_execute(self, agent, trace=True):
     http_response = self._agent._trigger_jenkins_build(job=self.__job,
                                                        token=self.__token)
     return JenkinsOperationStatus(
