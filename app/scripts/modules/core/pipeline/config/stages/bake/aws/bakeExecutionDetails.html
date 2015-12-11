@@ -34,6 +34,7 @@
     <div class="row" ng-if="stage.context.region && stage.context.status.resourceId">
       <div class="col-md-12">
         <div class="well alert alert-info">
+          <div ng-if="stage.context.previouslyBaked">No changes detected; reused existing bake</div>
           <a target="_blank" href="{{ bakeryDetailUrl(stage) }}">
             View Bakery Details
           </a>

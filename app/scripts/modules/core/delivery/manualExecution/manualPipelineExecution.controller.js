@@ -3,35 +3,34 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution.controller', [
+  require('angular-ui-bootstrap'),
   require('../../utils/lodash.js'),
   require('../../pipeline/config/triggers/jenkins/jenkinsTrigger.module.js'),
+  require('../../ci/jenkins/igor.service.js'),
 ])
-  .controller('ManualPipelineExecutionCtrl', function($scope, $filter, _, igorService, $modalInstance, pipeline, application) {
+  .controller('ManualPipelineExecutionCtrl', function (_, igorService, $modalInstance, pipeline, application) {
 
-    $scope.pipeline = pipeline;
-
-    $scope.application = application;
-
-    if (!pipeline) {
-      $scope.pipelineOptions = application.pipelineConfigs;
-    }
-
-    $scope.command = {
+    this.command = {
       pipeline: pipeline,
       trigger: null,
       selectedBuild: null,
     };
 
+    this.viewState = {
+      buildsLoading: true,
+    };
+
     let addTriggers = () => {
-      if (!$scope.command.pipeline) {
-        $scope.command.trigger = null;
+      if (!this.command.pipeline) {
+        this.command.trigger = null;
         return;
       }
 
-      $scope.triggers = _.chain($scope.command.pipeline.triggers)
+      this.triggers = _.chain(this.command.pipeline.triggers)
         .filter('type', 'jenkins')
         .sortBy('enabled')
-        .map(function (trigger) {
+        .reverse()
+        .map((trigger) => {
           var copy = _.clone(trigger);
           copy.buildNumber = null;
           copy.type = 'manual';
@@ -40,81 +39,90 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
         })
         .value();
 
-      $scope.command.trigger  = _.first($scope.triggers);
-      $scope.builds = [];
+      this.command.trigger  = _.first(this.triggers);
+      this.builds = [];
     };
 
-    $scope.viewState = {
-      triggering: false,
-      buildsLoading: true,
-    };
 
-    $scope.triggerUpdated = function(trigger) {
-      $scope.viewState.buildsLoading = true;
-      let command = $scope.command;
+    /**
+     * Controller API
+     */
+
+    this.triggerUpdated = (trigger) => {
+      this.viewState.buildsLoading = true;
+      let command = this.command;
 
       if( trigger !== undefined ) {
         command.trigger = trigger;
       }
 
       if (command.trigger) {
-        $scope.viewState.buildsLoading = true;
-        igorService.listBuildsForJob(command.trigger.master, command.trigger.job).then(function(builds) {
-          $scope.builds = _.filter(builds, {building: false, result: 'SUCCESS'});
+        this.viewState.buildsLoading = true;
+        igorService.listBuildsForJob(command.trigger.master, command.trigger.job).then((builds) => {
+          this.builds = _.filter(builds, {building: false, result: 'SUCCESS'});
           if (!angular.isDefined(command.trigger.build)) {
-            command.selectedBuild = $scope.builds[0];
+            command.selectedBuild = this.builds[0];
           }
-          $scope.viewState.buildsLoading = false;
+          this.viewState.buildsLoading = false;
         });
       } else {
-        $scope.builds = [];
-        $scope.viewState.buildsLoading = false;
+        this.builds = [];
+        this.viewState.buildsLoading = false;
       }
     };
 
-    $scope.pipelineSelected = () => {
-      let pipeline = $scope.command.pipeline,
+    this.pipelineSelected = () => {
+      let pipeline = this.command.pipeline,
           executions = application.executions || [];
-      $scope.currentlyRunningExecutions = executions
+      this.currentlyRunningExecutions = executions
         .filter((execution) => execution.pipelineConfigId === pipeline.id && execution.isActive);
       addTriggers();
-      $scope.triggerUpdated();
-      if (pipeline.parameterConfig !== undefined && pipeline.parameterConfig.length){
-        $scope.parameters = {};
-        _.each(pipeline.parameterConfig, function(parameter) {
-          $scope.parameters[parameter.name] = parameter.default;
+      this.triggerUpdated();
+
+      this.showRebakeOption = pipeline.stages.some((stage) => stage.type === 'bake');
+
+      if (pipeline.parameterConfig !== undefined && pipeline.parameterConfig.length) {
+        this.parameters = {};
+        pipeline.parameterConfig.forEach((parameter) => {
+          this.parameters[parameter.name] = parameter.default;
         });
       }
 
     };
 
-
-    $scope.updateSelectedBuild = function(item) {
-      $scope.command.selectedBuild = item;
+    this.updateSelectedBuild = (item) => {
+      this.command.selectedBuild = item;
     };
 
-    this.cancel = function() {
-      $modalInstance.dismiss();
-    };
-
-    this.execute = function() {
-      let selectedTrigger = $scope.command.trigger || {},
+    this.execute = () => {
+      let selectedTrigger = this.command.trigger || {},
           command = { trigger: selectedTrigger },
-          pipeline = $scope.command.pipeline;
+          pipeline = this.command.pipeline;
 
       command.pipelineName = pipeline.name;
 
-      if (selectedTrigger && $scope.command.selectedBuild) {
-        selectedTrigger.buildNumber = $scope.command.selectedBuild.number;
+      if (selectedTrigger && this.command.selectedBuild) {
+        selectedTrigger.buildNumber = this.command.selectedBuild.number;
       }
       if (pipeline.parameterConfig !== undefined && pipeline.parameterConfig.length) {
-        selectedTrigger.parameters = $scope.parameters;
+        selectedTrigger.parameters = this.parameters;
       }
       $modalInstance.close(command);
     };
 
+    this.cancel = $modalInstance.dismiss;
+
+
+    /**
+     * Initialization
+     */
+
     if (pipeline) {
-      $scope.pipelineSelected();
+      this.pipelineSelected();
+    }
+
+    if (!pipeline) {
+      this.pipelineOptions = application.pipelineConfigs;
     }
 
   }).name;

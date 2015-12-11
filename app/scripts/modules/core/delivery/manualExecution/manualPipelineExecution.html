@@ -2,40 +2,40 @@
   <task-monitor monitor="taskMonitor"></task-monitor>
   <modal-close></modal-close>
   <div class="modal-header">
-    <h3 ng-if="command.pipeline && triggers.length">Select Execution Parameters</h3>
-    <h3 ng-if="command.pipeline && !triggers.length">Confirm Execution</h3>
-    <h3 ng-if="!command.pipeline">Select Pipeline</h3>
+    <h3 ng-if="vm.command.pipeline && vm.triggers.length">Select Execution Parameters</h3>
+    <h3 ng-if="vm.command.pipeline && !vm.triggers.length">Confirm Execution</h3>
+    <h3 ng-if="!vm.command.pipeline">Select Pipeline</h3>
   </div>
   <form role="form">
     <div class="modal-body container-fluid form-horizontal">
-      <div class="form-group" ng-if="pipelineOptions">
+      <div class="form-group" ng-if="vm.pipelineOptions">
         <label class="col-md-2 col-md-offset-1 sm-label-left">Pipeline</label>
         <div class="col-md-7">
-          <ui-select ng-model="command.pipeline"
+          <ui-select ng-model="vm.command.pipeline"
                      style="width: 250px"
                      class="form-control input-sm"
-                     on-select="pipelineSelected()">
+                     on-select="vm.pipelineSelected()">
             <ui-select-match>
               <strong>{{$select.selected.name}}</strong>
             </ui-select-match>
-            <ui-select-choices repeat="pipeline as pipeline in application.pipelineConfigs | anyFieldFilter: {name: $select.search }">
+            <ui-select-choices repeat="pipeline as pipeline in vm.pipelineOptions | anyFieldFilter: {name: $select.search }">
               <div><strong>{{pipeline.name}}</strong></div>
             </ui-select-choices>
           </ui-select>
         </div>
       </div>
-      <div class="form-group" ng-if="command.pipeline">
+      <div class="form-group" ng-if="vm.command.pipeline">
         <div class="col-md-10">
-          <p>This will start a new run of <strong>{{command.pipeline.name}}</strong>.</p>
+          <p>This will start a new run of <strong>{{vm.command.pipeline.name}}</strong>.</p>
         </div>
       </div>
       <div class="alert alert-warning"
-           ng-if="currentlyRunningExecutions.length">
+           ng-if="vm.currentlyRunningExecutions.length">
         <p><strong>
           <span class="glyphicon glyphicon-warning-sign"></span>
           This pipeline is currently executing!
         </strong></p>
-        <div ng-repeat="execution in currentlyRunningExecutions" class="pad-left">
+        <div ng-repeat="execution in vm.currentlyRunningExecutions" class="pad-left">
           <strong>Execution started: </strong>{{execution.startTime | timestamp }}
           <div>
             <strong>Current stage:</strong>
@@ -46,31 +46,31 @@
         </div>
       </div>
 
-      <div class="form-group" ng-if="triggers.length">
+      <div ng-if="vm.triggers.length">
         <div class="form-group">
           <label class="col-md-2 col-md-offset-1 sm-label-left">Trigger</label>
           <div class="col-md-6">
             <p class="form-control-static"
-               ng-if="triggers.length === 1">{{command.trigger.description}}</p>
+               ng-if="vm.triggers.length === 1">{{vm.command.trigger.description}}</p>
             <select class="form-control input-sm"
-                    ng-if="triggers.length > 1"
-                    ng-model="command.trigger"
-                    ng-options="trigger as trigger.description for trigger in triggers"
-                    ng-change="triggerUpdated(trigger)">
+                    ng-if="vm.triggers.length > 1"
+                    ng-model="vm.command.trigger"
+                    ng-options="trigger as trigger.description for trigger in vm.triggers"
+                    ng-change="vm.triggerUpdated(trigger)">
             </select>
           </div>
         </div>
         <div class="form-group">
           <label class="col-md-2 col-md-offset-1 sm-label-left">Build</label>
-          <div class="col-md-6" ng-if="viewState.buildsLoading">
+          <div class="col-md-6" ng-if="vm.viewState.buildsLoading">
             <p class="form-control-static text-center" >
               <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
             </p>
           </div>
-          <div class="col-md-9" ng-if="!viewState.buildsLoading">
+          <div class="col-md-9" ng-if="!vm.viewState.buildsLoading">
             <ui-select class="form-control input-sm"
-                       ng-model="command.selectedBuild"
-                       on-select="updateSelectedBuild($item)">
+                       ng-model="vm.command.selectedBuild"
+                       on-select="vm.updateSelectedBuild($item)">
               <ui-select-match placeholder="Select...">
                 <span>
                   <strong>Build {{$select.selected.number}}</strong>
@@ -78,7 +78,7 @@
                   ({{$select.selected.timestamp | timestamp}})
                 </span>
               </ui-select-match>
-              <ui-select-choices repeat="build in builds | anyFieldFilter: {number: $select.search, fullDisplayName: $select.search, status: $select.search}">
+              <ui-select-choices repeat="build in vm.builds | anyFieldFilter: {number: $select.search, fullDisplayName: $select.search, status: $select.search}">
               <span>
                   <strong>Build {{build.number}}</strong>
                   {{build | buildDisplayName}}
@@ -90,27 +90,38 @@
         </div>
       </div>
 
-      <div class="form-group" ng-if="command.pipeline.parameterConfig !== undefined && command.pipeline.parameterConfig.length">
+      <div class="form-group" ng-if="vm.command.pipeline.parameterConfig !== undefined && vm.command.pipeline.parameterConfig.length">
         <div class="col-md-10">
           <h4>Parameters</h4>
         </div>
-        <div class="form-group" ng-repeat="parameter in command.pipeline.parameterConfig | orderBy:'name' ">
+        <div class="form-group" ng-repeat="parameter in vm.command.pipeline.parameterConfig | orderBy:'name' ">
           <div class="col-md-offset-1 col-md-4 sm-label-left break-word">
             <b>{{parameter.name}}</b>
             <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
           </div>
           <div class="col-md-6">
-            <input type="text" class="form-control input-sm" ng-model="parameters[parameter.name]"/>
+            <input type="text" class="form-control input-sm" ng-model="vm.parameters[parameter.name]"/>
           </div>
+        </div>
+      </div>
+
+      <div class="form-group" ng-if="vm.showRebakeOption">
+        <label class="col-md-2 col-md-offset-1 sm-label-left">Rebake</label>
+        <div class="col-md-6 checkbox">
+          <label>
+            <input type="checkbox" ng-model="vm.command.trigger.rebake"/>
+            Force Rebake
+            <help-field key="execution.forceRebake"></help-field>
+          </label>
         </div>
       </div>
 
     </div>
     <div class="modal-footer">
-      <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+      <button class="btn btn-default" ng-click="vm.cancel()">Cancel</button>
       <button type="submit"
               class="btn btn-primary"
-              ng-click="ctrl.execute()">
+              ng-click="vm.execute()">
         <span class="glyphicon glyphicon-play"></span> Run
       </button>
     </div>
