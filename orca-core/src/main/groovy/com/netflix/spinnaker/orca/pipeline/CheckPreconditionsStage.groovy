@@ -38,7 +38,6 @@ class CheckPreconditionsStage extends ParallelStage implements StepProvider {
 
   @Override
   List<Step> buildSteps(Stage stage) {
-    stage.resolveStrategyParams()
     String preconditionType = stage.context.preconditionType
     if (!preconditionType) {
       throw new IllegalStateException("no preconditionType specified for stage $stage.id")
@@ -72,6 +71,7 @@ class CheckPreconditionsStage extends ParallelStage implements StepProvider {
 
   @Override
   List<Map<String, Object>> parallelContexts(Stage stage) {
+    stage.resolveStrategyParams()
     def baseContext = new HashMap(stage.context)
     List<Map> preconditions = baseContext.remove('preconditions') as List<Map>
     return preconditions.collect { preconditionConfig ->
@@ -79,6 +79,13 @@ class CheckPreconditionsStage extends ParallelStage implements StepProvider {
         type            : PIPELINE_CONFIG_TYPE,
         preconditionType: preconditionConfig.type
       ]
+
+      context['context'] = context['context']?:[:]
+
+      ['cluster', 'regions', 'credentials', 'zones'].each {
+        context['context'][it] = context['context'][it] ?: baseContext[it]
+      }
+
       context.name = context.name ?: "Check precondition (${context.preconditionType})".toString()
       return context
     }
