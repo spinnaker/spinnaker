@@ -32,6 +32,10 @@ describe('Directives: whatsNew', function () {
     return domNode.next();
   }
 
+  function getTimestamp(domNode) {
+    return domNode.find('span.timestamp');
+  }
+
   describe('with content', function() {
 
     beforeEach(function() {
@@ -52,8 +56,8 @@ describe('Directives: whatsNew', function () {
 
       domNode = createWhatsNew(this.compile, this.scope);
 
-      expect(domNode.find('a.unread').size()).toBe(1);
-      expect(domNode.find('a.unread').html().indexOf(this.expectedDate)).not.toBe(-1);
+      expect(getTimestamp(domNode).size()).toBe(1);
+      expect(getTimestamp(domNode).html().indexOf(this.expectedDate)).not.toBe(-1);
     });
 
     it('should show updated label when view state has different lastUpdated value than file', function() {
@@ -69,8 +73,8 @@ describe('Directives: whatsNew', function () {
 
       domNode = createWhatsNew(this.compile, this.scope);
 
-      expect(domNode.find('a.unread').size()).toBe(1);
-      expect(domNode.find('a.unread').html().indexOf(this.expectedDate)).not.toBe(-1);
+      expect(getTimestamp(domNode).size()).toBe(1);
+      expect(getTimestamp(domNode).html().indexOf(this.expectedDate)).not.toBe(-1);
     });
 
     it('should NOT show updated label when view state has same lastUpdated value as file', function() {
@@ -87,10 +91,10 @@ describe('Directives: whatsNew', function () {
 
       domNode = createWhatsNew(this.compile, this.scope);
 
-      expect(domNode.find('a.unread').size()).toBe(0);
+      expect(getTimestamp(domNode).size()).toBe(0);
     });
 
-    it('should open modal when clicked, update and cache view state, then hide unread label', function() {
+    it('should open modal when clicked, update and cache view state, then hide timestamp label', function() {
       var writtenToCache, domNode;
 
       writtenToCache = null;
@@ -108,7 +112,7 @@ describe('Directives: whatsNew', function () {
 
       domNode = createWhatsNew(this.compile, this.scope);
 
-      expect(domNode.find('a.unread').size()).toBe(1);
+      expect(getTimestamp(domNode).size()).toBe(1);
       domNode.find('a').click();
       this.scope.$digest();
 
@@ -117,7 +121,7 @@ describe('Directives: whatsNew', function () {
       expect(writtenToCache.updateLastViewed).toBe(this.lastUpdated);
 
       this.scope.$digest();
-      expect(domNode.find('a.unread').size()).toBe(0);
+      expect(getTimestamp(domNode).size()).toBe(0);
     });
   });
 

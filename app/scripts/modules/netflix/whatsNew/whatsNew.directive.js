@@ -1,5 +1,7 @@
 'use strict';
 
+require('./whatsNew.less');
+
 let angular = require('angular');
 
 module.exports = angular

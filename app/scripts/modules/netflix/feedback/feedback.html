@@ -1,9 +1,14 @@
 <li class="feedback-nav"  ng-class="{open: state.showMenu}">
-  <a ng-if="!state.isMac" href ng-click="openFeedback()"><span class="glyphicon glyphicon-comment"></span> <span class="hidden-xs hidden-sm">Feedback</span></a>
-
-  <a ng-if="state.isMac" href class="dropdown-toggle" ng-click="toggleMenu()">
-    <span class="glyphicon glyphicon-comment"></span> <span class="hidden-xs hidden-sm">Feedback</span>
+  <a class="remove-border-top" ng-if="!state.isMac" href ng-click="openFeedback()">
+    <span class="glyphicon glyphicon-comment"></span>
+    <span class="hidden-xs hidden-sm">Feedback</span>
   </a>
+
+  <a ng-if="state.isMac" href class="dropdown-toggle remove-border-top" ng-click="toggleMenu()">
+    <span class="glyphicon glyphicon-comment"></span>
+    <span class="hidden-xs hidden-sm">Feedback</span>
+  </a>
+
   <ul ng-if="state.isMac" class="dropdown-menu">
     <li>
       <a href ng-click="openFeedback(); toggleMenu();">

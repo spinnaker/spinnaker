@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.core.authentication.userMenu.directiv
       restrict: 'E',
       replace: true,
       templateUrl: require('./userMenu.directive.html'),
-      link: function(scope, element) {
+      link: function(scope) {
         scope.authEnabled = settings.authEnabled;
         scope.user = authenticationService.getAuthenticatedUser();
       }

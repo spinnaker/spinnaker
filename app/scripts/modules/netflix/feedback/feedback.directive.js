@@ -1,5 +1,7 @@
 'use strict';
 
+require('./feedback.less');
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.feedback.directive', [
