@@ -50,7 +50,9 @@ class ExpressionPreconditionTask implements PreconditionTask {
 
     def status = Boolean.valueOf(expression) ? ExecutionStatus.SUCCEEDED : ExecutionStatus.TERMINAL
     return new DefaultTaskResult(status, [
-        expressionResult: expression
+      context: new HashMap(stage.context.context as Map) + [
+          expressionResult: expression
+      ]
     ])
   }
 
