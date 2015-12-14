@@ -128,6 +128,7 @@ function process_args() {
           ;;
       --local-install)
           DOWNLOAD="true"
+		  shift
           ;;
       --quiet|-q)
           QUIET="true"
@@ -305,7 +306,7 @@ function install_java() {
 function install_dependencies() {
   # java
   if [ "$DOWNLOAD" != "true" ];then
-    apt-get install -y --force-yes redis-server apache2 unzip
+    apt-get install -y --force-yes redis-server unzip
   else
     # these are for cassandra only
     # if download is truee then neither redis or apache2 are installed
@@ -315,7 +316,21 @@ function install_dependencies() {
     curl -L -O http://security.ubuntu.com/ubuntu/pool/main/n/ntp/ntp_4.2.6.p5+dfsg-3ubuntu2.14.04.5_amd64.deb
     curl -L -O http://mirrors.kernel.org/ubuntu/pool/universe/p/python-support/python-support_1.0.15_all.deb
     curl -L -O http://security.ubuntu.com/ubuntu/pool/main/u/unzip/unzip_6.0-9ubuntu1.5_amd64.deb
-    # the reset are all apache
+    dpkg -i *.deb
+    popd
+    rm -rf /tmp/deppkgs
+  fi
+}
+
+function install_apache2() {
+  echo "updating apt cache..." && apt-get -q update > /dev/null 2>&1
+  local apt_status=`apt-get -s -y --force-yes install apache2 > /dev/null 2>&1 ; echo $?`
+  if [ $apt_status -eq 0 ];then
+    echo "apt sources contain apache2; installing using apt-get"
+    apt-get -q -y --force-yes install apache2
+  elif [ $apt_status -eq 100 ];then
+    echo "no valid apache2 package found in apt sources; attempting to download debs and install locally..."
+    mkdir /tmp/apache2 && pushd /tmp/apache2
     curl -L -O http://security.ubuntu.com/ubuntu/pool/main/a/apache2/apache2_2.4.7-1ubuntu4.5_amd64.deb
     curl -L -O http://security.ubuntu.com/ubuntu/pool/main/a/apache2/apache2-bin_2.4.7-1ubuntu4.5_amd64.deb
     curl -L -O http://security.ubuntu.com/ubuntu/pool/main/a/apache2/apache2-data_2.4.7-1ubuntu4.5_all.deb
@@ -325,8 +340,11 @@ function install_dependencies() {
     curl -L -O http://mirrors.kernel.org/ubuntu/pool/main/a/apr-util/libaprutil1-ldap_1.5.3-1_amd64.deb
     curl -L -O http://mirrors.kernel.org/ubuntu/pool/main/s/ssl-cert/ssl-cert_1.0.33_all.deb
     dpkg -i *.deb
-    popd
-    rm -rf /tmp/deppkgs
+    popd && rm -rf /tmp/apache2
+  else
+    echo "unknown error ($apt_status) occurred attempting to install apache2"
+    echo "cannot continue installation; exiting"
+    exit 13
   fi
 }
 
@@ -453,6 +471,7 @@ popd
 rm -rf /tmp/packer
 
 install_java
+install_apache2
 install_dependencies
 install_cassandra
 
