@@ -45,6 +45,40 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
     $scope.stage.canary.canaryConfig.canaryAnalysisConfig = $scope.stage.canary.canaryConfig.canaryAnalysisConfig || {};
     $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours || [];
 
+    $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary = $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary || [
+      {action: 'DISABLE'},
+      {action: 'TERMINATE', delayBeforeActionInMins: 60}
+    ];
+
+    this.terminateUnhealthyCanaryEnabled = function (isEnabled) {
+      if (isEnabled === true) {
+        $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary = [
+          {action: 'DISABLE'},
+          {action: 'TERMINATE', delayBeforeActionInMins: 60}
+        ];
+      } else if (isEnabled === false) {
+        $scope.stage.canary.canaryConfig.actionsForUnhealthyCanary = [
+          {action: 'DISABLE'}
+        ];
+      }
+
+      return _.find($scope.stage.canary.canaryConfig.actionsForUnhealthyCanary, function (action) {
+        return action.action === 'TERMINATE';
+      }) !== undefined;
+    };
+
+    this.terminateUnhealthyCanaryMinutes = function (delayBeforeActionInMins) {
+      var terminateAction = _.find($scope.stage.canary.canaryConfig.actionsForUnhealthyCanary, function (action) {
+        return action.action === 'TERMINATE';
+      });
+
+      if (delayBeforeActionInMins) {
+        terminateAction.delayBeforeActionInMins = delayBeforeActionInMins;
+      }
+
+      return terminateAction ? terminateAction.delayBeforeActionInMins : 60;
+    };
+
     accountService.listAccounts('aws').then(function(accounts) {
       $scope.accounts = accounts;
     });
