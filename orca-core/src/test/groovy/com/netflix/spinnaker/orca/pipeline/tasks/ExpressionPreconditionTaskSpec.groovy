@@ -41,7 +41,10 @@ class ExpressionPreconditionTaskSpec extends Specification {
 
     then:
     taskResult.status == taskResultStatus
-    taskResult.stageOutputs.expressionResult == expressionResult
+    taskResult.stageOutputs.context == [
+      expression      : expression,
+      expressionResult: expressionResult
+    ]
 
     where:
     expression                           | param1  || expressionResult         || taskResultStatus
