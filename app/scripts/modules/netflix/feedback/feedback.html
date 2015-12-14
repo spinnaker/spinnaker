@@ -1,24 +1,26 @@
-<ul class="nav navbar-nav navbar-right feedback-nav">
-  <li ng-if="!state.isMac">
-    <a href ng-click="openFeedback()"><span class="glyphicon glyphicon-comment"></span> <span class="hidden-xs hidden-sm">Feedback</span></a>
-  </li>
-  <li ng-if="state.isMac" ng-class="{open: state.showMenu}">
-    <a href class="dropdown-toggle" ng-click="toggleMenu()">
-      <span class="glyphicon glyphicon-comment"></span> <span class="hidden-xs hidden-sm">Feedback</span>
-    </a>
-    <ul class="dropdown-menu">
-      <li>
-        <a href ng-click="openFeedback(); toggleMenu();">
-          <span class="glyphicon glyphicon-envelope"></span>
-          Create an issue in JIRA
-        </a>
-      </li>
-      <li>
-        <a href="hipchat://www.hipchat.com/room/Spinnaker%20Help?message={{getCurrentUrlMessage()}}" ng-click="toggleMenu()">
-          <span class="icon"><span class="glyphicon icon-bubbles"></span></span>
-          Talk to us on HipChat
-        </a>
-      </li>
-    </ul>
-  </li>
-</ul>
+<li class="feedback-nav"  ng-class="{open: state.showMenu}">
+  <a class="remove-border-top" ng-if="!state.isMac" href ng-click="openFeedback()">
+    <span class="glyphicon glyphicon-comment"></span>
+    <span class="hidden-xs hidden-sm">Feedback</span>
+  </a>
+
+  <a ng-if="state.isMac" href class="dropdown-toggle remove-border-top" ng-click="toggleMenu()">
+    <span class="glyphicon glyphicon-comment"></span>
+    <span class="hidden-xs hidden-sm">Feedback</span>
+  </a>
+
+  <ul ng-if="state.isMac" class="dropdown-menu">
+    <li>
+      <a href ng-click="openFeedback(); toggleMenu();">
+        <span class="glyphicon glyphicon-envelope"></span>
+        Create an issue in JIRA
+      </a>
+    </li>
+    <li>
+      <a href="hipchat://www.hipchat.com/room/Spinnaker%20Help?message={{getCurrentUrlMessage()}}" ng-click="toggleMenu()">
+        <span class="icon"><span class="glyphicon icon-bubbles"></span></span>
+        Talk to us on HipChat
+      </a>
+    </li>
+  </ul>
+</li>

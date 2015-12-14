@@ -1,5 +1,7 @@
 'use strict';
 
+require('./whatsNew.less');
+
 let angular = require('angular');
 
 module.exports = angular
@@ -17,6 +19,7 @@ module.exports = angular
   .directive('whatsNew', function (whatsNewReader, viewStateCache) {
     return {
       restrict: 'E',
+      replace: true,
       templateUrl: require('./whatsNew.directive.html'),
       controller: function($scope, $uibModal) {
 

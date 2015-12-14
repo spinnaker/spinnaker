@@ -16,6 +16,12 @@
 
 @import "../presentation/less/imports/commonImports.less";
 
+@media (min-width: 768px) {
+  .spinnaker-header .navbar-right {
+    margin-right: -45px;
+  }
+}
+
 .secondary-panel {
   > div {
     flex: 1 1 auto;
@@ -127,27 +133,19 @@
   }
 }
 
-.feedback-nav {
-  .glyphicon {
-    padding-right: 4px;
-    top: 3px;
-  }
-  a {
-    &:hover, &:active {
-      border-top-color: transparent !important;
-    }
-  }
-}
-
-.feedback-nav .dropdown-menu {
-  z-index: 10000;
-}
-
 @media (min-width: @screen-lg-min) {
   .pull-right-lg {
     float: right;
   }
 }
 
-
-
+.nav.navbar-nav {
+  .remove-border-top:hover, .remove-border-top:active {
+    border-top-color: transparent;
+    transition: none;
+  }
+  .glyphicon {
+    padding-right: 4px;
+    top: 3px;
+  }
+}
