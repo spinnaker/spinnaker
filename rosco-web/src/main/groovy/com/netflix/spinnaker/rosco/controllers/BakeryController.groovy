@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
+import retrofit.http.Path
 
 @RestController
 @Slf4j
@@ -62,15 +63,26 @@ class BakeryController {
   BakeOptions bakeOptionsByCloudProvider(@PathVariable("cloudProvider") BakeRequest.CloudProviderType cloudProvider) {
     def bakeHandler = cloudProviderBakeHandlerRegistry.lookup(cloudProvider)
     if (!bakeHandler) {
-      throw new BakeOptions.Exception("cloud provider $cloudProvider not found")
+      throw new BakeOptions.Exception("Cloud provider $cloudProvider not found")
     }
     return bakeHandler.getBakeOptions()
   }
 
+  @RequestMapping(value = '/bakeOptions/{cloudProvider}/baseImages/{imageId}')
+  BakeOptions.BaseImage baseImage(@PathVariable("cloudProvider") BakeRequest.CloudProviderType cloudProvider, @PathVariable("imageId") String imageId) {
+    BakeOptions bakeOptions = bakeOptionsByCloudProvider(cloudProvider)
+    def baseImage = bakeOptions.baseImages.find { it.id == imageId }
+    if (!baseImage) {
+      def images = bakeOptions.baseImages*.id.join(", ")
+      throw new BakeOptions.Exception("Can't find base image with id ${imageId} in ${cloudProvider} base images: ${images}")
+    }
+    return baseImage
+  }
+
   @ExceptionHandler
   @ResponseStatus(HttpStatus.NOT_FOUND)
-  Map handleBakeOptionsException(BakeOptions.Exception _) {
-    [error: "bake.options.not.found", status: HttpStatus.NOT_FOUND, message: "Bake options not found"]
+  Map handleBakeOptionsException(BakeOptions.Exception e) {
+    [error: "bake.options.not.found", status: HttpStatus.NOT_FOUND, messages: ["Bake options not found. " + e.message]]
   }
 
   @RequestMapping(value = '/api/v1/{region}/bake', method = RequestMethod.POST)

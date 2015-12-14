@@ -596,8 +596,7 @@ class BakeryControllerSpec extends Specification {
       e.message == "Unable to locate incomplete bake with id '$SCRIPT_ID'."
   }
 
-  @Unroll
-  def "should list bake options by cloud provider: #provider"() {
+  def "should list bake options by cloud provider"() {
     setup:
       def provider1 = Mock(CloudProviderBakeHandler) {
         2 * getBakeOptions() >> new BakeOptions(cloudProvider: "aws", baseImages: [new BakeOptions.BaseImage(id: "santa")])
@@ -640,6 +639,41 @@ class BakeryControllerSpec extends Specification {
 
     when:
       bakeryController.bakeOptionsByCloudProvider(BakeRequest.CloudProviderType.docker)
+
+    then:
+      thrown BakeOptions.Exception
+  }
+
+  def "should return base image details"() {
+    setup:
+      def provider = Mock(CloudProviderBakeHandler) {
+        3 * getBakeOptions() >> new BakeOptions(cloudProvider: "gce",
+                                                baseImages: [
+                                                  new BakeOptions.BaseImage(id: "santa", shortDescription: "abc"),
+                                                  new BakeOptions.BaseImage(id: "clause", shortDescription: "def")
+                                                ])
+      }
+
+      def registry = new DefaultCloudProviderBakeHandlerRegistry()
+      registry.with {
+        register(BakeRequest.CloudProviderType.gce, provider)
+      }
+      def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: registry)
+
+    when:
+      def result = bakeryController.baseImage(BakeRequest.CloudProviderType.gce, "santa")
+
+    then:
+      result.shortDescription == "abc"
+
+    when:
+      result = bakeryController.baseImage(BakeRequest.CloudProviderType.gce, "clause")
+
+    then:
+      result.shortDescription == "def"
+
+    when:
+      bakeryController.baseImage(BakeRequest.CloudProviderType.gce, "notFound")
 
     then:
       thrown BakeOptions.Exception
