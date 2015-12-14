@@ -45,6 +45,11 @@ import java.time.Clock
 class RoscoConfiguration {
 
   @Bean
+  String roscoInstanceId() {
+    UUID.randomUUID().toString()
+  }
+
+  @Bean
   @ConditionalOnMissingBean(BakePoller)
   BakePoller bakePoller() {
     new BakePoller()

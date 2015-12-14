@@ -28,6 +28,9 @@ import redis.clients.jedis.exceptions.JedisDataException
 class RedisBackedBakeStore implements BakeStore {
 
   @Autowired
+  String roscoInstanceId
+
+  @Autowired
   ObjectMapper mapper
 
   private JedisPool jedisPool
@@ -182,6 +185,10 @@ class RedisBackedBakeStore implements BakeStore {
     }
   }
 
+  private String getIncompleteBakesKey() {
+    return "allBakes:incomplete:$roscoInstanceId".toString()
+  }
+
   @Override
   public boolean acquireBakeLock(String bakeKey) {
     def lockKey = "lock:$bakeKey"
@@ -199,7 +206,7 @@ class RedisBackedBakeStore implements BakeStore {
     def bakeStatus = new BakeStatus(id: bakeId, resource_id: bakeId, state: BakeStatus.State.PENDING)
     def bakeStatusJson = mapper.writeValueAsString(bakeStatus)
     def creationTimestamp = System.currentTimeMillis()
-    def keyList = ["allBakes", bakeId, bakeKey, "allBakes:incomplete", lockKey.toString()]
+    def keyList = ["allBakes", bakeId, bakeKey, incompleteBakesKey, lockKey.toString()]
     def argList = [creationTimestamp.toString(), region, bakeRequestJson, bakeStatusJson]
     def result = evalSHA("storeNewBakeStatusSHA", keyList, argList)
 
@@ -230,7 +237,7 @@ class RedisBackedBakeStore implements BakeStore {
       scriptSHA = "updateBakeStatusWithIncompleteRemovalSHA"
     }
 
-    def keyList = [bakeStatus.id, "allBakes:incomplete"]
+    def keyList = [bakeStatus.id, incompleteBakesKey]
     def argList = [bakeStatusJson, bakeLogsJson]
 
     evalSHA(scriptSHA, keyList, argList)
@@ -299,7 +306,7 @@ class RedisBackedBakeStore implements BakeStore {
 
   @Override
   public boolean deleteBakeByKey(String bakeKey) {
-    def keyList = [bakeKey, "allBakes", "allBakes:incomplete"]
+    def keyList = [bakeKey, "allBakes", incompleteBakesKey]
 
     return evalSHA("deleteBakeByKeySHA", keyList, []) == 1
   }
@@ -311,7 +318,7 @@ class RedisBackedBakeStore implements BakeStore {
                                     state: BakeStatus.State.CANCELED,
                                     result: BakeStatus.Result.FAILURE)
     def bakeStatusJson = mapper.writeValueAsString(bakeStatus)
-    def keyList = [bakeId, "allBakes:incomplete", "allBakes"]
+    def keyList = [bakeId, incompleteBakesKey, "allBakes"]
     def argList = [bakeStatusJson]
 
     return evalSHA("cancelBakeByIdSHA", keyList, argList) == 1
@@ -322,7 +329,7 @@ class RedisBackedBakeStore implements BakeStore {
     def jedis = jedisPool.getResource()
 
     jedis.withCloseable {
-      return jedis.smembers("allBakes:incomplete")
+      return jedis.smembers(incompleteBakesKey)
     }
   }
 
