@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
@@ -60,9 +61,7 @@ class OperationsController {
   ObjectMapper objectMapper
 
   @RequestMapping(value = "/orchestrate", method = RequestMethod.POST)
-  Map<String, String> orchestrate(
-    @RequestBody Map pipeline,
-    @RequestParam(value = "user", required = false) String user) {
+  Map<String, String> orchestrate(@RequestBody Map pipeline) {
 
     def json = objectMapper.writeValueAsString(pipeline)
     log.info('received pipeline {}:{}', pipeline.id, json)
@@ -74,7 +73,7 @@ class OperationsController {
       pipeline.trigger.type = "manual"
     }
     if (!pipeline.trigger.user) {
-      pipeline.trigger.user = (user ?: '[anonymous]')
+      pipeline.trigger.user = AuthenticatedRequest.getSpinnakerUser().orElse("[anonymous]")
     }
 
     if (igorService) {

@@ -107,6 +107,11 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   @Override
   void cancel(String id) {
+    cancel(id, null)
+  }
+
+  @Override
+  void cancel(String id, String user) {
     withJedis { Jedis jedis ->
       String key
       if (jedis.exists("pipeline:$id")) {
@@ -117,6 +122,9 @@ class JedisExecutionRepository implements ExecutionRepository {
         throw new ExecutionNotFoundException("No execution found with id $id")
       }
       def data = [canceled: "true"]
+      if (user) {
+        data.canceledBy = user
+      }
       def currentStatus = ExecutionStatus.valueOf(jedis.hget(key, "status"))
       if (currentStatus == ExecutionStatus.NOT_STARTED) {
         data.status = ExecutionStatus.CANCELED.name()
@@ -380,6 +388,7 @@ class JedisExecutionRepository implements ExecutionRepository {
       execution.appConfig.putAll(mapper.readValue(map.appConfig, Map))
       execution.context.putAll(map.context ? mapper.readValue(map.context, Map) : [:])
       execution.canceled = Boolean.parseBoolean(map.canceled)
+      execution.canceledBy = map.canceledBy
       execution.parallel = Boolean.parseBoolean(map.parallel)
       execution.limitConcurrent = Boolean.parseBoolean(map.limitConcurrent)
       execution.buildTime = map.buildTime?.toLong()

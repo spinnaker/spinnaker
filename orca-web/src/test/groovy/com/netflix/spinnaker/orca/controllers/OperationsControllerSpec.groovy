@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import com.netflix.spinnaker.security.AuthenticatedRequest
+import org.apache.log4j.MDC
 import org.springframework.mock.env.MockEnvironment
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -32,6 +34,10 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 class OperationsControllerSpec extends Specification {
+
+  void setup() {
+    MDC.clear()
+  }
 
   def pipelineStarter = Mock(PipelineStarter)
   def igor = Stub(IgorService)
@@ -76,7 +82,7 @@ class OperationsControllerSpec extends Specification {
     igor.getBuild(master, job, buildNumber) >> buildInfo
 
     when:
-    controller.orchestrate(requestedPipeline, null)
+    controller.orchestrate(requestedPipeline)
 
     then:
     with(startedPipeline) {
@@ -102,7 +108,7 @@ class OperationsControllerSpec extends Specification {
     buildInfo = [result: "SUCCESS"]
   }
 
-  def "trigger user takes precidence over query parameter"() {
+  def "trigger user takes precedence over query parameter"() {
     given:
     Pipeline startedPipeline = null
     pipelineStarter.start(_) >> { String json ->
@@ -110,8 +116,11 @@ class OperationsControllerSpec extends Specification {
     }
     igor.getBuild(master, job, buildNumber) >> buildInfo
 
+    if (queryUser) {
+      MDC.put(AuthenticatedRequest.SPINNAKER_USER, queryUser)
+    }
     when:
-    controller.orchestrate(requestedPipeline, queryUser)
+    controller.orchestrate(requestedPipeline)
 
     then:
     with(startedPipeline) {
@@ -155,7 +164,7 @@ class OperationsControllerSpec extends Specification {
     igor.getPropertyFile(master, job, buildNumber, propertyFile) >> propertyFileContent
 
     when:
-    controller.orchestrate(requestedPipeline, null)
+    controller.orchestrate(requestedPipeline)
 
     then:
     with(startedPipeline) {
@@ -202,7 +211,7 @@ class OperationsControllerSpec extends Specification {
     ]
 
     when:
-    controller.orchestrate(requestedPipeline, null)
+    controller.orchestrate(requestedPipeline)
 
     then:
     startedPipeline.id == 'val1'
@@ -230,7 +239,7 @@ class OperationsControllerSpec extends Specification {
     ]
 
     when:
-    controller.orchestrate(requestedPipeline, null)
+    controller.orchestrate(requestedPipeline)
 
     then:
     startedPipeline.id == 'value1'
@@ -273,7 +282,7 @@ class OperationsControllerSpec extends Specification {
     ]
 
     when:
-    controller.orchestrate(requestedPipeline, null)
+    controller.orchestrate(requestedPipeline)
 
     then:
     startedPipeline.id == 'value1'
@@ -305,12 +314,13 @@ class OperationsControllerSpec extends Specification {
     ]
 
     when:
-    controller.orchestrate(requestedPipeline, null)
+    controller.orchestrate(requestedPipeline)
 
     then:
     startedPipeline.pipelineConfigId == ''
   }
 
+  @Unroll
   def 'limits artifacts in buildInfo based on environment configuration'() {
     given:
     env.withProperty(OperationsController.MAX_ARTIFACTS_PROP, maxArtifacts.toString())
@@ -322,7 +332,7 @@ class OperationsControllerSpec extends Specification {
     igor.getBuild(master, job, buildNumber) >> buildInfo
 
     when:
-    controller.orchestrate(requestedPipeline, 'foo')
+    controller.orchestrate(requestedPipeline)
 
     then:
     with(startedPipeline) {

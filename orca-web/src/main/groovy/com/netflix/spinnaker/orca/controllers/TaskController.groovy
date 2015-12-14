@@ -94,7 +94,7 @@ class TaskController {
   @RequestMapping(value = "/tasks/{id}/cancel", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancelTask(@PathVariable String id) {
-    executionRepository.cancel(id)
+    executionRepository.cancel(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
   }
 
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.GET)
@@ -110,7 +110,7 @@ class TaskController {
   @RequestMapping(value = "/pipelines/{id}/cancel", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancel(@PathVariable String id) {
-    executionRepository.cancel(id)
+    executionRepository.cancel(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
   }
 
   @RequestMapping(value = "/pipelines/running", method = RequestMethod.GET)
