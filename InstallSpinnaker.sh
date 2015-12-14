@@ -308,14 +308,14 @@ function install_dependencies() {
   if [ "$DOWNLOAD" != "true" ];then
     apt-get install -y --force-yes redis-server unzip
   else
-    # these are for cassandra only
-    # if download is truee then neither redis or apache2 are installed
-    # this is dirty hackish and hard coded
     mkdir /tmp/deppkgs && pushd /tmp/deppkgs
     curl -L -O http://mirrors.kernel.org/ubuntu/pool/main/a/autogen/libopts25_5.18-2ubuntu2_amd64.deb
     curl -L -O http://security.ubuntu.com/ubuntu/pool/main/n/ntp/ntp_4.2.6.p5+dfsg-3ubuntu2.14.04.5_amd64.deb
     curl -L -O http://mirrors.kernel.org/ubuntu/pool/universe/p/python-support/python-support_1.0.15_all.deb
     curl -L -O http://security.ubuntu.com/ubuntu/pool/main/u/unzip/unzip_6.0-9ubuntu1.5_amd64.deb
+    curl -L -O http://mirrors.kernel.org/ubuntu/pool/universe/j/jemalloc/libjemalloc1_3.5.1-2_amd64.deb
+    curl -L -O https://launchpad.net/~chris-lea/+archive/ubuntu/redis-server/+build/8137860/+files/redis-tools_3.0.5-1chl1~trusty1_amd64.deb
+    curl -L -O https://launchpad.net/~chris-lea/+archive/ubuntu/redis-server/+build/8137860/+files/redis-server_3.0.5-1chl1~trusty1_amd64.deb
     dpkg -i *.deb
     popd
     rm -rf /tmp/deppkgs
