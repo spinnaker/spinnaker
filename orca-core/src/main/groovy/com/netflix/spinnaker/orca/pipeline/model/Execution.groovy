@@ -32,6 +32,7 @@ abstract class Execution<T> implements Serializable {
   Long buildTime
 
   boolean canceled
+  String canceledBy
   boolean parallel
   boolean limitConcurrent = false
 

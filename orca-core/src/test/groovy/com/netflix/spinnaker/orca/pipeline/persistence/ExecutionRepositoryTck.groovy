@@ -353,6 +353,30 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
       status == RUNNING
     }
   }
+
+  def "cancelling a running execution with a user adds a 'canceledBy' field"() {
+    given:
+    def execution = new Pipeline(buildTime: 0)
+    def user = "user@netflix.com"
+    repository.store(execution)
+    repository.updateStatus(execution.id, RUNNING)
+
+    expect:
+    with(repository.retrievePipeline(execution.id)) {
+      status == RUNNING
+    }
+
+    when:
+    repository.cancel(execution.id, user)
+
+
+    then:
+    with(repository.retrievePipeline(execution.id)) {
+      canceled
+      canceledBy == user
+      status == RUNNING
+    }
+  }
 }
 
 class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecutionRepository> {
