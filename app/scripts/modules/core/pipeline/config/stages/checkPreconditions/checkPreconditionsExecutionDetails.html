@@ -2,9 +2,9 @@
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
   <div class="step-section-details" ng-if="detailsSection === 'checkPreconditions'">
     <div class="row">
-      <div class="col-md-9">
-        <dl class="dl-narrow dl-horizontal">
-            <div ng-repeat="(key, val) in stage.context.context">
+      <div class="col-md-12">
+        <dl class="dl-horizontal">
+            <div ng-repeat="(key, val) in stage.context.context" ng-if="val !== null">
               <dt>{{key | robotToHuman}}</dt>
               <dd>{{val}}</dd>
             </div>
