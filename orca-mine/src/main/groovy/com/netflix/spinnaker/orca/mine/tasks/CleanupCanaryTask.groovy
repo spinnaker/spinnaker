@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -36,10 +37,43 @@ class CleanupCanaryTask extends AbstractCloudProviderAwareTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
+    def canary = stage.mapTo("/canary", Canary)
+    if (canary.health?.health == Health.UNHEALTHY.health && !canary.canaryConfig?.actionsForUnhealthyCanary?.find {
+      it.action == Action.TERMINATE
+    }) {
+      // should succeed (and not perform any cleanup) when the canary is unhealthy and not configured to terminate
+      return DefaultTaskResult.SUCCEEDED
+    }
+
     String cloudProvider = getCloudProvider(stage)
     def ops = DeployedClustersUtil.toKatoAsgOperations('destroyServerGroup', stage.context)
     log.info "Cleaning up canary clusters in ${stage.id} with ${ops}"
     def taskId = katoService.requestOperations(cloudProvider, ops).toBlocking().first()
     return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, ['kato.last.task.id': taskId])
+  }
+
+  static class Canary {
+    Health health
+    CanaryConfig canaryConfig
+  }
+
+  @Canonical
+  static class Health {
+    public final static Health UNHEALTHY = new Health("UNHEALTHY")
+
+    String health
+  }
+
+  static class CanaryConfig {
+    List<CanaryAction> actionsForUnhealthyCanary
+  }
+
+  static class CanaryAction {
+    Action action
+    int delayBeforeActionInMins = 0
+  }
+
+  static enum Action {
+    DISABLE, CANCEL, COMPLETE, FAIL, TERMINATE
   }
 }
