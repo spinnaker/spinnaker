@@ -81,7 +81,9 @@ ospackage {
     user = 'root'
     permissionGroup = 'root'    
     fileMode = 0644
-  }  
+  }
+
+  configurationFile('/etc/default/spinnaker\n')
 
   File configDir
   FileCollection collection = files { configDir.listFiles() }
