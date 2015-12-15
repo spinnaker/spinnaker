@@ -2,9 +2,10 @@
 
 let angular = require('angular');
 
-// TODO: Move everything in here to config
-module.exports = angular.module('spinnaker.core.pipeline.stage.bake.service', [])
-  .factory('bakeryService', function($q) {
+module.exports = angular.module('spinnaker.core.pipeline.stage.bake.service', [
+  require('exports?"restangular"!imports?_=lodash!restangular'),
+])
+  .factory('bakeryService', function($q, _, Restangular) {
 
     function getRegions(provider) {
       if (!provider || provider === 'aws') {
@@ -15,8 +16,16 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.bake.service', []
       }
     }
 
-    function getBaseOsOptions() {
-      return $q.when(['trusty', 'ubuntu', 'centos']);
+    function getBaseOsOptions(provider) {
+      if (provider) {
+        return getBaseOsOptions().then(function(options) {
+          return _.find(options, { cloudProvider: provider });
+        });
+      }
+      return Restangular
+        .all('bakery/options')
+        .withHttpConfig({cache: true})
+        .getList();
     }
 
     function getBaseLabelOptions() {

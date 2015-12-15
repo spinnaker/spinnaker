@@ -40,14 +40,14 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.bakeStage', [
     function initialize() {
       $scope.viewState.providerSelected = true;
       $q.all({
-        baseOsOptions: bakeryService.getBaseOsOptions(),
+        baseOsOptions: bakeryService.getBaseOsOptions('gce'),
         baseLabelOptions: bakeryService.getBaseLabelOptions(),
       }).then(function(results) {
-        $scope.baseOsOptions = results.baseOsOptions;
+        $scope.baseOsOptions = results.baseOsOptions.baseImages;
         $scope.baseLabelOptions = results.baseLabelOptions;
 
         if (!$scope.stage.baseOs && $scope.baseOsOptions && $scope.baseOsOptions.length) {
-          $scope.stage.baseOs = $scope.baseOsOptions[0];
+          $scope.stage.baseOs = $scope.baseOsOptions[0].id;
         }
         if (!$scope.stage.baseLabel && $scope.baseLabelOptions && $scope.baseLabelOptions.length) {
           $scope.stage.baseLabel = $scope.baseLabelOptions[0];
