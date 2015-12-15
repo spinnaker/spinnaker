@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks
 
+import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
+
 import static com.netflix.spinnaker.orca.bakery.api.BakeStatus.State.COMPLETED
 
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest
@@ -646,7 +649,7 @@ class CreateBakeTaskSpec extends Specification {
                                  it.packageName == "hodor" &&
                                  it.baseLabel == BakeRequest.Label.release &&
                                  it.baseOs == OperatingSystem.ubuntu
-                               },
+                               } as BakeRequest,
                                "1") >> Observable.from(runningStatus)
     0 * _
   }
@@ -655,11 +658,11 @@ class CreateBakeTaskSpec extends Specification {
   def "sets rebake query parameter to #queryParameter when trigger is #trigger"() {
     given:
     Pipeline pipeline = Pipeline.builder().withTrigger(trigger).build()
-    Stage stage = new PipelineStage(pipeline, "bake", bakeConfig).asImmutable()
+    Stage pipelineStage = new PipelineStage(pipeline, "bake", bakeConfig).asImmutable()
     task.bakery = Mock(BakeryService)
 
     when:
-    task.execute(stage)
+    task.execute(pipelineStage)
 
     then:
     1 * task.bakery.createBake(bakeConfig.region,
@@ -668,8 +671,22 @@ class CreateBakeTaskSpec extends Specification {
                                  it.packageName == "hodor" &&
                                  it.baseLabel == BakeRequest.Label.release &&
                                  it.baseOs == OperatingSystem.ubuntu
-                               },
+                               } as BakeRequest,
                                queryParameter) >> Observable.from(runningStatus)
+    0 * _
+
+    when:
+    task.execute(new OrchestrationStage(new Orchestration(), "bake", bakeConfig))
+
+    then:
+    1 * task.bakery.createBake(bakeConfig.region,
+      {
+        it.user == "bran" &&
+          it.packageName == "hodor" &&
+          it.baseLabel == BakeRequest.Label.release &&
+          it.baseOs == OperatingSystem.ubuntu
+      } as BakeRequest,
+      null) >> Observable.from(runningStatus)
     0 * _
 
     where:
