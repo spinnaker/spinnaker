@@ -18,6 +18,9 @@ package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.bakery.api.BakeryService
+import com.netflix.spinnaker.orca.bakery.api.BaseImage
+
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
@@ -25,9 +28,11 @@ import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import com.netflix.spinnaker.orca.pipeline.util.PackageInfo
+import com.netflix.spinnaker.orca.pipeline.util.PackageType
 import groovy.util.logging.Slf4j
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import retrofit.RestAdapter
 import retrofit.RetrofitError
@@ -44,9 +49,17 @@ import java.util.concurrent.ConcurrentHashMap
 @Component
 class QuickPatchStage extends LinearStage {
 
-  @Autowired BulkQuickPatchStage bulkQuickPatchStage
+  @Autowired
+  BulkQuickPatchStage bulkQuickPatchStage
+
   @Autowired
   OortService oortService
+
+  @Autowired
+  BakeryService bakeryService
+
+  @Value('${bakery.roscoApisEnabled:false}')
+  boolean roscoApisEnabled
 
   @Autowired
   ObjectMapper objectMapper
@@ -66,10 +79,21 @@ class QuickPatchStage extends LinearStage {
   List<Step> buildSteps(Stage stage) {
     List<Step> steps = []
 
-    OperatingSystem operatingSystem = OperatingSystem.valueOf(stage.context.baseOs)
-    PackageInfo packageInfo = new PackageInfo(stage, operatingSystem.packageType.packageType,
-      operatingSystem.packageType.versionDelimiter, true, true, objectMapper)
-    String packageName = stage.context?.package
+    PackageType packageType
+    if (roscoApisEnabled) {
+      def baseImage = bakeryService.getBaseImage(stage.context.cloudProviderType as String,
+                                                 stage.context.baseOs as String).toBlocking().single()
+      packageType = baseImage.packageType
+    } else {
+      OperatingSystem operatingSystem = OperatingSystem.valueOf(stage.context.baseOs as String)
+      packageType = operatingSystem.packageType
+    }
+    PackageInfo packageInfo = new PackageInfo(stage,
+                                              packageType.packageType,
+                                              packageType.versionDelimiter,
+                                              true /* extractBuildDetails */,
+                                              true /* extractVersion */,
+                                              objectMapper)
     String version = stage.context?.patchVersion ?:  packageInfo.findTargetPackage()?.packageVersion
 
     stage.context.put("version", version) // so the ui can display the discovered package version and we can verify for skipUpToDate

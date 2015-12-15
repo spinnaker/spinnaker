@@ -37,4 +37,12 @@ interface BakeryService {
   @GET("/api/v1/{region}/bake/{bakeId}")
   Observable<Bake> lookupBake(@Path("region") String region, @Path("bakeId") String bakeId)
 
+  //
+  // Methods below this line are not supported by the Netflix Bakery, and are only available
+  // iff bakery.roscoApisEnabled is true.
+  //
+
+  @GET("/bakeOptions/{cloudProvider}/baseImages/{imageId}")
+  Observable<BaseImage> getBaseImage(@Path("cloudProvider") String cloudProvider,
+                                     @Path("imageId") String imageId)
 }
