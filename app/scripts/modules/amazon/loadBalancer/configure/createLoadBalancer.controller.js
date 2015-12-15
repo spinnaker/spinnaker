@@ -235,6 +235,24 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
       $scope.existingSecurityGroupNames = [];
     }
 
+    function certificateIdAsARN(accountId, certificateId) {
+      if (certificateId) {
+        // If they really want to enter the ARN...
+        if (!certificateId.indexOf('arn:aws:iam::') === 0) {
+          return 'arn:aws:iam::' + accodtId + ':server-certificate/' + certificateId;
+        }
+      }
+    }
+
+    function formatListeners() {
+      return accountService.getAccountDetails($scope.loadBalancer.credentials).then(function (account) {
+        $scope.loadBalancer.listeners.forEach(function (listener, idx) {
+          var arn = certificateIdAsARN(account.accountId, listener.sslCertificateId);
+          $scope.loadBalancer.listeners[idx].sslCertificateId = arn;
+        });
+      });
+    }
+
     initializeController();
 
     // Controller API
@@ -337,7 +355,9 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
 
       $scope.taskMonitor.submit(
         function() {
-          return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor);
+          return formatListeners().then(function () {
+            return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor);
+          });
         }
       );
     };

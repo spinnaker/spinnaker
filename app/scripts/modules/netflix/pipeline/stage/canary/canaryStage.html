@@ -60,6 +60,23 @@
     </div>
     <div class="col-md-1 form-control-static">minutes</div>
   </div>
+  <div class="checkbox col-md-offset-1">
+    <label>
+      <input type="checkbox" ng-model="canaryStageCtrl.terminateUnhealthyCanaryEnabled" ng-model-options="{ getterSetter: true }" />
+      <b>Terminate Unhealthy Canary</b>
+      <help-field key="pipeline.config.canary.scaleUp"></help-field>
+    </label>
+  </div>
+  <div class="form-group" ng-if="canaryStageCtrl.terminateUnhealthyCanaryEnabled()" style="margin-top: 10px;">
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      <label>Terminate After</label>
+    </div>
+    <div class="col-md-2">
+      <input type="text" required ng-model="canaryStageCtrl.terminateUnhealthyCanaryMinutes"  ng-model-options="{ getterSetter: true }"
+             class="form-control input-sm" style="display: inline-block; width: 40%"/>
+      <span class="form-control-static"> minutes</span>
+    </div>
+  </div>
   <h5>Analysis Config</h5>
   <div class="horizontal-rule"></div>
   <stage-config-field label="Name" help-key="pipeline.config.canary.canaryConfigurationName" field-columns="3">

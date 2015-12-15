@@ -6,7 +6,8 @@ module.exports = angular.module('spinnaker.authentication', [
   require('./authentication.service.js'),
   require('../config/settings.js'),
   require('./authentication.initializer.service.js'),
-  require('./authentication.interceptor.service.js')
+  require('./authentication.interceptor.service.js'),
+  require('./userMenu/userMenu.module.js'),
 ])
   .config(function ($httpProvider) {
     $httpProvider.interceptors.push('gateRequestInterceptor');
