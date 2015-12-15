@@ -119,6 +119,22 @@ class ParallelDeployStage extends ParallelStage {
           // GCE uses 'image' as the ID key to clouddriver.
           cluster.image = trigger.parameters.imageId
         }
+        // the strategy can set it's own enable / disable traffic settings to override the one in advanced settings
+        if (stage.context.trafficOptions && stage.context.trafficOptions != 'inherit') {
+          String addToLoadBalancer = 'AddToLoadBalancer'.toString()
+          if (stage.context.trafficOptions == 'enable') {
+            // explicitly enable traffic
+            if (cluster.suspendedProcesses.contains(addToLoadBalancer)) {
+              cluster.suspendedProcesses.remove(addToLoadBalancer)
+            }
+          }
+          if (stage.context.trafficOptions == 'disable') {
+            // explicitly disable traffic
+            if (!cluster.suspendedProcesses.contains(addToLoadBalancer)) {
+              cluster.suspendedProcesses.add(addToLoadBalancer)
+            }
+          }
+        }
         stage.context.clusters = [cluster as Map<String, Object>]
       }
     }
