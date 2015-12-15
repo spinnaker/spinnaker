@@ -239,7 +239,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
       if (certificateId) {
         // If they really want to enter the ARN...
         if (!certificateId.indexOf('arn:aws:iam::') === 0) {
-          return 'arn:aws:iam::' + accodtId + ':server-certificate/' + certificateId;
+          return 'arn:aws:iam::' + accountId + ':server-certificate/' + certificateId;
         }
       }
     }
