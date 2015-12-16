@@ -84,6 +84,10 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     TaskRepository.threadLocalTask.set(task)
   }
 
+  def cleanupSpec() {
+    AutoScalingWorker.metaClass = null
+  }
+
   void "handler supports basic deploy description type"() {
     given:
     def description = new BasicAmazonDeployDescription()
