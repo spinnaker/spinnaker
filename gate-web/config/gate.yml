@@ -16,20 +16,20 @@ services:
     # Modifying the details below when rosco.enabled is true will have no effect (do it in the Rosco config).
     defaults:
       bakeOptions:
-        cloudProvider: aws
-        baseImages:
-        - id: ubuntu
-          shortDescription: v12.04
-          detailedDescription: Ubuntu Precise Pangolin v12.04
-          packageType: DEB
-        - id: trusty
-          shortDescription: v14.04
-          detailedDescription: Ubuntu Trusty Tahr v14.04
-          packageType: DEB
-        - id: centos
-          shortDescription: deprecated
-          detailedDescription: CentOS v5.11
-          packageType: RPM
+        - cloudProvider: aws
+          baseImages:
+          - id: ubuntu
+            shortDescription: v12.04
+            detailedDescription: Ubuntu Precise Pangolin v12.04
+            packageType: DEB
+          - id: trusty
+            shortDescription: v14.04
+            detailedDescription: Ubuntu Trusty Tahr v14.04
+            packageType: DEB
+          - id: centos
+            shortDescription: deprecated
+            detailedDescription: CentOS v5.11
+            packageType: RPM
 # optional services:
   echo:
     enabled: false

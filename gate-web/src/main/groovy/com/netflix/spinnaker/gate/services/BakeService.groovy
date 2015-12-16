@@ -31,17 +31,19 @@ class BakeService {
   RoscoService roscoService
 
   // Default bake options from configuration.
-  BakeOptions bakeOptions
+  List<BakeOptions> bakeOptions
 
   def bakeOptions() {
-    roscoService ? roscoService.bakeOptions() : [bakeOptions]
+    roscoService ? roscoService.bakeOptions() : bakeOptions
   }
 
   def bakeOptions(String cloudProvider) {
     if (roscoService) {
       return roscoService.bakeOptions(cloudProvider)
-    } else if (cloudProvider == bakeOptions.cloudProvider) {
-      return bakeOptions
+    }
+    def bakeOpts = bakeOptions.find { it.cloudProvider == cloudProvider }
+    if (bakeOpts) {
+      return bakeOpts
     }
     throw new IllegalArgumentException("Bake options for cloud provider ${cloudProvider} not found")
   }
