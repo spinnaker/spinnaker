@@ -123,7 +123,7 @@ Spinnaker needs the set of [configuration files](../../config) to be available t
 1. Enable the Thrift server so that the other Java components can connect to Cassandra
 
   ```
-  $ kubectl exec $CASS_NAME -- "nodetool enablethrift"
+  $ kubectl exec $CASS_NAME -- nodetool enablethrift
   ```
 
 ## Deploy Component `Services`
