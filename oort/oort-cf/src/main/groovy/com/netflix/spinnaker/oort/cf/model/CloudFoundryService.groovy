@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 The original authors.
+ * Copyright 2015 Pivotal Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.oort.cf.model
 
-import com.netflix.spinnaker.mort.model.SecurityGroup
-import com.netflix.spinnaker.mort.model.securitygroups.Rule
 import groovy.transform.EqualsAndHashCode
 import org.cloudfoundry.client.lib.domain.CloudService
 
@@ -27,7 +25,7 @@ import org.cloudfoundry.client.lib.domain.CloudService
  *
  */
 @EqualsAndHashCode(includes = ["id"])
-class CloudFoundryService implements SecurityGroup {
+class CloudFoundryService {
 
   String type
   String id
@@ -38,18 +36,4 @@ class CloudFoundryService implements SecurityGroup {
 
   CloudService nativeService
 
-  @Override
-  com.netflix.spinnaker.oort.cf.model.CloudFoundryServiceSummary getSummary() {
-    new com.netflix.spinnaker.oort.cf.model.CloudFoundryServiceSummary(name: name, id: id)
-  }
-
-  @Override
-  Set<Rule> getInboundRules() {
-    Collections.emptySet()
-  }
-
-  @Override
-  Set<Rule> getOutboundRules() {
-    Collections.emptySet()
-  }
 }

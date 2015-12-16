@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2015 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.spinnaker.kato.cf.security
 
+import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
 import org.cloudfoundry.client.lib.CloudFoundryOperations
+
 /**
  * Stub CF client factory. Makes it possible to inject stub client.
- *
- *
  */
 class TestCloudFoundryClientFactory implements CloudFoundryClientFactory {
 
@@ -27,7 +28,7 @@ class TestCloudFoundryClientFactory implements CloudFoundryClientFactory {
 
   @Override
   CloudFoundryOperations createCloudFoundryClient(CloudFoundryAccountCredentials credentials,
-                                              boolean trustSelfSignedCerts) {
+                                                  boolean trustSelfSignedCerts) {
     stubClient
   }
 }

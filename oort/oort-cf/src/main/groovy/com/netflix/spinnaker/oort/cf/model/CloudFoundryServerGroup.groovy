@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 The original authors.
+ * Copyright 2015 Pivotal Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,6 @@ import groovy.transform.EqualsAndHashCode
 import org.cloudfoundry.client.lib.domain.CloudApplication
 /**
  * A Cloud Foundry application combined with its org/space coordinates.
- *
- *
  */
 @CompileStatic
 @EqualsAndHashCode(includes = ["name"])
@@ -34,11 +32,15 @@ class CloudFoundryServerGroup implements ServerGroup, Serializable {
   String name
   String type = 'cf'
   CloudApplication nativeApplication
-  Boolean disabled = false
+  Boolean disabled = true
   Set<CloudFoundryApplicationInstance> instances = new HashSet<>()
   Set<CloudFoundryService> services = [] as Set<CloudFoundryService>
   Map<String, Object> envVariables = new HashMap<>()
   Map<String, Object> cfSettings = new HashMap<>() // scaling, memory, etc.
+  Set<CloudFoundryLoadBalancer> nativeLoadBalancers
+  Map buildInfo
+  String consoleLink
+  String logsLink
 
   @Override
   String getRegion() {
@@ -70,7 +72,7 @@ class CloudFoundryServerGroup implements ServerGroup, Serializable {
 
   @Override
   Set<String> getLoadBalancers() {
-    Collections.emptySet()
+    nativeLoadBalancers?.collect {it.name} as Set<String>
   }
 
   @Override
@@ -113,12 +115,12 @@ class CloudFoundryServerGroup implements ServerGroup, Serializable {
 
   @Override
   Set<String> getSecurityGroups() {
-    services.collect {it.name} as Set<String>
+    Collections.emptySet()
   }
 
   @Override
   ServerGroup.ImageSummary getImageSummary() {
-    // TODO(gturnquist): Implement
+    def bi = buildInfo
     return new ServerGroup.ImageSummary() {
       String serverGroupName = name
       String imageName
@@ -126,12 +128,12 @@ class CloudFoundryServerGroup implements ServerGroup, Serializable {
 
       @Override
       Map<String, Object> getBuildInfo() {
-        return null
+        buildInfo
       }
 
       @Override
       Map<String, Object> getImage() {
-        return null
+        return [:]
       }
     }
   }

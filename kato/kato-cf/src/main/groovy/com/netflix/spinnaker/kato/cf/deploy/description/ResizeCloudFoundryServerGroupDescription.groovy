@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2015 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kato.cf.deploy.description
 
-import com.netflix.spinnaker.kato.cf.security.CloudFoundryAccountCredentials
+import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
 
 class ResizeCloudFoundryServerGroupDescription {
   String serverGroupName
