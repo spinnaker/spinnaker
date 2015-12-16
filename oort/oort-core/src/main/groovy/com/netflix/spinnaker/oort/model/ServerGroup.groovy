@@ -126,32 +126,32 @@ interface ServerGroup {
     /**
      * Total number of instances in the server group
      */
-    Integer total
+    Integer total = 0
 
     /**
      * Total number of "Up" instances (all health indicators report "Up" or "Unknown")
      */
-    Integer up
+    Integer up = 0
 
     /**
      * Total number of "Down" instances (at least one health indicator reports "Down")
      */
-    Integer down
+    Integer down = 0
 
     /**
      * Total number of "Unknown" instances (all health indicators report "Unknown", or no health indicators reported)
      */
-    Integer unknown
+    Integer unknown = 0
 
     /**
      * Total number of "OutOfService" instances (at least one health indicator reports "OutOfService", none are "Down"
      */
-    Integer outOfService
+    Integer outOfService = 0
 
     /**
      * Total number of "Starting" instances (where any health indicator reports "Starting" and none are "Down" or "OutOfService")
      */
-    Integer starting
+    Integer starting = 0
   }
 
   static class Capacity {
