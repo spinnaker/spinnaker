@@ -51,6 +51,16 @@ class ProjectController {
     result
   }
 
+  @RequestMapping(value = "/{id}/clusters", method = RequestMethod.GET)
+  List<Map> getClusters(@PathVariable("id") String projectId) {
+    def result = projectService.getClusters(projectId)
+    if (!result) {
+      log.warn("Project not found (projectId: ${projectId}")
+      throw new ProjectNotFoundException("Project not found (projectId: ${projectId})")
+    }
+    result
+  }
+
   @RequestMapping(value = "/{id:.+}/pipelines", method = RequestMethod.GET)
   List<Map> allPipelinesForProject(@PathVariable("id") String projectId,
                                    @RequestParam(value = "limit", defaultValue = "5") int limit,
