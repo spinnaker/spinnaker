@@ -1,27 +1,27 @@
 <span class="counter instance-health-counts" ng-if="healthPercent !== 'n/a'" uib-tooltip-html="legend" tooltip-placement="{{legendPlacement}}">
-  <span ng-if="container.upCount">
-    {{ container.upCount }} <span class="glyphicon glyphicon-Up-triangle healthy"></span>
+  <span ng-if="container.up">
+    {{ container.up }} <span class="glyphicon glyphicon-Up-triangle healthy"></span>
   </span>
-  <span ng-if="container.downCount && container.downCount !== container.missingHealthCount">
-    <span ng-if="container.upCount">/</span>
-    {{ container.downCount }} <span class="glyphicon glyphicon-Down-triangle dead"></span>
+  <span ng-if="container.down && container.down !== container.missingHealthCount">
+    <span ng-if="container.up">/</span>
+    {{ container.down }} <span class="glyphicon glyphicon-Down-triangle dead"></span>
   </span>
-  <span ng-if="container.unknownCount">
-    <span ng-if="container.upCount || container.downCount">/</span>
-    {{ container.unknownCount }} <span class="glyphicon glyphicon-Unknown-triangle unknown"></span>
+  <span ng-if="container.unknown">
+    <span ng-if="container.up || container.down">/</span>
+    {{ container.unknown }} <span class="glyphicon glyphicon-Unknown-triangle unknown"></span>
   </span>
-  <span ng-if="container.outOfServiceCount">
-    <span ng-if="container.upCount || container.downCount || container.unknownCount">/</span>
-    {{ container.outOfServiceCount }} <span class="glyphicon glyphicon-minus disabled small"></span>
+  <span ng-if="container.outOfService">
+    <span ng-if="container.up || container.down || container.unknown">/</span>
+    {{ container.outOfService }} <span class="glyphicon glyphicon-minus disabled small"></span>
   </span>
-  <span ng-if="container.unknownCount !== container.totalCount">
+  <span ng-if="container.unknown !== container.total">
   : <span class="{{healthStatus}}">
       {{healthPercent}}{{healthPercentLabel}}
     </span>
   </span>
 </span>
-<span class="counter instance-health-counts" ng-if="container.outOfServiceCount && healthPercent === 'n/a'" uib-tooltip-html="legend">
-  <span ng-if="container.outOfServiceCount">
-    {{ container.outOfServiceCount }} <span class="glyphicon glyphicon-minus disabled small"></span>
+<span class="counter instance-health-counts" ng-if="container.outOfService && healthPercent === 'n/a'" uib-tooltip-html="legend">
+  <span ng-if="container.outOfService">
+    {{ container.outOfService }} <span class="glyphicon glyphicon-minus disabled small"></span>
   </span>
 </span>

@@ -157,49 +157,49 @@ describe('Service: FilterModelService', function () {
   describe('checkStatusFilters', function () {
     beforeEach(configure);
     it ('returns true if Up is selected and down count is zero', function () {
-      var target = { downCount: 0 };
+      var target = { instanceCounts: {down: 0 }};
       filterModel.sortFilter.status = { 'Up': true };
       expect(service.checkStatusFilters(filterModel)(target)).toBe(true);
     });
 
     it ('returns false if Up is selected and down count is greater than zero', function () {
-      var target = { downCount: 1 };
+      var target = { instanceCounts: {down: 1 }};
       filterModel.sortFilter.status = { 'Up': true };
       expect(service.checkStatusFilters(filterModel)(target)).toBe(false);
     });
 
     it ('returns true if Down is selected and down count is greater than zero', function () {
-      var target = { downCount: 1 };
+      var target = { instanceCounts: {down: 1 }};
       filterModel.sortFilter.status = { 'Down': true };
       expect(service.checkStatusFilters(filterModel)(target)).toBe(true);
     });
 
     it ('returns false if Down is selected and down count is zero', function () {
-      var target = { downCount: 0 };
+      var target = { instanceCounts: {down: 0 }};
       filterModel.sortFilter.status = { 'Down': true };
       expect(service.checkStatusFilters(filterModel)(target)).toBe(false);
     });
 
     it ('returns true if OutOfService is selected and out of service count is greater than zero', function () {
-      var target = { outOfServiceCount: 1 };
+      var target = { instanceCounts: {outOfService: 1 }};
       filterModel.sortFilter.status = { 'OutOfService': true };
       expect(service.checkStatusFilters(filterModel)(target)).toBe(true);
     });
 
     it ('returns true if Starting is selected and starting count is greater than zero', function () {
-      var target = { startingCount: 1 };
+      var target = { instanceCounts: {starting: 1 }};
       filterModel.sortFilter.status = { 'Starting': true };
       expect(service.checkStatusFilters(filterModel)(target)).toBe(true);
     });
 
     it ('returns true if Disabled is selected and target is disabled', function () {
-      var target = { isDisabled: true };
+      var target = { instanceCounts: {down: 1}, isDisabled: true };
       filterModel.sortFilter.status = { 'Disabled': true };
       expect(service.checkStatusFilters(filterModel)(target)).toBe(true);
     });
 
     it ('returns true if any of the above conditions is true', function () {
-      var target = { downCount: 1, isDisabled: true };
+      var target = { instanceCounts: {down: 1}, isDisabled: true };
       filterModel.sortFilter.status = { 'Down': false, 'Disabled': true };
       expect(service.checkStatusFilters(filterModel)(target)).toBe(true);
     });

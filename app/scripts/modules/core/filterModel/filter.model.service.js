@@ -59,10 +59,10 @@ module.exports = angular
       return function(target) {
         if (isFilterable(model.sortFilter.status)) {
           var checkedStatus = getCheckValues(model.sortFilter.status);
-          return _.contains(checkedStatus, 'Up') && target.downCount === 0 ||
-            _.contains(checkedStatus, 'Down') && target.downCount > 0 ||
-            _.contains(checkedStatus, 'OutOfService') && target.outOfServiceCount > 0 ||
-            _.contains(checkedStatus, 'Starting') && target.startingCount > 0 ||
+          return _.contains(checkedStatus, 'Up') && target.instanceCounts.down === 0 ||
+            _.contains(checkedStatus, 'Down') && target.instanceCounts.down > 0 ||
+            _.contains(checkedStatus, 'OutOfService') && target.instanceCounts.outOfService > 0 ||
+            _.contains(checkedStatus, 'Starting') && target.instanceCounts.starting > 0 ||
             _.contains(checkedStatus, 'Disabled') && target.isDisabled;
         }
         return true;
