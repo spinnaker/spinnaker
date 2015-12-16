@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2015 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.spinnaker.kato.cf.security
 
+import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
 import org.cloudfoundry.client.lib.CloudFoundryClient
 import org.cloudfoundry.client.lib.CloudFoundryOperations
+
 /**
  * A factory for creating {@link CloudFoundryClient} objects. This allows delaying the creation until ALL
  * the details are gathered (some come via {@link com.netflix.spinnaker.kato.cf.deploy.description.CloudFoundryDeployDescription}
- *
- *
  */
 class DefaultCloudFoundryClientFactory implements CloudFoundryClientFactory {
 

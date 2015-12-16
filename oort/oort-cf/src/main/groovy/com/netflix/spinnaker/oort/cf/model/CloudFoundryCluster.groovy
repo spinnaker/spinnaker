@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 The original authors.
+ * Copyright 2015 Pivotal Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  */
 
 package com.netflix.spinnaker.oort.cf.model
-
 import com.netflix.spinnaker.oort.model.Cluster
-import com.netflix.spinnaker.oort.model.LoadBalancer
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 /**
@@ -33,10 +31,6 @@ class CloudFoundryCluster implements Cluster, Serializable {
   String type = 'cf'
   String accountName
   Set<CloudFoundryServerGroup> serverGroups = [] as Set<CloudFoundryServerGroup>
-
-  @Override
-  Set<LoadBalancer> getLoadBalancers() {
-    Collections.emptySet()
-  }
+  Set<CloudFoundryLoadBalancer> loadBalancers = [] as Set<CloudFoundryLoadBalancer>
 
 }
