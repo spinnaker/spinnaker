@@ -33,6 +33,23 @@ module.exports = angular
         description: 'Selects the second-most recently deployed server group when the <b>pipeline</b> starts, ignoring any changes ' +
           'to the state of the cluster caused by upstream stages.'
       }
+    ],
+    strategyTrafficOptions: [
+      {
+        'label': 'From Cluster Configuration',
+        'val': "inherit",
+        'description': 'Traffic options are set in the advanced options tab of the deploy stage that calls the strategy'
+      },
+      {
+        'label': 'Always Enable',
+        'description': 'Always send client requests to new instances',
+        'val': 'enable'
+      },
+      {
+        'label': 'Always Disable',
+        'description': 'Never send client requests to new instances',
+        'val': 'disable'
+      }
     ]
   })
   .name;
