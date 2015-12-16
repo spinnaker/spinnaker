@@ -275,7 +275,8 @@ describe('Service: applicationReader', function () {
               account: 'test',
               region: 'us-west-2',
               provider: 'aws',
-              instances: []
+              instances: [],
+              instanceCounts: { up: 0, down: 0, starting: 0, unknown: 0, outOfService: 0 },
             }],
             loadBalancers = [],
             securityGroupsByApplicationName = [],
@@ -372,7 +373,8 @@ describe('Service: applicationReader', function () {
                 account: 'test',
                 region: 'us-west-2',
                 provider: 'aws',
-                instances: []
+                instances: [],
+                instanceCounts: { up: 0, down: 0, starting: 0, unknown: 0, outOfService: 0 },
               },
               {
                 name: 'deck-gce-v001',
@@ -380,6 +382,7 @@ describe('Service: applicationReader', function () {
                 region: 'us-central-1',
                 provider: 'gce',
                 instances: [],
+                instanceCounts: { up: 0, down: 0, starting: 0, unknown: 0, outOfService: 0 },
               }
             ],
             loadBalancers = [{name: 'deck-frontend', account: 'gce-test', type: 'gce', region: 'us-central-1', serverGroups: []}],

@@ -27,8 +27,8 @@ describe('Directives: healthCounts', function () {
 
     it('displays up count when provided', function () {
       this.scope.container = {
-        totalCount: 1,
-        upCount: 1,
+        total: 1,
+        up: 1,
       };
       var domNode = this.compile('<health-counts container="container"></health-counts>')(this.scope);
       this.scope.$digest();
@@ -43,9 +43,9 @@ describe('Directives: healthCounts', function () {
 
     it('displays up and down count when both exist', function() {
       this.scope.container = {
-        totalCount: 2,
-        upCount: 1,
-        downCount: 1,
+        total: 2,
+        up: 1,
+        down: 1,
       };
       var domNode = this.compile('<health-counts container="container"></health-counts>')(this.scope);
       this.scope.$digest();
@@ -63,9 +63,9 @@ describe('Directives: healthCounts', function () {
 
     it('displays up and unknown count when both exist', function() {
       this.scope.container = {
-        totalCount: 2,
-        upCount: 1,
-        unknownCount: 1,
+        total: 2,
+        up: 1,
+        unknown: 1,
       };
       var domNode = this.compile('<health-counts container="container"></health-counts>')(this.scope);
       this.scope.$digest();
@@ -84,10 +84,10 @@ describe('Directives: healthCounts', function () {
 
     it('displays all three counters', function() {
       this.scope.container = {
-        totalCount: 3,
-        upCount: 1,
-        downCount: 1,
-        unknownCount: 1,
+        total: 3,
+        up: 1,
+        down: 1,
+        unknown: 1,
       };
       var domNode = this.compile('<health-counts container="container"></health-counts>')(this.scope);
       this.scope.$digest();
@@ -105,10 +105,10 @@ describe('Directives: healthCounts', function () {
 
     it('updates DOM when counters change', function() {
       this.scope.container = {
-        totalCount: 3,
-        upCount: 1,
-        downCount: 1,
-        unknownCount: 1,
+        total: 3,
+        up: 1,
+        down: 1,
+        unknown: 1,
       };
       var domNode = this.compile('<health-counts container="container"></health-counts>')(this.scope);
       this.scope.$digest();
@@ -124,10 +124,10 @@ describe('Directives: healthCounts', function () {
       expect(domNode.find('span.unhealthy').text().trim()).toBe('33%');
 
       this.scope.container = {
-        totalCount: 4,
-        upCount: 2,
-        downCount: 1,
-        unknownCount: 1,
+        total: 4,
+        up: 2,
+        down: 1,
+        unknown: 1,
       };
       this.scope.$digest();
       expect(domNode.find('span.unhealthy').text().trim()).toBe('50%');

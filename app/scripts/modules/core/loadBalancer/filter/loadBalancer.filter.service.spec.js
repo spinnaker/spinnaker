@@ -36,9 +36,9 @@ describe('Service: loadBalancerFilterService', function () {
   beforeEach(function () {
     app = {
       loadBalancers: [
-        { name: 'elb-1', region: 'us-east-1', account: 'test', vpcName: '', serverGroups: [], downCount: 0, startingCount: 0, outOfServiceCount: 0 },
-        { name: 'elb-1', region: 'us-west-1', account: 'test', vpcName: 'main', serverGroups: [], downCount: 0, startingCount: 0, outOfServiceCount: 0 },
-        { name: 'elb-2', region: 'us-east-1', account: 'prod', vpcName: '', serverGroups: [], downCount: 0, startingCount: 0, outOfServiceCount: 0 },
+        { name: 'elb-1', region: 'us-east-1', account: 'test', vpcName: '', serverGroups: [], instanceCounts: {down: 0, starting: 0, outOfService: 0 }},
+        { name: 'elb-1', region: 'us-west-1', account: 'test', vpcName: 'main', serverGroups: [], instanceCounts: {down: 0, starting: 0, outOfService: 0 }},
+        { name: 'elb-2', region: 'us-east-1', account: 'prod', vpcName: '', serverGroups: [], instanceCounts: {down: 0, starting: 0, outOfService: 0 }},
       ]
     };
     resultJson = [
@@ -145,9 +145,9 @@ describe('Service: loadBalancerFilterService', function () {
     });
   });
   describe('filter by healthy state', function () {
-    it('should filter any load balancers with down instances (based on downCount) if "Up" checked', function () {
+    it('should filter any load balancers with down instances (based on down) if "Up" checked', function () {
       LoadBalancerFilterModel.sortFilter.status = {'Up' : true };
-      app.loadBalancers[0].downCount = 1;
+      app.loadBalancers[0].instanceCounts.down = 1;
       app.loadBalancers.forEach(function (loadBalancer) {
         loadBalancer.instances = [ { healthState: 'Up' } ];
       });
@@ -163,9 +163,9 @@ describe('Service: loadBalancerFilterService', function () {
       ]);
     });
 
-    it('should filter any load balancers without down instances (based on downCount) if "Down" checked', function () {
+    it('should filter any load balancers without down instances (based on down) if "Down" checked', function () {
       LoadBalancerFilterModel.sortFilter.status = {'Down' : true };
-      app.loadBalancers[0].downCount = 1;
+      app.loadBalancers[0].instanceCounts.down = 1;
       app.loadBalancers.forEach(function (loadBalancer) {
         loadBalancer.instances = [ { healthState: 'Down' } ];
       });
@@ -178,9 +178,9 @@ describe('Service: loadBalancerFilterService', function () {
       ]);
     });
 
-    it('should filter any load balancers with starting instances (based on startingCount) if "Starting" checked', function () {
+    it('should filter any load balancers with starting instances (based on starting) if "Starting" checked', function () {
       LoadBalancerFilterModel.sortFilter.status = {'Starting' : true };
-      app.loadBalancers[0].startingCount = 1;
+      app.loadBalancers[0].instanceCounts.starting = 1;
       app.loadBalancers.forEach(function (loadBalancer) {
         loadBalancer.instances = [ { healthState: 'Starting' } ];
       });

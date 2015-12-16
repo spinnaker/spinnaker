@@ -39,30 +39,31 @@ describe('Service: InstanceType', function () {
     it('aggregates health counts from server groups', function() {
       var application = {
         serverGroups: [
-          {cluster: 'cluster-a', name: 'cluster-a-v001', account: 'test', region: 'us-east-1', instances: [], totalCount: 1, upCount: 1 },
-          {cluster: 'cluster-a', name: 'cluster-a-v001', account: 'test', region: 'us-west-1', instances: [], totalCount: 2, downCount: 2 },
-          {cluster: 'cluster-b', name: 'cluster-b-v001', account: 'test', region: 'us-east-1', instances: [], totalCount: 1, startingCount: 1 },
-          {cluster: 'cluster-b', name: 'cluster-b-v001', account: 'test', region: 'us-west-1', instances: [], totalCount: 1, outOfServiceCount: 1 },
-          {cluster: 'cluster-b', name: 'cluster-b-v002', account: 'test', region: 'us-west-1', instances: [], totalCount: 2, unknownCount: 1, outOfServiceCount: 1 },
+          {cluster: 'cluster-a', name: 'cluster-a-v001', account: 'test', region: 'us-east-1', instances: [], instanceCounts: {total: 1, up: 1} },
+          {cluster: 'cluster-a', name: 'cluster-a-v001', account: 'test', region: 'us-west-1', instances: [], instanceCounts: {total: 2, down: 2} },
+          {cluster: 'cluster-b', name: 'cluster-b-v001', account: 'test', region: 'us-east-1', instances: [], instanceCounts: {total: 1, starting: 1} },
+          {cluster: 'cluster-b', name: 'cluster-b-v001', account: 'test', region: 'us-west-1', instances: [], instanceCounts: {total: 1, outOfService: 1} },
+          {cluster: 'cluster-b', name: 'cluster-b-v002', account: 'test', region: 'us-west-1', instances: [], instanceCounts: {total: 2, unknown: 1, outOfService: 1} },
         ]
       };
 
       var clusters = clusterService.createServerGroupClusters(application.serverGroups);
-
+      var cluster0counts = clusters[0].instanceCounts;
+      var cluster1counts = clusters[1].instanceCounts;
       expect(clusters.length).toBe(2);
-      expect(clusters[0].totalCount).toBe(3);
-      expect(clusters[0].upCount).toBe(1);
-      expect(clusters[0].downCount).toBe(2);
-      expect(clusters[0].startingCount).toBe(0);
-      expect(clusters[0].outOfServiceCount).toBe(0);
-      expect(clusters[0].unknownCount).toBe(0);
+      expect(cluster0counts.total).toBe(3);
+      expect(cluster0counts.up).toBe(1);
+      expect(cluster0counts.down).toBe(2);
+      expect(cluster0counts.starting).toBe(0);
+      expect(cluster0counts.outOfService).toBe(0);
+      expect(cluster0counts.unknown).toBe(0);
 
-      expect(clusters[1].totalCount).toBe(4);
-      expect(clusters[1].upCount).toBe(0);
-      expect(clusters[1].downCount).toBe(0);
-      expect(clusters[1].startingCount).toBe(1);
-      expect(clusters[1].outOfServiceCount).toBe(2);
-      expect(clusters[1].unknownCount).toBe(1);
+      expect(cluster1counts.total).toBe(4);
+      expect(cluster1counts.up).toBe(0);
+      expect(cluster1counts.down).toBe(0);
+      expect(cluster1counts.starting).toBe(1);
+      expect(cluster1counts.outOfService).toBe(2);
+      expect(cluster1counts.unknown).toBe(1);
 
     });
   });

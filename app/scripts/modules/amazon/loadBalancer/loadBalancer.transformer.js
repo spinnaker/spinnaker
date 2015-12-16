@@ -11,20 +11,19 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
     function updateHealthCounts(container) {
       var instances = container.instances;
       var serverGroups = container.serverGroups || [container];
-      container.healthCounts = {
-        upCount: instances.filter(function (instance) {
+      container.instanceCounts = {
+        up: instances.filter(function (instance) {
           return instance.health[0].state === 'InService';
         }).length,
-        downCount: instances.filter(function (instance) {
+        down: instances.filter(function (instance) {
           return instance.health[0].state === 'OutOfService';
         }).length,
-        outOfServiceCount: serverGroups.reduce(function (acc, serverGroup) {
+        outOfService: serverGroups.reduce(function (acc, serverGroup) {
           return serverGroup.instances.filter(function (instance) {
             return instance.healthState === 'OutOfService';
           }).length + acc;
         }, 0),
       };
-      angular.extend(container, container.healthCounts);
     }
 
     function transformInstance(instance, loadBalancer) {

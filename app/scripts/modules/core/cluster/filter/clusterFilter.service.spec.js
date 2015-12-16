@@ -306,7 +306,7 @@ describe('Service: clusterFilterService', function () {
       expect(ClusterFilterModel.groups).toEqual([]);
 
       starting.healthState = 'Starting';
-      serverGroup.startingCount = 1;
+      serverGroup.instanceCounts.starting = 1;
       service.updateClusterGroups(appCopy);
       $timeout.flush();
       expect(ClusterFilterModel.groups.length).toBe(1);
@@ -329,7 +329,7 @@ describe('Service: clusterFilterService', function () {
       expect(ClusterFilterModel.groups).toEqual([]);
 
       starting.healthState = 'OutOfService';
-      serverGroup.outOfServiceCount = 1;
+      serverGroup.instanceCounts.outOfService = 1;
       service.updateClusterGroups(appCopy);
       $timeout.flush();
       expect(ClusterFilterModel.groups.length).toBe(1);
