@@ -19,8 +19,8 @@ echo:
   enabled: false
 bakery:
   baseUrl: http://localhost:8089
-  # Rosco exposes more endpoints than Netflix's internal bakery. This turn
-  # off the use of those endpoints.
+  # Rosco exposes more endpoints than Netflix's internal bakery. This disables
+  # the use of those endpoints.
   roscoApisEnabled: true
 
 redis:

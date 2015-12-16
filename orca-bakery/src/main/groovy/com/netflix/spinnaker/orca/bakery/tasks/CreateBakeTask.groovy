@@ -18,8 +18,6 @@ package com.netflix.spinnaker.orca.bakery.tasks
 
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
-import com.netflix.spinnaker.orca.bakery.api.BaseImage
-
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import com.netflix.spinnaker.orca.pipeline.util.PackageInfo
@@ -62,6 +60,8 @@ class CreateBakeTask implements RetryableTask {
     String region = stage.context.region
 
     try {
+      // If the user has specified a base OS that is unrecognized by Rosco, this method will
+      // throw a Retrofit exception (HTTP 404 Not Found)
       def bake = bakeFromContext(stage)
       String rebake = shouldRebake(stage) ? "1" : null
       def bakeStatus = bakery.createBake(region, bake, rebake).toBlocking().single()
