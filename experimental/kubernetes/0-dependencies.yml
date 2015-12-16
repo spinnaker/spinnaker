@@ -18,7 +18,7 @@ spec:
       containers:
       - name: redis-server
         image: redis
-        args: ["redis-server", "--componentendonly", "yes"]
+        args: ["redis-server", "--appendonly", "yes"]
         ports:
         - containerPort: 6379
 ---
