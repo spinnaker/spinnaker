@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: clouddriver
-        image: spinnaker/clouddriver
+        image: quay.io/spinnaker/clouddriver
         env:
         # Kubernetes injects these "helpful" environmental variables for all Services. The name
         # chosen ('SERVICENAME_PORT') ends up being interpreted by Spring configuration as an
@@ -90,7 +90,7 @@ spec:
     spec:
       containers:
       - name: orca
-        image: spinnaker/orca
+        image: quay.io/spinnaker/orca
         env:
         - name: SERVER_ADDRESS
           value: 0.0.0.0
@@ -142,7 +142,7 @@ spec:
     spec:
       containers:
       - name: gate
-        image: spinnaker/gate
+        image: quay.io/spinnaker/gate
         env:
         - name: SERVER_ADDRESS
           value: 0.0.0.0
@@ -194,7 +194,7 @@ spec:
     spec:
       containers:
       - name: rush
-        image: spinnaker/rush
+        image: quay.io/spinnaker/rush
         env:
         - name: SERVER_ADDRESS
           value: 0.0.0.0
@@ -246,7 +246,7 @@ spec:
     spec:
       containers:
       - name: rosco
-        image: spinnaker/rosco
+        image: quay.io/spinnaker/rosco
         env:
         - name: SERVER_ADDRESS
           value: 0.0.0.0
@@ -298,7 +298,7 @@ spec:
     spec:
       containers:
       - name: echo
-        image: spinnaker/echo
+        image: quay.io/spinnaker/echo
         env:
         - name: SERVER_ADDRESS
           value: 0.0.0.0
@@ -350,7 +350,7 @@ spec:
     spec:
       containers:
       - name: front50
-        image: spinnaker/front50
+        image: quay.io/spinnaker/front50
         env:
         - name: SERVER_ADDRESS
           value: 0.0.0.0
