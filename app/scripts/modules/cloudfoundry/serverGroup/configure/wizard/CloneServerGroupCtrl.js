@@ -122,25 +122,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
     };
 
     this.clone = function () {
-      var transformedInstanceMetadata = {};
-      // The instanceMetadata is stored using 'key' and 'value' attributes to enable the Add/Remove behavior in the wizard.
-      $scope.command.instanceMetadata.forEach(function(metadataPair) {
-        transformedInstanceMetadata[metadataPair.key] = metadataPair.value;
-      });
-
-      // We use this list of load balancer names when 'Enabling' a server group.
-      if ($scope.command.loadBalancers && $scope.command.loadBalancers.length > 0) {
-        transformedInstanceMetadata['load-balancer-names'] = $scope.command.loadBalancers.toString();
-      }
-      $scope.command.instanceMetadata = transformedInstanceMetadata;
-
-      var transformedTags = [];
-      // The tags are stored using a 'value' attribute to enable the Add/Remove behavior in the wizard.
-      $scope.command.tags.forEach(function(tag) {
-        transformedTags.push(tag.value);
-      });
-      $scope.command.tags = transformedTags;
-
       $scope.command.targetSize = $scope.command.capacity.desired; // TODO(GLT): Unify on this or capacity
       $scope.command.loadBalancers = $scope.command.loadBalancers;
 
@@ -149,13 +130,17 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
       $scope.command.username = $scope.command.username;
       $scope.command.password = $scope.command.password;
 
+      $scope.command.envs = $scope.command.envs;
       $scope.command.services = $scope.command.services;
 
       // We want min/max set to the same value as desired.
       $scope.command.capacity.min = $scope.command.capacity.desired;
       $scope.command.capacity.max = $scope.command.capacity.desired;
 
-      if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
+      $scope.command.buildpackUrl = $scope.command.buildpackUrl;
+      $scope.command.memory = $scope.command.memory;
+
+        if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
         return $modalInstance.close($scope.command);
       }
       $scope.taskMonitor.submit(
