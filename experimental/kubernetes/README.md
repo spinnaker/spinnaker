@@ -101,7 +101,7 @@ Spinnaker needs the set of [configuration files](../../config) to be available t
 
   ```
   $ gcloud compute ssh root@$MY_GKE_NODE 'mkdir -p /root/cassandra'
-  $ gcloud compute copy-files ../../cassandra root@$MY_GKE_NODE:/root/cassandra
+  $ gcloud compute copy-files ../../cassandra/* root@$MY_GKE_NODE:/root/cassandra
   ```
 
 1. Deploy the storage mechanisms to the cluster.
@@ -116,7 +116,7 @@ Spinnaker needs the set of [configuration files](../../config) to be available t
   $ CASS_NAME=`kubectl get pods -l component=cassandra -o go-template='{{ (index .items 0).metadata.name }}'`
   $ FILES=`ls -1 ../../cassandra/`
   $ for f in $FILES; do \
-      kubectl exec $CASS_NAME -- "cqlsh -f /root/cassandra/$f" \
+      kubectl exec $CASS_NAME -- "cqlsh -f /root/cassandra/$f"; \
     done;
   ```
 
