@@ -184,7 +184,7 @@ rush-oy0gx          1/1       Running   0          27s
 1. `deck` is one of the slower components to start up. Ensure you see `webpack: bundle is now VALID` at the end of the output log. Check the output with:
 
   ```
-  $ DECK=`kubectl get pods -l mponent=deck -o go-template='{{ (index .items 0).metadata.name }}'` && kubectl logs -f $DECK
+  $ DECK=`kubectl get pods -l component=deck -o go-template='{{ (index .items 0).metadata.name }}'` && kubectl logs -f $DECK
   ```
 
 1. Access the Spinnaker UI with the Deck external load balancer IP address you acquired earlier: `http://1.2.3.4:9000`
