@@ -18,6 +18,9 @@
     </div>
     <div class="execution-summary">
       Status: <span class="status execution-status execution-status-{{vm.execution.status.toLowerCase()}}">{{vm.execution.status}}</span>
+      <span ng-if="vm.execution.canceledBy">
+        by {{vm.execution.canceledBy}} &mdash; {{vm.execution.endTime | timestamp}}
+      </span>
       <span class="pull-right">Duration: {{vm.execution.runningTimeInMs | duration}}</span>
     </div>
   </div>
