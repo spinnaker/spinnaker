@@ -30,6 +30,9 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+
 class WaitForDestroyedAsgTaskSpec extends Specification {
   @Subject
   def task = new WaitForDestroyedServerGroupTask()
@@ -38,7 +41,7 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
   def objectMapper = new ObjectMapper()
 
   @Unroll
-  void "should return RUNNING status if ASG does not exist"() {
+  void "should return RUNNING status if ASG does not exist, adding remaining instances to context"() {
     given:
     task.oortService = Mock(OortService) {
       1 * getCluster(*_) >> {
@@ -60,24 +63,87 @@ class WaitForDestroyedAsgTaskSpec extends Specification {
     and:
     def stage = new PipelineStage(new Pipeline(), "", [
       "regions": [region],
-      "asgName": asgName
+      "asgName": asgName,
     ])
 
+    def result = task.execute(stage.asImmutable())
+
     expect:
-    task.execute(stage.asImmutable()).status == taskStatus
+    result.status == taskStatus
 
     where:
-    status | body                                                           || taskStatus
-    200    | [:]                                                            || ExecutionStatus.SUCCEEDED
-    200    | [serverGroups: []]                                             || ExecutionStatus.SUCCEEDED
-    200    | [serverGroups: [[region: "us-east-1", name: "app-test-v000"]]] || ExecutionStatus.SUCCEEDED
-    200    | [serverGroups: [[region: "us-west-1", name: "app-test-v001"]]] || ExecutionStatus.SUCCEEDED
-    404    | [:]                                                            || ExecutionStatus.SUCCEEDED
-    202    | [serverGroups: [[region: "us-west-1", name: "app-test-v001"]]] || ExecutionStatus.RUNNING
-    200    | [serverGroups: [[region: "us-west-1", name: "app-test-v000"]]] || ExecutionStatus.RUNNING
-    500    | [:]                                                            || ExecutionStatus.RUNNING
+    status | body                                                                                        || taskStatus
+    200    | [:]                                                                                         || SUCCEEDED
+    200    | [serverGroups: []]                                                                          || SUCCEEDED
+    200    | [serverGroups: [[region: "us-east-1", name: "app-test-v000"]]]                              || SUCCEEDED
+    200    | [serverGroups: [[region: "us-west-1", name: "app-test-v001"]]]                              || SUCCEEDED
+    404    | [:]                                                                                         || SUCCEEDED
+    202    | [serverGroups: [[region: "us-west-1", name: "app-test-v001"]]]                              || RUNNING
+    200    | [serverGroups: [[region: "us-west-1", name: "app-test-v000"]]]                              || RUNNING
+    200    | [serverGroups: [[region: "us-west-1", name: "app-test-v000", instances: [[name:"i-123"]]]]] || RUNNING
+    200    | [serverGroups: [[region: "us-west-1", name: "app-test-v000", instances: []]]]               || RUNNING
+    500    | [:]                                                                                         || RUNNING
 
     region = "us-west-1"
     asgName = "app-test-v000"
+  }
+
+  void "should remove remainingInstances from stage outputs when task completes"() {
+    given:
+    task.oortService = Mock(OortService) {
+      1 * getCluster(*_) >> {
+        new Response('..', 200, 'ok', [], new TypedString(
+            objectMapper.writeValueAsString(
+                [:]
+            )
+        ))
+      }
+    }
+    task.objectMapper = objectMapper
+
+    and:
+    def stage = new PipelineStage(new Pipeline(), "", [
+        "regions": ["us-east-1"],
+        "asgName": "app-test-v000",
+        "remainingInstances": ["i-123"]
+    ])
+
+    def result = task.execute(stage.asImmutable())
+
+    expect:
+    result.stageOutputs.remainingInstances == []
+  }
+
+  @Unroll
+  void "should include remainingInstances in stage outputs"() {
+    given:
+    task.oortService = Mock(OortService) {
+      1 * getCluster(*_) >> {
+        new Response('..', 200, 'ok', [], new TypedString(
+            objectMapper.writeValueAsString(
+                [serverGroups: [[region: "us-east-1", name: "app-test-v000", instances: instances]]]
+            )
+        ))
+      }
+    }
+    task.objectMapper = objectMapper
+
+    and:
+    def stage = new PipelineStage(new Pipeline(), "", [
+        "regions": ["us-east-1"],
+        "asgName": "app-test-v000",
+        "remainingInstances": ['i-123', 'i-234', 'i-345']
+    ])
+
+    def result = task.execute(stage.asImmutable())
+
+    expect:
+    result.stageOutputs.remainingInstances == remainingInstances
+
+    where:
+    instances                         || remainingInstances
+    []                                || []
+    [[name: 'i-123']]                 || ['i-123']
+    [[name: 'i-123'],[name: 'i-234']] || ['i-123', 'i-234']
   }
 }

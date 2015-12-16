@@ -32,7 +32,7 @@ import retrofit.RetrofitError
 @Slf4j
 @Component
 class WaitForDestroyedServerGroupTask extends AbstractCloudProviderAwareTask implements RetryableTask {
-  long backoffPeriod = 1000
+  long backoffPeriod = 10000
   long timeout = 1800000
 
   @Autowired
@@ -57,13 +57,15 @@ class WaitForDestroyedServerGroupTask extends AbstractCloudProviderAwareTask imp
 
       Map cluster = objectMapper.readValue(response.body.in().text, Map)
       if (!cluster || !cluster.serverGroups) {
-        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [remainingInstances: []])
       }
-      if (!cluster.serverGroups.find { it.name == serverGroupName && it.region == serverGroupRegion }) {
-        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+      def serverGroup = cluster.serverGroups.find { it.name == serverGroupName && it.region == serverGroupRegion }
+      if (!serverGroup) {
+        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [remainingInstances: []])
       }
-
-      return new DefaultTaskResult(ExecutionStatus.RUNNING)
+      def instances = serverGroup.instances ?: []
+      log.info("${serverGroupName}: not yet destroyed, found instances: ${instances?.join(', ') ?: 'none'}")
+      return new DefaultTaskResult(ExecutionStatus.RUNNING, [remainingInstances: instances.findResults { it.name }])
     } catch (RetrofitError e) {
       def retrofitErrorResponse = new RetrofitExceptionHandler().handle(stage.name, e)
       if (e.response.status == 404) {
