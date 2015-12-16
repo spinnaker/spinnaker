@@ -32,6 +32,6 @@ public class AzureComputeClient extends AzureBaseClient {
   }
 
   protected ComputeManagementClient getComputeClient(AzureCredentials creds) {
-    return ComputeManagementService.create(this.buildConfiguration(creds))
+    ComputeManagementService.create(this.buildConfiguration(creds))
   }
 }

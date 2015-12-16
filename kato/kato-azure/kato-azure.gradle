@@ -1,0 +1,8 @@
+dependencies {
+  def azureSDKVersion = '0.8.2'
+
+  compile project(":kato:kato-core")
+  compile project(":clouddriver-azure")
+  compile spinnaker.dependency('bootActuator')
+
+}

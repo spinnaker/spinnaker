@@ -25,6 +25,7 @@ dependencies {
   compile project(":kato:kato-aws")
   compile project(":kato:kato-cf")
   compile project(":kato:kato-gce")
+  compile project(":kato:kato-azure")
   compile project(":kato:kato-docker")
   compile project(":kato:kato-jedis")
   compile project(":kato:kato-titan")

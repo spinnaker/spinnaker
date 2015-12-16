@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.azure
+package com.netflix.spinnaker.kato.azure.deploy.config
 
-import java.lang.annotation.ElementType
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-import java.lang.annotation.Target
+import org.springframework.context.annotation.Bean
+import org.springframework.stereotype.Component
 
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@interface AzureOperation {
-  String value()
+@Component
+class KatoAzureConfig {
 }
+

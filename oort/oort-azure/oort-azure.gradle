@@ -1,0 +1,9 @@
+dependencies {
+  compile project(":oort:oort-core")
+  compile project(":clouddriver-azure")
+  //compile project(":mort:mort-azure")
+  spinnaker.group("bootWeb")
+
+  compile spinnaker.dependency("frigga")
+}
+

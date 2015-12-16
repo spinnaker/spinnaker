@@ -32,6 +32,7 @@ class AzureConfigurationProperties {
     String appKey
     String tenantId
     String subscriptionId
+    List<String> regions
 
   }
 
