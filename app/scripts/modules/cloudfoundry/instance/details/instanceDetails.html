@@ -61,7 +61,7 @@
         <dt>In:</dt>
         <dd>
           <account-tag account="instance.account" pad="right"></account-tag>
-          {{instance.placement.availabilityZone || '(Unknown)'}}
+          {{instance.availabilityZone || '(Unknown)'}}
         </dd>
         <dt>Type:</dt>
         <dt ng-if="instance.serverGroup">Server Group:</dt>
@@ -133,19 +133,10 @@
         <dd ng-repeat-end>{{metadata.value}}</dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="SSH" ng-if="!instance.notFound">
-      <dl>
-        <dt ng-if="instance.sshLink">SSH into this instance:</dt>
-        <dd ng-if="instance.sshLink"><a href="{{instance.sshLink}}" target="_blank">SSH</a></dd>
-      </dl>
-    </collapsible-section>
     <collapsible-section heading="Logs">
       <ul>
         <li ng-if="instance.logsLink">
           <a href="{{instance.logsLink}}" target="_blank">Developers Console Logs</a>
-        </li>
-        <li>
-          <console-output-link instance="instance"></console-output-link>
         </li>
       </ul>
     </collapsible-section>

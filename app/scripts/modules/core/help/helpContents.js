@@ -42,6 +42,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'aws.securityGroup.vpc': '<p>The VPC to which this security group will apply.</p>' +
       '<p>If you wish to use VPC but are unsure which VPC to use, the most common one is "Main".</p>' +
       '<p>If you do not wish to use VPC, select "None".</p>',
+    'cf.artifact.repository.options': '<p>You may include {job} and {buildNumber} to dynamically build a path to your artifact.</p>',
     'cluster.search': 'Quickly filter the displayed server groups by the following fields:' +
       '<ul>' +
       '<li>Build # (e.g. <samp>#337</samp>)</li>' +

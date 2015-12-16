@@ -29,7 +29,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.resizeAsgStage
 
     $scope.viewState = {
       accountsLoaded: false,
-      regionsLoaded: false,
     };
 
     accountService.listAccounts('cf').then(function (accounts) {
@@ -40,10 +39,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.resizeAsgStage
     $scope.regions = ['us-east-1', 'us-west-1', 'eu-west-1', 'us-west-2'];
 
     ctrl.accountUpdated = function() {
-      $scope.viewState.regionsLoaded = false;
-      accountService.getRegionsForAccount(stage.credentials).then(function(regions) {
-        $scope.regions = _.map(regions, function(v) { return v.name; });
-        $scope.viewState.regionsLoaded = true;
+      accountService.getAccountDetails(stage.credentials).then(function(details) {
+        stage.zones = [details.org];
       });
     };
 
@@ -91,9 +88,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.resizeAsgStage
 
     if (!stage.credentials && $scope.application.defaultCredentials) {
       stage.credentials = $scope.application.defaultCredentials;
-    }
-    if (!stage.regions.length && $scope.application.defaultRegions.cf) {
-      stage.regions.push($scope.application.defaultRegions.cf);
     }
 
     if (stage.credentials) {
