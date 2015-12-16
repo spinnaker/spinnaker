@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.converters
 
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleServerGroupTagsDescription
 import com.netflix.spinnaker.kato.gce.deploy.ops.UpsertGoogleServerGroupTagsAtomicOperation
-import com.netflix.spinnaker.kato.orchestration.AtomicOperation
-import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
 @Component("upsertGoogleServerGroupTagsDescription")

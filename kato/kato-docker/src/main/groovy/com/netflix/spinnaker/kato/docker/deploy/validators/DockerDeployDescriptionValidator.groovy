@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kato.docker.deploy.validators
 
-import com.netflix.spinnaker.kato.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.docker.deploy.description.DockerDeployDescription
 import com.netflix.spinnaker.kato.docker.services.RegistryService
 import org.springframework.beans.factory.annotation.Autowired

@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.kato.gce.deploy.converters
 
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleSecurityGroupDescription
 import com.netflix.spinnaker.kato.gce.deploy.ops.DeleteGoogleSecurityGroupAtomicOperation
-import com.netflix.spinnaker.kato.orchestration.AtomicOperation
-import com.netflix.spinnaker.kato.orchestration.AtomicOperations
-import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
 @GoogleOperation(AtomicOperations.DELETE_SECURITY_GROUP)

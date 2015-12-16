@@ -18,11 +18,11 @@ package com.netflix.spinnaker.kato.gce.deploy.ops
 
 import com.google.api.services.compute.model.InstanceReference
 import com.google.api.services.compute.model.TargetPoolsAddInstanceRequest
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.RegisterInstancesWithGoogleLoadBalancerDescription
-import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 
 /**
  * Add additional instances to an existing NetworkLoadBalancer.

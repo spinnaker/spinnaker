@@ -20,14 +20,14 @@ import com.amazonaws.services.elasticloadbalancing.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
 import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.discovery.DiscoverySupport
 import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 

@@ -15,11 +15,11 @@
  */
 
 package com.netflix.spinnaker.kato.titan.deploy.converters
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
 import com.netflix.spinnaker.clouddriver.titan.TitanOperation
-import com.netflix.spinnaker.kato.orchestration.AtomicOperation
-import com.netflix.spinnaker.kato.orchestration.AtomicOperations
-import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.kato.titan.deploy.description.TitanDeployDescription
 import com.netflix.spinnaker.kato.titan.deploy.handlers.TitanDeployHandler
 import com.netflix.spinnaker.kato.titan.deploy.ops.CloneTitanServerGroupAtomicOperation

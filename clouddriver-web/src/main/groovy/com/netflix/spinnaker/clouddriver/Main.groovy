@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConfig
 import com.netflix.spinnaker.clouddriver.azure.AzureConfiguration
 import com.netflix.spinnaker.clouddriver.config.RetrofitConfig
 import com.netflix.spinnaker.clouddriver.core.CloudDriverConfig
+import com.netflix.spinnaker.clouddriver.deploy.config.DeployConfiguration
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesConfiguration
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
@@ -33,6 +34,7 @@ import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAuto
 import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.web.SpringBootServletInitializer
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.scheduling.annotation.EnableScheduling
@@ -44,6 +46,7 @@ import java.security.Security
 @Import([
   WebConfig,
   CloudDriverConfig,
+  DeployConfiguration,
   RetrofitConfig,
   AwsConfiguration,
   TitanConfiguration,
@@ -52,10 +55,10 @@ import java.security.Security
   CloudFoundryConfig,
   AzureConfiguration,
   SecurityConfig,
-  com.netflix.spinnaker.kato.Main,
   com.netflix.spinnaker.mort.Main,
   com.netflix.spinnaker.oort.Main
 ])
+@ComponentScan(["com.netflix.spinnaker.kato.config"])
 @EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration, SecurityAutoConfiguration,
 ManagementSecurityAutoConfiguration])
 @EnableScheduling

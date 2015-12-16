@@ -19,11 +19,11 @@ import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
+import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
+import com.netflix.spinnaker.clouddriver.data.task.TaskState
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
-import com.netflix.spinnaker.kato.data.task.DefaultTaskStatus
-import com.netflix.spinnaker.kato.data.task.TaskState
 import retrofit.client.Response
 
 class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitSpecSupport {

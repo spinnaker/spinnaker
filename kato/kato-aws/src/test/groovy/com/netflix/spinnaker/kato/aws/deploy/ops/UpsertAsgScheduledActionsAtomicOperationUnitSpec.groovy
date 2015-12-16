@@ -22,12 +22,12 @@ import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.amazonaws.services.autoscaling.model.DescribeScheduledActionsResult
 import com.amazonaws.services.autoscaling.model.ScheduledUpdateGroupAction
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.AsgDescription
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertAsgScheduledActionsDescription
 import com.netflix.spinnaker.kato.aws.services.IdGenerator
-import com.netflix.spinnaker.kato.data.task.DefaultTask
-import com.netflix.spinnaker.kato.data.task.TaskRepository
 import spock.lang.Specification
 
 class UpsertAsgScheduledActionsAtomicOperationUnitSpec extends Specification {

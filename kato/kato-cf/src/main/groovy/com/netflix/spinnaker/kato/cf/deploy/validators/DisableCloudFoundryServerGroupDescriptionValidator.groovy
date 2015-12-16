@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.kato.cf.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.cf.CloudFoundryOperation
-import com.netflix.spinnaker.kato.orchestration.AtomicOperations
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.springframework.stereotype.Component
 
 @CloudFoundryOperation(AtomicOperations.DISABLE_SERVER_GROUP)

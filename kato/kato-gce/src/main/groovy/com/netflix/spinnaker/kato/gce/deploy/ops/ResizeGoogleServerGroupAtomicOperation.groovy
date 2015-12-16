@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.gce.deploy.description.ResizeGoogleServerGroupDescription
-import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 
 class ResizeGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "RESIZE_SERVER_GROUP"

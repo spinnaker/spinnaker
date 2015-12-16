@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.description
 
+import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
-import com.netflix.spinnaker.kato.deploy.DeployDescription
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 

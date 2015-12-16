@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.aws.deploy.description.AbstractAmazonCredentialsDescription
 import com.netflix.spinnaker.kato.aws.deploy.description.AsgDescription
-import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import org.springframework.validation.Errors
 
 public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmazonCredentialsDescription> extends DescriptionValidator<T> {

@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.kato.aws.deploy.converters
 
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertAmazonDNSDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.dns.UpsertAmazonDNSAtomicOperation
-import com.netflix.spinnaker.kato.orchestration.AtomicOperation
-import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
 @Component("upsertAmazonDNSDescription")

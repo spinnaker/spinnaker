@@ -18,10 +18,10 @@ package com.netflix.spinnaker.kato.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
-import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.springframework.beans.factory.annotation.Autowired

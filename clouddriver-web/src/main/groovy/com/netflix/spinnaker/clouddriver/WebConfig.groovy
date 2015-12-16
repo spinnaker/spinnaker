@@ -20,7 +20,9 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.controllers.CacheController
 import com.netflix.spinnaker.clouddriver.controllers.ConfigRefreshController
 import com.netflix.spinnaker.clouddriver.controllers.CredentialsController
+import com.netflix.spinnaker.clouddriver.controllers.OperationsController
 import com.netflix.spinnaker.clouddriver.controllers.SearchController
+import com.netflix.spinnaker.clouddriver.controllers.TaskController
 import com.netflix.spinnaker.clouddriver.filters.SimpleCORSFilter
 import com.netflix.spinnaker.clouddriver.listeners.CredentialsRefreshListener
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
@@ -43,7 +45,9 @@ import javax.servlet.Filter
   CredentialsController,
   CredentialsRefreshListener,
   CacheController,
-  SearchController
+  SearchController,
+  OperationsController,
+  TaskController
 ])
 public class WebConfig extends WebMvcConfigurerAdapter {
   @Autowired

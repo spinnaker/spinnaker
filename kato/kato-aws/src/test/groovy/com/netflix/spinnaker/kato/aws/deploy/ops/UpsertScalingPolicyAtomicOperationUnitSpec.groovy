@@ -25,8 +25,8 @@ import com.amazonaws.services.sns.AmazonSNS
 import com.amazonaws.services.sns.model.ListTopicsResult
 import com.amazonaws.services.sns.model.Topic
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertScalingPolicyDescription
 import spock.lang.Shared
 import spock.lang.Specification

@@ -16,12 +16,12 @@
 package com.netflix.spinnaker.kato.aws.deploy.ops
 
 import com.amazonaws.services.ec2.model.NetworkInterface
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.aws.deploy.description.CreateNetworkInterfaceDescription
 import com.netflix.spinnaker.kato.aws.model.ResultByZone
 import com.netflix.spinnaker.kato.aws.model.TagsNotCreatedException
-import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.aws.services.NetworkInterfaceService
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import org.springframework.beans.factory.annotation.Autowired

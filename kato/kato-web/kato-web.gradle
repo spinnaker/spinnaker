@@ -20,8 +20,8 @@ configurations.all {
 }
 
 dependencies {
+  compile project(":clouddriver-core")
   compile project(":kato:kato-manual")
-  compile project(":kato:kato-core")
   compile project(":kato:kato-aws")
   compile project(":kato:kato-cf")
   compile project(":kato:kato-gce")

@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.kato.titan.deploy
 
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.kato.helpers.AbstractServerGroupNameResolver
+import com.netflix.spinnaker.clouddriver.helpers.AbstractServerGroupNameResolver
 import com.netflix.titanclient.TitanClient
 import com.netflix.titanclient.model.Job
 

@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.kato.docker.deploy.op
 
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.kato.docker.deploy.description.StopContainerDescription
-import com.netflix.spinnaker.kato.docker.deploy.op.StopContainerAtomicOperation
 import com.netflix.spinnaker.kato.docker.security.DockerAccountCredentials
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

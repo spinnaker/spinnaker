@@ -27,8 +27,8 @@ import com.google.api.services.compute.model.ImageList
 import com.google.api.services.compute.model.Instance
 import com.google.api.services.compute.model.InstanceAggregatedList
 import com.google.api.services.compute.model.InstancesScopedList
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
 import groovy.mock.interceptor.MockFor
 import spock.lang.Shared

@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.kato.azure.deploy.converters
 
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.kato.azure.deploy.description.DeleteAzureLoadBalancerDescription
 import com.netflix.spinnaker.kato.azure.deploy.ops.loadbalancer.DeleteAzureLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.azure.AzureOperation
-import com.netflix.spinnaker.kato.orchestration.AtomicOperation
-import com.netflix.spinnaker.kato.orchestration.AtomicOperations
-import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 

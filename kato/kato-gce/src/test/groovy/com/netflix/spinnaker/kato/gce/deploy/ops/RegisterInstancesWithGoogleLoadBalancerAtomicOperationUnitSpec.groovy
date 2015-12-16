@@ -24,11 +24,11 @@ import com.google.api.services.compute.model.InstanceAggregatedList
 import com.google.api.services.compute.model.InstanceReference
 import com.google.api.services.compute.model.InstancesScopedList
 import com.google.api.services.compute.model.TargetPoolsAddInstanceRequest
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
-import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.RegisterInstancesWithGoogleLoadBalancerDescription
+import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
 import spock.lang.Specification
 import spock.lang.Subject
 

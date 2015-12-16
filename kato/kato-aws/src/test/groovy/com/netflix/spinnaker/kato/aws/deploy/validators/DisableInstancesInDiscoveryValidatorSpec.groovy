@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
-import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import org.springframework.validation.Errors
 
 class DisableInstancesInDiscoveryValidatorSpec extends AbstractConfiguredRegionAndInstanceIdsValidatorSpec {

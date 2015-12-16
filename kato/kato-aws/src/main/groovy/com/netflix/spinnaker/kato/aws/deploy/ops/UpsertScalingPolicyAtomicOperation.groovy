@@ -25,9 +25,9 @@ import com.amazonaws.services.cloudwatch.model.Statistic
 import com.amazonaws.services.sns.model.ListTopicsRequest
 import com.amazonaws.services.sns.model.Topic
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertScalingPolicyDescription
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertScalingPolicyDescription.ScaleStrategy
-import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 class UpsertScalingPolicyAtomicOperation implements AtomicOperation<Map<String, String>> {

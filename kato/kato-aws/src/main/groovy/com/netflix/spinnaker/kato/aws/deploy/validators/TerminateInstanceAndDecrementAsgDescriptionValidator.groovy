@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.kato.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.aws.deploy.description.TerminateInstanceAndDecrementAsgDescription
-import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 

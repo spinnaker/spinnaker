@@ -13,7 +13,7 @@ NOTE: All Cloud Foundry applications are associated with an *api*, an *organizat
 ====== Example Request Body (minimum)
 [source,javascript]
 ----
-include::../../../../../kato-web/src/test/resources/cf-deploy.json[]
+include::../../../../../clouddriver-web/src/test/resources/cf-deploy.json[]
 ----
 
 This example shows the minimum attributes needed to deploy to a Cloud Foundry instance.
@@ -21,7 +21,7 @@ This example shows the minimum attributes needed to deploy to a Cloud Foundry in
 ====== Example Request Body (specify number of instances)
 [source,javascript]
 ----
-include::../../../../../kato-web/src/test/resources/cf-deploy-instances.json[]
+include::../../../../../clouddriver-web/src/test/resources/cf-deploy-instances.json[]
 ----
 
 This example shows how to specify the number of instances to run. If not specified, the instance you are deploying to will specify the default number of instances.
@@ -29,7 +29,7 @@ This example shows how to specify the number of instances to run. If not specifi
 ====== Example Request Body (specify custom URLs)
 [source,javascript]
 ----
-include::../../../../../kato-web/src/test/resources/cf-deploy-urls.json[]
+include::../../../../../clouddriver-web/src/test/resources/cf-deploy-urls.json[]
 ----
 
 This example shows how to specify custom URLs to associate with the application.
@@ -37,7 +37,7 @@ This example shows how to specify custom URLs to associate with the application.
 ====== Example Request Body (specify custom domains)
 [source,javascript]
 ----
-include::../../../../../kato-web/src/test/resources/cf-deploy-domains.json[]
+include::../../../../../clouddriver-web/src/test/resources/cf-deploy-domains.json[]
 ----
 
 This example shows how to specify custom domains to associate with the application.

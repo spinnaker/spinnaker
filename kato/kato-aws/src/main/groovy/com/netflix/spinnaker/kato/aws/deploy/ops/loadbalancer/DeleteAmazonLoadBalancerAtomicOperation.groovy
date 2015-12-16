@@ -18,10 +18,10 @@ package com.netflix.spinnaker.kato.aws.deploy.ops.loadbalancer
 
 import com.amazonaws.services.elasticloadbalancing.model.DeleteLoadBalancerRequest
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.aws.deploy.description.DeleteAmazonLoadBalancerDescription
-import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 class DeleteAmazonLoadBalancerAtomicOperation implements AtomicOperation<Void> {

@@ -17,9 +17,9 @@ package com.netflix.spinnaker.kato.cf.deploy.converters
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
+import com.netflix.spinnaker.clouddriver.deploy.DeployAtomicOperation
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.cf.deploy.description.CloudFoundryDeployDescription
-import com.netflix.spinnaker.kato.deploy.DeployAtomicOperation
 import spock.lang.Shared
 import spock.lang.Specification
 

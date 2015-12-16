@@ -15,7 +15,7 @@
  */
 
 dependencies {
-  compile project(":kato:kato-core")
+  compile project(":clouddriver-core")
   compile spinnaker.dependency('jedis')
 
   testCompile project(':cats:cats-test')

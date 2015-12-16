@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.converters
 
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.kato.gce.deploy.description.DeregisterInstancesFromGoogleLoadBalancerDescription
 import com.netflix.spinnaker.kato.gce.deploy.ops.DeregisterInstancesFromGoogleLoadBalancerAtomicOperation
-import com.netflix.spinnaker.kato.orchestration.AtomicOperation
-import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
 @Component("deregisterInstancesFromGoogleLoadBalancerDescription")

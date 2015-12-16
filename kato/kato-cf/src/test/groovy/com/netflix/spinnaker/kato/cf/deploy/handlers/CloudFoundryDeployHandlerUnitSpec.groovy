@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.kato.cf.deploy.handlers
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.kato.cf.TestCredential
 import com.netflix.spinnaker.kato.cf.deploy.description.CloudFoundryDeployDescription
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryClientFactory
 import com.netflix.spinnaker.kato.cf.security.TestCloudFoundryClientFactory
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
 import org.cloudfoundry.client.lib.CloudFoundryClient
 import org.cloudfoundry.client.lib.domain.InstanceInfo
 import org.cloudfoundry.client.lib.domain.InstanceState

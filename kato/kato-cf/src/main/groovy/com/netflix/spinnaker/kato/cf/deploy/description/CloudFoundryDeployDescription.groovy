@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
-import com.netflix.spinnaker.kato.deploy.DeployDescription
+import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 

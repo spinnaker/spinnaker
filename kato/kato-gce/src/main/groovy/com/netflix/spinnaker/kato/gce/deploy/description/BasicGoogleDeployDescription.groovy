@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.description
 
-import com.netflix.spinnaker.kato.deploy.DeployDescription
+import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 

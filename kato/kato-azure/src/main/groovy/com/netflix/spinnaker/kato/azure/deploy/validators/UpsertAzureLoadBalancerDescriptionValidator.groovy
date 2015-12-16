@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.kato.azure.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.azure.deploy.description.UpsertAzureLoadBalancerDescription
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component

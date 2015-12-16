@@ -15,10 +15,10 @@
  */
 
 package com.netflix.spinnaker.kato.titan.deploy.ops
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.titan.deploy.description.TerminateTitanInstancesDescription
 import com.netflix.titanclient.TitanClient
 /**

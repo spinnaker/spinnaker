@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.kato.cf.deploy.ops
 
 import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConstants
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.helpers.OperationPoller
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.cf.deploy.description.EnableDisableCloudFoundryServerGroupDescription
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryClientFactory
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.helpers.OperationPoller
-import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.oort.cf.model.CloudFoundryResourceRetriever
 import org.cloudfoundry.client.lib.domain.CloudApplication
 import org.cloudfoundry.client.lib.domain.InstanceState

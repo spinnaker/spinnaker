@@ -18,8 +18,8 @@ package com.netflix.spinnaker.kato.gce.deploy
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Operation
+import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
-import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationTimedOutException
 import org.springframework.beans.factory.annotation.Autowired

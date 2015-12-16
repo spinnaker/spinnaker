@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.kato.titan.deploy.converters
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.deploy.DeployAtomicOperation
+import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
-import com.netflix.spinnaker.kato.deploy.DeployAtomicOperation
-import com.netflix.spinnaker.kato.deploy.DeployDescription
-import com.netflix.spinnaker.kato.orchestration.AtomicOperation
-import com.netflix.spinnaker.kato.orchestration.AtomicOperationConverter
 import com.netflix.spinnaker.kato.titan.deploy.description.TitanDeployDescription
 import spock.lang.Specification
 import spock.lang.Subject

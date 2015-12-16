@@ -22,9 +22,9 @@ import com.amazonaws.services.cloudwatch.model.*
 import com.google.common.collect.Lists
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.kato.aws.model.AwsResultsRetriever
 import com.netflix.spinnaker.kato.aws.services.IdGenerator
-import com.netflix.spinnaker.kato.data.task.Task
 import groovy.transform.Canonical
 
 @Canonical
