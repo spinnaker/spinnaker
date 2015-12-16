@@ -77,6 +77,5 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.disableCluste
       stage.preferLargerOverNewer = "false";
     }
     stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
-  })
-  .name;
+  });
 

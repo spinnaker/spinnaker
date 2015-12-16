@@ -16,4 +16,4 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.serverGro
       }
     });
 
-  }).name;
+  });

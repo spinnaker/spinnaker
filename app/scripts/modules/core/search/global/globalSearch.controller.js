@@ -165,4 +165,4 @@ module.exports = angular.module('spinnaker.core.search.global.controller', [
         event.preventDefault();
       }
     };
-  }).name;
+  });

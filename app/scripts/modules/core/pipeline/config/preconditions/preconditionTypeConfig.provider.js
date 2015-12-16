@@ -24,4 +24,4 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.co
     };
 
   }
-).name;
+);

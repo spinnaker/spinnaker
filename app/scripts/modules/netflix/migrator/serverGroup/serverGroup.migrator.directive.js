@@ -120,5 +120,4 @@ module.exports = angular
       $scope.executor = executor;
     };
 
-  })
-.name;
+  });

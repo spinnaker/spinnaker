@@ -20,5 +20,4 @@ module.exports = angular
         return result;
       }
     };
-  })
-  .name;
+  });

@@ -86,4 +86,4 @@ module.exports = angular
       generateConfigGraph: generateConfigGraph,
     };
 
-  }).name;
+  });

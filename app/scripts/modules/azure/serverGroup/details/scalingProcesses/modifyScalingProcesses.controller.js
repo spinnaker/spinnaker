@@ -75,4 +75,4 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.autoscaling
     };
 
     this.cancel = $modalInstance.dismiss;
-  }).name;
+  });

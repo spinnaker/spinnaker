@@ -86,4 +86,4 @@ module.exports = angular.module('spinnaker.core.cloudProvider.registry', [
       };
     };
 
-  }).name;
+  });

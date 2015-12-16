@@ -68,5 +68,4 @@ module.exports = angular.module('spinnaker.core.loadBalancer.filter.controller',
       loadBalancerFilterService.updateLoadBalancerGroups(app);
     }));
   }
-)
-.name;
+);

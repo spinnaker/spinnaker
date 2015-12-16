@@ -44,5 +44,4 @@ module.exports = angular.module('spinnaker.core.modalWizard', [
     };
 
   }
-)
-.name;
+);

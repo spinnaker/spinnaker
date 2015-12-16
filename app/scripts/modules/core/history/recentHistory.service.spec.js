@@ -26,7 +26,7 @@ describe('recent history service', function() {
 
     it('returns whatever is in cache if something is found, ordered by accessTime', () => {
       backingCache.put('whatever', [{accessTime: 1}, {accessTime: 3}, {accessTime: 2}]);
-      expect(service.getItems('whatever').map((item) => { return item.accessTime; })).toEqual([3,2,1]);
+      expect(service.getItems('whatever').map((item) => { return item.accessTime; })).toEqual([3, 2, 1]);
     });
   });
 

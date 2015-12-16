@@ -9,4 +9,4 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.ty
         key: 'expression',
         contextTemplateUrl: require('./additionalFields.html'),
       });
-    }).name;
+    });

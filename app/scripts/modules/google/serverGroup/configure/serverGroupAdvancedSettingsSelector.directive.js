@@ -37,4 +37,4 @@ module.exports = angular
       $scope.command.automaticRestart = false;
       $scope.command.onHostMaintenance = 'TERMINATE';
     };
-  }).name;
+  });

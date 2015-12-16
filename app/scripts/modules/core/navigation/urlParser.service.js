@@ -59,4 +59,4 @@ module.exports = angular.module('spinnaker.core.navigation.urlParser.service', [
       parseQueryString: parseKeyValue,
     };
 
-  }).name;
+  });

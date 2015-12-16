@@ -9,4 +9,4 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.canaryD
       key: 'canaryDeployment',
       executionDetailsUrl: require('./canaryDeploymentExecutionDetails.html'),
     });
-  }).name;
+  });

@@ -1,0 +1,16 @@
+{
+  "name": "angular-loader",
+  "version": "1.0.0",
+  "description": "Webpack loader for angular modules",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "escodegen": "^1.6.1",
+    "esprima": "^2.4.0",
+    "esprima-walk": "^0.1.0"
+  }
+}

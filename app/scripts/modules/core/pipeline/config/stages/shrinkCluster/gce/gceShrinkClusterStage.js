@@ -79,6 +79,5 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.shrinkCluster
     stage.retainLargerOverNewer = stage.retainLargerOverNewer.toString();
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
-  })
-  .name;
+  });
 

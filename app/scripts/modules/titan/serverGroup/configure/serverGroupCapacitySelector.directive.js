@@ -18,4 +18,4 @@ module.exports = angular.module('spinnaker.titan.serverGroup.capacity.selector.d
       $scope.command.capacity.min = newVal;
       $scope.command.capacity.max = newVal;
     };
-  }).name;
+  });

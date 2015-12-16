@@ -21,4 +21,4 @@ module.exports = angular.module('spinnaker.core.delivery.execution.triggers.togg
       pipelineConfigService.savePipeline(pipeline).then($modalInstance.close);
     };
 
-  }).name;
+  });

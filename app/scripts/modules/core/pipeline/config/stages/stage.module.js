@@ -191,5 +191,4 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
         submitMethod: restartStage
       });
     };
-  })
-  .name;
+  });

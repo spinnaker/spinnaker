@@ -16,4 +16,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.capacity.co
       }
     });
 
-  }).name;
+  });

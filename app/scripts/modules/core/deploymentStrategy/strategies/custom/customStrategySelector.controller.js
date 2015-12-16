@@ -89,4 +89,4 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.custom.custom
         $scope.$watch('command.strategyApplication', initializeMasters);
         $scope.$watch('command.strategyPipeline', updatePipelineConfig);
 
-    }).name;
+    });

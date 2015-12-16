@@ -17,4 +17,4 @@ module.exports = angular.module('spinnaker.google.networkSelectField.directive',
         fieldColumns: '@',
       }
     };
-  }).name;
+  });

@@ -28,4 +28,4 @@ module.exports = angular
       ];
       controllers.forEach((ctrl) => overrideRegistry.overrideController(ctrl.key, ctrl.value));
     }
-  }).name;
+  });

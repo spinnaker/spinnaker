@@ -38,4 +38,4 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.bake.service', []
       getBaseLabelOptions: getBaseLabelOptions,
       getStoreTypes: getStoreTypes,
     };
-  }).name;
+  });

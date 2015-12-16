@@ -16,4 +16,4 @@ module.exports = angular.module('spinnaker.aws.instance.details.scheduledAction.
         scope.InsightFilterStateModel = InsightFilterStateModel;
       }
     };
-  }).name;
+  });

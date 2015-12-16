@@ -107,6 +107,5 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', []
     $scope.$watch('stage.master', updateJobsList);
     $scope.$watch('stage.job', updateJobConfig);
 
-  })
-  .name;
+  });
 

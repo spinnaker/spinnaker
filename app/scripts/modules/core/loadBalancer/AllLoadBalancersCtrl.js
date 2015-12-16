@@ -81,4 +81,4 @@ module.exports = angular.module('spinnaker.core.loadBalancer.controller', [
 
     app.registerAutoRefreshHandler(autoRefreshHandler, $scope);
   }
-).name;
+);

@@ -87,5 +87,4 @@ module.exports = angular.module('spinnaker.core.delivery.filter.executionFilter.
     };
 
   }
-)
-.name;
+);

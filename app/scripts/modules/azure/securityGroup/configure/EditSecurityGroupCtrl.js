@@ -114,4 +114,4 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.edit.contro
     };
 
     initializeSecurityGroups();
-  }).name;
+  });

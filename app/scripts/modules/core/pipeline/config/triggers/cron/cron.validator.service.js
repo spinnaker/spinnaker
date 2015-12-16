@@ -14,6 +14,5 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.cron.validation
     return {
       validate: validate,
     };
-  })
-.name;
+  });
 

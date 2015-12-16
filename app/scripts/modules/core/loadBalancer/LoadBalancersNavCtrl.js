@@ -46,4 +46,4 @@ module.exports = angular.module('spinnaker.core.loadBalancer.nav.controller', [
       return loadBalancer[labelFields[0].key];
     };
   }
-).name;
+);

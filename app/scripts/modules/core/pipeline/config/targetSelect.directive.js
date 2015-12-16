@@ -14,5 +14,4 @@ module.exports = angular
       },
       templateUrl: require('./targetSelect.html'),
     };
-  })
-  .name;
+  });

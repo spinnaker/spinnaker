@@ -71,4 +71,4 @@ module.exports = angular
 
     vm.initializeSecurityGroups();
 
-  }).name;
+  });

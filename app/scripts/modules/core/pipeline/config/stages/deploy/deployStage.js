@@ -126,4 +126,4 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
       $scope.stage.trafficOptions = $scope.stage.trafficOptions || stageConstants.strategyTrafficOptions[0].val;
     }
 
-  }).name;
+  });

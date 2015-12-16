@@ -33,4 +33,4 @@ module.exports = angular
       getServerGroup: getServerGroup,
       getScalingActivities: getScalingActivities,
     };
-  }).name;
+  });

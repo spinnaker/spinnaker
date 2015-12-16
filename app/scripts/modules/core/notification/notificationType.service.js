@@ -20,4 +20,4 @@ module.exports = angular.module('spinnaker.core.notifications.service', [
       getNotificationType: getNotificationType
     };
 
-  }).name;
+  });

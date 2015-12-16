@@ -46,4 +46,4 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.networking.
         }
       });
     };
-  }).name;
+  });

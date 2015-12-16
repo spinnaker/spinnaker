@@ -28,4 +28,4 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.pipelines.pro
 
     this.hasBuildInfo = this.execution.buildInfo || _.has(this.execution, 'trigger.buildInfo') || _.has(this.execution, 'trigger.parentPipelineId');
 
-  }).name;
+  });

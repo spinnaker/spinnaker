@@ -12,5 +12,4 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.waitStage', [])
       executionDetailsUrl: require('./waitExecutionDetails.html'),
       strategy: true,
     });
-  })
-  .name;
+  });

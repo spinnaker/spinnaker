@@ -31,5 +31,4 @@ module.exports =  angular.module('spinnaker.vpc.tag.directive', [
         scope.$watch('vpcId', applyLabel, true);
       }
     };
-  })
-  .name;
+  });

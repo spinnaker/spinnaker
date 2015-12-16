@@ -24,4 +24,4 @@ module.exports = angular.module('spinnaker.core.notification.type.config', [])
     };
 
   }
-).name;
+);

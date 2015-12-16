@@ -18,4 +18,4 @@ module.exports = angular.module('spinnaker.azure.serverGroups.configure.wizard.z
         ];
       },
     };
-}).name;
+});

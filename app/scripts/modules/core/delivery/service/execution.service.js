@@ -181,4 +181,4 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       getSectionCacheKey: getSectionCacheKey,
       getProjectExecutions: getProjectExecutions,
     };
-  }).name;
+  });

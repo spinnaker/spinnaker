@@ -35,6 +35,5 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.baseProviderStage
 
     $scope.$watch('stage.cloudProviderType', loadProvider);
 
-  })
-  .name;
+  });
 

@@ -100,5 +100,4 @@ module.exports = angular
     $rootScope.$on('$stateChangeSuccess', function(event, toState) {
       pageTitleService.handleRoutingSuccess(toState.data);
     });
-  })
-  .name;
+  });

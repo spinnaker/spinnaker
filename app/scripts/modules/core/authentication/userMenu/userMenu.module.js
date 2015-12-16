@@ -9,4 +9,4 @@ module.exports = angular.module('spinnaker.core.authentication.userMenu', [
   require('../../config/settings.js'),
   require('../authentication.service.js'),
   require('./userMenu.directive.js')
-]).name;
+]);

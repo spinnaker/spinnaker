@@ -69,4 +69,4 @@ module.exports = angular
     };
 
     $scope.$watch(() => this.accounts, groupAccounts);
-  }).name;
+  });

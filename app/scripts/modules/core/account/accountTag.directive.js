@@ -23,4 +23,4 @@ module.exports = angular
         $scope.$watch('account', getAccountType);
       },
     };
-}).name;
+});

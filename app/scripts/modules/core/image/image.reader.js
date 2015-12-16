@@ -23,4 +23,4 @@ module.exports = angular.module('spinnaker.core.image.read.service', [
       findImages: findImages,
       getImage: getImage,
     };
-  }).name;
+  });

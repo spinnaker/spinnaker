@@ -16,4 +16,4 @@ module.exports = angular.module('spinnaker.core.search.infrastructure.project.in
         onRemove: '&',
       }
     };
-  }).name;
+  });

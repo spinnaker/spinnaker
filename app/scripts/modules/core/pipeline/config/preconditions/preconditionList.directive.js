@@ -73,4 +73,4 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.pr
 
       return vm;
 
-    }).name;
+    });

@@ -33,4 +33,4 @@ module.exports = angular
     return {
       getReservationsFor: getReservationsFor
     };
-  }).name;
+  });

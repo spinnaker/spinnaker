@@ -100,5 +100,4 @@ module.exports = angular
       executeMigration: executeMigration,
     };
 
-  })
-.name;
+  });

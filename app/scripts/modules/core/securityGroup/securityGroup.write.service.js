@@ -53,4 +53,4 @@ module.exports = angular
       deleteSecurityGroup: deleteSecurityGroup,
     };
 
-  }).name;
+  });

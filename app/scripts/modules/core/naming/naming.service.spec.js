@@ -4,7 +4,7 @@ describe('namingService', function() {
   beforeEach(function() {
     window.module(
       require('./naming.service')
-    )
+    );
   });
 
   beforeEach(window.inject(function(namingService) {

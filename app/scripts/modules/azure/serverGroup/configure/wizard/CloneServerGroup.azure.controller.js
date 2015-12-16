@@ -211,4 +211,4 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
       $scope.state.requiresTemplateSelection = false;
       configureCommand();
     });
-  }).name;
+  });

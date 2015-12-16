@@ -100,4 +100,4 @@ module.exports = angular.module('spinnaker.core.history.service', [
         recentHistoryService.addItem(toState.data.history.type, toState.name, toParams, toState.data.history.keyParams);
       }
     });
-  }).name;
+  });

@@ -33,4 +33,4 @@ module.exports = angular.module('spinnaker.aws.image.reader', [
       findImages: findImages,
       getImage: getImage,
     };
-  }).name;
+  });

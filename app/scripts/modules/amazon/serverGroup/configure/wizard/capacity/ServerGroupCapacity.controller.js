@@ -23,4 +23,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.serverGroup
       }
     });
 
-  }).name;
+  });

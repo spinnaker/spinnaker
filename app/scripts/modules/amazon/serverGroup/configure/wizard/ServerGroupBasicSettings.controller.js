@@ -77,4 +77,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.basicSettin
       }
     });
 
-  }).name;
+  });

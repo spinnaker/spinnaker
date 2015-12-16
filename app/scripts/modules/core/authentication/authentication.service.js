@@ -36,5 +36,4 @@ module.exports = angular.module('spinnaker.authentication.service', [
       getAuthenticatedUser: getAuthenticatedUser,
       onAuthentication: onAuthentication,
     };
-  })
-  .name;
+  });

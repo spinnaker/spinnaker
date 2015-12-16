@@ -67,6 +67,5 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.disableAsgStag
       stage.target = $scope.targets[0].val;
     }
 
-  })
-  .name;
+  });
 

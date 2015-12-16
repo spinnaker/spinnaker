@@ -24,4 +24,4 @@ module.exports = angular
   .controller('ExecutionGroupsCtrl', function (ExecutionFilterModel) {
     this.groups = ExecutionFilterModel.groups;
     this.sortFilter = ExecutionFilterModel.sortFilter;
-  }).name;
+  });

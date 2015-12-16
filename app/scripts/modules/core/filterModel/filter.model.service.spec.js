@@ -204,8 +204,8 @@ describe('Service: FilterModelService', function () {
       expect(service.checkStatusFilters(filterModel)(target)).toBe(true);
     });
   });
-  
-  
+
+
   describe('tagging', function () {
 
     describe('object tags', function () {
@@ -373,7 +373,7 @@ describe('Service: FilterModelService', function () {
       configure();
 
       filterModel.saveState('application.clusters', params);
-      var savedState = filterModel.savedState['deck'];
+      var savedState = filterModel.savedState.deck;
 
       expect(savedState.filters).toEqual({ region: 'us-east-1,us-west-1', account: 'prod' });
       expect(savedState.state).toEqual('application.clusters');

@@ -13,4 +13,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.basicSett
       }
     });
 
-  }).name;
+  });

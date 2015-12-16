@@ -8,4 +8,4 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.modifyScalingProc
   require('../core/stage.core.module.js'),
   require('../../../../account/account.module.js'),
   require('./modifyScalingProcessExecutionDetails.controller.js'),
-]).name;
+]);

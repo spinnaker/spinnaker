@@ -36,7 +36,7 @@ module.exports = {
       },
       {
         test: /\.js$/,
-        loader: 'ng-annotate!babel!envify!eslint',
+        loader: 'ng-annotate!angular!babel!envify!eslint',
         exclude: /node_modules(?!\/clipboard)/,
       },
       {

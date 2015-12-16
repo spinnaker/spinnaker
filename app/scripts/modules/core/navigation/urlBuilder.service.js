@@ -304,5 +304,4 @@ module.exports = angular.module('spinnaker.core.navigation.urlBuilder.service', 
       buildFromTask: fromTask,
       buildFromMetadata: fromMetadata,
     };
-  })
-  .name;
+  });

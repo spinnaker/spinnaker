@@ -92,4 +92,4 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.ins
       }
     });
 
-  }).name;
+  });

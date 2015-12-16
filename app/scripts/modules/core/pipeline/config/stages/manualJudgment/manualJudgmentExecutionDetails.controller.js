@@ -46,4 +46,4 @@ module.exports = angular
         .then(judgmentMade, judgmentFailure);
     };
 
-  }).name;
+  });

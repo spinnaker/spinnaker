@@ -14,5 +14,4 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindowsS
   })
   .run(function(pipelineConfig, executionWindowsTransformer) {
     pipelineConfig.registerTransformer(executionWindowsTransformer);
-  })
-  .name;
+  });

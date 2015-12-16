@@ -18,4 +18,4 @@ module.exports = angular.module('spinnaker.core.insightMenu.directive', [])
         scope.status = {isOpen: false};
       }
     };
-  }).name;
+  });

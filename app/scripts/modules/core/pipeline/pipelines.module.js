@@ -13,4 +13,4 @@ module.exports = angular.module('spinnaker.core.pipeline', [
   require('../authentication/authentication.module.js'),
   require('../notification/notifications.module.js'),
   require('../cache/deckCacheFactory.js'),
-]).name;
+]);

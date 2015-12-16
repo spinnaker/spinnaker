@@ -17,5 +17,4 @@ module.exports = angular
       getCanaryById: getCanaryById,
     };
 
-  })
-  .name;
+  });

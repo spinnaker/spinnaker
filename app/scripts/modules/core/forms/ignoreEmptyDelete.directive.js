@@ -44,4 +44,4 @@ module.exports = angular
       };
       return $delegate;
     });
-  }).name;
+  });

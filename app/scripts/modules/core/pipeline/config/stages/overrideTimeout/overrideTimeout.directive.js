@@ -65,5 +65,4 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.overrideTimeout',
 
     $scope.$watch('stage', this.setOverrideValues, true);
 
-  })
-  .name;
+  });

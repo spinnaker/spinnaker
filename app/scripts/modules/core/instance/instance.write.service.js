@@ -137,4 +137,4 @@ module.exports = angular
       terminateInstanceAndShrinkServerGroup: terminateInstanceAndShrinkServerGroup,
     };
 
-  }).name;
+  });

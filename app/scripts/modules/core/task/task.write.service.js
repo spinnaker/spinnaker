@@ -68,4 +68,4 @@ module.exports = angular
       deleteTask: deleteTask,
     };
 
-  }).name;
+  });

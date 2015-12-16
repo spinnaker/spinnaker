@@ -43,4 +43,4 @@ module.exports = angular.module('spinnaker.core.presentation.anyFieldFilter', []
 
       return out;
     };
-}).name;
+});

@@ -31,5 +31,4 @@ module.exports = angular.module('spinnaker.authentication.interceptor.service', 
     if (settings.authEnabled) {
       $httpProvider.interceptors.push('authenticationInterceptor');
     }
-  })
-  .name;
+  });

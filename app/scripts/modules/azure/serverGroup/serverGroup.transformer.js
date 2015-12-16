@@ -56,4 +56,4 @@ module.exports = angular.module('spinnaker.azure.serverGroup.transformer', [
       normalizeServerGroup: normalizeServerGroup,
     };
 
-  }).name;
+  });

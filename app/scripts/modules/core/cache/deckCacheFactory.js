@@ -132,5 +132,4 @@ module.exports = angular.module('spinnaker.core.cache.deckCacheFactory', [
 
     return caches;
 
-  })
-  .name;
+  });

@@ -58,5 +58,4 @@ module.exports = angular
 
     $scope.$watch(() => this.config, this.configChanged, true);
 
-  })
-  .name;
+  });

@@ -56,5 +56,5 @@ module.exports = angular.module('spinnaker.core.modal.wizard.wizardPage.directiv
         wizardCtrl.getWizard().registerPage($scope.key, $scope.label, state);
       }
     };
-}).name;
+});
 

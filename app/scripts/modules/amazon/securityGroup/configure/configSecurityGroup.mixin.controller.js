@@ -282,6 +282,5 @@ module.exports = angular
     var vpcPattern = /^[a-zA-Z0-9\s._\-:\/()#,@[\]+=&;{}!$*]+$/;
 
 
-  })
-  .name;
+  });
 

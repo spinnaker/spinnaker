@@ -52,6 +52,5 @@ module.exports = angular
       showPages: showPages,
     };
 
-  })
-  .name;
+  });
 

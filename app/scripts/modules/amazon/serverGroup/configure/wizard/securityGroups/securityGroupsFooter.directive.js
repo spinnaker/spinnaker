@@ -22,5 +22,4 @@ module.exports = angular
       controllerAs: 'vm',
       controller: angular.noop,
     };
-  })
-  .name;
+  });

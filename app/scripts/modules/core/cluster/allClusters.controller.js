@@ -93,5 +93,4 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
     autoRefreshHandler();
 
     app.registerAutoRefreshHandler(autoRefreshHandler, $scope);
-  })
-  .name;
+  });

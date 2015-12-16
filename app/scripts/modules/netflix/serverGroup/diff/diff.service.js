@@ -73,5 +73,4 @@ module.exports = angular.module('spinnaker.core.diff.service', [
       getClusterDiffForAccount: getClusterDiffForAccount,
       diffSecurityGroups: diffSecurityGroups,
     };
-  })
-  .name;
+  });

@@ -33,4 +33,4 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stages.canary.score.
         scope.$watch('result', applyLabel, true);
       }
     };
-  }).name;
+  });

@@ -48,4 +48,4 @@ module.exports = angular
       associateElasticIpWithCluster: associateElasticIpWithCluster,
       disassociateElasticIpWithCluster: disassociateElasticIpWithCluster
     };
-  }).name;
+  });

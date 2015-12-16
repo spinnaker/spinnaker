@@ -121,5 +121,4 @@ module.exports = angular.module('spinnaker.core.utils.stickyHeader', [
         },
       }
     };
-  })
-  .name;
+  });

@@ -15,5 +15,4 @@ module.exports = angular
         clearFilters: '&',
       },
     };
-  })
-  .name;
+  });

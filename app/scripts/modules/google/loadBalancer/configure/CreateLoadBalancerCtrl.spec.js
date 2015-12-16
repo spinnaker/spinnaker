@@ -53,7 +53,7 @@ describe('Controller: gceCreateLoadBalancerCtrl', function () {
     this.ctrl.updateName();
     expect(lb.name).toBe('testApp');
 
-    this.$scope.loadBalancer.stack = 'testStack'
+    this.$scope.loadBalancer.stack = 'testStack';
     this.ctrl.updateName();
     expect(lb.name).toBe('testApp-testStack');
   });

@@ -46,4 +46,4 @@ module.exports = angular.module('spinnaker.aws.instance.details.scalingPolicy.di
 
       }
     };
-  }).name;
+  });

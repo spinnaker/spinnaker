@@ -41,4 +41,4 @@ module.exports = angular
       getVpcName: getVpcName,
     };
 
-  }).name;
+  });

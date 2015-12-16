@@ -89,4 +89,4 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.canaryD
       },
       true);
 
-  }).name;
+  });

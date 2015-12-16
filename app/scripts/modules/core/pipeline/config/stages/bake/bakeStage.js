@@ -17,5 +17,4 @@ module.exports = angular
   })
   .run(function(pipelineConfig, bakeStageTransformer) {
     pipelineConfig.registerTransformer(bakeStageTransformer);
-  })
-  .name;
+  });

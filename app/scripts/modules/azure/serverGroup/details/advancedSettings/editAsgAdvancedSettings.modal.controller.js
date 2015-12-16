@@ -40,4 +40,4 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.advancedSet
     };
 
     this.cancel = $modalInstance.dismiss;
-  }).name;
+  });

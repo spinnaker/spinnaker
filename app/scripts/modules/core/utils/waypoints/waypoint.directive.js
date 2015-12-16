@@ -17,5 +17,4 @@ module.exports = angular.module('spinnaker.core.utils.waypoints.container.direct
         }
       }
     };
-  })
-  .name;
+  });

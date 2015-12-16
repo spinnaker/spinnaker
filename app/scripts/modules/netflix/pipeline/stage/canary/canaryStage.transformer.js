@@ -281,4 +281,4 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.transfo
       });
       execution.stages = execution.stages.concat(syntheticStagesToAdd);
     };
-  }).name;
+  });

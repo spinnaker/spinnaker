@@ -261,4 +261,4 @@ module.exports = angular.module('spinnaker.core.task.controller', [
     application.reloadTasks(true);
 
   }
-).name;
+);

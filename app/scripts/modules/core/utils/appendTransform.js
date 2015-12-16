@@ -13,5 +13,4 @@ module.exports = angular.module('spinnaker.core.utils.appendTransform', [])
       return append($http.defaults.transformResponse, transform);
     };
 
-  })
-  .name;
+  });

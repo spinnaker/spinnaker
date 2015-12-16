@@ -16,5 +16,4 @@ module.exports = angular.module('spinnaker.core.loadBalancer.transformer', [
       normalizeLoadBalancer: normalizeLoadBalancer,
     };
 
-  })
-  .name;
+  });

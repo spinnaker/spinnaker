@@ -208,5 +208,4 @@ module.exports = angular
       createAvailabilityZoneChangeFn: createAvailabilityZoneChangeFn,
       createInstanceChangeFn: createInstanceChangeFn,
     };
-  })
-  .name;
+  });

@@ -109,4 +109,4 @@ module.exports = angular
         this.toggle();
       }
     });
-  }).name;
+  });

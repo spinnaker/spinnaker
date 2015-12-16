@@ -13,7 +13,7 @@ describe('Basic Settings Mixin Controller:', function () {
     $scope = $rootScope.$new();
     $scope.application = { name: 'app', serverGroups: [] };
     $scope.command = { viewState: { }};
-    controller = $controller('BasicSettingsMixin',{
+    controller = $controller('BasicSettingsMixin', {
       $scope: $scope,
       namingService: namingService,
       $uibModalStack: { dismissAll: angular.noop },

@@ -14,4 +14,4 @@ module.exports = angular.module('spinnaker.pipelines.stages.core.displayableTask
         });
       }
     };
-  }).name;
+  });

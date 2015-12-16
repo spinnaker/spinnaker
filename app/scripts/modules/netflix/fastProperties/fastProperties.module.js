@@ -21,4 +21,4 @@ module.exports = angular
     require('./strategies/aca/aca.module.js'),
     require('./fastPropertyPromotion.directive.js'),
     require('./modal/wizard/fastPropertyWizard.module')
-  ]).name;
+  ]);

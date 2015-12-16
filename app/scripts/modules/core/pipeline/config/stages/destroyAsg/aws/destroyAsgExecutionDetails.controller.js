@@ -20,4 +20,4 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.destroyAsg.aws.ex
 
     $scope.$on('$stateChangeSuccess', initialize, true);
 
-  }).name;
+  });

@@ -31,5 +31,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.envsSelector
         return command.application;
       };
 
-    })
-    .name;
+    });

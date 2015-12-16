@@ -423,4 +423,4 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       return null;
     };
   }
-).name;
+);

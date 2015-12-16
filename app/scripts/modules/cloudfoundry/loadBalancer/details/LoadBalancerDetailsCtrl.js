@@ -107,4 +107,4 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.details.controller', 
     };
 
   }
-).name;
+);

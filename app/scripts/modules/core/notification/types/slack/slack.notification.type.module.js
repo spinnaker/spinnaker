@@ -9,4 +9,4 @@ module.exports = angular.module('spinnaker.core.notification.types.slack', [])
       key: 'slack',
       addressTemplateUrl: require('./additionalFields.html')
     });
-  }).name;
+  });

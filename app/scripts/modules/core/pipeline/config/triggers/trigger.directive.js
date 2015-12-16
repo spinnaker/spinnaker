@@ -59,4 +59,4 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggerD
     };
 
     this.loadTrigger();
-  }).name;
+  });

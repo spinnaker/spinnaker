@@ -50,4 +50,4 @@ module.exports = angular
         }
       );
     };
-  }).name;
+  });

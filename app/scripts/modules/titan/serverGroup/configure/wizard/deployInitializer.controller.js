@@ -69,4 +69,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.deployIni
         $scope.$emit('template-selected');
       });
     };
-  }).name;
+  });

@@ -80,5 +80,5 @@ module.exports = angular.module('spinnaker.application.controller', [
 
     app.enableAutoRefresh($scope);
   }
-).name;
+);
 

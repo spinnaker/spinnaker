@@ -49,5 +49,4 @@ module.exports = angular.module('securityGroup.filter.controller', [
     }));
 
   }
-)
-.name;
+);

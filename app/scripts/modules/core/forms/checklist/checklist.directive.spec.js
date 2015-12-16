@@ -135,7 +135,7 @@ describe('Directives: checklist', function () {
     var checklist = compile(html)(scope);
     scope.$digest();
 
-    var selectButton = checklist.find('a')[0]
+    var selectButton = checklist.find('a')[0];
 
     expect(selectButton.text).toBe('Select All'); // Some items selected
     $(selectButton).click();

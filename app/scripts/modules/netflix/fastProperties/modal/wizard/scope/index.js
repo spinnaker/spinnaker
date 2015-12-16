@@ -12,5 +12,4 @@ module.exports = angular
     require('./scopeAvailabilityZoneSelector.directive'),
     require('./scopeInstanceSelector.directive'),
 
-  ])
-  .name;
+  ]);

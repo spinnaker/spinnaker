@@ -24,4 +24,4 @@ module.exports = angular
         this.fieldColumns = this.fieldColumns || 6;
       }
     };
-  }).name;
+  });

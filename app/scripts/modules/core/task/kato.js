@@ -92,4 +92,4 @@ module.exports = angular.module('spinnaker.core.task.kato.service', [
       }
     };
 
-  }).name;
+  });

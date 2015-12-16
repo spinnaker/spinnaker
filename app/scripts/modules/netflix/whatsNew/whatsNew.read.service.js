@@ -36,4 +36,4 @@ module.exports = angular.module('spinnaker.netflix.whatsNew.read.service', [
     return {
       getWhatsNewContents: getWhatsNewContents,
     };
-  }).name;
+  });

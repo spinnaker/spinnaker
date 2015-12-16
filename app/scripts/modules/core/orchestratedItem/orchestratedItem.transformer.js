@@ -111,5 +111,4 @@ module.exports = angular.module('spinnaker.core.orchestratedItem.transformer', [
     return {
       defineProperties: defineProperties,
     };
-  })
-  .name;
+  });

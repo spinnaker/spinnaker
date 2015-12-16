@@ -207,4 +207,4 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
     this.deleteClusterPair = function(index) {
       $scope.stage.clusterPairs.splice(index, 1);
     };
-  }).name;
+  });

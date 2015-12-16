@@ -26,5 +26,4 @@ module.exports = angular
       },
       templateUrl: require('./scopeInstanceSelector.directive.html')
     };
-  })
-  .name;
+  });

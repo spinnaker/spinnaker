@@ -53,4 +53,4 @@ module.exports = angular.module('spinnaker.scalingActivities.controller', [
       return activity.statusCode === 'Successful';
     };
     $scope.close = $modalInstance.dismiss;
-  }).name;
+  });

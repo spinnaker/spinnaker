@@ -7,4 +7,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.loadBalance
     modalWizardService.getWizard().markClean('load-balancers');
     modalWizardService.getWizard().markComplete('load-balancers');
 
-  }).name;
+  });

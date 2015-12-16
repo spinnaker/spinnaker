@@ -40,4 +40,4 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.advancedSetti
     };
 
     this.cancel = $modalInstance.dismiss;
-  }).name;
+  });

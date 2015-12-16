@@ -42,4 +42,4 @@ module.exports = angular
       }
     ];
     helpContents.forEach((entry) => helpContentsRegistry.register(entry.key, entry.contents));
-  }).name;
+  });

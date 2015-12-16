@@ -205,4 +205,4 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
     this.cancel = function () {
       $modalInstance.dismiss();
     };
-  }).name;
+  });

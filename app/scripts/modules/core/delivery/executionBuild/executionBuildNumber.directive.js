@@ -11,4 +11,4 @@ module.exports = angular.module('spinnaker.core.delivery.execution.build.number.
       },
       templateUrl: require('./executionBuildNumber.directive.html'),
     };
-  }).name;
+  });

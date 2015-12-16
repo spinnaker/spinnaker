@@ -23,5 +23,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.basicSett
       $uibModalStack: $uibModalStack,
       $state: $state,
     }));
-  })
-.name;
+  });

@@ -226,4 +226,4 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'execution.forceRebake': '<p>By default, the bakery will <b>not</b> create a new image if the contents of the package have not changed; ' +
       'instead, it will return the previously baked image.</p>' +
       '<p>Select this option to force the bakery to create a new image, regardless of whether or not the selected package exists.</p>',
-  }).name;
+  });

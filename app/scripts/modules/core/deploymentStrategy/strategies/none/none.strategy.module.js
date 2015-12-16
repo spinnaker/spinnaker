@@ -9,4 +9,4 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.none', [])
       description: 'Creates the next server group with no impact on existing server groups',
       key: '',
     });
-  }).name;
+  });

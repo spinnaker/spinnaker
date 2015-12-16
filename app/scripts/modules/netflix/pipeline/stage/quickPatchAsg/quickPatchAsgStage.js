@@ -56,6 +56,5 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsgS
     })();
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
-  })
-  .name;
+  });
 

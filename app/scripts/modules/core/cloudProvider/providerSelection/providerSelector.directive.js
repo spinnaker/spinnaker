@@ -52,4 +52,4 @@ module.exports = angular.module('spinnaker.providerSelection.directive', [
 
     this.cancel = $modalInstance.dismiss;
 
-  }).name;
+  });

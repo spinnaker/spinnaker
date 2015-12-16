@@ -13,4 +13,4 @@ module.exports = angular.module('spinnaker.core.delivery.executionDetails.stageF
         messages: '=',
       },
     };
-  }).name;
+  });

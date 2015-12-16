@@ -34,4 +34,4 @@ module.exports = angular
           this.application.attributes = newAttributes;
         });
     };
-  }).name;
+  });

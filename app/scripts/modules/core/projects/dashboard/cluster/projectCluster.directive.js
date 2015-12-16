@@ -273,4 +273,4 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
 
     this.clusterLabel = this.cluster.detail ? [this.cluster.stack, this.cluster.detail].join('-') : this.cluster.stack;
 
-  }).name;
+  });

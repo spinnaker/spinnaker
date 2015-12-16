@@ -22,7 +22,7 @@ describe('vpcReader', function() {
       { name: 'vpc2', id: 'vpc-2', deprecated: false },
       { name: 'vpc3', id: 'vpc-3' },
     ]);
-  }); 
+  });
 
 
   it('adds label to vpc, including (deprecated) if deprecated field is true', function () {

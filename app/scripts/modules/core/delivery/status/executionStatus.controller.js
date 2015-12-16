@@ -50,4 +50,4 @@ module.exports = angular.module('spinnaker.core.delivery.executionStatus.control
       return 'Unknown';
     };
 
-  }).name;
+  });

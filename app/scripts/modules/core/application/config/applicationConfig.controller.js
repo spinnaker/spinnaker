@@ -15,4 +15,4 @@ module.exports = angular
     if (app.notFound) {
       $state.go('home.infrastructure', null, {location: 'replace'});
     }
-  }).name;
+  });

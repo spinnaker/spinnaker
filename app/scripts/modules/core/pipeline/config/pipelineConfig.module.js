@@ -19,4 +19,4 @@ module.exports = angular.module('spinnaker.core.pipeline.config', [
   require('./targetSelect.directive.js'),
   require('./createNew.directive.js'),
   require('./health/stagePlatformHealthOverride.directive.js'),
-]).name;
+]);

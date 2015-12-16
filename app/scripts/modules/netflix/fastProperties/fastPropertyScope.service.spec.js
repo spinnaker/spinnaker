@@ -590,7 +590,7 @@ describe('FastPropertyScopeService', function () {
 
   describe('extract scope array from history message', function () {
     it('should pull out the scope array if there is a Scope string in the message', function () {
-      let message = 'Proceeded to ScopeSelection(Scope(prod,gate,main,us-west-1,gate-main),Some(InstanceSelection(1)))'
+      let message = 'Proceeded to ScopeSelection(Scope(prod,gate,main,us-west-1,gate-main),Some(InstanceSelection(1)))';
 
       let result = service.extractScopeFromHistoryMessage(message);
 

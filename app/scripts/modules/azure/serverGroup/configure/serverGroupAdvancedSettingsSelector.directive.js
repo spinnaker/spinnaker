@@ -29,4 +29,4 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.advancedS
       return $scope.command.suspendedProcesses.indexOf(process) !== -1;
     };
 
-  }).name;
+  });

@@ -83,4 +83,4 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
     this.cancel = function () {
       $modalInstance.dismiss();
     };
-  }).name;
+  });

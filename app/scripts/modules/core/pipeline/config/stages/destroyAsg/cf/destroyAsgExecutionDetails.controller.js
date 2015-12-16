@@ -20,4 +20,4 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.destroyAsg.cf.exe
 
     $scope.$on('$stateChangeSuccess', initialize, true);
 
-  }).name;
+  });

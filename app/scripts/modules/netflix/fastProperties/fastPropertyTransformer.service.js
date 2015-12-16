@@ -27,4 +27,4 @@ module.exports = angular
       sortRunningPromotionsFirst: sortRunningPromotionsFirst,
     };
 
-  }).name;
+  });

@@ -25,4 +25,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.loadBalance
     };
 
 
-  }).name;
+  });

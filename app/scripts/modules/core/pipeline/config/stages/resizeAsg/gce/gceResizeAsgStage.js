@@ -119,6 +119,5 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
         }
       }
     };
-  })
-  .name;
+  });
 

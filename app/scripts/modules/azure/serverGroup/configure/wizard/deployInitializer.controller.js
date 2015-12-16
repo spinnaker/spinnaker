@@ -81,4 +81,4 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.deployIni
         $scope.$emit('template-selected');
       });
     };
-  }).name;
+  });

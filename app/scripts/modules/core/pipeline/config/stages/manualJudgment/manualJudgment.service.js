@@ -44,4 +44,4 @@ module.exports = angular
     return {
       provideJudgment: provideJudgment
     };
-  }).name;
+  });

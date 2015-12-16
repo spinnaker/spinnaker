@@ -16,4 +16,4 @@ module.exports = angular.module('spinnaker.google.zoneSelectField.directive', []
         labelColumns: '@'
       }
     };
-  }).name;
+  });

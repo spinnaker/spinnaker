@@ -18,4 +18,4 @@ module.exports = angular.module('spinnaker.google.serverGroup.capacity.selector.
       $scope.command.capacity.min = newVal;
       $scope.command.capacity.max = newVal;
     };
-  }).name;
+  });

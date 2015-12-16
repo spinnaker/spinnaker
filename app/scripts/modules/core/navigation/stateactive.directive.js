@@ -19,4 +19,4 @@ module.exports = angular.module('spinnaker.core.navigation.stateActive.directive
         });
       },
     };
-}).name;
+});

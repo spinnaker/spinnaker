@@ -69,4 +69,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.deployIniti
         $scope.$emit('template-selected');
       });
     };
-  }).name;
+  });

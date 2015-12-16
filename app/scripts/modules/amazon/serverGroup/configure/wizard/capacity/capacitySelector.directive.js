@@ -30,5 +30,4 @@ module.exports = angular
         this.command.useSourceCapacity = false;
       }
     };
-  })
-  .name;
+  });

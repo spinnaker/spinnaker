@@ -8,4 +8,4 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsg'
   require('../../../../core/pipeline/config/stages/core/stage.core.module.js'),
   require('../../../../core/account/account.module.js'),
   require('./quickPatchAsgExecutionDetails.controller.js')
-]).name;
+]);

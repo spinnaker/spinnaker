@@ -20,4 +20,4 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.resizeAsg.aws.exe
 
     $scope.$on('$stateChangeSuccess', initialize, true);
 
-  }).name;
+  });

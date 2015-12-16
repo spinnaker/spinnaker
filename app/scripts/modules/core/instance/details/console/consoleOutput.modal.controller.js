@@ -24,4 +24,4 @@ module.exports = angular.module('spinnaker.core.instance.details.console.control
 
     $scope.close = $modalInstance.dismiss;
 
-  }).name;
+  });

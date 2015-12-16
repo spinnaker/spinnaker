@@ -12,4 +12,4 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.redblack', []
       additionalFields: ['scaleDown', 'maxRemainingAsgs'],
       additionalFieldsTemplateUrl: require('./additionalFields.html'),
     });
-  }).name;
+  });

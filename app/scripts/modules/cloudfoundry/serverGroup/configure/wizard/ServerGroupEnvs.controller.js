@@ -17,4 +17,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.envs.control
             }
         });
 
-    }).name;
+    });

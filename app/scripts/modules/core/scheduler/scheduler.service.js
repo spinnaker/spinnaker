@@ -75,5 +75,4 @@ module.exports = angular.module('spinnaker.core.scheduler', [
         return deferred.promise;
       },
     };
-  })
-  .name;
+  });

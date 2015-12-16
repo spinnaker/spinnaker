@@ -10,4 +10,4 @@ module.exports = angular
     require('./filter/LoadBalancerFilterCtrl.js'),
     require('./loadBalancer.directive.js'),
     require('./loadBalancer/loadBalancer.pod.directive.js'),
-  ]).name;
+  ]);

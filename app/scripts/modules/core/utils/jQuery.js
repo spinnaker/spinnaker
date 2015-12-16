@@ -5,5 +5,4 @@ let $ = require('jquery');
 
 module.exports = angular
   .module('spinnaker.core.utils.jQuery', [])
-  .constant('$', $)
-  .name;
+  .constant('$', $);

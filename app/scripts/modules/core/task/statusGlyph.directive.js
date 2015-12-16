@@ -13,4 +13,4 @@ module.exports = angular.module('spinnaker.core.task.statusGlyph.directive', [])
       templateUrl: require('./statusGlyph.html'),
     };
 
-  }).name;
+  });

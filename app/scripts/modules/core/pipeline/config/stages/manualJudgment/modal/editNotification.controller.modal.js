@@ -13,4 +13,4 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgment.mo
     };
 
     return vm;
-  }).name;
+  });

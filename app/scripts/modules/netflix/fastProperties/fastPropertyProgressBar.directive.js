@@ -65,4 +65,4 @@ module.exports = angular.module('spinnaker.netflix.fastProperties.progressBar.di
       },
       controllerAs:'ctrl'
     };
-  }).name;
+  });

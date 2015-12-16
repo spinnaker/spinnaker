@@ -38,5 +38,4 @@ module.exports = angular.module('spinnaker.core.serverGroup.transformer', [
       jsonReplacer: jsonReplacer,
     };
 
-  })
-  .name;
+  });

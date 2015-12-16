@@ -10,6 +10,5 @@ module.exports =  angular.module('spinnaker.core.pipeline.stage.determineTargetR
       synthetic: true,
       executionDetailsUrl: require('./determineTargetReferenceDetails.html'),
     });
-  })
-  .name;
+  });
 

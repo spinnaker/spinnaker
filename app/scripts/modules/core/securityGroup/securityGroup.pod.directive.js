@@ -15,4 +15,4 @@ module.exports = angular.module('spinnaker.core.securityGroup.pod.directive', []
       },
       templateUrl: require('./securityGroupPod.html'),
     };
-  }).name;
+  });

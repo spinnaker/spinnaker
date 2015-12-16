@@ -62,4 +62,4 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.scheduledActi
     };
 
     this.cancel = $modalInstance.dismiss;
-  }).name;
+  });

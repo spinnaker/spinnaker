@@ -35,5 +35,4 @@ module.exports = angular
       },
       templateUrl: require('./scopeAppSelector.directive.html')
     };
-  })
-  .name;
+  });

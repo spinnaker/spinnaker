@@ -79,5 +79,4 @@ module.exports = angular
     statesProvider.addStateConfig({ parent: 'application', state: fastPropertyRollouts });
     statesProvider.addStateConfig({ parent: 'application', state: appFastProperties });
     statesProvider.addStateConfig({ parent: 'home', state: data });
-  })
-  .name;
+  });

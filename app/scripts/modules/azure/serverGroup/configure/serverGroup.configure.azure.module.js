@@ -21,4 +21,4 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure', [
   require('./serverGroupAdvancedSettingsSelector.directive.js'),
   require('../../../core/serverGroup/configure/common/instanceArchetypeSelector.js'),
   require('../../../core/serverGroup/configure/common/instanceTypeSelector.js')
-]).name;
+]);

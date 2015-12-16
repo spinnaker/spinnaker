@@ -49,4 +49,4 @@ module.exports = angular
         submitMethod: submitMethod
       });
     };
-  }).name;
+  });

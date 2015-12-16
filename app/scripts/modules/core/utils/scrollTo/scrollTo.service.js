@@ -37,5 +37,4 @@ module.exports = angular.module('spinnaker.core.utils.scrollTo', ['spinnaker.cor
     return {
       scrollTo: scrollTo
     };
-  })
-  .name;
+  });

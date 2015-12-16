@@ -26,4 +26,4 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.instanceA
       }
     });
 
-  }).name;
+  });

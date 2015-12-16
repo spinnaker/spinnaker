@@ -42,4 +42,4 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.rename',
       );
     };
 
-  }).name;
+  });

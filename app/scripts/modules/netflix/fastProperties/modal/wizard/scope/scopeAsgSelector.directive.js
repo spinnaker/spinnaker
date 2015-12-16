@@ -31,5 +31,4 @@ module.exports = angular
       },
       templateUrl: require('./scopeAsgSelector.directive.html')
     };
-  })
-  .name;
+  });

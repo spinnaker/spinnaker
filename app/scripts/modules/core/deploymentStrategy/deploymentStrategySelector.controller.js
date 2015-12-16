@@ -44,4 +44,4 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.deploymentStr
 
     $scope.$watch('command.strategy', selectStrategy);
 
-  }).name;
+  });

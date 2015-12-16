@@ -30,4 +30,4 @@ module.exports = angular.module('spinnaker.executionDetails.section.service', [
       synchronizeSection: synchronizeSection
     };
 
-  }).name;
+  });

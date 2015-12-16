@@ -15,4 +15,4 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.basicSett
       }
     });
 
-  }).name;
+  });

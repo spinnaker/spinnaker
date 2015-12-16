@@ -75,4 +75,4 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.p
     };
 
     this.cancel = $modalInstance.dismiss;
-  }).name;
+  });

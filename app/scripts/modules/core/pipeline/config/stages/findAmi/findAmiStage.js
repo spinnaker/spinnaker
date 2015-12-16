@@ -13,6 +13,5 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.findAmiStage', [
       label: 'Find Image',
       description: 'Finds an image to deploy from an existing cluster'
     });
-  })
-  .name;
+  });
 

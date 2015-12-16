@@ -48,4 +48,4 @@ module.exports = angular
       loadPromotions: loadPromotions,
       loadPromotionsByApp: loadPromotionsByApp
     };
-  }).name;
+  });

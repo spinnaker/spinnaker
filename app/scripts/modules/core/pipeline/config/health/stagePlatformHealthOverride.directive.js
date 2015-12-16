@@ -18,4 +18,4 @@ module.exports = angular
         platformHealthType: '=',
       },
     };
-  }).name;
+  });

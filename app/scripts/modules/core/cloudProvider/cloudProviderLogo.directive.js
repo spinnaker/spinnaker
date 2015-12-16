@@ -21,5 +21,4 @@ module.exports = angular
         elem.height(scope.height).width(scope.width);
       },
     };
-  })
-  .name;
+  });

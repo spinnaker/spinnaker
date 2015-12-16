@@ -63,4 +63,4 @@ module.exports = angular.module('spinnaker.core.pipeline.config.controller', [
       $window.onbeforeunload = undefined;
     });
 
-  }).name;
+  });

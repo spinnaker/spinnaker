@@ -60,5 +60,4 @@ module.exports = angular.module('cluster', [
       clusterFilterService.updateClusterGroups(app);
     }));
   }
-)
-.name;
+);

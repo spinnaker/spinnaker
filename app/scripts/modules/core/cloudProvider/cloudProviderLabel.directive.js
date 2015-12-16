@@ -22,5 +22,4 @@ module.exports = angular
         scope.$watch('provider', setProviderLabel);
       },
     };
-  })
-  .name;
+  });

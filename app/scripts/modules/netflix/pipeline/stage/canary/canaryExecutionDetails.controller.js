@@ -33,4 +33,4 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.details
 
     $scope.$on('$stateChangeSuccess', initialize, true);
 
-  }).name;
+  });

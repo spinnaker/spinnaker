@@ -25,5 +25,4 @@ module.exports = angular.module('spinnaker.gce.cache.initializer', [
     };
 
     return config;
-  })
-  .name;
+  });

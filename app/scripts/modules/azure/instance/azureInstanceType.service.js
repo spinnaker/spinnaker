@@ -299,5 +299,4 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', [
       getAllTypesByRegion: getAllTypesByRegion
     };
   }
-)
-.name;
+);

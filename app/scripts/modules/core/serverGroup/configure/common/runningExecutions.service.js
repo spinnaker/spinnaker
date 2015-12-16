@@ -22,4 +22,4 @@ module.exports = angular
       filterRunningExecutions: filterRunningExecutions
     };
 
-  }).name;
+  });

@@ -24,9 +24,9 @@ module.exports = function(config) {
     ],
 
     preprocessors: {
-      //'app/**/*.spec.js': ['webpack'],
+      './**/*.spec.js': ['webpack'],
       'settings.js': ['webpack'],
-      'test/test_index.js': ['webpack'],
+      'test/**/*.js': ['webpack'],
     },
 
     webpack: {
@@ -42,8 +42,8 @@ module.exports = function(config) {
           },
           {
             test: /\.js$/,
-            loader: 'babel',
-            exclude: /node_modlules/,
+            loader: 'ng-annotate!angular!babel!envify!eslint',
+            exclude: /node_modules(?!\/clipboard)/,
           },
           {
             test: /\.less$/,

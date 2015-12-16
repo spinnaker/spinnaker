@@ -24,5 +24,4 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.cron', [
 
     trigger.id = trigger.id || uuidService.generateUuid();
 
-  })
-.name;
+  });

@@ -24,4 +24,4 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.networking.
         return result;
       }
     };
-  }).name;
+  });

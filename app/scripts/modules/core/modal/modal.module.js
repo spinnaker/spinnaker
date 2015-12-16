@@ -19,4 +19,4 @@ module.exports = angular
         $uibModalStack.dismissAll();
       }
     });
-  }).name;
+  });
