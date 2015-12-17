@@ -118,11 +118,13 @@ abstract class StageBuilder implements ApplicationContextAware {
          .findAll { it.status == ExecutionStatus.CANCELED }
          .each { Stage it ->
            it.status = ExecutionStatus.NOT_STARTED
-           it.tasks.each { task ->
-             task.startTime = null
-             task.endTime = null
-             task.status = ExecutionStatus.NOT_STARTED
-           }
+           it.tasks
+             .findAll { it.status == ExecutionStatus.CANCELED }
+             .each { task ->
+               task.startTime = null
+               task.endTime = null
+               task.status = ExecutionStatus.NOT_STARTED
+             }
          }
     stage.tasks.find { it.status.halt }.each { com.netflix.spinnaker.orca.pipeline.model.Task task ->
       task.startTime = null
