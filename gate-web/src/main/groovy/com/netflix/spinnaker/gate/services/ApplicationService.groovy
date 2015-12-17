@@ -71,7 +71,7 @@ class ApplicationService {
       .subscribe({ Long interval ->
       try {
         log.info("Refreshing Application List")
-        tick()
+        allApplicationsCache.set(tick(true))
         log.info("Refreshed Application List")
       } catch (e) {
         log.error("Unable to refresh application list, reason: ${e.message}")
@@ -79,23 +79,37 @@ class ApplicationService {
     })
   }
 
-  void tick() {
-    def applicationListRetrievers = buildApplicationListRetrievers()
+  /**
+   * Fetching cluster details is a potentially expensive call to cloud driver, but allows us to provide a definitive
+   * list of accounts that an application has a presence in.
+   *
+   * As a trade-off, we'll fetch cluster details on the background refresh loop and merge in the account details
+   * when applications are requested on-demand.
+   *
+   * @param expandClusterNames Should cluster details (for each application) be fetched from cloud driver
+   * @return Applications
+   */
+  List<Map<String, Object>> tick(boolean expandClusterNames = true) {
+    def applicationListRetrievers = buildApplicationListRetrievers(expandClusterNames)
     List<Future<List<Map>>> futures = executorService.invokeAll(applicationListRetrievers)
     List<List<Map>> all = futures.collect { it.get() }
     List<Map> flat = (List<Map>) all?.flatten()?.toList()
-    def mergedApplications = mergeApps(flat, serviceConfiguration.getService('front50')).collect {
+    return mergeApps(flat, serviceConfiguration.getService('front50')).collect {
       it.attributes
     } as List<Map>
-
-    allApplicationsCache.set(mergedApplications)
   }
 
   List<Map> getAll() {
     try {
-      tick()
-    } catch (ignored) {
-      // do nothing
+      def applicationsByName = allApplicationsCache.get().groupBy { it.name }
+      return tick(false).collect { Map application ->
+        applicationsByName[application.name.toString()]?.each { Map cacheApplication ->
+          application.accounts = mergeAccounts(application.accounts as String, cacheApplication.accounts as String)
+        }
+        application
+      } as List<Map>
+    } catch (e) {
+      log.error("Unable to fetch all applications, returning most recently cached version", e)
     }
     return allApplicationsCache.get()
   }
@@ -138,8 +152,12 @@ class ApplicationService {
     } execute()
   }
 
-  private Collection<Callable<List<Map>>> buildApplicationListRetrievers() {
-    def clouddriverApplicationsRetriever = new ClouddriverApplicationsRetriever(clouddriverService, allApplicationsCache)
+  private Collection<Callable<List<Map>>> buildApplicationListRetrievers(boolean expandClusterNames) {
+    def clouddriverApplicationsRetriever = new ClouddriverApplicationsRetriever(
+      clouddriverService,
+      allApplicationsCache,
+      expandClusterNames
+    )
     def globalAccounts = fetchGlobalAccounts()
 
     if (globalAccounts) {
@@ -177,11 +195,6 @@ class ApplicationService {
   private static List<Map> mergeApps(List<Map<String, Object>> applications, Service applicationServiceConfig) {
 
     try {
-      Closure<String> mergeAccounts = { String s1, String s2 ->
-        [s1, s2].collect { String s ->
-          s?.split(',')?.toList()?.findResults { it.trim() ?: null } ?: []
-        }.flatten().toSet().sort().join(',')
-      }
       Map<String, Map<String, Object>> merged = [:]
       for (Map<String, Object> app in applications) {
         if (!app || !app.name) continue
@@ -241,6 +254,12 @@ class ApplicationService {
     }
   }
 
+  static String mergeAccounts(String accounts1, String accounts2) {
+    return [accounts1, accounts2].collect { String s ->
+      s?.split(',')?.toList()?.findResults { it.trim() ?: null } ?: []
+    }.flatten().toSet().sort().join(',')
+  }
+
   static class ApplicationListRetriever implements Callable<List<Map>> {
     private final String account
     private final Front50Service front50
@@ -267,7 +286,7 @@ class ApplicationService {
               it
             }
           } catch (RetrofitError e) {
-            if (e.response.status == 404) {
+            if (e.response?.status == 404) {
               return []
             } else {
               throw e
@@ -328,10 +347,14 @@ class ApplicationService {
     private final ClouddriverService clouddriver
     private final Object principal
     private final AtomicReference<List<Map>> allApplicationsCache
+    private final boolean expandClusterNames
 
-    ClouddriverApplicationsRetriever(ClouddriverService clouddriver, AtomicReference<List<Map>> allApplicationsCache) {
+    ClouddriverApplicationsRetriever(ClouddriverService clouddriver,
+                                     AtomicReference<List<Map>> allApplicationsCache,
+                                     boolean expandClusterNames) {
       this.clouddriver = clouddriver
       this.allApplicationsCache = allApplicationsCache
+      this.expandClusterNames = expandClusterNames
       this.principal = SecurityContextHolder.context?.authentication?.principal
     }
 
@@ -340,7 +363,7 @@ class ApplicationService {
       HystrixFactory.newListCommand(GROUP, "getApplicationsFromCloudDriver", {
         AuthenticatedRequest.propagate({
           try {
-            clouddriver.getApplications(false)
+            clouddriver.getApplications(expandClusterNames)
           } catch (RetrofitError e) {
             if (e.response?.status == 404) {
               return []

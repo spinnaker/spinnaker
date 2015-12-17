@@ -23,6 +23,7 @@ import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.util.concurrent.Executors
 
@@ -178,7 +179,7 @@ class ApplicationServiceSpec extends Specification {
     def service = new ApplicationService(front50Service: front50Service, serviceConfiguration: config)
 
     when:
-    def applicationListRetrievers = service.buildApplicationListRetrievers()
+    def applicationListRetrievers = service.buildApplicationListRetrievers(false)
 
     then:
     1 * front50Service.credentials >> [[name: account, global: true]]
@@ -196,7 +197,7 @@ class ApplicationServiceSpec extends Specification {
     def service = new ApplicationService(front50Service: front50Service, serviceConfiguration: config)
 
     when:
-    def applicationListRetrievers = service.buildApplicationListRetrievers()
+    def applicationListRetrievers = service.buildApplicationListRetrievers(false)
 
     then:
     1 * front50Service.credentials >> [[name: account, global: true]]
@@ -234,6 +235,7 @@ class ApplicationServiceSpec extends Specification {
     1 * front50.credentials >> [globalAccount]
 
     1 == apps.size()
+    service.allApplicationsCache.set(apps)
     apps[0].email == email
     apps[0].name == name
     apps[0].clusters == null
@@ -255,5 +257,19 @@ class ApplicationServiceSpec extends Specification {
     email = "foo@bar.bz"
     account = "global"
     globalAccount = [name: account, global: true]
+  }
+
+  @Unroll
+  void "should merge accounts"() {
+    expect:
+    ApplicationService.mergeAccounts(accounts1, accounts2) == mergedAccounts
+
+    where:
+    accounts1   | accounts2     || mergedAccounts
+    "prod,test" | "secret,test" || "prod,secret,test"
+    "prod,test" | null          || "prod,test"
+    null        | "prod,test"   || "prod,test"
+    "prod"      | "test"        || "prod,test"
+    null        | null          || ""
   }
 }
