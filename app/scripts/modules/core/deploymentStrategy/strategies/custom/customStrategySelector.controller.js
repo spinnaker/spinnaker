@@ -34,7 +34,7 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.custom.custom
 
         function initializeMasters() {
             if ($scope.command.application) {
-                pipelineConfigService.getStrategiesForApplication($scope.command.application).then(function (pipelines) {
+                pipelineConfigService.getStrategiesForApplication($scope.command.strategyApplication).then(function (pipelines) {
                     $scope.pipelines = pipelines;
                     if (!_.find( pipelines, function(pipeline) { return pipeline.id === $scope.command.strategyPipeline; })) {
                         $scope.command.strategyPipeline = null;
