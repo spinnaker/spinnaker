@@ -95,7 +95,7 @@ ospackage {
 
 // Ubuntu
 buildDeb {
-  requires('openjdk-8-jdk')
+  // requires('openjdk-8-jdk')
   // requires('oracle-java8-installer')
   requires('redis-server', '3.0.5', GREATER | EQUAL)
   requires('spinnaker-clouddriver')
