@@ -38,6 +38,19 @@ class OortHelper {
   @Autowired
   ObjectMapper objectMapper
 
+  List<Map> getSearchResults(String searchTerm, String type, String platform) {
+    convert(oortService.getSearchResults(searchTerm, type, platform), List)
+  }
+
+  private <T> T convert(Response response, Class<T> type) {
+    def converter = new JacksonConverter(objectMapper)
+    try {
+      return type.cast(converter.fromBody(response.body, type))
+    } catch (ConversionException ce) {
+      throw RetrofitError.conversionError(response.url, response, converter, type, ce)
+    }
+  }
+
   Optional<Map> getCluster(String application, String account, String cluster, String type) {
     return convertedResponse(Map) { oortService.getCluster(application, account, cluster, type) }
   }
@@ -67,12 +80,7 @@ class OortHelper {
       }
       throw re
     }
-    JacksonConverter converter = new JacksonConverter(objectMapper)
-    try {
-      return Optional.<T>of((T) converter.fromBody(r.body, type))
-    } catch (ConversionException ce) {
-      throw RetrofitError.conversionError(r.url, r, converter, type, ce)
-    }
+    return Optional.of(convert(r, type))
   }
 
   Map getInstancesForCluster(Map context, String expectedAsgName = null, boolean expectOneAsg = false, boolean failIfAnyInstancesUnhealthy = false) {
@@ -91,7 +99,7 @@ class OortHelper {
     }
 
     def response = oortService.getCluster(app, context.account, clusterName, context.providerType ?: "aws")
-    def oortCluster = objectMapper.readValue(response.body.in().text, Map)
+    def oortCluster = convert(response, Map)
     def instanceMap = [:]
 
     if (!oortCluster || !oortCluster.serverGroups) {

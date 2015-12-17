@@ -17,144 +17,177 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
+import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.RetrofitError
-import retrofit.client.Response
-import retrofit.mime.TypedInput
-import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
 class WaitForTerminatedInstancesTaskSpec extends Specification {
 
-  @Subject task = new WaitForTerminatedInstancesTask()
-
-  def mapper = new OrcaObjectMapper()
+  OortHelper oortHelper = Mock(OortHelper)
+  @Subject
+    task = new WaitForTerminatedInstancesTask(oortHelper: oortHelper)
 
   @Unroll
   void "should return #taskStatus status when #matches found via oort search"() {
-    given:
-    def pipeline = new Pipeline()
-    def instanceId = 'i-123456'
-    task.objectMapper = mapper
-    task.oortService = Stub(OortService) {
-      getSearchResults(instanceId, 'instances', 'aws') >> { new Response('oort', 200, 'ok', [], new TypedString(mapper.writeValueAsString([[totalMatches: matches]]))) }
-    }
-
-    and:
     def stage = new PipelineStage(pipeline, "whatever", [
       "terminate.instance.ids": [instanceId]
     ]).asImmutable()
 
-    expect:
-    task.execute(stage).status == taskStatus
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * oortHelper.getSearchResults(instanceId, 'instances', 'aws') >> [[totalMatches: matches]]
+    result.status == taskStatus
+    result.stageOutputs.'terminate.remaining.ids'?.size() == (matches ? matches : null)
+
 
     where:
     matches || taskStatus
-    0 || ExecutionStatus.SUCCEEDED
-    1 || ExecutionStatus.RUNNING
+    0       || ExecutionStatus.SUCCEEDED
+    1       || ExecutionStatus.RUNNING
+
+    pipeline = new Pipeline()
+    instanceId = 'i-123456'
   }
 
   void "should return RUNNING status when search returns error"() {
     given:
-    def pipeline = new Pipeline()
-    def instanceId = 'i-123456'
-    task.objectMapper = mapper
-    def response = GroovyMock(Response)
-    response.getStatus() >> 500
-
-    task.oortService = Stub(OortService) {
-      getSearchResults(instanceId, 'instances', 'aws') >> { throw RetrofitError.networkError("url", new IOException())}
-    }
-
-    and:
     def stage = new PipelineStage(pipeline, "whatever", [
       "terminate.instance.ids": [instanceId]
     ]).asImmutable()
 
-    expect:
-    task.execute(stage).status == ExecutionStatus.RUNNING
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.RUNNING
+    result.stageOutputs.'terminate.remaining.ids' == [instanceId]
+
+    1 * oortHelper.getSearchResults(instanceId, 'instances', 'aws') >> {
+      throw RetrofitError.networkError("url", new IOException())
+    }
+
+    where:
+    pipeline = new Pipeline()
+    instanceId = 'i-123456'
   }
 
   void "should return RUNNING status when search returns multiple result sets"() {
     given:
-    def pipeline = new Pipeline()
-    def instanceId = 'i-123456'
-    task.objectMapper = mapper
-    def response = GroovyMock(Response)
-    response.getStatus() >> 200
-    response.getBody() >> {
-      def input = Mock(TypedInput)
-      input.in() >> {
-        def jsonObj = [[:], [:]]
-        new ByteArrayInputStream(mapper.writeValueAsString(jsonObj).bytes)
-      }
-      input
-    }
-    task.oortService = Stub(OortService) {
-      getSearchResults(instanceId, 'instances', 'aws') >> response
-    }
-
-    and:
     def stage = new PipelineStage(pipeline, "whatever", [
       "terminate.instance.ids": [instanceId]
     ]).asImmutable()
 
-    expect:
-    task.execute(stage).status == ExecutionStatus.RUNNING
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.RUNNING
+    1 * oortHelper.getSearchResults(instanceId, 'instances', 'aws') >> multipleResults
+
+    where:
+    pipeline = new Pipeline()
+    instanceId = 'i-123456'
+    multipleResults = [[:], [:]]
   }
 
   void "should search all instanceIds"() {
     given:
-    def pipeline = new Pipeline()
-    def instanceIds = ['i-123456', 'i-654321']
-    def emptyResult = new Response('oort', 200, 'ok', [], new TypedString('[{"totalMatches":0}]'))
-    task.objectMapper = mapper
-    task.oortService = Stub(OortService) {
-      getSearchResults(instanceIds[0], 'instances', 'aws') >> emptyResult
-      getSearchResults(instanceIds[1], 'instances', 'aws') >> emptyResult
-    }
-
-    and:
     def stage = new PipelineStage(pipeline, "whatever", [
       "terminate.instance.ids": instanceIds
     ]).asImmutable()
 
-    expect:
-    task.execute(stage).status == ExecutionStatus.SUCCEEDED
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.SUCCEEDED
+    1 * oortHelper.getSearchResults(instanceIds[0], 'instances', 'aws') >> emptyResult
+    1 * oortHelper.getSearchResults(instanceIds[1], 'instances', 'aws') >> emptyResult
+
+    where:
+    pipeline = new Pipeline()
+    instanceIds = ['i-123456', 'i-654321']
+    emptyResult = [["totalMatches": 0]]
+
   }
 
   void "should return running if any instance found via search"() {
     given:
-    def pipeline = new Pipeline()
-    def instanceIds = ['i-123456', 'i-654321']
-    task.objectMapper = mapper
-    def response = GroovyMock(Response)
-    response.getStatus() >> 200
-    response.getBody() >> {
-      def input = Mock(TypedInput)
-      input.in() >> {
-        def jsonObj = [
-          [totalMatches: 1]
-        ]
-        new ByteArrayInputStream(mapper.writeValueAsString(jsonObj).bytes)
-      }
-      input
-    }
-    task.oortService = Stub(OortService) {
-      getSearchResults(instanceIds[0], 'instances', 'aws') >> response
-    }
-
-    and:
     def stage = new PipelineStage(pipeline, "whatever", [
       "terminate.instance.ids": instanceIds
     ]).asImmutable()
+    def expected = instanceIds.collect { it }
 
-    expect:
-    task.execute(stage).status == ExecutionStatus.RUNNING
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.RUNNING
+    //the collection is shuffled on each iteration of the task to avoid repeatedly checking the same instance for
+    //termination, however the search also short circuits so the emptyResult instance may not be searched
+    (0..1) * oortHelper.getSearchResults(instanceIds[0], 'instances', 'aws') >> {
+      expected.remove(instanceIds[0])
+      emptyResult
+    }
+    1 * oortHelper.getSearchResults(instanceIds[1], 'instances', 'aws') >> successfulMatch
+    result.stageOutputs.'terminate.remaining.ids'.sort() == expected
+
+    where:
+    pipeline = new Pipeline()
+    instanceIds = ['i-123456', 'i-654321']
+    successfulMatch = [
+      [totalMatches: 1]
+    ]
+    emptyResult = [
+      [totalMatches: 0]
+    ]
+  }
+
+  void "should filter expected instanceIds from serverGroup result"() {
+    given:
+    def stage = new PipelineStage(pipeline, "whatever", [
+      "serverGroupName"       : serverGroupName,
+      "terminate.account.name": account,
+      "terminate.region"      : location.value,
+      "terminate.instance.ids": instanceIds,
+      "cloudProvider"         : cloudProvider
+    ]).asImmutable()
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * oortHelper.getTargetServerGroup(account, serverGroupName, location.value, cloudProvider) >> response
+    result.status == expectedStatus
+    result.stageOutputs."terminate.remaining.ids" == expectedIds
+
+    where:
+
+    instanceIds            | resultIds   | expectedIds | expectedStatus
+    ['i-12345', 'i-23456'] | ['i-12345'] | ['i-12345'] | ExecutionStatus.RUNNING
+    ['i-12345', 'i-23456'] | []          | null        | ExecutionStatus.SUCCEEDED
+    ['i-12345', 'i-23456'] | ['i-34567'] | null        | ExecutionStatus.SUCCEEDED
+
+    pipeline = new Pipeline()
+    account = 'test'
+    region = 'us-east-1'
+    serverGroupName = 'foo-test-v001'
+    cloudProvider = 'aws'
+    location = TargetServerGroup.Support.locationFromCloudProviderValue(cloudProvider, region)
+    serverGroup = [
+      name                     : serverGroupName,
+      type                     : cloudProvider,
+      (location.singularType()): location.value,
+      instances                : resultIds.collect { [name: it] }
+    ]
+    targetServerGroup = new TargetServerGroup(serverGroup: serverGroup)
+    response = Optional.of(targetServerGroup)
   }
 }
