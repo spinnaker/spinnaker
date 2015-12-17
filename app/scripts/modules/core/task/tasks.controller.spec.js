@@ -24,7 +24,9 @@ describe('Controller: tasks', function () {
 
       this.initializeController = (appData) => {
         appData.taskRefreshStream = new rx.Subject();
-        appData.reloadTasks  = appData.reloadTasks || () => $q.when(null).then(() => appData.taskRefreshStream.onNext());
+        if (!appData.reloadTasks) {
+          appData.reloadTasks = () => $q.when(null).then(() => appData.taskRefreshStream.onNext());
+        }
         let confirmationModalService = {
           confirm: function(params) {
             $q.when(null).then(params.submitMethod);
