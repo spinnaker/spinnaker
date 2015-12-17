@@ -109,10 +109,21 @@ abstract class StageBuilder implements ApplicationContextAware {
 
   /**
    * Prepares a stage for restarting by:
-   * - marking the halted task as NOT_STARTED and resetting it's start and end times
+   * - marking the halted task as NOT_STARTED and resetting its start and end times
    * - marking the stage as RUNNING
    */
   Stage prepareStageForRestart(Stage stage) {
+    stage.execution.canceled = false
+    stage.execution.stages
+         .findAll { it.status == ExecutionStatus.CANCELED }
+         .each { Stage it ->
+           it.status = ExecutionStatus.NOT_STARTED
+           it.tasks.each { task ->
+             task.startTime = null
+             task.endTime = null
+             task.status = ExecutionStatus.NOT_STARTED
+           }
+         }
     stage.tasks.find { it.status.halt }.each { com.netflix.spinnaker.orca.pipeline.model.Task task ->
       task.startTime = null
       task.endTime = null
