@@ -92,7 +92,7 @@ Spinnaker needs the set of [configuration files](../../config) to be available t
 
   ```
   $ gcloud compute ssh root@$MY_GKE_NODE 'mkdir -p /root/.spinnaker/.aws'
-  $ gcloud compute copy-files $HOME/.aws root@$MY_GKE_NODE:/root/.spinnaker/.aws
+  $ gcloud compute copy-files $HOME/.aws/* root@$MY_GKE_NODE:/root/.spinnaker/.aws
   ```
 
 ## Deploy Spinnaker Dependencies
