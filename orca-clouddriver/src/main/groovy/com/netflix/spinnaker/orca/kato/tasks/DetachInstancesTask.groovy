@@ -19,21 +19,28 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class DetachInstancesTask implements Task {
+class DetachInstancesTask implements RetryableTask, CloudProviderAware {
+
+  final long backoffPeriod = 5000
+
+  final long timeout = 30000
+
   @Autowired
   KatoService kato
 
   @Override
   TaskResult execute(Stage stage) {
-    def taskId = kato.requestOperations([[detachInstancesDescription: stage.context]])
+    def taskId = kato.requestOperations(getCloudProvider(stage), [[detachInstancesDescription: stage.context]])
       .toBlocking()
       .first()
 
@@ -41,6 +48,8 @@ class DetachInstancesTask implements Task {
       "notification.type"     : "detachinstances",
       "kato.last.task.id"     : taskId,
       "terminate.instance.ids": stage.context.instanceIds,
+      "terminate.account.name": getCredentials(stage),
+      "terminate.region"      : stage.context.region
     ])
   }
 }
