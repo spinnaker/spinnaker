@@ -32,7 +32,7 @@ import retrofit.RetrofitError
 
 @Slf4j
 abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask implements RetryableTask {
-  long backoffPeriod = 5000
+  long backoffPeriod = 10000
   long timeout = 7200000
 
   @Autowired

@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -30,28 +30,39 @@ import retrofit.RetrofitError
 
 @Component
 class WaitForTerminatedInstancesTask extends AbstractCloudProviderAwareTask implements RetryableTask {
-  long backoffPeriod = 1000
+  long backoffPeriod = 10000
   long timeout = 3600000
 
   @Autowired
-  OortService oortService
-
-  @Autowired
-  ObjectMapper objectMapper
+  OortHelper oortHelper
 
   @Override
   TaskResult execute(Stage stage) {
-    List<String> instanceIds = stage.context."terminate.instance.ids"
+    List<String> instanceIds = stage.context.'terminate.remaining.ids' ?: stage.context.'terminate.instance.ids'
 
     if (!instanceIds || !instanceIds.size()) {
-      return new DefaultTaskResult(ExecutionStatus.FAILED)
+      throw new IllegalStateException("no instanceIds for termination check")
     }
 
+    String serverGroupName = stage.context.serverGroupName ?: stage.context.asgName
+
+    List<String> remainingInstanceIds = serverGroupName ?
+      getRemainingInstancesFromServerGroup(stage, serverGroupName, instanceIds) :
+      getRemainingInstancesFromSearch(stage, instanceIds)
+
+    if (remainingInstanceIds) {
+      return new DefaultTaskResult(ExecutionStatus.RUNNING, ['terminate.remaining.ids': remainingInstanceIds])
+    }
+
+    return DefaultTaskResult.SUCCEEDED
+  }
+
+  List<String> getRemainingInstancesFromSearch(Stage stage, List<String> instanceIds) {
     String cloudProvider = getCloudProvider(stage)
-    def notAllTerminated = instanceIds.find { String instanceId ->
+    Collections.shuffle(instanceIds)
+    int firstNotTerminated = instanceIds.findIndexOf { String instanceId ->
       try {
-        def response = oortService.getSearchResults(instanceId, "instances", cloudProvider)
-        def searchResult = objectMapper.readValue(response.body.in().text, List)
+        def searchResult = oortHelper.getSearchResults(instanceId, "instances", cloudProvider)
         if (!searchResult || searchResult.size() != 1) {
           return true
         }
@@ -65,8 +76,23 @@ class WaitForTerminatedInstancesTask extends AbstractCloudProviderAwareTask impl
       }
     }
 
-    def status = notAllTerminated ? ExecutionStatus.RUNNING : ExecutionStatus.SUCCEEDED
+    if (firstNotTerminated == -1) {
+      return Collections.emptyList()
+    }
 
-    new DefaultTaskResult(status)
+    return instanceIds.subList(firstNotTerminated, instanceIds.size())
+  }
+
+  List<String> getRemainingInstancesFromServerGroup(Stage stage, String serverGroupName, List<String> instanceIds) {
+    String account = stage.context.'terminate.account.name'
+    String location = stage.context.'terminate.region'
+    String cloudProvider = getCloudProvider(stage)
+
+    def tsg = oortHelper.getTargetServerGroup(account, serverGroupName, location, cloudProvider)
+    tsg.map { TargetServerGroup sg ->
+      sg.instances.findResults { instanceIds.contains(it.name) ? it.name : null }
+    }.orElseThrow {
+      new IllegalStateException("ServerGroup not found for $cloudProvider/$account/$location/$serverGroupName")
+    }
   }
 }
