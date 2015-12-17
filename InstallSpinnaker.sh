@@ -128,7 +128,6 @@ function process_args() {
           ;;
       --local-install)
           DOWNLOAD="true"
-		  shift
           ;;
       --quiet|-q)
           QUIET="true"
@@ -140,6 +139,10 @@ function process_args() {
           ;;
       --home_dir)
           homebase="$1"
+          if [ "$(basename $homebase)" == "spinnaker" ]; then
+              echo "stripping trailing 'spinnaker' from --home_dir=$homebase"
+              homebase=$(dirname $homebase)
+          fi
           shift
           ;;
       --help|-help|-h)
@@ -306,19 +309,39 @@ function install_java() {
 function install_dependencies() {
   # java
   if [ "$DOWNLOAD" != "true" ];then
-    apt-get install -y --force-yes redis-server unzip
+    apt-get install -y --force-yes unzip
   else
     mkdir /tmp/deppkgs && pushd /tmp/deppkgs
     curl -L -O http://mirrors.kernel.org/ubuntu/pool/main/a/autogen/libopts25_5.18-2ubuntu2_amd64.deb
     curl -L -O http://security.ubuntu.com/ubuntu/pool/main/n/ntp/ntp_4.2.6.p5+dfsg-3ubuntu2.14.04.5_amd64.deb
     curl -L -O http://mirrors.kernel.org/ubuntu/pool/universe/p/python-support/python-support_1.0.15_all.deb
     curl -L -O http://security.ubuntu.com/ubuntu/pool/main/u/unzip/unzip_6.0-9ubuntu1.5_amd64.deb
+    dpkg -i *.deb
+    popd
+    rm -rf /tmp/deppkgs
+  fi
+}
+
+function install_redis_server() {
+  apt-get -q -y --force-yes install redis-server
+  local apt_status=$?
+  if [ $apt_status -eq 0 ]; then
+    return
+  fi
+
+  if [ $apt_status -eq 100 ] && [ "$DOWNLOAD" == "true" ]; then
+    echo "Manually downloading and installing redis-server..."
+    mkdir /tmp/deppkgs && pushd /tmp/deppkgs
     curl -L -O http://mirrors.kernel.org/ubuntu/pool/universe/j/jemalloc/libjemalloc1_3.5.1-2_amd64.deb
     curl -L -O https://launchpad.net/~chris-lea/+archive/ubuntu/redis-server/+build/8137860/+files/redis-tools_3.0.5-1chl1~trusty1_amd64.deb
     curl -L -O https://launchpad.net/~chris-lea/+archive/ubuntu/redis-server/+build/8137860/+files/redis-server_3.0.5-1chl1~trusty1_amd64.deb
     dpkg -i *.deb
     popd
     rm -rf /tmp/deppkgs
+  else
+    echo "Error installing redis-server."
+    echo "cannot continue installation; exiting."
+    exit 13
   fi
 }
 
@@ -328,7 +351,7 @@ function install_apache2() {
   if [ $apt_status -eq 0 ];then
     echo "apt sources contain apache2; installing using apt-get"
     apt-get -q -y --force-yes install apache2
-  elif [ $apt_status -eq 100 ];then
+  elif ["$DOWNLOAD" == "true" ] && [ $apt_status -eq 100 ];then
     echo "no valid apache2 package found in apt sources; attempting to download debs and install locally..."
     mkdir /tmp/apache2 && pushd /tmp/apache2
     curl -L -O http://security.ubuntu.com/ubuntu/pool/main/a/apache2/apache2_2.4.7-1ubuntu4.5_amd64.deb
@@ -358,28 +381,36 @@ function install_cassandra() {
     cat <<EOF
 java 8 is not installed, cannot install cassandra
 
-after installing java 8 run the following to install cassandra:
+   After installing java 8 run the following to install cassandra:
 
-sudo apt-get install -y --force-yes cassandra=2.1.11 cassandra-tools=2.1.11
-sudo apt-mark hold cassandra cassandra-tools
+   sudo apt-get install -y --force-yes cassandra=2.1.11 cassandra-tools=2.1.11
+   sudo apt-mark hold cassandra cassandra-tools
 
+cannot continue installation; exiting
 EOF
     exit 13
   fi
 
-  if [ "$DOWNLOAD" == "true" ];then
-    mkdir /tmp/casspkgs && pushd /tmp/casspkgs
-    for pkg in cassandra cassandra-tools;do
-      curl -L -O $package_url/${pkg}_2.1.11_all.deb
-    done
-    dpkg -i *.deb
-    apt-mark hold cassandra cassandra-tools
-    popd
-    rm -rf /tmp/casspkgs
-  else
-    apt-get install -y --force-yes cassandra=2.1.11 cassandra-tools=2.1.11
-    apt-mark hold cassandra cassandra-tools
-    sleep 1
+  apt-get install -y --force-yes cassandra=2.1.11 cassandra-tools=2.1.11
+  local apt_status=$?
+  if [ $apt_status -eq 0 ]; then
+       apt-mark hold cassandra cassandra-tools
+       sleep 1
+  else      
+    if [ $apt_status -eq 100 ] && [ "$DOWNLOAD" == "true" ]; then
+        mkdir /tmp/casspkgs && pushd /tmp/casspkgs
+        for pkg in cassandra cassandra-tools;do
+          curl -L -O $package_url/${pkg}_2.1.11_all.deb
+        done
+        dpkg -i *.deb
+        apt-mark hold cassandra cassandra-tools
+        popd
+        rm -rf /tmp/casspkgs
+    else
+        echo "Error installing cassandra."
+        echo "cannot continue installation; exiting."
+        exit 13
+    fi
   fi
 
   # Let cassandra start
@@ -408,17 +439,23 @@ EOF
 }
 
 function install_spinnaker() {
-  if [ "$DOWNLOAD" != "true" ];then
-    apt-get install -y --force-yes --allow-unauthenticated spinnaker
-  else
-    install_packages="spinnaker-clouddriver spinnaker-deck spinnaker-echo spinnaker-front50 spinnaker-gate spinnaker-igor spinnaker-orca spinnaker-rosco spinnaker-rush spinnaker_"
-    for package in $install_packages;do
-      latest=`curl $REPOSITORY_URL/dists/$DISTRIB_CODENAME/spinnaker/binary-amd64/Packages | grep "^Filename" | grep $package | awk '{print $2}' | awk -F'/' '{print $NF}' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1`
-      debfile=`echo $latest | awk -F "/" '{print $NF}'`
-      filelocation=`curl $REPOSITORY_URL/dists/$DISTRIB_CODENAME/spinnaker/binary-amd64/Packages | grep "^Filename" | grep $latest | awk '{print $2}'`
-      curl -L -o /tmp/$debfile $REPOSITORY_URL/$filelocation
-      dpkg -i /tmp/$debfile && rm -f /tmp/$debfile
-    done
+  apt-get install -y --force-yes --allow-unauthenticated spinnaker
+  local apt_status=$?
+  if [ $apt_status -ne 0 ]; then
+    if [ $apt_status -eq 100 ] && [ "$DOWNLOAD" == "true" ];then
+      install_packages="spinnaker-clouddriver spinnaker-deck spinnaker-echo spinnaker-front50 spinnaker-gate spinnaker-igor spinnaker-orca spinnaker-rosco spinnaker-rush spinnaker_"
+      for package in $install_packages;do
+        latest=`curl $REPOSITORY_URL/dists/$DISTRIB_CODENAME/spinnaker/binary-amd64/Packages | grep "^Filename" | grep $package | awk '{print $2}' | awk -F'/' '{print $NF}' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1`
+        debfile=`echo $latest | awk -F "/" '{print $NF}'`
+        filelocation=`curl $REPOSITORY_URL/dists/$DISTRIB_CODENAME/spinnaker/binary-amd64/Packages | grep "^Filename" | grep $latest | awk '{print $2}'`
+        curl -L -o /tmp/$debfile $REPOSITORY_URL/$filelocation
+        dpkg -i /tmp/$debfile && rm -f /tmp/$debfile
+      done
+    else
+        echo "Error installing spinnaker."
+        echo "cannot continue installation; exiting."
+        exit 13
+    fi
   fi
 
 }
@@ -466,6 +503,7 @@ fi
 install_java
 install_apache2
 install_dependencies
+install_redis_server
 install_cassandra
 
 ## Packer
@@ -517,8 +555,10 @@ if [ "x$GOOGLE_PROJECT_ID" != "x" ]; then
 fi
 
 ## Remove
+
 if [ "x$homebase" == "x"  ]; then
   homebase="/home"
+  echo "Setting spinnaker home to $homebase"
 fi
 
 if [ -z `getent group spinnaker` ]; then

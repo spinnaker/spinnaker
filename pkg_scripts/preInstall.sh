@@ -12,7 +12,7 @@ fi
 
 # Remove this after upstream services are fixed
 
-if [ ! -d /home/spinnaker ]; then
-  mkdir -p /home/spinnkaker/.aws
-  chown -R spinnaker:spinnaker /home/spinnkaker
+if [ ! -d ~spinnaker ]; then
+  mkdir -p ~spinnkaker/.aws
+  chown -R spinnaker:spinnaker ~spinnaker
 fi
