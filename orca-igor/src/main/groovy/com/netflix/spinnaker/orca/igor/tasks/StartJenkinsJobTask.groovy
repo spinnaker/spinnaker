@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.igor.IgorService
+import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component
 class StartJenkinsJobTask implements Task {
 
   @Autowired
-  IgorService igorService
+  BuildService buildService
 
   @Autowired
   ObjectMapper objectMapper
@@ -39,7 +39,7 @@ class StartJenkinsJobTask implements Task {
   TaskResult execute(Stage stage) {
     String master = stage.context.master
     String job = stage.context.job
-    String queuedBuild = igorService.build(master, job, stage.context.parameters)
+    String queuedBuild = buildService.build(master, job, stage.context.parameters)
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [queuedBuild: queuedBuild] )
   }
 }

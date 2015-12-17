@@ -20,7 +20,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.igor.IgorService
+import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,7 +37,7 @@ class MonitorQueuedJenkinsJobTask implements RetryableTask {
   long timeout = TimeUnit.HOURS.toMillis(2)
 
   @Autowired
-  IgorService igorService
+  BuildService buildService
 
   @Override
   TaskResult execute(Stage stage) {
@@ -46,7 +46,7 @@ class MonitorQueuedJenkinsJobTask implements RetryableTask {
     String queuedBuild = stage.context.queuedBuild
 
     try {
-      Map<String, Object> build = igorService.queuedBuild(master, queuedBuild)
+      Map<String, Object> build = buildService.queuedBuild(master, queuedBuild)
       if (build?.number == null) {
         return new DefaultTaskResult(ExecutionStatus.RUNNING)
       } else {

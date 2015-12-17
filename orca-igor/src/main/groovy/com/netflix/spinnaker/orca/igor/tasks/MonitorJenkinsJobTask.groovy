@@ -20,7 +20,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.igor.IgorService
+import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,7 +37,7 @@ class MonitorJenkinsJobTask implements RetryableTask {
   long timeout = TimeUnit.HOURS.toMillis(2)
 
   @Autowired
-  IgorService igorService
+  BuildService buildService
 
   private static Map<String, ExecutionStatus> statusMap = [
     'ABORTED' : ExecutionStatus.CANCELED,
@@ -52,7 +52,7 @@ class MonitorJenkinsJobTask implements RetryableTask {
     String job = stage.context.job
     def buildNumber = (int) stage.context.buildNumber
     try {
-      Map<String, Object> build = igorService.getBuild(master, job, buildNumber)
+      Map<String, Object> build = buildService.getBuild(buildNumber, master, job)
       String result = build.result
       if ((build.building && build.building != 'false') || (build.running && build.running != 'false')) {
         return new DefaultTaskResult(ExecutionStatus.RUNNING, [buildInfo: build])
@@ -60,7 +60,7 @@ class MonitorJenkinsJobTask implements RetryableTask {
       if (statusMap.containsKey(result)) {
         Map<String, Object> properties = [:]
         if (stage.context.propertyFile) {
-          properties = igorService.getPropertyFile(master, job, buildNumber, stage.context.propertyFile)
+          properties = buildService.getPropertyFile(buildNumber, stage.context.propertyFile, master, job)
         }
         return new DefaultTaskResult(statusMap[result], [buildInfo: build] + properties, [buildInfo: build] + properties)
       } else {

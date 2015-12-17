@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.igor
 
+import retrofit.http.EncodedPath
 import retrofit.http.GET
 import retrofit.http.PUT
 import retrofit.http.Path
@@ -24,21 +25,21 @@ import retrofit.http.QueryMap
 interface IgorService {
 
   @PUT("/masters/{name}/jobs/{jobName}")
-  String build(@Path("name") String master, @Path("jobName") String jobName, @QueryMap Map<String,String> queryParams)
+  String build(@Path("name") String master, @EncodedPath("jobName") String jobName, @QueryMap Map<String,String> queryParams)
 
-  @GET("/jobs/{master}/queue/{item}")
+  @GET("/builds/queue/{master}/{item}")
   Map queuedBuild(@Path("master") String master, @Path("item") String item)
 
-  @GET("/jobs/{master}/{job}/{buildNumber}")
-  Map<String, Object> getBuild(@Path("master") String master,
-                               @Path("job") String job,
-                               @Path("buildNumber") Integer buildNumber)
+  @GET("/builds/status/{buildNumber}/{master}/{job}")
+  Map<String, Object> getBuild(@Path("buildNumber") Integer buildNumber,
+                               @Path("master") String master,
+                               @EncodedPath("job") String job)
 
-  @GET("/jobs/{master}/{job}/{buildNumber}/properties/{fileName}")
-  Map<String, Object> getPropertyFile(@Path("master") String master,
-                                      @Path("job") String job,
-                                      @Path("buildNumber") Integer buildNumber,
-                                      @Path("fileName") String fileName)
+  @GET("/builds/properties/{buildNumber}/{fileName}/{master}/{job}")
+  Map<String, Object> getPropertyFile(@Path("buildNumber") Integer buildNumber,
+                                      @Path("fileName") String fileName,
+                                      @Path("master") String master,
+                                      @EncodedPath("job") String job)
 
   @GET("/{repoType}/{projectKey}/{repositorySlug}/compareCommits")
   List compareCommits(@Path("repoType") String repoType, @Path("projectKey") String projectKey, @Path("repositorySlug") String repositorySlug, @QueryMap Map<String, String> requestParams)

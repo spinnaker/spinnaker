@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.igor.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.igor.IgorService
+import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.RetrofitError
@@ -42,8 +42,8 @@ class MonitorJenkinsJobTaskSpec extends Specification {
     def stage = new PipelineStage(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4]).asImmutable()
 
     and:
-    task.igorService = Stub(IgorService) {
-      getBuild(stage.context.master, stage.context.job, stage.context.buildNumber) >> [result: jobState]
+    task.buildService = Stub(BuildService) {
+      getBuild(stage.context.buildNumber, stage.context.master, stage.context.job) >> [result: jobState]
     }
 
     expect:
@@ -65,8 +65,8 @@ class MonitorJenkinsJobTaskSpec extends Specification {
     def stage = new PipelineStage(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4]).asImmutable()
 
     and:
-    task.igorService = Stub(IgorService) {
-      getBuild(stage.context.master, stage.context.job, stage.context.buildNumber) >> [result: 'SUCCESS', running: running]
+    task.buildService = Stub(BuildService) {
+      getBuild(stage.context.buildNumber, stage.context.master, stage.context.job) >> [result: 'SUCCESS', running: running]
     }
 
     expect:
@@ -87,8 +87,8 @@ class MonitorJenkinsJobTaskSpec extends Specification {
     def stage = new PipelineStage(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4]).asImmutable()
 
     and:
-    task.igorService = Stub(IgorService) {
-      getBuild(stage.context.master, stage.context.job, stage.context.buildNumber) >> [result: 'SUCCESS', building: state]
+    task.buildService = Stub(BuildService) {
+      getBuild(stage.context.buildNumber, stage.context.master, stage.context.job) >> [result: 'SUCCESS', building: state]
     }
 
     expect:
@@ -112,8 +112,8 @@ class MonitorJenkinsJobTaskSpec extends Specification {
       getResponse() >> new Response('', httpStatus, '', [], null)
     }
 
-    task.igorService = Stub(IgorService) {
-      getBuild(stage.context.master, stage.context.job, stage.context.buildNumber) >> { throw exception }
+    task.buildService = Stub(BuildService) {
+      getBuild(stage.context.buildNumber, stage.context.master, stage.context.job) >> { throw exception }
     }
 
     when:
@@ -142,9 +142,9 @@ class MonitorJenkinsJobTaskSpec extends Specification {
     def stage = new PipelineStage(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4, propertyFile: "sample.properties"]).asImmutable()
 
     and:
-    task.igorService = Stub(IgorService) {
-      getBuild(stage.context.master, stage.context.job, stage.context.buildNumber) >> [result: 'SUCCESS', running: false]
-      getPropertyFile(stage.context.master, stage.context.job, stage.context.buildNumber, stage.context.propertyFile) >> [val1: "one", val2: "two"]
+    task.buildService = Stub(BuildService) {
+      getBuild(stage.context.buildNumber, stage.context.master, stage.context.job) >> [result: 'SUCCESS', running: false]
+      getPropertyFile(stage.context.buildNumber, stage.context.propertyFile, stage.context.master, stage.context.job) >> [val1: "one", val2: "two"]
     }
 
     when:
