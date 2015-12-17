@@ -22,4 +22,19 @@ module.exports = angular.module('spinnaker.core.pipeline.parameters.parameter', 
       $scope.pipeline.parameterConfig.splice(index, 1);
     };
 
+    this.addOption = function(parameter) {
+      parameter.options.push({value: ''});
+    };
+
+    this.setupOptions = function(parameter) {
+      if (!parameter.options) {
+        parameter.options = [];
+        this.addOption(parameter);
+      }
+    };
+
+    this.removeOption = function(index, parameter) {
+      parameter.options.splice(index, 1);
+    };
+
   });

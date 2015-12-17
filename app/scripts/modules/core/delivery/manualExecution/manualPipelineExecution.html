@@ -110,8 +110,20 @@
             <b>{{parameter.name}}</b>
             <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-6" ng-if="!parameter.hasOptions">
             <input type="text" class="form-control input-sm" ng-model="vm.parameters[parameter.name]"/>
+          </div>
+          <div class="col-md-6" ng-if="parameter.hasOptions">
+            <ui-select ng-model="vm.parameters[parameter.name]"
+                       style="width:100%"
+                       class="form-control input-sm">
+              <ui-select-match>
+                <strong>{{$select.selected.value}}</strong>
+              </ui-select-match>
+              <ui-select-choices repeat="option.value as option in parameter.options">
+                <div><strong>{{option.value}}</strong></div>
+              </ui-select-choices>
+            </ui-select>
           </div>
         </div>
       </div>
