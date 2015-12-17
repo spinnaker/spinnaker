@@ -40,5 +40,4 @@ module.exports = angular.module('spinnaker.aws.cache.initializer', [
     };
 
     return config;
-  })
-  .name;
+  });

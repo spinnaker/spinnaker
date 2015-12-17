@@ -31,5 +31,4 @@ module.exports = angular
       },
       templateUrl: require('./scopeRegionSelector.directive.html')
     };
-  })
-  .name;
+  });

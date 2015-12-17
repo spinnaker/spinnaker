@@ -10,4 +10,4 @@ module.exports = angular.module('spinnaker.account.accountSelectField.directive'
         $timeout(function() { elem.focus(); });
       }
     };
-}).name;
+});

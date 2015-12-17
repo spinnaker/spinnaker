@@ -17,4 +17,4 @@ module.exports = angular.module('spinnaker.core.modal.buttons.submitButton.direc
         label: '=',
       }
     };
-}).name;
+});

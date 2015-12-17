@@ -31,4 +31,4 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.actions
 
     this.cancel = $modalInstance.dismiss;
 
-  }).name;
+  });

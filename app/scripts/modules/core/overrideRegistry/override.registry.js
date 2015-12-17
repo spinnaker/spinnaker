@@ -32,4 +32,4 @@ module.exports = angular
       overrideController: overrideController
     };
 
-  }).name;
+  });

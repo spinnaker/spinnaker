@@ -16,5 +16,4 @@ module.exports = angular.module('spinnaker.core.securityGroup.transformer.servic
       normalizeSecurityGroup: normalizeSecurityGroup,
     };
 
-  })
-  .name;
+  });

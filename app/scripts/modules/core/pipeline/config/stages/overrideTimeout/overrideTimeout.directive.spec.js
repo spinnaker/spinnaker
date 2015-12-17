@@ -65,7 +65,7 @@ describe('Directives: overrideTimeout', function () {
       expect(this.scope.stage.stageTimeoutMs).toBeUndefined();
     });
   });
-  
+
   describe('time conversion', function () {
     it('rounds down', function() {
       this.scope.stage.overrideTimeout = true;

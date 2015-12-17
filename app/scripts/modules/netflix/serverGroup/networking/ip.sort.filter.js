@@ -24,4 +24,4 @@ module.exports = angular.module('spinnaker.aws.serverGroup.details.networking.ip
         return result;
       }
     };
-  }).name;
+  });

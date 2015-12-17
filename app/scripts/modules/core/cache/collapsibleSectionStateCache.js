@@ -33,5 +33,4 @@ module.exports = angular.module('spinnaker.core.cache.collapsibleSectionState', 
         stateCache.put(heading, !!expanded);
       }
     };
-  })
-  .name;
+  });

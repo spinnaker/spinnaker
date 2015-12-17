@@ -20,5 +20,4 @@ module.exports = angular
     this.acknowledgeSecurityGroupRemoval = () => {
       this.command.viewState.dirty.securityGroups = null;
     };
-  })
-  .name;
+  });

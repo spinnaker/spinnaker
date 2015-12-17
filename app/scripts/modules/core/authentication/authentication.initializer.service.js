@@ -39,5 +39,4 @@ module.exports = angular.module('spinnaker.authentication.initializer.service', 
         $window.location.href = url;
       }
     };
-  })
-  .name;
+  });

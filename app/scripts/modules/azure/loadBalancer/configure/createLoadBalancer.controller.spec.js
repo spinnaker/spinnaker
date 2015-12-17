@@ -22,7 +22,7 @@ describe('Controller: azureCreateLoadBalancerCtrl', function () {
       isNew: true
     });
   }));
-  
+
   beforeEach(window.inject(function($httpBackend) {
      // Set up the mock http service responses
      $http = $httpBackend;
@@ -30,23 +30,23 @@ describe('Controller: azureCreateLoadBalancerCtrl', function () {
 
   it('correctly creates a default loadbalancer', function() {
     var lb = this.$scope.loadBalancer;
-    
+
     expect(lb.probes.length).toEqual(1);
     expect(lb.loadBalancingRules.length).toEqual(1);
-    
+
     expect(lb.loadBalancingRules[0].protocol).toEqual('TCP');
-    
+
     expect(this.$scope.existingLoadBalancerNames).toEqual(undefined);
     expect(lb.providerType).toEqual(undefined);
   });
-  
+
   it('makes the expected REST calls for data for a new loadbalancer', function(){
-    $http.when('GET','/loadBalancers?provider=azure').respond([]);
-    $http.when('GET','/securityGroups').respond({});
-    $http.when('GET','/credentials').respond([]);
-    $http.when('GET','/credentials/azure-test').respond([]);
-    $http.when('GET','/subnets').respond([]);
-    
+    $http.when('GET', '/loadBalancers?provider=azure').respond([]);
+    $http.when('GET', '/securityGroups').respond({});
+    $http.when('GET', '/credentials').respond([]);
+    $http.when('GET', '/credentials/azure-test').respond([]);
+    $http.when('GET', '/subnets').respond([]);
+
     $http.expectGET('/loadBalancers?provider=azure');
     $http.expectGET('/securityGroups');
     $http.expectGET('/credentials');

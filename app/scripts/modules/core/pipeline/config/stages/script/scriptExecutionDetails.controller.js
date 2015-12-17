@@ -20,4 +20,4 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.script.executionD
 
     $scope.$on('$stateChangeSuccess', initialize, true);
 
-  }).name;
+  });

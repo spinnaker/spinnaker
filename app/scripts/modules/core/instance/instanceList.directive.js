@@ -37,4 +37,4 @@ module.exports = angular.module('spinnaker.core.instance.instanceList.directive'
         }
       }
     };
-  }).name;
+  });

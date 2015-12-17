@@ -73,4 +73,4 @@ module.exports = angular.module('spinnaker.securityGroup.cf.details.controller',
     });
 
   }
-).name;
+);

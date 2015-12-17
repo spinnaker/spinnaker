@@ -15,4 +15,4 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.
       controller: 'ExecutionWindowsCtrl',
       controllerAs: 'executionWindowsCtrl',
     };
-  }).name;
+  });

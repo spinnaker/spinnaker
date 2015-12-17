@@ -44,5 +44,4 @@ module.exports = angular.module('spinnaker.azure.cache.initializer', [
     };
 
     return config;
-  })
-  .name;
+  });

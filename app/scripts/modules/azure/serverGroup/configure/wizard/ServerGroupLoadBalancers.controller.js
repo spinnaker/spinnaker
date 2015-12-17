@@ -9,4 +9,4 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.loadBalan
     modalWizardService.getWizard().markClean('load-balancers');
     modalWizardService.getWizard().markComplete('load-balancers');
 
-  }).name;
+  });

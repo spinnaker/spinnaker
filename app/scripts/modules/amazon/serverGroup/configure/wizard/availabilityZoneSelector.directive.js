@@ -18,4 +18,4 @@ module.exports = angular.module('spinnaker.serverGroups.configure.aws.wizard.zon
         ];
       },
     };
-}).name;
+});

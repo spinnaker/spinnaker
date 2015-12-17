@@ -15,4 +15,4 @@ module.exports = angular.module('spinnaker.core.loadBalancer.pod', [])
       },
       templateUrl: require('./loadBalancerPod.html'),
     };
-  }).name;
+  });

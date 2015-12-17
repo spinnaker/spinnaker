@@ -14,4 +14,4 @@ module.exports = angular.module('spinnaker.core.presentation', [
   require('./isVisible/isVisible.directive.js'),
   require('./robotToHumanFilter/robotToHuman.filter.js'),
   require('./sortToggle/sorttoggle.directive.js'),
-]).name;
+]);

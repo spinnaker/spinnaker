@@ -192,4 +192,4 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
       getAllSecurityGroups: getAllSecurityGroups
     };
 
-  }).name;
+  });

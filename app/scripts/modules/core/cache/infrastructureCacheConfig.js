@@ -26,5 +26,4 @@ module.exports = angular.module('spinnaker.core.cache.infrastructure.config', []
       maxAge: 7 * 24 * 60 * 60 * 1000,
       version: 2
     },
-  })
-  .name;
+  });

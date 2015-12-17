@@ -75,6 +75,5 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.scaleDownClust
     stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
-  })
-  .name;
+  });
 

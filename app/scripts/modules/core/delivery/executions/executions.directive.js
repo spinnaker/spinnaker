@@ -17,4 +17,4 @@ module.exports = angular
       controller: 'ExecutionsCtrl',
       controllerAs: 'vm',
     };
-  }).name;
+  });

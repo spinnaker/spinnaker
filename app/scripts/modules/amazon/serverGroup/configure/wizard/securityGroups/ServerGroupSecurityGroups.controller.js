@@ -14,4 +14,4 @@ module.exports = angular
 
     modalWizardService.getWizard().markClean('security-groups');
     modalWizardService.getWizard().markComplete('security-groups');
-  }).name;
+  });

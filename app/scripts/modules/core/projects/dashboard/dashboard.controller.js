@@ -51,4 +51,4 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
 
     this.refreshImmediately();
 
-  }).name;
+  });

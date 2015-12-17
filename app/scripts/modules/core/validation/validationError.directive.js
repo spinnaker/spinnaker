@@ -12,4 +12,4 @@ module.exports = angular.module('spinnaker.core.validation.error.directive', [])
       }
     };
   }
-).name;
+);

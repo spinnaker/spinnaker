@@ -103,6 +103,5 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.pipelineStage', [
     $scope.$watch('stage.application', initializeMasters);
     $scope.$watch('stage.pipeline', updatePipelineConfig);
 
-  })
-  .name;
+  });
 

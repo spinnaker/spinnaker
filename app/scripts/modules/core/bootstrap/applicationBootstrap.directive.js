@@ -14,5 +14,4 @@ module.exports = angular.module('spinnaker.applicationBootstrap', [
     },
     controllerAs: 'applicationBootstrapCtrl',
   };
-})
-.name;
+});

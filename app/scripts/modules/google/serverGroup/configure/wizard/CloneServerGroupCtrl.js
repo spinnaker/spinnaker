@@ -234,4 +234,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       $scope.state.requiresTemplateSelection = false;
       configureCommand();
     });
-  }).name;
+  });

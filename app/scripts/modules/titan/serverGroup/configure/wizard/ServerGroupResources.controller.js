@@ -14,4 +14,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.resources
         modalWizardService.getWizard().markDirty('resources');
       }
     });
-  }).name;
+  });

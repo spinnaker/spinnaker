@@ -31,5 +31,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.servicesSele
         return command.application;
       };
 
-    })
-    .name;
+    });

@@ -9,4 +9,4 @@ module.exports = angular
       restrict: 'E',
       templateUrl: require('./fastPropertyConstraint.directive.html'),
     };
-  }).name;
+  });

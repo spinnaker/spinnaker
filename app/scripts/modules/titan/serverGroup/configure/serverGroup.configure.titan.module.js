@@ -13,5 +13,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan', [
   require('./wizard/ServerGroupParameters.controller.js'),
   require('./serverGroupBasicSettingsSelector.directive.js'),
   require('./serverGroupCapacitySelector.directive.js'),
-])
-.name;
+]);

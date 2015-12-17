@@ -33,4 +33,4 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.cos
 
       }
     };
-  }).name;
+  });

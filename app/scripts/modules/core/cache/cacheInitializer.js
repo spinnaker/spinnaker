@@ -98,5 +98,4 @@ module.exports = angular.module('spinnaker.core.cache.initializer', [
       refreshCaches: refreshCaches,
       refreshCache: refreshCache,
     };
-  })
-  .name;
+  });

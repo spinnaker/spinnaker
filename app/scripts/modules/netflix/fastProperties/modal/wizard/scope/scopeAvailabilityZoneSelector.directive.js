@@ -26,5 +26,4 @@ module.exports = angular
       },
       templateUrl: require('./scopeAvailabilityZoneSelector.directive.html')
     };
-  })
-  .name;
+  });

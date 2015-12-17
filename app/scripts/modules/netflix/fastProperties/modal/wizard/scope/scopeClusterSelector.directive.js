@@ -43,5 +43,4 @@ module.exports = angular
       },
       templateUrl: require('./scopeClusterSelector.directive.html')
     };
-  })
-  .name;
+  });

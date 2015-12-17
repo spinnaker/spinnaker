@@ -67,7 +67,7 @@ describe('executionTransformerService', function() {
       };
 
       this.transformer.transformExecution({}, execution);
-      expect(_.pluck(execution.stageSummaries[0].stages, 'id')).toEqual(['f','e','c','b','a','g','d','h']);
+      expect(_.pluck(execution.stageSummaries[0].stages, 'id')).toEqual(['f', 'e', 'c', 'b', 'a', 'g', 'd', 'h']);
     });
 
     it('should group stages into summaries when no synthetic stages added', function() {

@@ -26,5 +26,4 @@ module.exports = angular
 
       }
     };
-  })
-.name;
+  });

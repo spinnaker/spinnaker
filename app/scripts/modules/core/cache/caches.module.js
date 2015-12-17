@@ -11,5 +11,4 @@ module.exports = angular
   ])
   .run(function(cacheInitializer) {
     cacheInitializer.initialize();
-  })
-  .name;
+  });

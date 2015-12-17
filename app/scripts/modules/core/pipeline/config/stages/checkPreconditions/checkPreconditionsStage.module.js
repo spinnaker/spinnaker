@@ -7,4 +7,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.checkPreconditions', 
   require('../core/stage.core.module.js'),
   require('./checkPreconditionsExecutionDetails.controller.js'),
   require('./checkPreconditionsStage.js'),
-]).name;
+]);

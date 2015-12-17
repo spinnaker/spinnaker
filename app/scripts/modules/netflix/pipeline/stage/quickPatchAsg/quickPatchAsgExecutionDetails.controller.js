@@ -20,4 +20,4 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsg.
 
     $scope.$on('$stateChangeSuccess', initialize, true);
 
-  }).name;
+  });

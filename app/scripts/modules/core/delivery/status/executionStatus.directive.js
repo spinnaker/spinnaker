@@ -20,4 +20,4 @@ module.exports = angular.module('spinnaker.core.delivery.executionStatus.directi
         scope.filter = ExecutionFilterModel.sortFilter;
       }
     };
-  }).name;
+  });

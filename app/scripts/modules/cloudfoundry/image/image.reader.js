@@ -25,4 +25,4 @@ module.exports = angular.module('spinnaker.cf.image.reader', [
       findImages: findImages,
       getImage: getImage,
     };
-  }).name;
+  });

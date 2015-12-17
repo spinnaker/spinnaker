@@ -1,7 +1,7 @@
 'use strict';
 
 let angular = require('angular');
-require('./serverGroupAdvancedSettingsDirective.html')
+require('./serverGroupAdvancedSettingsDirective.html');
 
 describe('Directive: Titan SG Advanced Settings Selector', function() {
 
@@ -15,7 +15,7 @@ describe('Directive: Titan SG Advanced Settings Selector', function() {
     this.scope = $rootScope.$new();
     this.scope.command = {instanceMetadata: [], tags: []};
     this.elem = angular.element('<titan-server-group-advanced-settings-selector command="command" />');
-    this.element = $compile(this.elem)(this.scope)
+    this.element = $compile(this.elem)(this.scope);
     this.scope.$digest();
   }));
 

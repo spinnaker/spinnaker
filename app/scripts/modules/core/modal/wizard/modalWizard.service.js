@@ -171,5 +171,4 @@ module.exports = angular
       deleteWizard: deleteWizard,
       getWizard: getWizard
     };
-  })
-  .name;
+  });

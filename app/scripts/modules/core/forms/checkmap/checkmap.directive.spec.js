@@ -44,7 +44,7 @@ describe('Directives: checkmap', function () {
     scope.$digest();
 
     expect(checkmap.find('input:checked').size()).toBe(1);
-    expect(scope.selectedItems).toEqual(['d'])
+    expect(scope.selectedItems).toEqual(['d']);
 
   });
 });

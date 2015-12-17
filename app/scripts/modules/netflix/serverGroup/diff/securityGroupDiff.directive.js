@@ -22,5 +22,4 @@ module.exports = angular
       this.command.viewState.securityGroupDiffs = [];
       modalWizardService.getWizard().markClean('security-groups');
     };
-  })
-  .name;
+  });

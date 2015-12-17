@@ -14,5 +14,4 @@ module.exports = angular.module('spinnaker.cf.securityGroup.transformer', [
       normalizeSecurityGroup: normalizeSecurityGroup,
     };
 
-  })
-  .name;
+  });

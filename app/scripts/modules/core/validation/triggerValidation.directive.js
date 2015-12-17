@@ -19,4 +19,4 @@ module.exports = angular.module('spinnaker.core.validation.trigger.directive', [
       }
     };
   }
-).name;
+);

@@ -32,4 +32,4 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.summary
       });
     };
 
-  }).name;
+  });

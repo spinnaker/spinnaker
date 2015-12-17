@@ -71,4 +71,4 @@ module.exports = angular
     }, true);
 
     return vm;
-  }).name;
+  });

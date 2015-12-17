@@ -10,4 +10,4 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions', 
   require('./modal/editPrecondition.controller.modal.js'),
   require('../../../confirmationModal/confirmationModal.service.js'),
   require('./precondition.details.filter.js')
-]).name;
+]);

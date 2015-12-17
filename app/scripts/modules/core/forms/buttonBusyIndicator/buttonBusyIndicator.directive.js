@@ -11,4 +11,4 @@ module.exports = angular
       restrict: 'E',
       templateUrl: require('./buttonBusyIndicator.directive.html')
     };
-  }).name;
+  });

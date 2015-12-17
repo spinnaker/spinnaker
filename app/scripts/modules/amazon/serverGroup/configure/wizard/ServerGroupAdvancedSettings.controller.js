@@ -17,4 +17,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.advancedSet
       }
     });
 
-  }).name;
+  });

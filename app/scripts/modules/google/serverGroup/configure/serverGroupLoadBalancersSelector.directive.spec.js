@@ -26,7 +26,7 @@ describe('Directive: GCE Load Balancers Selector', function() {
     var d = new Date(lastRefreshed);
     var t = d.getTime();
     _infrastructureCaches_.loadBalancers = {
-      getStats: function() {return {ageMax: t}}
+      getStats: function() { return {ageMax: t}; }
     };
     var m = _momentService_.tz(t, settings.defaultTimeZone);
     expectedTime = m.format('YYYY-MM-DD HH:mm:ss z');

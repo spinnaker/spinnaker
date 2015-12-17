@@ -30,4 +30,4 @@ module.exports = angular.module('spinnaker.azure.subnet.subnetSelectField.direct
         scope.$watch('subnets', setSubnets);
       }
     };
-}).name;
+});

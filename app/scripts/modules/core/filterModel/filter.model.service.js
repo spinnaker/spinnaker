@@ -298,4 +298,4 @@ module.exports = angular
       checkProviderFilters: checkProviderFilters
     };
 
-  }).name;
+  });

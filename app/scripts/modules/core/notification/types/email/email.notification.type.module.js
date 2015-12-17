@@ -9,4 +9,4 @@ module.exports = angular.module('spinnaker.core.notification.types.email', [])
       key: 'email',
       addressTemplateUrl: require('./additionalFields.html'),
     });
-  }).name;
+  });

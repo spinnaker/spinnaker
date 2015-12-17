@@ -36,5 +36,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.artifactSett
     };
 
 
-    })
-.name;
+    });

@@ -311,4 +311,4 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       return $location.absUrl();
     };
 
-  }).name;
+  });

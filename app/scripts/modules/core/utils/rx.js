@@ -5,5 +5,4 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.utils.rx', [])
-  .constant('rx', rx)
-  .name;
+  .constant('rx', rx);

@@ -72,4 +72,4 @@ module.exports = angular
   })
   .run(function(serverGroupCommandRegistry, netflixServerGroupCommandConfigurer) {
     serverGroupCommandRegistry.register('aws', netflixServerGroupCommandConfigurer);
-  }).name;
+  });

@@ -23,4 +23,4 @@ module.exports = angular.module('spinnaker.aws.securityGroup.transformer', [
     return {
       normalizeSecurityGroup: normalizeSecurityGroup,
     };
-  }).name;
+  });

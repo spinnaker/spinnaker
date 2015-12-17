@@ -52,4 +52,4 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.se
     };
 
     this.accountUpdated();
-  }).name;
+  });

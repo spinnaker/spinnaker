@@ -48,4 +48,4 @@ module.exports = angular
       resetCache: resetCache,
     };
 
-  }).name;
+  });

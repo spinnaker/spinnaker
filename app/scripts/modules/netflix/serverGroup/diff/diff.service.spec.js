@@ -58,18 +58,18 @@ describe('Service: diffService ', function () {
 
   var severalSecurityGroupPermutationsDiff = {
     "allIdentifiers": [
-      {"location":{"account":"test","region":"us-east-1"},"identity":{"autoScalingGroupName":"helloclay--test-v003"}},
-      {"location":{"account":"test","region":"us-west-1"},"identity":{"autoScalingGroupName":"helloclay--test-v003"}},
-      {"location":{"account":"test","region":"us-west-1"},"identity":{"autoScalingGroupName":"helloclay--test-v004"}},
-      {"location":{"account":"test","region":"us-west-2"},"identity":{"autoScalingGroupName":"helloclay--test-v010"}},
+      {"location":{"account":"test", "region":"us-east-1"}, "identity":{"autoScalingGroupName":"helloclay--test-v003"}},
+      {"location":{"account":"test", "region":"us-west-1"}, "identity":{"autoScalingGroupName":"helloclay--test-v003"}},
+      {"location":{"account":"test", "region":"us-west-1"}, "identity":{"autoScalingGroupName":"helloclay--test-v004"}},
+      {"location":{"account":"test", "region":"us-west-2"}, "identity":{"autoScalingGroupName":"helloclay--test-v010"}},
     ],
     "attributeGroups": [
       {
         "identifiers": [
-          {"location":{"account":"test","region":"us-east-1"},"identity":{"autoScalingGroupName":"helloclay--test-v003"}},
-          {"location":{"account":"test","region":"us-west-1"},"identity":{"autoScalingGroupName":"helloclay--test-v003"}},
-          {"location":{"account":"test","region":"us-west-1"},"identity":{"autoScalingGroupName":"helloclay--test-v004"}},
-          {"location":{"account":"test","region":"us-west-2"},"identity":{"autoScalingGroupName":"helloclay--test-v010"}},
+          {"location":{"account":"test", "region":"us-east-1"}, "identity":{"autoScalingGroupName":"helloclay--test-v003"}},
+          {"location":{"account":"test", "region":"us-west-1"}, "identity":{"autoScalingGroupName":"helloclay--test-v003"}},
+          {"location":{"account":"test", "region":"us-west-1"}, "identity":{"autoScalingGroupName":"helloclay--test-v004"}},
+          {"location":{"account":"test", "region":"us-west-2"}, "identity":{"autoScalingGroupName":"helloclay--test-v010"}},
         ],
         "commonAttributes": {
           "ebsOptimized":false,
@@ -91,9 +91,9 @@ describe('Service: diffService ', function () {
       },
       {
         "identifiers": [
-          {"location":{"account":"test","region":"us-east-1"},"identity":{"autoScalingGroupName":"helloclay--test-v003"}},
-          {"location":{"account":"test","region":"us-west-1"},"identity":{"autoScalingGroupName":"helloclay--test-v003"}},
-          {"location":{"account":"test","region":"us-west-2"},"identity":{"autoScalingGroupName":"helloclay--test-v010"}},
+          {"location":{"account":"test", "region":"us-east-1"}, "identity":{"autoScalingGroupName":"helloclay--test-v003"}},
+          {"location":{"account":"test", "region":"us-west-1"}, "identity":{"autoScalingGroupName":"helloclay--test-v003"}},
+          {"location":{"account":"test", "region":"us-west-2"}, "identity":{"autoScalingGroupName":"helloclay--test-v010"}},
         ],
         "commonAttributes": {
           "desiredCapacity":0
@@ -101,17 +101,17 @@ describe('Service: diffService ', function () {
       },
       {
         "identifiers": [
-          {"location":{"account":"test","region":"us-west-1"},"identity":{"autoScalingGroupName":"helloclay--test-v003"}},
-          {"location":{"account":"test","region":"us-west-2"},"identity":{"autoScalingGroupName":"helloclay--test-v010"}},
+          {"location":{"account":"test", "region":"us-west-1"}, "identity":{"autoScalingGroupName":"helloclay--test-v003"}},
+          {"location":{"account":"test", "region":"us-west-2"}, "identity":{"autoScalingGroupName":"helloclay--test-v010"}},
         ],
         "commonAttributes": {
-          "availabilityZones":["us-west-1a","us-west-1c"],
+          "availabilityZones":["us-west-1a", "us-west-1c"],
           "securityGroups":["helloworld", "default"]
         }
       },
       {
         "identifiers": [
-          {"location":{"account":"test","region":"us-west-1"},"identity":{"autoScalingGroupName":"helloclay--test-v005"}},
+          {"location":{"account":"test", "region":"us-west-1"}, "identity":{"autoScalingGroupName":"helloclay--test-v005"}},
         ],
         "commonAttributes": {
           "desiredCapacity":1,
@@ -120,19 +120,19 @@ describe('Service: diffService ', function () {
       },
       {
         "identifiers": [
-          {"location":{"account":"test","region":"us-east-1"},"identity":{"autoScalingGroupName":"helloclay--test-v003"}},
+          {"location":{"account":"test", "region":"us-east-1"}, "identity":{"autoScalingGroupName":"helloclay--test-v003"}},
         ],
         "commonAttributes": {
-          "availabilityZones":["us-east-1a","us-east-1b"],
+          "availabilityZones":["us-east-1a", "us-east-1b"],
           "securityGroups":[]
         }
       },
       {
         "identifiers": [
-          {"location":{"account":"test","region":"us-west-2"},"identity":{"autoScalingGroupName":"helloclay--test-v010"}},
+          {"location":{"account":"test", "region":"us-west-2"}, "identity":{"autoScalingGroupName":"helloclay--test-v010"}},
         ],
         "commonAttributes": {
-          "availabilityZones":["us-west-2a","us-west-2b"]
+          "availabilityZones":["us-west-2a", "us-west-2b"]
         }
       }
     ]

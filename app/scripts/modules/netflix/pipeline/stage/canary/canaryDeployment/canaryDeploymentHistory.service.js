@@ -15,4 +15,4 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stages.canary.deploy
       getAnalysisHistory: getAnalysisHistory,
     };
 
-  }).name;
+  });

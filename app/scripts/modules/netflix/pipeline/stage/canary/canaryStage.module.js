@@ -18,5 +18,4 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary', [
 ])
   .run(function(pipelineConfig, canaryStageTransformer) {
     pipelineConfig.registerTransformer(canaryStageTransformer);
-  })
-  .name;
+  });

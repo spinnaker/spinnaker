@@ -9,7 +9,7 @@ describe('spinnaker.core.cache.infrastructure', function() {
       require('./infrastructureCaches.js')
     )
   );
-  
+
   beforeEach(window.inject(function(_infrastructureCaches_, _deckCacheFactory_) {
     infrastructureCaches = _infrastructureCaches_;
     deckCacheFactory = _deckCacheFactory_;

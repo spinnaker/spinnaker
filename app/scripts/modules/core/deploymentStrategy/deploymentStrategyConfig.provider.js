@@ -25,4 +25,4 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.deploymentStr
     };
 
   }
-).name;
+);

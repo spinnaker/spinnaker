@@ -31,4 +31,4 @@ module.exports = angular
       keyValueToEqualList: keyValueToEqualList,
       equalListToKeyValue: equalListToKeyValue,
     };
-  }).name;
+  });

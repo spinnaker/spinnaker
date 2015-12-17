@@ -62,4 +62,4 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.resize.cont
     this.cancel = function () {
       $modalInstance.dismiss();
     };
-  }).name;
+  });

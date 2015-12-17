@@ -40,5 +40,4 @@ module.exports =  angular.module('spinnaker.core.pipeline.stage.waitForParentTas
     this.transform = function(application, execution) {
       injectWaitForParentStages(execution);
     };
-  })
-  .name;
+  });

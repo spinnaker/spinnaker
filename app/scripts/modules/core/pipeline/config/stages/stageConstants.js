@@ -51,5 +51,4 @@ module.exports = angular
         'val': 'disable'
       }
     ]
-  })
-  .name;
+  });

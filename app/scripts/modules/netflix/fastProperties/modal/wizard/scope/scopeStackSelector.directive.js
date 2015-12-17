@@ -26,5 +26,4 @@ module.exports = angular
       },
       templateUrl: require('./scopeStackSelector.directive.html')
     };
-  })
-  .name;
+  });

@@ -30,4 +30,4 @@ module.exports = angular.module('spinnaker.subnet.subnetSelectField.directive', 
         scope.$watch('subnets', setSubnets);
       }
     };
-}).name;
+});

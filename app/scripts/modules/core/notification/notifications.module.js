@@ -11,4 +11,4 @@ module.exports = angular.module('spinnaker.core.notifications', [
   require('../confirmationModal/confirmationModal.service.js'),
   require('./notification.service.js'),
   require('./notification.details.filter.js')
-]).name;
+]);

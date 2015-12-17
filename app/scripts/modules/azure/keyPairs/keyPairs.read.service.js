@@ -19,5 +19,4 @@ module.exports = angular
       listKeyPairs: listKeyPairs
     };
 
-  })
-  .name;
+  });

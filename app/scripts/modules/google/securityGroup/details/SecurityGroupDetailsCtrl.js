@@ -180,4 +180,4 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
     };
 
   }
-).name;
+);

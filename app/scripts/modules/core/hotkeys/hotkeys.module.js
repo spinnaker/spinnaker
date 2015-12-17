@@ -70,4 +70,4 @@ module.exports = angular
     ];
 
     globalHotkeys.forEach((hotkeyConfig) => hotkeys.add(hotkeyConfig));
-  }).name;
+  });

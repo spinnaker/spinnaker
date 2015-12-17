@@ -5,5 +5,4 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.utils.lodash', [])
-  .constant('_', _ )
-  .name;
+  .constant('_', _ );

@@ -60,4 +60,4 @@ module.exports = angular.module('spinnaker.core.taskExecutor', [
     return {
       executeTask: executeTask,
     };
-  }).name;
+  });

@@ -277,4 +277,4 @@ module.exports = angular.module('spinnaker.core.tasks.api', [
 
     return configureRestangular();
 
-  }).name;
+  });

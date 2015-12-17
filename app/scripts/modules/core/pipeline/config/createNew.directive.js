@@ -13,5 +13,4 @@ module.exports = angular
       },
       templateUrl: require('./createNew.html'),
     };
-  })
-  .name;
+  });

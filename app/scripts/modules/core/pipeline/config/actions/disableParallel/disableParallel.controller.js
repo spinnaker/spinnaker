@@ -17,4 +17,4 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.disableP
       $modalInstance.close();
     };
 
-  }).name;
+  });

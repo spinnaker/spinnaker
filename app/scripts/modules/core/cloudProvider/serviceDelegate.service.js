@@ -25,5 +25,4 @@ module.exports = angular.module('spinnaker.delegation', [
       hasDelegate: hasDelegate,
       getDelegate: getDelegate,
     };
-  })
-  .name;
+  });

@@ -7,4 +7,4 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.bake', [
   require('../stage.module.js'),
   require('../core/stage.core.module.js'),
   require('../../../../utils/lodash.js'),
-]).name;
+]);

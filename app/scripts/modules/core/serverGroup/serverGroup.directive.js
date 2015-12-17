@@ -110,4 +110,4 @@ module.exports = angular.module('spinnaker.core.serverGroup.serverGroup.directiv
         scope.$watch('sortFilter', setViewModel, true);
       }
     };
-}).name;
+});

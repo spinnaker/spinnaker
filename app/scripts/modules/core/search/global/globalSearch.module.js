@@ -11,4 +11,4 @@ module.exports = angular.module('spinnaker.core.search.global', [
   require('./globalSearch.directive.js'),
   require('../../cluster/filter/clusterFilter.model.js'),
   require('../../cluster/filter/clusterFilter.service.js'),
-]).name;
+]);

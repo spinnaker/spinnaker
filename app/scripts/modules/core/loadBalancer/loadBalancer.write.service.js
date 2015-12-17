@@ -65,4 +65,4 @@ module.exports = angular
       upsertLoadBalancer: upsertLoadBalancer
     };
 
-  }).name;
+  });

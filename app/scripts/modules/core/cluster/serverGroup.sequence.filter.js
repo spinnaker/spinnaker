@@ -12,4 +12,4 @@ module.exports = angular.module('spinnaker.core.serverGroup.sequence.filter', [
         }
         return namingService.getSequence(input) || 'n/a';
       };
-  }).name;
+  });

@@ -113,4 +113,4 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
     this.cancel = function () {
       $modalInstance.dismiss();
     };
-  }).name;
+  });

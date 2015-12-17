@@ -20,4 +20,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.enableAsg.aws.executi
 
     $scope.$on('$stateChangeSuccess', initialize, true);
 
-  }).name;
+  });

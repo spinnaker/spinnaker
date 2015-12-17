@@ -23,5 +23,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.loadBalancer
         return command.application;
       };
 
-    })
-    .name;
+    });

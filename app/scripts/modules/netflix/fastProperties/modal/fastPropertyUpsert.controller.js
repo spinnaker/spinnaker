@@ -262,5 +262,4 @@ module.exports = angular
 
     vm.init();
 
-  })
-  .name;
+  });

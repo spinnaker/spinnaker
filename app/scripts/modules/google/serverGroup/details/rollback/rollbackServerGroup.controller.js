@@ -62,4 +62,4 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.rollback.c
       this.cancel = function () {
         $modalInstance.dismiss();
       };
-    }).name;
+    });

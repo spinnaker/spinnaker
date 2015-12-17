@@ -218,4 +218,4 @@ module.exports = angular
       extractScopeFromHistoryMessage: extractScopeFromHistoryMessage
     };
 
-  }).name;
+  });

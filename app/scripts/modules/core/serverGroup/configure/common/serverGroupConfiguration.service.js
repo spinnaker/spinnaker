@@ -18,5 +18,4 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.con
   return {
     refreshInstanceTypes: refreshInstanceTypes,
   };
-})
-.name;
+});

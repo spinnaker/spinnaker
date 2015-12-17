@@ -41,5 +41,5 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.ser
       buildNewServerGroupCommandForPipeline: buildNewServerGroupCommandForPipeline,
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
-}).name;
+});
 

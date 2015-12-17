@@ -40,5 +40,4 @@ module.exports = angular
         this.viewState.error = true;
       }
     );
-  })
-  .name;
+  });

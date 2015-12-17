@@ -39,4 +39,4 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.dirtyTr
       hasDirtyPipelines: hasDirtyPipelines,
     };
   }
-).name;
+);

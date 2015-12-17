@@ -307,7 +307,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
     it('returns only the existing ami without further querying when package name is less than three characters', function() {
       var $scope = this.$scope,
-          amiBasedImage = {attributes: {virtualizationType: 'hvm'},imageName: 'aa-packagebase-something-something', amis: {'us-east-1': ['ami-1234']}},
+          amiBasedImage = {attributes: {virtualizationType: 'hvm'}, imageName: 'aa-packagebase-something-something', amis: {'us-east-1': ['ami-1234']}},
           serverGroup = this.buildBaseClone();
 
       serverGroup.viewState.imageId = 'ami-1234';

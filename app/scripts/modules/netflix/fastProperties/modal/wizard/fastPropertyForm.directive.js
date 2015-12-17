@@ -52,6 +52,4 @@ module.exports = angular
       restrict: 'E',
       templateUrl: require('./fastPropertyReviewForm.directive.html')
     };
-  })
-
-  .name;
+  });

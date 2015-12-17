@@ -18,5 +18,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.checkPreconditionsSta
   })
   .controller('CheckPreconditionsStageCtrl', function($scope, $modal) {
     $scope.stage.preconditions = $scope.stage.preconditions || [];
-  })
-  .name;
+  });

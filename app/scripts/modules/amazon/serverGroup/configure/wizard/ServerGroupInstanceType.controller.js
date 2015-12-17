@@ -8,4 +8,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.instanceTyp
     modalWizardService.getWizard().markComplete('instance-type');
     modalWizardService.getWizard().markClean('instance-type');
 
-  }).name;
+  });

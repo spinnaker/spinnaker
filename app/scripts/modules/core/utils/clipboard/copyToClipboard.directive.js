@@ -61,7 +61,6 @@ module.exports = angular
     /*eslint-disable */
     let clipboard = new Clipboard('.clipboard-btn');
     /*eslint-enable*/
-  })
-  .name;
+  });
 
 

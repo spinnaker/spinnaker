@@ -16,4 +16,4 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.create.c
       controllerAs: 'buttonCtrl',
       replace: true,
     };
-  }).name;
+  });

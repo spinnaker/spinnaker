@@ -7,5 +7,4 @@ module.exports = angular
     require('./fastPropertyForm.directive'),
     require('./fastPropertyConstraintsSelector.directive'),
     require('./scope'),
-  ])
-  .name;
+  ]);

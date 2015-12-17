@@ -10,4 +10,4 @@ module.exports = angular.module('spinnaker.core.insight.controller', [
 
     $scope.InsightFilterStateModel = InsightFilterStateModel;
 
-  }).name;
+  });

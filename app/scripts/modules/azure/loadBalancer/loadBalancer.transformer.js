@@ -179,4 +179,4 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
     };
 
-  }).name;
+  });

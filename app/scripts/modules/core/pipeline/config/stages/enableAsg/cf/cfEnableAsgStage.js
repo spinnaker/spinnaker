@@ -66,6 +66,5 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.enableAsgStage
     }
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
-  })
-  .name;
+  });
 

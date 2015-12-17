@@ -19,8 +19,7 @@ module.exports = angular
         });
       }
     };
-  })
-  .name;
+  });
 
 
 

@@ -10,4 +10,4 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgment', 
   require('./manualJudgmentExecutionDetails.controller.js'),
   require('./modal/editNotification.controller.modal.js'),
   require('./manualJudgmentStage.js'),
-]).name;
+]);

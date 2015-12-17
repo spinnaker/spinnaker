@@ -34,5 +34,4 @@ module.exports = angular.module('spinnaker.core.utils.uuid.service', [])
     return {
       generateUuid: v4,
     };
-  })
-.name;
+  });

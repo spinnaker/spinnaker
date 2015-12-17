@@ -31,4 +31,4 @@ module.exports = angular.module('spinnaker.core.loadBalancer.serverGroup', [
       }
     };
   }
-).name;
+);

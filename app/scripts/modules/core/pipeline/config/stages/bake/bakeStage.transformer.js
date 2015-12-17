@@ -26,4 +26,4 @@ module.exports = angular
     this.transform = function(application, execution) {
       propagatePreviouslyBakedFlag(execution);
     };
-  }).name;
+  });

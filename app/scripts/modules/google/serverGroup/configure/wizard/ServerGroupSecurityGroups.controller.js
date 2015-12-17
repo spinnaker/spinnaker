@@ -7,4 +7,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.securityGro
     modalWizardService.getWizard().markClean('security-groups');
     modalWizardService.getWizard().markComplete('security-groups');
 
-  }).name;
+  });

@@ -92,6 +92,5 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.modifyScalingProc
     };
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
-  })
-  .name;
+  });
 

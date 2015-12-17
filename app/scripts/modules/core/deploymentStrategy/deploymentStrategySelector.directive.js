@@ -16,4 +16,4 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.deploymentStr
       controller: 'DeploymentStrategySelectorCtrl',
       controllerAs: 'strategyCtrl'
     };
-  }).name;
+  });

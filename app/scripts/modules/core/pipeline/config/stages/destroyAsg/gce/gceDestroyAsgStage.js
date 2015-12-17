@@ -70,6 +70,5 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.destroyAsgSta
       stage.target = $scope.targets[0].val;
     }
 
-  })
-  .name;
+  });
 

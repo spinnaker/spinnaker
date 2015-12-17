@@ -131,6 +131,5 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
       buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting,
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
-})
-.name;
+});
 

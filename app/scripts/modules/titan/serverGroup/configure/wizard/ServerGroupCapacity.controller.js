@@ -16,4 +16,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.capacity.
       }
     });
 
-  }).name;
+  });

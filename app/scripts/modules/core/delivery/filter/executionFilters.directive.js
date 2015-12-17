@@ -21,4 +21,4 @@ module.exports = angular
       controller: 'ExecutionFilterCtrl',
       controllerAs: 'vm',
     };
-  }).name;
+  });

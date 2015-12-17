@@ -121,4 +121,4 @@ module.exports = angular.module('spinnaker.core.notifications.notificationList',
 
         return vm;
 
-    }).name;
+    });

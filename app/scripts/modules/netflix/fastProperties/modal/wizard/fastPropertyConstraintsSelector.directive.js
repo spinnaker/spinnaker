@@ -69,5 +69,5 @@ module.exports = angular
       },
       controllerAs: 'con',
     };
-  }).name;
+  });
 

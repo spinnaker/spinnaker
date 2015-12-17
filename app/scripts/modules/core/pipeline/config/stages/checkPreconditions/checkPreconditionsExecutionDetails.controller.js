@@ -18,4 +18,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.checkPreconditions.ex
     initialize();
     $scope.$on('$stateChangeSuccess', initialize, true);
 
-  }).name;
+  });

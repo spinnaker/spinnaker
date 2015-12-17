@@ -13,4 +13,4 @@ module.exports = angular.module('spinnaker.cf.securityGroup.reader', [
     return {
       resolveIndexedSecurityGroup: resolveIndexedSecurityGroup,
     };
-  }).name;
+  });

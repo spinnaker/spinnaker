@@ -32,4 +32,4 @@ module.exports = angular.module('spinnaker.core.cluster.pod.directive', [
         );
       }
     };
-  }).name;
+  });

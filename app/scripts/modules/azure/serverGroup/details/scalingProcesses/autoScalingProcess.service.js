@@ -46,4 +46,4 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.autoscaling
     return {
       listProcesses: listProcesses,
     };
-  }).name;
+  });

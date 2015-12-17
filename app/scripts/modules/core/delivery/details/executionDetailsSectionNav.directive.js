@@ -12,4 +12,4 @@ module.exports = angular.module('spinnaker.executionDetails.section.nav.directiv
         sections: '=',
       }
     };
-  }).name;
+  });

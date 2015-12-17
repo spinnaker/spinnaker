@@ -383,4 +383,4 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
     $scope.account = instance.account;
 
   }
-).name;
+);

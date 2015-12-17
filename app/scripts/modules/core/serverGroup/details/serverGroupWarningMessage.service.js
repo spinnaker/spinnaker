@@ -11,4 +11,4 @@ module.exports = angular
         return $interpolate(template)({deletingServerGroup: serverGroup});
       }
     };
-  }).name;
+  });

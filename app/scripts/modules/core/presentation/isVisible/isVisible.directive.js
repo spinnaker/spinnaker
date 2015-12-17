@@ -26,4 +26,4 @@ module.exports = angular.module('spinnaker.core.presentation.isVisible.directive
         element.css('visibility', visible ? 'visible' : 'hidden');
       });
     };
-}).name;
+});

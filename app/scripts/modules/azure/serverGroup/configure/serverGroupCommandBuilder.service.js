@@ -253,6 +253,5 @@ module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.servi
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
       buildUpdateServerGroupCommand: buildUpdateServerGroupCommand,
     };
-})
-.name;
+});
 

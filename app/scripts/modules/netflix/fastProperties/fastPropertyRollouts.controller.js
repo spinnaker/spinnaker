@@ -72,4 +72,4 @@ module.exports = angular
 
     vm.loadPromotions();
     return vm;
-  }).name;
+  });

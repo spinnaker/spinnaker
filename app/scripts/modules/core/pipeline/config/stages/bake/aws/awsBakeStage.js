@@ -95,4 +95,4 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.bakeStage', [
     $scope.$watch('stage', deleteEmptyProperties, true);
 
     initialize();
-  }).name;
+  });

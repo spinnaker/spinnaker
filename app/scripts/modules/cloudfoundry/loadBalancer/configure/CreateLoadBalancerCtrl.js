@@ -160,4 +160,4 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
     this.cancel = function () {
       $modalInstance.dismiss();
     };
-  }).name;
+  });

@@ -44,4 +44,4 @@ module.exports = angular.module('spinnaker.core.healthCounts.directive', [
       }
     };
   }
-).name;
+);

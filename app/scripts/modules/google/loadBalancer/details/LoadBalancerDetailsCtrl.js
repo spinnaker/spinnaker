@@ -120,4 +120,4 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
     };
 
   }
-).name;
+);

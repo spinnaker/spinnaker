@@ -30,6 +30,5 @@ module.exports = angular
 
       },
     };
-  })
-  .name;
+  });
 

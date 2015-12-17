@@ -94,4 +94,4 @@ module.exports = angular
       stopPromotion: stopPromotion,
       deletePromotion: deletePromotion,
     };
-  }).name;
+  });

@@ -10,7 +10,7 @@ describe('Service: dataConverters ', function () {
     )
   );
 
-  beforeEach(inject(function(dataConverterService) {
+  beforeEach(window.inject(function(dataConverterService) {
     service = dataConverterService;
   }));
 

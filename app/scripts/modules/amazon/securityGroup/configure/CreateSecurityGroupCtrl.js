@@ -46,4 +46,4 @@ module.exports = angular.module('spinnaker.amazon.securityGroup.create.controlle
 
     ctrl.initializeSecurityGroups();
 
-  }).name;
+  });

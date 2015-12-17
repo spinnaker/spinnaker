@@ -13,4 +13,4 @@ module.exports = angular
     require('./task.read.service.js'),
     require('./task.write.service.js'),
     require('./statusGlyph.directive.js'),
-  ]).name;
+  ]);

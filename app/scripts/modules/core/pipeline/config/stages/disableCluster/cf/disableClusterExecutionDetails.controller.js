@@ -20,4 +20,4 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.disableCluster.cf
 
     $scope.$on('$stateChangeSuccess', initialize, true);
 
-  }).name;
+  });

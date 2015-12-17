@@ -72,4 +72,4 @@ module.exports = angular.module('spinnaker.netflix.feedback.modal.controller', [
     this.cancel = function () {
       $modalInstance.dismiss();
     };
-  }).name;
+  });

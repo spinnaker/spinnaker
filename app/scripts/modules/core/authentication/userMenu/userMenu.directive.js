@@ -16,4 +16,4 @@ module.exports = angular.module('spinnaker.core.authentication.userMenu.directiv
         scope.user = authenticationService.getAuthenticatedUser();
       }
     };
-  }).name;
+  });

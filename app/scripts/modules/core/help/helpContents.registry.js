@@ -19,4 +19,4 @@ module.exports = angular
       getHelpField: getHelpField,
       register: register
     };
-  }).name;
+  });

@@ -15,4 +15,4 @@ module.exports = angular
   })
   .run(function(pipelineConfig, waitForParentTasksTransformer) {
     pipelineConfig.registerTransformer(waitForParentTasksTransformer);
-  }).name;
+  });

@@ -88,4 +88,4 @@ module.exports = angular.module('spinnaker.aws', [
         resultFormatter: 'awsSearchResultFormatter',
       }
     });
-  }).name;
+  });

@@ -140,4 +140,4 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
         },
       };
     };
-  }).name;
+  });

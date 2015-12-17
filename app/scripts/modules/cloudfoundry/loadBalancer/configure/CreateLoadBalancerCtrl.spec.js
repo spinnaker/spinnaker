@@ -33,7 +33,7 @@ describe('Controller: cfCreateLoadBalancerCtrl', function () {
     this.ctrl.updateName();
     expect(lb.name).toBe('testApp');
 
-    this.$scope.loadBalancer.stack = 'testStack'
+    this.$scope.loadBalancer.stack = 'testStack';
     this.ctrl.updateName();
     expect(lb.name).toBe('testApp-testStack');
   });

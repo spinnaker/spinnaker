@@ -23,4 +23,4 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stages.canary.status
         scope.$watch('status', applyLabel);
       }
     };
-  }).name;
+  });

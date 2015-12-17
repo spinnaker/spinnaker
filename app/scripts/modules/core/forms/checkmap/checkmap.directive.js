@@ -76,4 +76,4 @@ module.exports = angular.module('spinnaker.core.forms.checkmap.checkmap.directiv
         scope.$watch('selectedItems', initializeModelHolder);
       }
     };
-  }).name;
+  });

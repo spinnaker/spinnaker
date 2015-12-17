@@ -82,4 +82,4 @@ module.exports = angular.module('spinnaker.timeBoundaries.service', [
         return isBetween(item, boundaries[boundingIndex], boundaries[boundingIndex + 1]);
       },
     };
-  }).name;
+  });

@@ -128,5 +128,4 @@ module.exports = angular.module('spinnaker.core.account.service', [
       getPreferredZonesByAccount: getPreferredZonesByAccount,
       getAvailabilityZonesForAccountAndRegion: getAvailabilityZonesForAccountAndRegion
     };
-  })
-  .name;
+  });

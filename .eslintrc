@@ -27,5 +27,8 @@
     "jasmine": true,
   },
   "globals": {
+    "angular": true,
+    "$": true,
+    "_": true,
   }
 }

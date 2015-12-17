@@ -10,4 +10,4 @@ module.exports = angular.module('spinnaker.core.modal.modalClose.directive', [
       restrict: 'E',
       templateUrl: require('./modalClose.directive.html'),
     };
-}).name;
+});

@@ -82,4 +82,4 @@ module.exports = angular
       getClusterName: getClusterName,
       getSequence: getSequence,
     };
-  }).name;
+  });

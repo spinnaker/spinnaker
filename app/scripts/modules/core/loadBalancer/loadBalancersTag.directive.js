@@ -17,4 +17,4 @@ module.exports = angular.module('spinnaker.core.loadBalancer.tag.directive', [])
       }
     };
   }
-).name;
+);

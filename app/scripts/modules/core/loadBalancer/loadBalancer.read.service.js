@@ -41,5 +41,4 @@ module.exports = angular
       listLoadBalancers: listLoadBalancers,
     };
 
-  })
-  .name;
+  });

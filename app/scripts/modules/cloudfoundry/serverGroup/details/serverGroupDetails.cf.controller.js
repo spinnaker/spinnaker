@@ -291,4 +291,4 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
       };
 
     }
-).name;
+);

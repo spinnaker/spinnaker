@@ -46,4 +46,4 @@ module.exports = angular.module('spinnaker.aws.serverGroup.details.networking.co
         }
       });
     };
-  }).name;
+  });

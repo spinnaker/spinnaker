@@ -68,4 +68,4 @@ module.exports = angular.module('spinnaker.aws.serverGroup.details.elasticIp.con
     this.cancel = function () {
       $modalInstance.dismiss();
     };
-  }).name;
+  });

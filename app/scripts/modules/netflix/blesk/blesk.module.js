@@ -27,4 +27,4 @@ module.exports = angular.module('spinnaker.netflix.blesk', [
       // putting a delay on initialization so authentication can take place and dom can finish loading.
       $timeout(blesk.initialize, 5000);
     }
-  }).name;
+  });

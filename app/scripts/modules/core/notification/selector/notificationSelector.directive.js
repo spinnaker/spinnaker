@@ -33,4 +33,4 @@ module.exports = angular.module('spinnaker.core.notification.selector.directive'
       return notificationConfig ? notificationConfig.addressTemplateUrl : '';
     };
 
-  }).name;
+  });

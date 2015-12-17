@@ -45,4 +45,4 @@ module.exports = angular.module('spinnaker.core.task.progressBar.directive', [])
         }
       }
     };
-  }).name;
+  });

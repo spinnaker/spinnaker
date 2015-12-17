@@ -282,6 +282,5 @@ module.exports = angular
       clearFilters: clearFilters,
     };
   }
-)
-.name;
+);
 

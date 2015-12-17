@@ -433,4 +433,4 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.service',
     };
 
 
-  }).name;
+  });

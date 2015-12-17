@@ -44,4 +44,4 @@ module.exports = angular.module('spinnaker.core.search.global.directive', [
         });
       }
     };
-  }).name;
+  });

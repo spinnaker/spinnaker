@@ -125,4 +125,4 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
       this.pipelineOptions = application.pipelineConfigs;
     }
 
-  }).name;
+  });

@@ -81,4 +81,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.deployIniti
         $scope.$emit('template-selected');
       });
     };
-  }).name;
+  });

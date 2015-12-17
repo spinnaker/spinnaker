@@ -46,4 +46,4 @@ module.exports = angular.module('spinnaker.azure.securityGroup.create.controller
 
     ctrl.initializeSecurityGroups();
 
-  }).name;
+  });

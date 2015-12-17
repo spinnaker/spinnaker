@@ -49,4 +49,4 @@ module.exports = angular.module('spinnaker.azure.loadBalancers.configure.loadBal
 
       },
     };
-}).name;
+});

@@ -70,4 +70,4 @@ module.exports = angular
         $scope.clearAll = clearAll;
       }
     };
-  }).name;
+  });

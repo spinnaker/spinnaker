@@ -40,4 +40,4 @@ module.exports = angular
       normalizeServerGroup: normalizeServerGroup,
     };
 
-  }).name;
+  });

@@ -74,6 +74,5 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.disableAsgSta
       stage.target = $scope.targets[0].val;
     }
 
-  })
-  .name;
+  });
 

@@ -209,6 +209,4 @@ module.exports = angular
   .config(function(uiSelectConfig) {
     uiSelectConfig.theme = 'select2';
     uiSelectConfig.appendToBody = true;
-  })
-
-  .name;
+  });

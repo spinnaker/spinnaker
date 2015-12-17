@@ -37,4 +37,4 @@ module.exports = angular.module('spinnaker.core.presentation.sortToggle.directiv
         };
       },
     };
-}).name;
+});

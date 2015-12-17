@@ -25,5 +25,4 @@ module.exports = angular.module('spinnaker.cf.cache.initializer', [
     };
 
     return config;
-  })
-  .name;
+  });

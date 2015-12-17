@@ -96,4 +96,4 @@ module.exports = angular
 
     return this;
 
-  }).name;
+  });

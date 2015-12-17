@@ -30,4 +30,4 @@ module.exports = angular.module('spinnaker.application.platformHealthOverrideChe
         delete $scope.command.interestingHealthProviderNames;
       }
     };
-  }).name;
+  });

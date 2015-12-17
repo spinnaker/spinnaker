@@ -20,4 +20,4 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.se
       getPreconditionType: getPreconditionType
     };
 
-  }).name;
+  });
