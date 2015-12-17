@@ -57,6 +57,15 @@ module.exports = angular.module('spinnaker.core.history.service', [
       }
     }
 
+    function removeByAppName(appName) {
+      const type = 'applications';
+      var items = getItems(type);
+      var remaining = items.filter((item) => item.params.application !== appName);
+      if (remaining) {
+        cache.put(type, remaining);
+      }
+    }
+
     function removeLastItem(type) {
       var items = getItems(type);
       if (items.length) {
@@ -92,6 +101,7 @@ module.exports = angular.module('spinnaker.core.history.service', [
       removeItem: removeItem,
       removeLastItem: removeLastItem,
       addExtraDataToLatest: addExtraDataToLatest,
+      removeByAppName: removeByAppName,
     };
   })
   .run(function($rootScope, recentHistoryService) {

@@ -6,8 +6,9 @@ module.exports = angular
   .module('spinnaker.applications.write.service', [
     require('../../task/taskExecutor.js'),
     require('../../utils/lodash.js'),
+    require('../../history/recentHistory.service')
   ])
-  .factory('applicationWriter', function($q, taskExecutor, _) {
+  .factory('applicationWriter', function($q, taskExecutor, recentHistoryService,  _) {
 
     function createApplication(app, account) {
       var command = _.cloneDeep(app);
@@ -76,7 +77,13 @@ module.exports = angular
         );
       });
 
-      return executeDeleteTasks(taskList);
+     var task = executeDeleteTasks(taskList);
+     return task
+      .then(() => {
+        recentHistoryService.removeByAppName(app.name);
+      })
+      .then(() => task)
+      .catch(() => task);
 
     }
 
