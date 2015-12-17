@@ -505,6 +505,7 @@ class CloudFoundryResourceRetriever {
             name             : "${app.name}:${it.index}",
             nativeApplication: app,
             nativeInstance   : it,
+            consoleLink      : "${credentials.console}/organizations/${space.organization.meta.guid}/spaces/${space.meta.guid}/applications/${app.meta.guid}",
             logsLink         : "${credentials.console}/organizations/${space.organization.meta.guid}/spaces/${space.meta.guid}/applications/${app.meta.guid}/tailing_logs"
         ])
         instance.healthState = instanceStateToHealthState(it.state).toString()

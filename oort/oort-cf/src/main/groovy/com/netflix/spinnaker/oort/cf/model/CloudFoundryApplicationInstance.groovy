@@ -30,6 +30,7 @@ class CloudFoundryApplicationInstance implements Instance, Serializable {
   CloudApplication nativeApplication
   List<Map<String, String>> health = []
   InstanceInfo nativeInstance
+  String consoleLink
   String logsLink
 
   @Override
