@@ -43,7 +43,7 @@ parameter if you skip this step.
 copying files to the node, so for simplicity, we will only use 1 host.
 
   ```
-  $ gcloud container clusters create my-spinnaker-on-kubernetes --num-nodes 1 --scopes storage-rw,compute-rw --machine-type n1-standard-8
+  $ gcloud container clusters create my-spinnaker-on-kubernetes --num-nodes 1 --scopes storage-rw,compute-rw --machine-type n1-standard-4
   ```
 
 1. Get the name of the node in a variable for convenience.
