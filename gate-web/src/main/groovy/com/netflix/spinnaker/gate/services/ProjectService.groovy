@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import groovy.transform.CompileStatic
@@ -37,6 +38,9 @@ class ProjectService {
   @Autowired
   OrcaService orcaService
 
+  @Autowired
+  ClouddriverService clouddriverService
+
   List<Map> getAll() {
     HystrixFactory.newListCommand(GROUP, "getAll") {
       return front50Service.getAllProjects().embedded.projects ?: []
@@ -52,6 +56,12 @@ class ProjectService {
   List<Map> getAllPipelines(String projectId, int limit, String statuses) {
     HystrixFactory.newListCommand(GROUP, "getAllPipelines") {
       return orcaService.getPipelinesForProject(projectId, limit, statuses)
+    } execute()
+  }
+
+  List getClusters(String projectId) {
+    HystrixFactory.newListCommand(GROUP, "getClusters") {
+      return clouddriverService.getProjectClusters(projectId)
     } execute()
   }
 }

@@ -158,6 +158,10 @@ interface ClouddriverService {
                             @Path("imageId") String imageId)
 
   @Headers("Accept: application/json")
+  @GET("/projects/{project}/clusters")
+  List<Map> getProjectClusters(@Path("project") String project)
+
+  @Headers("Accept: application/json")
   @GET("/reports/reservation")
   List<Map> getReservationReports()
 
