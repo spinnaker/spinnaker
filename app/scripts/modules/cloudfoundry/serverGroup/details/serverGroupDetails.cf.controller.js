@@ -238,6 +238,19 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
         });
       };
 
+      this.cloneServerGroup = function cloneServerGroup(serverGroup) {
+        $uibModal.open({
+          templateUrl: require('../configure/wizard/serverGroupWizard.html'),
+          controller: 'cfCloneServerGroupCtrl as ctrl',
+          resolve: {
+            title: function() { return 'Clone ' + serverGroup.name; },
+            application: function() { return application; },
+            serverGroup: function() { return serverGroup; },
+            serverGroupCommand: function() { return cfServerGroupCommandBuilder.buildServerGroupCommandFromExisting(application, serverGroup); },
+          }
+        });
+      };
+
       this.showUserData = function showScalingActivities() {
         $scope.userData = window.atob($scope.serverGroup.launchConfig.userData);
         $uibModal.open({

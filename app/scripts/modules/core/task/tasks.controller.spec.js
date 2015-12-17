@@ -4,40 +4,119 @@ describe('Controller: tasks', function () {
   const angular = require('angular');
 
   var controller;
-  var controllerInjector;
+  var taskWriter;
   var scope;
-
-  controllerInjector = function (appData) {
-    appData.registerAutoRefreshHandler = angular.noop;
-    return function ($controller, $rootScope, $q) {
-      appData.reloadTasks = () => $q.when(null);
-      var viewStateCache = { createCache: function() { return { get: angular.noop, put: angular.noop }; }};
-      scope = $rootScope.$new();
-      controller = $controller('TasksCtrl', { app: appData, $scope: scope, viewStateCache: viewStateCache });
-    };
-  };
+  var rx;
+  var $q;
 
   beforeEach(
     window.module(
-      require('./tasks.controller.js')
+      require('./tasks.controller.js'),
+      require('../utils/rx.js')
     )
   );
 
   beforeEach(
-    window.inject(
-      controllerInjector({})
-    )
+    window.inject(function(_rx_, $controller, $rootScope, _$q_, _taskWriter_) {
+      rx = _rx_;
+      $q = _$q_;
+      taskWriter = _taskWriter_;
+
+      this.initializeController = (appData) => {
+        appData.taskRefreshStream = new rx.Subject();
+        appData.reloadTasks  = appData.reloadTasks || () => $q.when(null).then(() => appData.taskRefreshStream.onNext());
+        let confirmationModalService = {
+          confirm: function(params) {
+            $q.when(null).then(params.submitMethod);
+          }
+        };
+        var viewStateCache = { createCache: function() { return { get: angular.noop, put: angular.noop }; }};
+        scope = $rootScope.$new();
+        controller = $controller('TasksCtrl', {
+          app: appData,
+          $scope: scope,
+          viewStateCache: viewStateCache,
+          confirmationModalService: confirmationModalService,
+          taskWriter: taskWriter,
+        });
+      };
+    })
   );
 
   describe('initialization', function() {
+    beforeEach(function() { this.initializeController({}); });
+
     it('loading flag should be true', function() {
       expect(scope.viewState.loading).toBe(true);
     });
 
     it('loading flag should be false when tasks reloaded', function() {
-      window.inject(controllerInjector({tasks: [] }));
+      this.initializeController({});
       scope.$digest();
       expect(scope.viewState.loading).toBe(false);
+    });
+  });
+
+  describe('task reloading', function () {
+    it ('should sort tasks whenever a tasksReloaded event occurs', function () {
+      let application = { tasks: [] };
+      this.initializeController(application);
+      scope.$digest();
+      expect(controller.sortedTasks.length).toBe(0);
+
+      application.tasks.push({status: 'RUNNING', startTime:20, name: 'a'});
+      application.reloadTasks();
+      scope.$digest();
+
+      expect(controller.sortedTasks.length).toBe(1);
+    });
+  });
+
+  describe('deleting tasks', function () {
+    it ('should confirm delete, then perform delete, then reload tasks', function () {
+      var taskReloadCalls = 0,
+          tasks = [ {id: 'a', name: 'resize something'} ];
+      let application = { tasks: tasks, reloadTasks: () => {
+          taskReloadCalls++;
+        }
+      };
+      spyOn(taskWriter, 'deleteTask').and.returnValue($q.when(null));
+
+      this.initializeController(application);
+      scope.$digest();
+
+      expect(taskReloadCalls).toBe(1);
+      expect(taskWriter.deleteTask.calls.count()).toBe(0);
+
+      controller.deleteTask('a');
+
+      scope.$digest();
+      expect(taskWriter.deleteTask.calls.count()).toBe(1);
+      expect(taskReloadCalls).toBe(2);
+    });
+  });
+
+  describe('canceling tasks', function () {
+    it ('should confirm delete, then perform delete, then reload tasks', function () {
+      var taskReloadCalls = 0,
+          tasks = [ {id: 'a', name: 'resize something'} ];
+      let application = { tasks: tasks, reloadTasks: () => {
+        taskReloadCalls++;
+      }
+      };
+      spyOn(taskWriter, 'cancelTask').and.returnValue($q.when(null));
+
+      this.initializeController(application);
+      scope.$digest();
+
+      expect(taskReloadCalls).toBe(1);
+      expect(taskWriter.cancelTask.calls.count()).toBe(0);
+
+      controller.cancelTask('a');
+
+      scope.$digest();
+      expect(taskWriter.cancelTask.calls.count()).toBe(1);
+      expect(taskReloadCalls).toBe(2);
     });
   });
 
@@ -49,13 +128,8 @@ describe('Controller: tasks', function () {
       ]
     };
 
-    beforeEach(
-      window.inject(
-        controllerInjector(application)
-      )
-    );
-
     it('should sort the tasks with the RUNNING status at the top', function () {
+      this.initializeController(application);
       controller.sortTasks();
       expect(controller.sortedTasks.length).toBe(2);
       expect(controller.sortedTasks[0].status).toEqual('RUNNING');
@@ -70,13 +144,8 @@ describe('Controller: tasks', function () {
       ]
     };
 
-    beforeEach(
-      window.inject(
-        controllerInjector(application)
-      )
-    );
-
     it('should sort the tasks with the RUNNING status at the top', function () {
+      this.initializeController(application);
       controller.sortTasks();
       var sortedList = controller.sortedTasks;
       expect(sortedList.length).toBe(2);
@@ -95,13 +164,8 @@ describe('Controller: tasks', function () {
       ]
     };
 
-    beforeEach(
-      window.inject(
-        controllerInjector(application)
-      )
-    );
-
     it('should sort the tasks in descending order by startTime', function () {
+      this.initializeController(application);
       controller.sortTasks();
       var sortedList = controller.sortedTasks;
       expect(sortedList.length).toBe(2);
@@ -113,6 +177,8 @@ describe('Controller: tasks', function () {
   });
 
   describe('get first deployed server group:', function() {
+
+    beforeEach(function() { this.initializeController({}); });
 
     it('should return undefined if the task does not have any execution property', function () {
       var task = {};

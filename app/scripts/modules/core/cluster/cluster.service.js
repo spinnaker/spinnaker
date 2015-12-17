@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
     function loadServerGroups(applicationName) {
       var serverGroupLoader = Restangular.one('applications', applicationName).all('serverGroups').getList();
       return serverGroupLoader.then(function(results) {
-        results.forEach(addHealthyCountsToServerGroup);
+        results.forEach(addHealthStatusCheck);
         results.forEach(addStackToServerGroup);
         return $q.all(results.map(serverGroupTransformer.normalizeServerGroup));
       });
@@ -38,33 +38,25 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
       });
     }
 
-    function addHealthyCountsToServerGroup(serverGroup) {
-      addHealthStatusCheck(serverGroup);
-      serverGroup.totalCount = serverGroup.instanceCounts.total;
-      serverGroup.upCount = serverGroup.instanceCounts.up;
-      serverGroup.downCount = serverGroup.instanceCounts.down;
-      serverGroup.unknownCount = serverGroup.instanceCounts.unknown + serverGroup.instanceCounts.starting;
-      serverGroup.startingCount = serverGroup.instanceCounts.starting;
-      serverGroup.outOfServiceCount = serverGroup.instanceCounts.outOfService;
-    }
-
     function addHealthCountsToCluster(cluster) {
-      cluster.totalCount = 0;
-      cluster.upCount = 0;
-      cluster.downCount = 0;
-      cluster.unknownCount = 0;
-      cluster.startingCount = 0;
-      cluster.outOfServiceCount = 0;
+      cluster.instanceCounts = {
+        up: 0,
+        down: 0,
+        unknown: 0,
+        starting: 0,
+        outOfService: 0,
+        total: 0,
+      };
       if (!cluster.serverGroups) {
         return;
       }
       cluster.serverGroups.forEach(function(serverGroup) {
-        cluster.totalCount += serverGroup.totalCount || 0;
-        cluster.upCount += serverGroup.upCount || 0;
-        cluster.downCount += serverGroup.downCount || 0;
-        cluster.unknownCount += serverGroup.unknownCount || 0;
-        cluster.startingCount += serverGroup.startingCount || 0;
-        cluster.outOfServiceCount += serverGroup.outOfServiceCount || 0;
+        cluster.instanceCounts.total += serverGroup.instanceCounts.total || 0;
+        cluster.instanceCounts.up += serverGroup.instanceCounts.up || 0;
+        cluster.instanceCounts.down += serverGroup.instanceCounts.down || 0;
+        cluster.instanceCounts.unknown += serverGroup.instanceCounts.unknown || 0;
+        cluster.instanceCounts.starting += serverGroup.instanceCounts.starting || 0;
+        cluster.instanceCounts.outOfService += serverGroup.instanceCounts.outOfService || 0;
       });
     }
 

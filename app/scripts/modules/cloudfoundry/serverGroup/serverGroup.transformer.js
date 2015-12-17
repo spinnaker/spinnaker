@@ -25,6 +25,7 @@ module.exports = angular
       delete command.viewState;
       delete command.backingData;
       delete command.selectedProvider;
+      delete command.providerType;
 
       return command;
     }

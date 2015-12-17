@@ -17,15 +17,17 @@ module.exports = angular.module('spinnaker.core.task.controller', [
     const application = app;
 
     application.loadAllTasks = true;
-    application.reloadTasks(true).then(
-      () => {
-        $scope.viewState.loading = false;
-        $scope.viewState.loadError = app.tasksLoadFailure;
-        if (!app.tasksLoadFailure) {
-          this.sortTasks();
-        }
-      });
-    $scope.$on('$destroy', () => application.loadAllTasks = false);
+    let taskReloadWatcher = application.taskRefreshStream.subscribe(() => {
+      $scope.viewState.loading = false;
+      $scope.viewState.loadError = app.tasksLoadFailure;
+      if (!app.tasksLoadFailure) {
+        this.sortTasks();
+      }
+    });
+    $scope.$on('$destroy', () => {
+      application.loadAllTasks = false;
+      taskReloadWatcher.dispose();
+    });
 
     var tasksViewStateCache = viewStateCache.tasks || viewStateCache.createCache('tasks', { version: 1 });
 
@@ -256,6 +258,7 @@ module.exports = angular.module('spinnaker.core.task.controller', [
     });
 
     initializeViewState();
+    application.reloadTasks(true);
 
   }
 ).name;

@@ -13,58 +13,33 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
   .factory('cfServerGroupCommandBuilder', function (settings, Restangular, $q,
                                                      accountService, instanceTypeService, namingService, _) {
 
-      function populateCustomMetadata(metadataItems, command) {
-        if (metadataItems) {
-          if (angular.isArray(metadataItems)) {
-            metadataItems.forEach(function (metadataItem) {
-              // Don't show 'load-balancer-names' key/value pair in the wizard.
-              if (metadataItem.key !== 'load-balancer-names') {
-                // The 'key' and 'value' attributes are used to enable the Add/Remove behavior in the wizard.
-                command.instanceMetadata.push(metadataItem);
-              }
-            });
-          } else {
-            for (var property in metadataItems) {
-              // Don't show 'load-balancer-names' key/value pair in the wizard.
-              if (property !== 'load-balancer-names') {
-                // The 'key' and 'value' attributes are used to enable the Add/Remove behavior in the wizard.
-                command.instanceMetadata.push({
-                  key: property,
-                  value: metadataItems[property],
-                });
-              }
-            }
-          }
-        }
-      }
-
-      function populateTags(instanceTemplateTags, command) {
-        if (instanceTemplateTags && instanceTemplateTags.items) {
-          _.map(instanceTemplateTags.items, function(tag) {
-            command.tags.push({value: tag});
-          });
-        }
-      }
-
-      function attemptToSetValidCredentials(application, defaultCredentials, command) {
-        return accountService.listAccounts('cf').then(function(cfAccounts) {
-          var cfAccountNames = _.pluck(cfAccounts, 'name');
-          var firstcfAccount = null;
-
-          if (application.accounts.length) {
-            firstcfAccount = _.find(application.accounts, function (applicationAccount) {
-              return cfAccountNames.indexOf(applicationAccount) !== -1;
-            });
-          }
-
-          var defaultCredentialsAreValid = defaultCredentials && cfAccountNames.indexOf(defaultCredentials) !== -1;
-
-          command.credentials =
-              defaultCredentialsAreValid ? defaultCredentials : (firstcfAccount ? firstcfAccount : 'my-account-name');
+    function populateTags(instanceTemplateTags, command) {
+      if (instanceTemplateTags && instanceTemplateTags.items) {
+        _.map(instanceTemplateTags.items, function (tag) {
+          command.tags.push({value: tag});
         });
       }
+    }
 
-      function buildNewServerGroupCommand(application, defaults) {
+    function attemptToSetValidCredentials(application, defaultCredentials, command) {
+      return accountService.listAccounts('cf').then(function (cfAccounts) {
+        var cfAccountNames = _.pluck(cfAccounts, 'name');
+        var firstcfAccount = null;
+
+        if (application.accounts.length) {
+          firstcfAccount = _.find(application.accounts, function (applicationAccount) {
+            return cfAccountNames.indexOf(applicationAccount) !== -1;
+          });
+        }
+
+        var defaultCredentialsAreValid = defaultCredentials && cfAccountNames.indexOf(defaultCredentials) !== -1;
+
+        command.credentials =
+            defaultCredentialsAreValid ? defaultCredentials : (firstcfAccount ? firstcfAccount : 'my-account-name');
+      });
+    }
+
+    function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
 
       var defaultCredentials = defaults.account || settings.providers.cf.defaults.account;
@@ -83,7 +58,6 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
           max: 4,
           desired: 1
         },
-        instanceMetadata: [],
         tags: [],
         cloudProvider: 'cf',
         providerType: 'cf',
@@ -112,7 +86,7 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
       attemptToSetValidCredentials(application, defaultCredentials, command);
 
       return $q.when(command);
-  }
+    }
 
     // Only used to prepare view requiring template selecting
     function buildNewServerGroupCommandForPipeline() {
@@ -123,70 +97,72 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
       });
     }
 
-      function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
-        mode = mode || 'clone';
+    function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
+      mode = mode || 'clone';
 
-        var serverGroupName = namingService.parseServerGroupName(serverGroup.name);
+      var serverGroupName = namingService.parseServerGroupName(serverGroup.name);
 
-        var command = {
-          application: application.name,
-          strategy: '',
-          stack: serverGroupName.stack,
-          freeFormDetails: serverGroupName.freeFormDetails,
-          credentials: serverGroup.account,
-          loadBalancers: serverGroup.loadBalancers,
-          services: serverGroup.services,
-          envs: serverGroup.envs,
-          securityGroups: serverGroup.securityGroups,
+      var command = {
+        application: application.name,
+        strategy: '',
+        stack: serverGroupName.stack,
+        freeFormDetails: serverGroupName.freeFormDetails,
+        credentials: serverGroup.account,
+        loadBalancers: serverGroup.loadBalancers,
+        services: serverGroup.services,
+        envs: serverGroup.envs,
+        securityGroups: serverGroup.securityGroups,
+        region: serverGroup.region,
+        capacity: {
+          min: serverGroup.capacity.min,
+          max: serverGroup.capacity.max,
+          desired: serverGroup.capacity.desired
+        },
+        zone: serverGroup.zones[0],
+        tags: serverGroup.tags,
+        availabilityZones: serverGroup.availabilityZones,
+        cloudProvider: 'cf',
+        providerType: 'cf',
+        selectedProvider: 'cf',
+        source: {
+          account: serverGroup.account,
           region: serverGroup.region,
-          capacity: {
-            min: serverGroup.capacity.min,
-            max: serverGroup.capacity.max,
-            desired: serverGroup.capacity.desired
-          },
           zone: serverGroup.zones[0],
-          instanceMetadata: [],
-          tags: [],
-          availabilityZones: [],
-          cloudProvider: 'cf',
-          providerType: 'cf',
-          selectedProvider: 'cf',
-          source: {
-            account: serverGroup.account,
-            region: serverGroup.region,
-            zone: serverGroup.zones[0],
-            serverGroupName: serverGroup.name,
-            asgName: serverGroup.name
-          },
-          repository: serverGroup.repository,
-          artifact: serverGroup.artifact,
-          username: serverGroup.username,
-          password: serverGroup.password,
-          buildpackUrl: serverGroup.buildpackUrl,
-          memory: serverGroup.memory,
-          viewState: {
-            allImageSelection: null,
-            useAllImageSelection: false,
-            useSimpleCapacity: true,
-            usePreferredZones: false,
-            listImplicitSecurityGroups: false,
-            mode: mode,
-          },
-        };
+          serverGroupName: serverGroup.name,
+          asgName: serverGroup.name
+        },
+        repository: serverGroup.repository,
+        artifact: serverGroup.artifact,
+        username: serverGroup.username,
+        password: serverGroup.password,
+        buildpackUrl: serverGroup.buildpackUrl,
+        memory: serverGroup.memory,
+        viewState: {
+          allImageSelection: null,
+          useAllImageSelection: false,
+          useSimpleCapacity: true,
+          usePreferredZones: false,
+          listImplicitSecurityGroups: false,
+          mode: mode,
+        },
+      };
 
-        return $q.when(command);
-      }
+      return $q.when(command);
+    }
 
-      function buildServerGroupCommandFromPipeline(application, originalCluster) {
+    function buildServerGroupCommandFromPipeline(application, originalCluster) {
 
       var pipelineCluster = _.cloneDeep(originalCluster);
       var region = Object.keys(pipelineCluster.availabilityZones)[0];
       var zone = pipelineCluster.zone;
       var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('cf', pipelineCluster.instanceType);
-      var commandOptions = { account: pipelineCluster.account, region: region, zone: zone };
-      var asyncLoader = $q.all({command: buildNewServerGroupCommand(application, commandOptions), instanceProfile: instanceTypeCategoryLoader});
+      var commandOptions = {account: pipelineCluster.account, region: region, zone: zone};
+      var asyncLoader = $q.all({
+        command: buildNewServerGroupCommand(application, commandOptions),
+        instanceProfile: instanceTypeCategoryLoader
+      });
 
-      return asyncLoader.then(function(asyncData) {
+      return asyncLoader.then(function (asyncData) {
         var command = asyncData.command;
 
         var viewState = {
@@ -207,10 +183,6 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
 
         var extendedCommand = angular.extend({}, command, pipelineCluster, viewOverrides);
 
-        var instanceMetadata = extendedCommand.instanceMetadata;
-        extendedCommand.instanceMetadata = [];
-        populateCustomMetadata(instanceMetadata, extendedCommand);
-
         var instanceTemplateTags = {items: extendedCommand.tags};
         extendedCommand.tags = [];
         populateTags(instanceTemplateTags, extendedCommand);
@@ -226,6 +198,6 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
       buildNewServerGroupCommandForPipeline: buildNewServerGroupCommandForPipeline,
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
-})
+  })
 .name;
 
