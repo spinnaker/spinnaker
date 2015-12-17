@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.kato.cf.deploy.ops
 
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.kato.cf.TestCredential
 import com.netflix.spinnaker.kato.cf.deploy.description.ResizeCloudFoundryServerGroupDescription
 import com.netflix.spinnaker.kato.cf.security.TestCloudFoundryClientFactory
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
 import org.cloudfoundry.client.lib.CloudFoundryOperations
 import org.springframework.web.client.ResourceAccessException
 import spock.lang.Specification

@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.kato.docker.deploy.handlers
 
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.deploy.DeployDescription
-import com.netflix.spinnaker.kato.deploy.DeployHandler
-import com.netflix.spinnaker.kato.deploy.DeploymentResult
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
+import com.netflix.spinnaker.clouddriver.deploy.DeployHandler
+import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.kato.docker.deploy.description.DockerDeployDescription
 import com.netflix.spinnaker.kato.docker.security.Docker
 import com.netflix.spinnaker.kato.docker.services.RegistryService

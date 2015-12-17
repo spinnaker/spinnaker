@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.kato.aws.deploy
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.helpers.AbstractServerGroupNameResolver
 import com.netflix.spinnaker.kato.aws.services.AsgService
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.helpers.AbstractServerGroupNameResolver
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 

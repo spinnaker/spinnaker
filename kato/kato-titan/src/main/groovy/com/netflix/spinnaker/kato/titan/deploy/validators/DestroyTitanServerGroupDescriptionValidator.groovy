@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.kato.titan.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.titan.TitanOperation
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
-import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.titan.deploy.description.DestroyTitanServerGroupDescription
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component

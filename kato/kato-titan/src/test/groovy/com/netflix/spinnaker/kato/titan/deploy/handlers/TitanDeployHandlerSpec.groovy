@@ -15,11 +15,11 @@
  */
 
 package com.netflix.spinnaker.kato.titan.deploy.handlers
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.deploy.DeploymentResult
 import com.netflix.spinnaker.kato.titan.deploy.description.TitanDeployDescription
 import com.netflix.titanclient.TitanClient
 import com.netflix.titanclient.TitanRegion

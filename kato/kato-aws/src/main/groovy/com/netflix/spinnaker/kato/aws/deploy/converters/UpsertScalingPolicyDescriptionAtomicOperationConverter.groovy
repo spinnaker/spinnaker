@@ -18,9 +18,9 @@ package com.netflix.spinnaker.kato.aws.deploy.converters
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertScalingPolicyDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.UpsertScalingPolicyAtomicOperation
-import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 

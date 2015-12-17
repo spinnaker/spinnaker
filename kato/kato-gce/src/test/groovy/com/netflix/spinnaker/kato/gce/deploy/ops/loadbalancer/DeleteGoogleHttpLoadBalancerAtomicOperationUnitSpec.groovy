@@ -22,15 +22,15 @@ import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.Operation
 import com.google.api.services.compute.model.TargetHttpProxy
 import com.google.api.services.compute.model.UrlMap
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleHttpLoadBalancerDescription
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationTimedOutException
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
-import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleHttpLoadBalancerDescription
 import spock.lang.Specification
 import spock.lang.Subject
 

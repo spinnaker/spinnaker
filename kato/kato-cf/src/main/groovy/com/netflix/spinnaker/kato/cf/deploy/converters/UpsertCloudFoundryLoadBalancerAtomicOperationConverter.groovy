@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.kato.cf.deploy.converters
 
 import com.netflix.spinnaker.clouddriver.cf.CloudFoundryOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.kato.cf.deploy.description.UpsertCloudFoundryLoadBalancerDescription
 import com.netflix.spinnaker.kato.cf.deploy.ops.loadbalancer.UpsertCloudFoundryLoadBalancerAtomicOperation
-import com.netflix.spinnaker.kato.orchestration.AtomicOperation
-import com.netflix.spinnaker.kato.orchestration.AtomicOperations
-import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
 /**

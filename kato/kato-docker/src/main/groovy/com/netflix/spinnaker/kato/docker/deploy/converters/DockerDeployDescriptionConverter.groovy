@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.kato.docker.deploy.converters
 
-import com.netflix.spinnaker.kato.deploy.DeployAtomicOperation
-import com.netflix.spinnaker.kato.deploy.DeployDescription
+import com.netflix.spinnaker.clouddriver.deploy.DeployAtomicOperation
+import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.kato.docker.deploy.description.DockerDeployDescription
-import com.netflix.spinnaker.kato.orchestration.AtomicOperation
-import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
 @Component("dockerDeployDescription")

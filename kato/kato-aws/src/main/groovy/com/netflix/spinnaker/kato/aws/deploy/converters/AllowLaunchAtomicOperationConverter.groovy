@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.converters
 
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.kato.aws.deploy.description.AllowLaunchDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.AllowLaunchAtomicOperation
-import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
 @Component("allowLaunchDescription")

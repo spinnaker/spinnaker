@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.kato.cf.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.cf.deploy.description.EnableDisableCloudFoundryServerGroupDescription
-import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.validation.Errors
 

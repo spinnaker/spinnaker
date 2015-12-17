@@ -18,8 +18,8 @@ package com.netflix.spinnaker.kato.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.aws.deploy.description.DeleteSecurityGroupDescription
-import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors

@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.kato.aws.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertSecurityGroupDescription
 import com.netflix.spinnaker.kato.aws.model.SecurityGroupNotFoundException
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
-import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors

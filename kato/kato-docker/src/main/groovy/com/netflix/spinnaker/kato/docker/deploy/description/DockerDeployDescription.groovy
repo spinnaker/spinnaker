@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kato.docker.deploy.description
 
-import com.netflix.spinnaker.kato.deploy.DeployDescription
+import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 
 class DockerDeployDescription extends AbstractDockerCredentialsDescription implements DeployDescription {
   String application

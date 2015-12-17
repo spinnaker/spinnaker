@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.kato.docker.deploy.converters
 
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.kato.docker.deploy.description.StopContainerDescription
 import com.netflix.spinnaker.kato.docker.deploy.op.StopContainerAtomicOperation
-import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
 @Component("stopContainerDescription")

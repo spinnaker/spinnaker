@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.kato.data.task.jedis
 
 import com.netflix.spinnaker.cats.redis.test.LocalRedisCheck
-import com.netflix.spinnaker.kato.data.task.DefaultTaskStatus
-import com.netflix.spinnaker.kato.data.task.TaskState
+import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
+import com.netflix.spinnaker.clouddriver.data.task.TaskState
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import spock.lang.IgnoreIf

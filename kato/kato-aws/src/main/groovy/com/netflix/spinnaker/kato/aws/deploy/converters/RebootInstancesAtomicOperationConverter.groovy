@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.kato.aws.deploy.converters
 
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.kato.aws.deploy.description.RebootInstancesDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.RebootInstancesAtomicOperation
-import com.netflix.spinnaker.kato.orchestration.AtomicOperation
-import com.netflix.spinnaker.kato.orchestration.AtomicOperations
-import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
 @AmazonOperation(AtomicOperations.REBOOT_INSTANCES)

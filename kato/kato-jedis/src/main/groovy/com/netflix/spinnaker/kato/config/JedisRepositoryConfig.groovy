@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kato.config
 
-import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.kato.data.task.jedis.JedisTaskRepository
 import groovy.transform.CompileStatic
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty

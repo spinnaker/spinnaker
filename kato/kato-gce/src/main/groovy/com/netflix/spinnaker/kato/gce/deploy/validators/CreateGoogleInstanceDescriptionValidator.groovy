@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.config.GceConfig
-import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleInstanceDescription
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component

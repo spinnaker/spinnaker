@@ -16,7 +16,6 @@
 
 dependencies {
   compile project(":clouddriver-titan")
-  compile project(":kato:kato-core")
   compile spinnaker.dependency('bootActuator')
   spinnaker.group('retrofitDefault')
 }

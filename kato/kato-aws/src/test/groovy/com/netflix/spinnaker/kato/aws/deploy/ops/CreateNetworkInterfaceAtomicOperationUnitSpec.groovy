@@ -16,6 +16,8 @@
 package com.netflix.spinnaker.kato.aws.deploy.ops
 import com.amazonaws.services.ec2.model.NetworkInterface
 import com.google.common.collect.Iterables
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.CreateNetworkInterfaceDescription
 import com.netflix.spinnaker.kato.aws.model.AwsNetworkInterface
@@ -23,8 +25,6 @@ import com.netflix.spinnaker.kato.aws.model.ResultByZone
 import com.netflix.spinnaker.kato.aws.model.TagsNotCreatedException
 import com.netflix.spinnaker.kato.aws.services.NetworkInterfaceService
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
 import spock.lang.Specification
 
 class CreateNetworkInterfaceAtomicOperationUnitSpec extends Specification {

@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.kato.config
 
 import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
+import com.netflix.spinnaker.clouddriver.deploy.DeployHandler
+import com.netflix.spinnaker.clouddriver.helpers.OperationPoller
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.kato.cf.deploy.handlers.CloudFoundryDeployHandler
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryClientFactory
 import com.netflix.spinnaker.kato.cf.security.DefaultCloudFoundryClientFactory
-import com.netflix.spinnaker.kato.deploy.DeployHandler
-import com.netflix.spinnaker.kato.helpers.OperationPoller
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty

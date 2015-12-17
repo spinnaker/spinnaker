@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.kato.gce.deploy.converters
 
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 
 class GoogleAtomicOperationConverterHelper {
   static Object convertDescription(Map input,

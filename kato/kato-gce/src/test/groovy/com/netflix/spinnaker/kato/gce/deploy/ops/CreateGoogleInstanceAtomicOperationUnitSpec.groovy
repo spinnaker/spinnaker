@@ -28,13 +28,13 @@ import com.google.api.services.compute.model.MachineType
 import com.google.api.services.compute.model.MachineTypeList
 import com.google.api.services.compute.model.Network
 import com.google.api.services.compute.model.NetworkList
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.kato.config.GceConfig
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleInstanceDescription
+import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
 import groovy.mock.interceptor.MockFor
 import spock.lang.Specification
 import spock.lang.Subject

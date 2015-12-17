@@ -15,11 +15,11 @@
  */
 package com.netflix.spinnaker.kato.aws.deploy.ops
 
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.aws.deploy.description.SuspendAsgProcessesDescription
 import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
-import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import org.springframework.beans.factory.annotation.Autowired
 
