@@ -62,7 +62,7 @@ spec:
       volumes:
       - name: config-volume
         hostPath:
-          path: /root/.spinnaker/
+          path: /root/.spinnaker/config/
       - name: aws-creds
         hostPath:
           path: /root/.spinnaker/.aws/
@@ -120,7 +120,7 @@ spec:
       volumes:
       - name: config-volume
         hostPath:
-          path: /root/.spinnaker/
+          path: /root/.spinnaker/config/
 ---
 ### gate
 ---
@@ -172,7 +172,7 @@ spec:
       volumes:
       - name: config-volume
         hostPath:
-          path: /root/.spinnaker/
+          path: /root/.spinnaker/config/
 ---
 ### rush
 ---
@@ -224,7 +224,7 @@ spec:
       volumes:
       - name: config-volume
         hostPath:
-          path: /root/.spinnaker/
+          path: /root/.spinnaker/config/
 ---
 ### rosco
 ---
@@ -276,7 +276,7 @@ spec:
       volumes:
       - name: config-volume
         hostPath:
-          path: /root/.spinnaker/
+          path: /root/.spinnaker/config/
 ---
 ### echo
 ---
@@ -328,7 +328,7 @@ spec:
       volumes:
       - name: config-volume
         hostPath:
-          path: /root/.spinnaker/
+          path: /root/.spinnaker/config/
 ---
 ### front50
 ---
@@ -380,7 +380,7 @@ spec:
       volumes:
       - name: config-volume
         hostPath:
-          path: /root/.spinnaker/
+          path: /root/.spinnaker/config/
 ---
 ### deck
 ---
@@ -438,4 +438,4 @@ spec:
       volumes:
       - name: config-volume
         hostPath:
-          path: /root/.spinnaker/
+          path: /root/.spinnaker/config/
