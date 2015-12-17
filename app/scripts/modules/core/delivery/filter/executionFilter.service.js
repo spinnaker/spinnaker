@@ -114,8 +114,14 @@ module.exports = angular
      * Grouping logic
      */
 
-    function groupExecutions(executions, application) {
+    function groupExecutions(filteredExecutions, application) {
       var groups = [];
+      // limit based on sortFilter.count
+      var executions = [];
+      _.forOwn(_.groupBy(filteredExecutions, 'name'), (groupedExecutions) => {
+        executions = executions.concat(groupedExecutions.sort(executionSorter).slice(0, ExecutionFilterModel.sortFilter.count));
+      });
+
       if (ExecutionFilterModel.sortFilter.groupBy === 'name') {
         var executionGroups = _.groupBy(executions, 'name');
         _.forOwn(executionGroups, function (executions, key) {
@@ -124,7 +130,7 @@ module.exports = angular
           groups.push({
             heading: key,
             config: config ? config[0] : null,
-            executions: executions.slice(0, ExecutionFilterModel.sortFilter.count),
+            executions: executions,
             runningExecutions: executions.filter((execution) => execution.isActive),
           });
         });
@@ -138,7 +144,7 @@ module.exports = angular
           groups.push({
             heading: key,
             config: null,
-            executions: executions.slice(0, ExecutionFilterModel.sortFilter.count),
+            executions: executions,
             runningExecutions: executions.filter((execution) => execution.isActive),
           });
         });
