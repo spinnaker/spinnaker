@@ -11,6 +11,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.shrinkClusterStag
       key: 'shrinkCluster',
       label: 'Shrink Cluster',
       description: 'Shrinks a cluster',
+      strategy: true
     });
   });
 
