@@ -76,4 +76,28 @@ describe('recent history service', function() {
     });
   });
 
+  describe('remove item from history cache by app name', function () {
+    beforeEach(
+      function initilizeCache() {
+        let start = new Date().getTime() - 1;
+        let currentItems = ["foo", "bar", "baz"].map((appName, index) => {
+          return { params: {application: appName, accessTime: start - index}}
+        });
+        backingCache.put('applications', currentItems);
+      }
+    );
+
+    it('should have 3 items in the "applications" cache', function () {
+      let items = service.getItems("applications");
+      expect(items.length).toBe(3);
+    });
+
+    it('should have 2 items in the "application" cache when we remove "foo" by application name', function () {
+      service.removeByAppName("foo");
+      let items = service.getItems("applications");
+      expect(items.length).toBe(2);
+      expect(_.any(items, {params: {application: "foo"}})).toBeFalsy();
+    });
+  });
+
 });
