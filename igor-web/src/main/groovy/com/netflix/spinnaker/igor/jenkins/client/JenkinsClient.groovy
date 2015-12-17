@@ -25,6 +25,7 @@ import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
 import com.netflix.spinnaker.igor.jenkins.client.model.ScmDetails
 import retrofit.client.Response
+import retrofit.http.EncodedPath
 import retrofit.http.GET
 import retrofit.http.POST
 import retrofit.http.Path
@@ -36,44 +37,48 @@ import retrofit.http.Streaming
  */
 @SuppressWarnings('LineLength')
 interface JenkinsClient {
+    /*
+     * Jobs created with the Jenkins Folders plugin are nested.
+     * Some queries look for jobs within folders with a depth of 10.
+     */
 
-    @GET('/api/xml?tree=jobs[name,lastBuild[actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url]]&exclude=/*/*/*/action[not(totalCount)]')
+    @GET('/api/xml?tree=jobs[name,lastBuild[actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url],jobs[name,lastBuild[actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url],jobs[name,lastBuild[actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url],jobs[name,lastBuild[actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url],jobs[name,lastBuild[actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url],jobs[name,lastBuild[actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url],jobs[name,lastBuild[actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url],jobs[name,lastBuild[actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url],jobs[name,lastBuild[actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url],jobs[name,lastBuild[actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url]]]]]]]]]]]&exclude=/*/*/*/action[not(totalCount)]')
     ProjectsList getProjects()
 
-    @GET('/api/xml?tree=jobs[name]')
+    @GET('/api/xml?tree=jobs[name,jobs[name,jobs[name,jobs[name,jobs[name,jobs[name,jobs[name,jobs[name,jobs[name,jobs[name]]]]]]]]]]')
     JobList getJobs()
 
     @GET('/job/{jobName}/api/xml?exclude=/*/build/action[not(totalCount)]&tree=builds[number,url,duration,timestamp,result,building,url,fullDisplayName,actions[failCount,skipCount,totalCount]]')
-    BuildsList getBuilds(@Path('jobName') String jobName)
+    BuildsList getBuilds(@EncodedPath('jobName') String jobName)
 
     @GET('/job/{jobName}/api/xml?tree=name,url,actions[processes[name]],downstreamProjects[name,url],upstreamProjects[name,url]')
-    BuildDependencies getDependencies(@Path('jobName') String jobName)
+    BuildDependencies getDependencies(@EncodedPath('jobName') String jobName)
 
     @GET('/job/{jobName}/{buildNumber}/api/xml?exclude=/*/action[not(totalCount)]&tree=actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url,fullDisplayName,artifacts[displayPath,fileName,relativePath]')
-    Build getBuild(@Path('jobName') String jobName, @Path('buildNumber') Integer buildNumber)
+    Build getBuild(@EncodedPath('jobName') String jobName, @Path('buildNumber') Integer buildNumber)
 
     @GET('/job/{jobName}/{buildNumber}/api/xml?exclude=/*/action[not(lastBuiltRevision)]&tree=actions[remoteUrl,lastBuiltRevision[branch[name,SHA1]]]')
-    ScmDetails getGitDetails(@Path('jobName') String jobName, @Path('buildNumber') Integer buildNumber)
+    ScmDetails getGitDetails(@EncodedPath('jobName') String jobName, @Path('buildNumber') Integer buildNumber)
 
     @GET('/job/{jobName}/lastCompletedBuild/api/xml')
-    Build getLatestBuild(@Path('jobName') String jobName)
+    Build getLatestBuild(@EncodedPath('jobName') String jobName)
 
     @GET('/queue/item/{itemNumber}/api/xml')
     QueuedJob getQueuedItem(@Path('itemNumber') Integer item)
 
     @POST('/job/{jobName}/build')
-    Response build(@Path('jobName') String jobName)
+    Response build(@EncodedPath('jobName') String jobName)
 
     @POST('/job/{jobName}/buildWithParameters')
-    Response buildWithParameters(@Path('jobName') String jobName, @QueryMap Map<String, String> queryParams)
+    Response buildWithParameters(@EncodedPath('jobName') String jobName, @QueryMap Map<String, String> queryParams)
 
     @GET('/job/{jobName}/api/xml?exclude=/*/action&exclude=/*/build&exclude=/*/property[not(parameterDefinition)]')
-    JobConfig getJobConfig(@Path('jobName') String jobName)
+    JobConfig getJobConfig(@EncodedPath('jobName') String jobName)
 
     @Streaming
     @GET('/job/{jobName}/{buildNumber}/artifact/{fileName}')
     Response getPropertyFile(
-        @Path('jobName') String jobName,
+        @EncodedPath('jobName') String jobName,
         @Path('buildNumber') Integer buildNumber, @Path(value = 'fileName', encode = false) String fileName)
 
 }

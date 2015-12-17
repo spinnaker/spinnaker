@@ -22,6 +22,7 @@ import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
+import javax.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PathVariable
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.servlet.HandlerMapping
 
 import javax.ws.rs.QueryParam
 
@@ -73,11 +75,31 @@ class InfoController {
             throw new MasterNotFoundException("Master '${master}' does not exist")
         }
 
-        jenkinsService.jobs.list.collect { it.name }
+        def jobList = []
+        def recursiveGetJobs
+
+        recursiveGetJobs = { list, prefix="" ->
+            if (prefix) {
+                prefix = prefix + "/job/"
+            }
+            list.each {
+                if (it.list == null || it.list.empty) {
+                    jobList << prefix + it.name
+                } else {
+                    recursiveGetJobs(it.list, prefix + it.name)
+                }
+            }
+        }
+        recursiveGetJobs(jenkinsService.jobs.list)
+
+        return jobList
     }
 
-    @RequestMapping(value = '/jobs/{master}/{job:.+}')
-    JobConfig getJobConfig(@PathVariable String master, @PathVariable String job) {
+    @RequestMapping(value = '/jobs/{master}/**')
+    JobConfig getJobConfig(@PathVariable String master, HttpServletRequest request) {
+        def job = (String) request.getAttribute(
+            HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(3).join('/')
+
         log.info('Getting the job config for {} at {}', job, master)
 
         def jenkinsService = masters.map[master]

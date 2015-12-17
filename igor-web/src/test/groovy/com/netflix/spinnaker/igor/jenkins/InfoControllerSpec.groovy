@@ -73,20 +73,33 @@ class InfoControllerSpec extends Specification {
     }
 
     void 'is able to get jobs for a jenkins master'() {
-        given:
-        final JOBS = ['blah', 'blip', 'bum']
-
         when:
         MockHttpServletResponse response = mockMvc.perform(get('/jobs/master1/')
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * masters.map >> [ 'master1' : [ jobs : [ list: [
-            ['name': 'blah'],
-            ['name': 'blip'],
-            ['name': 'bum']
+        1 * masters.map >> [ 'master1' : [ 'jobs' : [ 'list': [
+            ['name': 'job1'],
+            ['name': 'job2'],
+            ['name': 'job3']
         ] ] ] ]
-        response.contentAsString == '["blah","blip","bum"]'
+        response.contentAsString == '["job1","job2","job3"]'
+    }
+
+    void 'is able to get jobs for a jenkins master with the folders plugin'() {
+        when:
+        MockHttpServletResponse response = mockMvc.perform(get('/jobs/master1/')
+            .accept(MediaType.APPLICATION_JSON)).andReturn().response
+
+        then:
+        1 * masters.map >> [ 'master1' : [ 'jobs' : [ 'list': [
+            ['name': 'folder', 'list': [
+                ['name': 'job1'],
+                ['name': 'job2']
+            ] ],
+            ['name': 'job3']
+        ] ] ] ]
+        response.contentAsString == '["folder/job/job1","folder/job/job2","job3"]'
     }
 
     private void setResponse(String body) {
@@ -105,6 +118,19 @@ class InfoControllerSpec extends Specification {
 
         when:
         MockHttpServletResponse response = mockMvc.perform(get('/jobs/master1/MY-JOB')
+            .accept(MediaType.APPLICATION_JSON)).andReturn().response
+
+        then:
+        1 * masters.map >> ['master2': [], 'build.masters.blah': [], 'master1': service]
+        response.contentAsString == '{"description":null,"displayName":"My-Build","name":"My-Build","buildable":true,"color":"red","url":"http://jenkins.builds.net/job/My-Build/","parameterDefinitionList":[{"defaultName":"pullRequestSourceBranch","defaultValue":"master","name":"pullRequestSourceBranch","description":null,"type":"StringParameterDefinition"},{"defaultName":"generation","defaultValue":"4","name":"generation","description":null,"type":"StringParameterDefinition"}],"upstreamProjectList":[{"name":"Upstream-Build","url":"http://jenkins.builds.net/job/Upstream-Build/","color":"blue"}],"downstreamProjectList":[{"name":"First-Downstream-Build","url":"http://jenkins.builds.net/job/First-Downstream-Build/","color":"blue"},{"name":"Second-Downstream-Build","url":"http://jenkins.builds.net/job/Second-Downstream-Build/","color":"blue"},{"name":"Third-Downstream-Build","url":"http://jenkins.builds.net/job/Third-Downstream-Build/","color":"red"}],"concurrentBuild":false}'
+    }
+
+    void 'is able to get a job config with the folders plugin'() {
+        given:
+        setResponse(getJobConfig())
+
+        when:
+        MockHttpServletResponse response = mockMvc.perform(get('/jobs/master1/folder/job/MY-JOB')
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:

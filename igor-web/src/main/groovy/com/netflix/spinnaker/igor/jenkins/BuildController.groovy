@@ -23,6 +23,7 @@ import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
+import javax.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PathVariable
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.servlet.HandlerMapping
 import org.yaml.snakeyaml.Yaml
 
 import java.util.concurrent.ExecutorService
@@ -47,8 +49,10 @@ class BuildController {
     @Autowired
     ObjectMapper objectMapper
 
-    @RequestMapping(value = '/jobs/{master}/{job}/{buildNumber}')
-    Map getJobStatus(@PathVariable String master, @PathVariable String job, @PathVariable Integer buildNumber) {
+    @RequestMapping(value = '/builds/status/{buildNumber}/{master}/**')
+    Map getJobStatus(@PathVariable String master, @PathVariable Integer buildNumber, HttpServletRequest request) {
+        def job = (String) request.getAttribute(
+            HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(5).join('/')
         if (!masters.map.containsKey(master)) {
             throw new MasterNotFoundException()
         }
@@ -69,7 +73,7 @@ class BuildController {
         result
     }
 
-    @RequestMapping(value = '/jobs/{master}/queue/{item}')
+    @RequestMapping(value = '/builds/queue/{master}/{item}')
     QueuedJob getQueueLocation(@PathVariable String master, @PathVariable int item){
         if (!masters.map.containsKey(master)) {
             throw new MasterNotFoundException()
@@ -77,19 +81,22 @@ class BuildController {
         masters.map[master].getQueuedItem(item)
     }
 
-    @RequestMapping(value = '/jobs/{master}/{job}/builds')
-    List<Build> getBuilds(@PathVariable String master, @PathVariable String job) {
+    @RequestMapping(value = '/builds/all/{master}/**')
+    List<Build> getBuilds(@PathVariable String master, HttpServletRequest request) {
+        def job = (String) request.getAttribute(
+            HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(4).join('/')
         if (!masters.map.containsKey(master)) {
             throw new MasterNotFoundException()
         }
-        def lists = masters.map[master].getBuilds(job)
         masters.map[master].getBuilds(job).list
     }
 
-    @RequestMapping(value = '/masters/{master}/jobs/{job:.+}', method = RequestMethod.PUT)
+    @RequestMapping(value = '/masters/{name}/jobs/**', method = RequestMethod.PUT)
     String build(
-        @PathVariable("master") String master,
-        @PathVariable String job, @RequestParam Map<String, String> requestParams) {
+        @PathVariable("name") String master,
+        @RequestParam Map<String, String> requestParams, HttpServletRequest request) {
+        def job = (String) request.getAttribute(
+            HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(4).join('/')
         if (!masters.map.containsKey(master)) {
             throw new MasterNotFoundException()
         }
@@ -125,10 +132,12 @@ class BuildController {
         queuedLocation.split('/')[-1]
     }
 
-    @RequestMapping(value = '/jobs/{master}/{job}/{buildNumber}/properties/{fileName:.+}')
+    @RequestMapping(value = '/builds/properties/{buildNumber}/{fileName}/{master}/**')
     Map<String, Object> getProperties(
         @PathVariable String master,
-        @PathVariable String job, @PathVariable Integer buildNumber, @PathVariable String fileName) {
+        @PathVariable Integer buildNumber, @PathVariable String fileName, HttpServletRequest request) {
+        def job = (String) request.getAttribute(
+            HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(6).join('/')
         if (!masters.map.containsKey(master)) {
             throw new MasterNotFoundException()
         }

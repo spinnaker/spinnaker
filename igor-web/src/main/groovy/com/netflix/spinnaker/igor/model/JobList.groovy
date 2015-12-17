@@ -34,6 +34,9 @@ class JobList {
 }
 
 class Job {
+    @ElementList(inline = true, name = "job", required=false)
+    List<Job> list
+
     @Element(required = false)
     String name
 }

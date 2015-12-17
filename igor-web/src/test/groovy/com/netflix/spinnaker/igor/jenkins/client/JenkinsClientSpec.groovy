@@ -57,7 +57,7 @@ class JenkinsClientSpec extends Specification {
 
         then:
         projects.size() == 3
-        projects*.name == ['uno', 'dos', 'tres']
+        projects*.name == ['job1', 'job2', 'folder1/job/folder2/job/job3']
     }
 
     void 'gets build details'() {
@@ -186,11 +186,11 @@ class JenkinsClientSpec extends Specification {
         jobConfig.url == "http://jenkins.builds.net/job/My-Build/"
 
     }
-    
+
     void 'trigger a build without parameters'() {
         given:
         setResponse("")
-        
+
         when:
         def response = client.build("My-Build")
 
@@ -198,7 +198,7 @@ class JenkinsClientSpec extends Specification {
         response
 
     }
-    
+
     void 'trigger a build with parameters'() {
         given:
         setResponse("")
@@ -270,7 +270,7 @@ class JenkinsClientSpec extends Specification {
     private String getBuildsWithArtifactsAndTests() {
         return '<hudson>' +
                 '<job>' +
-                '<name>uno</name>' +
+                '<name>job1</name>' +
                 '<lastBuild>' +
                 '<action><failCount>0</failCount><skipCount>1</skipCount><totalCount>111</totalCount><urlName>testReport</urlName></action>' +
                 '<action><failCount>0</failCount><skipCount>0</skipCount><totalCount>123</totalCount><urlName>testngreports</urlName></action>' +
@@ -282,11 +282,11 @@ class JenkinsClientSpec extends Specification {
                 '<number>1</number>' +
                 '<result>SUCCESS</result>' +
                 '<timestamp>1421717251402</timestamp>' +
-                '<url>http://my.jenkins.net/job/uno/1/</url>' +
+                '<url>http://my.jenkins.net/job/job1/1/</url>' +
                 '</lastBuild>' +
                 '</job>' +
                 '<job>' +
-                '<name>dos</name>' +
+                '<name>job2</name>' +
                 '<lastBuild>' +
                 '<action><failCount>0</failCount><skipCount>0</skipCount><totalCount>222</totalCount></action>' +
                 '<action><failCount>0</failCount><skipCount>0</skipCount><totalCount>222</totalCount></action>' +
@@ -298,16 +298,16 @@ class JenkinsClientSpec extends Specification {
                 '<number>2</number>' +
                 '<result>SUCCESS</result>' +
                 '<timestamp>1421717251402</timestamp>' +
-                '<url>http://my.jenkins.net/job/dos/2/</url>' +
+                '<url>http://my.jenkins.net/job/job2/2/</url>' +
                 '</lastBuild>' +
                 '</job>' +
                 '<job>' +
-                '<name>tres</name>' +
+                '<name>folder1/job/folder2/job/job3</name>' +
                 '<lastBuild>' +
                 '<building>true</building>' +
                 '<number>3</number>' +
                 '<timestamp>1421717251402</timestamp>' +
-                '<url>http://my.jenkins.net/job/tres/3/</url>' +
+                '<url>http://my.jenkins.net/job/folder1/job/folder2/job/job3/3/</url>' +
                 '</lastBuild>' +
                 '</job>' +
                 '</hudson>'
