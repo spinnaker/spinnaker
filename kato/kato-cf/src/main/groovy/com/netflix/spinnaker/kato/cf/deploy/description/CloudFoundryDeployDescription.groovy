@@ -53,6 +53,8 @@ class CloudFoundryDeployDescription implements DeployDescription {
 
   Integer memory = 1024
 
+  String buildpackUrl = ''
+
   String stack
 
   String freeFormDetails

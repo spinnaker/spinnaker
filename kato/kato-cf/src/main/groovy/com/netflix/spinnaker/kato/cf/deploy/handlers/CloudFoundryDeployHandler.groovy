@@ -172,11 +172,15 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
     }
 
     try {
-      Staging staging = new Staging() // TODO evaluate if we need command, buildpack, etc.
+      Staging staging = (description?.buildpackUrl) ? new Staging(null, description.buildpackUrl) : new Staging()
       if (application == null) {
         def domain = client.getDefaultDomain()
         def loadBalancers = description.loadBalancers?.split(',').collect {it + "." + domain.name}
 
+        task.updateStatus BASE_PHASE, "Memory set to ${description.memory}"
+        if (description?.buildpackUrl) {
+          task.updateStatus BASE_PHASE, "Custom buildpack ${description.buildpackUrl}"
+        }
         client.createApplication(description.serverGroupName, staging, description.memory, loadBalancers,
             description?.services)
         // TODO Add support for updating application disk quotas
@@ -191,11 +195,17 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
     try {
       def results
 
+
       /**
        * Barebones templating to allow user to tap into build details
        */
-      description.repository = description.repository.replace('{job}', description.trigger.job)
-      description.repository = description.repository.replace('{buildNumber}', description.trigger.buildNumber as String)
+      def options = ['job', 'buildNumber']
+
+      options.each { option ->
+        if (description?.trigger?.hasProperty(option)) {
+          description.repository = description.repository.replace("{${option}}", description?.trigger[option] as String)
+        }
+      }
 
       if (description.repository.startsWith('http')) {
         results = downloadJarFileFromWeb(description)
@@ -227,11 +237,12 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
       env[CloudFoundryConstants.JENKINS_HOST] = description.trigger.buildInfo.url
       env[CloudFoundryConstants.JENKINS_NAME] = description.trigger.job
       env[CloudFoundryConstants.JENKINS_BUILD] = description.trigger.buildNumber
-      env[CloudFoundryConstants.PACKAGE] = description.artifact
       env[CloudFoundryConstants.COMMIT_HASH] = description.trigger.buildInfo.scm[0].sha1
       env[CloudFoundryConstants.COMMIT_BRANCH] = description.trigger.buildInfo.scm[0].branch
-      env[CloudFoundryConstants.LOAD_BALANCERS] = description.loadBalancers
     }
+
+    env[CloudFoundryConstants.PACKAGE] = description.artifact
+    env[CloudFoundryConstants.LOAD_BALANCERS] = description.loadBalancers
 
     client.updateApplicationEnv(description.serverGroupName, env)
   }
