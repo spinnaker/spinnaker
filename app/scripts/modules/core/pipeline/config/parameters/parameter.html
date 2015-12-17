@@ -23,6 +23,20 @@
         <input type="text" required ng-model="parameter.default"
                class="form-control input-sm"/>
       </stage-config-field>
+      <stage-config-field label="Show Options" help-key="pipeline.config.parameter.default">
+        <input type="checkbox" ng-model="parameter.hasOptions" ng-change="parameterCtrl.setupOptions(parameter)">
+      </stage-config-field>
+      <stage-config-field ng-if="parameter.hasOptions" label="Options" help-key="pipeline.config.parameter.description">
+        <div ng-repeat="item in parameter.options" style="margin-bottom:5px">
+          <input style="width:90%" class="col-md-4 form-control input-sm" ng-model="item.value" type="text"/>
+          <button class="btn-link" ng-click="parameterCtrl.removeOption($index, parameter)">
+            <span class="glyphicon glyphicon-trash" uib-tooltip="Remove Option"></span><span class="sr-only">Remove Option</span>
+          </button>
+        </div>
+        <button class="btn btn-sm btn-default" ng-click="parameterCtrl.addOption(parameter)">
+          <span class="glyphicon glyphicon-plus-sign"></span> Add New Option
+        </button>
+      </stage-config-field>
     </div>
   </div>
 </div>
