@@ -111,10 +111,7 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
     } catch (RetrofitError e) {
       handleRetrofitError(e, "Unable to retrieve status for '$statusId'.", statusId)
 
-      bakeStore.updateBakeStatus(new BakeStatus(id: statusId,
-                                                resource_id: statusId,
-                                                state: BakeStatus.State.CANCELED,
-                                                result: BakeStatus.Result.FAILURE))
+      bakeStore.cancelBakeById(statusId)
     }
   }
 
