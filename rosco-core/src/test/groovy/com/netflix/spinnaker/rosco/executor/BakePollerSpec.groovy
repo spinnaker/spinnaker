@@ -163,10 +163,7 @@ class BakePollerSpec extends Specification {
 
       1 * rushServiceMock.scriptDetails(SCRIPT_ID) >> { throw retrofitError }
       1 * bakeStoreMock.storeBakeError(SCRIPT_ID, "\"Some Rush error...\"")
-      1 * bakeStoreMock.updateBakeStatus(new BakeStatus(id: SCRIPT_ID,
-                                                        resource_id: SCRIPT_ID,
-                                                        state: BakeStatus.State.CANCELED,
-                                                        result: BakeStatus.Result.FAILURE))
+      1 * bakeStoreMock.cancelBakeById(SCRIPT_ID)
   }
 
 }
