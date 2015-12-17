@@ -76,7 +76,7 @@ Spinnaker needs the set of [configuration files](../../config) to be available t
 1. Copy the edited `spinnaker-local.yml` file to the config directory on the node.
 
   ```
-  $ gcloud compute copy-files ./spinnaker-local.yml root@$MY_GKE_NODE:/root/.spinnaker
+  $ gcloud compute copy-files ./spinnaker-local.yml root@$MY_GKE_NODE:/root/.spinnaker/config
   ```
 
 1. Create and download your JSON credentials for this project in the [Google Developers Console](https://console.developers.google.com/).
