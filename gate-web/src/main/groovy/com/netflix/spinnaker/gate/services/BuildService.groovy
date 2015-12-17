@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.util.UriUtils
 import retrofit.RetrofitError
 
 @CompileStatic
@@ -35,6 +36,10 @@ class BuildService {
 
   @Autowired(required = false)
   IgorService igorService
+
+  private String encode(uri) {
+    return UriUtils.encodeFragment(uri.toString(), "UTF-8")
+  }
 
   List<String> getBuildMasters() {
     if (!igorService) {
@@ -69,7 +74,7 @@ class BuildService {
     }
     HystrixFactory.newMapCommand(GROUP, "jobConfig") {
       try {
-        igorService.getJobConfig(buildMaster, job)
+        igorService.getJobConfig(buildMaster, encode(job))
       } catch (RetrofitError e) {
         if (e.response?.status == 404) {
           throw new BuildMasterNotFound("Build master '${buildMaster}' not found")
@@ -86,7 +91,7 @@ class BuildService {
     }
     HystrixFactory.newListCommand(GROUP, "buildsForJob") {
       try {
-        igorService.getBuilds(buildMaster, job)
+        igorService.getBuilds(buildMaster, encode(job))
       } catch (RetrofitError e) {
         if (e.response?.status == 404) {
           throw new BuildMasterNotFound("Build master '${buildMaster}' not found")
@@ -103,7 +108,7 @@ class BuildService {
     }
     HystrixFactory.newMapCommand(GROUP, "buildDetails") {
       try {
-        igorService.getBuild(buildMaster, job, number)
+        igorService.getBuild(buildMaster, encode(job), number)
       } catch (RetrofitError e) {
         if (e.response?.status == 404) {
           throw new BuildMasterNotFound("Build master '${buildMaster}' not found")
