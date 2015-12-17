@@ -196,5 +196,5 @@ rush-oy0gx          1/1       Running   0          27s
 1. Tear down your service with the following
 
   ```
-  $ kubectrl delete -f 2-repControllers.yml
+  $ kubectl delete -f 2-repControllers.yml
   ```
