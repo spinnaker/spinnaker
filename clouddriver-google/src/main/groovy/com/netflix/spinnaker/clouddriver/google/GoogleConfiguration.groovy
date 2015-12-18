@@ -17,8 +17,12 @@
 package com.netflix.spinnaker.clouddriver.google
 
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
+import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.health.GoogleHealthIndicator
+import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
+import com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceTypeDisk
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentialsInitializer
+import groovy.transform.ToString
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -40,6 +44,11 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @PropertySource(value = "classpath:META-INF/clouddriver-core.properties", ignoreResourceNotFound = true)
 @Import([ GoogleCredentialsInitializer ])
 class GoogleConfiguration {
+
+  private static final String DEFAULT_KEY = "default"
+  private static final String DISK_TYPE = "pd-standard"
+  private static final long DISK_SIZE_GB = 10
+
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
   @ConfigurationProperties("google")
@@ -55,6 +64,43 @@ class GoogleConfiguration {
   @Bean
   String googleApplicationName(@Value('${Implementation-Version:Unknown}') String implementationVersion) {
     "Spinnaker/$implementationVersion"
+  }
+
+  @Bean
+  GoogleOperationPoller googleOperationPoller() {
+    new GoogleOperationPoller()
+  }
+
+  @Bean
+  @ConfigurationProperties('google.defaults')
+  DeployDefaults googleDeployDefaults() {
+    new DeployDefaults()
+  }
+
+  @ToString(includeNames = true)
+  static class DeployDefaults {
+    List<GoogleInstanceTypeDisk> instanceTypeDisks = []
+
+    GoogleInstanceTypeDisk determineInstanceTypeDisk(String instanceType) {
+      GoogleInstanceTypeDisk instanceTypeDisk = instanceTypeDisks.find {
+        it.instanceType == instanceType
+      }
+
+      if (!instanceTypeDisk) {
+        instanceTypeDisk = instanceTypeDisks.find {
+          it.instanceType == DEFAULT_KEY
+        }
+      }
+
+      if (!instanceTypeDisk) {
+        instanceTypeDisk =
+          new GoogleInstanceTypeDisk(instanceType: DEFAULT_KEY,
+            disks: [new GoogleDisk(type: DISK_TYPE,
+              sizeGb: DISK_SIZE_GB)])
+      }
+
+      return instanceTypeDisk
+    }
   }
 }
 

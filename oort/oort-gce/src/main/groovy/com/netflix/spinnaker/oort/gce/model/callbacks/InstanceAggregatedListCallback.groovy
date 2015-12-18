@@ -20,8 +20,7 @@ import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.model.HealthStatus
-import com.google.api.services.compute.model.InstanceAggregatedList
-import com.netflix.spinnaker.mort.gce.model.GoogleSecurityGroup
+import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.oort.gce.model.GoogleInstance
 import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
 import com.netflix.spinnaker.oort.model.HealthState
