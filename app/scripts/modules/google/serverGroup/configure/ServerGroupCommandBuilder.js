@@ -58,6 +58,8 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
         return instanceTypeService.getInstanceTypeDetails(command.selectedProvider, command.instanceType).then(function(instanceTypeDetails) {
           command.viewState.instanceTypeDetails = instanceTypeDetails;
+
+          calculateOverriddenStorageDescription(instanceTypeDetails, command);
         });
       } else {
         command.persistentDiskType = 'pd-ssd';
@@ -84,12 +86,26 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
         return instanceTypeService.getInstanceTypeDetails(command.selectedProvider, command.instanceType).then(function(instanceTypeDetails) {
           command.viewState.instanceTypeDetails = instanceTypeDetails;
+
+          calculateOverriddenStorageDescription(instanceTypeDetails, command);
         });
       } else {
         command.persistentDiskType = 'pd-ssd';
         command.persistentDiskSizeGb = 10;
 
         return $q.when(null);
+      }
+    }
+
+    function calculateOverriddenStorageDescription(instanceTypeDetails, command) {
+      if (instanceTypeDetails.storage.localSSDSupported) {
+        if (command.localSSDCount !== instanceTypeDetails.storage.count) {
+          command.viewState.overriddenStorageDescription = command.localSSDCount > 0 ? command.localSSDCount + "×375" : "0";
+        }
+      } else {
+        if (command.persistentDiskSizeGb !== instanceTypeDetails.storage.size) {
+          command.viewState.overriddenStorageDescription = "1×" + command.persistentDiskSizeGb;
+        }
       }
     }
 

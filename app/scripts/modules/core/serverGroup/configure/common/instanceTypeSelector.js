@@ -49,4 +49,16 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.ins
       });
     };
 
+    this.getStorageDescription = function(instanceType) {
+      if ($scope.command.instanceType === instanceType.name && $scope.command.viewState.overriddenStorageDescription) {
+        return $scope.command.viewState.overriddenStorageDescription;
+      } else {
+        return instanceType.storage.count + "×" + instanceType.storage.size;
+      }
+    };
+
+    this.getStorageDescriptionHelpKey = function(instanceType) {
+      return $scope.command.instanceType === instanceType.name && $scope.command.viewState.overriddenStorageDescription ? "instanceType.storageOverridden" : null;
+    };
+
   });
