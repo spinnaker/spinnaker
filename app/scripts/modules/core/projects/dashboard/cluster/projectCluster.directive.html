@@ -7,22 +7,14 @@
             <h5>
               <collapsible-account-tag account="{{vm.cluster.account}}" state="vm.state"></collapsible-account-tag>
               <span class="cluster-name">{{vm.clusterLabel}}</span>
-
-              <a href ng-click="vm.refreshImmediately(); $event.stopPropagation()">
-                <span class="small glyphicon glyphicon-refresh refresh-enabled"
-                      tooltip-placement="bottom"
-                      uib-tooltip-template="vm.refreshTooltipTemplate"
-                      ng-class="{'glyphicon-spinning': vm.state.refreshing}"></span>
-              </a>
-
-              <span class="pull-right" ng-if="vm.state.loaded">
+              <span class="pull-right">
                 <span class="cluster-health">
-                  {{vm.clusterData.applications.length}} Application<span ng-if="vm.clusterData.applications.length !== 1">s</span>
+                  {{vm.cluster.applications.length}} Application<span ng-if="vm.cluster.applications.length !== 1">s</span>
                 </span>
                 <span class="cluster-health">
-                  {{vm.clusterData.instanceCounts.totalCount}} Instances
+                  {{vm.cluster.instanceCounts.total}} Instances
                 </span>
-                <health-counts container="vm.clusterData.instanceCounts"></health-counts>
+                <health-counts container="vm.cluster.instanceCounts"></health-counts>
               </span>
             </h5>
           </div>
@@ -31,50 +23,44 @@
     </div>
   </div>
   <div class="rollup-details" ng-if="vm.state.expanded">
-    <div ng-if="!vm.state.refreshing && !vm.clusterData.regions.length" class="text-center">
+    <div ng-if="!vm.cluster.applications.length" class="text-center">
       <p>No clusters found for any applications.</p>
     </div>
-    <table class="table table-condensed" ng-if="vm.clusterData.applications.length">
+    <table class="table table-condensed" ng-if="vm.cluster.applications.length">
       <thead>
         <tr>
           <th width="18%"></th>
           <th width="9%"></th>
-          <th ng-if="vm.state.loaded" width="15%">Last Push</th>
-          <th width="58%" ng-if="!vm.state.loaded">(loading clusters...)</th>
-          <th ng-repeat="region in vm.clusterData.regions" width="{{57/vm.clusterData.regions.length}}%">
+          <th width="15%">Last Push</th>
+          <th ng-repeat="region in vm.cluster.regions" width="{{57/vm.cluster.regions.length}}%">
             {{region}}
           </th>
         </tr>
       </thead>
       <tbody>
-      <tr ng-repeat="application in vm.clusterData.applications | orderBy: 'name'">
+      <tr ng-repeat="application in vm.cluster.applications | orderBy: 'name'">
         <td>
           <a class="heavy" ng-click="vm.clearFilters(application.metadata)" ng-href="{{application.metadata.href}}" ng-class="application.hasInconsistentBuilds ? 'text-warning' : ''">
-            {{application.name | uppercase}}
+            {{application.application | uppercase}}
           </a>
         </td>
         <td>
-          <a class="heavy" ng-if="application.build.number" href="{{application.build.url}}" target="_blank">
-            <span ng-if="vm.state.loaded">#</span>{{application.build.number}}
+          <a class="heavy" ng-if="application.build.buildNumber" href="{{application.build.url}}" target="_blank">
+            <span>#</span>{{application.build.buildNumber}}
           </a>
           <span ng-if="application.hasInconsistentBuilds"
                 class="glyphicon glyphicon-warning-sign text-warning"
                 uib-tooltip="Some server groups are deployed with an older build."></span>
         </td>
-        <td ng-if="!vm.state.loaded">
-          <div class="text-center">
-            <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
-          </div>
-        </td>
-        <td ng-if="vm.state.loaded">
-          <span ng-if="!application.lastCreatedTime">
+        <td>
+          <span ng-if="!application.lastPush">
             -
           </span>
-          <span class="small" ng-if="application.lastCreatedTime">
-            {{application.lastCreatedTime | relativeTime }}
+          <span class="small" ng-if="application.lastPush">
+            {{application.lastPush | relativeTime }}
           </span>
         </td>
-        <td ng-repeat="region in vm.clusterData.regions">
+        <td ng-repeat="region in vm.cluster.regions">
           <span ng-if="application.regions[region]">
             <a ng-click="vm.clearFilters(application.regions[region].metadata)" ng-href="{{application.regions[region].metadata.href}}">
               <health-counts container="application.regions[region].instanceCounts"

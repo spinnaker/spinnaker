@@ -11,7 +11,8 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
   require('../../scheduler/scheduler.service.js'),
   require('../../history/recentHistory.service.js'),
 ])
-  .controller('ProjectDashboardCtrl', function ($scope, projectConfiguration, executionService, scheduler, recentHistoryService) {
+  .controller('ProjectDashboardCtrl', function ($scope, $q, projectConfiguration, executionService, projectReader,
+                                                scheduler, recentHistoryService) {
 
     $scope.project = projectConfiguration;
 
@@ -30,20 +31,33 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
     }
 
     this.state = {
+      executionsLoaded: false,
+      clustersLoaded: false,
       refreshing: false,
       lastRefresh: new Date().getTime(),
     };
 
-    let getExecutions = () => {
-      this.state.refreshing = true;
-      executionService.getProjectExecutions(projectConfiguration.name).then((executions) => {
-        $scope.executions = executions;
-        this.state.refreshing = false;
-        this.state.lastRefresh = new Date().getTime();
+    let getClusters = () => {
+      return projectReader.getProjectClusters(projectConfiguration.name).then((clusters) => {
+        this.clusters = clusters;
+        this.state.clustersLoaded = true;
       });
     };
 
-    let dataLoader = scheduler.subscribe(getExecutions);
+    let getExecutions = () => {
+      return executionService.getProjectExecutions(projectConfiguration.name).then((executions) => {
+        $scope.executions = executions;
+        this.state.executionsLoaded = true;
+      });
+    };
+
+    let dataLoader = scheduler.subscribe(() => {
+      this.state.refreshing = true;
+      $q.all([getClusters(), getExecutions()]).then(() => {
+        this.state.refreshing = false;
+        this.state.lastRefresh = new Date().getTime();
+      });
+    });
 
     $scope.$on('$destroy', () => dataLoader.dispose());
 
