@@ -90,9 +90,9 @@ describe('Controller: projectCluster directive', function () {
           usEast = clusterData.applications[0].regions['us-east-1'],
           usWest = clusterData.applications[0].regions['us-west-1'];
 
-      expect(clusterData.instanceCounts).toEqual({totalCount: 15, upCount: 5, downCount: 1, unknownCount: 2, outOfServiceCount: 3, startingCount: 4});
-      expect(usEast.instanceCounts).toEqual({totalCount: 13, upCount: 4, downCount: 1, unknownCount: 2, outOfServiceCount: 3, startingCount: 3});
-      expect(usWest.instanceCounts).toEqual({totalCount: 2, upCount: 1, downCount: 0, unknownCount: 0, outOfServiceCount: 0, startingCount: 1});
+      expect(clusterData.instanceCounts).toEqual({total: 15, up: 5, down: 1, unknown: 2, outOfService: 3, starting: 4});
+      expect(usEast.instanceCounts).toEqual({total: 13, up: 4, down: 1, unknown: 2, outOfService: 3, starting: 3});
+      expect(usWest.instanceCounts).toEqual({total: 2, up: 1, down: 0, unknown: 0, outOfService: 0, starting: 1});
 
       expect(clusterData.applications[0].lastCreatedTime).toBe(24);
       expect(usEast.lastCreatedTime).toBe(2);
