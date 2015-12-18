@@ -16,14 +16,22 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.aws
 
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroupLinearStageSupport
 import com.netflix.spinnaker.orca.clouddriver.tasks.aws.scalingprocess.ResumeAwsScalingProcessTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.aws.scalingprocess.SuspendAwsScalingProcessTask
+import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
@@ -47,13 +55,15 @@ class ModifyAwsScalingProcessStage extends TargetServerGroupLinearStageSupport {
         return [
           buildStep(stage, "suspend", SuspendAwsScalingProcessTask),
           buildStep(stage, "monitor", MonitorKatoTask),
-          buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+          buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
+          buildStep(stage, "waitForScalingProcesses", WaitForScalingProcess)
         ]
       case StageAction.resume:
         return [
           buildStep(stage, "resume", ResumeAwsScalingProcessTask),
           buildStep(stage, "monitor", MonitorKatoTask),
-          buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+          buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
+          buildStep(stage, "waitForScalingProcesses", WaitForScalingProcess)
         ]
     }
     throw new RuntimeException("No action specified!")
@@ -65,5 +75,65 @@ class ModifyAwsScalingProcessStage extends TargetServerGroupLinearStageSupport {
 
   static class StageData {
     StageAction action
+  }
+
+  @Component
+  static class WaitForScalingProcess implements RetryableTask {
+    long timeout = 1200000
+    long backoffPeriod = 20000
+
+    @Autowired
+    OortHelper oortHelper
+
+    @Override
+    TaskResult execute(Stage stage) {
+      def stageData = stage.mapTo(StageData)
+      def targetServerGroup = oortHelper.getTargetServerGroup(
+        stageData.credentials, stageData.serverGroupName, stageData.region, 'aws'
+      )
+
+      if (!targetServerGroup.present) {
+        throw new IllegalStateException("No server group found (serverGroupName: ${stageData.region}:${stageData.serverGroupName})")
+      }
+
+      def suspendedProcesses = getSuspendedProcesses(targetServerGroup.get())
+
+      def isComplete
+      if (stageData.isResume()) {
+        isComplete = suspendedProcesses?.intersect(stageData.processes)?.isEmpty()
+      } else {
+        isComplete = suspendedProcesses?.intersect(stageData.processes) == stageData.processes
+      }
+
+      return isComplete ? new DefaultTaskResult(ExecutionStatus.SUCCEEDED) : new DefaultTaskResult(ExecutionStatus.RUNNING)
+    }
+
+    @CompileDynamic
+    static Collection<String> getSuspendedProcesses(TargetServerGroup targetServerGroup) {
+      def asgDetails = targetServerGroup.asg as Map
+      return asgDetails.suspendedProcesses*.processName
+    }
+
+    static class StageData {
+      String credentials
+      String serverGroupName
+      String asgName
+      List<String> regions
+      String region
+      String action
+      List<String> processes
+
+      String getRegion() {
+        return regions ? regions[0] : region
+      }
+
+      String getServerGroupName() {
+        return serverGroupName ?: asgName
+      }
+
+      boolean isResume() {
+        return action == ModifyAwsScalingProcessStage.StageAction.resume.toString()
+      }
+    }
   }
 }

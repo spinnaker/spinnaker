@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import com.netflix.spinnaker.orca.clouddriver.pipeline.aws.ModifyAwsScalingProcessStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceLinearStageSupport
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
@@ -47,13 +48,15 @@ class ModifyScalingProcessStage extends TargetReferenceLinearStageSupport {
         return [
           buildStep(stage, "suspend", SuspendScalingProcessTask),
           buildStep(stage, "monitor", MonitorKatoTask),
-          buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+          buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
+          buildStep(stage, "waitForScalingProcesses", ModifyAwsScalingProcessStage.WaitForScalingProcess)
         ]
       case StageAction.resume:
         return [
           buildStep(stage, "resume", ResumeScalingProcessTask),
           buildStep(stage, "monitor", MonitorKatoTask),
-          buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+          buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
+          buildStep(stage, "waitForScalingProcesses", ModifyAwsScalingProcessStage.WaitForScalingProcess)
         ]
     }
     throw new RuntimeException("No action specified!")
