@@ -91,23 +91,23 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
 
     let addInstanceCounts = (container) => {
       container.instanceCounts = {
-          totalCount: 0,
-          upCount: 0,
-          downCount: 0,
-          outOfServiceCount: 0,
-          startingCount: 0,
-          unknownCount: 0,
+          total: 0,
+          up: 0,
+          down: 0,
+          outOfService: 0,
+          starting: 0,
+          unknown: 0,
       };
     };
 
     let incrementInstanceCounts = (parent, container) => {
       let parentCounts = parent.instanceCounts;
-      parentCounts.totalCount += container.instanceCounts.total;
-      parentCounts.upCount += container.instanceCounts.up;
-      parentCounts.downCount += container.instanceCounts.down;
-      parentCounts.outOfServiceCount += container.instanceCounts.outOfService;
-      parentCounts.startingCount += container.instanceCounts.starting;
-      parentCounts.unknownCount += container.instanceCounts.unknown;
+      parentCounts.total += container.instanceCounts.total;
+      parentCounts.up += container.instanceCounts.up;
+      parentCounts.down += container.instanceCounts.down;
+      parentCounts.outOfService += container.instanceCounts.outOfService;
+      parentCounts.starting += container.instanceCounts.starting;
+      parentCounts.unknown += container.instanceCounts.unknown;
     };
 
     let makeBuildModel = (serverGroup) => {
@@ -125,12 +125,12 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
       this.clusterData = {
         regions: [],
         instanceCounts: {
-          totalCount: 0,
-          upCount: 0,
-          downCount: 0,
-          outOfServiceCount: 0,
-          startingCount: 0,
-          unknownCount: 0,
+          total: 0,
+          up: 0,
+          down: 0,
+          outOfService: 0,
+          starting: 0,
+          unknown: 0,
         }
       };
       this.clusterData.applications = getApplications().map((application) => {
