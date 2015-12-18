@@ -34,13 +34,17 @@
           ng-click="instanceTypeCtrl.selectInstanceType(instanceType)">
         <td>
           <help-field ng-if="instanceType.unavailable" key="instanceType.unavailable"></help-field>
+          <help-field ng-if="instanceType.helpFieldKey" key="{{instanceType.helpFieldKey}}"></help-field>
           <input type="radio" ng-value="instanceType.name" ng-model="command.instanceType" ng-disabled="instanceType.unavailable"/>
         </td>
         <td>{{instanceType.label}}</td>
         <td>{{instanceType.cpu}}</td>
         <td>{{instanceType.memory}}</td>
         <td ng-if="instanceType.storage.type === 'EBS'">EBS Only</td>
-        <td ng-if="instanceType.storage.type === 'SSD' || family.storageType">{{instanceType.storage.count}}&times;{{instanceType.storage.size}}</td>
+        <td ng-if="instanceType.storage.type === 'SSD' || family.storageType">
+          <help-field ng-if="instanceTypeCtrl.getStorageDescriptionHelpKey(instanceType)" key="{{instanceTypeCtrl.getStorageDescriptionHelpKey(instanceType)}}"></help-field>
+          {{instanceTypeCtrl.getStorageDescription(instanceType)}}
+        </td>
         <td><cost-factor factor="instanceType.costFactor"></cost-factor></td>
       </tr>
       </tbody>

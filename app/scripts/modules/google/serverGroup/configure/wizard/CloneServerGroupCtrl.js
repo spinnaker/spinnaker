@@ -108,6 +108,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
             $scope.command.persistentDiskType = defaultSettings.persistentDiskType;
             $scope.command.persistentDiskSizeGb = defaultSettings.persistentDiskSizeGb;
             $scope.command.localSSDCount = defaultSettings.localSSDCount;
+
+            delete $scope.command.viewState.overriddenStorageDescription;
           }
         } else {
           $scope.command.viewState.initialized = true;
