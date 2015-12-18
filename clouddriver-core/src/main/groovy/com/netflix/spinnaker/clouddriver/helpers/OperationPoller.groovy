@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.clouddriver.helpers
 
 import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.exception.OperationTimedOutException
+import com.netflix.spinnaker.clouddriver.exceptions.OperationTimedOutException
 import groovy.util.logging.Slf4j
 
 /**

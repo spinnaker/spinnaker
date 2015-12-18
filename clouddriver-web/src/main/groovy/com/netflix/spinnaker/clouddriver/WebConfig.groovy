@@ -20,9 +20,16 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.controllers.CacheController
 import com.netflix.spinnaker.clouddriver.controllers.ConfigRefreshController
 import com.netflix.spinnaker.clouddriver.controllers.CredentialsController
+import com.netflix.spinnaker.clouddriver.controllers.ElasticIpController
+import com.netflix.spinnaker.clouddriver.controllers.InstanceTypeController
+import com.netflix.spinnaker.clouddriver.controllers.KeyPairController
+import com.netflix.spinnaker.clouddriver.controllers.NetworkController
 import com.netflix.spinnaker.clouddriver.controllers.OperationsController
 import com.netflix.spinnaker.clouddriver.controllers.SearchController
+import com.netflix.spinnaker.clouddriver.controllers.SecurityGroupController
+import com.netflix.spinnaker.clouddriver.controllers.SubnetController
 import com.netflix.spinnaker.clouddriver.controllers.TaskController
+import com.netflix.spinnaker.clouddriver.controllers.VpcController
 import com.netflix.spinnaker.clouddriver.filters.SimpleCORSFilter
 import com.netflix.spinnaker.clouddriver.listeners.CredentialsRefreshListener
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
@@ -41,13 +48,20 @@ import javax.servlet.Filter
 @Configuration
 @Import([
   SimpleCORSFilter,
+  CacheController,
   ConfigRefreshController,
   CredentialsController,
   CredentialsRefreshListener,
-  CacheController,
-  SearchController,
+  ElasticIpController,
+  InstanceTypeController,
+  KeyPairController,
+  NetworkController,
   OperationsController,
-  TaskController
+  SearchController,
+  SecurityGroupController,
+  SubnetController,
+  TaskController,
+  VpcController
 ])
 public class WebConfig extends WebMvcConfigurerAdapter {
   @Autowired

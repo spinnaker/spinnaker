@@ -25,12 +25,12 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.mem.InMemoryCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
+import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
+import com.netflix.spinnaker.clouddriver.model.securitygroups.SecurityGroupRule
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import com.netflix.spinnaker.mort.aws.model.AmazonSecurityGroup
 import com.netflix.spinnaker.mort.aws.provider.AwsInfrastructureProvider
-import com.netflix.spinnaker.mort.model.securitygroups.IpRangeRule
-import com.netflix.spinnaker.mort.model.securitygroups.Rule
-import com.netflix.spinnaker.mort.model.securitygroups.SecurityGroupRule
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject

@@ -22,9 +22,9 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import com.netflix.spinnaker.clouddriver.model.NetworkProvider
 import com.netflix.spinnaker.mort.gce.cache.Keys
 import com.netflix.spinnaker.mort.gce.model.GoogleNetwork
-import com.netflix.spinnaker.mort.model.NetworkProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 

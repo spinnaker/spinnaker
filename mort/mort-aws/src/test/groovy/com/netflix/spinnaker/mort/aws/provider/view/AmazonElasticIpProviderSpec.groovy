@@ -21,9 +21,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.mem.InMemoryCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.model.ElasticIp
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import com.netflix.spinnaker.mort.aws.model.AmazonElasticIp
-import com.netflix.spinnaker.mort.model.ElasticIp
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject

@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.mort.gce.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.netflix.spinnaker.mort.model.SecurityGroup
-import com.netflix.spinnaker.mort.model.SecurityGroupSummary
-import com.netflix.spinnaker.mort.model.securitygroups.Rule
+import com.netflix.spinnaker.clouddriver.model.SecurityGroup
+import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary
+import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 import groovy.transform.Immutable
 
 @Immutable

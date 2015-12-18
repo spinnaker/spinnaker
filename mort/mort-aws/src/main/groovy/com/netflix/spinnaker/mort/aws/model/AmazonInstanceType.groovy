@@ -17,7 +17,7 @@
 
 
 package com.netflix.spinnaker.mort.aws.model
-import com.netflix.spinnaker.mort.model.InstanceType
+import com.netflix.spinnaker.clouddriver.model.InstanceType
 import groovy.transform.Canonical
 
 @Canonical

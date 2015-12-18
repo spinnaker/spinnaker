@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.mort.aws.model
-import com.netflix.spinnaker.mort.model.Subnet
+import com.netflix.spinnaker.clouddriver.model.Subnet
 import groovy.transform.Canonical
 
 @Canonical

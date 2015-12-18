@@ -20,6 +20,18 @@ import com.netflix.spinnaker.clouddriver.cache.CacheConfig
 import com.netflix.spinnaker.clouddriver.cache.NoopOnDemandCacheUpdater
 import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
+import com.netflix.spinnaker.clouddriver.model.ElasticIpProvider
+import com.netflix.spinnaker.clouddriver.model.InstanceTypeProvider
+import com.netflix.spinnaker.clouddriver.model.KeyPairProvider
+import com.netflix.spinnaker.clouddriver.model.NetworkProvider
+import com.netflix.spinnaker.clouddriver.model.NoopElasticIpProvider
+import com.netflix.spinnaker.clouddriver.model.NoopInstanceTypeProvider
+import com.netflix.spinnaker.clouddriver.model.NoopKeyPairProvider
+import com.netflix.spinnaker.clouddriver.model.NoopNetworkProvider
+import com.netflix.spinnaker.clouddriver.model.NoopSecurityGroupProvider
+import com.netflix.spinnaker.clouddriver.model.NoopSubnetProvider
+import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider
+import com.netflix.spinnaker.clouddriver.model.SubnetProvider
 import com.netflix.spinnaker.clouddriver.search.ApplicationSearchProvider
 import com.netflix.spinnaker.clouddriver.search.NoopSearchProvider
 import com.netflix.spinnaker.clouddriver.search.ProjectSearchProvider
@@ -88,6 +100,42 @@ class CloudDriverConfig {
   @ConditionalOnMissingBean(CloudProvider)
   CloudProvider noopCloudProvider() {
     new NoopCloudProvider()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(InstanceTypeProvider)
+  InstanceTypeProvider noopInstanceTypeProvider() {
+    new NoopInstanceTypeProvider()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(KeyPairProvider)
+  KeyPairProvider noopKeyPairProvider() {
+    new NoopKeyPairProvider()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(SecurityGroupProvider)
+  SecurityGroupProvider noopSecurityGroupProvider() {
+    new NoopSecurityGroupProvider()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(SubnetProvider)
+  SubnetProvider noopSubnetProvider() {
+    new NoopSubnetProvider()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(NetworkProvider)
+  NetworkProvider noopVpcProvider() {
+    new NoopNetworkProvider()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(ElasticIpProvider)
+  ElasticIpProvider noopElasticIpProvider() {
+    new NoopElasticIpProvider()
   }
 
   // Allows @Value annotation to tokenize a list of strings.

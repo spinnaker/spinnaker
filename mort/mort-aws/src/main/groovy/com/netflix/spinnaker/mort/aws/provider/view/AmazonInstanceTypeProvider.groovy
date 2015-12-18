@@ -19,8 +19,8 @@ package com.netflix.spinnaker.mort.aws.provider.view
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.model.InstanceTypeProvider
 import com.netflix.spinnaker.mort.aws.model.AmazonInstanceType
-import com.netflix.spinnaker.mort.model.InstanceTypeProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
