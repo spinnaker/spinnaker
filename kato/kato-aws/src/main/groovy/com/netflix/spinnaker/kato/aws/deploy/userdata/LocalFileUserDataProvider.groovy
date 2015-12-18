@@ -64,6 +64,11 @@ class LocalFileUserDataProvider implements UserDataProvider {
   static String replaceUserDataTokens(boolean useAccountNameAsEnvironment, Names names, String launchConfigName, String region, String account, String environment, String accountType, String rawUserData) {
     String stack = names.stack ?: ''
     String cluster = names.cluster ?: ''
+    String revision = names.revision ?: ''
+    String countries = names.countries ?: ''
+    String devPhase = names.devPhase ?: ''
+    String hardware = names.hardware ?: ''
+    String zone = names.zone ?: ''
 
     // Replace the tokens & return the result
     String result = rawUserData
@@ -74,6 +79,11 @@ class LocalFileUserDataProvider implements UserDataProvider {
       .replace('%%region%%', region)
       .replace('%%group%%', names.group)
       .replace('%%autogrp%%', names.group)
+      .replace('%%revision%%', revision)
+      .replace('%%countries%%', countries)
+      .replace('%%devPhase%%', devPhase)
+      .replace('%%hardware%%', hardware)
+      .replace('%%zone%%', zone)
       .replace('%%cluster%%', cluster)
       .replace('%%stack%%', stack)
       .replace('%%launchconfig%%', launchConfigName)
