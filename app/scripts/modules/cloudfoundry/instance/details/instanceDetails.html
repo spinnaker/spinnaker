@@ -135,6 +135,9 @@
     </collapsible-section>
     <collapsible-section heading="Logs">
       <ul>
+        <li ng-if="instance.consoleLink">
+          <a href="{{instance.consoleLink}}" target="_blank">Application Console</a>
+        </li>
         <li ng-if="instance.logsLink">
           <a href="{{instance.logsLink}}" target="_blank">Developers Console Logs</a>
         </li>

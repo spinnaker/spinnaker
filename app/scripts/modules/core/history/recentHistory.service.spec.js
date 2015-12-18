@@ -81,7 +81,7 @@ describe('recent history service', function() {
       function initilizeCache() {
         let start = new Date().getTime() - 1;
         let currentItems = ["foo", "bar", "baz"].map((appName, index) => {
-          return { params: {application: appName, accessTime: start - index}}
+          return { params: {application: appName, accessTime: start - index}};
         });
         backingCache.put('applications', currentItems);
       }
