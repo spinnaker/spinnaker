@@ -21,7 +21,7 @@ import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.Compute
-import com.netflix.spinnaker.mort.gce.model.GoogleSecurityGroup
+import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.oort.gce.model.GoogleApplication
 import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
 import org.apache.log4j.Logger
