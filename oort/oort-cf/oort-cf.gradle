@@ -1,5 +1,4 @@
 dependencies {
-  compile project(":mort:mort-core")
   compile project(":oort:oort-core")
   compile project(":clouddriver-cf")
 

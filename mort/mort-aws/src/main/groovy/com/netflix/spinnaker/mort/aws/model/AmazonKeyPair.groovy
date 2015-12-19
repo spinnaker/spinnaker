@@ -15,7 +15,7 @@
  */
 
 package com.netflix.spinnaker.mort.aws.model
-import com.netflix.spinnaker.mort.model.KeyPair
+import com.netflix.spinnaker.clouddriver.model.KeyPair
 import groovy.transform.Canonical
 
 @Canonical

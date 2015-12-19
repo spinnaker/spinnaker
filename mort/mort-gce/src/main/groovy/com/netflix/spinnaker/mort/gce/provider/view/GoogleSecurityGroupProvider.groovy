@@ -22,12 +22,12 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import com.netflix.spinnaker.clouddriver.model.AddressableRange
+import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider
+import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
+import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 import com.netflix.spinnaker.mort.gce.cache.Keys
 import com.netflix.spinnaker.mort.gce.model.GoogleSecurityGroup
-import com.netflix.spinnaker.mort.model.AddressableRange
-import com.netflix.spinnaker.mort.model.SecurityGroupProvider
-import com.netflix.spinnaker.mort.model.securitygroups.IpRangeRule
-import com.netflix.spinnaker.mort.model.securitygroups.Rule
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 

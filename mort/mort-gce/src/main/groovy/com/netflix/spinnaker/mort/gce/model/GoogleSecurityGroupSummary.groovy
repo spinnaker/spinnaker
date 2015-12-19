@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.mort.gce.model
 
-import com.netflix.spinnaker.mort.model.SecurityGroupSummary
+import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.Immutable
 

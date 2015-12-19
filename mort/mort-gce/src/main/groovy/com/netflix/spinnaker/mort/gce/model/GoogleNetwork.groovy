@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.mort.gce.model
 
-import com.netflix.spinnaker.mort.model.Network
+import com.netflix.spinnaker.clouddriver.model.Network
 
 class GoogleNetwork implements Network {
   String cloudProvider

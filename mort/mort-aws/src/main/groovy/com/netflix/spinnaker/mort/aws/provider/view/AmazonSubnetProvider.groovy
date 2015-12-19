@@ -23,9 +23,9 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.model.SubnetProvider
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import com.netflix.spinnaker.mort.aws.model.AmazonSubnet
-import com.netflix.spinnaker.mort.model.SubnetProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
