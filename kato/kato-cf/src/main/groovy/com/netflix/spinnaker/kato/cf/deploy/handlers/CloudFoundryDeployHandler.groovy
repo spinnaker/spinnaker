@@ -195,18 +195,6 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
     try {
       def results
 
-
-      /**
-       * Barebones templating to allow user to tap into build details
-       */
-      def options = ['job', 'buildNumber']
-
-      options.each { option ->
-        if (description?.trigger?.hasProperty(option)) {
-          description.repository = description.repository.replace("{${option}}", description?.trigger[option] as String)
-        }
-      }
-
       if (description.repository.startsWith('http')) {
         results = downloadJarFileFromWeb(description)
       } else if (description.repository.startsWith('s3')) {

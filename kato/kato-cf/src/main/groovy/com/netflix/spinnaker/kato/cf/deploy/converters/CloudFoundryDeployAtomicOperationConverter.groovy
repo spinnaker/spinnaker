@@ -42,8 +42,22 @@ class CloudFoundryDeployAtomicOperationConverter extends AbstractAtomicOperation
     if (input.containsKey('loadBalancers') && input.loadBalancers instanceof List) {
       input.loadBalancers = input.loadBalancers.join(',')
     }
+
     def converted = objectMapper.convertValue(input, CloudFoundryDeployDescription)
+
     converted.credentials = getCredentialsObject(input.credentials as String)
+
+    /**
+     * Convert supported template options, e.g. s3://example.com/{{job}}-{{buildNumber}}/
+     */
+    def options = ['job', 'buildNumber']
+
+    options.each { option ->
+      if (converted?.trigger?."$option" != null) {
+        converted.repository = converted.repository.replace("{{${option}}}", converted?.trigger?."$option" as String)
+      }
+    }
+
     converted
   }
 }
