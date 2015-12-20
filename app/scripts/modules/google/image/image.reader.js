@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.gce.image.reader', [
           return results;
         },
         function() {
-          return ['ubuntu-1404-trusty-v20141031a', 'debian-7-wheezy-v20141108', 'centos-7-v20141108'];
+          return [];
         });
     }
 

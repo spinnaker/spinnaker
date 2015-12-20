@@ -42,7 +42,13 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
     });
 
     function configureCommand() {
-      gceServerGroupConfigurationService.configureCommand(serverGroupCommand).then(function () {
+      gceServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function () {
+        var mode = serverGroupCommand.viewState.mode;
+        if (mode === 'clone' || mode === 'create') {
+          if (!serverGroupCommand.backingData.packageImages || !serverGroupCommand.backingData.packageImages.length) {
+            serverGroupCommand.viewState.useAllImageSelection = true;
+          }
+        }
         $scope.state.loaded = true;
         initializeWizardState();
         initializeSelectOptions();
