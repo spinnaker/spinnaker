@@ -33,7 +33,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.deployIniti
 
     function applyCommandToScope(command) {
       command.viewState.disableImageSelection = true;
-      command.viewState.disableStrategySelection = false;
+      command.viewState.disableStrategySelection = $scope.command.viewState.disableStrategySelection || false;
       command.viewState.imageId = null;
       command.viewState.submitButtonLabel = 'Add';
       angular.copy(command, $scope.command);

@@ -228,6 +228,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           usePreferredZones: true,
           listImplicitSecurityGroups: false,
           mode: defaults.mode || 'create',
+          disableStrategySelection: true,
         }
       };
 

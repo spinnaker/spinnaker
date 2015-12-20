@@ -45,15 +45,21 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       'bigtable.admin.table',
     ];
 
-    function configureCommand(command) {
-      command.image = command.viewState.imageId;
+    function configureCommand(application, command) {
+      var imageLoader;
+      if (command.viewState.disableImageSelection) {
+        imageLoader = $q.when(null);
+      } else {
+        imageLoader = command.viewState.imageId ? loadImagesFromImageName(command) : loadImagesFromApplicationName(application, command.selectedProvider);
+      }
+
       return $q.all({
         regionsKeyedByAccount: accountService.getRegionsKeyedByAccount('gce'),
         securityGroups: securityGroupReader.getAllSecurityGroups(),
         networks: networkReader.listNetworksByProvider('gce'),
         loadBalancers: loadBalancerReader.listLoadBalancers('gce'),
+        packageImages: imageLoader,
         instanceTypes: gceInstanceTypeService.getAllTypesByRegion(),
-        images: gceImageReader.findImages({provider: 'gce'}),
         persistentDiskTypes: $q.when(angular.copy(persistentDiskTypes)),
         authScopes: $q.when(angular.copy(authScopes)),
       }).then(function(backingData) {
@@ -90,6 +96,31 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         return $q.all([loadBalancerReloader, securityGroupReloader, networkReloader]).then(function() {
           attachEventHandlers(command);
         });
+      });
+    }
+
+    function loadImagesFromApplicationName(application, provider) {
+      return gceImageReader.findImages({
+        provider: provider,
+        q: application.name.replace(/_/g, '[_\\-]') + '*',
+      });
+    }
+
+    function loadImagesFromImageName(command) {
+      command.image = command.viewState.imageId;
+
+      var packageBase = command.image.split('_')[0];
+      var parts = packageBase.split('-');
+      if (parts.length > 3) {
+        packageBase = parts.slice(0, -3).join('-');
+      }
+      if (!packageBase || packageBase.length < 3) {
+        return [command.image];
+      }
+
+      return gceImageReader.findImages({
+        provider: command.selectedProvider,
+        q: packageBase + '-*',
       });
     }
 
@@ -135,9 +166,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       }
       if (command.credentials !== command.viewState.lastImageAccount) {
         command.viewState.lastImageAccount = command.credentials;
-        var filtered = extractFilteredImageNames(command);
-        command.backingData.filtered.imageNames = filtered;
-        if (filtered.indexOf(command.image) === -1) {
+        var filteredImages = extractFilteredImages(command);
+        command.backingData.filtered.images = filteredImages;
+        if (!_(filteredImages).find({imageName: command.image})) {
           command.image = null;
           result.dirty.imageName = true;
         }
@@ -182,11 +213,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       return results;
     }
 
-    function extractFilteredImageNames(command) {
-      return _(command.backingData.images)
+    function extractFilteredImages(command) {
+      return _(command.backingData.packageImages)
         .filter({account: command.credentials})
-        .pluck('imageName')
-        .flatten(true)
         .unique()
         .valueOf();
     }
