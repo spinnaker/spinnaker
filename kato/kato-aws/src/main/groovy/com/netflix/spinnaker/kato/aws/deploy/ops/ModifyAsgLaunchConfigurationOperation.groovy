@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.ops
 
+import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.DisableMetricsCollectionRequest
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.netflix.frigga.Names
@@ -50,7 +52,8 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
     def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, description.region)
     def lcBuilder = regionScopedProvider.launchConfigurationBuilder
 
-    def existingLc = regionScopedProvider.asgService.getAutoScalingGroup(description.asgName).launchConfigurationName
+    def asg = regionScopedProvider.asgService.getAutoScalingGroup(description.asgName)
+    def existingLc = asg.launchConfigurationName
 
     def settings = lcBuilder.buildSettingsFromLaunchConfiguration(description.credentials, description.region, existingLc)
 
@@ -75,6 +78,13 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
             AmiIdResolver.resolveAmiId(amazonEC2, description.region, description.amiName, null, null)
 
       props.ami = ami.amiId
+    }
+
+    if (!asg.getVPCZoneIdentifier()) {
+      def classicLinkVpc = regionScopedProvider.amazonEC2.describeVpcClassicLink().vpcs.find { it.classicLinkEnabled }
+      if (classicLinkVpc) {
+        props.classicLinkVpcId = classicLinkVpc.vpcId
+      }
     }
 
     def newSettings = settings.copyWith(props)

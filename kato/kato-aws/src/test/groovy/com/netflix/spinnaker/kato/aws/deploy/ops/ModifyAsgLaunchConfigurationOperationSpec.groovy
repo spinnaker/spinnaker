@@ -23,9 +23,11 @@ import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeImagesRequest
 import com.amazonaws.services.ec2.model.DescribeImagesResult
+import com.amazonaws.services.ec2.model.DescribeVpcClassicLinkResult
 import com.amazonaws.services.ec2.model.Image
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.amazonaws.services.ec2.model.VpcClassicLink
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.LaunchConfigurationBuilder
 import com.netflix.spinnaker.kato.aws.deploy.description.ModifyAsgLaunchConfigurationDescription
@@ -50,6 +52,12 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
     def amazonEC2 = Stub(AmazonEC2) {
       describeImages(_) >> { DescribeImagesRequest req ->
         new DescribeImagesResult().withImages(req.imageIds.collect { new Image(imageId: it)})
+      }
+      describeVpcClassicLink() >> {
+        new DescribeVpcClassicLinkResult(vpcs: [
+                new VpcClassicLink(vpcId: "vpc-123", classicLinkEnabled: false),
+                new VpcClassicLink(vpcId: "vpc-456", classicLinkEnabled: true),
+        ])
       }
     }
 
@@ -104,6 +112,7 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
       account: account,
       environment: 'test',
       accountType: 'test',
+      classicLinkVpcId: 'vpc-456',
       region: region,
       baseName: asgName,
       suffix: suffix,
@@ -214,6 +223,56 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
     1 * autoScaling.updateAutoScalingGroup(_) >> { UpdateAutoScalingGroupRequest req ->
       assert req.autoScalingGroupName == asgName
       assert req.launchConfigurationName == newLc
+    }
+
+    where:
+    account = 'test'
+    app = 'foo'
+    region = 'us-east-1'
+    asgName = "$app-v001".toString()
+    suffix = '20150515'
+    existingLc = "$asgName-$suffix".toString()
+    newLc = "$asgName-20150516".toString()
+    existingAmi = 'ami-f000fee'
+    iamRole = 'BaseIAMRole'
+    existing = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
+      account: account,
+      environment: 'test',
+      accountType: 'test',
+      region: region,
+      baseName: asgName,
+      suffix: suffix,
+      instanceMonitoring: true,
+    )
+  }
+
+  void 'should attach classic linked VPC'() {
+    setup:
+    def credential = TestCredential.named(account)
+    description.credentials = credential
+    description.region = region
+    description.asgName = asgName
+    description.instanceMonitoring = false
+
+    when:
+    op.operate([])
+
+    then:
+    1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
+    1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region, name ->
+      assert act == credential
+      assert region == region
+      assert name == existingLc
+
+      existing
+    }
+    1 * lcBuilder.buildLaunchConfiguration(_, _, _) >> { appName, subnetType, settings ->
+      assert appName == app
+      assert subnetType == null
+      assert settings.suffix == null
+      assert settings.classicLinkVpcId == "vpc-456"
+
+      return newLc
     }
 
     where:
