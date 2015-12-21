@@ -177,4 +177,77 @@ class BuildController {
     @ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE, reason = "Failed to determine job from queued item!")
     @InheritConstructors
     static class QueuedJobDeterminationError extends RuntimeException {}
+
+    // LEGACY ENDPOINTS:
+
+    @RequestMapping(value = '/jobs/{master}/{job}/{buildNumber}')
+    Map getJobStatusLegacy(@PathVariable String master, @PathVariable String job, @PathVariable Integer buildNumber) {
+        if (!masters.map.containsKey(master)) {
+            throw new MasterNotFoundException()
+        }
+        Map result = objectMapper.convertValue(masters.map[master].getBuild(job, buildNumber), Map)
+        try {
+            Map scm = objectMapper.convertValue(masters.map[master].getGitDetails(job, buildNumber), Map)
+            if (scm?.action?.lastBuiltRevision?.branch?.name) {
+                result.scm = scm?.action.lastBuiltRevision
+                result.scm = result.scm.branch.collect {
+                    it.branch = it.name.split('/').last()
+                    it
+                }
+
+            }
+        }catch(Exception e){
+            log.error("could not get scm results for $master / $job / $buildNumber")
+        }
+        result
+    }
+
+    @RequestMapping(value = '/jobs/{master}/queue/{item}')
+    QueuedJob getQueueLocationLegacy(@PathVariable String master, @PathVariable int item){
+        if (!masters.map.containsKey(master)) {
+            throw new MasterNotFoundException()
+        }
+        masters.map[master].getQueuedItem(item)
+    }
+
+    @RequestMapping(value = '/jobs/{master}/{job}/builds')
+    List<Build> getBuildsLegacy(@PathVariable String master, @PathVariable String job) {
+        if (!masters.map.containsKey(master)) {
+            throw new MasterNotFoundException()
+        }
+        masters.map[master].getBuilds(job).list
+    }
+
+    @RequestMapping(value = '/jobs/{master}/{job}/{buildNumber}/properties/{fileName:.+}')
+    Map<String, Object> getPropertiesLegacy(
+        @PathVariable String master,
+        @PathVariable String job, @PathVariable Integer buildNumber, @PathVariable String fileName) {
+        if (!masters.map.containsKey(master)) {
+            throw new MasterNotFoundException()
+        }
+        Map<String, Object> map = [:]
+        try {
+            def jenkinsService = masters.map[master]
+            String path = jenkinsService.getBuild(job, buildNumber).artifacts.find {
+                it.fileName == fileName
+            }?.relativePath
+
+            def propertyStream = jenkinsService.getPropertyFile(job, buildNumber, path).body.in()
+
+            if (fileName.endsWith('.yml') || fileName.endsWith('.yaml')) {
+                Yaml yml = new Yaml()
+                map = yml.load(propertyStream)
+            } else if (fileName.endsWith('.json')) {
+                map = objectMapper.readValue(propertyStream, Map)
+            } else {
+                Properties properties = new Properties()
+                properties.load(propertyStream)
+                map = map << properties
+            }
+        } catch (e) {
+            log.error("Unable to get properties `${job}`", e)
+        }
+        map
+    }
+
 }

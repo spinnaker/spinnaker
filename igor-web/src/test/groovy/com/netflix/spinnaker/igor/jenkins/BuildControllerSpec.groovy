@@ -62,6 +62,7 @@ class BuildControllerSpec extends Specification {
     final BUILD_NUMBER = 123
     final QUEUED_JOB_NUMBER = 123456
     final JOB_NAME = "job/name/can/have/slashes"
+    final JOB_NAME_LEGACY = "job"
     final FILE_NAME = "test.yml"
 
     void cleanup() {
@@ -178,5 +179,57 @@ class BuildControllerSpec extends Specification {
 
         then:
         thrown(NestedServletException)
+    }
+
+    // LEGACY ENDPOINT TESTS
+
+    void 'get the status of a build LEGACY'() {
+        given:
+        1 * client.getBuild(JOB_NAME_LEGACY, BUILD_NUMBER) >> new Build(number: BUILD_NUMBER)
+
+        when:
+        MockHttpServletResponse response = mockMvc.perform(get("/jobs/${MASTER}/${JOB_NAME_LEGACY}/${BUILD_NUMBER}")
+            .accept(MediaType.APPLICATION_JSON)).andReturn().response
+
+        then:
+        response.contentAsString == "{\"building\":false,\"number\":${BUILD_NUMBER}}"
+    }
+
+    void 'get an item from the queue LEGACY'() {
+        given:
+        1 * client.getQueuedItem(QUEUED_JOB_NUMBER) >> new QueuedJob(number: QUEUED_JOB_NUMBER)
+
+        when:
+        MockHttpServletResponse response = mockMvc.perform(get("/jobs/${MASTER}/queue/${QUEUED_JOB_NUMBER}")
+            .accept(MediaType.APPLICATION_JSON)).andReturn().response
+
+        then:
+        response.contentAsString == "{\"number\":${QUEUED_JOB_NUMBER}}"
+    }
+
+    void 'get a list of builds for a job LEGACY'() {
+        given:
+        1 * client.getBuilds(JOB_NAME_LEGACY) >> new BuildsList(list: [new Build(number: 111), new Build(number: 222)])
+
+        when:
+        MockHttpServletResponse response = mockMvc.perform(get("/jobs/${MASTER}/${JOB_NAME_LEGACY}/builds")
+            .accept(MediaType.APPLICATION_JSON)).andReturn().response
+
+        then:
+        response.contentAsString == "[{\"building\":false,\"number\":111},{\"building\":false,\"number\":222}]"
+    }
+
+    void 'get properties of a build with a bad filename LEGACY'() {
+        given:
+        1 * client.getBuild(JOB_NAME_LEGACY, BUILD_NUMBER) >> new Build(
+             number: BUILD_NUMBER, artifacts: [new BuildArtifact(fileName: FILE_NAME, relativePath: FILE_NAME)])
+
+        when:
+        MockHttpServletResponse response = mockMvc.perform(
+            get("/jobs/${MASTER}/${JOB_NAME_LEGACY}/${BUILD_NUMBER}/properties/${FILE_NAME}")
+            .accept(MediaType.APPLICATION_JSON)).andReturn().response
+
+        then:
+        response.contentAsString == "{}"
     }
 }
