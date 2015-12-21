@@ -63,7 +63,7 @@ class RestEventListener implements EchoEventListener {
         }
         service.client.recordEvent(sentEvent)
       } catch (e) {
-        log.error("Could not send event ${eventAsMap} to ${service.config.url}", e)
+        log.error("Could not send event ${event} to ${service.config.url}", e)
       }
     }
   }
