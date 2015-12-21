@@ -22,9 +22,9 @@ import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
-import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.titan.caching.Keys
 import com.netflix.spinnaker.oort.titan.caching.TitanCachingProvider
 import com.netflix.titanclient.TitanClient
@@ -33,10 +33,10 @@ import com.netflix.titanclient.model.TaskState
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import static Keys.Namespace.HEALTH
-import static Keys.Namespace.IMAGES
-import static Keys.Namespace.INSTANCES
-import static Keys.Namespace.SERVER_GROUPS
+import static com.netflix.spinnaker.oort.titan.caching.Keys.Namespace.HEALTH
+import static com.netflix.spinnaker.oort.titan.caching.Keys.Namespace.IMAGES
+import static com.netflix.spinnaker.oort.titan.caching.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.oort.titan.caching.Keys.Namespace.SERVER_GROUPS
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 

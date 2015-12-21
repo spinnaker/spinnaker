@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.oort.cf.model
 
-import com.netflix.spinnaker.oort.model.LoadBalancerProvider
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 

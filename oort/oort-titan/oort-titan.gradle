@@ -1,6 +1,5 @@
 dependencies {
   compile project(":clouddriver-titan")
-  compile project(":oort:oort-core")
   compile project(":oort:oort-aws")
   compile project(':cats:cats-core')
 

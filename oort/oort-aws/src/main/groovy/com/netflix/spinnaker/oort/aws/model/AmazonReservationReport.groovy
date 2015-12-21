@@ -18,7 +18,7 @@ package com.netflix.spinnaker.oort.aws.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonPropertyOrder
-import com.netflix.spinnaker.oort.model.ReservationReport
+import com.netflix.spinnaker.clouddriver.model.ReservationReport
 
 import java.util.concurrent.atomic.AtomicInteger
 

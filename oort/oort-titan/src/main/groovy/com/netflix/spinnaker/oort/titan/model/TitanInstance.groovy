@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.oort.titan.model
 
-import com.netflix.spinnaker.oort.model.HealthState
-import com.netflix.spinnaker.oort.model.Instance
+import com.netflix.spinnaker.clouddriver.model.HealthState
+import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.titanclient.model.Task
 import com.netflix.titanclient.model.TaskState
 

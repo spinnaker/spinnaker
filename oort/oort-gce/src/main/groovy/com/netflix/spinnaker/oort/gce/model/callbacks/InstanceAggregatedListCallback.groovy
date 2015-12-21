@@ -21,9 +21,9 @@ import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.model.HealthStatus
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
+import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.oort.gce.model.GoogleInstance
 import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
-import com.netflix.spinnaker.oort.model.HealthState
 import org.apache.log4j.Logger
 
 class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCallback<InstanceAggregatedList> {

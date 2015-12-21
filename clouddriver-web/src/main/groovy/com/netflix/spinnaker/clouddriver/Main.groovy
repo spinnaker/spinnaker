@@ -19,8 +19,8 @@ package com.netflix.spinnaker.clouddriver
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.azure.AzureConfiguration
 import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConfig
-import com.netflix.spinnaker.clouddriver.config.RetrofitConfig
 import com.netflix.spinnaker.clouddriver.core.CloudDriverConfig
+import com.netflix.spinnaker.clouddriver.core.RetrofitConfig
 import com.netflix.spinnaker.clouddriver.deploy.config.DeployConfiguration
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesConfiguration
@@ -53,12 +53,13 @@ import java.security.Security
   KubernetesConfiguration,
   CloudFoundryConfig,
   AzureConfiguration,
-  SecurityConfig,
-  com.netflix.spinnaker.oort.Main
+  SecurityConfig
 ])
 @ComponentScan([
+  'com.netflix.spinnaker.config',
   'com.netflix.spinnaker.kato.config',
-  'com.netflix.spinnaker.mort.config'
+  'com.netflix.spinnaker.mort.config',
+  'com.netflix.spinnaker.oort.config'
 ])
 @EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration, SecurityAutoConfiguration,
 ManagementSecurityAutoConfiguration])

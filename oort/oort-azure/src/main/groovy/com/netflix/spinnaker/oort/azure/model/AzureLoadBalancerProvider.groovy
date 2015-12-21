@@ -16,11 +16,8 @@
 
 package com.netflix.spinnaker.oort.azure.model
 
-import com.netflix.spinnaker.clouddriver.azure.client.AzureResourceManagerClient
 import com.netflix.spinnaker.clouddriver.azure.client.models.AzureLoadBalancerDescription
-import com.netflix.spinnaker.oort.azure.model.AzureLoadBalancer
-import com.netflix.spinnaker.oort.azure.model.AzureResourceRetriever
-import com.netflix.spinnaker.oort.model.LoadBalancerProvider
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 

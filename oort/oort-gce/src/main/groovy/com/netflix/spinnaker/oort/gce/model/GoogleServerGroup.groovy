@@ -18,10 +18,10 @@ package com.netflix.spinnaker.oort.gce.model
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
+import com.netflix.spinnaker.clouddriver.model.HealthState
+import com.netflix.spinnaker.clouddriver.model.Instance
+import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
-import com.netflix.spinnaker.oort.model.HealthState
-import com.netflix.spinnaker.oort.model.Instance
-import com.netflix.spinnaker.oort.model.ServerGroup
 
 class GoogleServerGroup implements ServerGroup, Serializable {
 

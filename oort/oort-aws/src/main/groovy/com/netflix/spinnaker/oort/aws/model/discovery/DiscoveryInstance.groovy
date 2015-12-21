@@ -18,8 +18,8 @@ package com.netflix.spinnaker.oort.aws.model.discovery
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.netflix.spinnaker.oort.model.Health
-import com.netflix.spinnaker.oort.model.HealthState
+import com.netflix.spinnaker.clouddriver.model.Health
+import com.netflix.spinnaker.clouddriver.model.HealthState
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.Immutable

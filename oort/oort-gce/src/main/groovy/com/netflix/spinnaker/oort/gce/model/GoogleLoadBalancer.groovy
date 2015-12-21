@@ -18,8 +18,8 @@ package com.netflix.spinnaker.oort.gce.model
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
+import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
-import com.netflix.spinnaker.oort.model.LoadBalancer
 
 class GoogleLoadBalancer implements LoadBalancer {
 

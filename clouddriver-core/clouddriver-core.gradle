@@ -4,6 +4,8 @@ dependencies {
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootDataRest')
   compile spinnaker.dependency('kork')
+  compile spinnaker.dependency('korkWeb')
+  compile spinnaker.dependency('eurekaClient')
   compile spinnaker.dependency("jedis")
 
   compile project(':cats:cats-core')

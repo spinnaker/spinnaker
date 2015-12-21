@@ -18,7 +18,7 @@ package com.netflix.spinnaker.oort.aws.model
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
-import com.netflix.spinnaker.oort.model.LoadBalancer
+import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import groovy.transform.CompileStatic
 
 @CompileStatic

@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.oort.titan.model
 
-import com.netflix.spinnaker.oort.model.Cluster
-import com.netflix.spinnaker.oort.model.LoadBalancer
+import com.netflix.spinnaker.clouddriver.model.Cluster
+import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 
 class TitanCluster implements Cluster, Serializable {
   String name

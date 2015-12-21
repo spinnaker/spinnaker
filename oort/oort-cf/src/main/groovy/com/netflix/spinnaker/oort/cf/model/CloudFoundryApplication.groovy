@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.oort.cf.model
 
-import com.netflix.spinnaker.oort.model.Application
+import com.netflix.spinnaker.clouddriver.model.Application
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.cloudfoundry.client.lib.domain.CloudApplication

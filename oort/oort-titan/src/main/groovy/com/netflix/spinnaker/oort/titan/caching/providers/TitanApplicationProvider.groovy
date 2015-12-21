@@ -20,10 +20,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
-import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.model.Application
+import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
 import com.netflix.spinnaker.clouddriver.titan.TitanCloudProvider
-import com.netflix.spinnaker.oort.model.Application
-import com.netflix.spinnaker.oort.model.ApplicationProvider
 import com.netflix.spinnaker.oort.titan.caching.Keys
 import com.netflix.spinnaker.oort.titan.model.TitanApplication
 import org.springframework.beans.factory.annotation.Autowired

@@ -22,7 +22,6 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.azure.config.AzureConfigurationProperties
 import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.azure.client.models.AzureLoadBalancerDescription
-import com.netflix.spinnaker.oort.model.HealthState
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 

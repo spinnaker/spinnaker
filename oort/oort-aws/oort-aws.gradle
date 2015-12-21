@@ -1,6 +1,5 @@
 dependencies {
   compile project(":clouddriver-aws")
-  compile project(":oort:oort-core")
 
   spinnaker.group("bootWeb")
   spinnaker.group("amazon")

@@ -18,10 +18,9 @@ package com.netflix.spinnaker.oort.gce.model
 
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.netflix.spinnaker.oort.gce.model.callbacks.InstanceAggregatedListCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
-import com.netflix.spinnaker.oort.model.HealthState
 import spock.lang.Specification
 import spock.lang.Subject
 

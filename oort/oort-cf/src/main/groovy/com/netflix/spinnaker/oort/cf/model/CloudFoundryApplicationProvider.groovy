@@ -18,8 +18,8 @@ package com.netflix.spinnaker.oort.cf.model
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Timer
-import com.netflix.spinnaker.oort.model.Application
-import com.netflix.spinnaker.oort.model.ApplicationProvider
+import com.netflix.spinnaker.clouddriver.model.Application
+import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
