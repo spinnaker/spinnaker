@@ -65,7 +65,7 @@ class KubernetesHealthIndicator implements HealthIndicator {
 
         // This verifies that the specified credentials are sufficient to
         // access the referenced Kuberentes master endpoint.
-        kubernetesCredentials.client.namespaces().list();
+        kubernetesCredentials.client.namespaces().withName(kubernetesCredentials.namespace).get();
       }
 
       lastException.set(null)
