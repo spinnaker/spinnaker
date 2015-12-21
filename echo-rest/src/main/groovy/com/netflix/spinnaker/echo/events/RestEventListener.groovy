@@ -55,11 +55,18 @@ class RestEventListener implements EchoEventListener {
           sentEvent = [
             "eventName": "${service.config.eventName ?: eventName}" as String,
           ]
+
+          if (service.config.flatten) {
+            eventAsMap.content = mapper.writeValueAsString(eventAsMap.content)
+            eventAsMap.details = mapper.writeValueAsString(eventAsMap.details)
+          }
+
           sentEvent["${service.config.fieldName ?: fieldName}" as String] = eventAsMap
+
         }
         service.client.recordEvent(sentEvent)
       } catch (e) {
-        log.error("Could not send event ${eventAsMap} to ${service.config.url}")
+        log.error("Could not send event ${eventAsMap} to ${service.config.url}", e)
       }
     }
   }
