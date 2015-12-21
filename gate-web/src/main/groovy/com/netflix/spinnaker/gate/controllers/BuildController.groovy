@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.HandlerMapping
 
 @CompileStatic
-@RequestMapping("/v2/builds")
 @RestController
 class BuildController {
   /*
@@ -38,31 +37,58 @@ class BuildController {
   @Autowired
   BuildService buildService
 
-  @RequestMapping(method = RequestMethod.GET)
+  @RequestMapping(value = "v2/builds", method = RequestMethod.GET)
   List<String> getBuildMasters() {
     buildService.getBuildMasters()
   }
 
-  @RequestMapping(value = "/{buildMaster}/jobs", method = RequestMethod.GET)
+  @RequestMapping(value = "/v2/builds/{buildMaster}/jobs", method = RequestMethod.GET)
   List<String> getJobsForBuildMaster(@PathVariable("buildMaster") String buildMaster) {
     buildService.getJobsForBuildMaster(buildMaster)
   }
 
-  @RequestMapping(value = "/{buildMaster}/jobs/**", method = RequestMethod.GET)
+  @RequestMapping(value = "/v2/builds/{buildMaster}/jobs/**", method = RequestMethod.GET)
   Map getJobConfig(@PathVariable("buildMaster") String buildMaster, HttpServletRequest request) {
     def job = request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).toString().split('/').drop(5).join('/')
     buildService.getJobConfig(buildMaster, job)
   }
 
-  @RequestMapping(value = "/{buildMaster}/builds/**", method = RequestMethod.GET)
+  @RequestMapping(value = "/v2/builds/{buildMaster}/builds/**", method = RequestMethod.GET)
   List getBuilds(@PathVariable("buildMaster") String buildMaster, HttpServletRequest request) {
     def job = request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE)toString().split('/').drop(5).join('/')
     buildService.getBuilds(buildMaster, job)
   }
 
-  @RequestMapping(value = "/{buildMaster}/build/{number}/**", method = RequestMethod.GET)
+  @RequestMapping(value = "/v2/builds/{buildMaster}/build/{number}/**", method = RequestMethod.GET)
   Map getBuild(@PathVariable("buildMaster") String buildMaster, @PathVariable("number") String number, HttpServletRequest request) {
     def job = request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE)toString().split('/').drop(6).join('/')
+    buildService.getBuild(buildMaster, job, number)
+  }
+
+  // LEGACY ENDPOINTS:
+
+  @RequestMapping(value = "/builds", method = RequestMethod.GET)
+  List<String> getBuildMastersLegacy() {
+    buildService.getBuildMasters()
+  }
+
+  @RequestMapping(value = "/builds/{buildMaster}/jobs", method = RequestMethod.GET)
+  List<String> getJobsForBuildMasterLegacy(@PathVariable("buildMaster") String buildMaster) {
+    buildService.getJobsForBuildMaster(buildMaster)
+  }
+
+  @RequestMapping(value = "/builds/{buildMaster}/jobs/{job:.+}", method = RequestMethod.GET)
+  Map getJobConfigLegacy(@PathVariable("buildMaster") String buildMaster, @PathVariable("job") String job) {
+    buildService.getJobConfig(buildMaster, job)
+  }
+
+  @RequestMapping(value = "/builds/{buildMaster}/jobs/{job}/builds", method = RequestMethod.GET)
+  List getBuildsLegacy(@PathVariable("buildMaster") String buildMaster, @PathVariable("job") String job) {
+    buildService.getBuilds(buildMaster, job)
+  }
+
+  @RequestMapping(value = "/builds/{buildMaster}/jobs/{job}/builds/{number}", method = RequestMethod.GET)
+  Map getBuildsLegacy(@PathVariable("buildMaster") String buildMaster, @PathVariable("job") String job, @PathVariable("number") String number) {
     buildService.getBuild(buildMaster, job, number)
   }
 }
