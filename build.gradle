@@ -40,6 +40,8 @@ allprojects {
     testLogging {
       exceptionFormat = 'full'
     }
+    minHeapSize = "512m"
+    maxHeapSize = "512m"
   }
 }
 
