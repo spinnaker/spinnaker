@@ -39,6 +39,7 @@ class RestProperties {
     Boolean wrap = false
     @NotEmpty
     String url
+    Boolean flatten = false
 
   }
 }
