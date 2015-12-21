@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.health.GoogleHealthIndicator
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceTypeDisk
+import com.netflix.spinnaker.clouddriver.google.model.GoogleResourceRetriever
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentialsInitializer
 import groovy.transform.ToString
 import org.springframework.beans.factory.annotation.Value
@@ -64,6 +65,11 @@ class GoogleConfiguration {
   @Bean
   String googleApplicationName(@Value('${Implementation-Version:Unknown}') String implementationVersion) {
     "Spinnaker/$implementationVersion"
+  }
+
+  @Bean
+  GoogleResourceRetriever googleResourceRetriever() {
+    new GoogleResourceRetriever()
   }
 
   @Bean
