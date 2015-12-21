@@ -27,10 +27,13 @@ import com.netflix.spinnaker.kato.aws.deploy.ops.discovery.Eureka
 import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.aws.model.SubnetAnalyzer
 import com.netflix.spinnaker.kato.config.KatoAWSConfig
+import org.apache.http.impl.client.HttpClients
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RestAdapter
+import retrofit.client.ApacheClient
 
+import java.util.concurrent.atomic.AtomicReference
 import java.util.regex.Pattern
 
 @Component
@@ -101,8 +104,21 @@ class RegionScopedProviderFactory {
         throw new IllegalStateException('discovery not enabled')
       }
       String endpoint = amazonCredentials.discovery.replaceAll(Pattern.quote('{{region}}'), region)
-      new RestAdapter.Builder().setEndpoint(endpoint).build().create(Eureka)
+      new RestAdapter.Builder().setEndpoint(endpoint).setClient(getApacheClient()).build().create(Eureka)
     }
+  }
+
+  //Lazy-create apache client on request if there is a discoveryEnabled AmazonCredentials:
+  private final AtomicReference<ApacheClient> apacheClient = new AtomicReference<>(null)
+  private ApacheClient getApacheClient() {
+    if (apacheClient.get() == null) {
+      synchronized (apacheClient) {
+        if (apacheClient.get() == null) {
+          apacheClient.set(new ApacheClient(HttpClients.createDefault()))
+        }
+      }
+    }
+    return apacheClient.get()
   }
 
 }
