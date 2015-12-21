@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.oort.gce.controllers
 
+import com.netflix.spinnaker.cats.mem.InMemoryCache
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.oort.gce.model.GoogleResourceRetriever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -35,25 +35,39 @@ class GoogleNamedImageLookupController {
   GoogleResourceRetriever googleResourceRetriever
 
   @RequestMapping(value = '/find', method = RequestMethod.GET)
-  List<Map> find(@RequestParam(value = "account", required = false) String account) {
+  List<Map> find(LookupOptions lookupOptions) {
     def imageMap = googleResourceRetriever.imageMap
+    def results = []
 
-    if (account) {
-      def imageList = imageMap?.get(account) ?: []
+    if (lookupOptions.account) {
+      def imageList = imageMap?.get(lookupOptions.account) ?: []
 
-      return imageList.collect {
+      results = imageList.collect {
         [ imageName: it.name ]
       }
     } else {
-      def results = []
-
       imageMap?.entrySet().each { Map.Entry<String, List<String>> accountNameToImageNamesEntry ->
         accountNameToImageNamesEntry.value.each {
           results << [ account: accountNameToImageNamesEntry.key, imageName: it.name ]
         }
       }
-
-      return results
     }
+
+    def glob = lookupOptions.q?.trim() ?: "*"
+
+    // Wrap in '*' if there are no glob-style characters in the query string.
+    if (!glob.contains('*') && !glob.contains('?') && !glob.contains('[') && !glob.contains('\\')) {
+      glob = "*${glob}*"
+    }
+
+    def pattern = new InMemoryCache.Glob(glob).toPattern()
+
+    return results.findAll { pattern.matcher(it.imageName).matches() }
+  }
+
+  private static class LookupOptions {
+    String q
+    String account
+    String region
   }
 }
