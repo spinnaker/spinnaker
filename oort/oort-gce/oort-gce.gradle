@@ -1,8 +1,0 @@
-dependencies {
-  compile project(":clouddriver-google")
-
-  spinnaker.group("bootWeb")
-  spinnaker.group("google")
-
-  compile spinnaker.dependency("frigga")
-}
