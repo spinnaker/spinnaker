@@ -4,7 +4,6 @@ configurations.all {
 }
 dependencies {
   compile project(":oort:oort-aws")
-  compile project(":oort:oort-gce")
   compile project(":oort:oort-titan")
   compile project(":oort:oort-cf")
   compile project(":oort:oort-azure")
