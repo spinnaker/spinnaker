@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.oort.aws.model.edda
 
-import com.netflix.spinnaker.oort.model.HealthState
+import com.netflix.spinnaker.clouddriver.model.HealthState
 import spock.lang.Specification
 import spock.lang.Unroll
 

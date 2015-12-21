@@ -3,7 +3,6 @@ configurations.all {
   exclude group: "org.slf4j", module: "slf4j-log4j12"
 }
 dependencies {
-  compile project(":oort:oort-core")
   compile project(":oort:oort-aws")
   compile project(":oort:oort-gce")
   compile project(":oort:oort-titan")

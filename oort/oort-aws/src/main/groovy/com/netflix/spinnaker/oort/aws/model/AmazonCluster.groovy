@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.oort.aws.model
 
-import com.netflix.spinnaker.oort.model.Cluster
+import com.netflix.spinnaker.clouddriver.model.Cluster
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 

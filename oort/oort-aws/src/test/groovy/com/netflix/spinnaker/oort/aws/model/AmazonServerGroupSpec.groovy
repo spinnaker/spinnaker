@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.oort.aws.model
 
-import com.netflix.spinnaker.oort.model.HealthState
-import com.netflix.spinnaker.oort.model.Instance
-import com.netflix.spinnaker.oort.model.ServerGroup
+import com.netflix.spinnaker.clouddriver.model.HealthState
+import com.netflix.spinnaker.clouddriver.model.Instance
+import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import spock.lang.Specification
 import spock.lang.Unroll
 

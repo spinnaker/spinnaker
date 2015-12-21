@@ -18,8 +18,8 @@ package com.netflix.spinnaker.oort.aws.model
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
-import com.netflix.spinnaker.oort.model.HealthState
-import com.netflix.spinnaker.oort.model.Instance
+import com.netflix.spinnaker.clouddriver.model.HealthState
+import com.netflix.spinnaker.clouddriver.model.Instance
 
 class AmazonInstance implements Instance, Serializable {
 

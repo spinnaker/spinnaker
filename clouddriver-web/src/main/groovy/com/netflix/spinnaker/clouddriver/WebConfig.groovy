@@ -17,27 +17,13 @@
 package com.netflix.spinnaker.clouddriver
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.clouddriver.controllers.CacheController
-import com.netflix.spinnaker.clouddriver.controllers.ConfigRefreshController
-import com.netflix.spinnaker.clouddriver.controllers.CredentialsController
-import com.netflix.spinnaker.clouddriver.controllers.ElasticIpController
-import com.netflix.spinnaker.clouddriver.controllers.InstanceTypeController
-import com.netflix.spinnaker.clouddriver.controllers.KeyPairController
-import com.netflix.spinnaker.clouddriver.controllers.NetworkController
-import com.netflix.spinnaker.clouddriver.controllers.OperationsController
-import com.netflix.spinnaker.clouddriver.controllers.SearchController
-import com.netflix.spinnaker.clouddriver.controllers.SecurityGroupController
-import com.netflix.spinnaker.clouddriver.controllers.SubnetController
-import com.netflix.spinnaker.clouddriver.controllers.TaskController
-import com.netflix.spinnaker.clouddriver.controllers.VpcController
 import com.netflix.spinnaker.clouddriver.filters.SimpleCORSFilter
-import com.netflix.spinnaker.clouddriver.listeners.CredentialsRefreshListener
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
 import org.springframework.web.filter.ShallowEtagHeaderFilter
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
@@ -46,22 +32,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import javax.servlet.Filter
 
 @Configuration
-@Import([
-  SimpleCORSFilter,
-  CacheController,
-  ConfigRefreshController,
-  CredentialsController,
-  CredentialsRefreshListener,
-  ElasticIpController,
-  InstanceTypeController,
-  KeyPairController,
-  NetworkController,
-  OperationsController,
-  SearchController,
-  SecurityGroupController,
-  SubnetController,
-  TaskController,
-  VpcController
+@ComponentScan([
+  'com.netflix.spinnaker.clouddriver.controllers',
+  'com.netflix.spinnaker.clouddriver.filters',
+  'com.netflix.spinnaker.clouddriver.listeners'
 ])
 public class WebConfig extends WebMvcConfigurerAdapter {
   @Autowired

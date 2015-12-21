@@ -16,20 +16,32 @@
 
 package com.netflix.spinnaker.clouddriver.core
 
+import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
+import com.netflix.spinnaker.cats.agent.NoopExecutionInstrumentation
 import com.netflix.spinnaker.clouddriver.cache.CacheConfig
 import com.netflix.spinnaker.clouddriver.cache.NoopOnDemandCacheUpdater
 import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
+import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
+import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ElasticIpProvider
+import com.netflix.spinnaker.clouddriver.model.InstanceProvider
 import com.netflix.spinnaker.clouddriver.model.InstanceTypeProvider
 import com.netflix.spinnaker.clouddriver.model.KeyPairProvider
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.model.NetworkProvider
+import com.netflix.spinnaker.clouddriver.model.NoopApplicationProvider
+import com.netflix.spinnaker.clouddriver.model.NoopClusterProvider
 import com.netflix.spinnaker.clouddriver.model.NoopElasticIpProvider
+import com.netflix.spinnaker.clouddriver.model.NoopInstanceProvider
 import com.netflix.spinnaker.clouddriver.model.NoopInstanceTypeProvider
 import com.netflix.spinnaker.clouddriver.model.NoopKeyPairProvider
+import com.netflix.spinnaker.clouddriver.model.NoopLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.model.NoopNetworkProvider
+import com.netflix.spinnaker.clouddriver.model.NoopReservationReportProvider
 import com.netflix.spinnaker.clouddriver.model.NoopSecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.model.NoopSubnetProvider
+import com.netflix.spinnaker.clouddriver.model.ReservationReportProvider
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.model.SubnetProvider
 import com.netflix.spinnaker.clouddriver.search.ApplicationSearchProvider
@@ -100,6 +112,42 @@ class CloudDriverConfig {
   @ConditionalOnMissingBean(CloudProvider)
   CloudProvider noopCloudProvider() {
     new NoopCloudProvider()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(ApplicationProvider)
+  ApplicationProvider noopApplicationProvider() {
+    new NoopApplicationProvider()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(LoadBalancerProvider)
+  LoadBalancerProvider noopLoadBalancerProvider() {
+    new NoopLoadBalancerProvider()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(ClusterProvider)
+  ClusterProvider noopClusterProvider() {
+    new NoopClusterProvider()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(ReservationReportProvider)
+  ReservationReportProvider noopReservationReportProvider() {
+    new NoopReservationReportProvider()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(ExecutionInstrumentation)
+  ExecutionInstrumentation noopExecutionInstrumentation() {
+    new NoopExecutionInstrumentation()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(InstanceProvider)
+  InstanceProvider noopInstanceProvider() {
+    new NoopInstanceProvider()
   }
 
   @Bean

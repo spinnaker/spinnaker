@@ -1,5 +1,0 @@
-dependencies {
-  compile project(':clouddriver-core')
-  compile spinnaker.dependency("kork")
-  compile spinnaker.dependency('eurekaClient')
-}

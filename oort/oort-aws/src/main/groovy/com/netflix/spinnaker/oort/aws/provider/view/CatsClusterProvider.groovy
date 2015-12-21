@@ -21,11 +21,10 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.model.*
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
-import com.netflix.spinnaker.oort.model.ClusterProvider
-import com.netflix.spinnaker.oort.model.HealthState
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component

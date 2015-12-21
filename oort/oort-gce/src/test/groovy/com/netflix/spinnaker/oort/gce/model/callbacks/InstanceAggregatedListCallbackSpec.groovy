@@ -18,7 +18,7 @@ package com.netflix.spinnaker.oort.gce.model.callbacks
 
 import com.google.api.services.compute.model.HealthStatus
 import com.netflix.spinnaker.oort.gce.model.GoogleInstance
-import com.netflix.spinnaker.oort.model.HealthState
+import com.netflix.spinnaker.clouddriver.model.HealthState
 import spock.lang.Specification
 import spock.lang.Unroll
 

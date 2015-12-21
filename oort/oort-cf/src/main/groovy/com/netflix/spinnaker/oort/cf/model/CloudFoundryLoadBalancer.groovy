@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.oort.cf.model
 
-import com.netflix.spinnaker.oort.model.LoadBalancer
+import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.cloudfoundry.client.lib.domain.CloudRoute

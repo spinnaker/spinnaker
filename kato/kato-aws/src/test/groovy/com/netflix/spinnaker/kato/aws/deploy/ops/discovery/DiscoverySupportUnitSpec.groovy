@@ -26,12 +26,12 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
+import com.netflix.spinnaker.clouddriver.model.ClusterProvider
+import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
 import com.netflix.spinnaker.kato.aws.services.AsgService
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
-import com.netflix.spinnaker.oort.model.ClusterProvider
-import com.netflix.spinnaker.oort.model.ServerGroup
 import retrofit.RetrofitError
 import retrofit.client.Response
 import spock.lang.Specification
@@ -364,7 +364,7 @@ class DiscoverySupportUnitSpec extends Specification {
   private ServerGroup buildServerGroup(String ... discoveryStatuses) {
     return new DefaultServerGroup(
       instances: discoveryStatuses.collect { String discoveryStatus ->
-        Mock(com.netflix.spinnaker.oort.model.Instance) {
+        Mock(com.netflix.spinnaker.clouddriver.model.Instance) {
           1 * getHealth() >> {
             [
                 [discoveryStatus: discoveryStatus]
@@ -410,7 +410,7 @@ class DiscoverySupportUnitSpec extends Specification {
     Boolean disabled
     Long createdTime
     Set<String> zones
-    Set<com.netflix.spinnaker.oort.model.Instance> instances
+    Set<com.netflix.spinnaker.clouddriver.model.Instance> instances
     Set<String> loadBalancers
     Set<String> securityGroups
     Map<String, Object> launchConfig

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.oort.gce.model
 
-import com.netflix.spinnaker.oort.model.Application
+import com.netflix.spinnaker.clouddriver.model.Application
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 

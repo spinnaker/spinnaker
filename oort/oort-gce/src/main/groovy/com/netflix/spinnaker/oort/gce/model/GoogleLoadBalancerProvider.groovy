@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.oort.gce.model
 
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.oort.model.LoadBalancerProvider
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
