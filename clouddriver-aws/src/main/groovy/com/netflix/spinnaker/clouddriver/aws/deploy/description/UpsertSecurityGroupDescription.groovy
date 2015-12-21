@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
+import groovy.transform.Canonical
+
 class UpsertSecurityGroupDescription extends AbstractAmazonCredentialsDescription {
   String name
   String description
@@ -24,6 +26,8 @@ class UpsertSecurityGroupDescription extends AbstractAmazonCredentialsDescriptio
 
   List<SecurityGroupIngress> securityGroupIngress
   List<IpIngress> ipIngress
+
+  boolean ingressAppendOnly = false
 
   static abstract class Ingress {
     Integer startPort
@@ -35,8 +39,18 @@ class UpsertSecurityGroupDescription extends AbstractAmazonCredentialsDescriptio
     }
   }
 
+  @Canonical
   static class SecurityGroupIngress extends Ingress {
+    String accountName
+
+    String id
+
+    String vpcId
     String name
+
+    String toString() {
+      "${accountName ?: ''}.${vpcId ?: ''}.${name ?: id ?: ''}"
+    }
   }
 
   static class IpIngress extends Ingress {

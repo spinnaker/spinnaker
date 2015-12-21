@@ -33,27 +33,21 @@ class UpsertSecurityGroupDescriptionValidator extends AmazonDescriptionValidatio
 
   @Override
   void validate(List priorDescriptions, UpsertSecurityGroupDescription description, Errors errors) {
-    if (description.securityGroupIngress) {
-      def securityGroups = description.securityGroupIngress.collect { it.name }
-      def securityGroupService = regionScopedProviderFactory.forRegion(description.credentials, description.region).securityGroupService
-      try {
-        if (description.vpcId) {
-          securityGroupService.getSecurityGroupIds(securityGroups, description.vpcId)
-        } else {
-          securityGroupService.getSecurityGroupIds(securityGroups)
-        }
-      } catch (SecurityGroupNotFoundException ex) {
-        def priorSecurityGroupCreateDescriptions = (List<UpsertSecurityGroupDescription>) priorDescriptions.findAll { it instanceof UpsertSecurityGroupDescription }
-        if (ex.missingSecurityGroups && !priorSecurityGroupCreateDescriptions*.name.containsAll(ex.missingSecurityGroups)) {
-          errors.rejectValue(
-            "securityGroupIngress",
-            "upsertSecurityGroupDescription.security.group.not.found",
-            "The following security groups do not exist: ${ex.missingSecurityGroups.join(", ")} (account: ${description.credentials.accountId}, region: ${description.region}, vpcId: ${description.vpcId})"
-          )
-        }
-      }
+    if (!description.name) {
+      errors.rejectValue("name", "upsertSecurityGroupDescription.name.not.nullable")
+    }
+    if (!description.description) {
+      errors.rejectValue("description", "upsertSecurityGroupDescription.description.not.nullable")
     }
 
+    if (description.securityGroupIngress.find{ it.id == null && it.name == null }) {
+      errors.rejectValue(
+        "securityGroupIngress",
+        "upsertSecurityGroupDescription.ingress.without.identifier",
+        "Ingress for '$description.name' was missing identifier: ${description.securityGroupIngress.join(", ")}"
+      )
+    }
     validateRegions(description, [description.region], "upsertSecurityGroupDescription", errors)
   }
+
 }

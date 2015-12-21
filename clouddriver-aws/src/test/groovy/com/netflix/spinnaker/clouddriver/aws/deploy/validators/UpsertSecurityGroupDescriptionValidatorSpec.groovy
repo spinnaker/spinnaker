@@ -31,27 +31,22 @@ class UpsertSecurityGroupDescriptionValidatorSpec extends Specification {
 
   @Subject validator = new UpsertSecurityGroupDescriptionValidator()
 
-  @Shared
-  SecurityGroupService securityGroupService
+  SecurityGroupService securityGroupService = Mock(SecurityGroupService)
+  Errors errors = Mock(Errors)
 
-  @Shared
-  Errors errors
-
-  def description = new UpsertSecurityGroupDescription().with {
-    credentials = TestCredential.named('test')
-    name = "foo"
-    description = "desc"
-    securityGroupIngress = [
-      new SecurityGroupIngress().with {
-        name = "bar"
-        startPort = 111
-        endPort = 111
-        type = "tcp"
-        it
-      }
-    ]
-    it
-  }
+  final description = new UpsertSecurityGroupDescription(
+    credentials: TestCredential.named('test'),
+    region: "us-east-1",
+    name: "foo",
+    description: "desc",
+    securityGroupIngress: [
+      new SecurityGroupIngress(
+        name: "bar",
+        startPort: 111,
+        endPort: 111,
+        ipProtocol: "tcp"
+      )
+    ])
 
   def setup() {
     securityGroupService = Mock(SecurityGroupService)
@@ -63,23 +58,44 @@ class UpsertSecurityGroupDescriptionValidatorSpec extends Specification {
     validator.regionScopedProviderFactory = regionScopedProviderFactory
   }
 
-  void "should reject ingress unknown security groups when no prior security group create descriptions are found"() {
+  void "should reject ingress when unidentified"() {
+    description.securityGroupIngress = [
+      new SecurityGroupIngress(
+        accountName: "bar"
+      )
+    ]
+
     when:
-    validator.validate(_, description, errors)
+    validator.validate([], description, errors)
 
     then:
-    1 * securityGroupService.getSecurityGroupIds(_) >> { throw new SecurityGroupNotFoundException(missingSecurityGroups: ["sg-123"]) }
-    1 * errors.rejectValue("securityGroupIngress", _, _)
+    1 * errors.rejectValue("securityGroupIngress", "upsertSecurityGroupDescription.ingress.without.identifier",
+    "Ingress for 'foo' was missing identifier: bar..")
   }
 
-  void "should allow ingress from unknown security groups if they are intending to be created earlier in the chain"() {
-    setup:
-    def priorDesc = new UpsertSecurityGroupDescription(name: "foo")
-    description.region = "us-west-1"
-    description.securityGroupIngress = [new SecurityGroupIngress(name: "foo", startPort: 1, endPort: 1)]
+  void "should allow ingress with name"() {
+    description.securityGroupIngress = [
+      new SecurityGroupIngress(
+        name: "bar"
+      )
+    ]
 
     when:
-    validator.validate([priorDesc], description, errors)
+    validator.validate([], description, errors)
+
+    then:
+    0 * errors.rejectValue(_, _)
+  }
+
+  void "should allow ingress with id"() {
+    description.securityGroupIngress = [
+      new SecurityGroupIngress(
+        id: "bar"
+      )
+    ]
+
+    when:
+    validator.validate([], description, errors)
 
     then:
     0 * errors.rejectValue(_, _)

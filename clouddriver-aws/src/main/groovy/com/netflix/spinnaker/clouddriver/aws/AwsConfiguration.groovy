@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.aws.bastion.BastionConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.BasicAmazonDeployHandler
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProvider
+import com.netflix.spinnaker.clouddriver.aws.model.SecurityGroupLookupFactory
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentialsInitializer
@@ -128,6 +129,13 @@ class AwsConfiguration {
     synchronizeAwsCleanupProvider(awsCleanupProvider, amazonClientProvider, accountCredentialsRepository)
 
     awsCleanupProvider
+  }
+
+  @Bean
+  @DependsOn('netflixAmazonCredentials')
+  SecurityGroupLookupFactory securityGroupLookup(AmazonClientProvider amazonClientProvider,
+                                          AccountCredentialsRepository accountCredentialsRepository) {
+    new SecurityGroupLookupFactory(amazonClientProvider, accountCredentialsRepository)
   }
 
   @Bean

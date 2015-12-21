@@ -30,7 +30,7 @@ public class DefaultAccountCredentialsProvider implements AccountCredentialsProv
     }
 
     @Override
-    public Set<AccountCredentials> getAll() {
+    public Set<? extends AccountCredentials> getAll() {
         return repository.getAll();
     }
 

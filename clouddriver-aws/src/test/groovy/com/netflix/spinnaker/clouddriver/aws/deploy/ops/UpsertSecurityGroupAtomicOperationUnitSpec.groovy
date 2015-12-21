@@ -26,7 +26,9 @@ import com.amazonaws.services.ec2.model.RevokeSecurityGroupIngressRequest
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.amazonaws.services.ec2.model.UserIdGroupPair
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.UpsertSecurityGroupAtomicOperation
+import com.netflix.spinnaker.clouddriver.aws.model.SecurityGroupLookupFactory
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
@@ -42,119 +44,302 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
-  def description = new UpsertSecurityGroupDescription().with {
-    name = "foo"
-    description = "desc"
-    securityGroupIngress = [
-      new SecurityGroupIngress().with {
-        name = "bar"
-        startPort = 111
-        endPort = 112
-        type = "tcp"
-        it
-      }
-    ]
-    it
+  def description = new UpsertSecurityGroupDescription(
+    credentials: Stub(NetflixAmazonCredentials) {
+      getName() >> "test"
+    },
+    vpcId: "vpc-123",
+    name: "foo",
+    description: "desc",
+    securityGroupIngress: []
+  )
+
+
+  final securityGroupLookup = Mock(SecurityGroupLookupFactory.SecurityGroupLookup)
+
+  final securityGroupLookupFactory = Stub(SecurityGroupLookupFactory) {
+    getInstance(_) >> securityGroupLookup
   }
 
   @Subject
     op = new UpsertSecurityGroupAtomicOperation(description)
 
-  @Shared
-  AmazonEC2 ec2
 
   def setup() {
-    ec2 = Mock(AmazonEC2)
-    def clientProvider = Mock(AmazonClientProvider)
-    clientProvider.getAmazonEC2(_, _, true) >> ec2
-    op.amazonClientProvider = clientProvider
+    op.securityGroupLookupFactory = securityGroupLookupFactory
   }
 
-  void "non-existent security groups should be created"() {
+  void "non-existent security group should be created"() {
     when:
     op.operate([])
 
     then:
-    1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(securityGroups: [new SecurityGroup(groupName: "bar", groupId: "456")])
+    1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> null
 
     then:
-    1 * ec2.createSecurityGroup(new CreateSecurityGroupRequest(groupName: "foo", description: "desc")) >> new CreateSecurityGroupResult(groupId: "123")
-    1 * ec2.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest(groupId: "123",
-      ipPermissions: [
-        new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
-          new UserIdGroupPair(groupId: "456")
-        ])
-      ])
+    1 * securityGroupLookup.createSecurityGroup(description) >> new SecurityGroupLookupFactory.SecurityGroupUpdater(null, null)
+    0 * _
+  }
+
+  void "non-existent security group should be created with ingress"() {
+    final createdSecurityGroup = Mock(SecurityGroupLookupFactory.SecurityGroupUpdater)
+    description.securityGroupIngress = [
+      new SecurityGroupIngress(name: "bar", startPort: 111, endPort: 112, ipProtocol: "tcp")
+    ]
+
+    when:
+    op.operate([])
+
+    then:
+    1 * securityGroupLookup.getAccountIdForName("test") >> "accountId1"
+    1 * securityGroupLookup.getSecurityGroupByName("test", "bar", "vpc-123") >> new SecurityGroupLookupFactory.SecurityGroupUpdater(
+      new SecurityGroup(groupId: "id-bar"),
+      null
     )
+
+    then:
+    1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> null
+
+    then:
+    1 * securityGroupLookup.createSecurityGroup(description) >> createdSecurityGroup
+    1 * createdSecurityGroup.getSecurityGroup()
+
+    then:
+    1 * createdSecurityGroup.addIngress([
+      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
+        new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
+      ])
+    ])
+    0 * _
+  }
+
+  void "existing security group should be unchanged"() {
+    when:
+    op.operate([])
+
+    then:
+    1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >>
+      new SecurityGroupLookupFactory.SecurityGroupUpdater(new SecurityGroup(groupId: "id-bar"), null)
+    0 * _
+  }
+
+  void "existing security group should be updated with ingress by name"() {
+    final existingSecurityGroup = Mock(SecurityGroupLookupFactory.SecurityGroupUpdater)
+    description.securityGroupIngress = [
+      new SecurityGroupIngress(name: "bar", startPort: 111, endPort: 112, ipProtocol: "tcp")
+    ]
+
+    when:
+    op.operate([])
+
+    then:
+    1 * securityGroupLookup.getAccountIdForName("test") >> "accountId1"
+    1 * securityGroupLookup.getSecurityGroupByName("test", "bar", "vpc-123") >>
+      new SecurityGroupLookupFactory.SecurityGroupUpdater(new SecurityGroup(groupId: "id-bar"), null)
+
+    then:
+    1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> existingSecurityGroup
+    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupId: "123", ipPermissions: [])
+
+    then:
+    1 * existingSecurityGroup.addIngress([
+      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
+        new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
+      ])
+    ])
+    0 * _
+  }
+
+  void "existing security group should be updated with ingress by id"() {
+    final existingSecurityGroup = Mock(SecurityGroupLookupFactory.SecurityGroupUpdater)
+    description.securityGroupIngress = [
+      new SecurityGroupIngress(id: "id-bar", startPort: 111, endPort: 112, ipProtocol: "tcp")
+    ]
+
+    when:
+    op.operate([])
+
+    then:
+    1 * securityGroupLookup.getAccountIdForName("test") >> "accountId1"
+
+    then:
+    1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> existingSecurityGroup
+    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupId: "123", ipPermissions: [])
+
+    then:
+    1 * existingSecurityGroup.addIngress([
+      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
+        new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
+      ])
+    ])
+    0 * _
+  }
+
+  void "existing security group should be updated with ingress from another account"() {
+    final existingSecurityGroup = Mock(SecurityGroupLookupFactory.SecurityGroupUpdater)
+    description.securityGroupIngress = [
+      new SecurityGroupIngress(accountName: "prod", name: "bar", startPort: 111, endPort: 112, ipProtocol: "tcp")
+    ]
+
+    when:
+    op.operate([])
+
+    then:
+    1 * securityGroupLookup.getAccountIdForName("prod") >> "accountId2"
+    1 * securityGroupLookup.getSecurityGroupByName("prod", "bar", "vpc-123") >>
+      new SecurityGroupLookupFactory.SecurityGroupUpdater(new SecurityGroup(groupId: "id-bar"), null)
+
+    then:
+    1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> existingSecurityGroup
+    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupId: "123", ipPermissions: [])
+
+    then:
+    1 * existingSecurityGroup.addIngress([
+      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
+        new UserIdGroupPair(userId: "accountId2", groupId: "id-bar")
+      ])
+    ])
+    0 * _
   }
 
   void "existing permissions should not be re-created when a security group is modified"() {
+    final existingSecurityGroup = Mock(SecurityGroupLookupFactory.SecurityGroupUpdater)
+
+    description.securityGroupIngress = [
+      new SecurityGroupIngress(name: "bar", startPort: 111, endPort: 112, ipProtocol: "tcp"),
+      new SecurityGroupIngress(name: "bar", startPort: 25, endPort: 25, ipProtocol: "tcp"),
+      new SecurityGroupIngress(name: "bar", startPort: 80, endPort: 81, ipProtocol: "tcp")
+    ]
+    description.ipIngress = [
+      new IpIngress(cidr: "10.0.0.1/32", startPort: 80, endPort: 81, ipProtocol: "tcp")
+    ]
+
     when:
-    description.securityGroupIngress << new SecurityGroupIngress().with {
-      name = "bar"
-      startPort = 25
-      endPort = 25
-      type = "tcp"
-      it
-    }
-    description.securityGroupIngress << new SecurityGroupIngress().with {
-      name = "bar"
-      startPort = 80
-      endPort = 81
-      type = "tcp"
-      it
-    }
-    description.ipIngress = [new IpIngress().with {
-      cidr = "10.0.0.1/32"
-      startPort = 80
-      endPort = 81
-      ipProtocol = "tcp"
-      it
-    }]
     op.operate([])
 
     then:
-    1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
-      securityGroups: [
-        new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
-          new IpPermission(fromPort: 80, toPort: 81, userIdGroupPairs: [new UserIdGroupPair(groupId: "grp"), new UserIdGroupPair(groupId: "456")], ipRanges: ["10.0.0.1/32"], ipProtocol: "tcp"),
-          new IpPermission(fromPort: 25, toPort: 25, userIdGroupPairs: [new UserIdGroupPair(groupId: "456")], ipProtocol: "tcp"),
-        ]),
-        new SecurityGroup(groupName: "bar", groupId: "456")
-      ]
+    3 * securityGroupLookup.getAccountIdForName("test") >> "accountId1"
+    3 * securityGroupLookup.getSecurityGroupByName("test", "bar", "vpc-123") >> new SecurityGroupLookupFactory.SecurityGroupUpdater(
+      new SecurityGroup(groupId: "id-bar"),
+      null
     )
 
-    1 * ec2.revokeSecurityGroupIngress(_) >> { RevokeSecurityGroupIngressRequest request ->
-      assert request.ipPermissions[0].userIdGroupPairs[0].groupId == "grp"
-      assert request.ipPermissions[0].fromPort == 80
-      assert request.ipPermissions[0].toPort == 81
-    }
-    1 * ec2.authorizeSecurityGroupIngress(_) >> { AuthorizeSecurityGroupIngressRequest request ->
-      assert request.ipPermissions[0].userIdGroupPairs[0].groupId == "456"
-      assert request.ipPermissions[0].fromPort == 111
-      assert request.ipPermissions[0].toPort == 112
-    }
-    0 * ec2._
+    then:
+    1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> existingSecurityGroup
+    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
+        new IpPermission(fromPort: 80, toPort: 81,
+          userIdGroupPairs: [
+            new UserIdGroupPair(userId: "accountId1", groupId: "grp"),
+            new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
+          ],
+          ipRanges: ["10.0.0.1/32"], ipProtocol: "tcp"
+        ),
+        new IpPermission(fromPort: 25, toPort: 25,
+          userIdGroupPairs: [new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")], ipProtocol: "tcp"),
+      ])
+
+    then:
+    1 * existingSecurityGroup.addIngress([
+      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
+        new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
+      ])
+    ])
+    1 * existingSecurityGroup.removeIngress([
+      new IpPermission(ipProtocol: "tcp", fromPort: 80, toPort: 81, userIdGroupPairs: [
+        new UserIdGroupPair(userId: "accountId1", groupId: "grp")
+      ])
+    ])
+    0 * _
   }
 
-  @Unroll
-  void "should filter out CIDR and cross-account permissions"() {
-    given:
-    def securityGroup = new SecurityGroup().withOwnerId(ownerId)
+  void "should only append security group ingress"() {
+    final existingSecurityGroup = Mock(SecurityGroupLookupFactory.SecurityGroupUpdater)
 
-    expect:
-    op.filterUnsupportedRemovals(securityGroup, ipPermissions) == expectedIpPermissions as List<IpPermission>
+    description.securityGroupIngress = [
+      new SecurityGroupIngress(name: "bar", startPort: 111, endPort: 112, ipProtocol: "tcp"),
+      new SecurityGroupIngress(name: "bar", startPort: 25, endPort: 25, ipProtocol: "tcp"),
+      new SecurityGroupIngress(name: "bar", startPort: 80, endPort: 81, ipProtocol: "tcp")
+    ]
+    description.ingressAppendOnly = true
 
-    where:
-    ownerId | ipPermissions                                          || expectedIpPermissions
-    "1"     | [bI("10.0.0.0/32")]                                    || []
-    "1"     | [bI(null, "1", "2")]                                   || []
-    "1"     | [bI("10.0.0.0/32"), bI(null, "1", "2"), bI(null, "1")] || [bI(null, "1")]
+    when:
+    op.operate([])
+
+    then:
+    3 * securityGroupLookup.getAccountIdForName("test") >> "accountId1"
+    3 * securityGroupLookup.getSecurityGroupByName("test", "bar", "vpc-123") >> new SecurityGroupLookupFactory.SecurityGroupUpdater(
+      new SecurityGroup(groupId: "id-bar"),
+      null
+    )
+
+    then:
+    1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> existingSecurityGroup
+    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
+      new IpPermission(fromPort: 80, toPort: 81,
+        userIdGroupPairs: [
+          new UserIdGroupPair(userId: "accountId1", groupId: "grp"),
+          new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
+        ],
+        ipRanges: ["10.0.0.1/32"], ipProtocol: "tcp"
+      ),
+      new IpPermission(fromPort: 25, toPort: 25,
+        userIdGroupPairs: [new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")], ipProtocol: "tcp"),
+    ])
+
+    then:
+    1 * existingSecurityGroup.addIngress([
+      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
+        new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
+      ])
+    ])
+    0 * _
   }
 
-  private IpPermission bI(String ipRange, String... userIds) {
-    return new IpPermission()
-      .withIpRanges(ipRange ? [ipRange] : [])
-      .withUserIdGroupPairs(userIds.collect { new UserIdGroupPair().withGroupId("group").withUserId(it) })
+  void "should fail for missing ingress security group in vpc"() {
+    final existingSecurityGroup = Mock(SecurityGroupLookupFactory.SecurityGroupUpdater)
+    description.securityGroupIngress = [
+      new SecurityGroupIngress(name: "bar", startPort: 111, endPort: 112, ipProtocol: "tcp")
+    ]
+
+    when:
+    op.operate([])
+
+    then:
+    1 * securityGroupLookup.getAccountIdForName("test") >> "accountId1"
+    1 * securityGroupLookup.getSecurityGroupByName("test", "bar", "vpc-123") >> null
+    0 * _
+
+    then:
+    IllegalStateException ex = thrown()
+    ex.message == "The following security groups do not exist: 'bar' in 'test' vpc-123"
   }
+
+  void "should add ingress by name for missing ingress security group in EC2 classic"() {
+    final existingSecurityGroup = Mock(SecurityGroupLookupFactory.SecurityGroupUpdater)
+    description.securityGroupIngress = [
+      new SecurityGroupIngress(name: "bar", startPort: 111, endPort: 112, ipProtocol: "tcp")
+    ]
+    description.vpcId = null
+
+    when:
+    op.operate([])
+
+    then:
+    1 * securityGroupLookup.getAccountIdForName("test") >> "accountId1"
+    1 * securityGroupLookup.getSecurityGroupByName("test", "bar", null) >> null
+
+    then:
+    1 * securityGroupLookup.getSecurityGroupByName("test", "foo", null) >> existingSecurityGroup
+    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [])
+    0 * _
+
+    then:
+    1 * existingSecurityGroup.addIngress([
+      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
+        new UserIdGroupPair(userId: "accountId1", groupName: "bar")
+      ])
+    ])
+
+  }
+
 }
