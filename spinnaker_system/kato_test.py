@@ -550,7 +550,15 @@ class KatoIntegrationTest(st.AgentTestCase):
                self.scenario.use_instance_zones[0]))
 
   def test_z_delete_load_balancer(self):
-    self.run_test_case(self.scenario.delete_load_balancer())
+    # TODO(ewiseblatt): 20151220
+    # The retry here is really due to the 400 "not ready" race condition
+    # within GCP. Would be better to couple this to the agent and not the
+    # test so that it is easier to maintain. Need to add a generalization
+    # so the agent can see this is a delete test, got a 400, and only
+    # in that condition override the default retry parameters, then stick
+    # with the defaults here.
+    self.run_test_case(self.scenario.delete_load_balancer(), max_retries=5)
+)
 
 
 def main():
