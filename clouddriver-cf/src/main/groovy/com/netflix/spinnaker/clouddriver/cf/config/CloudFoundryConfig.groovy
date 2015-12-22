@@ -15,19 +15,24 @@
  */
 
 package com.netflix.spinnaker.clouddriver.cf.config
-
+import com.netflix.spinnaker.clouddriver.cf.deploy.handlers.CloudFoundryDeployHandler
+import com.netflix.spinnaker.clouddriver.cf.model.CloudFoundryResourceRetriever
+import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryClientFactory
+import com.netflix.spinnaker.clouddriver.cf.security.DefaultCloudFoundryClientFactory
+import com.netflix.spinnaker.clouddriver.helpers.OperationPoller
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableScheduling
 
+import javax.annotation.PostConstruct
 /**
  * Configuration for Cloud Foundry provider.
- *
- *
  */
 @Configuration
 @EnableConfigurationProperties
@@ -37,9 +42,53 @@ import org.springframework.scheduling.annotation.EnableScheduling
 class CloudFoundryConfig {
 
 	@Bean
-	@ConfigurationProperties("cf")
-	CloudFoundryConfigurationProperties cloudFoundryConfigurationProperties() {
-		new CloudFoundryConfigurationProperties()
+	CloudFoundryConfigurationProperties cfConfigurationProperties() {
+		new CloudFoundryConfigurationProperties();
+	}
+
+	@Bean
+	CloudFoundryCredentialsInitializer cloudFoundryCredentialsInitializer() {
+		new CloudFoundryCredentialsInitializer();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean(CloudFoundryClientFactory)
+	CloudFoundryClientFactory cloudFoundryClientFactory() {
+		new DefaultCloudFoundryClientFactory()
+	}
+
+	@Bean
+	@ConditionalOnMissingBean(CloudFoundryDeployHandler)
+	CloudFoundryDeployHandler cloudFoundryDeployHandler(CloudFoundryClientFactory clientFactory) {
+		new CloudFoundryDeployHandler(clientFactory)
+	}
+
+	@Bean
+	OperationPoller cloudFoundryOperationPoller(CloudFoundryConfigurationProperties properties) {
+		new OperationPoller(
+				properties.asyncOperationTimeoutSecondsDefault,
+				properties.asyncOperationMaxPollingIntervalSeconds
+		)
+	}
+
+	@Bean
+	CloudFoundryResourceRetriever cloudFoundryResourceRetriever() {
+		new CloudFoundryResourceRetriever()
+	}
+
+	static class CloudFoundryCredentialsInitializer {
+		@Autowired
+		CloudFoundryConfigurationProperties cfConfigurationProperties
+
+		@Autowired
+		AccountCredentialsRepository accountCredentialsRepository
+
+		@PostConstruct
+		void init() {
+			cfConfigurationProperties?.accounts?.each { account ->
+				accountCredentialsRepository?.save(account.name, account)
+			}
+		}
 	}
 
 }

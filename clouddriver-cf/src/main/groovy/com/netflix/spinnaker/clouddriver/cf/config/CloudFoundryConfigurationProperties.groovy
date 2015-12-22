@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.cf.config
 
+import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
+import org.springframework.boot.context.properties.ConfigurationProperties
+
+@ConfigurationProperties('cf')
 class CloudFoundryConfigurationProperties {
 
   public static final int POLLING_INTERVAL_SECONDS_DEFAULT = 300
@@ -28,5 +32,6 @@ class CloudFoundryConfigurationProperties {
   int asyncOperationTimeoutSecondsDefault = ASYNC_OPERATION_TIMEOUT_SECONDS_DEFAULT
   int asyncOperationMaxPollingIntervalSeconds = ASYNC_OPERATION_MAX_POLLING_INTERVAL_SECONDS
 
+  List<CloudFoundryAccountCredentials> accounts = []
 
 }
