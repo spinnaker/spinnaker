@@ -27,9 +27,7 @@ import com.netflix.scheduledactions.persistence.cassandra.CassandraActionInstanc
 import com.netflix.scheduledactions.persistence.cassandra.CassandraExecutionDao
 import com.netflix.scheduledactions.persistence.cassandra.CassandraTriggerDao
 import com.netflix.scheduledactions.web.controllers.ActionInstanceController
-import com.netflix.spinnaker.kork.astyanax.AstyanaxComponents
 import com.squareup.okhttp.OkHttpClient
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.annotation.Bean
@@ -44,11 +42,6 @@ import java.util.concurrent.TimeUnit
 @ConditionalOnExpression('${scheduler.enabled:false}')
 @ComponentScan(["com.netflix.spinnaker.echo.scheduler", "com.netflix.scheduledactions"])
 class SchedulerConfiguration {
-  /*
-    * Dirty, make sure EmbeddedCass is loaded before our @Bean classes
-    */
-    @Autowired(required = false)
-    AstyanaxComponents.EmbeddedCassandraRunner embeddedCassandra
 
     @Bean
     ActionInstanceDao actionInstanceDao(Keyspace keyspace) {

@@ -35,7 +35,7 @@ allprojects {
     group = "com.netflix.spinnaker.echo"
 
     spinnaker {
-        dependenciesVersion = "0.19.0"
+        dependenciesVersion = "0.26.0"
     }
     test {
       testLogging {
@@ -48,19 +48,13 @@ allprojects {
         exclude group: 'javax.servlet', module: 'servlet-api'
         exclude group: 'org.slf4j', module: 'slf4j-log4j12'
         exclude group: 'org.slf4j', module: 'slf4j-simple'
-
         resolutionStrategy {
-            force 'org.apache.httpcomponents:httpclient:4.3.2'
+            force 'com.google.guava:guava:15.0'
         }
     }
 }
 
 subprojects {
-    plugins.withType(JavaPlugin) {
-        sourceCompatibility = "1.8"
-        targetCompatibility = "1.8"
-    }
-
     jacoco {
         toolVersion = '0.7.0.201403182114'
     }
