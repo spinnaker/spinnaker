@@ -30,6 +30,7 @@ class GoogleConfigurationProperties {
     String accountType
     String project
     String jsonPath
+    List<String> imageProjects
 
     public InputStream getInputStream() {
       if (jsonPath) {

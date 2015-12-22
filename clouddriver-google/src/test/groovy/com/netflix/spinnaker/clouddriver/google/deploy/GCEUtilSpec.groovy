@@ -29,8 +29,9 @@ import com.google.api.services.compute.model.InstanceAggregatedList
 import com.google.api.services.compute.model.InstancesScopedList
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import groovy.mock.interceptor.MockFor
 import spock.lang.Shared
 import spock.lang.Specification
@@ -45,7 +46,11 @@ class GCEUtilSpec extends Specification {
   private static final INSTANCE_LOCAL_NAME_2 = "some-instance-name-2"
   private static final INSTANCE_URL_1 = "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/us-central1-b/instances/some-instance-name-1"
   private static final INSTANCE_URL_2 = "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/us-central1-b/instances/some-instance-name-1"
-  private static final String GOOGLE_APPLICATION_NAME = "test"
+  private static final BASE_DESCRIPTION_1 = new BaseGoogleInstanceDescription(image: IMAGE_NAME)
+  private static final IMAGE_PROJECT_NAME = "some-image-project"
+  private static final CREDENTIALS = new GoogleCredentials(null, null, [IMAGE_PROJECT_NAME])
+  private static final BASE_DESCRIPTION_2 = new BaseGoogleInstanceDescription(image: IMAGE_NAME, credentials: CREDENTIALS)
+  private static final GOOGLE_APPLICATION_NAME = "test"
 
   @Shared
   def taskMock
@@ -97,7 +102,58 @@ class GCEUtilSpec extends Specification {
             def compute = new Compute.Builder(
                     httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build()
 
-            sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, IMAGE_NAME, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME)
+            sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, BASE_DESCRIPTION_1, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME)
+          }
+        }
+      }
+
+    then:
+      sourceImage == soughtImage
+  }
+
+  void "query source images should query configured imageProjects and succeed"() {
+    setup:
+      def computeMock = new MockFor(Compute)
+      def batchMock = new MockFor(BatchRequest)
+      def imageProjects = [PROJECT_NAME] + [IMAGE_PROJECT_NAME] + GCEUtil.baseImageProjects
+      def listMock = new MockFor(Compute.Images.List)
+
+      def httpTransport = GoogleNetHttpTransport.newTrustedTransport()
+      def jsonFactory = JacksonFactory.defaultInstance
+      def httpRequestInitializer =
+              new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
+      def images = new Compute.Builder(
+              httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build().images()
+
+      computeMock.demand.batch { new BatchRequest(httpTransport, httpRequestInitializer) }
+
+      JsonBatchCallback<ImageList> callback = null
+
+      for (def imageProject : imageProjects) {
+        computeMock.demand.images { return images }
+        listMock.demand.queue { imageListBatch, imageListCallback ->
+          callback = imageListCallback
+        }
+      }
+
+      def soughtImage = new Image(name: IMAGE_NAME)
+
+      batchMock.demand.execute {
+        def imageList = new ImageList()
+        imageList.setItems([soughtImage])
+        callback.onSuccess(imageList, null)
+      }
+
+    when:
+      def sourceImage = null
+
+      batchMock.use {
+        computeMock.use {
+          listMock.use {
+            def compute = new Compute.Builder(
+                    httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build()
+
+            sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, BASE_DESCRIPTION_2, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME)
           }
         }
       }
@@ -146,7 +202,7 @@ class GCEUtilSpec extends Specification {
             def compute = new Compute.Builder(
                     httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build()
 
-            sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, IMAGE_NAME, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME)
+            sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, BASE_DESCRIPTION_1, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME)
           }
         }
       }

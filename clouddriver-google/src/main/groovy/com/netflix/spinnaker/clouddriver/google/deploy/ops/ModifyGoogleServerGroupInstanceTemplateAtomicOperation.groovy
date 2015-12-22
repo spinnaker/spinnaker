@@ -126,7 +126,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
           || overriddenProperties.disks
           || overriddenProperties.instanceType) {
         def sourceImage = GCEUtil.querySourceImage(project,
-                                                   newDescription.image,
+                                                   newDescription,
                                                    compute,
                                                    task,
                                                    BASE_PHASE,

@@ -75,6 +75,7 @@ class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizab
                                                               managedAccount.accountType ?: managedAccount.name,
                                                               managedAccount.project,
                                                               jsonKey,
+                                                              managedAccount.imageProjects,
                                                               googleApplicationName)
 
         if (!managedAccount.project) {

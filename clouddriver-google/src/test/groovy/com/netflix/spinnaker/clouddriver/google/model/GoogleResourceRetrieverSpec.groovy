@@ -17,99 +17,11 @@
 package com.netflix.spinnaker.clouddriver.google.model
 
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
-import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.model.HealthState
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import spock.lang.Specification
 import spock.lang.Subject
 
 class GoogleResourceRetrieverSpec extends Specification {
-  void "credentials are returned keyed by account name"() {
-    setup:
-      def credentials1 = new GoogleCredentials(null, null)
-      def credentialsStub1 = new GoogleNamedAccountCredentials(null, null, null, null, null, null) {
-        @Override
-        String getName() {
-          return "account-1"
-        }
-
-        @Override
-        String getEnvironment() {
-          getName()
-        }
-
-        @Override
-        String getAccountType() {
-          getName()
-        }
-
-        @Override
-        GoogleCredentials getCredentials() {
-          return credentials1
-        }
-      }
-
-      def credentials2a = new GoogleCredentials(null, null)
-      def credentialsStub2a = new GoogleNamedAccountCredentials(null, null, null, null, null, null) {
-        @Override
-        String getName() {
-          return "account-2"
-        }
-
-        @Override
-        String getEnvironment() {
-          getName()
-        }
-
-        @Override
-        String getAccountType() {
-          getName()
-        }
-
-        @Override
-        GoogleCredentials getCredentials() {
-          return credentials2a
-        }
-      }
-
-      def credentials2b = new GoogleCredentials(null, null)
-      def credentialsStub2b = new GoogleNamedAccountCredentials(null, null, null, null, null, null) {
-        @Override
-        String getName() {
-          return "account-2"
-        }
-
-        @Override
-        String getEnvironment() {
-          getName()
-        }
-
-        @Override
-        String getAccountType() {
-          getName()
-        }
-
-        @Override
-        GoogleCredentials getCredentials() {
-          return credentials2b
-        }
-      }
-
-      def accountCredentialsProviderMock = Mock(AccountCredentialsProvider)
-      accountCredentialsProviderMock.getAll() >> ([credentialsStub1, credentialsStub2a, credentialsStub2b] as Set)
-
-    when:
-      def credentialsMap =
-        new GoogleResourceRetriever(accountCredentialsProvider: accountCredentialsProviderMock)
-          .getAllGoogleCredentialsObjects()
-
-    then:
-      credentialsMap.keySet() == ["account-1", "account-2"] as Set
-      credentialsMap["account-1"] == [credentials1] as Set
-      credentialsMap["account-2"] == [credentials2a, credentials2b] as Set
-  }
-
   void "cache update is skipped when cacheLock cannot be obtained"() {
     setup:
       def googleResourceRetriever = new GoogleResourceRetriever()
