@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.google.model.callbacks.RegionsCallback
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
@@ -86,9 +87,11 @@ class GoogleResourceRetriever {
 
   // TODO(duftler): Handle paginated results.
   private void load() {
-    Map<String, Set<GoogleCredentials>> accountNameToSetOfGoogleCredentialsMap = getAllGoogleCredentialsObjects()
+    def googleAccountSet = accountCredentialsProvider.all.findAll {
+      it instanceof GoogleNamedAccountCredentials
+    } as Set<GoogleNamedAccountCredentials>
 
-    if (!accountNameToSetOfGoogleCredentialsMap) {
+    if (!googleAccountSet) {
       if (appMap) {
         log.info "Flushing application map..."
 
@@ -110,88 +113,90 @@ class GoogleResourceRetriever {
       def tempImageMap = new HashMap<String, List<Map>>()
       def tempNetworkLoadBalancerMap = new HashMap<String, Map<String, List<GoogleLoadBalancer>>>()
 
-      accountNameToSetOfGoogleCredentialsMap.each {
-        def accountName = it.key
-        def credentialsSet = it.value
+      googleAccountSet.each { googleAccount ->
+        def accountName = googleAccount.name
+        def credentials = googleAccount.credentials
+        def project = credentials.project
+        def compute = credentials.compute
 
-        for (GoogleCredentials credentials : credentialsSet) {
-          def project = credentials.project
-          def compute = credentials.compute
+        BatchRequest regionsBatch = buildBatchRequest(compute, googleApplicationName)
+        BatchRequest migsBatch = buildBatchRequest(compute, googleApplicationName)
+        BatchRequest instanceGroupsBatch = buildBatchRequest(compute, googleApplicationName)
+        BatchRequest instancesBatch = buildBatchRequest(compute, googleApplicationName)
+        Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap = new HashMap<String, GoogleServerGroup>()
 
-          BatchRequest regionsBatch = buildBatchRequest(compute, googleApplicationName)
-          BatchRequest migsBatch = buildBatchRequest(compute, googleApplicationName)
-          BatchRequest instanceGroupsBatch = buildBatchRequest(compute, googleApplicationName)
-          BatchRequest instancesBatch = buildBatchRequest(compute, googleApplicationName)
-          Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap = new HashMap<String, GoogleServerGroup>()
+        def regions = compute.regions().list(project).execute().getItems()
+        def googleSecurityGroups = googleSecurityGroupProvider.getAllByAccount(false, accountName)
+        def regionsCallback = new RegionsCallback(tempAppMap,
+                                                  accountName,
+                                                  project,
+                                                  compute,
+                                                  googleSecurityGroups,
+                                                  tempImageMap,
+                                                  defaultBuildHost,
+                                                  instanceNameToGoogleServerGroupMap,
+                                                  migsBatch,
+                                                  instanceGroupsBatch)
 
-          def regions = compute.regions().list(project).execute().getItems()
-          def googleSecurityGroups = googleSecurityGroupProvider.getAllByAccount(false, accountName)
-          def regionsCallback = new RegionsCallback(tempAppMap,
-                                                    accountName,
-                                                    project,
-                                                    compute,
-                                                    googleSecurityGroups,
-                                                    tempImageMap,
-                                                    defaultBuildHost,
-                                                    instanceNameToGoogleServerGroupMap,
-                                                    migsBatch,
-                                                    instanceGroupsBatch)
-
-          regions.each { region ->
-            compute.regions().get(project, region.getName()).queue(regionsBatch, regionsCallback)
-          }
-
-          // Image lists are keyed by account in imageMap.
-          if (!tempImageMap[accountName]) {
-            tempImageMap[accountName] = new ArrayList<Map>()
-          }
-
-          // Retrieve all available images for this project.
-          compute.images().list(project).queue(regionsBatch, new ImagesCallback(tempImageMap[accountName], false))
-
-          // Retrieve pruned list of available images for known public image projects.
-          def imagesCallback = new ImagesCallback(tempImageMap[accountName], true)
-
-          Utils.baseImageProjects.each { imageProject ->
-            compute.images().list(imageProject).queue(regionsBatch, imagesCallback)
-          }
-
-          // Network load balancer maps are keyed by account in networkLoadBalancerMap.
-          if (!tempNetworkLoadBalancerMap[accountName]) {
-            tempNetworkLoadBalancerMap[accountName] = new HashMap<String, List<GoogleLoadBalancer>>()
-          }
-
-          def instanceNameToLoadBalancerHealthStatusMap = new HashMap<String, Map<String, List<HealthStatus>>>()
-
-          // Retrieve all available network load balancers for this project.
-          def networkLoadBalancersCallback = new NetworkLoadBalancersCallback(tempNetworkLoadBalancerMap[accountName],
-                                                                              instanceNameToLoadBalancerHealthStatusMap,
-                                                                              accountName,
-                                                                              project,
-                                                                              compute,
-                                                                              migsBatch,
-                                                                              instanceGroupsBatch)
-
-          compute.forwardingRules().aggregatedList(project).queue(regionsBatch, networkLoadBalancersCallback)
-
-          executeIfRequestsAreQueued(regionsBatch)
-          executeIfRequestsAreQueued(migsBatch)
-          executeIfRequestsAreQueued(instanceGroupsBatch)
-
-          // Standalone instance maps are keyed by account in standaloneInstanceMap.
-          if (!tempStandaloneInstanceMap[accountName]) {
-            tempStandaloneInstanceMap[accountName] = new ArrayList<GoogleInstance>()
-          }
-
-          def instanceAggregatedListCallback =
-            new InstanceAggregatedListCallback(googleSecurityGroups,
-                                               instanceNameToGoogleServerGroupMap,
-                                               tempStandaloneInstanceMap[accountName],
-                                               instanceNameToLoadBalancerHealthStatusMap)
-
-          compute.instances().aggregatedList(project).queue(instancesBatch, instanceAggregatedListCallback)
-          executeIfRequestsAreQueued(instancesBatch)
+        regions.each { region ->
+          compute.regions().get(project, region.getName()).queue(regionsBatch, regionsCallback)
         }
+
+        // Image lists are keyed by account in imageMap.
+        if (!tempImageMap[accountName]) {
+          tempImageMap[accountName] = new ArrayList<Map>()
+        }
+
+        // Retrieve all available images for this project.
+        compute.images().list(project).queue(regionsBatch, new ImagesCallback(tempImageMap[accountName], false))
+
+        // Retrieve all available images from each configured imageProject for this account.
+        googleAccount.imageProjects.each { imageProject ->
+          compute.images().list(imageProject).queue(regionsBatch, new ImagesCallback(tempImageMap[accountName], false))
+        }
+
+        // Retrieve pruned list of available images for known public image projects.
+        def imagesCallback = new ImagesCallback(tempImageMap[accountName], true)
+
+        Utils.baseImageProjects.each { baseImageProject ->
+          compute.images().list(baseImageProject).queue(regionsBatch, imagesCallback)
+        }
+
+        // Network load balancer maps are keyed by account in networkLoadBalancerMap.
+        if (!tempNetworkLoadBalancerMap[accountName]) {
+          tempNetworkLoadBalancerMap[accountName] = new HashMap<String, List<GoogleLoadBalancer>>()
+        }
+
+        def instanceNameToLoadBalancerHealthStatusMap = new HashMap<String, Map<String, List<HealthStatus>>>()
+
+        // Retrieve all available network load balancers for this project.
+        def networkLoadBalancersCallback = new NetworkLoadBalancersCallback(tempNetworkLoadBalancerMap[accountName],
+                                                                            instanceNameToLoadBalancerHealthStatusMap,
+                                                                            accountName,
+                                                                            project,
+                                                                            compute,
+                                                                            migsBatch,
+                                                                            instanceGroupsBatch)
+
+        compute.forwardingRules().aggregatedList(project).queue(regionsBatch, networkLoadBalancersCallback)
+
+        executeIfRequestsAreQueued(regionsBatch)
+        executeIfRequestsAreQueued(migsBatch)
+        executeIfRequestsAreQueued(instanceGroupsBatch)
+
+        // Standalone instance maps are keyed by account in standaloneInstanceMap.
+        if (!tempStandaloneInstanceMap[accountName]) {
+          tempStandaloneInstanceMap[accountName] = new ArrayList<GoogleInstance>()
+        }
+
+        def instanceAggregatedListCallback =
+          new InstanceAggregatedListCallback(googleSecurityGroups,
+                                             instanceNameToGoogleServerGroupMap,
+                                             tempStandaloneInstanceMap[accountName],
+                                             instanceNameToLoadBalancerHealthStatusMap)
+
+        compute.instances().aggregatedList(project).queue(instancesBatch, instanceAggregatedListCallback)
+        executeIfRequestsAreQueued(instancesBatch)
       }
 
       populateLoadBalancerServerGroups(tempAppMap, tempNetworkLoadBalancerMap)
@@ -301,28 +306,6 @@ class GoogleResourceRetriever {
         }
       }
     )
-  }
-
-  Map<String, Set<GoogleCredentials>> getAllGoogleCredentialsObjects() {
-    def accountNameToSetOfGoogleCredentialsMap = new HashMap<String, Set<GoogleCredentials>>()
-
-    for (def accountCredentials : accountCredentialsProvider.getAll()) {
-      try {
-        if (accountCredentials.credentials instanceof GoogleCredentials) {
-          def accountName = accountCredentials.getName()
-
-          if (!accountNameToSetOfGoogleCredentialsMap.containsKey(accountName)) {
-            accountNameToSetOfGoogleCredentialsMap[accountName] = new HashSet<GoogleCredentials>()
-          }
-
-          accountNameToSetOfGoogleCredentialsMap[accountName] << accountCredentials.credentials
-        }
-      } catch (e) {
-        log.info "Squashed exception ${e.getClass().getName()} thrown by $accountCredentials."
-      }
-    }
-
-    accountNameToSetOfGoogleCredentialsMap
   }
 
   void handleCacheUpdate(Map<String, ? extends Object> data) {

@@ -65,14 +65,15 @@ class GCEUtil {
   }
 
   static Image querySourceImage(String projectName,
-                                String sourceImageName,
+                                BaseGoogleInstanceDescription description,
                                 Compute compute,
                                 Task task,
                                 String phase,
                                 String googleApplicationName) {
-    task.updateStatus phase, "Looking up source image $sourceImageName..."
+    task.updateStatus phase, "Looking up source image $description.image..."
 
-    def imageProjects = [projectName] + baseImageProjects
+    def imageProjects = [projectName] + description.credentials?.imageProjects + baseImageProjects - null
+    def sourceImageName = description.image
     def sourceImage = null
 
     def imageListBatch = buildBatchRequest(compute, googleApplicationName)
@@ -84,9 +85,12 @@ class GCEUtil {
 
       @Override
       void onSuccess(ImageList imageList, HttpHeaders responseHeaders) throws IOException {
-        for (def image : imageList.items) {
-          if (image.name == sourceImageName) {
-            sourceImage = image
+        // No need to look through these images if the requested image was already found.
+        if (!sourceImage) {
+          for (def image : imageList.items) {
+            if (image.name == sourceImageName) {
+              sourceImage = image
+            }
           }
         }
       }
@@ -192,7 +196,7 @@ class GCEUtil {
 
     Map<String, InstancesScopedList> zoneToInstancesMap = compute.instances().aggregatedList(projectName).execute().items
 
-    // Build up a list of all instances in the specified region with a name specified  in instanceLocalNames:
+    // Build up a list of all instances in the specified region with a name specified in instanceLocalNames:
     //   1) Build a list of lists where each sublist represents the matching instances in one zone.
     //   2) Flatten the list of lists into a one-level list.
     //   3) Remove any null entries (null entries are possible because .collect() still accumulates an element even if

@@ -193,6 +193,6 @@ class ProviderUtilsSpec extends Specification {
   }
 
   private static GoogleNamedAccountCredentials buildGoogleNamedAccountCredentials(String accountName) {
-    new GoogleNamedAccountCredentials(accountName, null, null, null, null, null)
+    new GoogleNamedAccountCredentials(accountName, null, null, null, null, null, null)
   }
 }

@@ -37,16 +37,17 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredentials> {
-    public GoogleNamedAccountCredentials(String accountName, String environment, String accountType, String projectName, String jsonKey, String applicationName) {
-      this(accountName, environment, accountType, projectName, jsonKey, null, applicationName);
+    public GoogleNamedAccountCredentials(String accountName, String environment, String accountType, String projectName, String jsonKey, List<String> imageProjects, String applicationName) {
+      this(accountName, environment, accountType, projectName, jsonKey, imageProjects, null, applicationName);
     }
 
-    public GoogleNamedAccountCredentials(String accountName, String environment, String accountType, String projectName, String jsonKey, List<String> requiredGroupMembership, String applicationName) {
+    public GoogleNamedAccountCredentials(String accountName, String environment, String accountType, String projectName, String jsonKey, List<String> imageProjects, List<String> requiredGroupMembership, String applicationName) {
       this.accountName = accountName;
       this.environment = environment;
       this.accountType = accountType;
       this.projectName = projectName;
       this.jsonKey = jsonKey;
+      this.imageProjects = imageProjects;
       this.requiredGroupMembership = requiredGroupMembership == null ? Collections.emptyList() : Collections.unmodifiableList(requiredGroupMembership);
       this.applicationName = applicationName;
       this.credentials = (projectName != null) ? buildCredentials() : null;
@@ -92,14 +93,14 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
             GoogleCredential credential = GoogleCredential.fromStream(credentialStream, httpTransport, jsonFactory).createScoped(Collections.singleton(ComputeScopes.COMPUTE));
             Compute compute = new Compute.Builder(httpTransport, jsonFactory, null).setApplicationName(applicationName).setHttpRequestInitializer(credential).build();
 
-            return new GoogleCredentials(projectName, compute);
+            return new GoogleCredentials(projectName, compute, imageProjects);
           }
         } else {
           // No JSON key was specified in matching config on key server, so use application default credentials.
           GoogleCredential credential = GoogleCredential.getApplicationDefault();
           Compute compute = new Compute.Builder(httpTransport, jsonFactory, credential).setApplicationName(applicationName).build();
 
-          return new GoogleCredentials(projectName, compute);
+          return new GoogleCredentials(projectName, compute, imageProjects);
         }
       } catch (IOException ioe) {
         throw new RuntimeException("failed to create credentials", ioe);
@@ -154,6 +155,10 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
       return projectName;
     }
 
+    public List<String> getImageProjects() {
+      return imageProjects;
+    }
+
     public List<String> getRequiredGroupMembership() {
       return requiredGroupMembership;
     }
@@ -169,6 +174,7 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
     private final String accountType;
     private final String projectName;
     private final String jsonKey;
+    private final List<String> imageProjects;
     private final GoogleCredentials credentials;
     private final List<String> requiredGroupMembership;
     private final String applicationName;

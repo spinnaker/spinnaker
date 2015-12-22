@@ -18,13 +18,21 @@ package com.netflix.spinnaker.clouddriver.google.security;
 
 import com.google.api.services.compute.Compute;
 
+import java.util.List;
+
 public class GoogleCredentials {
   private final String project;
   private final Compute compute;
+  private final List<String> imageProjects;
 
   public GoogleCredentials(String project, Compute compute) {
+    this(project, compute, null);
+  }
+
+  public GoogleCredentials(String project, Compute compute, List<String> imageProjects) {
     this.project = project;
     this.compute = compute;
+    this.imageProjects = imageProjects;
   }
 
   public String getProject() {
@@ -33,5 +41,9 @@ public class GoogleCredentials {
 
   public Compute getCompute() {
     return compute;
+  }
+
+  public List<String> getImageProjects() {
+    return imageProjects;
   }
 }
