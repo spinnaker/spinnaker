@@ -32,6 +32,8 @@ import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClient;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.route53.AmazonRoute53;
 import com.amazonaws.services.route53.AmazonRoute53Client;
 import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
@@ -243,6 +245,10 @@ public class AmazonClientProvider {
   public AmazonSNS getAmazonSNS(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
     checkCredentials(amazonCredentials);
     return getProxyHandler(AmazonSNS.class, AmazonSNSClient.class, amazonCredentials, region, skipEdda);
+  }
+
+  public AmazonIdentityManagement getAmazonIdentityManagement(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
+    return getProxyHandler(AmazonIdentityManagement.class, AmazonIdentityManagementClient.class, amazonCredentials, region, skipEdda);
   }
 
   public AmazonCloudWatch getCloudWatch(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {

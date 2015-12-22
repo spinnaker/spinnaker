@@ -53,7 +53,7 @@ class OperationsController {
   @Autowired OrchestrationProcessor orchestrationProcessor
   @Autowired Registry registry
   @Autowired (required = false) Collection<AllowedAccountsValidator> allowedAccountValidators = []
-  @Autowired (required = false) Collection<AtomicOperationDescriptionPreProcessor> atomicOperationDescriptionPreProcessors = []
+  @Autowired (required = false) List<AtomicOperationDescriptionPreProcessor> atomicOperationDescriptionPreProcessors = []
   @Autowired AtomicOperationsRegistry atomicOperationsRegistry
 
   /*

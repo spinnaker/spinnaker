@@ -14,13 +14,24 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.clouddriver.orchestration;
 
-package com.netflix.spinnaker.clouddriver.orchestration
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TreeTraversingParser;
+
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * Provides an extension point for manipulating an {@code AtomicOperation} context prior to execution.
  */
-interface AtomicOperationDescriptionPreProcessor {
-  boolean supports(Class descriptionClass)
-  Map process(Map description)
+public interface AtomicOperationDescriptionPreProcessor {
+  boolean supports(Class descriptionClass);
+  Map process(Map description);
+
+  default <T> T mapTo(ObjectMapper objectMapper, Map description, Class<T> clazz) throws IOException {
+    ObjectNode objectNode = objectMapper.valueToTree(description);
+    return objectMapper.readValue(new TreeTraversingParser(objectNode, objectMapper), clazz);
+  }
 }
