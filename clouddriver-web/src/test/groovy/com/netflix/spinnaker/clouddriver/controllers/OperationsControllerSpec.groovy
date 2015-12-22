@@ -16,10 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
+import com.netflix.spinnaker.clouddriver.aws.deploy.converters.BasicAmazonDeployAtomicOperationConverter
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AnnotationsBasedAtomicOperationsRegistry
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationDescriptionPreProcessor
 import com.netflix.spinnaker.clouddriver.orchestration.OrchestrationProcessor
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean
@@ -27,7 +31,9 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class OperationsControllerSpec extends Specification {
 
@@ -59,6 +65,54 @@ class OperationsControllerSpec extends Specification {
       assert it?.flatten()*.getClass() == [Op1, Op2]
       Mock(Task)
     }
+  }
+
+  @Shared
+  def googlePreProcessor = new AtomicOperationDescriptionPreProcessor() {
+    @Override
+    boolean supports(Class descriptionClass) {
+      return descriptionClass == BasicGoogleDeployDescription
+    }
+
+    @Override
+    Map process(Map description) {
+      return ["google": "true"]
+    }
+  }
+
+  @Shared
+  def amazonPreProcessor = new AtomicOperationDescriptionPreProcessor() {
+    @Override
+    boolean supports(Class descriptionClass) {
+      return descriptionClass == BasicAmazonDeployDescription
+    }
+
+    @Override
+    Map process(Map description) {
+      return new HashMap(description) + [
+        "additionalKey": "additionalVal",
+        "amazon"       : "true"
+      ]
+    }
+  }
+
+  @Unroll
+  void "should only pre-process inputs of supported description classes"() {
+    when:
+    def output = OperationsController.processDescriptionInput(
+      descriptionPreProcessors as Collection<AtomicOperationDescriptionPreProcessor>,
+      converter,
+      descriptionInput
+    )
+
+    then:
+    output == expectedOutput
+
+    where:
+    descriptionPreProcessors                 | converter                                       | descriptionInput    || expectedOutput
+    []                                       | new BasicAmazonDeployAtomicOperationConverter() | ["a": "b"]          || ["a": "b"]
+    [googlePreProcessor]                     | new BasicAmazonDeployAtomicOperationConverter() | ["a": "b"]          || ["a": "b"]
+    [googlePreProcessor, amazonPreProcessor] | new BasicAmazonDeployAtomicOperationConverter() | ["amazon": "false"] || ["additionalKey": "additionalVal", "amazon": "true"]
   }
 
   @Configuration
