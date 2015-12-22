@@ -45,7 +45,7 @@ class CloudFoundryDeployAtomicOperationConverterUnitSpec extends Specification {
     )
   }
 
-  def "cloudFoundryDeployDescription type returns CloudFoundryDeployDescription and DeployAtomicOperation"() {
+  def "should return CloudFoundryDeployDescription and DeployAtomicOperation"() {
     setup:
     def input = [application: 'test-app', artifact: 'test-app-0.0.1-BUILD-SNAPSHOT.war',
                  credentials: 'test']
@@ -76,5 +76,36 @@ class CloudFoundryDeployAtomicOperationConverterUnitSpec extends Specification {
     where:
     application = "kato"
   }
+
+  def "should support templated repositories"() {
+    setup:
+    def input = [application: 'test-app',
+                 repository: '/{{job}}-{{buildNumber}}',
+                 artifact: 'test-app-0.0.1-BUILD-SNAPSHOT.war',
+                 trigger: [job: 'test-job', buildNumber: 123],
+                 credentials: 'test']
+
+    when:
+    def description = converter.convertDescription(input)
+
+    then:
+    description.repository == "/${input.trigger.job}-${input.trigger.buildNumber}"
+
+  }
+
+  def "should handle lack of trigger parameters"() {
+    setup:
+    def input = [application: 'test-app',
+                 repository: '/{{job}}-{{buildNumber}}',
+                 artifact: 'test-app-0.0.1-BUILD-SNAPSHOT.war',
+                 credentials: 'test']
+
+    when:
+    def description = converter.convertDescription(input)
+
+    then:
+    description.repository == '/{{job}}-{{buildNumber}}'
+  }
+
 
 }
