@@ -24,7 +24,8 @@ module.exports = angular
       templates.forEach((template) => overrideRegistry.overrideTemplate(template.key, template.value));
 
       let controllers = [
-        { key: 'CreateApplicationModalCtrl', value: 'netflixCreateApplicationModalCtrl' }
+        { key: 'CreateApplicationModalCtrl', value: 'netflixCreateApplicationModalCtrl' },
+        { key: 'EditApplicationController', value: 'netflixEditApplicationController' },
       ];
       controllers.forEach((ctrl) => overrideRegistry.overrideController(ctrl.key, ctrl.value));
     }

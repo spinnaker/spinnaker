@@ -23,7 +23,7 @@ module.exports = angular
     this.editApplication = () => {
       $uibModal.open({
         templateUrl: overrideRegistry.getTemplate('editApplicationModal', require('../modal/editApplication.html')),
-        controller: 'EditApplicationController',
+        controller: overrideRegistry.getController('EditApplicationController'),
         controllerAs: 'editApp',
         resolve: {
           application: () => {

@@ -14,6 +14,19 @@ module.exports = angular
         '<p>If you do <b>not</b> want your application to participate in Chaos Monkey, unselect this option.</p>'
       },
       {
+        key: 'application.legacyUdf',
+        contents: '<p>The legacy user data format was used to support custom user data per account and application. We ' +
+        'have since migrated away from customizing user data in favor of nflx-init.d scripts.<p>' +
+        '<p>The legacy format injects <code>NETFLIX_ENVIRONMENT</code> with the name of the account, requiring ' +
+        '<code>nflx-init.d</code> scripts to edit it as appropriate to correct it back to prod or test for communiction ' +
+        'with shared infrastructure.</p>' +
+        '<p>The new user data format injects <code>NETFLIX_ACCOUNT</code> and properly sets ' +
+        '<code>NETFLIX_ENVIRONMENT</code>. If you have existing <code>nflx-init.d</code> scripts that are expecting to ' +
+        'make that modification, and performing other actions based on the initial value of ' +
+        '<code>NETFLIX_ENVIRONMENT</code> those scripts will need to be updated before opting in to use the new user ' +
+        'data format.</p>'
+      },
+      {
         key: 'chaos.meanTime',
         contents: '<p>The average number of days between kills for each group</p>'
       },
