@@ -87,26 +87,26 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
     }
 
     new LaunchConfigurationSettings(
-      account.name,
-      account.environment,
-      account.accountType,
-      region,
-      baseName,
-      suffix,
-      lc.imageId,
-      lc.iamInstanceProfile,
-      lc.classicLinkVPCId,
-      lc.classicLinkVPCSecurityGroups,
-      lc.instanceType,
-      lc.keyName,
-      lc.associatePublicIpAddress,
-      lc.kernelId ?: null,
-      lc.ramdiskId ?: null,
-      lc.ebsOptimized,
-      lc.spotPrice,
-      lc.instanceMonitoring == null ? false : lc.instanceMonitoring.enabled,
-      blockDevices,
-      lc.securityGroups,
+      account: account.name,
+      environment: account.environment,
+      accountType: account.accountType,
+      region: region,
+      baseName: baseName,
+      suffix: suffix,
+      ami: lc.imageId,
+      iamRole: lc.iamInstanceProfile,
+      classicLinkVpcId: lc.classicLinkVPCId,
+      classicLinkVPCSecurityGroups: lc.classicLinkVPCSecurityGroups,
+      instanceType: lc.instanceType,
+      keyPair: lc.keyName,
+      associatePublicIpAddress: lc.associatePublicIpAddress,
+      kernelId: lc.kernelId ?: null,
+      ramdiskId: lc.ramdiskId ?: null,
+      ebsOptimized: lc.ebsOptimized,
+      spotPrice: lc.spotPrice,
+      instanceMonitoring: lc.instanceMonitoring == null ? false : lc.instanceMonitoring.enabled,
+      blockDevices: blockDevices,
+      securityGroups: lc.securityGroups
     )
   }
 
@@ -134,7 +134,14 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
     settings = settings.copyWith(securityGroups: securityGroupIds)
 
     String name = createName(settings)
-    String userData = getUserData(settings.baseName, name, settings.region, settings.account, settings.environment, settings.accountType)
+    String userData = getUserData(
+      settings.baseName,
+      name,
+      settings.region,
+      settings.account,
+      settings.environment,
+      settings.accountType,
+      settings.base64UserData ?: "")
     createLaunchConfiguration(name, userData, settings)
   }
 
@@ -171,10 +178,12 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
 
   }
 
-  private String getUserData(String asgName, String launchConfigName, String region, String account, String environment, String accountType) {
+  private String getUserData(String asgName, String launchConfigName, String region, String account, String environment, String accountType, String base64UserData) {
     String data = userDataProviders?.collect { udp ->
       udp.getUserData(asgName, launchConfigName, region, account, environment, accountType)
     }?.join("\n")
+    String userDataDecoded = new String(base64UserData.decodeBase64())
+    data = [data, userDataDecoded]?.join("\n")
     if (data && data.startsWith("\n")) {
       data = data.substring(1)
     }

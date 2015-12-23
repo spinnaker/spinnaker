@@ -50,6 +50,7 @@ class AutoScalingWorker {
   private String instanceType
   private String iamRole
   private String keyPair
+  private String base64UserData
   private Boolean ignoreSequence
   private Boolean startDisabled
   private Boolean associatePublicIpAddress
@@ -116,6 +117,7 @@ class AutoScalingWorker {
       classicLinkVpcId: classicLinkVpcId,
       instanceType: instanceType,
       keyPair: keyPair,
+      base64UserData: base64UserData,
       associatePublicIpAddress: associatePublicIpAddress,
       kernelId: kernelId,
       ramdiskId: ramdiskId,
