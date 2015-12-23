@@ -21,9 +21,11 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationErrors
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationException
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationNotFoundException
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationsRegistry
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationDescriptionPreProcessor
 import com.netflix.spinnaker.clouddriver.orchestration.OrchestrationProcessor
 import com.netflix.spinnaker.clouddriver.security.AllowedAccountsValidator
 import com.netflix.spinnaker.security.AuthenticatedRequest
@@ -51,6 +53,7 @@ class OperationsController {
   @Autowired OrchestrationProcessor orchestrationProcessor
   @Autowired Registry registry
   @Autowired (required = false) Collection<AllowedAccountsValidator> allowedAccountValidators = []
+  @Autowired (required = false) List<AtomicOperationDescriptionPreProcessor> atomicOperationDescriptionPreProcessors = []
   @Autowired AtomicOperationsRegistry atomicOperationsRegistry
 
   /*
@@ -147,7 +150,10 @@ class OperationsController {
     inputs.collectMany { Map<String, Map> input ->
       input.collect { String k, Map v ->
         def converter = atomicOperationsRegistry.getAtomicOperationConverter(k, cloudProvider ?: v.cloudProvider)
-        def description = converter.convertDescription(new HashMap(v))
+
+        v = processDescriptionInput(atomicOperationDescriptionPreProcessors, converter, v)
+        def description = converter.convertDescription(v)
+
         descriptions << description
         def errors = new DescriptionValidationErrors(description)
 
@@ -172,12 +178,22 @@ class OperationsController {
         new AtomicOperationBindingResult(atomicOperation, errors)
       }
     }
-
   }
 
   private Map<String, String> start(List<AtomicOperation> atomicOperations) {
     Task task = orchestrationProcessor.process(atomicOperations)
     [id: task.id, resourceUri: "/task/${task.id}".toString()]
+  }
+
+  static Map processDescriptionInput(Collection<AtomicOperationDescriptionPreProcessor> descriptionPreProcessors,
+                                     AtomicOperationConverter converter,
+                                     Map descriptionInput) {
+    def descriptionClass = converter.metaClass.methods.find { it.name == "convertDescription" }.returnType
+    descriptionPreProcessors.findAll { it.supports(descriptionClass) }.each {
+      descriptionInput = it.process(descriptionInput)
+    }
+
+    return descriptionInput
   }
 
   @Canonical
