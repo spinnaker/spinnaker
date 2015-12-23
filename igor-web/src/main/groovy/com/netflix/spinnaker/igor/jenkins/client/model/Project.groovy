@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.jenkins.client.model
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Attribute
 import org.simpleframework.xml.Element
+import org.simpleframework.xml.ElementList
 import org.simpleframework.xml.Root
 
 /**
@@ -27,6 +28,9 @@ import org.simpleframework.xml.Root
 @CompileStatic
 @Root(name='job')
 class Project {
+    @ElementList(inline = true, name = "job", required=false)
+    List<Project> list
+
     @Element String name
     @Element(required = false)
     Build lastBuild

@@ -24,9 +24,11 @@ import com.netflix.spinnaker.igor.jenkins.client.model.BuildDependencies
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildsList
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.JobList
+import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
 import com.netflix.spinnaker.igor.jenkins.client.model.ScmDetails
+import org.springframework.web.util.UriUtils
 import retrofit.client.Response
 
 class JenkinsService {
@@ -38,10 +40,32 @@ class JenkinsService {
         this.jenkinsClient = jenkinsClient
     }
 
+    private String encode(uri) {
+        return UriUtils.encodeFragment(uri, "UTF-8")
+    }
+
     ProjectsList getProjects() {
         new SimpleHystrixCommand<ProjectsList>(
             groupKey, "getProjects", {
-            return jenkinsClient.getProjects()
+            List<Project> projects = []
+            def recursiveGetProjects
+            recursiveGetProjects = { list, prefix="" ->
+                if (prefix) {
+                    prefix = prefix + "/job/"
+                }
+                list.each {
+                    if (it.list == null || it.list.empty) {
+                        it.name = prefix + it.name
+                        projects << it
+                    } else {
+                        recursiveGetProjects(it.list, prefix + it.name)
+                    }
+                }
+            }
+            recursiveGetProjects(jenkinsClient.getProjects().list)
+            ProjectsList projectList = new ProjectsList()
+            projectList.list = projects
+            return projectList
         }).execute()
     }
 
@@ -55,32 +79,32 @@ class JenkinsService {
     BuildsList getBuilds(String jobName) {
         new SimpleHystrixCommand<BuildsList>(
             groupKey, "getBuilds", {
-            return jenkinsClient.getBuilds(jobName)
+            return jenkinsClient.getBuilds(encode(jobName))
         }).execute()
     }
 
     BuildDependencies getDependencies(String jobName) {
         new SimpleHystrixCommand<BuildDependencies>(
             groupKey, "getDependencies", {
-            return jenkinsClient.getDependencies(jobName)
+            return jenkinsClient.getDependencies(encode(jobName))
         }).execute()
     }
 
     Build getBuild(String jobName, Integer buildNumber) {
-        return jenkinsClient.getBuild(jobName, buildNumber)
+        return jenkinsClient.getBuild(encode(jobName), buildNumber)
     }
 
     ScmDetails getGitDetails(String jobName, Integer buildNumber) {
         new SimpleHystrixCommand<ScmDetails>(
             groupKey, "getGitDetails", {
-            return jenkinsClient.getGitDetails(jobName, buildNumber)
+            return jenkinsClient.getGitDetails(encode(jobName), buildNumber)
         }).execute()
     }
 
     Build getLatestBuild(String jobName) {
         new SimpleHystrixCommand<Build>(
             groupKey, "getLatestBuild", {
-            return jenkinsClient.getLatestBuild(jobName)
+            return jenkinsClient.getLatestBuild(encode(jobName))
         }).execute()
     }
 
@@ -89,18 +113,18 @@ class JenkinsService {
     }
 
     Response build(String jobName) {
-        return jenkinsClient.build(jobName)
+        return jenkinsClient.build(encode(jobName))
     }
 
     Response buildWithParameters(String jobName, Map<String, String> queryParams) {
-        return jenkinsClient.buildWithParameters(jobName, queryParams)
+        return jenkinsClient.buildWithParameters(encode(jobName), queryParams)
     }
 
     JobConfig getJobConfig(String jobName) {
-        return jenkinsClient.getJobConfig(jobName)
+        return jenkinsClient.getJobConfig(encode(jobName))
     }
 
     Response getPropertyFile(String jobName, Integer buildNumber, String fileName) {
-        return jenkinsClient.getPropertyFile(jobName, buildNumber, fileName)
+        return jenkinsClient.getPropertyFile(encode(jobName), buildNumber, fileName)
     }
 }
