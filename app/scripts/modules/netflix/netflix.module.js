@@ -29,7 +29,7 @@ module.exports = angular
     require('./report/reservationReport.directive.js'),
 
     require('./application/netflixCreateApplicationModal.controller.js'),
-
+    require('./application/netflixEditApplicationModal.controller.js'),
     require('./help/netflixHelpContents.registry.js'),
 
     require('./chaosMonkey/chaosMonkeyConfig.directive.js'),
