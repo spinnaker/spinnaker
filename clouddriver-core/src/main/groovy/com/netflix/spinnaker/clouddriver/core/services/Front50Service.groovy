@@ -27,6 +27,9 @@ interface Front50Service {
   @GET('/{account}/applications/search')
   List<Map> searchByName(@Path('account') String account, @Query("name") String name)
 
+  @GET('/{account}/applications/name/{name}')
+  Map getApplication(@Path('account') String account, @Path('name') String name)
+
   @GET('/v2/projects/{project}')
   Map getProject(@Path('project') String project)
 

@@ -16,7 +16,9 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.userdata
 
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import org.springframework.beans.factory.annotation.Autowired
+import retrofit.RetrofitError
 
 class LocalFileUserDataProvider implements UserDataProvider {
   private static final INSERTION_MARKER = '\nexport EC2_REGION='
@@ -24,38 +26,80 @@ class LocalFileUserDataProvider implements UserDataProvider {
   @Autowired
   LocalFileUserDataProperties localFileUserDataProperties
 
+  @Autowired
+  Front50Service front50Service
+
+  boolean isLegacyUdf(String account, String applicationName) {
+    Closure<Boolean> result = {
+      List<Map> creds = front50Service.getCredentials()
+      Map cred = creds.find { it.global } ?: creds.find { it.name == account }
+      if (!cred) {
+        throw new IllegalStateException("Unable to find front50 credentials (global of $account)")
+      }
+      String front50Account = cred.name
+
+      try {
+        Map application = front50Service.getApplication(front50Account, applicationName)
+        if (application.legacyUdf == null) {
+          return localFileUserDataProperties.defaultLegacyUdf
+        }
+        return Boolean.valueOf(application.legacyUdf)
+      } catch (RetrofitError re) {
+        if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
+          return localFileUserDataProperties.defaultLegacyUdf
+        }
+        throw re
+      }
+    }
+
+    final int maxRetry = 5
+    final int retryBackoff = 500
+    final Set<Integer> retryStatus = [429, 500]
+    for (int i = 0; i < maxRetry; i++) {
+      try {
+        return result.call()
+      } catch (RetrofitError re) {
+        if (re.kind == RetrofitError.Kind.NETWORK || (re.kind == RetrofitError.Kind.HTTP && retryStatus.contains(re.response.status))) {
+          Thread.sleep(retryBackoff)
+        }
+      }
+    }
+    throw new IllegalStateException("Failed to read legacyUdf preference from front50 for $account/$applicationName")
+  }
+
   @Override
   String getUserData(String asgName, String launchConfigName, String region, String account, String environment, String accountType) {
     def names = Names.parseName(asgName)
-    def rawUserData = assembleUserData(names, region, account)
-    replaceUserDataTokens localFileUserDataProperties.useAccountNameAsEnvironment, names, launchConfigName, region, account, environment, accountType, rawUserData
+    boolean legacyUdf = isLegacyUdf(account, names.app)
+    def rawUserData = assembleUserData(legacyUdf, names, region, account)
+    replaceUserDataTokens legacyUdf, names, launchConfigName, region, account, environment, accountType, rawUserData
   }
 
-  String assembleUserData(Names names, String region, String environment) {
-    def udfRoot = localFileUserDataProperties.udfRoot
+  String assembleUserData(boolean legacyUdf, Names names, String region, String account) {
+    def udfRoot = localFileUserDataProperties.udfRoot + (legacyUdf ? '/legacy' : '')
 
     String cluster = names.cluster
     String stack = names.stack
 
-    // If no Ruby file then get the component Unix shell template files into string lists including custom files for
-    // the app and/or auto scaling group.
     // If app and group names are identical, only include their UDF file once.
 
     // LinkedHashSet ensures correct order and no duplicates when the app, cluster, and groupName are equal.
     Set<String> udfPaths = new LinkedHashSet<String>()
     udfPaths << "${udfRoot}/udf0"
-    udfPaths << "${udfRoot}/udf-${environment}"
-    udfPaths << "${udfRoot}/udf-${region}-${environment}"
-    udfPaths << "${udfRoot}/udf1"
-    udfPaths << "${udfRoot}/custom.d/${names.app}-${environment}"
-    udfPaths << "${udfRoot}/custom.d/${names.app}-${stack}-${environment}"
-    udfPaths << "${udfRoot}/custom.d/${cluster}-${environment}"
-    udfPaths << "${udfRoot}/custom.d/${names.group}-${environment}"
-    udfPaths << "${udfRoot}/custom.region.d/${region}/${names.app}-${environment}"
-    udfPaths << "${udfRoot}/custom.region.d/${region}/${names.app}-${stack}-${environment}"
-    udfPaths << "${udfRoot}/custom.region.d/${region}/${cluster}-${environment}"
-    udfPaths << "${udfRoot}/custom.region.d/${region}/${names.group}-${environment}"
-    udfPaths << "${udfRoot}/udf2"
+    if (legacyUdf) {
+      udfPaths << "${udfRoot}/udf-${account}"
+      udfPaths << "${udfRoot}/udf-${region}-${account}"
+      udfPaths << "${udfRoot}/udf1"
+      udfPaths << "${udfRoot}/custom.d/${names.app}-${account}"
+      udfPaths << "${udfRoot}/custom.d/${names.app}-${stack}-${account}"
+      udfPaths << "${udfRoot}/custom.d/${cluster}-${account}"
+      udfPaths << "${udfRoot}/custom.d/${names.group}-${account}"
+      udfPaths << "${udfRoot}/custom.region.d/${region}/${names.app}-${account}"
+      udfPaths << "${udfRoot}/custom.region.d/${region}/${names.app}-${stack}-${account}"
+      udfPaths << "${udfRoot}/custom.region.d/${region}/${cluster}-${account}"
+      udfPaths << "${udfRoot}/custom.region.d/${region}/${names.group}-${account}"
+      udfPaths << "${udfRoot}/udf2"
+    }
 
     // Concat all the Unix shell templates into one string
     udfPaths.collect { String path -> getContents(path) }.join('')
@@ -69,6 +113,7 @@ class LocalFileUserDataProvider implements UserDataProvider {
     String devPhase = names.devPhase ?: ''
     String hardware = names.hardware ?: ''
     String zone = names.zone ?: ''
+    String detail = names.detail ?: ''
 
     // Replace the tokens & return the result
     String result = rawUserData
@@ -86,6 +131,7 @@ class LocalFileUserDataProvider implements UserDataProvider {
       .replace('%%zone%%', zone)
       .replace('%%cluster%%', cluster)
       .replace('%%stack%%', stack)
+      .replace('%%detail%%', detail)
       .replace('%%launchconfig%%', launchConfigName)
       .replace('%%tier%%', '')
 
@@ -111,7 +157,9 @@ class LocalFileUserDataProvider implements UserDataProvider {
     try {
       File file = new File(filePath)
       String contents = file.getText('UTF-8')
-      if (contents.length() && !contents.endsWith("\n")) { contents = contents + '\n' }
+      if (contents.length() && !contents.endsWith("\n")) {
+        contents = contents + '\n'
+      }
       return contents
     } catch (IOException ignore) {
       // This normal case happens if the requested file is not found.
