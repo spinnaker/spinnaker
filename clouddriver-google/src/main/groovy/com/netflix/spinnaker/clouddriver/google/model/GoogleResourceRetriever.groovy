@@ -25,6 +25,7 @@ import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceGroupManagerList
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.AutoscalerAggregatedListCallback
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.ImagesCallback
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.InstanceAggregatedListCallback
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.MIGSCallback
@@ -141,6 +142,11 @@ class GoogleResourceRetriever {
         regions.each { region ->
           compute.regions().get(project, region.getName()).queue(regionsBatch, regionsCallback)
         }
+
+        // Retrieve all configured autoscaling policies.
+        def autoscalerAggregatedListCallback = new AutoscalerAggregatedListCallback(tempAppMap, accountName)
+
+        compute.autoscalers().aggregatedList(project).queue(instanceGroupsBatch, autoscalerAggregatedListCallback)
 
         // Image lists are keyed by account in imageMap.
         if (!tempImageMap[accountName]) {
@@ -355,6 +361,11 @@ class GoogleResourceRetriever {
             InstanceGroupManagerList instanceGroupManagerList = new InstanceGroupManagerList(items: [instanceGroupManager])
 
             migsCallback.onSuccess(instanceGroupManagerList, null)
+
+            // Retrieve all configured autoscaling policies.
+            def autoscalerAggregatedListCallback = new AutoscalerAggregatedListCallback(tempAppMap, data.account)
+
+            compute.autoscalers().aggregatedList(project).queue(instanceGroupsBatch, autoscalerAggregatedListCallback)
 
             executeIfRequestsAreQueued(instanceGroupsBatch)
 

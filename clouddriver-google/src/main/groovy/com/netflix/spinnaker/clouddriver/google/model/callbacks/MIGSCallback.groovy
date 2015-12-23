@@ -109,6 +109,8 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
                                               maxSize          : instanceGroupManager.targetSize,
                                               desiredCapacity  : instanceGroupManager.targetSize])
 
+        googleServerGroup.currentActions = instanceGroupManager.currentActions
+
         cluster.serverGroups << googleServerGroup
       }
     }
