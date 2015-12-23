@@ -224,7 +224,7 @@ class ApplicationService {
           attributes.entrySet().each {
             if (it.key == 'accounts') {
               mergedApp.attributes.accounts = mergeAccounts(mergedApp.attributes.accounts, it.value)
-            } else if (it.value) {
+            } else if (it.value != null) {
               (mergedApp.attributes as Map)[it.key] = it.value
             }
           }
