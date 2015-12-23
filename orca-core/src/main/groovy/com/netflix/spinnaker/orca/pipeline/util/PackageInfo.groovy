@@ -179,15 +179,14 @@ class PackageInfo {
   @CompileDynamic
   // Naming-convention for buildInfo.url is $protocol://$buildHost/job/$job/$buildNumber/.
   // For example: http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/
+  // Note that job names can contain slashes if using the Folders plugin.
+  // For example: http://spinnaker.builds.test.netflix.net/job/folder1/job/job1/69/
   def parseBuildInfoUrl(String url) {
     List<String> urlParts = url?.tokenize("/")
 
-    if (urlParts?.size == 5) {
+    if (urlParts?.size >= 5) {
       def buildNumber = urlParts.pop()
-      def job = urlParts.pop()
-
-      // Discard 'job' path segment.
-      urlParts.pop()
+      def job = urlParts[3..-1].join('/')
 
       def buildHost = "${urlParts[0]}//${urlParts[1]}/"
 

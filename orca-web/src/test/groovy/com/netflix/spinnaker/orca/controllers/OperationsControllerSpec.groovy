@@ -22,7 +22,7 @@ import org.springframework.mock.env.MockEnvironment
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 
-import com.netflix.spinnaker.orca.igor.IgorService
+import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -40,11 +40,11 @@ class OperationsControllerSpec extends Specification {
   }
 
   def pipelineStarter = Mock(PipelineStarter)
-  def igor = Stub(IgorService)
+  def buildService = Stub(BuildService)
   def mapper = new OrcaObjectMapper()
   def env = new MockEnvironment()
   @Subject
-    controller = new OperationsController(objectMapper: mapper, pipelineStarter: pipelineStarter, igorService: igor, environment: env)
+    controller = new OperationsController(objectMapper: mapper, pipelineStarter: pipelineStarter, buildService: buildService, environment: env)
 
   @Unroll
   void '#endpoint accepts #contentType'() {
@@ -79,7 +79,7 @@ class OperationsControllerSpec extends Specification {
     pipelineStarter.start(_) >> { String json ->
       startedPipeline = mapper.readValue(json, Pipeline)
     }
-    igor.getBuild(master, job, buildNumber) >> buildInfo
+    buildService.getBuild(buildNumber, master, job) >> buildInfo
 
     when:
     controller.orchestrate(requestedPipeline)
@@ -114,7 +114,7 @@ class OperationsControllerSpec extends Specification {
     pipelineStarter.start(_) >> { String json ->
       startedPipeline = mapper.readValue(json, Pipeline)
     }
-    igor.getBuild(master, job, buildNumber) >> buildInfo
+    buildService.getBuild(buildNumber, master, job) >> buildInfo
 
     if (queryUser) {
       MDC.put(AuthenticatedRequest.SPINNAKER_USER, queryUser)
@@ -160,8 +160,8 @@ class OperationsControllerSpec extends Specification {
     pipelineStarter.start(_) >> { String json ->
       startedPipeline = mapper.readValue(json, Pipeline)
     }
-    igor.getBuild(master, job, buildNumber) >> [result: "SUCCESS"]
-    igor.getPropertyFile(master, job, buildNumber, propertyFile) >> propertyFileContent
+    buildService.getBuild(buildNumber, master, job) >> [result: "SUCCESS"]
+    buildService.getPropertyFile(buildNumber, propertyFile, master, job) >> propertyFileContent
 
     when:
     controller.orchestrate(requestedPipeline)
@@ -329,7 +329,7 @@ class OperationsControllerSpec extends Specification {
     pipelineStarter.start(_) >> { String json ->
       startedPipeline = mapper.readValue(json, Pipeline)
     }
-    igor.getBuild(master, job, buildNumber) >> buildInfo
+    buildService.getBuild(buildNumber, master, job) >> buildInfo
 
     when:
     controller.orchestrate(requestedPipeline)

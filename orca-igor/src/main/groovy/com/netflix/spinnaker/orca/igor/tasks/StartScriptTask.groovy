@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.igor.IgorService
+import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component
 class StartScriptTask implements Task {
 
   @Autowired
-  IgorService igorService
+  BuildService buildService
 
   @Autowired
   ObjectMapper objectMapper
@@ -71,7 +71,7 @@ class StartScriptTask implements Task {
       CMC          : cmc
     ]
 
-    String queuedBuild = igorService.build(master, job, parameters)
+    String queuedBuild = buildService.build(master, job, parameters)
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [master: master, job: job, queuedBuild: queuedBuild])
   }
 

@@ -104,6 +104,15 @@ class CreateBakeTaskSpec extends Specification {
   ]
 
   @Shared
+  def buildInfoWithFoldersUrl = [
+    url: "http://spinnaker.builds.test.netflix.net/job/folder/job/SPINNAKER-package-echo/69/",
+    artifacts: [
+      [fileName: 'hodor_1.1_all.deb'],
+      [fileName: 'hodor-1.1.noarch.rpm']
+    ]
+  ]
+
+  @Shared
   def buildInfoWithUrlAndSCM = [
     url: "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
     artifacts: [
@@ -354,18 +363,18 @@ class CreateBakeTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    result.outputs.with {
-      bakePackageName == "hodor_1.1_all"
-      buildHost == "http://spinnaker.builds.test.netflix.net/"
-      job == "SPINNAKER-package-echo"
-      buildNumber == "69"
-      !commitHash
-    }
+    result.outputs.bakePackageName == "hodor_1.1_all"
+    result.outputs.buildHost == "http://spinnaker.builds.test.netflix.net/"
+    result.outputs.job == jobName
+    result.outputs.buildNumber == "69"
+    !result.outputs.commitHash
 
     where:
-    triggerInfo      | contextInfo
-    buildInfoWithUrl | null
-    null             | buildInfoWithUrl
+    triggerInfo             | contextInfo             | jobName
+    buildInfoWithUrl        | null                    | "SPINNAKER-package-echo"
+    null                    | buildInfoWithUrl        | "SPINNAKER-package-echo"
+    buildInfoWithFoldersUrl | null                    | "folder/job/SPINNAKER-package-echo"
+    null                    | buildInfoWithFoldersUrl | "folder/job/SPINNAKER-package-echo"
   }
 
   @Unroll
@@ -384,13 +393,11 @@ class CreateBakeTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    result.outputs.with {
-      bakePackageName == "hodor_1.1_all"
-      buildHost == "http://spinnaker.builds.test.netflix.net/"
-      job == "SPINNAKER-package-echo"
-      buildNumber == "69"
-      commitHash == "f83a447f8d02a40fa84ec9d4d0dccd263d51782d"
-    }
+    result.outputs.bakePackageName == "hodor_1.1_all"
+    result.outputs.buildHost == "http://spinnaker.builds.test.netflix.net/"
+    result.outputs.job == "SPINNAKER-package-echo"
+    result.outputs.buildNumber == "69"
+    result.outputs.commitHash == "f83a447f8d02a40fa84ec9d4d0dccd263d51782d"
 
     where:
     triggerInfo            | contextInfo
@@ -414,13 +421,11 @@ class CreateBakeTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    result.outputs.with {
-      bakePackageName == "hodor_1.1_all"
-      buildHost == "http://spinnaker.builds.test.netflix.net/"
-      job == "SPINNAKER-package-echo"
-      buildNumber == "69"
-      commitHash == "1234567f8d02a40fa84ec9d4d0dccd263d51782d"
-    }
+    result.outputs.bakePackageName == "hodor_1.1_all"
+    result.outputs.buildHost == "http://spinnaker.builds.test.netflix.net/"
+    result.outputs.job == "SPINNAKER-package-echo"
+    result.outputs.buildNumber == "69"
+    result.outputs.commitHash == "1234567f8d02a40fa84ec9d4d0dccd263d51782d"
 
     where:
     triggerInfo                | contextInfo
@@ -444,13 +449,11 @@ class CreateBakeTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    result.outputs.with {
-      bakePackageName == "hodor_1.1_all"
-      buildHost == "http://spinnaker.builds.test.netflix.net/"
-      job == "SPINNAKER-package-echo"
-      buildNumber == "69"
-      commitHash == "f83a447f8d02a40fa84ec9d4d0dccd263d51782d"
-    }
+    result.outputs.bakePackageName == "hodor_1.1_all"
+    result.outputs.buildHost == "http://spinnaker.builds.test.netflix.net/"
+    result.outputs.job == "SPINNAKER-package-echo"
+    result.outputs.buildNumber == "69"
+    result.outputs.commitHash == "f83a447f8d02a40fa84ec9d4d0dccd263d51782d"
 
     where:
     triggerInfo                             | contextInfo

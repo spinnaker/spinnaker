@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.igor.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.igor.IgorService
+import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.RetrofitError
@@ -45,7 +45,7 @@ class StartJenkinsJobTaskSpec extends Specification {
         def stage = new PipelineStage(pipeline, "jenkins", [master: "builds", job: "orca"]).asImmutable()
 
         and:
-        task.igorService = Stub(IgorService) {
+        task.buildService = Stub(BuildService) {
            build(stage.context.master, stage.context.job, stage.context.parameters) >> [result: 'SUCCESS', running: true, number: 4]
         }
 
@@ -61,7 +61,7 @@ class StartJenkinsJobTaskSpec extends Specification {
       def stage = new PipelineStage(pipeline, "jenkins", [master: "builds", job: "orca", parameters : [foo : "bar", version : "12345"]]).asImmutable()
 
       and:
-      task.igorService = Stub(IgorService) {
+      task.buildService = Stub(BuildService) {
           build(stage.context.master, stage.context.job, stage.context.parameters) >> [ result : 'SUCCESS', running: true, number: 4 ]
       }
 
@@ -77,7 +77,7 @@ class StartJenkinsJobTaskSpec extends Specification {
         def stage = new PipelineStage(pipeline, "jenkins", [master: "builds", job: "orca", parameters : [foo : "bar", version : "12345"]]).asImmutable()
 
         and:
-        task.igorService = Stub(IgorService) {
+        task.buildService = Stub(BuildService) {
             build(stage.context.master, stage.context.job, stage.context.parameters) >> {throw RetrofitError.unexpectedError("http://test", new RuntimeException())}
         }
 

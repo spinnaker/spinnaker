@@ -26,7 +26,7 @@ import spock.lang.Unroll
 class PackageInfoSpec extends Specification {
 
   @Subject
-  PackageInfo info = new PackageInfo(Mock(Stage), 'deb', '_', false, true, Mock(ObjectMapper))
+  PackageInfo info = new PackageInfo(Mock(Stage), 'deb', '_', true, true, Mock(ObjectMapper))
 
   Map buildInfo = [
     artifacts: [
@@ -71,6 +71,17 @@ class PackageInfoSpec extends Specification {
     Map request = ['package': 'dos']
     expect:
     info.createAugmentedRequest(trigger, buildInfo, request).package == 'dos_1.0-h2'
+  }
+
+  void "should parse the build info url into expected parts"() {
+    expect:
+    info.parseBuildInfoUrl(pattern) == expectedResult
+
+    where:
+    pattern                                          || expectedResult
+    "http://jenkins.com/job/jobName/123"             || ["http://jenkins.com/", "jobName", "123"]
+    "http://jenkins.com/job/folder/job/jobName/123"  || ["http://jenkins.com/", "folder/job/jobName", "123"]
+    "http://jenkins.com/job/folder/job/job name/123" || ["http://jenkins.com/", "folder/job/job name", "123"]
   }
 
 }

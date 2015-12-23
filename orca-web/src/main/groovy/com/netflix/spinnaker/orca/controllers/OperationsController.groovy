@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.igor.IgorService
+import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
@@ -55,7 +55,7 @@ class OperationsController {
   OrchestrationStarter orchestrationStarter
 
   @Autowired(required = false)
-  IgorService igorService
+  BuildService buildService
 
   @Autowired
   ObjectMapper objectMapper
@@ -76,7 +76,7 @@ class OperationsController {
       pipeline.trigger.user = AuthenticatedRequest.getSpinnakerUser().orElse("[anonymous]")
     }
 
-    if (igorService) {
+    if (buildService) {
       getBuildInfo(pipeline.trigger)
     }
 
@@ -99,17 +99,17 @@ class OperationsController {
 
   private void getBuildInfo(Map trigger) {
     if (trigger.master && trigger.job && trigger.buildNumber) {
-      def buildInfo = igorService.getBuild(trigger.master, trigger.job, trigger.buildNumber)
+      def buildInfo = buildService.getBuild(trigger.buildNumber, trigger.master, trigger.job)
       if (buildInfo?.artifacts) {
         buildInfo.artifacts = filterArtifacts(buildInfo.artifacts)
       }
       trigger.buildInfo = buildInfo
       if (trigger.propertyFile) {
-        trigger.properties = igorService.getPropertyFile(
-          trigger.master as String,
-          trigger.job as String,
+        trigger.properties = buildService.getPropertyFile(
           trigger.buildNumber as Integer,
-          trigger.propertyFile as String
+          trigger.propertyFile as String,
+          trigger.master as String,
+          trigger.job as String
         )
       }
     }
