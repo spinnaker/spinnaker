@@ -17,10 +17,16 @@
 
 package com.netflix.spinnaker.gate.services.internal
 
+import retrofit.http.EncodedPath
 import retrofit.http.GET
 import retrofit.http.Path
 
 interface IgorService {
+  /*
+   * Job names can have '/' in them if using the Jenkins Folder plugin.
+   * Because of this, always put the job name at the end of the URL.
+   */
+
   @GET('/masters')
   List<String> getBuildMasters()
 
@@ -28,12 +34,11 @@ interface IgorService {
   List<String> getJobsForBuildMaster(@Path("buildMaster") String buildMaster)
 
   @GET('/jobs/{buildMaster}/{job}')
-  Map getJobConfig(@Path("buildMaster") String buildMaster, @Path("job") String job)
+  Map getJobConfig(@Path("buildMaster") String buildMaster, @EncodedPath("job") String job)
 
-  @GET('/jobs/{buildMaster}/{job}/builds')
-  List<Map> getBuilds(@Path("buildMaster") String buildMaster, @Path("job") String job)
+  @GET('/builds/all/{buildMaster}/{job}')
+  List<Map> getBuilds(@Path("buildMaster") String buildMaster, @EncodedPath("job") String job)
 
-  @GET('/jobs/{buildMaster}/{job}/{number}')
-  Map getBuild(@Path("buildMaster") String buildMaster, @Path("job") String job, @Path("number") String number)
-
+  @GET('/builds/status/{number}/{buildMaster}/{job}')
+  Map getBuild(@Path("buildMaster") String buildMaster, @EncodedPath("job") String job, @Path("number") String number)
 }
