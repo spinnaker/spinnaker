@@ -381,7 +381,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
 
     return st.OperationContract(
         self.new_post_operation(
-            title='create_bake_pipeline', data=payload, path='pipelines',
+            title='create_bake_docker_pipeline', data=payload, path='pipelines',
             status_class=st.SynchronousHttpOperationStatus),
         contract=builder.build())
 
@@ -420,7 +420,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
 
     return st.OperationContract(
         self.new_post_operation(
-            title='create_bake_pipeline', data=payload, path='pipelines',
+            title='create_bake_google_pipeline', data=payload, path='pipelines',
             status_class=st.SynchronousHttpOperationStatus),
         contract=builder.build())
 
@@ -459,7 +459,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
 
     return st.OperationContract(
         self.new_post_operation(
-            title='create_bake_pipeline', data=payload, path='pipelines',
+            title='create_bake_aws_pipeline', data=payload, path='pipelines',
             status_class=st.SynchronousHttpOperationStatus),
         contract=builder.build())
 
