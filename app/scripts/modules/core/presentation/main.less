@@ -348,6 +348,15 @@ html {
   padding-bottom: 3px;
 }
 
+.glyphicon-OutOfService-triangle {
+  &:before {
+  content: "\2212";
+    font-weight: 900;
+    color: @unknown-label-color;
+    font-size: 80%;
+  }
+}
+
 .glyphicon-Starting-triangle {
   .pulsing(1.0);
 }

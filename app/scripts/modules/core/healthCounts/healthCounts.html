@@ -12,7 +12,7 @@
   </span>
   <span ng-if="container.outOfService">
     <span ng-if="container.up || container.down || container.unknown">/</span>
-    {{ container.outOfService }} <span class="glyphicon glyphicon-minus disabled small"></span>
+    {{ container.outOfService }} <span class="glyphicon glyphicon-OutOfService-triangle disabled small"></span>
   </span>
   <span ng-if="container.unknown !== container.total">
   : <span class="{{healthStatus}}">
