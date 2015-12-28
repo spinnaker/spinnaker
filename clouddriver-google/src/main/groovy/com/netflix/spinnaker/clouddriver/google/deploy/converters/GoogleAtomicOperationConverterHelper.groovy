@@ -23,7 +23,9 @@ class GoogleAtomicOperationConverterHelper {
   static Object convertDescription(Map input,
                                    AbstractAtomicOperationsCredentialsSupport credentialsSupport,
                                    Class targetDescriptionType) {
-    input.accountName = input.credentials
+    if (!input.accountName) {
+      input.accountName = input.credentials
+    }
 
     if (input.accountName) {
       // The value returned by getCredentialsObject() is of type GoogleNamedAccountCredentials. The credentials property
