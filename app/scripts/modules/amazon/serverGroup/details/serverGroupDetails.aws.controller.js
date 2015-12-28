@@ -6,6 +6,7 @@ require('../configure/serverGroup.configure.aws.module.js');
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', [
+  require('angular-ui-router'),
   require('../../../core/application/modal/platformHealthOverride.directive.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/serverGroup/serverGroup.write.service.js'),
@@ -178,7 +179,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
       confirmationModalService.confirm({
         header: 'Really destroy ' + serverGroup.name + '?',
         buttonText: 'Destroy ' + serverGroup.name,
-        destructive: true,
         account: serverGroup.account,
         provider: 'aws',
         taskMonitorConfig: taskMonitor,
@@ -229,7 +229,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
       var confirmationModalParams = {
         header: 'Really disable ' + serverGroup.name + '?',
         buttonText: 'Disable ' + serverGroup.name,
-        destructive: true,
         account: serverGroup.account,
         provider: 'aws',
         taskMonitorConfig: taskMonitor,
@@ -262,7 +261,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
       var confirmationModalParams = {
         header: 'Really enable ' + serverGroup.name + '?',
         buttonText: 'Enable ' + serverGroup.name,
-        destructive: false,
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
         platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,

@@ -128,7 +128,6 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
       confirmationModalService.confirm({
         header: 'Really delete ' + loadBalancer.name + '?',
         buttonText: 'Delete ' + loadBalancer.name,
-        destructive: true,
         provider: 'aws',
         account: loadBalancer.accountId,
         applicationName: app.name,

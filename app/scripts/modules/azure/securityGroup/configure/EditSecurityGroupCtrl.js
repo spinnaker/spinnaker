@@ -28,9 +28,8 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.edit.contro
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: 'Updating your security group',
-      forceRefreshMessage: 'Getting your updated security group from Amazon...',
       modalInstance: $modalInstance,
-      forceRefreshEnabled: true
+      onTaskComplete: application.refreshImmediately,
     });
 
     securityGroup.securityGroupIngress = _(securityGroup.inboundRules)

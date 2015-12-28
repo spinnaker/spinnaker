@@ -36,11 +36,15 @@ describe('Service: taskWriter', function () {
       let application = 'deck';
 
       $httpBackend.expectPUT(cancelUrl).respond(200, []);
-      $httpBackend.expectGET(checkUrl).respond(200, [{id: taskId}]);
+      $httpBackend.expectGET(checkUrl).respond(200, {id: taskId});
 
       taskWriter.cancelTask(application, taskId).then(() => completed = true);
       $httpBackend.flush();
       expect(completed).toBe(false);
+
+      $httpBackend.expectGET(checkUrl).respond(200, {id: taskId});
+      timeout.flush();
+      $httpBackend.flush();
 
       $httpBackend.expectGET(checkUrl).respond(200, {status: 'CANCELED' });
       timeout.flush();

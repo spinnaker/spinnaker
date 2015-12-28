@@ -5,34 +5,28 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.tasks.monitor.service', [
   require('../../utils/lodash.js'),
   require('./taskMonitor.directive.js'),
+  require('../task.read.service.js'),
 ])
-  .factory('taskMonitorService', function($log, _) {
+  .factory('taskMonitorService', function($log, _, taskReader, $timeout) {
 
-    /**
-     * Either provide an onApplicationRefresh method OR an onTaskComplete method in the params!
-     */
+    let taskComplete = (task) => task.isCompleted;
+    let taskFailed = (task) => task.isFailed;
+
     function buildTaskMonitor(params) {
       var monitor = {
         submitting: false,
-        forceRefreshing: false,
-        forceRefreshEnabled: !!params.forceRefreshEnabled,
-        forceRefreshComplete: false,
         task: null,
         error: false,
         errorMessage: null,
         title: params.title,
-        forceRefreshMessage: params.forceRefreshMessage || null,
         application: params.application,
-        onApplicationRefresh: params.onApplicationRefresh || angular.noop,
         onTaskComplete: params.onTaskComplete || angular.noop,
         modalInstance: params.modalInstance,
-        katoPhaseToMonitor: params.katoPhaseToMonitor || null,
-        hasKatoTask: _.isBoolean(params.hasKatoTask) ? params.hasKatoTask : true
       };
 
       monitor.onModalClose = function() {
-        if (monitor.task && monitor.task.cancelPolls) {
-          monitor.task.cancelPolls();
+        if (monitor.task && monitor.task.poller) {
+          $timeout.cancel(monitor.task.poller);
         }
       };
 
@@ -48,7 +42,6 @@ module.exports = angular.module('spinnaker.tasks.monitor.service', [
 
       monitor.startSubmit = function() {
         monitor.submitting = true;
-        monitor.forceRefreshing = false;
         monitor.task = null;
         monitor.error = false;
         monitor.errorMessage = null;
@@ -64,22 +57,11 @@ module.exports = angular.module('spinnaker.tasks.monitor.service', [
         $log.warn('Error with task:', monitor.task);
       };
 
-      monitor.startForceRefresh = function() {
-        monitor.forceRefreshing = true;
-      };
-
       monitor.handleTaskSuccess = function (task) {
+        let applicationName = monitor.application ? monitor.application.name : 'ad-hoc';
         monitor.task = task;
-        if(monitor.hasKatoTask) {
-          task.getCompletedKatoTask(monitor.katoPhaseToMonitor).then(
-            function () {
-              processSuccessfulTask(task);
-            },
-            handleKatoFailure
-          );
-        } else {
-          processSuccessfulTask(task);
-        }
+        taskReader.waitUntilTaskMatches(applicationName, task, taskComplete, taskFailed)
+          .then(monitor.onTaskComplete, monitor.setError);
       };
 
       monitor.submit = function(method) {
@@ -87,36 +69,7 @@ module.exports = angular.module('spinnaker.tasks.monitor.service', [
         method.call().then(monitor.handleTaskSuccess, monitor.setError);
       };
 
-      function processSuccessfulTask(task) {
-        task.get().then(function() {
-          if (monitor.forceRefreshEnabled) {
-            task.watchForForceRefresh().then(handleForceRefreshComplete, monitor.setError);
-          } else {
-            monitor.forceRefreshComplete = true;
-            task.watchForTaskComplete().then(monitor.onTaskComplete, monitor.setError);
-          }
-        });
-      }
-
-      function handleForceRefreshComplete() {
-        monitor.startForceRefresh();
-        monitor.application.registerOneTimeRefreshHandler(handleApplicationRefreshComplete);
-        monitor.application.refreshImmediately();
-      }
-
-      function handleApplicationRefreshComplete() {
-        monitor.forceRefreshing = false;
-        monitor.forceRefreshComplete = true;
-        monitor.onApplicationRefresh.call();
-      }
-
-      function handleKatoFailure(katoTask) {
-        monitor.task.updateKatoTask(katoTask);
-        monitor.setError();
-      }
-
       return monitor;
-
     }
 
     return {

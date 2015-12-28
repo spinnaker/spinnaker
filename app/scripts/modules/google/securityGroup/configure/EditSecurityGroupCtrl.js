@@ -28,9 +28,8 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: 'Updating your security group',
-      forceRefreshMessage: 'Getting your updated security group from Google...',
       modalInstance: $modalInstance,
-      forceRefreshEnabled: true
+      onTaskComplete: application.refreshImmediately,
     });
 
     securityGroup.sourceRanges = _.map(securityGroup.sourceRanges, function(sourceRange) {

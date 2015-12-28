@@ -105,7 +105,6 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
       confirmationModalService.confirm({
         header: 'Really delete ' + securityGroup.name + '?',
         buttonText: 'Delete ' + securityGroup.name,
-        destructive: true,
         provider: 'aws',
         account: securityGroup.accountId,
         applicationName: application.name,

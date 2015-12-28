@@ -114,7 +114,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
       confirmationModalService.confirm({
         header: 'Really destroy ' + serverGroup.name + '?',
         buttonText: 'Destroy ' + serverGroup.name,
-        destructive: true,
         provider: 'titan',
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
@@ -168,7 +167,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
       confirmationModalService.confirm({
         header: 'Really disable ' + serverGroup.name + '?',
         buttonText: 'Disable ' + serverGroup.name,
-        destructive: true,
         provider: 'titan',
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
@@ -198,7 +196,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
       confirmationModalService.confirm({
         header: 'Really enable ' + serverGroup.name + '?',
         buttonText: 'Enable ' + serverGroup.name,
-        destructive: false,
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod

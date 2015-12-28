@@ -46,17 +46,7 @@ module.exports = angular
       $scope.state.infiniteScroll.currentItems += $scope.state.infiniteScroll.numToAdd;
     };
 
-    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
-      application: application,
-      title: 'Creating your security group',
-      forceRefreshMessage: 'Getting your new security group from Amazon...',
-      modalInstance: $modalInstance,
-      forceRefreshEnabled: true
-    });
-
-    $scope.securityGroup = securityGroup;
-
-    $scope.taskMonitor.onApplicationRefresh = function handleApplicationRefreshComplete() {
+    function onApplicationRefresh() {
       // If the user has already closed the modal, do not navigate to the new details view
       if ($scope.$$destroyed) {
         return;
@@ -74,7 +64,21 @@ module.exports = angular
       } else {
         $state.go('^.securityGroupDetails', newStateParams);
       }
-    };
+    }
+
+    function onTaskComplete() {
+      application.refreshImmediately();
+      application.registerOneTimeRefreshHandler(onApplicationRefresh);
+    }
+
+    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+      application: application,
+      title: 'Creating your security group',
+      modalInstance: $modalInstance,
+      onTaskComplete: onTaskComplete,
+    });
+
+    $scope.securityGroup = securityGroup;
 
     ctrl.upsert = function () {
       $scope.taskMonitor.submit(

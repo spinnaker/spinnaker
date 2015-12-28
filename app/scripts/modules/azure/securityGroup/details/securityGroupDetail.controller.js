@@ -102,7 +102,6 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.con
       confirmationModalService.confirm({
         header: 'Really delete ' + securityGroup.name + '?',
         buttonText: 'Delete ' + securityGroup.name,
-        destructive: true,
         provider: 'azure',
         account: securityGroup.accountId,
         applicationName: application.name,

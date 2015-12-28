@@ -97,7 +97,6 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.details.controller', 
       confirmationModalService.confirm({
         header: 'Really delete ' + loadBalancer.name + '?',
         buttonText: 'Delete ' + loadBalancer.name,
-        destructive: true,
         provider: 'cf',
         account: loadBalancer.accountId,
         applicationName: application.name,

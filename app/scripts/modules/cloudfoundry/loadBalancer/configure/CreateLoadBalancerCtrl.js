@@ -3,6 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
+  require('angular-ui-router'),
   require('../../../core/loadBalancer/loadBalancer.write.service.js'),
   require('../../../core/loadBalancer/loadBalancer.read.service.js'),
   require('../../../core/account/account.service.js'),
@@ -30,11 +31,35 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
       submitting: false
     };
 
+    function onApplicationRefresh() {
+      // If the user has already closed the modal, do not navigate to the new details view
+      if ($scope.$$destroyed) {
+        return;
+      }
+      $modalInstance.close();
+      var newStateParams = {
+        name: $scope.loadBalancer.name,
+        accountId: $scope.loadBalancer.credentials,
+        region: $scope.loadBalancer.region,
+        provider: 'cf',
+      };
+      if (!$state.includes('**.loadBalancerDetails')) {
+        $state.go('.loadBalancerDetails', newStateParams);
+      } else {
+        $state.go('^.loadBalancerDetails', newStateParams);
+      }
+    }
+
+    function onTaskComplete() {
+      application.refreshImmediately();
+      application.registerOneTimeRefreshHandler(onApplicationRefresh);
+    }
+
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: (isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
-      forceRefreshMessage: 'Getting your new load balancer from cf...',
       modalInstance: $modalInstance,
+      onTaskComplete: onTaskComplete,
     });
 
     var allLoadBalancerNames = {};
@@ -121,26 +146,6 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
       updateLoadBalancerNames();
       ctrl.updateName();
     };
-
-    $scope.taskMonitor.onApplicationRefresh = function handleApplicationRefreshComplete() {
-      // If the user has already closed the modal, do not navigate to the new details view
-      if ($scope.$$destroyed) {
-        return;
-      }
-      $modalInstance.close();
-      var newStateParams = {
-        name: $scope.loadBalancer.name,
-        accountId: $scope.loadBalancer.credentials,
-        region: $scope.loadBalancer.region,
-        provider: 'cf',
-      };
-      if (!$state.includes('**.loadBalancerDetails')) {
-        $state.go('.loadBalancerDetails', newStateParams);
-      } else {
-        $state.go('^.loadBalancerDetails', newStateParams);
-      }
-    };
-
 
     this.submit = function () {
       var descriptor = isNew ? 'Create' : 'Update';

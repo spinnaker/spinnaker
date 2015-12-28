@@ -21,17 +21,10 @@ module.exports = angular
 
     function cancelTask(application, taskId) {
       return getEndpoint(application).one(taskId).one('cancel').put().then(() =>
-        waitUntilTaskMatches(application, taskId, (task) => task.status === 'CANCELED')
+        taskReader.getTask(application, taskId).then((task) =>
+          taskReader.waitUntilTaskMatches(application, task, (task) => task.status === 'CANCELED')
+        )
       );
-    }
-
-    function waitUntilTaskMatches(application, taskId, closure) {
-      return taskReader.getOneTaskForApplication(application, taskId).then((task) => {
-        if (closure(task)) {
-          return task;
-        }
-        return $timeout(() => waitUntilTaskMatches(application, taskId, closure), 1000);
-      });
     }
 
     function waitUntilTaskIsDeleted(taskId) {

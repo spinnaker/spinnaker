@@ -3,6 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller', [
+  require('angular-ui-router'),
   require('../loadBalancer.write.service.js'),
   require('../../../core/loadBalancer/loadBalancer.read.service.js'),
   require('../../../core/account/account.service.js'),
@@ -44,12 +45,38 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
       removedSecurityGroups: [],
     };
 
+    function onApplicationRefresh() {
+      // If the user has already closed the modal, do not navigate to the new details view
+      if ($scope.$$destroyed) {
+        return;
+      }
+      $modalInstance.close();
+      var newStateParams = {
+        name: $scope.loadBalancer.name,
+        accountId: $scope.loadBalancer.credentials,
+        region: $scope.loadBalancer.region,
+        vpcId: $scope.loadBalancer.vnet,
+        provider: 'azure',
+      };
+
+      if (!$state.includes('**.loadBalancerDetails')) {
+        $state.go('.loadBalancerDetails', newStateParams);
+      } else {
+        $state.go('^.loadBalancerDetails', newStateParams);
+      }
+    }
+
+    function onTaskComplete() {
+      application.refreshImmediately();
+      application.registerOneTimeRefreshHandler(onApplicationRefresh);
+    }
+
+
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: (isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
-      forceRefreshMessage: 'Getting your new load balancer from Azure...',
       modalInstance: $modalInstance,
-      forceRefreshEnabled: true
+      onTaskComplete: onTaskComplete,
     });
 
     var allSecurityGroups = {},
@@ -286,28 +313,6 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
     this.addListener = function() {
       $scope.loadBalancer.loadBalancingRules.push({protocol: 'HTTP'});
     };
-
-    $scope.taskMonitor.onApplicationRefresh = function handleApplicationRefreshComplete() {
-      // If the user has already closed the modal, do not navigate to the new details view
-      if ($scope.$$destroyed) {
-        return;
-      }
-      $modalInstance.close();
-      var newStateParams = {
-        name: $scope.loadBalancer.name,
-        accountId: $scope.loadBalancer.credentials,
-        region: $scope.loadBalancer.region,
-        vpcId: $scope.loadBalancer.vnet,
-        provider: 'azure',
-      };
-
-      if (!$state.includes('**.loadBalancerDetails')) {
-        $state.go('.loadBalancerDetails', newStateParams);
-      } else {
-        $state.go('^.loadBalancerDetails', newStateParams);
-      }
-    };
-
 
     this.submit = function () {
       var descriptor = isNew ? 'Create' : 'Update';

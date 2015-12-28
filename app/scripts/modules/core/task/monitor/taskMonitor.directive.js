@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./taskMonitor.directive.less');
+
 module.exports = angular.module('spinnaker.tasks.monitor.directive', [
   require('../../presentation/autoScroll/autoScroll.directive.js'),
   require('../../modal/modalOverlay.directive.js'),

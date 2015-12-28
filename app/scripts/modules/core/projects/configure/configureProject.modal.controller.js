@@ -141,8 +141,6 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
       var taskMonitorConfig = {
         modalInstance: $modalInstance,
         title: 'Deleting ' + $scope.command.name,
-        submitMethod: submitMethod,
-        hasKatoTask: false,
         onTaskComplete: () => $modalInstance.close({action: 'delete'})
       };
 
@@ -166,8 +164,6 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
       var taskMonitorConfig = {
         modalInstance: $modalInstance,
         title: descriptor + $scope.command.name,
-        submitMethod: submitMethod,
-        hasKatoTask: false,
         onTaskComplete: () => $modalInstance.close({action: 'upsert', name: $scope.command.name})
       };
 

@@ -51,7 +51,6 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.rollback.c
           modalInstance: $modalInstance,
           application: application,
           title: 'Rollback ' + serverGroup.name,
-          submitMethod: submitMethod
         };
 
         $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);
