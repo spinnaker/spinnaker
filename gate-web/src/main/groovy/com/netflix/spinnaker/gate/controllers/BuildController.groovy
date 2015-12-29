@@ -65,30 +65,4 @@ class BuildController {
     buildService.getBuild(buildMaster, job, number)
   }
 
-  // LEGACY ENDPOINTS:
-
-  @RequestMapping(value = "/builds", method = RequestMethod.GET)
-  List<String> getBuildMastersLegacy() {
-    buildService.getBuildMasters()
-  }
-
-  @RequestMapping(value = "/builds/{buildMaster}/jobs", method = RequestMethod.GET)
-  List<String> getJobsForBuildMasterLegacy(@PathVariable("buildMaster") String buildMaster) {
-    buildService.getJobsForBuildMaster(buildMaster)
-  }
-
-  @RequestMapping(value = "/builds/{buildMaster}/jobs/{job:.+}", method = RequestMethod.GET)
-  Map getJobConfigLegacy(@PathVariable("buildMaster") String buildMaster, @PathVariable("job") String job) {
-    buildService.getJobConfig(buildMaster, job)
-  }
-
-  @RequestMapping(value = "/builds/{buildMaster}/jobs/{job}/builds", method = RequestMethod.GET)
-  List getBuildsLegacy(@PathVariable("buildMaster") String buildMaster, @PathVariable("job") String job) {
-    buildService.getBuilds(buildMaster, job)
-  }
-
-  @RequestMapping(value = "/builds/{buildMaster}/jobs/{job}/builds/{number}", method = RequestMethod.GET)
-  Map getBuildsLegacy(@PathVariable("buildMaster") String buildMaster, @PathVariable("job") String job, @PathVariable("number") String number) {
-    buildService.getBuild(buildMaster, job, number)
-  }
 }
