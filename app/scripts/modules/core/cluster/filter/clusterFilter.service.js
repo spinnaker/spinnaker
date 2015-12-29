@@ -11,7 +11,8 @@ module.exports = angular
     require('../../utils/waypoints/waypoint.service.js'),
     require('../../filterModel/filter.model.service.js'),
   ])
-  .factory('clusterFilterService', function (ClusterFilterModel, _, waypointService, $log, $stateParams, filterModelService, debounce) {
+  .factory('clusterFilterService', function (ClusterFilterModel, _, waypointService, $log, $stateParams, $state,
+                                             filterModelService, debounce) {
 
     var lastApplication = null;
 
@@ -72,7 +73,7 @@ module.exports = angular
     }
 
     function filterServerGroupsForDisplay(serverGroups) {
-      return  _.chain(serverGroups)
+      let result =  _.chain(serverGroups)
         .filter(textFilter)
         .filter(instanceCountFilter)
         .filter(filterModelService.checkAccountFilters(ClusterFilterModel))
@@ -83,6 +84,45 @@ module.exports = angular
         .filter(instanceTypeFilters)
         .filter(instanceFilters)
         .value();
+
+      updateMultiselectInstanceGroups(result);
+      return result;
+    }
+
+    function updateMultiselectInstanceGroups(serverGroups) {
+      // removes instance groups, selection of instances that are no longer visible;
+      // adds new instance ids if selectAll is enabled for an instance group
+      if (ClusterFilterModel.sortFilter.listInstances) {
+        let instancesSelected = 0;
+        ClusterFilterModel.multiselectInstanceGroups.forEach((instanceGroup) => {
+          let [match] = serverGroups.filter((serverGroup) => {
+            return serverGroup.name === instanceGroup.serverGroup &&
+              serverGroup.region === instanceGroup.region &&
+              serverGroup.account === instanceGroup.account &&
+              serverGroup.type === instanceGroup.cloudProvider;
+
+          });
+          if (!match) {
+            // leave it in place, just clear the instanceIds so we retain the selectAll selection if it comes
+            // back in subsequent filter operations
+            instanceGroup.instanceIds.length = 0;
+          } else {
+            let filteredInstances = match.instances.filter(shouldShowInstance);
+            if (instanceGroup.selectAll) {
+              instanceGroup.instanceIds = filteredInstances.map((instance) => instance.id);
+            } else {
+              instanceGroup.instanceIds = filteredInstances
+                .filter((instance) => instanceGroup.instanceIds.indexOf(instance.id) > -1)
+                .map((instance) => instance.id);
+            }
+            instancesSelected += instanceGroup.instanceIds.length;
+          }
+        });
+        ClusterFilterModel.multiselectInstancesStream.onNext();
+        ClusterFilterModel.syncNavigation();
+      } else {
+        ClusterFilterModel.multiselectInstanceGroups.length = 0;
+      }
     }
 
     function instanceFilters(serverGroup) {
@@ -232,8 +272,12 @@ module.exports = angular
             $log.debug('change detected, updating server group:', serverGroup.name, serverGroup.account, serverGroup.region);
             oldGroup.serverGroups[idx] = newServerGroup;
           }
-          serverGroup.executions = newServerGroup.executions;
-          serverGroup.runningTasks = newServerGroup.runningTasks;
+          if (serverGroup.executions || newServerGroup.executions) {
+            serverGroup.executions = newServerGroup.executions;
+          }
+          if (serverGroup.runningTasks || newServerGroup.runningTasks) {
+            serverGroup.runningTasks = newServerGroup.runningTasks;
+          }
         }
       });
       toRemove.reverse().forEach(function(idx) {

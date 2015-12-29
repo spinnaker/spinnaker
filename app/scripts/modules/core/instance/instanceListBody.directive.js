@@ -4,8 +4,9 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.instance.instanceListBody.directive', [
   require('../cluster/filter/clusterFilter.service.js'),
+  require('../cluster/filter/clusterFilter.model.js'),
 ])
-  .directive('instanceListBody', function ($timeout, $filter, $rootScope, $state, $, _, clusterFilterService) {
+  .directive('instanceListBody', function ($timeout, $filter, $rootScope, $state, $, _, clusterFilterService, ClusterFilterModel) {
     return {
       restrict: 'C',
       scope: {
@@ -14,17 +15,34 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
         hasLoadBalancers: '=',
         hasDiscovery: '=',
         showProviderHealth: '=',
+        serverGroup: '=',
       },
       link: function (scope, elem) {
         var tooltipEnabled = false;
         scope.activeInstance = null;
 
+        scope.instanceGroup = ClusterFilterModel.getOrCreateMultiselectInstanceGroup(scope.serverGroup);
+
         var base = elem.parent().inheritedData('$uiView').state;
+
+        function toggleSelection(instanceId) {
+          ClusterFilterModel.toggleMultiselectInstance(scope.serverGroup, instanceId);
+        }
 
         function buildTableRowOpenTag(instance, activeClass) {
           return '<tr class="clickable instance-row' + activeClass + '"' +
             ' data-provider="' + instance.provider + '"' +
             ' data-instance-id="' + instance.id + '">';
+        }
+
+        function buildInstanceCheckboxCell(instance) {
+          let checkbox = '<td class="no-hover"><input type="checkbox" data-instance-id="' + instance.id + '"';
+          if (ClusterFilterModel.instanceIsMultiselected(scope.serverGroup, instance.id)) {
+            checkbox+= ' checked';
+          }
+          checkbox += '/></td>';
+
+          return checkbox;
         }
 
         function buildInstanceIdCell(instance) {
@@ -167,6 +185,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
             });
 
             var row = buildTableRowOpenTag(instance, activeClass);
+            row += buildInstanceCheckboxCell(instance);
             row += buildInstanceIdCell(instance);
             row += buildLaunchTimeCell(instance);
             row += buildZoneCell(instance);
@@ -197,11 +216,23 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
           }
         });
 
+        scope.$watch('instanceGroup.instanceIds', function(newVal, oldVal) {
+          if (newVal && oldVal && newVal !== oldVal) {
+            renderInstances();
+          }
+        });
+
         renderInstances();
 
         elem.click(function(event) {
           $timeout(function() {
             if (event.target) {
+              let $target = $(event.target);
+              if ($target.is(':checkbox')) {
+                toggleSelection(event.target.getAttribute('data-instance-id'));
+                event.preventDefault();
+                return;
+              }
               // anything handled by ui-sref or actual links should be ignored
               if (event.isDefaultPrevented() || (event.originalEvent && (event.originalEvent.defaultPrevented || event.originalEvent.target.href))) {
                 return;
@@ -235,8 +266,10 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
         }
 
         scope.$on('$locationChangeSuccess', clearActiveState);
+        let multiselectWatcher = ClusterFilterModel.multiselectInstancesStream.subscribe(renderInstances);
 
         scope.$on('$destroy', function() {
+          multiselectWatcher.dispose();
           if (tooltipEnabled) {
             $('[data-toggle="tooltip"]', elem).tooltip('destroy').removeData();
           }

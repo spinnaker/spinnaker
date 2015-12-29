@@ -74,6 +74,23 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
         }
       };
 
+      var multipleInstances = {
+        name: 'multipleInstances',
+        url: '/multipleInstances',
+        views: {
+          'detail@../insight': {
+            templateUrl: require('../instance/details/multipleInstances.view.html'),
+            controller: 'MultipleInstancesCtrl',
+            controllerAs: 'vm'
+          }
+        },
+        data: {
+          pageTitleDetails: {
+            title: 'Multiple Instances',
+          },
+        }
+      };
+
       var serverGroupDetails = {
         name: 'serverGroup',
         url: '/serverGroupDetails/:provider/:accountId/:region/:serverGroup',
@@ -242,6 +259,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
             serverGroupDetails,
             instanceDetails,
             securityGroupDetails,
+            multipleInstances,
           ],
         },
         {

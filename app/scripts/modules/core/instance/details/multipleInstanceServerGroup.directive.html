@@ -1,0 +1,19 @@
+<h5>
+  <div class="server-group-name">
+    <cloud-provider-logo provider="vm.instanceGroup.cloudProvider" height="16px" width="16px"></cloud-provider-logo>
+    {{vm.instanceGroup.serverGroup}}
+  </div>
+</h5>
+<div class="server-group-details">
+  <account-tag account="vm.instanceGroup.account"></account-tag>
+  {{vm.instanceGroup.region}}
+</div>
+<div class="multiple-instance-list">
+  {{vm.instanceGroup.instances.length}} instance<span ng-if="vm.instanceGroup.instances.length !== 1">s</span>
+  <ul>
+    <li ng-repeat="instance in vm.instanceGroup.instances">
+      <span class="glyphicon glyphicon-{{instance.healthState}}-triangle"></span>
+      {{instance.id}}
+    </li>
+  </ul>
+</div>

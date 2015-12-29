@@ -6,8 +6,9 @@ module.exports = angular
   .module('cluster.filter.model', [
     require('../../filterModel/filter.model.service.js'),
     require('../../navigation/urlParser.service.js'),
+    require('../../utils/rx.js'),
   ])
-  .factory('ClusterFilterModel', function($rootScope, filterModelService, urlParser) {
+  .factory('ClusterFilterModel', function($rootScope, filterModelService, urlParser, $state, rx) {
 
     var filterModel = this;
     var mostRecentParams = null;
@@ -29,6 +30,78 @@ module.exports = angular
     ];
 
     filterModelService.configureFilterModel(this, filterModelConfig);
+
+    this.multiselectInstanceGroups = [];
+    this.multiselectInstancesStream = new rx.Subject();
+
+    this.syncNavigation = () => {
+      let instancesSelected = 0;
+      this.multiselectInstanceGroups.forEach((instanceGroup) => {
+        instancesSelected += instanceGroup.instanceIds.length;
+      });
+
+      if ($state.includes('**.multipleInstances') && !instancesSelected) {
+        $state.go('^');
+      }
+      if (!$state.includes('**.multipleInstances') && instancesSelected) {
+        if ($state.includes('**.clusters.*')) {
+          $state.go('^.multipleInstances');
+        } else {
+          $state.go('.multipleInstances');
+        }
+      }
+    };
+
+    this.getOrCreateMultiselectInstanceGroup = (serverGroup) => {
+      let serverGroupName = serverGroup.name,
+          account = serverGroup.account,
+          region = serverGroup.region,
+          cloudProvider = serverGroup.type;
+      let [result] = this.multiselectInstanceGroups.filter((instanceGroup) => {
+        return instanceGroup.serverGroup === serverGroupName &&
+          instanceGroup.account === account &&
+          instanceGroup.region === region &&
+          instanceGroup.cloudProvider === cloudProvider;
+      });
+      if (!result) {
+        result = {
+          serverGroup: serverGroupName,
+          account: account,
+          region: region,
+          cloudProvider: cloudProvider,
+          instanceIds: [],
+          instances: [], // populated by details controller
+          selectAll: false,
+        };
+        this.multiselectInstanceGroups.push(result);
+      }
+      return result;
+    };
+
+    this.toggleMultiselectInstance = (serverGroup, instanceId) => {
+      let group = this.getOrCreateMultiselectInstanceGroup(serverGroup);
+      if (group.instanceIds.indexOf(instanceId) > -1) {
+        group.instanceIds.splice(group.instanceIds.indexOf(instanceId), 1);
+        group.selectAll = false;
+      } else {
+        group.instanceIds.push(instanceId);
+      }
+      this.multiselectInstancesStream.onNext();
+      this.syncNavigation();
+    };
+
+    this.toggleSelectAll = (serverGroup, allInstanceIds) => {
+      let group = this.getOrCreateMultiselectInstanceGroup(serverGroup);
+      group.selectAll = !group.selectAll;
+      group.instanceIds = group.selectAll ? allInstanceIds : [];
+      this.multiselectInstancesStream.onNext();
+      this.syncNavigation();
+    };
+
+    this.instanceIsMultiselected = (serverGroup, instanceId) => {
+      let group = this.getOrCreateMultiselectInstanceGroup(serverGroup);
+      return group.instanceIds.indexOf(instanceId) > -1;
+    };
 
     function isClusterState(stateName) {
       return stateName === 'home.applications.application.insight.clusters' ||
@@ -74,11 +147,17 @@ module.exports = angular
       }
     });
 
-    $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
-      if (movingFromClusterState(toState, fromState)) {
-        filterModel.saveState(fromState, fromParams, mostRecentParams);
+    this.handleStateChangeStart = (event, toState, toParams, fromState, fromParams) => {
+      if (toState.name.indexOf('multipleInstances') < 0) {
+        this.multiselectInstanceGroups.length = 0;
+        this.multiselectInstancesStream.onNext();
       }
-    });
+      if (movingFromClusterState(toState, fromState)) {
+        this.saveState(fromState, fromParams, mostRecentParams);
+      }
+    };
+
+    $rootScope.$on('$stateChangeStart', this.handleStateChangeStart);
 
     $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState) {
       if (movingToClusterState(toState) && isClusterStateOrChild(fromState.name)) {
