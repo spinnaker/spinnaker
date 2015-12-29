@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
-import com.netflix.spinnaker.orca.clouddriver.model.TaskId
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
-import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -37,9 +35,10 @@ class TerminateInstancesTask extends AbstractCloudProviderAwareTask implements T
   TaskResult execute(Stage stage) {
     String cloudProvider = getCloudProvider(stage)
     String account = getCredentials(stage)
+
     TaskId taskId = kato.requestOperations(cloudProvider, [[terminateInstances: stage.context]])
-                     .toBlocking()
-                     .first()
+        .toBlocking()
+        .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
         "notification.type"     : "terminateinstances",
         "terminate.account.name": account,

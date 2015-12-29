@@ -16,12 +16,14 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline
 
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TerminatingInstanceSupport
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.TerminateInstanceAndDecrementServerGroupTask
-import com.netflix.spinnaker.orca.kato.tasks.WaitForTerminatedInstancesTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForTerminatedInstancesTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Step
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
@@ -29,12 +31,16 @@ class TerminateInstanceAndDecrementServerGroupStage extends LinearStage {
 
   public static final String PIPELINE_CONFIG_TYPE = "terminateInstanceAndDecrementServerGroup"
 
+  @Autowired
+  TerminatingInstanceSupport instanceSupport
+
   TerminateInstanceAndDecrementServerGroupStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override
   public List<Step> buildSteps(Stage stage) {
+    stage.context[TerminatingInstanceSupport.TERMINATE_REMAINING_INSTANCES] = instanceSupport.remainingInstances(stage)
     [
       buildStep(stage, PIPELINE_CONFIG_TYPE, TerminateInstanceAndDecrementServerGroupTask),
       buildStep(stage, "monitorTermination", MonitorKatoTask),
