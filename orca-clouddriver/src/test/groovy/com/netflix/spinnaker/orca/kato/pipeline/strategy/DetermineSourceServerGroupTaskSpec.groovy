@@ -43,12 +43,13 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
     def result = new DetermineSourceServerGroupTask(sourceResolver: resolver).execute(stage)
 
     then:
-    1 * resolver.getSource(_) >> new StageData.Source(account: account, region: region, asgName: asgName)
+    1 * resolver.getSource(_) >> new StageData.Source(account: account, region: region, asgName: asgName, serverGroupName: asgName)
 
     and:
     result.stageOutputs.source.account == account
     result.stageOutputs.source.region == region
     result.stageOutputs.source.asgName == asgName
+    result.stageOutputs.source.serverGroupName == asgName
     result.stageOutputs.source.useSourceCapacity == null
 
     where:

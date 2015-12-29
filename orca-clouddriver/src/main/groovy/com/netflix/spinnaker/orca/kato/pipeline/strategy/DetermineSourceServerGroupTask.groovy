@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit
 
 @Component
 @Slf4j
+// TODO: This should all be made less AWS-specific.
 class DetermineSourceServerGroupTask implements RetryableTask {
 
   static final int MAX_ATTEMPTS = 10
@@ -62,6 +63,7 @@ class DetermineSourceServerGroupTask implements RetryableTask {
       if (source) {
         stageOutputs.source = [
           asgName          : source.asgName,
+          serverGroupName  : source.serverGroupName,
           account          : source.account,
           region           : source.region,
           useSourceCapacity: useSourceCapacity

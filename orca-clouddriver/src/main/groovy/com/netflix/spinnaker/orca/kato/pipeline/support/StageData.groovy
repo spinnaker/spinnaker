@@ -62,6 +62,7 @@ class StageData {
     String account
     String region
     String asgName
+    String serverGroupName
     Boolean useSourceCapacity
   }
 
