@@ -12,12 +12,10 @@ module.exports = angular
     function terminateInstance(instance, application, params={}) {
       params.type = 'terminateInstances';
       params.instanceIds = [instance.instanceId];
-      params.serverGroup = instance.serverGroup;
-      params.launchTimes = [instance.launchTime];
+      params.serverGroupName = instance.serverGroup;
       params.region = instance.region;
       params.zone = instance.placement.availabilityZone;
       params.credentials = instance.account;
-      params.providerType = instance.providerType;
 
       return taskExecutor.executeTask({
         job: [params],
@@ -32,6 +30,7 @@ module.exports = angular
           params.type = 'terminateInstanceAndDecrementServerGroup';
           params.instance = instance.instanceId;
           params.asgName = instance.serverGroup;
+          params.serverGroupName = instance.serverGroup;
           params.region = instance.region;
           params.credentials = instance.account;
           params.cloudProvider = instance.provider;
