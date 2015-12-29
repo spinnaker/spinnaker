@@ -70,7 +70,7 @@ class SourceResolver {
     //with useSourceCapacity prefer the largest ASG over the newest ASG
     def latestAsg = stageData.useSourceCapacity ? regionalAsgs.sort { (it.instances as Collection)?.size() ?: 0 }.last() : regionalAsgs.last()
     return new StageData.Source(
-      account: stageData.account, region: latestAsg["region"] as String, asgName: latestAsg["name"] as String
+      account: stageData.account, region: latestAsg["region"] as String, asgName: latestAsg["name"] as String, serverGroupName: latestAsg["name"] as String
     )
   }
 
