@@ -34,6 +34,7 @@ class CopyLastGoogleServerGroupDescriptionValidatorSpec extends Specification {
   private static final IMAGE = "debian-7-wheezy-v20141108"
   private static final INSTANCE_TYPE = "f1-micro"
   private static final ZONE = "us-central1-b"
+  private static final REGION = "us-central1"
   private static final ACCOUNT_NAME = "auto"
 
   @Shared
@@ -53,7 +54,7 @@ class CopyLastGoogleServerGroupDescriptionValidatorSpec extends Specification {
 
   void "pass validation with minimal description inputs"() {
     setup:
-      def description = new BasicGoogleDeployDescription(source: [zone: ZONE,
+      def description = new BasicGoogleDeployDescription(source: [region: REGION,
                                                                   serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
                                                          accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
@@ -73,7 +74,7 @@ class CopyLastGoogleServerGroupDescriptionValidatorSpec extends Specification {
                                                          image: IMAGE,
                                                          instanceType: INSTANCE_TYPE,
                                                          zone: ZONE,
-                                                         source: [zone: ZONE,
+                                                         source: [region: REGION,
                                                                   serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
                                                          accountName: ACCOUNT_NAME)
         def errors = Mock(Errors)
