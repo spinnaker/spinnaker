@@ -64,8 +64,8 @@ module.exports = angular
     this.stackPattern = {
       test: function(stack) {
         var pattern = $scope.command.viewState.templatingEnabled ?
-          /^([a-zA-z_0-9._]*(\${.+})*)*$/ :
-          /^[a-zA-z_0-9._]*$/;
+          /^([a-zA-Z_0-9._]*(\${.+})*)*$/ :
+          /^[a-zA-Z_0-9._]*$/;
         return pattern.test(stack);
       }
     };
@@ -73,8 +73,8 @@ module.exports = angular
     this.detailPattern = {
       test: function(stack) {
         var pattern = $scope.command.viewState.templatingEnabled ?
-          /^([a-zA-z_0-9._-]*(\${.+})*)*$/ :
-          /^[a-zA-z_0-9._-]*$/;
+          /^([a-zA-Z_0-9._-]*(\${.+})*)*$/ :
+          /^[a-zA-Z_0-9._-]*$/;
         return pattern.test(stack);
       }
     };

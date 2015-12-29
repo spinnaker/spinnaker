@@ -38,6 +38,7 @@ module.exports = angular.module('spinnaker.aws', [
   require('./securityGroup/securityGroup.transformer.js'),
   require('./securityGroup/securityGroup.reader.js'),
   require('./subnet/subnet.module.js'),
+  require('./validation/applicationName.validator.js'),
   require('./vpc/vpc.module.js'),
   require('./image/image.reader.js'),
   require('./cache/cacheConfigurer.service.js'),

@@ -14,12 +14,15 @@
           <input type="text"
                  autofocus
                  name="name"
-                 ng-pattern="/^[a-zA-z_0-9.]*$/"
                  class="form-control input-sm"
                  data-purpose="application-name"
                  ng-model="newAppModal.application.name"
                  placeholder="Enter an application name"
                  validate-unique="newAppModal.data.appNameList"
+                 ng-pattern="/^[a-zA-Z_0-9.]*$/"
+                 ng-model-options="{allowInvalid: true}"
+                 validate-application-name
+                 cloud-providers="newAppModal.application.cloudProviders"
                  required/>
         </div>
       </div>
@@ -30,16 +33,11 @@
         </div>
       </div>
 
+      <application-name-validation-messages application="newAppModal.application"></application-name-validation-messages>
+
       <div class="form-group row slide-in animated" ng-if="newApplicationForm.name.$error.validateUnique">
         <div class="col-sm-9 col-sm-offset-3 error-message">
           <span>Application name must be unique.</span>
-        </div>
-      </div>
-
-      <div class="form-group row slide-in animated" ng-if="newAppModal.application.name.indexOf('_') > -1 || newAppModal.application.name.indexOf('.') > -1">
-        <div class="col-sm-9 col-sm-offset-3 warn-message">
-          <span>If the application's name contains an underscore(_) or dot(.), you will not be able to create a load balancer,
-            preventing it from being used as a front end service.</span>
         </div>
       </div>
 
@@ -142,7 +140,7 @@
 
       <div class="form-group row">
         <div class="col-sm-3 sm-label-left">Instance Health</div>
-        <div class="col-sm-9 checkbox" style="margin-bottom: 0">
+        <div class="col-sm-9 checkbox" style="margin-bottom: 0; margin-top: 5px">
           <label>
             <input type="checkbox"
                    ng-model="newAppModal.application.platformHealthOnly"/>
