@@ -4,6 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.actions.delete', [
   require('../../services/services.module.js'),
+  require('angular-ui-router')
 ])
   .controller('DeletePipelineModalCtrl', function($scope, $modalInstance, $log,
                                                   dirtyPipelineTracker, pipelineConfigService,
