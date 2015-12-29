@@ -110,7 +110,6 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
       confirmationModalService.confirm({
         header: 'Really delete ' + loadBalancer.name + '?',
         buttonText: 'Delete ' + loadBalancer.name,
-        destructive: true,
         provider: 'gce',
         account: loadBalancer.accountId,
         applicationName: application.name,

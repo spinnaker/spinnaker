@@ -69,7 +69,8 @@ module.exports = angular.module('spinnaker.core.orchestratedItem.transformer', [
         },
         runningTimeInMs: {
           get: function() {
-            return (parseInt(item.endTime) || new Date().getTime()) - parseInt(item.startTime);
+            let normalizedNow = Math.max(new Date().getTime(), item.startTime);
+            return (parseInt(item.endTime) || normalizedNow) - parseInt(item.startTime);
           }
         }
       });

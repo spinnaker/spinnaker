@@ -146,7 +146,6 @@ module.exports = angular.module('spinnaker.instance.detail.titan.controller', [
       confirmationModalService.confirm({
         header: 'Really terminate ' + instance.id + '?',
         buttonText: 'Terminate ' + instance.id,
-        destructive: true,
         account: instance.account,
         provider: 'titan',
         taskMonitorConfig: taskMonitor,
@@ -177,7 +176,6 @@ module.exports = angular.module('spinnaker.instance.detail.titan.controller', [
       confirmationModalService.confirm({
         header: 'Really enable ' + instance.instanceId + ' in discovery?',
         buttonText: 'Enable ' + instance.instanceId,
-        destructive: false,
         account: instance.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod
@@ -199,7 +197,6 @@ module.exports = angular.module('spinnaker.instance.detail.titan.controller', [
       confirmationModalService.confirm({
         header: 'Really disable ' + instance.instanceId + ' in discovery?',
         buttonText: 'Disable ' + instance.instanceId,
-        destructive: true,
         provider: 'titan',
         account: instance.account,
         taskMonitorConfig: taskMonitor,

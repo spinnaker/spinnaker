@@ -36,12 +36,47 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
       requiresTemplateSelection: !!serverGroupCommand.viewState.requiresTemplateSelection,
     };
 
+    function onApplicationRefresh() {
+      // If the user has already closed the modal, do not navigate to the new details view
+      if ($scope.$$destroyed) {
+        return;
+      }
+      let [cloneStage] = $scope.taskMonitor.task.execution.stages.filter((stage) => stage.type === 'cloneServerGroup');
+      if (cloneStage && cloneStage.context['deploy.server.groups']) {
+        let newServerGroupName = cloneStage.context['deploy.server.groups'][$scope.command.region];
+        if (newServerGroupName) {
+          var newStateParams = {
+            serverGroup: newServerGroupName,
+            accountId: $scope.command.credentials,
+            region: $scope.command.region,
+            provider: 'azure',
+          };
+          var transitionTo = '^.^.^.clusters.serverGroup';
+          if ($state.includes('**.clusters.serverGroup')) {  // clone via details, all view
+            transitionTo = '^.serverGroup';
+          }
+          if ($state.includes('**.clusters.cluster.serverGroup')) { // clone or create with details open
+            transitionTo = '^.^.serverGroup';
+          }
+          if ($state.includes('**.clusters')) { // create new, no details open
+            transitionTo = '.serverGroup';
+          }
+          $state.go(transitionTo, newStateParams);
+        }
+      }
+    }
+
+    function onTaskComplete() {
+      application.refreshImmediately();
+      application.registerOneTimeRefreshHandler(onApplicationRefresh);
+    }
+
+
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: 'Creating your server group',
-      forceRefreshMessage: 'Getting your new server group from Amazon...',
       modalInstance: $modalInstance,
-      forceRefreshEnabled: true
+      onTaskComplete: onTaskComplete,
     });
 
     function configureCommand() {
@@ -128,34 +163,6 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
         }
       }
     }
-
-    $scope.taskMonitor.onApplicationRefresh = function handleApplicationRefreshComplete() {
-      // If the user has already closed the modal, do not navigate to the new details view
-      if ($scope.$$destroyed) {
-        return;
-      }
-      $scope.taskMonitor.task.getCompletedKatoTask().then(function(katoTask) {
-        if (katoTask.resultObjects && katoTask.resultObjects.length && katoTask.resultObjects[0].serverGroupNames) {
-          var newStateParams = {
-            serverGroup: katoTask.resultObjects[0].serverGroupNames[0].split(':')[1],
-            accountId: $scope.command.credentials,
-            region: $scope.command.region,
-            provider: 'azure',
-          };
-          var transitionTo = '^.^.^.clusters.serverGroup';
-          if ($state.includes('**.clusters.serverGroup')) {  // clone via details, all view
-            transitionTo = '^.serverGroup';
-          }
-          if ($state.includes('**.clusters.cluster.serverGroup')) { // clone or create with details open
-            transitionTo = '^.^.serverGroup';
-          }
-          if ($state.includes('**.clusters')) { // create new, no details open
-            transitionTo = '.serverGroup';
-          }
-          $state.go(transitionTo, newStateParams);
-        }
-      });
-    };
 
     this.isValid = function () {
       return $scope.command &&

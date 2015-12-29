@@ -65,8 +65,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.p
         modalInstance: $modalInstance,
         application: application,
         title: 'Update Auto Scaling Processes for ' + serverGroup.name,
-        submitMethod: submitMethod,
-        forceRefreshEnabled: true,
+        onTaskComplete: application.refreshImmediately,
       };
 
       $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);

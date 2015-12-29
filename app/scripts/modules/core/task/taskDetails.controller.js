@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.core.task.details.controller', [])
         return task.id === taskId;
       });
       if (!filtered.length) {
-        taskReader.getOneTaskForApplication(application.name, taskId).then(
+        taskReader.getTask(application.name, taskId).then(
           function(result) {
             vm.task = result;
           },

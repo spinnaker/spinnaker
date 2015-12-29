@@ -72,7 +72,6 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.resize.con
         modalInstance: $modalInstance,
         application: application,
         title: 'Resizing ' + serverGroup.name,
-        submitMethod: submitMethod
       };
 
       $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);

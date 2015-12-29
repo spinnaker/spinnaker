@@ -4,5 +4,6 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.tasks.monitor', [
-    require('./taskMonitor.directive.js')
+    require('./taskMonitor.directive.js'),
+    require('./taskMonitorService.js')
   ]);

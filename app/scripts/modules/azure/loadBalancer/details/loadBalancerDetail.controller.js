@@ -105,7 +105,6 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller
       confirmationModalService.confirm({
         header: 'Really delete ' + loadBalancer.name + '?',
         buttonText: 'Delete ' + loadBalancer.name,
-        destructive: true,
         provider: 'azure',
         account: loadBalancer.accountId,
         applicationName: app.name,

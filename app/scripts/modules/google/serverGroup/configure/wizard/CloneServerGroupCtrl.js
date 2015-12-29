@@ -33,12 +33,46 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       requiresTemplateSelection: !!serverGroupCommand.viewState.requiresTemplateSelection,
     };
 
+    function onApplicationRefresh() {
+      // If the user has already closed the modal, do not navigate to the new details view
+      if ($scope.$$destroyed) {
+        return;
+      }
+      let [cloneStage] = $scope.taskMonitor.task.execution.stages.filter((stage) => stage.type === 'cloneServerGroup');
+      if (cloneStage && cloneStage.context['deploy.server.groups']) {
+        let newServerGroupName = cloneStage.context['deploy.server.groups'][$scope.command.region];
+        if (newServerGroupName) {
+          var newStateParams = {
+            serverGroup: newServerGroupName,
+            accountId: $scope.command.credentials,
+            region: $scope.command.region,
+            provider: 'gce',
+          };
+          var transitionTo = '^.^.^.clusters.serverGroup';
+          if ($state.includes('**.clusters.serverGroup')) {  // clone via details, all view
+            transitionTo = '^.serverGroup';
+          }
+          if ($state.includes('**.clusters.cluster.serverGroup')) { // clone or create with details open
+            transitionTo = '^.^.serverGroup';
+          }
+          if ($state.includes('**.clusters')) { // create new, no details open
+            transitionTo = '.serverGroup';
+          }
+          $state.go(transitionTo, newStateParams);
+        }
+      }
+    }
+
+    function onTaskComplete() {
+      application.refreshImmediately();
+      application.registerOneTimeRefreshHandler(onApplicationRefresh);
+    }
+
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: 'Creating your server group',
-      forceRefreshMessage: 'Getting your new server group from Google...',
       modalInstance: $modalInstance,
-      forceRefreshEnabled: true
+      onTaskComplete: onTaskComplete,
     });
 
     function configureCommand() {
@@ -135,36 +169,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       return modalWizardService.getWizard().allPagesVisited();
     };
 
-    $scope.taskMonitor.onApplicationRefresh = function handleApplicationRefreshComplete() {
-      // If the user has already closed the modal, do not navigate to the new details view
-      if ($scope.$$destroyed) {
-        return;
-      }
-      $scope.taskMonitor.task.getCompletedKatoTask().then(function(katoTask) {
-        if (katoTask.resultObjects && katoTask.resultObjects.length && katoTask.resultObjects[0].serverGroupNames) {
-          var newStateParams = {
-            serverGroup: katoTask.resultObjects[0].serverGroupNames[0].split(':')[1],
-            accountId: $scope.command.credentials,
-            region: $scope.command.region,
-            provider: 'gce',
-          };
-          if (!$state.includes('**.clusters.**')) {
-            $state.go('^.^.^.clusters.serverGroup', newStateParams);
-          } else {
-            if ($state.includes('**.serverGroup')) {
-              $state.go('^.serverGroup', newStateParams);
-            } else {
-              if ($state.includes('**.clusters.*')) {
-                $state.go('^.serverGroup', newStateParams);
-              } else {
-                $state.go('.serverGroup', newStateParams);
-              }
-            }
-          }
-        }
-      });
-    };
-
     function generateDiskDescriptors() {
       let persistentDiskDescriptor = {
         type: $scope.command.persistentDiskType,
@@ -206,7 +210,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       $scope.command.tags = transformedTags;
 
       $scope.command.targetSize = $scope.command.capacity.desired;
-      $scope.command.loadBalancers = $scope.command.loadBalancers;
 
       // We want min/max set to the same value as desired.
       $scope.command.capacity.min = $scope.command.capacity.desired;

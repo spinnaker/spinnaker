@@ -121,6 +121,10 @@ module.exports = function(config) {
       outputFile: 'test-results.xml'
     },
 
+    mochaReporter: {
+      ignoreSkipped: true,
+    },
+
     coverageReporter: {
       type : 'html',
       dir : 'coverage/'

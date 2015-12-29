@@ -26,7 +26,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.resize.cont
 
     this.isValid = function () {
       var command = $scope.command;
-      if ($scope.verification.required && $scope.verification.verifyAccount !== serverGroup.account.toUpperCase()) {
+      if ($scope.verification.required && $scope.verification.verifyEntry !== serverGroup.account.toUpperCase()) {
         return false;
       }
       return command.advancedMode ?
@@ -51,7 +51,6 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.resize.cont
         modalInstance: $modalInstance,
         application: application,
         title: 'Resizing ' + serverGroup.name,
-        submitMethod: submitMethod
       };
 
       $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);

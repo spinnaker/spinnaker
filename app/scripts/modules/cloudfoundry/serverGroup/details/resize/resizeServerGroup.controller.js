@@ -34,7 +34,7 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.control
 
     if (application && application.attributes) {
       if (application.attributes.platformHealthOnly) {
-        $scope.command.interestingHealthProviderNames = ["Cloud Foundry"];
+        $scope.command.interestingHealthProviderNames = ['Cloud Foundry'];
       }
 
       $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
@@ -74,7 +74,7 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.control
         modalInstance: $modalInstance,
         application: application,
         title: 'Resizing ' + serverGroup.name,
-        submitMethod: submitMethod
+        onTaskComplete: application.refreshImmediately,
       };
 
       $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);

@@ -31,7 +31,6 @@ module.exports = angular.module('spinnaker.aws.serverGroup.details.elasticIp.con
       var taskMonitorConfig = {
         application: application,
         title: 'Associating Elastic IP with ' + serverGroup.cluster,
-        hasKatoTask: false,
         modalInstance: $modalInstance,
         onTaskComplete: onTaskComplete
       };
@@ -50,7 +49,6 @@ module.exports = angular.module('spinnaker.aws.serverGroup.details.elasticIp.con
         var taskMonitorConfig = {
           application: application,
           title: 'Disassociating Elastic IP with ' + serverGroup.cluster,
-          hasKatoTask: false,
           modalInstance: $modalInstance,
           onTaskComplete: onTaskComplete
         };

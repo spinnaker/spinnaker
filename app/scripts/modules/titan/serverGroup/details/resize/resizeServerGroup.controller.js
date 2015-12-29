@@ -62,7 +62,6 @@ module.exports = angular.module('spinnaker.titan.serverGroup.details.resize.cont
         modalInstance: $modalInstance,
         application: application,
         title: 'Resizing ' + serverGroup.name,
-        submitMethod: submitMethod
       };
 
       $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);

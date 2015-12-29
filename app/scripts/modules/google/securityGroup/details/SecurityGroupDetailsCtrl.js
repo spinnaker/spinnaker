@@ -170,7 +170,6 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
       confirmationModalService.confirm({
         header: 'Really delete ' + securityGroup.name + '?',
         buttonText: 'Delete ' + securityGroup.name,
-        destructive: true,
         provider: 'gce',
         account: securityGroup.accountId,
         applicationName: application.name,

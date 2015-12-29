@@ -43,7 +43,6 @@ module.exports = angular
       confirmationModalService.confirm({
         header: 'Really delete ' + this.application.name + '?',
         buttonText: 'Delete ' + this.application.name,
-        destructive: true,
         provider: 'aws',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod

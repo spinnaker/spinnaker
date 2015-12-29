@@ -3,27 +3,22 @@
     <h3>{{taskMonitor.title}}</h3>
   </div>
   <div class="modal-body clearfix">
-    <div class="clearfix" auto-scroll="[taskMonitor.task.getValueFor('kato.tasks'), taskMonitor.task.error, taskMonitor.task.forceRefreshing]">
+    <div class="clearfix" auto-scroll="[taskMonitor.task.getValueFor('kato.tasks'), taskMonitor.task.error]">
       <div class="col-md-12 overlay-modal-status" ng-if="taskMonitor.task">
-        <ul class="task task-progress" ng-repeat="katoTask in taskMonitor.task.getValueFor('kato.tasks')">
-          <li ng-repeat="step in katoTask.history">
-            <span class="glyphicon glyphicon-{{step.status.indexOf('Orchestration failed') === 0 ? 'warning-sign' : 'ok-circle'}}"></span>
-            {{step.status}}
+        <ul class="task task-progress">
+          <li ng-repeat="step in taskMonitor.task.steps | displayableTasks" ng-class="{'not-started': step.hasNotStarted}">
+            <status-glyph item="step"></status-glyph>
+            {{step.name | robotToHuman}}
+            <span ng-if="step.startTime">({{step.runningTimeInMs | duration}})</span>
           </li>
         </ul>
-        <ul class="task task-progress task-progress-refresh" ng-if="taskMonitor.forceRefreshing">
-          <li ng-if="taskMonitor.forceRefreshing">
-            <span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span> {{taskMonitor.forceRefreshMessage}}
-            <p>You can <a href ng-click="taskMonitor.closeModal()">close this dialog</a> and continue working while we clean up.</p>
-          </li>
+        <ul class="task task-progress task-progress-running" ng-if="taskMonitor.task.isActive">
+          <li><span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span></li>
         </ul>
-        <ul class="task task-progress task-progress-refresh" ng-if="taskMonitor.forceRefreshComplete">
+        <ul class="task task-progress task-progress-refresh" ng-if="taskMonitor.task.isCompleted">
           <li>
             <span class="glyphicon glyphicon-ok-circle"></span> <strong>Operation succeeded!</strong>
           </li>
-        </ul>
-        <ul class="task task-progress task-progress-running" ng-if="!taskMonitor.forceRefreshComplete && !taskMonitor.forceRefreshing && !taskMonitor.error">
-          <li><span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span></li>
         </ul>
         <p ng-if="taskMonitor.task.id && !taskMonitor.error">
             You can

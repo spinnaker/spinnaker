@@ -257,7 +257,6 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       confirmationModalService.confirm({
         header: 'Really terminate ' + instance.instanceId + '?',
         buttonText: 'Terminate ' + instance.instanceId,
-        destructive: true,
         account: instance.account,
         provider: 'gce',
         taskMonitorConfig: taskMonitor,
@@ -289,7 +288,6 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       confirmationModalService.confirm({
         header: 'Really terminate ' + instance.instanceId + ' and shrink ' + instance.serverGroup + '?',
         buttonText: 'Terminate ' + instance.instanceId + ' and shrink ' + instance.serverGroup,
-        destructive: true,
         account: instance.account,
         provider: 'gce',
         taskMonitorConfig: taskMonitor,
@@ -315,7 +313,6 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       confirmationModalService.confirm({
         header: 'Really reboot ' + instance.instanceId + '?',
         buttonText: 'Reboot ' + instance.instanceId,
-        destructive: true,
         account: instance.account,
         provider: 'gce',
         taskMonitorConfig: taskMonitor,
@@ -333,16 +330,12 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       };
 
       var submitMethod = function () {
-        return instanceWriter.registerInstanceWithLoadBalancer(instance, app, {
-          cloudProvider: 'gce',
-          loadBalancerNames: instance.loadBalancers,
-        });
+        return instanceWriter.registerInstanceWithLoadBalancer(instance, app);
       };
 
       confirmationModalService.confirm({
         header: 'Really register ' + instance.instanceId + ' with ' + loadBalancerNames + '?',
         buttonText: 'Register ' + instance.instanceId,
-        destructive: false,
         account: instance.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod
@@ -359,16 +352,12 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       };
 
       var submitMethod = function () {
-        return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app, {
-          cloudProvider: 'gce',
-          loadBalancerNames: instance.loadBalancers,
-        });
+        return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app);
       };
 
       confirmationModalService.confirm({
         header: 'Really deregister ' + instance.instanceId + ' from ' + loadBalancerNames + '?',
         buttonText: 'Deregister ' + instance.instanceId,
-        destructive: true,
         provider: 'gce',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
@@ -391,7 +380,6 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       confirmationModalService.confirm({
         header: 'Really enable ' + instance.instanceId + ' in discovery?',
         buttonText: 'Enable ' + instance.instanceId,
-        destructive: false,
         account: instance.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod
@@ -413,7 +401,6 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       confirmationModalService.confirm({
         header: 'Really disable ' + instance.instanceId + ' in discovery?',
         buttonText: 'Disable ' + instance.instanceId,
-        destructive: true,
         provider: 'gce',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
