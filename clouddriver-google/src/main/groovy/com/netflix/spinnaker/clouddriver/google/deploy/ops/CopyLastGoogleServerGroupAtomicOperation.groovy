@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDe
 import com.netflix.spinnaker.clouddriver.google.deploy.handlers.BasicGoogleDeployHandler
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
@@ -52,8 +53,8 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "cloneServerGroup": { "source": { "zone": "us-central1-f", "serverGroupName": "myapp-dev-v000" }, "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "cloneServerGroup": { "source": { "zone": "us-central1-f", "serverGroupName": "myapp-dev-v000" }, "application": "myapp", "stack": "dev", "image": "ubuntu-1410-utopic-v20150625", "targetSize": 4, "instanceType": "g1-small", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "cloneServerGroup": { "source": { "region": "us-central1", "serverGroupName": "myapp-dev-v000" }, "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "cloneServerGroup": { "source": { "region": "us-central1", "serverGroupName": "myapp-dev-v000" }, "application": "myapp", "stack": "dev", "image": "ubuntu-1410-utopic-v20150625", "targetSize": 4, "instanceType": "g1-small", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    */
   @Override
   DeploymentResult operate(List priorOutputs) {
@@ -75,17 +76,17 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
   private BasicGoogleDeployDescription cloneAndOverrideDescription() {
     BasicGoogleDeployDescription newDescription = description.clone()
 
-    if (!description?.source?.zone || !description?.source?.serverGroupName) {
+    if (!description?.source?.region || !description?.source?.serverGroupName) {
       return newDescription
     }
 
     task.updateStatus BASE_PHASE, "Initializing copy of server group $description.source.serverGroupName..."
 
     // Locate the ancestor server group.
-    InstanceGroupManager ancestorServerGroup = GCEUtil.queryManagedInstanceGroup(description.credentials.project,
-                                                                                 description.source.zone,
-                                                                                 description.source.serverGroupName,
-                                                                                 description.credentials)
+    InstanceGroupManager ancestorServerGroup = GCEUtil.queryManagedInstanceGroupInRegion(description.credentials.project,
+                                                                                         description.source.region,
+                                                                                         description.source.serverGroupName,
+                                                                                         description.credentials)
 
     if (!ancestorServerGroup) {
       return newDescription
@@ -94,7 +95,7 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
     def ancestorNames = Names.parseName(ancestorServerGroup.name)
 
     // Override any ancestor values that were specified directly on the copyLastGoogleServerGroupDescription call.
-    newDescription.zone = description.zone ?: description.source.zone
+    newDescription.zone = description.zone ?: Utils.getLocalName(ancestorServerGroup.getZone())
     newDescription.loadBalancers =
         description.loadBalancers != null
         ? description.loadBalancers

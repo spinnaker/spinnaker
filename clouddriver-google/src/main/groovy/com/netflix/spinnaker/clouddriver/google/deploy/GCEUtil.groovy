@@ -229,6 +229,15 @@ class GCEUtil {
     credentials.compute.instanceGroupManagers().get(projectName, zone, serverGroupName).execute()
   }
 
+  static InstanceGroupManager queryManagedInstanceGroupInRegion(String projectName,
+                                                                String region,
+                                                                String serverGroupName,
+                                                                GoogleCredentials credentials) {
+    def managedInstanceGroups = queryManagedInstanceGroups(projectName, region, credentials)
+
+    return managedInstanceGroups.find { it.name == serverGroupName }
+  }
+
   static List<InstanceGroupManager> queryManagedInstanceGroups(String projectName,
                                                                String region,
                                                                GoogleCredentials credentials) {
