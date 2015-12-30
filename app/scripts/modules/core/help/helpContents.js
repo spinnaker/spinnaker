@@ -110,6 +110,12 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'gce.serverGroup.automaticRestart': 'Compute Engine can automatically restart VM instances if they are terminated for non-user-initiated reasons (maintenance event, hardware failure, software failure, etc.).',
     'gce.serverGroup.onHostMaintenance': 'When Compute Engine performs periodic infrastructure maintenance it can migrate your VM instances to other hardware without downtime.',
     'gce.serverGroup.securityGroups.implicit': 'Firewall rules with no target tags defined will permit incoming connections that match the ingress rules to all instances in the network.',
+    'gce.serverGroup.autoscaling.targetCPUUsage': 'Autoscaling adds or removes VMs in the group to maintain this level of CPU usage on each VM.',
+    'gce.serverGroup.autoscaling.targetHTTPLoadBalancingUsage': 'Autoscaling adds or removes VMs in the group to maintain this usage of load-balancing capacity. This value is a percentage of the \'Maximum rate\' setting of the load balancer this group is used by.',
+    'gce.serverGroup.autoscaling.targetMetric': 'Autoscaling adds or removes VMs in the group to maintain these target levels.',
+    'gce.serverGroup.autoscaling.minVMs': 'The least number of VM instances the group will contain, even if the target is not met.',
+    'gce.serverGroup.autoscaling.maxVMs': 'The largest number of VM instances allowed, even if the target is exceeded.',
+    'gce.serverGroup.autoscaling.cooldown': 'How long to wait before collecting information from a new instance. This should be at least the time it takes to initialize the instance. To find the minimum, create an instance from the same image and note how long it takes to start.',
     'pipeline.config.checkPreconditions.failPipeline': '' +
       '<p><strong>Checked</strong> - the overall pipeline will fail whenever this precondition is false.</p>' +
       '<p><strong>Unchecked</strong> - the overall pipeline will continue executing but this particular branch will stop.</p>',
