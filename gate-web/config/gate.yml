@@ -8,7 +8,29 @@ services:
     baseUrl: http://localhost:8080
   clouddriver:
     baseUrl: http://localhost:7002
-#optional services:
+# semi-optional services (Everybody except Netflix needs these):
+  rosco:
+    enabled: true
+    baseUrl: http://localhost:8087
+    # These are here only for Netflix, whose bakery does not support dynamically fetching these properties.
+    # Modifying the details below when rosco.enabled is true will have no effect (do it in the Rosco config).
+    defaults:
+      bakeOptions:
+        - cloudProvider: aws
+          baseImages:
+          - id: ubuntu
+            shortDescription: v12.04
+            detailedDescription: Ubuntu Precise Pangolin v12.04
+            packageType: DEB
+          - id: trusty
+            shortDescription: v14.04
+            detailedDescription: Ubuntu Trusty Tahr v14.04
+            packageType: DEB
+          - id: centos
+            shortDescription: deprecated
+            detailedDescription: CentOS v5.11
+            packageType: RPM
+# optional services:
   echo:
     enabled: false
   flapjack:

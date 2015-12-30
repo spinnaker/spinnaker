@@ -122,6 +122,13 @@ class GateConfig {
     createClient "clouddriver", ClouddriverService, okHttpClient
   }
 
+  //---- semi-optional components:
+  @Bean
+  @ConditionalOnProperty('services.rosco.enabled')
+  RoscoService roscoService(OkHttpClient okHttpClient) {
+    createClient "rosco", RoscoService, okHttpClient
+  }
+
   //---- optional backend components:
   @Bean
   @ConditionalOnProperty('services.echo.enabled')
