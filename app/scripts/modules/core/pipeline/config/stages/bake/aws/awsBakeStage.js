@@ -45,7 +45,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.bakeStage', [
     function initialize() {
       $q.all({
         regions: bakeryService.getRegions('aws'),
-        baseOsOptions: bakeryService.getBaseOsOptions(),
+        baseOsOptions: bakeryService.getBaseOsOptions('aws'),
         baseLabelOptions: bakeryService.getBaseLabelOptions(),
         vmTypes: bakeryService.getVmTypes(),
         storeTypes: bakeryService.getStoreTypes(),
@@ -70,11 +70,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.bakeStage', [
         if (!$scope.stage.regions.length && $scope.application.defaultRegions.aws) {
           $scope.stage.regions.push($scope.application.defaultRegions.aws);
         }
-        $scope.baseOsOptions = results.baseOsOptions;
+        $scope.baseOsOptions = results.baseOsOptions.baseImages;
         $scope.baseLabelOptions = results.baseLabelOptions;
 
         if (!$scope.stage.baseOs && $scope.baseOsOptions && $scope.baseOsOptions.length) {
-          $scope.stage.baseOs = $scope.baseOsOptions[0];
+          $scope.stage.baseOs = $scope.baseOsOptions[0].id;
         }
         if (!$scope.stage.baseLabel && $scope.baseLabelOptions && $scope.baseLabelOptions.length) {
           $scope.stage.baseLabel = $scope.baseLabelOptions[0];

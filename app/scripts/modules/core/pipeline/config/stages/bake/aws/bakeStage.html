@@ -16,8 +16,8 @@
       <label class="radio-inline" ng-repeat="baseOsOption in baseOsOptions">
         <input type="radio"
                ng-model="stage.baseOs"
-               ng-value="baseOsOption"/>
-        {{baseOsOption}}
+               ng-value="baseOsOption.id"/>
+        {{baseOsOption.id}} ({{baseOsOption.shortDescription}}) <help-field content="{{baseOsOption.detailedDescription}}" />
       </label>
     </stage-config-field>
     <stage-config-field label="VM Type" ng-if="stage.cloudProviderType === 'aws' || stage.cloudProviderType === undefined">
