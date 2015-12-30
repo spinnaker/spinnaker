@@ -1,0 +1,22 @@
+<dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'" style="margin-bottom: 20px">
+  <dt>
+    Target {{policy.basis}}
+    <help-field key="{{policy.basisHelpKey}}"></help-field>
+  </dt>
+  <dd ng-repeat="target in policy.targets">{{target}}</dd>
+  <dt>
+    Min # VMs
+    <help-field key="gce.serverGroup.autoscaling.minVMs"></help-field>
+  </dt>
+  <dd>{{policy.minNumReplicas}}</dd>
+  <dt>
+    Max # VMs
+    <help-field key="gce.serverGroup.autoscaling.maxVMs"></help-field>
+  </dt>
+  <dd>{{policy.maxNumReplicas}}</dd>
+  <dt>
+    Cool-down Period
+    <help-field key="gce.serverGroup.autoscaling.cooldown"></help-field>
+  </dt>
+  <dd>{{policy.coolDownPeriodSec}} sec</dd>
+</dl>
