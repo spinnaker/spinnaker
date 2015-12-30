@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -64,7 +63,7 @@ class TriggerQuipTaskSpec extends Specification {
       "account" : account,
       "region" : region,
       "application" : app,
-      "baseOs" : OperatingSystem.ubuntu.toString(),
+      "baseOs" : "ubuntu",
       "package" : app,
       "version" : "1.2"
     ])
@@ -103,7 +102,7 @@ class TriggerQuipTaskSpec extends Specification {
       "account" : account,
       "region" : region,
       "application" : app,
-      "baseOs" : OperatingSystem.ubuntu.toString(),
+      "baseOs" : "ubuntu",
       "package" : app,
       "version" : "1.2"
     ])
@@ -148,7 +147,7 @@ class TriggerQuipTaskSpec extends Specification {
       "account" : account,
       "region" : region,
       "application" : app,
-      "baseOs" : OperatingSystem.ubuntu.toString(),
+      "baseOs" : "ubuntu",
       "package" : packageName
     ])
 

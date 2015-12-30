@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import com.netflix.spinnaker.orca.pipeline.util.PackageInfo
+import com.netflix.spinnaker.orca.pipeline.util.PackageType
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -48,6 +49,8 @@ class CreateBakeTask implements RetryableTask {
   @Value('${bakery.extractBuildDetails:false}')
   boolean extractBuildDetails
 
+  @Value('${bakery.roscoApisEnabled:false}')
+  boolean roscoApisEnabled
 
   @Value('${bakery.propagateCloudProviderType:false}')
   boolean propagateCloudProviderType
@@ -55,9 +58,11 @@ class CreateBakeTask implements RetryableTask {
   @Override
   TaskResult execute(Stage stage) {
     String region = stage.context.region
-    def bake = bakeFromContext(stage)
 
     try {
+      // If the user has specified a base OS that is unrecognized by Rosco, this method will
+      // throw a Retrofit exception (HTTP 404 Not Found)
+      def bake = bakeFromContext(stage)
       String rebake = shouldRebake(stage) ? "1" : null
       def bakeStatus = bakery.createBake(region, bake, rebake).toBlocking().single()
 
@@ -111,10 +116,22 @@ class CreateBakeTask implements RetryableTask {
 
   @CompileDynamic
   private BakeRequest bakeFromContext(Stage stage) {
-    OperatingSystem operatingSystem = OperatingSystem.valueOf(stage.context.baseOs as String)
+    PackageType packageType
+    if (roscoApisEnabled) {
+      def baseImage = bakery.getBaseImage(stage.context.cloudProviderType as String,
+                                          stage.context.baseOs as String).toBlocking().single()
+      packageType = baseImage.packageType as PackageType
+    } else {
+      OperatingSystem operatingSystem = OperatingSystem.valueOf(stage.context.baseOs as String)
+      packageType = operatingSystem.packageType
+    }
 
-    PackageInfo packageInfo = new PackageInfo(stage, operatingSystem.packageType.packageType,
-      operatingSystem.packageType.versionDelimiter, extractBuildDetails, false, mapper)
+    PackageInfo packageInfo = new PackageInfo(stage,
+                                              packageType.packageType,
+                                              packageType.versionDelimiter,
+                                              extractBuildDetails,
+                                              false /* extractVersion */,
+                                              mapper)
     Map requestMap = packageInfo.findTargetPackage()
     BakeRequest bakeRequest = mapper.convertValue(requestMap, BakeRequest)
 

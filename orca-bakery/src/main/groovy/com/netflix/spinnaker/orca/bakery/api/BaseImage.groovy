@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline.util
+package com.netflix.spinnaker.orca.bakery.api
 
-@Deprecated
-public enum OperatingSystem {
-  centos(PackageType.RPM), ubuntu(PackageType.DEB), trusty(PackageType.DEB)
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.netflix.spinnaker.orca.pipeline.util.PackageType
 
-  private final PackageType packageType
-  private OperatingSystem(PackageType packageType) {
-    this.packageType = packageType
-  }
+class BaseImage {
+  String id
 
-  PackageType getPackageType() {
-    return packageType
-  }
+  // Needs JsonProperty because of LowerCaseWithUnderscoresStrategy property naming strategy.
+  @JsonProperty("packageType")  PackageType packageType
 }
-

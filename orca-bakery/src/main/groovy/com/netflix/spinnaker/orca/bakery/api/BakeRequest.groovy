@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.bakery.api
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
 
@@ -29,7 +28,7 @@ import groovy.transform.Immutable
 @Immutable(copyWith = true)
 @CompileStatic
 class BakeRequest {
-  static final Default = new BakeRequest(System.getProperty("user.name"), null, null, null, null, null, CloudProviderType.aws, Label.release, OperatingSystem.ubuntu, null, null, null, null, null, null, null)
+  static final Default = new BakeRequest(System.getProperty("user.name"), null, null, null, null, null, CloudProviderType.aws, Label.release, "ubuntu", null, null, null, null, null, null, null)
 
   String user
   @JsonProperty("package") String packageName
@@ -39,7 +38,7 @@ class BakeRequest {
   String commitHash
   CloudProviderType cloudProviderType
   Label baseLabel
-  OperatingSystem baseOs
+  String baseOs
   String baseName
   String baseAmi
   VmType vmType

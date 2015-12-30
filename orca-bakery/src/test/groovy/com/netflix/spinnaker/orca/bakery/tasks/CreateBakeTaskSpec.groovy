@@ -28,7 +28,6 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -61,7 +60,7 @@ class CreateBakeTaskSpec extends Specification {
     region   : "us-west-1",
     package  : "hodor",
     user     : "bran",
-    baseOs   : OperatingSystem.ubuntu.name(),
+    baseOs   : "ubuntu",
     baseLabel: BakeRequest.Label.release.name()
   ]
 
@@ -71,7 +70,7 @@ class CreateBakeTaskSpec extends Specification {
     package           : "hodor",
     user              : "bran",
     cloudProviderType : "aws",
-    baseOs            : OperatingSystem.ubuntu.name(),
+    baseOs            : "ubuntu",
     baseLabel         : BakeRequest.Label.release.name()
   ]
 
@@ -81,7 +80,7 @@ class CreateBakeTaskSpec extends Specification {
     package           : "hodor",
     user              : "bran",
     cloudProviderType : "aws",
-    baseOs            : OperatingSystem.ubuntu.name(),
+    baseOs            : "ubuntu",
     baseLabel         : BakeRequest.Label.release.name(),
     rebake            : true
   ]
@@ -240,7 +239,7 @@ class CreateBakeTaskSpec extends Specification {
     then:
     bake.user == bakeConfig.user
     bake.packageName == bakeConfig.package
-    bake.baseOs.name() == bakeConfig.baseOs
+    bake.baseOs == bakeConfig.baseOs
     bake.baseLabel.name() == bakeConfig.baseLabel
   }
 
@@ -510,7 +509,7 @@ class CreateBakeTaskSpec extends Specification {
                                  it.user == "bran" &&
                                  it.packageName == "hodor_1.1_all" &&
                                  it.baseLabel == BakeRequest.Label.release &&
-                                 it.baseOs == OperatingSystem.ubuntu &&
+                                 it.baseOs == "ubuntu" &&
                                  it.buildHost == "http://spinnaker.builds.test.netflix.net/" &&
                                  it.job == "SPINNAKER-package-echo" &&
                                  it.buildNumber == "69"
@@ -542,7 +541,7 @@ class CreateBakeTaskSpec extends Specification {
                                  it.user == "bran" &&
                                  it.packageName == "hodor_1.1_all" &&
                                  it.baseLabel == BakeRequest.Label.release &&
-                                 it.baseOs == OperatingSystem.ubuntu &&
+                                 it.baseOs == "ubuntu" &&
                                  it.buildHost == null &&
                                  it.job == null &&
                                  it.buildNumber == null &&
@@ -574,7 +573,7 @@ class CreateBakeTaskSpec extends Specification {
                                  it.user == "bran" &&
                                  it.packageName == "hodor_1.1_all" &&
                                  it.baseLabel == BakeRequest.Label.release &&
-                                 it.baseOs == OperatingSystem.ubuntu &&
+                                 it.baseOs == "ubuntu" &&
                                  it.buildHost == null &&
                                  it.job == null &&
                                  it.buildNumber == null &&
@@ -608,7 +607,7 @@ class CreateBakeTaskSpec extends Specification {
     bake.cloudProviderType == expectedCloudProviderType
     bake.user              == bakeConfigWithCloudProviderType.user
     bake.packageName       == bakeConfigWithCloudProviderType.package
-    bake.baseOs.name()     == bakeConfigWithCloudProviderType.baseOs
+    bake.baseOs            == bakeConfigWithCloudProviderType.baseOs
     bake.baseLabel.name()  == bakeConfigWithCloudProviderType.baseLabel
 
     where:
@@ -651,7 +650,7 @@ class CreateBakeTaskSpec extends Specification {
                                  it.user == "bran" &&
                                  it.packageName == "hodor" &&
                                  it.baseLabel == BakeRequest.Label.release &&
-                                 it.baseOs == OperatingSystem.ubuntu
+                                 it.baseOs == "ubuntu"
                                } as BakeRequest,
                                "1") >> Observable.from(runningStatus)
     0 * _
@@ -673,7 +672,7 @@ class CreateBakeTaskSpec extends Specification {
                                  it.user == "bran" &&
                                  it.packageName == "hodor" &&
                                  it.baseLabel == BakeRequest.Label.release &&
-                                 it.baseOs == OperatingSystem.ubuntu
+                                 it.baseOs == "ubuntu"
                                } as BakeRequest,
                                queryParameter) >> Observable.from(runningStatus)
     0 * _
@@ -687,7 +686,7 @@ class CreateBakeTaskSpec extends Specification {
         it.user == "bran" &&
           it.packageName == "hodor" &&
           it.baseLabel == BakeRequest.Label.release &&
-          it.baseOs == OperatingSystem.ubuntu
+          it.baseOs == "ubuntu"
       } as BakeRequest,
       null) >> Observable.from(runningStatus)
     0 * _
