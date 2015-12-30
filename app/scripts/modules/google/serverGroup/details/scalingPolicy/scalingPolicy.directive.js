@@ -16,26 +16,42 @@ module.exports = angular.module('spinnaker.gce.instance.details.scalingPolicy.di
         var policy = scope.policy;
         scope.InsightFilterStateModel = InsightFilterStateModel;
 
+        policy.bases = [];
+
         if (policy.cpuUtilization) {
-          policy.basis = 'CPU Usage';
-          policy.basisHelpKey = 'gce.serverGroup.autoscaling.targetCPUUsage';
+          let basis = {
+            description: 'CPU Usage',
+            helpKey: 'gce.serverGroup.autoscaling.targetCPUUsage',
+          };
 
           if (policy.cpuUtilization.utilizationTarget) {
-            policy.targets = [policy.cpuUtilization.utilizationTarget * 100 + '%'];
+            basis.targets = [policy.cpuUtilization.utilizationTarget * 100 + '%'];
           }
-        } else if (policy.loadBalancingUtilization) {
-          policy.basis = 'HTTP Load Balancing Usage';
-          policy.basisHelpKey = 'gce.serverGroup.autoscaling.targetHTTPLoadBalancingUsage';
+
+          policy.bases.push(basis);
+        }
+
+        if (policy.loadBalancingUtilization) {
+          let basis = {
+            description: 'HTTP Load Balancing Usage',
+            helpKey: 'gce.serverGroup.autoscaling.targetHTTPLoadBalancingUsage',
+          };
 
           if (policy.loadBalancingUtilization.utilizationTarget) {
-            policy.targets = [policy.loadBalancingUtilization.utilizationTarget * 100 + '%'];
+            basis.targets = [policy.loadBalancingUtilization.utilizationTarget * 100 + '%'];
           }
-        } else if (policy.customMetricUtilizations) {
-          policy.basis = policy.customMetricUtilizations.length > 1 ? 'Monitoring Metrics' : 'Monitoring Metric';
-          policy.basisHelpKey = 'gce.serverGroup.autoscaling.targetMetric';
+
+          policy.bases.push(basis);
+        }
+
+        if (policy.customMetricUtilizations) {
+          let basis = {
+            description: policy.customMetricUtilizations.length > 1 ? 'Monitoring Metrics' : 'Monitoring Metric',
+            helpKey: 'gce.serverGroup.autoscaling.targetMetric',
+          };
 
           if (policy.customMetricUtilizations.length > 0) {
-            policy.targets = [];
+            basis.targets = [];
             policy.customMetricUtilizations.forEach(metric => {
               let target = metric.metric + ': ' + metric.utilizationTarget;
 
@@ -45,9 +61,11 @@ module.exports = angular.module('spinnaker.gce.instance.details.scalingPolicy.di
                 target += '/min';
               }
 
-              policy.targets.push(target);
+              basis.targets.push(target);
             });
           }
+
+          policy.bases.push(basis);
         }
       }
     };
