@@ -13,7 +13,7 @@
                  trigger-validation="securityGroup.subnet"
                  required/>
           <validation-error ng-if="form.securityGroupName.$error.validateUnique && securityGroup.credentials" message="There is already a security group in {{securityGroup.credentials}} with that name."></validation-error>
-          <validation-error ng-if="form.securityGroupName.$error.pattern" message="Name must match {{ctrl.getCurrentNamePattern().toString()}}"></validation-error>
+          <validation-error ng-if="form.securityGroupName.$error.pattern" message="Name can only contain letters, numbers, and dashes(-)."></validation-error>
         </div>
       </div>
       <div class="form-group">

@@ -38,6 +38,7 @@ module.exports = angular.module('spinnaker.gce', [
   require('./securityGroup/configure/EditSecurityGroupCtrl.js'),
   require('./securityGroup/securityGroup.transformer.js'),
   require('./securityGroup/securityGroup.reader.js'),
+  require('./validation/applicationName.validator.js'),
   require('./image/image.reader.js'),
   require('./cache/cacheConfigurer.service.js'),
 ])
