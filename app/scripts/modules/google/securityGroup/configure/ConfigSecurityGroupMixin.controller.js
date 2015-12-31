@@ -161,7 +161,7 @@ module.exports = angular
     };
 
     ctrl.getCurrentNamePattern = function() {
-      return /.+/;
+      return /^[a-zA-Z0-9-]*$/;
     };
 
     ctrl.updateName = function() {
@@ -169,6 +169,7 @@ module.exports = angular
         name = application.name;
       if (securityGroup.detail) {
         name += '-' + securityGroup.detail;
+        name = _.trimRight(name, "-");
       }
       securityGroup.name = name;
       $scope.namePreview = name;

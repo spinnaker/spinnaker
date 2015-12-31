@@ -66,6 +66,24 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.basicSettin
       $state: $state,
     }));
 
+    this.stackPattern = {
+      test: function(stack) {
+        var pattern = $scope.command.viewState.templatingEnabled ?
+          /^([a-zA-Z0-9]*(\${.+})*)*$/ :
+          /^[a-zA-Z0-9]*$/;
+        return pattern.test(stack);
+      }
+    };
+
+    this.detailPattern = {
+      test: function(detail) {
+        var pattern = $scope.command.viewState.templatingEnabled ?
+          /^([a-zA-Z0-9-]*(\${.+})*)*$/ :
+          /^[a-zA-Z0-9-]*$/;
+        return pattern.test(detail);
+      }
+    };
+
     $scope.$watch('form.$valid', function(newVal) {
       if (newVal) {
         modalWizardService.getWizard().markClean('location');

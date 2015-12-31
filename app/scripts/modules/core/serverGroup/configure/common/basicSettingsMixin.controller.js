@@ -71,11 +71,11 @@ module.exports = angular
     };
 
     this.detailPattern = {
-      test: function(stack) {
+      test: function(detail) {
         var pattern = $scope.command.viewState.templatingEnabled ?
           /^([a-zA-Z_0-9._-]*(\${.+})*)*$/ :
           /^[a-zA-Z_0-9._-]*$/;
-        return pattern.test(stack);
+        return pattern.test(detail);
       }
     };
   });
