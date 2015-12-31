@@ -107,6 +107,10 @@ module.exports = angular
       return deferred.promise;
     }
 
+    function waitUntilTaskCompletes(application, task) {
+      return waitUntilTaskMatches(application, task, (task) => task.isCompleted, (task) => task.isFailed);
+    }
+
     function getTask(applicationName, taskId) {
       return Restangular.one('applications', applicationName).one('tasks', taskId).get()
         .then((task) => {
@@ -132,6 +136,7 @@ module.exports = angular
       getRunningTasks: getRunningTasks,
       getTask: getTask,
       waitUntilTaskMatches: waitUntilTaskMatches,
+      waitUntilTaskCompletes: waitUntilTaskCompletes,
     };
 
   });
