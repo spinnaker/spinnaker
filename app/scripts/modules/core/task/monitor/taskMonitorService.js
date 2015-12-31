@@ -9,9 +9,6 @@ module.exports = angular.module('spinnaker.tasks.monitor.service', [
 ])
   .factory('taskMonitorService', function($log, _, taskReader, $timeout) {
 
-    let taskComplete = (task) => task.isCompleted;
-    let taskFailed = (task) => task.isFailed;
-
     function buildTaskMonitor(params) {
       var monitor = {
         submitting: false,
@@ -53,14 +50,14 @@ module.exports = angular.module('spinnaker.tasks.monitor.service', [
         }
         monitor.submitting = false;
         monitor.error = true;
-        monitor.errorMessage = monitor.task.failureMessage || monitor.task.lastKatoMessage || 'There was an unknown server error.';
+        monitor.errorMessage = monitor.task.failureMessage || 'There was an unknown server error.';
         $log.warn('Error with task:', monitor.task);
       };
 
       monitor.handleTaskSuccess = function (task) {
         let applicationName = monitor.application ? monitor.application.name : 'ad-hoc';
         monitor.task = task;
-        taskReader.waitUntilTaskMatches(applicationName, task, taskComplete, taskFailed)
+        taskReader.waitUntilTaskCompletes(applicationName, task)
           .then(monitor.onTaskComplete, monitor.setError);
       };
 

@@ -6,10 +6,11 @@ module.exports = angular
   .module('spinnaker.editApplication.modal.controller', [
     require('../service/applications.write.service.js'),
     require('../../utils/lodash.js'),
-    require('../../account/account.service.js')
+    require('../../account/account.service.js'),
+    require('../../task/task.read.service.js'),
   ])
   .controller('EditApplicationController', function ($window, $state, $modalInstance, application, applicationWriter,
-                                                     _, accountService) {
+                                                     _, accountService, taskReader) {
     var vm = this;
     vm.submitting = false;
     vm.errorMsgs = [];
@@ -66,17 +67,8 @@ module.exports = angular
 
       applicationWriter.updateApplication(vm.applicationAttributes)
         .then(
-          function(taskResponseList) {
-            _.first(taskResponseList)
-              .watchForTaskComplete()
-              .then(
-                closeModal,
-                extractErrorMsg
-              );
-          },
-          function() {
-            vm.errorMsgs.push('Could not update application');
-          }
+          (tasks) => taskReader.waitUntilTaskCompletes(application.name, tasks[0]).then(closeModal, extractErrorMsg),
+          () => vm.errorMsgs.push('Could not update application')
         );
     };
 

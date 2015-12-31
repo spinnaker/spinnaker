@@ -6,9 +6,10 @@ module.exports = angular
   .module('spinnaker.applications.write.service', [
     require('../../task/taskExecutor.js'),
     require('../../utils/lodash.js'),
-    require('../../history/recentHistory.service')
+    require('../../history/recentHistory.service.js'),
+    require('../../task/task.read.service.js'),
   ])
-  .factory('applicationWriter', function($q, taskExecutor, recentHistoryService,  _) {
+  .factory('applicationWriter', function($q, taskExecutor, recentHistoryService,  _, taskReader) {
 
     function createApplication(app, account) {
       var command = _.cloneDeep(app);
@@ -77,7 +78,7 @@ module.exports = angular
         );
       });
 
-     var task = executeDeleteTasks(taskList);
+     var task = executeDeleteTasks(app.name, taskList);
      return task
       .then(() => {
         recentHistoryService.removeByAppName(app.name);
@@ -87,22 +88,18 @@ module.exports = angular
 
     }
 
-    function executeDeleteTasks(taskList, deferred) {
+    function executeDeleteTasks(appName, taskList, deferred) {
       if(!deferred) {
         deferred = $q.defer();
       }
 
       if(taskList.length > 1) {
         taskExecutor.executeTask(_(taskList).head())
-          .then(function(taskResponse) {
-            taskResponse.watchForTaskComplete()
-              .then( function() {
-                executeDeleteTasks(_(taskList).tail(), deferred);
-              })
+          .then((task) => taskReader.waitUntilTaskCompletes(appName, task))
+              .then(() => executeDeleteTasks(_(taskList).tail(), deferred))
               .catch(function(err) {
                 console.warn(err);
               });
-          });
       } else {
         deferred.resolve(taskExecutor.executeTask(_(taskList).head()));
       }

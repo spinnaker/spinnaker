@@ -9,10 +9,12 @@ module.exports = angular
     require('../service/applications.read.service.js'),
     require('../../utils/lodash.js'),
     require('../../account/account.service.js'),
+    require('../../task/task.read.service.js'),
     require('./validation/applicationNameValidationMessages.directive.js'),
     require('./validation/validateApplicationName.directive.js'),
   ])
-  .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $modalInstance, accountService, applicationWriter, applicationReader, _) {
+  .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $modalInstance, accountService,
+                                                     applicationWriter, applicationReader, _, taskReader) {
     var vm = this;
 
     let applicationLoader = applicationReader.listApplications();
@@ -35,7 +37,6 @@ module.exports = angular
     vm.data = {
 
     };
-    vm.submitting = false;
     vm.application = {
       cloudProviders: [],
     };
@@ -43,7 +44,6 @@ module.exports = angular
     vm.clearEmailMsg = function() {
       vm.state.emailErrorMsg = '';
     };
-
 
     vm.createAppForAccount = function(application, accounts, deferred) {
       if(!deferred) {
@@ -55,15 +55,14 @@ module.exports = angular
       if (account) {
         applicationWriter.createApplication(application, account)
           .then(
-            function(taskResponse){
-              taskResponse
-                .watchForTaskComplete()
+            function(task) {
+              taskReader.waitUntilTaskCompletes(application.name, task)
                 .then(() => {
                   var tailAccounts = _.tail(accounts);
                   vm.createAppForAccount(application, tailAccounts, deferred);
                 },
-                (error) => {
-                  vm.state.errorMsgs.push('Could not create application in ' + account + ': ' + error.failureMessage);
+                () => {
+                  vm.state.errorMsgs.push('Could not create application in ' + account + ': ' + task.failureMessage);
                   goIdle();
                   deferred.reject();
                 });
@@ -111,16 +110,16 @@ module.exports = angular
     }
 
     function submitting() {
-      vm.errorMsgs = [];
-      vm.submitting = true;
+      vm.state.errorMsgs = [];
+      vm.state.submitting = true;
     }
 
     function goIdle() {
-      vm.submitting = false;
+      vm.state.submitting = false;
     }
 
     function assignErrorMsgs() {
-      vm.emailErrorMsg = vm.errorMsgs.filter(function(msg){
+      vm.state.emailErrorMsg = vm.state.errorMsgs.filter(function(msg){
         return msg
           .toLowerCase()
           .indexOf('email') > -1;
