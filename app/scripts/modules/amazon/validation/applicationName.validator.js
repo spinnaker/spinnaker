@@ -8,16 +8,35 @@ module.exports = angular
   ])
   .factory('awsApplicationNameValidator', function () {
 
-    function validate(name) {
-      let warnings = [],
-          errors = [];
-      name = name || '';
+    function validateSpecialCharacters(name, errors) {
+      let pattern = /^[a-zA-Z_0-9.]*$/g;
+      if (!pattern.test(name)) {
+        errors.push('Only dot(.) and underscore(_) special characters are allowed.');
+      }
+    }
+
+    function validateLoadBalancerCharacters(name, warnings) {
       if (name.indexOf('.') > -1 || name.indexOf('_') > -1) {
         warnings.push(`If the application's name contains an underscore(_) or dot(.),
           you will not be able to create a load balancer,
           preventing it from being used as a front end service.`);
       }
+    }
 
+    function validateLength(name, warnings, errors) {
+      if (name.length > 250) {
+        errors.push('The maximum length for an application in Amazon is 250 characters.');
+        return;
+      }
+      if (name.length > 240) {
+        if (name.length >= 248) {
+          warnings.push('You will not be able to include a stack or detail field for clusters or security groups.');
+        } else {
+          let remaining = 248 - name.length;
+          warnings.push(`If you plan to include a stack or detail field for clusters, you will only
+          have ~${remaining} characters to do so.`);
+        }
+      }
       if (name.length > 20) {
         if (name.length > 32) {
           warnings.push(`You will not be able to create an Amazon load balancer for this application if the
@@ -34,6 +53,17 @@ module.exports = angular
             field to any load balancer.`);
           }
         }
+      }
+    }
+
+    function validate(name) {
+      let warnings = [],
+          errors = [];
+
+      if (name && name.length) {
+        validateSpecialCharacters(name, errors);
+        validateLoadBalancerCharacters(name, warnings);
+        validateLength(name, warnings, errors);
       }
 
       return {

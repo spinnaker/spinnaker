@@ -67,7 +67,7 @@ module.exports = angular
 
       applicationWriter.updateApplication(vm.applicationAttributes)
         .then(
-          (tasks) => taskReader.waitUntilTaskCompletes(application.name, tasks[0]).then(closeModal, extractErrorMsg),
+          (task) => taskReader.waitUntilTaskCompletes(application.name, task).then(closeModal, extractErrorMsg),
           () => vm.errorMsgs.push('Could not update application')
         );
     };

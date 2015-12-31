@@ -7,104 +7,59 @@ module.exports = angular
     require('../../task/taskExecutor.js'),
     require('../../utils/lodash.js'),
     require('../../history/recentHistory.service.js'),
-    require('../../task/task.read.service.js'),
   ])
-  .factory('applicationWriter', function($q, taskExecutor, recentHistoryService,  _, taskReader) {
+  .factory('applicationWriter', function($q, taskExecutor, recentHistoryService,  _) {
 
-    function createApplication(app, account) {
-      var command = _.cloneDeep(app);
-      command.cloudProviders = command.cloudProviders.join(',');
+    function buildJobs(app, accounts, type, commandTransformer) {
+      let jobs = [];
+      var command = commandTransformer(app);
+      if (command.cloudProviders) {
+        command.cloudProviders = command.cloudProviders.join(',');
+      }
       delete command.account;
+      accounts.forEach((account) => {
+        jobs.push({
+          type: type,
+          account: account,
+          application: command
+        });
+      });
+      return jobs;
+    }
+
+    function createApplication(app) {
+      let jobs = buildJobs(app, app.account, 'createApplication', _.cloneDeep);
       return taskExecutor.executeTask({
-        job: [
-          {
-            type: 'createApplication',
-            account: account,
-            application: command,
-          }
-        ],
+        job: jobs,
         application: app,
         description: 'Create Application: ' + app.name
       });
     }
 
     function updateApplication (app) {
-      var taskList = [];
-      var accounts = app.accounts.split(',');
-      var command = _.cloneDeep(app);
-      if (command.cloudProviders) {
-        command.cloudProviders = command.cloudProviders.join(',');
-      }
-      delete command.account;
-
-      accounts.forEach(function(account) {
-        taskList.push(taskExecutor.executeTask({
-          job: [
-            {
-              type: 'updateApplication',
-              account: account,
-              application: command,
-            }
-          ],
-          application: app,
-          description: 'Updating Application: ' + app.name
-        }));
+      let accounts = app.accounts && app.accounts.length ? app.accounts.split(',') : [];
+      let jobs = buildJobs(app, accounts, 'updateApplication', _.cloneDeep);
+      return taskExecutor.executeTask({
+        job: jobs,
+        application: app,
+        description: 'Update Application: ' + app.name
       });
-
-      return $q.all(taskList);
-
     }
 
 
     function deleteApplication(app) {
-      var taskList = [];
-      var accounts = app.accounts && app.accounts.length ? app.accounts.split(',') : [];
-
-      accounts.forEach(function(account) {
-        taskList.push(
-          {
-            job: [
-              {
-                type: 'deleteApplication',
-                account: account,
-                application: {
-                  name: app.name,
-                }
-              }
-            ],
-            application: app,
-            description: 'Deleting Application: ' + app.name
-          }
-        );
-      });
-
-     var task = executeDeleteTasks(app.name, taskList);
-     return task
-      .then(() => {
-        recentHistoryService.removeByAppName(app.name);
+      let accounts = app.accounts && app.accounts.length ? app.accounts.split(',') : [];
+      let jobs = buildJobs(app, accounts, 'deleteApplication', (app) => { return { name: app.name }; });
+      return taskExecutor.executeTask({
+        job: jobs,
+        application: app,
+        description: 'Deleting Application: ' + app.name
       })
-      .then(() => task)
-      .catch(() => task);
-
-    }
-
-    function executeDeleteTasks(appName, taskList, deferred) {
-      if(!deferred) {
-        deferred = $q.defer();
-      }
-
-      if(taskList.length > 1) {
-        taskExecutor.executeTask(_(taskList).head())
-          .then((task) => taskReader.waitUntilTaskCompletes(appName, task))
-              .then(() => executeDeleteTasks(_(taskList).tail(), deferred))
-              .catch(function(err) {
-                console.warn(err);
-              });
-      } else {
-        deferred.resolve(taskExecutor.executeTask(_(taskList).head()));
-      }
-
-      return deferred.promise;
+      .then((task) => {
+        recentHistoryService.removeByAppName(app.name);
+        return task;
+      })
+      .catch((task) => task);
     }
 
     return {

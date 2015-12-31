@@ -36,7 +36,7 @@ module.exports = angular
         title: 'Deleting ' + this.application.name,
         hasKatoTask: false,
         onTaskComplete: () => {
-          $state.go('home.applications');
+          $state.go('home.infrastructure');
         }
       };
 

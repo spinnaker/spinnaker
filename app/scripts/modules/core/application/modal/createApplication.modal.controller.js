@@ -14,125 +14,82 @@ module.exports = angular
     require('./validation/validateApplicationName.directive.js'),
   ])
   .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $modalInstance, accountService,
-                                                     applicationWriter, applicationReader, _, taskReader) {
-    var vm = this;
+                                                     applicationWriter, applicationReader, _, taskReader, $timeout) {
 
     let applicationLoader = applicationReader.listApplications();
-    applicationLoader.then((applications) => vm.data.appNameList = _.pluck(applications, 'name'));
+    applicationLoader.then((applications) => this.data.appNameList = _.pluck(applications, 'name'));
 
     let accountLoader = accountService.listAccounts();
-    accountLoader.then((accounts) => vm.data.accounts = accounts);
+    accountLoader.then((accounts) => this.data.accounts = accounts);
 
     let providerLoader = accountService.listProviders();
-    providerLoader.then((providers) => vm.data.cloudProviders = providers);
+    providerLoader.then((providers) => this.data.cloudProviders = providers);
 
-    $q.all([accountLoader, applicationLoader, providerLoader]).then(() => vm.state.initializing = false);
+    $q.all([accountLoader, applicationLoader, providerLoader]).then(() => this.state.initializing = false);
 
-    vm.state = {
+    this.state = {
       initializing: true,
       submitting: false,
-      errorMsgs: [],
-      emailErrorMsg: []
+      errorMessages: [],
     };
-    vm.data = {
+    this.data = {
 
     };
-    vm.application = {
+    this.application = {
       cloudProviders: [],
     };
 
-    vm.clearEmailMsg = function() {
-      vm.state.emailErrorMsg = '';
+    let submitting = () => {
+      this.state.errorMessages = [];
+      this.state.submitting = true;
     };
 
-    vm.createAppForAccount = function(application, accounts, deferred) {
-      if(!deferred) {
-        deferred = $q.defer();
-      }
-
-      var account = _.head(accounts);
-
-      if (account) {
-        applicationWriter.createApplication(application, account)
-          .then(
-            function(task) {
-              taskReader.waitUntilTaskCompletes(application.name, task)
-                .then(() => {
-                  var tailAccounts = _.tail(accounts);
-                  vm.createAppForAccount(application, tailAccounts, deferred);
-                },
-                () => {
-                  vm.state.errorMsgs.push('Could not create application in ' + account + ': ' + task.failureMessage);
-                  goIdle();
-                  deferred.reject();
-                });
-            },
-            function() {
-              vm.state.errorMsgs.push('Could not create application');
-              goIdle();
-              return deferred.reject();
-            }
-          );
-      } else {
-        deferred.resolve();
-      }
-
-      deferred.notify();
-      return deferred.promise;
+    let goIdle = () => {
+      this.state.submitting = false;
     };
 
+    var navigateTimeout = null;
 
-    vm.submit = function() {
-      submitting();
-
-      vm.application.name = vm.application.name.toLowerCase();
-
-      if (vm.data.cloudProviders.length === 1) {
-        vm.application.cloudProviders = vm.data.cloudProviders;
-      }
-
-      vm.createAppForAccount(vm.application, vm.application.account).then(
-        routeToApplication,
-        extractErrorMsg
-      );
-
-    };
-
-
-    function routeToApplication() {
-      _.delay( function() {
-          $state.go(
-            'home.applications.application.insight.clusters', {
-              application: vm.application.name,
-            }
-          );
+    let routeToApplication = () => {
+      navigateTimeout = $timeout(() => {
+        $state.go(
+          'home.applications.application.insight.clusters', {
+            application: this.application.name,
+          }
+        );
       }, 1000 );
-    }
+    };
 
-    function submitting() {
-      vm.state.errorMsgs = [];
-      vm.state.submitting = true;
-    }
-
-    function goIdle() {
-      vm.state.submitting = false;
-    }
-
-    function assignErrorMsgs() {
-      vm.state.emailErrorMsg = vm.state.errorMsgs.filter(function(msg){
-        return msg
-          .toLowerCase()
-          .indexOf('email') > -1;
-      });
-    }
+    $scope.$on('$destroy', () => $timeout.cancel(navigateTimeout));
 
 
-    function extractErrorMsg(error) {
-      $log.debug('extract error', error);
-      assignErrorMsgs();
+    let waitUntilApplicationIsCreated = (task) => {
+      return taskReader.waitUntilTaskCompletes(this.application.name, task)
+        .then(routeToApplication, () => {
+          this.state.errorMessages.push('Could not create application: ' + task.failureMessage);
+          goIdle();
+        });
+    };
+
+    let createApplicationFailure = () => {
+      this.state.errorMessages.push('Could not create application');
       goIdle();
+    };
 
-    }
+    this.createApplication = () => {
+      return applicationWriter.createApplication(this.application)
+        .then(waitUntilApplicationIsCreated, createApplicationFailure);
+    };
 
-    return vm;
+
+    this.submit = () => {
+      submitting();
+      this.application.name = this.application.name.toLowerCase();
+      if (this.data.cloudProviders.length === 1) {
+        this.application.cloudProviders = this.data.cloudProviders;
+      }
+      this.createApplication();
+
+    };
+
   });
