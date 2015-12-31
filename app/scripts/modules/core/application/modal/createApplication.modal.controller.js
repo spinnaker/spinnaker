@@ -9,6 +9,8 @@ module.exports = angular
     require('../service/applications.read.service.js'),
     require('../../utils/lodash.js'),
     require('../../account/account.service.js'),
+    require('./validation/applicationNameValidationMessages.directive.js'),
+    require('./validation/validateApplicationName.directive.js'),
   ])
   .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $modalInstance, accountService, applicationWriter, applicationReader, _) {
     var vm = this;
