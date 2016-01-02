@@ -2,39 +2,35 @@
   <div class="row">
     <div class="col-md-7">
       <h3>Application Status
-        <a href ng-click="dashboardCtrl.refreshImmediately()">
-          <span class="small glyphicon glyphicon-refresh refresh-enabled"
-                tooltip-placement="bottom"
-                uib-tooltip-template="dashboardCtrl.refreshTooltipTemplate"
-                ng-class="{'glyphicon-spinning': dashboardCtrl.state.refreshing}"></span>
-        </a>
+        <component-refresher state="vm.state.clusters"
+                             template-url="vm.clusterRefreshTooltipTemplate"
+                             refresh="vm.refreshClusters()"></component-refresher>
       </h3>
       <project-cluster
-          ng-repeat="cluster in dashboardCtrl.clusters"
+          ng-repeat="cluster in vm.clusters"
           project="project"
           cluster="cluster"
           ></project-cluster>
-      <div class="text-center" ng-if="!dashboardCtrl.state.clustersLoaded">
+      <div class="text-center" ng-if="!vm.state.clusters.loaded">
         <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
       </div>
       <h4 ng-if="!project.config.clusters.length">No clusters configured</h4>
+      <h4 ng-if="vm.state.clusters.error">There was a problem loading the clusters for this project.</h4>
     </div>
     <div class="col-md-5">
       <h3>Pipeline Status
-        <a href ng-click="dashboardCtrl.refreshImmediately()">
-          <span class="small glyphicon glyphicon-refresh refresh-enabled"
-                tooltip-placement="bottom"
-                uib-tooltip-template="dashboardCtrl.refreshTooltipTemplate"
-                ng-class="{'glyphicon-spinning': dashboardCtrl.state.refreshing}"></span>
-        </a>
+        <component-refresher state="vm.state.executions"
+                             template-url="vm.executionRefreshTooltipTemplate"
+                             refresh="vm.refreshExecutions()"></component-refresher>
       </h3>
-      <div class="text-center" ng-if="!dashboardCtrl.state.executionsLoaded">
+      <div class="text-center" ng-if="!vm.state.executions.loaded">
         <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
       </div>
       <project-pipeline
-        ng-repeat="execution in executions"
+        ng-repeat="execution in vm.executions"
         execution="execution"></project-pipeline>
       <h4 ng-if="!project.config.pipelineConfigs.length">No pipelines configured</h4>
+      <h4 ng-if="vm.state.executions.error">There was a problem loading the executions for this project.</h4>
     </div>
   </div>
 </div>

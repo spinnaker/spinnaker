@@ -11,7 +11,7 @@ module.exports = angular
     require('../../loadBalancer/loadBalancer.transformer.js'),
     require('../../securityGroup/securityGroup.read.service.js'),
     require('../../cache/infrastructureCaches.js'),
-    require('../../scheduler/scheduler.service.js'),
+    require('../../scheduler/scheduler.factory.js'),
     require('../../delivery/service/execution.service.js'),
     require('../../serverGroup/serverGroup.transformer.js'),
     require('../../pipeline/config/services/pipelineConfigService.js'),
@@ -19,7 +19,7 @@ module.exports = angular
     require('../../utils/lodash.js'),
   ])
   .factory('applicationReader', function ($q, $log, $window,  $rootScope, Restangular, _, clusterService, taskReader,
-                                          loadBalancerReader, loadBalancerTransformer, securityGroupReader, scheduler,
+                                          loadBalancerReader, loadBalancerTransformer, securityGroupReader, schedulerFactory,
                                           pipelineConfigService, rx,
                                           infrastructureCaches, settings, executionService, serverGroupTransformer) {
 
@@ -34,6 +34,12 @@ module.exports = angular
 
       RestangularConfigurer.addElementTransformer('applications', false, function(application) {
 
+        // if this is the non-restangularized (i.e. not from the http response) object, don't bother
+        // adding all the extra bits, which are discarded. This should make later refactoring easier...
+        if (!application.fromServer) {
+          return application;
+        }
+
         function refreshApplication() {
           if (application.refreshing) {
             $log.warn('application still reloading, skipping reload');
@@ -42,7 +48,7 @@ module.exports = angular
           application.refreshing = true;
           application.reloadTasks();
           application.reloadExecutions();
-          return getApplication(application.name).then(function (newApplication) {
+          return getApplication(application.name, {isRefresh: true}).then(function (newApplication) {
             if (newApplication && !newApplication.notFound) {
               deepCopyApplication(application, newApplication);
               application.autoRefreshStream.onNext();
@@ -79,8 +85,11 @@ module.exports = angular
         }
 
         function enableAutoRefresh(scope) {
-          let dataLoader = scheduler.subscribe(refreshApplication);
-          scope.$on('$destroy', () => dataLoader.dispose());
+          let dataLoader = application.scheduler.subscribe(refreshApplication);
+          scope.$on('$destroy', () => {
+            dataLoader.dispose();
+            application.scheduler.dispose();
+          });
         }
 
         function reloadTasks(forceReload) {
@@ -168,7 +177,6 @@ module.exports = angular
         application.registerOneTimeRefreshHandler = registerOneTimeRefreshHandler;
         application.autoRefreshHandlers = [];
         application.oneTimeRefreshHandlers = [];
-        application.refreshImmediately = scheduler.scheduleImmediate;
         application.enableAutoRefresh = enableAutoRefresh;
         application.reloadTasks = reloadTasks;
         application.reloadExecutions = reloadExecutions;
@@ -382,6 +390,10 @@ module.exports = angular
               application.serverGroups = serverGroups;
               application.clusters = clusterService.createServerGroupClusters(serverGroups);
               application.loadBalancers = applicationData.loadBalancers;
+              if (!options || !options.isRefresh) {
+                application.scheduler = schedulerFactory.createScheduler();
+                application.refreshImmediately = application.scheduler.scheduleImmediate;
+              }
 
               clusterService.normalizeServerGroupsWithLoadBalancers(application);
               applyExecutionsAndTasks(options, dataSources, application);

@@ -112,7 +112,6 @@ module.exports = angular
     require('./pipeline/config/preconditions/types/expression/expression.precondition.type.module.js'),
     require('./presentation/presentation.module.js'),
 
-    require('./scheduler/scheduler.service.js'),
     require('./search/search.module.js'),
     require('./securityGroup/securityGroup.module.js'),
     require('./serverGroup/serverGroup.module.js'),

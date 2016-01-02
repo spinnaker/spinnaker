@@ -9,7 +9,6 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
   require('../../../navigation/urlBuilder.service.js'),
   require('../../../utils/lodash.js'),
   require('../../../cache/collapsibleSectionStateCache.js'),
-  require('../../../scheduler/scheduler.service.js'),
   require('../../../cluster/filter/clusterFilter.service.js'),
   require('../../../utils/timeFormatters.js'),
   require('../../../healthCounts/healthCounts.directive.js'),
@@ -27,7 +26,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
       controllerAs: 'vm',
     };
   })
-  .controller('ProjectClusterCtrl', function($scope, urlBuilderService, _, collapsibleSectionStateCache, scheduler,
+  .controller('ProjectClusterCtrl', function($scope, urlBuilderService, _, collapsibleSectionStateCache,
                                              clusterFilterService) {
 
     let stateCache = collapsibleSectionStateCache;

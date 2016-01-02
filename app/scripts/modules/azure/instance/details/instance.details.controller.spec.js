@@ -14,7 +14,8 @@ describe('Controller: azureInstanceDetailsCtrl', function () {
 
   beforeEach(
     window.module(
-      require('./instance.details.controller')
+      require('./instance.details.controller'),
+      require('../../../core/utils/rx')
     )
   );
 

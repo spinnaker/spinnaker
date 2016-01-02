@@ -7,16 +7,21 @@ require('./dashboard.less');
 module.exports = angular.module('spinnaker.core.projects.dashboard.controller', [
   require('./cluster/projectCluster.directive.js'),
   require('./pipeline/projectPipeline.directive.js'),
+  require('../service/project.read.service.js'),
   require('../../delivery/service/execution.service.js'),
-  require('../../scheduler/scheduler.service.js'),
+  require('../../scheduler/scheduler.factory.js'),
   require('../../history/recentHistory.service.js'),
+  require('../../presentation/refresher/componentRefresher.directive.js'),
 ])
-  .controller('ProjectDashboardCtrl', function ($scope, $q, projectConfiguration, executionService, projectReader,
-                                                scheduler, recentHistoryService) {
+  .controller('ProjectDashboardCtrl', function ($scope, projectConfiguration, executionService, projectReader,
+                                                schedulerFactory, recentHistoryService) {
 
-    $scope.project = projectConfiguration;
+    this.project = projectConfiguration;
 
-    this.refreshTooltipTemplate = require('./dashboardRefresh.tooltip.html');
+    // These templates are almost identical, but it doesn't look like you can pass in a directive easily as a tooltip so
+    // here they are
+    this.clusterRefreshTooltipTemplate = require('./clusterRefresh.tooltip.html');
+    this.executionRefreshTooltipTemplate = require('./executionRefresh.tooltip.html');
 
     if (projectConfiguration.notFound) {
       recentHistoryService.removeLastItem('projects');
@@ -31,38 +36,73 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
     }
 
     this.state = {
-      executionsLoaded: false,
-      clustersLoaded: false,
-      refreshing: false,
-      lastRefresh: new Date().getTime(),
+      executions: {
+        initializing: true,
+        refreshing: false,
+        loaded: false,
+        error: false,
+      },
+      clusters: {
+        initializing: true,
+        refreshing: false,
+        loaded: false,
+        error: false
+      },
     };
 
     let getClusters = () => {
+      let state = this.state.clusters;
+      state.error = false;
+      state.refreshing = true;
       return projectReader.getProjectClusters(projectConfiguration.name).then((clusters) => {
         this.clusters = clusters;
-        this.state.clustersLoaded = true;
+        state.initializing = false;
+        state.loaded = true;
+        state.refreshing = false;
+        state.lastRefresh = new Date().getTime();
+      }).catch(() => {
+        state.initializing = false;
+        state.refreshing = false;
+        state.error = true;
       });
     };
 
     let getExecutions = () => {
+      let state = this.state.executions;
+      state.error = false;
+      state.refreshing = true;
       return executionService.getProjectExecutions(projectConfiguration.name).then((executions) => {
-        $scope.executions = executions;
-        this.state.executionsLoaded = true;
+        this.executions = executions;
+        state.initializing = false;
+        state.loaded = true;
+        state.refreshing = false;
+        state.lastRefresh = new Date().getTime();
+      }).catch(() => {
+        state.initializing = false;
+        state.refreshing = false;
+        state.error = true;
       });
     };
 
-    let dataLoader = scheduler.subscribe(() => {
-      this.state.refreshing = true;
-      $q.all([getClusters(), getExecutions()]).then(() => {
-        this.state.refreshing = false;
-        this.state.lastRefresh = new Date().getTime();
-      });
+    let clusterScheduler = schedulerFactory.createScheduler(),
+        executionScheduler = schedulerFactory.createScheduler();
+
+    let clusterLoader = clusterScheduler.subscribe(getClusters);
+
+    let executionLoader = executionScheduler.subscribe(getExecutions);
+
+    $scope.$on('$destroy', () => {
+      clusterScheduler.dispose();
+      clusterLoader.dispose();
+
+      executionScheduler.dispose();
+      executionLoader.dispose();
     });
 
-    $scope.$on('$destroy', () => dataLoader.dispose());
+    this.refreshClusters = clusterScheduler.scheduleImmediate;
+    this.refreshExecutions = executionScheduler.scheduleImmediate;
 
-    this.refreshImmediately = scheduler.scheduleImmediate;
-
-    this.refreshImmediately();
+    this.refreshClusters();
+    this.refreshExecutions();
 
   });
