@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.orca.notifications
 
+import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
+
 import java.util.concurrent.TimeUnit
 import javax.annotation.PreDestroy
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.kork.eureka.EurekaStatusChangedEvent
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -36,7 +37,7 @@ import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
 
 @Slf4j
 @CompileStatic
-abstract class AbstractPollingNotificationAgent implements ApplicationListener<EurekaStatusChangedEvent> {
+abstract class AbstractPollingNotificationAgent implements ApplicationListener<RemoteStatusChangedEvent> {
 
   protected final ObjectMapper objectMapper
   private final Client jesqueClient
@@ -99,8 +100,8 @@ abstract class AbstractPollingNotificationAgent implements ApplicationListener<E
   }
 
   @Override
-  void onApplicationEvent(EurekaStatusChangedEvent event) {
-    event.statusChangeEvent.with {
+  void onApplicationEvent(RemoteStatusChangedEvent event) {
+    event.source.with {
       if (it.status == UP) {
         log.info("Instance is $it.status... starting polling for $notificationType events")
         startPolling()

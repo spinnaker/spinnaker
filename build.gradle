@@ -31,14 +31,14 @@ allprojects {
   group = "com.netflix.spinnaker.orca"
 
   spinnaker {
-    dependenciesVersion = "0.19.0"
+    dependenciesVersion = "0.26.0"
   }
   test {
     testLogging {
       exceptionFormat = 'full'
     }
   }
-  
+
   configurations.all {
     exclude group: "javax.servlet", module: "servlet-api"
     exclude group: "org.slf4j", module: "slf4j-log4j12"
@@ -47,25 +47,25 @@ allprojects {
       force "org.antlr:antlr-runtime:3.5.2"
       eachDependency {
         if (it.requested.group.startsWith("com.fasterxml.jackson")) {
-          it.useVersion "2.4.5"
+          it.useVersion spinnaker.version('jackson')
         }
         if (it.requested.group == "com.netflix.rxjava" && it.requested.name == "rxjava-core") {
-          it.useTarget group: "io.reactivex", name: "rxjava", version: "1.0.12"
+          it.useTarget group: "io.reactivex", name: "rxjava", version: spinnaker.version('rxJava')
         }
         if (it.requested.group == "org.springframework.batch") {
-          it.useVersion "3.0.3.RELEASE"
+          it.useVersion spinnaker.version('batch')
         }
         if (it.requested.group == "asm" || it.requested.group == "org.ow2.asm") {
-          it.useTarget group: "org.ow2.asm", name: "asm-all", version: "5.0.3"
+          it.useTarget group: "org.ow2.asm", name: "asm-all", version: "5.0.4"
         }
         if (it.requested.group == "cglib" || it.requested.name == "cglib") {
-          it.useTarget group: "cglib", name: "cglib", version: "3.1"
+          it.useTarget group: "cglib", name: "cglib-nodep", version: spinnaker.version('cglib')
         }
         if (it.requested.group == "antlr") {
           it.useTarget group: "org.antlr", name: it.requested.name, version: "3.5.2"
         }
         if (it.requested.group == "org.apache.xbean") {
-          it.useVersion "4.1"
+          it.useVersion "4.5"
         }
       }
     }

@@ -94,7 +94,7 @@ class DiscoveryStatusPollerSpec extends Specification {
     tick()
 
     then:
-    with(publishedEvent.statusChangeEvent) {
+    with(publishedEvent.source) {
       current == newStatus
       previous == oldStatus
     }
