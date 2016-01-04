@@ -9,6 +9,48 @@ module.exports = angular
   ])
   .factory('instanceWriter', function (taskExecutor, serverGroupReader) {
 
+    function buildMultiInstanceJob(instanceGroups, type) {
+      return instanceGroups
+        .filter((instanceGroup) => instanceGroup.instances.length > 0)
+        .map((instanceGroup) => {
+           return {
+             type: type,
+             cloudProvider: instanceGroup.cloudProvider,
+             instanceIds: instanceGroup.instanceIds,
+             credentials: instanceGroup.account,
+             region: instanceGroup.region,
+             serverGroupName: instanceGroup.serverGroup
+           };
+        });
+    }
+
+    function buildMultiInstanceDescriptor(jobs, base, suffix) {
+      let totalInstances = 0;
+      jobs.forEach((job) => totalInstances += job.instanceIds.length);
+      let descriptor = base + ' ' + totalInstances + ' instance';
+      if (totalInstances > 1) {
+        descriptor += 's';
+      }
+      if (suffix) {
+        descriptor += ' ' + suffix;
+      }
+      return descriptor;
+    }
+
+    function executeMultiInstanceTask(instanceGroups, application, type, baseDescriptor, descriptorSuffix) {
+      let jobs = buildMultiInstanceJob(instanceGroups, type);
+      let descriptor = buildMultiInstanceDescriptor(jobs, baseDescriptor, descriptorSuffix);
+      return taskExecutor.executeTask({
+        job: jobs,
+        application: application,
+        description: descriptor,
+      });
+    }
+
+    function terminateInstances(instanceGroups, application) {
+      return executeMultiInstanceTask(instanceGroups, application, 'terminateInstances', 'Terminate');
+    }
+
     function terminateInstance(instance, application, params={}) {
       params.type = 'terminateInstances';
       params.instanceIds = [instance.instanceId];
@@ -45,6 +87,10 @@ module.exports = angular
         });
     }
 
+    function rebootInstances(instanceGroups, application) {
+      return executeMultiInstanceTask(instanceGroups, application, 'rebootInstances', 'Reboot');
+    }
+
     function rebootInstance(instance, application, params={}) {
       params.type = 'rebootInstances';
       params.instanceIds = [instance.instanceId];
@@ -60,36 +106,62 @@ module.exports = angular
       });
     }
 
-    function deregisterInstanceFromLoadBalancer(instance, application, params={}) {
-      params.type = 'deregisterInstancesFromLoadBalancer';
-      params.instanceIds = [instance.instanceId];
-      params.loadBalancerNames = instance.loadBalancers;
-      params.region = instance.region;
-      params.credentials = instance.account;
-      params.providerType = instance.providerType;
-      params.cloudProvider = instance.providerType;
-
+    function deregisterInstancesFromLoadBalancer(instanceGroups, application, loadBalancerNames) {
+      let jobs = buildMultiInstanceJob(instanceGroups, 'deregisterInstancesFromLoadBalancer');
+      jobs.forEach((job) => job.loadBalancerNames = loadBalancerNames);
+      let descriptor = buildMultiInstanceDescriptor(jobs, 'Deregister', 'from ' + loadBalancerNames.join(' and '));
       return taskExecutor.executeTask({
-        job: [params],
+        job: jobs,
+        application: application,
+        description: descriptor,
+      });
+    }
+
+    function deregisterInstanceFromLoadBalancer(instance, application) {
+      return taskExecutor.executeTask({
+        job: [{
+          type: 'deregisterInstancesFromLoadBalancer',
+          instanceIds: [instance.instanceId],
+          loadBalancerNames: instance.loadBalancers,
+          region: instance.region,
+          credentials: instance.account,
+          providerType: instance.providerType,
+          cloudProvider: instance.providerType,
+        }],
         application: application,
         description: 'Deregister instance: ' + instance.instanceId
       });
     }
 
-    function registerInstanceWithLoadBalancer(instance, application, params={}) {
-      params.type = 'registerInstancesWithLoadBalancer';
-      params.instanceIds = [instance.instanceId];
-      params.loadBalancerNames = instance.loadBalancers;
-      params.region = instance.region;
-      params.credentials = instance.account;
-      params.providerType = instance.providerType;
-      params.cloudProvider = instance.providerType;
-
+    function registerInstancesWithLoadBalancer(instanceGroups, application, loadBalancerNames) {
+      let jobs = buildMultiInstanceJob(instanceGroups, 'registerInstancesWithLoadBalancer');
+      jobs.forEach((job) => job.loadBalancerNames = loadBalancerNames);
+      let descriptor = buildMultiInstanceDescriptor(jobs, 'Register', 'with ' + loadBalancerNames.join(' and '));
       return taskExecutor.executeTask({
-        job: [params],
+        job: jobs,
+        application: application,
+        description: descriptor,
+      });
+    }
+
+    function registerInstanceWithLoadBalancer(instance, application) {
+      return taskExecutor.executeTask({
+        job: [{
+          type: 'registerInstancesWithLoadBalancer',
+          instanceIds: [instance.instanceId],
+          loadBalancerNames: instance.loadBalancers,
+          region: instance.region,
+          credentials: instance.account,
+          providerType: instance.providerType,
+          cloudProvider: instance.providerType,
+        }],
         application: application,
         description: 'Register instance: ' + instance.instanceId
       });
+    }
+
+    function enableInstancesInDiscovery(instanceGroups, application) {
+      return executeMultiInstanceTask(instanceGroups, application, 'enableInstancesInDiscovery', 'Enable', 'in discovery');
     }
 
     function enableInstanceInDiscovery(instance, application) {
@@ -107,6 +179,10 @@ module.exports = angular
         application: application,
         description: 'Enable instance: ' + instance.instanceId
       });
+    }
+
+    function disableInstancesInDiscovery(instanceGroups, application) {
+      return executeMultiInstanceTask(instanceGroups, application, 'disableInstancesInDiscovery', 'Disable', 'in discovery');
     }
 
     function disableInstanceInDiscovery(instance, application) {
@@ -128,11 +204,17 @@ module.exports = angular
 
     return {
       terminateInstance: terminateInstance,
+      terminateInstances: terminateInstances,
       rebootInstance: rebootInstance,
+      rebootInstances: rebootInstances,
       registerInstanceWithLoadBalancer: registerInstanceWithLoadBalancer,
+      registerInstancesWithLoadBalancer: registerInstancesWithLoadBalancer,
       deregisterInstanceFromLoadBalancer: deregisterInstanceFromLoadBalancer,
+      deregisterInstancesFromLoadBalancer: deregisterInstancesFromLoadBalancer,
       enableInstanceInDiscovery: enableInstanceInDiscovery,
+      enableInstancesInDiscovery: enableInstancesInDiscovery,
       disableInstanceInDiscovery: disableInstanceInDiscovery,
+      disableInstancesInDiscovery: disableInstancesInDiscovery,
       terminateInstanceAndShrinkServerGroup: terminateInstanceAndShrinkServerGroup,
     };
 

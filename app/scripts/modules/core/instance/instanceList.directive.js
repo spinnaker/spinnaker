@@ -4,9 +4,10 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.instance.instanceList.directive', [
   require('../cluster/filter/clusterFilter.model.js'),
+  require('../cluster/filter/clusterFilter.service.js'),
   require('./instanceListBody.directive.js'),
 ])
-  .directive('instanceList', function (ClusterFilterModel) {
+  .directive('instanceList', function (ClusterFilterModel, clusterFilterService) {
     return {
       restrict: 'E',
       templateUrl: require('./instanceList.directive.html'),
@@ -15,8 +16,25 @@ module.exports = angular.module('spinnaker.core.instance.instanceList.directive'
         hasLoadBalancers: '=',
         instances: '=',
         sortFilter: '=',
+        serverGroup: '=',
       },
       link: function (scope) {
+
+        let serverGroup = scope.serverGroup;
+
+        let setInstanceGroup = () => {
+          scope.instanceGroup = ClusterFilterModel.getOrCreateMultiselectInstanceGroup(serverGroup);
+        };
+
+        scope.selectAllClicked = (event) => {
+          event.stopPropagation(); // prevent navigation; preventDefault would stop the checkbox from being selected
+          scope.toggleSelectAll();
+        };
+
+        scope.toggleSelectAll = () => {
+          ClusterFilterModel.toggleSelectAll(serverGroup, scope.instances.map((instance) => instance.id));
+        };
+
         scope.applyParamsToUrl = ClusterFilterModel.applyParamsToUrl;
         scope.showProviderHealth = !scope.hasDiscovery && !scope.hasLoadBalancers;
 
@@ -35,6 +53,14 @@ module.exports = angular.module('spinnaker.core.instance.instanceList.directive'
           scope.columnWidth.zone += 4;
           scope.columnWidth.loadBalancers += 4;
         }
+
+        setInstanceGroup();
+
+        let multiselectWatcher = ClusterFilterModel.multiselectInstancesStream.subscribe(setInstanceGroup);
+
+        scope.$on('$destroy', () => {
+          multiselectWatcher.dispose();
+        });
       }
     };
   });

@@ -473,6 +473,86 @@ describe('Service: clusterFilterService', function () {
     });
   });
 
+  describe('multiInstance filtering', function () {
+    beforeEach(function() {
+      this.navigationSynced = false;
+      spyOn(ClusterFilterModel, 'syncNavigation').and.callFake(() => this.navigationSynced = true);
+    });
+
+    it('should remove all instanceIds if server group is no longer visible, and add back when visible again', function () {
+      ClusterFilterModel.sortFilter.listInstances = true;
+      let serverGroup = applicationJSON.serverGroups[0],
+          multiselectGroup = ClusterFilterModel.getOrCreateMultiselectInstanceGroup(serverGroup);
+
+      serverGroup.instances.push({id: 'i-1234'});
+      ClusterFilterModel.toggleSelectAll(serverGroup, ['i-1234']);
+      expect(multiselectGroup.instanceIds).toEqual(['i-1234']);
+
+      ClusterFilterModel.sortFilter.region['us-east-3'] = true;
+      service.updateClusterGroups(applicationJSON);
+      $timeout.flush();
+
+      expect(multiselectGroup.instanceIds).toEqual([]);
+
+      ClusterFilterModel.sortFilter.region['us-east-3'] = false;
+      service.updateClusterGroups(applicationJSON);
+      $timeout.flush();
+
+      expect(multiselectGroup.instanceIds).toEqual(['i-1234']);
+
+    });
+
+    it('should remove instances that are no longer visible', function () {
+      ClusterFilterModel.sortFilter.listInstances = true;
+      let serverGroup = applicationJSON.serverGroups[0];
+
+      ClusterFilterModel.toggleMultiselectInstance(serverGroup, 'i-1234');
+      ClusterFilterModel.toggleMultiselectInstance(serverGroup, 'i-2345');
+      serverGroup.instances.push({id: 'i-1234'});
+
+      expect(ClusterFilterModel.instanceIsMultiselected(serverGroup, 'i-1234')).toBe(true);
+      expect(ClusterFilterModel.instanceIsMultiselected(serverGroup, 'i-2345')).toBe(true);
+
+      service.updateClusterGroups(applicationJSON);
+      $timeout.flush();
+      expect(ClusterFilterModel.instanceIsMultiselected(serverGroup, 'i-1234')).toBe(true);
+      expect(ClusterFilterModel.instanceIsMultiselected(serverGroup, 'i-2345')).toBe(false);
+
+      expect(this.navigationSynced).toBe(true);
+
+    });
+
+    it('should add all instances when selectAll is selected and new instances appear in server group', function () {
+      ClusterFilterModel.sortFilter.listInstances = true;
+      let serverGroup = applicationJSON.serverGroups[0];
+
+      ClusterFilterModel.getOrCreateMultiselectInstanceGroup(serverGroup).selectAll = true;
+      ClusterFilterModel.toggleMultiselectInstance(serverGroup, 'i-1234');
+      serverGroup.instances.push({id: 'i-1234'});
+      serverGroup.instances.push({id: 'i-2345'});
+
+      service.updateClusterGroups(applicationJSON);
+      $timeout.flush();
+      expect(ClusterFilterModel.instanceIsMultiselected(serverGroup, 'i-1234')).toBe(true);
+      expect(ClusterFilterModel.instanceIsMultiselected(serverGroup, 'i-2345')).toBe(true);
+
+      expect(this.navigationSynced).toBe(true);
+    });
+
+    it('should remove all instance groups when listInstances is false', function () {
+      ClusterFilterModel.sortFilter.listInstances = false;
+      let serverGroup = applicationJSON.serverGroups[0];
+
+      ClusterFilterModel.toggleMultiselectInstance(serverGroup, 'i-1234');
+
+      expect(ClusterFilterModel.multiselectInstanceGroups.length).toBe(1);
+      service.updateClusterGroups(applicationJSON);
+      $timeout.flush();
+
+      expect(ClusterFilterModel.multiselectInstanceGroups.length).toBe(0);
+      expect(this.navigationSynced).toBe(true);
+    });
+  });
 
   describe('clear all filters', function () {
 

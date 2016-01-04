@@ -1,8 +1,7 @@
 <table ng-if="instances.length" class="table table-hover table-condensed instances">
   <thead>
   <tr>
-    <!-- use this when multi-select is a thing -->
-    <!--<th width="4%"><input type="checkbox"></th>-->
+    <th width="4%"><input type="checkbox" ng-checked="instanceGroup.selectAll" ng-click="selectAllClicked($event)"/></th>
     <th width="{{::columnWidth.id}}%" sort-toggle key="id" label="Instance" sort-model="sortFilter.instanceSort" on-change="applyParamsToUrl()"></th>
     <th width="{{::columnWidth.launchTime}}%" sort-toggle key="launchTime" label="Launch Time" default="true" sort-model="sortFilter.instanceSort" on-change="applyParamsToUrl()"></th>
     <th width="{{::columnWidth.zone}}%" sort-toggle key="availabilityZone" label="Zone" sort-model="sortFilter.instanceSort" on-change="applyParamsToUrl()"></th>
@@ -14,6 +13,7 @@
   </thead>
   <tbody class="instance-list-body"
          instances="instances"
+         server-group="serverGroup"
          has-load-balancers="hasLoadBalancers"
          has-discovery="hasDiscovery"
          show-provider-health="showProviderHealth"
