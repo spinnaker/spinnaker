@@ -4,14 +4,11 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.taskExecutor', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
-  require('../cache/deckCacheFactory.js'),
-  require('../scheduler/scheduler.service.js'),
   require('../authentication/authentication.service.js'),
-  require('../cache/infrastructureCaches.js'),
   require('./task.read.service.js'),
   require('./task.write.service.js'),
 ])
-  .factory('taskExecutor', function(Restangular, scheduler, $q, authenticationService, taskReader, taskWriter) {
+  .factory('taskExecutor', function(Restangular, $q, authenticationService, taskReader, taskWriter) {
 
 
     function executeTask(taskCommand) {
@@ -31,7 +28,7 @@ module.exports = angular.module('spinnaker.core.taskExecutor', [
         job.user = authenticationService.getAuthenticatedUser().name;
       });
 
-      var op = taskWriter.postTaskCommand(taskCommand).then(
+      return taskWriter.postTaskCommand(taskCommand).then(
         function(task) {
           var taskId = task.ref.substring(task.ref.lastIndexOf('/')+1);
 
@@ -53,7 +50,6 @@ module.exports = angular.module('spinnaker.core.taskExecutor', [
           return $q.reject(error);
         }
       );
-      return scheduler.scheduleOnCompletion(op);
     }
 
 

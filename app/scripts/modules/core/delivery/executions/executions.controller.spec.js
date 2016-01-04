@@ -15,7 +15,8 @@ describe('Controller: pipelineExecutions', function () {
 
   beforeEach(
     window.module(
-      require('./executions.controller')
+      require('./executions.controller'),
+      require('../../utils/rx')
     )
   );
 

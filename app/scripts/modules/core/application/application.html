@@ -1,12 +1,9 @@
   <div class="page-header application-header navbar">
     <h2 ng-if="!application.notFound">
       <span class="application-name">{{application.name}}</span>
-      <a href ng-click="application.refreshImmediately(true)">
-        <span class="small glyphicon glyphicon-refresh refresh-enabled refresh-{{getAgeColor()}}"
-              uib-tooltip-template="refreshTooltipTemplate"
-              tooltip-placement="{{$window.innerWidth < 1100 ? 'right' : 'bottom'}}"
-              ng-class="{'glyphicon-spinning': application.refreshing}"></span>
-      </a>
+      <component-refresher state="application"
+                           template-url="refreshTooltipTemplate"
+                           refresh="application.refreshImmediately(true)"></component-refresher>
     </h2>
 
     <div ng-if="application.notFound">

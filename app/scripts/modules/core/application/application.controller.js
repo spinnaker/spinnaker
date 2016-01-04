@@ -10,10 +10,11 @@ module.exports = angular.module('spinnaker.application.controller', [
   require('angular-ui-router'),
   require('../history/recentHistory.service.js'),
   require('../overrideRegistry/override.registry.js'),
+  require('../presentation/refresher/componentRefresher.directive.js'),
 ])
-  .controller('ApplicationCtrl', function($scope, $state, hotkeys, app, recentHistoryService, $window, overrideRegistry) {
+  .controller('ApplicationCtrl', function($scope, $state, hotkeys, app, recentHistoryService, overrideRegistry) {
     this.applicationNavTemplate = overrideRegistry.getTemplate('applicationNavHeader', require('./applicationNav.html'));
-    $scope.$window = $window;
+
     $scope.application = app;
     $scope.insightTarget = app;
     $scope.refreshTooltipTemplate = require('./applicationRefresh.tooltip.html');
@@ -21,16 +22,6 @@ module.exports = angular.module('spinnaker.application.controller', [
       recentHistoryService.removeLastItem('applications');
       return;
     }
-
-    $scope.getAgeColor = () => {
-      const yellowAge = 2 * 60 * 1000; // 2 minutes
-      const redAge = 5 * 60 * 1000; // 5 minutes
-      let lastRefresh = app.lastRefresh || 0;
-      let age = new Date().getTime() - lastRefresh;
-
-      return age < yellowAge ? 'young' :
-             age < redAge ? 'old' : 'ancient';
-    };
 
     var hotkeyBind = hotkeys.bindTo($scope);
     var applicationHotkeys = [

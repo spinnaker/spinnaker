@@ -1,0 +1,6 @@
+<a href ng-click="vm.refresh()">
+        <span class="small glyphicon glyphicon-refresh refresh-enabled refresh-{{vm.getAgeColor()}}"
+              uib-tooltip-template="vm.templateUrl"
+              tooltip-placement="{{vm.$window.innerWidth < 1100 ? 'right' : 'bottom'}}"
+              ng-class="{'glyphicon-spinning': vm.state.refreshing}"></span>
+</a>

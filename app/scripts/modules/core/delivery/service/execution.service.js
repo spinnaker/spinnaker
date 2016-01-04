@@ -2,13 +2,13 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.delivery.executions.service', [
-  require('../../scheduler/scheduler.service.js'),
   require('../../cache/deckCacheFactory.js'),
   require('../../utils/appendTransform.js'),
+  require('../../config/settings.js'),
   require('./executions.transformer.service.js')
 ])
   .factory('executionService', function($http, $timeout, $q, $log,
-                                         scheduler, settings, appendTransform, executionsTransformer) {
+                                         settings, appendTransform, executionsTransformer) {
 
     const activeStatuses = ['RUNNING', 'SUSPENDED', 'NOT_STARTED'];
 
@@ -175,7 +175,6 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       transformExecutions: transformExecutions,
       cancelExecution: cancelExecution,
       deleteExecution: deleteExecution,
-      forceRefresh: scheduler.scheduleImmediate,
       waitUntilNewTriggeredPipelineAppears: waitUntilNewTriggeredPipelineAppears,
       waitUntilExecutionMatches: waitUntilExecutionMatches,
       getSectionCacheKey: getSectionCacheKey,
