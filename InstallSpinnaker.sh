@@ -509,7 +509,7 @@ install_cassandra
 ## Packer
 mkdir /tmp/packer && pushd /tmp/packer
 curl -L -O https://releases.hashicorp.com/packer/0.8.6/packer_0.8.6_linux_amd64.zip
-unzip -f -o -q packer_0.8.6_linux_amd64.zip -d /usr/bin
+unzip -u -o -q packer_0.8.6_linux_amd64.zip -d /usr/bin
 popd
 rm -rf /tmp/packer
 
