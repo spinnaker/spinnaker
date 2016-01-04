@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Google, Inc.
+ * Copyright 2014 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,42 +18,31 @@ package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TerminatingInstance
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TerminatingInstanceSupport
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+@Slf4j
 @Component
-class TerminateInstanceAndDecrementServerGroupTask extends AbstractCloudProviderAwareTask implements Task {
-  static final String CLOUD_OPERATION_TYPE = "terminateInstanceAndDecrementServerGroup"
+class WaitForTerminatedInstancesTask extends AbstractCloudProviderAwareTask implements RetryableTask {
 
-  @Autowired
-  KatoService kato
+  long backoffPeriod = 10000
+  long timeout = 3600000
 
   @Autowired
   TerminatingInstanceSupport instanceSupport
 
   @Override
   TaskResult execute(Stage stage) {
-    String cloudProvider = getCloudProvider(stage)
-    String account = getCredentials(stage)
-
     List<TerminatingInstance> remainingInstances = instanceSupport.remainingInstances(stage)
-
-    def taskId = kato.requestOperations(cloudProvider, [[(CLOUD_OPERATION_TYPE): stage.context]])
-        .toBlocking()
-        .first()
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-        "notification.type"                                       : "terminateinstanceanddecrementservergroup",
-        "terminate.account.name"                                  : account,
-        "terminate.region"                                        : stage.context.region,
-        "kato.last.task.id"                                       : taskId,
-        "terminate.instance.ids"                                  : [stage.context.instance],
-        (TerminatingInstanceSupport.TERMINATE_REMAINING_INSTANCES): remainingInstances,
-    ])
+    return remainingInstances ?
+        new DefaultTaskResult(ExecutionStatus.RUNNING,
+                              [(TerminatingInstanceSupport.TERMINATE_REMAINING_INSTANCES): remainingInstances]) :
+        DefaultTaskResult.SUCCEEDED
   }
 }

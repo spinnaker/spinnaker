@@ -6,15 +6,15 @@ import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.TerminateInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForDownInstanceHealthTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForTerminatedInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForUpInstanceHealthTask
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.config.OrcaPersistenceConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.tasks.DisableInstancesTask
-import com.netflix.spinnaker.orca.kato.tasks.TerminateInstancesTask
-import com.netflix.spinnaker.orca.kato.tasks.WaitForTerminatedInstancesTask
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.CheckForRemainingTerminationsTask
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.DetermineTerminationCandidatesTask
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.DetermineTerminationPhaseInstancesTask
@@ -32,6 +32,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.REDIRECT
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 

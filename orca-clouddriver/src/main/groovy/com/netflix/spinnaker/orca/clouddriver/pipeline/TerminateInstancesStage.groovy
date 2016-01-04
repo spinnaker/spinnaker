@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.pipeline
+package com.netflix.spinnaker.orca.clouddriver.pipeline
 
-import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TerminatingInstanceSupport
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.kato.tasks.TerminateInstancesTask
-import com.netflix.spinnaker.orca.kato.tasks.WaitForTerminatedInstancesTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.TerminateInstancesTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForTerminatedInstancesTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Step
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-@CompileStatic
 class TerminateInstancesStage extends LinearStage {
 
   public static final String PIPELINE_CONFIG_TYPE = "terminateInstances"
@@ -37,9 +37,10 @@ class TerminateInstancesStage extends LinearStage {
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "terminateInstances", TerminateInstancesTask)
-    def step2 = buildStep(stage, "monitorTermination", MonitorKatoTask)
-    def step3 = buildStep(stage, "waitForTerminatedInstances", WaitForTerminatedInstancesTask)
-    [step1, step2, step3]
+    return [
+        buildStep(stage, "terminateInstances", TerminateInstancesTask),
+        buildStep(stage, "monitorTermination", MonitorKatoTask),
+        buildStep(stage, "waitForTerminatedInstances", WaitForTerminatedInstancesTask),
+    ]
   }
 }
