@@ -2,6 +2,9 @@
 
 describe('scheduler', function() {
   const angular = require('angular');
+
+  var $timeout;
+
   beforeEach(function() {
     var pollSchedule = 25;
     window.module(
@@ -15,8 +18,9 @@ describe('scheduler', function() {
 
     this.pollSchedule = pollSchedule;
 
-    window.inject(function(schedulerFactory) {
+    window.inject(function(schedulerFactory, _$timeout_) {
       this.scheduler = schedulerFactory.createScheduler();
+      $timeout = _$timeout_;
     });
 
     this.test = {
@@ -36,5 +40,22 @@ describe('scheduler', function() {
       this.scheduler.scheduleImmediate();
       expect(this.test.call.calls.count() - pre).toBe(numSubscribers);
     });
+
+    it('does not fire onNext repeatedly when scheduleImmediate is called within the interval window', function () {
+      spyOn(this.test, 'call');
+      this.scheduler.subscribe(this.test.call);
+      this.scheduler.scheduleImmediate();
+      this.scheduler.scheduleImmediate();
+      this.scheduler.scheduleImmediate();
+      this.scheduler.scheduleImmediate();
+      expect(this.test.call.calls.count()).toBe(4);
+
+      $timeout.flush();
+      expect(this.test.call.calls.count()).toBe(5);
+
+      // verify no outstanding timeouts
+      expect($timeout.flush).toThrow();
+    });
   });
+
 });
