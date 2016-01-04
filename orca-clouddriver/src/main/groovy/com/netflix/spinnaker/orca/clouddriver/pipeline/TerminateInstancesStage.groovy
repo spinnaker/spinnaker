@@ -31,16 +31,12 @@ class TerminateInstancesStage extends LinearStage {
 
   public static final String PIPELINE_CONFIG_TYPE = "terminateInstances"
 
-  @Autowired
-  TerminatingInstanceSupport instanceSupport
-
   TerminateInstancesStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    stage.context[TerminatingInstanceSupport.TERMINATE_REMAINING_INSTANCES] = instanceSupport.remainingInstances(stage)
     return [
         buildStep(stage, "terminateInstances", TerminateInstancesTask),
         buildStep(stage, "monitorTermination", MonitorKatoTask),

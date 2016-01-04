@@ -51,7 +51,7 @@ class TerminatingInstanceSupport implements CloudProviderAware {
     if (stage.context[TERMINATE_REMAINING_INSTANCES]) {
       terminatingInstances = Arrays.asList(stage.mapTo("/" + TERMINATE_REMAINING_INSTANCES, TerminatingInstance[]))
     } else {
-      List<String> instanceIds = stage.context.instanceIds // Used by terminateInstances.
+      List<String> instanceIds = stage.context.instanceIds as List // Used by terminateInstances.
       if (!instanceIds) {
         String instanceId = stage.context.instance // Used by terminateInstanceAndDecrementServerGroup.
                                                    // Because consistency is overvalued </sarcasm>.
@@ -60,7 +60,7 @@ class TerminatingInstanceSupport implements CloudProviderAware {
         }
         instanceIds = [instanceId]
       }
-      terminatingInstances = instanceIds.collect { new TerminatingInstance(it) }
+      terminatingInstances = instanceIds.collect { new TerminatingInstance(id: it) }
     }
 
     String serverGroupName = stage.context.serverGroupName ?: stage.context.asgName
@@ -76,19 +76,22 @@ class TerminatingInstanceSupport implements CloudProviderAware {
 
     def tsg = oortHelper.getTargetServerGroup(account, serverGroupName, location, cloudProvider)
     return tsg.map { TargetServerGroup sg ->
-      return terminatingInstances.findAll { TerminatingInstance terminatingInstance ->
+      return terminatingInstances.findResults { TerminatingInstance terminatingInstance ->
         def sgInst = sg.instances.find { it.name == terminatingInstance.id }
         if (sgInst) {
           // During the first iteration (most of the time in the Stage portion of the execution), we don't have the
           // launchTime yet. We'll need it later, so it should be saved. If it needs to be saved, that means
           // it's not yet terminated, so it should be included in the returned listed of TerminatingInstances.
           if (terminatingInstance.launchTime) {
-            return sgInst.launchTime <= terminatingInstance.launchTime
+            if (sgInst.launchTime <= terminatingInstance.launchTime) {
+              return terminatingInstance // instance not yet shutdown.
+            } else {
+              return null // new launch time, instance must have rebooted.
+            }
           }
-          terminatingInstance.launchTime = sgInst.launchTime
-          return true
+          return new TerminatingInstance(id: terminatingInstance.id, launchTime: sgInst.launchTime)
         }
-        return false // instance not found in clouddriver. Must be terminated.
+        return null // instance not found in clouddriver. Must be terminated.
       }
     }.orElseThrow {
       new IllegalStateException("ServerGroup not found for $cloudProvider/$account/$location/$serverGroupName")

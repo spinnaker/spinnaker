@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.support
 
-import groovy.transform.Canonical
+import groovy.transform.Immutable
 import groovy.transform.ToString
 
-@Canonical
+@Immutable
 @ToString(includeNames = true)
 class TerminatingInstance implements Serializable {
   String id

@@ -21,6 +21,8 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TerminatingInstance
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TerminatingInstanceSupport
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -32,20 +34,26 @@ class TerminateInstanceAndDecrementServerGroupTask extends AbstractCloudProvider
   @Autowired
   KatoService kato
 
+  @Autowired
+  TerminatingInstanceSupport instanceSupport
+
   @Override
   TaskResult execute(Stage stage) {
     String cloudProvider = getCloudProvider(stage)
     String account = getCredentials(stage)
 
+    List<TerminatingInstance> remainingInstances = instanceSupport.remainingInstances(stage)
+
     def taskId = kato.requestOperations(cloudProvider, [[(CLOUD_OPERATION_TYPE): stage.context]])
-                     .toBlocking()
-                     .first()
+        .toBlocking()
+        .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-      "notification.type"     : "terminateinstanceanddecrementservergroup",
-      "terminate.account.name": account,
-      "terminate.region"      : stage.context.region,
-      "kato.last.task.id"     : taskId,
-      "terminate.instance.ids": [stage.context.instance],
+        "notification.type"                                       : "terminateinstanceanddecrementservergroup",
+        "terminate.account.name"                                  : account,
+        "terminate.region"                                        : stage.context.region,
+        "kato.last.task.id"                                       : taskId,
+        "terminate.instance.ids"                                  : [stage.context.instance],
+        (TerminatingInstanceSupport.TERMINATE_REMAINING_INSTANCES): remainingInstances,
     ])
   }
 }

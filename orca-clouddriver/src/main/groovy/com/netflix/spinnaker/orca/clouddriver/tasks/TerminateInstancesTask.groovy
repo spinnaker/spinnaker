@@ -22,30 +22,39 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TerminatingInstance
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TerminatingInstanceSupport
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 class TerminateInstancesTask extends AbstractCloudProviderAwareTask implements Task {
+
   @Autowired
   KatoService kato
+
+  @Autowired
+  TerminatingInstanceSupport instanceSupport
 
   @Override
   TaskResult execute(Stage stage) {
     String cloudProvider = getCloudProvider(stage)
     String account = getCredentials(stage)
 
+    List<TerminatingInstance> remainingInstances = instanceSupport.remainingInstances(stage)
+
     TaskId taskId = kato.requestOperations(cloudProvider, [[terminateInstances: stage.context]])
         .toBlocking()
         .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-        "notification.type"     : "terminateinstances",
-        "terminate.account.name": account,
-        "terminate.region"      : stage.context.region,
-        "kato.last.task.id"     : taskId,
-        "kato.task.id"          : taskId, // TODO retire this.
-        "terminate.instance.ids": stage.context.instanceIds,
+        "notification.type"                                       : "terminateinstances",
+        "terminate.account.name"                                  : account,
+        "terminate.region"                                        : stage.context.region,
+        "kato.last.task.id"                                       : taskId,
+        "kato.task.id"                                            : taskId, // TODO retire this.
+        "terminate.instance.ids"                                  : stage.context.instanceIds,
+        (TerminatingInstanceSupport.TERMINATE_REMAINING_INSTANCES): remainingInstances,
     ])
   }
 }
