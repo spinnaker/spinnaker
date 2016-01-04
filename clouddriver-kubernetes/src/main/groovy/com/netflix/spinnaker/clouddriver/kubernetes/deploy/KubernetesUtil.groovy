@@ -18,19 +18,26 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy
 
 import com.netflix.frigga.NameValidation
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
+import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.ReplicationControllerList
 import io.fabric8.kubernetes.api.model.Service
 
+// TODO(stevenkim): make all methods non-static and wire in as bean for usage.
 class KubernetesUtil {
-  private static final String BASE_PHASE = "DEPLOY"
+
+  private static String SECURITY_GROUP_LABEL_PREFIX = "security-group-"
+  private static String LOAD_BALANCER_LABEL_PREFIX = "load-balancer-"
+  private static int SECURITY_GROUP_LABEL_PREFIX_LENGTH = SECURITY_GROUP_LABEL_PREFIX.length()
+  private static int LOAD_BALANCER_LABEL_PREFIX_LENGTH = LOAD_BALANCER_LABEL_PREFIX.length()
 
   static def securityGroupKey(String securityGroup) {
-    return String.format("security-group-%s", securityGroup)
+    return String.format("$SECURITY_GROUP_LABEL_PREFIX%s", securityGroup)
   }
 
   static def loadBalancerKey(String loadBalancer) {
-    return String.format("load-balancer-%s", loadBalancer)
+    return String.format("$LOAD_BALANCER_LABEL_PREFIX%s", loadBalancer)
   }
 
   static def combineAppStackDetail(String appName, String stack, String detail) {
@@ -52,6 +59,10 @@ class KubernetesUtil {
 
   static ReplicationControllerList getReplicationControllers(KubernetesCredentials credentials) {
     credentials.client.replicationControllers().inNamespace(credentials.namespace).list()
+  }
+
+  ReplicationController getReplicationController(KubernetesCredentials credentials, String serverGroupName) {
+    credentials.client.replicationControllers().inNamespace(credentials.namespace).withName(serverGroupName).get()
   }
 
   static Service getService(KubernetesCredentials credentials, String service) {
@@ -80,4 +91,25 @@ class KubernetesUtil {
 
     String.format("%03d", ++maxSeqNumber)
   }
+
+  static List<String> getDescriptionLoadBalancers(ReplicationController rc) {
+    def loadBalancers = []
+    rc.spec?.template?.metadata?.labels?.each { key, val ->
+      if (key.startsWith(LOAD_BALANCER_LABEL_PREFIX)) {
+        loadBalancers.push(key.substring(LOAD_BALANCER_LABEL_PREFIX_LENGTH, key.length()))
+      }
+    }
+    return loadBalancers
+  }
+
+  static List<String> getDescriptionSecurityGroups(ReplicationController rc) {
+    def securityGroups = []
+    rc.spec?.template?.metadata?.labels?.each { key, val ->
+      if (key.startsWith(SECURITY_GROUP_LABEL_PREFIX)) {
+        securityGroups.push(key.substring(SECURITY_GROUP_LABEL_PREFIX_LENGTH, key.length()))
+      }
+    }
+    return securityGroups
+  }
+
 }

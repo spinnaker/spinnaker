@@ -121,4 +121,13 @@ class StandardKubernetesAttributeValidator {
     }
     result
   }
+
+  def validateSource(Object value, String attribute) {
+    if (!value) {
+      errors.rejectValue("${context}.${attribute}",  "${context}.${attribute}.empty")
+      return false
+    } else {
+      return validateNotEmpty(value.serverGroupName, attribute)
+    }
+  }
 }

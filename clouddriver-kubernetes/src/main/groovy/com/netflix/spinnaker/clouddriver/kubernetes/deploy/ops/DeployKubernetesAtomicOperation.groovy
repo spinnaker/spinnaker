@@ -26,6 +26,8 @@ import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder
 import java.util.Map
 
 class DeployKubernetesAtomicOperation implements AtomicOperation<Void> {
+  private static final String BASE_PHASE = "DEPLOY"
+
   DeployKubernetesAtomicOperation(DeployKubernetesAtomicOperationDescription description) {
     this.description = description
   }
@@ -43,16 +45,16 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<Void> {
   */
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus KubernetesUtil.BASE_PHASE, "Initializing creation of replication controller."
+    task.updateStatus BASE_PHASE, "Initializing creation of replication controller."
     def credentials = description.kubernetesCredentials
     def clusterName = KubernetesUtil.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
-    task.updateStatus KubernetesUtil.BASE_PHASE, "Looking up next sequence index..."
+    task.updateStatus BASE_PHASE, "Looking up next sequence index..."
     def sequenceIndex = KubernetesUtil.getNextSequence(clusterName, credentials)
-    task.updateStatus KubernetesUtil.BASE_PHASE, "Sequence index chosen to be ${sequenceIndex}."
+    task.updateStatus BASE_PHASE, "Sequence index chosen to be ${sequenceIndex}."
     def replicationControllerName = String.format("%s-v%s", clusterName, sequenceIndex)
-    task.updateStatus KubernetesUtil.BASE_PHASE, "Replication controller name chosen to be ${replicationControllerName}"
+    task.updateStatus BASE_PHASE, "Replication controller name chosen to be ${replicationControllerName}."
 
-    task.updateStatus KubernetesUtil.BASE_PHASE, "Collecting ports for associated security groups..."
+    task.updateStatus BASE_PHASE, "Collecting ports for associated security groups..."
     def ports = []
     for (def securityGroupName : description.securityGroups) {
       def securityGroup = KubernetesUtil.getSecurityGroup(credentials, securityGroupName)
@@ -65,7 +67,7 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<Void> {
     def replicationControllerBuilder = new ReplicationControllerBuilder()
                         .withNewMetadata().withName(replicationControllerName)
 
-    task.updateStatus KubernetesUtil.BASE_PHASE, "Setting replication controller metadata labels..."
+    task.updateStatus BASE_PHASE, "Setting replication controller metadata labels..."
 
     replicationControllerBuilder = replicationControllerBuilder.addToLabels(sequenceIndex, "true")
 
@@ -79,13 +81,13 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<Void> {
 
     replicationControllerBuilder = replicationControllerBuilder.endMetadata()
 
-    task.updateStatus KubernetesUtil.BASE_PHASE, "Setting target size to ${description.targetSize}..."
+    task.updateStatus BASE_PHASE, "Setting target size to ${description.targetSize}..."
 
     replicationControllerBuilder = replicationControllerBuilder.withNewSpec().withReplicas(description.targetSize)
                         .withNewTemplate()
                         .withNewMetadata()
 
-    task.updateStatus KubernetesUtil.BASE_PHASE, "Setting replication controller spec labels..."
+    task.updateStatus BASE_PHASE, "Setting replication controller spec labels..."
     // Metadata in spec and replication controller need to match, hence the apparent duplication
     replicationControllerBuilder = replicationControllerBuilder.addToLabels(sequenceIndex, "true")
 
@@ -100,9 +102,9 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<Void> {
     replicationControllerBuilder = replicationControllerBuilder.endMetadata().withNewSpec()
 
     for (def container : description.containers) {
-      task.updateStatus KubernetesUtil.BASE_PHASE, "Adding container ${container.name} with image ${container.image}..."
+      task.updateStatus BASE_PHASE, "Adding container ${container.name} with image ${container.image}..."
       replicationControllerBuilder = replicationControllerBuilder.addNewContainer().withName(container.name).withImage(container.image)
-      task.updateStatus KubernetesUtil.BASE_PHASE, "Opening container ports..."
+      task.updateStatus BASE_PHASE, "Opening container ports..."
       for (def port : ports) {
         replicationControllerBuilder = replicationControllerBuilder.addNewPort().withContainerPort(port).endPort()
       }
@@ -111,25 +113,25 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<Void> {
       if (container.requests) {
         def requests = [memory: container.requests.memory,
                         cpu: container.requests.cpu]
-        task.updateStatus KubernetesUtil.BASE_PHASE, "Setting resource requests..."
+        task.updateStatus BASE_PHASE, "Setting resource requests..."
         replicationControllerBuilder = replicationControllerBuilder.withRequests(requests)
       }
 
       if (container.limits) {
         def limits = [memory: container.limits.memory,
                       cpu: container.limits.cpu]
-        task.updateStatus KubernetesUtil.BASE_PHASE, "Setting resource limits..."
+        task.updateStatus BASE_PHASE, "Setting resource limits..."
         replicationControllerBuilder = replicationControllerBuilder.withLimits(limits)
       }
       replicationControllerBuilder = replicationControllerBuilder.endResources().endContainer()
-      task.updateStatus KubernetesUtil.BASE_PHASE, "Finished adding container ${container.name}."
+      task.updateStatus BASE_PHASE, "Finished adding container ${container.name}."
     }
 
     replicationControllerBuilder = replicationControllerBuilder.endSpec().endTemplate().endSpec().build()
 
-    task.updateStatus KubernetesUtil.BASE_PHASE, "Sending replication controller spec to the Kubernetes master."
+    task.updateStatus BASE_PHASE, "Sending replication controller spec to the Kubernetes master."
 	credentials.client.replicationControllers().inNamespace(credentials.namespace).create(replicationControllerBuilder)
-    task.updateStatus KubernetesUtil.BASE_PHASE, "Finished creating replication controller."
+    task.updateStatus BASE_PHASE, "Finished creating replication controller."
 
     return
   }
