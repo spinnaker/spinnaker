@@ -31,7 +31,9 @@ class TestCredential {
   public static CloudFoundryAccountCredentials named(String name, Map params = [:]) {
     def credJson = [
         name: name,
-        password: 'test password'
+        password: 'test password',
+        org: 'spinnaker',
+        space: 'test'
     ] + params
     new ObjectMapper().convertValue(credJson, CloudFoundryAccountCredentials)
   }

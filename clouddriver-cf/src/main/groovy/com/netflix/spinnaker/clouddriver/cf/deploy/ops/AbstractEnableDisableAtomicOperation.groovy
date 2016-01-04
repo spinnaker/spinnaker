@@ -22,13 +22,15 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.cf.deploy.description.EnableDisableCloudFoundryServerGroupDescription
-import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryClientFactory
+import com.netflix.spinnaker.clouddriver.cf.utils.CloudFoundryClientFactory
 import com.netflix.spinnaker.clouddriver.cf.model.CloudFoundryResourceRetriever
+import org.cloudfoundry.client.lib.CloudFoundryException
 import org.cloudfoundry.client.lib.domain.CloudApplication
 import org.cloudfoundry.client.lib.domain.InstanceState
 import org.cloudfoundry.client.lib.domain.InstancesInfo
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.http.HttpStatus
 
 /**
  * @author Greg Turnquist
@@ -70,10 +72,20 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
     def client = cloudFoundryClientFactory.createCloudFoundryClient(description.credentials, true)
 
-    def app = client.getApplication(description.serverGroupName)
+    def app
+    try {
+      app = client.getApplication(description.serverGroupName)
+    } catch (CloudFoundryException e) {
+      if (e.statusCode == HttpStatus.NOT_FOUND) {
+        task.updateStatus phaseName, "Server group ${description.serverGroupName} does not exist. Aborting ${verb} operation."
+        throw e
+      }
+    }
+
     def loadBalancers = app.envAsMap[CloudFoundryConstants.LOAD_BALANCERS]?.split(',') as List
 
-    if (loadBalancers.empty) {
+    if (loadBalancers == null || loadBalancers.empty) {
+      task.updateStatus phaseName, "${description.serverGroupName} is not linked to any load balancers and can NOT be ${verb}d"
       throw new RuntimeException("${description.serverGroupName} is not linked to any load balancers and can NOT be ${verb}d")
     }
 

@@ -15,54 +15,56 @@
  */
 
 package com.netflix.spinnaker.clouddriver.cf.deploy.converters
+
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.cf.deploy.description.EnableDisableCloudFoundryServerGroupDescription
-import com.netflix.spinnaker.clouddriver.cf.deploy.ops.DisableCloudFoundryServerGroupAtomicOperation
+import com.netflix.spinnaker.clouddriver.cf.deploy.description.DeleteCloudFoundryLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.cf.deploy.ops.loadbalancer.DeleteCloudFoundryLoadBalancerAtomicOperation
 import spock.lang.Shared
 import spock.lang.Specification
 
-class DisableCloudFoundryServerGroupAtomicOperationConverterUnitSpec extends Specification {
+class DeleteCloudFoundryLoadBalancerAtomicOperationConverterSpec extends Specification {
 
   @Shared
   ObjectMapper mapper = new ObjectMapper()
 
   @Shared
-  DisableCloudFoundryServerGroupAtomicOperationConverter converter
+  DeleteCloudFoundryLoadBalancerAtomicOperationConverter converter
 
   def setupSpec() {
     def accountCredentialsProvider = Stub(AccountCredentialsProvider) {
       getCredentials('test') >> Stub(CloudFoundryAccountCredentials)
     }
-    converter = new DisableCloudFoundryServerGroupAtomicOperationConverter(objectMapper: mapper,
+    converter = new DeleteCloudFoundryLoadBalancerAtomicOperationConverter(objectMapper: mapper,
         accountCredentialsProvider: accountCredentialsProvider
     )
   }
 
-  def "should return EnableDisableCloudFoundryServerGroupDescription and DisableCloudFoundryServerGroupAtomicOperation"() {
+  def "should return DeleteCloudFoundryLoadBalancerDescription and DeleteCloudFoundryLoadBalancerAtomicOperation"() {
     setup:
-    def input = [serverGroupName: 'demo-staging-v001', zone: 'some-zone',
+    def input = [loadBalancerName: 'load-balancer', region: 'some-region', zone: 'some-zone',
                  credentials: 'test']
 
     when:
     def description = converter.convertDescription(input)
 
     then:
-    description instanceof EnableDisableCloudFoundryServerGroupDescription
+    description instanceof DeleteCloudFoundryLoadBalancerDescription
 
     when:
     def operation = converter.convertOperation(input)
 
     then:
-    operation instanceof DisableCloudFoundryServerGroupAtomicOperation
+    operation instanceof DeleteCloudFoundryLoadBalancerAtomicOperation
   }
 
   void "should not fail to serialize unknown properties"() {
     setup:
-    def serverGroup = "demo-staging-v001"
+    def application = "load-balancer"
+    def region = 'some-region'
     def zone = 'some-zone'
-    def input = [serverGroupName: serverGroup, zone: zone,
+    def input = [loadBalancerName: application, region: region, zone: zone,
                  unknownProp: "this",
                  credentials: 'test']
 
@@ -70,7 +72,8 @@ class DisableCloudFoundryServerGroupAtomicOperationConverterUnitSpec extends Spe
     def description = converter.convertDescription(input)
 
     then:
-    description.serverGroupName == serverGroup
+    description.loadBalancerName == application
+    description.region == region
     description.zone == zone
   }
 

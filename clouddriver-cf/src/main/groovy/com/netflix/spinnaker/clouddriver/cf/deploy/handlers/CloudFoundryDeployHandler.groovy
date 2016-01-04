@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Pivotal, Inc.
+ * Copyright 2015-2016 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,16 @@ package com.netflix.spinnaker.clouddriver.cf.deploy.handlers
 import com.netflix.frigga.NameBuilder
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConstants
+import com.netflix.spinnaker.clouddriver.cf.deploy.description.CloudFoundryDeployDescription
+import com.netflix.spinnaker.clouddriver.cf.utils.CloudFoundryClientFactory
+import com.netflix.spinnaker.clouddriver.cf.utils.RestTemplateFactory
+import com.netflix.spinnaker.clouddriver.cf.utils.S3ServiceFactory
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.deploy.DeployHandler
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller
-import com.netflix.spinnaker.clouddriver.cf.deploy.description.CloudFoundryDeployDescription
-import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryClientFactory
 import org.apache.commons.codec.binary.Base64
 import org.cloudfoundry.client.lib.CloudFoundryClient
 import org.cloudfoundry.client.lib.CloudFoundryException
@@ -36,16 +38,13 @@ import org.cloudfoundry.client.lib.domain.InstancesInfo
 import org.cloudfoundry.client.lib.domain.Staging
 import org.jets3t.service.S3Service
 import org.jets3t.service.S3ServiceException
-import org.jets3t.service.impl.rest.httpclient.RestS3Service
 import org.jets3t.service.model.S3Object
 import org.jets3t.service.security.AWSCredentials
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.*
-import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.util.StreamUtils
 import org.springframework.web.client.HttpServerErrorException
-import org.springframework.web.client.RestTemplate
 
 /**
  * A deployment handler for Cloud Foundry.
@@ -61,15 +60,11 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
     TaskRepository.threadLocalTask.get()
   }
 
-  private CloudFoundryClientFactory clientFactory
+  CloudFoundryClientFactory clientFactory
 
-  CloudFoundryDeployHandler(CloudFoundryClientFactory clientFactory) {
-    this.clientFactory = clientFactory
-  }
+  RestTemplateFactory restTemplateFactory
 
-  void setClientFactory(CloudFoundryClientFactory clientFactory) {
-    this.clientFactory = clientFactory
-  }
+  S3ServiceFactory s3ServiceFactory
 
   @Override
   DeploymentResult handle(CloudFoundryDeployDescription description, List priorOutputs) {
@@ -93,8 +88,6 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
     description.serverGroupName = "${clusterName}-v${nextSequence}".toString()
 
     try {
-      addDomains(client, description)
-
       task.updateStatus BASE_PHASE, "Creating application ${description.serverGroupName}"
 
       createApplication(description, client)
@@ -142,20 +135,6 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
     deploymentResult
   }
 
-  def addDomains(CloudFoundryClient client, CloudFoundryDeployDescription description) {
-    task.updateStatus BASE_PHASE, "Adding domains..."
-    def domains = client.domains
-    def currentDomains = domains.collect { domain -> domain.name }
-//    if (description.domains != null) {
-//      description.domains.each { domain ->
-//        if (!currentDomains.contains(domain)) {
-//          client.addDomain(domain)
-//          task.updateStatus BASE_PHASE, "Adding '${domain}' to list of registered domains"
-//        }
-//      }
-//    }
-  }
-
   def createApplication(CloudFoundryDeployDescription description, CloudFoundryClient client) {
     CloudApplication application = null
     try {
@@ -174,8 +153,8 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
     try {
       Staging staging = (description?.buildpackUrl) ? new Staging(null, description.buildpackUrl) : new Staging()
       if (application == null) {
-        def domain = client.getDefaultDomain()
-        def loadBalancers = description.loadBalancers?.split(',').collect {it + "." + domain.name}
+        def domain = client.defaultDomain
+        def loadBalancers = description.loadBalancers?.split(',').collect { (domain != null) ? it + "." + domain.name : it }
 
         task.updateStatus BASE_PHASE, "Memory set to ${description.memory}"
         if (description?.buildpackUrl) {
@@ -217,7 +196,7 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
 
     def env = [:]
 
-    if (!description?.envs.isEmpty()) {
+    if (description?.envs && !description.envs.isEmpty()) {
       env += description.envs.collectEntries { [it.name, it.value] }
     }
 
@@ -247,14 +226,14 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
 
   def downloadJarFileFromWeb(CloudFoundryDeployDescription description) {
     HttpHeaders requestHeaders = new HttpHeaders()
-    requestHeaders.set(HttpHeaders.AUTHORIZATION, "Basic " + Base64.encodeBase64String("${description.username}:${description.password}".getBytes()))
+
+    if (description.username && description.password) {
+      requestHeaders.set(HttpHeaders.AUTHORIZATION, "Basic " + Base64.encodeBase64String("${description.username}:${description.password}".getBytes()))
+    }
 
     def requestEntity = new HttpEntity<>(requestHeaders)
 
-    def restTemplate = new RestTemplate()
-    def factory = new SimpleClientHttpRequestFactory()
-    factory.bufferRequestBody = false
-    restTemplate.requestFactory = factory
+    def restTemplate = this.restTemplateFactory.createRestTemplate()
 
     long contentLength = -1
     ResponseEntity<byte[]> responseBytes
@@ -282,9 +261,13 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
   }
 
   def downloadJarFileFromS3(CloudFoundryDeployDescription description) {
-    AWSCredentials awsCredentials = new AWSCredentials(description.username, description.password, description.credentials.name)
+    AWSCredentials awsCredentials = null
 
-    S3Service s3 = new RestS3Service(awsCredentials)
+    if (description.username && description.password) {
+      awsCredentials = new AWSCredentials(description.username, description.password, description.credentials.name)
+    }
+
+    S3Service s3 = s3ServiceFactory.createS3Service(awsCredentials)
 
     def baseBucket = description.repository + (description.repository.endsWith('/') ? '' : '/') - 's3://'
     baseBucket = baseBucket.getAt(0..baseBucket.length()-2)
@@ -338,7 +321,7 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
       }
     }
 
-    String.format("%03d", ++maxSeqNumber)
+    String.format("%03d", (++maxSeqNumber) % 1000)
   }
 
 }

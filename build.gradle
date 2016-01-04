@@ -61,7 +61,7 @@ subprojects { project ->
             it.useTarget group: 'junit', name: 'junit', version: '4.12'
           }
           if (it.requested.group == 'cglib' || it.requested.name == 'cglib') {
-            it.useTarget group: 'cglib', name: 'cglib', version: '3.1'
+            it.useTarget group: 'cglib', name: 'cglib', version: '3.2.0'
           }
           if (it.requested.group == 'com.google.guava') {
             it.useTarget group: 'com.google.guava', name: 'guava', version: '18.0'

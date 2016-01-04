@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Pivotal, Inc.
+ * Copyright 2015-2016 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cf.deploy.validators
 
-import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.validation.Errors
 
@@ -51,6 +50,7 @@ import org.springframework.validation.Errors
  *
  */
 class StandardCfAttributeValidator {
+
   /**
    * Bound at construction, contains the name of the type being validated used to decorate errors.
    */
@@ -130,47 +130,19 @@ class StandardCfAttributeValidator {
    *             within the attribute (e.g. element within a list).
    */
   def validateNameAsPart(String value, String attribute, String part) {
-    def result = validateNotEmptyAsPart(value, attribute, part)
-
-    // TODO(ewiseblatt): 20150323
-    // Add additional rules here, if there are standard CF naming rules.
-    //
-    // (e.g. see https://cloud.google.com/compute/docs/load-balancing/network/forwarding-rules#forwarding_rule_properties)
-    // says the name must be 1-63 chars long and match the RE [a-z]([-a-z0-9]*[a-z0-9])?
-    // However, I dont notice these explicit constraints documented for all naming context.
-    return result
+    return validateNotEmptyAsPart(value, attribute, part)
   }
 
   def validateCredentials(String accountName, AccountCredentialsProvider accountCredentialsProvider) {
-    def result = validateNotEmpty(accountName, "credentials")
-    if (result) {
-      def credentials = accountCredentialsProvider.getCredentials(accountName)
-
-      if (!(credentials instanceof CloudFoundryAccountCredentials)) {
-        errors.rejectValue("credentials", "${context}.credentials.invalid")
-        result = false
-      }
-    }
-    return result
+    return validateNotEmpty(accountName, "credentials")
   }
 
-  // TODO(duftler): Also validate against set of supported CF regions.
   def validateRegion(String region) {
     validateNotEmpty(region, "region")
   }
 
-  // TODO(duftler): Also validate against set of supported CF zones.
   def validateZone(String zone) {
     validateNotEmpty(zone, "zone")
-  }
-
-  def validateNonNegativeInt(int value, String attribute) {
-    def result = true
-    if (value < 0) {
-      errors.rejectValue attribute, "${context}.${attribute}.negative"
-      result = false
-    }
-    return result
   }
 
   def validatePositiveInt(int value, String attribute) {

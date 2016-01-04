@@ -20,7 +20,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.cf.deploy.description.ResizeCloudFoundryServerGroupDescription
-import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryClientFactory
+import com.netflix.spinnaker.clouddriver.cf.utils.CloudFoundryClientFactory
 import org.springframework.beans.factory.annotation.Autowired
 
 class ResizeCloudFoundryServerGroupAtomicOperation implements AtomicOperation<Void> {

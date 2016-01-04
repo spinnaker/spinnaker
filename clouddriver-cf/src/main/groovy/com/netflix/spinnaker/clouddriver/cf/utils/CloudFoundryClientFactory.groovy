@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cf.security
+package com.netflix.spinnaker.clouddriver.cf.utils
 
-import com.netflix.spinnaker.clouddriver.cf.utils.CloudFoundryClientFactory
+import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
 import org.cloudfoundry.client.lib.CloudFoundryOperations
 
 /**
- * Stub CF client factory. Makes it possible to inject stub client.
+ * Factory interface for creating Cloud Foundry clients. Makes it possible to delay client
+ * creation until ALL details are gathered.
  */
-class TestCloudFoundryClientFactory implements CloudFoundryClientFactory {
+interface CloudFoundryClientFactory {
 
-  CloudFoundryOperations stubClient
-
-  @Override
   CloudFoundryOperations createCloudFoundryClient(CloudFoundryAccountCredentials credentials,
-                                                  boolean trustSelfSignedCerts) {
-    stubClient
-  }
+                                                  boolean trustSelfSignedCerts)
+
 }

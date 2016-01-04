@@ -24,7 +24,7 @@ import com.netflix.spinnaker.clouddriver.cf.deploy.ops.DestroyCloudFoundryServer
 import spock.lang.Shared
 import spock.lang.Specification
 
-class DestroyCloudFoundryServerGroupAtomicOperationConverterUnitSpec extends Specification {
+class DestroyCloudFoundryServerGroupAtomicOperationConverterSpec extends Specification {
 
   @Shared
   ObjectMapper mapper = new ObjectMapper()

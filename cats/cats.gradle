@@ -6,7 +6,7 @@ subprojects {
 
   dependencies {
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.3'
-    testCompile 'cglib:cglib-nodep:3.1'
+    testCompile 'cglib:cglib-nodep:3.2.0'
     testCompile 'org.objenesis:objenesis:2.1'
     pmd 'net.sourceforge.pmd:pmd:5.1.3'
   }
