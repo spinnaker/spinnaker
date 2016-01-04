@@ -5,7 +5,7 @@ describe('scheduler', function() {
   beforeEach(function() {
     var pollSchedule = 25;
     window.module(
-      require('./scheduler.service.js'),
+      require('./scheduler.factory.js'),
       function($provide) {
         return $provide.constant('settings', {
           pollSchedule: pollSchedule,
@@ -15,28 +15,13 @@ describe('scheduler', function() {
 
     this.pollSchedule = pollSchedule;
 
-
-    window.inject(function(scheduler) {
-      this.scheduler = scheduler;
+    window.inject(function(schedulerFactory) {
+      this.scheduler = schedulerFactory.createScheduler();
     });
 
     this.test = {
       call: angular.noop,
     };
-  });
-
-  describe('#get', function() {
-    it('returns the underlying RxSubject', function() {
-      spyOn(this.test, 'call');
-
-      this.scheduler.subscribe(this.test.call);
-
-      expect(this.test.call.calls.count()).toEqual(0);
-
-      this.scheduler.get().onNext();
-
-      expect(this.test.call.calls.count()).toEqual(1);
-    });
   });
 
   describe('#scheduleImmediate', function() {

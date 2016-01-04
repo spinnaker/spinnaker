@@ -409,7 +409,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
           detail: {
             templateUrl: require('../projects/dashboard/dashboard.html'),
             controller: 'ProjectDashboardCtrl',
-            controllerAs: 'dashboardCtrl',
+            controllerAs: 'vm',
           }
         },
         data: {
