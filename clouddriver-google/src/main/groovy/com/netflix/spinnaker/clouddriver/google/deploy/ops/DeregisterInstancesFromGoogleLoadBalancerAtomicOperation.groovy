@@ -44,7 +44,7 @@ class DeregisterInstancesFromGoogleLoadBalancerAtomicOperation implements Atomic
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "deregisterInstancesFromGoogleLoadBalancerDescription": { "loadBalancerNames": ["myapp-loadbalancer"], "instanceIds": ["myapp-dev-v000-abcd"], "region": "us-central1", "credentials": "my-account-name" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "deregisterInstancesFromLoadBalancer": { "loadBalancerNames": ["myapp-loadbalancer"], "instanceIds": ["myapp-dev-v000-abcd"], "region": "us-central1", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    */
   @Override
   Void operate(List priorOutputs) {

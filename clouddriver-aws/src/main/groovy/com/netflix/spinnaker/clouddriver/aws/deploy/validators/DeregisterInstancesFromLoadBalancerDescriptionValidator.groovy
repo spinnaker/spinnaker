@@ -16,10 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AbstractRegionAsgInstanceIdsDescription
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
+@AmazonOperation(AtomicOperations.DEREGISTER_INSTANCES_FROM_LOAD_BALANCER)
 @Component("deregisterInstancesFromLoadBalancerDescriptionValidator")
 class DeregisterInstancesFromLoadBalancerDescriptionValidator extends AmazonDescriptionValidationSupport<AbstractRegionAsgInstanceIdsDescription> {
   @Override

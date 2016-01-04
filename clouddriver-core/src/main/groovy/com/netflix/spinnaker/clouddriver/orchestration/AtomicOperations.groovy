@@ -35,6 +35,8 @@ final class AtomicOperations {
   public static final String TERMINATE_INSTANCES = "terminateInstances"
   public static final String TERMINATE_INSTANCE_AND_DECREMENT = "terminateInstanceAndDecrementServerGroup"
   public static final String ATTACH_CLASSIC_LINK_VPC = "attachClassicLinkVpc"
+  public static final String REGISTER_INSTANCES_WITH_LOAD_BALANCER = "registerInstancesWithLoadBalancer"
+  public static final String DEREGISTER_INSTANCES_FROM_LOAD_BALANCER = "deregisterInstancesFromLoadBalancer"
 
   // Load Balancer operations
   public static final String DELETE_LOAD_BALANCER = "deleteLoadBalancer"

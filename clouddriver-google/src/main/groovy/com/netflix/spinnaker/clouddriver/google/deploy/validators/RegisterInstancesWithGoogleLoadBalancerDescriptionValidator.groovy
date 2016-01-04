@@ -17,12 +17,15 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.description.RegisterInstancesWithGoogleLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
+@GoogleOperation(AtomicOperations.REGISTER_INSTANCES_WITH_LOAD_BALANCER)
 @Component("registerInstancesWithGoogleLoadBalancerDescriptionValidator")
 class RegisterInstancesWithGoogleLoadBalancerDescriptionValidator
   extends DescriptionValidator<RegisterInstancesWithGoogleLoadBalancerDescription> {
