@@ -106,8 +106,8 @@ class AwsProvider extends AgentSchedulerAware implements SearchableProvider {
     }
   }
 
-  private static class InstanceIdentifierExtractor implements SearchableProvider.IdentifierExtractor {
-    static Pattern INSTANCE_ID_PATTERN = Pattern.compile('(i-)?[0-9a-f]{8}')
+  static class InstanceIdentifierExtractor implements SearchableProvider.IdentifierExtractor {
+    static Pattern INSTANCE_ID_PATTERN = Pattern.compile('(i-)?[0-9a-f]{8}([0-9a-f]{9})?')
 
     final AccountCredentialsRepository accountCredentialsRepository
 
