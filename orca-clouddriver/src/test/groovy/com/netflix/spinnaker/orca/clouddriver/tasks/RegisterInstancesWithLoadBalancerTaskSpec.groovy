@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 Google, Inc.
+ * Copyright 2016 , Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks.gce
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.KatoService
@@ -23,28 +23,29 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 
-class DeregisterInstancesFromGoogleLoadBalancerTaskSpec extends Specification {
-  @Subject task = new DeregisterInstancesFromGoogleLoadBalancerTask()
+class RegisterInstancesWithLoadBalancerTaskSpec extends Specification {
+  @Subject task = new RegisterInstancesWithLoadBalancerTask()
   def stage = new PipelineStage(type: "whatever")
   def taskId = new TaskId(UUID.randomUUID().toString())
 
-  def deregisterInstancesFromLoadBalancerConfig = [
+  def registerInstancesWithLoadBalancerConfig = [
     instanceIds      : ["some-instance-name"],
     loadBalancerNames: ["flapjack-frontend"],
     region           : "us-central1",
-    credentials      : "test-account-name"
+    credentials      : "test-account-name",
+    cloudProvider    : "abc"
   ]
 
   def setup() {
-    stage.context.putAll(deregisterInstancesFromLoadBalancerConfig)
+    stage.context.putAll(registerInstancesWithLoadBalancerConfig)
   }
 
-  def "creates a deregister instances from load balancer task based on job parameters"() {
+  def "creates a register instances with load balancer task based on job parameters"() {
     given:
       def operations
       task.kato = Mock(KatoService) {
-        1 * requestOperations(*_) >> {
-          operations = it[0]
+        1 * requestOperations("abc", _) >> {
+          operations = it[1]
           rx.Observable.from(taskId)
         }
       }
@@ -54,12 +55,13 @@ class DeregisterInstancesFromGoogleLoadBalancerTaskSpec extends Specification {
 
     then:
       operations.size() == 1
-      with(operations[0].deregisterInstancesFromGoogleLoadBalancerDescription) {
+      with(operations[0].registerInstancesWithLoadBalancer) {
         it instanceof Map
-        instanceIds == this.deregisterInstancesFromLoadBalancerConfig.instanceIds
-        loadBalancerNames == this.deregisterInstancesFromLoadBalancerConfig.loadBalancerNames
-        region == this.deregisterInstancesFromLoadBalancerConfig.region
-        credentials == this.deregisterInstancesFromLoadBalancerConfig.credentials
+        instanceIds == this.registerInstancesWithLoadBalancerConfig.instanceIds
+        loadBalancerNames == this.registerInstancesWithLoadBalancerConfig.loadBalancerNames
+        region == this.registerInstancesWithLoadBalancerConfig.region
+        credentials == this.registerInstancesWithLoadBalancerConfig.credentials
+        cloudProvider == this.registerInstancesWithLoadBalancerConfig.cloudProvider
       }
   }
 

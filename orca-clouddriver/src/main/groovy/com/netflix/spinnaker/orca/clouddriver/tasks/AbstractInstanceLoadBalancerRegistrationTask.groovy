@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,9 +15,8 @@
  */
 
 
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -25,28 +24,24 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 
-@CompileStatic
-abstract class AbstractInstanceLoadBalancerRegistrationTask implements Task {
-  @Autowired
-  KatoService kato
+abstract class AbstractInstanceLoadBalancerRegistrationTask extends AbstractCloudProviderAwareTask implements Task {
 
   @Autowired
-  ObjectMapper mapper
+  KatoService kato
 
   abstract String getAction()
 
   @Override
   TaskResult execute(Stage stage) {
-    def taskId = kato.requestOperations([["${action}Description": stage.context]])
-      .toBlocking()
-      .first()
+    def taskId = kato.requestOperations(getCloudProvider(stage), [[(getAction()): stage.context]])
+        .toBlocking()
+        .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-      "notification.type"           : getAction().toLowerCase(),
-      "kato.last.task.id"           : taskId,
-      interestingHealthProviderNames: HealthHelper.getInterestingHealthProviderNames(stage, ["LoadBalancer"])
+        "notification.type"           : getAction().toLowerCase(),
+        "kato.last.task.id"           : taskId,
+        interestingHealthProviderNames: HealthHelper.getInterestingHealthProviderNames(stage, ["LoadBalancer"])
     ])
   }
 }
