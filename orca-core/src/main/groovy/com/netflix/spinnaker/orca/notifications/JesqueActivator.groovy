@@ -43,7 +43,7 @@ class JesqueActivator implements ApplicationListener<RemoteStatusChangedEvent> {
       if (it.status == UP) {
         log.info("Instance is alive... starting Jesque worker pool")
         jesqueWorkerPool.togglePause(false)
-      } else if (it.previousStatus == UP) {
+      } else {
         log.warn("Instance is going $it.status... stopping Jesque worker pool")
         jesqueWorkerPool.togglePause(true)
       }

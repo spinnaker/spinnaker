@@ -58,24 +58,8 @@ class JesqueActivatorSpec extends Specification {
     UP             | OUT_OF_SERVICE
     UP             | DOWN
     UP             | UNKNOWN
+    UNKNOWN        | DOWN
 
     event = new RemoteStatusChangedEvent(new StatusChangeEvent(previousStatus, newStatus))
   }
-
-  def "activator does nothing when the application goes from #previousStatus to #newStatus"() {
-    when:
-    activator.onApplicationEvent(event)
-
-    then:
-    0 * jesquePool._
-
-    where:
-    previousStatus | newStatus
-    OUT_OF_SERVICE | UNKNOWN
-    DOWN           | STARTING
-    STARTING       | OUT_OF_SERVICE
-
-    event = new RemoteStatusChangedEvent(new StatusChangeEvent(previousStatus, newStatus))
-  }
-
 }

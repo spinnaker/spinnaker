@@ -39,6 +39,9 @@ import rx.schedulers.Schedulers
 
 import javax.annotation.PreDestroy
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
 
@@ -48,7 +51,8 @@ import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
 class TopApplicationExecutionCleanupPollingNotificationAgent implements ApplicationListener<RemoteStatusChangedEvent> {
 
   private Scheduler scheduler = Schedulers.io()
-  private Subscription subscription
+  private final AtomicReference<Subscription> subscription = new AtomicReference<>(null)
+  private final Lock subscriptionLock = new ReentrantLock()
 
   private Func1<Execution, Boolean> filter = { Execution execution ->
     execution.status.complete || execution.buildTime < (new Date() - 31).time
@@ -75,7 +79,18 @@ class TopApplicationExecutionCleanupPollingNotificationAgent implements Applicat
 
   @PreDestroy
   void stopPolling() {
-    subscription?.unsubscribe()
+    subscriptionLock.lockInterruptibly()
+    try {
+      def sub = subscription.getAndSet(null)
+      sub?.unsubscribe()
+      if (sub != null) {
+        log.info("top application execution cleanup stopped")
+      } else {
+        log.info("top application execution cleanup was not running")
+      }
+    } finally {
+      subscriptionLock.unlock()
+    }
   }
 
   @Override
@@ -84,7 +99,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgent implements Applicat
       if (it.status == UP) {
         log.info("Instance is $it.status... starting top application execution cleanup")
         startPolling()
-      } else if (it.previousStatus == UP) {
+      } else {
         log.warn("Instance is $it.status... stopping top application execution cleanup")
         stopPolling()
       }
@@ -92,10 +107,20 @@ class TopApplicationExecutionCleanupPollingNotificationAgent implements Applicat
   }
 
   private void startPolling() {
-    subscription = Observable
-      .timer(pollingIntervalMs, TimeUnit.MILLISECONDS, scheduler)
-      .repeat()
-      .subscribe({ Long interval -> tick() })
+    subscriptionLock.lockInterruptibly()
+    try {
+      if (subscription.get() == null) {
+        subscription.set(Observable
+            .timer(pollingIntervalMs, TimeUnit.MILLISECONDS, scheduler)
+            .repeat()
+            .subscribe({ Long interval -> tick() }))
+        log.info("top application execution cleanup started")
+      } else {
+        log.info("top application execution cleanup was already running")
+      }
+    } finally {
+      subscriptionLock.unlock()
+    }
   }
 
   @PackageScope
