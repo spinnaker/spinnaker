@@ -558,7 +558,6 @@ class KatoIntegrationTest(st.AgentTestCase):
     # in that condition override the default retry parameters, then stick
     # with the defaults here.
     self.run_test_case(self.scenario.delete_load_balancer(), max_retries=5)
-)
 
 
 def main():

@@ -193,10 +193,10 @@ class BaseJenkinsOperation(testable_agent.AgentOperation):
     self.__data = {}
 
   def export_to_json_snapshot(self, snapshot, entity):
-    snapshot.edge_builder.make_mechanism('Jenkins Agent', self.agent)
+    snapshot.edge_builder.make_mechanism(entity, 'Jenkins Agent', self.agent)
     # TODO(ewiseblatt): Not sure if this is input or output.
     snapshot.edge_builder.make_data(
-        'Payload Data', self.__data, format='json')
+        entity, 'Payload Data', self.__data, format='json')
     super(BaseJenkinsOperation, self).export_to_json_snapshot(snapshot, entity)
 
   def _make_scribe_parts(self, scribe):
