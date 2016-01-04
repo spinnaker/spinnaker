@@ -11,7 +11,8 @@ module.exports = angular.module('spinnaker.core.scheduler', [
     function createScheduler() {
       var scheduler = new rx.Subject();
 
-      let lastRun = new Date().getTime();
+      let lastRunTimestamp = new Date().getTime();
+      let pendingRun = null;
 
       // When creating the timer, use last run as the dueTime (first arg); zero can lead to concurrency issues
       // where the scheduler will fire shortly after being subscribed to, resulting in surprising immediate refreshes
@@ -19,25 +20,33 @@ module.exports = angular.module('spinnaker.core.scheduler', [
         .timer(settings.pollSchedule, settings.pollSchedule)
         .pausable(scheduler);
 
-      let runner = () => {
-        lastRun = new Date().getTime();
+      let run = () => {
+        $timeout.cancel(pendingRun);
+        source.resume();
+        lastRunTimestamp = new Date().getTime();
         scheduler.onNext(true);
+        pendingRun = null;
       };
 
-      source.subscribe(runner);
+      source.subscribe(run);
 
       let suspendScheduler = () => {
         $log.debug('auto refresh suspended');
         source.pause();
       };
 
+      let scheduleNextRun = (delay) => {
+        // do not schedule another run if a run is pending
+        pendingRun = pendingRun || $timeout(run, delay);
+      };
+
       let resumeScheduler = () => {
         let now = new Date().getTime();
         $log.debug('auto refresh resumed');
-        if (now - lastRun > settings.pollSchedule) {
-          source.resume();
+        if (now - lastRunTimestamp > settings.pollSchedule) {
+          run();
         } else {
-          $timeout(() => source.resume(), settings.pollSchedule - (now - lastRun));
+          scheduleNextRun(settings.pollSchedule - (now - lastRunTimestamp));
         }
       };
 
@@ -51,9 +60,9 @@ module.exports = angular.module('spinnaker.core.scheduler', [
       };
 
       let scheduleImmediate = () => {
-        runner();
+        run();
         source.pause();
-        $timeout(() => source.resume(), settings.pollSchedule);
+        scheduleNextRun(settings.pollSchedule);
       };
 
       document.addEventListener('visibilitychange', watchDocumentVisibility);
