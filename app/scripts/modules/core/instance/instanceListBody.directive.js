@@ -5,8 +5,9 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.instance.instanceListBody.directive', [
   require('../cluster/filter/clusterFilter.service.js'),
   require('../cluster/filter/clusterFilter.model.js'),
+  require('../../../modules/core/utils/rx'),
 ])
-  .directive('instanceListBody', function ($timeout, $filter, $rootScope, $state, $, _, clusterFilterService, ClusterFilterModel) {
+  .directive('instanceListBody', function ($timeout, $filter, $rootScope, $state, $, _, rx, clusterFilterService, ClusterFilterModel) {
     return {
       restrict: 'C',
       scope: {
@@ -30,41 +31,33 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
         }
 
         function buildTableRowOpenTag(instance, activeClass) {
-          return '<tr class="clickable instance-row' + activeClass + '"' +
-            ' data-provider="' + instance.provider + '"' +
-            ' data-instance-id="' + instance.id + '">';
+          return `<tr class="clickable instance-row${activeClass}" data-provider="${instance.provider}" data-instance-id="${instance.id}">`;
         }
 
         function buildInstanceCheckboxCell(instance) {
-          let checkbox = '<td class="no-hover"><input type="checkbox" data-instance-id="' + instance.id + '"';
-          if (ClusterFilterModel.instanceIsMultiselected(scope.serverGroup, instance.id)) {
-            checkbox+= ' checked';
-          }
-          checkbox += '/></td>';
-
-          return checkbox;
+          let isChecked = ClusterFilterModel.instanceIsMultiselected(scope.serverGroup, instance.id);
+          return  `<td class="no-hover"><input type="checkbox" data-instance-id="${instance.id}" ${isChecked ? "checked" : ""}/></td>`;
         }
 
         function buildInstanceIdCell(instance) {
           var status = instance.healthState;
-          return '<td><span class="glyphicon glyphicon-' + status + '-triangle"></span> ' +
-            instance.id + '</td>';
+          return `<td><span class="glyphicon glyphicon-${status}-triangle"></span>${instance.id}</td>`;
         }
 
         function buildLaunchTimeCell(instance) {
-          return '<td>' + $filter('timestamp')(instance.launchTime) + '</td>';
+          return `<td>${$filter('timestamp')(instance.launchTime)}</td>`;
         }
 
         function buildZoneCell(instance) {
-          return '<td>' + instance.availabilityZone + '</td>';
+          return `<td>${instance.availabilityZone}</td>`;
         }
 
         function buildDiscoveryCell(discoveryStatus) {
-          return '<td class="text-center small">' + discoveryStatus + '</td>';
+          return `<td class="text-center small">${discoveryStatus}</td>`;
         }
 
         function buildProviderHealthCell(providerStatus) {
-          return '<td class="text-center small">' + providerStatus + '</td>';
+          return `<td class="text-center small">${providerStatus}</td>`;
         }
 
         function buildLoadBalancersCell(loadBalancers) {
@@ -72,16 +65,15 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
           loadBalancers.forEach(function (loadBalancer) {
             var tooltip = loadBalancer.state === 'OutOfService' ? loadBalancer.description.replace(/"/g, '&quot;') : null;
             var icon = loadBalancer.state === 'InService' ? 'Up' : 'Down';
+
             if (tooltip) {
               tooltipEnabled = true;
-              row += '<div data-toggle="tooltip" title="' + tooltip + '">';
-            } else {
-              row += '<div>';
+              var tooltipAttrs= `data-toggle="tooltip" title="${tooltip}"`;
             }
-            row += '<span class="glyphicon glyphicon-' + icon + '-triangle"></span> ';
-            row += loadBalancer.name;
-            row += '</div>';
+
+            row += `<div ${tooltip ? tooltipAttrs : ""}><span class="glyphicon glyphicon-${icon}-triangle"></span>${loadBalancer.name}</div>`;
           });
+
           if (!loadBalancers.length) {
             row += '-';
           }
@@ -145,6 +137,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
         }
 
         function renderInstances() {
+          console.log('renderInstances');
           if (tooltipEnabled) {
             $('[data-toggle="tooltip"]', elem).tooltip('destroy');
           }
