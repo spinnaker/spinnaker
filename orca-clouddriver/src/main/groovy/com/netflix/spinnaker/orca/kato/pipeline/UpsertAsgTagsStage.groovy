@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
+@Deprecated
 class UpsertAsgTagsStage extends LinearStage {
   public static final String PIPELINE_CONFIG_TYPE = "upsertAsgTags"
 
