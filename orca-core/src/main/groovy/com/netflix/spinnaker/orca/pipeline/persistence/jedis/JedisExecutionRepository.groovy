@@ -340,9 +340,8 @@ class JedisExecutionRepository implements ExecutionRepository {
       parallel         : String.valueOf(execution.parallel),
       limitConcurrent  : String.valueOf(execution.limitConcurrent),
       buildTime        : Long.toString(execution.buildTime ?: 0L),
-      // TODO: modify these lines once we eliminate dynamic time properties
-      startTime        : (execution.startTime ?: execution.startTime)?.toString(),
-      endTime          : (execution.endTime ?: execution.endTime)?.toString(),
+      startTime        : execution.startTime?.toString(),
+      endTime          : execution.endTime?.toString(),
       executingInstance: execution.executingInstance,
       status           : execution.status?.name(),
       authentication   : mapper.writeValueAsString(execution.authentication),
