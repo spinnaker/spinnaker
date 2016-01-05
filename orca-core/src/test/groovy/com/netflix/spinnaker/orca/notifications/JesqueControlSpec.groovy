@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.notifications
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.discovery.StatusChangeEvent
-import com.netflix.spinnaker.kork.eureka.EurekaStatusChangedEvent
+import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import net.greghaines.jesque.client.Client
@@ -49,10 +49,10 @@ class JesqueControlSpec extends Specification {
 
   def "if the instance shuts down Jesque should stop"() {
     given:
-    applicationContext.publishEvent(new EurekaStatusChangedEvent(new StatusChangeEvent(STARTING, UP)))
+    applicationContext.publishEvent(new RemoteStatusChangedEvent(new StatusChangeEvent(STARTING, UP)))
 
     when:
-    applicationContext.publishEvent(new EurekaStatusChangedEvent(new StatusChangeEvent(UP, OUT_OF_SERVICE)))
+    applicationContext.publishEvent(new RemoteStatusChangedEvent(new StatusChangeEvent(UP, OUT_OF_SERVICE)))
 
     then:
     workerPool.isPaused()
@@ -60,7 +60,7 @@ class JesqueControlSpec extends Specification {
 
   def "if the instance starts up Jesque should start"() {
     when:
-    applicationContext.publishEvent(new EurekaStatusChangedEvent(new StatusChangeEvent(STARTING, UP)))
+    applicationContext.publishEvent(new RemoteStatusChangedEvent(new StatusChangeEvent(STARTING, UP)))
 
     then:
     !workerPool.isPaused()

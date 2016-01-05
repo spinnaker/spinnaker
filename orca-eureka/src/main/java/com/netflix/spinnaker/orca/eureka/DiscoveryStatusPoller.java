@@ -21,7 +21,7 @@ import java.util.List;
 import com.netflix.appinfo.InstanceInfo.InstanceStatus;
 import com.netflix.discovery.DiscoveryClient;
 import com.netflix.discovery.StatusChangeEvent;
-import com.netflix.spinnaker.kork.eureka.EurekaStatusChangedEvent;
+import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -66,7 +66,7 @@ public class DiscoveryStatusPoller implements ApplicationListener<ContextRefresh
 
   private void publishEvent(StatusChangeEvent event) {
     log.info("Application status changed from {} to {}", event.getPreviousStatus(), event.getStatus());
-    applicationContext.publishEvent(new EurekaStatusChangedEvent(event));
+    applicationContext.publishEvent(new RemoteStatusChangedEvent(event));
   }
 
   private StatusChangeEvent createEvent(List<InstanceStatus> statusTuple) {

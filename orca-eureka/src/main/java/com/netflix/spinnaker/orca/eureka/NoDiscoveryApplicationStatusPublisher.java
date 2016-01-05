@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.eureka;
 
 import com.netflix.discovery.StatusChangeEvent;
-import com.netflix.spinnaker.kork.eureka.EurekaStatusChangedEvent;
+import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -31,7 +31,7 @@ public class NoDiscoveryApplicationStatusPublisher implements ApplicationListene
   private final ApplicationContext context;
   private final Logger log = LoggerFactory.getLogger(NoDiscoveryApplicationStatusPublisher.class);
 
-  private static final EurekaStatusChangedEvent DEFAULT_UP_EVENT = new EurekaStatusChangedEvent(new StatusChangeEvent(UNKNOWN, UP));
+  private static final RemoteStatusChangedEvent DEFAULT_UP_EVENT = new RemoteStatusChangedEvent(new StatusChangeEvent(UNKNOWN, UP));
 
   public NoDiscoveryApplicationStatusPublisher(ApplicationContext context) {
     this.context = context;

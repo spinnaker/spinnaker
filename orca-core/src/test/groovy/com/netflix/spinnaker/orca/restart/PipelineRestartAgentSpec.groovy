@@ -22,7 +22,7 @@ import com.netflix.appinfo.InstanceInfo.InstanceStatus
 import com.netflix.discovery.StatusChangeEvent
 import com.netflix.discovery.shared.Application
 import com.netflix.discovery.shared.LookupService
-import com.netflix.spinnaker.kork.eureka.EurekaStatusChangedEvent
+import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import net.greghaines.jesque.client.Client
@@ -174,9 +174,9 @@ class PipelineRestartAgentSpec extends Specification {
     pipelineRestarter.onApplicationEvent(statusChangeEvent(STARTING, UP))
   }
 
-  private static EurekaStatusChangedEvent statusChangeEvent(
+  private static RemoteStatusChangedEvent statusChangeEvent(
     InstanceStatus from,
     InstanceStatus to) {
-    new EurekaStatusChangedEvent(new StatusChangeEvent(from, to))
+    new RemoteStatusChangedEvent(new StatusChangeEvent(from, to))
   }
 }

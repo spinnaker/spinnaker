@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.notifications.scheduling
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.kork.eureka.EurekaStatusChangedEvent
+import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -27,7 +27,6 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationListener
 import org.springframework.stereotype.Component
 import redis.clients.jedis.Jedis
@@ -40,16 +39,20 @@ import rx.schedulers.Schedulers
 
 import javax.annotation.PreDestroy
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
 
 @Slf4j
 @Component
 @ConditionalOnExpression(value = '${pollers.topApplicationExecutionCleanup.enabled:false}')
-class TopApplicationExecutionCleanupPollingNotificationAgent implements ApplicationListener<EurekaStatusChangedEvent> {
+class TopApplicationExecutionCleanupPollingNotificationAgent implements ApplicationListener<RemoteStatusChangedEvent> {
 
   private Scheduler scheduler = Schedulers.io()
-  private Subscription subscription
+  private final AtomicReference<Subscription> subscription = new AtomicReference<>(null)
+  private final Lock subscriptionLock = new ReentrantLock()
 
   private Func1<Execution, Boolean> filter = { Execution execution ->
     execution.status.complete || execution.buildTime < (new Date() - 31).time
@@ -76,16 +79,27 @@ class TopApplicationExecutionCleanupPollingNotificationAgent implements Applicat
 
   @PreDestroy
   void stopPolling() {
-    subscription?.unsubscribe()
+    subscriptionLock.lockInterruptibly()
+    try {
+      def sub = subscription.getAndSet(null)
+      sub?.unsubscribe()
+      if (sub != null) {
+        log.info("top application execution cleanup stopped")
+      } else {
+        log.info("top application execution cleanup was not running")
+      }
+    } finally {
+      subscriptionLock.unlock()
+    }
   }
 
   @Override
-  void onApplicationEvent(EurekaStatusChangedEvent event) {
-    event.statusChangeEvent.with {
+  void onApplicationEvent(RemoteStatusChangedEvent event) {
+    event.source.with {
       if (it.status == UP) {
         log.info("Instance is $it.status... starting top application execution cleanup")
         startPolling()
-      } else if (it.previousStatus == UP) {
+      } else {
         log.warn("Instance is $it.status... stopping top application execution cleanup")
         stopPolling()
       }
@@ -93,10 +107,20 @@ class TopApplicationExecutionCleanupPollingNotificationAgent implements Applicat
   }
 
   private void startPolling() {
-    subscription = Observable
-      .timer(pollingIntervalMs, TimeUnit.MILLISECONDS, scheduler)
-      .repeat()
-      .subscribe({ Long interval -> tick() })
+    subscriptionLock.lockInterruptibly()
+    try {
+      if (subscription.get() == null) {
+        subscription.set(Observable
+            .timer(pollingIntervalMs, TimeUnit.MILLISECONDS, scheduler)
+            .repeat()
+            .subscribe({ Long interval -> tick() }))
+        log.info("top application execution cleanup started")
+      } else {
+        log.info("top application execution cleanup was already running")
+      }
+    } finally {
+      subscriptionLock.unlock()
+    }
   }
 
   @PackageScope
