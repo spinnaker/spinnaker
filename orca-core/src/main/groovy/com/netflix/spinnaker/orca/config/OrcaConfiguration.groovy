@@ -23,13 +23,13 @@ import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationContext
-import rx.internal.schedulers.SchedulerLifecycle
 
 import java.time.Clock
 import java.time.Duration
 import java.util.concurrent.ThreadPoolExecutor
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.ValueFunction
+import com.netflix.spinnaker.kork.eureka.EurekaConfiguration
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.StageTaskPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
@@ -63,6 +63,7 @@ import static java.time.temporal.ChronoUnit.MINUTES
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
 
 @Configuration
+@Import([EurekaConfiguration])
 @ComponentScan([
 "com.netflix.spinnaker.orca.pipeline",
 "com.netflix.spinnaker.orca.notifications.scheduling",
@@ -82,7 +83,7 @@ class OrcaConfiguration {
     Duration.of(3, MINUTES)
   }
 
-  @Bean(destroyMethod = '') Scheduler scheduler() {
+  @Bean Scheduler scheduler() {
     Schedulers.io()
   }
 

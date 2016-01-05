@@ -32,7 +32,7 @@ class NoDiscoveryApplicationStatusPublisherSpec extends Specification {
     publisher.onApplicationEvent(new ContextRefreshedEvent(context))
 
     then:
-    1 * context.publishEvent({ it.source.current == UP })
+    1 * context.publishEvent({ it.statusChangeEvent.current == UP })
   }
 
 }
