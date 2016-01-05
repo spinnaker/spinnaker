@@ -137,7 +137,6 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
         }
 
         function renderInstances() {
-          console.log('renderInstances');
           if (tooltipEnabled) {
             $('[data-toggle="tooltip"]', elem).tooltip('destroy');
           }
