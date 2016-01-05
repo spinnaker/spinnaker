@@ -20,11 +20,7 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
-import com.amazonaws.services.ec2.model.AvailabilityZone;
-import com.amazonaws.services.ec2.model.DescribeRegionsRequest;
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult;
-import com.amazonaws.services.ec2.model.Region;
+import com.amazonaws.services.ec2.model.*;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials.AWSRegion;
 
 import java.util.ArrayList;
@@ -50,12 +46,33 @@ public class DefaultAWSAccountInfoLookup implements AWSAccountInfoLookup {
     public String findAccountId() {
         AmazonEC2 ec2 = new AmazonEC2Client(credentialsProvider.getCredentials());
         try {
-            DescribeSecurityGroupsRequest request = new DescribeSecurityGroupsRequest()
-                    .withGroupNames(DEFAULT_SECURITY_GROUP_NAME);
-            DescribeSecurityGroupsResult result = ec2.describeSecurityGroups(request);
-            if (result.getSecurityGroups().size() > 0) {
-                return result.getSecurityGroups().get(0).getOwnerId();
+            List<Vpc> vpcs = ec2.describeVpcs().getVpcs();
+            boolean supportsByName = false;
+            if (vpcs.isEmpty()) {
+              supportsByName = true;
+            } else {
+              for (Vpc vpc : vpcs) {
+                if (vpc.getIsDefault()) {
+                  supportsByName = true;
+                  break;
+                }
+              }
             }
+
+            DescribeSecurityGroupsRequest request = new DescribeSecurityGroupsRequest();
+            if (supportsByName) {
+              request.withGroupNames(DEFAULT_SECURITY_GROUP_NAME);
+            }
+            DescribeSecurityGroupsResult result = ec2.describeSecurityGroups(request);
+
+            for (SecurityGroup sg : result.getSecurityGroups()) {
+              //if there is a vpcId or it is the default security group it won't be an EC2 cross account group
+              if ((sg.getVpcId() != null && sg.getVpcId().length() > 0) || DEFAULT_SECURITY_GROUP_NAME.equals(sg.getGroupName())) {
+                return sg.getOwnerId();
+              }
+            }
+
+            throw new IllegalArgumentException("Unable to lookup accountId with provided credentials");
         } catch (AmazonServiceException ase) {
             if ("AccessDenied".equals(ase.getErrorCode())) {
                 String message = ase.getMessage();
@@ -66,7 +83,6 @@ public class DefaultAWSAccountInfoLookup implements AWSAccountInfoLookup {
             }
             throw ase;
         }
-        throw new IllegalArgumentException("Unable to lookup accountId with provided credentials");
     }
 
     @Override
