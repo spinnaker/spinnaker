@@ -29,6 +29,7 @@ final class AtomicOperations {
   public static final String ENABLE_SERVER_GROUP = "enableServerGroup"
   public static final String DESTROY_SERVER_GROUP = "destroyServerGroup"
   public static final String RESIZE_SERVER_GROUP = "resizeServerGroup"
+  public static final String UPSERT_SERVER_GROUP_TAGS = "upsertServerGroupTags"
 
   // Instance operations
   public static final String REBOOT_INSTANCES = "rebootInstances"
