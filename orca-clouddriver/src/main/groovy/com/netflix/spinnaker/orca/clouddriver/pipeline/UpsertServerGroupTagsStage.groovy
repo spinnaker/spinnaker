@@ -32,11 +32,23 @@ class UpsertServerGroupTagsStage extends LinearStage {
     super(PIPELINE_CONFIG_TYPE)
   }
 
+  /**
+   * This constructor only exists so we can properly instantiate the deprecated subclass UpsertAsgTagsStage.
+   * Once that deprecated subclass goes away, this constructor should be removed as well.
+   *
+   * @deprecated use UpsertServerGroupTagsStage() instead.
+   */
+  @Deprecated
+  UpsertServerGroupTagsStage(String type) {
+    super(type)
+  }
+
   @Override
   public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "upsertServerGroupTags", UpsertServerGroupTagsTask)
-    def step2 = buildStep(stage, "monitorUpsert", MonitorKatoTask)
-    def step3 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    [step1, step2, step3]
+    [
+        buildStep(stage, "upsertServerGroupTags", UpsertServerGroupTagsTask),
+        buildStep(stage, "monitorUpsert", MonitorKatoTask),
+        buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
+    ]
   }
 }

@@ -16,31 +16,19 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.kato.tasks.UpsertAsgTagsTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
+import com.netflix.spinnaker.orca.clouddriver.pipeline.UpsertServerGroupTagsStage
 import org.springframework.stereotype.Component
 
+/**
+ * @deprecated Use {@link com.netflix.spinnaker.orca.clouddriver.pipeline.UpsertServerGroupTagsStage} instead.
+ */
 @Component
-@CompileStatic
 @Deprecated
-class UpsertAsgTagsStage extends LinearStage {
+class UpsertAsgTagsStage extends UpsertServerGroupTagsStage {
   public static final String PIPELINE_CONFIG_TYPE = "upsertAsgTags"
 
   UpsertAsgTagsStage() {
     super(PIPELINE_CONFIG_TYPE)
-  }
-
-  @Override
-  public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "upsertAsgTags", UpsertAsgTagsTask)
-    def step2 = buildStep(stage, "monitorUpsert", MonitorKatoTask)
-    def step3 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    [step1, step2, step3]
   }
 }
 
