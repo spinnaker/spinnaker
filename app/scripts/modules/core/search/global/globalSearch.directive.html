@@ -3,11 +3,14 @@
     <div class="form-group has-feedback">
       <div class="input-group">
         <input type="search"
-          class="form-control flat"
-          placeholder="Search"
-          ng-model="query"
-          ng-focus="ctrl.displayResults()"
-          ng-keyup="ctrl.dispatchQueryInput($event)"
+               class="form-control flat"
+               placeholder="Search"
+               ng-model="query"
+               ng-focus="ctrl.displayResults()"
+               ng-keyup="ctrl.dispatchQueryInput($event)"
+               ng-blur="ctrl.searchFieldBlurred($event)"
+               ng-paste="ctrl.dispatchQueryInput($event)"
+               ng-cut="ctrl.dispatchQueryInput($event)"
           />
         <span class="glyphicon glyphicon-search form-control-feedback"></span>
       </div>

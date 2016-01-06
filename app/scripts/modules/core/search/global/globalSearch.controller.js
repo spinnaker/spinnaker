@@ -27,6 +27,13 @@ module.exports = angular.module('spinnaker.core.search.global.controller', [
       $element.find('input').focus();
     }
 
+    this.searchFieldBlurred = ($blurEvent) => {
+      // if the target is outside the global search (e.g. shift+tab), hide the results
+      if (!$.contains($element.get(0), $blurEvent.relatedTarget)) {
+        this.hideResults();
+      }
+    };
+
     this.displayResults = () => {
       if ($scope.query) {
         $scope.showSearchResults = true;
@@ -137,6 +144,12 @@ module.exports = angular.module('spinnaker.core.search.global.controller', [
       var $target = $(event.target);
       if (event.which === 27) { // escape
         reset();
+      }
+      if (event.which === 9) { // tab - let it navigate automatically, but close menu if on the last result
+        if ($element.find('ul.dropdown-menu').find('a').last().is(':focus')) {
+          ctrl.hideResults();
+          return;
+        }
       }
       if (event.which === 40) { // down
         ctrl.focussedResult = null;
