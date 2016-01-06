@@ -2,10 +2,6 @@
   <h5 class="execution-details-title">
     {{stageSummary.name || stageSummary.type }} Details
 
-    <!--<span style="margin-left: 50px" class="label label-default label-{{ stageSummary.masterStage.context.canary.status.status | lowercase }}">-->
-      <!--{{ stageSummary.masterStage.context.canary.status.status | lowercase | robotToHuman }}-->
-    <!--</span>-->
-
     <div ng-if="stageSummary.masterStage.context.canary.status.status === 'LAUNCHED' ||
                 stageSummary.masterStage.context.canary.status.status === 'RUNNING' ||
                 stageSummary.masterStage.context.canary.status.status === 'DISABLED'" uib-dropdown class="btn-group pull-right">
@@ -19,6 +15,7 @@
       </ul>
     </div>
   </h5>
+  <h6 class="duration">Duration: {{stageSummary.runningTimeInMs | duration}}</h6>
   <table class="table canary-summary">
     <thead>
     <tr>
