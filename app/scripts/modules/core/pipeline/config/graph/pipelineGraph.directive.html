@@ -12,22 +12,6 @@
           ng-attr-stroke="{{link.color}}"
           ng-attr-transform="translate({{0-stage.x}}, {{0-stage.y}})"></path>
 
-
-    <foreignobject ng-attr-width="{{maxLabelWidth}}" height="100"
-                   ng-attr-transform="translate({{labelOffsetX}}, {{stage.leaf && !stage.executionStage ? -8 : labelOffsetY*-1}})">
-      <div class="execution-stage-label clickable {{stage.status.toLowerCase()}}"
-           ng-if="stage.labelTemplateUrl"
-           ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
-           ng-style="{height: stage.height + 'px'}"
-           ng-click="nodeClicked(stage)">
-        <div ng-include="stage.labelTemplateUrl"></div>
-      </div>
-      <div class="label-body node"
-           ng-if="!stage.labelTemplateUrl"
-           ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
-           ng-click="nodeClicked(stage)"><a href>{{stage.name}}</a></div>
-    </foreignobject>
-
     <circle ng-attr-r="{{nodeRadius}}"
             class="clickable stage-type-{{stage.masterStage.type.toLowerCase()}} execution-marker execution-marker-{{stage.status.toLowerCase()}}"
             ng-class="{active: stage.isActive}"
@@ -53,5 +37,22 @@
           ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
           ng-click="nodeClicked(stage)"></rect>
 
+  </g>
+
+  <g ng-repeat="stage in allNodes" ng-class="{'has-status': stage.status, active: stage.isActive, highlighted: stage.isHighlighted}" ng-attr-transform="translate({{stage.x}},{{stage.y}})">
+    <foreignobject ng-attr-width="{{maxLabelWidth}}" height="100"
+                   ng-attr-transform="translate({{labelOffsetX}}, {{stage.leaf && !stage.executionStage ? -8 : labelOffsetY*-1}})">
+      <div class="execution-stage-label clickable {{stage.status.toLowerCase()}}"
+           ng-if="stage.labelTemplateUrl"
+           ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
+           ng-style="{height: stage.height + 'px'}"
+           ng-click="nodeClicked(stage)">
+        <div ng-include="stage.labelTemplateUrl"></div>
+      </div>
+      <div class="label-body node"
+           ng-if="!stage.labelTemplateUrl"
+           ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
+           ng-click="nodeClicked(stage)"><a href>{{stage.name}}</a></div>
+    </foreignobject>
   </g>
 </svg>
