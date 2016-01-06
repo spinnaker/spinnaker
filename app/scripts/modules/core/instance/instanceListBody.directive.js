@@ -18,10 +18,10 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
         serverGroup: '=',
       },
       link: function (scope, elem) {
-        var tooltipEnabled = false;
-        scope.activeInstance = null;
-
-        scope.instanceGroup = ClusterFilterModel.getOrCreateMultiselectInstanceGroup(scope.serverGroup);
+        var tooltipEnabled = false,
+            renderedMultiselectInstances = [],
+            instanceGroup = ClusterFilterModel.getOrCreateMultiselectInstanceGroup(scope.serverGroup),
+            activeInstance = null;
 
         var base = elem.parent().inheritedData('$uiView').state;
 
@@ -136,14 +136,13 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
         }
 
         function renderInstances() {
-          if (tooltipEnabled) {
-            $('[data-toggle="tooltip"]', elem).tooltip('destroy');
-          }
-          var instances = scope.instances || [],
-            filtered = instances.filter(clusterFilterService.shouldShowInstance),
-            sorted = filtered.sort(instanceSorter);
+          var instances = (scope.instances || [])
+            .filter(clusterFilterService.shouldShowInstance)
+            .sort(instanceSorter);
 
-          let newHtml = sorted.map(function (instance) {
+          renderedMultiselectInstances = instanceGroup.instanceIds.slice(0);
+
+          let newHtml = instances.map(function (instance) {
             var loadBalancers = [],
               discoveryState = '',
               discoveryStatus = '-',
@@ -153,7 +152,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
               params = {instanceId: instance.id, provider: instance.provider };
             if ($state.includes('**.instanceDetails', params)) {
               activeClass = ' active';
-              scope.activeInstance = params;
+              activeInstance = params;
             }
 
             instance.health.forEach(function (health) {
@@ -195,19 +194,18 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
 
           }).join('');
 
-          elem.get(0).innerHTML = newHtml;
-          if (tooltipEnabled) {
-            $('[data-toggle="tooltip"]', elem).tooltip({placement: 'left', container: 'body'});
+          if (elem.get(0).innerHTML !== newHtml) {
+            if (tooltipEnabled) {
+              $('[data-toggle="tooltip"]', elem).tooltip('destroy');
+            }
+            elem.get(0).innerHTML = newHtml;
+            if (tooltipEnabled) {
+              $('[data-toggle="tooltip"]', elem).tooltip({placement: 'left', container: 'body'});
+            }
           }
         }
 
         scope.$watch('sortFilter.instanceSort.key', function(newVal, oldVal) {
-          if (newVal && oldVal && newVal !== oldVal) {
-            renderInstances();
-          }
-        });
-
-        scope.$watch('instanceGroup.instanceIds', function(newVal, oldVal) {
           if (newVal && oldVal && newVal !== oldVal) {
             renderInstances();
           }
@@ -232,15 +230,15 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
               if (!$targetRow.length) {
                 return;
               }
-              if (scope.activeInstance) {
-                $('tr[data-instance-id="' + scope.activeInstance.instanceId+'"]', elem).removeClass('active');
+              if (activeInstance) {
+                $('tr[data-instance-id="' + activeInstance.instanceId+'"]', elem).removeClass('active');
               }
               var targetRow = $targetRow.get(0);
               var params = {
                 instanceId: targetRow.getAttribute('data-instance-id'),
                 provider: targetRow.getAttribute('data-provider')
               };
-              scope.activeInstance = params;
+              activeInstance = params;
               // also stolen from uiSref directive
               $state.go('.instanceDetails', params, {relative: base, inherit: true});
               $targetRow.addClass('active');
@@ -250,14 +248,20 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
         });
 
         function clearActiveState() {
-          if (scope.activeInstance && !$state.includes('**.instanceDetails', scope.activeInstance)) {
-            $('tr[data-instance-id="' + scope.activeInstance.instanceId+'"]', elem).removeClass('active');
-            scope.activeInstance = null;
+          if (activeInstance && !$state.includes('**.instanceDetails', activeInstance)) {
+            $('tr[data-instance-id="' + activeInstance.instanceId+'"]', elem).removeClass('active');
+            activeInstance = null;
           }
         }
 
+        let renderIfMultiselectChanges = () => {
+          if (!_.isEqual(renderedMultiselectInstances.sort(), instanceGroup.instanceIds.sort())) {
+            renderInstances();
+          }
+        };
+
         scope.$on('$locationChangeSuccess', clearActiveState);
-        let multiselectWatcher = ClusterFilterModel.multiselectInstancesStream.subscribe(renderInstances);
+        let multiselectWatcher = ClusterFilterModel.multiselectInstancesStream.subscribe(renderIfMultiselectChanges);
 
         scope.$on('$destroy', function() {
           multiselectWatcher.dispose();

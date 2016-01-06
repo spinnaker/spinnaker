@@ -132,6 +132,10 @@ module.exports = angular
       return filterModel.hasSavedState(toParams) && !isClusterStateOrChild(fromState.name);
     }
 
+    function changingApplications(toParams, fromParams) {
+      return toParams.application !== fromParams.application;
+    }
+
     // WHY??? Because, when the stateChangeStart event fires, the $location.search() will return whatever the query
     // params are on the route we are going to, so if the user is using the back button, for example, to go to the
     // Infrastructure page with a search already entered, we'll pick up whatever search was entered there, and if we
@@ -148,7 +152,7 @@ module.exports = angular
     });
 
     this.handleStateChangeStart = (event, toState, toParams, fromState, fromParams) => {
-      if (toState.name.indexOf('multipleInstances') < 0) {
+      if (movingFromClusterState(toState, fromState) || changingApplications(toParams, fromParams)) {
         this.multiselectInstanceGroups.length = 0;
         this.multiselectInstancesStream.onNext();
       }
