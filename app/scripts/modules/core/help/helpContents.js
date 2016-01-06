@@ -180,7 +180,9 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.canary.baselineVersion': '<p>The Canary stage will inspect the specified cluster to determine which version to deploy as the baseline in each cluster pair.</p>',
 
     'pipeline.config.cron.expression': '<strong>Format (Year is optional)</strong><p><samp>Seconds  Minutes  Hour  DayOfMonth  Month  DayOfWeek  (Year)</samp></p>' +
-    '<p><strong>Example: every 30 minutes</strong></p><samp>0 0/30 * * * ?</samp>',
+    '<p><strong>Example: every 30 minutes</strong></p><samp>0 0/30 * * * ?</samp>' +
+    '<p><strong>Example: every Monday at 10 am</strong></p><samp>0 0 10 ? * 2</samp>' +
+    '<p><strong>Note:</strong> values for "DayOfWeek" are 1-7, where Sunday is 1, Monday is 2, etc. You can also use MON,TUE,WED, etc.',
 
     'cluster.description': '<p>A cluster is a collection of server groups with the same name (stack + detail) in the same account.</p>',
 
