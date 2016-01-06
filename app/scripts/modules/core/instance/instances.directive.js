@@ -15,8 +15,7 @@ module.exports = angular.module('spinnaker.core.instance.instances.directive', [
       },
       link: function (scope, elem) {
         var $state = scope.$parent.$state;
-        let lastRender = '',
-            tooltipsApplied = false;
+        let tooltipsApplied = false;
 
         var base = elem.parent().inheritedData('$uiView').state;
 
@@ -41,13 +40,12 @@ module.exports = angular.module('spinnaker.core.instance.instances.directive', [
                 '" class="instance health-status-' + instance.healthState + activeClass + '"></a>';
             }).join('') + '</div>';
 
-          if (innerHtml !== lastRender) {
+          if (innerHtml !== elem.get(0).innerHTML) {
             if (tooltipsApplied) {
               $('[data-toggle="tooltip"]', elem).tooltip('destroy');
               tooltipsApplied = false;
             }
             elem.get(0).innerHTML = innerHtml;
-            lastRender = innerHtml;
           }
         }
 
@@ -95,7 +93,6 @@ module.exports = angular.module('spinnaker.core.instance.instances.directive', [
           }
           elem.unbind('mouseover');
           elem.unbind('click');
-          lastRender = null;
         });
 
         scope.$watch('instances', renderInstances);

@@ -187,22 +187,38 @@ describe('Cluster Filter Model', function () {
     });
 
     describe('state change start event', function () {
-      it('clears multiselectInstanceGroups when navigating away from multipleInstances', function () {
-        let newState = { name: '.clusters' },
-            oldState = { name: '.multipleInstances' };
+      it('clears multiselectInstanceGroups when navigating away from clusters view', function () {
+        let oldState = { name: 'home.applications.application.insight.clusters' },
+            newState = { name: 'home.applications.application.insight.loadBalancers' },
+            oldParams = { application: 'a' },
+            newParams = { application: 'a' };
         ClusterFilterModel.multiselectInstanceGroups = [ 'it does not matter, we are just verifying the array is cleared'];
 
-        ClusterFilterModel.handleStateChangeStart(null, newState, null, oldState, null);
+        ClusterFilterModel.handleStateChangeStart(null, newState, newParams, oldState, oldParams);
+        expect(ClusterFilterModel.multiselectInstanceGroups).toEqual([]);
+      });
+
+      it('clears multiselectInstanceGroups when navigating to a different application', function () {
+        let oldState = { name: 'home.applications.application.insight.clusters' },
+            newState = { name: 'home.applications.application.insight.clusters' },
+            oldParams = { application: 'a' },
+            newParams = { application: 'b' };
+        ClusterFilterModel.multiselectInstanceGroups = [ 'it does not matter, we are just verifying the array is cleared'];
+
+        ClusterFilterModel.handleStateChangeStart(null, newState, newParams, oldState, oldParams);
         expect(ClusterFilterModel.multiselectInstanceGroups).toEqual([]);
       });
 
       it('preserves multiselectInstanceGroups when navigating to multipleInstances', function () {
-        let oldState = { name: '.clusters' },
-            newState = { name: '.multipleInstances' },
+        let oldState = { name: 'home.applications.application.insight.clusters' },
+            newState = { name: 'clusters.multipleInstances' },
+            oldParams = { application: 'a' },
+            newParams = { application: 'a' },
             oldGroups = [ 'a', 'b', 'c', 'just testing it does not get cleared'];
+
         ClusterFilterModel.multiselectInstanceGroups = oldGroups;
 
-        ClusterFilterModel.handleStateChangeStart(null, newState, null, oldState, null);
+        ClusterFilterModel.handleStateChangeStart(null, newState, newParams, oldState, oldParams);
         expect(ClusterFilterModel.multiselectInstanceGroups.length).toBe(4);
       });
     });
