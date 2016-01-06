@@ -44,7 +44,7 @@ class RegisterInstancesWithGoogleLoadBalancerAtomicOperation implements AtomicOp
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "registerInstancesWithGoogleLoadBalancerDescription": { "loadBalancerNames": ["myapp-loadbalancer"], "instanceIds": ["myapp-dev-v000-abcd"], "region": "us-central1", "credentials": "my-account-name" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "registerInstancesWithLoadBalancer": { "loadBalancerNames": ["myapp-loadbalancer"], "instanceIds": ["myapp-dev-v000-abcd"], "region": "us-central1", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    */
   @Override
   Void operate(List priorOutputs) {

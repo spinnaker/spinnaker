@@ -16,12 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
+import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeregisterInstancesFromGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.DeregisterInstancesFromGoogleLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
+@GoogleOperation(AtomicOperations.DEREGISTER_INSTANCES_FROM_LOAD_BALANCER)
 @Component("deregisterInstancesFromGoogleLoadBalancerDescription")
 class DeregisterInstancesFromGoogleLoadBalancerAtomicOperationConverter
   extends AbstractAtomicOperationsCredentialsSupport {
