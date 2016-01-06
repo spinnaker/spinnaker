@@ -138,7 +138,7 @@ module.exports = angular
         .map('clusters').flatten()
         .filter((cluster) => cluster.name === clusterName)
         .map('serverGroups').flatten()
-        .filter((serverGroup) => serverGroup.region === vm.property.startScope.region)
+        .filter((serverGroup) => serverGroup.region === vm.property.startScope.region && !serverGroup.isDisabled)
         .map('instances').flatten()
         .filter((instance) => instance.healthState === "Up")
         .compact().unique()
