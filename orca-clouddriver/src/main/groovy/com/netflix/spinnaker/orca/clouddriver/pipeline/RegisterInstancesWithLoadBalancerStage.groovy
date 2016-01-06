@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 Google, Inc.
+ * Copyright 2016 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.pipeline.gce
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForUpInstanceHealthTask
+package com.netflix.spinnaker.orca.clouddriver.pipeline
+
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.kato.tasks.gce.RegisterInstancesWithGoogleLoadBalancerTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.RegisterInstancesWithLoadBalancerTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForUpInstanceHealthTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
@@ -30,22 +30,19 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class RegisterInstancesWithGoogleLoadBalancerStage extends LinearStage {
-  public static final String PIPELINE_CONFIG_TYPE = "registerInstancesWithLoadBalancer_gce"
+class RegisterInstancesWithLoadBalancerStage extends LinearStage {
+  public static final String PIPELINE_CONFIG_TYPE = "registerInstancesWithLoadBalancer"
 
   @Autowired
   OortService oortService
 
-  @Autowired
-  ObjectMapper objectMapper
-
-  RegisterInstancesWithGoogleLoadBalancerStage() {
+  RegisterInstancesWithLoadBalancerStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "registerInstances", RegisterInstancesWithGoogleLoadBalancerTask)
+    def step1 = buildStep(stage, "registerInstances", RegisterInstancesWithLoadBalancerTask)
     def step2 = buildStep(stage, "monitorInstances", MonitorKatoTask)
     def step3 = buildStep(stage, "waitForLoadBalancerState", WaitForUpInstanceHealthTask)
     [step1, step2, step3]
