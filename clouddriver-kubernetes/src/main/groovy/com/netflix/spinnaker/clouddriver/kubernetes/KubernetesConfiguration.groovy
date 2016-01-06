@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes
 
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.health.KubernetesHealthIndicator
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentialsInitializer
 import org.springframework.beans.factory.annotation.Value
@@ -49,5 +50,10 @@ class KubernetesConfiguration {
   @Bean
   KubernetesHealthIndicator kubernetesHealthIndicator() {
     new KubernetesHealthIndicator()
+  }
+
+  @Bean
+  KubernetesUtil kubernetesUtil() {
+    new KubernetesUtil()
   }
 }
