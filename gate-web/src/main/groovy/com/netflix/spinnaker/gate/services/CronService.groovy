@@ -36,8 +36,8 @@ class CronService {
     }
 
     try {
-      echoService.validateCronExpression(cronExpression)
-      return [ valid: true ]
+      Map validationResult = echoService.validateCronExpression(cronExpression)
+      return [ valid: true, description: validationResult.description ]
     } catch (RetrofitError e) {
       if (e.response?.status == 400) {
         Map responseBody = e.getBodyAs(Map) as Map
