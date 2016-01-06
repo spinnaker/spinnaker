@@ -1,4 +1,4 @@
-<div>
+<div class="execution-details-summary">
   <h5 class="execution-details-title">
     {{stageSummary.name || stageSummary.type }} Details
 
@@ -12,6 +12,7 @@
       </ul>
     </div>
   </h5>
+  <h6 class="duration">Duration: {{stageSummary.runningTimeInMs | duration}}</h6>
 
   <table class="table">
     <thead>
