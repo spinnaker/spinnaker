@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 Google, Inc.
+ * Copyright 2016 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks.gce
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.KatoService
@@ -23,30 +23,31 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 
-class UpsertGoogleServerGroupTagsTaskSpec extends Specification {
+class UpsertServerGroupTagsTaskSpec extends Specification {
 
-  @Subject task = new UpsertGoogleServerGroupTagsTask()
+  @Subject task = new UpsertServerGroupTagsTask()
   def stage = new PipelineStage(type: "whatever")
   def taskId = new TaskId(UUID.randomUUID().toString())
 
-  def upsertGoogleServerGroupTagsConfig = [
+  def upsertServerGroupTagsConfig = [
       serverGroupName: "test-server-group",
-      region         : "us-central1",
+      regions        : ["us-central1"],
       zone           : "us-central1-f",
       credentials    : "fzlem",
-      tags           : ["a-tag-1", "a-tag-2", "a-tag-3"]
+      tags           : ["a-tag-1", "a-tag-2", "a-tag-3"], // Appears to be GCE style only.
+      cloudProvider  : "abc"
   ]
 
   def setup() {
-    stage.context.putAll(upsertGoogleServerGroupTagsConfig)
+    stage.context.putAll(upsertServerGroupTagsConfig)
   }
 
   def "creates an upsert google server group tags task based on job parameters"() {
     given:
       def operations
       task.kato = Mock(KatoService) {
-        1 * requestOperations(*_) >> {
-          operations = it[0]
+        1 * requestOperations("abc", _) >> {
+          operations = it[1]
           rx.Observable.from(taskId)
         }
       }
@@ -56,13 +57,13 @@ class UpsertGoogleServerGroupTagsTaskSpec extends Specification {
 
     then:
       operations.size() == 1
-      with(operations[0].upsertGoogleServerGroupTagsDescription) {
+      with(operations[0].upsertServerGroupTags) {
         it instanceof Map
-        serverGroupName == this.upsertGoogleServerGroupTagsConfig.serverGroupName
-        region == this.upsertGoogleServerGroupTagsConfig.region
-        zone == this.upsertGoogleServerGroupTagsConfig.zone
-        credentials == this.upsertGoogleServerGroupTagsConfig.credentials
-        tags == this.upsertGoogleServerGroupTagsConfig.tags
+        serverGroupName == this.upsertServerGroupTagsConfig.serverGroupName
+        regions == this.upsertServerGroupTagsConfig.regions
+        zone == this.upsertServerGroupTagsConfig.zone
+        credentials == this.upsertServerGroupTagsConfig.credentials
+        tags == this.upsertServerGroupTagsConfig.tags
       }
   }
 
@@ -78,9 +79,9 @@ class UpsertGoogleServerGroupTagsTaskSpec extends Specification {
     then:
       result.status == ExecutionStatus.SUCCEEDED
       result.outputs."kato.last.task.id" == taskId
-      result.outputs."deploy.account.name" == upsertGoogleServerGroupTagsConfig.credentials
+      result.outputs."deploy.account.name" == upsertServerGroupTagsConfig.credentials
       result.outputs."deploy.server.groups" == [
-          (upsertGoogleServerGroupTagsConfig.region): [upsertGoogleServerGroupTagsConfig.serverGroupName]
+          (upsertServerGroupTagsConfig.regions[0]): [upsertServerGroupTagsConfig.serverGroupName]
       ]
   }
 }

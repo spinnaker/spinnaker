@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2016 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -26,31 +26,33 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class UpsertAsgTagsTask implements Task {
+class UpsertServerGroupTagsTask extends AbstractCloudProviderAwareTask implements Task {
+
   @Autowired
   KatoService kato
 
   @Override
   TaskResult execute(Stage stage) {
-    def taskId = kato.requestOperations([[upsertAsgTagsDescription: stage.context]])
-      .toBlocking()
-      .first()
+    def taskId = kato.requestOperations(getCloudProvider(stage), [[upsertServerGroupTags: stage.context]])
+        .toBlocking()
+        .first()
 
     def deployServerGroups = []
-    if (stage.context.regions && stage.context.asgName) {
+    if (stage.context.regions && (stage.context.serverGroupName || stage.context.asgName)) {
       deployServerGroups = (stage.context.regions as Collection<String>).collectEntries {
-        [(it): [stage.context.asgName]]
+        [(it): [stage.context.serverGroupName ?: stage.context.asgName]]
       }
     } else if (stage.context.asgs) {
       deployServerGroups = (stage.context.asgs as Collection<Map>).collectEntries {
-        [(it.region): [it.asgName]]
+        [(it.region): [stage.context.serverGroupName ?: stage.context.asgName]]
       }
     }
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-      "notification.type"   : "upsertasgtags",
-      "kato.last.task.id"   : taskId,
-      "deploy.server.groups": deployServerGroups
+        "notification.type"   : "upsertservergrouptags",
+        "deploy.account.name" : getCredentials(stage),
+        "kato.last.task.id"   : taskId,
+        "deploy.server.groups": deployServerGroups,
     ])
   }
 }
