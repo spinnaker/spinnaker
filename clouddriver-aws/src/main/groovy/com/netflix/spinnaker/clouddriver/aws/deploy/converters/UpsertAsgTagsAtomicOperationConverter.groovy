@@ -16,12 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
+import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAsgTagsDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.UpsertAsgTagsAtomicOperation
 import org.springframework.stereotype.Component
 
+@AmazonOperation(AtomicOperations.UPSERT_SERVER_GROUP_TAGS)
 @Component("upsertAsgTagsDescription")
 class UpsertAsgTagsAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   AtomicOperation convertOperation(Map input) {

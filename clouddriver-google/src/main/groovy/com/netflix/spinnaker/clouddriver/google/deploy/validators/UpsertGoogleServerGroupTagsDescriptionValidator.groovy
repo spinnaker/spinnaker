@@ -17,12 +17,15 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleServerGroupTagsDescription
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
+@GoogleOperation(AtomicOperations.UPSERT_SERVER_GROUP_TAGS)
 @Component("upsertGoogleServerGroupTagsDescriptionValidator")
 class UpsertGoogleServerGroupTagsDescriptionValidator extends DescriptionValidator<UpsertGoogleServerGroupTagsDescription> {
   @Autowired

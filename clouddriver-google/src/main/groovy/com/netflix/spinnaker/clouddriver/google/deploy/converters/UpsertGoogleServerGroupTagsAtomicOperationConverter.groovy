@@ -16,12 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
+import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleServerGroupTagsDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.UpsertGoogleServerGroupTagsAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
+@GoogleOperation(AtomicOperations.UPSERT_SERVER_GROUP_TAGS)
 @Component("upsertGoogleServerGroupTagsDescription")
 class UpsertGoogleServerGroupTagsAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
