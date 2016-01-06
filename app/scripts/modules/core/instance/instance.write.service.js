@@ -6,22 +6,38 @@ module.exports = angular
   .module('spinnaker.core.instance.write.service', [
     require('../task/taskExecutor.js'),
     require('../serverGroup/serverGroup.read.service.js'),
+    require('../cloudProvider/serviceDelegate.service.js'),
   ])
-  .factory('instanceWriter', function (taskExecutor, serverGroupReader) {
+  .factory('instanceWriter', function (taskExecutor, serverGroupReader, serviceDelegate) {
+
+    function transform(instanceGroup, job) {
+      let hasTransformer = serviceDelegate.hasDelegate(
+        instanceGroup.cloudProvider, 'instance.multiInstanceTaskTransformer');
+      if (hasTransformer) {
+        let transformer = serviceDelegate.getDelegate(
+          instanceGroup.cloudProvider, 'instance.multiInstanceTaskTransformer');
+        transformer.transform(instanceGroup, job);
+      }
+    }
+
+    function convertGroupToJob(instanceGroup, type) {
+      let job = {
+        type: type,
+        cloudProvider: instanceGroup.cloudProvider,
+        instanceIds: instanceGroup.instanceIds,
+        credentials: instanceGroup.account,
+        region: instanceGroup.region,
+        serverGroupName: instanceGroup.serverGroup
+      };
+      transform(instanceGroup, job);
+
+      return job;
+    }
 
     function buildMultiInstanceJob(instanceGroups, type) {
       return instanceGroups
         .filter((instanceGroup) => instanceGroup.instances.length > 0)
-        .map((instanceGroup) => {
-           return {
-             type: type,
-             cloudProvider: instanceGroup.cloudProvider,
-             instanceIds: instanceGroup.instanceIds,
-             credentials: instanceGroup.account,
-             region: instanceGroup.region,
-             serverGroupName: instanceGroup.serverGroup
-           };
-        });
+        .map((instanceGroup) => convertGroupToJob(instanceGroup, type));
     }
 
     function buildMultiInstanceDescriptor(jobs, base, suffix) {

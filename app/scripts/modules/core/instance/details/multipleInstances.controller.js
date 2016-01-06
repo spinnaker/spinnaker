@@ -179,6 +179,7 @@ module.exports = angular.module('spinnaker.core.instance.details.multipleInstanc
       let instance = getInstanceDetails(group, instanceId);
       return {
         id: instanceId,
+        availabilityZone: instance.availabilityZone,
         health: instance.health,
         healthState: instance.healthState,
       };
