@@ -65,7 +65,7 @@ ospackage {
   packageName = "spinnaker-deck"
   version = toVers(project.version.toString())
   release '3'
-  into "/var/www"
+  into "/var/www/html"
   requires "apache2"
   from "build/webpack"
 }
