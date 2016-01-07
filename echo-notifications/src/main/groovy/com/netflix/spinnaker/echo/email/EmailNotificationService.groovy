@@ -65,7 +65,7 @@ class EmailNotificationService implements NotificationService {
     MimeMessage message = javaMailSender.createMimeMessage()
     MimeMessageHelper helper = new MimeMessageHelper(message)
 
-    helper.setBcc(to)
+    helper.setTo(to)
     helper.setFrom(from)
     helper.setText(text)
     helper.setSubject(subject)
