@@ -79,6 +79,20 @@ class CronServiceSpec extends Specification {
     )
 
     expect:
-    service.validateCronExpression("totally invalid cron expression") == [ valid: true ]
+    service.validateCronExpression("totally invalid cron expression") == [ valid: true, description: null ]
+  }
+
+  void "should include description if present when validation is successful"() {
+    def response = [
+        description: "LGTM"
+    ]
+    def service = new CronService(
+        echoService: Mock(EchoService) {
+          1 * validateCronExpression("1 1 1 1 1 1") >> response
+        }
+    )
+
+    expect:
+    service.validateCronExpression("1 1 1 1 1 1") == [ valid: true, description: 'LGTM' ]
   }
 }
