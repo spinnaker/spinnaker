@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cf.security
+package com.netflix.spinnaker.clouddriver.cf.utils
 
-import com.netflix.spinnaker.clouddriver.cf.utils.CloudFoundryClientFactory
-import org.cloudfoundry.client.lib.CloudFoundryOperations
+import org.jets3t.service.S3Service
+import org.jets3t.service.security.AWSCredentials
 
 /**
- * Stub CF client factory. Makes it possible to inject stub client.
+ * @author Greg Turnquist
  */
-class TestCloudFoundryClientFactory implements CloudFoundryClientFactory {
+interface S3ServiceFactory {
 
-  CloudFoundryOperations stubClient
+  S3Service createS3Service(AWSCredentials credentials)
 
-  @Override
-  CloudFoundryOperations createCloudFoundryClient(CloudFoundryAccountCredentials credentials,
-                                                  boolean trustSelfSignedCerts) {
-    stubClient
-  }
 }

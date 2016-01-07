@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cf.security
+package com.netflix.spinnaker.clouddriver.cf.utils
 
+import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
 import org.cloudfoundry.client.lib.CloudFoundryClient
 import org.cloudfoundry.client.lib.CloudFoundryOperations
 

@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cf.security
+package com.netflix.spinnaker.clouddriver.cf.utils
 
-import org.cloudfoundry.client.lib.CloudFoundryOperations
+import org.jets3t.service.S3Service
+import org.jets3t.service.impl.rest.httpclient.RestS3Service
+import org.jets3t.service.security.AWSCredentials
 
 /**
- * Factory interface for creating Cloud Foundry clients. Makes it possible to delay client
- * creation until ALL details are gathered.
+ * @author Greg Turnquist
  */
-interface CloudFoundryClientFactory {
+class DefaultS3ServiceFactory implements S3ServiceFactory {
 
-  CloudFoundryOperations createCloudFoundryClient(CloudFoundryAccountCredentials credentials,
-                                                  boolean trustSelfSignedCerts)
+  @Override
+  S3Service createS3Service(AWSCredentials credentials) {
+    return new RestS3Service(credentials)
+  }
 
 }

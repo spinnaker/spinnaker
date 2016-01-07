@@ -28,7 +28,7 @@ import spock.lang.Specification
  *
  *
  */
-class CloudFoundryDeployAtomicOperationConverterUnitSpec extends Specification {
+class CloudFoundryDeployAtomicOperationConverterSpec extends Specification {
 
   @Shared
   ObjectMapper mapper = new ObjectMapper()
@@ -105,6 +105,40 @@ class CloudFoundryDeployAtomicOperationConverterUnitSpec extends Specification {
 
     then:
     description.repository == '/{{job}}-{{buildNumber}}'
+  }
+
+  def "should handle array of load balancers"() {
+    setup:
+    def input = [
+        application: 'test-app',
+        repository: '/{{job}}-{{buildNumber}}',
+        artifact: 'test-app-0.0.1-BUILD-SNAPSHOT.war',
+        loadBalancers: ['host1', 'host2'],
+        credentials: 'test'
+    ]
+
+    when:
+    def description = converter.convertDescription(input)
+
+    then:
+    description.loadBalancers == 'host1,host2'
+  }
+
+  def "should handle comma-delimited list of load balancers"() {
+    setup:
+    def input = [
+        application: 'test-app',
+        repository: '/{{job}}-{{buildNumber}}',
+        artifact: 'test-app-0.0.1-BUILD-SNAPSHOT.war',
+        loadBalancers: 'host1,host2',
+        credentials: 'test'
+    ]
+
+    when:
+    def description = converter.convertDescription(input)
+
+    then:
+    description.loadBalancers == 'host1,host2'
   }
 
 

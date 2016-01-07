@@ -15,11 +15,12 @@
  */
 
 package com.netflix.spinnaker.clouddriver.cf.deploy.validators
+
+import com.netflix.spinnaker.clouddriver.cf.TestCredential
+import com.netflix.spinnaker.clouddriver.cf.deploy.description.CloudFoundryDeployDescription
 import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
-import com.netflix.spinnaker.clouddriver.cf.TestCredential
-import com.netflix.spinnaker.clouddriver.cf.deploy.description.CloudFoundryDeployDescription
 import org.codehaus.groovy.runtime.typehandling.GroovyCastException
 import org.springframework.validation.Errors
 import spock.lang.Shared
@@ -156,6 +157,5 @@ class CloudFoundryDeployDescriptionValidatorSpec extends Specification {
     1 * errors.rejectValue('cloudFoundryDeployDescription.repository',
         'cloudFoundryDeployDescription.repository.templateWithNoParameters')
   }
-
 
 }

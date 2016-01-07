@@ -23,7 +23,7 @@ import com.netflix.spinnaker.clouddriver.cf.deploy.ops.ResizeCloudFoundryServerG
 import spock.lang.Shared
 import spock.lang.Specification
 
-class ResizeCloudFoundryServerGroupAtomicOperationConverterUnitSpec extends Specification {
+class ResizeCloudFoundryServerGroupAtomicOperationConverterSpec extends Specification {
 
   @Shared
   ObjectMapper mapper = new ObjectMapper()

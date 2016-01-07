@@ -20,7 +20,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.cf.deploy.description.DeleteCloudFoundryLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryClientFactory
+import com.netflix.spinnaker.clouddriver.cf.utils.CloudFoundryClientFactory
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -49,7 +49,11 @@ class DeleteCloudFoundryLoadBalancerAtomicOperation implements AtomicOperation<V
 
     def client = cloudFoundryClientFactory.createCloudFoundryClient(description.credentials, true)
 
-    client.deleteRoute(description.loadBalancerName, client.defaultDomain.name)
+    try {
+      client.deleteRoute(description.loadBalancerName, client.defaultDomain.name)
+    } catch (IllegalArgumentException e) {
+      task.updateStatus BASE_PHASE, "Failed to delete load balancer => ${e.message}"
+    }
 
     task.updateStatus BASE_PHASE, "Done deleting load balancer $description.loadBalancerName."
 

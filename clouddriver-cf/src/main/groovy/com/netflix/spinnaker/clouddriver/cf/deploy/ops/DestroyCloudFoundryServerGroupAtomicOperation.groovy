@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Pivotal Inc.
+ * Copyright 2015-2016 Pivotal Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.cf.deploy.description.DestroyCloudFoundryServerGroupDescription
-import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryClientFactory
+import com.netflix.spinnaker.clouddriver.cf.utils.CloudFoundryClientFactory
 import org.cloudfoundry.client.lib.domain.CloudApplication
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -38,7 +38,7 @@ class DestroyCloudFoundryServerGroupAtomicOperation implements AtomicOperation<V
   @Qualifier('cloudFoundryOperationPoller')
   OperationPoller operationPoller
 
-  private final DestroyCloudFoundryServerGroupDescription description
+  DestroyCloudFoundryServerGroupDescription description
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()

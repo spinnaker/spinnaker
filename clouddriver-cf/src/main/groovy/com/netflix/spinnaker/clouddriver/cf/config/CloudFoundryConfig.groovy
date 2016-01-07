@@ -17,8 +17,10 @@
 package com.netflix.spinnaker.clouddriver.cf.config
 import com.netflix.spinnaker.clouddriver.cf.deploy.handlers.CloudFoundryDeployHandler
 import com.netflix.spinnaker.clouddriver.cf.model.CloudFoundryResourceRetriever
-import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryClientFactory
-import com.netflix.spinnaker.clouddriver.cf.security.DefaultCloudFoundryClientFactory
+import com.netflix.spinnaker.clouddriver.cf.utils.CloudFoundryClientFactory
+import com.netflix.spinnaker.clouddriver.cf.utils.DefaultCloudFoundryClientFactory
+import com.netflix.spinnaker.clouddriver.cf.utils.DefaultRestTemplateFactory
+import com.netflix.spinnaker.clouddriver.cf.utils.DefaultS3ServiceFactory
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import org.springframework.beans.factory.annotation.Autowired
@@ -60,7 +62,11 @@ class CloudFoundryConfig {
 	@Bean
 	@ConditionalOnMissingBean(CloudFoundryDeployHandler)
 	CloudFoundryDeployHandler cloudFoundryDeployHandler(CloudFoundryClientFactory clientFactory) {
-		new CloudFoundryDeployHandler(clientFactory)
+		new CloudFoundryDeployHandler(
+			clientFactory					: clientFactory,
+			restTemplateFactory		: new DefaultRestTemplateFactory(),
+			s3ServiceFactory: new DefaultS3ServiceFactory()
+		)
 	}
 
 	@Bean
