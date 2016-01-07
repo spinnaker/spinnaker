@@ -78,6 +78,7 @@ module.exports = angular.module('spinnaker.core.scheduler', [
           scheduler.dispose();
           scheduler = null;
           source = null;
+          $timeout.cancel(pendingRun);
           document.removeEventListener('visibilitychange', watchDocumentVisibility);
           $window.removeEventListener('offline', suspendScheduler);
           $window.removeEventListener('online', resumeScheduler);
