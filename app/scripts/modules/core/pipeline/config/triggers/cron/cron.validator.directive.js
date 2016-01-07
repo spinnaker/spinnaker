@@ -11,17 +11,23 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.cron.validator.
       require: 'ngModel',
       link: function(scope, elem, attr, ctrl) {
 
-        scope.cronErrors = scope.cronErrors || {};
+        let validationMessages = scope.$eval(attr.cronValidationMessages) || {};
 
         function handleError(result, deferred) {
           var message = result && result.message ? result.message : 'Error validating CRON expression';
-          scope.cronErrors[attr.ngModel] = message;
+          validationMessages.error = message;
+          delete validationMessages.description;
           deferred.reject(message);
         }
 
-        function handleSuccess(deferred) {
+        function handleSuccess(result, deferred) {
           deferred.resolve();
-          delete scope.cronErrors[attr.ngModel];
+          if (result.description && result.description.length) {
+            validationMessages.description = result.description.charAt(0).toLowerCase() + result.description.slice(1);
+          } else {
+            validationMessages.description = '';
+          }
+          delete validationMessages.error;
         }
 
         ctrl.$asyncValidators.cronExpression = function(modelValue, viewValue) {
@@ -29,7 +35,7 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.cron.validator.
           cronValidationService.validate(viewValue).then(
             function(result) {
               if (result.valid) {
-                handleSuccess(deferred);
+                handleSuccess(result, deferred);
               } else {
                 handleError(result, deferred);
               }
