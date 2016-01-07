@@ -29,6 +29,7 @@ module.exports = angular.module('spinnaker.gce', [
   require('../core/pipeline/config/stages/scaleDownCluster/gce/gceScaleDownClusterStage.js'),
   require('../core/pipeline/config/stages/shrinkCluster/gce/gceShrinkClusterStage.js'),
   require('./instance/gceInstanceTypeService.js'),
+  require('./instance/gceMultiInstanceTask.transformer.js'),
   require('./loadBalancer/loadBalancer.transformer.js'),
   require('./loadBalancer/details/LoadBalancerDetailsCtrl.js'),
   require('./loadBalancer/configure/CreateLoadBalancerCtrl.js'),
@@ -67,6 +68,7 @@ module.exports = angular.module('spinnaker.gce', [
         instanceTypeService: 'gceInstanceTypeService',
         detailsTemplateUrl: require('./instance/details/instanceDetails.html'),
         detailsController: 'gceInstanceDetailsCtrl',
+        multiInstanceTaskTransformer: 'gceMultiInstanceTaskTransformer',
       },
       loadBalancer: {
         transformer: 'gceLoadBalancerTransformer',
