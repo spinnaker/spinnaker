@@ -18,15 +18,19 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops
 
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.DeployKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder
+import org.springframework.beans.factory.annotation.Autowired
 
-import java.util.Map
-
-class DeployKubernetesAtomicOperation implements AtomicOperation<Void> {
+class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResult> {
   private static final String BASE_PHASE = "DEPLOY"
+
+  @Autowired
+  KubernetesUtil kubernetesUtil
 
   DeployKubernetesAtomicOperation(DeployKubernetesAtomicOperationDescription description) {
     this.description = description
@@ -44,12 +48,21 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<Void> {
    * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "k8s", "stack": "test",  "targetSize": "3", "securityGroups": ["frontend-sg"], "loadBalancers":  ["frontend-lb"],  "containers": [ { "name": "nginx", "image": "nginx" } ], "credentials":  "my-k8s-account" } } ]' localhost:7002/kubernetes/ops
   */
   @Override
-  Void operate(List priorOutputs) {
+  DeploymentResult operate(List priorOutputs) {
+
+    ReplicationController rc = deployDescription()
+    DeploymentResult deploymentResult = new DeploymentResult()
+    deploymentResult.serverGroupNames = Arrays.asList(rc.metadata.name)
+    return deploymentResult
+  }
+
+  ReplicationController deployDescription() {
     task.updateStatus BASE_PHASE, "Initializing creation of replication controller."
+
     def credentials = description.kubernetesCredentials
     def clusterName = KubernetesUtil.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
     task.updateStatus BASE_PHASE, "Looking up next sequence index..."
-    def sequenceIndex = KubernetesUtil.getNextSequence(clusterName, credentials)
+    def sequenceIndex = kubernetesUtil.getNextSequence(clusterName, credentials)
     task.updateStatus BASE_PHASE, "Sequence index chosen to be ${sequenceIndex}."
     def replicationControllerName = String.format("%s-v%s", clusterName, sequenceIndex)
     task.updateStatus BASE_PHASE, "Replication controller name chosen to be ${replicationControllerName}."
@@ -57,7 +70,7 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus BASE_PHASE, "Collecting ports for associated security groups..."
     def ports = []
     for (def securityGroupName : description.securityGroups) {
-      def securityGroup = KubernetesUtil.getSecurityGroup(credentials, securityGroupName)
+      def securityGroup = kubernetesUtil.getSecurityGroup(credentials, securityGroupName)
 
       for (def port : securityGroup.getSpec().getPorts()) {
         ports.add(port.getTargetPort().intVal)
@@ -130,9 +143,10 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<Void> {
     replicationControllerBuilder = replicationControllerBuilder.endSpec().endTemplate().endSpec().build()
 
     task.updateStatus BASE_PHASE, "Sending replication controller spec to the Kubernetes master."
-	credentials.client.replicationControllers().inNamespace(credentials.namespace).create(replicationControllerBuilder)
-    task.updateStatus BASE_PHASE, "Finished creating replication controller."
+	  ReplicationController rc = credentials.client.replicationControllers().inNamespace(credentials.namespace).create(replicationControllerBuilder)
 
-    return
+    task.updateStatus BASE_PHASE, "Finished creating replication controller ${rc.metadata.name}."
+
+    return rc
   }
 }

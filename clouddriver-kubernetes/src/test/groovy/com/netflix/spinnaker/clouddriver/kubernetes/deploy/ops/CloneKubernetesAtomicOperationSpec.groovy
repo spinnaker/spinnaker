@@ -34,15 +34,14 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
   private static final APPLICATION = "myapp"
   private static final STACK = "test"
   private static final DETAIL = "mdservice"
+  private static final SEQUENCE = "v000"
   private static final TARGET_SIZE = 2
   private static final LOAD_BALANCER_NAMES = ["lb1", "lb2"]
   private static final SECURITY_GROUP_NAMES = ["sg1", "sg2"]
   private static final LABELS = ["load-balancer-lb1": true, "load-balancer-lb2": true, "security-group-sg1": true, "security-group-sg2": true]
   private static final CONTAINER_NAMES = ["c1", "c2"]
-  private static final ANCESTOR_SERVER_GROUP_NAME = "$APPLICATION-$STACK-$DETAIL-v000"
+  private static final ANCESTOR_SERVER_GROUP_NAME = "$APPLICATION-$STACK-$DETAIL-$SEQUENCE"
 
-  def loadBalancers
-  def securityGroups
   def containers
   def ancestorNames
   def expectedResultDescription
@@ -52,6 +51,7 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
   def objectMetadata
   def podSpec
   def replicationControllerContainers
+
   def kubernetesUtilMock
 
   def setupSpec() {
@@ -61,8 +61,6 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
   def setup() {
     kubernetesUtilMock = Mock(KubernetesUtil)
 
-    loadBalancers = LOAD_BALANCER_NAMES
-    securityGroups = SECURITY_GROUP_NAMES
     containers = []
     CONTAINER_NAMES.each { name ->
       containers = containers << new KubernetesContainerDescription(name: name, image: name)
@@ -78,8 +76,8 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
       stack: STACK,
       freeFormDetails: DETAIL,
       targetSize: TARGET_SIZE,
-      loadBalancers: loadBalancers,
-      securityGroups: securityGroups,
+      loadBalancers: LOAD_BALANCER_NAMES,
+      securityGroups: SECURITY_GROUP_NAMES,
       containers: containers
     )
 
@@ -140,8 +138,8 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
         stack: STACK,
         freeFormDetails: DETAIL,
         targetSize: TARGET_SIZE,
-        loadBalancers: loadBalancers,
-        securityGroups: securityGroups,
+        loadBalancers: LOAD_BALANCER_NAMES,
+        securityGroups: SECURITY_GROUP_NAMES,
         containers: containers,
         source: [serverGroupName: ANCESTOR_SERVER_GROUP_NAME]
       )
