@@ -1,6 +1,6 @@
 <div class="details-panel">
   <div class="header">
-    <div class="close-button">
+    <div class="close-button" ng-if="!state.standalone">
       <a class="btn btn-link"
          ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
@@ -65,12 +65,12 @@
           ng-repeat="rule in securityGroup.securityGroupRules | orderBy: 'securityGroup.name' ">
         <dt>Security Group</dt>
         <dd ng-if="rule.securityGroup.name">
-          <a a ui-sref="^.securityGroupDetails({name: rule.securityGroup.name, accountId: rule.securityGroup.accountName, region: rule.securityGroup.region, vpcId: securityGroup.vpcId, provider: 'aws'})">
+          <a ui-sref="^.securityGroupDetails({name: rule.securityGroup.name, accountId: rule.securityGroup.accountName, region: rule.securityGroup.region, vpcId: securityGroup.vpcId, provider: 'aws'})">
             {{rule.securityGroup.name}} ({{rule.securityGroup.id}})
           </a>
         </dd>
-        <dt ng-if="rule.portRanges && rule.portRanges[0].startPort">Port Ranges</dt>
-        <dd ng-repeat="portRange in rule.portRanges" ng-if="portRange.startPort && portRange.endPort">
+        <dt ng-if="rule.portRanges && rule.portRanges[0].startPort !== null">Port Ranges</dt>
+        <dd ng-repeat="portRange in rule.portRanges" ng-if="portRange.startPort !== null && portRange.endPort !== null">
           {{rule.protocol}}: {{portRange.startPort}} &rarr; {{portRange.endPort}}
         </dd>
       </dl>

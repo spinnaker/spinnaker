@@ -26,16 +26,14 @@ module.exports = angular.module('spinnaker.core.navigation.urlBuilder.service', 
       // url for a single securityGroup
       'securityGroups': function(input) {
         var href = $state.href(
-          'home.applications.application.insight.securityGroups.securityGroupDetails',
+          'home.securityGroupDetails',
           {
-            application: input.application,
             accountId: input.account,
             region: input.region,
             name: input.name,
             vpcId: input.vpcId,
             provider: input.provider,
-          },
-          { inherit: false }
+          }
         );
         return buildUrl(href, {});
       },
@@ -43,7 +41,7 @@ module.exports = angular.module('spinnaker.core.navigation.urlBuilder.service', 
       'instances': function(input) {
         if (!input.application) {
           return $state.href(
-            'home.standaloneInstance',
+            'home.instanceDetails',
             {
               account: input.account,
               region: input.region,
