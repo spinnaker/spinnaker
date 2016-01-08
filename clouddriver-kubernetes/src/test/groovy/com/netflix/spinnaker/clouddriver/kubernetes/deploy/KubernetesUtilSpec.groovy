@@ -36,6 +36,7 @@ class KubernetesUtilSpec extends Specification {
   private static final SERVICE = "service"
 
   def kubernetesClientMock
+  def kubernetesUtil
   def credentials
   def replicationControllerOperationsMock
   def replicationControllerListMock
@@ -51,6 +52,7 @@ class KubernetesUtilSpec extends Specification {
   }
 
   def setup() {
+    kubernetesUtil = new KubernetesUtil()
     kubernetesClientMock = Mock(KubernetesClient)
     credentials = new KubernetesCredentials(NAMESPACE, kubernetesClientMock)
     replicationControllerOperationsMock = Mock(ReplicationControllerOperationsImpl)
@@ -65,7 +67,7 @@ class KubernetesUtilSpec extends Specification {
 
   void "list replication controllers"() {
     when:
-      KubernetesUtil.getReplicationControllers(credentials)
+      kubernetesUtil.getReplicationControllers(credentials)
 
     then:
       1 * kubernetesClientMock.replicationControllers() >> replicationControllerOperationsMock
@@ -75,7 +77,7 @@ class KubernetesUtilSpec extends Specification {
 
   void "get service"() {
     when:
-      KubernetesUtil.getService(credentials, SERVICE)
+      kubernetesUtil.getService(credentials, SERVICE)
 
     then:
       1 * kubernetesClientMock.services() >> serviceOperationsMock
@@ -86,7 +88,7 @@ class KubernetesUtilSpec extends Specification {
 
   void "get security group"() {
     when:
-      KubernetesUtil.getSecurityGroup(credentials, SERVICE)
+      kubernetesUtil.getSecurityGroup(credentials, SERVICE)
 
     then:
       1 * kubernetesClientMock.services() >> serviceOperationsMock
@@ -97,7 +99,7 @@ class KubernetesUtilSpec extends Specification {
 
   void "get load balancer"() {
     when:
-      KubernetesUtil.getLoadBalancer(credentials, SERVICE)
+      kubernetesUtil.getLoadBalancer(credentials, SERVICE)
 
     then:
       1 * kubernetesClientMock.services() >> serviceOperationsMock

@@ -18,13 +18,11 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy
 
 import com.netflix.frigga.NameValidation
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.ReplicationControllerList
 import io.fabric8.kubernetes.api.model.Service
 
-// TODO(stevenkim): make all methods non-static and wire in as bean for usage.
 class KubernetesUtil {
 
   private static String SECURITY_GROUP_LABEL_PREFIX = "security-group-"
@@ -32,32 +30,7 @@ class KubernetesUtil {
   private static int SECURITY_GROUP_LABEL_PREFIX_LENGTH = SECURITY_GROUP_LABEL_PREFIX.length()
   private static int LOAD_BALANCER_LABEL_PREFIX_LENGTH = LOAD_BALANCER_LABEL_PREFIX.length()
 
-  static def securityGroupKey(String securityGroup) {
-    return String.format("$SECURITY_GROUP_LABEL_PREFIX%s", securityGroup)
-  }
-
-  static def loadBalancerKey(String loadBalancer) {
-    return String.format("$LOAD_BALANCER_LABEL_PREFIX%s", loadBalancer)
-  }
-
-  static def combineAppStackDetail(String appName, String stack, String detail) {
-    NameValidation.notEmpty(appName, "appName");
-
-    // Use empty strings, not null references that output "null"
-    stack = stack != null ? stack : "";
-
-    if (detail != null && !detail.isEmpty()) {
-      return appName + "-" + stack + "-" + detail;
-    }
-
-    if (!stack.isEmpty()) {
-      return appName + "-" + stack;
-    }
-
-    return appName;
-  }
-
-  static ReplicationControllerList getReplicationControllers(KubernetesCredentials credentials) {
+  ReplicationControllerList getReplicationControllers(KubernetesCredentials credentials) {
     credentials.client.replicationControllers().inNamespace(credentials.namespace).list()
   }
 
@@ -65,19 +38,19 @@ class KubernetesUtil {
     credentials.client.replicationControllers().inNamespace(credentials.namespace).withName(serverGroupName).get()
   }
 
-  static Service getService(KubernetesCredentials credentials, String service) {
+  Service getService(KubernetesCredentials credentials, String service) {
     credentials.client.services().inNamespace(credentials.namespace).withName(service).get()
   }
 
-  static Service getSecurityGroup(KubernetesCredentials credentials, String securityGroup) {
+  Service getSecurityGroup(KubernetesCredentials credentials, String securityGroup) {
     getService(credentials, securityGroup)
   }
 
-  static Service getLoadBalancer(KubernetesCredentials credentials, String loadBalancer) {
+  Service getLoadBalancer(KubernetesCredentials credentials, String loadBalancer) {
     getService(credentials, loadBalancer)
   }
 
-  static def getNextSequence(String clusterName, KubernetesCredentials credentials) {
+  String getNextSequence(String clusterName, KubernetesCredentials credentials) {
     def maxSeqNumber = -1
     def replicationControllers = getReplicationControllers(credentials)
 
@@ -110,6 +83,31 @@ class KubernetesUtil {
       }
     }
     return securityGroups
+  }
+
+  static String securityGroupKey(String securityGroup) {
+    return String.format("$SECURITY_GROUP_LABEL_PREFIX%s", securityGroup)
+  }
+
+  static String loadBalancerKey(String loadBalancer) {
+    return String.format("$LOAD_BALANCER_LABEL_PREFIX%s", loadBalancer)
+  }
+
+  static String combineAppStackDetail(String appName, String stack, String detail) {
+    NameValidation.notEmpty(appName, "appName");
+
+    // Use empty strings, not null references that output "null"
+    stack = stack != null ? stack : "";
+
+    if (detail != null && !detail.isEmpty()) {
+      return appName + "-" + stack + "-" + detail;
+    }
+
+    if (!stack.isEmpty()) {
+      return appName + "-" + stack;
+    }
+
+    return appName;
   }
 
 }
