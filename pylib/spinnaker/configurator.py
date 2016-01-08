@@ -61,7 +61,7 @@ class InstallationParameters(object):
 
   INSTALLED_CONFIG_DIR = SPINNAKER_INSTALL_DIR + '/config'
 
-  DECK_INSTALL_DIR = '/var/www'
+  DECK_INSTALL_DIR = '/var/www/html'
   HACK_DECK_SETTINGS_FILENAME = 'settings.js'
   ENVIRONMENT_VARIABLE_PATH = '/etc/default/spinnaker'
 
