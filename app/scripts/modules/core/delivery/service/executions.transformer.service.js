@@ -52,6 +52,8 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
           stageSummaries.push({
             name: stage.name,
             id: stage.id,
+            startTime: stage.startTime,
+            endTime: stage.endTime,
             masterStage: stage,
             type: stage.type,
             before: stage.before,
@@ -164,7 +166,17 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
 
         var currentStage = lastRunningStage || lastFailedStage || lastNotStartedStage || lastStage;
         stage.status = currentStage.status;
-        stage.endTime = currentStage.endTime;
+        // if a stage is running, ignore the endTime of the parent stage
+        if (!currentStage.endTime) {
+          delete stage.endTime;
+        }
+        let lastEndingStage = _.max(stages, 'endTime');
+        // if the current stage has an end time (i.e. it failed or completed), use the maximum end time
+        // of all the child stages as the end time for the parent - we do this because the parent might
+        // have been an initialization stage, which ends within a few milliseconds
+        if (currentStage.endTime && lastEndingStage.endTime) {
+          stage.endTime = Math.max(currentStage.endTime, lastEndingStage.endTime, stage.endTime);
+        }
       }
       stage.stages = stages;
 
