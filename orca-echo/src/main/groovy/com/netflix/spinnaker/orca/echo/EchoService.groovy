@@ -51,6 +51,7 @@ interface EchoService {
     }
 
     static enum Type {
+      SLACK,
       HIPCHAT,
       EMAIL,
       SMS
