@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.kato.pipeline
 import com.netflix.spinnaker.orca.kato.tasks.securitygroup.CopySecurityGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.SecurityGroupForceCacheRefreshTask
-import com.netflix.spinnaker.orca.kato.tasks.securitygroup.WaitForUpsertedSecurityGroupTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForUpsertedSecurityGroupTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic

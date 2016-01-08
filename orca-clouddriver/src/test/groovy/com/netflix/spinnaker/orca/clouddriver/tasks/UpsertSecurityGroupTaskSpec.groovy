@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 Google, Inc.
+ * Copyright 2016 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,41 +25,34 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class CreateServerGroupTaskSpec extends Specification {
+class UpsertSecurityGroupTaskSpec extends Specification {
 
   @Shared
-  ServerGroupCreator aCreator = Stub(ServerGroupCreator) {
+  SecurityGroupUpserter aUpserter = Stub(SecurityGroupUpserter) {
     getCloudProvider() >> "aCloud"
-    isKatoResultExpected() >> false
-    getOperations(_) >> [["aOp": "foo"]]
+    getOperationsAndExtraOutput(_) >> [[["aOp": "foo"]], ["aOp-extra": "bar"]]
   }
+
   @Shared
-  ServerGroupCreator bCreator = Stub(ServerGroupCreator) {
+  SecurityGroupUpserter bUpserter = Stub(SecurityGroupUpserter) {
     getCloudProvider() >> "bCloud"
-    isKatoResultExpected() >> false
-    getOperations(_) >> [["bOp": "bar"]]
+    getOperationsAndExtraOutput(_) >> [[["bOp": "bar"]], ["bOp-extra": "baz"]]
   }
+
   @Shared
-  ServerGroupCreator cCreator = Stub(ServerGroupCreator) {
-    getCloudProvider() >> "cCloud"
-    isKatoResultExpected() >> true
-    getOperations(_) >> [["cOp": "baz"]]
-  }
-  @Shared
-  TaskId taskId = new TaskId(UUID.randomUUID().toString())
+  def taskId = new TaskId(UUID.randomUUID().toString())
 
   @Shared
   def baseOutput = [
-      "notification.type"  : "createdeploy",
-      "kato.last.task.id"  : taskId,
-      "deploy.account.name": "abc"
+      "notification.type": "upsertsecuritygroup",
+      "kato.last.task.id": taskId,
   ]
 
   @Unroll
-  def "should have cloud provider-specific outputs"() {
+  def "should invoke the correct upserter"() {
     given:
       KatoService katoService = Mock(KatoService)
-      def task = new CreateServerGroupTask(kato: katoService, serverGroupCreators: [aCreator, bCreator, cCreator])
+      def task = new UpsertSecurityGroupTask(kato: katoService, securityGroupUpserters: [aUpserter, bUpserter])
       def stage = new PipelineStage(new Pipeline(), "whatever", [credentials: "abc", cloudProvider: cloudProvider])
 
     when:
@@ -72,8 +65,7 @@ class CreateServerGroupTaskSpec extends Specification {
 
     where:
       cloudProvider | ops              || outputs
-      "aCloud"      | [["aOp": "foo"]] || baseOutput + ["kato.result.expected": false]
-      "bCloud"      | [["bOp": "bar"]] || baseOutput + ["kato.result.expected": false]
-      "cCloud"      | [["cOp": "baz"]] || baseOutput + ["kato.result.expected": true]
+      "aCloud"      | [["aOp": "foo"]] || baseOutput + ["aOp-extra": "bar"]
+      "bCloud"      | [["bOp": "bar"]] || baseOutput + ["bOp-extra": "baz"]
   }
 }
