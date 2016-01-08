@@ -38,6 +38,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceN
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDiskType
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 
@@ -475,18 +476,38 @@ class GCEUtil {
                              String project,
                              String region,
                              GoogleCredentials credentials) {
-    def maxSeqNumber = -1
     def managedInstanceGroups = queryManagedInstanceGroups(project, region, credentials)
-
-    for (def managedInstanceGroup : managedInstanceGroups) {
-      def names = Names.parseName(managedInstanceGroup.getName())
+    // Build a collection containing the sequence number and createdTime of each server group in this cluster/region.
+    def takenSequenceNumbers = managedInstanceGroups.findResults { managedInstanceGroup ->
+      def names = Names.parseName(managedInstanceGroup.name)
 
       if (names.cluster == clusterName) {
-        maxSeqNumber = Math.max(maxSeqNumber, names.sequence)
+        return [
+          sequenceNumber: names.sequence,
+          createdTime: Utils.getTimeFromTimestamp(managedInstanceGroup.creationTimestamp)
+        ]
+      } else {
+        return null
       }
     }
 
-    String.format("%03d", ++maxSeqNumber)
+    // Find the sequence number of the server group created most recently.
+    def latestSequenceNumber = takenSequenceNumbers.max { a, b ->
+      a.createdTime <=> b.createdTime
+    }.sequenceNumber
+
+    def nextSequenceNumber = (latestSequenceNumber + 1) % 1000
+
+    // Keep increasing the number until we find one that is not already taken. Stop if we circle back to the starting point.
+    while (takenSequenceNumbers.find { it.sequenceNumber == nextSequenceNumber } && nextSequenceNumber != latestSequenceNumber) {
+      nextSequenceNumber = ++nextSequenceNumber % 1000
+    }
+
+    if (nextSequenceNumber == latestSequenceNumber) {
+      throw new IllegalArgumentException("All server group names in $region are taken.")
+    }
+
+    return String.format("%03d", nextSequenceNumber)
   }
 
   static def combineAppStackDetail(String appName, String stack, String detail) {
