@@ -17,11 +17,14 @@
 package com.netflix.spinnaker.orca.batch.adapters
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.batch.exceptions.TimeoutException
 import com.netflix.spinnaker.orca.batch.retry.PollRequiresRetry
+import com.netflix.spinnaker.orca.pipeline.model.Execution.PausedDetails
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
@@ -32,11 +35,14 @@ import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.repeat.RepeatStatus
 
 import java.time.Clock
+import java.util.concurrent.TimeUnit
 
 import static com.netflix.spinnaker.orca.pipeline.model.Stage.STAGE_TIMEOUT_OVERRIDE_KEY
 
 @CompileStatic
 class RetryableTaskTasklet extends TaskTasklet {
+  static final long MAX_PAUSE_TIME_MS = TimeUnit.HOURS.toMillis(12)
+
   private final Clock clock
   private final long timeoutMs
 
@@ -61,15 +67,45 @@ class RetryableTaskTasklet extends TaskTasklet {
 
   @Override
   protected TaskResult doExecuteTask(Stage stage, ChunkContext chunkContext) {
-    def now = clock.millis()
-    def startTime = chunkContext.stepContext.getStepExecution().startTime.time
+    if (stage.execution.paused?.isPaused()) {
+      checkTimeout(clock.millis() - stage.execution.paused.pauseTime, MAX_PAUSE_TIME_MS)
+    }
 
+    if (stage.execution.status == ExecutionStatus.PAUSED) {
+      // If the pipeline is PAUSED, ensure that the current stage and all running tasks are PAUSED
+      stage.self.status = ExecutionStatus.PAUSED
+      stage.self.tasks.findAll { it.status == ExecutionStatus.RUNNING }.each {
+        it.status = ExecutionStatus.PAUSED
+      }
+      return new DefaultTaskResult(ExecutionStatus.PAUSED)
+    } else if (stage.execution.status == ExecutionStatus.RUNNING) {
+      // If the pipeline is RUNNING, ensure that the current stage and all paused tasks are RUNNING
+      stage.self.status = ExecutionStatus.RUNNING
+      stage.self.tasks.findAll { it.status == ExecutionStatus.PAUSED }.each {
+        it.status = ExecutionStatus.RUNNING
+      }
+    }
+
+    def startTime = chunkContext.stepContext.getStepExecution().startTime.time
+    def executionTimeMs = determineCurrentExecutionTime(clock, startTime, stage.execution.paused)
     def timeoutMs = (stage.context[STAGE_TIMEOUT_OVERRIDE_KEY] ?: timeoutMs) as long
-    if (now - startTime > timeoutMs) {
+
+    checkTimeout(executionTimeMs, timeoutMs)
+    return super.doExecuteTask(stage, chunkContext)
+  }
+
+  /**
+   * In order to accurately determine whether this task has timed out, any time spent in a paused state must be discounted.
+   */
+  private static long determineCurrentExecutionTime(Clock clock, long startTime, PausedDetails pausedDetails) {
+    return clock.millis() - ((pausedDetails?.pausedMs ?: 0) as Long) - startTime
+  }
+
+  private static void checkTimeout(long elapsedTimeMs, long timeoutMs) {
+    if (elapsedTimeMs > timeoutMs) {
       def formatter = PeriodFormat.getDefault()
       def dur = formatter.print(new Duration(timeoutMs).toPeriod())
       throw new TimeoutException("Operation timed out after ${dur}")
     }
-    return super.doExecuteTask(stage, chunkContext)
   }
 }

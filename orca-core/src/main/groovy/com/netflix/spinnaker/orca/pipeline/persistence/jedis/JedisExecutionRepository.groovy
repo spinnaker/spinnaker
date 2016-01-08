@@ -91,16 +91,8 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   @Override
   void storeExecutionContext(String id, Map<String, Object> context) {
+    String key = fetchKey(id)
     withJedis { Jedis jedis ->
-      String key
-      if (jedis.exists("pipeline:$id")) {
-        key = "pipeline:$id"
-      } else if (jedis.exists("orchestration:$id")) {
-        key = "orchestration:$id"
-      } else {
-        throw new ExecutionNotFoundException("No execution found with id $id")
-      }
-
       jedis.hset(key, "context", mapper.writeValueAsString(context))
     }
   }
@@ -112,15 +104,8 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   @Override
   void cancel(String id, String user) {
+    String key = fetchKey(id)
     withJedis { Jedis jedis ->
-      String key
-      if (jedis.exists("pipeline:$id")) {
-        key = "pipeline:$id"
-      } else if (jedis.exists("orchestration:$id")) {
-        key = "orchestration:$id"
-      } else {
-        throw new ExecutionNotFoundException("No execution found with id $id")
-      }
       def data = [canceled: "true"]
       if (user) {
         data.canceledBy = user
@@ -135,30 +120,59 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   @Override
   boolean isCanceled(String id) {
+    String key = fetchKey(id)
     withJedis { Jedis jedis ->
-      String key
-      if (jedis.exists("pipeline:$id")) {
-        key = "pipeline:$id"
-      } else if (jedis.exists("orchestration:$id")) {
-        key = "orchestration:$id"
-      } else {
-        throw new ExecutionNotFoundException("No execution found with id $id")
-      }
       Boolean.valueOf(jedis.hget(key, "canceled"))
     }
   }
 
   @Override
-  void updateStatus(String id, ExecutionStatus status) {
+  void pause(String id, String user) {
+    String key = fetchKey(id)
     withJedis { Jedis jedis ->
-      String key
-      if (jedis.exists("pipeline:$id")) {
-        key = "pipeline:$id"
-      } else if (jedis.exists("orchestration:$id")) {
-        key = "orchestration:$id"
-      } else {
-        throw new ExecutionNotFoundException("No execution found with id $id")
+      def currentStatus = ExecutionStatus.valueOf(jedis.hget(key, "status"))
+      if (currentStatus != ExecutionStatus.RUNNING) {
+        throw new IllegalStateException("Unable to pause pipeline that is not RUNNING (executionId: ${id}, currentStatus: ${currentStatus})")
       }
+
+      def pausedDetails = new Execution.PausedDetails(
+        pausedBy: user,
+        pauseTime: currentTimeMillis()
+      )
+
+      def data = [
+        paused: mapper.writeValueAsString(pausedDetails),
+        status: ExecutionStatus.PAUSED.toString()
+      ]
+      jedis.hmset(key, data)
+    }
+  }
+
+  @Override
+  void resume(String id, String user) {
+    String key = fetchKey(id)
+    withJedis { Jedis jedis ->
+      def currentStatus = ExecutionStatus.valueOf(jedis.hget(key, "status"))
+      if (currentStatus != ExecutionStatus.PAUSED) {
+        throw new IllegalStateException("Unable to resume pipeline that is not PAUSED (executionId: ${id}, currentStatus: ${currentStatus})")
+      }
+
+      def pausedDetails = mapper.readValue(jedis.hget(key, "paused"), Execution.PausedDetails)
+      pausedDetails.resumedBy = user
+      pausedDetails.resumeTime = currentTimeMillis()
+
+      def data = [
+          paused: mapper.writeValueAsString(pausedDetails),
+          status: ExecutionStatus.RUNNING.toString()
+      ]
+      jedis.hmset(key, data)
+    }
+  }
+
+  @Override
+  void updateStatus(String id, ExecutionStatus status) {
+    String key = fetchKey(id)
+    withJedis { Jedis jedis ->
       Map<String, String> map = [status: status.name()]
       if (status == ExecutionStatus.RUNNING) {
         map.startTime = String.valueOf(currentTimeMillis())
@@ -331,7 +345,8 @@ class JedisExecutionRepository implements ExecutionRepository {
       endTime          : (execution.endTime ?: execution.endTime)?.toString(),
       executingInstance: execution.executingInstance,
       status           : execution.status?.name(),
-      authentication   : mapper.writeValueAsString(execution.authentication)
+      authentication   : mapper.writeValueAsString(execution.authentication),
+      paused           : mapper.writeValueAsString(execution.paused)
     ]
     // TODO: store separately? Seems crazy to be using a hash rather than a set
     map.stageIndex = execution.stages.id.join(",")
@@ -397,6 +412,8 @@ class JedisExecutionRepository implements ExecutionRepository {
       execution.executingInstance = map.executingInstance
       execution.status = map.status ? ExecutionStatus.valueOf(map.status) : null
       execution.authentication = mapper.readValue(map.authentication, Execution.AuthenticationDetails)
+      execution.paused = mapper.readValue(map.paused, Execution.PausedDetails)
+
       def stageIds = map.stageIndex.tokenize(",")
       stageIds.each { stageId ->
         def stage = execution instanceof Pipeline ? new PipelineStage() : new OrchestrationStage()
@@ -559,6 +576,21 @@ class JedisExecutionRepository implements ExecutionRepository {
   static String executionsByPipelineKey(String pipelineConfigId) {
     pipelineConfigId = pipelineConfigId ?: "---"
     "pipeline:executions:$pipelineConfigId"
+  }
+
+  private String fetchKey(String id) {
+    withJedis { Jedis jedis ->
+      String key
+      if (jedis.exists("pipeline:$id")) {
+        key = "pipeline:$id"
+      } else if (jedis.exists("orchestration:$id")) {
+        key = "orchestration:$id"
+      } else {
+        throw new ExecutionNotFoundException("No execution found with id $id")
+      }
+
+      return key
+    }
   }
 
   private <T> T withJedis(Function<Jedis, T> action) {

@@ -45,6 +45,7 @@ abstract class Execution<T> implements Serializable {
   ExecutionStatus status = NOT_STARTED
 
   AuthenticationDetails authentication
+  PausedDetails paused
 
   /*
    * Used to track Stages/Steps as they're built to prevent unnecessary re-builds in parallel pipelines
@@ -118,6 +119,24 @@ abstract class Execution<T> implements Serializable {
       }
 
       return Optional.empty()
+    }
+  }
+
+  static class PausedDetails implements Serializable {
+    String pausedBy
+    String resumedBy
+
+    Long pauseTime
+    Long resumeTime
+
+    @JsonIgnore
+    boolean isPaused() {
+      return pauseTime != null && resumeTime == null
+    }
+
+    @JsonIgnore
+    long getPausedMs() {
+      return (pauseTime != null && resumeTime != null) ? resumeTime - pauseTime : 0
     }
   }
 }
