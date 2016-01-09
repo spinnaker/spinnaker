@@ -159,20 +159,22 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
     }
 
     this.canDeregisterFromLoadBalancer = function() {
-      return $scope.instance.health.some(function(health) {
+      let healthMetrics = $scope.instance.health || [];
+      return healthMetrics.some(function(health) {
         return health.type === 'LoadBalancer';
       });
     };
 
     this.canRegisterWithLoadBalancer = function() {
-      var instance = $scope.instance;
+      var instance = $scope.instance,
+          healthMetrics = instance.health || [];
       if (!instance.loadBalancers || !instance.loadBalancers.length) {
         return false;
       }
-      var outOfService = instance.health.some(function(health) {
+      var outOfService = healthMetrics.some(function(health) {
         return health.type === 'LoadBalancer' && health.state === 'OutOfService';
       });
-      var hasLoadBalancerHealth = instance.health.some(function(health) {
+      var hasLoadBalancerHealth = healthMetrics.some(function(health) {
         return health.type === 'LoadBalancer';
       });
       return outOfService || !hasLoadBalancerHealth;
@@ -180,7 +182,8 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
 
     this.canRegisterWithDiscovery = function() {
       var instance = $scope.instance;
-      var discoveryHealth = instance.health.filter(function(health) {
+      let healthMetrics = instance.health || [];
+      var discoveryHealth = healthMetrics.filter(function(health) {
         return health.type === 'Discovery';
       });
       return discoveryHealth.length ? discoveryHealth[0].state === 'OutOfService' : false;
@@ -351,8 +354,9 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
     };
 
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
-      var instance = $scope.instance;
-      return (instance.health.some(function (health) {
+      var instance = $scope.instance,
+          healthMetrics = instance.health || [];
+      return (healthMetrics.some(function (health) {
         return health.type === healthProviderType && health.state === state;
       })
       );
