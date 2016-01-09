@@ -105,7 +105,7 @@
         <div class="col-md-10">
           <h4>Parameters</h4>
         </div>
-        <div class="form-group" ng-repeat="parameter in vm.command.pipeline.parameterConfig | orderBy:'name' ">
+        <div class="form-group" ng-repeat="parameter in vm.command.pipeline.parameterConfig">
           <div class="col-md-offset-1 col-md-4 sm-label-left break-word">
             <b>{{parameter.name}}</b>
             <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
