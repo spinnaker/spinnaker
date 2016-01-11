@@ -28,16 +28,21 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
   require('../../../core/insight/insightFilterState.model.js'),
   require('../clone/cloneSecurityGroup.controller.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
+  require('../../../core/cloudProvider/cloudProvider.registry.js'),
 ])
   .controller('gceSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, accountService, app, InsightFilterStateModel,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,
-                                                    $uibModal, _) {
+                                                    $uibModal, _, cloudProviderRegistry) {
 
     const application = app;
     const securityGroup = resolvedSecurityGroup;
 
+    // needed for standalone instances
+    $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('gce', 'securityGroup.detailsTemplateUrl');
+
     $scope.state = {
-      loading: true
+      loading: true,
+      standalone: app.isStandalone,
     };
 
     $scope.InsightFilterStateModel = InsightFilterStateModel;
@@ -114,7 +119,7 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
     extractSecurityGroup().then(() => {
       // If the user navigates away from the view before the initial extractSecurityGroup call completes,
       // do not bother subscribing to the autoRefreshStream
-      if (!$scope.$$destroyed) {
+      if (!$scope.$$destroyed && !app.isStandalone) {
         let refreshWatcher = app.autoRefreshStream.subscribe(extractSecurityGroup);
         $scope.$on('$destroy', () => refreshWatcher.dispose());
       }

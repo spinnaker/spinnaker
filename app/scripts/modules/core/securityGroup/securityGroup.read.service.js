@@ -187,6 +187,7 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
       loadSecurityGroups: loadSecurityGroups,
       loadSecurityGroupsByApplicationName: loadSecurityGroupsByApplicationName,
       attachSecurityGroups: attachSecurityGroups,
+      indexSecurityGroups: indexSecurityGroups,
       getSecurityGroupDetails: getSecurityGroupDetails,
       getApplicationSecurityGroup: getApplicationSecurityGroup,
       getAllSecurityGroups: getAllSecurityGroups

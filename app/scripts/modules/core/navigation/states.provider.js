@@ -487,12 +487,68 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
         }
       };
 
+      var standaloneSecurityGroup = {
+        name: 'securityGroupDetails',
+        url: '/securityGroupDetails/:provider/:accountId/:region/:vpcId/:name',
+        params: {
+          vpcId: {
+            value: null,
+            squash: true,
+          },
+        },
+        views: {
+          'main@': {
+            templateUrl: require('../presentation/standalone.view.html'),
+            controllerProvider: ['$stateParams', 'cloudProviderRegistry', function($stateParams, cloudProviderRegistry) {
+              return cloudProviderRegistry.getValue($stateParams.provider, 'securityGroup.detailsController');
+            }],
+            controllerAs: 'ctrl'
+          }
+        },
+        resolve: {
+          resolvedSecurityGroup: ['$stateParams', function($stateParams) {
+            return {
+              name: $stateParams.name,
+              accountId: $stateParams.accountId,
+              provider: $stateParams.provider,
+              region: $stateParams.region,
+              vpcId: $stateParams.vpcId,
+            };
+          }],
+          app: ['$stateParams', 'securityGroupReader', function($stateParams, securityGroupReader) {
+            // we need the application to have a security group index (so rules get attached and linked properly)
+            // and its name should just be the name of the security group (so cloning works as expected)
+            return securityGroupReader.loadSecurityGroups()
+              .then(securityGroupReader.indexSecurityGroups)
+              .then((securityGroupsIndex) => {
+                return {
+                  name: $stateParams.name,
+                  isStandalone: true,
+                  securityGroupsIndex: securityGroupsIndex,
+                };
+
+              });
+          }]
+        },
+        data: {
+          pageTitleDetails: {
+            title: 'Security Group Details',
+            nameParam: 'name',
+            accountParam: 'accountId',
+            regionParam: 'region'
+          },
+          history: {
+            type: 'securityGroups',
+          },
+        }
+      };
+
       var standaloneInstance = {
-        name: 'standaloneInstance',
+        name: 'instanceDetails',
         url: '/instance/:provider/:account/:region/:instanceId',
         views: {
           'main@': {
-            templateUrl: require('../instance/standalone.html'),
+            templateUrl: require('../presentation/standalone.view.html'),
             controllerProvider: ['$stateParams', 'cloudProviderRegistry', function($stateParams, cloudProviderRegistry) {
               return cloudProviderRegistry.getValue($stateParams.provider, 'instance.detailsController');
             }],
@@ -534,7 +590,8 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
           applications,
           infrastructure,
           project,
-          standaloneInstance
+          standaloneInstance,
+          standaloneSecurityGroup
         ],
       };
 
