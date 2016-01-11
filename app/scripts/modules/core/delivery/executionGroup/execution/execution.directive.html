@@ -26,6 +26,18 @@
   </div>
   <div class="execution-actions">
     <a href
+       ng-if="vm.execution.isRunning"
+       ng-click="vm.pauseExecution(); $event.stopPropagation();"
+       uib-tooltip="Pause execution">
+      <span class="glyphicon glyphicon-pause"></span>
+    </a>
+    <a href
+       ng-if="vm.execution.isPaused"
+       ng-click="vm.resumeExecution(); $event.stopPropagation();"
+       uib-tooltip="Resume execution">
+      <span class="glyphicon glyphicon-play"></span>
+    </a>
+    <a href
        ng-if="!vm.execution.isActive"
        ng-click="vm.deleteExecution(); $event.stopPropagation();"
        uib-tooltip="Delete execution">

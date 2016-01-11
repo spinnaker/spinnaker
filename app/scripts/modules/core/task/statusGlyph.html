@@ -5,5 +5,5 @@
       'glyphicon-ok': item.isCompleted,
       'glyphicon-warning-sign': item.isFailed || item.status === 'TERMINATED',
       'glyphicon-stop': item.isCanceled,
-      'glyphicon-pause': item.isSuspended,
+      'glyphicon-pause': item.isSuspended || item.isPaused,
       }"></span>

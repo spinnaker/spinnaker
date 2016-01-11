@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
   .factory('executionService', function($http, $timeout, $q, $log,
                                          settings, appendTransform, executionsTransformer) {
 
-    const activeStatuses = ['RUNNING', 'SUSPENDED', 'NOT_STARTED'];
+    const activeStatuses = ['RUNNING', 'SUSPENDED', 'PAUSED', 'NOT_STARTED'];
 
     function getRunningExecutions(applicationName) {
       return getExecutions(applicationName, activeStatuses);
@@ -115,6 +115,48 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       return deferred.promise;
     }
 
+    function pauseExecution(application, executionId) {
+      var deferred = $q.defer();
+      var matcher = (execution) => {
+        return execution.status === 'PAUSED';
+      };
+
+      $http({
+        method: 'PUT',
+        url: [
+          settings.gateUrl,
+          'pipelines',
+          executionId,
+          'pause',
+        ].join('/')
+      }).then(
+        () => waitUntilExecutionMatches(executionId, matcher).then(application.reloadExecutions).then(deferred.resolve),
+        (exception) => deferred.reject(exception && exception.data ? exception.message : null)
+    );
+      return deferred.promise;
+    }
+
+    function resumeExecution(application, executionId) {
+      var deferred = $q.defer();
+      var matcher = (execution) => {
+        return execution.status === 'RUNNING';
+      };
+
+      $http({
+        method: 'PUT',
+        url: [
+          settings.gateUrl,
+          'pipelines',
+          executionId,
+          'resume',
+        ].join('/')
+      }).then(
+        () => waitUntilExecutionMatches(executionId, matcher).then(application.reloadExecutions).then(deferred.resolve),
+        (exception) => deferred.reject(exception && exception.data ? exception.message : null)
+    );
+      return deferred.promise;
+    }
+
     function deleteExecution(application, executionId) {
       var deferred = $q.defer();
       $http({
@@ -174,6 +216,8 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       getRunningExecutions: getRunningExecutions,
       transformExecutions: transformExecutions,
       cancelExecution: cancelExecution,
+      resumeExecution: resumeExecution,
+      pauseExecution: pauseExecution,
       deleteExecution: deleteExecution,
       waitUntilNewTriggeredPipelineAppears: waitUntilNewTriggeredPipelineAppears,
       waitUntilExecutionMatches: waitUntilExecutionMatches,

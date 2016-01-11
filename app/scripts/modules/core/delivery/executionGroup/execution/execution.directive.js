@@ -93,6 +93,23 @@ module.exports = angular
       });
     };
 
+    this.pauseExecution = () => {
+      confirmationModalService.confirm({
+          header: 'Really pause execution?',
+          buttonText: 'Pause',
+          body: '<p>This will pause the pipeline for up to 12 hours.</p><p>After 12 hours the pipeline will automatically timeout and fail.</p>',
+          submitMethod: () => executionService.pauseExecution(this.application, this.execution.id)
+      });
+    };
+
+    this.resumeExecution = () => {
+      confirmationModalService.confirm({
+          header: 'Really resume execution?',
+          buttonText: 'Resume',
+          submitMethod: () => executionService.resumeExecution(this.application, this.execution.id)
+      });
+    };
+
     $scope.$on('$destroy', () => {
       if (this.isActive()) {
         this.hideDetails();

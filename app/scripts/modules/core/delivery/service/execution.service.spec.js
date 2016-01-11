@@ -35,7 +35,7 @@ describe('Service: executionService', function () {
       let executionId = 'abc';
       let cancelUrl = [ settings.gateUrl, 'applications', 'deck', 'pipelines', executionId, 'cancel' ].join('/');
       let checkUrl = [ settings.gateUrl, 'applications', 'deck', 'pipelines' ].join('/')
-        .concat('?statuses=RUNNING,SUSPENDED,NOT_STARTED');
+        .concat('?statuses=RUNNING,SUSPENDED,PAUSED,NOT_STARTED');
       let application = { name: 'deck', reloadExecutions: () => $q.when(null) };
 
       $httpBackend.expectPUT(cancelUrl).respond(200, []);
@@ -97,6 +97,54 @@ describe('Service: executionService', function () {
       executionService.deleteExecution(application, executionId).then(angular.noop, () => failed = true);
       $httpBackend.flush();
       expect(failed).toBe(true);
+    });
+  });
+
+  describe('pausing pipeline', function () {
+    it('should wait until pipeline is PAUSED, then resolve', function () {
+      let completed = false;
+      let executionId = 'abc';
+      let pauseUrl = [ settings.gateUrl, 'pipelines', executionId, 'pause' ].join('/');
+      let singleExecutionUrl = [ settings.gateUrl, 'pipelines', executionId ].join('/');
+      let allExecutionsUrl = [ settings.gateUrl, 'applications', 'deck', 'pipelines' ].join('/');
+      let application = { name: 'deck', reloadExecutions: () => $q.when(null) };
+
+      $httpBackend.expectPUT(pauseUrl).respond(200, []);
+      $httpBackend.expectGET(singleExecutionUrl).respond(200, {id: executionId, status: 'RUNNING'});
+
+      executionService.pauseExecution(application, executionId).then(() => completed = true);
+      $httpBackend.flush();
+      expect(completed).toBe(false);
+
+      $httpBackend.expectGET(singleExecutionUrl).respond(200, {id: executionId, status: 'PAUSED'});
+      timeout.flush();
+      $httpBackend.flush();
+
+      expect(completed).toBe(true);
+    });
+  });
+
+  describe('resuming pipeline', function () {
+    it('should wait until pipeline is RUNNING, then resolve', function () {
+      let completed = false;
+      let executionId = 'abc';
+      let pauseUrl = [ settings.gateUrl, 'pipelines', executionId, 'resume' ].join('/');
+      let singleExecutionUrl = [ settings.gateUrl, 'pipelines', executionId ].join('/');
+      let allExecutionsUrl = [ settings.gateUrl, 'applications', 'deck', 'pipelines' ].join('/');
+      let application = { name: 'deck', reloadExecutions: () => $q.when(null) };
+
+      $httpBackend.expectPUT(pauseUrl).respond(200, []);
+      $httpBackend.expectGET(singleExecutionUrl).respond(200, {id: executionId, status: 'PAUSED'});
+
+      executionService.resumeExecution(application, executionId).then(() => completed = true);
+      $httpBackend.flush();
+      expect(completed).toBe(false);
+
+      $httpBackend.expectGET(singleExecutionUrl).respond(200, {id: executionId, status: 'RUNNING'});
+      timeout.flush();
+      $httpBackend.flush();
+
+      expect(completed).toBe(true);
     });
   });
 
