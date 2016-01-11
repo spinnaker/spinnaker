@@ -61,6 +61,14 @@ interface OrcaService {
   Map cancelPipeline(@Path("id") String id)
 
   @Headers("Accept: application/json")
+  @PUT("/pipelines/{id}/pause")
+  Map pausePipeline(@Path("id") String id)
+
+  @Headers("Accept: application/json")
+  @PUT("/pipelines/{id}/resume")
+  Map resumePipeline(@Path("id") String id)
+
+  @Headers("Accept: application/json")
   @DELETE("/pipelines/{id}")
   Map deletePipeline(@Path("id") String id)
 

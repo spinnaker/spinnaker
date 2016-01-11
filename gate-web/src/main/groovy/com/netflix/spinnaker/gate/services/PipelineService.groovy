@@ -77,6 +77,14 @@ class PipelineService {
     orcaService.cancelPipeline(id)
   }
 
+  Map pausePipeline(String id) {
+    orcaService.pausePipeline(id)
+  }
+
+  Map resumePipeline(String id) {
+    orcaService.resumePipeline(id)
+  }
+
   Map deletePipeline(String id) {
     orcaService.deletePipeline(id)
   }
