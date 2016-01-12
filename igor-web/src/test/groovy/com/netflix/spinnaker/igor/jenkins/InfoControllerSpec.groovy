@@ -125,6 +125,21 @@ class InfoControllerSpec extends Specification {
         response.contentAsString == '{"description":null,"displayName":"My-Build","name":"My-Build","buildable":true,"color":"red","url":"http://jenkins.builds.net/job/My-Build/","parameterDefinitionList":[{"defaultName":"pullRequestSourceBranch","defaultValue":"master","name":"pullRequestSourceBranch","description":null,"type":"StringParameterDefinition"},{"defaultName":"generation","defaultValue":"4","name":"generation","description":null,"type":"StringParameterDefinition"}],"upstreamProjectList":[{"name":"Upstream-Build","url":"http://jenkins.builds.net/job/Upstream-Build/","color":"blue"}],"downstreamProjectList":[{"name":"First-Downstream-Build","url":"http://jenkins.builds.net/job/First-Downstream-Build/","color":"blue"},{"name":"Second-Downstream-Build","url":"http://jenkins.builds.net/job/Second-Downstream-Build/","color":"blue"},{"name":"Third-Downstream-Build","url":"http://jenkins.builds.net/job/Third-Downstream-Build/","color":"red"}],"concurrentBuild":false}'
     }
 
+    void 'is able to get a job config where a parameter includes choices'() {
+        given:
+        setResponse(getJobConfigWithChoices())
+
+        when:
+        MockHttpServletResponse response = mockMvc.perform(get('/jobs/master1/MY-JOB')
+            .accept(MediaType.APPLICATION_JSON)).andReturn().response
+
+        then:
+        1 * masters.map >> ['master2': [], 'build.masters.blah': [], 'master1': service]
+        response.contentAsString == '{"description":null,"displayName":"My-Build","name":"My-Build","buildable":true,"color":"red","url":"http://jenkins.builds.net/job/My-Build/","parameterDefinitionList":[' +
+            '{"defaultName":"someParam","defaultValue":"first","name":"someParam","description":null,"type":"ChoiceParameterDefinition","choices":["first","second"]}' +
+            '],"upstreamProjectList":[{"name":"Upstream-Build","url":"http://jenkins.builds.net/job/Upstream-Build/","color":"blue"}],"downstreamProjectList":[{"name":"First-Downstream-Build","url":"http://jenkins.builds.net/job/First-Downstream-Build/","color":"blue"},{"name":"Second-Downstream-Build","url":"http://jenkins.builds.net/job/Second-Downstream-Build/","color":"blue"},{"name":"Third-Downstream-Build","url":"http://jenkins.builds.net/job/Third-Downstream-Build/","color":"red"}],"concurrentBuild":false}'
+    }
+
     void 'is able to get a job config with the folders plugin'() {
         given:
         setResponse(getJobConfig())
@@ -159,6 +174,40 @@ class InfoControllerSpec extends Specification {
             '<lastUnsuccessfulBuild><number>2698</number><url>http://jenkins.builds.net/job/My-Build/2698/</url></lastUnsuccessfulBuild>' +
             '<nextBuildNumber>2699</nextBuildNumber>' +
             '<property><parameterDefinition><defaultParameterValue><name>pullRequestSourceBranch</name><value>master</value></defaultParameterValue><description/><name>pullRequestSourceBranch</name><type>StringParameterDefinition</type></parameterDefinition><parameterDefinition><defaultParameterValue><name>generation</name><value>4</value></defaultParameterValue><description/><name>generation</name><type>StringParameterDefinition</type></parameterDefinition></property>' +
+            '<concurrentBuild>false</concurrentBuild>' +
+            '<downstreamProject><name>First-Downstream-Build</name><url>http://jenkins.builds.net/job/First-Downstream-Build/</url><color>blue</color></downstreamProject>' +
+            '<downstreamProject><name>Second-Downstream-Build</name><url>http://jenkins.builds.net/job/Second-Downstream-Build/</url><color>blue</color></downstreamProject>' +
+            '<downstreamProject><name>Third-Downstream-Build</name><url>http://jenkins.builds.net/job/Third-Downstream-Build/</url><color>red</color></downstreamProject>' +
+            '<scm/>' +
+            '<upstreamProject><name>Upstream-Build</name><url>http://jenkins.builds.net/job/Upstream-Build/</url><color>blue</color></upstreamProject>' +
+            '</freeStyleProject>'
+    }
+
+    private String getJobConfigWithChoices() {
+        return '<?xml version="1.0" encoding="UTF-8"?>' +
+            '<freeStyleProject>' +
+            '<description/>' +
+            '<displayName>My-Build</displayName>' +
+            '<name>My-Build</name>' +
+            '<url>http://jenkins.builds.net/job/My-Build/</url>' +
+            '<buildable>true</buildable>' +
+            '<color>red</color>' +
+            '<firstBuild><number>1966</number><url>http://jenkins.builds.net/job/My-Build/1966/</url></firstBuild>' +
+            '<healthReport><description>Build stability: 1 out of the last 5 builds failed.</description><iconUrl>health-60to79.png</iconUrl><score>80</score></healthReport>' +
+            '<inQueue>false</inQueue>' +
+            '<keepDependencies>false</keepDependencies>' +
+            '<lastBuild><number>2698</number><url>http://jenkins.builds.net/job/My-Build/2698/</url></lastBuild>' +
+            '<lastCompletedBuild><number>2698</number><url>http://jenkins.builds.net/job/My-Build/2698/</url></lastCompletedBuild>' +
+            '<lastFailedBuild><number>2698</number><url>http://jenkins.builds.net/job/My-Build/2698/</url></lastFailedBuild>' +
+            '<lastStableBuild><number>2697</number><url>http://jenkins.builds.net/job/My-Build/2697/</url></lastStableBuild>' +
+            '<lastSuccessfulBuild><number>2697</number><url>http://jenkins.builds.net/job/My-Build/2697/</url></lastSuccessfulBuild>' +
+            '<lastUnsuccessfulBuild><number>2698</number><url>http://jenkins.builds.net/job/My-Build/2698/</url></lastUnsuccessfulBuild>' +
+            '<nextBuildNumber>2699</nextBuildNumber>' +
+            '<property><parameterDefinition><name>someParam</name><type>ChoiceParameterDefinition</type>' +
+            '<defaultParameterValue><name>someParam</name><value>first</value></defaultParameterValue>' +
+            '<description/>' +
+            '<choice>first</choice><choice>second</choice>' +
+            '</parameterDefinition></property>' +
             '<concurrentBuild>false</concurrentBuild>' +
             '<downstreamProject><name>First-Downstream-Build</name><url>http://jenkins.builds.net/job/First-Downstream-Build/</url><color>blue</color></downstreamProject>' +
             '<downstreamProject><name>Second-Downstream-Build</name><url>http://jenkins.builds.net/job/Second-Downstream-Build/</url><color>blue</color></downstreamProject>' +
