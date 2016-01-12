@@ -23,6 +23,7 @@ import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
+import org.springframework.web.bind.annotation.ExceptionHandler
 import retrofit.RetrofitError
 import javax.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,11 +32,10 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.HandlerMapping
 import org.yaml.snakeyaml.Yaml
-
+import javax.servlet.http.HttpServletResponse
 import java.util.concurrent.ExecutorService
 
 @Slf4j
@@ -55,8 +55,7 @@ class BuildController {
         def job = (String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(5).join('/')
         if (!masters.map.containsKey(master)) {
-            log.error("Master '${master}' not found")
-            throw new MasterNotFoundException()
+            throw new MasterNotFoundException("Master '${master}' not found")
         }
         Map result = objectMapper.convertValue(masters.map[master].getBuild(job, buildNumber), Map)
         try {
@@ -78,15 +77,13 @@ class BuildController {
     @RequestMapping(value = '/builds/queue/{master}/{item}')
     QueuedJob getQueueLocation(@PathVariable String master, @PathVariable int item){
         if (!masters.map.containsKey(master)) {
-            log.error("Master '${master}' not found")
-            throw new MasterNotFoundException()
+            throw new MasterNotFoundException("Master '${master}' not found")
         }
         try {
             return masters.map[master].getQueuedItem(item)
         } catch (RetrofitError e) {
             if (e.response?.status == HttpStatus.NOT_FOUND.value()) {
-              log.error("Queued job '${item}' not found for master '${master}'.")
-              throw new QueuedJobNotFoundException()
+              throw new QueuedJobNotFoundException("Queued job '${item}' not found for master '${master}'.")
             }
             throw e
         }
@@ -97,8 +94,7 @@ class BuildController {
         def job = (String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(4).join('/')
         if (!masters.map.containsKey(master)) {
-            log.error("Master '${master}' not found")
-            throw new MasterNotFoundException()
+            throw new MasterNotFoundException("Master '${master}' not found")
         }
         masters.map[master].getBuilds(job).list
     }
@@ -110,14 +106,16 @@ class BuildController {
         def job = (String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(4).join('/')
         if (!masters.map.containsKey(master)) {
-            log.error("Master '${master}' not found")
-            throw new MasterNotFoundException()
+            throw new MasterNotFoundException("Master '${master}' not found")
         }
 
         def response
         def jenkinsService = masters.map[master]
         JobConfig jobConfig = jenkinsService.getJobConfig(job)
 
+        if (jobConfig.parameterDefinitionList?.size() > 0) {
+            validateJobParameters(jobConfig, requestParams)
+        }
         if (requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
             response = jenkinsService.buildWithParameters(job, requestParams)
         } else if (!requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
@@ -126,25 +124,32 @@ class BuildController {
         } else if (!requestParams && (!jobConfig.parameterDefinitionList || jobConfig.parameterDefinitionList.size() == 0)) {
             response = jenkinsService.build(job)
         } else { // Jenkins will reject the build, so don't even try
-            log.error("job : ${job}, passing params to a job which doesn't need them")
             // we should throw a BuildJobError, but I get a bytecode error : java.lang.VerifyError: Bad <init> method call from inside of a branch
-            throw new RuntimeException()
+            throw new RuntimeException("job : ${job}, passing params to a job which doesn't need them")
         }
 
         if (response.status != 201) {
-            log.error("Received a non-201 status when submitting job '${job}' to master '${master}'")
-            throw new BuildJobError()
+            throw new BuildJobError("Received a non-201 status when submitting job '${job}' to master '${master}'")
         }
 
         log.info("Submitted build job `${job}`")
         def locationHeader = response.headers.find { it.name == "Location" }
         if (!locationHeader) {
-            log.error("Could not find Location header for job '${job}'")
-            throw new QueuedJobDeterminationError()
+            throw new QueuedJobDeterminationError("Could not find Location header for job '${job}'")
         }
         def queuedLocation = locationHeader.value
 
         queuedLocation.split('/')[-1]
+    }
+
+    static void validateJobParameters(JobConfig jobConfig, Map<String, String> requestParams) {
+        jobConfig.parameterDefinitionList.each { parameterDefinition ->
+            String matchingParam = requestParams[parameterDefinition.name]
+            if (matchingParam != null && parameterDefinition.type == 'ChoiceParameterDefinition' && !parameterDefinition.choices.contains(matchingParam)) {
+                throw new InvalidJobParameterException("`${matchingParam}` is not a valid choice " +
+                    "for `${parameterDefinition.name}`. Valid choices are: ${parameterDefinition.choices.join(', ')}")
+            }
+        }
     }
 
     @RequestMapping(value = '/builds/properties/{buildNumber}/{fileName}/{master}/**')
@@ -154,8 +159,7 @@ class BuildController {
         def job = (String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(6).join('/')
         if (!masters.map.containsKey(master)) {
-            log.error("Could not find master '${master}' to get properties")
-            throw new MasterNotFoundException()
+            throw new MasterNotFoundException("Could not find master '${master}' to get properties")
         }
         Map<String, Object> map = [:]
         try {
@@ -182,30 +186,57 @@ class BuildController {
         map
     }
 
-    @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Jenkins master not found!")
+    @ExceptionHandler(BuildJobError.class)
+    void handleBuildJobError(HttpServletResponse response, BuildJobError e) throws IOException {
+        log.error(e.getMessage())
+        response.sendError(HttpStatus.BAD_REQUEST.value(), e.getMessage())
+    }
+
+    @ExceptionHandler(InvalidJobParameterException.class)
+    void handleInvalidJobParameterException(HttpServletResponse response, InvalidJobParameterException e) throws IOException {
+        log.error(e.getMessage())
+        response.sendError(HttpStatus.BAD_REQUEST.value(), e.getMessage())
+    }
+
+    @ExceptionHandler(value=[MasterNotFoundException.class,QueuedJobNotFoundException])
+    void handleNotFoundException(HttpServletResponse response, Exception e) throws IOException {
+        log.error(e.getMessage())
+        response.sendError(HttpStatus.NOT_FOUND.value(), e.getMessage())
+    }
+
+    @ExceptionHandler(QueuedJobDeterminationError.class)
+    void handleServiceUnavailableException(HttpServletResponse response, Exception e) throws IOException {
+        log.error(e.getMessage())
+        response.sendError(HttpStatus.SERVICE_UNAVAILABLE.value(), e.getMessage())
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    void handleOtherException(HttpServletResponse response, Exception e) throws IOException {
+        log.error(e.getMessage())
+        response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage())
+    }
+
     @InheritConstructors
     static class MasterNotFoundException extends RuntimeException {}
 
-    @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Queued job not found!")
     @InheritConstructors
     static class QueuedJobNotFoundException extends RuntimeException {}
 
-
-    @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Build job failed!")
     @InheritConstructors
     static class BuildJobError extends RuntimeException {}
 
-    @ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE, reason = "Failed to determine job from queued item!")
     @InheritConstructors
     static class QueuedJobDeterminationError extends RuntimeException {}
+
+    @InheritConstructors
+    static class InvalidJobParameterException extends RuntimeException {}
 
     // LEGACY ENDPOINTS:
 
     @RequestMapping(value = '/jobs/{master}/{job}/{buildNumber}')
     Map getJobStatusLegacy(@PathVariable String master, @PathVariable String job, @PathVariable Integer buildNumber) {
         if (!masters.map.containsKey(master)) {
-            log.error("Could not find master '${master}' to get job status for job '${job}'")
-            throw new MasterNotFoundException()
+            throw new MasterNotFoundException("Could not find master '${master}' to get job status for job '${job}'")
         }
         Map result = objectMapper.convertValue(masters.map[master].getBuild(job, buildNumber), Map)
         try {
@@ -227,15 +258,13 @@ class BuildController {
     @RequestMapping(value = '/jobs/{master}/queue/{item}')
     QueuedJob getQueueLocationLegacy(@PathVariable String master, @PathVariable int item){
         if (!masters.map.containsKey(master)) {
-            log.error("Master '${master}' not found for item '${item}'")
-            throw new MasterNotFoundException()
+            throw new MasterNotFoundException("Master '${master}' not found for item '${item}'")
         }
         try {
             return masters.map[master].getQueuedItem(item)
         } catch (RetrofitError e) {
             if (e.response?.status == HttpStatus.NOT_FOUND.value()) {
-                log.error("Queued job '${item}' not found for master '${master}'.")
-                throw new QueuedJobNotFoundException()
+                throw new QueuedJobNotFoundException("Queued job '${item}' not found for master '${master}'.")
             }
             throw e
       }
@@ -244,8 +273,7 @@ class BuildController {
     @RequestMapping(value = '/jobs/{master}/{job}/builds')
     List<Build> getBuildsLegacy(@PathVariable String master, @PathVariable String job) {
         if (!masters.map.containsKey(master)) {
-            log.error("Master '${master}' not found for job '${job}'")
-            throw new MasterNotFoundException()
+            throw new MasterNotFoundException("Master '${master}' not found for job '${job}'")
         }
         masters.map[master].getBuilds(job).list
     }
@@ -255,8 +283,7 @@ class BuildController {
         @PathVariable String master,
         @PathVariable String job, @PathVariable Integer buildNumber, @PathVariable String fileName) {
         if (!masters.map.containsKey(master)) {
-            log.error("Master '${master}' not found for job '${job}'")
-            throw new MasterNotFoundException()
+            throw new MasterNotFoundException("Master '${master}' not found for job '${job}'")
         }
         Map<String, Object> map = [:]
         try {

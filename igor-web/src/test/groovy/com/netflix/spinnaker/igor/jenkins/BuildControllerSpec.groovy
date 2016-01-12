@@ -29,6 +29,7 @@ import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
@@ -178,7 +179,24 @@ class BuildControllerSpec extends Specification {
           .contentType(MediaType.APPLICATION_JSON).param("foo", "bar")).andReturn().response
 
         then:
-        thrown(NestedServletException)
+        response.status == HttpStatus.INTERNAL_SERVER_ERROR.value()
+    }
+
+    void 'trigger a build with an invalid choice'() {
+        given:
+        JobConfig config = new JobConfig()
+        config.parameterDefinitionList = [
+            new ParameterDefinition(type: "ChoiceParameterDefinition", name: "foo", choices: ["bar", "baz"])
+        ]
+        1 * client.getJobConfig(JOB_NAME) >> config
+
+        when:
+        MockHttpServletResponse response = mockMvc.perform(put("/masters/${MASTER}/jobs/${JOB_NAME}")
+            .contentType(MediaType.APPLICATION_JSON).param("foo", "bat")).andReturn().response
+
+        then:
+        response.status == HttpStatus.BAD_REQUEST.value()
+        response.errorMessage == "`bat` is not a valid choice for `foo`. Valid choices are: bar, baz"
     }
 
     // LEGACY ENDPOINT TESTS
