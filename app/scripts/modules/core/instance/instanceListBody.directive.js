@@ -149,13 +149,14 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
               loadBalancerSort = '',
               providerStatus = '',
               activeClass = ' ',
+              healthMetrics = instance.health || [],
               params = {instanceId: instance.id, provider: instance.provider };
             if ($state.includes('**.instanceDetails', params)) {
               activeClass = ' active';
               activeInstance = params;
             }
 
-            instance.health.forEach(function (health) {
+            healthMetrics.forEach(function (health) {
               if (scope.hasLoadBalancers && health.type === 'LoadBalancer') {
                 loadBalancers = health.loadBalancers;
                 loadBalancerSort = _(health.loadBalancers)
