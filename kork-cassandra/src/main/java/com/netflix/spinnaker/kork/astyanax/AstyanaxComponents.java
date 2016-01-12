@@ -39,6 +39,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -123,6 +124,7 @@ public class AstyanaxComponents {
 
     @ConditionalOnExpression("${cassandra.embedded:true} and '${cassandra.host:127.0.0.1}' == '127.0.0.1'")
     @Bean
+    @Primary
     @ConditionalOnBean(Keyspace.class)
     public KeyspaceInitializer embeddedCassandra(@Value("${cassandra.port:9160}") int port,
                                                  @Value("${cassandra.storagePort:7000}") int storagePort,
