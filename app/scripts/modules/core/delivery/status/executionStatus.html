@@ -38,5 +38,8 @@
         {{ execution.startTime | timestamp }}
       </li>
     </span>
+    <li ng-repeat="parameter in ctrl.parameters">
+      {{parameter.key}}: {{parameter.value}}
+    </li>
   </ul>
 </div>

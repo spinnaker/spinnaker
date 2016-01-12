@@ -2,8 +2,6 @@
 
 describe('Controller: executionStatus', function () {
 
-  //NOTE: This is only testing the controllers dependencies. Please add more tests.
-
   var controller;
   var scope;
 
@@ -13,46 +11,42 @@ describe('Controller: executionStatus', function () {
     )
   );
 
-  beforeEach(
-    window.inject(function ($rootScope, $controller) {
-      scope = $rootScope.$new();
-      controller = $controller('executionStatus', {
-        $scope: scope
-      });
-    })
-  );
+  describe('parameter extraction', function () {
 
-  describe('getSuspendedStage', function() {
-    it('returns first suspended stage summary', function() {
+    beforeEach(
+      window.inject(function ($rootScope, $controller) {
+        scope = $rootScope.$new();
+        this.initialize = function(execution) {
+          scope.execution = execution;
+          controller = $controller('executionStatus', {
+            $scope: scope
+          });
+        };
+      })
+    );
+
+    it('adds parameters, sorted alphabetically, to scope if present on trigger', function () {
       var execution = {
-        stageSummaries: [
-          { isSuspended: false, name: 'not-suspended' },
-          { isSuspended: true, name: 'is-suspended' },
-          { isSuspended: true, name: 'is-also-suspended' },
-        ]
+        trigger: {
+          parameters: {
+            a: 'b',
+            b: 'c',
+            d: 'a',
+          }
+        }
       };
-      expect(controller.getSuspendedStage(execution)).toBe('is-suspended');
+      this.initialize(execution);
+      expect(controller.parameters).toEqual([
+        {key: 'a', value: 'b'},
+        {key: 'b', value: 'c'},
+        {key: 'd', value: 'a'}
+      ]);
     });
 
-    it('returns "Unknown" when no stage is suspended', function() {
-      var execution = {
-        stageSummaries: [
-          { isSuspended: false, name: 'not-suspended' },
-          { isSuspended: false, name: 'also-not-suspended' },
-        ]
-      };
-      expect(controller.getSuspendedStage(execution)).toBe('Unknown');
-    });
-
-    it('returns "Unknown" when no stage is suspended', function() {
-      var execution = {
-        stageSummaries: [
-          { isSuspended: false, name: 'not-suspended' },
-          { isSuspended: true, name: 'is-suspended' },
-          { isSuspended: false, name: 'also-not-suspended' },
-        ]
-      };
-      expect(controller.getSuspendedStage(execution)).toBe('is-suspended');
+    it('does not add parameters to scope if none present in trigger', function () {
+      var execution = { trigger: { } };
+      this.initialize(execution);
+      expect(controller.parameters).toBeUndefined();
     });
   });
 
