@@ -34,7 +34,7 @@ module.exports = angular.module('spinnaker.core.orchestratedItem.transformer', [
         },
         isActive: {
           get: function() {
-            return item.status === 'RUNNING' || item.status === 'SUSPENDED' || item.status === 'NOT_STARTED';
+            return item.status === 'RUNNING' || item.status === 'SUSPENDED' || item.status === 'NOT_STARTED' || item.status === 'PAUSED';
           }
         },
         hasNotStarted: {
@@ -50,6 +50,11 @@ module.exports = angular.module('spinnaker.core.orchestratedItem.transformer', [
         isSuspended: {
           get: function() {
             return item.status === 'SUSPENDED';
+          }
+        },
+        isPaused: {
+          get: function() {
+            return item.status === 'PAUSED';
           }
         },
         status: {
@@ -101,6 +106,8 @@ module.exports = angular.module('spinnaker.core.orchestratedItem.transformer', [
           return 'UNKNOWN';
         case 'TERMINATED':
           return 'TERMINATED';
+        case 'PAUSED':
+          return 'PAUSED';
         default:
           if (item.originalStatus) {
             $log.warn('Unrecognized status:', item.originalStatus);

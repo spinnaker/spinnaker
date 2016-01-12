@@ -2,14 +2,23 @@
 
 .execution-actions {
   display: inline-block;
-  width: 20px;
+  width: 40px;
   vertical-align: top;
   padding-top: 20px;
   margin-left: 6px;
   .glyphicon-remove-circle {
     color: @unhealthy_red;
   }
+
+  a {
+    text-decoration: none;
+
+    &:first-child {
+      padding-right: 5px;
+    }
+  }
 }
+
 .execution-summary {
   padding: 0 5px 5px;
   font-size: 90%;
@@ -26,7 +35,7 @@ execution-status {
 }
 .execution-bar {
   display: inline-block;
-  width: calc(~"100% - 215px");
+  width: calc(~"100% - 235px");
   vertical-align: top;
   padding-top: 20px;
   .stage {
