@@ -100,6 +100,7 @@ class OkHttpClientConfiguration {
     def okHttpClient = new OkHttpClient()
     okHttpClient.setConnectTimeout(connectTimoutMs, TimeUnit.MILLISECONDS)
     okHttpClient.setReadTimeout(readTimeoutMs, TimeUnit.MILLISECONDS)
+    okHttpClient.setRetryOnConnectionFailure(false)
 
     if (!keyStore && !trustStore) {
       return okHttpClient
