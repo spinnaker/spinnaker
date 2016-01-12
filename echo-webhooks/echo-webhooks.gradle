@@ -14,17 +14,10 @@
  * limitations under the License.
  */
 
-include 'echo-core', 'echo-model', 'echo-web', 'echo-notifications', 'echo-pipelinetriggers', 'echo-scheduler', 'echo-rest', 'echo-webhooks'
-
-rootProject.name = 'echo'
-
-def setBuildFile(project) {
-    project.buildFileName = "${project.name}.gradle"
-    project.children.each {
-        setBuildFile(it)
-    }
-}
-
-rootProject.children.each {
-    setBuildFile it
+dependencies {
+  compile project(':echo-core')
+  compile project(':echo-model')
+  spinnaker.group("bootWeb")
+  compile spinnaker.dependency("groovy")
+  spinnaker.group("spockBase")
 }
