@@ -412,7 +412,7 @@ class JedisExecutionRepository implements ExecutionRepository {
       execution.executingInstance = map.executingInstance
       execution.status = map.status ? ExecutionStatus.valueOf(map.status) : null
       execution.authentication = mapper.readValue(map.authentication, Execution.AuthenticationDetails)
-      execution.paused = mapper.readValue(map.paused, Execution.PausedDetails)
+      execution.paused = map.paused ? mapper.readValue(map.paused, Execution.PausedDetails) : null
 
       def stageIds = map.stageIndex.tokenize(",")
       stageIds.each { stageId ->
