@@ -25,11 +25,13 @@
         </dl>
       </div>
     </div>
-    <stage-failure-message is-failed="stage.isFailed" message="ctrl.getException(stage)"></stage-failure-message>
+    <stage-failure-message ng-if="stage.isFailed && ctrl.getException(stage)"
+                           is-failed="stage.isFailed"
+                           message="ctrl.getException(stage)"></stage-failure-message>
 
     <div class="row" ng-if="stage.context.region && stage.context.status.resourceId">
       <div class="col-md-12">
-        <div class="well alert alert-info">
+        <div class="alert alert-{{stage.isFailed ? 'danger' : 'info'}}">
           <a target="_blank" href="{{ bakeryDetailUrl(stage) }}">
             View Bakery Details
           </a>
