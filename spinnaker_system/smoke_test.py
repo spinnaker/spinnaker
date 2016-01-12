@@ -44,7 +44,6 @@ import sys
 
 # citest modules.
 import citest.gcp_testing as gcp
-import citest.base.scribe
 import citest.json_contract as jc
 import citest.service_testing as st
 import citest.service_testing.http_agent as http_agent

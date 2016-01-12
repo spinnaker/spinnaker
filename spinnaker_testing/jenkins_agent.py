@@ -89,10 +89,6 @@ class JenkinsOperationStatus(testable_agent.AgentOperationStatus):
     super(JenkinsOperationStatus, self).export_to_json_snapshot(
         snapshot, entity)
 
-  def _make_scribe_parts(self, scribe):
-    return ([scribe.build_part('Jenkins Status', self.__trigger_status)]
-            + super(JenkinsOperationStatus, self)._make_scribe_parts(scribe))
-
 
 class JenkinsAgent(testable_agent.TestableAgent):
   """A specialization of TestableAgent for interacting with Jenkins."""
@@ -137,13 +133,6 @@ class JenkinsAgent(testable_agent.TestableAgent):
     snapshot.edge_builder.make_control(
         entity, 'baseUrl', self.__http_agent.baseUrl)
     super(JenkinsAgent, self).export_to_json_snapshot(snapshot, entity)
-
-  def _make_scribe_parts(self, scribe):
-    parts = [
-        scribe.build_control_part('baseURL', self.__http_agent.baseUrl)
-    ]
-    inherited = super(JenkinsAgent, self)._make_scribe_parts(scribe)
-    return parts + inherited
 
   def new_jenkins_trigger_operation(self, title, job, token, status_class,
                                     status_path):
@@ -198,14 +187,6 @@ class BaseJenkinsOperation(testable_agent.AgentOperation):
     snapshot.edge_builder.make_data(
         entity, 'Payload Data', self.__data, format='json')
     super(BaseJenkinsOperation, self).export_to_json_snapshot(snapshot, entity)
-
-  def _make_scribe_parts(self, scribe):
-    parts = [
-        scribe.part_builder.build_mechanism_part('Jenkins Agent', self.agent),
-        scribe.build_json_part('Payload Data', self.__data)
-    ]
-    inherited = super(BaseJenkinsOperation, self)._make_scribe_parts(scribe)
-    return parts + inherited
 
   def execute(self, agent=None, trace=True):
     if not self.agent:
