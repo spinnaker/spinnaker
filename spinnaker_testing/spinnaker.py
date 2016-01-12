@@ -139,13 +139,6 @@ class SpinnakerStatus(service_testing.HttpOperationStatus):
     snapshot.edge_builder.make_output(entity, 'Status Detail', self.__json_doc,
                                       format='json')
 
-  def _make_scribe_parts(self, scribe):
-    """Implements Scribbable._make_scribe_parts."""
-    parts = [scribe.build_json_part('Status Detail', self.__json_doc,
-                                    relation=scribe.part_builder.OUTPUT)]
-    inherited = super(SpinnakerStatus, self)._make_scribe_parts(scribe)
-    return inherited + parts
-
   def __init__(self, operation, original_response=None):
     """Initialize status tracker.
 
