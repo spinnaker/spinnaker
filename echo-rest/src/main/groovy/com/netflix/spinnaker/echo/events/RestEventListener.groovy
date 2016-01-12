@@ -47,10 +47,14 @@ class RestEventListener implements EchoEventListener {
 
   @Override
   void processEvent(Event event) {
-    Map eventAsMap = mapper.convertValue(event, Map)
     restUrls.services.each { service ->
       try {
+        Map eventAsMap = mapper.convertValue(event, Map)
         Map sentEvent = eventAsMap
+        if (service.config.flatten) {
+          eventAsMap.content = mapper.writeValueAsString(eventAsMap.content)
+          eventAsMap.details = mapper.writeValueAsString(eventAsMap.details)
+        }
         if (service.config.wrap) {
           sentEvent = [
             "eventName": "${service.config.eventName ?: eventName}" as String,
@@ -59,7 +63,7 @@ class RestEventListener implements EchoEventListener {
         }
         service.client.recordEvent(sentEvent)
       } catch (e) {
-        log.error("Could not send event ${eventAsMap} to ${service.config.url}")
+        log.error("Could not send event ${event} to ${service.config.url}", e)
       }
     }
   }

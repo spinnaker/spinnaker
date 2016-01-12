@@ -41,7 +41,7 @@ class CassandraConfig {
     @Autowired
     Environment environment
 
-    @Autowired(required = false)
+    @Autowired
     AstyanaxKeyspaceFactory factory
 
     @Bean

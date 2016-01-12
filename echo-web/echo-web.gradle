@@ -32,13 +32,6 @@ springBoot {
     mainClass = 'com.netflix.spinnaker.echo.Application'
 }
 
-configurations.all {
-    resolutionStrategy {
-        force 'org.antlr:antlr-runtime:3.4'
-        force 'com.google.guava:guava:14.0.1'
-    }
-}
-
 dependencies {
     compile project(':echo-core')
     compile project(':echo-model')
