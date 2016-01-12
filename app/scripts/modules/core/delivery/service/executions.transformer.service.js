@@ -14,6 +14,9 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
     var hiddenStageTypes = ['pipelineInitialization', 'waitForRequisiteCompletion'];
 
     function transformExecution(application, execution) {
+      if (execution.trigger) {
+        execution.isStrategy = execution.trigger.isPipeline === false && execution.trigger.type === 'pipeline';
+      }
       applyPhasesAndLink(execution);
       pipelineConfig.getExecutionTransformers().forEach(function(transformer) {
         transformer.transform(application, execution);
