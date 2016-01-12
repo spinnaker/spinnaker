@@ -13,16 +13,16 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.cron', [
       description: 'Executes the pipeline on a CRON schedule',
       key: 'cron',
       controller: 'CronTriggerCtrl',
-      controllerAs: 'cronTriggerCtrl',
+      controllerAs: 'vm',
       templateUrl: require('./cronTrigger.html'),
       popoverLabelUrl: require('./cronPopoverLabel.html'),
     });
   })
-  .controller('CronTriggerCtrl', function($scope, trigger, uuidService) {
+  .controller('CronTriggerCtrl', function(trigger, uuidService) {
 
-    $scope.trigger = trigger;
+    this.trigger = trigger;
 
-    $scope.validationMessages = {};
+    this.validationMessages = {};
 
     trigger.id = trigger.id || uuidService.generateUuid();
 

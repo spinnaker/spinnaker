@@ -58,6 +58,15 @@ describe('Validator: cronExpression', function () {
     });
   });
 
+  describe('whitespace trimming', function () {
+    it('compresses extra whitespace before sending value for validation', function () {
+      spyOn(cronValidationService, 'validate').and.returnValue($q.when({valid: true}));
+      this.initialize('0   0  0     0   0 1');
+      scope.$digest();
+      expect(cronValidationService.validate).toHaveBeenCalledWith('0 0 0 0 0 1');
+    });
+  });
+
   describe('failed validation', function () {
     it('sets error message on scope if available', function () {
       spyOn(cronValidationService, 'validate').and.returnValue($q.reject({message: 'is not valid'}));

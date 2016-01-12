@@ -6,24 +6,25 @@
     </label>
     <div class="col-md-3">
       <input type="text" class="form-control input-sm"
-             ng-model="trigger.cronExpression"
+             ng-model="vm.trigger.cronExpression"
+             ng-change="vm.compressWhitespace()"
              name="cronExpression"
              required
              cron-validator
-             cron-validation-messages="validationMessages"
+             cron-validation-messages="vm.validationMessages"
           />
     </div>
   </div>
-  <div class="form-group" ng-if="validationMessages.description && !cronForm.cronExpression.$invalid">
+  <div class="form-group" ng-if="vm.validationMessages.description && !cronForm.cronExpression.$invalid">
     <div class="col-md-8 col-md-offset-3">
-      <p>(will run {{validationMessages.description}})</p>
+      <p>(will run {{vm.validationMessages.description}})</p>
     </div>
   </div>
 
 
   <div class="form-group row slide-in animated" ng-if="cronForm.cronExpression.$error.cronExpression">
     <div class="col-sm-9 col-sm-offset-3 error-message">
-      {{validationMessages.error}}
+      {{vm.validationMessages.error}}
     </div>
   </div>
 </ng-form>

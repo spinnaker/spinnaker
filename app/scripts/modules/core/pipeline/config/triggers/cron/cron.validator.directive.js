@@ -31,6 +31,11 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.cron.validator.
         }
 
         ctrl.$asyncValidators.cronExpression = function(modelValue, viewValue) {
+          // compress whitespace - the actual scheduler does not care about it, but the expression validator does
+          // for some reason
+          if (viewValue) {
+            viewValue = viewValue.replace(/\s\s+/g, ' ');
+          }
           var deferred = $q.defer();
           cronValidationService.validate(viewValue).then(
             function(result) {
