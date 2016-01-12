@@ -26,14 +26,13 @@ import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRe
 import com.netflix.spinnaker.rosco.rush.api.RushService
 import com.netflix.spinnaker.rosco.rush.api.ScriptExecution
 import com.netflix.spinnaker.rosco.rush.api.ScriptRequest
-import com.wordnik.swagger.annotations.ApiOperation
-import com.wordnik.swagger.annotations.ApiParam
 import groovy.util.logging.Slf4j
+import io.swagger.annotations.ApiOperation
+import io.swagger.annotations.ApiParam
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
-import retrofit.http.Path
 
 @RestController
 @Slf4j
