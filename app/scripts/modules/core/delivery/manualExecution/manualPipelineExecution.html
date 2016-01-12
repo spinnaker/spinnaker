@@ -88,17 +88,16 @@
             </ui-select>
           </div>
         </div>
-        <div class="form-group" ng-if="vm.showRebakeOption">
-          <label class="col-md-2 col-md-offset-1 sm-label-left">Rebake</label>
-          <div class="col-md-6 checkbox">
-            <label>
-              <input type="checkbox" ng-model="vm.command.trigger.rebake"/>
-              Force Rebake
-              <help-field key="execution.forceRebake"></help-field>
-            </label>
-          </div>
+      </div>
+      <div class="form-group" ng-if="vm.showRebakeOption">
+        <label ng-if="vm.triggers.length" class="col-md-2 col-md-offset-1 sm-label-left">Rebake</label>
+        <div class="checkbox" ng-class="vm.triggers.length ? 'col-md-6' : 'col-md-10 col-md-offset-1'">
+          <label>
+            <input type="checkbox" ng-model="vm.command.trigger.rebake"/>
+            Force Rebake
+          </label>
+          <help-field key="execution.forceRebake"></help-field>
         </div>
-
       </div>
 
       <div class="form-group" ng-if="vm.command.pipeline.parameterConfig !== undefined && vm.command.pipeline.parameterConfig.length">
