@@ -1,7 +1,7 @@
 <div class="row" ng-if="isFailed">
   <div class="col-md-12">
     <div class="alert alert-danger">
-      <div ng-if="message">
+      <div ng-if="message || !messages.length">
         <h5>Exception:</h5>
         <p>
           {{message || 'No reason provided.'}}
