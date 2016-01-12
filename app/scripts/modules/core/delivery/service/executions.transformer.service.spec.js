@@ -133,6 +133,31 @@ describe('executionTransformerService', function() {
       expect(execution.stageSummaries[2].endTime).toBeUndefined();
     });
 
+    it('should remove stage summary end time if current stage is still running', function () {
+      var execution = {
+        stages: [
+          { id: '2', name: 'deploy', status: 'COMPLETED', startTime: 7, endTime: 8 },
+          { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'COMPLETED', startTime: 4, endTime: 6},
+          { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'RUNNING', startTime: 6 },
+        ]
+      };
+      this.transformer.transformExecution({}, execution);
+      expect(execution.stageSummaries[0].endTime).toBeUndefined();
+    });
+
+    it('should set stage summary end time to the maximum value of all stage end times', function () {
+      var execution = {
+        stages: [
+          { id: '2', name: 'deploy', status: 'COMPLETED', startTime: 7, endTime: 8 },
+          { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'COMPLETED', startTime: 4, endTime: 6},
+          { id: '5', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'COMPLETED', startTime: 4, endTime: 9},
+          { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'COMPLETED', startTime: 6, endTime: 11 },
+        ]
+      };
+      this.transformer.transformExecution({}, execution);
+      expect(execution.stageSummaries[0].endTime).toBe(11);
+    });
+
     it('should not set stage status, start/end times based on child stages on non-summary stages', function() {
       var execution = {
         stages: [
