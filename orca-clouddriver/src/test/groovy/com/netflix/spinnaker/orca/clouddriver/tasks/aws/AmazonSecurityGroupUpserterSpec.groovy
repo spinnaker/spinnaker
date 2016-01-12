@@ -29,10 +29,10 @@ import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.clouddriver.MortService.SecurityGroup.filterForSecurityGroupIngress
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND
 
-class AmazonSecurityGroupCreatorSpec extends Specification {
+class AmazonSecurityGroupUpserterSpec extends Specification {
 
   @Subject
-  def upserter = new AmazonSecurityGroupCreator()
+  def upserter = new AmazonSecurityGroupUpserter()
 
   @Shared
   def ctx = [name: "SG1", credentials: "test"]
@@ -45,7 +45,7 @@ class AmazonSecurityGroupCreatorSpec extends Specification {
       def stage = new PipelineStage(new Pipeline(), "upsertSecurityGroup", [:]).asImmutable()
 
     when:
-      upserter.getOperationsAndExtraOutput(stage)
+      upserter.getOperationContext(stage)
 
     then:
       thrown(IllegalStateException)
@@ -60,15 +60,15 @@ class AmazonSecurityGroupCreatorSpec extends Specification {
       }
 
     when:
-      def results = upserter.getOperationsAndExtraOutput(stage)
+      def results = upserter.getOperationContext(stage)
 
     then:
       results
 
-      def ops = results[0] as List
+      def ops = results.operations
       ops.size() == expectedTargets.size()
 
-      def extraOutputs = results[1] as Map
+      def extraOutputs = results.extraOutput
       extraOutputs.targets == expectedTargets
 
     where:

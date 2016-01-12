@@ -27,7 +27,7 @@ import retrofit.RetrofitError
 import static com.netflix.spinnaker.orca.clouddriver.MortService.SecurityGroup.filterForSecurityGroupIngress
 
 @Component
-class AmazonSecurityGroupCreator implements SecurityGroupUpserter, CloudProviderAware {
+class AmazonSecurityGroupUpserter implements SecurityGroupUpserter, CloudProviderAware {
 
   final String cloudProvider = "aws"
 
@@ -35,7 +35,7 @@ class AmazonSecurityGroupCreator implements SecurityGroupUpserter, CloudProvider
   MortService mortService
 
   @Override
-  def getOperationsAndExtraOutput(Stage stage) {
+  SecurityGroupUpserter.OperationContext getOperationContext(Stage stage) {
     def operation = new HashMap(stage.context)
     operation.regions = operation.regions ?: (operation.region ? [operation.region] : [])
 
@@ -74,7 +74,7 @@ class AmazonSecurityGroupCreator implements SecurityGroupUpserter, CloudProvider
 
     def securityGroupIngress = stage.context.securityGroupIngress ?: []
 
-    [ops, [targets: targets, securityGroupIngress: securityGroupIngress]]
+    return new SecurityGroupUpserter.OperationContext(ops, [targets: targets, securityGroupIngress: securityGroupIngress])
   }
 
   boolean isSecurityGroupUpserted(MortService.SecurityGroup upsertedSecurityGroup, Stage stage) {

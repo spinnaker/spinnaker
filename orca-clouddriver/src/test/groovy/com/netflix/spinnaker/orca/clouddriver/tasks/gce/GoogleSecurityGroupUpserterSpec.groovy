@@ -40,16 +40,16 @@ class GoogleSecurityGroupUpserterSpec extends Specification {
       def stage = new PipelineStage(new Pipeline(), "whatever", ctx)
 
     when:
-      def results = upserter.getOperationsAndExtraOutput(stage)
+      def results = upserter.getOperationContext(stage)
 
     then:
-      results.size() == 2
+      results
 
-      def ops = results[0] as List
+      def ops = results.operations
       ops.size() == 1
       (ops[0] as Map).upsertSecurityGroup == ctx
 
-      def extraOutputs = results[1] as Map
+      def extraOutputs = results.extraOutput
       List<MortService.SecurityGroup> targets = extraOutputs.targets
       targets.size() == 1
       targets[0].name == "test-security-group"

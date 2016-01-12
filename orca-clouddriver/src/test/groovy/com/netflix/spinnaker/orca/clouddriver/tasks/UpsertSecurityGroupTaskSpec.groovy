@@ -30,13 +30,13 @@ class UpsertSecurityGroupTaskSpec extends Specification {
   @Shared
   SecurityGroupUpserter aUpserter = Stub(SecurityGroupUpserter) {
     getCloudProvider() >> "aCloud"
-    getOperationsAndExtraOutput(_) >> [[["aOp": "foo"]], ["aOp-extra": "bar"]]
+    getOperationContext(_) >> new SecurityGroupUpserter.OperationContext([["aOp": "foo"]], ["aOp-extra": "bar"])
   }
 
   @Shared
   SecurityGroupUpserter bUpserter = Stub(SecurityGroupUpserter) {
     getCloudProvider() >> "bCloud"
-    getOperationsAndExtraOutput(_) >> [[["bOp": "bar"]], ["bOp-extra": "baz"]]
+    getOperationContext(_) >> new SecurityGroupUpserter.OperationContext([["bOp": "bar"]], ["bOp-extra": "baz"])
   }
 
   @Shared

@@ -41,13 +41,13 @@ class UpsertSecurityGroupTask extends AbstractCloudProviderAwareTask {
       throw new IllegalStateException("SecurityGroupUpserter not found for cloudProvider $cloudProvider")
     }
 
-    def (ops, extraOutput) = upserter.getOperationsAndExtraOutput(stage)
-    def taskId = kato.requestOperations(cloudProvider, ops).toBlocking().first()
+    SecurityGroupUpserter.OperationContext result = upserter.getOperationContext(stage)
+    def taskId = kato.requestOperations(cloudProvider, result.operations).toBlocking().first()
 
     Map outputs = [
         "notification.type"   : "upsertsecuritygroup",
         "kato.last.task.id"   : taskId,
-    ] + extraOutput
+    ] + result.extraOutput
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }

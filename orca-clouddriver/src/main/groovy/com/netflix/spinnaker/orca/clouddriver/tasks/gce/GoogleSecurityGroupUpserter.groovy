@@ -33,7 +33,7 @@ class GoogleSecurityGroupUpserter implements SecurityGroupUpserter, CloudProvide
   MortService mortService
 
   @Override
-  def getOperationsAndExtraOutput(Stage stage) {
+  SecurityGroupUpserter.OperationContext getOperationContext(Stage stage) {
     def ops = [[(SecurityGroupUpserter.OPERATION): stage.context]]
     def targets = [
         new MortService.SecurityGroup(name: stage.context.name,
@@ -41,7 +41,7 @@ class GoogleSecurityGroupUpserter implements SecurityGroupUpserter, CloudProvide
                                       accountName: getCredentials(stage))
     ]
 
-    [ops, [targets: targets]]
+    return new SecurityGroupUpserter.OperationContext(ops, [targets: targets])
   }
 
   boolean isSecurityGroupUpserted(MortService.SecurityGroup upsertedSecurityGroup, Stage _) {
