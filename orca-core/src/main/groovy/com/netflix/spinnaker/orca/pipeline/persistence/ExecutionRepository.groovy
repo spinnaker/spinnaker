@@ -31,6 +31,10 @@ interface ExecutionRepository {
 
   void cancel(String id)
   void cancel(String id, String user)
+
+  void pause(String id, String user)
+  void resume(String id, String user)
+
   boolean isCanceled(String id)
   void updateStatus(String id, ExecutionStatus status)
 

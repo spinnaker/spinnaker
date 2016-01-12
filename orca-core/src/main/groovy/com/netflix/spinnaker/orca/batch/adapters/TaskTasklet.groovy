@@ -91,13 +91,6 @@ class TaskTasklet implements Tasklet {
 
         logResult(result, stage, chunkContext)
 
-        // we should reload the execution now, in case it has been affected
-        // by a parallel process
-        long scheduledTime = stage.scheduledTime
-        stage = currentStage(chunkContext, true)
-        // Setting the scheduledTime if it has been set by the task
-        stage.scheduledTime = scheduledTime
-
         if (result.status == ExecutionStatus.TERMINAL) {
           setStopStatus(chunkContext, ExitStatus.FAILED, result.status)
           // cancel execution which will halt any parallel branches and run

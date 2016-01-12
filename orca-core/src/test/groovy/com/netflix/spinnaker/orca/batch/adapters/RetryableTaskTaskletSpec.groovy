@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+
 import java.time.Clock
 import java.time.Instant
 import com.netflix.spectator.api.NoopRegistry
@@ -43,6 +46,8 @@ import redis.clients.util.Pool
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Unroll
+
+import static com.netflix.spinnaker.orca.ExecutionStatus.PAUSED
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.pipeline.model.Stage.STAGE_TIMEOUT_OVERRIDE_KEY
@@ -85,8 +90,8 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
     pipeline.stages.first().tasks << taskModel
     executionRepository.store(pipeline)
     def step = steps.get("${pipeline.stages[0].id}.retryable.${taskModel.name}.${taskModel.id}")
-                    .tasklet(taskFactory.decorate(task))
-                    .build()
+      .tasklet(taskFactory.decorate(task))
+      .build()
     jobBuilder.start(step).build()
   }
 
@@ -149,6 +154,7 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
     and:
     def stage = new PipelineStage(new Pipeline(), null, stageContext)
     def tasklet = new RetryableTaskTasklet(task, null, null, new NoopRegistry(), clock)
+    stage.execution.paused = new Execution.PausedDetails(pauseTime: 0)
 
     when:
     def exceptionThrown = false
@@ -162,12 +168,65 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
     exceptionThrown == expectedException
 
     where:
-    currentTime | stageContext                                || expectedException
-    0L          | [:]                                         || false
-    timeout     | [:]                                         || false
-    timeout + 1 | [(STAGE_TIMEOUT_OVERRIDE_KEY): timeout + 2] || false
-    timeout     | [:]                                         || false
-    timeout + 1 | [:]                                         || true
-    timeout - 1 | [(STAGE_TIMEOUT_OVERRIDE_KEY): timeout - 2] || true
+    currentTime                                | stageContext                                                                 || expectedException
+    0L                                         | [:]                                                                          || false
+    timeout                                    | [:]                                                                          || false
+    timeout + 1                                | [(STAGE_TIMEOUT_OVERRIDE_KEY): timeout + 2]                                  || false
+    timeout                                    | [:]                                                                          || false
+    timeout + 1                                | [:]                                                                          || true
+    timeout - 1                                | [(STAGE_TIMEOUT_OVERRIDE_KEY): timeout - 2]                                  || true
+    RetryableTaskTasklet.MAX_PAUSE_TIME_MS     | [(STAGE_TIMEOUT_OVERRIDE_KEY): RetryableTaskTasklet.MAX_PAUSE_TIME_MS + 100] || false
+    RetryableTaskTasklet.MAX_PAUSE_TIME_MS + 1 | [(STAGE_TIMEOUT_OVERRIDE_KEY): RetryableTaskTasklet.MAX_PAUSE_TIME_MS + 100] || true
+  }
+
+  void "should mark RUNNING tasks as PAUSED (and vice-versa) when pausing and resuming a pipeline"() {
+    given:
+    def clock = Clock.fixed(Instant.ofEpochMilli(0), UTC)
+    def chunkContext = new ChunkContext(
+      new StepContext(Stub(StepExecution) {
+        getStartTime() >> { new Date(0) }
+      })
+    )
+
+    and:
+    def stage = new PipelineStage(new Pipeline(), null, [:])
+    stage.tasks << new DefaultTask(status: SUCCEEDED)
+    stage.tasks << new DefaultTask(status: RUNNING)
+    stage.execution.status = PAUSED
+    def tasklet = new RetryableTaskTasklet(task, null, null, new NoopRegistry(), clock)
+
+    when:
+    def taskResult = tasklet.doExecuteTask(stage.asImmutable(), chunkContext)
+
+    then:
+    stage.self.status == PAUSED
+    taskResult.status == PAUSED
+    stage.tasks*.status == [SUCCEEDED, PAUSED]
+
+    when:
+    stage.execution.status = RUNNING
+    taskResult = tasklet.doExecuteTask(stage, chunkContext)
+
+    then:
+    1 * task.execute(_) >> { DefaultTaskResult.SUCCEEDED }
+    taskResult.status == SUCCEEDED
+    stage.self.status == RUNNING
+    stage.tasks*.status == [SUCCEEDED, RUNNING]
+  }
+
+  void "should discount paused time when determining current time"() {
+    given:
+    def clock = Clock.fixed(Instant.ofEpochMilli(currentTime), UTC)
+    def pausedDetails = new Execution.PausedDetails(pauseTime: pauseTime, resumeTime: resumeTime)
+
+    expect:
+    RetryableTaskTasklet.determineCurrentExecutionTime(clock, 0, pausedDetails) == expectedNow
+
+    where:
+    currentTime | pauseTime | resumeTime || expectedNow
+    100         | 50        | 75         || 75
+    100         | 50        | null       || 100
+    100         | null      | null       || 100
+    100         | null      | 75         || 100
   }
 }

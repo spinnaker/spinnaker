@@ -113,6 +113,18 @@ class TaskController {
     executionRepository.cancel(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
   }
 
+  @RequestMapping(value = "/pipelines/{id}/pause", method = RequestMethod.PUT)
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  void pause(@PathVariable String id) {
+    executionRepository.pause(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
+  }
+
+  @RequestMapping(value = "/pipelines/{id}/resume", method = RequestMethod.PUT)
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  void resume(@PathVariable String id) {
+    executionRepository.resume(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
+  }
+
   @RequestMapping(value = "/pipelines/running", method = RequestMethod.GET)
   List<String> runningPipelines() {
     startTracker.getAllStartedExecutions()

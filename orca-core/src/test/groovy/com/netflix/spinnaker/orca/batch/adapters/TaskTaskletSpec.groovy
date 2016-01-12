@@ -127,7 +127,7 @@ class TaskTaskletSpec extends Specification {
     then:
     stageArgument.immutable
     stageArgument.type == stage.type
-    stageArgument.context == stage.context
+    stageArgument.context == stage.context + ["batch.task.id.task1": stepExecution.id]
   }
 
   @Unroll("should convert a result of #taskResultStatus to repeat status #repeatStatus and exitStatus #exitStatus")

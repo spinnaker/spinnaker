@@ -33,6 +33,12 @@ enum ExecutionStatus {
     RUNNING(false, false, ExitStatus.EXECUTING),
 
   /**
+   * The task is still running and the {@code Task} may be resumed in order
+   * to continue.
+   */
+    PAUSED(false, false, ExitStatus.EXECUTING),
+
+  /**
    * The task is complete but the pipeline should now be stopped pending a
    * trigger of some kind.
    */

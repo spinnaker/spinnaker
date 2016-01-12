@@ -377,6 +377,62 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
       status == RUNNING
     }
   }
+
+  def "pausing/resuming a running execution will set appropriate 'paused' details"() {
+    given:
+    def execution = new Pipeline(buildTime: 0)
+    repository.store(execution)
+    repository.updateStatus(execution.id, RUNNING)
+
+    when:
+    repository.pause(execution.id, "user@netflix.com")
+
+    then:
+    with(repository.retrievePipeline(execution.id)) {
+      status == PAUSED
+      paused.pauseTime != null
+      paused.resumeTime == null
+      paused.pausedBy == "user@netflix.com"
+      paused.pausedMs == 0
+      paused.paused == true
+    }
+
+    when:
+    repository.resume(execution.id, "another@netflix.com")
+
+    then:
+    with(repository.retrievePipeline(execution.id)) {
+      status == RUNNING
+      paused.pauseTime != null
+      paused.resumeTime != null
+      paused.pausedBy == "user@netflix.com"
+      paused.resumedBy == "another@netflix.com"
+      paused.pausedMs == (paused.resumeTime - paused.pauseTime)
+      paused.paused == false
+    }
+  }
+
+  @Unroll
+  def "should only #method a #expectedStatus execution"() {
+    given:
+    def execution = new Pipeline(buildTime: 0)
+    repository.store(execution)
+    repository.updateStatus(execution.id, status)
+
+    when:
+    repository."${method}"(execution.id, "user@netflix.com")
+
+    then:
+    def e = thrown(IllegalStateException)
+    e.message.startsWith("Unable to ${method} pipeline that is not ${expectedStatus}")
+
+    where:
+    method   | status      || expectedStatus
+    "pause"  | PAUSED      || RUNNING
+    "pause"  | NOT_STARTED || RUNNING
+    "resume" | RUNNING     || PAUSED
+    "resume" | NOT_STARTED || PAUSED
+  }
 }
 
 class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecutionRepository> {
