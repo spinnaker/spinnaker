@@ -18,10 +18,9 @@ package com.netflix.spinnaker.rosco.api
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.google.gson.annotations.SerializedName
-import com.wordnik.swagger.annotations.ApiModelProperty
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
-import org.springframework.beans.factory.annotation.Value
+import io.swagger.annotations.ApiModelProperty
 
 /**
  * A request to bake a new machine image.
