@@ -94,7 +94,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.pipelineStage', [
     this.updateParam = function(parameter){
       if($scope.useDefaultParameters[parameter] === true){
         delete $scope.userSuppliedParameters[parameter];
-        delete $scope.stage.parameters[parameter];
+        delete $scope.stage.pipelineParameters[parameter];
       } else if($scope.userSuppliedParameters[parameter]){
         $scope.stage.pipelineParameters[parameter] = $scope.userSuppliedParameters[parameter];
       }
