@@ -21,4 +21,4 @@ else
   echo -e 'WARN: Should not be here => Branch ['$TRAVIS_BRANCH']  Tag ['$TRAVIS_TAG']  Pull Request ['$TRAVIS_PULL_REQUEST']'
   ./gradlew -Prelease.useLastTag=true build
 fi
-cat ./kork-cassandra/build/reports/tests/classes/*
+
