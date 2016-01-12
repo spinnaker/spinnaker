@@ -237,4 +237,16 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'execution.forceRebake': '<p>By default, the bakery will <b>not</b> create a new image if the contents of the package have not changed; ' +
       'instead, it will return the previously baked image.</p>' +
       '<p>Select this option to force the bakery to create a new image, regardless of whether or not the selected package exists.</p>',
+    'kubernetes.serverGroup.containers': '(Required) Select at least one image to run in this server group (pod). ' +
+      'If multiple images are selected, they will be colocated and replicated equally.',
+    'kubernetes.containers.image': 'The image selected under Basic Settings whose container is to be configured.',
+    'kubernetes.containers.name': '(Required) The name of the container associated with the above image. Used for resource identification',
+    'kubernetes.containers.limits.cpu': '(Optional) The relative CPU shares to allocate this container. If set, it is multiplied by 1024, then ' +
+      'passed to Docker as the --cpu-shares flag. Otherwise the default of 1 (1024) is used',
+    'kubernetes.containers.requests.cpu': '(Optional) This is used for scheduling. It assures that this container will always be scheduled on a machine ' +
+      'with at least this much CPU available.',
+    'kubernetes.containers.limits.memory': '(Optional) The relative memory in megabytes to allocate this container. If set, it is converted to an integer ' +
+      'and passed to Docker as the --memory flag. Otherwise there are no restrictions on memory usage',
+    'kubernetes.containers.requests.memory': '(Optional) This is used for scheduling. It assures that this container will always be scheduled on a machine ' +
+      'with at least this much memory available.',
   });

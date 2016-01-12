@@ -1,0 +1,25 @@
+<form ng-controller="kubernetesServerGroupCapacityController" class="container-fluid form-horizontal" name="form" novalidate>
+  <div class="modal-body">
+    <ng-form name="body">
+        <div class="form-group">
+          <div class="col-md-4 sm-label-left">
+            Capacity
+          </div>
+          <div class="col-md-6">
+            <input type="number" class="form-control input-sm" name="details" ng-model="command.targetSize"/>
+          </div>
+        </div>
+    </ng-form>
+    <div class="modal-footer">
+      <button class="btn btn-default pull-left"
+              ng-click="wizard.previousPage(form.$valid)">
+        <span class="glyphicon glyphicon-chevron-left"></span> Back
+      </button>
+      <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
+      <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="form.$invalid || !ctrl.isValid() || taskMonitor.submitting"
+                     label="command.viewState.submitButtonLabel"
+                     submitting="taskMonitor.submitting" on-click="ctrl.clone()" is-new="true"></submit-button>
+      </button>
+    </div>
+  </div>
+</form>

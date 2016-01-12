@@ -14,4 +14,5 @@ module.exports = angular.module('netflix.spinnaker', [
   require('./modules/cloudfoundry/cf.module.js'),
   require('./modules/titan/titan.module.js'),
   require('./modules/azure/azure.module.js'),
+  require('./modules/kubernetes/kubernetes.module.js'),
 ]);
