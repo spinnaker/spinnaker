@@ -48,6 +48,26 @@ describe('Controller: executionStatus', function () {
       this.initialize(execution);
       expect(controller.parameters).toBeUndefined();
     });
+
+    it('excludes some parameters if the pipeline is a strategy', function () {
+      var execution = {
+        isStrategy: true,
+        trigger: {
+          parameters: {
+            included: 'a',
+            parentPipelineId: 'b',
+            strategy: 'c',
+            parentStageId: 'd',
+            deploymentDetails: 'e',
+            cloudProvider: 'f'
+          }
+        }
+      };
+      this.initialize(execution);
+      expect(controller.parameters).toEqual([
+        {key: 'included', value: 'a'}
+      ]);
+    });
   });
 
 });
