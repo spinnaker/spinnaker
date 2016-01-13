@@ -1,7 +1,7 @@
 <div class="details-panel"
-     ng-class="{ disabled: serverGroup.isDisabled }">
+     ng-class="{ disabled: ctrl.serverGroup.isDisabled }">
 
-  <div class="header" ng-if="state.loading">
+  <div class="header" ng-if="ctrl.state.loading">
       <div class="close-button">
           <a class="btn btn-link"
              ui-sref="^">
@@ -14,7 +14,7 @@
   </div>
 
 
-  <div class="header" ng-if="!state.loading">
+  <div class="header" ng-if="!ctrl.state.loading">
     <div class="close-button">
       <a class="btn btn-link"
           ui-sref="^">
@@ -22,44 +22,46 @@
       </a>
     </div>
     <div class="header-text">
-      <cloud-provider-logo provider="serverGroup.type" height="36px" width="36px" style="margin-right: 10px"></cloud-provider-logo>
+      <cloud-provider-logo provider="ctrl.serverGroup.type" height="36px" width="36px" style="margin-right: 10px"></cloud-provider-logo>
       <h3 select-on-dbl-click>
-        {{serverGroup.name}}
+        {{ctrl.serverGroup.name}}
       </h3>
     </div>
     <div>
-      <div class="actions" ng-class="{ insights: serverGroup.insightActions.length > 0 }">
+      <div class="actions" ng-class="{ insights: ctrl.serverGroup.insightActions.length > 0 }">
         <div class="dropdown" uib-dropdown dropdown-append-to-body>
           <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
             Server Group Actions <span class="caret"></span>
           </button>
           <ul class="uib-dropdown-menu" role="menu">
-            <li><a href ng-if="!serverGroup.isDisabled" ng-click="ctrl.rollbackServerGroup()">Rollback</a></li>
-            <li role="presentation" class="divider" ng-if="!serverGroup.isDisabled"></li>
+            <li><a href ng-if=" !ctrl.serverGroup.isDisabled" ng-click="ctrl.rollbackServerGroup()">Rollback</a></li>
+            <li role="presentation" class="divider" ng-if=" !ctrl.serverGroup.isDisabled"></li>
             <li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>
-            <li><a href ng-if="!serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable</a></li>
-            <li><a href ng-if="serverGroup.isDisabled" ng-click="ctrl.enableServerGroup()">Enable</a></li>
+            <li><a href ng-if=" !ctrl.serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable</a></li>
+            <li><a href ng-if="ctrl.serverGroup.isDisabled" ng-click="ctrl.enableServerGroup()">Enable</a></li>
             <li><a href ng-click="ctrl.destroyServerGroup()">Destroy</a></li>
-            <li><a href ng-click="ctrl.cloneServerGroup(serverGroup)">Clone</a></li>
-            <li><migrator application="application" server-group="serverGroup"></migrator></li>
+            <li><a href ng-click="ctrl.cloneServerGroup(ctrl.serverGroup)">Clone</a></li>
+            <li><migrator application="ctrl.application" server-group="ctrl.serverGroup"></migrator></li>
           </ul>
         </div>
-        <div class="dropdown" ng-if="serverGroup.insightActions.length > 0" uib-dropdown dropdown-append-to-body>
+        <div class="dropdown" ng-if="ctrl.serverGroup.insightActions.length > 0" uib-dropdown dropdown-append-to-body>
           <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
             Insight <span class="caret"></span>
           </button>
           <ul class="uib-dropdown-menu" role="menu">
-            <li ng-repeat="action in serverGroup.insightActions"><a target=_blank href="{{action.url}}">{{action.label}}</a></li>
+            <li ng-repeat="action in ctrl.serverGroup.insightActions"><a target=_blank href="{{action.url}}">{{action.label}}</a></li>
           </ul>
         </div>
         <div class="clearfix"></div>
       </div>
     </div>
   </div>
-  <div class="content" ng-if="!state.loading">
-    <h4 class="text-center" ng-if="serverGroup.isDisabled">[SERVER GROUP IS DISABLED]</h4>
-    <collapsible-section heading="Running Tasks" expanded="true" body-class="details-running-tasks" ng-if="serverGroup.runningTasks.length > 0 || runningExecutions().length > 0">
-      <div class="container-fluid no-padding" ng-repeat="task in serverGroup.runningTasks | orderBy:'-startTime'">
+  <div class="info-band" ng-if="ctrl.serverGroup.isDisabled">
+    Disabled {{ctrl.disabledDate | timestamp}}
+  </div>
+  <div class="content" ng-if="!ctrl.state.loading">
+    <collapsible-section heading="Running Tasks" expanded="true" body-class="details-running-tasks" ng-if="ctrl.serverGroup.runningTasks.length > 0 || ctrl.runningExecutions().length > 0">
+      <div class="container-fluid no-padding" ng-repeat="task in ctrl.serverGroup.runningTasks | orderBy:'-startTime'">
         <div class="row">
           <div class="col-md-12">
             <strong>
@@ -77,7 +79,7 @@
         </div>
       </div>
 
-      <div class="container-fluid no-padding" ng-repeat="execution in runningExecutions()">
+      <div class="container-fluid no-padding" ng-repeat="execution in ctrl.runningExecutions()">
         <div class="row">
           <div class="col-md-12">
             <strong>
@@ -97,23 +99,23 @@
 
     </collapsible-section>
     <collapsible-section heading="Server Group Information" expanded="true">
-      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+      <dl class="dl-horizontal" ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
         <dt>Created:</dt>
-        <dd>{{serverGroup.createdTime | timestamp}}</dd>
+        <dd>{{ctrl.serverGroup.createdTime | timestamp}}</dd>
         <dt>In:</dt>
         <dd>
-          <account-tag account="serverGroup.account" pad="right"></account-tag>
+          <account-tag account="ctrl.serverGroup.account" pad="right"></account-tag>
 
-          {{serverGroup.region}}
+          {{ctrl.serverGroup.region}}
         </dd>
         <dt>VPC:</dt>
-        <dd><vpc-tag vpc-id="serverGroup.vpcId"></vpc-tag></dd>
-        <dt ng-if="serverGroup.vpcId">Subnet:</dt>
-        <dd ng-if="serverGroup.vpcId">{{serverGroup.subnetType || 'None (EC2 Classic)'}}</dd>
+        <dd><vpc-tag vpc-id="ctrl.serverGroup.vpcId"></vpc-tag></dd>
+        <dt ng-if="ctrl.serverGroup.vpcId">Subnet:</dt>
+        <dd ng-if="ctrl.serverGroup.vpcId">{{ctrl.serverGroup.subnetType || 'None (EC2 Classic)'}}</dd>
         <dt>Availability Zones:</dt>
         <dd>
           <ul>
-            <li ng-repeat="zone in serverGroup.asg.availabilityZones">{{zone}}</li>
+            <li ng-repeat="zone in ctrl.serverGroup.asg.availabilityZones">{{zone}}</li>
           </ul>
         </dd>
 
@@ -121,24 +123,24 @@
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">
       <dl class="dl-horizontal"
-          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
-          ng-if="serverGroup.asg.minSize === serverGroup.asg.maxSize">
+          ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
+          ng-if="ctrl.serverGroup.asg.minSize === ctrl.serverGroup.asg.maxSize">
         <dt>Min/Max:</dt>
-        <dd>{{serverGroup.asg.desiredCapacity}}</dd>
+        <dd>{{ctrl.serverGroup.asg.desiredCapacity}}</dd>
         <dt>Current:</dt>
-        <dd>{{serverGroup.instances.length}}</dd>
+        <dd>{{ctrl.serverGroup.instances.length}}</dd>
       </dl>
       <dl class="dl-horizontal"
-          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
-          ng-if="serverGroup.asg.minSize !== serverGroup.asg.maxSize">
+          ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
+          ng-if="ctrl.serverGroup.asg.minSize !== ctrl.serverGroup.asg.maxSize">
         <dt>Min:</dt>
-        <dd>{{serverGroup.asg.minSize}}</dd>
+        <dd>{{ctrl.serverGroup.asg.minSize}}</dd>
         <dt>Desired:</dt>
-        <dd>{{serverGroup.asg.desiredCapacity}}</dd>
+        <dd>{{ctrl.serverGroup.asg.desiredCapacity}}</dd>
         <dt>Max:</dt>
-        <dd>{{serverGroup.asg.maxSize}}</dd>
+        <dd>{{ctrl.serverGroup.asg.maxSize}}</dd>
         <dt>Current:</dt>
-        <dd>{{serverGroup.instances.length}}</dd>
+        <dd>{{ctrl.serverGroup.instances.length}}</dd>
       </dl>
       <div>
         <a href ng-click="ctrl.resizeServerGroup()">Resize Server Group</a>
@@ -149,54 +151,54 @@
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true">
       <dl class="dl-horizontal"
-          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
-          ng-if="serverGroup">
+          ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
+          ng-if="ctrl.serverGroup">
         <dt>Instances:</dt>
         <dd>
-          <health-counts container="serverGroup.instanceCounts" class="pull-left"></health-counts>
+          <health-counts container="ctrl.serverGroup.instanceCounts" class="pull-left"></health-counts>
         </dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Launch Configuration">
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+      <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
         <dt>Name</dt>
-        <dd>{{serverGroup.launchConfig.launchConfigurationName}}</dd>
+        <dd>{{ctrl.serverGroup.launchConfig.launchConfigurationName}}</dd>
 
         <dt>Image ID</dt>
-        <dd>{{serverGroup.launchConfig.imageId}}</dd>
+        <dd>{{ctrl.serverGroup.launchConfig.imageId}}</dd>
 
-        <dt ng-if="image.imageLocation">Image Name</dt>
-        <dd ng-if="image.imageLocation">{{image.imageLocation}}</dd>
+        <dt ng-if="ctrl.image.imageLocation">Image Name</dt>
+        <dd ng-if="ctrl.image.imageLocation">{{ctrl.image.imageLocation}}</dd>
 
-        <dt ng-if="image.baseImage">Base Image Name</dt>
-        <dd ng-if="image.baseImage">{{image.baseImage}}</dd>
+        <dt ng-if="ctrl.image.baseImage">Base Image Name</dt>
+        <dd ng-if="ctrl.image.baseImage">{{ctrl.image.baseImage}}</dd>
 
         <dt>Instance Type</dt>
-        <dd>{{serverGroup.launchConfig.instanceType}}</dd>
+        <dd>{{ctrl.serverGroup.launchConfig.instanceType}}</dd>
 
         <dt>IAM Profile</dt>
-        <dd>{{serverGroup.launchConfig.iamInstanceProfile}}</dd>
+        <dd>{{ctrl.serverGroup.launchConfig.iamInstanceProfile}}</dd>
 
         <dt>Instance Monitoring</dt>
-        <dd>{{serverGroup.launchConfig.instanceMonitoring.enabled ? 'enabled' : 'disabled'}}</dd>
+        <dd>{{ctrl.serverGroup.launchConfig.instanceMonitoring.enabled ? 'enabled' : 'disabled'}}</dd>
 
-        <dt ng-if="serverGroup.launchConfig.keyName">Key Name</dt>
-        <dd ng-if="serverGroup.launchConfig.keyName">{{serverGroup.launchConfig.keyName}}</dd>
+        <dt ng-if="ctrl.serverGroup.launchConfig.keyName">Key Name</dt>
+        <dd ng-if="ctrl.serverGroup.launchConfig.keyName">{{ctrl.serverGroup.launchConfig.keyName}}</dd>
 
-        <dt ng-if="serverGroup.launchConfig.kernelId">Kernel ID</dt>
-        <dd ng-if="serverGroup.launchConfig.kernelId">{{serverGroup.launchConfig.kernelId}}</dd>
+        <dt ng-if="ctrl.serverGroup.launchConfig.kernelId">Kernel ID</dt>
+        <dd ng-if="ctrl.serverGroup.launchConfig.kernelId">{{ctrl.serverGroup.launchConfig.kernelId}}</dd>
 
-        <dt ng-if="serverGroup.launchConfig.ramdiskId">Ramdisk ID</dt>
-        <dd ng-if="serverGroup.launchConfig.ramdiskId">{{serverGroup.launchConfig.ramdiskId}}</dd>
+        <dt ng-if="ctrl.serverGroup.launchConfig.ramdiskId">Ramdisk ID</dt>
+        <dd ng-if="ctrl.serverGroup.launchConfig.ramdiskId">{{ctrl.serverGroup.launchConfig.ramdiskId}}</dd>
 
         <dt>User Data</dt>
-        <dd ng-if="serverGroup.launchConfig.userData"><a href ng-click="ctrl.showUserData()">Show User Data</a></dd>
-        <dd ng-if="!serverGroup.launchConfig.userData">[none]</dd>
+        <dd ng-if="ctrl.serverGroup.launchConfig.userData"><a href ng-click="ctrl.showUserData()">Show User Data</a></dd>
+        <dd ng-if=" !ctrl.serverGroup.launchConfig.userData">[none]</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Scaling Processes">
       <ul class="scaling-processes">
-        <li ng-repeat="process in autoScalingProcesses">
+        <li ng-repeat="process in ctrl.autoScalingProcesses">
           <span is-visible="process.enabled" class="glyphicon glyphicon-ok small"></span>
           <span ng-class="{'text-disabled': !process.enabled}">{{process.name}}</span>
           <help-field content="{{process.description}}" placement="bottom"></help-field>
@@ -209,57 +211,57 @@
     </collapsible-section>
     <collapsible-section heading="Security Groups">
       <ul>
-        <li ng-repeat="securityGroup in securityGroups | orderBy:'name'">
-          <a ui-sref="^.securityGroupDetails({name: securityGroup.name, accountId: securityGroup.accountName, region: serverGroup.region, vpcId: serverGroup.vpcId, provider: serverGroup.type})">
+        <li ng-repeat="securityGroup in ctrl.securityGroups | orderBy:'name'">
+          <a ui-sref="^.securityGroupDetails({name: securityGroup.name, accountId: securityGroup.accountName, region: ctrl.serverGroup.region, vpcId: ctrl.serverGroup.vpcId, provider: ctrl.serverGroup.type})">
             {{securityGroup.name}} ({{securityGroup.id}})
           </a>
         </li>
       </ul>
     </collapsible-section>
-    <collapsible-section heading="Scaling Policies" ng-if="serverGroup.scalingPolicies.length">
+    <collapsible-section heading="Scaling Policies" ng-if="ctrl.serverGroup.scalingPolicies.length">
       <p>Scaling Policies can be modified via the AWS Console.</p>
-      <scaling-policy ng-repeat="policy in serverGroup.scalingPolicies" policy="policy"></scaling-policy>
+      <scaling-policy ng-repeat="policy in ctrl.serverGroup.scalingPolicies" policy="policy"></scaling-policy>
     </collapsible-section>
     <collapsible-section heading="Scheduled Actions">
-      <scheduled-action ng-repeat="action in serverGroup.scheduledActions" action="action"></scheduled-action>
-      <p ng-if="serverGroup.scheduledActions.length"><strong>Note:</strong> Schedules are evaluated in UTC.</p>
-      <p ng-if="!serverGroup.scheduledActions.length">No Scheduled Actions are configured for this server group.</p>
+      <scheduled-action ng-repeat="action in ctrl.serverGroup.scheduledActions" action="action"></scheduled-action>
+      <p ng-if="ctrl.serverGroup.scheduledActions.length"><strong>Note:</strong> Schedules are evaluated in UTC.</p>
+      <p ng-if=" !ctrl.serverGroup.scheduledActions.length">No Scheduled Actions are configured for this server group.</p>
       <a href ng-click="ctrl.editScheduledActions()">Edit Scheduled Actions</a>
     </collapsible-section>
     <collapsible-section heading="Tags">
-      <div ng-if="!serverGroup.asg.tags.length">No tags associated with this server group</div>
-      <dl ng-if="serverGroup.asg.tags.length">
-        <dt ng-repeat-start="tag in serverGroup.asg.tags | orderBy: 'key.toLowerCase()'">{{tag.key}}</dt>
+      <div ng-if=" !ctrl.serverGroup.asg.tags.length">No tags associated with this server group</div>
+      <dl ng-if="ctrl.serverGroup.asg.tags.length">
+        <dt ng-repeat-start="tag in ctrl.serverGroup.asg.tags | orderBy: 'key.toLowerCase()'">{{tag.key}}</dt>
         <dd ng-repeat-end>{{tag.value}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Package">
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'"
-          ng-if="serverGroup.buildInfo && serverGroup.buildInfo.jenkins">
+      <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'"
+          ng-if="ctrl.serverGroup.buildInfo && ctrl.serverGroup.buildInfo.jenkins">
         <dt>Job</dt>
-        <dd>{{serverGroup.buildInfo.jenkins.name}}</dd>
+        <dd>{{ctrl.serverGroup.buildInfo.jenkins.name}}</dd>
         <dt>Package</dt>
-        <dd>{{serverGroup.buildInfo.package_name}}</dd>
+        <dd>{{ctrl.serverGroup.buildInfo.package_name}}</dd>
         <dt>Build</dt>
-        <dd>{{serverGroup.buildInfo.jenkins.number}}</dd>
+        <dd>{{ctrl.serverGroup.buildInfo.jenkins.number}}</dd>
         <dt>Commit</dt>
         <dd>{{ctrl.truncateCommitHash()}}</dd>
         <dt>Version</dt>
-        <dd>{{serverGroup.buildInfo.version}}</dd>
+        <dd>{{ctrl.serverGroup.buildInfo.version}}</dd>
         <dt>Build Link</dt>
         <dd><a target=_blank href="{{ctrl.buildJenkinsLink()}}">{{ctrl.buildJenkinsLink()}}</a></dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Advanced Settings">
-      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+      <dl ng-class="ctrl.InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
         <dt>Cooldown</dt>
-        <dd>{{serverGroup.asg.defaultCooldown}} seconds</dd>
+        <dd>{{ctrl.serverGroup.asg.defaultCooldown}} seconds</dd>
         <dt>Health Check Type</dt>
-        <dd>{{serverGroup.asg.healthCheckType}}</dd>
+        <dd>{{ctrl.serverGroup.asg.healthCheckType}}</dd>
         <dt>Grace Period</dt>
-        <dd>{{serverGroup.asg.healthCheckGracePeriod}} seconds</dd>
+        <dd>{{ctrl.serverGroup.asg.healthCheckGracePeriod}} seconds</dd>
         <dt>Termination Policies</dt>
-        <dd>{{serverGroup.asg.terminationPolicies.join(', ')}}</dd>
+        <dd>{{ctrl.serverGroup.asg.terminationPolicies.join(', ')}}</dd>
       </dl>
       <a href ng-click="ctrl.editAdvancedSettings()">Edit Advanced Settings</a>
     </collapsible-section>
