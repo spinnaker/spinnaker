@@ -212,7 +212,6 @@ class SpinnakerStatus(service_testing.HttpOperationStatus):
     raise Exception("_update_response_from_json is not specialized.")
 
 
-
 class SpinnakerAgent(service_testing.HttpAgent):
   """A TestableAgent  to a spinnaker subsystem.
 
