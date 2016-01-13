@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.batch.RestartableStage
 import com.netflix.spinnaker.orca.pipeline.ParallelStage
 import com.netflix.spinnaker.orca.pipeline.StepProvider
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -35,7 +36,7 @@ import org.springframework.stereotype.Component
 @Slf4j
 @Component
 @CompileStatic
-class BakeStage extends ParallelStage implements StepProvider {
+class BakeStage extends ParallelStage implements StepProvider, RestartableStage {
 
   public static final String PIPELINE_CONFIG_TYPE = "bake"
 
