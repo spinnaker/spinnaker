@@ -116,4 +116,23 @@ class ResizeCloudFoundryServerGroupAtomicOperationConverterSpec extends Specific
     description.zone == region
   }
 
+  void "should handle capacity in lieu of targetSize"() {
+    setup:
+    def serverGroup = "demo-staging-v001"
+    def region = 'some-region'
+    def capacity = [min: 1, desired: 5, max: 10]
+    def input = [serverGroupName: serverGroup, region: region,
+                 capacity       : capacity,
+                 unknownProp    : "this",
+                 credentials    : 'test']
+
+    when:
+    def description = converter.convertDescription(input)
+
+    then:
+    description.serverGroupName == serverGroup
+    description.targetSize == capacity.desired
+    description.zone == region
+  }
+
 }

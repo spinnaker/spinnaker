@@ -16,14 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.cf.deploy.ops
 
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConstants
+import com.netflix.spinnaker.clouddriver.cf.deploy.description.EnableDisableCloudFoundryServerGroupDescription
+import com.netflix.spinnaker.clouddriver.cf.provider.view.CloudFoundryClusterProvider
+import com.netflix.spinnaker.clouddriver.cf.utils.CloudFoundryClientFactory
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import com.netflix.spinnaker.clouddriver.cf.deploy.description.EnableDisableCloudFoundryServerGroupDescription
-import com.netflix.spinnaker.clouddriver.cf.utils.CloudFoundryClientFactory
-import com.netflix.spinnaker.clouddriver.cf.model.CloudFoundryResourceRetriever
 import org.cloudfoundry.client.lib.CloudFoundryException
 import org.cloudfoundry.client.lib.domain.CloudApplication
 import org.cloudfoundry.client.lib.domain.InstanceState
@@ -31,7 +32,6 @@ import org.cloudfoundry.client.lib.domain.InstancesInfo
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpStatus
-
 /**
  * @author Greg Turnquist
  */
@@ -47,7 +47,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
   CloudFoundryClientFactory cloudFoundryClientFactory
 
   @Autowired
-  CloudFoundryResourceRetriever cloudFoundryResourceRetriever
+  CloudFoundryClusterProvider clusterProvider
 
   @Autowired
   @Qualifier('cloudFoundryOperationPoller')
@@ -65,9 +65,10 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     task.updateStatus phaseName, "Initializing $verb server group operation for $description.serverGroupName in " +
         "$description.zone..."
 
+    Names names = Names.parseName(description.serverGroupName)
     if (description.nativeLoadBalancers == null) {
-      description.nativeLoadBalancers =
-          cloudFoundryResourceRetriever.serverGroupByAccountAndServerGroupName[description.credentials.name][description.serverGroupName].nativeLoadBalancers
+      description.nativeLoadBalancers = clusterProvider.getCluster(names.app, description.accountName, names.cluster)?.
+          serverGroups.find {it.name == description.serverGroupName}?.nativeLoadBalancers
     }
 
     def client = cloudFoundryClientFactory.createCloudFoundryClient(description.credentials, true)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Pivotal, Inc.
+ * Copyright 2015-2016 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,83 +17,72 @@
 package com.netflix.spinnaker.clouddriver.cf.controllers
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.cf.model.CloudFoundryLoadBalancer
-import com.netflix.spinnaker.clouddriver.cf.model.CloudFoundryResourceRetriever
+import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.cf.cache.Keys
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
+import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.LOAD_BALANCERS
+
 @RestController
 @RequestMapping("/cf/loadBalancers")
 class CloudFoundryLoadBalancerController {
 
-  @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
+  private final Cache cacheView
 
   @Autowired
-  CloudFoundryResourceRetriever cfResourceRetriever
+  CloudFoundryLoadBalancerController(Cache cacheView) {
+    this.cacheView = cacheView
+  }
 
   @RequestMapping(method = RequestMethod.GET)
   List<CloudFoundryLoadBalancerAccount> list() {
-    getSummaryForLoadBalancers(cfResourceRetriever.loadBalancersByAccount).values() as List
+    Collection<String> loadBalancers = cacheView.getIdentifiers(LOAD_BALANCERS.ns)
+    getSummaryForLoadBalancers(loadBalancers).values() as List
   }
 
   @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
   CloudFoundryLoadBalancerSummary get(@PathVariable String name) {
-    getSummaryForLoadBalancers(cfResourceRetriever.loadBalancersByAccount).get(name)
+    def searchKey = Keys.getLoadBalancerKey(name, '*', '*')
+    Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey)
+    getSummaryForLoadBalancers(identifiers).get(name)
   }
 
   @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
   List<Map> getDetailsInAccountAndRegionByName(@PathVariable String account, @PathVariable String region, @PathVariable String name) {
-    def accountMap = cfResourceRetriever.loadBalancersByAccount[account]
-
-    if (accountMap) {
-      def regionList = accountMap
-
-      if (regionList) {
-        def cfLoadBalancer = regionList.find {
-          it.name == name
-        }
-
-        if (cfLoadBalancer) {
-          def loadBalancerDetail = [
-            loadBalancerName: name
-          ]
-
-          loadBalancerDetail.ipAddress = cfLoadBalancer.nativeRoute.host + '.' + cfLoadBalancer.nativeRoute.domain.name
-          loadBalancerDetail.dnsname = cfLoadBalancer.nativeRoute.host + '.' + cfLoadBalancer.nativeRoute.domain.name
-
-          return [ loadBalancerDetail ]
-        }
-      }
-    }
-
-    return []
+    def searchKey = Keys.getLoadBalancerKey(name, account, region)
+    Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey)
+    cacheView.getAll(LOAD_BALANCERS.ns, identifiers).attributes
   }
 
-  public static Map<String, CloudFoundryLoadBalancerSummary> getSummaryForLoadBalancers(
-      Map<String, Set<CloudFoundryLoadBalancer>> networkLoadBalancerMap) {
+  public Map<String, CloudFoundryLoadBalancerSummary> getSummaryForLoadBalancers(Collection<String> loadBalancerKeys) {
     Map<String, CloudFoundryLoadBalancerSummary> map = [:]
-
-    networkLoadBalancerMap?.each() { account, loadBalancerList ->
-      loadBalancerList.each { CloudFoundryLoadBalancer loadBalancer ->
-        def summary = map.get(loadBalancer.name)
-
+    Map<String, CacheData> loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys, RelationshipCacheFilter.none()).collectEntries { [(it.id): it] }
+    for (lb in loadBalancerKeys) {
+      CacheData loadBalancerFromCache = loadBalancers[lb]
+      if (loadBalancerFromCache) {
+        def parts = Keys.parse(lb)
+        String name = parts.loadBalancer
+        String region = parts.region
+        String account = parts.account
+        def summary = map.get(name)
         if (!summary) {
-          summary = new CloudFoundryLoadBalancerSummary(name: loadBalancer.name)
-          map.put loadBalancer.name, summary
+          summary = new CloudFoundryLoadBalancerSummary(name: name)
+          map.put name, summary
         }
+        def loadBalancer = new CloudFoundryLoadBalancerDetail()
+        loadBalancer.account = parts.account
+        loadBalancer.region = parts.region
+        loadBalancer.name = parts.loadBalancer
 
-        def loadBalancerDetail =
-          new CloudFoundryLoadBalancerDetail(account: account, region: 'unknown', name: loadBalancer.name)
-
-        //summary.getOrCreateAccount(account).getOrCreateRegion(region).loadBalancers << loadBalancerDetail
+        summary.getOrCreateAccount(account).getOrCreateRegion(region).loadBalancers << loadBalancer
       }
     }
-
     map
   }
 
