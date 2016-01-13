@@ -8,3 +8,17 @@ spinnaker:
     cluster: CASS_SPINNAKER
     keyspace: front50
     name: default
+
+swagger:
+  enabled: true
+  title: Spinnaker Front50 API
+  description:
+  contact:
+  patterns:
+    - /default/.*
+    - /credentials.*
+    - /global/.*
+    - /notifications.*
+    - /pipelines.*
+    - /strategies.*
+    - /v2/.*
