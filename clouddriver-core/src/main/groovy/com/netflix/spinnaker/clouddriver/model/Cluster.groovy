@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.model
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.netflix.spinnaker.clouddriver.documentation.Empty
 
 /**
@@ -51,6 +52,7 @@ interface Cluster {
    * @return a set of {@link ServerGroup} objects or an empty set if none exist
    */
   @Empty
+  @JsonSerialize(nullsUsing = NullCollectionSerializer)
   Set<ServerGroup> getServerGroups()
 
   /**
@@ -59,5 +61,6 @@ interface Cluster {
    * @return a set of {@link LoadBalancer} objects or an empty set if none exist
    */
   @Empty
+  @JsonSerialize(nullsUsing = NullCollectionSerializer)
   Set<LoadBalancer> getLoadBalancers()
 }
