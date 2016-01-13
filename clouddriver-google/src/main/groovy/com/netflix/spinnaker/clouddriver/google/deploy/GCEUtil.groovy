@@ -47,6 +47,7 @@ class GCEUtil {
   private static final String DISK_TYPE_SCRATCH = "SCRATCH"
 
   public static final String TARGET_POOL_NAME_PREFIX = "tp"
+  public static final int SEQUENTIAL_NUMBERING_NAMESPACE_SIZE = 1000
 
   // TODO(duftler): This list should not be static, but should also not be built on each call.
   static final List<String> baseImageProjects = ["centos-cloud", "coreos-cloud", "debian-cloud", "google-containers",
@@ -476,6 +477,7 @@ class GCEUtil {
                              String project,
                              String region,
                              GoogleCredentials credentials) {
+    def nextSequenceNumber = 0
     def managedInstanceGroups = queryManagedInstanceGroups(project, region, credentials)
     // Build a collection containing the sequence number and createdTime of each server group in this cluster/region.
     def takenSequenceNumbers = managedInstanceGroups.findResults { managedInstanceGroup ->
@@ -491,19 +493,23 @@ class GCEUtil {
       }
     }
 
-    // Find the sequence number of the server group created most recently.
-    def latestSequenceNumber = takenSequenceNumbers.max { a, b ->
+    // Attempt to find the server group created most recently.
+    def latestServerGroup = takenSequenceNumbers.max { a, b ->
       a.createdTime <=> b.createdTime
-    }.sequenceNumber
-
-    def nextSequenceNumber = (latestSequenceNumber + 1) % 1000
-
-    // Keep increasing the number until we find one that is not already taken. Stop if we circle back to the starting point.
-    while (takenSequenceNumbers.find { it.sequenceNumber == nextSequenceNumber } && nextSequenceNumber != latestSequenceNumber) {
-      nextSequenceNumber = ++nextSequenceNumber % 1000
     }
 
-    if (nextSequenceNumber == latestSequenceNumber) {
+    if (latestServerGroup) {
+      // The server group name may not have the sequence number portion specified.
+      nextSequenceNumber = ((latestServerGroup.sequenceNumber ?: 0) + 1) % SEQUENTIAL_NUMBERING_NAMESPACE_SIZE
+    }
+
+    // Keep increasing the number until we find one that is not already taken. Stop if we circle back to the starting point.
+    def stepCounter = 0
+    while (takenSequenceNumbers.find { it.sequenceNumber == nextSequenceNumber } && ++stepCounter < SEQUENTIAL_NUMBERING_NAMESPACE_SIZE) {
+      nextSequenceNumber = ++nextSequenceNumber % SEQUENTIAL_NUMBERING_NAMESPACE_SIZE
+    }
+
+    if (stepCounter == SEQUENTIAL_NUMBERING_NAMESPACE_SIZE) {
       throw new IllegalArgumentException("All server group names in $region are taken.")
     }
 
