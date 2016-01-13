@@ -165,7 +165,6 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
       };
 
       var submitMethod = function () {
-        securityGroup.providerType = $scope.securityGroup.type;
         return securityGroupWriter.deleteSecurityGroup(securityGroup, application, {
           cloudProvider: $scope.securityGroup.type,
           securityGroupName: securityGroup.name,

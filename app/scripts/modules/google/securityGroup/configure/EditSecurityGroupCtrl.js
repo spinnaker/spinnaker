@@ -98,7 +98,6 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
 
           return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Update', {
             cloudProvider: 'gce',
-            providerType: 'gce',
             securityGroupName: $scope.securityGroup.name,
             sourceRanges: _.uniq(_.pluck($scope.securityGroup.sourceRanges, 'value')),
             allowed: allowed,
