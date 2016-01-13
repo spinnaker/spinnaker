@@ -16,27 +16,15 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.kato.tasks.ModifyAsgLaunchConfigurationTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import org.springframework.batch.core.Step
+import com.netflix.spinnaker.orca.clouddriver.pipeline.UpdateLaunchConfigStage
 import org.springframework.stereotype.Component
 
+@Deprecated
 @Component
-class ModifyAsgLaunchConfigurationStage extends LinearStage {
+class ModifyAsgLaunchConfigurationStage extends UpdateLaunchConfigStage {
   public static final String PIPELINE_CONFIG_TYPE = "modifyAsgLaunchConfiguration"
 
   ModifyAsgLaunchConfigurationStage() {
     super(PIPELINE_CONFIG_TYPE)
-  }
-
-  @Override
-  public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "modifyLaunchConfiguration", ModifyAsgLaunchConfigurationTask)
-    def step2 = buildStep(stage, "monitorModification", MonitorKatoTask)
-    def step3 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    [step1, step2, step3]
   }
 }
