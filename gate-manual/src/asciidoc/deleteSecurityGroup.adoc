@@ -22,12 +22,10 @@ _deleteSecurityGroup_, _forceCacheRefresh_, _monitorDelete_
 [source,javascript]
 ----
 {
-    "deleteSecurityGroupDescription": {
-        "securityGroupName": "foo",
-        "vpcId": "vpc1",
-        "regions": ["us-east-1", "us-west-1", "us-west-2", "eu-west-1"],
-        "credentials": "test"
-    }
+  "type": "deleteSecurityGroup",
+  "securityGroupName": "my_security_group",
+  "regions": ["us-west-1"],
+  "credentials": "test",
 }
 ----
 
