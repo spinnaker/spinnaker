@@ -104,7 +104,9 @@ class GateConfig {
 
   @Bean
   OkHttpClient okHttpClient() {
-    return okHttpClientConfig.create()
+    def okHttpClient = okHttpClientConfig.create()
+    okHttpClient.setRetryOnConnectionFailure(false)
+    return okHttpClient
   }
 
   @Bean
