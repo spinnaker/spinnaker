@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.kato.tasks.CopyAmazonLoadBalancerTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.UpsertLoadBalancerForceRefreshTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer.UpsertLoadBalancerForceRefreshTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic

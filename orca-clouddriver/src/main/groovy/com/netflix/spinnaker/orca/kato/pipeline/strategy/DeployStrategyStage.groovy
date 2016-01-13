@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.strategy
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.orca.clouddriver.pipeline.ScaleDownClusterStage
-import com.netflix.spinnaker.orca.clouddriver.pipeline.DisableClusterStage
-import com.netflix.spinnaker.orca.clouddriver.pipeline.ShrinkClusterStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ScaleDownClusterStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
 import com.netflix.spinnaker.orca.deprecation.DeprecationRegistry
 import com.netflix.spinnaker.orca.clouddriver.pipeline.AbstractCloudProviderAwareStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyAsgLaunchConfigurationStage
