@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 Google, Inc.
+ * Copyright 2016 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,48 +14,40 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks.gce.securitygroup
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
-import com.netflix.spinnaker.orca.clouddriver.MortService
-import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class UpsertGoogleSecurityGroupTask extends AbstractCloudProviderAwareTask implements Task {
+class UpsertSecurityGroupTask extends AbstractCloudProviderAwareTask {
 
   @Autowired
   KatoService kato
 
   @Autowired
-  MortService mortService
+  List<SecurityGroupUpserter> securityGroupUpserters
 
   @Override
   TaskResult execute(Stage stage) {
     String cloudProvider = getCloudProvider(stage)
-    String account = getCredentials(stage)
+    def upserter = securityGroupUpserters.find { it.cloudProvider == cloudProvider }
+    if (!upserter) {
+      throw new IllegalStateException("SecurityGroupUpserter not found for cloudProvider $cloudProvider")
+    }
 
-    def taskId = kato.requestOperations(cloudProvider, [[upsertSecurityGroup: stage.context]])
-                     .toBlocking()
-                     .first()
+    SecurityGroupUpserter.OperationContext result = upserter.getOperationContext(stage)
+    def taskId = kato.requestOperations(cloudProvider, result.operations).toBlocking().first()
 
     Map outputs = [
-      "notification.type"   : "upsertsecuritygroup",
-      "kato.last.task.id"   : taskId,
-      "targets"             : [
-        [
-          credentials: account,
-          region     : stage.context.region,
-          name       : stage.context.name
-        ]
-      ]
-    ]
+        "notification.type"   : "upsertsecuritygroup",
+        "kato.last.task.id"   : taskId,
+    ] + result.extraOutput
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }

@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 Google, Inc.
+ * Copyright 2016 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,47 +14,40 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks.gce.securitygroup
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.MortService
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 @Component
-@CompileStatic
-class WaitForGoogleUpsertedSecurityGroupTask implements RetryableTask {
+class WaitForUpsertedSecurityGroupTask implements RetryableTask, CloudProviderAware {
 
   long backoffPeriod = 1000
   long timeout = 600000
 
   @Autowired
-  MortService mortService
+  List<SecurityGroupUpserter> securityGroupUpserters
 
   @Override
   TaskResult execute(Stage stage) {
+    String cloudProvider = getCloudProvider(stage)
+    def upserter = securityGroupUpserters.find { it.cloudProvider == cloudProvider }
+    if (!upserter) {
+      throw new IllegalStateException("SecurityGroupUpserter not found for cloudProvider $cloudProvider")
+    }
+
     def status = ExecutionStatus.SUCCEEDED
-    stage.context.targets.each { Map<String, Object> target ->
-      try {
-        MortService.SecurityGroup securityGroup =
-          mortService.getSecurityGroup(target.credentials as String, 'gce', target.name as String, target.region as String)
-
-        if (!securityGroup) {
-          status = ExecutionStatus.RUNNING
-        }
-      } catch (RetrofitError e) {
-        if (e.response?.status == 404) {
-          status = ExecutionStatus.RUNNING
-          return
-        }
-
-        throw e
+    def targets = Arrays.asList(stage.mapTo("/targets", MortService.SecurityGroup[]))
+    targets.each { MortService.SecurityGroup upsertedSecurityGroup ->
+      if (!upserter.isSecurityGroupUpserted(upsertedSecurityGroup, stage)) {
+        status = ExecutionStatus.RUNNING
       }
     }
 

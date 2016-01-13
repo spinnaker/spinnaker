@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.pipeline
+package com.netflix.spinnaker.orca.clouddriver.pipeline
 
-import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.SecurityGroupForceCacheRefreshTask
-import com.netflix.spinnaker.orca.kato.tasks.securitygroup.UpsertSecurityGroupTask
-import com.netflix.spinnaker.orca.kato.tasks.securitygroup.WaitForUpsertedSecurityGroupTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.UpsertSecurityGroupTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForUpsertedSecurityGroupTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
-@CompileStatic
 class UpsertSecurityGroupStage extends LinearStage {
 
   public static final String PIPELINE_CONFIG_TYPE = "upsertSecurityGroup"
@@ -38,10 +36,11 @@ class UpsertSecurityGroupStage extends LinearStage {
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "upsertSecurityGroup", UpsertSecurityGroupTask)
-    def step2 = buildStep(stage, "monitorUpsert", MonitorKatoTask)
-    def step3 = buildStep(stage, "forceCacheRefresh", SecurityGroupForceCacheRefreshTask)
-    def step4 = buildStep(stage, "waitForUpsertedSecurityGroup", WaitForUpsertedSecurityGroupTask)
-    [step1, step2, step3, step4]
+    [
+        buildStep(stage, "upsertSecurityGroup", UpsertSecurityGroupTask),
+        buildStep(stage, "monitorUpsert", MonitorKatoTask),
+        buildStep(stage, "forceCacheRefresh", SecurityGroupForceCacheRefreshTask),
+        buildStep(stage, "waitForUpsertedSecurityGroup", WaitForUpsertedSecurityGroupTask),
+    ]
   }
 }

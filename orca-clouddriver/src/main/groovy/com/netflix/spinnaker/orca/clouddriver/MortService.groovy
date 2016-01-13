@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.orca.clouddriver
 
 import groovy.transform.Canonical
+import groovy.transform.EqualsAndHashCode
 import retrofit.client.Response
 import retrofit.http.Body
 import retrofit.http.GET
@@ -68,6 +69,7 @@ interface MortService {
     List<Map> results
   }
 
+  @EqualsAndHashCode
   static class SecurityGroup {
     String type
     String id
