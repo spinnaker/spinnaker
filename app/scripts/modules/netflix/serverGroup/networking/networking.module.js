@@ -3,8 +3,8 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.aws.serverGroup.details.networking', [
-    require('./networking.controller.js'),
+  .module('spinnaker.netflix.serverGroup.details.networking', [
+    require('./networking.directive.js'),
     require('./elasticIp.read.service.js'),
     require('./elasticIp.write.service.js')
   ]);

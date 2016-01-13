@@ -9,40 +9,41 @@ module.exports = angular.module('spinnaker.aws.serverGroup.details.networking.co
   require('./elasticIp.controller.js'),
   require('./ip.sort.filter.js'),
 ])
-  .controller('networkingCtrl', function ($scope, $uibModal, elasticIpReader, _) {
-    var application = $scope.application;
+  .controller('networkingCtrl', function ($uibModal, elasticIpReader, _) {
 
-    function getElasticIpsForCluster() {
-      var serverGroup = $scope.serverGroup;
-      elasticIpReader.getElasticIpsForCluster(application.name, serverGroup.account, serverGroup.cluster, serverGroup.region).then(function (elasticIps) {
-        $scope.elasticIps = elasticIps.plain ? elasticIps.plain() : [];
-      });
-    }
+    let getElasticIpsForCluster = () => {
+      var serverGroup = this.serverGroup;
+      var application = this.application;
+      elasticIpReader.getElasticIpsForCluster(application.name, serverGroup.account, serverGroup.cluster, serverGroup.region)
+        .then((elasticIps) => {
+          this.elasticIps = elasticIps.plain ? elasticIps.plain() : [];
+        });
+    };
 
     getElasticIpsForCluster();
 
-    $scope.associateElasticIp = function associateElasticIp() {
+    this.associateElasticIp = function associateElasticIp() {
       $uibModal.open({
         templateUrl: require('./details/associateElasticIp.html'),
         controller: 'ElasticIpCtrl as ctrl',
         resolve: {
-          application: function() { return $scope.application; },
-          serverGroup: function() { return $scope.serverGroup; },
-          elasticIp: function() { return { type: 'standard' }; },
-          onTaskComplete: function() { return getElasticIpsForCluster; }
+          application: () => this.application,
+          serverGroup: () => this.serverGroup,
+          elasticIp: () => { return { type: 'standard' }; },
+          onTaskComplete: () => getElasticIpsForCluster
         }
       });
     };
 
-    $scope.disassociateElasticIp = function disassociateElasticIp(address) {
+    this.disassociateElasticIp = (address) => {
       $uibModal.open({
         templateUrl: require('./details/disassociateElasticIp.html'),
         controller: 'ElasticIpCtrl as ctrl',
         resolve: {
-          application: function() { return $scope.application; },
-          serverGroup: function() { return $scope.serverGroup; },
-          elasticIp: function() { return _.find($scope.elasticIps, function (elasticIp) { return elasticIp.address === address; }); },
-          onTaskComplete: function() { return getElasticIpsForCluster; }
+          application: () => this.application,
+          serverGroup: () => this.serverGroup,
+          elasticIp: () => _.find(this.elasticIps, (elasticIp) => elasticIp.address === address),
+          onTaskComplete: () => getElasticIpsForCluster
         }
       });
     };

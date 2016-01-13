@@ -43,7 +43,40 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.p
       ];
     }
 
+    function normalizeScalingProcesses(serverGroup) {
+      if (!serverGroup.asg || !serverGroup.asg.suspendedProcesses) {
+        return [];
+      }
+      let disabled = serverGroup.asg.suspendedProcesses;
+      var allProcesses = listProcesses();
+      return allProcesses.map(function(process) {
+        let disabledProcess = _.find(disabled, {processName: process.name});
+        let scalingProcess = {
+          name: process.name,
+          enabled: !disabledProcess,
+          description: process.description,
+        };
+        if (disabledProcess) {
+          let suspensionDate = disabledProcess.suspensionReason.replace('User suspended at ', '');
+          scalingProcess.suspensionDate = new Date(suspensionDate).getTime();
+        }
+        return scalingProcess;
+      });
+    }
+
+    function getDisabledDate(serverGroup) {
+      if (serverGroup.isDisabled) {
+        let processes = normalizeScalingProcesses(serverGroup);
+        let [disabledProcess] = processes.filter((process) => process.name === 'AddToLoadBalancer' && !process.enabled);
+        if (disabledProcess) {
+          return disabledProcess.suspensionDate;
+        }
+      }
+      return null;
+    }
+
     return {
-      listProcesses: listProcesses,
+      normalizeScalingProcesses: normalizeScalingProcesses,
+      getDisabledDate: getDisabledDate,
     };
   });
