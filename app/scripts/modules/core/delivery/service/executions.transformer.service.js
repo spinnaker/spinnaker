@@ -138,6 +138,16 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
       return currentStages;
     }
 
+    // TODO: remove if we ever figure out why quickPatchAsgStage never has a startTime
+    function setMasterStageStartTime(stages, stage) {
+      let allStartTimes = stages
+        .filter((child) => child.startTime)
+        .map((child) => child.startTime);
+      if (allStartTimes.length) {
+        stage.startTime = Math.min(...allStartTimes);
+      }
+    }
+
     function transformStage(stage) {
       var stages = flattenAndFilter(stage);
 
@@ -145,10 +155,9 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
         return;
       }
 
-
       if (stage.masterStage) {
         var lastStage = stages[stages.length - 1];
-        stage.startTime = stages[0].startTime;
+        setMasterStageStartTime(stages, stage);
         var lastNotStartedStage = _(stages).findLast(
           function (childStage) {
             return !childStage.hasNotStarted;
