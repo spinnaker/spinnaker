@@ -7,10 +7,11 @@ describe('Controller: pipelineExecutions', function () {
   var controller;
   var scope;
   var $state;
-  var pipelineConfigService;
+  var $stateParams;
   var $q;
   var $timeout;
   var rx;
+  var scrollToService;
 
   beforeEach(
     window.module(
@@ -20,20 +21,22 @@ describe('Controller: pipelineExecutions', function () {
   );
 
   beforeEach(
-    window.inject(function ($rootScope, $controller, _$state_, _pipelineConfigService_, _$q_, _$timeout_, _rx_) {
+    window.inject(function ($rootScope, $controller, _$q_, _$timeout_, _rx_, _scrollToService_) {
       scope = $rootScope.$new();
       $state = { go: angular.noop };
-      pipelineConfigService = _pipelineConfigService_;
+      $stateParams = {};
       $q = _$q_;
       $timeout = _$timeout_;
       rx = _rx_;
+      scrollToService = _scrollToService_;
 
       this.initializeController = function (application) {
         scope.application = application;
         controller = $controller('ExecutionsCtrl', {
           $scope: scope,
           $state: $state,
-          pipelineConfigService: pipelineConfigService,
+          $stateParams: $stateParams,
+          scrollToService: _scrollToService_,
         });
       };
     })
@@ -51,9 +54,6 @@ describe('Controller: pipelineExecutions', function () {
       reloadExecutions: () => executionRefreshStream.onNext(),
       reloadPipelineConfigs: () => pipelineConfigRefreshStream.onNext(),
     };
-    spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when({ plain: function () {
-      return [];
-    } }));
     this.initializeController(application);
     scope.$digest();
 
@@ -114,5 +114,101 @@ describe('Controller: pipelineExecutions', function () {
     expect(application.executions[1].name).toBe('unchanged');
     expect(application.executions[2].name).toBe('no longer configured');
   });
+
+  describe('auto-scrolling behavior', function () {
+
+    var executionRefreshStream, application;
+
+    beforeEach(function () {
+      spyOn(scrollToService, 'scrollTo');
+      executionRefreshStream = new rx.Subject();
+      application = {
+        name: 'foo',
+        executionRefreshStream: executionRefreshStream,
+        pipelineConfigs: [],
+        reloadExecutions: () => executionRefreshStream.onNext(),
+      };
+    });
+
+    it('should scroll execution into view on initialization if an execution is present in state params', function () {
+      $stateParams.executionId = 'a';
+
+      this.initializeController(application);
+      scope.$digest();
+
+      expect(scrollToService.scrollTo.calls.count()).toBe(1);
+    });
+
+    it('should NOT scroll execution into view on initialization if none present in state params', function () {
+      this.initializeController(application);
+      scope.$digest();
+
+      expect(scrollToService.scrollTo.calls.count()).toBe(0);
+    });
+
+    it('should scroll execution into view on state change success if no execution id in state params', function () {
+      this.initializeController(application);
+      scope.$digest();
+
+      expect(scrollToService.scrollTo.calls.count()).toBe(0);
+
+      scope.$broadcast('$stateChangeSuccess', { name: 'executions.execution' }, { executionId: 'a' }, { name: 'executions' }, {});
+      expect(scrollToService.scrollTo.calls.count()).toBe(1);
+    });
+
+    it('should scroll execution into view on state change success if execution id changes', function () {
+      this.initializeController(application);
+      scope.$digest();
+
+      expect(scrollToService.scrollTo.calls.count()).toBe(0);
+
+      scope.$broadcast('$stateChangeSuccess', { name: 'executions.execution' }, { executionId: 'a' }, { name: 'executions.execution' }, { executionId: 'b' });
+      expect(scrollToService.scrollTo.calls.count()).toBe(1);
+    });
+
+    it('should scroll into view if no params change, because the user clicked on a link somewhere else in the page', function () {
+      let params = { executionId: 'a', step: 'b', stage: 'c', details: 'd' };
+
+      this.initializeController(application);
+      scope.$digest();
+
+      expect(scrollToService.scrollTo.calls.count()).toBe(0);
+
+      scope.$broadcast('$stateChangeSuccess', { name: 'executions.execution' }, params, { name: 'executions.execution' }, params);
+      expect(scrollToService.scrollTo.calls.count()).toBe(1);
+    });
+
+    it('should NOT scroll into view if step changes', function () {
+      let toParams = { executionId: 'a', step: 'b', stage: 'c', details: 'd' },
+          fromParams = { executionId: 'a', step: 'c', stage: 'c', details: 'd' };
+
+      this.initializeController(application);
+      scope.$digest();
+      scope.$broadcast('$stateChangeSuccess', { name: 'executions' }, toParams, { name: 'executions' }, fromParams);
+      expect(scrollToService.scrollTo.calls.count()).toBe(0);
+    });
+
+    it('should NOT scroll into view if stage changes', function () {
+      let toParams = { executionId: 'a', step: 'b', stage: 'c', details: 'd' },
+          fromParams = { executionId: 'a', step: 'b', stage: 'e', details: 'd' };
+
+      this.initializeController(application);
+      scope.$digest();
+      scope.$broadcast('$stateChangeSuccess', { name: 'executions' }, toParams, { name: 'executions' }, fromParams);
+      expect(scrollToService.scrollTo.calls.count()).toBe(0);
+    });
+
+    it('should NOT scroll into view if detail changes', function () {
+      let toParams = { executionId: 'a', step: 'b', stage: 'c', details: 'd' },
+          fromParams = { executionId: 'a', step: 'b', stage: 'c', details: 'e' };
+
+      this.initializeController(application);
+      scope.$digest();
+      scope.$broadcast('$stateChangeSuccess', { name: 'executions' }, toParams, { name: 'executions' }, fromParams);
+      expect(scrollToService.scrollTo.calls.count()).toBe(0);
+    });
+
+  });
+
 });
 

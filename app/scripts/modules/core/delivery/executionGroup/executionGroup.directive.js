@@ -109,4 +109,11 @@ module.exports = angular
         this.toggle();
       }
     });
+
+    $scope.$on('$stateChangeSuccess', () => {
+      // If the heading is collapsed, but we've clicked on a link to an execution in this group, expand the group
+      if (this.isShowingDetails() && !this.viewState.open) {
+        this.toggle();
+      }
+    });
   });

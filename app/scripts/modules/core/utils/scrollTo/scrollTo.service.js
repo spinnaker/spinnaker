@@ -27,7 +27,7 @@ module.exports = angular.module('spinnaker.core.utils.scrollTo', ['spinnaker.cor
         if (elem.length) {
           var content = scrollableContainer ? elem.closest(scrollableContainer) : $('body');
           if (content.length) {
-            var top = elem.offset().top - offset;
+            var top = content.scrollTop() + elem.offset().top - offset;
             content.animate({scrollTop: top + 'px'}, 200);
           }
         }
