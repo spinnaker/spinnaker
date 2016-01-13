@@ -60,6 +60,7 @@ class GCEUtilSpec extends Specification {
   private static final BASE_DESCRIPTION_2 = new BaseGoogleInstanceDescription(image: IMAGE_NAME, credentials: CREDENTIALS)
   private static final GOOGLE_APPLICATION_NAME = "test"
   private static final CLUSTER_NAME = "some-cluster"
+  private static final OTHER_CLUSTER_NAME = "some-other-cluster"
 
   @Shared
   def taskMock
@@ -498,5 +499,69 @@ class GCEUtilSpec extends Specification {
       1 * instanceGroupManagersListMock.execute() >> instanceGroupManagersListReal
       IllegalArgumentException exc = thrown()
       exc.message == "All server group names in $REGION are taken."
+  }
+
+  void "getNextSequence should yield v000 when namespace is empty"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def regionsMock = Mock(Compute.Regions)
+      def regionsGetMock = Mock(Compute.Regions.Get)
+      def regionReal = new Region(zones: [ZONE_URL_1, ZONE_URL_2])
+      def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
+      def instanceGroupManagersListZone1Mock = Mock(Compute.InstanceGroupManagers.List)
+      def instanceGroupManagerReal997 = new InstanceGroupManager(name: "$OTHER_CLUSTER_NAME-v997", creationTimestamp: "2000-01-01T00:00:00.997-00:00")
+      def instanceGroupManagerReal999 = new InstanceGroupManager(name: "$OTHER_CLUSTER_NAME-v999", creationTimestamp: "2000-01-01T00:00:00.999-00:00")
+      def instanceGroupManagersListZone1Real = new InstanceGroupManagerList(items: [instanceGroupManagerReal997, instanceGroupManagerReal999])
+      def instanceGroupManagersListZone2Mock = Mock(Compute.InstanceGroupManagers.List)
+      def instanceGroupManagerReal000 = new InstanceGroupManager(name: "$OTHER_CLUSTER_NAME-v000", creationTimestamp: "2000-01-01T00:00:00.000-00:00")
+      def instanceGroupManagerReal998 = new InstanceGroupManager(name: "$OTHER_CLUSTER_NAME-v998", creationTimestamp: "2000-01-01T00:00:00.998-00:00")
+      def instanceGroupManagersListZone2Real = new InstanceGroupManagerList(items: [instanceGroupManagerReal000, instanceGroupManagerReal998])
+
+    when:
+      def nextSequenceNumber = GCEUtil.getNextSequence(CLUSTER_NAME, PROJECT_NAME, REGION, credentials)
+
+    then:
+      1 * computeMock.regions() >> regionsMock
+      1 * regionsMock.get(PROJECT_NAME, REGION) >> regionsGetMock
+      1 * regionsGetMock.execute() >> regionReal
+      2 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * instanceGroupManagersMock.list(PROJECT_NAME, ZONE_LOCAL_NAME_1) >> instanceGroupManagersListZone1Mock
+      1 * instanceGroupManagersListZone1Mock.execute() >> instanceGroupManagersListZone1Real
+      1 * instanceGroupManagersMock.list(PROJECT_NAME, ZONE_LOCAL_NAME_2) >> instanceGroupManagersListZone2Mock
+      1 * instanceGroupManagersListZone2Mock.execute() >> instanceGroupManagersListZone2Real
+      nextSequenceNumber == '000'
+  }
+
+  void "getNextSequence should yield v001 when most recent server group does not define sequence number"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def regionsMock = Mock(Compute.Regions)
+      def regionsGetMock = Mock(Compute.Regions.Get)
+      def regionReal = new Region(zones: [ZONE_URL_1, ZONE_URL_2])
+      def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
+      def instanceGroupManagersListZone1Mock = Mock(Compute.InstanceGroupManagers.List)
+      def instanceGroupManagerReal997 = new InstanceGroupManager(name: "$CLUSTER_NAME-v997", creationTimestamp: "2000-01-01T00:00:00.997-00:00")
+      def instanceGroupManagerReal999 = new InstanceGroupManager(name: "$CLUSTER_NAME", creationTimestamp: "2000-01-01T00:00:00.999-00:00")
+      def instanceGroupManagersListZone1Real = new InstanceGroupManagerList(items: [instanceGroupManagerReal997, instanceGroupManagerReal999])
+      def instanceGroupManagersListZone2Mock = Mock(Compute.InstanceGroupManagers.List)
+      def instanceGroupManagerReal000 = new InstanceGroupManager(name: "$CLUSTER_NAME-v000", creationTimestamp: "2000-01-01T00:00:00.000-00:00")
+      def instanceGroupManagerReal998 = new InstanceGroupManager(name: "$CLUSTER_NAME-v998", creationTimestamp: "2000-01-01T00:00:00.998-00:00")
+      def instanceGroupManagersListZone2Real = new InstanceGroupManagerList(items: [instanceGroupManagerReal000, instanceGroupManagerReal998])
+
+    when:
+      def nextSequenceNumber = GCEUtil.getNextSequence(CLUSTER_NAME, PROJECT_NAME, REGION, credentials)
+
+    then:
+      1 * computeMock.regions() >> regionsMock
+      1 * regionsMock.get(PROJECT_NAME, REGION) >> regionsGetMock
+      1 * regionsGetMock.execute() >> regionReal
+      2 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * instanceGroupManagersMock.list(PROJECT_NAME, ZONE_LOCAL_NAME_1) >> instanceGroupManagersListZone1Mock
+      1 * instanceGroupManagersListZone1Mock.execute() >> instanceGroupManagersListZone1Real
+      1 * instanceGroupManagersMock.list(PROJECT_NAME, ZONE_LOCAL_NAME_2) >> instanceGroupManagersListZone2Mock
+      1 * instanceGroupManagersListZone2Mock.execute() >> instanceGroupManagersListZone2Real
+      nextSequenceNumber == '001'
   }
 }
