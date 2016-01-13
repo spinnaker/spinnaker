@@ -17,6 +17,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline
 
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.EnableServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.RollbackServerGroupStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory

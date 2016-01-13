@@ -1,11 +1,11 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.clouddriver.pipeline.UpsertLoadBalancerStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.loadbalancer.UpsertLoadBalancerStage
 import groovy.transform.CompileStatic
 import org.springframework.stereotype.Component
 
 /**
- * @deprecated use {@link com.netflix.spinnaker.orca.clouddriver.pipeline.UpsertLoadBalancerStage} instead.
+ * @deprecated use {@link UpsertLoadBalancerStage} instead.
  */
 @Deprecated
 @Component

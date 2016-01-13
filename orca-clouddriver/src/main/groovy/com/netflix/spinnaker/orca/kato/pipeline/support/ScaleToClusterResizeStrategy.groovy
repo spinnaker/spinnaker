@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.orca.clouddriver.pipeline.support.Location
-import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.Capacity
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.OptionalConfiguration
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.ResizeAction

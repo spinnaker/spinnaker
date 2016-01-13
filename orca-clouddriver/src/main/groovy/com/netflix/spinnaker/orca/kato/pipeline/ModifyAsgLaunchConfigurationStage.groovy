@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.clouddriver.pipeline.UpdateLaunchConfigStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.UpdateLaunchConfigStage
 import org.springframework.stereotype.Component
 
 @Deprecated

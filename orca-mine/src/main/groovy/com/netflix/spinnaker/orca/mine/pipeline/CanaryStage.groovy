@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.mine.pipeline
 
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spinnaker.orca.CancellableStage
-import com.netflix.spinnaker.orca.clouddriver.tasks.ShrinkClusterTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.ShrinkClusterTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
