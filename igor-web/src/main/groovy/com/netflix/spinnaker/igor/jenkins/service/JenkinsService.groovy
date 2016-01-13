@@ -46,7 +46,7 @@ class JenkinsService {
 
     ProjectsList getProjects() {
         new SimpleHystrixCommand<ProjectsList>(
-            groupKey, "getProjects", {
+            groupKey, buildCommandKey("getProjects"), {
             List<Project> projects = []
             def recursiveGetProjects
             recursiveGetProjects = { list, prefix="" ->
@@ -71,21 +71,21 @@ class JenkinsService {
 
     JobList getJobs() {
         new SimpleHystrixCommand<JobList>(
-            groupKey, "getJobs", {
+            groupKey, buildCommandKey("getJobs"), {
             return jenkinsClient.getJobs()
         }).execute()
     }
 
     BuildsList getBuilds(String jobName) {
         new SimpleHystrixCommand<BuildsList>(
-            groupKey, "getBuilds", {
+            groupKey, buildCommandKey("getBuilds"), {
             return jenkinsClient.getBuilds(encode(jobName))
         }).execute()
     }
 
     BuildDependencies getDependencies(String jobName) {
         new SimpleHystrixCommand<BuildDependencies>(
-            groupKey, "getDependencies", {
+            groupKey, buildCommandKey("getDependencies"), {
             return jenkinsClient.getDependencies(encode(jobName))
         }).execute()
     }
@@ -96,14 +96,14 @@ class JenkinsService {
 
     ScmDetails getGitDetails(String jobName, Integer buildNumber) {
         new SimpleHystrixCommand<ScmDetails>(
-            groupKey, "getGitDetails", {
+            groupKey, buildCommandKey("getGitDetails"), {
             return jenkinsClient.getGitDetails(encode(jobName), buildNumber)
         }).execute()
     }
 
     Build getLatestBuild(String jobName) {
         new SimpleHystrixCommand<Build>(
-            groupKey, "getLatestBuild", {
+            groupKey, buildCommandKey("getLatestBuild"), {
             return jenkinsClient.getLatestBuild(encode(jobName))
         }).execute()
     }
@@ -126,5 +126,12 @@ class JenkinsService {
 
     Response getPropertyFile(String jobName, Integer buildNumber, String fileName) {
         return jenkinsClient.getPropertyFile(encode(jobName), buildNumber, fileName)
+    }
+
+  /**
+   * A CommandKey should be unique per group (to ensure broken circuits do not span Jenkins masters)
+   */
+    private String buildCommandKey(String id) {
+        return "${groupKey}-${id}"
     }
 }
