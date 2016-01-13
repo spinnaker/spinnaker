@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.clouddriver.pipeline.CloneServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
 import groovy.transform.CompileStatic
 import org.springframework.stereotype.Component
 

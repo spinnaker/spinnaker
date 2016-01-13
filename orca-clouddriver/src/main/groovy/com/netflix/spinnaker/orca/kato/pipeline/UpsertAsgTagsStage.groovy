@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.clouddriver.pipeline.UpsertServerGroupTagsStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.UpsertServerGroupTagsStage
 import org.springframework.stereotype.Component
 
 /**
- * @deprecated Use {@link com.netflix.spinnaker.orca.clouddriver.pipeline.UpsertServerGroupTagsStage} instead.
+ * @deprecated Use {@link UpsertServerGroupTagsStage} instead.
  */
 @Component
 @Deprecated

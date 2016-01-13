@@ -22,11 +22,11 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.batch.StageExecutionListener
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.TerminateInstancesTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForDownInstanceHealthTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForTerminatedInstancesTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForUpInstanceHealthTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.instance.TerminateInstancesTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForDownInstanceHealthTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForTerminatedInstancesTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstanceHealthTask
 import com.netflix.spinnaker.orca.kato.tasks.*
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.CheckForRemainingTerminationsTask
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.DetermineTerminationCandidatesTask
