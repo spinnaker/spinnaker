@@ -188,5 +188,18 @@ describe('executionTransformerService', function() {
       expect(nested.startTime).toBe(8);
       expect(nested.endTime).toBe(9);
     });
+
+    it('should add startTime to stage summary based on min of child stage start times if first stage has no start time', function () {
+      var execution = {
+        stages: [
+          { id: '2', name: 'deploy', status: 'COMPLETED', startTime: null, endTime: 8 },
+          { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'COMPLETED', startTime: null, endTime: 6},
+          { id: '5', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'COMPLETED', startTime: 11, endTime: 9},
+          { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'COMPLETED', startTime: 4, endTime: 11 },
+        ]
+      };
+      this.transformer.transformExecution({}, execution);
+      expect(execution.stageSummaries[0].startTime).toBe(4);
+    });
   });
 });
