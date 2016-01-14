@@ -34,15 +34,15 @@ describe('Controller: MultipleInstances', function () {
 
   beforeEach(function () {
     this.serverGroupA = { type: 'aws', name: 'asg-v001', account: 'prod', region: 'us-east-1', instances: [
-      { id: 'i-123', availabilityZone: 'c', launchTime: 1, healthState: 'Up', health: []},
-      { id: 'i-234', availabilityZone: 'd', launchTime: 2, healthState: 'Up', health: []}
+      { id: 'i-123', availabilityZone: 'c', launchTime: 1, healthState: 'Up'},
+      { id: 'i-234', availabilityZone: 'd', launchTime: 2, healthState: 'Up'}
     ]
     };
     this.serverGroupB = { type: 'gce', name: 'asg-v002', account: 'test', region: 'us-west-1', instances: [
-      { id: 'g-234', availabilityZone: 'e', launchTime: 2, healthState: 'Up', health: []}
+      { id: 'g-234', availabilityZone: 'e', launchTime: 2, healthState: 'Up'}
     ]};
     this.serverGroupC = { type: 'gce', name: 'asg-v003', account: 'test', region: 'us-west-1', instances: [
-      { id: 'g-234', availabilityZone: 'f', launchTime: 2, healthState: 'Up', health: []}
+      { id: 'g-234', availabilityZone: 'f', launchTime: 2, healthState: 'Up'}
     ]};
 
     this.getInstanceGroup = (serverGroup) => {
@@ -118,11 +118,11 @@ describe('Controller: MultipleInstances', function () {
 
     it('can register with discovery when discovery is out of service for all selected instances', function () {
       this.serverGroupA.instances.forEach((instance) => {
-        instance.health.push({type: 'Discovery', state: 'OutOfService'});
+        instance.health = [{type: 'Discovery', state: 'OutOfService'}];
         this.addInstance(this.serverGroupA, instance.id);
       });
       this.serverGroupB.instances.forEach((instance) => {
-        instance.health.push({type: 'Discovery', state: 'OutOfService'});
+        instance.health = [{type: 'Discovery', state: 'OutOfService'}];
         this.addInstance(this.serverGroupB, instance.id);
       });
       this.createController(this.application);
@@ -132,11 +132,11 @@ describe('Controller: MultipleInstances', function () {
 
     it('can deregister with discovery when discovery is up for all selected instances', function () {
       this.serverGroupA.instances.forEach((instance) => {
-        instance.health.push({type: 'Discovery', state: 'Up'});
+        instance.health = [{type: 'Discovery', state: 'Up'}];
         this.addInstance(this.serverGroupA, instance.id);
       });
       this.serverGroupB.instances.forEach((instance) => {
-        instance.health.push({type: 'Discovery', state: 'Up'});
+        instance.health = [{type: 'Discovery', state: 'Up'}];
         this.addInstance(this.serverGroupB, instance.id);
       });
       this.createController(this.application);
@@ -146,7 +146,7 @@ describe('Controller: MultipleInstances', function () {
 
     it('has no discovery actions when some instance is not reporting discovery health', function () {
       this.serverGroupA.instances.forEach((instance) => {
-        instance.health.push({type: 'Discovery', state: 'OutOfService'});
+        instance.health = [{type: 'Discovery', state: 'OutOfService'}];
         this.addInstance(this.serverGroupA, instance.id);
       });
       this.serverGroupB.instances.forEach((instance) => {
@@ -159,11 +159,11 @@ describe('Controller: MultipleInstances', function () {
 
     it('has no discovery actions when instances have different discovery health states', function () {
       this.serverGroupA.instances.forEach((instance) => {
-        instance.health.push({type: 'Discovery', state: 'Up'});
+        instance.health = [{type: 'Discovery', state: 'Up'}];
         this.addInstance(this.serverGroupA, instance.id);
       });
       this.serverGroupB.instances.forEach((instance) => {
-        instance.health.push({type: 'Discovery', state: 'OutOfService'});
+        instance.health = [{type: 'Discovery', state: 'OutOfService'}];
         this.addInstance(this.serverGroupB, instance.id);
       });
       this.createController(this.application);
@@ -176,7 +176,7 @@ describe('Controller: MultipleInstances', function () {
     beforeEach(function () {
       this.application = { serverGroups: [this.serverGroupA, this.serverGroupB, this.serverGroupC]};
       this.makeLoadBalancerHealth = () => {
-        return {type: 'LoadBalancer', loadBalancers: [{name: 'lb-1'}, {name: 'lb-2'}]};
+        return [{type: 'LoadBalancer', loadBalancers: [{name: 'lb-1'}, {name: 'lb-2'}]}];
       };
       this.serverGroupA.loadBalancers = [ 'lb-1', 'lb-2' ];
       this.serverGroupB.loadBalancers = [ 'lb-2', 'lb-1' ];
@@ -192,7 +192,7 @@ describe('Controller: MultipleInstances', function () {
     it('cannot register with load balancers when server groups have the same load balancers but any instance has lb health', function () {
       this.serverGroupA.instances.forEach((instance) => this.addInstance(this.serverGroupA, instance.id));
       this.serverGroupB.instances.forEach((instance) => this.addInstance(this.serverGroupB, instance.id));
-      this.serverGroupB.instances[0].health.push({type: 'LoadBalancer'});
+      this.serverGroupB.instances[0].health = [{type: 'LoadBalancer'}];
       this.createController(this.application);
       expect(controller.canRegisterWithLoadBalancers()).toBe(false);
     });
@@ -216,11 +216,11 @@ describe('Controller: MultipleInstances', function () {
 
     it('can deregister from load balancers when instances are registered with the all load balancers, which are the same', function () {
       this.serverGroupA.instances.forEach((instance) => {
-        instance.health.push(this.makeLoadBalancerHealth());
+        instance.health = this.makeLoadBalancerHealth();
         this.addInstance(this.serverGroupA, instance.id);
       });
       this.serverGroupB.instances.forEach((instance) => {
-        instance.health.push(this.makeLoadBalancerHealth());
+        instance.health = this.makeLoadBalancerHealth();
         this.addInstance(this.serverGroupB, instance.id);
       });
       this.createController(this.application);
@@ -229,7 +229,7 @@ describe('Controller: MultipleInstances', function () {
 
     it('cannot deregister from load balancers when some instance is not registered', function () {
       this.serverGroupA.instances.forEach((instance) => {
-        instance.health.push(this.makeLoadBalancerHealth());
+        instance.health = this.makeLoadBalancerHealth();
         this.addInstance(this.serverGroupA, instance.id);
       });
       this.serverGroupB.instances.forEach((instance) => this.addInstance(this.serverGroupB, instance.id));
@@ -239,13 +239,13 @@ describe('Controller: MultipleInstances', function () {
 
     it('cannot deregister from load balancers when some instance is registered with different load balancers', function () {
       this.serverGroupA.instances.forEach((instance) => {
-        instance.health.push(this.makeLoadBalancerHealth());
+        instance.health = this.makeLoadBalancerHealth();
         this.addInstance(this.serverGroupA, instance.id);
       });
       this.serverGroupB.instances.forEach((instance) => {
         let health = this.makeLoadBalancerHealth();
-        health.loadBalancers.push({name: 'lb-3'});
-        instance.health.push(health);
+        health[0].loadBalancers.push({name: 'lb-3'});
+        instance.health = health;
         this.addInstance(this.serverGroupB, instance.id);
       });
       this.createController(this.application);
@@ -254,11 +254,11 @@ describe('Controller: MultipleInstances', function () {
 
     it('cannot deregister from load balancers when some server group has different load balancers', function () {
       this.serverGroupA.instances.forEach((instance) => {
-        instance.health.push(this.makeLoadBalancerHealth());
+        instance.health = this.makeLoadBalancerHealth();
         this.addInstance(this.serverGroupA, instance.id);
       });
       this.serverGroupB.instances.forEach((instance) => {
-        instance.health.push(this.makeLoadBalancerHealth());
+        instance.health = this.makeLoadBalancerHealth();
         this.addInstance(this.serverGroupB, instance.id);
       });
       this.serverGroupB.loadBalancers = [ 'lb-2', 'lb-1', 'lb-3' ];
