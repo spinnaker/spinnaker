@@ -22,6 +22,19 @@ module.exports = angular.module('cluster', [
       clusterFilterService.updateClusterGroups(app);
     };
 
+    ctrl.getAvailabilityZoneHeadings = () => {
+      let selectedRegions = Object.keys($scope.sortFilter.region || {});
+
+      return selectedRegions.length === 0 ?
+        ctrl.availabilityZoneHeadings :
+        ctrl.availabilityZoneHeadings.filter((azName) => {
+          return selectedRegions.reduce((matches, region) => {
+            return matches ? matches : _.includes(azName, region);
+          }, false);
+        });
+    };
+
+
     function getHeadingsForOption(option) {
       return _.compact(_.uniq(_.pluck(app.serverGroups, option))).sort();
     }
