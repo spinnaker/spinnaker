@@ -167,7 +167,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         ramdiskId: description.ramdiskId,
         instanceMonitoring: description.instanceMonitoring,
         ebsOptimized: description.ebsOptimized,
-        regionScopedProvider: regionScopedProvider)
+        regionScopedProvider: regionScopedProvider,
+        base64UserData: description.base64UserData)
 
       def asgName = autoScalingWorker.deploy()
 

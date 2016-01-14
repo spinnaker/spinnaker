@@ -43,6 +43,7 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   String ramdiskId
   Boolean instanceMonitoring
   Boolean ebsOptimized
+  String base64UserData
 
   boolean ignoreSequence
   boolean startDisabled

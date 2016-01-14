@@ -31,7 +31,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
   def asgService = Mock(AsgService)
   def securityGroupService = Mock(SecurityGroupService)
   def userDataProvider = Stub(UserDataProvider) {
-    getUserData(_ as String, _ as String, _ as String, _ as String) >> 'userdata'
+    getUserData(_, _, _, _, _, _) >> 'userdata'
   }
 
   @Subject
@@ -90,6 +90,59 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
       baseName: 'fooapp-v001',
       suffix: '20150515',
       securityGroups: securityGroups)
+  }
+
+  void "should add user data to launchconfig with combination from user data provider and description"() {
+    when:
+    builder.buildLaunchConfiguration(application, subnetType, settings)
+
+    then:
+    1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> application
+    1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
+      assert req.getUserData() == expectedUserData
+    }
+    0 * _
+
+    where:
+    application = 'foo'
+    subnetType = null
+    account = 'prod'
+    securityGroups = []
+    expectedGroups = [application]
+    expectedUserData = 'dXNlcmRhdGEKZXhwb3J0IFVTRVJEQVRBPTEK'
+    settings = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
+            account: 'prod',
+            region: 'us-east-1',
+            baseName: 'fooapp-v001',
+            suffix: '20150515',
+            base64UserData: 'ZXhwb3J0IFVTRVJEQVRBPTEK',
+            securityGroups: securityGroups)
+  }
+  
+  void "should add user data to launchconfig with user data provider if description userdata ommitted"() {
+    when:
+    builder.buildLaunchConfiguration(application, subnetType, settings)
+
+    then:
+    1 * securityGroupService.getSecurityGroupForApplication(application, subnetType) >> application
+    1 * autoScaling.createLaunchConfiguration(_ as CreateLaunchConfigurationRequest) >> { CreateLaunchConfigurationRequest req ->
+      assert req.getUserData() == expectedUserData
+    }
+    0 * _
+
+    where:
+    application = 'foo'
+    subnetType = null
+    account = 'prod'
+    securityGroups = []
+    expectedGroups = [application]
+    expectedUserData = 'dXNlcmRhdGEK'
+    settings = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
+            account: 'prod',
+            region: 'us-east-1',
+            baseName: 'fooapp-v001',
+            suffix: '20150515',
+            securityGroups: securityGroups)
   }
 
   void "should create an application security group if none exists and no security groups provided"() {

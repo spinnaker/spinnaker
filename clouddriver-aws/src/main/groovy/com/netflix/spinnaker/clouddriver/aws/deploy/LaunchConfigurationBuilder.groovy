@@ -37,6 +37,7 @@ interface LaunchConfigurationBuilder {
     List<String> classicLinkVPCSecurityGroups
     String instanceType
     String keyPair
+    String base64UserData
     Boolean associatePublicIpAddress
     String kernelId
     String ramdiskId
