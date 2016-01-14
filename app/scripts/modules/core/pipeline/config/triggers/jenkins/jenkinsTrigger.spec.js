@@ -88,11 +88,7 @@ describe('Controller: jenkinsTrigger', function() {
     });
 
     it('retains current job if no jobs found in master because that is probably a server-side issue', function() {
-      var masterA = {
-          name: 'masterA',
-          jobs: []
-        },
-        trigger = {
+      var trigger = {
           master: 'masterA',
           job: 'a'
         },

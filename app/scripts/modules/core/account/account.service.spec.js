@@ -2,7 +2,7 @@
 
 describe('Service: accountService ', function () {
 
-  var $rootScope, accountService, $http, $q, settings, cloudProviderRegistry;
+  var accountService, $http, settings, cloudProviderRegistry;
 
   beforeEach(
     window.module(
@@ -11,12 +11,9 @@ describe('Service: accountService ', function () {
   );
 
   beforeEach(
-    window.inject(function (_$rootScope_, _accountService_, $httpBackend, _$q_, _settings_,
-                            _cloudProviderRegistry_) {
-      $rootScope = _$rootScope_;
+    window.inject(function (_accountService_, $httpBackend, _settings_, _cloudProviderRegistry_) {
       accountService = _accountService_;
       $http = $httpBackend;
-      $q = _$q_;
       settings = _settings_;
       cloudProviderRegistry = _cloudProviderRegistry_;
 

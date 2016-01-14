@@ -4,7 +4,6 @@ describe('Controller: Config', function () {
 
   var $controller;
   var configController;
-  var $rootScope;
   var $uibModal;
   var application;
 
@@ -13,8 +12,7 @@ describe('Controller: Config', function () {
   ));
 
   beforeEach(
-    window.inject(function (_$rootScope_, _$controller_, _$uibModal_) {
-      $rootScope = _$rootScope_;
+    window.inject(function (_$controller_, _$uibModal_) {
       $controller = _$controller_;
       $uibModal = _$uibModal_;
     })

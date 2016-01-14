@@ -64,7 +64,7 @@ describe('recent history service', function() {
     it('only matches on specified params if supplied', () => {
       let start = new Date().getTime() - 1;
       let currentItems = _.range(0, 3).map((idx) => {
-        return { params: {id: idx, importantParam: idx, ignoredParam: idx+1}, accessTime: start - idx};
+        return { params: {id: idx, importantParam: idx, ignoredParam: idx + 1}, accessTime: start - idx};
       });
       backingCache.put('whatever', currentItems);
       service.addItem('whatever', 'state', {id: 1, importantParam: 1, ignoredParam: 1000}, ['importantParam', 'id']);
@@ -80,7 +80,7 @@ describe('recent history service', function() {
     beforeEach(
       function initilizeCache() {
         let start = new Date().getTime() - 1;
-        let currentItems = ["foo", "bar", "baz"].map((appName, index) => {
+        let currentItems = ['foo', 'bar', 'baz'].map((appName, index) => {
           return { params: {application: appName, accessTime: start - index}};
         });
         backingCache.put('applications', currentItems);
@@ -88,15 +88,15 @@ describe('recent history service', function() {
     );
 
     it('should have 3 items in the "applications" cache', function () {
-      let items = service.getItems("applications");
+      let items = service.getItems('applications');
       expect(items.length).toBe(3);
     });
 
     it('should have 2 items in the "application" cache when we remove "foo" by application name', function () {
-      service.removeByAppName("foo");
-      let items = service.getItems("applications");
+      service.removeByAppName('foo');
+      let items = service.getItems('applications');
       expect(items.length).toBe(2);
-      expect(_.any(items, {params: {application: "foo"}})).toBeFalsy();
+      expect(_.any(items, {params: {application: 'foo'}})).toBeFalsy();
     });
   });
 

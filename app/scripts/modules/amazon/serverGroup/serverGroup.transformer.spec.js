@@ -1,7 +1,6 @@
 'use strict';
 
 describe('awsServerGroupTransformer', function () {
-  const angular = require('angular');
 
   var transformer, vpcReader, $q, $scope;
 

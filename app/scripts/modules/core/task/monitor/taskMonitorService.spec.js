@@ -5,7 +5,6 @@ describe('Service: taskMonitorService', function () {
   var taskMonitorService,
       $q,
       $scope,
-      taskReader,
       $timeout,
       $http,
       orchestratedItemTransformer;
@@ -15,11 +14,10 @@ describe('Service: taskMonitorService', function () {
   );
 
   beforeEach(
-    window.inject(function (_taskMonitorService_, _$q_, $rootScope, _taskReader_, _$timeout_, $httpBackend, _orchestratedItemTransformer_) {
+    window.inject(function (_taskMonitorService_, _$q_, $rootScope, _$timeout_, $httpBackend, _orchestratedItemTransformer_) {
       taskMonitorService = _taskMonitorService_;
       $q = _$q_;
       $scope = $rootScope.$new();
-      taskReader = _taskReader_;
       $timeout = _$timeout_;
       $http = $httpBackend;
       orchestratedItemTransformer = _orchestratedItemTransformer_;

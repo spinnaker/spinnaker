@@ -18,7 +18,7 @@
 
 describe('Service: Azure Image Reader', function() {
 
-  var service, $http, scope, timeout;
+  var service, $http, scope;
 
   beforeEach(
     window.module(
@@ -27,11 +27,10 @@ describe('Service: Azure Image Reader', function() {
   );
 
 
-  beforeEach(window.inject(function (azureImageReader, $httpBackend, $rootScope, $timeout) {
+  beforeEach(window.inject(function (azureImageReader, $httpBackend, $rootScope) {
 
     service = azureImageReader;
     $http = $httpBackend;
-    timeout = $timeout;
     scope = $rootScope.$new();
 
   }));
@@ -46,7 +45,7 @@ describe('Service: Azure Image Reader', function() {
     var query = 'abc', region = 'usw';
 
     function buildQueryString() {
-      return '/images/find?provider=azure&q='+query + '&region=' + region;
+      return '/images/find?provider=azure&q=' + query + '&region=' + region;
     }
 
     it('queries gate when 3 characters are supplied', function() {

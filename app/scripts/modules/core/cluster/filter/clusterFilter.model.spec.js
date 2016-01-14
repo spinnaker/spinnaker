@@ -10,7 +10,7 @@ describe('Cluster Filter Model', function () {
   ));
 
   beforeEach(
-    window.inject(function(_ClusterFilterModel_, _$state_){
+    window.inject(function(_ClusterFilterModel_, _$state_) {
       ClusterFilterModel = _ClusterFilterModel_;
       $state = _$state_;
     })

@@ -6,7 +6,6 @@ describe('Controller: pipelineExecutions', function () {
 
   var controller;
   var scope;
-  var rootScope;
   var $state;
   var pipelineConfigService;
   var $q;
@@ -22,7 +21,6 @@ describe('Controller: pipelineExecutions', function () {
 
   beforeEach(
     window.inject(function ($rootScope, $controller, _$state_, _pipelineConfigService_, _$q_, _$timeout_, _rx_) {
-      rootScope = $rootScope;
       scope = $rootScope.$new();
       $state = { go: angular.noop };
       pipelineConfigService = _pipelineConfigService_;

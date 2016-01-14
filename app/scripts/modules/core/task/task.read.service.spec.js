@@ -379,7 +379,7 @@ describe('Service: taskReader', function () {
 
     it('calculates running time based on start and end times', function () {
       var start = new Date().getTime(),
-          end = start + 120*1000;
+          end = start + 120 * 1000;
       $http.whenGET('/applications/deck/tasks/1').respond(200, {
         id: 2,
         status: 'COMPLETED',

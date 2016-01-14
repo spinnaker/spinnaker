@@ -18,7 +18,7 @@
 
 describe('Service: aws Image Reader', function() {
 
-  var service, $http, scope, timeout;
+  var service, $http, scope;
 
   beforeEach(
     window.module(
@@ -27,11 +27,10 @@ describe('Service: aws Image Reader', function() {
   );
 
 
-  beforeEach(window.inject(function (awsImageReader, $httpBackend, $rootScope, $timeout) {
+  beforeEach(window.inject(function (awsImageReader, $httpBackend, $rootScope) {
 
     service = awsImageReader;
     $http = $httpBackend;
-    timeout = $timeout;
     scope = $rootScope.$new();
 
   }));
@@ -46,7 +45,7 @@ describe('Service: aws Image Reader', function() {
     var query = 'abc', region = 'us-west-1';
 
     function buildQueryString() {
-      return '/images/find?provider=aws&q='+query + '&region=' + region;
+      return '/images/find?provider=aws&q=' + query + '&region=' + region;
     }
 
     it('queries gate when 3 characters are supplied', function() {

@@ -1,7 +1,6 @@
 'use strict';
 
 describe('azureServerGroupTransformer', function () {
-  const angular = require('angular');
 
   var transformer, azureVpcReader, $q, $scope;
 

@@ -2,7 +2,6 @@
 
 describe('FastPropertyScopeService', function () {
   var service;
-  var $q;
   var $rootScope;
   var appId = 'mahe';
 
@@ -13,9 +12,8 @@ describe('FastPropertyScopeService', function () {
     )
   );
 
-  beforeEach(window.inject(function (_$q_, _$rootScope_, _FastPropertyScopeService_) {
+  beforeEach(window.inject(function (_$rootScope_, _FastPropertyScopeService_) {
     $rootScope = _$rootScope_;
-    $q = _$q_;
     service = _FastPropertyScopeService_;
   }));
 
@@ -25,7 +23,7 @@ describe('FastPropertyScopeService', function () {
 
       it('should return and empty list: ' + scope, function () {
         var resultList;
-        service.getResultsForScope(appId, clusters, scope).then(function(result){resultList = result; });
+        service.getResultsForScope(appId, clusters, scope).then(function(result) {resultList = result; });
 
         $rootScope.$apply();
 
@@ -615,7 +613,7 @@ describe('FastPropertyScopeService', function () {
       serverGroups: [],
     };
 
-    cluster.addServerGroups = function(region, name)  {
+    cluster.addServerGroups = function(region, name) {
       var sg = {
         account: account,
         region: region,
@@ -626,7 +624,7 @@ describe('FastPropertyScopeService', function () {
       return this;
     };
 
-    cluster.addInstance =  function(id, az) {
+    cluster.addInstance = function(id, az) {
       var instance = {
         availabilityZone: az,
         id: id,

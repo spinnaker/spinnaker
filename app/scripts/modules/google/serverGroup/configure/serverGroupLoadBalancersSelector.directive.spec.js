@@ -18,7 +18,7 @@ describe('Directive: GCE Load Balancers Selector', function() {
   var selector, element, gceServerGroupConfigurationService, expectedTime;
 
   beforeEach(window.inject(function(_gceServerGroupConfigurationService_, _infrastructureCaches_, _momentService_,
-                               settings){
+                               settings) {
     gceServerGroupConfigurationService = _gceServerGroupConfigurationService_;
 
 
@@ -49,7 +49,7 @@ describe('Directive: GCE Load Balancers Selector', function() {
     expect(refreshedSpan.html()).toEqual('last refreshed ' + expectedTime);
   });
 
-  it('should refresh the load balancer cache', function(){
+  it('should refresh the load balancer cache', function() {
     spyOn(gceServerGroupConfigurationService, 'refreshLoadBalancers').and.returnValue({then: angular.noop});
     element = this.compile(selector)(this.scope);
     this.scope.$apply();

@@ -18,7 +18,7 @@
 
  xdescribe('Service: azureServerGroupConfiguration', function () {
 
-   var service, $q, azureImageReader, accountService, securityGroupReader,
+   var service, $q, accountService, securityGroupReader,
      azureInstanceTypeService, cacheInitializer,
      subnetReader, keyPairsReader, loadBalancerReader, $scope;
 
@@ -29,12 +29,11 @@
    );
 
 
-   beforeEach(window.inject(function (_azureServerGroupConfigurationService_, _$q_, _azureImageReader_, _accountService_,
+   beforeEach(window.inject(function (_azureServerGroupConfigurationService_, _$q_, _accountService_,
                                       _securityGroupReader_, _azureInstanceTypeService_, _cacheInitializer_,
                                       _subnetReader_, _keyPairsReader_, _loadBalancerReader_, $rootScope) {
      service = _azureServerGroupConfigurationService_;
      $q = _$q_;
-     azureImageReader = _azureImageReader_;
      accountService = _accountService_;
      securityGroupReader = _securityGroupReader_;
      azureInstanceTypeService = _azureInstanceTypeService_;

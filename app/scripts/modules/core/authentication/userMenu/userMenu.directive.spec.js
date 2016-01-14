@@ -39,7 +39,7 @@ describe('Directives: userMenu', function () {
     });
 
     it('displays the user menu when auth is enabled', function () {
-      var domNode, templateElement;
+      var domNode;
 
       settings.authEnabled = true;
       spyOn(authenticationService, 'getAuthenticatedUser').and.returnValue({'name': 'sam mulligan'});
@@ -49,7 +49,7 @@ describe('Directives: userMenu', function () {
     });
 
     it('displays the user name for both large and small screens', function () {
-      var domNode, templateElement;
+      var domNode;
 
       settings.authEnabled = true;
       spyOn(authenticationService, 'getAuthenticatedUser').and.returnValue({'name': 'sam mulligan'});

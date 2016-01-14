@@ -106,7 +106,6 @@ describe('Service: executionService', function () {
       let executionId = 'abc';
       let pauseUrl = [ settings.gateUrl, 'pipelines', executionId, 'pause' ].join('/');
       let singleExecutionUrl = [ settings.gateUrl, 'pipelines', executionId ].join('/');
-      let allExecutionsUrl = [ settings.gateUrl, 'applications', 'deck', 'pipelines' ].join('/');
       let application = { name: 'deck', reloadExecutions: () => $q.when(null) };
 
       $httpBackend.expectPUT(pauseUrl).respond(200, []);
@@ -130,7 +129,6 @@ describe('Service: executionService', function () {
       let executionId = 'abc';
       let pauseUrl = [ settings.gateUrl, 'pipelines', executionId, 'resume' ].join('/');
       let singleExecutionUrl = [ settings.gateUrl, 'pipelines', executionId ].join('/');
-      let allExecutionsUrl = [ settings.gateUrl, 'applications', 'deck', 'pipelines' ].join('/');
       let application = { name: 'deck', reloadExecutions: () => $q.when(null) };
 
       $httpBackend.expectPUT(pauseUrl).respond(200, []);
@@ -150,7 +148,7 @@ describe('Service: executionService', function () {
 
   describe('when fetching pipelines', function () {
 
-    it('should resolve the promise if a 200 response is received with empty array', function(){
+    it('should resolve the promise if a 200 response is received with empty array', function() {
       let url = [
           settings.gateUrl,
           'applications',
@@ -174,7 +172,7 @@ describe('Service: executionService', function () {
         });
     });
 
-    it('should reject the promise if a 429 response is received', function(){
+    it('should reject the promise if a 429 response is received', function() {
       let url = [
         settings.gateUrl,
         'applications',

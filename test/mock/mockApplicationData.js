@@ -30,7 +30,7 @@ module.exports = angular
             cluster: 'in-eu-east-2-only',
             account : 'prod',
             region : 'eu-east-2',
-            instances : [  ],
+            instances : [ ],
             name: 'in-eu-east-2-only',
             instanceCounts: {
               total: 0,

@@ -5,9 +5,7 @@ describe('Service: securityGroupFilterService', function () {
 
 
   var service;
-  var $location;
   var SecurityGroupFilterModel;
-  var _;
   var app;
   var resultJson;
   var $timeout;
@@ -22,10 +20,8 @@ describe('Service: securityGroupFilterService', function () {
 
   beforeEach(
     window.inject(
-      function (_$location_, securityGroupFilterService, _SecurityGroupFilterModel_, ___, _$timeout_) {
-        _ = ___;
+      function (securityGroupFilterService, _SecurityGroupFilterModel_, _$timeout_) {
         service = securityGroupFilterService;
-        $location = _$location_;
         SecurityGroupFilterModel = _SecurityGroupFilterModel_;
         $timeout = _$timeout_;
       }
@@ -41,9 +37,9 @@ describe('Service: securityGroupFilterService', function () {
       ]
     };
     resultJson = [
-      { heading: 'us-east-1', vpcName: '', securityGroup: app.securityGroups[0],  },
-      { heading: 'us-west-1', vpcName: 'main', securityGroup: app.securityGroups[1],  },
-      { heading: 'us-east-1', vpcName: '', securityGroup: app.securityGroups[2],  }
+      { heading: 'us-east-1', vpcName: '', securityGroup: app.securityGroups[0], },
+      { heading: 'us-west-1', vpcName: 'main', securityGroup: app.securityGroups[1], },
+      { heading: 'us-east-1', vpcName: '', securityGroup: app.securityGroups[2], }
     ];
     SecurityGroupFilterModel.clearFilters();
   });
@@ -209,11 +205,11 @@ describe('Service: securityGroupFilterService', function () {
 
     it('adds a group when new one provided', function() {
       app.securityGroups.push({
-        name: 'sg-1', account: 'management', region: 'us-east-1',  vpcName: '',
+        name: 'sg-1', account: 'management', region: 'us-east-1', vpcName: '',
       });
       var newGroup = { heading: 'management', subgroups: [
         { heading: 'sg-1', subgroups: [
-          { heading: 'us-east-1', vpcName: '', securityGroup: app.securityGroups[3],  }
+          { heading: 'us-east-1', vpcName: '', securityGroup: app.securityGroups[3], }
         ]}
       ]};
       service.updateSecurityGroups(app);
@@ -231,9 +227,9 @@ describe('Service: securityGroupFilterService', function () {
 
     it('adds a subgroup when new one provided', function() {
       app.securityGroups.push({
-        name: 'sg-3', account: 'prod', region: 'eu-west-1',  vpcName: '',
+        name: 'sg-3', account: 'prod', region: 'eu-west-1', vpcName: '',
       });
-      var newSubGroup = { heading: 'sg-3', subgroups: [{heading: 'eu-west-1', vpcName: '', securityGroup: app.securityGroups[3],  }]};
+      var newSubGroup = { heading: 'sg-3', subgroups: [{heading: 'eu-west-1', vpcName: '', securityGroup: app.securityGroups[3], }]};
       service.updateSecurityGroups(app);
       $timeout.flush();
       expect(SecurityGroupFilterModel.groups).toEqual([
@@ -249,9 +245,9 @@ describe('Service: securityGroupFilterService', function () {
 
     it('adds a sub-subgroup when new one provided', function() {
       app.securityGroups.push({
-        name: 'sg-2', account: 'test', region: 'eu-west-1',  vpcName: '',
+        name: 'sg-2', account: 'test', region: 'eu-west-1', vpcName: '',
       });
-      var newSubsubGroup = { heading: 'eu-west-1', vpcName: '', securityGroup: app.securityGroups[3],  };
+      var newSubsubGroup = { heading: 'eu-west-1', vpcName: '', securityGroup: app.securityGroups[3], };
       service.updateSecurityGroups(app);
       $timeout.flush();
       expect(SecurityGroupFilterModel.groups).toEqual([

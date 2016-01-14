@@ -5,9 +5,7 @@ describe('Service: loadBalancerFilterService', function () {
 
 
   var service;
-  var $location;
   var LoadBalancerFilterModel;
-  var _;
   var app;
   var resultJson;
   var $timeout;
@@ -22,10 +20,8 @@ describe('Service: loadBalancerFilterService', function () {
 
   beforeEach(
     window.inject(
-      function (_$location_, loadBalancerFilterService, _LoadBalancerFilterModel_, ___, _$timeout_) {
-        _ = ___;
+      function (loadBalancerFilterService, _LoadBalancerFilterModel_, _$timeout_) {
         service = loadBalancerFilterService;
-        $location = _$location_;
         LoadBalancerFilterModel = _LoadBalancerFilterModel_;
         $timeout = _$timeout_;
         LoadBalancerFilterModel.groups = [];

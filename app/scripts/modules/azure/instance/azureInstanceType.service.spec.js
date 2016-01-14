@@ -32,10 +32,10 @@ describe('Service: InstanceType', function () {
     this.settings = _settings_;
 
     this.allTypes = [
-      {account: "test", region: "us-west-2", name: "m1.small", availabilityZone: "us-west-2a"},
-      {account: "test", region: "us-west-2", name: "m2.xlarge", availabilityZone: "us-west-2b"},
-      {account: "test", region: "eu-west-1", name: "hs1.8xlarge", availabilityZone: "eu-west-1c"},
-      {account: "test", region: "eu-west-1", name: "m2.xlarge", availabilityZone: "eu-west-1c"},
+      {account: 'test', region: 'us-west-2', name: 'm1.small', availabilityZone: 'us-west-2a'},
+      {account: 'test', region: 'us-west-2', name: 'm2.xlarge', availabilityZone: 'us-west-2b'},
+      {account: 'test', region: 'eu-west-1', name: 'hs1.8xlarge', availabilityZone: 'eu-west-1c'},
+      {account: 'test', region: 'eu-west-1', name: 'm2.xlarge', availabilityZone: 'eu-west-1c'},
     ];
 
     infrastructureCaches.createCache('instanceTypes', {});

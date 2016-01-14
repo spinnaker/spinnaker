@@ -5,7 +5,6 @@ describe('Service: executionFilterService', function () {
 
   var service;
   var ExecutionFilterModel;
-  var _;
   var $timeout;
 
   beforeEach(
@@ -17,8 +16,7 @@ describe('Service: executionFilterService', function () {
 
   beforeEach(
     window.inject(
-      function (_$location_, executionFilterService, _ExecutionFilterModel_, ___, _$timeout_) {
-        _ = ___;
+      function (_$location_, executionFilterService, _ExecutionFilterModel_, _$timeout_) {
         service = executionFilterService;
         ExecutionFilterModel = _ExecutionFilterModel_;
         $timeout = _$timeout_;

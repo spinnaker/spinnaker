@@ -7,12 +7,10 @@ describe('Service: InstanceType', function () {
     )
   );
 
-  var clusterService, $q, $scope;
+  var clusterService;
 
-  beforeEach(window.inject(function (_clusterService_, _$q_, $rootScope) {
+  beforeEach(window.inject(function (_clusterService_) {
     clusterService = _clusterService_;
-    $q = _$q_;
-    $scope = $rootScope.$new();
 
     this.buildTask = function(config) {
       return {

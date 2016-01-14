@@ -2,7 +2,7 @@
 
 describe('Controller: projectCluster directive', function () {
 
-  var $controller, vm, $scope, project, cluster, urlBuilder;
+  var $controller, $scope, project, cluster, urlBuilder;
 
   beforeEach(window.module(
     require('./projectCluster.directive.js')
@@ -32,7 +32,7 @@ describe('Controller: projectCluster directive', function () {
       };
 
       this.initialize = () => {
-        vm = $controller('ProjectClusterCtrl', {
+        $controller('ProjectClusterCtrl', {
           $scope: $scope,
         }, {project: project, cluster: cluster});
       };
