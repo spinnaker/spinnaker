@@ -21,6 +21,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.bakeStage', [
       validators: [
         { type: 'requiredField', fieldName: 'package', },
       ],
+      restartable: true,
     });
   })
   .controller('gceBakeStageCtrl', function($scope, bakeryService, $q, _, authenticationService, settings) {

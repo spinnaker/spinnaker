@@ -26,6 +26,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.docker.bakeStage'
       validators: [
         { type: 'requiredField', fieldName: 'package', },
       ],
+      restartable: true,
     });
   })
   .controller('dockerBakeStageCtrl', function($scope, bakeryService, $q, _, authenticationService) {

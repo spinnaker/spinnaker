@@ -13,6 +13,7 @@ module.exports = angular
       label: 'Bake',
       description: 'Bakes an image in the specified region',
       key: 'bake',
+      restartable: true,
     });
   })
   .run(function(pipelineConfig, bakeStageTransformer) {
