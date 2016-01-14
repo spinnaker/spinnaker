@@ -26,6 +26,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.bakeStage', [
           message: 'Bake stages should always have a Jenkins stage or trigger preceding them.<br> Otherwise, ' +
         'Spinnaker will bake and deploy the most-recently built package.'}
       ],
+      restartable: true,
     });
   })
   .controller('awsBakeStageCtrl', function($scope, bakeryService, $q, _, authenticationService, settings) {
