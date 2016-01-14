@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.pipeline.parallel
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -38,27 +37,35 @@ class WaitForRequisiteCompletionTask implements RetryableTask {
   @Override
   TaskResult execute(Stage stage) {
     boolean allRequisiteStagesAreComplete = true
-    Set<String> termainalStageNames = []
+    Set<String> terminalStageNames = []
 
     def requisiteIds = stage.context.requisiteIds as List<String>
     requisiteIds?.each { String requisiteId ->
       def requisiteStage = stage.execution.stages.find { it.refId == requisiteId }
-      if (requisiteStage?.status != SUCCEEDED) {
+      if (!requisiteStage) {
         allRequisiteStagesAreComplete = false
-      }
-      if (requisiteStage?.status == TERMINAL) {
-        termainalStageNames << requisiteStage?.name
+        return
       }
 
-      def tasks = (requisiteStage?.tasks ?: []) as List<Task>
-      if (tasks && tasks[-1].status != SUCCEEDED) {
-        // ensure the last task has completed (heuristic for all tasks being complete)
-        allRequisiteStagesAreComplete = false
+      def requisiteStages = [requisiteStage] + stage.execution.stages.findAll { it.parentStageId == requisiteStage.id }
+      requisiteStages.each {
+        if (it.status != SUCCEEDED) {
+          allRequisiteStagesAreComplete = false
+        }
+        if (it.status == TERMINAL) {
+          terminalStageNames << it?.name
+        }
+
+        def tasks = (it.tasks ?: []) as List<Task>
+        if (tasks && tasks[-1].status != SUCCEEDED) {
+          // ensure the last task has completed (heuristic for all tasks being complete)
+          allRequisiteStagesAreComplete = false
+        }
       }
     }
 
-    if (termainalStageNames) {
-      throw new IllegalStateException("Requisite stage failures: ${termainalStageNames.join(',')}")
+    if (terminalStageNames) {
+      throw new IllegalStateException("Requisite stage failures: ${terminalStageNames.join(',')}")
     }
 
     return new DefaultTaskResult(allRequisiteStagesAreComplete ? SUCCEEDED : RUNNING)
