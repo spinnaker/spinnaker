@@ -145,6 +145,26 @@ describe('Service: taskReader', function () {
       expect(failed).toBe(true);
 
     });
+
+    it('polls task and rejects if task is not returned from getTask call', function () {
+      $http.expectGET('/applications/deck/tasks/1').respond(500, {});
+
+      var completed = false,
+          failed = false;
+
+      $http.flush();
+
+      service.waitUntilTaskMatches('deck', task,
+        (task) => task.isCompleted,
+        (task) => task.isFailed)
+        .then(
+        () => completed = true,
+        () => failed = true);
+      scope.$digest();
+
+      expect(completed).toBe(false);
+      expect(failed).toBe(true);
+    });
   });
 
   describe('failure message', function () {

@@ -91,7 +91,9 @@ module.exports = angular
 
     function waitUntilTaskMatches(application, task, closure, failureClosure) {
       let deferred = $q.defer();
-      if (closure(task)) {
+      if (!task) {
+        deferred.reject();
+      } else if (closure(task)) {
         deferred.resolve();
       } else if (failureClosure && failureClosure(task)) {
         deferred.reject();
