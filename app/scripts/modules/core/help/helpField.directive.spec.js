@@ -32,7 +32,7 @@ describe('Directives: helpField', function () {
 
   beforeEach(window.inject(function ($rootScope, $compile, _helpContentsRegistry_) {
     helpContentsRegistry = _helpContentsRegistry_;
-    this.executeTest = function executeTest(htmlString, expected, attr='uib-popover') {
+    this.executeTest = function executeTest(htmlString, expected, attr = 'uib-popover') {
       var $scope = $rootScope.$new();
       var helpField = $compile(htmlString)($scope);
       $scope.$digest();

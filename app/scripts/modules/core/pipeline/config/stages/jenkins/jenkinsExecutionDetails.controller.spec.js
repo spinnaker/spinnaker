@@ -2,7 +2,7 @@
 
 describe('Jenkins Execution Details Controller:', function () {
   const angular = require('angular');
-  var controller, $scope;
+  var $scope;
 
   beforeEach(
     window.module(
@@ -14,7 +14,7 @@ describe('Jenkins Execution Details Controller:', function () {
     this.initializeController = function(stage) {
       var scope = $rootScope.$new();
       scope.stage = stage;
-      controller = $controller('JenkinsExecutionDetailsCtrl', {
+      $controller('JenkinsExecutionDetailsCtrl', {
         '$scope': scope,
         executionDetailsSectionService: { synchronizeSection: angular.noop, },
       });

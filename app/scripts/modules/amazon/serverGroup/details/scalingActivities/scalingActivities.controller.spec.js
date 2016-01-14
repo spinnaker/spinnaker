@@ -42,11 +42,11 @@ describe('Controller: ScalingActivitiesCtrl', function () {
       var spec = this;
       var activities = [
         {
-          description: "Launching a new EC2 instance: i-05c487e8",
+          description: 'Launching a new EC2 instance: i-05c487e8',
           details: '{"Availability Zone":"us-east-1d"}'
         },
         {
-          description: "Launching a new EC2 instance: i-abcdefgh",
+          description: 'Launching a new EC2 instance: i-abcdefgh',
           details: '{"Availability Zone":"us-east-1e"}'
         }
       ];

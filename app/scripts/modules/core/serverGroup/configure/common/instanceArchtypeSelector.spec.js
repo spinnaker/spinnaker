@@ -35,7 +35,7 @@ describe('Controller: Instance Archetype Selector', function() {
     spyOn(instanceTypeService, 'getAllTypesByRegion').and.returnValue($q.when(categories));
   }));
 
-  it('should select a profile, change it, then unselect it', function(){
+  it('should select a profile, change it, then unselect it', function() {
     this.$scope.command.selectedProvider = 'gce'; // Doesn't matter which, since this module is shared.
     this.ctrl = this.$controller('InstanceArchetypeSelectorCtrl', this.controllerDeps);
     this.$scope.$apply();

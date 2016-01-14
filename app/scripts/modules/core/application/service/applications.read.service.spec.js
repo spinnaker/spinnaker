@@ -85,7 +85,7 @@ describe('Service: applicationReader', function () {
     describe('reload executions', function () {
       it('reloads executions and sets appropriate flags', function () {
         spyOn(executionService, 'getRunningExecutions').and.returnValue($q.when([{status: 'COMPLETED', stages: []}]));
-        var result    = null,
+        var result = null,
             nextCalls = 0;
         loadApplication([], [], [], {executions: true}).then((app) => {
           result = app;
@@ -110,7 +110,7 @@ describe('Service: applicationReader', function () {
 
       it('sets appropriate flags when executions reload fails; subscriber is responsible for error checking', function () {
         spyOn(executionService, 'getRunningExecutions').and.returnValue($q.reject(null));
-        var result        = null,
+        var result = null,
             errorsHandled = 0;
         loadApplication([], [], []).then((app) => {
           result = app;

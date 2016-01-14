@@ -3,9 +3,6 @@
 
 describe('Controller: AllLoadBalancersCtrl', function () {
 
-  const angular = require('angular');
-
-  var controller;
   var scope;
   var autoRefresh;
 
@@ -18,7 +15,7 @@ describe('Controller: AllLoadBalancersCtrl', function () {
   beforeEach(
     window.inject(function($rootScope, $controller) {
       scope = $rootScope.$new();
-      controller = $controller('AllLoadBalancersCtrl', {
+      $controller('AllLoadBalancersCtrl', {
         $scope: scope,
         app: {
           registerAutoRefreshHandler: function(handler) { autoRefresh = handler; },

@@ -40,7 +40,7 @@ describe('Controller: azureCreateLoadBalancerCtrl', function () {
     expect(lb.providerType).toEqual(undefined);
   });
 
-  it('makes the expected REST calls for data for a new loadbalancer', function(){
+  it('makes the expected REST calls for data for a new loadbalancer', function() {
     $http.when('GET', '/loadBalancers?provider=azure').respond([]);
     $http.when('GET', '/securityGroups').respond({});
     $http.when('GET', '/credentials').respond([]);

@@ -3,7 +3,6 @@
 describe('fastPropertyRollout Controller:', function () {
 
   let controller;
-  let $timeout;
   let fastPropertyReader;
   let $scope;
   let $q;
@@ -79,8 +78,7 @@ describe('fastPropertyRollout Controller:', function () {
 
 
   beforeEach(
-    window.inject(function($rootScope, $controller, _$q_, _$timeout_, _fastPropertyReader_) {
-      $timeout = _$timeout_;
+    window.inject(function($rootScope, $controller, _$q_, _fastPropertyReader_) {
       $q = _$q_;
       $scope = $rootScope.$new();
       fastPropertyReader = _fastPropertyReader_;

@@ -9,7 +9,7 @@ describe('Application Property Controller:', function () {
     )
   );
 
-  beforeEach(window.inject(function($controller, $rootScope){
+  beforeEach(window.inject(function($controller, $rootScope) {
     controller = $controller('ApplicationPropertiesController', {
       '$scope': $rootScope.$new(),
       'app': {

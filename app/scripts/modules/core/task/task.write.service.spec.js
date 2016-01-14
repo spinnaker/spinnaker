@@ -5,7 +5,6 @@ describe('Service: taskWriter', function () {
   var taskWriter;
   var $httpBackend;
   var timeout;
-  var $q;
 
   beforeEach(
     window.module(
@@ -14,11 +13,10 @@ describe('Service: taskWriter', function () {
   );
 
   beforeEach(
-    window.inject(function (_taskWriter_, _$httpBackend_, _$timeout_, _$q_) {
+    window.inject(function (_taskWriter_, _$httpBackend_, _$timeout_) {
       taskWriter = _taskWriter_;
       $httpBackend = _$httpBackend_;
       timeout = _$timeout_;
-      $q = _$q_;
     })
   );
 

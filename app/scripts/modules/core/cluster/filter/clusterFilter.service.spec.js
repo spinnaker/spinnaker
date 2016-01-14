@@ -5,7 +5,6 @@ describe('Service: clusterFilterService', function () {
 
 
   var service;
-  var $location;
   var ClusterFilterModel;
   var applicationJSON;
   var groupedJSON;
@@ -22,10 +21,9 @@ describe('Service: clusterFilterService', function () {
 
   beforeEach(
     window.inject(
-      function (_$location_, clusterFilterService, _ClusterFilterModel_, ___, _$timeout_) {
+      function (clusterFilterService, _ClusterFilterModel_, ___, _$timeout_) {
         _ = ___;
         service = clusterFilterService;
-        $location = _$location_;
         ClusterFilterModel = _ClusterFilterModel_;
         $timeout = _$timeout_;
         ClusterFilterModel.groups = [];

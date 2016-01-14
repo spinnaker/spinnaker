@@ -2,7 +2,7 @@
 
 describe('authenticationInterceptor', function() {
 
-  var interceptor, $q, settings, authenticationService, $rootScope;
+  var interceptor, settings, authenticationService, $rootScope;
 
   beforeEach(
     window.module(
@@ -10,9 +10,8 @@ describe('authenticationInterceptor', function() {
     )
   );
 
-  beforeEach(window.inject(function(authenticationInterceptor, _$q_, _settings_, _authenticationService_, _$rootScope_) {
+  beforeEach(window.inject(function(authenticationInterceptor, _settings_, _authenticationService_, _$rootScope_) {
     interceptor = authenticationInterceptor;
-    $q = _$q_;
     settings = _settings_;
     authenticationService = _authenticationService_;
     $rootScope = _$rootScope_;

@@ -3,9 +3,6 @@
 
 describe('Controller: AllSecurityGroupsCtrl', function () {
 
-  const angular = require('angular');
-
-  var controller;
   var scope;
   var autoRefresh;
 
@@ -18,7 +15,7 @@ describe('Controller: AllSecurityGroupsCtrl', function () {
   beforeEach(
     window.inject(function($rootScope, $controller) {
       scope = $rootScope.$new();
-      controller = $controller('AllSecurityGroupsCtrl', {
+      $controller('AllSecurityGroupsCtrl', {
         $scope: scope,
         app: {
           registerAutoRefreshHandler: function(handler) { autoRefresh = handler; },
