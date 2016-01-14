@@ -183,7 +183,7 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
       udp.getUserData(asgName, launchConfigName, region, account, environment, accountType)
     }?.join("\n")
     String userDataDecoded = new String(base64UserData.decodeBase64())
-    data = [data, userDataDecoded]?.join("\n")
+    data = [data, userDataDecoded].findResults { it }.join("\n")
     if (data && data.startsWith("\n")) {
       data = data.substring(1)
     }
