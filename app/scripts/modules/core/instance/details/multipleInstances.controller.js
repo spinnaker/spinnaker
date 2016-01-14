@@ -180,7 +180,7 @@ module.exports = angular.module('spinnaker.core.instance.details.multipleInstanc
       return {
         id: instanceId,
         availabilityZone: instance.availabilityZone,
-        health: instance.health,
+        health: instance.health || [],
         healthState: instance.healthState,
       };
     };
