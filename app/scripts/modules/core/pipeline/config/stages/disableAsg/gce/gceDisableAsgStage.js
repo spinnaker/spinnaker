@@ -4,8 +4,8 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableAsgStage', [
   require('../../../../../application/modal/platformHealthOverride.directive.js'),
-  require('../../../../../utils/lodash.js'),
   require('../../stageConstants.js'),
+  require('../../../../../account/account.service.js'),
   require('./disableAsgExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
@@ -26,7 +26,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableAsgSta
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('gceDisableAsgStageCtrl', function($scope, accountService, stageConstants, _) {
+  }).controller('gceDisableAsgStageCtrl', function($scope, accountService, stageConstants) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -41,7 +41,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableAsgSta
       $scope.state.accounts = true;
     });
 
-    $scope.zones = {"us-central1": ['us-central1-a', 'us-central1-b', 'us-central1-c']};
+    $scope.zones = {'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c']};
 
     ctrl.accountUpdated = function() {
       accountService.getRegionsForAccount(stage.credentials).then(function(zoneMap) {

@@ -2,10 +2,8 @@
 
 let angular = require('angular');
 
-//BEN_TODO: where is this defined?
-
 module.exports = angular.module('spinnaker.core.pipeline.stage.cf.destroyAsgStage', [
-  require('../../../../../utils/lodash.js'),
+  require('../../../../../account/account.service.js'),
   require('../../stageConstants.js'),
   require('./destroyAsgExecutionDetails.controller.js')
 ])
@@ -27,7 +25,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.destroyAsgStag
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('cfDestroyAsgStageCtrl', function($scope, accountService, stageConstants, _) {
+  }).controller('cfDestroyAsgStageCtrl', function($scope, accountService, stageConstants) {
     var ctrl = this;
 
     let stage = $scope.stage;

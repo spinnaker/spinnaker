@@ -4,6 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStage', [
   require('../../../../../application/modal/platformHealthOverride.directive.js'),
+  require('../../../../../account/account.service.js'),
   require('./resizeAsgExecutionDetails.controller.js'),
 ])
   .config(function(pipelineConfigProvider) {
@@ -25,7 +26,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'}
       ],
     });
-  }).controller('gceResizeAsgStageCtrl', function($scope, accountService, stageConstants, _) {
+  }).controller('gceResizeAsgStageCtrl', function($scope, accountService, stageConstants) {
 
     var ctrl = this;
 
@@ -41,7 +42,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
       $scope.viewState.accountsLoaded = true;
     });
 
-    $scope.zones = {"us-central1": ['us-central1-a', 'us-central1-b', 'us-central1-c']};
+    $scope.zones = {'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c']};
 
     ctrl.accountUpdated = function () {
       accountService.getRegionsForAccount(stage.credentials).then(function(zoneMap) {
@@ -50,7 +51,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
       });
     };
 
-    $scope.resizeTargets =  stageConstants.targetList;
+    $scope.resizeTargets = stageConstants.targetList;
 
     $scope.scaleActions = [
       {

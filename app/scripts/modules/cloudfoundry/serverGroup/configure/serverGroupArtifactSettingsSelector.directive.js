@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.artifactSett
       controller: 'cfServerGroupArtifactSettingsSelectorCtrl as artifactSettingsCtrl',
     };
   })
-  .controller('cfServerGroupArtifactSettingsSelectorCtrl', function($scope, $controller, rx, imageReader, namingService, $uibModalStack, $state) {
+  .controller('cfServerGroupArtifactSettingsSelectorCtrl', function($scope) {
 
     if ($scope.command.repository === undefined) {
       $scope.command.repository = '';

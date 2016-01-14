@@ -129,7 +129,7 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
           $scope.instance.region = region;
           $scope.instance.vpcId = vpcId;
           $scope.instance.loadBalancers = loadBalancers;
-          var discoveryMetric = _.find($scope.healthMetrics, function(metric){ return metric.type === 'Discovery'; });
+          var discoveryMetric = _.find($scope.healthMetrics, function(metric) { return metric.type === 'Discovery'; });
           if( discoveryMetric && discoveryMetric.vipAddress) {
             var vipList = discoveryMetric.vipAddress;
             $scope.instance.vipAddress = vipList.contains(',') ? vipList.split(',') : [vipList];
@@ -343,7 +343,7 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
       });
     };
 
-    this.showConsoleOutput = function  () {
+    this.showConsoleOutput = function () {
       $modal.open({
         templateUrl: require('../../../core/instance/details/console/consoleOutput.modal.html'),
         controller: 'ConsoleOutputCtrl as ctrl',

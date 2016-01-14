@@ -102,8 +102,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
         }
 
         let createNodes = scope.pipeline ?
-         () =>  pipelineGraphService.generateConfigGraph(scope.pipeline, scope.viewState) :
-         () =>  pipelineGraphService.generateExecutionGraph(scope.execution, scope.viewState);
+         () => pipelineGraphService.generateConfigGraph(scope.pipeline, scope.viewState) :
+         () => pipelineGraphService.generateExecutionGraph(scope.execution, scope.viewState);
 
         function getLastPhase (node) {
           if (!node.children.length) {
@@ -223,7 +223,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
          */
         function applyPhaseWidth() {
           var graphWidth = elem.width() - (2 * scope.nodeRadius);
-          var phaseOffset = 2*scope.nodeRadius + scope.labelOffsetX;
+          var phaseOffset = 2 * scope.nodeRadius + scope.labelOffsetX;
           var maxLabelWidth = graphWidth;
 
           if (scope.phaseCount) {
@@ -252,14 +252,14 @@ module.exports = angular.module('spinnaker.core.pipeline.config.graph.directive'
             scope.graphHeight = Math.max(_.sum(nodes, 'height'), scope.graphHeight);
           });
           placeholderNode.empty();
-          scope.graphHeight += 3*scope.graphVerticalPadding;
+          scope.graphHeight += 3 * scope.graphVerticalPadding;
         }
 
         function setNodePositions() {
           scope.nodes.forEach(function(nodes, idx) {
             var nodeOffset = scope.graphVerticalPadding;
             nodes.forEach(function(node, rowNumber) {
-              node.x = (scope.maxLabelWidth + 2*scope.nodeRadius + scope.labelOffsetX) * idx;
+              node.x = (scope.maxLabelWidth + 2 * scope.nodeRadius + scope.labelOffsetX) * idx;
               node.y = nodeOffset;
               nodeOffset += scope.rowHeights[rowNumber];
             });

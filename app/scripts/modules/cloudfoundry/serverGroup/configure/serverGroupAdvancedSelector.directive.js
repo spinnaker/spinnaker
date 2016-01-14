@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.advancedSele
         controller: 'cfServerGroupAdvancedSelectorCtrl as advancedCtrl',
       };
     })
-    .controller('cfServerGroupAdvancedSelectorCtrl', function($scope, $controller, rx, imageReader, namingService, $uibModalStack, $state) {
+    .controller('cfServerGroupAdvancedSelectorCtrl', function($scope) {
 
       this.addService = function() {
         $scope.command.advanced.push('');

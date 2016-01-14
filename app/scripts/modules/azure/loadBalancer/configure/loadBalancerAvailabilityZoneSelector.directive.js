@@ -32,7 +32,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancers.configure.loadBal
 
         setDefaultZones();
 
-        $scope.$watch('region',  setDefaultZones);
+        $scope.$watch('region', setDefaultZones);
         $scope.$watch('model.credentials', setDefaultZones);
 
         $scope.autoBalancingOptions = [

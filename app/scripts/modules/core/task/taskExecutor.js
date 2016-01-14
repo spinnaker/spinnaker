@@ -30,7 +30,7 @@ module.exports = angular.module('spinnaker.core.taskExecutor', [
 
       return taskWriter.postTaskCommand(taskCommand).then(
         function(task) {
-          var taskId = task.ref.substring(task.ref.lastIndexOf('/')+1);
+          var taskId = task.ref.substring(task.ref.lastIndexOf('/') + 1);
 
           if (owner.reloadTasks) {
             owner.reloadTasks();

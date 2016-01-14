@@ -193,7 +193,7 @@ module.exports = angular
     RestangularProvider.setBaseUrl(settings.gateUrl);
     RestangularProvider.setDefaultHttpFields({timeout: settings.pollSchedule * 2 + 5000}); // TODO: replace with apiHost call
   })
-  .config(function($httpProvider){
+  .config(function($httpProvider) {
     $httpProvider.defaults.headers.patch = {
       'Content-Type': 'application/json;charset=utf-8'
     };

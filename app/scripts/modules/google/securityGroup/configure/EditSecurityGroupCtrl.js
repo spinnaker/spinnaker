@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
   require('../../../core/securityGroup/securityGroup.write.service.js'),
 ])
   .controller('gceEditSecurityGroupCtrl', function($scope, $modalInstance, $state,
-                                                   accountService,  securityGroupReader,
+                                                   accountService, securityGroupReader,
                                                    taskMonitorService, cacheInitializer, infrastructureCaches,
                                                    _, application, securityGroup, securityGroupWriter) {
 
@@ -102,7 +102,7 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
             sourceRanges: _.uniq(_.pluck($scope.securityGroup.sourceRanges, 'value')),
             allowed: allowed,
             targetTags: $scope.securityGroup.targetTags || [],
-            region: "global",
+            region: 'global',
           });
         }
       );

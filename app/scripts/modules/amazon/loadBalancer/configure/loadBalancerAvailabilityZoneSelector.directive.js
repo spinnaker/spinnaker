@@ -32,7 +32,7 @@ module.exports = angular.module('spinnaker.loadBalancers.configure.aws.loadBalan
 
         setDefaultZones();
 
-        $scope.$watch('region',  setDefaultZones);
+        $scope.$watch('region', setDefaultZones);
         $scope.$watch('model.credentials', setDefaultZones);
 
         $scope.autoBalancingOptions = [

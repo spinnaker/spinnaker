@@ -1,6 +1,7 @@
 'use strict';
 let angular = require('angular');
-module.exports =  angular.module('spinnaker.core.pipeline.stage.waitForParentTasks.transformer', [])
+
+module.exports = angular.module('spinnaker.core.pipeline.stage.waitForParentTasks.transformer', [])
   .service('waitForParentTasksTransformer', function() {
 
     // injects wait for parent tasks stage

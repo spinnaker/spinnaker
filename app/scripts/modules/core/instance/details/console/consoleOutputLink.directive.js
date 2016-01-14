@@ -19,7 +19,7 @@ module.exports = angular
       controllerAs: 'vm',
       controller: function($uibModal) {
         this.text = this.text || 'Console Output (Raw)';
-        this.showConsoleOutput = function  () {
+        this.showConsoleOutput = function () {
           $uibModal.open({
             templateUrl: require('./consoleOutput.modal.html'),
             controller: 'ConsoleOutputCtrl as ctrl',

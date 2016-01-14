@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.deploymentStr
     }
 
     function getStrategy(key) {
-      return  _.find(deploymentStrategyConfig.listStrategies(), { key: key });
+      return _.find(deploymentStrategyConfig.listStrategies(), { key: key });
     }
 
     return {

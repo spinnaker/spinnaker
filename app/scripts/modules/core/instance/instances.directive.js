@@ -57,7 +57,7 @@ module.exports = angular.module('spinnaker.core.instance.instances.directive', [
                 return;
               }
               if (scope.activeInstance) {
-                $('a[data-instance-id="' + scope.activeInstance.instanceId+'"]', elem).removeClass('active');
+                $('a[data-instance-id="' + scope.activeInstance.instanceId + '"]', elem).removeClass('active');
               }
               var params = {
                 instanceId: event.target.getAttribute('data-instance-id'),
@@ -79,7 +79,7 @@ module.exports = angular.module('spinnaker.core.instance.instances.directive', [
 
         function clearActiveState() {
           if (scope.activeInstance && !$state.includes('**.instanceDetails', scope.activeInstance)) {
-            $('a[data-instance-id="' + scope.activeInstance.instanceId+'"]', elem).removeClass('active');
+            $('a[data-instance-id="' + scope.activeInstance.instanceId + '"]', elem).removeClass('active');
             scope.activeInstance = null;
           }
         }

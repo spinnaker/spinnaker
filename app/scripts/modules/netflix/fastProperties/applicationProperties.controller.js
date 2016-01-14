@@ -12,7 +12,7 @@ module.exports = angular
     require('../../core/application/service/applications.read.service'),
     require('../../core/utils/lodash.js'),
   ])
-  .controller('ApplicationPropertiesController', function ($scope, $filter, $uibModal, $state, app, applicationReader,
+  .controller('ApplicationPropertiesController', function ($scope, $filter, $uibModal, $state, app, applicationReader, $log,
                                                            fastPropertyReader, fastPropertyWriter, fastPropertyTransformer, _) {
     var vm = this;
     const application = app;
@@ -42,7 +42,7 @@ module.exports = angular
       return idIndex > -1;
     };
 
-    vm.toggleRolloutDetails = function(promotion){
+    vm.toggleRolloutDetails = function(promotion) {
       var idIndex = vm.openRolloutDetailsList.indexOf(promotion.id);
       if(vm.isRolloutDetailsOpen(promotion.id)) {
         vm.openRolloutDetailsList.splice(idIndex, 1);
@@ -71,7 +71,7 @@ module.exports = angular
 
 
     vm.filterProperties = function() {
-      return $filter('anyFieldFilter') (vm.properties,  {key: vm.filterString, value: vm.filterString});
+      return $filter('anyFieldFilter') (vm.properties, {key: vm.filterString, value: vm.filterString});
     };
 
     vm.updateStateFilter = function(state) {
@@ -199,7 +199,7 @@ module.exports = angular
 
 
     let validateScopeProperty = (property, propName, getListFn) => {
-      if(property[propName])  {
+      if(property[propName]) {
         let list = getListFn();
         let inList = list.some( (i) => {
           return i === property[propName];
@@ -253,8 +253,8 @@ module.exports = angular
         .then(function() {
           vm.updateStateFilter(vm.promotionStateFilter);
         })
-        .catch(function(error){
-        console.warn(error);
+        .catch(function(error) {
+        $log.warn(error);
       });
 
     }

@@ -8,7 +8,7 @@ module.exports = angular
     require('../../../../core/utils/lodash'),
     require('../../fastProperty.write.service.js')
   ])
-  .controller('ScopeLadderStrategyController', function(parentVM, fastPropertyWriter, modalInstance,  _) {
+  .controller('ScopeLadderStrategyController', function(parentVM, fastPropertyWriter, modalInstance, _) {
     let vm = parentVM;
 
     vm.property.strategy.name = 'naive';

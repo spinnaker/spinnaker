@@ -32,7 +32,7 @@ module.exports = angular
     }
 
     function filterSecurityGroupsForDisplay(securityGroups) {
-      return  _.chain(securityGroups)
+      return _.chain(securityGroups)
         .filter(checkSearchTextFilter)
         .filter(filterModelService.checkAccountFilters(SecurityGroupFilterModel))
         .filter(filterModelService.checkRegionFilters(SecurityGroupFilterModel))

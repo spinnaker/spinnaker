@@ -6,7 +6,7 @@ module.exports = angular
   .module('spinnaker.core.utils.dataConverter.service', [])
   .factory('dataConverterService', function () {
 
-    function keyValueToEqualList(obj={}) {
+    function keyValueToEqualList(obj = {}) {
       if (!obj) {
         return '';
       }

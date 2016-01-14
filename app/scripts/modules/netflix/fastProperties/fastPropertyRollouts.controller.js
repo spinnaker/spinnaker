@@ -10,7 +10,8 @@ module.exports = angular
     require('../../core/utils/lodash.js'),
     require('./fastPropertyScope.service.js'),
   ])
-  .controller('FastPropertyRolloutController', function ($scope, fastPropertyReader, fastPropertyWriter, fastPropertyTransformer, _, FastPropertyScopeService) {
+  .controller('FastPropertyRolloutController', function ($scope, $log, fastPropertyReader, fastPropertyWriter,
+                                                         fastPropertyTransformer, _, FastPropertyScopeService) {
     var vm = this;
 
     vm.applicationFilter = '';
@@ -30,8 +31,8 @@ module.exports = angular
       fastPropertyWriter.continuePromotion(promotionId).then(vm.loadPromotions);
     };
 
-    vm.stop= function(promotionId) {
-      window.alert('Stop with: ' + promotionId);
+    vm.stop = function(promotionId) {
+      $log.warn('Stop with: ' + promotionId);
     };
 
     vm.extractScopeFromHistoryMessage = FastPropertyScopeService.extractScopeFromHistoryMessage;
@@ -63,10 +64,10 @@ module.exports = angular
           vm.promotions = sortedPromotions;
           return vm.promotions;
         })
-        .then(function(){
+        .then(function() {
           return vm.updateStateFilter(vm.promotionStateFilter);
         }).catch(function(error) {
-          console.warn(error);
+          $log.warn(error);
         });
     };
 

@@ -33,7 +33,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.editJson
       });
       removeImmutableFields(pipelineCopy);
 
-      $scope.isStrategy =  pipelineCopy.strategy || false;
+      $scope.isStrategy = pipelineCopy.strategy || false;
 
       $scope.command = {
         pipelineJSON: JSON.stringify(pipelineCopy, null, 2)

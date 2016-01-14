@@ -53,12 +53,12 @@ module.exports = angular
     let globalHotkeys = [
       {
         combo: 'ctrl+shift+a',
-        description: "Applications",
+        description: 'Applications',
         callback: () => $state.go('home.applications'),
       },
       {
         combo: 'ctrl+shift+i',
-        description: "Infrastructure",
+        description: 'Infrastructure',
         callback: () => $state.go('home.infrastructure'),
       },
       {

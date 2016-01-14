@@ -15,20 +15,20 @@ module.exports = angular
       bindToController:{
         model: '='
       },
-      controller: function(_) {
+      controller: function(_, $log) {
         let vm = this;
 
-        let getConstraintByName = (name) =>  {
+        let getConstraintByName = (name) => {
           return _.find(vm.constraints, {'name': name});
         };
 
         let extractConstraint = (fullConstraint) => {
-          const split = fullConstraint.split(":");
+          const split = fullConstraint.split(':');
           return split.length > 1 ? `${split[0]}` : fullConstraint;
         };
 
         let extractInput = (fullConstraint) => {
-          const split = fullConstraint.split(":");
+          const split = fullConstraint.split(':');
           return split.length > 1 ? split[1] : '';
         };
 
@@ -50,7 +50,7 @@ module.exports = angular
         ];
 
         vm.onChange = () => {
-          console.log('constraint change:', vm.constraint);
+          $log.debug('constraint change:', vm.constraint);
           vm.placeholder = getConstraintByName(vm.constraint).placeholder;
           vm.inputValue = '';
           vm.model = `${vm.constraint} ${vm.inputValue}`;

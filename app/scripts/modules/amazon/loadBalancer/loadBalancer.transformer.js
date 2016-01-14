@@ -101,7 +101,7 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
           toEdit.listeners = elb.listenerDescriptions.map(function (description) {
             var listener = description.listener;
             if (listener.sslcertificateId) {
-              listener.sslcertificateId = listener.sslcertificateId.split("/")[1];
+              listener.sslcertificateId = listener.sslcertificateId.split('/')[1];
             }
             return {
               internalProtocol: listener.instanceProtocol,

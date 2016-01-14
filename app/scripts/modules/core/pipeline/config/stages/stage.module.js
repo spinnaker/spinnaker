@@ -46,7 +46,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
       });
     });
 
-    if($scope.pipeline.strategy){
+    if($scope.pipeline.strategy) {
       $scope.options.stageTypes = $scope.options.stageTypes.filter((stageType) => {
             return stageType.strategy || false;
       });

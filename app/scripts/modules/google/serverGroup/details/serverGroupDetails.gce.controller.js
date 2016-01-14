@@ -119,7 +119,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         let diskDescriptions = [];
 
         $scope.serverGroup.launchConfig.instanceTemplate.properties.disks.forEach(disk => {
-          let diskLabel = disk.initializeParams.diskType + ":" + disk.initializeParams.diskSizeGb;
+          let diskLabel = disk.initializeParams.diskType + ':' + disk.initializeParams.diskSizeGb;
           let existingDiskDescription = _.find(diskDescriptions, description => {
             return description.bareLabel === diskLabel;
           });
@@ -132,7 +132,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
               bareLabel: diskLabel,
               count: 1,
               countSuffix: '',
-              finalLabel: translateDiskType(disk.initializeParams.diskType) + ": " + disk.initializeParams.diskSizeGb + "GB",
+              finalLabel: translateDiskType(disk.initializeParams.diskType) + ': ' + disk.initializeParams.diskSizeGb + 'GB',
             });
           }
         });
@@ -146,9 +146,9 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         let scheduling = $scope.serverGroup.launchConfig.instanceTemplate.properties.scheduling;
 
         $scope.serverGroup.availabilityPolicies = {
-          preemptibility: scheduling.preemptible ? "On" : "Off",
-          automaticRestart: scheduling.automaticRestart ? "On" : "Off",
-          onHostMaintenance: scheduling.onHostMaintenance === "MIGRATE" ? "Migrate" : "Terminate",
+          preemptibility: scheduling.preemptible ? 'On' : 'Off',
+          automaticRestart: scheduling.automaticRestart ? 'On' : 'Off',
+          onHostMaintenance: scheduling.onHostMaintenance === 'MIGRATE' ? 'Migrate' : 'Terminate',
         };
       }
     }
@@ -254,7 +254,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
     };
 
     this.getBodyTemplate = (serverGroup, application) => {
-      if (this.isLastServerGroupInRegion(serverGroup, application)){
+      if (this.isLastServerGroupInRegion(serverGroup, application)) {
         return serverGroupWarningMessageService.getMessage(serverGroup);
       }
     };
@@ -380,7 +380,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
     };
 
     this.showStartupScript = function showScalingActivities() {
-      $scope.userDataModalTitle = "Startup Script";
+      $scope.userDataModalTitle = 'Startup Script';
       $scope.userData = $scope.serverGroup.startupScript;
       $uibModal.open({
         templateUrl: require('../../../core/serverGroup/details/userData.html'),

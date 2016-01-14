@@ -132,11 +132,11 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
     this.getName = function() {
       var loadBalancer = $scope.loadBalancer;
       var loadBalancerName = [application.name, (loadBalancer.stack || ''), (loadBalancer.detail || '')].join('-');
-      return _.trimRight(loadBalancerName, "-");
+      return _.trimRight(loadBalancerName, '-');
     };
 
     this.accountUpdated = function() {
-      accountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function(regions) {
+      accountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function() {
         $scope.regions = [];
         ctrl.regionUpdated();
       });

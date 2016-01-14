@@ -28,7 +28,7 @@ module.exports = angular
     };
 
     vm.formDisabled = function () {
-      return (vm.verification.requireAccountEntry  && vm.verification.verifyAccount !== vm.fastProperty.env.toUpperCase()) || _.isEmpty(vm.fastProperty.cmcTicket);
+      return (vm.verification.requireAccountEntry && vm.verification.verifyAccount !== vm.fastProperty.env.toUpperCase()) || _.isEmpty(vm.fastProperty.cmcTicket);
     };
 
     vm.confirm = function() {

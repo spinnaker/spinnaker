@@ -10,7 +10,7 @@ module.exports = angular
   ])
   .factory('securityGroupWriter', function (_, taskExecutor, infrastructureCaches) {
 
-    function upsertSecurityGroup(command, application, descriptor, params={}) {
+    function upsertSecurityGroup(command, application, descriptor, params = {}) {
       params.type = 'upsertSecurityGroup';
       params.credentials = command.credentials || command.accountName;
 
@@ -30,7 +30,7 @@ module.exports = angular
       return operation;
     }
 
-    function deleteSecurityGroup(securityGroup, application, params={}) {
+    function deleteSecurityGroup(securityGroup, application, params = {}) {
       params.type = 'deleteSecurityGroup';
       params.securityGroupName = securityGroup.name;
       params.regions = [securityGroup.region];

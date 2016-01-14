@@ -2,11 +2,10 @@
 
 let angular = require('angular');
 
-module.exports =  angular.module('spinnaker.azure.vpc.tag.directive', [
+module.exports = angular.module('spinnaker.azure.vpc.tag.directive', [
   require('./vpc.read.service.js'),
-  require('../../core/utils/lodash.js'),
 ])
-  .directive('azureVpcTag', function(vpcReader, _) {
+  .directive('azureVpcTag', function(vpcReader) {
     return {
       restrict: 'E',
       scope: {

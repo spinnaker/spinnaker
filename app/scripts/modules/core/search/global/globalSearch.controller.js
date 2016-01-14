@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.core.search.global.controller', [
   require('../../history/recentHistory.service.js'),
 ])
   .controller('GlobalSearchCtrl', function($scope, $element, infrastructureSearchService, recentHistoryService,
-                                           $stateParams, _, $, clusterFilterService) {
+                                           $stateParams, _, $, $log, clusterFilterService) {
     var ctrl = this;
     var search = infrastructureSearchService();
 
@@ -121,7 +121,7 @@ module.exports = angular.module('spinnaker.core.search.global.controller', [
         event.preventDefault();
         $element.find('ul.dropdown-menu').find('a').first().focus();
       } catch (e) {
-        console.log(e);
+        $log.debug(e);
       }
     };
 
@@ -130,7 +130,7 @@ module.exports = angular.module('spinnaker.core.search.global.controller', [
         event.preventDefault();
         $element.find('ul.dropdown-menu').find('a').last().focus();
       } catch (e) {
-        console.log(e);
+        $log.debug(e);
       }
     };
 

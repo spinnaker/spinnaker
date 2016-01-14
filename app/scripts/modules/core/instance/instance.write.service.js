@@ -67,7 +67,7 @@ module.exports = angular
       return executeMultiInstanceTask(instanceGroups, application, 'terminateInstances', 'Terminate');
     }
 
-    function terminateInstance(instance, application, params={}) {
+    function terminateInstance(instance, application, params = {}) {
       params.type = 'terminateInstances';
       params.instanceIds = [instance.instanceId];
       params.serverGroupName = instance.serverGroup;
@@ -82,7 +82,7 @@ module.exports = angular
       });
     }
 
-    function terminateInstanceAndShrinkServerGroup(instance, application, params={}) {
+    function terminateInstanceAndShrinkServerGroup(instance, application, params = {}) {
       return serverGroupReader.getServerGroup(application.name, instance.account, instance.region, instance.serverGroup).
         then(function(serverGroup) {
           params.type = 'terminateInstanceAndDecrementServerGroup';
@@ -107,7 +107,7 @@ module.exports = angular
       return executeMultiInstanceTask(instanceGroups, application, 'rebootInstances', 'Reboot');
     }
 
-    function rebootInstance(instance, application, params={}) {
+    function rebootInstance(instance, application, params = {}) {
       params.type = 'rebootInstances';
       params.instanceIds = [instance.instanceId];
       params.region = instance.region;

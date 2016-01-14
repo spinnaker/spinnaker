@@ -10,7 +10,7 @@ module.exports = angular
   ])
   .factory('loadBalancerWriter', function(_, infrastructureCaches, taskExecutor) {
 
-    function deleteLoadBalancer(loadBalancer, application, params={}) {
+    function deleteLoadBalancer(loadBalancer, application, params = {}) {
       params.type = 'deleteLoadBalancer';
       params.loadBalancerName = loadBalancer.name;
       params.regions = [loadBalancer.region];
@@ -29,7 +29,7 @@ module.exports = angular
     }
 
 
-    function upsertLoadBalancer(loadBalancer, application, descriptor, params={}) {
+    function upsertLoadBalancer(loadBalancer, application, descriptor, params = {}) {
       var name = loadBalancer.clusterName || loadBalancer.name;
       loadBalancer.cloudProvider = loadBalancer.provider;
       if (loadBalancer.healthCheckProtocol.indexOf('HTTP') === 0) {

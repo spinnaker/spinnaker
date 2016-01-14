@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.se
     }
 
     function getPreconditionType(key) {
-      return  _.find(preconditionTypeConfig.listPreconditionTypes(), { key: key });
+      return _.find(preconditionTypeConfig.listPreconditionTypes(), { key: key });
     }
 
     return {

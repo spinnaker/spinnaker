@@ -105,7 +105,7 @@ module.exports = angular
     vm.heading = vm.isEditing ? 'Update Fast Property' : 'Create Fast Property';
     vm.clusters = clusters;
     vm.appName = appName;
-    vm.property.targetScope = angular.copy(fastProperty.selectedScope)|| {};
+    vm.property.targetScope = angular.copy(fastProperty.selectedScope) || {};
 
     vm.strategies = fastPropertyStrategy.getStrategies();
     vm.selectedStrategy = vm.strategies.length === 1 ? {selected: _.first(vm.strategies)} : {};
@@ -140,12 +140,12 @@ module.exports = angular
         .map('serverGroups').flatten()
         .filter((serverGroup) => serverGroup.region === vm.property.startScope.region && !serverGroup.isDisabled)
         .map('instances').flatten()
-        .filter((instance) => instance.healthState === "Up")
+        .filter((instance) => instance.healthState === 'Up')
         .compact().unique()
         .value();
 
       vm.affectedInstanceIdForAca = vm.affectedInstancesForACA.map((i) => i.id);
-      vm.clusterSizeNotBigEngough =  vm.affectedInstancesForACA.length < 4;
+      vm.clusterSizeNotBigEngough = vm.affectedInstancesForACA.length < 4;
     };
 
     vm.acaTargetClusterChange = fastPropertyScopeBuilderService.createClusterChangeFn(vm, vm.property.startScope, vm.startLists, angular.noop);
@@ -187,11 +187,11 @@ module.exports = angular
     };
 
 
-    let resetProperty = () => {
-      delete vm.property.canary;
-      vm.property.startScope = {};
-      vm.property.strategy = {};
-    };
+    //let resetProperty = () => {
+    //  delete vm.property.canary;
+    //  vm.property.startScope = {};
+    //  vm.property.strategy = {};
+    //};
 
     vm.setStrategy = function() {
       let selected = vm.getSelected();

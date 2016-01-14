@@ -37,7 +37,7 @@ module.exports = angular
     strategyTrafficOptions: [
       {
         'label': 'From Cluster Configuration',
-        'val': "inherit",
+        'val': 'inherit',
         'description': 'Traffic options are set in the advanced options tab of the deploy stage that calls the strategy'
       },
       {

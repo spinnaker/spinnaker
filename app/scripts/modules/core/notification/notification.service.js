@@ -7,11 +7,11 @@ module.exports = angular.module('spinnaker.core.notification.service', [
 ])
   .factory('notificationService', function (settings, Restangular) {
 
-    function getNotificationsForApplication(applicationName){
+    function getNotificationsForApplication(applicationName) {
       return Restangular.one('notifications/application', applicationName).get();
     }
 
-    function saveNotificationsForApplication(applicationName, notifications){
+    function saveNotificationsForApplication(applicationName, notifications) {
       return Restangular.all('notifications/application/' + applicationName).post(notifications);
     }
 

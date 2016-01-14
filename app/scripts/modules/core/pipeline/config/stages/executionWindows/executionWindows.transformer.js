@@ -1,6 +1,7 @@
 'use strict';
 let angular = require('angular');
-module.exports =  angular.module('spinnaker.core.pipeline.stage.executionWindows.transformer', [])
+
+module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.transformer', [])
   .service('executionWindowsTransformer', function() {
 
     //Overrides "running" status, setting it to "suspended"

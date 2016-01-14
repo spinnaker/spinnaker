@@ -32,7 +32,7 @@ module.exports = angular
       }
     }
 
-    function getValuesAsString(object, blacklist=[]) {
+    function getValuesAsString(object, blacklist = []) {
       if (typeof object === 'string' || typeof object === 'number') {
         return object;
       }
@@ -81,7 +81,7 @@ module.exports = angular
     }
 
     function filterExecutionsForDisplay(executions) {
-      return  _.chain(executions)
+      return _.chain(executions)
         .filter(textFilter)
         .filter(pipelineNameFilter)
         .filter(statusFilter)

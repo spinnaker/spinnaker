@@ -273,7 +273,7 @@ module.exports = angular.module('spinnaker.core.navigation.urlBuilder.service', 
 
         angular.forEach(value, function(v) {
           if (angular.isObject(v)) {
-            if (angular.isDate(v)){
+            if (angular.isDate(v)) {
               v = v.toISOString();
             } else {
               v = angular.toJson(v);

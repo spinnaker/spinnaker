@@ -13,7 +13,7 @@ module.exports = angular
       return _.chain(clusters)
         .pluck('serverGroups')
         .map(function(serverGroupList) {
-          return _.map(serverGroupList, function(serverGroup){
+          return _.map(serverGroupList, function(serverGroup) {
             return serverGroup.region;
           });
         })
@@ -78,7 +78,7 @@ module.exports = angular
           return _(cluster.serverGroups)
             .chain()
             .flatten()
-            .map(function(serverGroup){
+            .map(function(serverGroup) {
               serverGroup.cluster = cluster.name;
               return serverGroup;
             })
@@ -107,7 +107,7 @@ module.exports = angular
           return _(cluster.serverGroups)
             .chain()
             .flatten()
-            .map(function(serverGroup){
+            .map(function(serverGroup) {
               return _(serverGroup.instances)
                 .chain()
                 .map(function (instance) {

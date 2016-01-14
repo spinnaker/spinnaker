@@ -50,7 +50,7 @@ module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
       template.index = application.pipelineConfigs.length;
       delete template.id;
 
-      if($scope.command.strategy === true){
+      if($scope.command.strategy === true) {
           template.strategy = true;
           template.limitConcurrent = false;
       }

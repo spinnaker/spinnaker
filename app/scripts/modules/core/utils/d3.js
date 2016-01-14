@@ -1,4 +1,3 @@
-/*global d3*/
 'use strict';
 
 let d3 = require('d3');

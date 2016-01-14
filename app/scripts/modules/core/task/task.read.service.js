@@ -14,12 +14,12 @@ module.exports = angular
     function getOrchestrationException(task) {
       var katoTasks = task.getValueFor('kato.tasks');
       if (katoTasks) {
-        var steps = katoTasks[katoTasks.length-1].history;
-        var exception = katoTasks[katoTasks.length -1].exception;
+        var steps = katoTasks[katoTasks.length - 1].history;
+        var exception = katoTasks[katoTasks.length - 1].exception;
         if (exception) {
           return exception.message || 'No reason provided';
         }
-        return steps && steps.length ? steps[steps.length-1].status : 'No reason provided';
+        return steps && steps.length ? steps[steps.length - 1].status : 'No reason provided';
       }
       return null;
     }
@@ -67,7 +67,7 @@ module.exports = angular
       return getTasks(applicationName, activeStatuses);
     }
 
-    function getTasks(applicationName, statuses=[]) {
+    function getTasks(applicationName, statuses = []) {
       return Restangular.one('applications', applicationName).all('tasks')
         .getList({statuses: statuses.join(',')})
         .then((tasks) => {

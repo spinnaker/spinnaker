@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
           displayName: 'Projects',
           displayFormatter: function(entry) {
             let applications = entry.config && entry.config.applications ?
-            ' (' + entry.config.applications.join(', ') + ')':
+            ' (' + entry.config.applications.join(', ') + ')' :
               '';
             let project = entry.name || entry.project;
             return $q.when(project + applications);

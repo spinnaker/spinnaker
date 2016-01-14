@@ -49,7 +49,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.pipelineStage', [
     function initializeMasters() {
       if ($scope.stage.application) {
         pipelineConfigService.getPipelinesForApplication($scope.stage.application).then(function (pipelines) {
-          $scope.pipelines = _.filter( pipelines, function(pipeline){ return pipeline.id !== $scope.pipeline.id; } );
+          $scope.pipelines = _.filter( pipelines, function(pipeline) { return pipeline.id !== $scope.pipeline.id; } );
           if (!_.find( pipelines, function(pipeline) { return pipeline.id === $scope.stage.pipeline; })) {
             $scope.stage.pipeline = null;
           }
@@ -61,7 +61,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.pipelineStage', [
 
     function updatePipelineConfig() {
       if ($scope.stage && $scope.stage.application && $scope.stage.pipeline) {
-        var config = _.find( $scope.pipelines, function(pipeline){ return pipeline.id === $scope.stage.pipeline; } );
+        var config = _.find( $scope.pipelines, function(pipeline) { return pipeline.id === $scope.stage.pipeline; } );
         if(config && config.parameterConfig) {
           if (!$scope.stage.pipelineParameters) {
             $scope.stage.pipelineParameters = {};
@@ -91,11 +91,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.pipelineStage', [
     $scope.useDefaultParameters = {};
     $scope.userSuppliedParameters = {};
 
-    this.updateParam = function(parameter){
-      if($scope.useDefaultParameters[parameter] === true){
+    this.updateParam = function(parameter) {
+      if($scope.useDefaultParameters[parameter] === true) {
         delete $scope.userSuppliedParameters[parameter];
         delete $scope.stage.pipelineParameters[parameter];
-      } else if($scope.userSuppliedParameters[parameter]){
+      } else if($scope.userSuppliedParameters[parameter]) {
         $scope.stage.pipelineParameters[parameter] = $scope.userSuppliedParameters[parameter];
       }
     };

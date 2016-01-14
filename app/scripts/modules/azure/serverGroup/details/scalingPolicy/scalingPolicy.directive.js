@@ -34,7 +34,7 @@ module.exports = angular.module('spinnaker.azure.instance.details.scalingPolicy.
           }
         }
 
-        policy.operator  = policy.scalingAdjustment <= 0 ? 'decrease' : 'increase';
+        policy.operator = policy.scalingAdjustment <= 0 ? 'decrease' : 'increase';
         policy.alarms.forEach(addComparator);
         policy.minAdjustmentStep = policy.minAdjustmentStep || 1;
         policy.absAdjustment = Math.abs(policy.scalingAdjustment);

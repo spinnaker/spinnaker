@@ -8,7 +8,7 @@ module.exports = angular
     require('../../utils/lodash.js'),
     require('../../history/recentHistory.service.js'),
   ])
-  .factory('applicationWriter', function($q, taskExecutor, recentHistoryService,  _) {
+  .factory('applicationWriter', function($q, taskExecutor, recentHistoryService, _) {
 
     function buildJobs(app, accounts, type, commandTransformer) {
       let jobs = [];

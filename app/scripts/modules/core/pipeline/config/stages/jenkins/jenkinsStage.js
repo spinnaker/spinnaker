@@ -74,15 +74,15 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', []
 
     function updateJobConfig() {
       if ($scope.stage && $scope.stage.master && $scope.stage.job && !$scope.viewState.masterIsParameterized) {
-        igorService.getJobConfig($scope.stage.master, $scope.stage.job).then(function(config){
+        igorService.getJobConfig($scope.stage.master, $scope.stage.job).then(function(config) {
         if(!$scope.stage.parameters) {
           $scope.stage.parameters = {};
         }
         $scope.jobParams = config.parameterDefinitionList;
         $scope.userSuppliedParameters = $scope.stage.parameters;
         $scope.useDefaultParameters = {};
-         _.each($scope.jobParams, function(property){
-            if(!(property.name in $scope.stage.parameters) && (property.defaultValue!==null)){
+         _.each($scope.jobParams, function(property) {
+            if(!(property.name in $scope.stage.parameters) && (property.defaultValue !== null)) {
               $scope.useDefaultParameters[property.name] = true;
             }
          });
@@ -93,11 +93,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', []
     $scope.useDefaultParameters = {};
     $scope.userSuppliedParameters = {};
 
-    this.updateParam = function(parameter){
-      if($scope.useDefaultParameters[parameter] === true){
+    this.updateParam = function(parameter) {
+      if($scope.useDefaultParameters[parameter] === true) {
         delete $scope.userSuppliedParameters[parameter];
         delete $scope.stage.parameters[parameter];
-      } else if($scope.userSuppliedParameters[parameter]){
+      } else if($scope.userSuppliedParameters[parameter]) {
         $scope.stage.parameters[parameter] = $scope.userSuppliedParameters[parameter];
       }
     };

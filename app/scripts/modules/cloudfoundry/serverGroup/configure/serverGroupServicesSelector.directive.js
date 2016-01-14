@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.servicesSele
         controller: 'cfServerGroupServicesSelectorCtrl as servicesCtrl',
       };
     })
-    .controller('cfServerGroupServicesSelectorCtrl', function($scope, $controller, rx, imageReader, namingService, $uibModalStack, $state) {
+    .controller('cfServerGroupServicesSelectorCtrl', function($scope) {
 
       this.addService = function() {
         $scope.command.services.push('');

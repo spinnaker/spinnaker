@@ -54,7 +54,7 @@ module.exports = angular.module('spinnaker.timeBoundaries.service', [
       var btw = ts.isBefore(a.moment()) &&
         (angular.isUndefined(b) || ts.isAfter(b.moment()) || ts.isSame(b.moment()));
       var exclusive = boundaries.every(function(boundary, idx) {
-        var next = boundaries[idx+1];
+        var next = boundaries[idx + 1];
         return idx >= aIndex || !(ts.isBefore(boundary.moment()) &&
           (ts.isAfter(next.moment()) || ts.isSame(next.moment())));
       });

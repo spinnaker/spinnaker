@@ -2,10 +2,7 @@
 
 let angular = require('angular');
 
-//BEN_TODO: where is this defined?
-
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.destroyAsgStage', [
-  require('../../../../../utils/lodash.js'),
   require('../../stageConstants.js'),
   require('./destroyAsgExecutionDetails.controller.js')
 ])
@@ -27,7 +24,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.destroyAsgSta
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('gceDestroyAsgStageCtrl', function($scope, accountService, stageConstants, _) {
+  }).controller('gceDestroyAsgStageCtrl', function($scope, accountService, stageConstants) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -42,7 +39,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.destroyAsgSta
       $scope.state.accounts = true;
     });
 
-    $scope.zones = {"us-central1": ['us-central1-a', 'us-central1-b', 'us-central1-c']};
+    $scope.zones = {'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c']};
 
     ctrl.accountUpdated = function() {
       accountService.getRegionsForAccount(stage.credentials).then(function(zoneMap) {

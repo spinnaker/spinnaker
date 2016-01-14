@@ -177,7 +177,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
     };
 
     this.getBodyTemplate = function(serverGroup, app) {
-      if(this.isLastServerGroupInRegion(serverGroup, app)){
+      if(this.isLastServerGroupInRegion(serverGroup, app)) {
         var template = $templateCache.get(require('../../../core/serverGroup/details/deleteLastServerGroupWarning.html'));
         $scope.deletingServerGroup = serverGroup;
         return $compile(template)($scope);

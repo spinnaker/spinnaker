@@ -5,8 +5,7 @@ let angular = require('angular');
 //BEN_TODO: where is this defined?
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableClusterStage', [
-  require('../../../../../utils/lodash.js'),
-  require('../../stageConstants.js'),
+  require('../../../../../account/account.service.js'),
   require('./disableClusterExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
@@ -22,7 +21,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableCluste
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('gceDisableClusterStageCtrl', function($scope, accountService, stageConstants, _) {
+  }).controller('gceDisableClusterStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -37,7 +36,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableCluste
       $scope.state.accounts = true;
     });
 
-    $scope.zones = {"us-central1": ['us-central1-a', 'us-central1-b', 'us-central1-c']};
+    $scope.zones = {'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c']};
 
     ctrl.accountUpdated = function() {
       accountService.getRegionsForAccount(stage.credentials).then(function(zoneMap) {
@@ -76,7 +75,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableCluste
     };
 
     if (stage.preferLargerOverNewer === undefined) {
-      stage.preferLargerOverNewer = "false";
+      stage.preferLargerOverNewer = 'false';
     }
     stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
   });

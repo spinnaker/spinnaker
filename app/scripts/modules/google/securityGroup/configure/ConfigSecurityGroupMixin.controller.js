@@ -108,7 +108,7 @@ module.exports = angular
             securityGroupName: $scope.securityGroup.name,
             sourceRanges: _.uniq(_.pluck($scope.securityGroup.sourceRanges, 'value')),
             allowed: allowed,
-            region: "global",
+            region: 'global',
             network: $scope.securityGroup.network,
           });
         }
@@ -130,11 +130,8 @@ module.exports = angular
       });
     };
 
-    var allSecurityGroups = {};
-
     ctrl.initializeSecurityGroups = function() {
       return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
-        allSecurityGroups = securityGroups;
         var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
 
         var existingGroups;
@@ -168,7 +165,7 @@ module.exports = angular
         name = application.name;
       if (securityGroup.detail) {
         name += '-' + securityGroup.detail;
-        name = _.trimRight(name, "-");
+        name = _.trimRight(name, '-');
       }
       securityGroup.name = name;
       $scope.namePreview = name;

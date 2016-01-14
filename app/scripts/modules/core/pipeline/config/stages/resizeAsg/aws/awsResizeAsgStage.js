@@ -52,7 +52,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.resizeAsgStag
       });
     };
 
-    $scope.resizeTargets =  stageConstants.targetList;
+    $scope.resizeTargets = stageConstants.targetList;
 
     $scope.scaleActions = [
       {

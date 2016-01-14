@@ -42,7 +42,7 @@ module.exports = angular
       };
     };
 
-    let createServerGroupFilter =  (scopeHolder) => {
+    let createServerGroupFilter = (scopeHolder) => {
       return (serverGroup) => {
         return isSkip(scopeHolder.asg) || serverGroup.name === scopeHolder.asg;
       };
@@ -105,7 +105,7 @@ module.exports = angular
     let createApplicationChangeFn = (scopeHolder, getRegionsFn) => {
       return () => {
         getRegionsFn();
-        if (_.isEmpty(scopeHolder.appId)){
+        if (_.isEmpty(scopeHolder.appId)) {
           delete scopeHolder.appId;
         }
       };

@@ -35,7 +35,7 @@ module.exports = angular
     }
 
     function filterLoadBalancersForDisplay(loadBalancers) {
-      return  _.chain(loadBalancers)
+      return _.chain(loadBalancers)
         .filter(checkSearchTextFilter)
         .filter(filterModelService.checkAccountFilters(LoadBalancerFilterModel))
         .filter(filterModelService.checkRegionFilters(LoadBalancerFilterModel))

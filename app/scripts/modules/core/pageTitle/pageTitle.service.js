@@ -73,7 +73,7 @@ module.exports = angular
       return main;
     }
 
-    function configurePageTitle(data={}) {
+    function configurePageTitle(data = {}) {
       return {
         main: configureMain(data.pageTitleMain),
         section: configureSection(data.pageTitleSection),

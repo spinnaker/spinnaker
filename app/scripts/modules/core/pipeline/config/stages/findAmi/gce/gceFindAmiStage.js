@@ -2,10 +2,9 @@
 
 let angular = require('angular');
 
-//BEN_TODO
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.findAmiStage', [
-  require('../../../../../utils/lodash.js'),
-  require('./findAmiExecutionDetails.controller.js')
+  require('./findAmiExecutionDetails.controller.js'),
+  require('../../../../../account/account.service.js'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -20,7 +19,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.findAmiStage'
         { type: 'requiredField', fieldName: 'credentials' }
       ]
     });
-  }).controller('gceFindAmiStageCtrl', function($scope, accountService, _) {
+  }).controller('gceFindAmiStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -35,7 +34,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.findAmiStage'
       $scope.state.accounts = true;
     });
 
-    $scope.zones = {"us-central1": ['us-central1-a', 'us-central1-b', 'us-central1-c']};
+    $scope.zones = {'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c']};
 
     ctrl.accountUpdated = function() {
       accountService.getRegionsForAccount(stage.credentials).then(function(zoneMap) {

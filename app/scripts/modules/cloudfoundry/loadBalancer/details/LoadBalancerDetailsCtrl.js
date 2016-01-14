@@ -44,7 +44,7 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.details.controller', 
               $scope.loadBalancer.elb.availabilityZones = regionsKeyedByAccount[loadBalancer.accountId].regions[loadBalancer.region].sort();
             });
           }
-          accountService.getAccountDetails(loadBalancer.accountId).then(function(accountDetails) {
+          accountService.getAccountDetails(loadBalancer.accountId).then(function() {
             // TODO link to logs
           });
         },

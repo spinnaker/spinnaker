@@ -28,7 +28,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.pipeline
       $scope.trigger.application = $scope.application.name;
     }
 
-    if (!$scope.trigger.status){
+    if (!$scope.trigger.status) {
       $scope.trigger.status = [];
     }
 
@@ -72,11 +72,11 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.pipeline
     $scope.useDefaultParameters = {};
     $scope.userSuppliedParameters = {};
 
-    this.updateParam = function(parameter){
-      if($scope.useDefaultParameters[parameter] === true){
+    this.updateParam = function(parameter) {
+      if($scope.useDefaultParameters[parameter] === true) {
         delete $scope.userSuppliedParameters[parameter];
         delete $scope.trigger.parameters[parameter];
-      } else if($scope.userSuppliedParameters[parameter]){
+      } else if($scope.userSuppliedParameters[parameter]) {
         $scope.trigger.pipelineParameters[parameter] = $scope.userSuppliedParameters[parameter];
       }
     };
