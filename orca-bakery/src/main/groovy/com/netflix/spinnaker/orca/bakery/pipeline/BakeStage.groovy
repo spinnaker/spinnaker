@@ -84,7 +84,7 @@ class BakeStage extends ParallelStage implements StepProvider, RestartableStage 
 
     log.info("Preparing package `${stage.context.package}` for bake in ${deployRegions.join(", ")}")
     if (!stage.context.amiSuffix) {
-      stage.context.amiSuffix = now().format("yyyyMMddHHmm", TimeZone.getTimeZone("UTC"))
+      stage.context.amiSuffix = now().format("yyyyMMddHHmmss", TimeZone.getTimeZone("UTC"))
     }
     return deployRegions.collect {
       stage.context - ["regions": stage.context.regions] + ([
