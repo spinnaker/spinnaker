@@ -41,6 +41,11 @@ class WaitForRequisiteCompletionTaskSpec extends Specification {
     pipeline.stages[1].status = RUNNING
     pipeline.stages[1].tasks = tasks
 
+    pipeline.stages << new PipelineStage()
+    pipeline.stages[-1].parentStageId = pipeline.stages[0].id
+    pipeline.stages[-1].status = syntheticStatus
+    pipeline.stages[-1].tasks = syntheticTasks
+
     when:
     def result = task.execute(new PipelineStage(pipeline, null, [requisiteIds: requisiteIds]))
 
@@ -48,29 +53,44 @@ class WaitForRequisiteCompletionTaskSpec extends Specification {
     result.status == expectedStatus
 
     where:
-    requisiteIds | tasks                                  || expectedStatus
-    []           | [new DefaultTask(status: SUCCEEDED)]   || SUCCEEDED
-    ["1"]        | [new DefaultTask(status: SUCCEEDED)]   || SUCCEEDED
-    ["1"]        | []                                     || SUCCEEDED
-    ["1"]        | [new DefaultTask(status: NOT_STARTED)] || RUNNING
-    ["1"]        | [new DefaultTask(status: RUNNING)]     || RUNNING
-    ["1", "2"]   | [new DefaultTask(status: SUCCEEDED)]   || RUNNING
-    ["2"]        | [new DefaultTask(status: SUCCEEDED)]   || RUNNING
-    ["3"]        | [new DefaultTask(status: SUCCEEDED)]   || RUNNING
-    ["1", "3"]   | [new DefaultTask(status: SUCCEEDED)]   || RUNNING
+    requisiteIds | tasks                                  | syntheticTasks                         | syntheticStatus || expectedStatus
+    []           | [new DefaultTask(status: SUCCEEDED)]   | []                                     | SUCCEEDED       || SUCCEEDED
+    ["1"]        | [new DefaultTask(status: SUCCEEDED)]   | []                                     | SUCCEEDED       || SUCCEEDED
+    ["1"]        | [new DefaultTask(status: SUCCEEDED)]   | []                                     | SUCCEEDED       || SUCCEEDED
+    ["1"]        | []                                     | []                                     | SUCCEEDED       || SUCCEEDED
+    ["1"]        | [new DefaultTask(status: SUCCEEDED)]   | []                                     | RUNNING         || RUNNING
+    ["1"]        | [new DefaultTask(status: SUCCEEDED)]   | [new DefaultTask(status: NOT_STARTED)] | SUCCEEDED       || RUNNING
+    ["1"]        | []                                     | []                                     | RUNNING         || RUNNING
+    ["1"]        | [new DefaultTask(status: NOT_STARTED)] | []                                     | SUCCEEDED       || RUNNING
+    ["1"]        | [new DefaultTask(status: RUNNING)]     | []                                     | SUCCEEDED       || RUNNING
+    ["1", "2"]   | [new DefaultTask(status: SUCCEEDED)]   | []                                     | SUCCEEDED       || RUNNING
+    ["2"]        | [new DefaultTask(status: SUCCEEDED)]   | []                                     | SUCCEEDED       || RUNNING
+    ["3"]        | [new DefaultTask(status: SUCCEEDED)]   | []                                     | SUCCEEDED       || RUNNING
+    ["1", "3"]   | [new DefaultTask(status: SUCCEEDED)]   | []                                     | SUCCEEDED       || RUNNING
   }
 
+  @Unroll
   def "should fail with an exception if any requisite stages completed terminally"() {
     given:
     def pipeline = new Pipeline()
-    pipeline.stages << new PipelineStage(pipeline, "test", "test", ["refId": "1"])
-    pipeline.stages[0].status = TERMINAL
+    pipeline.stages << new PipelineStage(pipeline, "test", "parent", ["refId": "1"])
+    pipeline.stages << new PipelineStage(pipeline, "test", "synthetic", [:])
+
+    pipeline.stages[0].status = parentStatus
+    pipeline.stages[1].status = syntheticStatus
+    pipeline.stages[1].parentStageId = pipeline.stages[0].id
 
     when:
-    def result = task.execute(new PipelineStage(pipeline, null, [requisiteIds: ["1"]]))
+    task.execute(new PipelineStage(pipeline, null, [requisiteIds: ["1"]]))
 
     then:
     def ex = thrown(IllegalStateException)
-    ex.message == "Requisite stage failures: test"
+    ex.message == "Requisite stage failures: ${expectedTerminalStageNames.join(",")}".toString()
+
+    where:
+    parentStatus | syntheticStatus || expectedTerminalStageNames
+    TERMINAL     | SUCCEEDED       || ["parent"]
+    SUCCEEDED    | TERMINAL        || ["synthetic"]
+    TERMINAL     | TERMINAL        || ["parent", "synthetic"]
   }
 }
