@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
@@ -60,6 +62,9 @@ class OperationsController {
   @Autowired
   ObjectMapper objectMapper
 
+  @Autowired
+  ExecutionRepository executionRepository
+
   @RequestMapping(value = "/orchestrate", method = RequestMethod.POST)
   Map<String, String> orchestrate(@RequestBody Map pipeline) {
 
@@ -80,12 +85,21 @@ class OperationsController {
       getBuildInfo(pipeline.trigger)
     }
 
-    if (pipeline.parameterConfig){
-      if(!pipeline.trigger.parameters){
+    if (pipeline.trigger.parentPipelineId && !pipeline.trigger.parentExecution) {
+      Pipeline parentExecution = executionRepository.retrievePipeline(pipeline.trigger.parentPipelineId)
+      if (parentExecution) {
+        pipeline.trigger.parentStatus = parentExecution.status
+        pipeline.trigger.parentExecution = parentExecution
+        pipeline.trigger.parentPipelineName = parentExecution.name
+      }
+    }
+
+    if (pipeline.parameterConfig) {
+      if (!pipeline.trigger.parameters) {
         pipeline.trigger.parameters = [:]
       }
 
-      pipeline.parameterConfig.each{
+      pipeline.parameterConfig.each {
         pipeline.trigger.parameters[it.name] = pipeline.trigger.parameters.containsKey(it.name) ? pipeline.trigger.parameters[it.name] : it.default
       }
     }

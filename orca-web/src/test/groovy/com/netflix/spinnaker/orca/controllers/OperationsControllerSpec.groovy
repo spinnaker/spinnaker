@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.apache.log4j.MDC
 import org.springframework.mock.env.MockEnvironment
@@ -43,8 +45,9 @@ class OperationsControllerSpec extends Specification {
   def buildService = Stub(BuildService)
   def mapper = new OrcaObjectMapper()
   def env = new MockEnvironment()
+  def executionRepository = Mock(ExecutionRepository)
   @Subject
-    controller = new OperationsController(objectMapper: mapper, pipelineStarter: pipelineStarter, buildService: buildService, environment: env)
+    controller = new OperationsController(objectMapper: mapper, pipelineStarter: pipelineStarter, buildService: buildService, environment: env, executionRepository: executionRepository)
 
   @Unroll
   void '#endpoint accepts #contentType'() {
@@ -106,6 +109,62 @@ class OperationsControllerSpec extends Specification {
       ]
     ]
     buildInfo = [result: "SUCCESS"]
+  }
+
+  def "should not get pipeline execution details from trigger if provided"() {
+    given:
+    Pipeline startedPipeline = null
+    pipelineStarter.start(_) >> { String json ->
+      startedPipeline = mapper.readValue(json, Pipeline)
+    }
+
+    when:
+    controller.orchestrate(requestedPipeline)
+
+    then:
+    0 * executionRepository._
+
+    where:
+    requestedPipeline = [
+      trigger: [
+        type             : "manual",
+        parentPipelineId : "12345",
+        parentExecution  : ['name':'abc']
+      ]
+    ]
+  }
+
+  def "should get pipeline execution details from trigger if not provided"() {
+    given:
+    Pipeline startedPipeline = null
+    pipelineStarter.start(_) >> { String json ->
+      startedPipeline = mapper.readValue(json, Pipeline)
+    }
+    Pipeline parentPipeline = new Pipeline(name:"pipeline from orca")
+    parentPipeline.status = ExecutionStatus.CANCELED
+    parentPipeline.id = "12345"
+
+    when:
+    controller.orchestrate(requestedPipeline)
+
+    then:
+    1 * executionRepository.retrievePipeline("12345") >> parentPipeline
+
+    and:
+    with(startedPipeline.trigger) {
+      parentPipelineName == parentPipeline.name
+      parentStatus == 'CANCELED'
+      parentExecution != null
+      parentExecution.id == "12345"
+    }
+
+    where:
+    requestedPipeline = [
+      trigger: [
+        type             : "manual",
+        parentPipelineId : "12345"
+      ]
+    ]
   }
 
   def "trigger user takes precedence over query parameter"() {
