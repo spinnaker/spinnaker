@@ -73,7 +73,7 @@ module.exports = angular
     }
 
     function filterServerGroupsForDisplay(serverGroups) {
-      let result =  _.chain(serverGroups)
+      let result = _.chain(serverGroups)
         .filter(textFilter)
         .filter(instanceCountFilter)
         .filter(filterModelService.checkAccountFilters(ClusterFilterModel))

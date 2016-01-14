@@ -2,11 +2,10 @@
 
 let angular = require('angular');
 
-module.exports =  angular.module('spinnaker.vpc.tag.directive', [
+module.exports = angular.module('spinnaker.vpc.tag.directive', [
   require('./vpc.read.service.js'),
-  require('../../core/utils/lodash.js'),
 ])
-  .directive('vpcTag', function(vpcReader, _) {
+  .directive('vpcTag', function(vpcReader) {
     return {
       restrict: 'E',
       scope: {

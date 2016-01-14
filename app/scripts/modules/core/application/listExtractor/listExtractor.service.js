@@ -18,7 +18,7 @@ module.exports = angular
         .value();
     };
 
-    let defaultRegionFilter = (serverGroup) => true;
+    let defaultRegionFilter = (/*serverGroup*/) => true;
 
     let getStacks = (appList, regionFilter = defaultRegionFilter) => {
       return _(appList)
@@ -32,7 +32,7 @@ module.exports = angular
         .sort();
     };
 
-    let defaultClusterFilter = (cluster) => true;
+    let defaultClusterFilter = (/*cluster*/) => true;
 
     let getClusters = (appList, clusterFilter = defaultClusterFilter) => {
       return _(appList)
@@ -58,10 +58,10 @@ module.exports = angular
         .reverse();
     };
 
-    let defaultServerGroupFilter = (serverGroup) => true;
+    let defaultServerGroupFilter = (/*serverGroup*/) => true;
 
     let getZones = (appList, clusterFilter = defaultClusterFilter, regionFilter = defaultRegionFilter, serverGroupFilter = defaultServerGroupFilter) => {
-      return  _(appList)
+      return _(appList)
         .map('clusters').flatten()
         .filter( clusterFilter )
         .map('serverGroups').flatten()
@@ -74,7 +74,7 @@ module.exports = angular
         .value();
     };
 
-    let defaultAvailabilityZoneFilter = (instance) => true;
+    let defaultAvailabilityZoneFilter = (/*instance*/) => true;
 
     let getInstances = (appList, clusterFilter = defaultClusterFilter, serverGroupFilter = defaultServerGroupFilter, availabilityZoneFilter = defaultAvailabilityZoneFilter) => {
       return _(appList)

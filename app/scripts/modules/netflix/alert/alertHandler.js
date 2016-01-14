@@ -8,7 +8,7 @@ module.exports = angular
     require('../../core/authentication/authentication.service.js'),
   ])
   .config(function ($provide) {
-    $provide.decorator('$exceptionHandler', function($delegate, settings, authenticationService, $) {
+    $provide.decorator('$exceptionHandler', function($delegate, settings, authenticationService, $, $log) {
       return function(exception, cause) {
         $delegate(exception, cause);
         if (!settings.alert) {
@@ -49,7 +49,7 @@ module.exports = angular
         if (navigator.sendBeacon) {
           navigator.sendBeacon(settings.alert.url, JSON.stringify(payload));
         } else {
-          console.warn('no beacon support :(');
+          $log.warn('no beacon support :(');
           $.post(settings.alert.url, JSON.stringify(payload));
         }
       };

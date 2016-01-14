@@ -275,7 +275,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
     this.getName = function() {
       var elb = $scope.loadBalancer;
       var elbName = [application.name, (elb.stack || ''), (elb.detail || '')].join('-');
-      return _.trimRight(elbName, "-");
+      return _.trimRight(elbName, '-');
     };
 
     this.accountUpdated = function() {
@@ -339,7 +339,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
             rule.probeName = probeName;
           });
 
-          if ($scope.loadBalancer.probes[0].probeProtocol === 'TCP'){
+          if ($scope.loadBalancer.probes[0].probeProtocol === 'TCP') {
             $scope.loadBalancer.probes[0].probePath = undefined;
           }
 

@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports =  angular.module('spinnaker.core.pipeline.stage.determineTargetReferenceStage', [])
+module.exports = angular.module('spinnaker.core.pipeline.stage.determineTargetReferenceStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       key: 'determineTargetServerGroup',

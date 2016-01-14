@@ -8,7 +8,7 @@ module.exports = angular
     require('../../core/cache/deckCacheFactory.js'),
     require('../canary/canary.read.service')
   ])
-  .factory('fastPropertyReader', function (Restangular, canaryReadService, $q) {
+  .factory('fastPropertyReader', function (Restangular, canaryReadService, $q, $log) {
 
     function fetchForAppName(appName) {
       return Restangular.all('fastproperties').all('application').one(appName).get();
@@ -38,7 +38,7 @@ module.exports = angular
             }
           }));
         })
-        .catch((error) => console.log('There was an issue loading promotions by app', error));
+        .catch((error) => $log.info('There was an issue loading promotions by app', error));
 
     }
 

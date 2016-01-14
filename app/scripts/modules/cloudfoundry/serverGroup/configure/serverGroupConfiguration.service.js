@@ -55,22 +55,13 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
       return result;
     }
 
-    function configureImages(command) {
+    function configureImages() {
       return { dirty: {} };
     }
 
     function configureZones(command) {
       command.backingData.filtered.zones =
         command.backingData.regionsKeyedByAccount[command.credentials].regions[command.region];
-    }
-
-    function extractFilteredImageNames(command) {
-      return _(command.backingData.images)
-        .filter({account: command.credentials})
-        .pluck('imageName')
-        .flatten(true)
-        .unique()
-        .valueOf();
     }
 
     function getSecurityGroups(command) {

@@ -3,8 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.shrinkClusterStage', [
-  require('../../../../../utils/lodash.js'),
-  require('../../stageConstants.js'),
+  require('../../../../../account/account.service.js'),
   require('./shrinkClusterExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
@@ -20,7 +19,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.shrinkCluster
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('gceShrinkClusterStageCtrl', function($scope, accountService, stageConstants, _) {
+  }).controller('gceShrinkClusterStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -35,7 +34,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.shrinkCluster
       $scope.state.accounts = true;
     });
 
-    $scope.zones = {"us-central1": ['us-central1-a', 'us-central1-b', 'us-central1-c']};
+    $scope.zones = {'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c']};
 
     ctrl.accountUpdated = function() {
       accountService.getRegionsForAccount(stage.credentials).then(function(zoneMap) {
@@ -74,7 +73,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.shrinkCluster
     };
 
     if (stage.retainLargerOverNewer === undefined) {
-      stage.retainLargerOverNewer = "false";
+      stage.retainLargerOverNewer = 'false';
     }
     stage.retainLargerOverNewer = stage.retainLargerOverNewer.toString();
 

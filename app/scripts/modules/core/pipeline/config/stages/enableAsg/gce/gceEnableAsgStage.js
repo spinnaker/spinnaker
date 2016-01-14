@@ -1,12 +1,9 @@
 'use strict';
 
-//BEN_TODO: where is this defined?
-
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.enableAsgStage', [
   require('../../../../../application/modal/platformHealthOverride.directive.js'),
-  require('../../../../../utils/lodash.js'),
   require('../../stageConstants.js'),
   require('./enableAsgExecutionDetails.controller.js')
 ])
@@ -24,7 +21,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.enableAsgStag
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ]
     });
-  }).controller('gceEnableAsgStageCtrl', function($scope, accountService, stageConstants, _) {
+  }).controller('gceEnableAsgStageCtrl', function($scope, accountService, stageConstants) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -39,7 +36,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.enableAsgStag
       $scope.state.accounts = true;
     });
 
-    $scope.zones = {"us-central1": ['us-central1-a', 'us-central1-b', 'us-central1-c']};
+    $scope.zones = {'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c']};
 
     ctrl.accountUpdated = function() {
       accountService.getRegionsForAccount(stage.credentials).then(function(zoneMap) {

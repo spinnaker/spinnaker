@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cf.disableAsgStage', [
   require('../../../../../application/modal/platformHealthOverride.directive.js'),
-  require('../../../../../utils/lodash.js'),
+  require('../../../../../account/account.service.js'),
   require('../../stageConstants.js'),
   require('./disableAsgExecutionDetails.controller.js')
 ])
@@ -26,7 +26,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.disableAsgStag
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('cfDisableAsgStageCtrl', function($scope, accountService, stageConstants, _) {
+  }).controller('cfDisableAsgStageCtrl', function($scope, accountService, stageConstants) {
     var ctrl = this;
 
     let stage = $scope.stage;

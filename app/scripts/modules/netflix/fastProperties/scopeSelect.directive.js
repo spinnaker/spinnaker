@@ -45,14 +45,14 @@ module.exports = angular
     ];
 
     vm.findScope = function(query) {
-      if(vm.scopeResults)  {
+      if(vm.scopeResults) {
         if(vm.scopeResults.length < 100) {
           vm.filteredScopeResults = vm.scopeResults;
         }
         else {
           vm.filteredScopeResults = vm.scopeResults.filter(function (item) {
-            return item.primary.indexOf(query)> -1 || _(item.secondary).any(function (scopeItem) {
-                return scopeItem.indexOf(query)> -1;
+            return item.primary.indexOf(query) > -1 || _(item.secondary).any(function (scopeItem) {
+                return scopeItem.indexOf(query) > -1;
               });
           });
         }

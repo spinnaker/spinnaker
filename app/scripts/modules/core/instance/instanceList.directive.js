@@ -4,10 +4,9 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.instance.instanceList.directive', [
   require('../cluster/filter/clusterFilter.model.js'),
-  require('../cluster/filter/clusterFilter.service.js'),
   require('./instanceListBody.directive.js'),
 ])
-  .directive('instanceList', function (ClusterFilterModel, clusterFilterService) {
+  .directive('instanceList', function (ClusterFilterModel) {
     return {
       restrict: 'E',
       templateUrl: require('./instanceList.directive.html'),

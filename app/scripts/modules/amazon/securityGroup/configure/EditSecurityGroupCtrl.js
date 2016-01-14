@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
   require('../../../core/securityGroup/securityGroup.write.service.js'),
 ])
   .controller('awsEditSecurityGroupCtrl', function($scope, $modalInstance, $state,
-                                                accountService,  securityGroupReader,
+                                                accountService, securityGroupReader,
                                                 taskMonitorService, cacheInitializer, infrastructureCaches,
                                                 _, application, securityGroup, securityGroupWriter) {
 

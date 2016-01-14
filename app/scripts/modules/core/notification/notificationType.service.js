@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.core.notifications.service', [
     }
 
     function getNotificationType(key) {
-      return  _.find(notificationTypeConfig.listNotificationTypes(), { key: key });
+      return _.find(notificationTypeConfig.listNotificationTypes(), { key: key });
     }
 
     return {

@@ -18,7 +18,7 @@ module.exports = angular
     require('../../utils/rx.js'),
     require('../../utils/lodash.js'),
   ])
-  .factory('applicationReader', function ($q, $log, $window,  $rootScope, Restangular, _, clusterService, taskReader,
+  .factory('applicationReader', function ($q, $log, $window, $rootScope, Restangular, _, clusterService, taskReader,
                                           loadBalancerReader, loadBalancerTransformer, securityGroupReader, schedulerFactory,
                                           pipelineConfigService, rx,
                                           infrastructureCaches, settings, executionService, serverGroupTransformer) {
@@ -234,7 +234,7 @@ module.exports = angular
       clusterService.addTasksToServerGroups(application);
     }
 
-    function addExecutionsToApplication(application, executions=[]) {
+    function addExecutionsToApplication(application, executions = []) {
       // only add executions if we actually got some executions back
       // this will fail if there was just one execution and someone just deleted it
       // but that is much less likely at this point than orca falling over under load,

@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.servic
     var validators = {
       stageOrTriggerBeforeType: function(pipeline, index, validationConfig, messages) {
         var stageTypes = validationConfig.stageTypes || [validationConfig.stageType];
-        var stagesToTest = pipeline.stages.slice(0, index+1);
+        var stagesToTest = pipeline.stages.slice(0, index + 1);
         if (pipeline.parallel) {
           stagesToTest = pipelineConfigService.getAllUpstreamDependencies(pipeline, pipeline.stages[index]);
         }
@@ -29,7 +29,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.servic
         }
 
         var stageTypes = validationConfig.stageTypes || [validationConfig.stageType];
-        var stagesToTest = pipeline.stages.slice(0, index+1);
+        var stagesToTest = pipeline.stages.slice(0, index + 1);
         if (pipeline.parallel) {
           stagesToTest = pipelineConfigService.getAllUpstreamDependencies(pipeline, pipeline.stages[index]);
         }
@@ -68,7 +68,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.servic
       },
       targetImpedance: function(pipeline, index, validationConfig, messages) {
         var stage = pipeline.stages[index],
-            stagesToTest = pipeline.stages.slice(0, index+1),
+            stagesToTest = pipeline.stages.slice(0, index + 1),
             regions = stage.regions || [],
             allRegionsFound = true;
 
@@ -112,7 +112,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.servic
                 validators.checkRequiredField(pipeline, trigger, validator, config, messages);
                 break;
               default:
-                $log.warn('No validator of type "' + validator.type + '" found, ignoring validation on trigger "' + (index+1) + '" (' + trigger.type + ')');
+                $log.warn('No validator of type "' + validator.type + '" found, ignoring validation on trigger "' + (index + 1) + '" (' + trigger.type + ')');
             }
           });
         }

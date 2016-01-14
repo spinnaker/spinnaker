@@ -164,8 +164,8 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
 
     function findStagesWithServerGroupInfo(stages) {
       var stagesWithServerGroups = _.filter(stages, function (stage) {
-         return ( _.includes(['deploy', 'destroyAsg', 'resizeAsg'], stage.type)  &&  _.has(stage.context, 'deploy.server.groups') ) ||
-           ( stage.type === 'disableAsg'  && _.has(stage.context, 'targetop.asg.disableAsg.name') );
+         return ( _.includes(['deploy', 'destroyAsg', 'resizeAsg'], stage.type) && _.has(stage.context, 'deploy.server.groups') ) ||
+           ( stage.type === 'disableAsg' && _.has(stage.context, 'targetop.asg.disableAsg.name') );
       });
 
       return stagesWithServerGroups;
@@ -186,14 +186,14 @@ module.exports = angular.module('spinnaker.core.cluster.service', [
 
       var executions = application.executions || [];
 
-      application.serverGroups.forEach(function(serverGroup, index){
+      application.serverGroups.forEach(function(serverGroup, index) {
         application.serverGroups[index].executions = [];
         executions.forEach(function (execution) {
 
           var stages = findStagesWithServerGroupInfo(execution.stages);
 
           _.forEach(stages, function(stage) {
-            var stageServerGroup = stage ? extractServerGroupNameFromContext(stage.context): undefined;
+            var stageServerGroup = stage ? extractServerGroupNameFromContext(stage.context) : undefined;
             var stageAccount = stage && stage.context ? stage.context.account || stage.context.credentials : undefined;
             var stageRegion = stage ? extractRegionFromContext(stage.context) : undefined;
 

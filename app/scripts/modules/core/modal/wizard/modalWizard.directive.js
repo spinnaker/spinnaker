@@ -37,7 +37,7 @@ module.exports = angular.module('spinnaker.core.modalWizard', [
   }
 ).controller('ModalWizardCtrl', function($scope, modalWizardService) {
 
-    $scope.wizard  = modalWizardService.createWizard();
+    $scope.wizard = modalWizardService.createWizard();
 
     this.getWizard = function() {
       return $scope.wizard;

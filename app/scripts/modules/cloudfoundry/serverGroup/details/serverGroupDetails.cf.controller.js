@@ -153,7 +153,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
       };
 
       this.getBodyTemplate = (serverGroup, application) => {
-        if (this.isLastServerGroupInRegion(serverGroup, application)){
+        if (this.isLastServerGroupInRegion(serverGroup, application)) {
           return serverGroupWarningMessageService.getMessage(serverGroup);
         }
       };

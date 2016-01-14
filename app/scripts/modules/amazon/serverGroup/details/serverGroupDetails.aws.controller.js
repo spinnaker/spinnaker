@@ -100,7 +100,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
 
           if (details.image && details.image.description) {
             var tags = details.image.description.split(', ');
-            tags.forEach((tag)  =>{
+            tags.forEach((tag) => {
               var keyVal = tag.split('=');
               if (keyVal.length === 2 && keyVal[0] === 'ancestor_name') {
                 details.image.baseImage = keyVal[1];
@@ -177,7 +177,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
     };
 
     this.getBodyTemplate = (serverGroup, app) => {
-      if (this.isLastServerGroupInRegion(serverGroup, app)){
+      if (this.isLastServerGroupInRegion(serverGroup, app)) {
         return serverGroupWarningMessageService.getMessage(serverGroup);
       }
     };

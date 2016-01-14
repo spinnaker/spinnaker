@@ -32,7 +32,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.pr
             precondition: function () {
               return precondition;
             },
-            strategy: function(){
+            strategy: function() {
               return strategy;
             },
           }
@@ -64,9 +64,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.pr
       };
 
       vm.renderContext = function (precondition) {
-        var renderedContext = "";
+        var renderedContext = '';
         _.forEach(precondition.context, function (value, key) {
-          renderedContext += "<strong>" + key + ": </strong>" + value + "<br/>";
+          renderedContext += '<strong>' + key + ': </strong>' + value + '<br/>';
         });
         return renderedContext;
       };

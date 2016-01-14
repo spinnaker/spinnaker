@@ -35,7 +35,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
 
         function buildInstanceCheckboxCell(instance) {
           let isChecked = ClusterFilterModel.instanceIsMultiselected(scope.serverGroup, instance.id);
-          return  `<td class="no-hover"><input type="checkbox" data-instance-id="${instance.id}" ${isChecked ? "checked" : ""}/></td>`;
+          return `<td class="no-hover"><input type="checkbox" data-instance-id="${instance.id}" ${isChecked ? 'checked' : ''}/></td>`;
         }
 
         function buildInstanceIdCell(instance) {
@@ -67,10 +67,10 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
 
             if (tooltip) {
               tooltipEnabled = true;
-              var tooltipAttrs= `data-toggle="tooltip" title="${tooltip}"`;
+              var tooltipAttrs = `data-toggle="tooltip" title="${tooltip}"`;
             }
 
-            row += `<div ${tooltip ? tooltipAttrs : ""}><span class="glyphicon glyphicon-${icon}-triangle"></span>${loadBalancer.name}</div>`;
+            row += `<div ${tooltip ? tooltipAttrs : ''}><span class="glyphicon glyphicon-${icon}-triangle"></span>${loadBalancer.name}</div>`;
           });
 
           if (!loadBalancers.length) {
@@ -144,9 +144,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
 
           let newHtml = instances.map(function (instance) {
             var loadBalancers = [],
-              discoveryState = '',
               discoveryStatus = '-',
-              loadBalancerSort = '',
               providerStatus = '',
               activeClass = ' ',
               healthMetrics = instance.health || [],
@@ -159,15 +157,8 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
             healthMetrics.forEach(function (health) {
               if (scope.hasLoadBalancers && health.type === 'LoadBalancer') {
                 loadBalancers = health.loadBalancers;
-                loadBalancerSort = _(health.loadBalancers)
-                .sortByAll(['name', 'state'])
-                .map(function (lbh) {
-                  return lbh.name + ':' + lbh.state;
-                })
-                .join(',');
               }
               if (scope.hasDiscovery && health.type === 'Discovery') {
-                discoveryState = health.state.toLowerCase();
                 discoveryStatus = $filter('robotToHuman')(health.status.toLowerCase());
               }
               if (scope.showProviderHealth) {
@@ -227,12 +218,12 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
               if (event.isDefaultPrevented() || (event.originalEvent && (event.originalEvent.defaultPrevented || event.originalEvent.target.href))) {
                 return;
               }
-              var $targetRow =  $(event.target).closest('tr');
+              var $targetRow = $(event.target).closest('tr');
               if (!$targetRow.length) {
                 return;
               }
               if (activeInstance) {
-                $('tr[data-instance-id="' + activeInstance.instanceId+'"]', elem).removeClass('active');
+                $('tr[data-instance-id="' + activeInstance.instanceId + '"]', elem).removeClass('active');
               }
               var targetRow = $targetRow.get(0);
               var params = {
@@ -250,7 +241,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
 
         function clearActiveState() {
           if (activeInstance && !$state.includes('**.instanceDetails', activeInstance)) {
-            $('tr[data-instance-id="' + activeInstance.instanceId+'"]', elem).removeClass('active');
+            $('tr[data-instance-id="' + activeInstance.instanceId + '"]', elem).removeClass('active');
             activeInstance = null;
           }
         }

@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.core.delivery.buildDisplayName.filter
         return '';
       }
       var formattedInput = '';
-      if( input.fullDisplayName !== undefined ){
+      if( input.fullDisplayName !== undefined ) {
         formattedInput = input.fullDisplayName.split('#' + input.number).pop();
       }
       return formattedInput;

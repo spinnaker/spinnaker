@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.checkPreconditions.ex
   require('../../../../delivery/details/executionDetailsSection.service.js'),
   require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
 ])
-  .controller('CheckPreconditionsExecutionDetailsCtrl', function ($scope, $stateParams, $http, settings, executionDetailsSectionService, _) {
+  .controller('CheckPreconditionsExecutionDetailsCtrl', function ($scope, $stateParams, $http, settings, executionDetailsSectionService) {
     $scope.configSections = ['checkPreconditions', 'taskStatus'];
 
     function initialize() {

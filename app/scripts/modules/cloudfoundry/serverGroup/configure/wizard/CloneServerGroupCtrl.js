@@ -110,7 +110,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
       };
     }
 
-    function processCommandUpdateResult(result) {
+    function processCommandUpdateResult() {
     }
 
     this.isValid = function () {

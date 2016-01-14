@@ -39,7 +39,7 @@ module.exports = angular.module('spinnaker.core.instance.details.multipleInstanc
       confirmationModalService.confirm({
         header: 'Really ' + verbs.simplePresent.toLowerCase() + ' ' + descriptor + '?',
         buttonText: verbs.simplePresent + ' ' + descriptor,
-        verificationLabel: 'Verify the number of instances (<strong>'+ this.instancesCount + '</strong>) to be ' + verbs.futurePerfect.toLowerCase(),
+        verificationLabel: 'Verify the number of instances (<strong>' + this.instancesCount + '</strong>) to be ' + verbs.futurePerfect.toLowerCase(),
         textToVerify: this.instancesCount + '',
         taskMonitorConfig: taskMonitor,
         body: body,

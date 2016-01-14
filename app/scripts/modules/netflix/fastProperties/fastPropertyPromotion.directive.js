@@ -39,7 +39,7 @@ module.exports = angular
       return idIndex > -1;
     };
 
-    vm.toggleRolloutDetails = function(promotion){
+    vm.toggleRolloutDetails = function(promotion) {
       var idIndex = vm.openRolloutDetailsList.indexOf(promotion.id);
       if(vm.isRolloutDetailsOpen(promotion.id)) {
         vm.openRolloutDetailsList.splice(idIndex, 1);
@@ -65,7 +65,7 @@ module.exports = angular
         .then(refreshApp, refreshApp);
     };
 
-    vm.stop= function($event, promotion) {
+    vm.stop = function($event, promotion) {
       $event.stopPropagation();
       promotion.isPromoting = true;
       fastPropertyWriter.stopPromotion(promotion.id)

@@ -35,7 +35,7 @@ module.exports = angular.module('spinnaker.aws.instance.details.scalingPolicy.di
         }
 
         function addAdjustmentAttributes(adjuster) {
-          adjuster.operator  = adjuster.scalingAdjustment <= 0 ? 'decrease' : 'increase';
+          adjuster.operator = adjuster.scalingAdjustment <= 0 ? 'decrease' : 'increase';
           adjuster.absAdjustment = Math.abs(adjuster.scalingAdjustment);
         }
 

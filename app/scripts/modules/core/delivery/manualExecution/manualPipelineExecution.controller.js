@@ -39,7 +39,7 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
         })
         .value();
 
-      this.command.trigger  = _.first(this.triggers);
+      this.command.trigger = _.first(this.triggers);
       this.builds = [];
     };
 

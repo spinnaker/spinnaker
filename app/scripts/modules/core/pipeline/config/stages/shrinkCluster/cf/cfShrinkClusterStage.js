@@ -3,9 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cf.shrinkClusterStage', [
-  require('../../../../../utils/lodash.js'),
-  require('../../stageConstants.js'),
-  require('./shrinkClusterExecutionDetails.controller.js')
+  require('../../../../../account/account.service.js'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -20,7 +18,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.shrinkClusterS
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('cfShrinkClusterStageCtrl', function($scope, accountService, stageConstants, _) {
+  }).controller('cfShrinkClusterStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -67,7 +65,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.shrinkClusterS
     };
 
     if (stage.retainLargerOverNewer === undefined) {
-      stage.retainLargerOverNewer = "false";
+      stage.retainLargerOverNewer = 'false';
     }
     stage.retainLargerOverNewer = stage.retainLargerOverNewer.toString();
 

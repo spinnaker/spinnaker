@@ -356,7 +356,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
         }
       };
 
-      function application(mainView, relativeUrl='') {
+      function application(mainView, relativeUrl = '') {
         let applicationConfig = {
           name: 'application',
           url: `${relativeUrl}/:application`,

@@ -32,7 +32,7 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.resize.con
 
     if (application && application.attributes) {
       if (application.attributes.platformHealthOnly) {
-        $scope.command.interestingHealthProviderNames = ["Google"];
+        $scope.command.interestingHealthProviderNames = ['Google'];
       }
 
       $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;

@@ -75,11 +75,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.
     }
 
     function getWindowStyle(window) {
-      var dayMinutes = 24*60;
+      var dayMinutes = 24 * 60;
       var start = window.startHour * 60 + window.startMin,
         end = window.endHour * 60 + window.endMin,
-        width = (end - start)/dayMinutes*100,
-        startOffset = start/dayMinutes*100;
+        width = (end - start) / dayMinutes * 100,
+        startOffset = start / dayMinutes * 100;
 
       return {
         width: width + '%',
@@ -91,7 +91,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.
     $scope.hours.forEach(function(hour) {
       $scope.dividers.push({
         label: hour.label,
-        left: (hour.key/24 * 100) + '%',
+        left: (hour.key / 24 * 100) + '%',
       });
     });
 

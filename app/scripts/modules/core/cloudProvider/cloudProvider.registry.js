@@ -1,4 +1,5 @@
 'use strict';
+/*eslint-disable no-console*/
 
 let angular = require('angular');
 

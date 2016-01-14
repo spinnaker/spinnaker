@@ -33,7 +33,7 @@ module.exports = angular.module('spinnaker.core.utils.timeFormatters', [
           dayLabel = days + 'd';
         }
       }
-      return moment.isValid() ? dayLabel +  moment.format(format): '-';
+      return moment.isValid() ? dayLabel + moment.format(format) : '-';
     };
   })
   .filter('fastPropertyTime', function(momentService) {

@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = function($provide) {
-  $provide.decorator('uiSelectDirective', function ($delegate, $parse, $timeout, $document, uiSelectMinErr, uisOffset,  uiSelectConfig) {
+  $provide.decorator('uiSelectDirective', function ($delegate, $parse, $timeout, $document, uiSelectMinErr, uisOffset, uiSelectConfig) {
     var uiSelect = $delegate[0];
 
     uiSelect.compile = function(tElement, tAttrs) {
@@ -40,11 +40,11 @@ module.exports = function($provide) {
         //Set reference to ngModel from uiSelectCtrl
         $select.ngModel = ngModel;
 
-        $select.choiceGrouped = function(group){
+        $select.choiceGrouped = function(group) {
           return $select.isGrouped && group && group.name;
         };
 
-        if(attrs.tabindex){
+        if(attrs.tabindex) {
           attrs.$observe('tabindex', function(value) {
             $select.focusInput.attr('tabindex', value);
             element.removeAttr('tabindex');
@@ -108,16 +108,16 @@ module.exports = function($provide) {
         });
 
         //Automatically gets focus when loaded
-        if (angular.isDefined(attrs.autofocus)){
-          $timeout(function(){
+        if (angular.isDefined(attrs.autofocus)) {
+          $timeout(function() {
             $select.setFocus();
           });
         }
 
         //Gets focus based on scope event name (e.g. focus-on='SomeEventName')
-        if (angular.isDefined(attrs.focusOn)){
+        if (angular.isDefined(attrs.focusOn)) {
           scope.$on(attrs.focusOn, function() {
-            $timeout(function(){
+            $timeout(function() {
               $select.setFocus();
             });
           });
@@ -141,7 +141,7 @@ module.exports = function($provide) {
             var focusableControls = ['input', 'button', 'textarea'];
             var targetScope = angular.element(e.target).scope(); //To check if target is other ui-select
             var skipFocusser = targetScope && targetScope.$select && targetScope.$select !== $select; //To check if target is other ui-select
-            if (!skipFocusser) {skipFocusser =  ~focusableControls.indexOf(e.target.tagName.toLowerCase()); } //Check if target is input, button or textarea
+            if (!skipFocusser) {skipFocusser = ~focusableControls.indexOf(e.target.tagName.toLowerCase()); } //Check if target is input, button or textarea
             $select.close(skipFocusser);
             scope.$digest();
           }
@@ -260,7 +260,7 @@ module.exports = function($provide) {
             dropdownStyle.opacity = 0;
 
             // Delay positioning the dropdown until all choices have been added so its height is correct.
-            $timeout(function(){
+            $timeout(function() {
               var offset = uisOffset(element);
               var offsetDropdown = uisOffset(dropdown);
 

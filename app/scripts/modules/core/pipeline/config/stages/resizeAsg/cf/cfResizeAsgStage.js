@@ -4,6 +4,8 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cf.resizeAsgStage', [
   require('./resizeAsgExecutionDetails.controller.js'),
+  require('../../../../../account/account.service.js'),
+  require('../../stageConstants.js'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -21,7 +23,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.resizeAsgStage
         { type: 'requiredField', fieldName: 'cluster', },
       ],
     });
-  }).controller('cfResizeAsgStageCtrl', function($scope, accountService, stageConstants, _) {
+  }).controller('cfResizeAsgStageCtrl', function($scope, accountService, stageConstants) {
 
     var ctrl = this;
 
@@ -44,7 +46,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.resizeAsgStage
       });
     };
 
-    $scope.resizeTargets =  stageConstants.targetList;
+    $scope.resizeTargets = stageConstants.targetList;
 
     $scope.scaleActions = [
       {

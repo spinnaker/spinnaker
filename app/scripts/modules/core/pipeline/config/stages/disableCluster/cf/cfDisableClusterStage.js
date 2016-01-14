@@ -5,8 +5,7 @@ let angular = require('angular');
 //BEN_TODO: where is this defined?
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cf.disableClusterStage', [
-  require('../../../../../utils/lodash.js'),
-  require('../../stageConstants.js'),
+  require('../../../../../accoun/account.service.js'),
   require('./disableClusterExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
@@ -22,7 +21,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.disableCluster
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('cfDisableClusterStageCtrl', function($scope, accountService, stageConstants, _) {
+  }).controller('cfDisableClusterStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -69,7 +68,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.disableCluster
     };
 
     if (stage.preferLargerOverNewer === undefined) {
-      stage.preferLargerOverNewer = "false";
+      stage.preferLargerOverNewer = 'false';
     }
     stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
   });

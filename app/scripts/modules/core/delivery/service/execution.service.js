@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       return getExecutions(applicationName, activeStatuses);
     }
 
-    function getExecutions(applicationName, statuses=[]) {
+    function getExecutions(applicationName, statuses = []) {
       let url = [ settings.gateUrl, 'applications', applicationName, 'pipelines'].join('/');
       if (statuses.length) {
         url += '?statuses=' + statuses.map((status) => status.toUpperCase()).join(',');
@@ -188,7 +188,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       return ['pipeline', groupBy, application, heading].join('#');
     }
 
-    function getProjectExecutions(project, limit=1) {
+    function getProjectExecutions(project, limit = 1) {
       return $http({
         method: 'GET',
         transformResponse: appendTransform(function(executions) {

@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.loadBalancer
         controller: 'cfServerGroupLoadBalancersSelectorCtrl as loadBalancersCtrl',
       };
     })
-    .controller('cfServerGroupLoadBalancersSelectorCtrl', function($scope, $controller, rx, imageReader, namingService, $uibModalStack, $state) {
+    .controller('cfServerGroupLoadBalancersSelectorCtrl', function($scope) {
 
       this.getApplication = function() {
         var command = $scope.command;

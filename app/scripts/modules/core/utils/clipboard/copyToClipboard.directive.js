@@ -32,7 +32,7 @@ module.exports = angular
       controller: 'copyToClipboardController',
       controllerAs: 'cb',
       link: function(scope, element, attrs, controller) {
-        element.on('click', function(event) {
+        element.on('click', function() {
           controller.isOpen = true;
           controller.toggleToolTipToCopied();
           scope.$digest();

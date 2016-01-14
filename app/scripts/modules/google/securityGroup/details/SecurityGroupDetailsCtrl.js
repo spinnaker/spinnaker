@@ -74,7 +74,7 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
               ipIngressRules[ipIngressRule.protocol] = ipIngressRules[ipIngressRule.protocol].concat(ipIngressRule.portRanges);
 
               ipIngressRules[ipIngressRule.protocol] = _.uniq(ipIngressRules[ipIngressRule.protocol], function(portRange) {
-                return portRange.startPort + "->" + portRange.endPort;
+                return portRange.startPort + '->' + portRange.endPort;
               });
             } else {
               ipIngressRules[ipIngressRule.protocol] = ipIngressRule.portRanges;
@@ -91,11 +91,11 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
           $scope.securityGroup.ipIngressRules = ipIngressRules;
 
           $scope.securityGroup.protocolPortRangeCount = _.sum(ipIngressRules, function(ipIngressRule) {
-            return ipIngressRule.portRanges.length > 1  ? ipIngressRule.portRanges.length : 1;
+            return ipIngressRule.portRanges.length > 1 ? ipIngressRule.portRanges.length : 1;
           });
 
           if ($scope.securityGroup.targetTags) {
-            $scope.securityGroup.targetTagsDescription = $scope.securityGroup.targetTags.join(", ");
+            $scope.securityGroup.targetTagsDescription = $scope.securityGroup.targetTags.join(', ');
           }
 
           accountService.getAccountDetails(securityGroup.accountId).then(function(accountDetails) {

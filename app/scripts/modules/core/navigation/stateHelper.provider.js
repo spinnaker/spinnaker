@@ -7,16 +7,16 @@ module.exports = angular.module('spinnaker.core.navigation.stateHelper.provider'
 ])
   .provider('stateHelper', function($stateProvider) {
 
-    var setNestedState = function(state, keepOriginalNames){
+    var setNestedState = function(state, keepOriginalNames) {
       var newState = angular.copy(state);
-      if (!keepOriginalNames){
+      if (!keepOriginalNames) {
         fixStateName(newState);
         fixStateViews(newState);
       }
       $stateProvider.state(newState);
 
-      if(newState.children && newState.children.length){
-        newState.children.forEach(function(childState){
+      if(newState.children && newState.children.length) {
+        newState.children.forEach(function(childState) {
           childState.parent = newState.name;
           setNestedState(childState, keepOriginalNames);
         });

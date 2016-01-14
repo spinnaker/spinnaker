@@ -44,7 +44,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller
 
             $scope.loadBalancer.account = loadBalancer.accountId;
 
-            if($scope.loadBalancer.elb.securityGroups){
+            if($scope.loadBalancer.elb.securityGroups) {
               $scope.loadBalancer.elb.securityGroups.forEach(function (securityGroupId) {
                 var match = securityGroupReader.getApplicationSecurityGroup(app, loadBalancer.accountId, loadBalancer.region, securityGroupId);
                 if (match) {

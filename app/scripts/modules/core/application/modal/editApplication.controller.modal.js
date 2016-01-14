@@ -43,7 +43,7 @@ module.exports = angular
     }
 
     function assignErrorMsgs() {
-      vm.emailErrorMsg = vm.errorMsgs.filter(function(msg){
+      vm.emailErrorMsg = vm.errorMsgs.filter(function(msg) {
         return msg
             .toLowerCase()
             .indexOf('email') > -1;

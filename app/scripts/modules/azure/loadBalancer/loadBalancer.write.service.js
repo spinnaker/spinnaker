@@ -11,7 +11,7 @@ module.exports = angular
   .factory('azureLoadBalancerWriter', function(_, infrastructureCaches, taskExecutor) {
 
 
-    function upsertLoadBalancer(loadBalancer, application, descriptor, params={}) {
+    function upsertLoadBalancer(loadBalancer, application, descriptor, params = {}) {
 
       // We want to extend params with all attributes from loadBalancer, but only if they don't already exist.
       _.assign(params, loadBalancer, function(value, other) {

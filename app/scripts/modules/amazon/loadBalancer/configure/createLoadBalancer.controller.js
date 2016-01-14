@@ -308,7 +308,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     this.getName = function() {
       var elb = $scope.loadBalancer;
       var elbName = [application.name, (elb.stack || ''), (elb.detail || '')].join('-');
-      return _.trimRight(elbName, "-");
+      return _.trimRight(elbName, '-');
     };
 
     this.accountUpdated = function() {

@@ -7,7 +7,7 @@ module.exports = angular
   .module('spinnaker.core.canary.canaryAnalysisNameSelector.directive', [
     require('exports?"restangular"!imports?_=lodash!restangular'),
   ])
-  .directive('canaryAnalysisNameSelector', (Restangular) => {
+  .directive('canaryAnalysisNameSelector', () => {
     return {
       restrict: 'E',
       replace: true,
@@ -25,7 +25,7 @@ module.exports = angular
         Restangular.one('canaryConfig').all('names').getList()
           .then(
             (results) => vm.nameList = results,
-            (errror) => vm.nameList=[]
+            () => vm.nameList = []
           );
 
       },

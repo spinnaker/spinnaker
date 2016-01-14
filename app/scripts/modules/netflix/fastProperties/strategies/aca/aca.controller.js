@@ -11,7 +11,7 @@ module.exports = angular
     var vm = parentVM; //controllerAs: strategy
     vm.form = parentVM.formScope.newFastPropertyForm;
     vm.property.strategy.name = 'aca';
-    vm.property.strategy.rolloutListString = "";
+    vm.property.strategy.rolloutListString = '';
 
 
 

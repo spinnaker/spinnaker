@@ -53,7 +53,7 @@ module.exports = angular.module('spinnaker.netflix.fastProperties.progressBar.di
           scope.progressStyle = { width: '100%' };
           // XSS_TODO
           scope.tooltip = 'Failed on Step ' + currentStep + ' of ' + totalSteps +
-            '<br><br><strong>Exception:</strong><p>' + extractScopeFromHistoryMessage( lastHistory.message )+'</p>';
+            '<br><br><strong>Exception:</strong><p>' + extractScopeFromHistoryMessage(lastHistory.message) + '</p>';
         }
       },
       controller: function() {

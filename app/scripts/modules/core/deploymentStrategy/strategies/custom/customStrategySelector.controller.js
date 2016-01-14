@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.custom.custom
     ])
     .controller('CustomStrategySelectorController', function($scope, pipelineConfigService, applicationReader, _) {
 
-        if(!$scope.command.strategyApplication){
+        if(!$scope.command.strategyApplication) {
             $scope.command.strategyApplication = $scope.command.application;
         }
 
@@ -47,7 +47,7 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.custom.custom
 
         function updatePipelineConfig() {
             if ($scope.command && $scope.command.strategyApplication && $scope.command.strategyPipeline) {
-                var config = _.find( $scope.pipelines, function(pipeline){ return pipeline.id === $scope.command.strategyPipeline; } );
+                var config = _.find( $scope.pipelines, function(pipeline) { return pipeline.id === $scope.command.strategyPipeline; } );
                 if(config && config.parameterConfig) {
                     if (!$scope.command.pipelineParameters) {
                         $scope.command.pipelineParameters = {};
@@ -77,11 +77,11 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.custom.custom
         $scope.useDefaultParameters = {};
         $scope.userSuppliedParameters = {};
 
-        this.updateParam = function(parameter){
-            if($scope.useDefaultParameters[parameter] === true){
+        this.updateParam = function(parameter) {
+            if($scope.useDefaultParameters[parameter] === true) {
                 delete $scope.userSuppliedParameters[parameter];
                 delete $scope.command.parameters[parameter];
-            } else if($scope.userSuppliedParameters[parameter]){
+            } else if($scope.userSuppliedParameters[parameter]) {
                 $scope.command.pipelineParameters[parameter] = $scope.userSuppliedParameters[parameter];
             }
         };

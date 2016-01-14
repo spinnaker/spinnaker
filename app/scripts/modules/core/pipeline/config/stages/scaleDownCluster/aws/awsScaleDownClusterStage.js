@@ -75,7 +75,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.scaleDownClus
     };
 
     if (stage.preferLargerOverNewer === undefined) {
-      stage.preferLargerOverNewer = "false";
+      stage.preferLargerOverNewer = 'false';
     }
     stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
   });

@@ -31,10 +31,10 @@ module.exports = angular
     }
 
 
-    vm.updateSelectedWhen = function(){
+    vm.updateSelectedWhen = function() {
       var selected = false;
-      _.each(vm.whenOptions, function(option){
-        if($scope.selectedWhenOptions[option] === true){
+      _.each(vm.whenOptions, function(option) {
+        if($scope.selectedWhenOptions[option] === true) {
           selected = true;
         }
       });
@@ -56,8 +56,8 @@ module.exports = angular
 
     vm.submit = function() {
       vm.notification.when = [];
-      _.each(vm.whenOptions, function(option){
-        if($scope.selectedWhenOptions[option] === true){
+      _.each(vm.whenOptions, function(option) {
+        if($scope.selectedWhenOptions[option] === true) {
           vm.notification.when.push(option);
         }
       });
@@ -65,7 +65,7 @@ module.exports = angular
     };
 
     $scope.$watch('selectedWhenOptions', function (a, b) {
-      if(a!==b) {
+      if(a !== b) {
         vm.updateSelectedWhen();
       }
     }, true);

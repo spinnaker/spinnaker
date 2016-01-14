@@ -29,7 +29,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
 
     $scope.InsightFilterStateModel = InsightFilterStateModel;
 
-    function extractServerGroupSummary() {
+    function extractServerGroupSummary () {
       var summary = _.find(application.serverGroups, function (toCheck) {
         return toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region;
       });
@@ -133,7 +133,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
     };
 
     this.getBodyTemplate = (serverGroup, application) => {
-      if (this.isLastServerGroupInRegion(serverGroup, application)){
+      if (this.isLastServerGroupInRegion(serverGroup, application)) {
         return serverGroupWarningMessageService.getMessage(serverGroup);
       }
     };

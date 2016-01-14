@@ -27,7 +27,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.transfo
           return stage.context.exception.details.errors.join(', ');
         }
         if (stage.context['kato.tasks'] && stage.context['kato.tasks'].length) {
-          var lastTask = stage.context['kato.tasks'][stage.context['kato.tasks'].length-1];
+          var lastTask = stage.context['kato.tasks'][stage.context['kato.tasks'].length - 1];
           return lastTask.exception ? lastTask.exception.message : null;
         }
       }

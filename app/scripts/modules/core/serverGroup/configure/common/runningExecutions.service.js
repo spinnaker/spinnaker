@@ -10,7 +10,7 @@ module.exports = angular
 
     function filterRunningExecutions(executions) {
       if(executions) {
-        return _.filter(executions, function(exe){
+        return _.filter(executions, function(exe) {
           return exe.isRunning || exe.hasNotStarted;
         });
       } else {

@@ -3,8 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.scaleDownClusterStage', [
-  require('../../../../../utils/lodash.js'),
-  require('../../stageConstants.js'),
+  require('../../../../../account/account.service.js'),
   require('./scaleDownClusterExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
@@ -21,7 +20,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.scaleDownClus
       ],
       strategy: true,
     });
-  }).controller('gceScaleDownClusterStageCtrl', function($scope, accountService, stageConstants, _) {
+  }).controller('gceScaleDownClusterStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -36,7 +35,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.scaleDownClus
       $scope.state.accounts = true;
     });
 
-    $scope.zones = {"us-central1": ['us-central1-a', 'us-central1-b', 'us-central1-c']};
+    $scope.zones = {'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c']};
 
     ctrl.accountUpdated = function() {
       accountService.getRegionsForAccount(stage.credentials).then(function(zoneMap) {
@@ -75,7 +74,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.scaleDownClus
     };
 
     if (stage.preferLargerOverNewer === undefined) {
-      stage.preferLargerOverNewer = "false";
+      stage.preferLargerOverNewer = 'false';
     }
     stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
 

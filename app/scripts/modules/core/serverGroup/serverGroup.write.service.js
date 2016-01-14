@@ -9,7 +9,7 @@ module.exports = angular
   ])
   .factory('serverGroupWriter', function (taskExecutor, serverGroupTransformer) {
 
-    function destroyServerGroup(serverGroup, application, params={}) {
+    function destroyServerGroup(serverGroup, application, params = {}) {
       params.asgName = serverGroup.name;
       params.serverGroupName = serverGroup.name;
       params.type = 'destroyServerGroup';
@@ -26,7 +26,7 @@ module.exports = angular
       });
     }
 
-    function disableServerGroup(serverGroup, applicationName, params={}) {
+    function disableServerGroup(serverGroup, applicationName, params = {}) {
       params.asgName = serverGroup.name;
       params.serverGroupName = serverGroup.name;
       params.type = 'disableServerGroup';
@@ -43,7 +43,7 @@ module.exports = angular
       });
     }
 
-    function enableServerGroup(serverGroup, application, params={}) {
+    function enableServerGroup(serverGroup, application, params = {}) {
       params.asgName = serverGroup.name;
       params.serverGroupName = serverGroup.name;
       params.type = 'enableServerGroup';
@@ -60,7 +60,7 @@ module.exports = angular
       });
     }
 
-    function rollbackServerGroup(serverGroup, application, params={}) {
+    function rollbackServerGroup(serverGroup, application, params = {}) {
       params.type = 'rollbackServerGroup';
       params.regions = [serverGroup.region];
       params.zones = serverGroup.zones;
@@ -74,7 +74,7 @@ module.exports = angular
       });
     }
 
-    function resizeServerGroup(serverGroup, application, params={}) {
+    function resizeServerGroup(serverGroup, application, params = {}) {
       params.asgName = serverGroup.name;
       params.serverGroupName = serverGroup.name;
       params.type = 'resizeServerGroup';

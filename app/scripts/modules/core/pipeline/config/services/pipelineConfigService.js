@@ -111,7 +111,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
 
     function getAllUpstreamDependencies(pipeline, stage) {
       var upstreamStages = [];
-      if (stage.requisiteStageRefIds  && stage.requisiteStageRefIds.length) {
+      if (stage.requisiteStageRefIds && stage.requisiteStageRefIds.length) {
         pipeline.stages.forEach(function(stageToTest) {
           if (stage.requisiteStageRefIds.indexOf(stageToTest.refId) !== -1) {
             upstreamStages.push(stageToTest);

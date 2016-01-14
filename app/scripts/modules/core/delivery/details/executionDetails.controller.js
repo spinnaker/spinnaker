@@ -39,7 +39,7 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
       return index === getCurrentStep();
     };
 
-    controller.closeDetails = function(){
+    controller.closeDetails = function() {
       $state.go('.', { step: null });
     };
 
@@ -49,7 +49,7 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
           return stage.context.exception.details.errors.join(', ');
         }
         if (stage.context['kato.tasks'] && stage.context['kato.tasks'].length) {
-          var lastTask = stage.context['kato.tasks'][stage.context['kato.tasks'].length-1];
+          var lastTask = stage.context['kato.tasks'][stage.context['kato.tasks'].length - 1];
           return lastTask.exception ? lastTask.exception.message : null;
         }
       }

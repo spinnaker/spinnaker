@@ -137,7 +137,7 @@ module.exports = angular
       };
 
       wizard.isLastPage = function(key) {
-        return wizard.renderedPages.length && wizard.renderedPages[wizard.renderedPages.length-1].key === key;
+        return wizard.renderedPages.length && wizard.renderedPages[wizard.renderedPages.length - 1].key === key;
       };
 
       function setRendered(pageKey, rendered) {

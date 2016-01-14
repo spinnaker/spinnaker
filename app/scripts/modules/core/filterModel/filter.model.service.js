@@ -14,7 +14,7 @@ module.exports = angular
     }
 
     function getCheckValues(sortFilterModel) {
-      return  _.reduce(sortFilterModel, function(acc, val, key) {
+      return _.reduce(sortFilterModel, function(acc, val, key) {
         if (val) {
           acc.push(key);
         }
@@ -188,7 +188,7 @@ module.exports = angular
       'number': {
         toParam: function(filterModel, property) {
           var val = filterModel.sortFilter[property.model];
-          return isNaN(val) ? null : property.defaultValue === val ? null: val;
+          return isNaN(val) ? null : property.defaultValue === val ? null : val;
         },
         toModel: function(filterModel, property) {
           var val = getParamVal(property);
