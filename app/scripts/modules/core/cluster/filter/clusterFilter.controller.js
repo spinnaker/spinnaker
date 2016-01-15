@@ -18,9 +18,23 @@ module.exports = angular.module('cluster', [
     var ctrl = this;
 
     this.updateClusterGroups = () => {
+      ClusterFilterModel.reconcileDependentFilters();
       ClusterFilterModel.applyParamsToUrl();
       clusterFilterService.updateClusterGroups(app);
     };
+
+    ctrl.getAvailabilityZoneHeadings = () => {
+      let selectedRegions = ClusterFilterModel.getSelectedRegions();
+
+      return selectedRegions.length === 0 ?
+        ctrl.availabilityZoneHeadings :
+        ctrl.availabilityZoneHeadings.filter((azName) => {
+          return selectedRegions.reduce((matches, region) => {
+            return matches ? matches : _.includes(azName, region);
+          }, false);
+        });
+    };
+
 
     function getHeadingsForOption(option) {
       return _.compact(_.uniq(_.pluck(app.serverGroups, option))).sort();

@@ -106,7 +106,7 @@
   </filter-section>
 
   <filter-section heading="Availability Zones" expanded="true">
-    <div class="checkbox" ng-repeat="heading in clustersFilters.availabilityZoneHeadings | orderBy: 'toString()' ">
+    <div class="checkbox" ng-repeat="heading in clustersFilters.getAvailabilityZoneHeadings() | orderBy: 'toString()' ">
       <label>
         <input type="checkbox" ng-model="sortFilter.availabilityZone[heading]" ng-change="clustersFilters.updateClusterGroups()"/>{{heading}}
       </label>
