@@ -16,6 +16,11 @@
 
 package com.netflix.spinnaker.gate.config
 
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import javax.servlet.*
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.OkHttpClientConfiguration
@@ -45,13 +50,6 @@ import retrofit.Endpoint
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.converter.JacksonConverter
-
-import javax.servlet.*
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-
 import static retrofit.Endpoints.newFixedEndpoint
 
 @CompileStatic
@@ -104,9 +102,7 @@ class GateConfig {
 
   @Bean
   OkHttpClient okHttpClient() {
-    def okHttpClient = okHttpClientConfig.create()
-    okHttpClient.setRetryOnConnectionFailure(false)
-    return okHttpClient
+    okHttpClientConfig.create()
   }
 
   @Bean

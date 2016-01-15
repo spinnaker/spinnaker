@@ -50,7 +50,7 @@ interface OrcaService {
 
   @Headers("Accept: application/json")
   @PUT("/tasks/{id}/cancel")
-  Map cancelTask(@Path("id") String id)
+  Map cancelTask(@Path("id") String id, @Body String ignored)
 
   @Headers("Accept: application/json")
   @GET("/pipelines/{id}")
@@ -58,15 +58,15 @@ interface OrcaService {
 
   @Headers("Accept: application/json")
   @PUT("/pipelines/{id}/cancel")
-  Map cancelPipeline(@Path("id") String id)
+  Map cancelPipeline(@Path("id") String id, @Body String ignored)
 
   @Headers("Accept: application/json")
   @PUT("/pipelines/{id}/pause")
-  Map pausePipeline(@Path("id") String id)
+  Map pausePipeline(@Path("id") String id, @Body String ignored)
 
   @Headers("Accept: application/json")
   @PUT("/pipelines/{id}/resume")
-  Map resumePipeline(@Path("id") String id)
+  Map resumePipeline(@Path("id") String id, @Body String ignored)
 
   @Headers("Accept: application/json")
   @DELETE("/pipelines/{id}")

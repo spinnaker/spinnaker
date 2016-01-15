@@ -67,7 +67,7 @@ class TaskService {
 
   Map cancelTask(String id) {
     HystrixFactory.newMapCommand(GROUP, "cancelTask") {
-      orcaService.cancelTask(id)
+      orcaService.cancelTask(id, "")
     } execute()
   }
 
@@ -77,7 +77,7 @@ class TaskService {
   @Deprecated
   Map cancelPipeline(String id) {
     HystrixFactory.newMapCommand(GROUP, "cancelPipeline") {
-      orcaService.cancelPipeline(id)
+      orcaService.cancelPipeline(id, "")
     } execute()
   }
 }
