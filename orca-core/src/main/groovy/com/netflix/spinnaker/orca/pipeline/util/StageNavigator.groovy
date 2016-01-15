@@ -45,7 +45,7 @@ class StageNavigator {
   }
 
   protected Collection<StageBuilder> stageBuilders() {
-    return applicationContext.getBeansOfType(StageBuilder).values()
+    return applicationContext.getBeansOfType(StageBuilder)?.values() ?: []
   }
 
   private List<Stage> ancestors(Stage startingStage) {

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CreateServerGroupStage
@@ -32,11 +33,13 @@ import com.netflix.spinnaker.orca.kato.pipeline.CopyLastAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.DeployStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.Canonical
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * A task that operates on some subset of the ServerGroups in a cluster.
  */
+@Slf4j
 abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderAwareTask implements RetryableTask {
 
   @Override
@@ -71,7 +74,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
   }
 
   protected TaskResult missingClusterResult(Stage stage, ClusterSelection clusterSelection) {
-    throw new IllegalStateException("no cluster details found for $clusterSelection")
+    throw new IllegalStateException("No Cluster details found for $clusterSelection")
   }
 
   protected TaskResult emptyClusterResult(Stage stage, ClusterSelection clusterSelection, Map cluster) {
@@ -153,37 +156,9 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
   protected List<TargetServerGroup> filterParentDeploys(Stage stage,
                                                         String account,
                                                         Location location,
-                                                        List<TargetServerGroup> serverGroups) {
-    //if we are a synthetic stage child of a deploy, don't operate on what we just deployed
-    final Set<String> deployStageTypes = [
-      DeployStage.PIPELINE_CONFIG_TYPE,
-      CopyLastAsgStage.PIPELINE_CONFIG_TYPE,
-      CloneServerGroupStage.PIPELINE_CONFIG_TYPE,
-      CreateServerGroupStage.PIPELINE_CONFIG_TYPE,
-    ]
-    List<TargetServerGroup> deployedServerGroups = []
-    if (stage.parentStageId) {
-      Stage parentDeployStage = stage.execution.stages.find {
-        it.id == stage.parentStageId &&
-          //Stage type is the context.type value when the stage is running as a child stage of a parallel deploy, or
-          // the stage.type attribute when it is running directly as part of an Orchestration or Pipeline
-          (deployStageTypes.contains(it.type) || deployStageTypes.contains(it.context.type)) &&
-          it.context.'deploy.account.name' == account
-      }
-      if (parentDeployStage) {
-        Map<String, String> dsgs = (parentDeployStage.context.'deploy.server.groups' ?: [:]) as Map
-        switch(location.type) {
-          case Location.Type.ZONE:
-            deployedServerGroups = serverGroups.findAll { it.zones.contains(location.value) && dsgs[it.region].contains(it.name)}
-            break;
-          case Location.Type.REGION:
-            deployedServerGroups = serverGroups.findAll { it.region == location.value && dsgs[location.value].contains(it.name) }
-            break;
-        }
-      }
-    }
-
-    return serverGroups - deployedServerGroups
+                                                        List<TargetServerGroup> clusterServerGroups) {
+    def parentDeployedServerGroups = parentDeployedServerGroups(stage, account, location, clusterServerGroups)
+    return filterParentAndNewerThanParentDeploys(parentDeployedServerGroups, clusterServerGroups)
   }
 
   List<TargetServerGroup> filterServerGroups(Stage stage,
@@ -199,6 +174,54 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     }
 
     return filterParentDeploys(stage, account, location, serverGroups)
+  }
+
+  static List<TargetServerGroup> parentDeployedServerGroups(Stage stage,
+                                                            String account,
+                                                            Location location,
+                                                            List<TargetServerGroup> clusterServerGroups) {
+    //if we are a synthetic stage child of a deploy, don't operate on what we just deployed
+    final Set<String> deployStageTypes = [
+      DeployStage.PIPELINE_CONFIG_TYPE,
+      CopyLastAsgStage.PIPELINE_CONFIG_TYPE,
+      CloneServerGroupStage.PIPELINE_CONFIG_TYPE,
+      CreateServerGroupStage.PIPELINE_CONFIG_TYPE,
+    ]
+    List<TargetServerGroup> deployedServerGroups = []
+
+    stage.ancestors({ Stage ancestorStage, StageBuilder stageBuilder ->
+      // Stage type is the context.type value when the stage is running as a child stage of a parallel deploy, or
+      // the stage.type attribute when it is running directly as part of an Orchestration or Pipeline
+      (deployStageTypes.contains(ancestorStage.type) || deployStageTypes.contains(ancestorStage.context.type)) && ancestorStage.context.'deploy.account.name' == account
+    })*.stage.each { Stage parentDeployStage ->
+      Map<String, String> dsgs = (parentDeployStage.context.'deploy.server.groups' ?: [:]) as Map
+      switch (location.type) {
+        case Location.Type.ZONE:
+          deployedServerGroups.addAll(clusterServerGroups.findAll {
+            it.zones.contains(location.value) && dsgs[it.region].contains(it.name)
+          })
+          break;
+        case Location.Type.REGION:
+          deployedServerGroups.addAll(clusterServerGroups.findAll {
+            it.region == location.value && dsgs[location.value].contains(it.name)
+          })
+          break;
+      }
+    }
+
+    return deployedServerGroups
+  }
+
+  static List<TargetServerGroup> filterParentAndNewerThanParentDeploys(List<TargetServerGroup> parentDeployedServerGroups,
+                                                                       List<TargetServerGroup> clusterServerGroups) {
+    def recentlyDeployedServerGroups = []
+    if (parentDeployedServerGroups) {
+      Long minCreatedTime = (parentDeployedServerGroups*.createdTime as Collection<Long>).min()
+      recentlyDeployedServerGroups = clusterServerGroups.findAll { it.createdTime > minCreatedTime }
+    }
+
+    log.info("Preserving recently deployed server groups (${recentlyDeployedServerGroups*.name.join(", ")})")
+    return clusterServerGroups - recentlyDeployedServerGroups - parentDeployedServerGroups
   }
 
   static boolean isActive(TargetServerGroup serverGroup) {
