@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -32,6 +33,7 @@ class ScaleDownClusterTaskSpec extends Specification {
   @Subject
   ScaleDownClusterTask task = new ScaleDownClusterTask(oortHelper: oortHelper)
 
+  @Unroll
   def 'extracts config from context'() {
     setup:
     def ctx = [:]
