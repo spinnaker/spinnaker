@@ -18,12 +18,13 @@ module.exports = angular.module('cluster', [
     var ctrl = this;
 
     this.updateClusterGroups = () => {
+      ClusterFilterModel.reconcileDependentFilters();
       ClusterFilterModel.applyParamsToUrl();
       clusterFilterService.updateClusterGroups(app);
     };
 
     ctrl.getAvailabilityZoneHeadings = () => {
-      let selectedRegions = Object.keys($scope.sortFilter.region || {});
+      let selectedRegions = ClusterFilterModel.getSelectedRegions();
 
       return selectedRegions.length === 0 ?
         ctrl.availabilityZoneHeadings :

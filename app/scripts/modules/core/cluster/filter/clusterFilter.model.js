@@ -7,8 +7,9 @@ module.exports = angular
     require('../../filterModel/filter.model.service.js'),
     require('../../navigation/urlParser.service.js'),
     require('../../utils/rx.js'),
+    require('../../utils/lodash'),
   ])
-  .factory('ClusterFilterModel', function($rootScope, filterModelService, urlParser, $state, rx) {
+  .factory('ClusterFilterModel', function($rootScope, filterModelService, urlParser, $state, rx, _) {
 
     var filterModel = this;
     var mostRecentParams = null;
@@ -33,6 +34,24 @@ module.exports = angular
 
     this.multiselectInstanceGroups = [];
     this.multiselectInstancesStream = new rx.Subject();
+
+    this.getSelectedRegions = () => Object.keys(this.sortFilter.region || {}).filter((key) => this.sortFilter.region[key]);
+    this.getSelectedAvailabilityZones = () => Object.keys(this.sortFilter.availabilityZone || {}).filter((key) => this.sortFilter.availabilityZone[key]);
+
+    this.removeCheckedAvailabilityZoneIfRegionIsNotChecked = () => {
+      this.getSelectedAvailabilityZones()
+        .filter( (az) => { //select the az that need don't match a region and need to be 'unchecked'
+          let regions = this.getSelectedRegions();
+          return this.getSelectedRegions().length && !_.any(this.getSelectedRegions(), (region) => _.includes(az, region));
+        })
+        .forEach( (azKey) => {
+          delete this.sortFilter.availabilityZone[azKey];
+        });
+    };
+
+    this.reconcileDependentFilters = () => {
+      this.removeCheckedAvailabilityZoneIfRegionIsNotChecked();
+    };
 
     this.syncNavigation = () => {
       let instancesSelected = 0;

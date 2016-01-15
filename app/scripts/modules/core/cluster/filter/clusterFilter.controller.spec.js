@@ -12,7 +12,7 @@ describe('ClusterFilter Controller', function () {
 
   beforeEach(
     window.inject(($controller, $rootScope) => {
-      scope = $rootScope.$new()
+      scope = $rootScope.$new();
       controller = $controller('ClusterFilterCtrl', {
         $scope: scope,
         app: {
