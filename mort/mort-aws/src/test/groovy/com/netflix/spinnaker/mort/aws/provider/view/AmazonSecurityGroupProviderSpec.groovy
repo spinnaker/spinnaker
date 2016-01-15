@@ -25,9 +25,12 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.mem.InMemoryCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.SecurityGroupRule
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import com.netflix.spinnaker.mort.aws.model.AmazonSecurityGroup
 import com.netflix.spinnaker.mort.aws.provider.AwsInfrastructureProvider
@@ -44,8 +47,27 @@ class AmazonSecurityGroupProviderSpec extends Specification {
   WriteableCache cache = new InMemoryCache()
   ObjectMapper mapper = new ObjectMapper()
 
+  final credential = Stub(NetflixAmazonCredentials) {
+    getName() >> "accountName1"
+    getAccountId() >> "accountId1"
+  }
+
+  final accountCredentialsProvider = new AccountCredentialsProvider() {
+
+    @Override
+    Set<? extends AccountCredentials> getAll() {
+      [credential]
+    }
+
+    @Override
+    AccountCredentials getCredentials(String name) {
+      return null
+    }
+  }
+
+
   def setup() {
-    provider = new AmazonSecurityGroupProvider(amazonCloudProvider, cache, mapper)
+    provider = new AmazonSecurityGroupProvider(amazonCloudProvider, accountCredentialsProvider, cache, mapper)
     cache.mergeAll(Keys.Namespace.SECURITY_GROUPS.ns, getAllGroups())
   }
 
@@ -182,14 +204,14 @@ class AmazonSecurityGroupProviderSpec extends Specification {
 
   void "should add security group ingress with different protocols"() {
     given:
-    SecurityGroup securityGroupA = new SecurityGroup(groupId: 'id-a', groupName: 'name-a', description: 'a')
-    SecurityGroup securityGroupB = new SecurityGroup(groupId: 'id-b', groupName: 'name-b', description: 'b')
+    SecurityGroup securityGroupA = new SecurityGroup(ownerId: "accountId1", groupId: 'id-a', groupName: 'name-a', description: 'a')
+    SecurityGroup securityGroupB = new SecurityGroup(ownerId: "accountId1", groupId: 'id-b', groupName: 'name-b', description: 'b')
     securityGroupB.ipPermissions = [
       new IpPermission(ipProtocol: "TCP", fromPort: 7001, toPort: 7001, userIdGroupPairs: [
-        new UserIdGroupPair(groupId: securityGroupA.groupId, groupName: securityGroupA.groupName)
+        new UserIdGroupPair(userId: "accountId1", groupId: securityGroupA.groupId, groupName: securityGroupA.groupName)
       ]),
       new IpPermission(ipProtocol: "UDP", fromPort: 7001, toPort: 7001, userIdGroupPairs: [
-        new UserIdGroupPair(groupId: securityGroupA.groupId, groupName: securityGroupA.groupName)
+        new UserIdGroupPair(userId: "accountId1", groupId: securityGroupA.groupId, groupName: securityGroupA.groupName)
       ])
     ]
     String account = 'test'
@@ -210,7 +232,8 @@ class AmazonSecurityGroupProviderSpec extends Specification {
           type: 'aws',
           id: 'id-a',
           name: 'name-a',
-          accountName: account,
+          accountName: "accountName1",
+          accountId: "accountId1",
           region: region
         ),
         portRanges: [
@@ -222,7 +245,8 @@ class AmazonSecurityGroupProviderSpec extends Specification {
           type: 'aws',
           id: 'id-a',
           name: 'name-a',
-          accountName: account,
+          accountName: "accountName1",
+          accountId: "accountId1",
           region: region
         ),
         portRanges: [
