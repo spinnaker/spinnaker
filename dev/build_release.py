@@ -248,12 +248,12 @@ class Builder(object):
       debian_tags = ';' + debian_tags
 
     url = ('https://api.bintray.com/content'
-               '/{subject}/{repo}/{package}/{version}/{path}'
-               '{debian_tags}'
-               ';publish=1;override=1'
-                   .format(subject=subject, repo=repo, package=package,
-                           version=version, path=path,
-                           debian_tags=debian_tags))
+           '/{subject}/{repo}/{package}/{version}/{path}'
+           '{debian_tags}'
+           ';publish=1;override=1'
+           .format(subject=subject, repo=repo, package=package,
+                   version=version, path=path,
+                   debian_tags=debian_tags))
 
     with open(source, 'r') as f:
         data = f.read()
@@ -266,35 +266,70 @@ class Builder(object):
         try:
             result = urllib2.urlopen(put_request, data)
         except HTTPError as put_error:
-            if put_error.code != 400:
+            if put_error.code == 409 and self.__options.wipe_package_on_409:
+              # The problem here is that BinTray does not allow packages to change once
+              # they have been published (even though we are explicitly asking it to
+              # override). PATCH wont work either.
+              # Since we are building from source, we dont really have a version
+              # yet, since we are still modifying the code. Either we need to generate a new
+              # version number every time or we dont want to publish these.
+              # Ideally we could control whether or not to publish. However,
+              # if we do not publish, then the repository will not be visible without
+              # credentials, and adding conditional credentials into the packer scripts
+              # starts getting even more complex.
+              #
+              # We cannot seem to delete individual versions either (at least not for
+              # InstallSpinnaker.sh, which is where this problem seems to occur),
+              # so we'll be heavy handed and wipe the entire package.
+              print 'Got 409 on {url}.'.format(url=url)
+              delete_url = ('https://api.bintray.com/content'
+                            '/{subject}/{repo}/{path}'
+                            .format(subject=subject, repo=repo, path=path))
+              print 'Attempt to delete url={url} then retry...'.format(url=delete_url)
+              delete_request = urllib2.Request(delete_url)
+              delete_request.add_header('Authorization', 'Basic ' + encoded_auth)
+              delete_request.get_method = lambda: 'DELETE'
+              try:
+                urllib2.urlopen(delete_request)
+                print 'Deleted...'
+              except HTTPError as ex:
+                # Maybe it didnt exist. Try again anyway.
+                print 'Delete {url} got {ex}. Try again anyway.'.format(url=url, ex=ex)
+                pass
+              print 'Retrying {url}'.format(url=url)
+              result = urllib2.urlopen(put_request, data)
+              print 'SUCCESS'
+              
+            elif put_error.code != 400:
               raise
 
-            # Try creating the package and retrying.
-            pkg_url = os.path.join('https://api.bintray.com/packages',
-                                   subject, repo)
-            print 'Creating an entry for {package} with {pkg_url}...'.format(
-                package=package, pkg_url=pkg_url)
+            else:
+              # Try creating the package and retrying.
+              pkg_url = os.path.join('https://api.bintray.com/packages',
+                                     subject, repo)
+              print 'Creating an entry for {package} with {pkg_url}...'.format(
+                  package=package, pkg_url=pkg_url)
 
-            # All the packages are from spinnaker so we'll hardcode it.
-            pkg_data = """{{
-              "name": "{package}",
-              "licenses": ["Apache-2.0"],
-              "vcs_url": "https://github.com/spinnaker/{gitname}.git",
-              "website_url": "http://spinnaker.io",
-              "github_repo": "spinnaker/{gitname}",
-              "public_download_numbers": false,
-              "public_stats": false
-            }}'""".format(package=package,
-                          gitname=package.replace('spinnaker-', ''))
+              # All the packages are from spinnaker so we'll hardcode it.
+              pkg_data = """{{
+                "name": "{package}",
+                "licenses": ["Apache-2.0"],
+                "vcs_url": "https://github.com/spinnaker/{gitname}.git",
+                "website_url": "http://spinnaker.io",
+                "github_repo": "spinnaker/{gitname}",
+                "public_download_numbers": false,
+                "public_stats": false
+              }}'""".format(package=package,
+                            gitname=package.replace('spinnaker-', ''))
 
-            pkg_request = urllib2.Request(pkg_url)
-            pkg_request.add_header('Authorization', 'Basic ' + encoded_auth)
-            pkg_request.add_header('Content-Type', 'application/json')
-            pkg_request.get_method = lambda: 'POST'
-            pkg_result = urllib2.urlopen(pkg_request, pkg_data)
-            pkg_code = pkg_result.getcode()
-            if pkg_code >= 200 and pkg_code < 300:
-                result = urllib2.urlopen(put_request, data)
+              pkg_request = urllib2.Request(pkg_url)
+              pkg_request.add_header('Authorization', 'Basic ' + encoded_auth)
+              pkg_request.add_header('Content-Type', 'application/json')
+              pkg_request.get_method = lambda: 'POST'
+              pkg_result = urllib2.urlopen(pkg_request, pkg_data)
+              pkg_code = pkg_result.getcode()
+              if pkg_code >= 200 and pkg_code < 300:
+                  result = urllib2.urlopen(put_request, data)
 
         code = result.getcode()
         if code < 200 or code >= 300:
@@ -552,6 +587,13 @@ if __name__ == '__main__':
         '--bintray_repo', default='',
         help='Publish to this bintray repo.\n'
              'This requires BINTRAY_USER and BINTRAY_KEY are set.')
+
+      parser.add_argument(
+        '--wipe_package_on_409', default=False, action='store_true',
+        help='Work around BinTray conflict errors by deleting the entire package and'
+             ' retrying. Removes all prior versions so only intended for dev repos.\n')
+      parser.add_argument(
+        '--nowipe_package_on_409', dest='wipe_package_on_409', action='store_false')
 
 
   def __verify_bintray(self):
