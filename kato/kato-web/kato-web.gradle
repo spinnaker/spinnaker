@@ -22,7 +22,6 @@ configurations.all {
 dependencies {
   compile project(":clouddriver-core")
   compile project(":kato:kato-manual")
-  compile project(":kato:kato-azure")
   compile project(":kato:kato-docker")
   compile project(":kato:kato-jedis")
   compile project(":kato:kato-titan")

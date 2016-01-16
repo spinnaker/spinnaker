@@ -14,16 +14,25 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.azure.security;
+package com.netflix.spinnaker.clouddriver.azure.security
 
+import com.microsoft.aad.adal4j.AuthenticationResult
 import com.microsoft.azure.utility.AuthHelper
-import com.netflix.spinnaker.clouddriver.azure.client.AzureComputeClient;
-import com.netflix.spinnaker.clouddriver.azure.client.AzureNetworkClient;
-import com.netflix.spinnaker.clouddriver.azure.client.AzureResourceManagerClient;
+import com.netflix.spinnaker.clouddriver.azure.client.AzureComputeClient
+import com.netflix.spinnaker.clouddriver.azure.client.AzureNetworkClient
+import com.netflix.spinnaker.clouddriver.azure.client.AzureResourceManagerClient
+import org.apache.log4j.Logger
+
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 
 class AzureCredentials {
+  private static final Logger log = Logger.getLogger(this.class.simpleName)
   static final String MANAGEMENT_URL = "https://management.core.windows.net/"
   static final String AAD_URL = "https://login.windows.net/"
+
+  AuthenticationResult authenticationResult
+  protected Lock cacheLock = new ReentrantLock()
 
   final String tenantId
   final String clientId
@@ -50,15 +59,29 @@ class AzureCredentials {
 
   String getAccessToken() {
     try {
-      return AuthHelper.getAccessTokenFromServicePrincipalCredentials(
-        MANAGEMENT_URL,
-        AAD_URL,
-        this.tenantId,
-        this.clientId,
-        this.appKey
-      ).accessToken
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to create AccessTokenFromServicePrincipalCredentials", e)
+      cacheLock.lock()
+      if (!authenticationResult || nearExpiry(authenticationResult)) {
+        try {
+          authenticationResult = AuthHelper.getAccessTokenFromServicePrincipalCredentials(
+            MANAGEMENT_URL,
+            AAD_URL,
+            this.tenantId,
+            this.clientId,
+            this.appKey)
+        } catch (Exception e) {
+          throw new RuntimeException("Failed to create AccessTokenFromServicePrincipalCredentials", e)
+        }
+      }
+    } finally {
+      cacheLock.unlock()
     }
+    authenticationResult.accessToken
+  }
+
+  private static boolean nearExpiry(AuthenticationResult result) {
+    Calendar today = Calendar.getInstance()
+    today.add(Calendar.MINUTE, 5)
+    Date now = today.getTime()
+    !now.before(result.getExpiresOnDate())
   }
 }

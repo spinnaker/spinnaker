@@ -1,7 +1,0 @@
-dependencies {
-  def azureSDKVersion = '0.8.2'
-
-  compile project(":clouddriver-azure")
-  compile spinnaker.dependency('bootActuator')
-
-}
