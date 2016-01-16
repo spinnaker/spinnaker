@@ -28,10 +28,10 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
   final String accountName
   final String environment
   final String accountType
-  final String tenantId
-  final String subscriptionId
-  final String clientId
-  final String appKey
+  private final String tenantId
+  private final String subscriptionId
+  private final String clientId
+  private final String appKey
   final List<AzureRegion> regions
   final String applicationName
   final List<String> requiredGroupMembership
