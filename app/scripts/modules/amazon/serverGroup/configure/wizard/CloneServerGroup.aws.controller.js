@@ -12,7 +12,8 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
   require('../../../../core/modal/wizard/modalWizard.service.js'),
   require('../../../../core/overrideRegistry/override.registry.js'),
   require('../../../../core/serverGroup/configure/common/serverGroupCommand.registry.js'),
-])
+  require('../../../../core/task/modal/reason.directive.js'),
+  ])
   .controller('awsCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $state,
                                                   serverGroupWriter, modalWizardService, taskMonitorService,
                                                   overrideRegistry, awsServerGroupConfigurationService,

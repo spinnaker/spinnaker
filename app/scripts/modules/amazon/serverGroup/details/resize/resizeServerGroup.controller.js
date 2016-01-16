@@ -4,6 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.controller', [
   require('../../../../core/application/modal/platformHealthOverride.directive.js'),
+  require('../../../../core/task/modal/reason.directive.js'),
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js'),
   require('./resizeCapacity.directive.js'),
@@ -56,6 +57,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
         return serverGroupWriter.resizeServerGroup(serverGroup, application, {
           capacity: capacity,
           interestingHealthProviderNames: $scope.command.interestingHealthProviderNames,
+          reason: $scope.command.reason,
         });
       };
 

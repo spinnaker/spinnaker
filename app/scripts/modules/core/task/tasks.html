@@ -149,6 +149,11 @@
                 <strong>Exception:</strong> {{task.failureMessage}}
               </td>
             </tr>
+            <tr ng-if="tasks.isExpanded(task.id) && task.getValueFor('reason')" class="task-reason">
+              <td colspan="7">
+                <strong>Reason:</strong> {{task.getValueFor('reason')}}
+              </td>
+            </tr>
             <tr ng-if="tasks.isExpanded(task.id)" ng-repeat-end>
               <td colspan="7" class="small text-right">
                 <a href="{{tasksUrl + task.id}}" target="_blank">Source</a> | <a target="_blank" ui-sref=".taskDetails({taskId: task.id})">Permalink</a>
