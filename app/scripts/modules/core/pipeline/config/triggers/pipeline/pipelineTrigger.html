@@ -39,7 +39,7 @@
           <input disabled ng-if="useDefaultParameters[parameter.name]" type="text" class="form-control input-sm"
                  value="{{parameter.default}}"/>
           <input ng-if="!useDefaultParameters[parameter.name]" type="text" class="form-control input-sm"
-                 ng-model="userSuppliedParameters[parameter.name]" ng-change="updateParam(parameter.name)"/>
+                 ng-model="userSuppliedParameters[parameter.name]" ng-change="pipelineTriggerCtrl.updateParam(parameter.name)"/>
         </div>
         <div class="checkbox col-md-4" ng-if="parameter.default!==null">
           <label>

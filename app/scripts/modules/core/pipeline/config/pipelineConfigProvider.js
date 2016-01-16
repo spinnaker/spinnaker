@@ -92,8 +92,34 @@ module.exports = angular.module('spinnaker.core.pipeline.config.configProvider',
 
     this.registerTrigger = registerTrigger;
     this.registerStage = registerStage;
-    this.$get = function() {
+
+    this.$get = function($injector, $log) {
+
+      function getManualExecutionHandlerForTriggerType(triggerType) {
+        let triggerConfig = getTriggerConfig(triggerType);
+        if (triggerConfig && triggerConfig.manualExecutionHandler) {
+          if ($injector.has(triggerConfig.manualExecutionHandler)) {
+            return $injector.get(triggerConfig.manualExecutionHandler);
+          }
+        }
+        return null;
+      }
+
+      function hasManualExecutionHandlerForTriggerType(triggerType) {
+        let hasHandler = false;
+        let triggerConfig = getTriggerConfig(triggerType);
+        if (triggerConfig && triggerConfig.manualExecutionHandler) {
+          hasHandler = $injector.has(triggerConfig.manualExecutionHandler);
+          if (!hasHandler) {
+            $log.warn(`Could not find execution handler '${triggerConfig.manualExecutionHandler}' for trigger type '${triggerType}'`);
+          }
+        }
+        return hasHandler;
+      }
+
       return {
+        getManualExecutionHandlerForTriggerType: getManualExecutionHandlerForTriggerType,
+        hasManualExecutionHandlerForTriggerType: hasManualExecutionHandlerForTriggerType,
         getTriggerTypes: getTriggerTypes,
         getStageTypes: getStageTypes,
         getProvidersFor: getProvidersFor,

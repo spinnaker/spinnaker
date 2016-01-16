@@ -5,42 +5,33 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution.controller', [
   require('angular-ui-bootstrap'),
   require('../../utils/lodash.js'),
-  require('../../pipeline/config/triggers/jenkins/jenkinsTrigger.module.js'),
-  require('../../ci/jenkins/igor.service.js'),
+  require('../../pipeline/config/pipelineConfigProvider.js'),
 ])
-  .controller('ManualPipelineExecutionCtrl', function (_, igorService, $modalInstance, pipeline, application) {
+  .controller('ManualPipelineExecutionCtrl', function (_, $modalInstance, pipeline, application, pipelineConfig) {
 
     this.command = {
       pipeline: pipeline,
       trigger: null,
-      selectedBuild: null,
-    };
-
-    this.viewState = {
-      buildsLoading: true,
     };
 
     let addTriggers = () => {
-      if (!this.command.pipeline) {
+      let pipeline = this.command.pipeline;
+      if (!pipeline || !pipeline.triggers || !pipeline.triggers.length) {
         this.command.trigger = null;
         return;
       }
 
-      this.triggers = _.chain(this.command.pipeline.triggers)
-        .filter('type', 'jenkins')
-        .sortBy('enabled')
-        .reverse()
+      this.triggers = pipeline.triggers
+        .filter((trigger) => pipelineConfig.hasManualExecutionHandlerForTriggerType(trigger.type))
         .map((trigger) => {
-          var copy = _.clone(trigger);
-          copy.buildNumber = null;
-          copy.type = 'manual';
-          copy.description = copy.master + ': ' + copy.job;
+          let copy = _.clone(trigger);
+          copy.description = '...'; // placeholder
+          pipelineConfig.getManualExecutionHandlerForTriggerType(trigger.type)
+            .formatLabel(trigger).then((label) => copy.description = label);
           return copy;
-        })
-        .value();
+        });
 
       this.command.trigger = _.first(this.triggers);
-      this.builds = [];
     };
 
 
@@ -49,7 +40,6 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
      */
 
     this.triggerUpdated = (trigger) => {
-      this.viewState.buildsLoading = true;
       let command = this.command;
 
       if( trigger !== undefined ) {
@@ -57,17 +47,8 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
       }
 
       if (command.trigger) {
-        this.viewState.buildsLoading = true;
-        igorService.listBuildsForJob(command.trigger.master, command.trigger.job).then((builds) => {
-          this.builds = _.filter(builds, {building: false, result: 'SUCCESS'});
-          if (!angular.isDefined(command.trigger.build)) {
-            command.selectedBuild = this.builds[0];
-          }
-          this.viewState.buildsLoading = false;
-        });
-      } else {
-        this.builds = [];
-        this.viewState.buildsLoading = false;
+        this.triggerTemplate = pipelineConfig.getManualExecutionHandlerForTriggerType(command.trigger.type)
+          .selectorTemplate;
       }
     };
 
@@ -90,20 +71,17 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
 
     };
 
-    this.updateSelectedBuild = (item) => {
-      this.command.selectedBuild = item;
-    };
-
     this.execute = () => {
       let selectedTrigger = this.command.trigger || {},
           command = { trigger: selectedTrigger },
           pipeline = this.command.pipeline;
 
-      command.pipelineName = pipeline.name;
+      // include any extra data populated by trigger manual execution handlers
+      angular.extend(selectedTrigger, this.command.extraFields);
 
-      if (selectedTrigger && this.command.selectedBuild) {
-        selectedTrigger.buildNumber = this.command.selectedBuild.number;
-      }
+      command.pipelineName = pipeline.name;
+      selectedTrigger.type = 'manual';
+
       if (pipeline.parameterConfig !== undefined && pipeline.parameterConfig.length) {
         selectedTrigger.parameters = this.parameters;
       }

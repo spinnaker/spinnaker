@@ -1,0 +1,29 @@
+<div class="form-group">
+  <label class="col-md-2 col-md-offset-1 sm-label-left">Execution</label>
+  <div class="col-md-6" ng-if="vm.viewState.executionsLoading">
+    <p class="form-control-static text-center" >
+      <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
+    </p>
+  </div>
+  <div class="col-md-6" ng-if="vm.viewState.loadError">Error loading executions!</div>
+  <div class="col-md-9" ng-if="!vm.viewState.executionsLoading">
+    <div ng-if="!vm.executions.length"><p class="form-control-static">No recent executions found</p></div>
+    <ui-select class="form-control input-sm"
+               ng-model="vm.viewState.selectedExecution"
+               on-select="vm.updateSelectedExecution($item)"
+               ng-if="vm.executions.length">
+      <ui-select-match placeholder="Select...">
+                <span>
+                  {{$select.selected.buildTime | timestamp}}
+                  <strong>({{$select.selected.status}})</strong>
+                </span>
+      </ui-select-match>
+      <ui-select-choices repeat="execution in vm.executions | anyFieldFilter: {status: $select.search}">
+              <span>
+                {{execution.buildTime | timestamp}}
+                <strong>({{execution.status}})</strong>
+              </span>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+</div>
