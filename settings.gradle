@@ -17,8 +17,8 @@
 rootProject.name="clouddriver"
 
 def subs = [
-  kato: ["kato-web", "kato-manual", "kato-jedis", "kato-docker", "kato-titan", "kato-azure"],
-  oort: ["oort-web", "oort-aws", "oort-bench", "oort-titan", "oort-azure"],
+  kato: ["kato-web", "kato-manual", "kato-jedis", "kato-docker", "kato-titan"],
+  oort: ["oort-web", "oort-aws", "oort-bench", "oort-titan"],
   mort: ["mort-web", "mort-aws"],
   cats: ["cats-core", "cats-redis", "cats-test"]
 ]

@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.azure.client
 
+import com.microsoft.azure.management.network.NetworkResourceProviderService
+import com.microsoft.azure.management.network.models.AddressSpace
+import com.microsoft.azure.management.network.models.VirtualNetwork
 import com.microsoft.azure.management.resources.ResourceManagementClient
 import com.microsoft.azure.management.resources.ResourceManagementService
 import com.microsoft.azure.management.resources.models.Deployment
@@ -33,19 +36,16 @@ import com.microsoft.azure.utility.ResourceHelper
 import com.microsoft.windowsazure.exception.ServiceException
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import groovy.transform.Canonical
+import groovy.json.JsonBuilder
 
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-import com.google.gson.Gson
-
 import groovy.transform.CompileStatic
 
 @CompileStatic
 class AzureResourceManagerClient extends AzureBaseClient {
-  // URI to the internal load balancer template. we should create our own public and private LB templates and store them in a local cache.
-  private String loadBalancerTemplateUri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-create-internal-loadbalancer/azuredeploy.json"
 
   AzureResourceManagerClient(String subscriptionId) {
     super(subscriptionId)
@@ -72,7 +72,8 @@ class AzureResourceManagerClient extends AzureBaseClient {
                                                     String region,
                                                     String loadBalancerName) {
     if (!resourceGroupExists(credentials, resourceGroupName)) {
-      createResouceGroup(credentials, resourceGroupName, region)
+      createResourceGroup(credentials, resourceGroupName, region)
+      createResourceGroupVNet(credentials, resourceGroupName, region)
     }
 
     String deploymentName = loadBalancerName + "_deployment"
@@ -87,10 +88,11 @@ class AzureResourceManagerClient extends AzureBaseClient {
     deployment
   }
 
-  ResourceGroup createResouceGroup(AzureCredentials creds, String resourceGroupName, String region) {
-    ResourceGroup rg = new ResourceGroup(region)
+  ResourceGroup createResourceGroup(AzureCredentials creds, String resourceGroupName, String region) {
     try {
-      return this.getResourceManagementClient(creds).getResourceGroupsOperations().createOrUpdate(resourceGroupName, rg).resourceGroup
+      ResourceGroup resourceGroup = this.getResourceManagementClient(creds).getResourceGroupsOperations().createOrUpdate(resourceGroupName,new ResourceGroup(region)).resourceGroup
+
+      resourceGroup
     } catch (e) {
       throw new RuntimeException("Unable to create Resource Group ${resourceGroupName} in region ${region}", e)
     }
@@ -100,7 +102,8 @@ class AzureResourceManagerClient extends AzureBaseClient {
     ResourceGroupListParameters parameters = new ResourceGroupListParameters()
     parameters.setTagName("filter")
     parameters.setTagValue(applicationName)
-    return this.getResourceManagementClient(creds).getResourceGroupsOperations().list(parameters).resourceGroups
+    
+    this.getResourceManagementClient(creds).getResourceGroupsOperations().list(parameters).resourceGroups
   }
 
   boolean resourceGroupExists(AzureCredentials creds, String resourceGroupName) {
@@ -138,7 +141,22 @@ class AzureResourceManagerClient extends AzureBaseClient {
     ResourceManagementService.create(this.buildConfiguration(creds))
   }
 
-  static DeploymentExtended createTemplateDeploymentFromPath(
+  private void createResourceGroupVNet(AzureCredentials creds, String resourceGroupName, String region) {
+    def networkClient = NetworkResourceProviderService.create(this.buildConfiguration(creds))
+    String vNetName = String.format("vnet_%s", resourceGroupName)
+    VirtualNetwork vNet = new VirtualNetwork(region)
+    AddressSpace addressSpace = new AddressSpace()
+    addressSpace.addressPrefixes.add("10.0.0.0/16")
+    vNet.setAddressSpace(addressSpace)
+    try {
+      networkClient.virtualNetworksOperations.createOrUpdate(resourceGroupName, vNetName, vNet)
+    }
+    catch (ServiceException se) {
+      throw new RuntimeException(String.format("Unable to create Virtual Network %s for Resource Group %s", vNetName, resourceGroupName), se)
+    }
+  }
+
+  private static DeploymentExtended createTemplateDeploymentFromPath(
     ResourceManagementClient resourceManagementClient,
     String resourceGroupName,
     DeploymentMode deploymentMode,
@@ -158,7 +176,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
       for (Map.Entry<String, String> entry : templateParameters.entrySet()) {
         parameters.put(entry.getKey(), new ParameterValue(entry.getValue()))
       }
-      deploymentProperties.setParameters(new Gson().toJson(parameters))
+      deploymentProperties.setParameters(new JsonBuilder(parameters).toString())
     }
 
     // kick off the deployment

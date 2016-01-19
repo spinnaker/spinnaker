@@ -38,6 +38,7 @@ public class AzureBaseClient {
       String baseUri = creds.MANAGEMENT_URL
       return ManagementConfiguration.configure(
         null,
+        new Configuration(),
         new URI(baseUri),
         this.subscriptionId,
         creds.getAccessToken())

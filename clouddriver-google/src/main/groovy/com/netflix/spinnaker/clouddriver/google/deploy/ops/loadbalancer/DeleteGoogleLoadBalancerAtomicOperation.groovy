@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.Operation
 import com.google.api.services.compute.model.TargetPool
@@ -29,6 +30,8 @@ import org.springframework.beans.factory.annotation.Autowired
 
 class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "DELETE_LOAD_BALANCER"
+  private static final int MAX_NUM_TARGET_POOL_RETRIES = 5
+  private static final int TARGET_POOL_RETRY_INTERVAL_SECONDS = 1
 
   static class HealthCheckAsyncDeleteOperation {
     String healthCheckName
@@ -43,6 +46,8 @@ class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
   private GoogleOperationPoller googleOperationPoller
 
   private final DeleteGoogleLoadBalancerDescription description
+
+  ThreadSleeper threadSleeper = new ThreadSleeper()
 
   DeleteGoogleLoadBalancerAtomicOperation(DeleteGoogleLoadBalancerDescription description) {
     this.description = description
@@ -95,12 +100,33 @@ class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
     googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteForwardingRuleOperation.getName(),
         timeoutSeconds, task, "forwarding rule " + forwardingRuleName, BASE_PHASE)
 
-    task.updateStatus BASE_PHASE, "Deleting target pool $targetPoolName in $region..."
-    Operation deleteTargetPoolOperation =
-        compute.targetPools().delete(project, region, targetPoolName).execute()
+    def numAttempts = 0
+    def operationSucceeded = false
 
-    googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteTargetPoolOperation.getName(),
-        timeoutSeconds, task, "target pool " + targetPoolName, BASE_PHASE)
+    while (!operationSucceeded && numAttempts++ < MAX_NUM_TARGET_POOL_RETRIES) {
+      try {
+        task.updateStatus BASE_PHASE, "Deleting target pool $targetPoolName in $region (attempt #$numAttempts)..."
+
+        Operation deleteTargetPoolOperation = compute.targetPools().delete(project, region, targetPoolName).execute()
+
+        operationSucceeded = true
+
+        googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteTargetPoolOperation.getName(),
+            timeoutSeconds, task, "target pool " + targetPoolName, BASE_PHASE)
+      } catch (GoogleJsonResponseException e) {
+        // 400/resourceNotReady is sometimes thrown when attempting to delete a target pool. It seems to occasionally
+        // happen immediately following deletion of a forwarding rule referring to the target pool. Any other exception
+        // needs to be propagated.
+        if (e.details?.code == 400 && e.details?.errors?.getAt(0)?.reason == "resourceNotReady") {
+          task.updateStatus BASE_PHASE, "While deleting target pool $targetPoolName in $region, received: " +
+              "${e.details?.errors?.getAt(0)?.message}"
+
+          threadSleeper.sleep(TARGET_POOL_RETRY_INTERVAL_SECONDS)
+        } else {
+          throw e
+        }
+      }
+    }
 
     // Now make a list of the delete operations for health checks.
     List<HealthCheckAsyncDeleteOperation> deleteHealthCheckAsyncOperations =
@@ -125,4 +151,10 @@ class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
     null
   }
 
+  // This only exists to facilitate testing.
+  static class ThreadSleeper {
+    void sleep(long seconds) {
+      Thread.currentThread().sleep(seconds * 1000)
+    }
+  }
 }
