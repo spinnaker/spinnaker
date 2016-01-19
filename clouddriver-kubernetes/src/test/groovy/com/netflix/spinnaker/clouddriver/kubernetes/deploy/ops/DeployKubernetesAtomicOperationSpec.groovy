@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.DeployKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesContainerDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesResourceDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.IntOrString
@@ -46,6 +47,10 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
   private static final LOAD_BALANCER_NAMES = ["lb1", "lb2"]
   private static final SECURITY_GROUP_NAMES = ["sg1", "sg2", "sg3"]
   private static final CONTAINER_NAMES = ["c1", "c2"]
+  private static final REQUEST_CPU = ["100m", null]
+  private static final REQUEST_MEMORY = ["100Mi", "200Mi"]
+  private static final LIMIT_CPU = ["120m", "200m"]
+  private static final LIMIT_MEMORY = ["200Mi", "300Mi"]
   private static final TARGET_PORT = 80
 
   def kubernetesClientMock
@@ -92,10 +97,11 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
     replicationControllerName = String.format("%s-v%s", clusterName, SEQUENCE)
 
     containers = []
-    CONTAINER_NAMES.each { name ->
-      containers = containers << new KubernetesContainerDescription(name: name, image: name)
+    CONTAINER_NAMES.eachWithIndex { name, idx ->
+      def requests = new KubernetesResourceDescription(cpu: REQUEST_CPU[idx], memory: REQUEST_MEMORY[idx])
+      def limits = new KubernetesResourceDescription(cpu: LIMIT_CPU[idx], memory: LIMIT_MEMORY[idx])
+      containers = containers << new KubernetesContainerDescription(name: name, image: name, requests: requests, limits: limits)
     }
-
   }
 
   void "should deploy a replication controller"() {
@@ -153,10 +159,13 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
           assert(rc.spec.template.spec.containers[0][idx].name == name)
           assert(rc.spec.template.spec.containers[0][idx].image == name)
           assert(rc.spec.template.spec.containers[0][idx].ports[0].containerPort == TARGET_PORT)
+          assert(rc.spec.template.spec.containers[0][idx].resources.requests.cpu == REQUEST_CPU[idx])
+          assert(rc.spec.template.spec.containers[0][idx].resources.requests.memory == REQUEST_MEMORY[idx])
+          assert(rc.spec.template.spec.containers[0][idx].resources.limits.cpu == LIMIT_CPU[idx])
+          assert(rc.spec.template.spec.containers[0][idx].resources.limits.memory == LIMIT_MEMORY[idx])
         }
       }) >> replicationControllerMock
       2 * replicationControllerMock.getMetadata() >> metadataMock
       2 * metadataMock.getName() >> replicationControllerName
   }
-
 }

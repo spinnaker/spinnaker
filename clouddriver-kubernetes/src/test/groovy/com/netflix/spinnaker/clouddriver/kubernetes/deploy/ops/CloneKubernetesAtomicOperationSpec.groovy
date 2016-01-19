@@ -21,12 +21,16 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.CloneKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesContainerDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesResourceDescription
 import io.fabric8.kubernetes.api.model.Container
 import io.fabric8.kubernetes.api.model.ObjectMeta
 import io.fabric8.kubernetes.api.model.PodSpec
 import io.fabric8.kubernetes.api.model.PodTemplateSpec
+import io.fabric8.kubernetes.api.model.Quantity
 import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.ReplicationControllerSpec
+import io.fabric8.kubernetes.api.model.ResourceRequirements
+import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -40,6 +44,10 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
   private static final SECURITY_GROUP_NAMES = ["sg1", "sg2"]
   private static final LABELS = ["load-balancer-lb1": true, "load-balancer-lb2": true, "security-group-sg1": true, "security-group-sg2": true]
   private static final CONTAINER_NAMES = ["c1", "c2"]
+  private static final REQUEST_CPU = ["100m", null]
+  private static final REQUEST_MEMORY = ["100Mi", "200Mi"]
+  private static final LIMIT_CPU = ["120m", "200m"]
+  private static final LIMIT_MEMORY = ["200Mi", "300Mi"]
   private static final ANCESTOR_SERVER_GROUP_NAME = "$APPLICATION-$STACK-$DETAIL-$SEQUENCE"
 
   def containers
@@ -50,9 +58,8 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
   def podTemplateSpec
   def objectMetadata
   def podSpec
-  def replicationControllerContainers
-
   def kubernetesUtilMock
+  def replicationControllerContainers
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -62,9 +69,12 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
     kubernetesUtilMock = Mock(KubernetesUtil)
 
     containers = []
-    CONTAINER_NAMES.each { name ->
-      containers = containers << new KubernetesContainerDescription(name: name, image: name)
+    CONTAINER_NAMES.eachWithIndex { name, idx ->
+      def requests = new KubernetesResourceDescription(cpu: REQUEST_CPU[idx], memory: REQUEST_MEMORY[idx])
+      def limits = new KubernetesResourceDescription(cpu: LIMIT_CPU[idx], memory: LIMIT_MEMORY[idx])
+      containers = containers << new KubernetesContainerDescription(name: name, image: name, requests: requests, limits: limits)
     }
+
     ancestorNames = [
       "app": APPLICATION,
       "stack": STACK,
@@ -92,19 +102,29 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
     replicationControllerSpec.setTemplate(podTemplateSpec)
 
     replicationControllerContainers = []
-    CONTAINER_NAMES.each { name ->
-      def newContainer = new Container()
-      newContainer.setName(name)
-      newContainer.setImage(name)
-      replicationControllerContainers.push(newContainer)
+    containers = []
+    def l = CONTAINER_NAMES.size()
+    CONTAINER_NAMES.eachWithIndex { name, idx ->
+      def container = new Container()
+      container.setName(name)
+      container.setImage(name)
+
+      def requestsBuilder = new ResourceRequirementsBuilder()
+      // Rotate indices to ensure they are overwritten by request
+      requestsBuilder = requestsBuilder.addToLimits([cpu: new Quantity(LIMIT_CPU[l - idx]), memory: new Quantity(LIMIT_MEMORY[l - idx])])
+      requestsBuilder = requestsBuilder.addToRequests([cpu: new Quantity(REQUEST_CPU[l - idx]), memory: new Quantity(REQUEST_MEMORY[l - idx])])
+      container.setResources(requestsBuilder.build())
+      replicationControllerContainers = replicationControllerContainers << container
+
+      def requests = new KubernetesResourceDescription(cpu: REQUEST_CPU[l - idx], memory: REQUEST_MEMORY[l - idx])
+      def limits = new KubernetesResourceDescription(cpu: LIMIT_CPU[l - idx], memory: LIMIT_MEMORY[l - idx])
+      containers = containers << new KubernetesContainerDescription(name: name, image: name, requests: requests, limits: limits)
     }
+
     podSpec.setContainers(replicationControllerContainers)
     podTemplateSpec.setSpec(podSpec)
-
     replicationControllerSpec.setReplicas(TARGET_SIZE)
-
     replicationController.setSpec(replicationControllerSpec)
-
   }
 
   void "builds a description based on ancestor server group, overrides nothing"() {
@@ -128,7 +148,14 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
       resultDescription.targetSize == expectedResultDescription.targetSize
       resultDescription.loadBalancers == expectedResultDescription.loadBalancers
       resultDescription.securityGroups == expectedResultDescription.securityGroups
-      resultDescription.containers == expectedResultDescription.containers
+      resultDescription.containers.eachWithIndex { c, idx ->
+        c.image == expectedResultDescription.containers[idx].image
+        c.name == expectedResultDescription.containers[idx].name
+        c.requests.cpu == expectedResultDescription.containers[idx].requests.cpu
+        c.requests.memory == expectedResultDescription.containers[idx].requests.memory
+        c.limits.cpu == expectedResultDescription.containers[idx].limits.cpu
+        c.limits.memory == expectedResultDescription.containers[idx].limits.memory
+      }
   }
 
   void "operation builds a description based on ancestor server group, overrides everything"() {
@@ -159,7 +186,13 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
       resultDescription.targetSize == expectedResultDescription.targetSize
       resultDescription.loadBalancers == expectedResultDescription.loadBalancers
       resultDescription.securityGroups == expectedResultDescription.securityGroups
-      resultDescription.containers == expectedResultDescription.containers
+      resultDescription.containers.eachWithIndex { c, idx ->
+        c.image == expectedResultDescription.containers[idx].image
+        c.name == expectedResultDescription.containers[idx].name
+        c.requests.cpu == expectedResultDescription.containers[idx].requests.cpu
+        c.requests.memory == expectedResultDescription.containers[idx].requests.memory
+        c.limits.cpu == expectedResultDescription.containers[idx].limits.cpu
+        c.limits.memory == expectedResultDescription.containers[idx].limits.memory
+      }
   }
-
 }

@@ -124,15 +124,29 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
 
       replicationControllerBuilder = replicationControllerBuilder.withNewResources()
       if (container.requests) {
-        def requests = [memory: container.requests.memory,
-                        cpu: container.requests.cpu]
+        def requests = [:]
+
+        if (container.requests.memory) {
+          requests.memory = container.requests.memory
+        }
+
+        if (container.requests.cpu) {
+          requests.cpu = container.requests.cpu
+        }
         task.updateStatus BASE_PHASE, "Setting resource requests..."
         replicationControllerBuilder = replicationControllerBuilder.withRequests(requests)
       }
 
       if (container.limits) {
-        def limits = [memory: container.limits.memory,
-                      cpu: container.limits.cpu]
+        def limits = [:]
+
+        if (container.limits.memory) {
+          limits.memory = container.limits.memory
+        }
+
+        if (container.limits.cpu) {
+          limits.cpu = container.limits.cpu
+        }
         task.updateStatus BASE_PHASE, "Setting resource limits..."
         replicationControllerBuilder = replicationControllerBuilder.withLimits(limits)
       }
