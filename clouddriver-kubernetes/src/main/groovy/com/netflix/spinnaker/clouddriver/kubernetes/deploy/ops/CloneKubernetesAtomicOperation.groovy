@@ -92,14 +92,28 @@ class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult
     newDescription.securityGroups = description.securityGroups != null ? description.securityGroups : KubernetesUtil.getDescriptionSecurityGroups(ancestorServerGroup)
     if (!description.containers) {
       newDescription.containers = []
-      ancestorServerGroup.spec?.template?.spec?.containers?.each {
+      ancestorServerGroup.spec?.template?.spec?.containers?.each { it ->
         def newLimits
         def newRequests
         if (it.resources?.limits) {
-          newLimits = new KubernetesResourceDescription(it.resources.limits.memory, it.resources.limits.cpu)
+          newLimits = new KubernetesResourceDescription()
+          if (it.resources.limits.memory) {
+            newLimits.memory = it.resources.limits.memory.amount
+          }
+
+          if (it.resources.limits.cpu) {
+            newLimits.cpu = it.resources.limits.cpu.amount
+          }
         }
         if (it.resources?.requests) {
-          newRequests = new KubernetesResourceDescription(it.resources.requests.memory, it.resources.requests.cpu)
+          newRequests = new KubernetesResourceDescription()
+          if (it.resources.requests.memory) {
+            newRequests.memory = it.resources.requests.memory.amount
+          }
+
+          if (it.resources.requests.cpu) {
+            newRequests.cpu = it.resources.requests.cpu.amount
+          }
         }
         def newContainer = new KubernetesContainerDescription(it.name, it.image, newRequests, newLimits)
         newDescription.containers.push(newContainer)
