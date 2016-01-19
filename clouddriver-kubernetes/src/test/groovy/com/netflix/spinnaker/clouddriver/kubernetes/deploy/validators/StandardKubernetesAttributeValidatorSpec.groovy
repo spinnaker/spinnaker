@@ -256,7 +256,7 @@ class StandardKubernetesAttributeValidatorSpec extends Specification {
       validator.validateDetails("-", label)
     then:
       1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.namePattern})")
-      0 * errorsMock._ 
+      0 * errorsMock._
 
     when:
       validator.validateDetails("a space", label)
@@ -274,7 +274,7 @@ class StandardKubernetesAttributeValidatorSpec extends Specification {
       validator.validateDetails("-k-e-b-a-b-", label)
     then:
       1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.namePattern})")
-      0 * errorsMock._ 
+      0 * errorsMock._
   }
 
   void "name accept"() {
@@ -309,7 +309,7 @@ class StandardKubernetesAttributeValidatorSpec extends Specification {
       validator.validateName("-", label)
     then:
       1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.namePattern})")
-      0 * errorsMock._ 
+      0 * errorsMock._
 
     when:
       validator.validateName("an_underscore", label)
@@ -362,7 +362,7 @@ class StandardKubernetesAttributeValidatorSpec extends Specification {
       validator.validateApplication("l-l", label)
     then:
       1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.prefixPattern})")
-      0 * errorsMock._ 
+      0 * errorsMock._
 
     when:
       validator.validateApplication("?application", label)
@@ -409,7 +409,7 @@ class StandardKubernetesAttributeValidatorSpec extends Specification {
       validator.validateStack("l-l", label)
     then:
       1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.prefixPattern})")
-      0 * errorsMock._ 
+      0 * errorsMock._
 
     when:
       validator.validateStack("?stack", label)
@@ -453,21 +453,21 @@ class StandardKubernetesAttributeValidatorSpec extends Specification {
       def label = "label"
 
     when:
-      validator.validateMemory("100", label)
+      validator.validateMemory("   100", label)
     then:
-      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.memoryPattern})")
-      0 * errorsMock._ 
+      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.quantityPattern})")
+      0 * errorsMock._
 
     when:
       validator.validateMemory("x100Gi", label)
     then:
-      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.memoryPattern})")
+      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.quantityPattern})")
       0 * errorsMock._
 
     when:
-      validator.validateMemory("1Ti", label)
+      validator.validateMemory("1Tt!i", label)
     then:
-      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.memoryPattern})")
+      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.quantityPattern})")
       0 * errorsMock._
   }
 
@@ -500,21 +500,21 @@ class StandardKubernetesAttributeValidatorSpec extends Specification {
       def label = "label"
 
     when:
-      validator.validateCpu("100", label)
+      validator.validateCpu("100z", label)
     then:
-      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.cpuPattern})")
-      0 * errorsMock._ 
-
-    when:
-      validator.validateCpu("10M", label)
-    then:
-      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.cpuPattern})")
+      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.quantityPattern})")
       0 * errorsMock._
 
     when:
-      validator.validateCpu("1G", label)
+      validator.validateCpu("?", label)
     then:
-      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.cpuPattern})")
+      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.quantityPattern})")
+      0 * errorsMock._
+
+    when:
+      validator.validateCpu("- ", label)
+    then:
+      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.quantityPattern})")
       0 * errorsMock._
   }
 }

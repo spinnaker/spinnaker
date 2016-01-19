@@ -30,15 +30,17 @@ import spock.lang.Specification
 
 class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   private static final DESCRIPTION = "deployKubernetesAtomicOperationDescription"
-  
+
   private static final VALID_APPLICATION = "app"
   private static final VALID_STACK = "stack"
   private static final VALID_DETAILS = "the-details"
   private static final VALID_TARGET_SIZE = 3
   private static final VALID_IMAGE = "container-image"
   private static final VALID_NAME = "a-name"
-  private static final VALID_MEMORY = "200Mi"
-  private static final VALID_CPU = "200m"
+  private static final VALID_MEMORY1 = "200"
+  private static final VALID_MEMORY2 = "200Mi"
+  private static final VALID_CPU1 = "200"
+  private static final VALID_CPU2 = "200m"
   private static final VALID_CREDENTIALS = "auto"
   private static final VALID_LOAD_BALANCERS = ["x", "y"]
   private static final VALID_SECURITY_GROUPS = ["a-1", "b-2"]
@@ -49,8 +51,8 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   private static final INVALID_TARGET_SIZE = -7
   private static final INVALID_IMAGE = ""
   private static final INVALID_NAME = "a?name"
-  private static final INVALID_MEMORY = "200M"
-  private static final INVALID_CPU = "-1m"
+  private static final INVALID_MEMORY = "200?"
+  private static final INVALID_CPU = "9z"
   private static final INVALID_CREDENTIALS = "valid"
   private static final INVALID_LOAD_BALANCERS = [" ", "--"]
   private static final INVALID_SECURITY_GROUPS = [" ", "--"]
@@ -69,18 +71,24 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
     validator.accountCredentialsProvider = credentialsProvider
   }
 
-  KubernetesContainerDescription fullValidContainerDescription
+  KubernetesContainerDescription fullValidContainerDescription1
+  KubernetesContainerDescription fullValidContainerDescription2
   KubernetesContainerDescription partialValidContainerDescription
-  KubernetesResourceDescription fullValidResourceDescription
+  KubernetesResourceDescription fullValidResourceDescription1
+  KubernetesResourceDescription fullValidResourceDescription2
+  KubernetesResourceDescription partialValidResourceDescription
 
   KubernetesContainerDescription fullInvalidContainerDescription
   KubernetesContainerDescription partialInvalidContainerDescription
   KubernetesResourceDescription fullInvalidResourceDescription
 
   void setup() {
-    fullValidResourceDescription = new KubernetesResourceDescription(memory: VALID_MEMORY, cpu: VALID_CPU)
-    fullValidContainerDescription = new KubernetesContainerDescription(name: VALID_NAME, image: VALID_IMAGE, limits: fullValidResourceDescription, requests: fullValidResourceDescription)
-    partialValidContainerDescription = new KubernetesContainerDescription(name: VALID_NAME, image: VALID_IMAGE)
+    fullValidResourceDescription1 = new KubernetesResourceDescription(memory: VALID_MEMORY1, cpu: VALID_CPU1)
+    fullValidResourceDescription2 = new KubernetesResourceDescription(memory: VALID_MEMORY2, cpu: VALID_CPU2)
+    partialValidResourceDescription = new KubernetesResourceDescription(memory: VALID_MEMORY1)
+    fullValidContainerDescription1 = new KubernetesContainerDescription(name: VALID_NAME, image: VALID_IMAGE, limits: fullValidResourceDescription1, requests: fullValidResourceDescription1)
+    fullValidContainerDescription2 = new KubernetesContainerDescription(name: VALID_NAME, image: VALID_IMAGE, limits: fullValidResourceDescription2, requests: fullValidResourceDescription2)
+    partialValidContainerDescription = new KubernetesContainerDescription(name: VALID_NAME, image: VALID_IMAGE, limits: partialValidResourceDescription)
 
     fullInvalidResourceDescription = new KubernetesResourceDescription(memory: INVALID_MEMORY, cpu: INVALID_CPU)
     fullInvalidContainerDescription = new KubernetesContainerDescription(name: INVALID_NAME, image: INVALID_IMAGE, limits: fullInvalidResourceDescription, requests: fullInvalidResourceDescription)
@@ -94,8 +102,8 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
                                                                        freeFormDetails: VALID_STACK,
                                                                        targetSize: VALID_TARGET_SIZE,
                                                                        containers: [
-                                                                         fullValidContainerDescription,
-                                                                         fullValidContainerDescription
+                                                                         fullValidContainerDescription1,
+                                                                         fullValidContainerDescription2
                                                                        ],
                                                                        loadBalancers: VALID_LOAD_BALANCERS,
                                                                        securityGroups: VALID_SECURITY_GROUPS,
@@ -175,11 +183,11 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
       1 * errorsMock.rejectValue("${DESCRIPTION}.application", "${DESCRIPTION}.application.empty")
       0 * errorsMock._
   }
- 
+
   void "validation reject (invalid stack)"() {
     setup:
       def description = new DeployKubernetesAtomicOperationDescription(application: VALID_APPLICATION,
-                                                                       stack: INVALID_STACK, 
+                                                                       stack: INVALID_STACK,
                                                                        targetSize: VALID_TARGET_SIZE,
                                                                        containers: [
                                                                          partialValidContainerDescription
@@ -265,10 +273,10 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
     then:
       1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].name", "${DESCRIPTION}.container[0].name.invalid (Must match ${StandardKubernetesAttributeValidator.namePattern})")
       1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].image", "${DESCRIPTION}.container[0].image.empty")
-      1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].requests.memory", "${DESCRIPTION}.container[0].requests.memory.invalid (Must match ${StandardKubernetesAttributeValidator.memoryPattern})")
-      1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].limits.memory", "${DESCRIPTION}.container[0].limits.memory.invalid (Must match ${StandardKubernetesAttributeValidator.memoryPattern})")
-      1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].requests.cpu", "${DESCRIPTION}.container[0].requests.cpu.invalid (Must match ${StandardKubernetesAttributeValidator.cpuPattern})")
-      1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].limits.cpu", "${DESCRIPTION}.container[0].limits.cpu.invalid (Must match ${StandardKubernetesAttributeValidator.cpuPattern})")
+      1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].requests.memory", "${DESCRIPTION}.container[0].requests.memory.invalid (Must match ${StandardKubernetesAttributeValidator.quantityPattern})")
+      1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].limits.memory", "${DESCRIPTION}.container[0].limits.memory.invalid (Must match ${StandardKubernetesAttributeValidator.quantityPattern})")
+      1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].requests.cpu", "${DESCRIPTION}.container[0].requests.cpu.invalid (Must match ${StandardKubernetesAttributeValidator.quantityPattern})")
+      1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].limits.cpu", "${DESCRIPTION}.container[0].limits.cpu.invalid (Must match ${StandardKubernetesAttributeValidator.quantityPattern})")
       0 * errorsMock._
   }
 

@@ -24,8 +24,7 @@ class StandardKubernetesAttributeValidator {
   static final namePattern = /^[a-z0-9]+([-a-z0-9]*[a-z0-9])?$/
   static final credentialsPattern = /^[a-z0-9]+([-a-z0-9_]*[a-z0-9])?$/
   static final prefixPattern = /^[a-z0-9]+$/
-  static final cpuPattern = /^(\d+m)?$/
-  static final memoryPattern = /^(\d+(Mi|Gi))?$/
+  static final quantityPattern = /^([+-]?[0-9.]+)([eEimkKMGTP]*[-+]?[0-9]*)$/
 
   String context
 
@@ -48,7 +47,7 @@ class StandardKubernetesAttributeValidator {
   }
 
   def validateDetails(String value, String attribute) {
-    /* Details are optional */
+    // Details are optional
     if (!value) {
       return true
     } else {
@@ -81,11 +80,21 @@ class StandardKubernetesAttributeValidator {
   }
 
   def validateCpu(String value, String attribute) {
-    return validateByRegex(value, attribute, cpuPattern)
+    // CPU is optional
+    if (!value) {
+      return true
+    } else {
+      return validateByRegex(value, attribute, quantityPattern)
+    }
   }
 
   def validateMemory(String value, String attribute) {
-    return validateByRegex(value, attribute, memoryPattern)
+    // Memory is optional
+    if (!value) {
+      return true
+    } else {
+      return validateByRegex(value, attribute, quantityPattern)
+    }
   }
 
   def validateNotEmpty(Object value, String attribute) {
