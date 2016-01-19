@@ -9,9 +9,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
   require('../../../cache/viewStateCache.js'),
   require('../../../confirmationModal/confirmationModal.service.js'),
 ])
-  .factory('pipelineConfigService', function (_, $q, settings, Restangular,
-                                              authenticationService, viewStateCache,
-                                              $uibModal) {
+  .factory('pipelineConfigService', function (_, $q, Restangular, authenticationService, viewStateCache) {
 
     var configViewStateCache = viewStateCache.createCache('pipelineConfig', { version: 1 });
 
@@ -146,19 +144,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
       delete pipeline.parallel;
     }
 
-    function toggleTrigger(pipeline, index) {
-      var trigger = pipeline.triggers[index];
-      return $uibModal.open({
-        templateUrl: require('../../../delivery/triggers/toggleTrigger.modal.html'),
-        controller: 'ToggleTriggerModalCtrl',
-        controllerAs: 'toggleTriggerCtrl',
-        resolve: {
-          pipeline: function() { return pipeline; },
-          trigger: function() { return trigger; }
-        }
-      }).result;
-    }
-
     return {
       getPipelinesForApplication: getPipelinesForApplication,
       getStrategiesForApplication: getStrategiesForApplication,
@@ -171,7 +156,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.services.configS
       getAllUpstreamDependencies: getAllUpstreamDependencies,
       enableParallelExecution: enableParallelExecution,
       disableParallelExecution: disableParallelExecution,
-      toggleTrigger: toggleTrigger,
     };
 
   });

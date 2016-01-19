@@ -60,34 +60,7 @@
             </select>
           </div>
         </div>
-        <div class="form-group">
-          <label class="col-md-2 col-md-offset-1 sm-label-left">Build</label>
-          <div class="col-md-6" ng-if="vm.viewState.buildsLoading">
-            <p class="form-control-static text-center" >
-              <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
-            </p>
-          </div>
-          <div class="col-md-9" ng-if="!vm.viewState.buildsLoading">
-            <ui-select class="form-control input-sm"
-                       ng-model="vm.command.selectedBuild"
-                       on-select="vm.updateSelectedBuild($item)">
-              <ui-select-match placeholder="Select...">
-                <span>
-                  <strong>Build {{$select.selected.number}}</strong>
-                  {{$select.selected | buildDisplayName}}
-                  ({{$select.selected.timestamp | timestamp}})
-                </span>
-              </ui-select-match>
-              <ui-select-choices repeat="build in vm.builds | anyFieldFilter: {number: $select.search, fullDisplayName: $select.search, status: $select.search}">
-              <span>
-                  <strong>Build {{build.number}}</strong>
-                  {{build | buildDisplayName}}
-                  ({{build.timestamp | timestamp}})
-                </span>
-              </ui-select-choices>
-            </ui-select>
-          </div>
-        </div>
+        <div ng-include="vm.triggerTemplate"></div>
       </div>
       <div class="form-group" ng-if="vm.showRebakeOption">
         <label ng-if="vm.triggers.length" class="col-md-2 col-md-offset-1 sm-label-left">Rebake</label>

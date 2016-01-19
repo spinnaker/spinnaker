@@ -4,7 +4,6 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.delivery.execution.triggers', [
   require('../../pipeline/config/pipelineConfigProvider.js'),
-  require('./ToggleTrigger.modal.controller.js'),
   require('../../utils/lodash.js'),
 ])
   .directive('triggersTag', function() {
@@ -54,10 +53,6 @@ module.exports = angular.module('spinnaker.core.delivery.execution.triggers', [
         $scope.triggerTooltip += '<br/><b>(click to manage)</b>';
       }
     }
-
-    this.toggleTrigger = function(triggerIndex) {
-      pipelineConfigService.toggleTrigger($scope.pipeline, triggerIndex).then(updateTriggerInfo);
-    };
 
     updateTriggerInfo();
   });

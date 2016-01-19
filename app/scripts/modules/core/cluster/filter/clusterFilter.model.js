@@ -42,7 +42,7 @@ module.exports = angular
       this.getSelectedAvailabilityZones()
         .filter( (az) => { //select the az that need don't match a region and need to be 'unchecked'
           let regions = this.getSelectedRegions();
-          return this.getSelectedRegions().length && !_.any(this.getSelectedRegions(), (region) => _.includes(az, region));
+          return regions.length && !_.any(regions, (region) => _.includes(az, region));
         })
         .forEach( (azKey) => {
           delete this.sortFilter.availabilityZone[azKey];

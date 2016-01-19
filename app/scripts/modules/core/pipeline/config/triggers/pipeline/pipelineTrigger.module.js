@@ -8,6 +8,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.pipeline
   require('../../../../application/service/applications.read.service.js'),
   require('../trigger.directive.js'),
   require('../../../../utils/lodash.js'),
+  require('./pipelineTriggerOptions.directive.js'),
 ])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerTrigger({
@@ -17,8 +18,31 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.pipeline
       controller: 'pipelineTriggerCtrl',
       controllerAs: 'pipelineTriggerCtrl',
       templateUrl: require('./pipelineTrigger.html'),
-      popoverLabelUrl: require('./pipelinePopoverLabel.html')
+      popoverLabelUrl: require('./pipelinePopoverLabel.html'),
+      manualExecutionHandler: 'pipelineTriggerManualExecutionHandler',
     });
+  })
+  .factory('pipelineTriggerManualExecutionHandler', function (pipelineConfigService) {
+    // must provide two fields:
+    //   formatLabel (promise): used to supply the label for selecting a trigger when there are multiple triggers
+    //   selectorTemplate: provides the HTML to show extra fields
+    return {
+      formatLabel: (trigger) => {
+
+        let loadSuccess = (pipelines) => {
+          let [pipeline] = pipelines.filter((config) => config.id === trigger.pipeline);
+          return pipeline ? `(Pipeline) ${trigger.application}: ${pipeline.name}` : '[pipeline not found]';
+        };
+
+        let loadFailure = () => {
+          return `[could not load pipelines for '${trigger.application}']`;
+        };
+
+        return pipelineConfigService.getPipelinesForApplication(trigger.application)
+          .then(loadSuccess, loadFailure);
+      },
+      selectorTemplate: require('./selectorTemplate.html'),
+    };
   })
   .controller('pipelineTriggerCtrl', function ($scope, trigger, pipelineConfigService, applicationReader, _) {
 

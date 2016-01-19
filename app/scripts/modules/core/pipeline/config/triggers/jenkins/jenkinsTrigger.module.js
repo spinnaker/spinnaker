@@ -3,11 +3,13 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins', [
+  require('./jenkinsTriggerOptions.directive.js'),
   require('../trigger.directive.js'),
   require('../../../../ci/jenkins/igor.service.js'),
   require('../../pipelineConfigProvider.js'),
 ])
   .config(function(pipelineConfigProvider) {
+
     pipelineConfigProvider.registerTrigger({
       label: 'Jenkins',
       description: 'Listens to a Jenkins job',
@@ -16,6 +18,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins'
       controllerAs: 'jenkinsTriggerCtrl',
       templateUrl: require('./jenkinsTrigger.html'),
       popoverLabelUrl: require('./jenkinsPopoverLabel.html'),
+      manualExecutionHandler: 'jenkinsTriggerExecutionHandler',
       validators: [
         {
           type: 'requiredField',
@@ -24,6 +27,17 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins'
         },
       ],
     });
+  })
+  .factory('jenkinsTriggerExecutionHandler', function ($q) {
+    // must provide two fields:
+    //   formatLabel (promise): used to supply the label for selecting a trigger when there are multiple triggers
+    //   selectorTemplate: provides the HTML to show extra fields
+    return {
+      formatLabel: (trigger) => {
+        return $q.when(`(Jenkins) ${trigger.master}: ${trigger.job}`);
+      },
+      selectorTemplate: require('./selectorTemplate.html'),
+    };
   })
   .controller('JenkinsTriggerCtrl', function($scope, trigger, igorService) {
 
