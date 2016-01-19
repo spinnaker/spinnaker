@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.service', [
-  require('../../../core/cache/deckCacheFactory.js'),
+  require('../../../core/config/settings.js'),
   require('../../../core/account/account.service.js'),
   require('../../../core/naming/naming.service.js'),
   require('../../../core/utils/lodash.js'),
@@ -27,12 +27,8 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
       });
     }
 
-    function buildNewServerGroupCommand(application, defaults) {
-      defaults = defaults || {};
-
+    function buildNewServerGroupCommand(application, defaults = {}) {
       var defaultCredentials = defaults.account || settings.providers.kubernetes.defaults.account;
-      var defaultRegion = defaults.region || settings.providers.kubernetes.defaults.region;
-      var defaultZone = defaults.zone || settings.providers.kubernetes.defaults.zone;
 
       var command = {
         credentials: defaultCredentials,

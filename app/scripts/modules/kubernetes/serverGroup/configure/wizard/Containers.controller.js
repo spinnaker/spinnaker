@@ -9,6 +9,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.cont
 
     this.cpuPattern = /^\d+(m)?$/;
     this.memoryPattern = /^\d+(Mi|Gi)?$/;
-
-    return;
   });

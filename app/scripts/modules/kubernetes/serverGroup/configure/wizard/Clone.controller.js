@@ -5,6 +5,10 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clone', [
   require('angular-ui-router'),
   require('../../../../core/application/modal/platformHealthOverride.directive.js'),
+  require('../../../../core/serverGroup/serverGroup.write.service.js'),
+  require('../../../../core/modal/wizard/modalWizard.service.js'),
+  require('../../../../core/task/monitor/taskMonitorService.js'),
+  require('../configuration.service.js'),
 ])
   .controller('kubernetesCloneServerGroupController', function($scope, $modalInstance, _, $q, $state,
                                                          serverGroupWriter, modalWizardService, taskMonitorService,

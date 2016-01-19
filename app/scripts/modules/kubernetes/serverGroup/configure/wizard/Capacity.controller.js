@@ -6,6 +6,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.capa
   .controller('kubernetesServerGroupCapacityController', function(modalWizardService) {
     modalWizardService.getWizard().markClean('capacity');
     modalWizardService.getWizard().markComplete('capacity');
-
-    return;
   });
