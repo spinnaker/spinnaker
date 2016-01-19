@@ -23,10 +23,10 @@ import com.netflix.spinnaker.front50.model.project.Project
 import com.netflix.spinnaker.front50.model.project.ProjectDAO
 import com.netflix.spinnaker.front50.resources.project.ProjectResource
 import com.netflix.spinnaker.front50.resources.project.ProjectResourceAssembler
-import com.wordnik.swagger.annotations.Api
-import com.wordnik.swagger.annotations.ApiOperation
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
+import io.swagger.annotations.Api
+import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.hateoas.Resources
