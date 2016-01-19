@@ -97,13 +97,17 @@
       </div>
     </div>
     <div class="form-group">
-      <div class="col-md-5 sm-label-left"><b>Enable Traffic</b></div>
+      <div class="col-md-5 sm-label-left"><b>Scaling Processes</b></div>
       <div class="col-md-6 checkbox">
-        <label><input type="checkbox"
-                      ng-click="command.toggleSuspendedProcess('AddToLoadBalancer')"
-                      ng-checked="!command.processIsSuspended('AddToLoadBalancer')"/>
-          Send client requests to new instances
-        </label>
+        <div ng-repeat="process in command.backingData.scalingProcesses">
+          <label>
+            <input type="checkbox"
+                   ng-click="command.toggleSuspendedProcess(process.name)"
+                   ng-checked="!command.processIsSuspended(process.name)"/>
+            {{process.name}}
+            <help-field content="{{process.description}}"></help-field>
+          </label>
+        </div>
       </div>
     </div>
     <div class="form-group" ng-if="application.attributes.platformHealthOnlyShowOverride">
