@@ -61,7 +61,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.deployIniti
         angular.extend(details, serverGroup);
         return awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting($scope.application, details, 'editPipeline').then(function (command) {
           applyCommandToScope(command);
-          $scope.command.strategy = 'redblack';
         });
       });
     }
