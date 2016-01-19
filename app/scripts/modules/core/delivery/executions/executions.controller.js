@@ -21,7 +21,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       ExecutionFilterModel.mostRecentApplication = $scope.application.name;
     }
 
-    let scrollIntoView = () => scrollToService.scrollTo('execution-' + $stateParams.executionId, '.all-execution-groups', 280, 300);
+    let scrollIntoView = (delay=200) => scrollToService.scrollTo('execution-' + $stateParams.executionId, '.all-execution-groups', 225, delay);
 
     let application = $scope.application;
     this.application = application;
@@ -73,10 +73,6 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
     });
 
     $scope.filterCountOptions = [1, 2, 5, 10, 20];
-
-    $scope.$watch(() => ExecutionFilterModel.groups, () => {
-
-    });
 
     let dataInitializationFailure = () => {
       this.viewState.loading = false;
@@ -136,6 +132,22 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       }).result.then(startPipeline);
     };
 
-
+    $scope.$on('$stateChangeSuccess', (event, toState, toParams, fromState, fromParams) => {
+      // if we're navigating to a different execution on the same page, scroll the new execution into view
+      // or, if we are navigating back to the same execution after scrolling down the page, scroll it into view
+      // but don't scroll it into view if we're navigating to a different stage in the same execution
+      let shouldScroll = false;
+      if (toState.name.indexOf(fromState.name) === 0 && toParams.application === fromParams.application && toParams.executionId) {
+        shouldScroll = true;
+        if (toParams.executionId === fromParams.executionId && toParams.details) {
+          if (toParams.stage !== fromParams.stage || toParams.step !== fromParams.step || toParams.details !== fromParams.details) {
+            shouldScroll = false;
+          }
+        }
+      }
+      if (shouldScroll) {
+        scrollIntoView(0);
+      }
+    });
 
   });

@@ -1,5 +1,7 @@
 <div class="execution" id="execution-{{vm.execution.id}}">
-  <execution-status execution="vm.execution" filter="vm.filter">
+  <execution-status execution="vm.execution"
+                    toggle-details="vm.toggleDetails"
+                    showing-details="vm.showDetails">
   </execution-status>
   <div class="execution-bar">
     <div class="stages">
@@ -52,12 +54,6 @@
   </div>
 
   <div ng-if="vm.showDetails()" class="execution-graph">
-    <a href
-       class="hide-details-link"
-       ng-if="vm.execution.parallel"
-       ui-sref=".">
-      Hide Details <span class="glyphicon glyphicon-remove"></span>
-    </a>
     <pipeline-graph ng-if="vm.execution.parallel"
                     execution="vm.execution"
                     on-node-click="vm.toggleDetails"

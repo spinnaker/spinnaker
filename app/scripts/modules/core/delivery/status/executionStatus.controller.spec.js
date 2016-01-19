@@ -3,29 +3,24 @@
 describe('Controller: executionStatus', function () {
 
   var controller;
-  var scope;
 
   beforeEach(
     window.module(
-      require('./executionStatus.controller')
+      require('./executionStatus.directive')
     )
   );
 
   describe('parameter extraction', function () {
 
     beforeEach(
-      window.inject(function ($rootScope, $controller) {
-        scope = $rootScope.$new();
+      window.inject(function ($controller) {
         this.initialize = function(execution) {
-          scope.execution = execution;
-          controller = $controller('executionStatus', {
-            $scope: scope
-          });
+          controller = $controller('executionStatus', {}, { execution: execution });
         };
       })
     );
 
-    it('adds parameters, sorted alphabetically, to scope if present on trigger', function () {
+    it('adds parameters, sorted alphabetically, to vm if present on trigger', function () {
       var execution = {
         trigger: {
           parameters: {
@@ -43,7 +38,7 @@ describe('Controller: executionStatus', function () {
       ]);
     });
 
-    it('does not add parameters to scope if none present in trigger', function () {
+    it('does not add parameters to vm if none present in trigger', function () {
       var execution = { trigger: { } };
       this.initialize(execution);
       expect(controller.parameters).toBeUndefined();
