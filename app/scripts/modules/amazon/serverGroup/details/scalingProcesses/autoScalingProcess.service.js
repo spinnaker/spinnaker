@@ -76,6 +76,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.p
     }
 
     return {
+      listProcesses: listProcesses,
       normalizeScalingProcesses: normalizeScalingProcesses,
       getDisabledDate: getDisabledDate,
     };

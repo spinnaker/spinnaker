@@ -14,11 +14,12 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   require('../../../core/cache/cacheInitializer.js'),
   require('../../../core/utils/lodash.js'),
   require('../../../core/serverGroup/configure/common/serverGroupCommand.registry.js'),
+  require('../details/scalingProcesses/autoScalingProcess.service.js'),
 ])
   .factory('awsServerGroupConfigurationService', function($q, awsImageReader, accountService, securityGroupReader,
                                                           awsInstanceTypeService, cacheInitializer, namingService,
                                                           subnetReader, keyPairsReader, loadBalancerReader, _,
-                                                          serverGroupCommandRegistry) {
+                                                          serverGroupCommandRegistry, autoScalingProcessService) {
 
 
     var healthCheckTypes = ['EC2', 'ELB'],
@@ -70,6 +71,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         var instanceTypeReloader = $q.when(null);
         backingData.accounts = _.keys(backingData.regionsKeyedByAccount);
         backingData.filtered = {};
+        backingData.scalingProcesses = autoScalingProcessService.listProcesses();
         command.backingData = backingData;
         configureVpcId(command);
 
