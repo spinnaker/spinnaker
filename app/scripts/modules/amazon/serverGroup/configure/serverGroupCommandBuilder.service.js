@@ -139,9 +139,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
       return command;
     }
 
-    function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
-      mode = mode || 'clone';
-
+    function buildServerGroupCommandFromExisting(application, serverGroup, mode = 'clone') {
       var preferredZonesLoader = accountService.getPreferredZonesByAccount('aws');
       var subnetsLoader = subnetReader.listSubnets();
 
@@ -209,6 +207,11 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
         if (mode === 'clone') {
           command.useSourceCapacity = true;
           command.viewState.useSimpleCapacity = false;
+        }
+
+        if (mode === 'editPipeline') {
+          command.strategy = 'redblack';
+          command.suspendedProcesses = [];
         }
 
         var vpcZoneIdentifier = serverGroup.asg.vpczoneIdentifier;
