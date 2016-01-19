@@ -40,6 +40,7 @@ class DeployKubernetesAtomicOperationValidator extends DescriptionValidator<Depl
     helper.validateStack(description.stack, "stack")
     helper.validateDetails(description.freeFormDetails, "details")
     helper.validateNonNegative(description.targetSize, "targetSize")
+    helper.validateNamespace(description.namespace, "namespace")
 
     description.loadBalancers.eachWithIndex { name, idx ->
       helper.validateName(name, "loadBalancers[${idx}]")

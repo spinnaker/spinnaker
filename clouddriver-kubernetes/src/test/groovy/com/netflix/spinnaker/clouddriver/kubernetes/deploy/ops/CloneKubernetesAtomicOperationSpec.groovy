@@ -38,6 +38,8 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
   private static final APPLICATION = "myapp"
   private static final STACK = "test"
   private static final DETAIL = "mdservice"
+  private static final NAMESPACE1 = "default"
+  private static final NAMESPACE2 = "nondefault"
   private static final SEQUENCE = "v000"
   private static final TARGET_SIZE = 2
   private static final LOAD_BALANCER_NAMES = ["lb1", "lb2"]
@@ -88,7 +90,8 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
       targetSize: TARGET_SIZE,
       loadBalancers: LOAD_BALANCER_NAMES,
       securityGroups: SECURITY_GROUP_NAMES,
-      containers: containers
+      containers: containers,
+      namespace: NAMESPACE1
     )
 
     replicationController = new ReplicationController()
@@ -130,12 +133,12 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
   void "builds a description based on ancestor server group, overrides nothing"() {
     setup:
       def inputDescription = new CloneKubernetesAtomicOperationDescription(
-        source: [serverGroupName: ANCESTOR_SERVER_GROUP_NAME]
+        source: [serverGroupName: ANCESTOR_SERVER_GROUP_NAME, namespace: NAMESPACE1]
       )
 
       @Subject def operation = new CloneKubernetesAtomicOperation(inputDescription)
 
-      kubernetesUtilMock.getReplicationController(inputDescription.kubernetesCredentials, inputDescription.source.serverGroupName) >> replicationController
+      kubernetesUtilMock.getReplicationController(inputDescription.kubernetesCredentials, NAMESPACE1, inputDescription.source.serverGroupName) >> replicationController
       operation.kubernetesUtil = kubernetesUtilMock
 
     when:
@@ -148,6 +151,7 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
       resultDescription.targetSize == expectedResultDescription.targetSize
       resultDescription.loadBalancers == expectedResultDescription.loadBalancers
       resultDescription.securityGroups == expectedResultDescription.securityGroups
+      resultDescription.namespace == expectedResultDescription.namespace
       resultDescription.containers.eachWithIndex { c, idx ->
         c.image == expectedResultDescription.containers[idx].image
         c.name == expectedResultDescription.containers[idx].name
@@ -163,17 +167,18 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
       def inputDescription = new CloneKubernetesAtomicOperationDescription(
         application: APPLICATION,
         stack: STACK,
+        namespace: NAMESPACE1,
         freeFormDetails: DETAIL,
         targetSize: TARGET_SIZE,
         loadBalancers: LOAD_BALANCER_NAMES,
         securityGroups: SECURITY_GROUP_NAMES,
         containers: containers,
-        source: [serverGroupName: ANCESTOR_SERVER_GROUP_NAME]
+        source: [serverGroupName: ANCESTOR_SERVER_GROUP_NAME, namespace: NAMESPACE2]
       )
 
       @Subject def operation = new CloneKubernetesAtomicOperation(inputDescription)
 
-      kubernetesUtilMock.getReplicationController(inputDescription.kubernetesCredentials, inputDescription.source.serverGroupName) >> replicationController
+      kubernetesUtilMock.getReplicationController(inputDescription.kubernetesCredentials, NAMESPACE2, inputDescription.source.serverGroupName) >> replicationController
       operation.kubernetesUtil = kubernetesUtilMock
 
     when:
@@ -186,6 +191,7 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
       resultDescription.targetSize == expectedResultDescription.targetSize
       resultDescription.loadBalancers == expectedResultDescription.loadBalancers
       resultDescription.securityGroups == expectedResultDescription.securityGroups
+      resultDescription.namespace == expectedResultDescription.namespace
       resultDescription.containers.eachWithIndex { c, idx ->
         c.image == expectedResultDescription.containers[idx].image
         c.name == expectedResultDescription.containers[idx].name

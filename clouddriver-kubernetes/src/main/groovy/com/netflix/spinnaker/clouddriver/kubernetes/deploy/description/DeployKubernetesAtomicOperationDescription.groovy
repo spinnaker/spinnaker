@@ -27,6 +27,7 @@ class DeployKubernetesAtomicOperationDescription extends KubernetesAtomicOperati
   String application
   String stack
   String freeFormDetails
+  String namespace
   Integer targetSize
   List<String> loadBalancers
   List<String> securityGroups

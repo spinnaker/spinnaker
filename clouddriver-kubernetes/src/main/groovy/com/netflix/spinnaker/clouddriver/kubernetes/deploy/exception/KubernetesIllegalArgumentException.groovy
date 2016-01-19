@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Google, Inc.
+ * Copyright 2016 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.config
+package com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception
 
-import groovy.transform.ToString
+import groovy.transform.InheritConstructors
 
-@ToString(includeNames = true)
-class KubernetesConfigurationProperties {
-  @ToString(includeNames = true)
-  static class ManagedAccount {
-    String name
-    String environment
-    String accountType
-    String master
-    String username
-    String password
-    List<String> namespaces
-  }
+@InheritConstructors
+class KubernetesIllegalArgumentException extends IllegalArgumentException {}
 
-  List<ManagedAccount> accounts = []
-}

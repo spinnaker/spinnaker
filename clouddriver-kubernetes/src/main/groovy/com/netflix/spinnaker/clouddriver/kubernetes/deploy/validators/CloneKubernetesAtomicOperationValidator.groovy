@@ -39,14 +39,21 @@ class CloneKubernetesAtomicOperationValidator extends DescriptionValidator<Clone
     if (description.application) {
       helper.validateApplication(description.application, "application")
     }
+
     if (description.stack) {
       helper.validateStack(description.stack, "stack")
     }
+
     if (description.freeFormDetails) {
       helper.validateDetails(description.freeFormDetails, "details")
     }
+
     if (description.targetSize != null) {
       helper.validateNonNegative(description.targetSize, "targetSize")
+    }
+
+    if (description.namespace) {
+      helper.validateNamespace(description.namespace, "namespace")
     }
 
     description.loadBalancers.eachWithIndex { name, idx ->
