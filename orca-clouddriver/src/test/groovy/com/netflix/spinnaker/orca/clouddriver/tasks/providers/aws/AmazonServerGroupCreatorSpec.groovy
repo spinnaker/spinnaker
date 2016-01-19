@@ -17,8 +17,10 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
 import com.google.common.collect.Maps
+import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -169,5 +171,41 @@ class AmazonServerGroupCreatorSpec extends Specification {
 
     where:
       amiName = "ami-name-from-bake"
+  }
+
+  def "prefers the deployment details from an upstream stage to one from global context"() {
+    given:
+    def deployRegion = "us-east-1"
+    stage.context.amiName = null
+    stage.execution.context.deploymentDetails = [
+        ["ami": "not-my-ami", "region": deployRegion],
+        ["ami": "also-not-my-ami", "region": deployRegion]
+    ]
+
+    and:
+    def findImageStage = new PipelineStage(stage.execution, "findImage", [region: deployRegion, amiDetails: [ami: amiName]])
+    findImageStage.id = UUID.randomUUID()
+    findImageStage.refId = "1a"
+    stage.execution.stages << findImageStage
+
+    def intermediateStage = new PipelineStage(stage.execution, "whatever")
+    intermediateStage.id = UUID.randomUUID()
+    intermediateStage.refId = "1b"
+    stage.execution.stages << intermediateStage
+
+    and:
+    intermediateStage.requisiteStageRefIds = [findImageStage.refId]
+    stage.requisiteStageRefIds = [intermediateStage.refId]
+
+    when:
+    def operations = creator.getOperations(stage)
+
+    then:
+    operations.find {
+      it.containsKey("createServerGroup")
+    }.createServerGroup.amiName == amiName
+
+    where:
+    amiName = "ami-name-from-find-image"
   }
 }
