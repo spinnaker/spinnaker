@@ -6,7 +6,7 @@ var bakeryDetailUrl = process.env.BAKERY_DETAIL_URL || 'http://bakery.test.netfl
 var authEndpoint = process.env.AUTH_ENDPOINT || 'https://spinnaker-api-prestaging.prod.netflix.net/auth/info';
 
 window.spinnakerSettings = {
-  defaultProviders: ['aws', 'gce', 'azure', 'cf'],
+  defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes'],
   feedbackUrl: feedbackUrl,
   gateUrl: gateHost,
   bakeryDetailUrl: bakeryDetailUrl,
@@ -38,6 +38,12 @@ window.spinnakerSettings = {
       defaults: {
         account: 'titantest',
         region: 'us-east-1'
+      },
+    },
+    kubernetes: {
+      defaults: {
+        account: 'my-kubernetes-account',
+        namespace: 'default'
       },
     }
   },
