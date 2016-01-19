@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
+import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Value
@@ -24,7 +25,7 @@ import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
-class AmazonServerGroupCreator implements ServerGroupCreator {
+class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAware {
 
   static final List<String> DEFAULT_VPC_SECURITY_GROUPS = ["nf-infrastructure-vpc", "nf-datacenter-vpc"]
   static final List<String> DEFAULT_SECURITY_GROUPS = ["nf-infrastructure", "nf-datacenter"]
@@ -66,13 +67,21 @@ class AmazonServerGroupCreator implements ServerGroupCreator {
     }
 
     def targetRegion = operation.region ?: (operation.availabilityZones as Map<String, Object>).keySet()[0]
-    def deploymentDetails = (context.deploymentDetails ?: []) as List<Map>
-    if (!operation.amiName && deploymentDetails) {
-      operation.amiName = deploymentDetails.find { it.region == targetRegion }?.ami
+    withImageFromPrecedingStage(stage, targetRegion) {
+      operation.amiName = operation.amiName ?: it.amiName
+      operation.imageId = operation.imageId ?: it.imageId
     }
-    if (!operation.imageId && deploymentDetails) {
-      operation.imageId = deploymentDetails[0]?.imageId
-      // Because docker image ids are not region or cloud provider specific
+
+    withImageFromDeploymentDetails(stage, targetRegion) {
+      operation.amiName = operation.amiName ?: it.amiName
+      operation.imageId = operation.imageId ?: it.imageId
+    }
+    if (!operation.imageId) {
+      def deploymentDetails = (context.deploymentDetails ?: []) as List<Map>
+      if (deploymentDetails) {
+        // Because docker image ids are not region or cloud provider specific
+        operation.imageId = deploymentDetails[0]?.imageId
+      }
     }
 
     log.info("Deploying ${operation.amiName ?: operation.imageId} to ${targetRegion}")
