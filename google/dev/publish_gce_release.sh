@@ -21,11 +21,16 @@
 #
 # Sample usage:
 #   ./publish_gce_release.sh --original_image $ORIGINAL_IMAGE --original_project $ORIGINAL_PROJECT --publish_image $PUBLISH_IMAGE --publish_project $PUBLISH_PROJECT --original_repo $ORIGINAL_ARTIFACT_REPO_PATH --publish_repo $PUBLISH_ARTIFACT_REPO_PATH
-#  
+#
+#   Use --service_account to specify which service account to use when publishing
+#   to give permission to create the image in the target project (and also read from
+#   the source project). The service account must already be added to gcloud with
+#   gcloud auth activate-service-account.
 
 set -e
 set -u
 
+SERVICE_ACCOUNT=${SERVICE_ACCOUNT:-""}
 ORIGINAL_ARTIFACT_REPO_PATH=${ORIGINAL_ARTIFACT_REPO_PATH:-""}
 ORIGINAL_IMAGE=${ORIGINAL_IMAGE:-""}
 ORIGINAL_PROJECT_ID=${ORIGINAL_PROJECT_ID:-$(gcloud config list  \
@@ -74,6 +79,10 @@ function process_args() {
       local key="$1"
       shift
       case $key in
+         --service_account)
+           SERVICE_ACCOUNT="$1"
+           shift
+           ;;
          --publish_repo)
            PUBLISH_ARTIFACT_REPO_PATH="$1"
            shift
@@ -142,21 +151,26 @@ function copy_artifact_repository() {
 process_args "$@"
 validate_args
 
+GCLOUD_ACCOUNT_ARG=""
+if [[ "$SERVICE_ACCOUNT" ]]; then
+  GCLOUD_ACCOUNT_ARG="--account $SERVICE_ACCOUNT"
+fi
+
 echo "Creating disk"
-gcloud compute disks create "$PUBLISH_IMAGE" \
+gcloud compute disks create "$PUBLISH_IMAGE" $GCLOUD_ACCOUNT_ARG\
     --project "$PUBLISH_PROJECT_ID" \
     --zone "$ZONE" \
     --image-project "$ORIGINAL_PROJECT_ID" \
     --image "$ORIGINAL_IMAGE"
 
 echo "Publishing image"
-gcloud compute images create "$PUBLISH_IMAGE" \
+gcloud compute images create "$PUBLISH_IMAGE" $GCLOUD_ACCOUNT_ARG\
     --project "$PUBLISH_PROJECT_ID" \
     --source-disk-zone "$ZONE" \
     --source-disk "$PUBLISH_IMAGE"
 
 echo "Deleting disk"
-gcloud compute disks delete "$PUBLISH_IMAGE" \
+gcloud compute disks delete "$PUBLISH_IMAGE" $GCLOUD_ACCOUNT_ARG\
     --project "$PUBLISH_PROJECT_ID" \
     --zone "$ZONE" \
     --quiet
