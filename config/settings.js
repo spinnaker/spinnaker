@@ -16,9 +16,9 @@
 // var googleDefaultRegion = ${providers.google.defaultRegion};
 // var googleDefaultZone = ${providers.google.defaultZone};
 // var googlePrimaryAccount = ${providers.google.primaryCredentials.name};
-// let cfDefaultRegion = ${providers.cf.defaultOrg};
-// let cfDefaultZone = ${providers.cf.defaultSpace};
-// let cfPrimaryAccount = ${providers.cf.primaryCredentials.name};
+// var cfDefaultRegion = ${providers.cf.defaultOrg};
+// var cfDefaultZone = ${providers.cf.defaultSpace};
+// var cfPrimaryAccount = ${providers.cf.primaryCredentials.name};
 
 // END reconfigure_spinnaker
 /**
