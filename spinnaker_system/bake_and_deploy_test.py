@@ -220,7 +220,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Load Balancer Created',
                                 retryable_for_secs=60)
          .list_resources('forwarding-rules')
-         .contains('name', self.__short_lb_name))
+         .contains('name', self.__full_lb_name))
 
     return st.OperationContract(
         self.new_post_operation(
