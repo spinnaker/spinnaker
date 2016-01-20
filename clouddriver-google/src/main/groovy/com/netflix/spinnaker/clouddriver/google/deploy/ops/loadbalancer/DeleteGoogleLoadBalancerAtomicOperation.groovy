@@ -30,8 +30,9 @@ import org.springframework.beans.factory.annotation.Autowired
 
 class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "DELETE_LOAD_BALANCER"
-  private static final int MAX_NUM_TARGET_POOL_RETRIES = 5
-  private static final int TARGET_POOL_RETRY_INTERVAL_SECONDS = 1
+
+  static final int MAX_NUM_TARGET_POOL_RETRIES = 60
+  static final int TARGET_POOL_RETRY_INTERVAL_SECONDS = 1
 
   static class HealthCheckAsyncDeleteOperation {
     String healthCheckName
@@ -120,6 +121,10 @@ class DeleteGoogleLoadBalancerAtomicOperation implements AtomicOperation<Void> {
         if (e.details?.code == 400 && e.details?.errors?.getAt(0)?.reason == "resourceNotReady") {
           task.updateStatus BASE_PHASE, "While deleting target pool $targetPoolName in $region, received: " +
               "${e.details?.errors?.getAt(0)?.message}"
+
+          if (numAttempts == MAX_NUM_TARGET_POOL_RETRIES) {
+            throw e
+          }
 
           threadSleeper.sleep(TARGET_POOL_RETRY_INTERVAL_SECONDS)
         } else {

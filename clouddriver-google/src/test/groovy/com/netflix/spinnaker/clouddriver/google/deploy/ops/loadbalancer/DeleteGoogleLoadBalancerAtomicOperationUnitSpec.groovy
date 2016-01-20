@@ -36,6 +36,9 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 
+import static com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.DeleteGoogleLoadBalancerAtomicOperation.MAX_NUM_TARGET_POOL_RETRIES
+import static com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.DeleteGoogleLoadBalancerAtomicOperation.TARGET_POOL_RETRY_INTERVAL_SECONDS
+
 class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
@@ -413,7 +416,7 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       4 * computeMock.targetPools() >> targetPools
       4 * targetPools.delete(PROJECT_NAME, REGION, TARGET_POOL_NAME) >> targetPoolsDelete
       4 * targetPoolsDelete.execute() >> { throw googleJsonResponseException }
-      4 * threadSleeperMock.sleep(1)
+      4 * threadSleeperMock.sleep(TARGET_POOL_RETRY_INTERVAL_SECONDS)
 
     then:
       // Now succeed.
@@ -431,5 +434,75 @@ class DeleteGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       1 * computeMock.globalOperations() >> globalOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_DELETE_OP_NAME) >> healthCheckOperationGet
       1 * healthCheckOperationGet.execute() >> healthChecksDeleteOp
+  }
+
+  void "should retry deletion of target pool when 400/resourceNotReady is returned and should eventually give up"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def regionOperations = Mock(Compute.RegionOperations)
+      def forwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
+      def forwardingRulesDeleteOp = new Operation(
+          name: FORWARDING_RULE_DELETE_OP_NAME,
+          status: "DONE")
+      def forwardingRule = new ForwardingRule(target: TARGET_POOL_URL)
+      def targetPools = Mock(Compute.TargetPools)
+      def targetPoolsGet = Mock(Compute.TargetPools.Get)
+      def targetPoolsDelete = Mock(Compute.TargetPools.Delete)
+      def targetPool = new TargetPool(healthChecks: [HEALTH_CHECK_URL])
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def description = new DeleteGoogleLoadBalancerDescription(
+          loadBalancerName: LOAD_BALANCER_NAME,
+          region: REGION,
+          accountName: ACCOUNT_NAME,
+          credentials: credentials)
+      def errorMessage = "The resource '$TARGET_POOL_URL' is not ready"
+      def errorInfo = new GoogleJsonError.ErrorInfo(
+          domain: "global",
+          message: errorMessage,
+          reason: "resourceNotReady")
+      def details = new GoogleJsonError(
+          code: 400,
+          errors: [errorInfo],
+          message: errorMessage)
+      def httpResponseExceptionBuilder = new HttpResponseException.Builder(
+          400,
+          "Bad Request",
+          new HttpHeaders()).setMessage("400 Bad Request")
+      def googleJsonResponseException = new GoogleJsonResponseException(httpResponseExceptionBuilder, details)
+      def threadSleeperMock = Mock(DeleteGoogleLoadBalancerAtomicOperation.ThreadSleeper)
+      @Subject def operation = new DeleteGoogleLoadBalancerAtomicOperation(description)
+      operation.threadSleeper = threadSleeperMock
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+
+    when:
+      operation.operate([])
+
+    then:
+      2 * computeMock.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> forwardingRule
+      1 * computeMock.targetPools() >> targetPools
+      1 * targetPools.get(PROJECT_NAME, REGION, TARGET_POOL_NAME) >> targetPoolsGet
+      1 * targetPoolsGet.execute() >> targetPool
+      1 * forwardingRules.delete(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesDelete
+      1 * forwardingRulesDelete.execute() >> forwardingRulesDeleteOp
+      1 * computeMock.regionOperations() >> regionOperations
+      1 * regionOperations.get(PROJECT_NAME, REGION, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
+      1 * forwardingRuleOperationGet.execute() >> forwardingRulesDeleteOp
+
+    then:
+      // Throw "400/resourceNotReady" MAX_NUM_TARGET_POOL_RETRIES times and sleep all but the last iteration.
+      MAX_NUM_TARGET_POOL_RETRIES * computeMock.targetPools() >> targetPools
+      MAX_NUM_TARGET_POOL_RETRIES * targetPools.delete(PROJECT_NAME, REGION, TARGET_POOL_NAME) >> targetPoolsDelete
+      MAX_NUM_TARGET_POOL_RETRIES * targetPoolsDelete.execute() >> { throw googleJsonResponseException }
+      (MAX_NUM_TARGET_POOL_RETRIES - 1) * threadSleeperMock.sleep(TARGET_POOL_RETRY_INTERVAL_SECONDS)
+
+    then:
+      // Then give up and propagate the final exception.
+      thrown GoogleJsonResponseException
   }
 }
