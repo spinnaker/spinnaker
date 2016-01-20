@@ -47,7 +47,6 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
       getAccountId() >> '67890'
     }
 
-
     def creds = Stub(AccountCredentialsProvider) {
       getCredentials('target') >> target
     }
@@ -61,9 +60,9 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     then:
     ec2.describeTags(_) >> new DescribeTagsResult()
     1 * ec2.describeImages(_) >> { DescribeImagesRequest dir ->
-        assert dir.owners
-        assert dir.owners.size() == 1
-        assert dir.owners.first() == '67890'
+        assert dir.executableUsers
+        assert dir.executableUsers.size() == 1
+        assert dir.executableUsers.first() == '67890'
         assert dir.filters
         assert dir.filters.size() == 1
         assert dir.filters.first().name == 'name'

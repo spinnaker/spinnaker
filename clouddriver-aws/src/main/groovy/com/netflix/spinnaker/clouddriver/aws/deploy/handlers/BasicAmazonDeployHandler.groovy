@@ -122,19 +122,9 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       if (description.blockDevices == null) {
         description.blockDevices = BlockDeviceConfig.blockDevicesByInstanceType[description.instanceType]
       }
-
-      // find by 1) result of a previous step (we performed allow launch)
-      //         2) explicitly granted launch permission
-      //            (making this the default because AllowLaunch will always
-      //             stick an explicit launch permission on the image)
-      //         3) owner
-      //         4) global
       ResolvedAmiResult ami = priorOutputs.find({
         it instanceof ResolvedAmiResult && it.region == region && it.amiName == description.amiName
-      }) ?:
-        AmiIdResolver.resolveAmiId(amazonEC2, region, description.amiName, null, description.credentials.accountId) ?:
-          AmiIdResolver.resolveAmiId(amazonEC2, region, description.amiName, description.credentials.accountId) ?:
-            AmiIdResolver.resolveAmiId(amazonEC2, region, description.amiName, null, null)
+      }) ?: AmiIdResolver.resolveAmiIdFromAllSources(amazonEC2, region, description.amiName, description.credentials.accountId)
 
       if (!ami) {
         throw new IllegalArgumentException("unable to resolve AMI imageId from $description.amiName")

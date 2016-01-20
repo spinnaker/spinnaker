@@ -76,19 +76,10 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
 
 
     if (description.amiName) {
-      // find by 1) result of a previous step (we performed allow launch)
-      //         2) explicitly granted launch permission
-      //            (making this the default because AllowLaunch will always
-      //             stick an explicit launch permission on the image)
-      //         3) owner
-      //         4) global
       def amazonEC2 = regionScopedProvider.amazonEC2
       ResolvedAmiResult ami = priorOutputs.find({
         it instanceof ResolvedAmiResult && it.region == description.region && it.amiName == description.amiName
-      }) ?:
-        AmiIdResolver.resolveAmiId(amazonEC2, description.region, description.amiName, null, description.credentials.accountId) ?:
-          AmiIdResolver.resolveAmiId(amazonEC2, description.region, description.amiName, description.credentials.accountId) ?:
-            AmiIdResolver.resolveAmiId(amazonEC2, description.region, description.amiName, null, null)
+      }) ?: AmiIdResolver.resolveAmiIdFromAllSources(amazonEC2, description.region, description.amiName, description.credentials.accountId)
 
       props.ami = ami.amiId
     }
