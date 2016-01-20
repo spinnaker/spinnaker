@@ -122,6 +122,17 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
              ' is GCE.'.format(system=subsystem_name))
 
     parser.add_argument(
+        '--gce_service_account',
+        default=defaults.get('GCE_SERVICE_ACCOUNT', None),
+        help='The GCE service account to use when interacting with the'
+             ' gce_instance. The default will be the default configured'
+             ' account on the local machine. To change the default account,'
+             ' use "gcloud config set account". To active service accounts,'
+             ' use "gcloud auth activate-service-account".'
+             ' This parameter is only used if the spinnaker host platform'
+             ' is GCE.')
+
+    parser.add_argument(
         '--gce_ssh_passphrase_file',
         default=defaults.get('GCE_SSH_PASSPHRASE_FILE', None),
         help='Specifying a file containing the SSH passphrase'
