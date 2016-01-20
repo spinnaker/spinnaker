@@ -92,7 +92,7 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
     metadataMock = Mock(ObjectMeta)
     intOrStringMock = Mock(IntOrString)
 
-    credentials = new KubernetesCredentials(NAMESPACE, kubernetesClientMock)
+    credentials = new KubernetesCredentials([NAMESPACE], kubernetesClientMock)
     clusterName = KubernetesUtil.combineAppStackDetail(APPLICATION, STACK, DETAILS)
     replicationControllerName = String.format("%s-v%s", clusterName, SEQUENCE)
 
@@ -124,9 +124,9 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
       operation.operate([])
 
     then:
-      1 * kubernetesUtilMock.getNextSequence(_, _) >> SEQUENCE
+      1 * kubernetesUtilMock.getNextSequence(_, NAMESPACE, _) >> SEQUENCE
       SECURITY_GROUP_NAMES.each { name ->
-        1 * kubernetesUtilMock.getSecurityGroup(credentials, name) >> serviceMock
+        1 * kubernetesUtilMock.getSecurityGroup(credentials, NAMESPACE, name) >> serviceMock
         1 * serviceMock.getSpec() >> serviceSpecMock
         1 * serviceSpecMock.getPorts() >> [servicePortMock]
         1 * servicePortMock.getTargetPort() >> intOrStringMock

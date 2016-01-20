@@ -75,7 +75,7 @@ class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult
 
     task.updateStatus BASE_PHASE, "Reading ancestor server group ${description.source.serverGroupName}..."
 
-    ReplicationController ancestorServerGroup = kubernetesUtil.getReplicationController(description.kubernetesCredentials, description.source.serverGroupName)
+    ReplicationController ancestorServerGroup = kubernetesUtil.getReplicationController(description.kubernetesCredentials, description.source.namespace, description.source.serverGroupName)
 
     if (!ancestorServerGroup) {
       throw new KubernetesResourceNotFoundException("Source server group $description.source.serverGroupName does not exist.")
@@ -88,6 +88,7 @@ class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult
     newDescription.stack = description.stack ?: ancestorNames.stack
     newDescription.freeFormDetails = description.freeFormDetails ?: ancestorNames.detail
     newDescription.targetSize = description.targetSize ?: ancestorServerGroup.spec?.replicas
+    newDescription.namespace = description.namespace ?: description.source.namespace
     newDescription.loadBalancers = description.loadBalancers != null ? description.loadBalancers : KubernetesUtil.getDescriptionLoadBalancers(ancestorServerGroup)
     newDescription.securityGroups = description.securityGroups != null ? description.securityGroups : KubernetesUtil.getDescriptionSecurityGroups(ancestorServerGroup)
     if (!description.containers) {

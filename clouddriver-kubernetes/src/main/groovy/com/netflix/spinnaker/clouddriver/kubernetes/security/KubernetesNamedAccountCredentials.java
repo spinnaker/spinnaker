@@ -20,30 +20,23 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 public class KubernetesNamedAccountCredentials implements AccountCredentials<KubernetesCredentials> {
-    public KubernetesNamedAccountCredentials(String accountName, String environment, String accountType, String master, String username, String password, String namespace) {
-      this(accountName, environment, accountType, master, username, password, namespace, null);
+    public KubernetesNamedAccountCredentials(String accountName, String environment, String accountType, String master, String username, String password, List<String> namespaces) {
+      this(accountName, environment, accountType, master, username, password, namespaces, null);
     }
 
-    public KubernetesNamedAccountCredentials(String accountName, String environment, String accountType, String master, String username, String password, String namespace, List<String> requiredGroupMembership) {
+    public KubernetesNamedAccountCredentials(String accountName, String environment, String accountType, String master, String username, String password, List<String> namespaces, List<String> requiredGroupMembership) {
       this.accountName = accountName;
       this.environment = environment;
       this.accountType = accountType;
       this.master = master;
       this.username = username;
       this.password = password;
-      this.namespace = (namespace == null || namespace == "") ? "default" : namespace;
+      this.namespaces = (namespaces == null || namespaces.size() == 0) ? Arrays.asList("default") : namespaces;
       // TODO(lwander): what is this?
       this.requiredGroupMembership = requiredGroupMembership == null ? Collections.emptyList() : Collections.unmodifiableList(requiredGroupMembership);
       this.credentials = buildCredentials();
@@ -81,7 +74,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
       } catch (Exception e) {
         throw new RuntimeException("failed to create credentials", e);
       }
-      return new KubernetesCredentials(this.namespace, client);
+      return new KubernetesCredentials(this.namespaces, client);
     }
 
     private static String getLocalName(String fullUrl) {
@@ -108,7 +101,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     private final String master;
     private final String username;
     private final String password;
-    private final String namespace;
+    private final List<String> namespaces;
     private final KubernetesCredentials credentials;
     private final List<String> requiredGroupMembership;
 }

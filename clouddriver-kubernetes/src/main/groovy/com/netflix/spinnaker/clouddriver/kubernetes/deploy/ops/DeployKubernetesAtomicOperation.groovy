@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.DeployKubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesIllegalArgumentException
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.ReplicationController
@@ -59,10 +60,25 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
   ReplicationController deployDescription() {
     task.updateStatus BASE_PHASE, "Initializing creation of replication controller."
 
+
+    task.updateStatus BASE_PHASE, "Looking up provided namespace..."
+
     def credentials = description.kubernetesCredentials
+    def namespace = description.namespace ? description.namespace : "default"
+
+    if (!credentials.isRegisteredNamespace(namespace)) {
+      def error = "Registered namespaces are ${credentials.getNamespaces()}."
+      if (description.namespace) {
+        error = "Namespace '$namespace' was not registered with account '$description.credentials'. $error"
+      } else {
+        error = "No provided namespace assumed to mean 'default' was not registered with account '$description.credentials'. $error"
+      }
+      throw new KubernetesIllegalArgumentException(error)
+    }
+
     def clusterName = KubernetesUtil.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
     task.updateStatus BASE_PHASE, "Looking up next sequence index..."
-    def sequenceIndex = kubernetesUtil.getNextSequence(clusterName, credentials)
+    def sequenceIndex = kubernetesUtil.getNextSequence(clusterName, namespace, credentials)
     task.updateStatus BASE_PHASE, "Sequence index chosen to be ${sequenceIndex}."
     def replicationControllerName = String.format("%s-v%s", clusterName, sequenceIndex)
     task.updateStatus BASE_PHASE, "Replication controller name chosen to be ${replicationControllerName}."
@@ -70,7 +86,7 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     task.updateStatus BASE_PHASE, "Collecting ports for associated security groups..."
     def ports = []
     for (def securityGroupName : description.securityGroups) {
-      def securityGroup = kubernetesUtil.getSecurityGroup(credentials, securityGroupName)
+      def securityGroup = kubernetesUtil.getSecurityGroup(credentials, namespace, securityGroupName)
 
       for (def port : securityGroup.getSpec().getPorts()) {
         ports.add(port.getTargetPort().intVal)
@@ -157,7 +173,7 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     replicationControllerBuilder = replicationControllerBuilder.endSpec().endTemplate().endSpec().build()
 
     task.updateStatus BASE_PHASE, "Sending replication controller spec to the Kubernetes master."
-	  ReplicationController rc = credentials.client.replicationControllers().inNamespace(credentials.namespace).create(replicationControllerBuilder)
+	  ReplicationController rc = credentials.client.replicationControllers().inNamespace(namespace).create(replicationControllerBuilder)
 
     task.updateStatus BASE_PHASE, "Finished creating replication controller ${rc.metadata.name}."
 

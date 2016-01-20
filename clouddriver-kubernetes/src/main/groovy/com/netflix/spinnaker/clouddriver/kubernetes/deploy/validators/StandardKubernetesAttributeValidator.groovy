@@ -47,7 +47,7 @@ class StandardKubernetesAttributeValidator {
   }
 
   def validateDetails(String value, String attribute) {
-    // Details are optional
+    // Details are optional.
     if (!value) {
       return true
     } else {
@@ -80,7 +80,7 @@ class StandardKubernetesAttributeValidator {
   }
 
   def validateCpu(String value, String attribute) {
-    // CPU is optional
+    // CPU is optional.
     if (!value) {
       return true
     } else {
@@ -89,7 +89,7 @@ class StandardKubernetesAttributeValidator {
   }
 
   def validateMemory(String value, String attribute) {
-    // Memory is optional
+    // Memory is optional.
     if (!value) {
       return true
     } else {
@@ -97,6 +97,14 @@ class StandardKubernetesAttributeValidator {
     }
   }
 
+  def validateNamespace(String value, String attribute) {
+    // Namespace is optional, empty taken to mean 'default'.
+    if (!value) {
+      return true
+    } else {
+      return validateByRegex(value, attribute, namePattern)
+    }
+  }
   def validateNotEmpty(Object value, String attribute) {
     def result
     if (value != "" && value != null && value != []) {

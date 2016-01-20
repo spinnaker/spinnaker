@@ -517,4 +517,51 @@ class StandardKubernetesAttributeValidatorSpec extends Specification {
       1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.quantityPattern})")
       0 * errorsMock._
   }
+
+  void "namespace accept"() {
+    setup:
+      def errorsMock = Mock(Errors)
+      def validator = new StandardKubernetesAttributeValidator(DECORATOR, errorsMock)
+      def label = "label"
+
+    when:
+      validator.validateNamespace("", label)
+    then:
+      0 * errorsMock._
+
+    when:
+      validator.validateNamespace("default", label)
+    then:
+      0 * errorsMock._
+
+    when:
+      validator.validateNamespace("prod-staging", label)
+    then:
+      0 * errorsMock._
+  }
+
+  void "namespace reject"() {
+    setup:
+      def errorsMock = Mock(Errors)
+      def validator = new StandardKubernetesAttributeValidator(DECORATOR, errorsMock)
+      def label = "label"
+
+    when:
+      validator.validateNamespace(" .-100z", label)
+    then:
+      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.namePattern})")
+      0 * errorsMock._
+
+    when:
+      validator.validateNamespace("?", label)
+    then:
+      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.namePattern})")
+      0 * errorsMock._
+
+    when:
+      validator.validateNamespace("- ", label)
+    then:
+      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.namePattern})")
+      0 * errorsMock._
+  }
 }

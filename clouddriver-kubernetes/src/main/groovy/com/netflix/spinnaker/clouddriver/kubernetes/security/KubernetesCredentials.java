@@ -18,20 +18,26 @@ package com.netflix.spinnaker.clouddriver.kubernetes.security;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 
+import java.util.List;
+
 public class KubernetesCredentials {
   private final KubernetesClient client;
-  private final String namespace;
+  private final List<String> namespaces;
 
-  public KubernetesCredentials(String namespace, KubernetesClient client) {
+  public KubernetesCredentials(List<String> namespaces, KubernetesClient client) {
     this.client = client;
-    this.namespace = namespace;
+    this.namespaces = namespaces;
   }
 
   public KubernetesClient getClient() {
     return client;
   }
 
-  public String getNamespace() {
-    return namespace;
+  public List<String> getNamespaces() {
+    return namespaces;
+  }
+
+  public Boolean isRegisteredNamespace(String namespace) {
+    return namespaces != null && namespaces.contains(namespace);
   }
 }
