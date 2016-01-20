@@ -265,39 +265,43 @@ class SpinnakerAgent(service_testing.HttpAgent):
           name, status_factory=status_factory, base_url=base_url)
 
     if host_platform == 'gce':
-      return cls.new_gce_instance(
-          name, status_factory,
-          project=bindings['GCE_PROJECT'],
-          zone=bindings['GCE_ZONE'],
-          instance=bindings['GCE_INSTANCE'],
-          port=port,
-          ssh_passphrase_file=bindings.get('GCE_SSH_PASSPHRASE_FILE', None))
+      return cls.new_gce_instance_from_bindings(
+          name, status_factory, bindings, port)
 
     raise ValueError('Unknown host_platform={0}'.format(host_platform))
 
   @classmethod
-  def new_gce_instance(cls, name, status_factory,
-                       project, zone, instance, port, ssh_passphrase_file):
+  def new_gce_instance_from_bindings(
+      cls, name, status_factory, bindings, port):
     """Create a new Spinnaker HttpAgent talking to the specified server port.
 
     Args:
       name: [string] The name of agent we are creating for reporting only.
       status_factory: [SpinnakerStatus (SpinnakerAgent, HttpResponseType)]
          Factory method for creating specialized SpinnakerStatus instances.
-      project: [string] The GCE project ID that the endpoint is in.
-      zone: [string] The GCE zone that the endpoint is in.
-      instance: [string] The GCE instance that the endpoint is in.
+      bindings: [dict] List of bindings to configure the endpoint
+          GCE_PROJECT: The GCE project ID that the endpoint is in.
+          GCE_ZONE: The GCE zone that the endpoint is in.
+          GCE_INSTANCE: The GCE instance that the endpoint is in.
+          GCE_SSH_PASSPHRASE_FILE: If not empty, the SSH passphrase key
+              for tunneling if needed to connect through a GCE firewall.
+          GCE_SERVICE_ACCOUNT: If not empty, the GCE service account to use
+              when interacting with the GCE instance.
       port: [int] The port of the endpoint we want to connect to.
-      ssh_passphrase_file: [string] If not empty, the SSH passphrase key
-         for tunneling if needed in order to connect through a GCE firewall.
-
     Returns:
       A SpinnakerAgent connected to the specified instance port.
     """
+    project = bindings['GCE_PROJECT']
+    zone = bindings['GCE_ZONE']
+    instance = bindings['GCE_INSTANCE']
+    ssh_passphrase_file = bindings.get('GCE_SSH_PASSPHRASE_FILE', None)
+    service_account = bindings.get('GCE_SERVICE_ACCOUNT', None)
+
     logger = logging.getLogger(__name__)
     logger.info('Locating %s...', name)
     gcloud = gcp.GCloudAgent(
-        project=project, zone=zone, ssh_passphrase_file=ssh_passphrase_file)
+        project=project, zone=zone, service_account=service_account,
+        ssh_passphrase_file=ssh_passphrase_file)
     netloc = gce_util.establish_network_connectivity(
         gcloud=gcloud, instance=instance, target_port=port)
     if not netloc:
