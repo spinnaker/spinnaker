@@ -79,9 +79,9 @@ keyspaces['echo'] = ['trigger', 'execution', 'action_instance']
 
 commands = {
     'aws': {
-        'cli': 'aws', 
-        'upload': 'aws s3 cp archive/{0} s3://{1}'.format(exportFile, args.bucket), 
-        'download': 'aws s3 cp s3://{0}'.format(args.bucket), 
+        'cli': 'aws',
+        'upload': 'aws s3 cp archive/{0} s3://{1}'.format(exportFile, args.bucket),
+        'download': 'aws s3 cp s3://{0}'.format(args.bucket),
         'list': 'aws s3 ls s3://{0}'.format(args.bucket)
     },
     'gcp': {
@@ -95,13 +95,13 @@ commands = {
 importFile = ""
 if args.mode == 'import':
     if args.importFile:
-	   importFile = args.importFile	
+        importFile = args.importFile
     else:
-	   importFile = os.popen(commands[args.cloud]['list']).read()
-	   if(args.cloud == 'gcp'):
-	   	importFile = importFile.split("\n")[-2].split(args.bucket + '/')[-1]
-           if(args.cloud == 'aws'):
-	   	importFile = importFile.split("\n")[-2].split(" ")[-1]
+        importFile = os.popen(commands[args.cloud]['list']).read()
+        if args.cloud == 'gcp':
+            importFile = importFile.split("\n")[-2].split(args.bucket + '/')[-1]
+        if args.cloud == 'aws':
+            importFile = importFile.split("\n")[-2].split(" ")[-1]
 if not spawn.find_executable(commands[args.cloud]['cli']):
     raise Exception('Cannot find cloud sdk on path')
 
@@ -120,10 +120,10 @@ if args.mode == 'import':
     os.system('service redis-server start')
     for keyspace, tables in keyspaces.items():
         for table in tables:
-		os.system('cqlsh -e "COPY ' + keyspace + '.' + table + ' FROM \'import/' + keyspace + '.' + table + '.csv\' WITH HEADER = \'true\';" 2> /tmp/spinnaker_import_log.txt')
+            os.system('cqlsh -e "COPY ' + keyspace + '.' + table + ' FROM \'import/' + keyspace + '.' + table + '.csv\' WITH HEADER = \'true\';" 2> /tmp/spinnaker_import_log.txt')
     os.system('rm -rf import')
     print "Spinnaker Import Complete"
-            
+
 if args.mode == 'export':
     if os.path.exists('export'):
         shutil.rmtree('export')
@@ -134,7 +134,7 @@ if args.mode == 'export':
     for keyspace, tables in keyspaces.items():
         for table in tables:
             os.system('cqlsh -e "COPY ' + keyspace + '.' + table + ' TO \'export/' + keyspace + '.' + table + '.csv\' WITH HEADER = \'true\';"')
-    	    os.system("sed -i -e 's/{n/{/g' export/" + keyspace + '.' + table + '.csv')
+            os.system("sed -i -e 's/\\\\n/ /g' export/" + keyspace + '.' + table + '.csv')
     os.system("redis-cli --scan --pattern 'com.netflix.spinnaker.oort*' | xargs -d '\n' redis-cli del")
     os.system('redis-cli SAVE')
     os.system('cp /var/lib/redis/dump.rdb export/dump.rdb')
