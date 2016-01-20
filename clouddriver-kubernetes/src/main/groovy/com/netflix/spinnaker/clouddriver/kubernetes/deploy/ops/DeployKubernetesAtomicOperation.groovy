@@ -69,9 +69,9 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     if (!credentials.isRegisteredNamespace(namespace)) {
       def error = "Registered namespaces are ${credentials.getNamespaces()}."
       if (description.namespace) {
-        error = "Namespace \"$namespace\" was not registered with account \"$description.credentials\". $error"
+        error = "Namespace '$namespace' was not registered with account '$description.credentials'. $error"
       } else {
-        error = "No provided namespace assumed to mean \"default\" was not registered with account \"$description.credentials\". $error"
+        error = "No provided namespace assumed to mean 'default' was not registered with account '$description.credentials'. $error"
       }
       throw new KubernetesIllegalArgumentException(error)
     }
