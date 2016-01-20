@@ -98,8 +98,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller
 
       var submitMethod = function () {
         loadBalancer.providerType = $scope.loadBalancer.type;
-        let vpcId = angular.isDefined($scope.loadBalancer.elb) ? $scope.loadBalancer.elb.vpcid : loadBalancer.vpcId || null;
-        return azureLoadBalancerWriter.deleteLoadBalancer(loadBalancer, app, { vpcId: vpcId });
+        return azureLoadBalancerWriter.deleteLoadBalancer(loadBalancer, app);
       };
 
       confirmationModalService.confirm({

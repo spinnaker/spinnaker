@@ -29,7 +29,27 @@ module.exports = angular
       return operation;
     }
 
+    function deleteLoadBalancer(loadBalancer, application, params = {}) {
+      params.type = 'deleteLoadBalancer';
+      params.loadBalancerName = loadBalancer.name;
+      params.regions = [loadBalancer.region];
+      params.credentials = loadBalancer.accountId;
+      params.cloudProvider = loadBalancer.providerType;
+      params.appName = application.name;
+
+      var operation = taskExecutor.executeTask({
+        job: [params],
+        application: application,
+        description: 'Delete load balancer: ' + loadBalancer.name + ' in ' + loadBalancer.accountId + ':' + loadBalancer.region
+      });
+
+      infrastructureCaches.clearCache('loadBalancers');
+
+      return operation;
+    }
+
     return {
+      deleteLoadBalancer: deleteLoadBalancer,
       upsertLoadBalancer: upsertLoadBalancer
     };
 

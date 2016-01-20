@@ -22,6 +22,7 @@ module.exports = angular
     function addStackToLoadBalancer(loadBalancer) {
       var nameParts = namingService.parseLoadBalancerName(loadBalancer.name);
       loadBalancer.stack = nameParts.stack;
+      loadBalancer.detail = nameParts.freeFormDetails;
     }
 
     function getLoadBalancerDetails(provider, account, region, name) {

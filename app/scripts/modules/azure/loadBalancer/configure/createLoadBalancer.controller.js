@@ -83,7 +83,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
         allLoadBalancerNames = {};
 
     function initializeEditMode() {
-      if ($scope.loadBalancer.vpcId) {
+      if ($scope.loadBalancer.vnet) {
         preloadSecurityGroups().then(function() {
           updateAvailableSecurityGroups([$scope.loadBalancer.vnet]);
         });
@@ -325,8 +325,8 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
           };
 
           var name = $scope.loadBalancer.clusterName || $scope.loadBalancer.name;
-          var probeName = name + '_probe';
-          var ruleNameBase = name + '_rule_';
+          var probeName = name + '-probe';
+          var ruleNameBase = name + '-rule';
           $scope.loadBalancer.type = 'upsertLoadBalancer';
           if (!$scope.loadBalancer.vnet && !$scope.loadBalancer.subnetType) {
             $scope.loadBalancer.securityGroups = null;
