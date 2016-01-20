@@ -273,7 +273,7 @@ class Refresher(object):
               'WARNING: Updating {name} branch={branch}, *NOT* "{want}"\n'
                   .format(name=name, branch=branch, want=self.pull_branch))
       try:
-        check_run_and_monitor('git -C "{dir}" pull origin {branch}'
+        check_run_and_monitor('git -C "{dir}" pull origin {branch} --tags'
                                   .format(dir=repository_dir, branch=branch),
                               echo=True)
       except RuntimeError:
@@ -306,7 +306,7 @@ class Refresher(object):
           return
 
       print 'Pulling master {name} from upstream'.format(name=name)
-      check_run_and_monitor('git -C "{dir}" pull upstream master'
+      check_run_and_monitor('git -C "{dir}" pull upstream master --tags'
                                 .format(dir=repository_dir),
                             echo=True)
 
@@ -334,7 +334,7 @@ class Refresher(object):
           return
 
       print 'Pushing {name} to origin.'.format(name=name)
-      check_run_and_monitor('git -C "{dir}" push origin {branch}'.format(
+      check_run_and_monitor('git -C "{dir}" push origin {branch} --tags'.format(
                                 dir=repository_dir, branch=self.push_branch),
                             echo=True)
 
