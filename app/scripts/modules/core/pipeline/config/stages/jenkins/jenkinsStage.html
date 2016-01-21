@@ -27,23 +27,23 @@
   <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-left">Job</label>
     <div class="col-md-6">
-      <p class="form-control-static" ng-if="!stage.master">(Select a master)</p>
-      <p class="form-control-static" ng-if="viewState.masterIsParameterized">
-        <input type="text" ng-model="stage.job" class="form-control input-sm"/>
-      </p>
+      <p class="form-control-static"
+         ng-if="!stage.master">(Select a master)</p>
+      <p class="form-control-static"
+         ng-if="viewState.masterIsParameterized || viewState.jobIsParameterized">{{stage.job}}</p>
       <div ng-if="stage.master && viewState.jobsLoaded">
         <ui-select class="form-control input-sm"
-                   ng-if="!viewState.masterIsParameterized"
+                   ng-if="!viewState.masterIsParameterized && !viewState.jobIsParameterized"
                    ng-model="stage.job">
           <ui-select-match placeholder="Select a job...">{{$select.selected}}</ui-select-match>
           <ui-select-choices repeat="job in jobs | filter: $select.search"><span ng-bind-html="job | highlight: $select.search"></span></ui-select-choices>
         </ui-select>
       </div>
-      <div class="text-center" ng-if="stage.master && !viewState.jobsLoaded && !viewState.masterIsParameterized">
+      <div class="text-center" ng-if="stage.master && !viewState.jobsLoaded">
         <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
       </div>
     </div>
-    <div class="col-md-1 text-center" ng-if="!viewState.masterIsParameterized">
+    <div class="col-md-1 text-center" ng-if="!viewState.masterIsParameterized && !viewState.jobIsParameterized">
       <a href
          ng-click="jenkinsStageCtrl.refreshJobs()"
          tooltip-placement="right"
