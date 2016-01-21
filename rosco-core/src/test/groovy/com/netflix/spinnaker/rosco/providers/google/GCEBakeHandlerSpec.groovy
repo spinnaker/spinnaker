@@ -174,6 +174,42 @@ class GCEBakeHandlerSpec extends Specification {
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
   }
 
+  void 'produces packer command with all required parameters for ubuntu, and overriding base image'() {
+    setup:
+      def imageNameFactoryMock = Mock(ImageNameFactory)
+      def packerCommandFactoryMock = Mock(PackerCommandFactory)
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: PACKAGE_NAME,
+                                        base_os: "ubuntu",
+                                        base_ami: "some-gce-image-name",
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce)
+      def targetImageName = "kato-x8664-timestamp-ubuntu"
+      def parameterMap = [
+        gce_project_id: googleConfigurationProperties.accounts.get(0).project,
+        gce_zone: gceBakeryDefaults.zone,
+        gce_source_image: "some-gce-image-name",
+        gce_target_image: targetImageName,
+        deb_repo: DEBIAN_REPOSITORY,
+        packages: PACKAGE_NAME,
+        configDir: configDir
+      ]
+
+      @Subject
+      GCEBakeHandler gceBakeHandler = new GCEBakeHandler(configDir: configDir,
+                                                         gceBakeryDefaults: gceBakeryDefaults,
+                                                         googleConfigurationProperties: googleConfigurationProperties,
+                                                         imageNameFactory: imageNameFactoryMock,
+                                                         packerCommandFactory: packerCommandFactoryMock,
+                                                         debianRepository: DEBIAN_REPOSITORY)
+
+    when:
+      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+
+    then:
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
+  }
+
   void 'produces packer command with all required parameters for trusty'() {
     setup:
       def imageNameFactoryMock = Mock(ImageNameFactory)

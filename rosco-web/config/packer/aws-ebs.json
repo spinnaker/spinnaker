@@ -10,6 +10,7 @@
     "aws_source_ami": null,
     "aws_target_ami": null,
     "aws_associate_public_ip_address": "true",
+    "aws_enhanced_networking": "false",
     "appversion": "",
     "build_host": "",
     "deb_repo": "",
@@ -28,6 +29,7 @@
     "source_ami": "{{user `aws_source_ami`}}",
     "ami_name": "{{user `aws_target_ami`}}",
     "associate_public_ip_address": "{{user `aws_associate_public_ip_address`}}",
+    "enhanced_networking": "{{user `aws_enhanced_networking`}}",
     "tags": {"appversion": "{{user `appversion`}}", "build_host": "{{user `build_host`}}"}
   }],
   "provisioners": [{

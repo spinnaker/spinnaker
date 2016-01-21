@@ -53,7 +53,11 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
   String produceBakeKey(String region, BakeRequest bakeRequest) {
     // TODO(duftler): Work through definition of uniqueness.
     bakeRequest.with {
-      return "bake:$cloud_provider_type:$base_os:$package_name"
+      if (bakeRequest.base_ami) {
+        return "bake:$cloud_provider_type:$base_os:$bakeRequest.base_ami:$package_name"
+      } else {
+        return "bake:$cloud_provider_type:$base_os:$package_name"
+      }
     }
   }
 
@@ -67,11 +71,16 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
       throw new IllegalArgumentException("No virtualization settings found for '$bakeRequest.base_os'.")
     }
 
+    if (bakeRequest.base_ami) {
+      virtualizationSettings = virtualizationSettings.clone()
+      virtualizationSettings.sourceImage = bakeRequest.base_ami
+    }
+
     return virtualizationSettings
   }
 
   @Override
-  Map buildParameterMap(String region, def gceVirtualizationSettings, String imageName) {
+  Map buildParameterMap(String region, def gceVirtualizationSettings, String imageName, BakeRequest bakeRequest) {
     RoscoGoogleConfiguration.ManagedGoogleAccount managedGoogleAccount = googleConfigurationProperties?.accounts?.getAt(0)
 
     if (!managedGoogleAccount) {

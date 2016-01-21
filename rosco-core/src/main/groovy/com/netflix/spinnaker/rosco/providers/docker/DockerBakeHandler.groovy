@@ -69,7 +69,7 @@ public class DockerBakeHandler extends CloudProviderBakeHandler {
   }
 
   @Override
-  Map buildParameterMap(String region, def dockerVirtualizationSettings, String imageName) {
+  Map buildParameterMap(String region, def dockerVirtualizationSettings, String imageName, BakeRequest bakeRequest) {
     return [
       docker_source_image     : dockerVirtualizationSettings.sourceImage,
       docker_target_image     : imageName,
