@@ -23,6 +23,7 @@ dependencies {
   compile project(':clouddriver-cf')
   compile project(':clouddriver-google')
   compile project(':clouddriver-kubernetes')
+  compile project(':clouddriver-docker')
 
   compile 'javax.ws.rs:jsr311-api:1.1.1'
   runtime spinnaker.dependency('kork')
