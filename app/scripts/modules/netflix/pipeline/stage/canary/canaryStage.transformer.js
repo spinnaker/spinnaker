@@ -79,9 +79,6 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.transfo
         parts.pop();
         cluster.build.url = cluster.buildId;
         cluster.build.number = parts.pop();
-      } else {
-        cluster.build.url = '#';
-        cluster.build.number = 'n/a';
       }
     }
 
