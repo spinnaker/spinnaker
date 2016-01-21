@@ -32,4 +32,20 @@
       </label>
     </div>
   </stage-config-field>
+  <div class="form-group">
+    <div class="col-md-9 col-md-offset-1">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" ng-model="stage.showAdvancedOptions">
+          <strong>Show Advanced Options</strong>
+        </label>
+      </div>
+    </div>
+  </div>
+  <div ng-class="{collapse: stage.showAdvancedOptions !== true, 'collapse.in': stage.showAdvancedOptions === true}">
+    <stage-config-field label="Base Image" help-key="pipeline.config.gce.bake.baseImage">
+      <input type="text" class="form-control input-sm"
+             ng-model="stage.baseAmi"/>
+    </stage-config-field>
+  </div>
 </div>
