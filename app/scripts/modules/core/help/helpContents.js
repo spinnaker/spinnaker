@@ -36,6 +36,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'aws.serverGroup.stack': '(Optional) <b>Stack</b> is one of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',
     'aws.serverGroup.detail': '(Optional) <b>Detail</b> is a string of free-form alphanumeric characters and hyphens to describe any other variables.',
     'aws.serverGroup.imageName': '(Required) <b>Image</b> is the deployable Amazon Machine Image. Images are restricted to the account and region selected.',
+    'aws.serverGroup.base64UserData': '(Optional) <b>UserData</b> is a base64 encoded string.',
     'aws.serverGroup.allImages': 'Search for an image that does not match the name of your application.',
     'aws.serverGroup.filterImages': 'Select from a pre-filtered list of images matching the name of your application.',
     'aws.serverGroup.strategy': 'The deployment strategy tells Spinnaker what to do with the previous version of the server group.',
