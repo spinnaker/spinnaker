@@ -9,9 +9,8 @@ module.exports = angular
     require('angular-ui-bootstrap'),
     require('../application/modal/platformHealthOverride.directive.js'),
     require('../task/monitor/taskMonitorService.js'),
-    require('../account/account.module.js'),
   ])
-  .controller('ConfirmationModalCtrl', function($scope, $modalInstance, accountService, params, taskMonitorService) {
+  .controller('ConfirmationModalCtrl', function($scope, $modalInstance, taskMonitorService, params) {
     $scope.params = params;
 
     $scope.state = {
@@ -25,20 +24,11 @@ module.exports = angular
     }
 
     $scope.verification = {
-      requireVerification: params.verificationLabel && params.textToVerify !== undefined,
-      userVerification: '',
-      textToVerify: params.account ? params.account.toUpperCase() : params.textToVerify
+      required: !!params.account || (params.verificationLabel && params.textToVerify !== undefined),
+      toVerify: params.textToVerify,
     };
 
-    if (params.account && !params.requireVerification) {
-      accountService.challengeDestructiveActions(params.account).then((challenge) => {
-        $scope.verification.requireVerification = challenge;
-      });
-    }
-
-    this.formDisabled = function () {
-      return $scope.verification.requireVerification && $scope.verification.userVerification !== $scope.verification.textToVerify;
-    };
+    this.formDisabled = () => !$scope.verification.verified;
 
     function showError(exception) {
       $scope.state.error = true;

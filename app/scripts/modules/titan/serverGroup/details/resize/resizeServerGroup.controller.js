@@ -3,11 +3,10 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.titan.serverGroup.details.resize.controller', [
-  require('../../../../core/account/account.service.js'),
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js')
 ])
-  .controller('titanResizeServerGroupCtrl', function($scope, $modalInstance, accountService, serverGroupWriter, taskMonitorService,
+  .controller('titanResizeServerGroupCtrl', function($scope, $modalInstance, serverGroupWriter, taskMonitorService,
                                                 application, serverGroup) {
     $scope.serverGroup = serverGroup;
     $scope.currentSize = {
@@ -17,22 +16,14 @@ module.exports = angular.module('spinnaker.titan.serverGroup.details.resize.cont
       newSize: null
     };
 
-    $scope.verification = {
-      required: false,
-      verifyAccount: '',
-    };
-
-    accountService.challengeDestructiveActions(serverGroup.account).then((challenge) => {
-      $scope.verification.required = challenge;
-    });
-
+    $scope.verification = {};
 
     $scope.command = angular.copy($scope.currentSize);
     $scope.command.advancedMode = serverGroup.capacity.min !== serverGroup.capacity.max;
 
     this.isValid = function () {
       var command = $scope.command;
-      if ($scope.verification.required && $scope.verification.verifyAccount !== serverGroup.account.toUpperCase()) {
+      if (!$scope.verification.verified) {
         return false;
       }
       return command.advancedMode ?

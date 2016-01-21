@@ -6,10 +6,11 @@ require('./tasks.less');
 
 module.exports = angular
   .module('spinnaker.core.task', [
+    require('./verification/userVerification.directive.js'),
     require('./monitor/taskMonitor.module.js'),
-    require('./tasks.controller.js'),
-    require('./taskDetails.controller.js'),
+    require('./statusGlyph.directive.js'),
     require('./task.read.service.js'),
     require('./task.write.service.js'),
-    require('./statusGlyph.directive.js'),
+    require('./taskDetails.controller.js'),
+    require('./tasks.controller.js'),
   ]);

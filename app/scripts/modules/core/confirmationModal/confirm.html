@@ -4,7 +4,7 @@
   <div class="modal-header">
     <h3>{{params.header}}</h3>
   </div>
-  <div class="modal-body confirmation-modal" ng-if="params.body || verification.requireVerification || state.error || params.platformHealthOnlyShowOverride">
+  <div class="modal-body confirmation-modal" ng-if="params.body || verification.required || state.error || params.platformHealthOnlyShowOverride">
     <form role="form" class="container-fluid" ng-submit="ctrl.confirm()">
       <div ng-if="params.body" ng-bind-html="params.body">
       </div>
@@ -16,23 +16,7 @@
           </platform-health-override>
         </div>
       </div>
-      <div class="row" ng-if="verification.requireVerification">
-        <div class="col-sm-offset-1 col-sm-10">
-          <p ng-if="!params.verificationLabel">
-            Type the name of the account ( <account-tag account="params.account"></account-tag> ) below to continue.
-          </p>
-          <p ng-if="params.verificationLabel" ng-bind-html="params.verificationLabel"></p>
-          <div class="form-inline">
-            <div class="form-group">
-              <input type="text"
-                     autofocus
-                     ng-model="verification.userVerification"
-                     class="form-control input-sm highlight-pristine"
-                     ng-class="{'ng-invalid': verification.userVerification !== verification.textToVerify}"/>
-            </div>
-          </div>
-        </div>
-      </div>
+      <user-verification verification="verification" account="params.account" label="params.verificationLabel"></user-verification>
     </form>
     <div ng-if="state.error">
       <div class="alert alert-danger">

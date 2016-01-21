@@ -97,19 +97,7 @@
           </platform-health-override>
         </div>
       </div>
-      <div class="row" ng-if="verification.required">
-        <div class="col-sm-12">
-          <hr/>
-          <h4 class="confirmation-modal">Type the name of the account ( <account-tag account="serverGroup.account"></account-tag> ) below to continue.</h4>
-        </div>
-        <div class="col-sm-offset-1 col-sm-10">
-          <div class="form-inline">
-            <div class="form-group">
-              <input type="text" ng-model="verification.verifyAccount" class="form-control input-sm highlight-pristine" ng-class="{'ng-invalid': verification.verifyAccount !== serverGroup.account.toUpperCase()}"/>
-            </div>
-          </div>
-        </div>
-      </div>
+      <user-verification account="serverGroup.account" verification="verification"></user-verification>
     </div>
     <div class="modal-footer">
       <button type="submit" ng-click="ctrl.resize()" style="display:none"></button> <!-- Allows form submission via enter keypress-->

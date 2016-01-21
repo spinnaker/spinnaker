@@ -8,14 +8,12 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.rollback.c
       require('../../../../core/serverGroup/serverGroup.write.service.js'),
       require('../../../../core/task/monitor/taskMonitorService.js'),
     ])
-    .controller('gceRollbackServerGroupCtrl', function ($scope, $modalInstance, accountService, serverGroupWriter,
+    .controller('gceRollbackServerGroupCtrl', function ($scope, $modalInstance, serverGroupWriter,
                                                         taskMonitorService,
                                                         application, serverGroup, disabledServerGroups) {
       $scope.serverGroup = serverGroup;
       $scope.disabledServerGroups = disabledServerGroups.sort((a, b) => b.name.localeCompare(a.name));
-      $scope.verification = {
-        required: accountService.challengeDestructiveActions('gce', serverGroup.account)
-      };
+      $scope.verification = {};
 
       $scope.command = {
         rollbackType: 'EXPLICIT',
@@ -31,7 +29,7 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.rollback.c
 
       this.isValid = function () {
         var command = $scope.command;
-        if ($scope.verification.required && $scope.verification.verifyAccount !== serverGroup.account.toUpperCase()) {
+        if (!$scope.verification.verified) {
           return false;
         }
 

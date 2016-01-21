@@ -3,11 +3,10 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.serverGroup.details.resize.controller', [
-  require('../../../../core/account/account.service.js'),
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js')
 ])
-  .controller('azureResizeServerGroupCtrl', function($scope, $modalInstance, accountService, serverGroupWriter, taskMonitorService,
+  .controller('azureResizeServerGroupCtrl', function($scope, $modalInstance, serverGroupWriter, taskMonitorService,
                                                 application, serverGroup) {
     $scope.serverGroup = serverGroup;
     $scope.currentSize = {
@@ -17,16 +16,14 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.resize.cont
       newSize: null
     };
 
-    $scope.verification = {
-      required: accountService.challengeDestructiveActions(serverGroup.account)
-    };
+    $scope.verification = {};
 
     $scope.command = angular.copy($scope.currentSize);
     $scope.command.advancedMode = serverGroup.asg.minSize !== serverGroup.asg.maxSize;
 
     this.isValid = function () {
       var command = $scope.command;
-      if ($scope.verification.required && $scope.verification.verifyEntry !== serverGroup.account.toUpperCase()) {
+      if (!$scope.verification.verified) {
         return false;
       }
       return command.advancedMode ?

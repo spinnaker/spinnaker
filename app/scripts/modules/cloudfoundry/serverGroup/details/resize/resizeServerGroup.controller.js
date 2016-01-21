@@ -3,12 +3,11 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.controller', [
-  require('../../../../core/account/account.service.js'),
   require('../../../../core/application/modal/platformHealthOverride.directive.js'),
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js')
 ])
-  .controller('cfResizeServerGroupCtrl', function($scope, $modalInstance, accountService, serverGroupWriter, taskMonitorService,
+  .controller('cfResizeServerGroupCtrl', function($scope, $modalInstance, serverGroupWriter, taskMonitorService,
                                                    application, serverGroup) {
 
     // TODO: Rip out min/max and just use desired capacity.
@@ -20,14 +19,7 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.control
       newSize: null
     };
 
-    $scope.verification = {
-      required: false,
-      verifyAccount: '',
-    };
-
-    accountService.challengeDestructiveActions(serverGroup.account).then((challenge) => {
-      $scope.verification.required = challenge;
-    });
+    $scope.verification = {};
 
     $scope.command = angular.copy($scope.currentSize);
     $scope.command.advancedMode = serverGroup.asg.minSize !== serverGroup.asg.maxSize;
@@ -42,7 +34,7 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.control
 
     this.isValid = function () {
       var command = $scope.command;
-      if ($scope.verification.required && $scope.verification.verifyAccount !== serverGroup.account.toUpperCase()) {
+      if (!$scope.verification.verified) {
         return false;
       }
       return command.advancedMode ?
