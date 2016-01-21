@@ -3,7 +3,10 @@
 let angular = require('angular');
 
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', [])
+module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', [
+  require('../../../../ci/jenkins/igor.service.js'),
+  require('../../pipelineConfigProvider.js'),
+])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Jenkins',
@@ -21,7 +24,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', []
       ],
       strategy: true,
     });
-  }).controller('JenkinsStageCtrl', function($scope, stage, igorService, _) {
+  }).controller('JenkinsStageCtrl', function($scope, stage, igorService) {
 
     $scope.stage = stage;
 
@@ -52,8 +55,12 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', []
 
     function updateJobsList() {
       if ($scope.stage && $scope.stage.master) {
-        $scope.viewState.masterIsParameterized = $scope.stage.master.indexOf('${') > -1;
-        if ($scope.viewState.masterIsParameterized) {
+        let master = $scope.stage.master,
+            job = $scope.stage.job || '';
+        $scope.viewState.masterIsParameterized = master.indexOf('${') > -1;
+        $scope.viewState.jobIsParameterized = job.indexOf('${') > -1;
+        if ($scope.viewState.masterIsParameterized || $scope.viewState.jobIsParameterized) {
+          $scope.viewState.jobsLoaded = true;
           return;
         }
         $scope.viewState.jobsLoaded = false;
@@ -73,19 +80,23 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', []
     }
 
     function updateJobConfig() {
-      if ($scope.stage && $scope.stage.master && $scope.stage.job && !$scope.viewState.masterIsParameterized) {
-        igorService.getJobConfig($scope.stage.master, $scope.stage.job).then(function(config) {
-        if(!$scope.stage.parameters) {
-          $scope.stage.parameters = {};
-        }
-        $scope.jobParams = config.parameterDefinitionList;
-        $scope.userSuppliedParameters = $scope.stage.parameters;
-        $scope.useDefaultParameters = {};
-         _.each($scope.jobParams, function(property) {
+      let stage = $scope.stage,
+          view = $scope.viewState;
+      if (stage && stage.master && stage.job && !view.masterIsParameterized && !view.jobIsParameterized) {
+        igorService.getJobConfig($scope.stage.master, $scope.stage.job).then((config) => {
+          config = config || {};
+          if(!$scope.stage.parameters) {
+            $scope.stage.parameters = {};
+          }
+          $scope.jobParams = config.parameterDefinitionList;
+          $scope.userSuppliedParameters = $scope.stage.parameters;
+          $scope.useDefaultParameters = {};
+          let params = $scope.jobParams || [];
+          params.forEach((property) => {
             if(!(property.name in $scope.stage.parameters) && (property.defaultValue !== null)) {
               $scope.useDefaultParameters[property.name] = true;
             }
-         });
+          });
        });
       }
     }
