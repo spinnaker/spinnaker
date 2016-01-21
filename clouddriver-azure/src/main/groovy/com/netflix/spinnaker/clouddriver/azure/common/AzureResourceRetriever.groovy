@@ -86,8 +86,11 @@ class AzureResourceRetriever {
             if (!tmpLoadBalancerMap[accountName].containsKey(appName)) {
               tmpLoadBalancerMap[accountName].put(appName, new HashSet<AzureLoadBalancerDescription>())
             }
+            def resourceGroupName = AzureUtilities.getResourceGroupNameFromResourceId(lb.id)
             def loadBalancer = getDescriptionForLoadBalancer(lb)
             loadBalancer.appName = appName
+            loadBalancer.tags = lb.tags
+            loadBalancer.dnsName = networkClient.getDnsNameForLoadBalancer(azureCredentials, resourceGroupName, lb.name)
             tmpLoadBalancerMap[accountName][appName].add(loadBalancer)
           }
         }
@@ -182,7 +185,7 @@ class AzureResourceRetriever {
       def r = new AzureLoadBalancerDescription.AzureLoadBalancingRule(ruleName: rule.name)
       r.externalPort = rule.frontendPort
       r.backendPort = rule.backendPort
-      r.probeName = getResourceNameFromID(rule.probe.id)
+      r.probeName = AzureUtilities.getNameFromResourceId(rule.probe.id)
       r.persistence = rule.loadDistribution;
       r.idleTimeout = rule.idleTimeoutInMinutes;
 
@@ -216,13 +219,5 @@ class AzureResourceRetriever {
     }
 
     description
-  }
-
-  private String getResourceNameFromID(String resourceId) {
-    int idx = resourceId.lastIndexOf('/')
-    if (idx > 0) {
-      return resourceId.substring(idx + 1)
-    }
-    resourceId
   }
 }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.azure.templates
 
+import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.UpsertAzureLoadBalancerDescription
 import org.codehaus.jackson.map.ObjectMapper
@@ -64,13 +65,14 @@ class AzureLoadBalancerResourceTemplate {
 
     LoadBalancerTemplateVariables(UpsertAzureLoadBalancerDescription description){
       String regionName = description.region.replace(' ', '').toLowerCase()
+      String resourceGroupName = AzureUtilities.getResourceGroupName(description)
 
-      loadBalancerName = description.loadBalancerName
-      virtualNetworkName = "vnet-" + regionName + "-" + description.loadBalancerName
-      publicIPAddressName = "publicIp-" + regionName + "-" + description.loadBalancerName
-      loadBalancerFrontEnd = "lbFrontEnd-" + regionName + "-" + description.loadBalancerName
-      dnsNameForLBIP = "dns-" + regionName.toLowerCase() + "-" + description.loadBalancerName.toLowerCase()
-      ipConfigName = "ipConfig-" + regionName + "-" + description.loadBalancerName
+      loadBalancerName = description.loadBalancerName.toLowerCase()
+      virtualNetworkName = AzureUtilities.VNET_NAME_PREFIX + resourceGroupName.toLowerCase()
+      publicIPAddressName = AzureUtilities.PUBLICIP_NAME_PREFIX + description.loadBalancerName.toLowerCase()
+      loadBalancerFrontEnd = AzureUtilities.LBFRONTEND_NAME_PREFIX + description.loadBalancerName.toLowerCase()
+      dnsNameForLBIP = AzureUtilities.DNS_NAME_PREFIX + description.appName.toLowerCase()
+      ipConfigName = AzureUtilities.IPCONFIG_NAME_PREFIX + description.loadBalancerName.toLowerCase()
     }
   }
 
@@ -80,7 +82,6 @@ class AzureLoadBalancerResourceTemplate {
 
   static class Location{
     String type = "string"
-    ArrayList<String> allowedValues = ["East US", "eastus", "West US", "westus", "West Europe", "westeurope", "East Asia", "eastasia", "Southeast Asia", "southeastasia"]
     Map<String, String> metadata = ["description":"Location to deploy"]
   }
 
@@ -97,7 +98,6 @@ class AzureLoadBalancerResourceTemplate {
 
       properties = new LoadBalancerProperties(description)
     }
-
   }
 
   private static class AzureProbe {
