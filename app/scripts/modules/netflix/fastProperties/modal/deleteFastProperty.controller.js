@@ -14,22 +14,13 @@ module.exports = angular
 
     vm.fastProperty = fastProperty;
 
-    vm.verification = {
-      requireAccountEntry: false,
-      verifyAccount: ''
-    };
-
-    accountService.challengeDestructiveActions(vm.fastProperty.env).then((challenge) => {
-      vm.verification.requireAccountEntry = challenge;
-    });
+    vm.verification = {};
 
     vm.cancel = function() {
       $modalInstance.dismiss();
     };
 
-    vm.formDisabled = function () {
-      return (vm.verification.requireAccountEntry && vm.verification.verifyAccount !== vm.fastProperty.env.toUpperCase()) || _.isEmpty(vm.fastProperty.cmcTicket);
-    };
+    vm.formDisabled = () => vm.verification.verified || _.isEmpty(vm.fastProperty.cmcTicket);
 
     vm.confirm = function() {
       fastPropertyWriter.deleteFastProperty(vm.fastProperty).then(function () {

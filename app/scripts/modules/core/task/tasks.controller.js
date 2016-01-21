@@ -3,14 +3,15 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.task.controller', [
+  require('angular-ui-router'),
   require('../utils/lodash.js'),
   require('./taskProgressBar.directive.js'),
   require('../cache/viewStateCache.js'),
   require('./task.write.service.js'),
   require('../confirmationModal/confirmationModal.service.js'),
   require('./displayableTasks.filter.js'),
-  require('angular-ui-router'),
   require('../cache/deckCacheFactory.js'),
+  require('../config/settings.js'),
 ])
   .controller('TasksCtrl', function ($scope, $state, $q, settings, app, _, viewStateCache, taskWriter, confirmationModalService) {
     var controller = this;

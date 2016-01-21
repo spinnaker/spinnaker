@@ -3,15 +3,13 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.controller', [
-  require('../../../../core/account/account.service.js'),
   require('../../../../core/application/modal/platformHealthOverride.directive.js'),
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js'),
   require('./resizeCapacity.directive.js'),
   require('../../../common/footer.directive.js'),
-  require('../../../common/verification.directive.js'),
 ])
-  .controller('awsResizeServerGroupCtrl', function($scope, $modalInstance, accountService, serverGroupWriter,
+  .controller('awsResizeServerGroupCtrl', function($scope, $modalInstance, serverGroupWriter,
                                                    taskMonitorService,
                                                    application, serverGroup) {
     $scope.serverGroup = serverGroup;
@@ -22,14 +20,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
       newSize: null
     };
 
-    $scope.verification = {
-      required: false,
-      verifyAccount: ''
-    };
-
-    accountService.challengeDestructiveActions(serverGroup.account).then((challenge) => {
-      $scope.verification.required = challenge;
-    });
+    $scope.verification = {};
 
     $scope.command = angular.copy($scope.currentSize);
     $scope.command.advancedMode = serverGroup.asg.minSize !== serverGroup.asg.maxSize;
@@ -44,7 +35,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
 
     this.isValid = function () {
       var command = $scope.command;
-      if ($scope.verification.required && $scope.verification.verifyAccount !== serverGroup.account.toUpperCase()) {
+      if (!$scope.verification.verified) {
         return false;
       }
       return command.advancedMode ?

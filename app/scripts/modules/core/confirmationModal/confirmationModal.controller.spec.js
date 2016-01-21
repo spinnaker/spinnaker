@@ -1,7 +1,7 @@
 'use strict';
 
 describe('Controller: ConfirmationModal', function () {
-  var controller, accountService, taskMonitorService, params, $scope, $q, modalInstance;
+  var controller, taskMonitorService, params, $scope, $q, modalInstance;
 
   beforeEach(
     window.module(
@@ -9,11 +9,10 @@ describe('Controller: ConfirmationModal', function () {
     )
   );
 
-  beforeEach(window.inject(function($controller, $rootScope, _taskMonitorService_, _accountService_, _$q_) {
+  beforeEach(window.inject(function($controller, $rootScope, _taskMonitorService_, _$q_) {
     params = null;
     $scope = $rootScope.$new();
     $q = _$q_;
-    accountService = _accountService_;
     taskMonitorService = _taskMonitorService_;
     modalInstance = {};
 
@@ -21,7 +20,6 @@ describe('Controller: ConfirmationModal', function () {
       controller = $controller('ConfirmationModalCtrl', {
         $scope: $scope,
         taskMonitorService: _taskMonitorService_,
-        accountService: _accountService_,
         params: params,
         $modalInstance: modalInstance,
       });
@@ -35,28 +33,20 @@ describe('Controller: ConfirmationModal', function () {
         verificationLabel: 'please confirm'
       };
       this.initialize();
-      expect($scope.verification.requireVerification).toBe(false);
+      expect($scope.verification.required).toBe(false);
 
       params.textToVerify = 'yes';
       this.initialize();
-      expect($scope.verification.requireVerification).toBe(true);
+      expect($scope.verification.required).toBe(true);
     });
 
-    it('should require verification if account is passed in and it requires verification', function () {
+    it('should require verification if account is passed in', function () {
       params = {
         account: 'prod'
       };
-      spyOn(accountService, 'challengeDestructiveActions').and.callFake(function (account) {
-        return $q.when(account === 'prod');
-      });
       this.initialize();
       $scope.$digest();
-      expect($scope.verification.requireVerification).toBe(true);
-
-      params.account = 'test';
-      this.initialize();
-      $scope.$digest();
-      expect($scope.verification.requireVerification).toBe(false);
+      expect($scope.verification.required).toBe(true);
     });
   });
 
@@ -80,10 +70,10 @@ describe('Controller: ConfirmationModal', function () {
         textToVerify: 'yes',
       };
       this.initialize();
-      expect($scope.verification.requireVerification).toBe(true);
+      expect($scope.verification.required).toBe(true);
       expect(controller.formDisabled()).toBe(true);
 
-      $scope.verification.userVerification = 'yes';
+      $scope.verification.verified = true;
       expect(controller.formDisabled()).toBe(false);
     });
   });
