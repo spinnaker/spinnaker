@@ -154,6 +154,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.bake.amiSuffix': '<p>(Optional) String of date in format YYYYMMDDHHmm, default is calculated from timestamp,</p>',
     'pipeline.config.bake.enhancedNetworking': '<p>(Optional) Enable enhanced networking (sr-iov) support for image (requires hvm and trusty base_os).</p>',
     'pipeline.config.bake.amiName': '<p>(Optional) Default = $package-$arch-$ami_suffix-$store_type</p>',
+    'pipeline.config.gce.bake.baseImage': '<p>(Optional) A GCE image name. For example: ubuntu-1204-precise-v20150910.</p>',
     'pipeline.config.manualJudgment.instructions': '<p>(Optional) Instructions are shown to the user when making a manual judgment.</p><p>May contain HTML.</p>',
     'pipeline.config.manualJudgment.failPipeline': '' +
       '<p><strong>Checked</strong> - the overall pipeline will fail whenever the manual judgment is negative.</p>' +
