@@ -64,6 +64,15 @@
                                    ng-model="command.iamRole"/></div>
     </div>
     <div class="form-group">
+      <div class="col-md-5 sm-label-left">
+        <b>UserData (optional)</b>
+        <help-field key="aws.serverGroup.base64UserData"></help-field>
+      </div>
+      <div class="col-md-6"><input type="text"
+                                   class="form-control input-sm"
+                                   ng-model="command.base64UserData"/></div>
+    </div>
+    <div class="form-group">
       <div class="col-md-5 sm-label-left"><b>Instance Monitoring</b></div>
       <div class="col-md-6 checkbox">
         <label><input type="checkbox" ng-model="command.instanceMonitoring"/> Enable Instance Monitoring </label>
