@@ -41,7 +41,7 @@ class EventPropagator {
 
     void processEvent(Event event) {
         Observable.from(listeners)
-            .subscribeOn(scheduler)
+            .observeOn(scheduler)
             .subscribe(
             { EchoEventListener listener ->
                 try {
