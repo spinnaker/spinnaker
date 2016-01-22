@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./confirmationModal.less');
-
 module.exports = angular
   .module('spinnaker.core.confirmationModal.service', [
     require('angular-ui-bootstrap'),

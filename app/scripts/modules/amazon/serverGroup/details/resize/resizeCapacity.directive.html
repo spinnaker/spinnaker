@@ -11,13 +11,25 @@
     <div class="col-md-2"><b>Desired</b></div>
   </div>
   <div class="form-group">
-    <div class="col-md-3 text-right"><b>Current</b></div>
-    <div class="col-md-2"><b>{{vm.currentSize.min}}</b></div>
-    <div class="col-md-2"><b>{{vm.currentSize.max}}</b></div>
-    <div class="col-md-2"><b>{{vm.currentSize.desired}}</b></div>
+    <div class="col-md-3 sm-label-right">Current</div>
+    <div class="col-md-2"><input type="number"
+                                 class="form-control input-sm"
+                                 ng-model="vm.currentSize.min"
+                                 readonly/>
+    </div>
+    <div class="col-md-2"><input type="number"
+                                 class="form-control input-sm"
+                                 ng-model="vm.currentSize.max"
+                                 readonly/>
+    </div>
+    <div class="col-md-2"><input type="number"
+                                 class="form-control input-sm"
+                                 ng-model="vm.currentSize.desired"
+                                 readonly/>
+    </div>
   </div>
   <div class="form-group">
-    <div class="col-md-3 text-right"><b>New</b></div>
+    <div class="col-md-3 sm-label-right">Resize to</div>
     <div class="col-md-2"><input type="number"
                                  class="form-control input-sm"
                                  ng-model="vm.command.min"
@@ -46,34 +58,31 @@
       <p> To allow true auto-scaling, use the <a href ng-click="vm.command.advancedMode = true">Advanced Mode</a>.</p>
     </div>
   </div>
-
-  <div class="form-group">
+  <div class="form-group form-inline">
     <div class="col-md-3 sm-label-right">
-      Current Size
+      Current size
     </div>
-    <div class="form-inline col-md-1">
-      <input type="number"
-             class="form-control input-sm"
-             ng-model="vm.currentSize.desired"
-             style="width: 60px"
-             readonly/>
-    </div>
-    <div class="form-inline col-md-2" style="margin-left:20px; line-height:30px">
-      instance<span ng-if="vm.currentSize.desired > 1">s</span>
+    <div class="col-md-6">
+        <input type="number"
+               class="form-control input-sm"
+               ng-model="vm.currentSize.desired"
+               style="width: 60px"
+               readonly/>
+        instance<span ng-if="vm.currentSize.desired > 1">s</span>
     </div>
   </div>
-  <div class="form-group">
+  <div class="form-group form-inline">
     <div class="col-md-3 sm-label-right">
       Resize to
     </div>
-    <div class="col-md-1">
-      <input type="number"
-             class="form-control input-sm highlight-pristine"
-             ng-model="vm.command.newSize"
-             min="0"
-             required
-             style="float:left; width: 60px"/>
+    <div class="col-md-6">
+        <input type="number"
+               class="form-control input-sm highlight-pristine"
+               ng-model="vm.command.newSize"
+               min="0"
+               required
+               style="width: 60px"/>
+        instances
     </div>
-    <div class="form-inline col-md-2" style="margin-left:20px; line-height:30px">instances</div>
   </div>
 </div>

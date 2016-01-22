@@ -1,12 +1,12 @@
 <div class="form-group">
-  <label class="col-md-2 col-md-offset-1 sm-label-right">Execution</label>
+  <label class="col-md-4 sm-label-right">Execution</label>
   <div class="col-md-6" ng-if="vm.viewState.executionsLoading">
     <p class="form-control-static text-center" >
       <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
     </p>
   </div>
   <div class="col-md-6" ng-if="vm.viewState.loadError">Error loading executions!</div>
-  <div class="col-md-9" ng-if="!vm.viewState.executionsLoading">
+  <div class="col-md-6" ng-if="!vm.viewState.executionsLoading">
     <div ng-if="!vm.executions.length"><p class="form-control-static">No recent executions found</p></div>
     <ui-select class="form-control input-sm"
                ng-model="vm.viewState.selectedExecution"
