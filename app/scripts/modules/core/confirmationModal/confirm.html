@@ -4,7 +4,7 @@
   <div class="modal-header">
     <h3>{{params.header}}</h3>
   </div>
-  <div class="modal-body confirmation-modal" ng-if="params.body || verification.required || state.error || params.platformHealthOnlyShowOverride">
+  <div class="modal-body confirmation-modal" ng-if="params.body || state.error || params.platformHealthOnlyShowOverride">
     <form role="form" class="container-fluid" ng-submit="ctrl.confirm()">
       <div ng-if="params.body" ng-bind-html="params.body">
       </div>
@@ -16,7 +16,6 @@
           </platform-health-override>
         </div>
       </div>
-      <user-verification verification="verification" account="params.account" label="params.verificationLabel"></user-verification>
     </form>
     <div ng-if="state.error">
       <div class="alert alert-danger">
@@ -28,6 +27,7 @@
     </div>
   </div>
   <div class="modal-footer">
+    <user-verification verification="verification" account="params.account" label="params.verificationLabel"></user-verification>
     <button class="btn btn-default" ng-click="ctrl.cancel()">{{params.cancelButtonText}}</button>
     <button class="btn btn-primary"
             ng-disabled="ctrl.formDisabled()"

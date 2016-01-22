@@ -29,8 +29,11 @@
           </platform-health-override>
         </div>
       </div>
-      <user-verification account="serverGroup.account" verification="verification"></user-verification>
     </div>
-    <aws-footer action="ctrl.rollback()" cancel="ctrl.cancel()" is-valid="ctrl.isValid()"></aws-footer>
+    <aws-footer action="ctrl.rollback()"
+                cancel="ctrl.cancel()"
+                is-valid="ctrl.isValid()"
+                account="serverGroup.account"
+                verification="verification"></aws-footer>
   </form>
 </div>
