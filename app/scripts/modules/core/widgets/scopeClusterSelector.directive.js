@@ -8,27 +8,19 @@ module.exports = angular
   .directive('clusterSelector', function() {
     return {
       restrict: 'E',
+      scope: {},
       bindToController: {
-        model: '=?',
-        clusters: '=?',
-        onChange: '&?',
+        model: '=',
+        clusters: '=',
       },
       controllerAs: 'vm',
       controller: function controller() {
         var vm = this;
         vm.freeFormClusterField = false;
 
-        vm.clusterChanged = () => {
-          vm.onChange ? vm.onChange({cluster: vm.model}) : angular.noop();
-        };
-
         vm.toggleFreeFormClusterField = function(event) {
           event.preventDefault();
           vm.freeFormClusterField = !vm.freeFormClusterField;
-        };
-
-        vm.getClusterList = () => {
-          return vm.getClusters();
         };
 
       },

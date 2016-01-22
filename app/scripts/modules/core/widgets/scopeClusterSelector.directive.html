@@ -8,13 +8,6 @@
         ng-if="!vm.freeFormClusterField"
         >
 
-      <option value=""></option>
-      <option
-          ng-if="vm.allowNone"
-          value="none"
-          ng-selected="!vm.model">
-        none
-      </option>
       <option
           ng-repeat="cluster in vm.clusters"
           value="{{cluster}}"
@@ -26,7 +19,6 @@
 
     <input
         type="text"
-        ng-blur="vm.clusterChanged()"
         class="form-control input-sm"
         ng-if="vm.freeFormClusterField"
         ng-model="vm.model" />
@@ -35,6 +27,6 @@
 
   <div class="pull-right">
     <a href ng-click="vm.toggleFreeFormClusterField($event)" ng-if="!vm.freeFormClusterField">Toggle for text input</a>
-    <a href ng-click="vm.toggleFreeFormClusterField($event)" ng-if="vm.freeFormClusterField">Toggle for list of exiting clusters </a>
+    <a href ng-click="vm.toggleFreeFormClusterField($event)" ng-if="vm.freeFormClusterField">Toggle for list of existing clusters </a>
   </div>
 </div>

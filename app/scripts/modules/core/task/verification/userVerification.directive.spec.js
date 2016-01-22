@@ -1,6 +1,6 @@
 'use strict';
 
-fdescribe('Controller: UserVerification', function () {
+describe('Controller: UserVerification', function () {
   var controller, accountService, $scope, $q;
 
   beforeEach(
