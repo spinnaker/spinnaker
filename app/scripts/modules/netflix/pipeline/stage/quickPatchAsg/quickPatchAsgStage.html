@@ -8,10 +8,13 @@
                        provider="'aws'"
                        regions="regions"
                        label-columns="2 col-md-offset-1"
+                       on-change="resetSelectedCluster()"
                        field-columns="6"></region-select-field>
   <stage-config-field label="Cluster" help-key="pipeline.config.quickPatchAsg.cluster">
-    <input type="text" required ng-model="stage.clusterName"
-      class="form-control input-sm" />
+    <cluster-selector
+      clusters="clusterList"
+      model="stage.clusterName">
+    </cluster-selector>
   </stage-config-field>
   <stage-config-field label="Package" help-key="pipeline.config.quickPatchAsg.package">
     <input type="text" required ng-model="stage.package"
