@@ -14,6 +14,8 @@ module.exports = angular
         action: '&',
         isValid: '&',
         cancel: '&',
+        account: '=?',
+        verification: '=?',
       },
       controllerAs: 'vm',
       controller: angular.noop,

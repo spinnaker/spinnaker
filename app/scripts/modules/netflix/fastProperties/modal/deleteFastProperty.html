@@ -7,10 +7,6 @@
   <div class="modal-body confirmation-modal" ng-if="delete.fastProperty">
     <form role="form" class="container-fluid" ng-submit="ctrl.confirm()">
 
-      <div class="row" ng-if="delete.fastProperty.env == 'prod'">
-        <user-verification account="delete.fastProperty.env" verification="delete.verification"></user-verification>
-      </div>
-
       <div class="row">
         <div class="col-sm-offset-1 col-sm-10">
           <p>Enter the CMC Ticket</p>
@@ -37,6 +33,7 @@
 
 
   <div class="modal-footer">
+    <user-verification account="delete.fastProperty.env" verification="delete.verification"></user-verification>
     <button class="btn btn-default" ng-click="delete.cancel()">Cancel</button>
     <button class="btn btn-primary"
             ng-disabled="delete.formDisabled()"

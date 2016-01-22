@@ -26,8 +26,7 @@ module.exports = angular
     };
   })
   .controller('UserVerificationCtrl', function ($scope, accountService) {
-
-    this.label = this.label || `Type the name of the account (<span class="verification-text">${this.account}</span>) below to continue.`;
+    this.label = this.label || `Type the name of the account (<span class="verification-text">${this.account}</span>) to continue`;
     this.userVerification = '';
     this.required = false;
     this.verification.verified = true;

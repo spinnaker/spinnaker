@@ -21,7 +21,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       ExecutionFilterModel.mostRecentApplication = $scope.application.name;
     }
 
-    let scrollIntoView = (delay=200) => scrollToService.scrollTo('execution-' + $stateParams.executionId, '.all-execution-groups', 225, delay);
+    let scrollIntoView = (delay = 200) => scrollToService.scrollTo('execution-' + $stateParams.executionId, '.all-execution-groups', 225, delay);
 
     let application = $scope.application;
     this.application = application;

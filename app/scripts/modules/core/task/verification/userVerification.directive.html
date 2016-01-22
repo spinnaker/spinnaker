@@ -1,13 +1,14 @@
 <div class="row verification" ng-if="vm.required">
-  <div class="col-sm-offset-1 col-sm-10">
-    <p ng-if="vm.label" ng-bind-html="vm.label"></p>
+  <div class="col-sm-12">
     <div class="form-inline">
       <div class="form-group">
+        <div class="form-control-static" ng-bind-html="vm.label"></div>
+        <help-field key="user.verification"></help-field>
         <input type="text"
                class="form-control input-sm highlight-pristine"
                ng-model="vm.userVerification"
                ng-change="vm.verify()"
-               ng-class="{'ng-invalid': !vm.verification.verified}"/>
+               ng-class="{'ng-invalid': !vm.verification.verified}" />
       </div>
     </div>
   </div>
