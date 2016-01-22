@@ -1,7 +1,7 @@
 <div class="form-group" style="margin-top: 15px;">
   <div class="form-horizontal">
     <div class="form-group">
-      <label class="col-md-2 col-md-offset-1 sm-label-left">Application</label>
+      <label class="col-md-2 col-md-offset-1 sm-label-right">Application</label>
 
       <div class="col-md-6">
         <ui-select ng-model="command.strategyApplication" class="form-control input-sm">
@@ -16,7 +16,7 @@
       </div>
     </div>
     <div class="form-group" ng-if="command.strategyApplication && viewState.pipelinesLoaded">
-      <label class="col-md-2 col-md-offset-1 sm-label-left">Strategy</label>
+      <label class="col-md-2 col-md-offset-1 sm-label-right">Strategy</label>
 
       <div class="col-md-6">
         <div>
@@ -33,7 +33,7 @@
     <div class="well well-sm clearfix ng-scope col-md-offset-1 col-md-10" ng-if="pipelineParameters.length">
       <strong class="text-left">Parameters</strong>
       <div class="form-group" ng-repeat="parameter in pipelineParameters | orderBy:'name' ">
-        <div class="col-md-3 sm-label-left">
+        <div class="col-md-3 sm-label-right">
           <b>{{parameter.name}}</b>
           <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
         </div>

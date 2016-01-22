@@ -1,11 +1,11 @@
 <div class="form-group">
-  <div class="col-md-5 sm-label-left"><b>Cooldown</b></div>
+  <div class="col-md-5 sm-label-right"><b>Cooldown</b></div>
   <div class="col-md-2"><input type="text" required
                                class="form-control input-sm"
                                ng-model="command.cooldown"/></div>&nbsp;seconds
 </div>
 <div class="form-group">
-  <div class="col-md-5 sm-label-left"><b>Health Check Type</b></div>
+  <div class="col-md-5 sm-label-right"><b>Health Check Type</b></div>
   <div class="col-md-6">
 
     <ui-select ng-model="command.healthCheckType" class="form-control input-sm">
@@ -18,13 +18,13 @@
   </div>
 </div>
 <div class="form-group">
-  <div class="col-md-5 sm-label-left"><b>Health Check Grace Period</b></div>
+  <div class="col-md-5 sm-label-right"><b>Health Check Grace Period</b></div>
   <div class="col-md-2"><input type="text" required
                                class="form-control input-sm"
                                ng-model="command.healthCheckGracePeriod"/></div>&nbsp;seconds
 </div>
 <div class="form-group">
-  <div class="col-md-5 sm-label-left"><b>Termination Policies</b></div>
+  <div class="col-md-5 sm-label-right"><b>Termination Policies</b></div>
   <div class="col-md-6">
 
     <ui-select multiple ng-model="command.terminationPolicies" class="form-control input-sm">
@@ -38,7 +38,7 @@
 </div>
 
 <div class="form-group">
-  <div class="col-md-5 sm-label-left"><b>Key Name</b></div>
+  <div class="col-md-5 sm-label-right"><b>Key Name</b></div>
   <div class="col-md-6">
     <ui-select ng-model="command.keyPair" class="form-control input-sm">
       <ui-select-match>{{$select.selected}}</ui-select-match>
@@ -49,31 +49,31 @@
   </div>
 </div>
 <div class="form-group">
-  <div class="col-md-5 sm-label-left"><b>Ramdisk Id (optional)</b></div>
+  <div class="col-md-5 sm-label-right"><b>Ramdisk Id (optional)</b></div>
   <div class="col-md-6"><input type="text"
                                class="form-control input-sm"
                                ng-model="command.ramdiskId"/></div>
 </div>
 <div class="form-group">
-  <div class="col-md-5 sm-label-left"><b>IAM Instance Profile (optional)</b></div>
+  <div class="col-md-5 sm-label-right"><b>IAM Instance Profile (optional)</b></div>
   <div class="col-md-6"><input type="text"
                                class="form-control input-sm"
                                ng-model="command.iamRole"/></div>
 </div>
 <div class="form-group">
-  <div class="col-md-5 sm-label-left"><b>Instance Monitoring</b></div>
+  <div class="col-md-5 sm-label-right"><b>Instance Monitoring</b></div>
   <div class="col-md-6 checkbox">
     <label><input type="checkbox" ng-model="command.instanceMonitoring"/> Enable Instance Monitoring </label>
   </div>
 </div>
 <div class="form-group">
-  <div class="col-md-5 sm-label-left"><b>EBS Optimized</b></div>
+  <div class="col-md-5 sm-label-right"><b>EBS Optimized</b></div>
   <div class="col-md-6 checkbox">
     <label><input type="checkbox" ng-model="command.ebsOptimized"/> Optimize Instances for EBS</label>
   </div>
 </div>
 <div class="form-group">
-  <div class="col-md-5 sm-label-left"><b>Associate Public IP Address</b></div>
+  <div class="col-md-5 sm-label-right"><b>Associate Public IP Address</b></div>
   <div class="col-md-2 radio">
     <label>
       <input type="radio" ng-model="command.associatePublicIpAddress" ng-value="true" id="associatePublicIpAddressTrue"/>
@@ -94,7 +94,7 @@
   </div>
 </div>
 <div class="form-group">
-  <div class="col-md-5 sm-label-left"><b>Enable Traffic</b></div>
+  <div class="col-md-5 sm-label-right"><b>Enable Traffic</b></div>
   <div class="col-md-6 checkbox">
     <label><input type="checkbox"
                   ng-click="advancedSettingsCtrl.toggleSuspendedProcess('AddToLoadBalancer')"

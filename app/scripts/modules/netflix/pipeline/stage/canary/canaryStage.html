@@ -17,7 +17,7 @@
     </select>
   </stage-config-field>
   <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
+    <div class="col-md-2 col-md-offset-1 sm-label-right">
       <label>Successful Score</label>
       <help-field key="pipeline.config.canary.successfulScore"></help-field>
     </div>
@@ -25,7 +25,7 @@
       <input type="text" required ng-model="stage.canary.canaryConfig.canarySuccessCriteria.canaryResultScore"
              class="form-control input-sm" />
     </div>
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
+    <div class="col-md-2 col-md-offset-1 sm-label-right">
       <label>Unhealthy Score</label>
       <help-field key="pipeline.config.canary.unhealthyScore"></help-field>
     </div>
@@ -42,7 +42,7 @@
     </label>
   </div>
   <div class="form-group" ng-if="stage.scaleUp.enabled" style="margin-top: 10px;">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
+    <div class="col-md-2 col-md-offset-1 sm-label-right">
       <label>Capacity</label>
       <help-field key="pipeline.config.canary.scaleUpCapacity"></help-field>
     </div>
@@ -50,7 +50,7 @@
       <input type="text" required ng-model="stage.scaleUp.capacity"
              class="form-control input-sm" />
     </div>
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
+    <div class="col-md-2 col-md-offset-1 sm-label-right">
       <label>Scale Up Delay</label>
       <help-field key="pipeline.config.canary.scaleUpDelay"></help-field>
     </div>
@@ -68,7 +68,7 @@
     </label>
   </div>
   <div class="form-group" ng-if="canaryStageCtrl.terminateUnhealthyCanaryEnabled()" style="margin-top: 10px;">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
+    <div class="col-md-2 col-md-offset-1 sm-label-right">
       <label>Terminate After</label>
     </div>
     <div class="col-md-2">

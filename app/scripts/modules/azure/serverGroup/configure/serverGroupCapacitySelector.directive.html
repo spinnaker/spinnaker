@@ -8,7 +8,7 @@
     </div>
 
     <div class="form-group">
-      <div class="col-md-4 sm-label-left"><b>Capacity</b></div>
+      <div class="col-md-4 sm-label-right"><b>Capacity</b></div>
       <div class="col-md-8 radio">
         <label>
           <input type="radio" ng-model="command.useSourceCapacity" ng-value="true" id="useSourceCapacityTrue"/>
@@ -62,7 +62,7 @@
       </div>
     </div>
     <div class="form-group">
-      <div class="col-md-4 sm-label-left"><b>Number of Instances</b></div>
+      <div class="col-md-4 sm-label-right"><b>Number of Instances</b></div>
       <div class="col-md-2"><input type="number" ng-change="setMinMax(command.capacity.desired)"
                                    class="form-control input-sm"
                                    ng-model="command.capacity.desired"

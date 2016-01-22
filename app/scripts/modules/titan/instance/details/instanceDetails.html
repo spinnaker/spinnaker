@@ -52,36 +52,36 @@
   <div class="content" ng-if="!state.loading">
     <collapsible-section heading="Titan Task Information" expanded="true">
       <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
-        <dt>Task Id:</dt>
+        <dt>Task Id</dt>
         <dd>{{instance.id}}</dd>
-        <dt>Job Id:</dt>
+        <dt>Job Id</dt>
         <dd>{{instance.jobId}}</dd>
-        <dt ng-if="instance.serverGroup">Job Name:</dt>
+        <dt ng-if="instance.serverGroup">Job Name</dt>
         <dd ng-if="instance.serverGroup">{{instance.serverGroup}}</dd>
-        <dt>Launched:</dt>
+        <dt>Launched</dt>
         <dd ng-if="instance.launchTime">{{instance.launchTime | timestamp}}</dd>
         <dd ng-if="!instance.launchTime">(Unknown)</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Task Placement" expanded="true">
       <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
-        <dt>Account:</dt>
+        <dt>Account</dt>
         <dd><account-tag account="instance.account" pad="right"></account-tag></dd>
-        <dt>Region:</dt>
+        <dt>Region</dt>
         <dd>{{instance.placement.region}}</dd>
-        <dt>Host:</dt>
+        <dt>Host</dt>
         <dd>{{instance.placement.host}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Task Resources" expanded="true">
       <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
-        <dt>CPU(s):</dt>
+        <dt>CPU(s)</dt>
         <dd>{{instance.resources.cpu}}</dd>
-        <dt>Memory:</dt>
+        <dt>Memory</dt>
         <dd>{{instance.resources.memory}} MB</dd>
-        <dt>Disk:</dt>
+        <dt>Disk</dt>
         <dd>{{instance.resources.disk}} MB</dd>
-        <dt>Port(s):</dt>
+        <dt>Port(s)</dt>
         <dd>
           <div ng-repeat="(key, val) in instance.resources.ports">
             {{key}} -> {{val}}
@@ -114,7 +114,7 @@
     </div>
     <!--<collapsible-section heading="SSH" ng-if="!instance.notFound">-->
       <!--<dl>-->
-        <!--<dt ng-if="instance.sshLink">SSH into this docker container:</dt>-->
+        <!--<dt ng-if="instance.sshLink">SSH into this docker container</dt>-->
         <!--<dd ng-if="instance.sshLink"><a href="{{instance.sshLink}}" target="_blank">SSH</a></dd>-->
       <!--</dl>-->
     <!--</collapsible-section>-->

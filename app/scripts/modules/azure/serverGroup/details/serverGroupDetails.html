@@ -96,19 +96,19 @@
     </collapsible-section>
     <collapsible-section heading="Server Group Information" expanded="true">
       <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
-        <dt>Created:</dt>
+        <dt>Created</dt>
         <dd>{{serverGroup.createdTime | timestamp}}</dd>
-        <dt>In:</dt>
+        <dt>In</dt>
         <dd>
           <account-tag account="serverGroup.account" provider="serverGroup.type" pad="right"></account-tag>
 
           {{serverGroup.region}}
         </dd>
-        <dt>VPC:</dt>
+        <dt>VPC</dt>
         <dd><vpc-tag vpc-id="serverGroup.vpcId"></vpc-tag></dd>
-        <dt ng-if="serverGroup.vpcId">Subnet:</dt>
+        <dt ng-if="serverGroup.vpcId">Subnet</dt>
         <dd ng-if="serverGroup.vpcId">{{serverGroup.subnetType || 'None (EC2 Classic)'}}</dd>
-        <dt>Availability Zones:</dt>
+        <dt>Availability Zones</dt>
         <dd>
           <ul>
             <li ng-repeat="zone in serverGroup.asg.availabilityZones">{{zone}}</li>
@@ -121,21 +121,21 @@
       <dl class="dl-horizontal"
           ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
           ng-if="serverGroup.asg.minSize === serverGroup.asg.maxSize">
-        <dt>Min/Max:</dt>
+        <dt>Min/Max</dt>
         <dd>{{serverGroup.asg.desiredCapacity}}</dd>
-        <dt>Current:</dt>
+        <dt>Current</dt>
         <dd>{{serverGroup.instances.length}}</dd>
       </dl>
       <dl class="dl-horizontal"
           ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
           ng-if="serverGroup.asg.minSize !== serverGroup.asg.maxSize">
-        <dt>Min:</dt>
+        <dt>Min</dt>
         <dd>{{serverGroup.asg.minSize}}</dd>
-        <dt>Desired:</dt>
+        <dt>Desired</dt>
         <dd>{{serverGroup.asg.desiredCapacity}}</dd>
-        <dt>Max:</dt>
+        <dt>Max</dt>
         <dd>{{serverGroup.asg.maxSize}}</dd>
-        <dt>Current:</dt>
+        <dt>Current</dt>
         <dd>{{serverGroup.instances.length}}</dd>
       </dl>
       <div>
@@ -149,7 +149,7 @@
       <dl class="dl-horizontal"
           ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
           ng-if="serverGroup">
-        <dt>Instances:</dt>
+        <dt>Instances</dt>
         <dd>
           <health-counts container="serverGroup.instanceCounts" class="pull-left"></health-counts>
         </dd>

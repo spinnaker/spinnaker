@@ -3,7 +3,7 @@
 
     <ng-form name="basicSettings">
       <div class="form-group">
-        <div class="col-md-3 sm-label-left">
+        <div class="col-md-3 sm-label-right">
           <b>Account</b>
         </div>
         <div class="col-md-7">
@@ -15,7 +15,7 @@
       <gce-network-select-field label-columns="3" component="command" field="network" account="command.credentials" networks="command.backingData.filtered.networks"></gce-network-select-field>
 
       <div class="form-group">
-        <div class="col-md-3 sm-label-left">
+        <div class="col-md-3 sm-label-right">
           Stack
           <help-field key="aws.serverGroup.stack"></help-field>
         </div>
@@ -31,7 +31,7 @@
         </div>
       </div>
       <div class="form-group">
-        <div class="col-md-3 sm-label-left">
+        <div class="col-md-3 sm-label-right">
           Detail
           <help-field key="aws.serverGroup.detail"></help-field>
         </div>
@@ -47,7 +47,7 @@
         </div>
       </div>
       <div class="form-group" ng-if="!command.viewState.disableImageSelection">
-        <div class="col-md-3 sm-label-left">
+        <div class="col-md-3 sm-label-right">
           Image
           <help-field key="gce.serverGroup.imageName"></help-field>
         </div>

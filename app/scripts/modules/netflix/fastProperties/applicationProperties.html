@@ -120,10 +120,10 @@
 
                <td class="small-fp-scopes">
                  <dl>
-                   <dt ng-if="property.env">Env:</dt>
+                   <dt ng-if="property.env">Env</dt>
                    <dd ng-if="property.env">{{property.env}}</dd>
 
-                   <dt ng-if="property.cluster" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('cluster') > -1}">Cluster:</dt>
+                   <dt ng-if="property.cluster" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('cluster') > -1}">Cluster</dt>
                    <dd ng-if="property.cluster" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('cluster') > -1}">
                      {{property.cluster}}
                      <i
@@ -135,7 +135,7 @@
                      </i>
                    </dd>
 
-                   <dt ng-if="property.asg" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('asg') > -1}">ASG:</dt>
+                   <dt ng-if="property.asg" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('asg') > -1}">ASG</dt>
                    <dd ng-if="property.asg" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('asg') > -1}">
                      {{property.asg}}
                      <i
@@ -147,12 +147,12 @@
                      </i>
                    </dd>
 
-                   <dt ng-if="property.zone">AZ:</dt>
+                   <dt ng-if="property.zone">AZ</dt>
                    <dd ng-if="property.zone">
                      {{property.zone}}
                    </dd>
 
-                   <dt ng-if="property.serverId" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('serverId') > -1 }">Instance:</dt>
+                   <dt ng-if="property.serverId" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('serverId') > -1 }">Instance</dt>
                    <dd ng-if="property.serverId" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('serverId') > -1 }">
                      {{property.serverId}} {{property.errors.indexOf('serverId')}}
                        <i

@@ -97,14 +97,14 @@
     </collapsible-section>
     <collapsible-section heading="Server Group Information" expanded="true">
       <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
-        <dt>Created:</dt>
+        <dt>Created</dt>
         <dd>{{serverGroup.launchConfig.createdTime | timestamp}}</dd>
-        <dt>In:</dt>
+        <dt>In</dt>
         <dd>
           <account-tag account="serverGroup.account" pad="right"></account-tag>
           {{serverGroup.region}}
         </dd>
-        <dt>Zone:</dt>
+        <dt>Zone</dt>
         <dd>
           <ul>
             <li ng-repeat="zone in serverGroup.zones">{{zone}}</li>
@@ -116,21 +116,21 @@
       <dl class="dl-horizontal"
           ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
           ng-if="serverGroup.asg.minSize === serverGroup.asg.maxSize">
-        <dt>Min/Max:</dt>
+        <dt>Min/Max</dt>
         <dd>{{serverGroup.asg.desiredCapacity}}</dd>
-        <dt>Current:</dt>
+        <dt>Current</dt>
         <dd>{{serverGroup.instances.length}}</dd>
       </dl>
       <dl class="dl-horizontal"
           ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
           ng-if="serverGroup.asg.minSize !== serverGroup.asg.maxSize">
-        <dt>Min:</dt>
+        <dt>Min</dt>
         <dd>{{serverGroup.asg.minSize}}</dd>
-        <dt>Desired:</dt>
+        <dt>Desired</dt>
         <dd>{{serverGroup.asg.desiredCapacity}}</dd>
-        <dt>Max:</dt>
+        <dt>Max</dt>
         <dd>{{serverGroup.asg.maxSize}}</dd>
-        <dt>Current:</dt>
+        <dt>Current</dt>
         <dd>{{serverGroup.instances.length}}</dd>
       </dl>
       <a href ng-click="ctrl.resizeServerGroup()">Resize Server Group</a>
@@ -139,7 +139,7 @@
       <dl class="dl-horizontal"
           ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
           ng-if="serverGroup">
-        <dt>Instances:</dt>
+        <dt>Instances</dt>
         <dd>
           <health-counts container="serverGroup.instanceCounts" class="pull-left"></health-counts>
         </dd>

@@ -1,6 +1,6 @@
 <ng-form name="artifactSettings">
   <div class="form-group">
-    <div class="col-md-3 sm-label-left">
+    <div class="col-md-3 sm-label-right">
       <b>Repository</b>
       <help-field key="cf.artifact.repository.options"></help-field>
     </div>
@@ -12,7 +12,7 @@
     </div>
   </div>
   <div class="form-group">
-    <div class="col-md-3 sm-label-left">
+    <div class="col-md-3 sm-label-right">
       <b>Artifact</b>
     </div>
     <div class="col-md-7">
@@ -23,7 +23,7 @@
     </div>
   </div>
   <div class="form-group">
-    <div class="col-md-3 sm-label-left">
+    <div class="col-md-3 sm-label-right">
       <b ng-if="!artifactSettingsCtrl.isS3()">Username</b>
       <b ng-if="artifactSettingsCtrl.isS3()">Access Key</b>
     </div>
@@ -41,7 +41,7 @@
     </div>
   </div>
   <div class="form-group">
-    <div class="col-md-3 sm-label-left">
+    <div class="col-md-3 sm-label-right">
       <b ng-if="!artifactSettingsCtrl.isS3()">Password</b>
       <b ng-if="artifactSettingsCtrl.isS3()">Secret Key</b>
     </div>

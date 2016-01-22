@@ -6,7 +6,7 @@
         <hr ng-if="$index > 0">
 
         <div class="form-group">
-          <div class="col-md-4 sm-label-left">
+          <div class="col-md-4 sm-label-right">
             Image
             <help-field key="kubernetes.containers.image"></help-field>
           </div>
@@ -16,7 +16,7 @@
         </div>
 
         <div class="form-group">
-          <div class="col-md-4 sm-label-left">
+          <div class="col-md-4 sm-label-right">
             Name
             <help-field key="kubernetes.containers.name"></help-field>
           </div>
@@ -30,11 +30,11 @@
           <span class="glyphicon" ng-class="{'glyphicon-chevron-up': !container.viewState.configureResources, 'glyphicon-chevron-down': container.viewState.configureResources}"/>
           <em>Configure Resources</em>
         </div>
-        
+
         <div ng-show="container.viewState.configureResources">
           </br>
           <div class="form-group">
-            <div class="col-md-4 sm-label-left">
+            <div class="col-md-4 sm-label-right">
               CPU requested
               <help-field key="kubernetes.containers.requests.cpu"></help-field>
             </div>
@@ -44,7 +44,7 @@
           </div>
 
           <div class="form-group">
-            <div class="col-md-4 sm-label-left">
+            <div class="col-md-4 sm-label-right">
               Memory requested
               <help-field key="kubernetes.containers.requests.memory"></help-field>
             </div>
@@ -54,7 +54,7 @@
           </div>
 
           <div class="form-group">
-            <div class="col-md-4 sm-label-left">
+            <div class="col-md-4 sm-label-right">
               CPU limit
               <help-field key="kubernetes.containers.limits.cpu"></help-field>
             </div>
@@ -64,7 +64,7 @@
           </div>
 
           <div class="form-group">
-            <div class="col-md-4 sm-label-left">
+            <div class="col-md-4 sm-label-right">
               Memory limit
               <help-field key="kubernetes.containers.limits.memory"></help-field>
             </div>

@@ -23,7 +23,7 @@
         <div class="row" ng-if="stage.context['deploy.server.groups']">
             <div class="col-md-11">
                 <dl class="dl-narrow dl-horizontal">
-                    <dt>Destroyed:</dt><dd></dd>
+                    <dt>Destroyed</dt><dd></dd>
                     <dt ng-repeat-start="(region, servergroups) in stage.context['deploy.server.groups']">{{region}}</dt>
                     <dd ng-repeat-end>{{servergroups.join(', ')}}</dd>
                 </dl>
