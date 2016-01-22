@@ -3,10 +3,9 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.kubernetes.image.reader', [])
-  .factory('kubernetesImageReader', function ($q, Restangular) {
-
-    function findImages(params) {
-      return $q.when([{ imageName: 'nginx', account: 'my-kubernetes-account'  }, { imageName: 'redis', account: 'my-kubernetes-account' }]);
+  .factory('kubernetesImageReader', function ($q) {
+    function findImages(/* params */) {
+      return $q.when([{ imageName: 'nginx', account: 'my-kubernetes-account' }, { imageName: 'redis', account: 'my-kubernetes-account' }]);
     }
 
     function getImage(/*amiName, region, credentials*/) {

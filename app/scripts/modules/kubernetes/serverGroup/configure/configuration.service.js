@@ -47,11 +47,11 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
       command.backingData.filtered.containers = _.map(command.backingData.packageImages, mapImageToContainer);
     }
 
-    function refreshLoadBalancers(command, skipCommandReconfiguration) {
+    function refreshLoadBalancers(command) {
       command.backingData.filtered.loadBalancers = command.backingData.loadBalancers;
     }
 
-    function refreshSecurityGroups(command, skipCommandReconfiguration) {
+    function refreshSecurityGroups(command) {
       command.backingData.filtered.securityGroups = command.backingData.securityGroups;
     }
 
