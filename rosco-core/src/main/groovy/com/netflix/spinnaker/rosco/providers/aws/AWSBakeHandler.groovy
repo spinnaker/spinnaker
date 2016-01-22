@@ -54,7 +54,13 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
 
     // TODO(duftler): Work through definition of uniqueness.
     bakeRequest.with {
-      return "bake:$cloud_provider_type:$region:$vm_type:$base_os:$package_name"
+      def enhancedNetworkingSegment = bakeRequest.enhanced_networking ? 'enhancedNWEnabled' : 'enhancedNWDisabled'
+
+      if (bakeRequest.base_ami) {
+        return "bake:$cloud_provider_type:$region:$vm_type:$base_os:$bakeRequest.base_ami:$enhancedNetworkingSegment:$package_name"
+      } else {
+        return "bake:$cloud_provider_type:$region:$vm_type:$base_os:$enhancedNetworkingSegment:$package_name"
+      }
     }
   }
 
@@ -78,11 +84,16 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
       throw new IllegalArgumentException("No virtualization settings found for region '$region', operating system '$bakeRequest.base_os', and vm type '$vm_type'.")
     }
 
+    if (bakeRequest.base_ami) {
+      awsVirtualizationSettings = awsVirtualizationSettings.clone()
+      awsVirtualizationSettings.sourceAmi = bakeRequest.base_ami
+    }
+
     return awsVirtualizationSettings
   }
 
   @Override
-  Map buildParameterMap(String region, def awsVirtualizationSettings, String imageName) {
+  Map buildParameterMap(String region, def awsVirtualizationSettings, String imageName, BakeRequest bakeRequest) {
     def parameterMap = [
       aws_region       : region,
       aws_ssh_username : awsVirtualizationSettings.sshUserName,
@@ -106,6 +117,10 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
 
     if (awsBakeryDefaults.awsAssociatePublicIpAddress != null) {
       parameterMap.aws_associate_public_ip_address = awsBakeryDefaults.awsAssociatePublicIpAddress
+    }
+
+    if (bakeRequest.enhanced_networking) {
+      parameterMap.aws_enhanced_networking = true
     }
 
     return parameterMap

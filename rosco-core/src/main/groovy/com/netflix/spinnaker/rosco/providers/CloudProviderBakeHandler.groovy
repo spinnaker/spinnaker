@@ -78,7 +78,7 @@ abstract class CloudProviderBakeHandler {
   /**
    * Returns a map containing the parameters that should be propagated to the packer template for this provider.
    */
-  abstract Map buildParameterMap(String region, def virtualizationSettings, String imageName)
+  abstract Map buildParameterMap(String region, def virtualizationSettings, String imageName, BakeRequest bakeRequest)
 
   /**
    * Returns the command that should be prepended to the shell command passed to the container.
@@ -101,7 +101,7 @@ abstract class CloudProviderBakeHandler {
     BakeOptions.Selected selectedOptions = new BakeOptions.Selected(baseImage: findBaseImage(bakeRequest))
     def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest, selectedOptions)
 
-    def parameterMap = buildParameterMap(region, virtualizationSettings, imageName)
+    def parameterMap = buildParameterMap(region, virtualizationSettings, imageName, bakeRequest)
 
     if (debianRepository) {
       parameterMap.deb_repo = debianRepository

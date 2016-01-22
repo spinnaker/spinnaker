@@ -67,7 +67,7 @@ class BakeryController {
     return bakeHandler.getBakeOptions()
   }
 
-  @RequestMapping(value = '/bakeOptions/{cloudProvider}/baseImages/{imageId}')
+  @RequestMapping(value = '/bakeOptions/{cloudProvider}/baseImages/{imageId}', method = RequestMethod.GET)
   BakeOptions.BaseImage baseImage(@PathVariable("cloudProvider") BakeRequest.CloudProviderType cloudProvider, @PathVariable("imageId") String imageId) {
     BakeOptions bakeOptions = bakeOptionsByCloudProvider(cloudProvider)
     def baseImage = bakeOptions.baseImages.find { it.id == imageId }

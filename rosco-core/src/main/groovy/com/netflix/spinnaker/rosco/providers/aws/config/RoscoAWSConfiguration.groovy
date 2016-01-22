@@ -20,6 +20,8 @@ import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.aws.AWSBakeHandler
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
+import groovy.transform.AutoClone
+import groovy.transform.AutoCloneStyle
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -63,6 +65,7 @@ class RoscoAWSConfiguration {
     List<AWSVirtualizationSettings> virtualizationSettings = []
   }
 
+  @AutoClone(style = AutoCloneStyle.SIMPLE)
   static class AWSVirtualizationSettings {
     String region
     BakeRequest.VmType virtualizationType
