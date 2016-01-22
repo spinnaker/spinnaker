@@ -14,7 +14,7 @@ module.exports = angular
       scope: {},
       bindToController: {
         instance: '=',
-        text: '='
+        text: '=?'
       },
       controllerAs: 'vm',
       controller: function($uibModal) {
