@@ -19,7 +19,7 @@ module.exports = angular
       bindToController: {
         verification: '=',
         account: '=',
-        label: '='
+        label: '=?'
       },
       controllerAs: 'vm',
       controller: 'UserVerificationCtrl',
