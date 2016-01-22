@@ -13,7 +13,7 @@
 </div>
 
 <div class="form-group">
-  <div class="col-md-3 sm-label-left"><b>Security Groups</b></div>
+  <div class="col-md-3 sm-label-right"><b>Security Groups</b></div>
   <div class="col-md-9">
     <ui-select multiple ng-model="command.securityGroups" class="form-control input-sm">
       <ui-select-match>{{$item.name}}</ui-select-match>
@@ -35,7 +35,7 @@
 </div>
 
 <div class="form-group" ng-if="command.viewState.listImplicitSecurityGroups">
-  <div class="col-md-3 sm-label-left"><b>Implicit Security Groups</b></div>
+  <div class="col-md-3 sm-label-right"><b>Implicit Security Groups</b></div>
   <div class="col-md-9">
     <ul ng-if="command.implicitSecurityGroups.length" style="margin-top: 10px; list-style-type: none">
       <li ng-repeat="securityGroup in command.implicitSecurityGroups">{{securityGroup.name}}</li>

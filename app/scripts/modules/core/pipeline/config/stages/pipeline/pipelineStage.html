@@ -25,7 +25,7 @@
     <h4 class="text-left">Pipeline Parameters</h4>
 
     <div class="form-group" ng-repeat="parameter in pipelineParameters | orderBy:'name' ">
-      <div class="col-md-3 sm-label-left">
+      <div class="col-md-3 sm-label-right">
         <b>{{parameter.name}}</b>
         <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
       </div>

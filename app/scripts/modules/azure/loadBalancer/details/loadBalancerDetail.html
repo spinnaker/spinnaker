@@ -45,13 +45,13 @@
   <div ng-if="!state.loading" class="content">
     <collapsible-section heading="Load Balancer Details" expanded="true">
       <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
-        <dt>Created:</dt>
+        <dt>Created</dt>
         <dd>{{loadBalancer.elb.createdTime | timestamp}}</dd>
-        <dt>In:</dt>
+        <dt>In</dt>
         <dd><account-tag account="loadBalancer.account" pad="right" provider="loadBalancer.type"></account-tag> {{loadBalancer.region}}</dd>
       </dl>
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
-        <dt ng-if="loadBalancer.serverGroups">Server Groups:</dt>
+        <dt ng-if="loadBalancer.serverGroups">Server Groups</dt>
         <dd ng-if="loadBalancer.serverGroups">
           <ul ng-style="{'margin-left': InsightFilterStateModel.filtersExpanded ? '30px' : 0}">
             <li ng-repeat="serverGroup in loadBalancer.serverGroups | orderBy: ['isDisabled', '-name']">
@@ -66,7 +66,7 @@
         </dd>
       </dl>
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
-        <dt ng-if="loadBalancer.elb.dnsname">DNS Name:</dt>
+        <dt ng-if="loadBalancer.elb.dnsname">DNS Name</dt>
         <dd>
           <a target=_blank href="http://{{loadBalancer.elb.dnsname}}">{{loadBalancer.elb.dnsName}}</a>
           <copy-to-clipboard

@@ -64,24 +64,24 @@
   <div class="content" ng-if="!state.loading">
     <collapsible-section heading="Instance Information" expanded="true">
       <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
-        <dt>Launched:</dt>
+        <dt>Launched</dt>
         <dd ng-if="instance.launchTime">{{instance.launchTime | timestamp}}</dd>
         <dd ng-if="!instance.launchTime">(Unknown)</dd>
-        <dt>In:</dt>
+        <dt>In</dt>
         <dd>
           <account-tag account="instance.account" provider="instance.provider" pad="right"></account-tag>
           {{instance.placement.availabilityZone || '(Unknown)'}}
         </dd>
-        <dt>Type:</dt>
+        <dt>Type</dt>
         <dd>{{instance.instanceType || '(Unknown)'}}</dd>
-        <dt ng-if="instance.serverGroup">Server Group:</dt>
+        <dt ng-if="instance.serverGroup">Server Group</dt>
         <dd ng-if="instance.serverGroup">
           <a ui-sref="^.serverGroup({region: instance.region,
               accountId: instance.account,
               serverGroup: instance.serverGroup,
               provider: instance.provider})">{{instance.serverGroup}}</a>
         </dd>
-        <dt ng-if="instance.serverGroup">VPC:</dt>
+        <dt ng-if="instance.serverGroup">VPC</dt>
         <dd ng-if="instance.serverGroup"><vpc-tag vpc-id="instance.vpcId"></vpc-tag></dd>
       </dl>
     </collapsible-section>
@@ -120,7 +120,7 @@
     </div>
     <collapsible-section heading="DNS" ng-if="!instance.notFound">
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal'">
-        <dt ng-if="instance.privateDnsName">Private DNS Name:</dt>
+        <dt ng-if="instance.privateDnsName">Private DNS Name</dt>
         <dd ng-if="instance.privateDnsName">
           <a href="http://{{instance.privateDnsName}}:7001" target="_blank">{{instance.privateDnsName}}</a>
           <copy-to-clipboard
@@ -129,7 +129,7 @@
               tool-tip="Copy to clipboard">
           </copy-to-clipboard>
         </dd>
-        <dt ng-if="instance.publicDnsName">Public DNS Name:</dt>
+        <dt ng-if="instance.publicDnsName">Public DNS Name</dt>
         <dd ng-if="instance.publicDnsName">
           <a href="http://{{instance.publicDnsName}}:7001" target="_blank">{{instance.publicDnsName}}</a>
           <copy-to-clipboard
@@ -138,7 +138,7 @@
               tool-tip="Copy to clipboard">
           </copy-to-clipboard>
         </dd>
-        <dt ng-if="instance.privateIpAddress">Private IP Address:</dt>
+        <dt ng-if="instance.privateIpAddress">Private IP Address</dt>
         <dd ng-if="instance.privateIpAddress">
           <a href="http://{{instance.privateIpAddress}}:7001" target="_blank">{{instance.privateIpAddress}}</a>
           <copy-to-clipboard
@@ -147,7 +147,7 @@
               tool-tip="Copy to clipboard">
           </copy-to-clipboard>
         </dd>
-        <dt ng-if="instance.publicIpAddress">Public IP Address:</dt>
+        <dt ng-if="instance.publicIpAddress">Public IP Address</dt>
         <dd ng-if="instance.publicIpAddress">
           <a href="http://{{instance.publicIpAddress}}:7001" target="_blank">{{instance.publicIpAddress}}</a>
           <copy-to-clipboard
@@ -156,7 +156,7 @@
               tool-tip="Copy to clipboard">
           </copy-to-clipboard>
         </dd>
-        <dt ng-if="instance.vipAddress && instance.vipAddress.length > 0">VIP Address:</dt>
+        <dt ng-if="instance.vipAddress && instance.vipAddress.length > 0">VIP Address</dt>
         <dd ng-repeat="address in instance.vipAddress">
           <a href="http://{{address}}" target="_blank">{{address}}</a>
           <copy-to-clipboard

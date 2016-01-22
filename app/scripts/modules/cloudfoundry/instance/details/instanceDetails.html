@@ -55,16 +55,16 @@
   <div class="content" ng-if="!state.loading">
     <collapsible-section heading="Instance Information" expanded="true">
       <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
-        <dt>Launched:</dt>
+        <dt>Launched</dt>
         <dd ng-if="instance.launchTime">{{instance.launchTime | timestamp}}</dd>
         <dd ng-if="!instance.launchTime">(Unknown)</dd>
-        <dt>In:</dt>
+        <dt>In</dt>
         <dd>
           <account-tag account="instance.account" pad="right"></account-tag>
           {{instance.availabilityZone || '(Unknown)'}}
         </dd>
-        <dt>Type:</dt>
-        <dt ng-if="instance.serverGroup">Server Group:</dt>
+        <dt>Type</dt>
+        <dt ng-if="instance.serverGroup">Server Group</dt>
         <dd ng-if="instance.serverGroup">{{instance.serverGroup}}</dd>
       </dl>
     </collapsible-section>
@@ -103,11 +103,11 @@
     </div>
     <collapsible-section heading="DNS" ng-if="!instance.notFound">
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal'">
-        <dt ng-if="instance.internalDnsName">Internal DNS Name:</dt>
+        <dt ng-if="instance.internalDnsName">Internal DNS Name</dt>
         <dd ng-if="instance.internalDnsName"><a href="http://{{instance.internalDnsName}}" target="_blank">{{instance.internalDnsName}}</a></dd>
-        <dt ng-if="instance.internalIpAddress">Internal IP Address:</dt>
+        <dt ng-if="instance.internalIpAddress">Internal IP Address</dt>
         <dd ng-if="instance.internalIpAddress"><a href="http://{{instance.internalIpAddress}}" target="_blank">{{instance.internalIpAddress}}</a></dd>
-        <dt ng-if="instance.externalIpAddress">External IP Address:</dt>
+        <dt ng-if="instance.externalIpAddress">External IP Address</dt>
         <dd ng-if="instance.externalIpAddress"><a href="http://{{instance.externalIpAddress}}" target="_blank">{{instance.externalIpAddress}}</a></dd>
       </dl>
     </collapsible-section>

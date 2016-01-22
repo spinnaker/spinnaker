@@ -33,15 +33,15 @@
   <div class="content" ng-if="!state.loading">
     <collapsible-section heading="Security Group Details" expanded="true">
       <dl class="dl-horizontal dl-medium">
-        <dt>ID:</dt>
+        <dt>ID</dt>
         <dd>{{securityGroup.id}}</dd>
-        <dt>Account:</dt>
+        <dt>Account</dt>
         <dd><account-tag account="securityGroup.accountName"></account-tag></dd>
-        <dt>Region:</dt>
+        <dt>Region</dt>
         <dd>{{securityGroup.region}}</dd>
-        <dt>VPC:</dt>
+        <dt>VPC</dt>
         <dd><vpc-tag vpc-id="securityGroup.vpcId"></vpc-tag></dd>
-        <dt>Description:</dt>
+        <dt>Description</dt>
         <dd>{{securityGroup.description}}</dd>
       </dl>
     </collapsible-section>

@@ -1,5 +1,5 @@
   <div class="form-group">
-    <label class="col-md-3 sm-label-left">Master</label>
+    <label class="col-md-3 sm-label-right">Master</label>
     <div class="col-md-8">
       <ui-select class="form-control input-sm"
                  ng-model="trigger.master">
@@ -21,7 +21,7 @@
     </div>
   </div>
   <div class="form-group">
-    <label class="col-md-3 sm-label-left">Job</label>
+    <label class="col-md-3 sm-label-right">Job</label>
     <div class="col-md-8">
       <p class="form-control-static" ng-if="!trigger.master">(Select a master)</p>
       <div ng-if="trigger.master && viewState.jobsLoaded">
@@ -47,7 +47,7 @@
     </div>
   </div>
   <div class="form-group">
-    <div class="col-md-3 sm-label-left">
+    <div class="col-md-3 sm-label-right">
       <b>Property File</b>
       <help-field key="pipeline.config.jenkins.propertyFile"></help-field>
     </div>

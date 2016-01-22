@@ -21,7 +21,7 @@
         <div class="row" ng-if="stage.context['deploy.server.groups']">
             <div class="col-md-11">
                 <dl class="dl-narrow dl-horizontal">
-                    <dt>Disabled:</dt><dd></dd>
+                    <dt>Disabled</dt><dd></dd>
                     <dt ng-repeat-start="(zone, servergroups) in stage.context['deploy.server.groups']">{{zone}}</dt>
                     <dd ng-repeat-end>{{servergroups.join(', ')}}</dd>
                 </dl>

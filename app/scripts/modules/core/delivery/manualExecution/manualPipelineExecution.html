@@ -9,7 +9,7 @@
   <form role="form">
     <div class="modal-body container-fluid form-horizontal">
       <div class="form-group" ng-if="vm.pipelineOptions">
-        <label class="col-md-2 col-md-offset-1 sm-label-left">Pipeline</label>
+        <label class="col-md-2 col-md-offset-1 sm-label-right">Pipeline</label>
         <div class="col-md-7">
           <ui-select ng-model="vm.command.pipeline"
                      style="width: 250px"
@@ -48,7 +48,7 @@
 
       <div ng-if="vm.triggers.length">
         <div class="form-group">
-          <label class="col-md-2 col-md-offset-1 sm-label-left">Trigger</label>
+          <label class="col-md-2 col-md-offset-1 sm-label-right">Trigger</label>
           <div class="col-md-6">
             <p class="form-control-static"
                ng-if="vm.triggers.length === 1">{{vm.command.trigger.description}}</p>
@@ -63,7 +63,7 @@
         <div ng-include="vm.triggerTemplate"></div>
       </div>
       <div class="form-group" ng-if="vm.showRebakeOption">
-        <label ng-if="vm.triggers.length" class="col-md-2 col-md-offset-1 sm-label-left">Rebake</label>
+        <label ng-if="vm.triggers.length" class="col-md-2 col-md-offset-1 sm-label-right">Rebake</label>
         <div class="checkbox" ng-class="vm.triggers.length ? 'col-md-6' : 'col-md-10 col-md-offset-1'">
           <label>
             <input type="checkbox" ng-model="vm.command.trigger.rebake"/>
@@ -78,7 +78,7 @@
           <h4>Parameters</h4>
         </div>
         <div class="form-group" ng-repeat="parameter in vm.command.pipeline.parameterConfig">
-          <div class="col-md-offset-1 col-md-4 sm-label-left break-word">
+          <div class="col-md-offset-1 col-md-4 sm-label-right break-word">
             <b>{{parameter.name}}</b>
             <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
           </div>

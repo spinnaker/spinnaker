@@ -1,6 +1,6 @@
 <ng-form name="basicSettings">
   <div class="form-group">
-    <div class="col-md-2 sm-label-left">
+    <div class="col-md-2 sm-label-right">
       <b>Account</b>
     </div>
     <div class="col-md-7">
@@ -16,7 +16,7 @@
   <!--<titan-zone-select-field label-columns="2" component="command" field="zone" account="command.credentials" zones="command.backingData.filtered.zones"></titan-zone-select-field>-->
   <!--<titan-network-select-field label-columns="2" component="command" field="network" account="command.credentials" networks="command.backingData.filtered.networks"></titan-network-select-field>-->
   <div class="form-group">
-    <div class="col-md-2 sm-label-left">
+    <div class="col-md-2 sm-label-right">
       <b>Stack</b>
       <help-field key="aws.serverGroup.stack"></help-field>
     </div>
@@ -47,7 +47,7 @@
       </div>
   </div>
   <div class="form-group" ng-if="!command.viewState.disableImageSelection">
-    <div class="col-md-2 sm-label-left"><b>Image</b></div>
+    <div class="col-md-2 sm-label-right"><b>Image</b></div>
     <div class="col-md-7">
       <input type="text" class="form-control input-sm" name="image" ng-model="command.imageId" required/>
     </div>

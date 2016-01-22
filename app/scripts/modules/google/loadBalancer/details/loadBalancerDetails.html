@@ -45,13 +45,13 @@
   <div ng-if="!state.loading" class="content">
     <collapsible-section heading="Load Balancer Details" expanded="true">
       <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
-        <dt>Created:</dt>
+        <dt>Created</dt>
         <dd>{{loadBalancer.elb.createdTime | timestamp}}</dd>
-        <dt>In:</dt>
+        <dt>In</dt>
         <dd><account-tag account="loadBalancer.account" pad="right"></account-tag> {{loadBalancer.region}}</dd>
       </dl>
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
-        <dt>Zones:</dt>
+        <dt>Zones</dt>
         <dd>
           <ul ng-style="{'margin-left': InsightFilterStateModel.filtersExpanded ? '30px' : 0}">
             <li ng-repeat="availabilityZone in loadBalancer.elb.availabilityZones">{{availabilityZone}}</li>
@@ -59,7 +59,7 @@
         </dd>
       </dl>
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
-        <dt ng-if="loadBalancer.serverGroups">Server Groups:</dt>
+        <dt ng-if="loadBalancer.serverGroups">Server Groups</dt>
         <dd ng-if="loadBalancer.serverGroups">
           <ul ng-style="{'margin-left': InsightFilterStateModel.filtersExpanded ? '30px' : 0}">
             <li ng-repeat="serverGroup in loadBalancer.serverGroups">{{serverGroup.name}}</li>

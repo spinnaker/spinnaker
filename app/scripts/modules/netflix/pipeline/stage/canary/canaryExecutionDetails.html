@@ -133,19 +133,19 @@
     <div class="row">
       <div class="col-md-12 canary-config-section">
         <div class="row">
-          <div class="col-md-4 sm-label-left compact">Baseline</div>
+          <div class="col-md-4 sm-label-right compact">Baseline</div>
           <div class="col-md-6"><account-tag account="baseline.account" pad="right"></account-tag> {{baseline.cluster}}</div>
         </div>
         <div class="row">
-          <div class="col-md-4 sm-label-left compact">Duration</div>
+          <div class="col-md-4 sm-label-right compact">Duration</div>
           <div class="col-md-6">{{canaryConfig.lifetimeHours}} hours</div>
         </div>
         <div class="row">
-          <div class="col-md-4 sm-label-left compact">Success Criteria</div>
+          <div class="col-md-4 sm-label-right compact">Success Criteria</div>
           <div class="col-md-6">{{canaryConfig.canarySuccessCriteria.canaryResultScore}}</div>
         </div>
         <div class="row">
-          <div class="col-md-4 sm-label-left compact">Result Strategy</div>
+          <div class="col-md-4 sm-label-right compact">Result Strategy</div>
           <div class="col-md-6">{{canaryConfig.combinedCanaryResultStrategy | lowercase}}</div>
         </div>
       </div>
@@ -153,7 +153,7 @@
         <h5>Analysis Config</h5>
         <div class="horizontal-rule"></div>
         <div class="row">
-          <div class="col-md-4 sm-label-left compact">Config Name</div>
+          <div class="col-md-4 sm-label-right compact">Config Name</div>
           <div class="col-md-6">
             <a href="http://canary.prod.netflix.net/ui/canaryTasks/{{baseline.account}}/{{canaryConfig.canaryAnalysisConfig.name}}" target="_blank">
               {{canaryConfig.canaryAnalysisConfig.name}}
@@ -161,19 +161,19 @@
           </div>
         </div>
         <div class="row">
-          <div class="col-md-4 sm-label-left compact">Warmup Period</div>
+          <div class="col-md-4 sm-label-right compact">Warmup Period</div>
           <div class="col-md-6">{{canaryConfig.canaryAnalysisConfig.beginCanaryAnalysisAfterMins}} minutes</div>
         </div>
         <div class="row">
-          <div class="col-md-4 sm-label-left compact">Interval</div>
+          <div class="col-md-4 sm-label-right compact">Interval</div>
           <div class="col-md-6">{{canaryConfig.canaryAnalysisConfig.canaryAnalysisIntervalMins}} minutes</div>
         </div>
         <div class="row">
-          <div class="col-md-4 sm-label-left compact">Notification Hours</div>
+          <div class="col-md-4 sm-label-right compact">Notification Hours</div>
           <div class="col-md-6">{{canaryConfig.canaryAnalysisConfig.notificationHours.join(', ')}}</div>
         </div>
         <div class="row">
-          <div class="col-md-4 sm-label-left compact">Canary Report Recipients</div>
+          <div class="col-md-4 sm-label-right compact">Canary Report Recipients</div>
           <div class="col-md-6">{{canary.recipients.join(', ')}}</div>
         </div>
       </div>
@@ -183,11 +183,11 @@
         <h5>Health Check</h5>
         <div class="horizontal-rule"></div>
         <div class="row">
-          <div class="col-md-4 sm-label-left compact">Minimum Canary Score</div>
+          <div class="col-md-4 sm-label-right compact">Minimum Canary Score</div>
           <div class="col-md-6">{{canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore}}</div>
         </div>
         <div class="row" ng-if="canaryConfig.actionsForUnhealthyCanary">
-          <div class="col-md-4 sm-label-left compact">Unhealthy Canary Actions</div>
+          <div class="col-md-4 sm-label-right compact">Unhealthy Canary Actions</div>
           <div class="col-md-6">
             <span ng-repeat="canaryAction in canaryConfig.actionsForUnhealthyCanary">
               <strong>{{ canaryAction.action }}</strong>
