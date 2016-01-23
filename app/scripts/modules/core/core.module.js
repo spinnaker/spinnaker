@@ -35,7 +35,6 @@ module.exports = angular
     require('angular-ui-router'),
     require('angular-ui-bootstrap'),
     require('exports?"angular.filter"!angular-filter'),
-    require('exports?"infinite-scroll"!ng-infinite-scroll/build/ng-infinite-scroll.js'),
     require('exports?"restangular"!imports?_=lodash!restangular'),
     require('exports?"ui.select"!ui-select'),
     require('imports?define=>false!exports?"angularSpinner"!angular-spinner'),

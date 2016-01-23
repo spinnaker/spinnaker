@@ -12,4 +12,5 @@ module.exports = angular.module('spinnaker.utils', [
   require('./appendTransform.js'),
   require('./clipboard/copyToClipboard.directive.js'),
   require('./timeFormatters.js'),
+  require('./infiniteScroll.directive.js'),
 ]);
