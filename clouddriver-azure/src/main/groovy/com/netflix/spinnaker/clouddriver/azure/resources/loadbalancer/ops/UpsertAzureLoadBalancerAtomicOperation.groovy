@@ -57,7 +57,7 @@ class UpsertAzureLoadBalancerAtomicOperation implements AtomicOperation<Map> {
       task.updateStatus(BASE_PHASE, "Beginning load balancer deployment")
 
       String resourceGroupName = AzureUtilities.getResourceGroupName(description.appName, description.region)
-      DeploymentExtended deployment = description.credentials.resourceManagerClient.createLoadBalancerFromTemplate(description.credentials,
+      DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(description.credentials,
         AzureLoadBalancerResourceTemplate.getTemplate(description),
         resourceGroupName,
         description.region,
@@ -71,13 +71,13 @@ class UpsertAzureLoadBalancerAtomicOperation implements AtomicOperation<Map> {
             resourceCompletedState[d.id] = false
           }
           if (d.properties.provisioningState == AzureResourceManagerClient.DeploymentState.SUCCEEDED) {
-            if (resourceCompletedState[d.id] == false) {
+            if (!resourceCompletedState[d.id]) {
               task.updateStatus BASE_PHASE, String.format("Resource %s created", d.properties.targetResource.resourceName)
               resourceCompletedState[d.id] = true
             }
           }
           else if (d.properties.provisioningState == AzureResourceManagerClient.DeploymentState.FAILED) {
-            if (resourceCompletedState[d.id] == false) {
+            if (!resourceCompletedState[d.id]) {
               task.updateStatus BASE_PHASE, String.format("Failed to create resource %s: %s", d.properties.targetResource.resourceName, d.properties.statusMessage)
               resourceCompletedState[d.id] = true
             }
@@ -94,7 +94,7 @@ class UpsertAzureLoadBalancerAtomicOperation implements AtomicOperation<Map> {
     [loadBalancers: [(description.region): [name: description.loadBalancerName]]]
   }
 
-  private boolean deploymentIsRunning(String deploymentState) {
+  private static boolean deploymentIsRunning(String deploymentState) {
     deploymentState != AzureResourceManagerClient.DeploymentState.CANCELED &&
       deploymentState != AzureResourceManagerClient.DeploymentState.DELETED &&
       deploymentState != AzureResourceManagerClient.DeploymentState.FAILED &&

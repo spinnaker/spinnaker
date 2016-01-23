@@ -21,4 +21,5 @@ import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 
 class DeleteAzureLoadBalancerDescription extends AzureResourceOpsDescription {
   String loadBalancerName
+  List<String> regions
 }
