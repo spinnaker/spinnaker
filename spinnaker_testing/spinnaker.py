@@ -175,8 +175,17 @@ class SpinnakerStatus(service_testing.HttpOperationStatus):
     if self.finished:
       return
 
-    http_response = self.agent.get(self.detail_path, trace)
-    self.set_http_response(http_response)
+    http_response = self.agent.get(self.detail_path, trace=trace)
+    try:
+      self.set_http_response(http_response)
+    except BaseException as bex:
+      # TODO(ewiseblatt): 20160122
+      # This is temporary to help track down a transient error.
+      # Normally we dont want to do this because we want to scrub the output.
+      sys.stderr.write('Bad response from agent={0}\n'
+                       'CAUGHT {1}\nRESPONSE: {2}\n'
+                       .format(self.agent,bex, http_response))
+      raise
 
   def set_http_response(self, http_response):
     """Updates specialized fields from http_response.
@@ -366,7 +375,14 @@ class SpinnakerAgent(service_testing.HttpAgent):
     super(SpinnakerAgent, self).__init__(base_url)
     self.__deployed_config = {}
     self.__default_status_factory = status_factory
-    self.default_max_wait_secs = 240
+
+    # 6 minutes is a long time, but starting VMs can take 2-3 mins
+    # especially with internal polling, so platform sluggishness combined
+    # with a missed poll can go higher. We still dont expect to come
+    # near this, but care more about eventual correctness than timeliness
+    # here. We can capture timing information and look at it after the fact
+    # to make performance related conclusions.
+    self.default_max_wait_secs = 360
 
   def _new_messaging_status(self, operation, http_response):
     """Implements HttpAgent interface."""
