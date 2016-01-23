@@ -8,7 +8,7 @@
           <ui-select-match placeholder="None">{{$select.selected}}</ui-select-match>
           <ui-select-choices
               repeat="application in applications | filter: $select.search | limitTo: viewState.infiniteScroll.currentItems"
-              infinite-scroll="pipelinecommandCtrl.addMoreItems()"
+              infinite-scroll="customStrategySelectorController.addMoreItems()"
               infinite-scroll-distance="2">
             <div ng-bind-html="application | highlight: $select.search"></div>
           </ui-select-choices>

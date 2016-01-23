@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
   .controller('awsEditSecurityGroupCtrl', function($scope, $modalInstance, $state,
                                                 accountService, securityGroupReader,
                                                 taskMonitorService, cacheInitializer, infrastructureCaches,
-                                                _, application, securityGroup, securityGroupWriter) {
+                                                _, application, securityGroup, securityGroupWriter, $controller) {
 
     $scope.pages = {
       ingress: require('./createSecurityGroupIngress.html'),
@@ -24,6 +24,13 @@ module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
     $scope.state = {
       refreshingSecurityGroups: false,
     };
+
+    angular.extend(this, $controller('awsConfigSecurityGroupMixin', {
+      $scope: $scope,
+      $modalInstance: $modalInstance,
+      application: application,
+      securityGroup: securityGroup,
+    }));
 
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
@@ -41,7 +48,8 @@ module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
             name: rule.securityGroup.name,
             type: rule.protocol,
             startPort: portRange.startPort,
-            endPort: portRange.endPort
+            endPort: portRange.endPort,
+            existing: true,
           };
         });
       })

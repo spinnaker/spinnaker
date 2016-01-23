@@ -11,7 +11,6 @@
           </ui-select-match>
           <ui-select-choices repeat="application in applications | filter: $select.search | limitTo: viewState.infiniteScroll.currentItems"
                              infinite-scroll="ctrl.addMoreItems()"
-                             infinite-scroll-container="'.ui-select-choices-content'"
                              infinite-scroll-distance="2">
             {{application}}
           </ui-select-choices>
