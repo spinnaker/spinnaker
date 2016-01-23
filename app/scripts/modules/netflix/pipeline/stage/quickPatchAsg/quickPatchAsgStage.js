@@ -4,7 +4,10 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsgStage', [
   require('../../../../core/pipeline/config/pipelineConfigProvider.js'),
+  require('../../../../core/application/listExtractor/listExtractor.service'),
   require('../../../../core/config/settings.js'),
+  require('../../../../core/utils/lodash'),
+  require('../../../../core/widgets')
 ])
   .config(function(pipelineConfigProvider, settings) {
     if (settings.feature && settings.feature.netflixMode) {
@@ -25,11 +28,21 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsgS
         ],
       });
     }
-  }).controller('QuickPatchAsgStageCtrl', function($scope, stage, bakeryService, accountService) {
+  }).controller('QuickPatchAsgStageCtrl', function($scope, stage, bakeryService, accountService, appListExtractorService, _) {
     $scope.stage = stage;
     $scope.baseOsOptions = ['ubuntu', 'centos'];
     $scope.stage.application = $scope.application.name;
     $scope.stage.healthProviders = ['Discovery'];
+
+    let clusterFilter = (cluster) => {
+      let acctFilter = $scope.stage.account ? cluster.account === $scope.stage.account : true;
+      let regionFilter = $scope.stage.region ? _.any(cluster.serverGroups, (sg) => sg.region === $scope.stage.region) : true;
+      return acctFilter && regionFilter;
+    };
+
+    let setClusterList = () => {
+      $scope.clusterList = appListExtractorService.getClusters([$scope.application], clusterFilter);
+    };
 
     $scope.state = {
       accounts: false,
@@ -39,14 +52,23 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsgS
     accountService.listAccounts().then(function (accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
+      setClusterList();
     });
 
+    $scope.resetSelectedCluster = () => {
+      $scope.stage.clusterName = undefined;
+      setClusterList();
+    };
+
     $scope.accountUpdated = function() {
-      accountService.getRegionsForAccount($scope.stage.credentials).then(function(regions) {
-        $scope.regions = regions;
-        $scope.regionsLoaded = true;
-        $scope.stage.account = $scope.stage.credentials;
-      });
+      let accountFilter = (cluster) => cluster.account === $scope.stage.credentials;
+
+      $scope.regions = appListExtractorService.getRegions([$scope.application], accountFilter)
+        .map((region) => ({name: region}));
+
+      $scope.regionsLoaded = true;
+      $scope.stage.account = $scope.stage.credentials;
+      $scope.resetSelectedCluster();
     };
 
     (function() {

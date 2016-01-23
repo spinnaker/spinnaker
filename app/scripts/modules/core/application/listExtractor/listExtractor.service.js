@@ -8,9 +8,12 @@ module.exports = angular
   ])
   .factory('appListExtractorService', function(_) {
 
-    let getRegions = (appList) => {
+    let defaultAccountFilter = (/*cluster*/) => true;
+
+    let getRegions = (appList, accountFilter = defaultAccountFilter) => {
       return _(appList)
         .map('clusters').flatten()
+        .filter(accountFilter)
         .map('serverGroups').flatten()
         .map('region')
         .compact()
