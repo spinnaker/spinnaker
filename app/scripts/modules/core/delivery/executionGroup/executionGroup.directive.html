@@ -47,7 +47,7 @@
       <div ng-if="!vm.group.executions.length" style="padding-bottom: 10px">
         <em>No executions found matching the selected filters.</em>
       </div>
-      <execution ng-repeat="execution in vm.group.executions track by $index"
+      <execution ng-repeat="execution in vm.group.executions"
                  execution="execution" application="vm.application"></execution>
     </div>
   </div>
