@@ -97,6 +97,11 @@ class JenkinsAgent(testable_agent.TestableAgent):
     self.__http_agent = http_agent.HttpAgent(baseUrl)
     self.__owner_agent = owner_agent
 
+    # Allow up to 13 minutes to wait on operations.
+    # 13 minutes is arbitrary. The current test takes around 6-7 minutes
+    # end-to-end. Other use cases might make it more clear what this should be.
+    self.default_max_wait_secs = 780
+
     # pylint: disable=bad-indentation
     if auth_path is None:
         auth_info = [os.environ.get('JENKINS_USER', None),
