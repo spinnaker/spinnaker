@@ -47,7 +47,6 @@ class GCEUtil {
   private static final String DISK_TYPE_SCRATCH = "SCRATCH"
 
   public static final String TARGET_POOL_NAME_PREFIX = "tp"
-  public static final int SEQUENTIAL_NUMBERING_NAMESPACE_SIZE = 1000
 
   // TODO(duftler): This list should not be static, but should also not be built on each call.
   static final List<String> baseImageProjects = ["centos-cloud", "coreos-cloud", "debian-cloud", "google-containers",
@@ -471,66 +470,6 @@ class GCEUtil {
     } else {
       return []
     }
-  }
-
-  static def getNextSequence(String clusterName,
-                             String project,
-                             String region,
-                             GoogleCredentials credentials) {
-    def nextSequenceNumber = 0
-    def managedInstanceGroups = queryManagedInstanceGroups(project, region, credentials)
-    // Build a collection containing the sequence number and createdTime of each server group in this cluster/region.
-    def takenSequenceNumbers = managedInstanceGroups.findResults { managedInstanceGroup ->
-      def names = Names.parseName(managedInstanceGroup.name)
-
-      if (names.cluster == clusterName) {
-        return [
-          sequenceNumber: names.sequence,
-          createdTime: Utils.getTimeFromTimestamp(managedInstanceGroup.creationTimestamp)
-        ]
-      } else {
-        return null
-      }
-    }
-
-    // Attempt to find the server group created most recently.
-    def latestServerGroup = takenSequenceNumbers.max { a, b ->
-      a.createdTime <=> b.createdTime
-    }
-
-    if (latestServerGroup) {
-      // The server group name may not have the sequence number portion specified.
-      nextSequenceNumber = ((latestServerGroup.sequenceNumber ?: 0) + 1) % SEQUENTIAL_NUMBERING_NAMESPACE_SIZE
-    }
-
-    // Keep increasing the number until we find one that is not already taken. Stop if we circle back to the starting point.
-    def stepCounter = 0
-    while (takenSequenceNumbers.find { it.sequenceNumber == nextSequenceNumber } && ++stepCounter < SEQUENTIAL_NUMBERING_NAMESPACE_SIZE) {
-      nextSequenceNumber = ++nextSequenceNumber % SEQUENTIAL_NUMBERING_NAMESPACE_SIZE
-    }
-
-    if (stepCounter == SEQUENTIAL_NUMBERING_NAMESPACE_SIZE) {
-      throw new IllegalArgumentException("All server group names in $region are taken.")
-    }
-
-    return String.format("%03d", nextSequenceNumber)
-  }
-
-  static def combineAppStackDetail(String appName, String stack, String detail) {
-    NameValidation.notEmpty(appName, "appName");
-
-    // Use empty strings, not null references that output "null"
-    stack = stack != null ? stack : "";
-
-    if (detail != null && !detail.isEmpty()) {
-      return appName + "-" + stack + "-" + detail;
-    }
-
-    if (!stack.isEmpty()) {
-      return appName + "-" + stack;
-    }
-
-    return appName;
   }
 
   private static void updateStatusAndThrowNotFoundException(String errorMsg, Task task, String phase) {

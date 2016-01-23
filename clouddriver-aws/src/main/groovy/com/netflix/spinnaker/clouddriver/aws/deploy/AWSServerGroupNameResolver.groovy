@@ -15,12 +15,9 @@
  */
 
 package com.netflix.spinnaker.clouddriver.aws.deploy
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+
 import com.netflix.spinnaker.clouddriver.helpers.AbstractServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
-import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 
 @CompileStatic
@@ -36,20 +33,18 @@ class AWSServerGroupNameResolver extends AbstractServerGroupNameResolver {
     this.asgService = asgService
   }
 
-  private static Task getTask() {
-    TaskRepository.threadLocalTask.get()
+  @Override
+  String getPhase() {
+    return AWS_PHASE
   }
 
   @Override
-  @CompileDynamic
-  String getPreviousServerGroupName(String clusterName) {
-    AutoScalingGroup ancestorAsg = asgService.getAncestorAsg(clusterName)
-    String previousServerGroupName = ancestorAsg ? ancestorAsg.autoScalingGroupName : null
-    if (previousServerGroupName) {
-      task.updateStatus AWS_PHASE, "Found ancestor ASG, parsing details (name: ${previousServerGroupName})"
-      Map ancestorServerGroupNameByRegion = [ancestorServerGroupNameByRegion: [(region): previousServerGroupName]]
-      task.addResultObjects([ancestorServerGroupNameByRegion])
-    }
-    return previousServerGroupName
+  String getRegion() {
+    return region
+  }
+
+  @Override
+  List<AbstractServerGroupNameResolver.TakenSlot> getTakenSlots(String clusterName) {
+    return asgService.getTakenSlots(clusterName)
   }
 }

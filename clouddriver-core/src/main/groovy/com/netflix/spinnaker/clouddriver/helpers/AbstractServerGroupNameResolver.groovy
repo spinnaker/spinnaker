@@ -16,37 +16,63 @@
 
 package com.netflix.spinnaker.clouddriver.helpers
 
-import com.netflix.frigga.Names
+import com.netflix.frigga.NameBuilder
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
-import groovy.transform.CompileStatic
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 
-@CompileStatic
-abstract class AbstractServerGroupNameResolver {
+abstract class AbstractServerGroupNameResolver extends NameBuilder {
+
+  static final int SEQUENTIAL_NUMBERING_NAMESPACE_SIZE = 1000
 
   /**
-   * Returns the ancestor server group name for the given cluster name
-   * @param clusterName
-   * @return
+   * Returns the phase of this task
    */
-  abstract String getPreviousServerGroupName(String clusterName)
+  abstract String getPhase()
+
+  /**
+   * Returns the region within which to resolve the next server group name
+   */
+  abstract String getRegion()
+
+  /**
+   * Returns the taken naming slots for the given cluster name
+   */
+  abstract List<TakenSlot> getTakenSlots(String clusterName)
+
+  static Task getTask() {
+    TaskRepository.threadLocalTask.get()
+  }
 
   String resolveNextServerGroupName(String application, String stack, String details, Boolean ignoreSequence) {
     Integer nextSequence = 0
-    String clusterName
-    if (!stack && !details) {
-      clusterName = application
-    } else if (!stack && details) {
-      clusterName = "${application}--${details}"
-    } else if (stack && !details) {
-      clusterName = "${application}-${stack}"
-    } else {
-      clusterName = "${application}-${stack}-${details}"
+    String clusterName = combineAppStackDetail(application, stack, details)
+    List<TakenSlot> takenSlots = getTakenSlots(clusterName)
+
+    // Attempt to find the server group created most recently.
+    def latestServerGroup = takenSlots?.max { a, b ->
+      a.createdTime <=> b.createdTime
     }
-    String previousServerGroupName = getPreviousServerGroupName(clusterName)
-    if (previousServerGroupName) {
-      Names parts = Names.parseName(previousServerGroupName)
-      nextSequence = ((parts.sequence ?: 0) + 1) % 1000
+
+    if (latestServerGroup) {
+      getTask().updateStatus phase, "Found ancestor server group, parsing details (name: $latestServerGroup.serverGroupName)"
+      Map ancestorServerGroupNameByRegion = [ancestorServerGroupNameByRegion: [(region): latestServerGroup.serverGroupName]]
+      getTask().addResultObjects([ancestorServerGroupNameByRegion])
+
+      // The server group name may not have the sequence number portion specified.
+      nextSequence = ((latestServerGroup.sequence ?: 0) + 1) % SEQUENTIAL_NUMBERING_NAMESPACE_SIZE
     }
+
+    // Keep increasing the number until we find one that is not already taken. Stop if we circle back to the starting point.
+    def stepCounter = 0
+    while (takenSlots.find { it.sequence == nextSequence } && ++stepCounter < SEQUENTIAL_NUMBERING_NAMESPACE_SIZE) {
+      nextSequence = ++nextSequence % SEQUENTIAL_NUMBERING_NAMESPACE_SIZE
+    }
+
+    if (stepCounter == SEQUENTIAL_NUMBERING_NAMESPACE_SIZE) {
+      throw new IllegalArgumentException("All server group names for cluster $clusterName in $region are taken.")
+    }
+
     return generateServerGroupName(application, stack, details, nextSequence, ignoreSequence)
   }
 
@@ -57,5 +83,11 @@ abstract class AbstractServerGroupNameResolver {
       return groupName
     }
     String.format("%s-v%03d", groupName, sequence)
+  }
+
+  static class TakenSlot {
+    String serverGroupName
+    Integer sequence
+    Date createdTime
   }
 }
