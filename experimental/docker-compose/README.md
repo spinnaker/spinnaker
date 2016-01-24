@@ -88,6 +88,23 @@ These instructions show you how to install the docker-compose setup in the cloud
 
 ## 1. Set up Docker Machine Environment
 
+### Amazon Web Services
+
+1. If you don't already have an AWS account, you can create one [here](https://aws.amazon.com/).
+2. Create the necessary access and secret keys to provision an instance.
+3. Create a VPC with an attached internet gateway following the instructions [here](http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Internet_Gateway.html).
+
+Run
+
+```
+docker-machine create --driver amazonec2
+--amazonec2-access-key [access key] \
+--amazonec2-secret-key [secret key] \
+--amazonec2-vpc-id [vpc id] \
+--amazonec2-instance-type m4.xlarge
+spinnakerremote
+```
+
 ### Google Compute Platform
 
 1. If you don't already have a Google Compute Platform account, you can create one [here](https://cloud.google.com/compute/).
@@ -161,6 +178,14 @@ This will allow the Spinnaker ports used by docker compose to become available t
 
 *Note: You should be aware of the implications of opening up your virtual machines to the public internet prior to configuring firewall rules. Several more secure options (e.g. SSH tunnel, SOCKS proxy) are described [here](https://cloud.google.com/solutions/connecting-securely).*
 
+### Amazon Web Services
+
+Go to Security Groups in the EC2 dashboard and select **'docker-machine' -> Inbound -> Edit -> Add Rule** and create the following rule
+
+* Type: `Custom TCP Rule`
+* Port Range: `8080-9000`
+* Source: `My IP`
+
 ### Google Compute Platform
 
 Go to your GCP developers console and click on your instance, then network name (it should say `default`). Click "Add firewall rule" and fill in the following values
@@ -174,7 +199,7 @@ Click "Create".
 
 ### Microsoft Azure
 
-Go to your Azure portal and select your remotespinnaker instance (under Virtual Machines).
+Go to your Azure portal and select your spinnakerremote instance (under Virtual Machines).
 
 * Navigate to endpoints.
 * Create a new endpoint for each of following ports: 9000, 8080 and 8084.
