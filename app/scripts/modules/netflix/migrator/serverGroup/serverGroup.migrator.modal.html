@@ -1,13 +1,13 @@
 <div modal-page class="migrator-modal">
-  <div ng-include="submittingTemplateUrl"></div>
+  <div ng-include="vm.submittingTemplateUrl"></div>
   <form role="form" name="form">
     <modal-close></modal-close>
     <div class="modal-header">
-      <h3>Migrate {{component.name}} to VPC0</h3>
+      <h3>Migrate {{vm.component.name}} to VPC0</h3>
     </div>
     <div class="modal-body">
 
-      <div class="row" ng-if="viewState.computing">
+      <div class="row" ng-if="vm.viewState.computing">
         <div class="col-md-10 col-md-offset-1">
           <h3 class="text-center">
             <span class="small glyphicon glyphicon-asterisk glyphicon-spinning"></span>
@@ -16,53 +16,64 @@
         </div>
       </div>
 
-      <div class="row preview" ng-if="preview && !viewState.computing && !viewState.executing && !viewState.error">
+      <div class="row preview" ng-if="vm.preview && !vm.viewState.computing && !vm.viewState.executing && !vm.viewState.error">
         <div class="col-md-10 col-md-offset-1">
-          <div ng-if="!viewState.migrationComplete">
-            <p>This will migrate <strong>{{source.asgName}}</strong> in {{source.region}} <account-tag account="source.account"></account-tag> to VPC0.</p>
+          <div ng-if="!vm.viewState.migrationComplete">
+            <p>This will migrate
+              <strong>{{vm.source.asgName}}</strong>
+              in {{vm.source.region}} <account-tag account="vm.source.account"></account-tag>
+              to VPC0.
+            </p>
             <p>As part of this migration, the following items will be created:</p>
           </div>
-          <div ng-if="viewState.migrationComplete">
+          <div ng-if="vm.viewState.migrationComplete">
             <p>The following items have been created:</p>
           </div>
-          <div ng-if="preview.securityGroups.length">
+          <div ng-if="vm.preview.securityGroups.length">
             <h4><span class="glyphicon glyphicon-transfer small"></span> Security Groups</h4>
-            <div ng-repeat="securityGroup in preview.securityGroups" class="preview-entry">{{securityGroup.mutationDetails.awsReference.identity.groupName}}</div>
+            <div ng-repeat="securityGroup in vm.preview.securityGroups" class="preview-entry">
+              {{securityGroup.mutationDetails.awsReference.identity.groupName}}
+            </div>
           </div>
-          <div ng-if="preview.loadBalancers.length">
+          <div ng-if="vm.preview.loadBalancers.length">
             <h4><span class="small icon icon-elb"></span> Load Balancers</h4>
-            <div ng-repeat="loadBalancer in preview.loadBalancers" class="preview-entry">{{loadBalancer.mutationDetails.awsReference.identity.loadBalancerName}}</div>
+            <div ng-repeat="loadBalancer in vm.preview.loadBalancers" class="preview-entry">
+              {{loadBalancer.mutationDetails.awsReference.identity.loadBalancerName}}
+            </div>
             <p class="note">Note: if Route53 or sticky session policies are configured for the current load balancer,
               you will need to set that up in the AWS console.
             </p>
           </div>
-          <div ng-if="preview.serverGroups.length">
+          <div ng-if="vm.preview.serverGroups.length">
             <h4><span class="small glyphicon glyphicon-th"></span> Server Groups</h4>
-            <div ng-repeat="serverGroup in preview.serverGroups" class="preview-entry">{{serverGroup.mutationDetails.awsReference.identity.autoScalingGroupName}}</div>
-            <p ng-if="!viewState.migrationComplete" class="note">Note: server groups will be started in a disabled state with zero instances.</p>
-            <p ng-if="viewState.migrationComplete" class="note">Note: server group has been started in a disabled state with zero instances.</p>
+            <div ng-repeat="serverGroup in vm.preview.serverGroups" class="preview-entry">
+              {{serverGroup.mutationDetails.awsReference.identity.autoScalingGroupName}}
+            </div>
+            <p ng-if="!vm.viewState.migrationComplete" class="note">Note: server groups will be started in a disabled state with zero instances.</p>
+            <p ng-if="vm.viewState.migrationComplete" class="note">Note: server group has been started in a disabled state with zero instances.</p>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="row" ng-if="viewState.error">
+    <div class="row" ng-if="vm.viewState.error">
       <div class="col-md-10 col-md-offset-1">
-        <h4>We could not calculate an execution plan for {{component.name}} at this time.</h4>
-        <p>Reason: {{viewState.error}}</p>
+        <h4 ng-if="!vm.preview">We could not calculate an execution plan for {{vm.component.name}} at this time.</h4>
+        <h4 ng-if="vm.preview">We could not perform the migration of {{vm.component.name}} at this time.</h4>
+        <p><strong>Reason:</strong> {{vm.viewState.error}}</p>
       </div>
     </div>
 
-    <div class="modal-footer" ng-if="viewState.error">
-      <button class="btn btn-default" ng-click="ctrl.cancel()">Close</button>
+    <div class="modal-footer" ng-if="vm.viewState.error">
+      <button class="btn btn-default" ng-click="vm.cancel()">Close</button>
     </div>
 
-    <div class="modal-footer" ng-if="!viewState.error && !viewState.executing">
-      <button class="btn btn-default" ng-click="ctrl.cancel()">{{viewState.migrationComplete ? 'Close' : 'Cancel'}}</button>
+    <div class="modal-footer" ng-if="!vm.viewState.error && !vm.viewState.executing">
+      <button class="btn btn-default" ng-click="vm.cancel()">{{vm.viewState.migrationComplete ? 'Close' : 'Cancel'}}</button>
       <button class="btn btn-primary"
-              ng-if="!viewState.executing && !viewState.computing && !viewState.migrationComplete"
-              ng-click="ctrl.submit()">
-        Migrate {{component.name}} to VPC0
+              ng-if="!vm.viewState.executing && !vm.viewState.computing && !vm.viewState.migrationComplete"
+              ng-click="vm.submit()">
+        Migrate {{vm.component.name}} to VPC0
       </button>
     </div>
 

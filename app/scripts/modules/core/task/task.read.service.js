@@ -81,6 +81,9 @@ module.exports = angular
      * some other property, you'll need to update this method
      */
     function updateTask(original, updated) {
+      if (!updated) {
+        return;
+      }
       original.status = updated.status;
       original.variables = updated.variables;
       original.steps = updated.steps;
@@ -99,11 +102,11 @@ module.exports = angular
         deferred.reject();
       } else {
         task.poller = $timeout(() => {
-            getTask(application, task.id).then((updated) => {
-              updateTask(task, updated);
-              waitUntilTaskMatches(application, task, closure, failureClosure)
-                .then(deferred.resolve, deferred.reject);
-            });
+          getTask(application, task.id).then((updated) => {
+            updateTask(task, updated);
+            waitUntilTaskMatches(application, task, closure, failureClosure)
+              .then(deferred.resolve, deferred.reject);
+          });
         }, 1000);
       }
       return deferred.promise;

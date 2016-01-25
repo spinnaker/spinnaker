@@ -28,13 +28,13 @@ module.exports = angular
   .controller('MigratorActionCtrl', function ($scope, $uibModal, vpcReader, settings) {
 
     vpcReader.getVpcName($scope.serverGroup.vpcId).then(function (name) {
-      $scope.showAction = name === 'Main' && settings.feature.vpcMigrator;
+      $scope.showAction = !name && settings.feature.vpcMigrator;
     });
 
     this.previewMigration = function () {
       $uibModal.open({
         templateUrl: require('./serverGroup.migrator.modal.html'),
-        controller: 'MigratorCtrl as ctrl',
+        controller: 'MigratorCtrl as vm',
         resolve: {
           serverGroup: function () {
             return $scope.serverGroup;
@@ -42,82 +42,101 @@ module.exports = angular
           application: function () {
             return $scope.application;
           },
-          type: function() {
-            return $scope.type;
-          }
         }
       });
     };
   })
-  .controller('MigratorCtrl', function ($scope, serverGroup, application, type, $modalInstance, migratorService) {
+  .controller('MigratorCtrl', function ($scope, $timeout,
+                                        $modalInstance,
+                                        migratorService, taskReader,
+                                        serverGroup, application) {
 
-    $scope.submittingTemplateUrl = require('../migrator.modal.submitting.html');
+    this.submittingTemplateUrl = require('../migrator.modal.submitting.html');
 
-    $scope.application = application;
-    $scope.serverGroup = serverGroup;
-
-    $scope.viewState = {
+    this.viewState = {
       computing: true,
+      executing: false,
+      error: false,
+      migrationComplete: false,
     };
 
-    $scope.source = {
+    // shared component used by "submitting" overlay to indicate what's being operated against
+    this.component = {
+      name: serverGroup.name
+    };
+
+    // Async handlers
+
+    let errorMode = (error) => {
+      this.viewState.computing = false;
+      this.viewState.executing = false;
+      this.viewState.error = error || 'An unknown error occurred. Please try again later.';
+      if (!error && this.task) {
+        this.viewState.error = this.task.getTideException();
+      }
+    };
+
+    let dryRunComplete = () => {
+      this.viewState.computing = false;
+      this.preview = this.task.getPreview();
+    };
+
+    let dryRunStarted = (task) => {
+      this.task = task;
+      taskReader.waitUntilTaskCompletes(application.name, task).then(dryRunComplete, errorMode);
+    };
+
+    let migrationComplete = () => {
+      this.viewState.executing = false;
+      this.viewState.migrationComplete = true;
+    };
+
+    let migrationStarted = (task) => {
+      this.task = task;
+      taskReader.waitUntilTaskCompletes(application.name, task).then(migrationComplete, errorMode);
+    };
+
+
+
+    this.source = {
       region: serverGroup.region,
-      account: serverGroup.account
+      account: serverGroup.account,
+      asgName: serverGroup.name,
     };
 
-    $scope.source.asgName = serverGroup.name;
-
-    var target = {
+    // this will probably become configurable at some point
+    let target = {
       region: serverGroup.region,
       account: serverGroup.account,
       vpcName: 'vpc0'
     };
 
-    var migrationConfig = {
+    // Shared config for dry run and migration
+    let migrationConfig = {
       application: application,
       type: 'deepCopyServerGroup',
       name: serverGroup.name,
-      source: $scope.source,
+      source: this.source,
       target: target,
       dryRun: true,
     };
 
-    var dryRun = migratorService.executeMigration(migrationConfig);
+    // Generate preview
+    let executor = migratorService.executeMigration(migrationConfig);
 
-    dryRun.deferred.promise.then(
-      function () {
-        $scope.viewState.computing = false;
-        $scope.preview = dryRun.executionPlan;
-      },
-      function (error) {
-        $scope.viewState.computing = false;
-        $scope.viewState.error = error;
-      }
-    );
+    executor.then(dryRunStarted, errorMode);
 
-    this.cancel = function () {
-      dryRun.deferred.promise.cancelled = true;
-      if ($scope.executor) {
-        $scope.executor.deferred.promise.cancelled = true;
-      }
-      $modalInstance.dismiss();
+    // Button handlers
+    this.submit = () => {
+      this.viewState.executing = true;
+      migrationConfig.dryRun = false;
+      let executor = migratorService.executeMigration(migrationConfig);
+      executor.then(migrationStarted, errorMode);
     };
 
-    this.submit = function () {
-      $scope.viewState.executing = true;
-      migrationConfig.dryRun = false;
-      var executor = migratorService.executeMigration(migrationConfig);
-      executor.deferred.promise.then(
-        function () {
-          $scope.viewState.executing = false;
-          $scope.viewState.migrationComplete = true;
-        },
-        function (error) {
-          $scope.viewState.executing = false;
-          $scope.viewState.error = error;
-        }
-      );
-      $scope.executor = executor;
+    this.cancel = () => {
+      $timeout.cancel(this.task.poller);
+      $modalInstance.dismiss();
     };
 
   });
