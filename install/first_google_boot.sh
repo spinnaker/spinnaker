@@ -221,6 +221,19 @@ else
   MY_ZONE=""
 fi
 
+# There appears to be a race condition within cassandra starting thrift while
+# we perform the dist-upgrade below. So we're going to try working around
+# that by waiting for cassandra to get past its thrift initialization.
+# Otherwise, we'd prefer to upgrade first, then wait for cassandra to
+# be ready for JMX (7199).
+if ! nc -z localhost 9160; then
+    echo "Waiting for Cassandra to start..."
+    while ! nc -z localhost 9160; do
+       sleep 1
+    done
+    echo "Cassandra is ready."
+fi
+
 # Apply outstanding OS updates since time of image creation
 # but keep spinnaker version itself intact only during forced dist-upgrade
 apt-mark hold spinnaker-clouddriver spinnaker-deck spinnaker-echo spinnaker-front50 spinnaker-gate spinnaker-igor spinnaker-orca spinnaker-rosco spinnaker-rush spinnaker
@@ -228,13 +241,6 @@ apt-get -y update
 apt-get -y dist-upgrade
 apt-mark unhold spinnaker-clouddriver spinnaker-deck spinnaker-echo spinnaker-front50 spinnaker-gate spinnaker-igor spinnaker-orca spinnaker-rosco spinnaker-rush spinnaker
 sed -i "s/start_rpc: false/start_rpc: true/" /etc/cassandra/cassandra.yaml
-if ! nc -z localhost 7199; then
-    echo "Waiting for Cassandra to start..."
-    while ! nc -z localhost 7199; do
-       sleep 1
-    done
-    echo "Cassandra is ready."
-fi
 while ! $(nodetool enablethrift >& /dev/null); do
     sleep 1
     echo "Retrying..."
