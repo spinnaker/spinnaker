@@ -163,6 +163,9 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
           usePreferredZones = zones.join(',') === preferredZones.join(',');
         }
 
+        // These processes should never be copied over, as the affect launching instances and enabling traffic
+        let enabledProcesses = ['Launch', 'Terminate', 'AddToLoadBalancer'];
+
         var command = {
           application: application.name,
           strategy: '',
@@ -189,7 +192,9 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
             region: serverGroup.region,
             asgName: serverGroup.asg.autoScalingGroupName,
           },
-          suspendedProcesses: (serverGroup.asg.suspendedProcesses || []).map((process) => process.processName),
+          suspendedProcesses: (serverGroup.asg.suspendedProcesses || [])
+            .map((process) => process.processName)
+            .filter((name) => enabledProcesses.indexOf(name) < 0),
           viewState: {
             instanceProfile: asyncData.instanceProfile,
             useAllImageSelection: false,

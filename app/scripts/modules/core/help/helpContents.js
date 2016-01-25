@@ -40,6 +40,8 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'aws.serverGroup.allImages': 'Search for an image that does not match the name of your application.',
     'aws.serverGroup.filterImages': 'Select from a pre-filtered list of images matching the name of your application.',
     'aws.serverGroup.strategy': 'The deployment strategy tells Spinnaker what to do with the previous version of the server group.',
+    'aws.serverGroup.traffic': 'Enables the "AddToLoadBalancer" scaling process, which is used by Spinnaker and ' +
+    ' discovery services to determine if the server group is enabled.',
     'aws.securityGroup.vpc': '<p>The VPC to which this security group will apply.</p>' +
       '<p>If you wish to use VPC but are unsure which VPC to use, the most common one is "Main".</p>' +
       '<p>If you do not wish to use VPC, select "None".</p>',
@@ -211,7 +213,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'serverGroupCapacity.useSourceCapacityFalse': '<p>The specified capacity is used regardless of the presence or size of an existing server group.</p>',
     'strategy.redblack.scaleDown': '<p>Resizes the target server group to zero instances before disabling it.</p>' +
       '<p>Select this if you wish to retain the launch configuration for the old server group without running any instances.</p>',
-    'strategy.redblack.maxRemainingAsgs': '<p>Indicates the maximum number of server groups that will remain in this cluster - including the newly created one.</p>' +
+    'strategy.redblack.maxRemainingAsgs': '<p><b>Optional</b>: indicates the maximum number of server groups that will remain in this cluster - including the newly created one.</p>' +
       '<p>If you wish to destroy all server groups except the newly created one, select "Highlander" as the strategy.</p>' +
       '<p><strong>Minimum value:</strong> 2</p>',
     'strategy.rollingPush.relaunchAll': '<p>Incrementally terminates each instance in the server group, waiting for a new one to come up before terminating the next one.</p>',
