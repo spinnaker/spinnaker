@@ -25,10 +25,12 @@ describe('Service: awsServerGroup', function () {
   );
 
   beforeEach(
-    window.inject(function (_$httpBackend_, awsServerGroupCommandBuilder, _accountService_, _instanceTypeService_, _$q_, _settings_, $rootScope) {
+    window.inject(function (_$httpBackend_, awsServerGroupCommandBuilder, _accountService_, _instanceTypeService_, _$q_,
+                            _settings_, _subnetReader_, $rootScope) {
       this.$httpBackend = _$httpBackend_;
       this.service = awsServerGroupCommandBuilder;
       this.accountService = _accountService_;
+      this.subnetReader = _subnetReader_;
       this.$q = _$q_;
       this.settings = _settings_;
       this.$scope = $rootScope;
@@ -116,6 +118,32 @@ describe('Service: awsServerGroup', function () {
       expect(command.viewState.usePreferredZones).toBe(false);
     });
 
+  });
+
+  describe('buildServerGroupCommandFromExisting', function () {
+    it('retains non-core suspended processes', function () {
+      spyOn(this.accountService, 'getPreferredZonesByAccount').and.returnValue(this.$q.when([]));
+      spyOn(this.subnetReader, 'listSubnets').and.returnValue(this.$q.when([]));
+      var serverGroup = {
+        asg: {
+          availabilityZones: [],
+          vpczoneIdentifier: '',
+          suspendedProcesses: [
+            {processName: 'Launch'},
+            {processName: 'Terminate'},
+            {processName: 'AZRebalance'},
+            {processName: 'AddToLoadBalancer'},
+          ]
+        }
+      };
+      var command = null;
+      this.service.buildServerGroupCommandFromExisting({}, serverGroup).then(function(result) {
+        command = result;
+      });
+
+      this.$scope.$digest();
+      expect(command.suspendedProcesses).toEqual(['AZRebalance']);
+    });
   });
 
 });

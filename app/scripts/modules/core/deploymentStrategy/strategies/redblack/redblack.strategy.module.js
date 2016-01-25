@@ -11,8 +11,5 @@ module.exports = angular.module('spinnaker.core.deploymentStrategy.redblack', []
       providers: ['aws', 'gce', 'cf'],
       additionalFields: ['scaleDown', 'maxRemainingAsgs'],
       additionalFieldsTemplateUrl: require('./additionalFields.html'),
-      initializationMethod: function(command) {
-        command.maxRemainingAsgs = command.maxRemainingAsgs || 2;
-      },
     });
   });
