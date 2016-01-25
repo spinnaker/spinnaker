@@ -116,6 +116,8 @@ class QuickPatchStage extends LinearStage {
       nextStageContext.put("instanceIds", instances.collect {key, value -> key}) // for WaitForDown/UpInstancesTask
       injectAfter(stage, "bulkQuickPatchStage", bulkQuickPatchStage, nextStageContext)
     }
+
+    stage.initializationStage = true
     // mark as SUCCEEDED otherwise a stage w/o child tasks will remain in NOT_STARTED
     stage.status = ExecutionStatus.SUCCEEDED
     return steps
