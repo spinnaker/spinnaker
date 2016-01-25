@@ -4,7 +4,7 @@
   <div class="modal-header">
     <h3>{{params.header}}</h3>
   </div>
-  <div class="modal-body confirmation-modal" ng-if="params.body || state.error || params.platformHealthOnlyShowOverride">
+  <div class="modal-body confirmation-modal" ng-if="params.body || state.error || params.platformHealthOnlyShowOverride || params.askForReason">
     <form role="form" class="container-fluid" ng-submit="ctrl.confirm()">
       <div ng-if="params.body" ng-bind-html="params.body">
       </div>
@@ -25,6 +25,7 @@
         </p>
       </div>
     </div>
+    <task-reason ng-if="taskMonitor && params.askForReason" command="params"></task-reason>
   </div>
   <div class="modal-footer">
     <user-verification verification="verification" account="params.account" label="params.verificationLabel"></user-verification>

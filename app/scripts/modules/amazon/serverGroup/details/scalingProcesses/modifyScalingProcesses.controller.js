@@ -6,10 +6,18 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.p
   require('../../../../core/utils/lodash.js'),
   require('../../../../core/task/monitor/taskMonitor.module.js'),
   require('../../../../core/task/taskExecutor.js'),
-])
+  ])
   .controller('ModifyScalingProcessesCtrl', function($scope, $modalInstance, taskMonitorService, taskExecutor, application, serverGroup, processes, _) {
     $scope.command = angular.copy(processes);
     $scope.serverGroup = serverGroup;
+    $scope.verification = {};
+
+    this.isValid = function () {
+      if (!$scope.verification.verified) {
+        return false;
+      }
+      return this.isDirty();
+    };
 
     var currentlyEnabled = _($scope.command).filter({enabled: true}).pluck('name').valueOf(),
         currentlySuspended = _($scope.command).filter({enabled: false}).pluck('name').valueOf();
@@ -39,6 +47,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.p
           regions: [serverGroup.region],
           credentials: serverGroup.account,
           cloudProvider: 'aws',
+          reason: $scope.command.reason,
         });
       }
       if (toSuspend.length) {
@@ -50,6 +59,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.p
           regions: [serverGroup.region],
           credentials: serverGroup.account,
           cloudProvider: 'aws',
+          reason: $scope.command.reason,
         });
       }
 

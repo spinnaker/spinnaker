@@ -146,7 +146,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         katoPhaseToMonitor: 'DESTROY_ASG'
       };
 
-      var submitMethod = () => serverGroupWriter.destroyServerGroup(serverGroup, app);
+      var submitMethod = (params) => serverGroupWriter.destroyServerGroup(serverGroup, app, params);
 
       var stateParams = {
         name: serverGroup.name,
@@ -162,6 +162,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         provider: 'aws',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
+        askForReason: true,
         body: this.getBodyTemplate(serverGroup, app),
         onTaskComplete: () => {
           if ($state.includes('**.serverGroup', stateParams)) {
@@ -199,10 +200,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         title: 'Disabling ' + serverGroup.name
       };
 
-      var submitMethod = (interestingHealthProviderNames) => {
-        return serverGroupWriter.disableServerGroup(serverGroup, app, {
-          interestingHealthProviderNames: interestingHealthProviderNames,
-        });
+      var submitMethod = (params) => {
+        return serverGroupWriter.disableServerGroup(serverGroup, app, params);
       };
 
       var confirmationModalParams = {
@@ -214,6 +213,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
         platformHealthType: 'Amazon',
         submitMethod: submitMethod,
+        askForReason: true
       };
 
       if (app.attributes.platformHealthOnly) {
@@ -231,10 +231,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         title: 'Enabling ' + serverGroup.name,
       };
 
-      var submitMethod = (interestingHealthProviderNames) => {
-        return serverGroupWriter.enableServerGroup(serverGroup, app, {
-          interestingHealthProviderNames: interestingHealthProviderNames,
-        });
+      var submitMethod = (params) => {
+        return serverGroupWriter.enableServerGroup(serverGroup, app, params);
       };
 
       var confirmationModalParams = {
@@ -245,6 +243,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
         platformHealthType: 'Amazon',
         submitMethod: submitMethod,
+        askForReason: true
       };
 
       if (app.attributes.platformHealthOnly) {

@@ -39,7 +39,7 @@ module.exports = angular
     this.confirm = function () {
       if (!this.formDisabled()) {
         if ($scope.taskMonitor) {
-          $scope.taskMonitor.submit(() => { return params.submitMethod(params.interestingHealthProviderNames); });
+          $scope.taskMonitor.submit(() => { return params.submitMethod({interestingHealthProviderNames: params.interestingHealthProviderNames, reason: params.reason}); });
         } else {
           if (params.submitMethod) {
             $scope.state.submitting = true;

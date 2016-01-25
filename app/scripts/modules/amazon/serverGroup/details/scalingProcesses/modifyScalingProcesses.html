@@ -1,4 +1,4 @@
-<div modal-page>
+<div modal-page class="confirmation-modal">
   <task-monitor monitor="taskMonitor"></task-monitor>
   <form role="form">
     <modal-close></modal-close>
@@ -18,14 +18,11 @@
         </div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
-      <button type="submit"
-              class="btn btn-primary"
-              ng-disabled="!ctrl.isDirty()"
-              ng-click="ctrl.submit()">
-        Submit
-      </button>
-    </div>
+    <task-reason command="command"></task-reason>
+    <aws-footer action="ctrl.submit()"
+                cancel="ctrl.cancel()"
+                is-valid="ctrl.isValid()"
+                account="serverGroup.account"
+                verification="verification"></aws-footer>
   </form>
 </div>
