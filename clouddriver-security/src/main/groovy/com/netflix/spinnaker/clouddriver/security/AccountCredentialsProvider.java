@@ -31,7 +31,7 @@ public interface AccountCredentialsProvider {
      *
      * @return a set of account names
      */
-    Set<AccountCredentials> getAll();
+    Set<? extends AccountCredentials> getAll();
 
     /**
      * Returns a specific {@link AccountCredentials} object a specified name

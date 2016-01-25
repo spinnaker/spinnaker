@@ -32,6 +32,7 @@ class AmazonSecurityGroup implements SecurityGroup {
   final String description
   final String application
   final String accountName
+  final String accountId
   final String region
   final Set<Rule> inboundRules
   final Set<Rule> outboundRules

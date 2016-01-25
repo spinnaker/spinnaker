@@ -19,15 +19,19 @@ package com.netflix.spinnaker.mort.aws.provider.view
 import com.amazonaws.services.ec2.model.IpPermission
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.collect.ImmutableSet
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.model.AddressableRange
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.SecurityGroupRule
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import com.netflix.spinnaker.mort.aws.model.AmazonSecurityGroup
 import groovy.transform.Canonical
@@ -40,14 +44,25 @@ import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.SECURITY_GROUP
 class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurityGroup> {
 
   final AmazonCloudProvider amazonCloudProvider
+  final AccountCredentialsProvider accountCredentialsProvider
   final Cache cacheView
   final ObjectMapper objectMapper
+  final Set<AmazonCredentials> accounts
 
   @Autowired
-  AmazonSecurityGroupProvider(AmazonCloudProvider amazonCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
+  AmazonSecurityGroupProvider(AmazonCloudProvider amazonCloudProvider,
+                              AccountCredentialsProvider accountCredentialsProvider,
+                              Cache cacheView,
+                              ObjectMapper objectMapper) {
     this.amazonCloudProvider = amazonCloudProvider
+    this.accountCredentialsProvider = accountCredentialsProvider
     this.cacheView = cacheView
     this.objectMapper = objectMapper
+
+    final allAmazonCredentials = (Set<AmazonCredentials>) accountCredentialsProvider.all.findAll {
+      it instanceof AmazonCredentials
+    }
+    accounts = ImmutableSet.copyOf(allAmazonCredentials)
   }
 
   @Override
@@ -156,6 +171,7 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
     permission.userIdGroupPairs.each { sg ->
       def groupAndProtocol = new GroupAndProtocol(sg.groupId, permission.ipProtocol)
       if (!rules.containsKey(groupAndProtocol)) {
+        final ingressAccount = accounts.find { it.accountId == sg.userId }
         rules.put(groupAndProtocol, [
           protocol     : permission.ipProtocol,
           securityGroup:
@@ -163,7 +179,8 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
               type: amazonCloudProvider.id,
               id: sg.groupId,
               name: sg.groupName,
-              accountName: account,
+              accountId: sg.userId,
+              accountName: ingressAccount?.name,
               region: region
             ),
           portRanges   : [] as SortedSet

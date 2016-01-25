@@ -40,7 +40,7 @@ public interface AccountCredentialsRepository {
      *
      * @return a set of account credentials
      */
-    Set<AccountCredentials> getAll();
+    Set<? extends AccountCredentials> getAll();
 
     /**
      * Stores an {@link AccountCredentials} object at this repository. This is an identify function.
