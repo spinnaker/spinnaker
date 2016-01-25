@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component
 @AzureOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component("upsertAzureLoadBalancerDescription")
 class UpsertAzureLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
-  public UpsertAzureLoadBalancerAtomicOperationConverter() {
+  UpsertAzureLoadBalancerAtomicOperationConverter() {
     log.info("Constructor....UpsertAzureLoadBalancerAtomicOperationConverter")
   }
 

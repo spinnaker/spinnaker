@@ -26,6 +26,7 @@ class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
   List<AzureLoadBalancerProbe> probes = []
   List<AzureLoadBalancingRule> loadBalancingRules = []
   List<AzureLoadBalancerInboundNATRule> inboundNATRules = []
+  Map<String,String> tags = [:]
 
   static class AzureLoadBalancerProbe {
     enum AzureLoadBalancerProbesType {

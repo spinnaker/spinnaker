@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 The original authors.
+ * Copyright 2016 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model
+package com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception
 
-import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
-import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
+import groovy.transform.InheritConstructors
 
-class DeleteAzureLoadBalancerDescription extends AzureResourceOpsDescription {
-  String loadBalancerName
-  List<String> regions
-}
+@InheritConstructors
+class KubernetesIllegalArgumentException extends IllegalArgumentException {}
+

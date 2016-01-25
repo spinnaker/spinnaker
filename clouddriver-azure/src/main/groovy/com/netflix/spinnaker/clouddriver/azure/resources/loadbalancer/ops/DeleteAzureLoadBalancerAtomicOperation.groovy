@@ -40,25 +40,26 @@ class DeleteAzureLoadBalancerAtomicOperation implements AtomicOperation<Void> {
    */
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing deletion of load balancer $description.loadBalancerName " +
-      "in $description.region..."
+    task.updateStatus BASE_PHASE, "Initializing Delete Azure Load Balancer Operation..."
+    for (region in description.regions) {
+      task.updateStatus BASE_PHASE, "Deleting ${description.loadBalancerName} " + "in ${region}..."
 
-    if (!description.credentials) {
-      throw new IllegalArgumentException("Unable to resolve credentials for the selected Azure account.")
-    }
+      if (!description.credentials) {
+        throw new IllegalArgumentException("Unable to resolve credentials for the selected Azure account.")
+      }
 
-    try {
-      //TODO: insert real call to Azure resource manager object to delete the selected load balancer
-      String resourceGroupName = AzureUtilities.getResourceGroupName(description.appName, description.region)
+      try {
+        String resourceGroupName = AzureUtilities.getResourceGroupName(description.appName, region)
 
-      def op = description.credentials.networkClient.deleteLoadBalancer(description.credentials,
-                                                                        resourceGroupName,
-                                                                        description.loadBalancerName)
+        def op = description.credentials.networkClient.deleteLoadBalancer(description.credentials,
+          resourceGroupName,
+          description.loadBalancerName)
 
-      task.updateStatus BASE_PHASE, "Done deleting load balancer $description.loadBalancerName in $description.region."
-    } catch (Exception e) {
-      task.updateStatus BASE_PHASE, String.format("Deployment of load balancer $description.loadBalancerName failed: %s", e.message)
-      throw e
+        task.updateStatus BASE_PHASE, "Deletion of Azure load balancer $description.loadBalancerName in ${region} has succeeded."
+      } catch (Exception e) {
+        task.updateStatus BASE_PHASE, String.format("Deletion of load balancer ${description.loadBalancerName} failed: %s", e.message)
+        throw e
+      }
     }
 
     null

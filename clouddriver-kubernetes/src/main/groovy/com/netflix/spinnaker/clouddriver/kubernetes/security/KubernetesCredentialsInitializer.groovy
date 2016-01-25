@@ -74,7 +74,7 @@ class KubernetesCredentialsInitializer implements CredentialsInitializerSynchron
                                                                       managedAccount.master,
                                                                       managedAccount.username,
                                                                       managedAccount.password,
-                                                                      managedAccount.namespace)
+                                                                      managedAccount.namespaces)
 
         accountCredentialsRepository.save(managedAccount.name, kubernetesAccount)
       } catch (e) {
@@ -90,7 +90,7 @@ class KubernetesCredentialsInitializer implements CredentialsInitializerSynchron
      * TODO(lwander)
     if (accountsToAdd && catsModule) {
       ProviderUtils.synchronizeAgentProviders(appContext, providerSynchronizerTypeWrappers)
-    } 
+    }
     */
 
     accountCredentialsRepository.all.findAll {

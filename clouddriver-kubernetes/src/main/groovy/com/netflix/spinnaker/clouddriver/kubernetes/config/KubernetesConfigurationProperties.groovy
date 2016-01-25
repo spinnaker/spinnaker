@@ -28,7 +28,7 @@ class KubernetesConfigurationProperties {
     String master
     String username
     String password
-    String namespace
+    List<String> namespaces
   }
 
   List<ManagedAccount> accounts = []

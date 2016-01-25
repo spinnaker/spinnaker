@@ -25,4 +25,5 @@ class CloneKubernetesAtomicOperationDescription extends DeployKubernetesAtomicOp
 @Canonical
 class KubernetesCloneServerGroupSource {
   String serverGroupName
+  String namespace
 }

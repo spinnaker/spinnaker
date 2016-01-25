@@ -44,6 +44,7 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   private static final VALID_CREDENTIALS = "auto"
   private static final VALID_LOAD_BALANCERS = ["x", "y"]
   private static final VALID_SECURITY_GROUPS = ["a-1", "b-2"]
+  private static final VALID_NAMESPACE = "default"
 
   private static final INVALID_APPLICATION = "-app-"
   private static final INVALID_STACK = " stack"
@@ -56,6 +57,7 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   private static final INVALID_CREDENTIALS = "valid"
   private static final INVALID_LOAD_BALANCERS = [" ", "--"]
   private static final INVALID_SECURITY_GROUPS = [" ", "--"]
+  private static final INVALID_NAMESPACE = "!default"
 
   @Shared
   DeployKubernetesAtomicOperationValidator validator
@@ -98,16 +100,17 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   void "validation accept (all fields filled)"() {
     setup:
       def description = new DeployKubernetesAtomicOperationDescription(application: VALID_APPLICATION,
-                                                                       stack: VALID_STACK,
-                                                                       freeFormDetails: VALID_STACK,
-                                                                       targetSize: VALID_TARGET_SIZE,
-                                                                       containers: [
-                                                                         fullValidContainerDescription1,
-                                                                         fullValidContainerDescription2
-                                                                       ],
-                                                                       loadBalancers: VALID_LOAD_BALANCERS,
-                                                                       securityGroups: VALID_SECURITY_GROUPS,
-                                                                       credentials: VALID_CREDENTIALS)
+        stack: VALID_STACK,
+        namespace: VALID_NAMESPACE,
+        freeFormDetails: VALID_STACK,
+        targetSize: VALID_TARGET_SIZE,
+        containers: [
+          fullValidContainerDescription1,
+          fullValidContainerDescription2
+        ],
+        loadBalancers: VALID_LOAD_BALANCERS,
+        securityGroups: VALID_SECURITY_GROUPS,
+        credentials: VALID_CREDENTIALS)
       def errorsMock = Mock(Errors)
 
     when:
@@ -119,12 +122,12 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   void "validation accept (minimal fields filled)"() {
     setup:
       def description = new DeployKubernetesAtomicOperationDescription(application: VALID_APPLICATION,
-                                                                       stack: VALID_STACK,
-                                                                       targetSize: VALID_TARGET_SIZE,
-                                                                       containers: [
-                                                                         partialValidContainerDescription
-                                                                       ],
-                                                                       credentials: VALID_CREDENTIALS)
+        stack: VALID_STACK,
+        targetSize: VALID_TARGET_SIZE,
+        containers: [
+          partialValidContainerDescription
+        ],
+        credentials: VALID_CREDENTIALS)
       def errorsMock = Mock(Errors)
 
     when:
@@ -136,11 +139,11 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   void "validation reject (missing credentials)"() {
     setup:
       def description = new DeployKubernetesAtomicOperationDescription(application: VALID_APPLICATION,
-                                                                       stack: VALID_STACK,
-                                                                       targetSize: VALID_TARGET_SIZE,
-                                                                       containers: [
-                                                                         partialValidContainerDescription
-                                                                       ])
+        stack: VALID_STACK,
+        targetSize: VALID_TARGET_SIZE,
+        containers: [
+          partialValidContainerDescription
+        ])
       def errorsMock = Mock(Errors)
 
     when:
@@ -153,11 +156,11 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   void "validation reject (missing stack)"() {
     setup:
       def description = new DeployKubernetesAtomicOperationDescription(application: VALID_APPLICATION,
-                                                                       targetSize: VALID_TARGET_SIZE,
-                                                                       containers: [
-                                                                         partialValidContainerDescription
-                                                                       ],
-                                                                       credentials: VALID_CREDENTIALS)
+        targetSize: VALID_TARGET_SIZE,
+        containers: [
+          partialValidContainerDescription
+        ],
+        credentials: VALID_CREDENTIALS)
       def errorsMock = Mock(Errors)
 
     when:
@@ -170,11 +173,11 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   void "validation reject (missing application)"() {
     setup:
       def description = new DeployKubernetesAtomicOperationDescription(stack: VALID_STACK,
-                                                                       targetSize: VALID_TARGET_SIZE,
-                                                                       containers: [
-                                                                         partialValidContainerDescription
-                                                                       ],
-                                                                       credentials: VALID_CREDENTIALS)
+        targetSize: VALID_TARGET_SIZE,
+        containers: [
+          partialValidContainerDescription
+        ],
+        credentials: VALID_CREDENTIALS)
       def errorsMock = Mock(Errors)
 
     when:
@@ -187,12 +190,12 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   void "validation reject (invalid stack)"() {
     setup:
       def description = new DeployKubernetesAtomicOperationDescription(application: VALID_APPLICATION,
-                                                                       stack: INVALID_STACK,
-                                                                       targetSize: VALID_TARGET_SIZE,
-                                                                       containers: [
-                                                                         partialValidContainerDescription
-                                                                       ],
-                                                                       credentials: VALID_CREDENTIALS)
+        stack: INVALID_STACK,
+        targetSize: VALID_TARGET_SIZE,
+        containers: [
+          partialValidContainerDescription
+        ],
+        credentials: VALID_CREDENTIALS)
       def errorsMock = Mock(Errors)
 
     when:
@@ -205,12 +208,12 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   void "validation reject (invalid application)"() {
     setup:
       def description = new DeployKubernetesAtomicOperationDescription(application: INVALID_APPLICATION,
-                                                                       stack: VALID_STACK,
-                                                                       targetSize: VALID_TARGET_SIZE,
-                                                                       containers: [
-                                                                         partialValidContainerDescription
-                                                                       ],
-                                                                       credentials: VALID_CREDENTIALS)
+        stack: VALID_STACK,
+        targetSize: VALID_TARGET_SIZE,
+        containers: [
+          partialValidContainerDescription
+        ],
+        credentials: VALID_CREDENTIALS)
       def errorsMock = Mock(Errors)
 
     when:
@@ -220,15 +223,34 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
       0 * errorsMock._
   }
 
+  void "validation reject (invalid namespace)"() {
+    setup:
+      def description = new DeployKubernetesAtomicOperationDescription(application: VALID_APPLICATION,
+        stack: VALID_STACK,
+        targetSize: VALID_TARGET_SIZE,
+        namespace: INVALID_NAMESPACE,
+        containers: [
+          partialValidContainerDescription
+        ],
+        credentials: VALID_CREDENTIALS)
+      def errorsMock = Mock(Errors)
+
+    when:
+      validator.validate([], description, errorsMock)
+    then:
+      1 * errorsMock.rejectValue("${DESCRIPTION}.namespace", "${DESCRIPTION}.namespace.invalid (Must match ${StandardKubernetesAttributeValidator.namePattern})")
+      0 * errorsMock._
+  }
+
   void "validation reject (invalid target size)"() {
     setup:
       def description = new DeployKubernetesAtomicOperationDescription(application: VALID_APPLICATION,
-                                                                       stack: VALID_STACK,
-                                                                       targetSize: INVALID_TARGET_SIZE,
-                                                                       containers: [
-                                                                         partialValidContainerDescription
-                                                                       ],
-                                                                       credentials: VALID_CREDENTIALS)
+        stack: VALID_STACK,
+        targetSize: INVALID_TARGET_SIZE,
+        containers: [
+          partialValidContainerDescription
+        ],
+        credentials: VALID_CREDENTIALS)
       def errorsMock = Mock(Errors)
 
     when:
@@ -241,12 +263,12 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   void "validation reject (invalid partial container)"() {
     setup:
       def description = new DeployKubernetesAtomicOperationDescription(application: VALID_APPLICATION,
-                                                                       stack: VALID_STACK,
-                                                                       targetSize: VALID_TARGET_SIZE,
-                                                                       containers: [
-                                                                         partialInvalidContainerDescription
-                                                                       ],
-                                                                       credentials: VALID_CREDENTIALS)
+        stack: VALID_STACK,
+        targetSize: VALID_TARGET_SIZE,
+        containers: [
+          partialInvalidContainerDescription
+        ],
+        credentials: VALID_CREDENTIALS)
       def errorsMock = Mock(Errors)
 
     when:
@@ -260,12 +282,12 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   void "validation reject (invalid full container)"() {
     setup:
       def description = new DeployKubernetesAtomicOperationDescription(application: VALID_APPLICATION,
-                                                                       stack: VALID_STACK,
-                                                                       targetSize: VALID_TARGET_SIZE,
-                                                                       containers: [
-                                                                         fullInvalidContainerDescription
-                                                                       ],
-                                                                       credentials: VALID_CREDENTIALS)
+        stack: VALID_STACK,
+        targetSize: VALID_TARGET_SIZE,
+        containers: [
+          fullInvalidContainerDescription
+        ],
+        credentials: VALID_CREDENTIALS)
       def errorsMock = Mock(Errors)
 
     when:
@@ -283,13 +305,13 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   void "validation reject (invalid load balancers)"() {
     setup:
       def description = new DeployKubernetesAtomicOperationDescription(application: VALID_APPLICATION,
-                                                                       stack: VALID_STACK,
-                                                                       targetSize: VALID_TARGET_SIZE,
-                                                                       containers: [
-                                                                         partialValidContainerDescription
-                                                                       ],
-                                                                       loadBalancers: INVALID_LOAD_BALANCERS,
-                                                                       credentials: VALID_CREDENTIALS)
+        stack: VALID_STACK,
+        targetSize: VALID_TARGET_SIZE,
+        containers: [
+          partialValidContainerDescription
+        ],
+        loadBalancers: INVALID_LOAD_BALANCERS,
+        credentials: VALID_CREDENTIALS)
       def errorsMock = Mock(Errors)
 
     when:
@@ -303,13 +325,13 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   void "validation reject (invalid security groups)"() {
     setup:
       def description = new DeployKubernetesAtomicOperationDescription(application: VALID_APPLICATION,
-                                                                       stack: VALID_STACK,
-                                                                       targetSize: VALID_TARGET_SIZE,
-                                                                       containers: [
-                                                                         partialValidContainerDescription
-                                                                       ],
-                                                                       securityGroups: INVALID_SECURITY_GROUPS,
-                                                                       credentials: VALID_CREDENTIALS)
+        stack: VALID_STACK,
+        targetSize: VALID_TARGET_SIZE,
+        containers: [
+          partialValidContainerDescription
+        ],
+        securityGroups: INVALID_SECURITY_GROUPS,
+        credentials: VALID_CREDENTIALS)
       def errorsMock = Mock(Errors)
 
     when:

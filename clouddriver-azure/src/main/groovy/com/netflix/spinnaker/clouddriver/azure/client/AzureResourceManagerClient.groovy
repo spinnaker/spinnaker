@@ -34,6 +34,7 @@ import com.microsoft.azure.management.resources.models.ResourceGroupListParamete
 import com.microsoft.azure.management.resources.models.ResourceGroupListResult
 import com.microsoft.azure.utility.ResourceHelper
 import com.microsoft.windowsazure.exception.ServiceException
+import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import groovy.transform.Canonical
 import groovy.json.JsonBuilder
@@ -51,39 +52,26 @@ class AzureResourceManagerClient extends AzureBaseClient {
     super(subscriptionId)
   }
 
-  DeploymentExtended createLoadBalancerFromTemplate(AzureCredentials credentials,
-                                        String template,
-                                        String resourceGroupName,
-                                        String region,
-                                        String loadBalancerName) {
-    def parameters = [location : region]
-    createLoadBalancerFromTemplate(credentials,
-                                   template,
-                                   parameters,
-                                   resourceGroupName,
-                                   region,
-                                   loadBalancerName)
-  }
+  DeploymentExtended createResourceFromTemplate(AzureCredentials credentials,
+                                                String template,
+                                                String resourceGroupName,
+                                                String region,
+                                                String resourceName) {
 
-  DeploymentExtended createLoadBalancerFromTemplate(AzureCredentials credentials,
-                                                    String template,
-                                                    Map<String, String> templateParams,
-                                                    String resourceGroupName,
-                                                    String region,
-                                                    String loadBalancerName) {
     if (!resourceGroupExists(credentials, resourceGroupName)) {
       createResourceGroup(credentials, resourceGroupName, region)
       createResourceGroupVNet(credentials, resourceGroupName, region)
     }
 
-    String deploymentName = loadBalancerName + "_deployment"
+    String deploymentName = resourceName + AzureUtilities.NAME_SEPARATOR +"deployment"
+    def templateParams = [location : region]
 
-    DeploymentExtended deployment = createTemplateDeploymentFromPath(this.getResourceManagementClient(credentials),
-                                                                     resourceGroupName,
-                                                                     DeploymentMode.Incremental,
-                                                                     deploymentName,
-                                                                     template,
-                                                                     templateParams)
+    DeploymentExtended deployment = createTemplateDeployment(this.getResourceManagementClient(credentials),
+      resourceGroupName,
+      DeploymentMode.Incremental,
+      deploymentName,
+      template,
+      templateParams)
 
     deployment
   }
@@ -102,7 +90,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
     ResourceGroupListParameters parameters = new ResourceGroupListParameters()
     parameters.setTagName("filter")
     parameters.setTagValue(applicationName)
-    
+
     this.getResourceManagementClient(creds).getResourceGroupsOperations().list(parameters).resourceGroups
   }
 
@@ -128,6 +116,10 @@ class AzureResourceManagerClient extends AzureBaseClient {
     this.getResourceManagementClient(creds).getResourceGroupsOperations().list(null).getResourceGroups()
   }
 
+  String getResourceGroupLocation(String resourceGroupName, AzureCredentials creds) {
+    this.getResourceManagementClient(creds).getResourceGroupsOperations().get(resourceGroupName).getResourceGroup().getLocation()
+  }
+
   void healthCheck(AzureCredentials creds) {
     try {
       this.getResourceManagementClient(creds).getResourcesOperations().list(null)
@@ -141,22 +133,13 @@ class AzureResourceManagerClient extends AzureBaseClient {
     ResourceManagementService.create(this.buildConfiguration(creds))
   }
 
-  private void createResourceGroupVNet(AzureCredentials creds, String resourceGroupName, String region) {
-    def networkClient = NetworkResourceProviderService.create(this.buildConfiguration(creds))
-    String vNetName = String.format("vnet_%s", resourceGroupName)
-    VirtualNetwork vNet = new VirtualNetwork(region)
-    AddressSpace addressSpace = new AddressSpace()
-    addressSpace.addressPrefixes.add("10.0.0.0/16")
-    vNet.setAddressSpace(addressSpace)
-    try {
-      networkClient.virtualNetworksOperations.createOrUpdate(resourceGroupName, vNetName, vNet)
-    }
-    catch (ServiceException se) {
-      throw new RuntimeException(String.format("Unable to create Virtual Network %s for Resource Group %s", vNetName, resourceGroupName), se)
-    }
+  private static void createResourceGroupVNet(AzureCredentials creds, String resourceGroupName, String region) {
+    def vNetName = AzureUtilities.VNET_NAME_PREFIX + resourceGroupName
+
+    creds.getNetworkClient().createVirtualNetwork(creds, resourceGroupName, vNetName, region)
   }
 
-  private static DeploymentExtended createTemplateDeploymentFromPath(
+  private static DeploymentExtended createTemplateDeployment(
     ResourceManagementClient resourceManagementClient,
     String resourceGroupName,
     DeploymentMode deploymentMode,
@@ -202,86 +185,5 @@ class AzureResourceManagerClient extends AzureBaseClient {
     public static final String DELETED = "Deleted"
     public static final String ACCEPTED = "Accepted"
   }
-
-  /*
-  // Example of how an Azure Load Balancer deploy template should look like
-
-  private static String loadBalancerTemplateString = "{\n" +
-    "  \"\$schema\": \"https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#\",\n" +
-    "  \"contentVersion\": \"1.0.0.0\",\n" +
-    "  \"parameters\": {\n" +
-    "    \"dnsNameforLBIP\": {\n" +
-    "      \"type\": \"string\",\n" +
-    "      \"metadata\": {\n" +
-    "        \"description\": \"Unique DNS name\"\n" +
-    "      }\n" +
-    "    },\n" +
-    "    \"stackName\": {\n" +
-    "      \"type\": \"string\"\n" +
-    "    },\n" +
-    "    \"location\": {\n" +
-    "      \"type\": \"string\"\n" +
-    "    },\n" +
-    "    \"publicIPAddressType\": {\n" +
-    "      \"type\": \"string\",\n" +
-    "      \"defaultValue\": \"Dynamic\",\n" +
-    "      \"allowedValues\": [\n" +
-    "        \"Dynamic\",\n" +
-    "        \"Static\"\n" +
-    "      ]\n" +
-    "    },\n" +
-    "    \"loadBalancerName\": {\n" +
-    "      \"type\": \"string\",\n" +
-    "      \"defaultValue\": \"loadBalancer1\"\n" +
-    "    }\n" +
-    "  },\n" +
-    "  \"variables\": {\n" +
-    "    \"publicIPAddressName\": \"publicIp1\",\n" +
-    "    \"publicIPAddressID\": \"[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]\"\n" +
-    "  },\n" +
-    "  \"resources\": [\n" +
-    "    {\n" +
-    "      \"apiVersion\": \"2015-05-01-preview\",\n" +
-    "      \"type\": \"Microsoft.Network/publicIPAddresses\",\n" +
-    "      \"name\": \"[variables('publicIPAddressName')]\",\n" +
-    "      \"location\": \"[parameters('location')]\",\n" +
-    "      \"properties\": {\n" +
-    "        \"publicIPAllocationMethod\": \"[parameters('publicIPAddressType')]\",\n" +
-    "        \"dnsSettings\": {\n" +
-    "          \"domainNameLabel\": \"[parameters('dnsNameforLBIP')]\"\n" +
-    "        }\n" +
-    "      }\n" +
-    "    },\n" +
-    "    {\n" +
-    "      \"apiVersion\": \"2015-05-01-preview\",\n" +
-    "      \"name\": \"[parameters('loadBalancerName')]\",\n" +
-    "      \"type\": \"Microsoft.Network/loadBalancers\",\n" +
-    "      \"location\": \"[parameters('location')]\",\n" +
-    "      \"tags\": {\n" +
-    "        \"stack\": \"[parameters('stackName')]\"\n" +
-    "      },\n" +
-    "      \"dependsOn\": [\n" +
-    "        \"[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]\"\n" +
-    "      ],\n" +
-    "      \"properties\": {\n" +
-    "        \"frontendIPConfigurations\": [\n" +
-    "          {\n" +
-    "            \"name\": \"loadBalancerFrontEnd\",\n" +
-    "            \"properties\": {\n" +
-    "              \"publicIPAddress\": {\n" +
-    "                \"id\": \"[variables('publicIPAddressID')]\"\n" +
-    "              }\n" +
-    "            }\n" +
-    "          }\n" +
-    "        ],\n" +
-    "        \"backendAddressPools\": [\n" +
-    "          {\n" +
-    "            \"name\": \"loadBalancerBackEnd\"\n" +
-    "          }\n" +
-    "        ]\n" +
-    "      }\n" +
-    "    }\n" +
-    "  ]\n" +
-    "}"*/
 
 }

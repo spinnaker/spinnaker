@@ -30,29 +30,29 @@ class KubernetesUtil {
   private static int SECURITY_GROUP_LABEL_PREFIX_LENGTH = SECURITY_GROUP_LABEL_PREFIX.length()
   private static int LOAD_BALANCER_LABEL_PREFIX_LENGTH = LOAD_BALANCER_LABEL_PREFIX.length()
 
-  ReplicationControllerList getReplicationControllers(KubernetesCredentials credentials) {
-    credentials.client.replicationControllers().inNamespace(credentials.namespace).list()
+  ReplicationControllerList getReplicationControllers(KubernetesCredentials credentials, String namespace) {
+    credentials.client.replicationControllers().inNamespace(namespace).list()
   }
 
-  ReplicationController getReplicationController(KubernetesCredentials credentials, String serverGroupName) {
-    credentials.client.replicationControllers().inNamespace(credentials.namespace).withName(serverGroupName).get()
+  ReplicationController getReplicationController(KubernetesCredentials credentials, String namespace, String serverGroupName) {
+    credentials.client.replicationControllers().inNamespace(namespace).withName(serverGroupName).get()
   }
 
-  Service getService(KubernetesCredentials credentials, String service) {
-    credentials.client.services().inNamespace(credentials.namespace).withName(service).get()
+  Service getService(KubernetesCredentials credentials, String namespace, String service) {
+    credentials.client.services().inNamespace(namespace).withName(service).get()
   }
 
-  Service getSecurityGroup(KubernetesCredentials credentials, String securityGroup) {
-    getService(credentials, securityGroup)
+  Service getSecurityGroup(KubernetesCredentials credentials, String namespace, String securityGroup) {
+    getService(credentials, namespace, securityGroup)
   }
 
-  Service getLoadBalancer(KubernetesCredentials credentials, String loadBalancer) {
-    getService(credentials, loadBalancer)
+  Service getLoadBalancer(KubernetesCredentials credentials, String namespace, String loadBalancer) {
+    getService(credentials, namespace, loadBalancer)
   }
 
-  String getNextSequence(String clusterName, KubernetesCredentials credentials) {
+  String getNextSequence(String clusterName, String namespace, KubernetesCredentials credentials) {
     def maxSeqNumber = -1
-    def replicationControllers = getReplicationControllers(credentials)
+    def replicationControllers = getReplicationControllers(credentials, namespace)
 
     for (def replicationController : replicationControllers.getItems()) {
       def names = Names.parseName(replicationController.getMetadata().getName())
@@ -109,5 +109,4 @@ class KubernetesUtil {
 
     return appName;
   }
-
 }

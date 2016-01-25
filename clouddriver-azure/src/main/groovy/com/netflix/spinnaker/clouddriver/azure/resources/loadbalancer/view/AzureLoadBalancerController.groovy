@@ -86,6 +86,7 @@ class AzureLoadBalancerController {
       lbDetail.securityGroups = azureLoadBalancerDescription.securityGroups
       lbDetail.loadBalancingRules = azureLoadBalancerDescription.loadBalancingRules
       lbDetail.inboundNATRules = azureLoadBalancerDescription.inboundNATRules
+      lbDetail.tags = azureLoadBalancerDescription.tags
 
       return [lbDetail]
     }
