@@ -37,7 +37,10 @@
             <tbody>
             <tr ng-repeat="rule in securityGroup.securityGroupIngress">
               <td>
-                <span class="form-control-static" ng-if="rule.existing">{{rule.name}}</span>
+                <span class="form-control-static" ng-if="rule.existing">
+                  <account-tag account="rule.accountName" ng-if="rule.accountName !== securityGroup.accountName"></account-tag>
+                  {{rule.name}}
+                </span>
                 <ui-select ng-if="!rule.existing" ng-model="rule.name" class="form-control input-sm" style="width: 244px">
                   <ui-select-match>{{$select.selected}}</ui-select-match>
                   <ui-select-choices repeat="securityGroup as securityGroup in availableSecurityGroups | filter: $select.search | limitTo: state.infiniteScroll.currentItems"

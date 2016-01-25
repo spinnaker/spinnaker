@@ -45,6 +45,8 @@ module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
       }).map(function(rule) {
         return rule.portRanges.map(function(portRange) {
           return {
+            accountName: rule.securityGroup.accountName || rule.securityGroup.accountId,
+            id: rule.securityGroup.id,
             name: rule.securityGroup.name,
             type: rule.protocol,
             startPort: portRange.startPort,
