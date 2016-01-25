@@ -60,6 +60,7 @@ import logging
 import os
 import os.path
 import re
+import sys
 import tarfile
 from json import JSONDecoder
 from StringIO import StringIO
