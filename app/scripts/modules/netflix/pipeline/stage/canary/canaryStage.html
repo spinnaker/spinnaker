@@ -110,11 +110,20 @@
   <h5>Baseline Version <help-field key="pipeline.config.canary.baselineVersion"></help-field></h5>
   <div class="horizontal-rule"></div>
   <stage-config-field label="Account">
-    <account-select-field component="stage.baseline" field="account" accounts="accounts" provider="'aws'" on-change="angular.noop()"required ></account-select-field>
+    <account-select-field
+      component="stage.baseline"
+      field="account"
+      accounts="accounts"
+      provider="'aws'"
+      on-change="resetSelectedCluster()"
+      required >
+    </account-select-field>
   </stage-config-field>
   <stage-config-field label="Cluster">
-    <input type="text" required ng-model="stage.baseline.cluster"
-           class="form-control input-sm" />
+    <cluster-selector
+      clusters="clusterList"
+      model="stage.baseline.cluster">
+    </cluster-selector>
   </stage-config-field>
   <h5>Canary / Baseline Cluster Pairs <help-field key="pipeline.config.canary.clusterPairs"></help-field></h5>
   <div class="horizontal-rule"></div>

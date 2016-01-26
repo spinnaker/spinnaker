@@ -16,7 +16,7 @@ module.exports = angular
       controllerAs: 'vm',
       controller: function controller() {
         var vm = this;
-        vm.freeFormClusterField = false;
+        vm.freeFormClusterField = vm.model === undefined ? false : !vm.clusters.some(cluster => cluster === vm.model);
 
         vm.toggleFreeFormClusterField = function(event) {
           event.preventDefault();

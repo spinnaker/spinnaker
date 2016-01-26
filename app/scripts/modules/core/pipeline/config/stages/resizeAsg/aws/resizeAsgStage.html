@@ -8,15 +8,24 @@
     <div ng-if="viewState.accountsLoaded">
       <stage-config-field label="Account">
         <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'"
-                              on-change="resizeAsgStageCtrl.accountUpdated()" required></account-select-field>
+                              on-change="resizeAsgStageCtrl.reset()" required></account-select-field>
       </stage-config-field>
       <stage-config-field label="Regions">
         <p ng-if="!stage.credentials" class="form-control-static">(Select an Account)</p>
-        <checklist ng-if="stage.credentials" items="regions" model="stage.regions" inline="true"
-                   include-select-all-button="true"></checklist>
+        <checklist
+          ng-if="stage.credentials"
+          items="regions"
+          model="stage.regions"
+          inline="true"
+          on-change="resizeAsgStageCtrl.resetSelectedCluster()"
+          include-select-all-button="true">
+        </checklist>
       </stage-config-field>
       <stage-config-field label="Cluster" help-key="pipeline.config.resizeAsg.cluster">
-        <input type="text" required ng-model="stage.cluster" class="form-control input-sm"/>
+        <cluster-selector
+          clusters="clusterList"
+          model="stage.cluster">
+        </cluster-selector>
       </stage-config-field>
     </div>
   </div>

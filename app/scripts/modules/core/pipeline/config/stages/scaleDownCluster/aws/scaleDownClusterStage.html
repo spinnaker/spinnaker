@@ -1,15 +1,24 @@
 <div ng-controller="awsScaleDownClusterStageCtrl as scaleDownClusterStageCtrl" class="form-horizontal">
   <div ng-if="!pipeline.strategy">
     <stage-config-field label="Account">
-      <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="scaleDownClusterStageCtrl.accountUpdated()" required></account-select-field>
+      <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="scaleDownClusterStageCtrl.reset()" required></account-select-field>
     </stage-config-field>
     <stage-config-field label="Regions">
       <p ng-if="!stage.credentials" class="form-control-static">(Select an Account)</p>
-      <checklist ng-if="stage.credentials" items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
+      <checklist
+        ng-if="stage.credentials"
+        items="regions"
+        model="stage.regions"
+        inline="true"
+        on-change="scaleDownClusterStageCtrl.resetSelectedCluster()"
+        include-select-all-button="true">
+      </checklist>
     </stage-config-field>
     <stage-config-field label="Cluster" help-key="pipeline.config.scaleDownCluster.cluster">
-      <input type="text" required ng-model="stage.cluster"
-        class="form-control input-sm" />
+      <cluster-selector
+        clusters="clusterList"
+        model="stage.cluster">
+      </cluster-selector>
     </stage-config-field>
   </div>
   <stage-config-field label="Scale Down Options">

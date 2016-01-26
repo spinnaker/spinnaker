@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.scaleDownClusterStage', [
-  require('../../../../../utils/lodash.js'),
+  require('../../../../../../core/application/listExtractor/listExtractor.service'),
   require('../../stageConstants.js'),
   require('./scaleDownClusterExecutionDetails.controller.js')
 ])
@@ -21,7 +21,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.scaleDownClus
       ],
       strategy: true,
     });
-  }).controller('awsScaleDownClusterStageCtrl', function($scope, accountService, stageConstants, _) {
+  }).controller('awsScaleDownClusterStageCtrl', function($scope, accountService, stageConstants, appListExtractorService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -31,18 +31,32 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.scaleDownClus
       regionsLoaded: false
     };
 
+    let setClusterList = () => {
+      let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndRegion($scope.stage.credentials, $scope.stage.regions);
+      $scope.clusterList = appListExtractorService.getClusters([$scope.application], clusterFilter);
+    };
+
+    ctrl.resetSelectedCluster = () => {
+      $scope.stage.cluster = undefined;
+      setClusterList();
+    };
+
+
     accountService.listAccounts('aws').then(function (accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
+      setClusterList();
     });
 
-    $scope.regions = ['us-east-1', 'us-west-1', 'eu-west-1', 'us-west-2'];
-
     ctrl.accountUpdated = function() {
-      accountService.getRegionsForAccount(stage.credentials).then(function(regions) {
-        $scope.regions = _.map(regions, function(v) { return v.name; });
-        $scope.state.regionsLoaded = true;
-      });
+      let accountFilter = (cluster) => cluster.account === $scope.stage.credentials;
+      $scope.regions = appListExtractorService.getRegions([$scope.application], accountFilter);
+      $scope.viewState.regionsLoaded = true;
+    };
+
+    ctrl.reset = () => {
+      ctrl.accountUpdated();
+      ctrl.resetSelectedCluster();
     };
 
     stage.regions = stage.regions || [];
