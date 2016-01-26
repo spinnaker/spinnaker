@@ -85,7 +85,10 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
       BasicAmazonDeployDescription newDescription = description.clone()
       if (!ancestorAsg) {
         task.updateStatus BASE_PHASE, "Looking up last ASG in ${sourceRegion} for ${cluster}."
-        ancestorAsg = sourceRegionScopedProvider.asgService.getAncestorAsg(cluster)
+        def latestServerGroupName = sourceRegionScopedProvider.AWSServerGroupNameResolver.resolveLatestServerGroupName(cluster)
+        if (latestServerGroupName) {
+          ancestorAsg = sourceRegionScopedProvider.asgService.getAutoScalingGroup(latestServerGroupName)
+        }
 
         if (ancestorAsg) {
           newDescription.source = new BasicAmazonDeployDescription.Source(

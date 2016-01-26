@@ -16,31 +16,28 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy
 
-import com.netflix.frigga.Names
+import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
-import com.netflix.spinnaker.clouddriver.helpers.AbstractServerGroupNameResolver
+import com.netflix.spinnaker.clouddriver.model.Cluster
+import com.netflix.spinnaker.clouddriver.model.ClusterProvider
+import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Specification
 
 class AutoScalingWorkerUnitSpec extends Specification {
-
-  /*
-  def setupSpec() {
-    TaskRepository.threadLocalTask.set(Mock(Task))
-  }
-  */
 
   @Autowired
   TaskRepository taskRepository
 
   def lcBuilder = Mock(LaunchConfigurationBuilder)
   def asgService = Mock(AsgService)
-  def awsServerGroupNameResolver = new AWSServerGroupNameResolver('us-east-1', asgService)
+  def clusterProvider = Mock(ClusterProvider)
+  def awsServerGroupNameResolver = new AWSServerGroupNameResolver('test', 'us-east-1', asgService, [clusterProvider])
   def credential = TestCredential.named('foo')
   def regionScopedProvider = Stub(RegionScopedProviderFactory.RegionScopedProvider) {
     getLaunchConfigurationBuilder() >> lcBuilder
@@ -48,12 +45,19 @@ class AutoScalingWorkerUnitSpec extends Specification {
     getAWSServerGroupNameResolver() >> awsServerGroupNameResolver
   }
 
+  def setup() {
+    Task task = new DefaultTask("task")
+    TaskRepository.threadLocalTask.set(task)
+  }
+
   void "deploy workflow is create launch config, create asg"() {
     setup:
-    def asgName = "myasg-v000"
+    def asgName = "myasg-stack-details-v000"
     def launchConfigName = "launchConfig"
     def mockAutoScalingWorker = Spy(AutoScalingWorker)
     mockAutoScalingWorker.application = "myasg"
+    mockAutoScalingWorker.stack = "stack"
+    mockAutoScalingWorker.freeFormDetails = "details"
     mockAutoScalingWorker.credentials = credential
     mockAutoScalingWorker.regionScopedProvider = regionScopedProvider
 
@@ -61,9 +65,10 @@ class AutoScalingWorkerUnitSpec extends Specification {
     mockAutoScalingWorker.deploy()
 
     then:
-    1 * asgService.getTakenSlots(_) >> null
     1 * lcBuilder.buildLaunchConfiguration('myasg', null, _) >> launchConfigName
     1 * mockAutoScalingWorker.createAutoScalingGroup(asgName, launchConfigName) >> {}
+    1 * clusterProvider.getCluster('myasg', 'test', 'myasg-stack-details') >> { null }
+    0 * clusterProvider._
   }
 
   void "deploy derives name from ancestor asg and sets the ancestor asg name in the task result"() {
@@ -79,23 +84,21 @@ class AutoScalingWorkerUnitSpec extends Specification {
     String asgName = autoScalingWorker.deploy()
 
     then:
-    1 * asgService.getTakenSlots('myasg') >> [buildTakenSlot('myasg-v012')]
     1 * lcBuilder.buildLaunchConfiguration('myasg', null, _) >> 'lcName'
+    1 * clusterProvider.getCluster('myasg', 'test', 'myasg') >> {
+      new Cluster.SimpleCluster(type: 'aws', serverGroups: [
+        sG('myasg-v011', 0, 'us-east-1'), sG('myasg-v099', 1, 'us-west-1')
+      ])
+    }
+    1 * asgService.getAutoScalingGroup('myasg-v012') >> { new AutoScalingGroup() }
+    1 * asgService.getAutoScalingGroup('myasg-v013') >> { null }
+    0 * _
+
     asgName == 'myasg-v013'
-    awsServerGroupNameResolver.getTask().resultObjects[0].ancestorServerGroupNameByRegion.get("us-east-1") == "myasg-v012"
+    awsServerGroupNameResolver.getTask().resultObjects[0].ancestorServerGroupNameByRegion.get("us-east-1") == "myasg-v011"
   }
 
-  private buildTakenSlot(String serverGroupName, long createdTime = 0) {
-    return new AbstractServerGroupNameResolver.TakenSlot(
-      serverGroupName: serverGroupName,
-      sequence: Names.parseName(serverGroupName).sequence,
-      createdTime: new Date(createdTime)
-    )
+  static ServerGroup sG(String name, Long createdTime, String region) {
+    return new ServerGroup.SimpleServerGroup(name: name, createdTime: createdTime, region: region)
   }
-
-  def setup() {
-    Task task = new DefaultTask("foo")
-    TaskRepository.threadLocalTask.set(task)
-  }
-
 }

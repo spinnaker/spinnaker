@@ -63,4 +63,12 @@ interface Cluster {
   @Empty
   @JsonSerialize(nullsUsing = NullCollectionSerializer)
   Set<LoadBalancer> getLoadBalancers()
+
+  static class SimpleCluster implements Cluster {
+    String name
+    String type
+    String accountName
+    Set<ServerGroup> serverGroups
+    Set<LoadBalancer> loadBalancers
+  }
 }

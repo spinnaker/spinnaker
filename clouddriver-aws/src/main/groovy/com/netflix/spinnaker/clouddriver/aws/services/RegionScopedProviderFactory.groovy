@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.LaunchConfigurationBuilder
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.Eureka
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetAnalyzer
+import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import org.apache.http.impl.client.HttpClients
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -47,6 +48,9 @@ class RegionScopedProviderFactory {
 
   @Autowired
   AwsConfiguration.DeployDefaults deployDefaults
+
+  @Autowired
+  List<ClusterProvider> clusterProviders
 
   RegionScopedProvider forRegion(NetflixAmazonCredentials amazonCredentials, String region) {
     new RegionScopedProvider(amazonCredentials, region)
@@ -87,7 +91,7 @@ class RegionScopedProviderFactory {
     }
 
     AWSServerGroupNameResolver getAWSServerGroupNameResolver() {
-      new AWSServerGroupNameResolver(region, asgService)
+      new AWSServerGroupNameResolver(amazonCredentials.name, region, asgService, clusterProviders)
     }
 
     AsgReferenceCopier getAsgReferenceCopier(NetflixAmazonCredentials targetCredentials, String targetRegion) {
