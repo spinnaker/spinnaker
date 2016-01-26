@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+set -o pipefail
 
 REPOSITORY_URL="https://dl.bintray.com/spinnaker/debians"
 
@@ -24,12 +26,11 @@ elif [ -f /etc/debian_version ]; then
 elif [ -f /etc/redhat-release ]; then
   if grep -iq cent /etc/redhat-release; then
     DISTRO="CentOS"
-elif grep -iq red /etc/redhat-release; then
+  elif grep -iq red /etc/redhat-release; then
     DISTRO="RedHat"
   fi
-
-  else
-    DISTRO=$(uname -s)
+else
+  DISTRO=$(uname -s)
 fi
 
 # If not Ubuntu 14.xx.x or higher
@@ -45,6 +46,7 @@ else
   echo "Recommend you use Ubuntu 14.04 or higher"
   exit 1
 fi
+
 
 function print_usage() {
   cat <<EOF
@@ -135,7 +137,6 @@ function process_args() {
           AWS_REGION="none"
           GOOGLE_REGION="none"
           GOOGLE_ZONE="none"
-          shift
           ;;
       --home_dir)
           homebase="$1"
@@ -259,7 +260,6 @@ function set_defaults_from_environ() {
       set_google_defaults_from_environ
   fi
 
-
   local aws_az=$(get_aws_metadata_value "/placement/availability-zone")
 
   if [[ -n "$aws_az" ]]; then
@@ -288,7 +288,12 @@ function add_apt_repositories() {
   REPOSITORY_HOST=$(echo $REPOSITORY_URL | cut -d/ -f3)
   if [ "$REPOSITORY_HOST" == "dl.bintray.com" ]; then
     REPOSITORY_ORG=$(echo $REPOSITORY_URL | cut -d/ -f4)
-    curl "https://bintray.com/user/downloadSubjectPublicKey?username=$REPOSITORY_ORG" | apt-key add -
+    # Personal repositories might not be signed, so conditionally check.
+    gpg=""
+    gpg=$(curl -f "https://bintray.com/user/downloadSubjectPublicKey?username=$REPOSITORY_ORG") || true
+    if [ ! -z "$gpg" ]; then
+        echo "$gpg" | apt-key add -
+    fi   
   fi
   echo "deb $REPOSITORY_URL $DISTRIB_CODENAME spinnaker" | tee /etc/apt/sources.list.d/spinnaker-dev.list > /dev/null
   # Java 8
