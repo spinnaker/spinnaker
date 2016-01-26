@@ -40,6 +40,7 @@ class DiscoveryInstance implements Health {
   HealthState state
   String discoveryStatus
 
+  String accountId
   String availabilityZone
   String instanceId
   String amiId
@@ -86,6 +87,7 @@ class DiscoveryInstance implements Health {
       overriddenstatus,
       healthState,
       status,
+      meta?.accountId,
       meta?.availabilityZone,
       meta?.instanceId,
       meta?.amiId,
