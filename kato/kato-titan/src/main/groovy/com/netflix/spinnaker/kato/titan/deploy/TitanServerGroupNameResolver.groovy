@@ -23,6 +23,8 @@ import com.netflix.titanclient.model.Job
 
 class TitanServerGroupNameResolver extends AbstractServerGroupNameResolver {
 
+  private static final String TITAN_PHASE = "TITAN_DEPLOY"
+
   private final TitanClient titanClient
 
   TitanServerGroupNameResolver(TitanClient titanClient) {
@@ -30,14 +32,27 @@ class TitanServerGroupNameResolver extends AbstractServerGroupNameResolver {
   }
 
   @Override
-  String getPreviousServerGroupName(String clusterName) {
+  String getPhase() {
+    return TITAN_PHASE
+  }
+
+  @Override
+  String getRegion() {
+    return region
+  }
+
+  @Override
+  List<AbstractServerGroupNameResolver.TakenSlot> getTakenSlots(String clusterName) {
     def clusterNameParts = Names.parseName(clusterName)
     List<Job> jobs = titanClient.findJobsByApplication(clusterNameParts.app)
                                 .findAll { it.name?.startsWith(clusterName) }
-    if (jobs) {
-      jobs.sort(true, {it.submittedAt}).reverse(true)
-      return jobs.get(0).name
+
+    return jobs.collect { Job job ->
+      return new AbstractServerGroupNameResolver.TakenSlot(
+        serverGroupName: job.name,
+        sequence       : clusterNameParts.sequence,
+        createdTime    : job.submittedAt
+      )
     }
-    return null
   }
 }

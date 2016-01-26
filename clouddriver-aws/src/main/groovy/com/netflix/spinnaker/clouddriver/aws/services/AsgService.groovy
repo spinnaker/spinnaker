@@ -21,6 +21,7 @@ import com.google.common.collect.Iterables
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.clouddriver.aws.model.AwsResultsRetriever
+import com.netflix.spinnaker.clouddriver.helpers.AbstractServerGroupNameResolver
 import groovy.transform.Canonical
 
 @Canonical
@@ -55,6 +56,29 @@ class AsgService {
     }.retrieve(new DescribeAutoScalingGroupsRequest()).max { a, b ->
       a.createdTime <=> b.createdTime
     } ?: null
+  }
+
+  List<AbstractServerGroupNameResolver.TakenSlot> getTakenSlots(String clusterName) {
+    new AwsResultsRetriever<AutoScalingGroup, DescribeAutoScalingGroupsRequest, DescribeAutoScalingGroupsResult>() {
+      @Override
+      protected DescribeAutoScalingGroupsResult makeRequest(DescribeAutoScalingGroupsRequest request) {
+        amazonAutoScaling.describeAutoScalingGroups(request)
+      }
+
+      @Override
+      protected List<AutoScalingGroup> accessResult(DescribeAutoScalingGroupsResult result) {
+        result.autoScalingGroups.findAll { AutoScalingGroup asg ->
+          def names = Names.parseName(asg.autoScalingGroupName)
+          return names.cluster == clusterName
+        }
+      }
+    }.retrieve(new DescribeAutoScalingGroupsRequest()).collect { AutoScalingGroup asg ->
+      return new AbstractServerGroupNameResolver.TakenSlot(
+        serverGroupName: asg.autoScalingGroupName,
+        sequence       : Names.parseName(asg.autoScalingGroupName).sequence,
+        createdTime    : asg.createdTime
+      )
+    }
   }
 
   AutoScalingGroup getAutoScalingGroup(String asgName) {

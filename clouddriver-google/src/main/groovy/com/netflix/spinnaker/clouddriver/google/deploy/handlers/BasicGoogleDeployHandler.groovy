@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.deploy.DeployHandler
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
@@ -76,23 +77,22 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
    */
   @Override
   DeploymentResult handle(BasicGoogleDeployDescription description, List priorOutputs) {
-    def clusterName = GCEUtil.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
+    def credentials = description.credentials
+    def compute = credentials.compute
+    def project = credentials.project
+    def zone = description.zone
+    def region = GCEUtil.getRegionFromZone(project, zone, compute)
+
+    def serverGroupNameResolver = new GCEServerGroupNameResolver(project, region, credentials)
+    def clusterName = serverGroupNameResolver.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
 
     task.updateStatus BASE_PHASE, "Initializing creation of server group for cluster $clusterName in " +
       "$description.zone..."
 
-    def compute = description.credentials.compute
-    def project = description.credentials.project
-    def zone = description.zone
-
     task.updateStatus BASE_PHASE, "Looking up next sequence..."
 
-    def region = GCEUtil.getRegionFromZone(project, zone, compute)
+    def serverGroupName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.freeFormDetails, false)
 
-    def nextSequence = GCEUtil.getNextSequence(clusterName, project, region, description.credentials)
-    task.updateStatus BASE_PHASE, "Found next sequence ${nextSequence}."
-
-    def serverGroupName = "${clusterName}-v${nextSequence}".toString()
     task.updateStatus BASE_PHASE, "Produced server group name: $serverGroupName"
 
     def machineType = GCEUtil.queryMachineType(project, zone, description.instanceType, compute, task, BASE_PHASE)

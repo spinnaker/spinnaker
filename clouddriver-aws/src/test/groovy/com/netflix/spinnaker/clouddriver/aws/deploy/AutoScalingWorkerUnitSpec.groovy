@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.clouddriver.helpers.AbstractServerGroupNameResolver
 import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Specification
 
@@ -60,7 +61,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     mockAutoScalingWorker.deploy()
 
     then:
-    1 * asgService.getAncestorAsg(_) >> null
+    1 * asgService.getTakenSlots(_) >> null
     1 * lcBuilder.buildLaunchConfiguration('myasg', null, _) >> launchConfigName
     1 * mockAutoScalingWorker.createAutoScalingGroup(asgName, launchConfigName) >> {}
   }
@@ -78,10 +79,18 @@ class AutoScalingWorkerUnitSpec extends Specification {
     String asgName = autoScalingWorker.deploy()
 
     then:
-    1 * asgService.getAncestorAsg('myasg') >> new AutoScalingGroup().withAutoScalingGroupName('myasg-v012')
+    1 * asgService.getTakenSlots('myasg') >> [buildTakenSlot('myasg-v012')]
     1 * lcBuilder.buildLaunchConfiguration('myasg', null, _) >> 'lcName'
     asgName == 'myasg-v013'
     awsServerGroupNameResolver.getTask().resultObjects[0].ancestorServerGroupNameByRegion.get("us-east-1") == "myasg-v012"
+  }
+
+  private buildTakenSlot(String serverGroupName, long createdTime = 0) {
+    return new AbstractServerGroupNameResolver.TakenSlot(
+      serverGroupName: serverGroupName,
+      sequence: Names.parseName(serverGroupName).sequence,
+      createdTime: new Date(createdTime)
+    )
   }
 
   def setup() {
