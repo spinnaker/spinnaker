@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./manualPipelineExecution.less');
+
 module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution.controller', [
   require('angular-ui-bootstrap'),
   require('../../utils/lodash.js'),

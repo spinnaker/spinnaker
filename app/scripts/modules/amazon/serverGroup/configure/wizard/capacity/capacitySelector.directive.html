@@ -7,15 +7,15 @@
   </div>
 
   <div class="form-group">
-    <div class="col-md-4 sm-label-right"><b>Capacity</b></div>
-    <div class="col-md-8 radio">
+    <div class="col-md-3 sm-label-right">Capacity</div>
+    <div class="col-md-9 radio">
       <label>
         <input type="radio" ng-model="vm.command.useSourceCapacity" ng-value="true" id="useSourceCapacityTrue"/>
         Copy the capacity from the current server group
         <help-field key="serverGroupCapacity.useSourceCapacityTrue"></help-field>
       </label>
     </div>
-    <div class="col-md-8 radio">
+    <div class="col-md-9 col-md-offset-3 radio">
       <label>
         <input type="radio" ng-model="vm.command.useSourceCapacity" ng-value="false" id="useSourceCapacityFalse"/>
         Let me specify the capacity
@@ -24,12 +24,12 @@
     </div>
   </div>
   <div class="form-group">
-    <div class="col-md-2 col-md-offset-5"><b>Min</b></div>
-    <div class="col-md-2"><b>Max</b></div>
-    <div class="col-md-2"><b>Desired</b></div>
+    <div class="col-md-2 col-md-offset-3">Min</div>
+    <div class="col-md-2">Max</div>
+    <div class="col-md-2">Desired</div>
   </div>
   <div class="form-group">
-    <div class="col-md-2 col-md-offset-5"><input type="number"
+    <div class="col-md-2 col-md-offset-3"><input type="number"
                                                  ng-disabled="vm.command.useSourceCapacity"
                                                  class="form-control input-sm"
                                                  ng-model="vm.command.capacity.min"
@@ -61,7 +61,7 @@
     </div>
   </div>
   <div class="form-group">
-    <div class="col-md-4 sm-label-right"><b>Number of Instances</b></div>
+    <div class="col-md-3 sm-label-right">Number of Instances</div>
     <div class="col-md-2"><input type="number" ng-change="vm.setMinMax(vm.command.capacity.desired)"
                                  class="form-control input-sm"
                                  ng-model="vm.command.capacity.desired"

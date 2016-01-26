@@ -1,12 +1,12 @@
 <div class="form-group">
-  <label class="col-md-2 col-md-offset-1 sm-label-right">Build</label>
+  <label class="col-md-4 sm-label-right">Build</label>
   <div class="col-md-6" ng-if="vm.viewState.buildsLoading">
     <p class="form-control-static text-center" >
       <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
     </p>
   </div>
   <div class="col-md-6" ng-if="vm.viewState.loadError">Error loading builds!</div>
-  <div class="col-md-9" ng-if="!vm.viewState.buildsLoading">
+  <div class="col-md-6" ng-if="!vm.viewState.buildsLoading">
     <div ng-if="!vm.builds.length"><p class="form-control-static">No builds found</p></div>
     <ui-select class="form-control input-sm"
                ng-model="vm.viewState.selectedBuild"
