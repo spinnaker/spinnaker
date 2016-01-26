@@ -66,6 +66,7 @@
         <dt>Security Group</dt>
         <dd ng-if="rule.securityGroup.name">
           <a ui-sref="^.securityGroupDetails({name: rule.securityGroup.name, accountId: rule.securityGroup.accountName, region: rule.securityGroup.region, vpcId: securityGroup.vpcId, provider: 'aws'})">
+            <account-tag account="rule.securityGroup.accountName || rule.securityGroup.accountId" ng-if="rule.securityGroup.accountName !== securityGroup.accountName"></account-tag>
             {{rule.securityGroup.name}} ({{rule.securityGroup.id}})
           </a>
         </dd>
