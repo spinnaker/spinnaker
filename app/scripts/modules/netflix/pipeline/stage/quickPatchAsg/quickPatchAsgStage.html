@@ -1,6 +1,6 @@
 <div class="form-horizontal">
   <stage-config-field label="Account">
-    <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="quickPatchAsgStageCtrl.accountUpdated()" required></account-select-field>
+    <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="reset()" required></account-select-field>
   </stage-config-field>
   <region-select-field component="stage"
                        field="region"

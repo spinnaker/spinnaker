@@ -37,6 +37,20 @@ module.exports = angular
 
     let defaultClusterFilter = (/*cluster*/) => true;
 
+    let clusterFilterForCredentialsAndRegion = (credentials, region) => {
+      return (cluster) => {
+        let acctFilter = credentials ? cluster.account === credentials : true;
+
+        let regionFilter = Array.isArray(region) && region.length
+          ? _.some( cluster.serverGroups, (sg) => _.some(region, (region) => region === sg.region))
+          : _.isString(region) //region is just a string not an array
+          ? _.any(cluster.serverGroups, (sg) => sg.region === region)
+          : true;
+
+        return acctFilter && regionFilter;
+      };
+    };
+
     let getClusters = (appList, clusterFilter = defaultClusterFilter) => {
       return _(appList)
         .map('clusters').flatten()
@@ -47,6 +61,7 @@ module.exports = angular
         .value()
         .sort();
     };
+
 
     let getAsgs = (appList, clusterFilter = defaultClusterFilter) => {
       return _(appList)
@@ -96,6 +111,7 @@ module.exports = angular
       getRegions: getRegions,
       getStacks: getStacks,
       getClusters: getClusters,
+      clusterFilterForCredentialsAndRegion: clusterFilterForCredentialsAndRegion,
       getAsgs: getAsgs,
       getZones: getZones,
       getInstances: getInstances,

@@ -5,8 +5,8 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.enableAsgStage', [
+  require('../../../../../../core/application/listExtractor/listExtractor.service'),
   require('../../../../../application/modal/platformHealthOverride.directive.js'),
-  require('../../../../../utils/lodash.js'),
   require('../../stageConstants.js'),
   require('./enableAsgExecutionDetails.controller.js')
 ])
@@ -25,7 +25,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.enableAsgStag
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('awsEnableAsgStageCtrl', function($scope, accountService, stageConstants, _) {
+  }).controller('awsEnableAsgStageCtrl', function($scope, accountService, stageConstants, appListExtractorService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -35,18 +35,31 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.enableAsgStag
       regionsLoaded: false
     };
 
+    let setClusterList = () => {
+      let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndRegion($scope.stage.credentials, $scope.stage.regions);
+      $scope.clusterList = appListExtractorService.getClusters([$scope.application], clusterFilter);
+    };
+
+    ctrl.resetSelectedCluster = () => {
+      $scope.stage.cluster = undefined;
+      setClusterList();
+    };
+
     accountService.listAccounts('aws').then(function (accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
+      setClusterList();
     });
 
-    $scope.regions = ['us-east-1', 'us-west-1', 'eu-west-1', 'us-west-2'];
-
     ctrl.accountUpdated = function() {
-      accountService.getRegionsForAccount(stage.credentials).then(function(regions) {
-        $scope.regions = _.map(regions, function(v) { return v.name; });
-        $scope.state.regionsLoaded = true;
-      });
+      let accountFilter = (cluster) => cluster.account === $scope.stage.credentials;
+      $scope.regions = appListExtractorService.getRegions([$scope.application], accountFilter);
+      $scope.state.regionsLoaded = true;
+    };
+
+    ctrl.reset = () => {
+      ctrl.accountUpdated();
+      ctrl.resetSelectedCluster();
     };
 
     $scope.targets = stageConstants.targetList;

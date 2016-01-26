@@ -1,14 +1,24 @@
 <div ng-controller="awsDisableAsgStageCtrl as disableAsgStageCtrl"class="form-horizontal">
   <div ng-if="!pipeline.strategy">
     <stage-config-field label="Account">
-      <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="disableAsgStageCtrl.accountUpdated()" required></account-select-field>
+      <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="disableAsgStageCtrl.reset()" required></account-select-field>
     </stage-config-field>
     <stage-config-field label="Regions">
       <p ng-if="!stage.credentials" class="form-control-static">(Select an Account)</p>
-      <checklist ng-if="stage.credentials" items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
+      <checklist
+        ng-if="stage.credentials"
+        items="regions"
+        model="stage.regions"
+        inline="true"
+        include-select-all-button="true"
+        on-change="disableAsgStageCtrl.resetSelectedCluster()">
+      </checklist>
     </stage-config-field>
     <stage-config-field label="Cluster" help-key="pipeline.config.disableAsg.cluster">
-      <input type="text" required ng-model="stage.cluster" class="form-control input-sm" />
+      <cluster-selector
+        clusters="clusterList"
+        model="stage.cluster">
+      </cluster-selector>
     </stage-config-field>
   </div>
   <stage-config-field label="Target">
