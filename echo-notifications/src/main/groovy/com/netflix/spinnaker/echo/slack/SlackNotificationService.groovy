@@ -48,8 +48,8 @@ class SlackNotificationService implements NotificationService {
     def body = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.BODY)
     notification.to.each {
       slack.sendMessage(token, new SlackMessage(
-          text: body,
-          channel: it
+        text: body,
+        channel: it.startsWith('#') ? it : "#${it}".toString()
       ))
     }
   }
