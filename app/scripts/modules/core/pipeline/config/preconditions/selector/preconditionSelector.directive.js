@@ -4,6 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.selector', [
   require('../../../../account/account.service.js'),
+  require('../../../../application/listExtractor/listExtractor.service'),
   require('../../../../utils/lodash.js'),
 ])
   .directive('preconditionSelector', function() {
@@ -13,15 +14,17 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.se
         precondition: '=',
         level: '=',
         strategy: '=',
+        application: '='
       },
       templateUrl: require('./preconditionSelector.html'),
       controller: 'PreconditionSelectorCtrl',
       controllerAs: 'preconditionCtrl'
     };
   })
-  .controller('PreconditionSelectorCtrl', function($scope, preconditionTypeService, accountService, _) {
+  .controller('PreconditionSelectorCtrl', function($scope, preconditionTypeService, accountService, appListExtractorService, _) {
     accountService.listAccounts().then((accounts) => {
       $scope.accounts = accounts;
+      setClusterList();
     });
     $scope.preconditionTypes = preconditionTypeService.listPreconditionTypes();
     $scope.regions = [];
@@ -41,14 +44,28 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.se
       return preconditionConfig ? preconditionConfig.contextTemplateUrl : '';
     };
 
+    let setClusterList = () => {
+      let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndRegion($scope.precondition.context.credentials, $scope.precondition.context.regions);
+      $scope.clusterList = appListExtractorService.getClusters([$scope.application], clusterFilter);
+    };
+
+    this.resetSelectedCluster = () => {
+      $scope.precondition.context.cluster = undefined;
+      setClusterList();
+    };
+
     this.accountUpdated = function () {
       if (!$scope.precondition.context.credentials) {
         return;
       }
 
-      accountService.getRegionsForAccount($scope.precondition.context.credentials).then((regions) => {
-        $scope.regions = _.pluck(regions, 'name');
-      });
+      let accountFilter = (cluster) => cluster.account === $scope.precondition.context.credentials;
+      $scope.regions = appListExtractorService.getRegions([$scope.application], accountFilter);
+    };
+
+    this.reset = () => {
+      this.accountUpdated();
+      this.resetSelectedCluster();
     };
 
     this.accountUpdated();

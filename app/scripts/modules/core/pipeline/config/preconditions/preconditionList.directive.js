@@ -12,7 +12,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.pr
         scope: {
           preconditions: '=',
           parent: '=',
-          strategy: '='
+          strategy: '=',
+          application: '='
         },
         templateUrl: require('./preconditionList.directive.html'),
         controller: 'PreconditionListCtrl',
@@ -35,6 +36,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.pr
             strategy: function() {
               return strategy;
             },
+            application: function() {
+              return $scope.application;
+            }
           }
         });
 
