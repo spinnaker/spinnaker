@@ -122,11 +122,39 @@ e:
     bindings.import_dict({'field': '${injected.value:HELLO}'})
     self.assertEqual('HELLO', bindings.get('field'))
 
+  def test_load_default_int(self):
+    bindings = YamlBindings()
+    bindings.import_dict({'field': '${undefined:123}'})
+    self.assertEqual(123, bindings.get('field'))
+
+  def test_load_default_bool(self):
+    bindings = YamlBindings()
+    bindings.import_dict({'field': '${undefined:True}'})
+    self.assertEqual(True, bindings.get('field'))
+    bindings.import_dict({'field': '${undefined:true}'})
+    self.assertEqual(True, bindings.get('field'))
+    bindings.import_dict({'field': '${undefined:false}'})
+    self.assertEqual(False, bindings.get('field'))
+    bindings.import_dict({'field': '${undefined:False}'})
+    self.assertEqual(False, bindings.get('field'))
+
   def test_environ(self):
     os.environ['TEST_VARIABLE'] = 'TEST_VALUE'
     bindings = YamlBindings()
     bindings.import_dict({'field': '${TEST_VARIABLE}'})
     self.assertEqual('TEST_VALUE', bindings.get('field'))
+
+  def test_environ_bool(self):
+    os.environ['TEST_BOOL'] = 'TRUE'
+    bindings = YamlBindings()
+    bindings.import_dict({'field': '${TEST_BOOL}'})
+    self.assertEqual(True, bindings.get('field'))
+
+  def test_environ_int(self):
+    os.environ['TEST_INT'] = '123'
+    bindings = YamlBindings()
+    bindings.import_dict({'field': '${TEST_INT}'})
+    self.assertEqual(123, bindings.get('field'))
 
   def test_load_transitive(self):
     bindings = YamlBindings()
@@ -159,6 +187,18 @@ e:
     bindings.import_dict({'a': 'A', 'container': {'b': 'B'}})
     self.assertEqual('This is A B or C',
                      bindings.replace('This is ${a} ${container.b} or ${c:C}'))
+
+  def test_replace_int(self):
+    bindings = YamlBindings()
+    bindings.import_dict({'a': 1, 'container': {'b': 2}})
+    self.assertEqual('This is 1 2 or 3',
+                     bindings.replace('This is ${a} ${container.b} or ${c:3}'))
+
+  def test_replace_bool(self):
+    bindings = YamlBindings()
+    bindings.import_dict({'a': True, 'container': {'b': False}})
+    self.assertEqual('This is True False or false',
+                     bindings.replace('This is ${a} ${container.b} or ${c:false}'))
 
   def test_boolean(self):
      bindings = YamlBindings()
@@ -223,11 +263,18 @@ a:
   def test_list(self):
      bindings = YamlBindings()
      bindings.import_string(
-        "root:\n - elem: 'first'\n - elem: 2\ncopy: ${root}")
-     self.assertEqual([{'elem': 'first'}, {'elem': 2}],
+        "root:\n - elem: 'first'\n - elem: 2\n - elem: true\ncopy: ${root}")
+     self.assertEqual([{'elem': 'first'}, {'elem': 2}, {'elem': True}],
                       bindings.get('root'))
      self.assertEqual(bindings.get('root'), bindings.get('copy'))
 
+  def test_bool(self):
+     bindings = YamlBindings()
+     bindings.import_string(
+        "root:\n - elem: true\n - elem: True\n - elem: false\n - elem: False\ncopy: ${root}")
+     self.assertEqual([{'elem': True}, {'elem': True}, {'elem': False}, {'elem': False}],
+                      bindings.get('root'))
+     self.assertEqual(bindings.get('root'), bindings.get('copy'))
 
 if __name__ == '__main__':
   loader = unittest.TestLoader()
