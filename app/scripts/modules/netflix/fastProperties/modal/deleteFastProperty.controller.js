@@ -20,7 +20,7 @@ module.exports = angular
       $modalInstance.dismiss();
     };
 
-    vm.formDisabled = () => vm.verification.verified || _.isEmpty(vm.fastProperty.cmcTicket);
+    vm.formDisabled = () => !vm.verification.verified || _.isEmpty(vm.fastProperty.cmcTicket);
 
     vm.confirm = function() {
       fastPropertyWriter.deleteFastProperty(vm.fastProperty).then(function () {
