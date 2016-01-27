@@ -28,7 +28,7 @@ class YamlBindings(object):
     self.__map = {}
 
   def get(self, field):
-    return self.__get_value(field, [], original=field)
+    return self.__get_field_value(field, [], original=field)
 
   def import_dict(self, d):
     for name,value in d.items():
@@ -74,10 +74,12 @@ class YamlBindings(object):
     """
     return yaml.load('x: {0}'.format(value_text), Loader=yaml.Loader)['x']
 
-  def __get_value(self, field, saw, original):
+  def __get_field_value(self, field, saw, original):
     value = os.environ.get(field, None)
     if value is None:
       value = self.__get_node(field)
+    else:
+      value = self.__typed_value(value)
     if not isinstance(value, basestring) or not value.startswith('$'):
       return value
 
@@ -85,11 +87,14 @@ class YamlBindings(object):
       raise ValueError('Cycle looking up variable ' + original)
     saw = saw + [field]
 
+    return self.__resolve_value(value, saw, original)
+
+  def __resolve_value(self, value, saw, original):
     expression_re = re.compile('\${([\._a-zA-Z0-9]+)(:.+?)?}')
     exact_match = expression_re.match(value)
     if exact_match and exact_match.group(0) == value:
       try:
-        got = self.__get_value(exact_match.group(1), saw, original)
+        got = self.__get_field_value(exact_match.group(1), saw, original)
         return got
       except KeyError:
         if exact_match.group(2):
@@ -105,7 +110,7 @@ class YamlBindings(object):
     for match in expression_re.finditer(text):
         result.append(text[offset:match.start()])
         try:
-          got = self.__get_value(match.group(1), saw, original)
+          got = self.__get_field_value(str(match.group(1)), saw, original)
           result.append(str(got))
         except KeyError:
           if match.group(2):
@@ -118,23 +123,7 @@ class YamlBindings(object):
     return ''.join(result)
 
   def replace(self, text):
-    result = []
-    offset = 0
-
-    # Look for fragments of ${key} or ${key:default} then resolve them.
-    for match in re.finditer('\${([\._a-zA-Z0-9]+)(:.+?)?}', text):
-        result.append(text[offset:match.start()])
-        try:
-          result.append(self.get(match.group(1)))
-        except KeyError:
-          if match.group(2):
-            result.append(str(match.group(2)[1:]))
-          else:
-            raise
-        offset = match.end()  # skip trailing '}'
-    result.append(text[offset:])
-
-    return ''.join(result)
+    return self.__resolve_value(text, [], text)
 
   def transform_yaml_source(self, source, key):
     """Transform the given yaml source so its value of key matches the binding.
