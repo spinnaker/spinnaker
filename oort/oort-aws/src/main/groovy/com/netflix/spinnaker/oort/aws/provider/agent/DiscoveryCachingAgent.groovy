@@ -47,6 +47,7 @@ class DiscoveryCachingAgent extends AgentSchedulerAware implements CachingAgent,
   private final ObjectMapper objectMapper
   private final String discoveryHost
   final String healthId = "discovery"
+  private final Map<String, NetflixAmazonCredentials> accountIdLookup
 
   DiscoveryCachingAgent(DiscoveryApi discoveryApi, Set<NetflixAmazonCredentials> accounts, String region, ObjectMapper objectMapper) {
     this.accounts = accounts
@@ -54,6 +55,7 @@ class DiscoveryCachingAgent extends AgentSchedulerAware implements CachingAgent,
     this.discoveryApi = discoveryApi
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     this.discoveryHost = accounts[0].discovery.replaceAll(Pattern.quote('{{region}}'), region)
+    accountIdLookup = accounts.collectEntries { [(it.accountId):it] }
   }
 
   Set<NetflixAmazonCredentials> getAccounts() {
@@ -85,14 +87,15 @@ class DiscoveryCachingAgent extends AgentSchedulerAware implements CachingAgent,
 
     for (DiscoveryApplication application : disco.applications) {
       for (DiscoveryInstance instance : application.instances) {
-        if (instance.instanceId) {
-          for (NetflixAmazonCredentials account : accounts) {
+        if (instance.instanceId && instance.accountId) {
+          def account = accountIdLookup[instance.accountId]
+          if (account) {
             String instanceKey = Keys.getInstanceKey(instance.instanceId, account.name, region)
             String instanceHealthKey = Keys.getInstanceHealthKey(instance.instanceId, account.name, region, healthId)
             Map<String, Object> attributes = objectMapper.convertValue(instance, ATTRIBUTES)
-            Map<String, Collection<String>> relationships = [(INSTANCES.ns):[instanceKey]]
+            Map<String, Collection<String>> relationships = [(INSTANCES.ns): [instanceKey]]
             discoveryCacheData.add(new DefaultCacheData(instanceHealthKey, attributes, relationships))
-            instanceCacheData.add(new DefaultCacheData(instanceKey, [:], [(HEALTH.ns):[instanceHealthKey]]))
+            instanceCacheData.add(new DefaultCacheData(instanceKey, [:], [(HEALTH.ns): [instanceHealthKey]]))
           }
         }
       }

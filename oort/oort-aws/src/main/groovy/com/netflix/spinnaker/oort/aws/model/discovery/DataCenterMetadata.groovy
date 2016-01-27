@@ -21,6 +21,9 @@ import groovy.transform.EqualsAndHashCode
 
 @EqualsAndHashCode
 class DataCenterMetadata {
+  @JsonProperty('accountId')
+  String accountId
+
   @JsonProperty('availability-zone')
   String availabilityZone
 
