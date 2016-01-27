@@ -4,7 +4,7 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.fastProperties.scope.clusterSelector.directive', [])
+  .module('spinnaker.widget.clusterSelector.directive', [])
   .directive('clusterSelector', function() {
     return {
       restrict: 'E',
