@@ -112,7 +112,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'gce.serverGroup.customMetadata.startup-script': 'This script will run automatically on every boot.',
     'gce.serverGroup.preemptibility': 'A preemptible VM costs much less, but lasts only 24 hours. It can be terminated sooner due to system demands.',
     'gce.serverGroup.automaticRestart': 'Compute Engine can automatically restart VM instances if they are terminated for non-user-initiated reasons (maintenance event, hardware failure, software failure, etc.).',
-    'gce.serverGroup.onHostMaintenance': 'When Compute Engine performs periodic infrastructure maintenance it can migrate your VM instances to other hardware without downtime.',
+    'gce.serverGroup.onHostMaintenance': 'When Cosdfgdsfmpute Engine performs periodic infrastructure maintenance it can migrate your VM instances to other hardware without downtime.',
     'gce.serverGroup.securityGroups.implicit': 'Firewall rules with no target tags defined will permit incoming connections that match the ingress rules to all instances in the network.',
     'gce.serverGroup.autoscaling.targetCPUUsage': 'Autoscaling adds or removes VMs in the group to maintain this level of CPU usage on each VM.',
     'gce.serverGroup.autoscaling.targetHTTPLoadBalancingUsage': 'Autoscaling adds or removes VMs in the group to maintain this usage of load-balancing capacity. This value is a percentage of the \'Maximum rate\' setting of the load balancer this group is used by.',
@@ -154,7 +154,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.bake.package': '<p>The name of the package you want installed (without any version identifiers).</p>' +
       '<p>If your build produces a deb file named "myapp_1.27-h343", you would want to enter "myapp" here.</p>',
     'pipeline.config.bake.baseAmi': '<p>(Optional) ami-????????</p>',
-    'pipeline.config.bake.amiSuffix': '<p>(Optional) String of date in format YYYYMMDDHHmm, default is calculated from timestamp,</p>',
+    'pipeline.config.bake.amiSuffix': '<p>(Optionsdfgdsfal) String of date in format YYYYMMDDHHmm, default is calculated from timestamp,</p>',
     'pipeline.config.bake.enhancedNetworking': '<p>(Optional) Enable enhanced networking (sr-iov) support for image (requires hvm and trusty base_os).</p>',
     'pipeline.config.bake.amiName': '<p>(Optional) Default = $package-$arch-$ami_suffix-$store_type</p>',
     'pipeline.config.bake.templateFileName': '<p>(Optional) The explicit packer template to use, instead of resolving one from rosco\'s configuration.</p>',
@@ -199,8 +199,12 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     '<p><strong>Note:</strong> values for "DayOfWeek" are 1-7, where Sunday is 1, Monday is 2, etc. You can also use MON,TUE,WED, etc.',
 
     'cluster.description': '<p>A cluster is a collection of server groups with the same name (stack + detail) in the same account.</p>',
+<<<<<<< HEAD
 
     'pipeline.config.findAmi.cluster': 'The cluster to look at when selecting the image to use in this pipeline.',
+=======
+    'pipeline.config.findAmi.cluster': 'The cluster to look at when selecting the AMI to use in this pipeline.',
+>>>>>>> fa75c9d... Fixes to security groups to work with cloud driver
     'pipeline.config.dependsOn': 'Declares which stages must be run <em>before</em> this stage begins.',
     'pipeline.config.parallel.execution': '<p>Enabling parallel stage execution allows you to run stages only after dependent ' +
       'stages have completed.</p><p>By configuring a pipeline this way, you can reduce the time it takes to run.</p>',
@@ -266,4 +270,12 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'user.verification': 'Typing into this verification field is annoying! But it serves as a reminder that you are ' +
     'changing something in an account deemed important, and prevents you from accidentally changing something ' +
     'when you meant to click on the "Cancel" button.',
+    'azure.securityGroup.ingress.description': 'Friendly description of the rule you want to enable (limit 80 chars.)',
+    'azure.securityGroup.ingress.priority': 'Rules are processed in priority order; the lower the number, the higher the priority.  We recommend leaving gaps between rules - 100, 200, 300, etc. - so that it\'s easier to add new rules without having to edit existing rules.  There are several default rules that can be overridden with priority (65000, 65001 and 65500).  For more information visit http://portal.azure.com.' ,
+    'azure.securityGroup.ingress.source': 'The source filter can be Any, an IP address range or a default tag(\'Internet\', \'VirtualNetwork\', \AzureLoadBalancer\').  It specifies the incoming traffic from a specific source IP address range (CIDR format) that will be allowed or denied by this rule.',
+    'azure.securityGroup.ingress.sourcePortRange': 'The source port range can be a single port, such as 80, or a port range, such as 1024-65535.  This specifies from which ports incoming traffic will be allowed or denied by this rule.  Provide an asterisk (*) to allow traffic from clients connecting from any port.',
+    'azure.securityGroup.ingress.destination': 'The destination filter can be Any, an IP address range or a default tag(\'Internet\', \'VirtualNetwork\', \AzureLoadBalancer\').  It specifies the outgoing traffic from a specific destination IP address range (CIDR format) that will be allowed or denied by this rule.',
+    'azure.securityGroup.ingress.destinationPortRange': 'The destination port range can be a single port, such as 80, or a port range, such as 1024-65535.  This specifies from which destination ports traffic will be allowed or denied by this rule.  Provide an asterisk (*) to allow traffic from clients connecting from any port.',
+    'azure.securityGroup.ingress.direction': 'Specifies whether the rule is for inbound or outbound traffic.',
+    'azure.securityGroup.ingress.actions': 'To adjust the priority of a rule, move it up or down in the list of rules.  Rules at the top of the list have the highest priority.',
   });

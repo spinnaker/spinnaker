@@ -36,7 +36,7 @@
                                      class="form-control input-sm"
                                      ng-pattern="basicSettingsCtrl.detailPattern"
                                      name="details"
-                                     ng-model="command.freeFormDetails"/></div>
+                                     ng-model="command.details"/></div>
       </div>
       <div class="form-group row slide-in animated" ng-if="basicSettings.details.$error.pattern">
         <div class="col-sm-9 col-sm-offset-2 error-message">
@@ -121,8 +121,8 @@
     <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="form.$invalid || !ctrl.isValid() || taskMonitor.submitting"
                    label="command.viewState.submitButtonLabel"
                    submitting="taskMonitor.submitting" on-click="ctrl.submit()" is-new="true"></submit-button>
-    <button type="button" class="btn btn-primary" ng-click="wizard.nextPage(form.$valid)" ng-disabled="form.$invalid">
+ <!--   <button type="button" class="btn btn-primary" ng-click="wizard.nextPage(form.$valid)" ng-disabled="form.$invalid">
       Next <span class="glyphicon glyphicon-chevron-right"></span>
-    </button>
+    </button> -->
   </div>
 </form>

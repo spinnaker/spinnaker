@@ -27,78 +27,30 @@
 
    describe('create server group commands', function() {
 
-     it('initializes to default values, setting usePreferredZone flag to true', function () {
+     it('initializes to default values.', function () {
        var command = null;
-       this.azureServerGroupCommandBuilder.buildNewServerGroupCommand({name: 'appo'}, 'azure').then(function(result) {
+       this.azureServerGroupCommandBuilder.buildNewServerGroupCommand({name: 'appo'}, {account: 'azure-cred1', region: 'westus'}).then(function(result) {
          command = result;
        });
 
        this.$scope.$digest();
 
-       expect(command.viewState.usePreferredZones).toBe(true);
-       expect(command.availabilityZones).toEqual(['a', 'b', 'c']);
-     });
-
-     it('sets usePreferredZones flag based on initial value', function() {
-       spyOn(this.instanceTypeService, 'getCategoryForInstanceType').and.returnValue(this.$q.when('custom'));
-       var baseServerGroup = {
-         account: 'prod',
-         region: 'us-west-1',
-         asg: {
-           availabilityZones: ['g', 'h', 'i'],
-           vpczoneIdentifier: '',
-         },
-       };
-       var command = null;
-
-       this.azureServerGroupCommandBuilder.buildServerGroupCommandFromExisting({name: 'appo'}, baseServerGroup).then(function(result) {
-         command = result;
-       });
-
-       this.$scope.$digest();
-
-       expect(command.viewState.usePreferredZones).toBe(true);
-       expect(command.availabilityZones).toEqual(['g', 'h', 'i']);
-
-       baseServerGroup.asg.availabilityZones = ['g'];
-
-       this.azureServerGroupCommandBuilder.buildServerGroupCommandFromExisting({name: 'appo'}, baseServerGroup).then(function(result) {
-         command = result;
-       });
-
-       this.$scope.$digest();
-
-       expect(command.viewState.usePreferredZones).toBe(false);
-       expect(command.availabilityZones).toEqual(['g']);
-
-     });
-
-     it('sets profile and instance type if available', function() {
-       spyOn(this.instanceTypeService, 'getCategoryForInstanceType').and.returnValue(this.$q.when('selectedProfile'));
-
-       var baseServerGroup = {
-         account: 'prod',
-         region: 'us-west-1',
-         asg: {
-           availabilityZones: ['g', 'h', 'i'],
-           vpczoneIdentifier: '',
-         },
-         launchConfig: {
-           instanceType: 'something-custom',
-           instanceMonitoring: {},
-           securityGroups: [],
-         },
-       };
-       var command = null;
-
-       this.azureServerGroupCommandBuilder.buildServerGroupCommandFromExisting({name: 'appo'}, baseServerGroup).then(function(result) {
-         command = result;
-       });
-
-       this.$scope.$digest();
-
-       expect(command.viewState.instanceProfile).toBe('selectedProfile');
-       expect(command.instanceType).toBe('something-custom');
+       expect(command.application).toEqual('appo');
+       expect(command.credentials).toEqual('azure-cred1');
+       expect(command.region).toEqual('westus');
+       expect(command.strategy).toEqual('');
+       expect(command.capacity.min).toEqual(1);
+       expect(command.capacity.max).toEqual(1);
+       expect(command.capacity.desired).toEqual(1);
+       expect(command.selectedProvider).toEqual('azure');
+       expect(command.securityGroups).toEqual([]);
+       expect(command.viewState.instanceProfile).toEqual('custom');
+       expect(command.viewState.allImageSelection).toBe(null);
+       expect(command.viewState.useAllImageSelection).toBe(false);
+       expect(command.viewState.useSimpleCapacity).toBe(true);
+       expect(command.viewState.usePrefereedZones).toBe(true);
+       expect(command.viewState.mode).toEqual('create');
+       expect(command.viewState.disableStrategySelection).toBe(true);
      });
    });
 

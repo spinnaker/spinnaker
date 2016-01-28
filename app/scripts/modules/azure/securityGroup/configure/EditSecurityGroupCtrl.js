@@ -83,8 +83,8 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.edit.contro
       return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
         var account = securityGroup.accountName,
           region = securityGroup.region,
-          vpcId = securityGroup.vpcId || null,
-          availableGroups = _.filter(securityGroups[account].azure[region], { vpcId: vpcId });
+          //vpcId = securityGroup.vpcId || null, /*removing vpc support from security group creation for Azure*/
+          availableGroups = _.filter(securityGroups[account].azure[region], { /*vpcId: vpcId*/ });
         $scope.availableSecurityGroups = _.pluck(availableGroups, 'name');
       });
     }

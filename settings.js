@@ -17,7 +17,7 @@ window.spinnakerSettings = {
     azure: {
       defaults: {
         account: 'azure-test',
-        region: 'West US'
+        region: 'westus'
       },
     },
     aws: {

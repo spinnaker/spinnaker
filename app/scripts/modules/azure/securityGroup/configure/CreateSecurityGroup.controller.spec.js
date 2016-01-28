@@ -5,8 +5,7 @@
    beforeEach(
      window.module(
        require('../../../core/utils/lodash.js'),
-       require('./CreateSecurityGroupCtrl.js'),
-       require('./configSecurityGroup.mixin.controller.js')
+       require('./CreateSecurityGroupCtrl.js')
      )
    );
 
@@ -14,7 +13,7 @@
 
      // Initialize the controller and a mock scope
      beforeEach(window.inject(function ($controller, $rootScope, $q, accountService, securityGroupReader, modalWizardService,
-                                 taskMonitorService, securityGroupWriter, vpcReader) {
+                                 taskMonitorService, securityGroupWriter) {
 
        this.$scope = $rootScope.$new();
        this.$q = $q;
@@ -23,7 +22,6 @@
        this.modalWizardService = modalWizardService;
        this.taskMonitorService = taskMonitorService;
        this.securityGroupWriter = securityGroupWriter;
-       this.vpcReader = vpcReader;
 
        spyOn(this.accountService, 'listAccounts').and.returnValue(
          $q.when(['prod', 'test'])
@@ -31,16 +29,6 @@
 
        spyOn(this.accountService, 'getRegionsForAccount').and.returnValue(
          $q.when(['us-east-1', 'us-west-1'])
-       );
-
-       spyOn(this.vpcReader, 'listVpcs').and.returnValue(
-         $q.when([
-           { id: 'vpc1-pe', name: 'vpc 1', account: 'prod', region: 'us-east-1', deprecated: false, label: 'vpc 1' },
-           { id: 'vpc2-pw', name: 'vpc 2', account: 'prod', region: 'us-west-1', deprecated: false, label: 'vpc 2' },
-           { id: 'vpc1-te', name: 'vpc 1', account: 'test', region: 'us-east-1', deprecated: false, label: 'vpc 1' },
-           { id: 'vpc2-te', name: 'vpc 2', account: 'test', region: 'us-east-1', deprecated: false, label: 'vpc 2' },
-           { id: 'vpc2-tw', name: 'vpc 2', account: 'test', region: 'us-west-1', deprecated: false, label: 'vpc 2' },
-         ])
        );
 
        spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.returnValue(
@@ -88,7 +76,6 @@
            modalWizardService: this.modalWizardService,
            taskMonitorService: this.taskMonitorService,
            securityGroupWriter: this.securityGroupWriter,
-           vpcReader: this.vpcReader,
            application: {},
            securityGroup: { regions: [], securityGroupIngress: [] },
          });
