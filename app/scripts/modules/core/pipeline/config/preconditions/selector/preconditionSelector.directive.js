@@ -5,7 +5,6 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.selector', [
   require('../../../../account/account.service.js'),
   require('../../../../application/listExtractor/listExtractor.service'),
-  require('../../../../utils/lodash.js'),
 ])
   .directive('preconditionSelector', function() {
     return {
@@ -21,7 +20,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.se
       controllerAs: 'preconditionCtrl'
     };
   })
-  .controller('PreconditionSelectorCtrl', function($scope, preconditionTypeService, accountService, appListExtractorService, _) {
+  .controller('PreconditionSelectorCtrl', function($scope, preconditionTypeService, accountService, appListExtractorService) {
     accountService.listAccounts().then((accounts) => {
       $scope.accounts = accounts;
       setClusterList();
