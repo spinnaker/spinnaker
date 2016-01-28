@@ -26,7 +26,7 @@
 
       <copy-to-clipboard
           class="copy-to-clipboard"
-          text="ssh -t $USER@{{ctrl.bastionHost}} 'oq-ssh --region {{instance.region}} {{instance.instanceId}}'"
+          text="ssh -t {{ctrl.bastionHost}} 'oq-ssh --region {{instance.region}} {{instance.instanceId}}'"
           tool-tip="Copy SSH command to clipboard">
       </copy-to-clipboard>
 
