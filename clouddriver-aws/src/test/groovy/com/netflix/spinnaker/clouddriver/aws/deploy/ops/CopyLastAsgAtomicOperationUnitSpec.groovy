@@ -24,7 +24,9 @@ import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsResu
 import com.amazonaws.services.autoscaling.model.Ebs
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.AmazonEC2
+import com.netflix.spinnaker.clouddriver.aws.deploy.AWSServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
@@ -32,7 +34,6 @@ import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.AsgReferenceCopier
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.BasicAmazonDeployHandler
-import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import spock.lang.Specification
 
@@ -53,17 +54,20 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     def mockEC2 = Mock(AmazonEC2)
     def mockAutoScaling = Mock(AmazonAutoScaling)
     def mockProvider = Mock(AmazonClientProvider)
-    def asgService = new AsgService(mockAutoScaling)
     mockProvider.getAmazonEC2(_, _, true) >> mockEC2
     mockProvider.getAutoScaling(_, _, true) >> mockAutoScaling
     def op = new CopyLastAsgAtomicOperation(description)
     op.amazonClientProvider = mockProvider
     op.basicAmazonDeployHandler = deployHandler
+
     def mockAsgReferenceCopier = Mock(AsgReferenceCopier)
+    def asgService = new AsgService(mockAutoScaling)
+    def serverGroupNameResolver = Mock(AWSServerGroupNameResolver)
     op.regionScopedProviderFactory = Stub(RegionScopedProviderFactory) {
       forRegion(_, _) >> Stub(RegionScopedProviderFactory.RegionScopedProvider) {
         getAsgReferenceCopier(_, _) >> mockAsgReferenceCopier
         getAsgService() >> asgService
+        getAWSServerGroupNameResolver() >> serverGroupNameResolver
       }
     }
     def expectedDeployDescription = { region ->
@@ -98,6 +102,8 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
       mockAsg.getLaunchConfigurationName() >> "foo"
       new DescribeAutoScalingGroupsResult().withAutoScalingGroups([mockAsg])
     }
+    2 * serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> { "asgard-stack-v000" }
+    0 * serverGroupNameResolver._
     1 * deployHandler.handle(expectedDeployDescription('us-east-1'), _) >> new DeploymentResult(serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
     1 * deployHandler.handle(expectedDeployDescription('us-west-1'), _) >> new DeploymentResult(serverGroupNameByRegion: ['us-west-1': 'asgard-stack-v001'])
   }

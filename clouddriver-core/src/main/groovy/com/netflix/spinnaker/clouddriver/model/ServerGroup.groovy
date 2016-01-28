@@ -187,4 +187,25 @@ interface ServerGroup {
     @Empty
     Map<String, Object> getBuildInfo()
   }
+
+  static class SimpleServerGroup implements ServerGroup {
+    String name
+    String type
+    String region
+    Long createdTime
+    Boolean disabled
+    Set<String> zones
+    Set<Instance> instances
+    Set<String> loadBalancers
+    Set<String> securityGroups
+    Map<String, Object> launchConfig
+    ServerGroup.InstanceCounts instanceCounts
+    ServerGroup.Capacity capacity
+    ServerGroup.ImageSummary imageSummary
+
+    @Override
+    Boolean isDisabled() {
+      return disabled
+    }
+  }
 }
