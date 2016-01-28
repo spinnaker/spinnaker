@@ -4,6 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.google.serverGroup.details.resize.controller', [
   require('../../../../core/application/modal/platformHealthOverride.directive.js'),
+  require('../../../../core/task/modal/reason.directive.js'),
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js')
 ])
@@ -57,6 +58,7 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.resize.con
           region: serverGroup.region,
           zone: serverGroup.zones[0],
           interestingHealthProviderNames: $scope.command.interestingHealthProviderNames,
+          reason: $scope.command.reason,
         });
       };
 
