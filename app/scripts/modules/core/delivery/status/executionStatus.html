@@ -29,10 +29,10 @@
         {{ vm.execution.trigger.job}}
       </li>
       <li ng-switch-when="manual">
-        {{ vm.execution.trigger.user || 'unknown user'}}
+        {{ vm.execution | executionUser }}
       </li>
       <li ng-switch-when="pipeline">
-        {{ vm.execution.trigger.user || 'unknown user'}}
+        {{ vm.execution | executionUser }}
       </li>
       <li>
         {{ vm.execution.startTime | timestamp }}
