@@ -41,7 +41,7 @@
                   <account-tag account="rule.accountName" ng-if="rule.accountName !== securityGroup.accountName"></account-tag>
                   {{rule.name}}
                 </span>
-                <ui-select ng-if="!rule.existing" ng-model="rule.name" class="form-control input-sm" style="width: 244px">
+                <ui-select ng-if="!rule.existing" ng-model="rule.name" class="form-control input-sm" required style="width: 244px">
                   <ui-select-match>{{$select.selected}}</ui-select-match>
                   <ui-select-choices repeat="securityGroup as securityGroup in availableSecurityGroups | filter: $select.search | limitTo: state.infiniteScroll.currentItems"
                                      infinite-scroll="ctrl.addMoreItems()"
@@ -51,7 +51,7 @@
                 </ui-select>
               </td>
               <td><select class="form-control input-sm" ng-model="rule.type"
-                          ng-options="protocol as protocol.toUpperCase() for protocol in ['tcp', 'udp', 'icmp']"></select></td>
+                          ng-options="protocol as protocol.toUpperCase() for protocol in ['tcp', 'udp', 'icmp']" required></select></td>
               <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.startPort" required/></td>
               <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.endPort" required/></td>
               <td><a class="btn btn-link sm-label"
