@@ -53,6 +53,11 @@ services:
         enabled: false
         token: # the part after http://hooks.slack.com/services/
 
+  deck:
+    timezone: 'America/Los_Angeles'
+    auth:
+      enabled: false
+
   front50:
     host: ${services.default.host}
     port: 8080
@@ -188,3 +193,27 @@ providers:
       api: my-cf-api-uri
       console: my-cf-console-base-url
     # You must also supply cf.account.username and cf.account.password through env properties
+  azure:
+    # If you want to deploy some services to Microsoft Azure (azure),
+    # set enabled and provide primary credentials for deploying.
+    # Enabling azure is independent of other providers.
+    enabled: false
+    defaultRegion: West US
+    primaryCredentials:
+      name: my-azure-account
+  titan:
+    # If you want to deploy some services to titan,
+    # set enabled and provide primary credentials for deploying.
+    # Enabling titan is independent of other providers.
+    enabled: false
+    defaultRegion: us-east-1
+    primaryCredentials:
+      name: my-titan-account
+  kubernetes:
+    # If you want to deploy some services to kubernetes,
+    # set enabled and provide primary credentials for deploying.
+    # Enabling kubernetes is independent of other providers.
+    enabled: false
+    primaryCredentials:
+      name: my-kubernetes-account
+      namespace: default
