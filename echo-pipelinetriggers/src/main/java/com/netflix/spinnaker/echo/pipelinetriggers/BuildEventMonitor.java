@@ -52,8 +52,8 @@ public class BuildEventMonitor implements EchoEventListener {
       return;
     }
 
-    val buildEvent = objectMapper.convertValue(event, BuildEvent.class);
-    Observable.from(Collections.singletonList(buildEvent))
+    BuildEvent buildEvent = objectMapper.convertValue(event, BuildEvent.class);
+    Observable.just(buildEvent)
       .doOnNext(this::onEchoResponse)
       .subscribe(triggerEachMatchFrom(pipelineCache.getPipelines()));
   }
