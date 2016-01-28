@@ -206,7 +206,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       }
     });
 
-    this.destroyServerGroup = function destroyServerGroup() {
+    this.destroyServerGroup = () => {
       var serverGroup = $scope.serverGroup;
 
       var taskMonitor = {
@@ -217,14 +217,9 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         katoPhaseToMonitor: 'DESTROY_ASG'
       };
 
-      var submitMethod = function () {
-        return serverGroupWriter.destroyServerGroup(serverGroup, application, {
-          cloudProvider: 'gce',
-          serverGroupName: serverGroup.name,
-          region: serverGroup.region,
-          zone: serverGroup.zones[0],
-        });
-      };
+      var submitMethod = (params) => serverGroupWriter.destroyServerGroup(serverGroup, application, angular.extend(params, {
+        zone: serverGroup.zones[0],
+      }));
 
       var stateParams = {
         name: serverGroup.name,
@@ -239,13 +234,14 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
+        askForReason: true,
         body: this.getBodyTemplate(serverGroup, application),
-        onTaskComplete: function() {
+        onTaskComplete: () => {
           if ($state.includes('**.serverGroup', stateParams)) {
             $state.go('^');
           }
         },
-        onApplicationRefresh: function() {
+        onApplicationRefresh: () => {
           if ($state.includes('**.serverGroup', stateParams)) {
             $state.go('^');
           }
@@ -276,14 +272,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         title: 'Disabling ' + serverGroup.name
       };
 
-      var submitMethod = function(interestingHealthProviderNames) {
-        return serverGroupWriter.disableServerGroup(serverGroup, application, {
-          cloudProvider: 'gce',
-          serverGroupName: serverGroup.name,
-          region: serverGroup.region,
+      var submitMethod = (params) => {
+        return serverGroupWriter.disableServerGroup(serverGroup, application, angular.extend(params, {
           zone: serverGroup.zones[0],
-          interestingHealthProviderNames: interestingHealthProviderNames,
-        });
+        }));
       };
 
       var confirmationModalParams = {
@@ -295,6 +287,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         platformHealthOnlyShowOverride: application.attributes.platformHealthOnlyShowOverride,
         platformHealthType: 'Google',
         submitMethod: submitMethod,
+        askForReason: true,
       };
 
       if (application.attributes.platformHealthOnly) {
@@ -313,14 +306,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         forceRefreshMessage: 'Refreshing application...',
       };
 
-      var submitMethod = function(interestingHealthProviderNames) {
-        return serverGroupWriter.enableServerGroup(serverGroup, application, {
-          cloudProvider: 'gce',
-          serverGroupName: serverGroup.name,
-          region: serverGroup.region,
+      var submitMethod = (params) => {
+        return serverGroupWriter.enableServerGroup(serverGroup, app, angular.extend(params, {
           zone: serverGroup.zones[0],
-          interestingHealthProviderNames: interestingHealthProviderNames,
-        });
+        }));
       };
 
       var confirmationModalParams = {
@@ -331,6 +320,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         platformHealthOnlyShowOverride: application.attributes.platformHealthOnlyShowOverride,
         platformHealthType: 'Google',
         submitMethod: submitMethod,
+        askForReason: true,
       };
 
       if (application.attributes.platformHealthOnly) {
