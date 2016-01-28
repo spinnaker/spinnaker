@@ -67,4 +67,26 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
     expect(this.ctrl.showSslCertificateIdField()).toBe(true);
   });
 
+  describe('prependForwardSlash', function () {
+    it('should add the leading slash if it is NOT present', function () {
+      let result = this.ctrl.prependForwardSlash('foo');
+      expect(result).toEqual('/foo');
+    });
+
+    it('should not add the leading slash if it IS present', function () {
+      let result = this.ctrl.prependForwardSlash('/foo');
+      expect(result).toEqual('/foo');
+    });
+
+    it('should not add the leading slash the input is undefined', function () {
+      let result = this.ctrl.prependForwardSlash(undefined);
+      expect(result).toBeUndefined();
+    });
+
+    it('should not add the leading slash the input is empty string', function () {
+      let result = this.ctrl.prependForwardSlash('');
+      expect(result).toEqual('');
+    });
+  });
+
 });

@@ -20,8 +20,13 @@
                           ng-options="protocol for protocol in ['HTTP', 'HTTPS', 'SSL', 'TCP']"></select></td>
               <td><input class="form-control input-sm" type="number" ng-model="loadBalancer.healthCheckPort"
                          required min="0"/></td>
-              <td><input ng-if="ctrl.requiresHealthCheckPath()" class="form-control input-sm" type="text" ng-model="loadBalancer.healthCheckPath"
-                         required/></td>
+              <td><input ng-if="ctrl.requiresHealthCheckPath()"
+                         class="form-control input-sm"
+                         type="text"
+                         ng-change="loadBalancer.healthCheckPath = ctrl.prependForwardSlash(loadBalancer.healthCheckPath)"
+                         ng-model="loadBalancer.healthCheckPath"
+                         required/>
+              </td>
             </tr>
             </tbody>
 
