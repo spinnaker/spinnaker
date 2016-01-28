@@ -11,14 +11,22 @@
 
 // var gateUrl = ${services.gate.baseUrl};
 // var bakeryBaseUrl = ${services.bakery.baseUrl};
+// var authEnabled = ${services.deck.auth.enabled};
+// var defaultTimeZone = ${services.deck.timezone};
 // var awsDefaultRegion = ${providers.aws.defaultRegion};
 // var awsPrimaryAccount = ${providers.aws.primaryCredentials.name};
 // var googleDefaultRegion = ${providers.google.defaultRegion};
 // var googleDefaultZone = ${providers.google.defaultZone};
 // var googlePrimaryAccount = ${providers.google.primaryCredentials.name};
+// var azureDefaultRegion = ${providers.azure.defaultRegion};
+// var azurePrimaryAccount = ${providers.azure.primaryCredentials.name};
 // var cfDefaultRegion = ${providers.cf.defaultOrg};
 // var cfDefaultZone = ${providers.cf.defaultSpace};
 // var cfPrimaryAccount = ${providers.cf.primaryCredentials.name};
+// var titanDefaultRegion = ${providers.titan.defaultRegion};
+// var titanPrimaryAccount = ${providers.titan.primaryCredentials.name};
+// var kubernetesDefaultNamespace = ${providers.kubernetes.primaryCredentials.namespace};
+// var kubernetesPrimaryAccount = ${providers.kubernetes.primaryCredentials.name};
 
 // END reconfigure_spinnaker
 /**
@@ -29,9 +37,16 @@
 window.spinnakerSettings = {
   gateUrl: gateUrl,
   bakeryDetailUrl: bakeryBaseUrl + '/api/v1/global/logs/{{context.status.id}}?html=true',
+  authEndpoint: gateUrl + '/auth/info',
   pollSchedule: 30000,
-  defaultTimeZone: 'America/New_York', // see http://momentjs.com/timezone/docs/#/data-utilities/
+  defaultTimeZone: defaultTimeZone, // see http://momentjs.com/timezone/docs/#/data-utilities/
   providers: {
+    azure: {
+      defaults: {
+        account: azurePrimaryAccount,
+        region: azureDefaultRegion
+      },
+    },
     gce: {
       defaults: {
         account: googlePrimaryAccount,
@@ -50,12 +65,27 @@ window.spinnakerSettings = {
         account: cfPrimaryAccount,
         region: cfDefaultRegion
       },
+    },
+    titan: {
+      defaults: {
+        account: titanPrimaryAccount,
+        region: titanDefaultRegion
+      },
+    },
+    kubernetes: {
+      defaults: {
+        account: kubernetesPrimaryAccount,
+        namespace: kubernetesDefaultNamespace
+      },
     }
   },
-  authEnabled: false,
+  authEnabled: authEnabled,
   feature: {
     pipelines: true,
     notifications: false,
+    fastProperty: false,
+    vpcMigrator: false,
+    clusterDiff: false,
     rebakeControlEnabled: true,
     netflixMode: false,
   },
