@@ -36,7 +36,7 @@
 
 
      <div class="row content">
-       <div class="rollout">
+       <div class="rollout" ng-show="fp.promotions.length > 0 && fp.promotionPaneOpen">
 
          <div class="clickable" ng-click="fp.togglePromotionPane()">
            <span class="pull-left glyphicon glyphicon-chevron-{{fp.promotionPaneOpen ? 'down' : 'up'}}"></span>
@@ -48,7 +48,7 @@
            </h3>
          </div>
 
-         <div class="row" ng-show="fp.promotionPaneOpen && fp.promotions.length > 0">
+         <div class="row">
            <div class="col-md-5 col-md-offset-4">
              <div class="btn-group">
                <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('')" uib-btn-radio="''">
@@ -72,16 +72,17 @@
            <fast-property-promotion promotions="fp.promotions" filtered-promotions="fp.filteredPromotions" application="fp.application"></fast-property-promotion>
          </div>
 
-
-
        </div>
 
 
+       <div ng-if="fp.filteredPage.length === 0" class="col-md-12 text-center">
+         <h4>We couldn't find any properties for {{application.name}} <span ng-if="fp.filterString">with filter: <b>{{fp.filterString}}</b></span></h4>
+       </div>
 
-       <h3>Properties</h3>
-       <div class="row">
+       <h3 ng-if="fp.filteredPage.length > 0">Properties</h3>
+       <div class="row" ng-if="fp.filteredPage.length > 0">
          <div class="col-md-12">
-           <table ng-if="fp.properties" class="table table-hover" style="table-layout: fixed; width: 100%">
+           <table  class="table table-hover" style="table-layout: fixed; width: 100%">
              <thead>
              <tr>
                <th width="10%" label="Name" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Property</th>
@@ -179,10 +180,7 @@
              </tr>
              </tbody>
            </table>
-
-
          </div>
-
        </div>
      </div>
 
