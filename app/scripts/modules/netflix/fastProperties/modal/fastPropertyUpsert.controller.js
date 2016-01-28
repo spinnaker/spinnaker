@@ -187,12 +187,6 @@ module.exports = angular
     };
 
 
-    //let resetProperty = () => {
-    //  delete vm.property.canary;
-    //  vm.property.startScope = {};
-    //  vm.property.strategy = {};
-    //};
-
     vm.setStrategy = function() {
       let selected = vm.getSelected();
       //resetProperty();
@@ -206,6 +200,7 @@ module.exports = angular
           vm.property.startScope = _.set(vm.property.startScope, 'zone', 'none' );
           vm.property.startScope = _.set(vm.property.startScope, 'asg', 'none' );
           vm.property.strategy.option = 'number';
+          vm.getAffectInstancesForACATarget(vm.property.targetScope.cluster);
         } else {
           delete vm.property.canary;
         }
@@ -250,9 +245,6 @@ module.exports = angular
     vm.getRolloutList = () => {
       return vm.property.strategy.rolloutListString ? _.compact(vm.property.strategy.rolloutListString.split(',')) : [];
     };
-
-
-
 
     vm.init = () => {
       vm.property.targetScope.appIdList = [vm.appName];
