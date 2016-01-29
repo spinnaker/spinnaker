@@ -23,9 +23,8 @@ import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import spock.lang.Shared
 import spock.lang.Specification
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 
 class BuildControllerSpec extends Specification {
 
@@ -33,8 +32,7 @@ class BuildControllerSpec extends Specification {
   BuildService buildService
   IgorService igorService
 
-  @Shared
-  MockWebServer server
+  def server = new MockWebServer()
 
   final MASTER = 'MASTER'
   final BUILD_NUMBER = 123
@@ -49,7 +47,7 @@ class BuildControllerSpec extends Specification {
   void setup() {
     igorService = Mock(IgorService)
     buildService = new BuildService(igorService: igorService)
-    server = new MockWebServer()
+    server.play()
     mockMvc = MockMvcBuilders.standaloneSetup(new BuildController(buildService: buildService)).build()
   }
 
@@ -79,7 +77,7 @@ class BuildControllerSpec extends Specification {
 
   void 'should get a list of builds for a job'() {
     given:
-    1 * igorService.getBuilds(MASTER, JOB_NAME_ENCODED) >> [["building":false, "number":111], ["building":false, "number":222]]
+    1 * igorService.getBuilds(MASTER, JOB_NAME_ENCODED) >> [["building": false, "number": 111], ["building": false, "number": 222]]
 
     when:
     MockHttpServletResponse response = mockMvc.perform(get("/v2/builds/${MASTER}/builds/${JOB_NAME}")
@@ -103,7 +101,7 @@ class BuildControllerSpec extends Specification {
 
   void 'should get a build'() {
     given:
-    1 * igorService.getBuild(MASTER, JOB_NAME_ENCODED, BUILD_NUMBER.toString()) >> ["building":false, "number":BUILD_NUMBER]
+    1 * igorService.getBuild(MASTER, JOB_NAME_ENCODED, BUILD_NUMBER.toString()) >> ["building": false, "number": BUILD_NUMBER]
 
     when:
     MockHttpServletResponse response = mockMvc.perform(get("/v2/builds/${MASTER}/build/${BUILD_NUMBER}/${JOB_NAME}")
