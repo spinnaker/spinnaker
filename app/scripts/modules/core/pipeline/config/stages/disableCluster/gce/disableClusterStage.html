@@ -1,15 +1,24 @@
 <div ng-controller="gceDisableClusterStageCtrl as disableClusterStageCtrl" class="form-horizontal">
-  <stage-config-field label="Cluster" help-key="pipeline.config.disableCluster.cluster">
-    <input type="text" required ng-model="stage.cluster"
-      class="form-control input-sm" />
-  </stage-config-field>
-  <stage-config-field label="Account">
-    <account-select-field component="stage" field="credentials" accounts="accounts" provider="'gce'" on-change="disableClusterStageCtrl.accountUpdated()" required></account-select-field>
-  </stage-config-field>
-  <stage-config-field label="Zones">
-    <p ng-if="!stage.credentials" class="form-control-static">(Select an Account)</p>
-    <checkmap ng-if="stage.credentials" item-map="zones" selected-items="stage.zones"></checkmap>
-  </stage-config-field>
+  <div ng-if="!pipeline.strategy">
+    <stage-config-field label="Account">
+      <account-select-field component="stage" field="credentials" accounts="accounts" provider="'gce'" on-change="disableClusterStageCtrl.reset()" required></account-select-field>
+    </stage-config-field>
+    <stage-config-field label="Zones">
+      <p ng-if="!stage.credentials" class="form-control-static">(Select an Account)</p>
+      <checkmap
+        ng-if="stage.credentials"
+        item-map="zones"
+        on-change="disableClusterStageCtrl.resetSelectedCluster()"
+        selected-items="stage.zones">
+      </checkmap>
+    </stage-config-field>
+    <stage-config-field label="Cluster" help-key="pipeline.config.disableCluster.cluster">
+      <cluster-selector
+        clusters="clusterList"
+        model="stage.cluster">
+      </cluster-selector>
+    </stage-config-field>
+  </div>
   <stage-config-field label="Disable Options">
     <div class="form-inline">
       Keep the

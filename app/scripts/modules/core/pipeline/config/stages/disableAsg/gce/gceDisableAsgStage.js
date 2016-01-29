@@ -4,6 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableAsgStage', [
   require('../../../../../application/modal/platformHealthOverride.directive.js'),
+  require('../../../../../../core/application/listExtractor/listExtractor.service'),
   require('../../stageConstants.js'),
   require('../../../../../account/account.service.js'),
   require('./disableAsgExecutionDetails.controller.js')
@@ -26,7 +27,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableAsgSta
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('gceDisableAsgStageCtrl', function($scope, accountService, stageConstants) {
+  }).controller('gceDisableAsgStageCtrl', function($scope, accountService, stageConstants, appListExtractorService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -36,10 +37,21 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableAsgSta
       zonesLoaded: false
     };
 
+    let setClusterList = () => {
+      let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndZone($scope.stage.credentials, $scope.stage.zones);
+      $scope.clusterList = appListExtractorService.getClusters([$scope.application], clusterFilter);
+    };
+
     accountService.listAccounts('gce').then(function (accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
+      setClusterList();
     });
+
+    ctrl.resetSelectedCluster = () => {
+      $scope.stage.cluster = undefined;
+      setClusterList();
+    };
 
     $scope.zones = {'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c']};
 
@@ -48,6 +60,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableAsgSta
         $scope.zones = zoneMap;
         $scope.zonesLoaded = true;
       });
+    };
+
+    ctrl.reset = () => {
+      ctrl.accountUpdated();
+      ctrl.resetSelectedCluster();
     };
 
     $scope.targets = stageConstants.targetList;
@@ -61,9 +78,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableAsgSta
 
     if (!stage.credentials && $scope.application.defaultCredentials.gce) {
       stage.credentials = $scope.application.defaultCredentials.gce;
-    }
-    if (!stage.zones.length && $scope.application.defaultRegions.gce) {
-      stage.zones.push($scope.application.defaultRegions.gce);
     }
 
     if (stage.credentials) {

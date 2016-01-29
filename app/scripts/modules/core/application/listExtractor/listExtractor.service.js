@@ -51,6 +51,20 @@ module.exports = angular
       };
     };
 
+    let clusterFilterForCredentialsAndZone = (credentials, zone) => {
+      return (cluster) => {
+        let acctFilter = credentials ? cluster.account === credentials : true;
+
+        let zoneFilter = Array.isArray(zone) && zone.length
+          ? _.some( cluster.serverGroups, (sg) => _.some(zone, (zone) => zone.startsWith(`${sg.region}-`)))
+          : _.isString(zone) //zone is just a string not an array
+          ? _.any(cluster.serverGroups, (sg) => zone.startsWith(`${sg.region}-`))
+          : true;
+
+        return acctFilter && zoneFilter;
+      };
+    };
+
     let getClusters = (appList, clusterFilter = defaultClusterFilter) => {
       return _(appList)
         .map('clusters').flatten()
@@ -112,6 +126,7 @@ module.exports = angular
       getStacks: getStacks,
       getClusters: getClusters,
       clusterFilterForCredentialsAndRegion: clusterFilterForCredentialsAndRegion,
+      clusterFilterForCredentialsAndZone: clusterFilterForCredentialsAndZone,
       getAsgs: getAsgs,
       getZones: getZones,
       getInstances: getInstances,
