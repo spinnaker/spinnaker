@@ -3,6 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStage', [
+  require('../../../../../../core/application/listExtractor/listExtractor.service'),
   require('../../../../../application/modal/platformHealthOverride.directive.js'),
   require('../../../../../account/account.service.js'),
   require('./resizeAsgExecutionDetails.controller.js'),
@@ -26,7 +27,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'}
       ],
     });
-  }).controller('gceResizeAsgStageCtrl', function($scope, accountService, stageConstants) {
+  }).controller('gceResizeAsgStageCtrl', function($scope, accountService, stageConstants, appListExtractorService) {
 
     var ctrl = this;
 
@@ -37,9 +38,20 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
       zonesLoaded: false
     };
 
+    let setClusterList = () => {
+      let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndZone($scope.stage.credentials, $scope.stage.zones);
+      $scope.clusterList = appListExtractorService.getClusters([$scope.application], clusterFilter);
+    };
+
+    ctrl.resetSelectedCluster = () => {
+      $scope.stage.cluster = undefined;
+      setClusterList();
+    };
+
     accountService.listAccounts('gce').then(function (accounts) {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
+      setClusterList();
     });
 
     $scope.zones = {'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c']};
@@ -51,12 +63,17 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
       });
     };
 
+    ctrl.reset = () => {
+      ctrl.accountUpdated();
+      ctrl.resetSelectedCluster();
+    };
+
     $scope.resizeTargets = stageConstants.targetList;
 
     $scope.scaleActions = [
       {
         label: 'Scale Up',
-        val: 'scale_up'
+        val: 'scale_up',
       },
       {
         label: 'Scale Down',
@@ -80,7 +97,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
       {
         label: 'Incremental',
         val: 'incr'
-      }
+      },
     ];
 
     stage.capacity = stage.capacity || {};

@@ -3,6 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.findAmiStage', [
+  require('../../../../../../core/application/listExtractor/listExtractor.service'),
   require('./findAmiExecutionDetails.controller.js'),
   require('../../../../../account/account.service.js'),
 ])
@@ -19,7 +20,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.findAmiStage'
         { type: 'requiredField', fieldName: 'credentials' }
       ]
     });
-  }).controller('gceFindAmiStageCtrl', function($scope, accountService) {
+  }).controller('gceFindAmiStageCtrl', function($scope, accountService, appListExtractorService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -29,9 +30,20 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.findAmiStage'
       zonesLoaded: false
     };
 
+    let setClusterList = () => {
+      let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndZone($scope.stage.credentials, $scope.stage.zones);
+      $scope.clusterList = appListExtractorService.getClusters([$scope.application], clusterFilter);
+    };
+
+    ctrl.resetSelectedCluster = () => {
+      $scope.stage.cluster = undefined;
+      setClusterList();
+    };
+
     accountService.listAccounts('gce').then(function (accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
+      setClusterList();
     });
 
     $scope.zones = {'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c']};
@@ -41,6 +53,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.findAmiStage'
         $scope.zones = zoneMap;
         $scope.zonesLoaded = true;
       });
+    };
+
+    ctrl.reset = () => {
+      ctrl.accountUpdated();
+      ctrl.resetSelectedCluster();
     };
 
     $scope.selectionStrategies = [{
@@ -71,9 +88,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.findAmiStage'
 
     if (!stage.credentials && $scope.application.defaultCredentials.gce) {
       stage.credentials = $scope.application.defaultCredentials.gce;
-    }
-    if (!stage.zones.length && $scope.application.defaultRegions.gce) {
-      stage.zones.push($scope.application.defaultRegions.gce);
     }
 
     if (stage.credentials) {
