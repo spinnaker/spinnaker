@@ -301,6 +301,10 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
       return $scope.loadBalancer.healthCheckProtocol && $scope.loadBalancer.healthCheckProtocol.indexOf('HTTP') === 0;
     };
 
+    this.prependForwardSlash = (text) => {
+      return text && text.indexOf('/') !== 0 ? `/${text}` : text;
+    };
+
     this.updateName = function() {
       $scope.loadBalancer.name = this.getName();
     };
