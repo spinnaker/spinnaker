@@ -48,6 +48,9 @@ module.exports = angular
       return function(target) {
         if (isFilterable(model.sortFilter.stack)) {
           var checkedStacks = getCheckValues(model.sortFilter.stack);
+          if (checkedStacks.indexOf('(none)') > -1) {
+            checkedStacks.push('');
+          }
           return _.contains(checkedStacks, target.stack);
         } else {
           return true;
