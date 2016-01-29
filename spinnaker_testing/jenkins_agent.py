@@ -75,6 +75,7 @@ class JenkinsOperationStatus(testable_agent.AgentOperationStatus):
     """
     super(JenkinsOperationStatus, self).__init__(operation)
     self.__trigger_status = status_class(operation, http_response)
+    self.__trigger_status._bind_id("(sync request has no ID)")
     self.__trigger_status._bind_detail_path(path)
 
   def __cmp__(self, response):
@@ -238,5 +239,9 @@ class JenkinsTriggerOperation(BaseJenkinsOperation):
   def _do_execute(self, agent, trace=True):
     http_response = self._agent._trigger_jenkins_build(job=self.__job,
                                                        token=self.__token)
+    agent.logger.debug(
+        'Checking for effect of jenkins trigger at url={url}'.format(
+            url=self.__status_path))
+
     return JenkinsOperationStatus(
         self, self.__status_class, self.__status_path, http_response)
