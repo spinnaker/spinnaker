@@ -19,6 +19,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.pipelineStage', [
   }).controller('pipelineStageCtrl', function($scope, stage, pipelineConfigService, applicationReader, _) {
 
     $scope.stage = stage;
+    $scope.stage.failPipeline = ($scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline);
 
     if (!$scope.stage.application) {
       $scope.stage.application = $scope.application.name;
