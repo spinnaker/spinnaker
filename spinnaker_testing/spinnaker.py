@@ -68,6 +68,7 @@ from StringIO import StringIO
 import citest.gcp_testing.gce_util as gce_util
 import citest.service_testing as service_testing
 import citest.gcp_testing as gcp
+from citest.base import JournalLogger
 
 import spinnaker_testing.yaml_accumulator as yaml_accumulator
 from spinnaker_testing.expression_dict import ExpressionDict
@@ -299,24 +300,32 @@ class SpinnakerAgent(service_testing.HttpAgent):
     service_account = bindings.get('GCE_SERVICE_ACCOUNT', None)
 
     logger = logging.getLogger(__name__)
-    logger.info('Locating %s...', name)
-    gcloud = gcp.GCloudAgent(
-        project=project, zone=zone, service_account=service_account,
-        ssh_passphrase_file=ssh_passphrase_file)
-    netloc = gce_util.establish_network_connectivity(
-        gcloud=gcloud, instance=instance, target_port=port)
-    if not netloc:
-      error = 'Could not locate {0}.'.format(name)
-      logger.error(error)
-      raise RuntimeError(error)
+    JournalLogger.begin_context('Locating {0}...'.format(name))
+    context_relation = 'ERROR'
+    try:
+        gcloud = gcp.GCloudAgent(
+            project=project, zone=zone, service_account=service_account,
+            ssh_passphrase_file=ssh_passphrase_file)
+        netloc = gce_util.establish_network_connectivity(
+            gcloud=gcloud, instance=instance, target_port=port)
+        if not netloc:
+          error = 'Could not locate {0}.'.format(name)
+          logger.error(error)
+          context_relation = 'INVALID'
+          raise RuntimeError(error)
 
-    approx_config = cls.__get_deployed_local_yaml_bindings(gcloud, instance)
-    protocol = approx_config.get('services.default.protocol', 'http')
-    base_url = '{protocol}://{netloc}'.format(protocol=protocol, netloc=netloc)
-    logger.info('%s is available at %s', name, base_url)
-    deployed_config = scrape_spring_config(os.path.join(base_url, 'env'))
-    spinnaker_agent = cls(base_url, status_factory)
-    spinnaker_agent.__deployed_config = deployed_config
+        approx_config = cls.__get_deployed_local_yaml_bindings(gcloud,
+                                                               instance)
+        protocol = approx_config.get('services.default.protocol', 'http')
+        base_url = '{protocol}://{netloc}'.format(protocol=protocol,
+                                                  netloc=netloc)
+        logger.info('%s is available at %s', name, base_url)
+        deployed_config = scrape_spring_config(os.path.join(base_url, 'env'))
+        spinnaker_agent = cls(base_url, status_factory)
+        spinnaker_agent.__deployed_config = deployed_config
+        context_relation = 'VALID'
+    finally:
+        JournalLogger.end_context(relation=context_relation)
 
     return spinnaker_agent
 
