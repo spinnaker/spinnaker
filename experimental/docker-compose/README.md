@@ -14,8 +14,9 @@ This is an experimental integration of Spinnaker and Docker Compose using docker
 
 * Install the [Docker Toolbox](https://www.docker.com/docker-toolbox).
 * Navigate to the config directory at the root of this project (one directory up from the experimental folder). Copy the `default-spinnaker-local.yml` file into a file called `spinnaker-local.yml`. Edit spinnaker-local.yml to fit your configuration.
-* If you're using AWS, create a directory called aws under the config directory. Copy over your credentials from the .aws directory into this directory. If you don't have a .aws directory, follow the instructions here to create those credentials.
+* If you're using AWS, create a directory called aws under the config directory. Copy over your credentials from the .aws directory into this directory. If you don't have a .aws directory, follow the instructions [here](http://spinnaker.io/documentation/getting_started.html#step-1-set-up-your-target-deployment-environment) to create those credentials.
 * If you're using Google Compute Platform, create a directory called gcp under the config directory. Copy your json credentials into this directory as gcp.json. Set your jsonPath for google in spinnaker-local.yml to be `/root/.gcp/gcp.json`.
+* If you're using docker-machine locally, you will still need to move your config directory to the docker-machine host as stated in the [cloud guide](https://github.com/spinnaker/spinnaker/tree/master/experimental/docker-compose#2-copy-configuration-files-to-the-remote-docker-machine-instance).  Otherwise, you will not see your accounts when using Spinnaker.
 
 # Local Installation
 
