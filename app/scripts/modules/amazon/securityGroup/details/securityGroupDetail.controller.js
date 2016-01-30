@@ -102,8 +102,8 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
 
       var submitMethod = function () {
         return securityGroupWriter.deleteSecurityGroup(securityGroup, application, {
-          cloudProvider: $scope.securityGroup.type,
-          vpcId: $scope.securityGroup.vpcId,
+          cloudProvider: securityGroup.provider,
+          vpcId: securityGroup.vpcId,
         });
       };
 
