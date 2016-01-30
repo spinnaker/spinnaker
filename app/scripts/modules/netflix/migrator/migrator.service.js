@@ -8,11 +8,9 @@ module.exports = angular
     require('../../core/utils/lodash.js'),
     require('../../core/task/taskExecutor.js'),
   ])
-  .factory('migratorService', function($timeout, $q, _, taskExecutor) {
+  .factory('migratorService', function(_, taskExecutor) {
 
     function executeMigration(config) {
-      var deferred = $q.defer();
-      var task = { id: null, deferred: deferred, dryRun: config.dryRun };
       var taskStarter = taskExecutor.executeTask({
         application: config.application,
         description: 'Migrate ' + config.name + ' to VPC0',
@@ -24,76 +22,49 @@ module.exports = angular
         }]
       });
 
-      taskStarter.then(
-        function(execution) {
-          task.id = execution.id;
-          task.execution = execution;
-          monitorTask(task);
-        },
-        function(error) {
-          var message = error.message || 'An internal server error occurred. Please try again later.';
-          task.deferred.reject(message);
-        }
-      );
-
-      return task;
-    }
-
-    function monitorTask(task) {
-
-      if (task.execution.isFailed) {
-        var exception = task.execution.getValueFor('exception'),
-            message = exception && exception.message ? exception.message : 'An internal server error occurred. Please try again later.';
-        task.deferred.reject(message);
-        return;
-      }
-      if (task.execution.isCompleted && task.execution.getValueFor('tide.task')) {
-        if (task.dryRun) {
-          task.executionPlan = buildPreview(task);
-        }
-        task.deferred.resolve();
-      } else {
-        if (!task.deferred.promise.cancelled) {
-          task.lastResult = extractLastResult(task);
-          $timeout(function() {
-            task.execution.get().then(function(reloaded) {
-              task.execution = reloaded;
-              monitorTask(task);
-            });
-          }, 1000);
-        }
-      }
-
+      return taskStarter.then((task) => {
+        task.getEventLog = () => getEventLog(task);
+        task.getTideException = () => getTideException(task);
+        task.getPreview = () => getPreview(task);
+        return task;
+      });
     }
 
     function getTideTask(task) {
-      if (task.execution.getValueFor('tide.task')) {
-        return task.execution.getValueFor('tide.task');
+      if (task.getValueFor('tide.task')) {
+        return task.getValueFor('tide.task');
       }
       return {};
     }
 
-    function extractLastResult(taskResult) {
-      var tideTask = getTideTask(taskResult);
-      taskResult.eventLog = _(tideTask.history).sortBy('timeStamp')
+    function getEventLog(task) {
+      var tideTask = getTideTask(task);
+      return _(tideTask.history).sortBy('timeStamp')
         .pluck('message')
         .valueOf();
-      return taskResult;
     }
 
-    function buildPreview(plan) {
-      var tideTask = getTideTask(plan);
+    function getTideException(task) {
+      let tideTask = getTideTask(task);
+      if (tideTask.taskComplete && tideTask.taskComplete.status === 'failure') {
+        return tideTask.taskComplete.message;
+      }
+      return null;
+    }
+
+    function getPreview(task) {
+      var tideTask = getTideTask(task) || {};
       tideTask.mutations = tideTask.mutations || [];
       return {
-        securityGroups: tideTask.mutations.filter(function(mutation) { return mutationIs(mutation, 'groupName'); }),
-        loadBalancers: tideTask.mutations.filter(function(mutation) { return mutationIs(mutation, 'loadBalancerName'); }),
-        serverGroups: tideTask.mutations.filter(function(mutation) { return mutationIs(mutation, 'autoScalingGroupName'); }),
-        pipelines: tideTask.mutations.filter(function(mutation) { return !!mutation.pipelineToCreate; }),
+        securityGroups: tideTask.mutations.filter((mutation) => mutationIs(mutation, 'groupName')),
+        loadBalancers: tideTask.mutations.filter((mutation) => mutationIs(mutation, 'loadBalancerName')),
+        serverGroups: tideTask.mutations.filter((mutation) => mutationIs(mutation, 'autoScalingGroupName')),
+        pipelines: tideTask.mutations.filter((mutation) => mutation.pipelineToCreate),
       };
     }
 
     function mutationIs(mutation, field) {
-      return mutation.mutationDetails && mutation.mutationDetails.awsReference && mutation.mutationDetails.awsReference.identity && mutation.mutationDetails.awsReference.identity[field];
+      return _.has(mutation, 'mutationDetails.awsReference.identity.' + field);
     }
 
     return {
