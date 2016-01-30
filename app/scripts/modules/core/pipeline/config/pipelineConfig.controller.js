@@ -29,10 +29,12 @@ module.exports = angular.module('spinnaker.core.pipeline.config.controller', [
       this.state.pipelinesLoaded = true;
     };
 
-    if (!application.pipelineConfigs || !application.pipelineConfigs.length) {
-      application.pipelineConfigRefreshStream.take(1).subscribe(this.initialize);
-    } else {
-      this.initialize();
+    if (!application.notFound) {
+      if (!application.pipelineConfigs || !application.pipelineConfigs.length) {
+        application.pipelineConfigRefreshStream.take(1).subscribe(this.initialize);
+      } else {
+        this.initialize();
+      }
     }
 
     function getWarningMessage() {
