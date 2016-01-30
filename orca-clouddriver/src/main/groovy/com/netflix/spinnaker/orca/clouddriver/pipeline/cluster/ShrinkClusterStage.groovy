@@ -20,11 +20,17 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideC
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractWaitForClusterWideClouddriverTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.ShrinkClusterTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.WaitForClusterShrinkTask
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import org.springframework.batch.core.Step
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 class ShrinkClusterStage extends AbstractClusterWideClouddriverOperationStage {
   public static final String PIPELINE_CONFIG_TYPE = "shrinkCluster"
+
+  @Autowired
+  DisableClusterStage disableClusterStage
 
   ShrinkClusterStage() {
     super(PIPELINE_CONFIG_TYPE)
@@ -38,5 +44,14 @@ class ShrinkClusterStage extends AbstractClusterWideClouddriverOperationStage {
   @Override
   Class<? extends AbstractWaitForClusterWideClouddriverTask> getWaitForTask() {
     WaitForClusterShrinkTask
+  }
+
+  @Override
+  List<Step> buildSteps(Stage stage) {
+    injectBefore(stage, "disableCluster", disableClusterStage, stage.context + [
+      remainingEnabledServerGroups: stage.context.shrinkToSize,
+      preferLargerOverNewer       : stage.context.retainLargerOverNewer
+    ])
+    return super.buildSteps(stage)
   }
 }

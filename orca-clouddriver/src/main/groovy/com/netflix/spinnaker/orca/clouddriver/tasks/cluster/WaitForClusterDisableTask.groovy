@@ -16,14 +16,33 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
 import java.util.function.Function
 
 @Component
 class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTask {
+  private static final int MINIMUM_WAIT_TIME_MS = 90000
+
+  @Override
+  TaskResult execute(Stage stage) {
+    def taskResult = super.execute(stage)
+
+    def duration = System.currentTimeMillis() - stage.startTime
+    if (taskResult.status == ExecutionStatus.SUCCEEDED && duration < MINIMUM_WAIT_TIME_MS) {
+      // wait at least MINIMUM_WAIT_TIME to account for any necessary connection draining to occur
+      return new DefaultTaskResult(ExecutionStatus.RUNNING, taskResult.stageOutputs, taskResult.globalOutputs)
+    }
+
+    return taskResult
+  }
+
   @Override
   boolean isServerGroupOperationInProgress(List<Map> interestingHealthProviderNames,
                                            Optional<TargetServerGroup> serverGroup) {
