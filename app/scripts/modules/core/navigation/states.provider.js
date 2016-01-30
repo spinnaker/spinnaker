@@ -452,7 +452,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
           'main@': {
             templateUrl: require('../projects/project.html'),
             controller: 'ProjectCtrl',
-            controllerAs: 'ctrl',
+            controllerAs: 'vm',
           },
         },
         data: {
