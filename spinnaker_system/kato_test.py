@@ -40,9 +40,13 @@
 
 
 # Standard python modules.
+import json as json_module
+import logging
 import sys
+import traceback
 
 # citest modules.
+from citest.base import JournalLogger
 import citest.gcp_testing as gcp
 import citest.json_contract as jc
 import citest.service_testing as st
@@ -189,8 +193,9 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
       st.OperationContract
     """
     builder = gcp.GceContractBuilder(self.gce_observer)
-    builder.retryable_for_secs = 15
-    clause = (builder.new_clause_builder('Instances Deleted', strict=True)
+    clause = (builder.new_clause_builder('Instances Deleted',
+                                         retryable_for_secs=15,
+                                         strict=True)
               .list_resources('instances'))
     for name in names:
       # If one of our instances still exists, it should be STOPPING.
@@ -227,7 +232,7 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
 
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Server Group Tags Added')
-        .inspect_resource('managed-instance-group', server_group_name)
+        .inspect_resource('managed-instance-groups', server_group_name)
         .contains_group(
             [jc.PathContainsPredicate('name', server_group_name),
              jc.PathContainsPredicate(
@@ -559,6 +564,50 @@ class KatoIntegrationTest(st.AgentTestCase):
     # in that condition override the default retry parameters, then stick
     # with the defaults here.
     self.run_test_case(self.scenario.delete_load_balancer(), max_retries=5)
+
+  def __named_image_lookup_helper(self):
+    logger = logging.getLogger(__name__)
+    scenario = self.scenario
+    # Get the list of images available (to the service account we are using).
+    gcloud_agent = scenario.gce_observer
+    service_account = scenario.bindings.get('GCE_SERVICE_ACCOUNT', None)
+    extra_args = ['--account', service_account] if service_account else []
+    logger.debug('Looking up available images.')
+    cli_result = gcloud_agent.list_resources('images', extra_args=extra_args)
+
+    if cli_result.retcode != 0:
+      raise RuntimeError('GCloud failed with: {0}'.format(str(cli_result)))
+    json_doc = json_module.JSONDecoder().decode(cli_result.output)
+
+    # Produce the list of images that we expect to receive from spinnaker
+    # (visible to the primary service account).
+    spinnaker_account = scenario.agent.deployed_config.get(
+        'providers.google.primaryCredentials.name')
+
+    logger.debug('Configured with Spinnaker account "%s"', spinnaker_account)
+    expect_exact = [{'account': spinnaker_account, 'imageName': image['name']}
+                    for image in json_doc]
+    got = self.scenario.agent.get('/gce/images/find')
+    self.assertTrue(got.ok())
+    got_doc = json_module.JSONDecoder().decode(got.output)
+
+    self.maxDiff = None
+    self.assertItemsEqual(expect_exact, got_doc)
+
+  def test_google_named_image_lookup_controller(self):
+    JournalLogger.begin_context('Test "google_named_image_lookup_controller"')
+    context_relation = 'ERROR'
+    try:
+      self.__named_image_lookup_helper()
+      context_relation = 'VALID'
+    except:
+      JournalLogger.journal_or_log(
+          levelno=logging.ERROR,
+          _msg='Caught exception:\n{0}'.format(traceback.format_exc()))
+      raise
+
+    finally:
+      JournalLogger.end_context(relation=context_relation)
 
 
 def main():
