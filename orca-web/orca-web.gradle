@@ -100,6 +100,7 @@ ospackage {
   packageName = "spinnaker-" + project.applicationName
   version = toVers(project.version.toString())
   release '3'
+  os = LINUX
   // installer scripts
   postInstall = file('pkg_scripts/postInstall.sh')
   postUninstall = file('pkg_scripts/postUninstall.sh')
