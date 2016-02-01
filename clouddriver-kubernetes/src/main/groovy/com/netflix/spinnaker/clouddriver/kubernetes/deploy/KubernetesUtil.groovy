@@ -19,19 +19,25 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy
 import com.netflix.frigga.NameValidation
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
+import io.fabric8.kubernetes.api.model.PodList
 import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.ReplicationControllerList
 import io.fabric8.kubernetes.api.model.Service
 
 class KubernetesUtil {
 
-  private static String SECURITY_GROUP_LABEL_PREFIX = "security-group-"
-  private static String LOAD_BALANCER_LABEL_PREFIX = "load-balancer-"
+  static String SECURITY_GROUP_LABEL_PREFIX = "security-group-"
+  static String LOAD_BALANCER_LABEL_PREFIX = "load-balancer-"
+  static String REPLICATION_CONTROLLER_LABEL = "replication-controller"
   private static int SECURITY_GROUP_LABEL_PREFIX_LENGTH = SECURITY_GROUP_LABEL_PREFIX.length()
   private static int LOAD_BALANCER_LABEL_PREFIX_LENGTH = LOAD_BALANCER_LABEL_PREFIX.length()
 
   ReplicationControllerList getReplicationControllers(KubernetesCredentials credentials, String namespace) {
     credentials.client.replicationControllers().inNamespace(namespace).list()
+  }
+
+  PodList getPods(KubernetesCredentials credentials, String namespace, String replicationControllerName) {
+    credentials.client.pods().inNamespace(namespace).withLabel(REPLICATION_CONTROLLER_LABEL, replicationControllerName).list()
   }
 
   ReplicationController getReplicationController(KubernetesCredentials credentials, String namespace, String serverGroupName) {
@@ -68,11 +74,15 @@ class KubernetesUtil {
   static List<String> getDescriptionLoadBalancers(ReplicationController rc) {
     def loadBalancers = []
     rc.spec?.template?.metadata?.labels?.each { key, val ->
-      if (key.startsWith(LOAD_BALANCER_LABEL_PREFIX)) {
+      if (isLoadBalancerLabel(key)) {
         loadBalancers.push(key.substring(LOAD_BALANCER_LABEL_PREFIX_LENGTH, key.length()))
       }
     }
     return loadBalancers
+  }
+
+  static Boolean isLoadBalancerLabel(String key) {
+    key.startsWith(LOAD_BALANCER_LABEL_PREFIX)
   }
 
   static List<String> getDescriptionSecurityGroups(ReplicationController rc) {
