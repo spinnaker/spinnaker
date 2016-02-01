@@ -86,7 +86,7 @@ window.spinnakerSettings = {
     fastProperty: false,
     vpcMigrator: false,
     clusterDiff: false,
-    rebakeControlEnabled: true,
+    roscoMode: true,
     netflixMode: false,
   },
 };
