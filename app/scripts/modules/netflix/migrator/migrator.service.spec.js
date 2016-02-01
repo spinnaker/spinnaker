@@ -161,7 +161,7 @@ describe('Service: migrator', function () {
 
     it('only returns message if task finished and failed', function () {
 
-      expect(this.getException()).toBe(null);
+      expect(this.getException()).toBeUndefined();
 
       this.tideTask = {
         taskComplete: {
@@ -169,7 +169,7 @@ describe('Service: migrator', function () {
         }
       };
 
-      expect(this.getException()).toBe(null);
+      expect(this.getException()).toBeUndefined();
 
       this.tideTask = {
         taskComplete: {
@@ -179,6 +179,23 @@ describe('Service: migrator', function () {
       };
 
       expect(this.getException()).toEqual('the error');
+    });
+
+    it('falls back to failure message from task if present', function () {
+
+      this.tideTask = {
+        taskComplete: {
+          status: 'failure',
+          message: 'tide failed',
+        },
+      };
+
+      this.task.failureMessage = 'task failed';
+      expect(this.getException()).toBe('tide failed');
+
+      this.tideTask.taskComplete = {};
+      expect(this.getException()).toBe('task failed');
+
     });
 
   });
