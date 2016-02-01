@@ -2,7 +2,7 @@ spinnaker:
   cassandra:
     cluster: 'spinnaker'
     keyspace: 'echo'
-  baseUrl: 'http://localhost:8083'
+  baseUrl: 'http://localhost:9000'
 
 echo:
   baseUrl: 'http://localhost:8080'
