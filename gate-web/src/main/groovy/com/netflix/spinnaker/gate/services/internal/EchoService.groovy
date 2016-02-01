@@ -16,62 +16,15 @@
 
 package com.netflix.spinnaker.gate.services.internal
 
-import com.fasterxml.jackson.annotation.JsonProperty
-import retrofit.client.Response
 import retrofit.http.*
 
 interface EchoService {
 
   @Headers("Accept: application/json")
-  @GET("/search/events/0")
-  Map getAllEvents(@Query("from") int offset,
-                   @Query("size") int size,
-                   @Query("full") boolean full)
-
-  @Headers("Accept: application/json")
-  @GET("/search/events/0")
-  Map getEvents(@Query("application") String application,
-                @Query("from") int offset,
-                @Query("size") int size,
-                @Query("full") boolean full)
-
-  @POST("/")
-  Response postEvent(@Body EventBuilder.Event event)
+  @POST("/webhooks/{type}/{source}")
+  void webhooks(@Path('type') String type, @Path('source') String source, @Body Map event)
 
   @GET("/validateCronExpression")
   Map validateCronExpression(@Query("cronExpression") String cronExpression)
 
-  static class EventBuilder {
-
-    private Event event = new Event()
-
-    static EventBuilder builder() {
-      new EventBuilder()
-    }
-
-    EventBuilder withType(String type) {
-      event.details.type = type
-      this
-    }
-
-    EventBuilder withSource(String source) {
-      event.details.source = source
-      this
-    }
-
-    EventBuilder withContent(Map content) {
-      event.contentMap = content
-      this
-    }
-
-    Event build() {
-      event
-    }
-
-    private static class Event {
-      @JsonProperty("content")
-      Map contentMap = [:]
-      Map details = [:]
-    }
-  }
 }

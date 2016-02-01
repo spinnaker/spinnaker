@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,21 +29,8 @@ class EventService {
   @Autowired(required = false)
   EchoService echoService
 
-  Map getAll(int offset, int size) {
-    if (echoService == null) {
-      return [:]
-    }
-    HystrixFactory.newMapCommand(GROUP, "getAllEvents") {
-      echoService.getAllEvents(offset, size, true)
-    } execute()
+  void webhooks(String type, String source, Map event) {
+    echoService.webhooks(type, source, event)
   }
 
-  Map getForApplication(String app) {
-    if (echoService == null) {
-      return [:]
-    }
-    HystrixFactory.newMapCommand(GROUP, "getEventsForApplication") {
-      echoService.getEvents(app, 0, Integer.MAX_VALUE, true)
-    } execute()
-  }
 }
