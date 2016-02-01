@@ -137,7 +137,7 @@ class JenkinsAgent(testable_agent.TestableAgent):
 
   def export_to_json_snapshot(self, snapshot, entity):
     snapshot.edge_builder.make_control(
-        entity, 'baseUrl', self.__http_agent.baseUrl)
+        entity, 'baseUrl', self.__http_agent.base_url)
     super(JenkinsAgent, self).export_to_json_snapshot(snapshot, entity)
 
   def new_jenkins_trigger_operation(self, title, job, token, status_class,
