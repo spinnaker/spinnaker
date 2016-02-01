@@ -48,10 +48,12 @@ class ShrinkClusterStage extends AbstractClusterWideClouddriverOperationStage {
 
   @Override
   List<Step> buildSteps(Stage stage) {
-    injectBefore(stage, "disableCluster", disableClusterStage, stage.context + [
-      remainingEnabledServerGroups: stage.context.shrinkToSize,
-      preferLargerOverNewer       : stage.context.retainLargerOverNewer
-    ])
+    if (stage.context.allowDeleteActive == true) {
+      injectBefore(stage, "disableCluster", disableClusterStage, stage.context + [
+        remainingEnabledServerGroups: stage.context.shrinkToSize,
+        preferLargerOverNewer       : stage.context.retainLargerOverNewer
+      ])
+    }
     return super.buildSteps(stage)
   }
 }
