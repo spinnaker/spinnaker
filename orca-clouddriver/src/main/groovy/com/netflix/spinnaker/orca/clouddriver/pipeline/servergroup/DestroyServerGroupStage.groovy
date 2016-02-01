@@ -24,11 +24,15 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCache
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForDestroyedServerGroupTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Step
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 class DestroyServerGroupStage extends TargetServerGroupLinearStageSupport {
   static final String PIPELINE_CONFIG_TYPE = "destroyServerGroup"
+
+  @Autowired
+  DisableServerGroupStage disableServerGroupStage
 
   DestroyServerGroupStage() {
     super(PIPELINE_CONFIG_TYPE)
@@ -36,6 +40,8 @@ class DestroyServerGroupStage extends TargetServerGroupLinearStageSupport {
 
   @Override
   public List<Step> buildSteps(Stage stage) {
+    injectBefore(stage, "disableServerGroup", disableServerGroupStage, stage.context)
+
     try {
       composeTargets(stage)
       [
