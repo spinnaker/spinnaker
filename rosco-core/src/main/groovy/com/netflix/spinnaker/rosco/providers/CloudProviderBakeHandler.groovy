@@ -120,7 +120,13 @@ abstract class CloudProviderBakeHandler {
 
     parameterMap.configDir = configDir
 
-    return packerCommandFactory.buildPackerCommand(baseCommand, parameterMap, "$configDir/$templateFileName")
+    if (bakeRequest.extended_attributes) {
+      parameterMap << bakeRequest.extended_attributes
+    }
+
+    def finalTemplateFileName = bakeRequest.template_file_name ?: templateFileName
+
+    return packerCommandFactory.buildPackerCommand(baseCommand, parameterMap, "$configDir/$finalTemplateFileName")
   }
 
   BaseImage findBaseImage(BakeRequest bakeRequest) {

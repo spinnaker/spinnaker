@@ -294,6 +294,86 @@ class AWSBakeHandlerSpec extends Specification {
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
+  void 'produces packer command with all required parameters for ubuntu, using explicit vm type, and overriding template filename'() {
+    setup:
+      def imageNameFactoryMock = Mock(ImageNameFactory)
+      def packerCommandFactoryMock = Mock(PackerCommandFactory)
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: PACKAGE_NAME,
+                                        base_os: "ubuntu",
+                                        vm_type: BakeRequest.VmType.pv,
+                                        cloud_provider_type: BakeRequest.CloudProviderType.aws,
+                                        template_file_name: "somePackerTemplate.json")
+      def targetImageName = "kato-x8664-timestamp-ubuntu"
+      def parameterMap = [
+        aws_access_key: awsBakeryDefaults.awsAccessKey,
+        aws_secret_key: awsBakeryDefaults.awsSecretKey,
+        aws_region: REGION,
+        aws_ssh_username: "ubuntu",
+        aws_instance_type: "m3.medium",
+        aws_source_ami: SOURCE_UBUNTU_PV_IMAGE_NAME,
+        aws_target_ami: targetImageName,
+        deb_repo: DEBIAN_REPOSITORY,
+        packages: PACKAGE_NAME,
+        configDir: configDir
+      ]
+
+      @Subject
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(configDir: configDir,
+                                                         awsBakeryDefaults: awsBakeryDefaults,
+                                                         imageNameFactory: imageNameFactoryMock,
+                                                         packerCommandFactory: packerCommandFactoryMock,
+                                                         debianRepository: DEBIAN_REPOSITORY)
+
+    when:
+      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+
+    then:
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/somePackerTemplate.json")
+  }
+
+  void 'produces packer command with all required parameters for ubuntu, using explicit vm type, and adding extended attributes'() {
+    setup:
+      def imageNameFactoryMock = Mock(ImageNameFactory)
+      def packerCommandFactoryMock = Mock(PackerCommandFactory)
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: PACKAGE_NAME,
+                                        base_os: "ubuntu",
+                                        vm_type: BakeRequest.VmType.pv,
+                                        cloud_provider_type: BakeRequest.CloudProviderType.aws,
+                                        extended_attributes: [someAttr1: "someValue1", someAttr2: "someValue2"])
+      def targetImageName = "kato-x8664-timestamp-ubuntu"
+      def parameterMap = [
+        aws_access_key: awsBakeryDefaults.awsAccessKey,
+        aws_secret_key: awsBakeryDefaults.awsSecretKey,
+        aws_region: REGION,
+        aws_ssh_username: "ubuntu",
+        aws_instance_type: "m3.medium",
+        aws_source_ami: SOURCE_UBUNTU_PV_IMAGE_NAME,
+        aws_target_ami: targetImageName,
+        deb_repo: DEBIAN_REPOSITORY,
+        packages: PACKAGE_NAME,
+        configDir: configDir,
+        someAttr1: "someValue1",
+        someAttr2: "someValue2"
+      ]
+
+      @Subject
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(configDir: configDir,
+                                                         awsBakeryDefaults: awsBakeryDefaults,
+                                                         imageNameFactory: imageNameFactoryMock,
+                                                         packerCommandFactory: packerCommandFactoryMock,
+                                                         debianRepository: DEBIAN_REPOSITORY)
+
+    when:
+      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+
+    then:
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
+  }
+
   void 'produces packer command with all required parameters for trusty, using explicit vm type'() {
     setup:
       def imageNameFactoryMock = Mock(ImageNameFactory)

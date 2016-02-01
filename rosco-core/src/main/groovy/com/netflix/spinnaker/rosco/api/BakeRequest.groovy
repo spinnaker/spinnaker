@@ -45,14 +45,21 @@ class BakeRequest {
   @ApiModelProperty("The target platform")
   CloudProviderType cloud_provider_type
   Label base_label
+  @ApiModelProperty("The named base image to resolve from rosco's configuration")
   String base_os
   String base_name
+  @ApiModelProperty("The explicit machine image to use, instead of resolving one from rosco's configuration")
   String base_ami
   VmType vm_type
   StoreType store_type
   Boolean enhanced_networking
   String ami_name
   String ami_suffix
+
+  @ApiModelProperty("The explicit packer template to use, instead of resolving one from rosco's configuration")
+  String template_file_name
+  @ApiModelProperty("A map of key/value pairs to add to the packer command")
+  Map extended_attributes
 
   static enum CloudProviderType {
     aws, docker, gce
