@@ -1,4 +1,4 @@
-<div ng-if="!project.notFound" class="project-dashboard">
+<div ng-if="!vm.project.notFound" class="project-dashboard">
   <div class="row">
     <div class="col-md-7">
       <h3>Application Status
@@ -8,13 +8,13 @@
       </h3>
       <project-cluster
           ng-repeat="cluster in vm.clusters"
-          project="project"
+          project="vm.project"
           cluster="cluster"
           ></project-cluster>
       <div class="text-center" ng-if="!vm.state.clusters.loaded">
         <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
       </div>
-      <h4 ng-if="!project.config.clusters.length">No clusters configured</h4>
+      <h4 ng-if="!vm.project.config.clusters.length">No clusters configured</h4>
       <h4 ng-if="vm.state.clusters.error">There was a problem loading the clusters for this project.</h4>
     </div>
     <div class="col-md-5">
@@ -29,7 +29,7 @@
       <project-pipeline
         ng-repeat="execution in vm.executions"
         execution="execution"></project-pipeline>
-      <h4 ng-if="!project.config.pipelineConfigs.length">No pipelines configured</h4>
+      <h4 ng-if="!vm.project.config.pipelineConfigs.length">No pipelines configured</h4>
       <h4 ng-if="vm.state.executions.error">There was a problem loading the executions for this project.</h4>
     </div>
   </div>

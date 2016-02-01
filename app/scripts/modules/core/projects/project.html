@@ -1,33 +1,33 @@
 <div class="page-header project-header">
-  <div class="row" ng-if="!project.notFound">
+  <div class="row" ng-if="!vm.project.notFound">
     <div class="col-md-8">
       <h2>
-        <span class="project-name">{{project.name}} /</span>
+        <span class="project-name">{{vm.project.name}} /</span>
         <div class="project-view">
           <a href class="nav-popover"
-             ng-click="viewState.showMenu = !viewState.showMenu"
-             ng-blur="ctrl.hideNavigationMenu()">
-            {{viewState.navSelection.title}}
-            <span class="small glyphicon glyphicon-chevron-{{viewState.showMenu ? 'up' : 'down'}}"></span>
+             ng-click="vm.viewState.showMenu = !vm.viewState.showMenu"
+             ng-blur="vm.hideNavigationMenu()">
+            {{vm.viewState.navSelection.title}}
+            <span class="small glyphicon glyphicon-chevron-{{vm.viewState.showMenu ? 'up' : 'down'}}"></span>
           </a>
-          <div class="nav-popover-menu list-group" ng-if="viewState.showMenu">
+          <div class="nav-popover-menu list-group" ng-if="vm.viewState.showMenu">
             <a href
                class="list-group-item"
-               ng-repeat="option in navOptions"
-               ng-mousedown="viewState.navigating = true"
-               ng-click="ctrl.navigate(option)">{{option.title}}</a>
+               ng-repeat="option in vm.navOptions"
+               ng-mousedown="vm.viewState.navigating = true"
+               ng-click="vm.navigate(option)">{{option.title}}</a>
           </div>
         </div>
       </h2>
     </div>
-    <div class="col-md-4 text-right" ng-if="viewState.dashboard">
-      <a href ng-click="ctrl.configureProject()" class="btn btn-configure configure-project-link"><span class="glyphicon glyphicon-cog"></span> Project Configuration</a>
+    <div class="col-md-4 text-right" ng-if="vm.viewState.dashboard">
+      <a href ng-click="vm.configureProject()" class="btn btn-configure configure-project-link"><span class="glyphicon glyphicon-cog"></span> Project Configuration</a>
     </div>
   </div>
-  <div class="row" ng-if="project.notFound">
+  <div class="row" ng-if="vm.project.notFound">
     <h1 class="text-center">&lt;404&gt;</h1>
 
-    <p class="text-center">Please check your URL - we can't find any data for <em>{{project.name}}</em>.</p>
+    <p class="text-center">Please check your URL - we can't find any data for the project <em>{{vm.project.name}}</em>.</p>
   </div>
 </div>
-<div ng-if="!project.notFound" ui-view="detail" class="project-details flex-fill"></div>
+<div ng-if="!vm.project.notFound" ui-view="detail" class="project-details flex-fill"></div>

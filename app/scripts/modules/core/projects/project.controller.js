@@ -10,28 +10,15 @@ module.exports = angular.module('spinnaker.core.projects.project.controller', [
 ])
   .controller('ProjectCtrl', function ($scope, $uibModal, $timeout, $state, projectConfiguration, _) {
 
-    $scope.project = projectConfiguration;
+    this.project = projectConfiguration;
 
-    projectConfiguration.config.applications = projectConfiguration.config.applications || [];
-
-    let selectedApplication = null;
-
-    // $stateParams is scoped to parent state, so if an application is selected, it will not be visible
-    $scope.$on('$stateChangeSuccess', function(event, toState, toParams) {
-      selectedApplication = toParams.application;
-      if (selectedApplication) {
-        $scope.viewState.navSelection = _.find($scope.navOptions, (option) => option.title === selectedApplication);
-      }
-      $scope.viewState.dashboard = !selectedApplication;
-    });
-
-    $scope.viewState = {
+    this.viewState = {
       projectLoaded: false,
       showMenu: false,
       navigating: false,
     };
 
-    $scope.navOptions = [
+    this.navOptions = [
       {
         title: 'Project Dashboard',
         view: 'home.project.dashboard',
@@ -39,35 +26,54 @@ module.exports = angular.module('spinnaker.core.projects.project.controller', [
       }
     ];
 
-    projectConfiguration.config.applications.sort().forEach((application) => $scope.navOptions.push(
-      {
-        title: application,
-        view: 'home.project.application.insight.clusters',
-        params: { application: application, project: projectConfiguration.name}
-      }
-    ));
+    let initialize = () => {
+      projectConfiguration.config.applications = projectConfiguration.config.applications || [];
 
-    if (selectedApplication) {
-      $scope.viewState.navSelection = _.find($scope.navOptions, (option) => option.title === selectedApplication);
-    } else {
-      $scope.viewState.navSelection = $scope.navOptions[0];
+      let selectedApplication = null;
+
+      // $stateParams is scoped to parent state, so if an application is selected, it will not be visible
+      $scope.$on('$stateChangeSuccess', (event, toState, toParams) => {
+        selectedApplication = toParams.application;
+        if (selectedApplication) {
+          this.viewState.navSelection = _.find(this.navOptions, (option) => option.title === selectedApplication);
+        }
+        this.viewState.dashboard = !selectedApplication;
+      });
+
+      projectConfiguration.config.applications.sort().forEach((application) => this.navOptions.push(
+        {
+          title: application,
+          view: 'home.project.application.insight.clusters',
+          params: { application: application, project: projectConfiguration.name}
+        }
+      ));
+
+      if (selectedApplication) {
+        this.viewState.navSelection = _.find(this.navOptions, (option) => option.title === selectedApplication);
+      } else {
+        this.viewState.navSelection = this.navOptions[0];
+      }
+      this.viewState.dashboard = !selectedApplication;
+    };
+
+    if (!projectConfiguration.notFound) {
+      initialize();
     }
-    $scope.viewState.dashboard = !selectedApplication;
 
     this.hideNavigationMenu = () => {
       // give the navigate method a chance to fire before hiding the menu
       $timeout(() => {
-        if (!$scope.viewState.navigating) {
-          $scope.viewState.showMenu = false;
+        if (!this.viewState.navigating) {
+          this.viewState.showMenu = false;
         }
       }, 100 );
     };
 
     this.navigate = (option) => {
-      $scope.viewState.navSelection = option;
-      $scope.viewState.showMenu = false;
+      this.viewState.navSelection = option;
+      this.viewState.showMenu = false;
       $state.go(option.view, option.params);
-      $scope.viewState.navigating = false;
+      this.viewState.navigating = false;
     };
 
     this.configureProject = () => {
