@@ -94,6 +94,37 @@ describe('Service: FilterModelService', function () {
     });
   });
 
+  describe('checkStackFilters', function () {
+    beforeEach(configure);
+    it ('returns true for all items if no stacks selected', function () {
+      var items = [ { stack: 'a'}, { stack: 'b'}, {}];
+      items.forEach(function(item) {
+        expect(service.checkStackFilters(filterModel)(item)).toBe(true);
+      });
+    });
+
+    it ('returns true for items that have a selected stack', function () {
+      var items = [ { stack: 'a'}, { stack: 'b'}, {}];
+      filterModel.sortFilter.stack = {
+        a: true
+      };
+      expect(service.checkStackFilters(filterModel)(items[0])).toBe(true);
+      expect(service.checkStackFilters(filterModel)(items[1])).toBe(false);
+      expect(service.checkStackFilters(filterModel)(items[2])).toBe(false);
+    });
+
+    it ('includes items without a stack if (none) is selected', function () {
+      var items = [ { stack: 'a'}, { stack: 'b'}, { stack: ''}];
+      filterModel.sortFilter.stack = {
+        a: true,
+        '(none)': true
+      };
+      expect(service.checkStackFilters(filterModel)(items[0])).toBe(true);
+      expect(service.checkStackFilters(filterModel)(items[1])).toBe(false);
+      expect(service.checkStackFilters(filterModel)(items[2])).toBe(true);
+    });
+  });
+
   describe('checkRegionFilters', function () {
     beforeEach(configure);
     it ('returns true for all items if no regions selected', function () {
