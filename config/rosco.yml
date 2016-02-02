@@ -22,6 +22,9 @@ google:
     - name: ${providers.google.primaryCredentials.name}
       project: ${providers.google.primaryCredentials.project}
       jsonPath: ${providers.google.primaryCredentials.jsonPath}
+  gce:
+    bakeryDefaults:
+      zone: ${providers.google.defaultZone}
 
 rush:
   baseUrl: ${services.rush.baseUrl:localhost:8085}
