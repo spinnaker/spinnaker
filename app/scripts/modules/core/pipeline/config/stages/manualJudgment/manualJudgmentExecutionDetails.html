@@ -12,12 +12,12 @@
           </dd>
           <dt ng-if="stage.context.judgmentInput">Input</dt>
           <dd ng-if="stage.context.judgmentInput">{{ stage.context.judgmentInput | robotToHuman}}</dd>
-          <dt>Instructions</dt>
+          <dt ng-if="stage.context.instructions">Instructions</dt>
           <dd ng-bind-html="stage.context.instructions"></dd>
         </dl>
       </div>
       <div class="col-md-9" ng-if="!stage.context.judgmentStatus && stage.status === 'RUNNING'">
-        <div ng-if="!!stage.context.judgmentInputs.length">
+        <div class="form-group" ng-if="!!stage.context.judgmentInputs.length">
           <p><b>Judgment Input</b></p>
           <ui-select ng-model="viewState.judgmentInput" class="form-control input-sm">
             <ui-select-match allow-clear="true" placeholder="Select...">{{$select.selected.value}}</ui-select-match>
