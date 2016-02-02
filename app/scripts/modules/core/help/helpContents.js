@@ -163,6 +163,8 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.manualJudgment.failPipeline': '' +
       '<p><strong>Checked</strong> - the overall pipeline will fail whenever the manual judgment is negative.</p>' +
       '<p><strong>Unchecked</strong> - the overall pipeline will continue executing but this particular branch will stop.</p>',
+    'pipeline.config.manualJudgment.judgmentInputs': '<p>(Optional) Entries populate input dropdown when making manual judgment.</p>' +
+      '<p>Selected value can be used in precondition to determine branching.  e.g. execution.stages[n].context.judgmentInput==value</p>',
     'pipeline.config.failPipeline': '' +
     '<p><strong>Checked</strong> - the overall pipeline will fail whenever the stage fails.</p>' +
     '<p><strong>Unchecked</strong> - the overall pipeline will continue executing but this particular branch will stop.</p>',

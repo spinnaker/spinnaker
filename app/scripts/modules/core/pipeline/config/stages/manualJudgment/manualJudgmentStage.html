@@ -13,6 +13,39 @@
       </label>
     </div>
   </stage-config-field>
+  <stage-config-field label="Judgment Input Values" help-key="pipeline.config.manualJudgment.judgmentInputs">
+    <table class="table table-condensed packed">
+      <thead>
+      <tr>
+        <th>Input Value</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr ng-repeat="judgmentInput in stage.judgmentInputs track by $index">
+        <td>
+        <div class="col-md-6">
+          <input type="text" required ng-model="judgmentInput.value" value="{{judgmentInput.value}}"
+                 class="form-control input-sm"/>
+        </div>
+        </td>
+        <td>
+          <a class="btn btn-xs btn-link pad-left" href
+             ng-click="manualJudgmentStageCtrl.removeJudgmentInput($index)">Remove</a>
+        </td>
+      </tr>
+      </tbody>
+      <tfoot>
+      <tr>
+        <td colspan="7">
+          <button class="btn btn-block btn-sm add-new" ng-click="manualJudgmentStageCtrl.addJudgmentInput()">
+            <span class="glyphicon glyphicon-plus-sign"></span> Add judgment input
+          </button>
+        </td>
+      </tr>
+      </tfoot>
+    </table>
+  </stage-config-field>
   <stage-config-field label="Notifications">
     <table class="table table-condensed">
       <thead>

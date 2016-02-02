@@ -19,6 +19,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentSta
   .controller('ManualJudgmentStageCtrl', function($scope, $uibModal) {
 
     $scope.stage.notifications = $scope.stage.notifications || [];
+    $scope.stage.judgmentInputs = $scope.stage.judgmentInputs || [];
     $scope.stage.failPipeline = ($scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline);
 
     this.addNotification = function() {
@@ -40,4 +41,15 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentSta
       $scope.stage.notifications.splice(idx, 1);
     };
 
+    this.addJudgmentInput = function() {
+      if (!$scope.stage.judgmentInputs) {
+        $scope.stage.judgmentInputs = [];
+      }
+      var judgmentInput = {};
+      $scope.stage.judgmentInputs.push(judgmentInput);
+    };
+
+    this.removeJudgmentInput = function (idx) {
+      $scope.stage.judgmentInputs.splice(idx, 1);
+    };
   });
