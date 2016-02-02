@@ -49,4 +49,5 @@ class GoogleConfigurationProperties {
   int pollingIntervalSeconds = POLLING_INTERVAL_SECONDS_DEFAULT
   int asyncOperationTimeoutSecondsDefault = ASYNC_OPERATION_TIMEOUT_SECONDS_DEFAULT
   int asyncOperationMaxPollingIntervalSeconds = ASYNC_OPERATION_MAX_POLLING_INTERVAL_SECONDS
+  List<String> baseImageProjects
 }

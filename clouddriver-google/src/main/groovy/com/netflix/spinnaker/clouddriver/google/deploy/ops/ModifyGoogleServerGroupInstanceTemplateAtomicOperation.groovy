@@ -20,6 +20,7 @@ import com.google.api.services.compute.model.InstanceGroupManagersSetInstanceTem
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
+import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
@@ -40,6 +41,9 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
 
   private static final String accessConfigName = "External NAT"
   private static final String accessConfigType = "ONE_TO_ONE_NAT"
+
+  @Autowired
+  private GoogleConfigurationProperties googleConfigurationProperties
 
   @Autowired
   private GoogleConfiguration.DeployDefaults googleDeployDefaults
@@ -130,7 +134,8 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
                                                    compute,
                                                    task,
                                                    BASE_PHASE,
-                                                   googleApplicationName)
+                                                   googleApplicationName,
+                                                   googleConfigurationProperties.baseImageProjects)
         def attachedDisks = GCEUtil.buildAttachedDisks(project,
                                                        zone,
                                                        sourceImage,
