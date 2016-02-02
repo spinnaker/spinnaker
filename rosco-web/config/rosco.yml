@@ -126,6 +126,7 @@ google:
   gce:
     bakeryDefaults:
       zone: us-central1-f
+      network: default
       useInternalIp: false
       templateFile: gce.json
       baseImages:
