@@ -21,8 +21,8 @@
     </label>
   </stage-config-field>
 
-  <!-- Even if the rebakeControlEnabled flag is false, we should show the control if rebake is set. -->
-  <stage-config-field label="Rebake" ng-if="viewState.rebakeControlEnabled || stage.rebake">
+  <!-- Even if the roscoMode flag is false, we should show the control if rebake is set. -->
+  <stage-config-field label="Rebake" ng-if="viewState.roscoMode || stage.rebake">
     <div class="checkbox" style="margin-bottom: 0">
       <label>
         <input type="checkbox"
@@ -43,6 +43,11 @@
     </div>
   </div>
   <div ng-class="{collapse: stage.showAdvancedOptions !== true, 'collapse.in': stage.showAdvancedOptions === true}">
+    <stage-config-field label="Template File Name" help-key="pipeline.config.bake.templateFileName"
+                        ng-if="viewState.roscoMode || stage.templateFileName">
+      <input type="text" class="form-control input-sm"
+             ng-model="stage.templateFileName"/>
+    </stage-config-field>
     <stage-config-field label="Base Image" help-key="pipeline.config.gce.bake.baseImage">
       <input type="text" class="form-control input-sm"
              ng-model="stage.baseAmi"/>

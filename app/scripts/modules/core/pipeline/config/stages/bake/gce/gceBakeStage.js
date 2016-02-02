@@ -53,7 +53,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.bakeStage', [
         if (!$scope.stage.baseLabel && $scope.baseLabelOptions && $scope.baseLabelOptions.length) {
           $scope.stage.baseLabel = $scope.baseLabelOptions[0];
         }
-        $scope.viewState.rebakeControlEnabled = settings.feature.rebakeControlEnabled;
+        $scope.viewState.roscoMode = settings.feature.roscoMode;
         $scope.viewState.loading = false;
       });
     }
