@@ -200,17 +200,15 @@ module.exports = angular.module('spinnaker.core.instance.details.multipleInstanc
       };
     };
 
-
+    let countInstances = () => {
+      return ClusterFilterModel.multiselectInstanceGroups.reduce((acc, group) => acc + group.instanceIds.length, 0);
+    };
 
     let retrieveInstances = () => {
-      this.instancesCount = 0;
+      this.instancesCount = countInstances();
       this.selectedGroups = ClusterFilterModel.multiselectInstanceGroups
         .filter((group) => group.instanceIds.length)
         .map(makeServerGroupModel);
-
-      this.selectedGroups.forEach((group) => {
-        this.instancesCount += group.instances.length;
-      });
     };
 
     let multiselectWatcher = ClusterFilterModel.multiselectInstancesStream.subscribe(retrieveInstances);
@@ -219,6 +217,11 @@ module.exports = angular.module('spinnaker.core.instance.details.multipleInstanc
     retrieveInstances();
 
     $scope.$on('$destroy', () => {
+      // if there's just one instance selected, this is being destroyed because we're moving to the instanceDetails
+      // view; otherwise, deselect any instances because the user is closing the panel explicitly
+      if (countInstances() !== 1) {
+        ClusterFilterModel.clearAllMultiselectGroups();
+      }
       refreshWatcher.dispose();
       multiselectWatcher.dispose();
     });

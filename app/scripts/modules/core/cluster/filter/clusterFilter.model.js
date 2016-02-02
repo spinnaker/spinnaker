@@ -54,21 +54,52 @@ module.exports = angular
     };
 
     this.syncNavigation = () => {
-      let instancesSelected = 0;
-      this.multiselectInstanceGroups.forEach((instanceGroup) => {
-        instancesSelected += instanceGroup.instanceIds.length;
-      });
+      // this method gets called on page initialization, so if we're deep linked to an instance details view, leave it
+      if (!this.multiselectInstanceGroups.length && $state.params.instanceId) {
+        return;
+      }
+
+      let instancesSelected = this.multiselectInstanceGroups.reduce((acc, group) => acc + group.instanceIds.length, 0);
+
+      if (instancesSelected === 1) {
+        // if there's just one instance selected and we're not showing instance details, do so
+        if (!$state.includes('**.instanceDetails')) {
+          let [match] = this.multiselectInstanceGroups.filter((group) => group.instanceIds.length),
+              params = {provider: match.cloudProvider, instanceId: match.instanceIds[0]};
+          if ($state.includes('**.clusters.*')) {
+            $state.go('^.instanceDetails', params);
+          } else {
+            $state.go('.instanceDetails', params);
+          }
+        }
+        return;
+      }
+
+      // if the user just de-selected the one instance, close the details view
+      if (this.sortFilter.listInstances && $state.includes('**.instanceDetails') && instancesSelected === 0) {
+        $state.go('^');
+      }
 
       if ($state.includes('**.multipleInstances') && !instancesSelected) {
         $state.go('^');
       }
-      if (!$state.includes('**.multipleInstances') && instancesSelected) {
+      if (!$state.includes('**.multipleInstances') && instancesSelected > 1) {
+        // user selected multiple instances
         if ($state.includes('**.clusters.*')) {
+          // from a child state, e.g. instanceDetails
           $state.go('^.multipleInstances');
         } else {
           $state.go('.multipleInstances');
         }
       }
+    };
+
+    this.clearAllMultiselectGroups = () => {
+      this.multiselectInstanceGroups.forEach((instanceGroup) => {
+        instanceGroup.instanceIds.length = 0;
+        instanceGroup.selectAll = false;
+      });
+      this.multiselectInstancesStream.onNext();
     };
 
     this.getOrCreateMultiselectInstanceGroup = (serverGroup) => {
@@ -83,12 +114,17 @@ module.exports = angular
           instanceGroup.cloudProvider === cloudProvider;
       });
       if (!result) {
+        // when creating a new group, include an instance ID if we're deep-linked into the details view
+        let params = $state.params;
+        let instanceIds = (serverGroup.instances || [])
+          .filter((instance) => instance.provider === params.provider && instance.id === params.instanceId)
+          .map((instance) => instance.id);
         result = {
           serverGroup: serverGroupName,
           account: account,
           region: region,
           cloudProvider: cloudProvider,
-          instanceIds: [],
+          instanceIds: instanceIds,
           instances: [], // populated by details controller
           selectAll: false,
         };
@@ -177,6 +213,9 @@ module.exports = angular
       }
       if (movingFromClusterState(toState, fromState)) {
         this.saveState(fromState, fromParams, mostRecentParams);
+      }
+      if ($state.includes('**.instanceDetails') && this.sortFilter.listInstances && isClusterState(toState.name)) {
+        this.clearAllMultiselectGroups();
       }
     };
 
