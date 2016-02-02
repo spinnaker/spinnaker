@@ -20,16 +20,15 @@ module.exports = angular
       };
     };
 
-    let provideJudgment = (execution, stage, judgment) => {
+    let provideJudgment = (execution, stage, judgment, input) => {
       var targetUrl = [settings.gateUrl, 'pipelines', execution.id, 'stages', stage.id].join('/');
       var deferred = $q.defer();
       var request = {
         method: 'PATCH',
         url: targetUrl,
-        data: {judgmentStatus: judgment},
+        data: {judgmentStatus: judgment, judgmentInput: input},
         timeout: settings.pollSchedule * 2 + 5000, // TODO: replace with apiHost call
       };
-
       $http(request)
         .success(() => {
           executionService.waitUntilExecutionMatches(execution.id, buildMatcher(stage, judgment, deferred))
