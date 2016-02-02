@@ -22,6 +22,7 @@ describe('Cluster Filter Model', function () {
       this.currentStates = [];
       spyOn($state, 'includes').and.callFake((substate) => this.currentStates.indexOf(substate) > -1);
       spyOn($state, 'go').and.callFake((newState) => this.result = newState);
+      $state.params = {};
     });
 
     describe('syncNavigation', function () {
@@ -32,29 +33,53 @@ describe('Cluster Filter Model', function () {
 
       it('navigates to multipleInstances child view when not already there and instances are selected', function () {
         this.instanceGroup.instanceIds.push('i-123');
-        this.currentStates = ['**.clusters.*'];
-        ClusterFilterModel.syncNavigation();
-        expect(this.result).toBe('^.multipleInstances');
-      });
-
-      it('navigates to multipleInstances sibling view when not already there and instances are selected', function () {
-        this.instanceGroup.instanceIds.push('i-123');
-        this.currentStates = ['**.clusters.instanceDetails'];
+        this.instanceGroup.instanceIds.push('i-124');
+        this.currentStates = ['**.clusters'];
         ClusterFilterModel.syncNavigation();
         expect(this.result).toBe('.multipleInstances');
       });
 
+      it('navigates to instanceDetails child view when not already there and an instance is selected', function () {
+        this.instanceGroup.instanceIds.push('i-123');
+        this.currentStates = ['**.clusters'];
+        ClusterFilterModel.syncNavigation();
+        expect(this.result).toBe('.instanceDetails');
+      });
+
+      it('navigates to multipleInstances sibling view when not already there and instances are selected', function () {
+        this.instanceGroup.instanceIds.push('i-123');
+        this.instanceGroup.instanceIds.push('i-124');
+        this.currentStates = ['**.clusters.*', '**.clusters.instanceDetails'];
+        ClusterFilterModel.syncNavigation();
+        expect(this.result).toBe('^.multipleInstances');
+      });
+
+      it('navigates to instanceDetails sibling view when not already there and instances are selected', function () {
+        this.instanceGroup.instanceIds.push('i-124');
+        this.currentStates = ['**.clusters.*', '**.clusters.instanceDetails'];
+        ClusterFilterModel.syncNavigation();
+        expect(this.result).toBe('^.instanceDetails');
+      });
+
       it('does not navigate when already in multipleInstances view', function () {
         this.instanceGroup.instanceIds.push('i-123');
-        this.currentStates = ['**.multipleInstances'];
+        this.instanceGroup.instanceIds.push('i-124');
+        this.currentStates = ['**.clusters.*', '**.multipleInstances'];
         ClusterFilterModel.syncNavigation();
         expect(this.result).toBe(null);
       });
 
       it('navigates away from multipleInstances view when no instances are selected', function () {
-        this.currentStates = ['**.multipleInstances'];
+        this.currentStates = ['**.clusters.*', '**.multipleInstances'];
         ClusterFilterModel.syncNavigation();
         expect(this.result).toBe('^');
+      });
+
+      it('navigates to instanceDetails view when just one instance remains selected', function () {
+        this.instanceGroup.instanceIds.push('i-123');
+        this.currentStates = ['**.clusters.*', '**.multipleInstances'];
+        ClusterFilterModel.syncNavigation();
+        expect(this.result).toBe('^.instanceDetails');
       });
     });
 
@@ -96,6 +121,14 @@ describe('Cluster Filter Model', function () {
         this.serverGroup.type += 'a';
         let test = ClusterFilterModel.getOrCreateMultiselectInstanceGroup(this.serverGroup);
         expect(test).not.toBe(this.original);
+      });
+
+      it('includes instance id if present in state params', function () {
+        $state.params = { provider: 'aws', instanceId: 'i-123' };
+        this.serverGroup.instances = [ { id: 'i-123', provider: 'aws' } ];
+        this.serverGroup.name = 'asg-v002';
+        let test = ClusterFilterModel.getOrCreateMultiselectInstanceGroup(this.serverGroup);
+        expect(test.instanceIds).toEqual(['i-123']);
       });
     });
 

@@ -23,8 +23,6 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
             instanceGroup = ClusterFilterModel.getOrCreateMultiselectInstanceGroup(scope.serverGroup),
             activeInstance = null;
 
-        var base = elem.parent().inheritedData('$uiView').state;
-
         function toggleSelection(instanceId) {
           ClusterFilterModel.toggleMultiselectInstance(scope.serverGroup, instanceId);
         }
@@ -35,7 +33,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
 
         function buildInstanceCheckboxCell(instance) {
           let isChecked = ClusterFilterModel.instanceIsMultiselected(scope.serverGroup, instance.id);
-          return `<td class="no-hover"><input type="checkbox" data-instance-id="${instance.id}" ${isChecked ? 'checked' : ''}/></td>`;
+          return `<td class="no-hover"><input type="checkbox" ${isChecked ? 'checked' : ''}/></td>`;
         }
 
         function buildInstanceIdCell(instance) {
@@ -208,12 +206,6 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
         elem.click(function(event) {
           $timeout(function() {
             if (event.target) {
-              let $target = $(event.target);
-              if ($target.is(':checkbox')) {
-                toggleSelection(event.target.getAttribute('data-instance-id'));
-                event.preventDefault();
-                return;
-              }
               // anything handled by ui-sref or actual links should be ignored
               if (event.isDefaultPrevented() || (event.originalEvent && (event.originalEvent.defaultPrevented || event.originalEvent.target.href))) {
                 return;
@@ -225,15 +217,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
               if (activeInstance) {
                 $('tr[data-instance-id="' + activeInstance.instanceId + '"]', elem).removeClass('active');
               }
-              var targetRow = $targetRow.get(0);
-              var params = {
-                instanceId: targetRow.getAttribute('data-instance-id'),
-                provider: targetRow.getAttribute('data-provider')
-              };
-              activeInstance = params;
-              // also stolen from uiSref directive
-              $state.go('.instanceDetails', params, {relative: base, inherit: true});
-              $targetRow.addClass('active');
+              toggleSelection($targetRow.attr('data-instance-id'));
               event.preventDefault();
             }
           });
