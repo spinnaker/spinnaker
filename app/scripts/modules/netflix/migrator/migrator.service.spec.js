@@ -1,6 +1,6 @@
 'use strict';
 
-fdescribe('Service: migrator', function () {
+describe('Service: migrator', function () {
 
   var service, $q, $scope, taskExecutor;
 
