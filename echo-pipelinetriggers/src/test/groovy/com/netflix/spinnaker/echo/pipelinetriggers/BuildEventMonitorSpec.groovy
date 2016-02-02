@@ -26,8 +26,10 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
   @Subject
   def monitor = new BuildEventMonitor(pipelineCache, subscriber, registry)
 
-  def "triggers pipelines for successful builds"() {
+  @Unroll
+  def "triggers pipelines for successful builds for #triggerType"() {
     given:
+    def pipeline = createPipelineWith(trigger)
     pipelineCache.getPipelines() >> [pipeline]
 
     when:
@@ -39,11 +41,12 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     })
 
     where:
-    event = createBuildEventWith(SUCCESS)
-    pipeline = createPipelineWith(enabledJenkinsTrigger)
+    event                         | trigger               | triggerType
+    createBuildEventWith(SUCCESS) | enabledJenkinsTrigger | 'jenkins'
+    createStashEvent()            | enabledStashTrigger   | 'stash'
   }
 
-  def "attaches the trigger to the pipeline"() {
+  def "attaches jenkins trigger to the pipeline"() {
     given:
     pipelineCache.getPipelines() >> [pipeline]
 
@@ -63,6 +66,26 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     pipeline = createPipelineWith(enabledJenkinsTrigger, nonJenkinsTrigger)
   }
 
+  def "attaches stash trigger to the pipeline"() {
+    given:
+    pipelineCache.getPipelines() >> [pipeline]
+
+    when:
+    monitor.processEvent(objectMapper.convertValue(event, Event))
+
+    then:
+    1 * subscriber.call({
+      it.trigger.type == enabledStashTrigger.type
+      it.trigger.project == enabledStashTrigger.project
+      it.trigger.slug == enabledStashTrigger.slug
+      it.trigger.hash == event.content.hash
+    })
+
+    where:
+    event = createStashEvent()
+    pipeline = createPipelineWith(enabledJenkinsTrigger, nonJenkinsTrigger, enabledStashTrigger, disabledStashTrigger)
+  }
+
   def "an event can trigger multiple pipelines"() {
     given:
     pipelineCache.getPipelines() >> pipelines
@@ -77,11 +100,11 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     event = createBuildEventWith(SUCCESS)
     pipelines = (1..2).collect {
       Pipeline.builder()
-              .application("application")
-              .name("pipeline$it")
-              .id("id")
-              .triggers([enabledJenkinsTrigger])
-              .build()
+        .application("application")
+        .name("pipeline$it")
+        .id("id")
+        .triggers([enabledJenkinsTrigger])
+        .build()
     }
   }
 
@@ -122,12 +145,38 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     where:
     trigger                                 | description
     disabledJenkinsTrigger                  | "disabled"
+    enabledStashTrigger                     | "stash trigger"
+    disabledStashTrigger                    | "disabled stash trigger"
     nonJenkinsTrigger                       | "non-Jenkins"
     enabledJenkinsTrigger.withMaster("FOO") | "different master"
     enabledJenkinsTrigger.withJob("FOO")    | "different job"
 
     pipeline = createPipelineWith(trigger)
     event = createBuildEventWith(SUCCESS)
+  }
+
+  @Unroll
+  def "does not trigger #description pipelinesfor stash"() {
+    given:
+    pipelineCache.getPipelines() >> [pipeline]
+
+    when:
+    monitor.processEvent(objectMapper.convertValue(event, Event))
+
+    then:
+    0 * subscriber._
+
+    where:
+    trigger                                       | description
+    disabledJenkinsTrigger                        | "jenkins disabled"
+    enabledJenkinsTrigger                         | "jenkins"
+    disabledStashTrigger                          | "disabled stash trigger"
+    enabledStashTrigger.withSlug("notSlug")       | "different slug"
+    enabledStashTrigger.withSource("github")      | "different source"
+    enabledStashTrigger.withProject("notProject") | "different project"
+
+    pipeline = createPipelineWith(trigger)
+    event = createStashEvent()
   }
 
   @Unroll
@@ -149,6 +198,29 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
 
     event = createBuildEventWith(SUCCESS)
     goodPipeline = createPipelineWith(enabledJenkinsTrigger)
+    badPipeline = createPipelineWith(trigger)
+  }
+
+  @Unroll
+  def "does not trigger a pipeline that has an enabled stash trigger with missing #field"() {
+    given:
+    pipelineCache.getPipelines() >> [badPipeline, goodPipeline]
+    println objectMapper.writeValueAsString(createBuildEventWith(SUCCESS))
+
+    when:
+    monitor.processEvent(objectMapper.convertValue(event, Event))
+
+    then:
+    1 * subscriber.call({ it.id == goodPipeline.id })
+
+    where:
+    trigger                               | field
+    enabledStashTrigger.withSlug(null)    | "slug"
+    enabledStashTrigger.withProject(null) | "project"
+    enabledStashTrigger.withSource(null)  | "source"
+
+    event = createStashEvent()
+    goodPipeline = createPipelineWith(enabledStashTrigger)
     badPipeline = createPipelineWith(trigger)
   }
 }

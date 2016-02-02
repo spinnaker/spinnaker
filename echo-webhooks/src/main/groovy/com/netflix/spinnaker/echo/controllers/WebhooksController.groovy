@@ -41,7 +41,16 @@ class WebhooksController {
     event.details.source = source
     event.details.type = type
     event.content = postedEvent
-    log.info("Webhook ${source}:${type}:${postedEvent}")
+
+    if (type == 'git' && source == 'stash') {
+      event.content.hash = postedEvent.refChanges?.first().toHash
+      event.content.branch = postedEvent.refChanges?.first().refId.replace('refs/heads/', '')
+      event.content.repoProject = postedEvent.repository.project
+      event.content.slug = postedEvent.repository.slug
+    }
+
+    log.info("Webhook ${source}:${type}:${event.content}")
+
     propagator.processEvent(event)
   }
 

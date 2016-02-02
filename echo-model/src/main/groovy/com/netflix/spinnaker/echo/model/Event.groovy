@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.echo.model
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+
 /**
  * Represents an event
  */

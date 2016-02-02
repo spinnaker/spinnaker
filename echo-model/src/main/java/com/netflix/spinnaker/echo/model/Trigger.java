@@ -26,11 +26,12 @@ import lombok.experimental.Wither;
 @JsonDeserialize(builder = Trigger.TriggerBuilder.class)
 @Builder
 @Wither
-@ToString(of = {"type", "master", "job", "cronExpression"}, includeFieldNames = false)
+@ToString(of = {"type", "master", "job", "cronExpression", "source", "project", "slug"}, includeFieldNames = false)
 @Value
 public class Trigger {
   public enum Type {
     CRON("cron"),
+    GIT("git"),
     JENKINS("jenkins");
 
     private final String type;
@@ -53,9 +54,17 @@ public class Trigger {
   Integer buildNumber;
   String propertyFile;
   String cronExpression;
+  String source;
+  String project;
+  String slug;
+  String hash;
 
   public Trigger atBuildNumber(final int buildNumber) {
-    return new Trigger(enabled, id, type, master, job, buildNumber, propertyFile, cronExpression);
+    return new Trigger(enabled, id, type, master, job, buildNumber, propertyFile, cronExpression, source, project, slug, null);
+  }
+
+  public Trigger atHash(final String hash) {
+    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, hash);
   }
 
   @JsonPOJOBuilder(withPrefix = "")
