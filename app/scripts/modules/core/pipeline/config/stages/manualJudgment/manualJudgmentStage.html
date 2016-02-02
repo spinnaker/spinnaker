@@ -13,25 +13,22 @@
       </label>
     </div>
   </stage-config-field>
-  <stage-config-field label="Judgment Input Values" help-key="pipeline.config.manualJudgment.judgmentInputs">
+  <stage-config-field label="Judgment Inputs" help-key="pipeline.config.manualJudgment.judgmentInputs">
     <table class="table table-condensed packed">
       <thead>
       <tr>
-        <th>Input Value</th>
-        <th>Actions</th>
+        <th style="width:30%">Option</th>
+        <th class="text-right">Actions</th>
       </tr>
       </thead>
       <tbody>
       <tr ng-repeat="judgmentInput in stage.judgmentInputs track by $index">
         <td>
-        <div class="col-md-6">
           <input type="text" required ng-model="judgmentInput.value" value="{{judgmentInput.value}}"
                  class="form-control input-sm"/>
-        </div>
         </td>
-        <td>
-          <a class="btn btn-xs btn-link pad-left" href
-             ng-click="manualJudgmentStageCtrl.removeJudgmentInput($index)">Remove</a>
+        <td class="text-right">
+          <a class="small" href ng-click="manualJudgmentStageCtrl.removeJudgmentInput($index)">Remove</a>
         </td>
       </tr>
       </tbody>
@@ -52,7 +49,7 @@
       <tr>
         <th>Type</th>
         <th>Details</th>
-        <th>Actions</th>
+        <th class="text-right">Actions</th>
       </tr>
       </thead>
       <tbody>
@@ -63,8 +60,8 @@
         <td>
           {{notification.address}}
         </td>
-        <td>
-          <a class="btn btn-xs btn-link pad-left" href
+        <td class="text-right">
+          <a class="small" href
              ng-click="manualJudgmentStageCtrl.removeNotification($index)">Remove</a>
         </td>
       </tr>
