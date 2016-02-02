@@ -50,6 +50,7 @@ class RoscoGoogleConfiguration {
 
   static class GCEBakeryDefaults {
     String zone
+    String network
     Boolean useInternalIp
     String templateFile
     List<GCEOperatingSystemVirtualizationSettings> baseImages = []

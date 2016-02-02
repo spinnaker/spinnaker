@@ -90,6 +90,7 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
     def parameterMap = [
       gce_project_id  : managedGoogleAccount.project,
       gce_zone        : gceBakeryDefaults.zone,
+      gce_network     : gceBakeryDefaults.network,
       gce_source_image: gceVirtualizationSettings.sourceImage,
       gce_target_image: imageName
     ]
