@@ -218,13 +218,15 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     def cacheResult = metricsSupport.transformData {
       buildCacheResult(onDemandData.asgs, onDemandData.scalingPolicies, onDemandData.scheduledActions, onDemandData.subnetMap, [:], [])
     }
+    def cacheResultAsJson = objectMapper.writeValueAsString(cacheResult.cacheResults)
+
     metricsSupport.onDemandStore {
       def cacheData = new DefaultCacheData(
         Keys.getServerGroupKey(asgName, account.name, region),
         10 * 60,
         [
           cacheTime   : new Date(),
-          cacheResults: objectMapper.writeValueAsString(cacheResult.cacheResults)
+          cacheResults: cacheResultAsJson
         ],
         [:]
       )
@@ -238,7 +240,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
       ]
     ]
 
-    log.info("onDemand cache refresh (data: ${data}, evictions: ${evictions})")
+    log.info("onDemand cache refresh (data: ${data}, evictions: ${evictions}, cacheResult: ${cacheResultAsJson})")
     return new OnDemandAgent.OnDemandResult(
       sourceAgentType: getOnDemandAgentType(), cacheResult: cacheResult, evictions: evictions
     )
