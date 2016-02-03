@@ -189,6 +189,7 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
       st.OperationContract
     """
     builder = gcp.GceContractBuilder(self.gce_observer)
+    builder.retryable_for_secs = 15
     clause = (builder.new_clause_builder('Instances Deleted', strict=True)
               .list_resources('instances'))
     for name in names:
