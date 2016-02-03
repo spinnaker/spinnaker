@@ -398,7 +398,20 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     def usableOnDemandCacheDatas = []
     providerCache.getAll(ON_DEMAND.ns, asgs.collect { Keys.getServerGroupKey(it.autoScalingGroupName, account.name, region) }).each {
       if (it.attributes.cacheTime < start) {
-        evictableOnDemandCacheDatas << it
+        if (account.eddaEnabled) {
+          def asgFromEdda = asgs.find { asg -> it.id.endsWith(":${asg.autoScalingGroupName}") }
+          def asgFromAws = loadAutoScalingGroup(asgFromEdda.autoScalingGroupName, true)
+
+          if (areSimilarAutoScalingGroups(asgFromEdda, asgFromAws)) {
+            log.info("Evicting previous onDemand value for ${asgFromEdda.autoScalingGroupName} (${flattenAutoScalingGroup(asgFromEdda)} vs ${flattenAutoScalingGroup(asgFromAws)}")
+            evictableOnDemandCacheDatas << it
+          } else {
+            log.info("Preserving previous onDemand value for ${asgFromEdda.autoScalingGroupName} (${flattenAutoScalingGroup(asgFromEdda)} vs ${flattenAutoScalingGroup(asgFromAws)}")
+            usableOnDemandCacheDatas << it
+          }
+        } else {
+          evictableOnDemandCacheDatas << it
+        }
       } else {
         usableOnDemandCacheDatas << it
       }
@@ -435,7 +448,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     for (AutoScalingGroup asg : asgs) {
       def onDemandCacheData = onDemandCacheDataByAsg ? onDemandCacheDataByAsg[Keys.getServerGroupKey(asg.autoScalingGroupName, account.name, region)] : null
       if (onDemandCacheData) {
-        log.info("Using onDemand cache value (${onDemandCacheData.id})")
+        log.info("Using onDemand cache value (id: ${onDemandCacheData.id}, json: ${onDemandCacheData.attributes.cacheResults})")
 
         Map<String, List<CacheData>> cacheResults = objectMapper.readValue(onDemandCacheData.attributes.cacheResults as String, new TypeReference<Map<String, List<MutableCacheData>>>() {})
         cache(cacheResults["applications"], applications)
@@ -546,12 +559,33 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     }
   }
 
+  private AutoScalingGroup loadAutoScalingGroup(String autoScalingGroupName, boolean skipEdda) {
+    def autoScaling = amazonClientProvider.getAutoScaling(account, region, true)
+    def result = autoScaling.describeAutoScalingGroups(
+      new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(autoScalingGroupName)
+    )
+    return result.autoScalingGroups?.get(0)
+  }
+
   private Map buildScalingPolicy(ScalingPolicy scalingPolicy, Map<String, Map> metricAlarms) {
     Map policy = objectMapper.convertValue(scalingPolicy, Map)
     policy.alarms = scalingPolicy.alarms.findResults {
       metricAlarms[it.alarmARN]
     }
     policy
+  }
+
+  private static Map flattenAutoScalingGroup(AutoScalingGroup asg) {
+    return [
+      desiredCapacity   : asg.desiredCapacity,
+      minSize           : asg.minSize,
+      maxSize           : asg.maxSize,
+      suspendedProcesses: asg.suspendedProcesses*.processName.sort()
+    ]
+  }
+
+  private static boolean areSimilarAutoScalingGroups(AutoScalingGroup asg1, AutoScalingGroup asg2) {
+    return flattenAutoScalingGroup(asg1) == flattenAutoScalingGroup(asg2)
   }
 
   private static class AutoScalingGroupsResults {
