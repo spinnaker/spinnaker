@@ -31,7 +31,7 @@ import com.google.api.services.compute.model.NetworkList
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
-import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.description.CreateGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
@@ -48,6 +48,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
   private static final INSTANCE_TYPE = "f1-micro"
   private static final MACHINE_TYPE_LINK = "http://..."
   private static final ZONE = "us-central1-b"
+  private static final BASE_IMAGE_PROJECTS = ["centos-cloud", "ubuntu-os-cloud"]
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -57,7 +58,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
     setup:
       def computeMock = new MockFor(Compute)
       def batchMock = new MockFor(BatchRequest)
-      def imageProjects = [PROJECT_NAME] + GCEUtil.baseImageProjects
+      def imageProjects = [PROJECT_NAME] + BASE_IMAGE_PROJECTS
       def listMock = new MockFor(Compute.Images.List)
 
       def machineTypesMock = Mock(Compute.MachineTypes)
@@ -110,6 +111,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
                                                                   accountName: ACCOUNT_NAME,
                                                                   credentials: credentials)
             @Subject def operation = new CreateGoogleInstanceAtomicOperation(description)
+            operation.googleConfigurationProperties = new GoogleConfigurationProperties(baseImageProjects: BASE_IMAGE_PROJECTS)
             operation.googleDeployDefaults = new GoogleConfiguration.DeployDefaults()
             operation.operate([])
           }
@@ -154,7 +156,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
     setup:
       def computeMock = new MockFor(Compute)
       def batchMock = new MockFor(BatchRequest)
-      def imageProjects = [PROJECT_NAME] + GCEUtil.baseImageProjects
+      def imageProjects = [PROJECT_NAME] + BASE_IMAGE_PROJECTS
       def listMock = new MockFor(Compute.Images.List)
 
       def machineTypesMock = Mock(Compute.MachineTypes)
@@ -200,6 +202,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
                                                                   accountName: ACCOUNT_NAME,
                                                                   credentials: credentials)
             @Subject def operation = new CreateGoogleInstanceAtomicOperation(description)
+            operation.googleConfigurationProperties = new GoogleConfigurationProperties(baseImageProjects: BASE_IMAGE_PROJECTS)
             operation.operate([])
           }
         }

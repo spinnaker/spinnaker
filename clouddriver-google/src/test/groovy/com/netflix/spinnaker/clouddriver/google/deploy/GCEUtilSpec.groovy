@@ -51,6 +51,7 @@ class GCEUtilSpec extends Specification {
   private static final CREDENTIALS = new GoogleCredentials(null, null, [IMAGE_PROJECT_NAME])
   private static final BASE_DESCRIPTION_2 = new BaseGoogleInstanceDescription(image: IMAGE_NAME, credentials: CREDENTIALS)
   private static final GOOGLE_APPLICATION_NAME = "test"
+  private static final BASE_IMAGE_PROJECTS = ["centos-cloud", "ubuntu-os-cloud"]
 
   @Shared
   def taskMock
@@ -64,7 +65,7 @@ class GCEUtilSpec extends Specification {
     setup:
       def computeMock = new MockFor(Compute)
       def batchMock = new MockFor(BatchRequest)
-      def imageProjects = [PROJECT_NAME] + GCEUtil.baseImageProjects
+      def imageProjects = [PROJECT_NAME] + BASE_IMAGE_PROJECTS
       def listMock = new MockFor(Compute.Images.List)
 
       def httpTransport = GoogleNetHttpTransport.newTrustedTransport()
@@ -102,7 +103,7 @@ class GCEUtilSpec extends Specification {
             def compute = new Compute.Builder(
                     httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build()
 
-            sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, BASE_DESCRIPTION_1, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME)
+            sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, BASE_DESCRIPTION_1, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME, BASE_IMAGE_PROJECTS)
           }
         }
       }
@@ -115,7 +116,7 @@ class GCEUtilSpec extends Specification {
     setup:
       def computeMock = new MockFor(Compute)
       def batchMock = new MockFor(BatchRequest)
-      def imageProjects = [PROJECT_NAME] + [IMAGE_PROJECT_NAME] + GCEUtil.baseImageProjects
+      def imageProjects = [PROJECT_NAME] + [IMAGE_PROJECT_NAME] + BASE_IMAGE_PROJECTS
       def listMock = new MockFor(Compute.Images.List)
 
       def httpTransport = GoogleNetHttpTransport.newTrustedTransport()
@@ -153,7 +154,7 @@ class GCEUtilSpec extends Specification {
             def compute = new Compute.Builder(
                     httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build()
 
-            sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, BASE_DESCRIPTION_2, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME)
+            sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, BASE_DESCRIPTION_2, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME, BASE_IMAGE_PROJECTS)
           }
         }
       }
@@ -166,7 +167,7 @@ class GCEUtilSpec extends Specification {
     setup:
       def computeMock = new MockFor(Compute)
       def batchMock = new MockFor(BatchRequest)
-      def imageProjects = [PROJECT_NAME] + GCEUtil.baseImageProjects
+      def imageProjects = [PROJECT_NAME] + BASE_IMAGE_PROJECTS
       def listMock = new MockFor(Compute.Images.List)
 
       def httpTransport = GoogleNetHttpTransport.newTrustedTransport()
@@ -202,7 +203,7 @@ class GCEUtilSpec extends Specification {
             def compute = new Compute.Builder(
                     httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build()
 
-            sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, BASE_DESCRIPTION_1, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME)
+            sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, BASE_DESCRIPTION_1, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME, BASE_IMAGE_PROJECTS)
           }
         }
       }

@@ -29,10 +29,6 @@ class Utils {
   public static final String TARGET_POOL_NAME_PREFIX = "tp"
   public static final String SIMPLE_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSX"
 
-  // TODO(duftler): This list should be configurable.
-  public static final List<String> baseImageProjects = ["centos-cloud", "coreos-cloud", "debian-cloud", "google-containers",
-                                                        "opensuse-cloud", "rhel-cloud", "suse-cloud", "ubuntu-os-cloud"]
-
   static long getTimeFromTimestamp(String timestamp) {
     if (timestamp) {
       return new SimpleDateFormat(SIMPLE_DATE_FORMAT).parse(timestamp).getTime()

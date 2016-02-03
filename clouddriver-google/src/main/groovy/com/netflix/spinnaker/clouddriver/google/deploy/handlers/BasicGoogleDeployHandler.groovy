@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.deploy.DeployHandler
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
+import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
@@ -43,6 +44,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
   private static final String DEFAULT_NETWORK_NAME = "default"
   private static final String ACCESS_CONFIG_NAME = "External NAT"
   private static final String ACCESS_CONFIG_TYPE = "ONE_TO_ONE_NAT"
+
+  @Autowired
+  private GoogleConfigurationProperties googleConfigurationProperties
 
   @Autowired
   private GoogleConfiguration.DeployDefaults googleDeployDefaults
@@ -97,7 +101,13 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def machineType = GCEUtil.queryMachineType(project, zone, description.instanceType, compute, task, BASE_PHASE)
 
-    def sourceImage = GCEUtil.querySourceImage(project, description, compute, task, BASE_PHASE, googleApplicationName)
+    def sourceImage = GCEUtil.querySourceImage(project,
+                                               description,
+                                               compute,
+                                               task,
+                                               BASE_PHASE,
+                                               googleApplicationName,
+                                               googleConfigurationProperties.baseImageProjects)
 
     def network = GCEUtil.queryNetwork(project, description.network ?: DEFAULT_NETWORK_NAME, compute, task, BASE_PHASE)
 

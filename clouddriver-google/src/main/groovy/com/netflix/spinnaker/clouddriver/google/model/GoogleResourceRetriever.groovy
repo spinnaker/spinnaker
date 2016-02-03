@@ -164,7 +164,7 @@ class GoogleResourceRetriever {
         // Retrieve pruned list of available images for known public image projects.
         def imagesCallback = new ImagesCallback(tempImageMap[accountName], true)
 
-        Utils.baseImageProjects.each { baseImageProject ->
+        googleConfigurationProperties.baseImageProjects.each { baseImageProject ->
           compute.images().list(baseImageProject).queue(regionsBatch, imagesCallback)
         }
 

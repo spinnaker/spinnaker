@@ -25,8 +25,6 @@ import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
-import com.netflix.frigga.NameValidation
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
@@ -38,7 +36,6 @@ import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceN
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDiskType
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
-import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 
@@ -47,10 +44,6 @@ class GCEUtil {
   private static final String DISK_TYPE_SCRATCH = "SCRATCH"
 
   public static final String TARGET_POOL_NAME_PREFIX = "tp"
-
-  // TODO(duftler): This list should not be static, but should also not be built on each call.
-  static final List<String> baseImageProjects = ["centos-cloud", "coreos-cloud", "debian-cloud", "google-containers",
-                                                 "opensuse-cloud", "rhel-cloud", "suse-cloud", "ubuntu-os-cloud"]
 
   static MachineType queryMachineType(String projectName, String zone, String machineTypeName, Compute compute, Task task, String phase) {
     task.updateStatus phase, "Looking up machine type $machineTypeName..."
@@ -70,7 +63,8 @@ class GCEUtil {
                                 Compute compute,
                                 Task task,
                                 String phase,
-                                String googleApplicationName) {
+                                String googleApplicationName,
+                                List<String> baseImageProjects) {
     task.updateStatus phase, "Looking up source image $description.image..."
 
     def imageProjects = [projectName] + description.credentials?.imageProjects + baseImageProjects - null

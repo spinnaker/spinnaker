@@ -73,6 +73,16 @@ azure:
 
 google:
   enabled: false
+  baseImageProjects:
+  - centos-cloud
+  - coreos-cloud
+  - debian-cloud
+  - google-containers
+  - opensuse-cloud
+  - rhel-cloud
+  - suse-cloud
+  - ubuntu-os-cloud
+  - windows-cloud
   defaults:
     instanceTypeDisks:
     - instanceType: n1-standard-1
