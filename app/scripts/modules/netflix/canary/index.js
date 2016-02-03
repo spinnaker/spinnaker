@@ -4,5 +4,6 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.canary', [
-    require('./canaryAnalysisNameSelector.directive.js')
+    require('./canaryAnalysisNameSelector.directive.js'),
+    require('./canaryConfigSelector.directive')
   ]);

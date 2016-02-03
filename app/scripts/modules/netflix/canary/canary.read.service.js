@@ -9,12 +9,17 @@ module.exports = angular
   ])
   .factory('canaryReadService', function(Restangular) {
 
-    function getCanaryById(canaryId) {
+    let getCanaryById = (canaryId) => {
       return Restangular.one('canaries').one(canaryId).get();
-    }
+    };
+
+    let getCanaryConfigsByApplication = (applicationName) => {
+      return Restangular.one('canaryConfigs').one(applicationName).getList();
+    };
 
     return {
       getCanaryById: getCanaryById,
+      getCanaryConfigsByApplication: getCanaryConfigsByApplication
     };
 
   });
