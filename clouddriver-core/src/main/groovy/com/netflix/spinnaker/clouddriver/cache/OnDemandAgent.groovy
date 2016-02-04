@@ -40,4 +40,6 @@ interface OnDemandAgent {
   boolean handles(String type, String cloudProvider)
 
   OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data)
+
+  Collection<Map> pendingOnDemandRequests(ProviderCache providerCache)
 }

@@ -137,6 +137,11 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
     buildCacheResult(providerCache, getSecurityGroups(ec2))
   }
 
+  @Override
+  Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+    return []
+  }
+
   private List<SecurityGroup> getSecurityGroups(AmazonEC2 amazonEC2) {
     log.info("Describing items in ${agentType}")
     amazonEC2.describeSecurityGroups().securityGroups

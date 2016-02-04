@@ -119,6 +119,11 @@ class GoogleSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
   }
 
   @Override
+  Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+    return []
+  }
+
+  @Override
   boolean handles(String type) {
     type == LEGACY_ON_DEMAND_TYPE
   }

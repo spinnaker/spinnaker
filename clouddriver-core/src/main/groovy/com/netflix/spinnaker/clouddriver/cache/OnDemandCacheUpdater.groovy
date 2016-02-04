@@ -53,4 +53,6 @@ interface OnDemandCacheUpdater {
    * @param data
    */
   void handle(String type, String cloudProvider, Map<String, ? extends Object> data)
+
+  Collection<Map> pendingOnDemandRequests(String type, String cloudProvider)
 }

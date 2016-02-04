@@ -208,10 +208,10 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
       }
 
       return [
-        asgs: asgs,
-        scalingPolicies: scalingPolicies,
+        asgs            : asgs,
+        scalingPolicies : scalingPolicies,
         scheduledActions: scheduledActions,
-        subnetMap: subnetMap
+        subnetMap       : subnetMap
       ]
     }
 
@@ -225,8 +225,8 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
         Keys.getServerGroupKey(asgName, account.name, region),
         10 * 60,
         [
-          cacheTime   : new Date(),
-          cacheResults: cacheResultAsJson
+          cacheTime     : new Date(),
+          cacheResults  : cacheResultAsJson
         ],
         [:]
       )
@@ -318,7 +318,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     }
     def alarmNames = []
     if (asgName) {
-      alarmNames = scalingPolicies.findResults { it.alarms.findResults { it.alarmName }}.flatten().unique()
+      alarmNames = scalingPolicies.findResults { it.alarms.findResults { it.alarmName } }.flatten().unique()
     }
 
     Map<String, Map> alarms = [:]
@@ -327,8 +327,8 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     }
 
     scalingPolicies
-        .findResults { buildScalingPolicy(it, alarms) }
-        .groupBy { it.autoScalingGroupName }
+      .findResults { buildScalingPolicy(it, alarms) }
+      .groupBy { it.autoScalingGroupName }
   }
 
   private Map<String, List<Map>> loadScheduledActions(AmazonClients clients) {
@@ -353,8 +353,8 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
       }
     }
     scheduledActions
-        .findResults { toMap(it) }
-        .groupBy { it.autoScalingGroupName }
+      .findResults { toMap(it) }
+      .groupBy { it.autoScalingGroupName }
   }
 
   private Map<String, Object> toMap(obj) {
@@ -378,7 +378,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
         break
       }
     }
-    alarms.collectEntries { [(it.alarmArn) : toMap(it) ]}
+    alarms.collectEntries { [(it.alarmArn): toMap(it)] }
   }
 
   @Override
@@ -429,7 +429,26 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     if (evictableOnDemandCacheDatas) {
       log.info("Evicting onDemand cache keys (${evictableOnDemandCacheDatas.collect { "${it.id}/${start - it.attributes.cacheTime}ms" }.join(", ")})")
     }
+
+    cacheResults[ON_DEMAND.ns].each {
+      it.attributes.processedTime = System.currentTimeMillis()
+      it.attributes.processedCount = (it.attributes.processedCount ?: 0) + 1
+    }
+
     result
+  }
+
+  @Override
+  Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+    def keys = providerCache.getIdentifiers(ON_DEMAND.ns)
+    return providerCache.getAll(ON_DEMAND.ns, keys).collect {
+      [
+        details  : Keys.parse(it.id),
+        cacheTime: it.attributes.cacheTime,
+        processedCount: it.attributes.processedCount,
+        processedTime: it.attributes.processedTime
+      ]
+    }
   }
 
   private CacheResult buildCacheResult(Collection<AutoScalingGroup> asgs,
@@ -450,7 +469,8 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
       if (onDemandCacheData) {
         log.info("Using onDemand cache value (id: ${onDemandCacheData.id}, json: ${onDemandCacheData.attributes.cacheResults})")
 
-        Map<String, List<CacheData>> cacheResults = objectMapper.readValue(onDemandCacheData.attributes.cacheResults as String, new TypeReference<Map<String, List<MutableCacheData>>>() {})
+        Map<String, List<CacheData>> cacheResults = objectMapper.readValue(onDemandCacheData.attributes.cacheResults as String, new TypeReference<Map<String, List<MutableCacheData>>>() {
+        })
         cache(cacheResults["applications"], applications)
         cache(cacheResults["clusters"], clusters)
         cache(cacheResults["serverGroups"], serverGroups)
@@ -473,15 +493,16 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     }
 
     new DefaultCacheResult([
-      (APPLICATIONS.ns): applications.values(),
-      (CLUSTERS.ns): clusters.values(),
-      (SERVER_GROUPS.ns): serverGroups.values(),
+      (APPLICATIONS.ns)  : applications.values(),
+      (CLUSTERS.ns)      : clusters.values(),
+      (SERVER_GROUPS.ns) : serverGroups.values(),
       (LOAD_BALANCERS.ns): loadBalancers.values(),
       (LAUNCH_CONFIGS.ns): launchConfigs.values(),
-      (INSTANCES.ns): instances.values(),
-      ],[
-      (ON_DEMAND.ns): evictableOnDemandCacheDataIdentifiers
-      ])
+      (INSTANCES.ns)     : instances.values(),
+      (ON_DEMAND.ns)     : onDemandCacheDataByAsg.values()
+    ], [
+      (ON_DEMAND.ns)     : evictableOnDemandCacheDataIdentifiers
+    ])
   }
 
   private void cache(List<CacheData> data, Map<String, CacheData> cacheDataById) {
@@ -641,7 +662,9 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
       this.vpcId = vpcId
       launchConfig = Keys.getLaunchConfigKey(asg.launchConfigurationName, account, region)
 
-      loadBalancerNames = (asg.loadBalancerNames.collect { Keys.getLoadBalancerKey(it, account, region, vpcId) } as Set).asImmutable()
+      loadBalancerNames = (asg.loadBalancerNames.collect {
+        Keys.getLoadBalancerKey(it, account, region, vpcId)
+      } as Set).asImmutable()
       instanceIds = (asg.instances.instanceId.collect { Keys.getInstanceKey(it, account, region) } as Set).asImmutable()
     }
   }

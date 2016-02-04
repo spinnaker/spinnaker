@@ -60,4 +60,9 @@ class CloudFoundryOnDemandCacheUpdater implements OnDemandCacheUpdater {
   void handle(String type, String cloudProvider, Map<String, ? extends Object> data) {
     handle(type, data)
   }
+
+  @Override
+  Collection<Map> pendingOnDemandRequests(String type, String cloudProvider) {
+    return []
+  }
 }

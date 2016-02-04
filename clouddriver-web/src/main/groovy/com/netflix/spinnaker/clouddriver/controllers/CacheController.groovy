@@ -51,4 +51,14 @@ class CacheController {
     }
     new ResponseEntity(HttpStatus.ACCEPTED)
   }
+
+  @RequestMapping(method = RequestMethod.GET, value = "/{cloudProvider}/{type}")
+  Collection<Map>  pendingOnDemands(@PathVariable String cloudProvider,
+                                    @PathVariable String type) {
+    onDemandCacheUpdaters.findAll {
+      it.handles(type, cloudProvider)
+    }.collect {
+      it.pendingOnDemandRequests(type, cloudProvider)
+    }.flatten()
+  }
 }
