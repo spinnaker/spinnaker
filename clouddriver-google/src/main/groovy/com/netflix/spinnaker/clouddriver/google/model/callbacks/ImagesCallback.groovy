@@ -69,7 +69,9 @@ class ImagesCallback<ImageList> extends JsonBatchCallback<ImageList> {
      */
     Map<String, Set<String>> map = new HashMap<String, Set<String>>()
 
-    imageListResult.items.each { image ->
+    imageListResult.items.findAll { image ->
+      !image.deprecated?.state
+    }.each { image ->
       String fullImageName = image.name
       // TODO(duftler): Verify the naming convention and devise consistent pruning logic.
       // Public coreos images break the naming convention of the others.
