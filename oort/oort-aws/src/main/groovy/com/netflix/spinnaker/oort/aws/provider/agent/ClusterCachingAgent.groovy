@@ -560,11 +560,16 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   }
 
   private AutoScalingGroup loadAutoScalingGroup(String autoScalingGroupName, boolean skipEdda) {
-    def autoScaling = amazonClientProvider.getAutoScaling(account, region, true)
+    def autoScaling = amazonClientProvider.getAutoScaling(account, region, skipEdda)
     def result = autoScaling.describeAutoScalingGroups(
       new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(autoScalingGroupName)
     )
-    return result.autoScalingGroups?.get(0)
+
+    if (result.autoScalingGroups && !result.autoScalingGroups.isEmpty()) {
+      return result.autoScalingGroups.get(0)
+    }
+
+    return null
   }
 
   private Map buildScalingPolicy(ScalingPolicy scalingPolicy, Map<String, Map> metricAlarms) {
@@ -576,6 +581,10 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   }
 
   private static Map flattenAutoScalingGroup(AutoScalingGroup asg) {
+    if (!asg) {
+      return [:]
+    }
+
     return [
       desiredCapacity   : asg.desiredCapacity,
       minSize           : asg.minSize,
