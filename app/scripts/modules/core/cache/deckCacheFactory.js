@@ -60,16 +60,7 @@ module.exports = angular.module('spinnaker.core.cache.deckCacheFactory', [
           window.localStorage.setItem(k, v);
         } catch (e) {
           $log.warn('Local Storage Error! Clearing caches and trying again.\nException:', e);
-          for (var key in window.localStorage) {
-            // invalidate keystore for any angular caches
-            if (key.match(/angular-cache\.caches\.infrastructure:.*.\.keys/)) {
-              window.localStorage.setItem(key, '[]');
-            }
-            // clear the data itself
-            if (key.match(/angular-cache\.caches\.infrastructure:.*.\.data\./)) {
-              window.localStorage.removeItem(key);
-            }
-          }
+          window.localStorage.clear();
           window.localStorage.setItem(k, v);
         }
       },
