@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.core.modal.modalOverlay.directive', [
       link: function(scope, elem) {
         $timeout(function() {
           var $uibModal = elem.closest('.modal-content'),
-            modalHeight = $uibModal.height();
+            modalHeight = $uibModal.outerHeight();
 
           if (modalHeight < 450) {
             modalHeight = 450;
@@ -18,6 +18,10 @@ module.exports = angular.module('spinnaker.core.modal.modalOverlay.directive', [
 
           $uibModal.height(modalHeight);
           elem.show().height(modalHeight).css({opacity: 1});
+
+          let headerHeight = elem.find('.modal-header').outerHeight(),
+              footerHeight = elem.find('.modal-footer').outerHeight();
+          elem.find('.modal-body').css({height: `calc(100% - ${headerHeight + footerHeight}px)`});
 
           scope.$on('$destroy', function() {
             elem.hide();

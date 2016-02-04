@@ -12,7 +12,10 @@ module.exports = angular
   .controller('EditApplicationController', function ($window, $state, $modalInstance, application, applicationWriter,
                                                      _, accountService, taskReader) {
     var vm = this;
-    vm.submitting = false;
+    this.data = {};
+    this.state = {
+      submitting: false,
+    };
     vm.errorMsgs = [];
     vm.application = application;
     vm.applicationAttributes = _.cloneDeep(application.attributes);
@@ -20,10 +23,10 @@ module.exports = angular
       application.attributes.cloudProviders.split(',') :
       [];
 
-    accountService.listProviders().then((providers) => vm.cloudProviders = providers);
+    accountService.listProviders().then((providers) => vm.data.cloudProviders = providers);
 
     function closeModal() {
-      vm.cloudProviders = null; // wha? prevents a fight with the ui-select directive trying to invalidate the selections
+      vm.data.cloudProviders = null; // wha? prevents a fight with the ui-select directive trying to invalidate the selections
       vm.applicationAttributes.cloudProviders = vm.applicationAttributes.cloudProviders.join(',');
       $modalInstance.close(vm.applicationAttributes);
     }
@@ -51,15 +54,15 @@ module.exports = angular
     }
 
     function goIdle() {
-      vm.submitting = false;
+      vm.state.submitting = false;
     }
 
     function submitting() {
-      vm.submitting = true;
+      vm.state.submitting = true;
     }
 
     vm.clearEmailMsg = function() {
-      vm.emailErrorMsg = '';
+      vm.state.emailErrorMsg = '';
     };
 
     vm.submit = function () {

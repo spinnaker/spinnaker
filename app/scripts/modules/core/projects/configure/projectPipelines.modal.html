@@ -38,14 +38,4 @@
       </div>
     </div>
   </div>
-  <div class="modal-footer">
-    <button class="btn btn-default pull-left"
-            ng-click="wizard.previousPage(form.$valid)">
-      <span class="glyphicon glyphicon-chevron-left"></span> Back
-    </button>
-    <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
-    <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="taskMonitor.submitting"
-                   label="'Save'"
-                   submitting="taskMonitor.submitting" on-click="ctrl.updateProject()"></submit-button>
-  </div>
 </form>

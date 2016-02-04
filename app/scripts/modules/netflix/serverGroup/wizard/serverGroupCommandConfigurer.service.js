@@ -4,12 +4,14 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.serverGroup.configurer.service', [
-    require('../../core/utils/lodash.js'),
-    require('./diff/diff.service.js'),
-    require('../../core/naming/naming.service.js'),
-    require('../../core/serverGroup/configure/common/serverGroupCommand.registry.js'),
+    require('../../../core/utils/lodash.js'),
+    require('./../diff/diff.service.js'),
+    require('../../../core/naming/naming.service.js'),
+    require('../../../core/config/settings.js'),
+    require('../../../core/serverGroup/configure/common/serverGroupCommand.registry.js'),
+    require('../../../core/modal/wizard/v2modalWizard.service.js'),
   ])
-  .factory('netflixServerGroupCommandConfigurer', function(diffService, namingService, _, modalWizardService) {
+  .factory('netflixServerGroupCommandConfigurer', function(diffService, namingService, _, v2modalWizardService) {
     function configureSecurityGroupDiffs(command) {
       var currentOptions = command.backingData.filtered.securityGroups,
           currentSecurityGroups = command.securityGroups || [];
@@ -53,7 +55,7 @@ module.exports = angular
           property: 'command.viewState.securityGroupDiffs',
           method: function(newVal) {
             if (newVal && newVal.length) {
-              modalWizardService.getWizard().markDirty('security-groups');
+              v2modalWizardService.markDirty('security-groups');
             }
           }
         },
@@ -70,6 +72,8 @@ module.exports = angular
     };
 
   })
-  .run(function(serverGroupCommandRegistry, netflixServerGroupCommandConfigurer) {
-    serverGroupCommandRegistry.register('aws', netflixServerGroupCommandConfigurer);
+  .run(function(serverGroupCommandRegistry, netflixServerGroupCommandConfigurer, settings) {
+    if (settings.feature && settings.feature.netflixMode) {
+      serverGroupCommandRegistry.register('aws', netflixServerGroupCommandConfigurer);
+    }
   });

@@ -8,10 +8,10 @@
                   ng-class="{'glyphicon-chevron-up': !vm.viewState.open, 'glyphicon-chevron-down': vm.viewState.open}">
             </span>
             <span class="execution-group-title">
+              {{ vm.group.heading }}
               <span ng-if="vm.group.runningExecutions.length" class="badge">
                 {{vm.group.runningExecutions.length}}
               </span>
-              {{ vm.group.heading }}
             </span>
           </h4>
         </div>

@@ -61,6 +61,7 @@ module.exports = angular.module('spinnaker.core.loadBalancer.controller', [
         $uibModal.open({
           templateUrl: provider.createLoadBalancerTemplateUrl,
           controller: `${provider.createLoadBalancerController} as ctrl`,
+          size: cloudProviderRegistry.getValue(selectedProvider, 'v2wizard') ? 'lg' : 'md',
           resolve: {
             application: function() { return app; },
             loadBalancer: function() { return null; },

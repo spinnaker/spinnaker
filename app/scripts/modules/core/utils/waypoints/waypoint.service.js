@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.core.utils.waypoints.service', [
   require('../jQuery.js'),
   require('../lodash.js'),
 ])
-  .factory('waypointService', function($timeout, $, _, $log) {
+  .factory('waypointService', function($timeout, $, _, $log, $rootScope) {
 
     var waypointRegistry = Object.create(null);
 
@@ -25,28 +25,38 @@ module.exports = angular.module('spinnaker.core.utils.waypoints.service', [
       if (!registryEntry.scrollEnabled) {
         // because they do not affect rendering directly, we can debounce this pretty liberally
         // but delay in case the scroll triggers a render of other elements and the top changes
-        element.bind('scroll.waypointEvents resize.waypointEvents', _.debounce(function() {
+        element.bind('scroll.waypointEvents resize.waypointEvents', _.throttle(function() {
           $timeout(function() {
             var containerRect = element.get(0).getBoundingClientRect(),
-              topThreshold = containerRect.top + registryEntry.offset,
-              waypoints = element.find('[waypoint]'),
-              inView = [];
+                topThreshold = containerRect.top + registryEntry.offset,
+                waypoints = element.find('[waypoint]'),
+                lastTop = waypointRegistry[key].top,
+                newTop = element.get(0).scrollTop,
+                inView = [];
             waypoints.each(function(idx, waypoint) {
               var waypointRect = waypoint.getBoundingClientRect();
               if (waypointRect.bottom >= topThreshold && waypointRect.top <= containerRect.bottom) {
                   inView.push({ top: waypointRect.top, elem: waypoint.getAttribute('waypoint') });
               }
             });
-            waypointRegistry[key].lastWindow = _.sortBy(inView, 'top');
+            waypointRegistry[key] = {
+              lastWindow: _.sortBy(inView, 'top'),
+              top: newTop,
+              direction: lastTop > newTop ? 'up' : 'down'
+            };
+            if (waypointRegistry[key].lastWindow.length) {
+              $rootScope.$broadcast('waypoint-set', waypointRegistry[key].lastWindow[0].elem);
+              $rootScope.$broadcast('waypoints-changed', waypointRegistry[key]);
+            }
           });
-        }, 300));
+        }, 200));
         registryEntry.scrollEnabled = true;
       }
     }
 
     function disableWaypointEvent(key) {
       var registry = waypointRegistry[key];
-      if (registry) {
+      if (registry && registry.container) {
         registry.container.unbind('scroll.waypointEvents resize.waypointEvents');
         registry.scrollEnabled = false;
         registry.container = null;

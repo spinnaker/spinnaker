@@ -13,6 +13,9 @@ module.exports = angular
     require('./wizard/modalWizard.directive.js'),
     require('./wizard/modalWizard.service.js'),
     require('./wizard/wizardPage.directive.js'),
+    require('./wizard/v2modalWizard.directive.js'),
+    require('./wizard/v2modalWizard.service.js'),
+    require('./wizard/v2wizardPage.directive.js'),
   ]).run(function($rootScope, $uibModalStack) {
     $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
       if (!fromParams.allowModalToStayOpen) {

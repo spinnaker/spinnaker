@@ -1,0 +1,11 @@
+<div class="modal-page"
+     ng-if="state.rendered"
+     waypoint="{{key}}">
+  <div class="wizard-subheading"
+       sticky-header
+       added-offset-height="-30"
+      >
+    <h4>{{label}}</h4>
+  </div>
+  <div class="wizard-page-body" ng-transclude></div>
+</div>

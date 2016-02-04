@@ -1,19 +1,3 @@
-/*
- * Copyright 2014 Netflix, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 'use strict';
 
 describe('Service: awsServerGroupConfiguration', function () {
@@ -105,11 +89,11 @@ describe('Service: awsServerGroupConfiguration', function () {
         vpcId: null,
         viewState: {
           disableImageSelection: true,
+          dirty: {},
         }
       };
 
       service.configureCommand({}, command);
-      $scope.$digest();
       $scope.$digest();
 
       expect(cacheInitializer.refreshCache).toHaveBeenCalledWith('loadBalancers');
@@ -136,6 +120,7 @@ describe('Service: awsServerGroupConfiguration', function () {
         vpcId: null,
         viewState: {
           disableImageSelection: true,
+          dirty: {},
         }
       };
 
@@ -150,14 +135,18 @@ describe('Service: awsServerGroupConfiguration', function () {
 
     });
 
-    it ('attempts to reload instance types if previous selection is not found on initialization, but does not set dirty flag', function () {
+    it ('attempts to reload instance types if already selected on initialization, but does not set dirty flag', function () {
       spyOn(accountService, 'getRegionsKeyedByAccount').and.returnValue($q.when([]));
       spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
       spyOn(loadBalancerReader, 'listLoadBalancers').and.returnValue($q.when([]));
       spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([]));
       spyOn(accountService, 'getPreferredZonesByAccount').and.returnValue($q.when([]));
       spyOn(keyPairsReader, 'listKeyPairs').and.returnValue($q.when([]));
-      spyOn(awsInstanceTypeService, 'getAllTypesByRegion').and.returnValue($q.when([]));
+      spyOn(awsInstanceTypeService, 'getAllTypesByRegion').and.returnValue($q.when(
+        { 'us-east-1': [
+          {name: 'm4.tiny'}
+        ] }
+      ));
       spyOn(cacheInitializer, 'refreshCache').and.returnValue($q.when(null));
 
       var command = {
@@ -168,11 +157,11 @@ describe('Service: awsServerGroupConfiguration', function () {
         vpcId: null,
         viewState: {
           disableImageSelection: true,
+          dirty: {},
         }
       };
 
       service.configureCommand({}, command);
-      $scope.$digest();
       $scope.$digest();
 
       expect(cacheInitializer.refreshCache).toHaveBeenCalledWith('instanceTypes');

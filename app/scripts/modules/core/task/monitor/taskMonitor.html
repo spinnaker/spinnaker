@@ -4,7 +4,7 @@
   </div>
   <div class="modal-body clearfix">
     <div class="clearfix" auto-scroll="[taskMonitor.task.getValueFor('kato.tasks'), taskMonitor.task.error]">
-      <div class="col-md-12 overlay-modal-status" ng-if="taskMonitor.task">
+      <div class="col-md-8 col-md-offset-2 overlay-modal-status" ng-if="taskMonitor.task">
         <ul class="task task-progress">
           <li ng-repeat="step in taskMonitor.task.steps | displayableTasks" ng-class="{'not-started': step.hasNotStarted}">
             <status-glyph item="step"></status-glyph>

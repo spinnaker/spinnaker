@@ -66,6 +66,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
               usePreferredZones: true,
               mode: defaults.mode || 'create',
               disableStrategySelection: true,
+              dirty: {},
             },
           };
 
@@ -98,6 +99,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
           mode: 'editPipeline',
           submitButtonLabel: 'Done',
           templatingEnabled: true,
+          dirty: {},
         };
 
         var viewOverrides = {
@@ -202,6 +204,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
             usePreferredZones: usePreferredZones,
             mode: mode,
             isNew: false,
+            dirty: {},
           },
         };
 

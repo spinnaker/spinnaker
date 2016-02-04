@@ -1,0 +1,33 @@
+<div modal-page>
+  <task-monitor monitor="taskMonitor"></task-monitor>
+  <modal-close></modal-close>
+  <div class="modal-header">
+    <h3>{{wizard.heading}}</h3>
+  </div>
+  <div class="modal-body">
+    <div class="row">
+      <div class="col-md-3">
+        <ul class="steps-indicator wizard-navigation">
+          <li ng-repeat="page in wizard.renderedPages"
+              class="animated"
+              ng-class="{
+                  default: !page.state.done,
+                  current: page.state.current,
+                  done: page.state.done,
+                  dirty: page.state.dirty
+            }">
+            <a href ng-click="wizard.setCurrentPage(page)">{{page.label}}</a>
+          </li>
+        </ul>
+      </div>
+      <div class="col-md-9">
+        <div class="steps"
+             ng-transclude
+             sticky-headers
+             waypoint-container
+             waypoint-offset="120"
+             waypoint-container-key="#modal-wizard"></div>
+      </div>
+    </div>
+  </div>
+</div>

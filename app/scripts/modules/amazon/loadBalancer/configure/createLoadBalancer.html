@@ -1,14 +1,24 @@
-<modal-wizard heading="Create New Load Balancer">
-  <wizard-page key="Location" label="Location">
+<v2-modal-wizard heading="Create New Load Balancer">
+  <v2-wizard-page key="Location" label="Location">
     <ng-include src="pages.location"></ng-include>
-  </wizard-page>
-  <wizard-page key="Security Groups" label="Security Groups" render="false" done="true">
+  </v2-wizard-page>
+  <v2-wizard-page key="Security Groups" label="Security Groups" render="false" done="true">
     <ng-include src="pages.securityGroups"></ng-include>
-  </wizard-page>
-  <wizard-page key="Listeners" label="Listeners" done="true">
+  </v2-wizard-page>
+  <v2-wizard-page key="Listeners" label="Listeners" done="true">
     <ng-include src="pages.listeners"></ng-include>
-  </wizard-page>
-  <wizard-page key="Health Check" label="Health Check" done="true" hide-subheading="true">
+  </v2-wizard-page>
+  <v2-wizard-page key="Health Check" label="Health Check" done="true">
     <ng-include src="pages.healthCheck"></ng-include>
-  </wizard-page>
-</modal-wizard>
+  </v2-wizard-page>
+  <v2-wizard-page key="Advanced Settings" label="Advanced Settings" done="true">
+    <ng-include src="pages.advancedSettings"></ng-include>
+  </v2-wizard-page>
+</v2-modal-wizard>
+<div class="modal-footer">
+  <button ng-disabled="taskMonitor.submitting" class="btn btn-default"
+          ng-click="ctrl.cancel()">Cancel
+  </button>
+  <submit-button is-disabled="form.$invalid || taskMonitor.submitting"
+                 submitting="taskMonitor.submitting" on-click="ctrl.submit()" is-new="isNew"></submit-button>
+</div>
