@@ -32,6 +32,8 @@ module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
       securityGroup: securityGroup,
     }));
 
+    $scope.isNew = false;
+
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: 'Updating your security group',
