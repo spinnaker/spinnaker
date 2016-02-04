@@ -28,8 +28,8 @@ import rx.functions.Func1;
 @Slf4j
 public class BuildEventMonitor implements EchoEventListener {
 
-  public static final String ECHO_EVENT_TYPE = "build";
-  public static final String TRIGGER_TYPE = "jenkins";
+  public static final String JENKINS_TRIGGER_TYPE = "jenkins";
+  public static final String GIT_TRIGGER_TYPE = "git";
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -48,12 +48,13 @@ public class BuildEventMonitor implements EchoEventListener {
 
   @Override
   public void processEvent(Event event) {
-    if (!event.getDetails().getType().equalsIgnoreCase(ECHO_EVENT_TYPE)) {
+    if (!event.getDetails().getType().equalsIgnoreCase(BuildEvent.BUILD_EVENT_TYPE) &&
+      !event.getDetails().getType().equalsIgnoreCase(BuildEvent.GIT_EVENT_TYPE)) {
       return;
     }
 
-    val buildEvent = objectMapper.convertValue(event, BuildEvent.class);
-    Observable.from(Collections.singletonList(buildEvent))
+    BuildEvent buildEvent = objectMapper.convertValue(event, BuildEvent.class);
+    Observable.just(buildEvent)
       .doOnNext(this::onEchoResponse)
       .subscribe(triggerEachMatchFrom(pipelineCache.getPipelines()));
   }
@@ -79,38 +80,52 @@ public class BuildEventMonitor implements EchoEventListener {
   }
 
   private boolean isSuccessfulBuild(final BuildEvent event) {
+    if (event.isGit()) {
+      return true;
+    }
     BuildEvent.Build lastBuild = event.getContent().getProject().getLastBuild();
     return lastBuild != null && !lastBuild.isBuilding() && lastBuild.getResult() == BuildEvent.Result.SUCCESS;
   }
 
   private Func1<Pipeline, Optional<Pipeline>> withMatchingTrigger(final BuildEvent event) {
     val triggerPredicate = matchTriggerFor(event);
-    int buildNumber = event.getContent().getProject().getLastBuild().getNumber();
     return pipeline -> {
       if (pipeline.getTriggers() == null) {
         return Optional.empty();
       } else {
         return pipeline.getTriggers()
           .stream()
-          .filter(this::isEnabledJenkinsTrigger)
+          .filter(this::isValidTrigger)
           .filter(triggerPredicate)
           .findFirst()
-          .map(trigger -> pipeline.withTrigger(trigger.atBuildNumber(buildNumber)));
+          .map(trigger -> pipeline.withTrigger(event.isBuild() ? trigger.atBuildNumber(event.getBuildNumber()) : trigger.atHash(event.getHash())));
       }
     };
   }
 
-  private boolean isEnabledJenkinsTrigger(final Trigger trigger) {
+  private boolean isValidTrigger(final Trigger trigger) {
     return trigger.isEnabled() &&
-      TRIGGER_TYPE.equals(trigger.getType()) &&
-      trigger.getJob() != null &&
-      trigger.getMaster() != null;
+      (
+        (JENKINS_TRIGGER_TYPE.equals(trigger.getType()) &&
+          trigger.getJob() != null &&
+          trigger.getMaster() != null)
+          || (GIT_TRIGGER_TYPE.equals(trigger.getType()) &&
+          trigger.getSource() != null &&
+          trigger.getProject() != null &&
+          trigger.getSlug() != null)
+      );
   }
 
   private Predicate<Trigger> matchTriggerFor(final BuildEvent event) {
+    if (event.getDetails().getType() == GIT_TRIGGER_TYPE) {
+      String source = event.getDetails().getSource();
+      String project = event.getContent().getRepoProject();
+      String slug = event.getContent().getSlug();
+      return trigger -> trigger.getType().equals(GIT_TRIGGER_TYPE) && trigger.getSource().equals(source) && trigger.getProject().equals(project) && trigger.getSlug().equals(slug);
+    }
     String jobName = event.getContent().getProject().getName();
     String master = event.getContent().getMaster();
-    return trigger -> trigger.getJob().equals(jobName) && trigger.getMaster().equals(master);
+    return trigger -> trigger.getType().equals(JENKINS_TRIGGER_TYPE) && trigger.getJob().equals(jobName) && trigger.getMaster().equals(master);
   }
 
   private void onEventProcessed(final BuildEvent event) {
@@ -121,8 +136,12 @@ public class BuildEventMonitor implements EchoEventListener {
     log.info("Found matching pipeline {}:{}", pipeline.getApplication(), pipeline.getName());
     val id = registry.createId("pipelines.triggered")
       .withTag("application", pipeline.getApplication())
-      .withTag("name", pipeline.getName())
-      .withTag("job", pipeline.getTrigger().getJob());
+      .withTag("name", pipeline.getName());
+    if (pipeline.getTrigger().getType() == JENKINS_TRIGGER_TYPE) {
+      id.withTag("job", pipeline.getTrigger().getJob());
+    } else if (pipeline.getTrigger().getType() == GIT_TRIGGER_TYPE) {
+      id.withTag("repository", pipeline.getTrigger().getProject() + ' ' + pipeline.getTrigger().getSlug());
+    }
     registry.counter(id).increment();
   }
 

@@ -18,9 +18,12 @@ import static rx.Observable.just
 trait RetrofitStubs {
 
   final String url = "http://echo"
-  final Trigger enabledJenkinsTrigger = new Trigger(true, null, 'jenkins', 'master', 'job', null, null, null)
-  final Trigger disabledJenkinsTrigger = new Trigger(false, null, 'jenkins', 'master', 'job', null, null, null)
-  final Trigger nonJenkinsTrigger = new Trigger(true, null, 'not jenkins', 'master', 'job', null, null, null)
+  final Trigger enabledJenkinsTrigger = new Trigger(true, null, 'jenkins', 'master', 'job', null, null, null, null, null, null, null)
+  final Trigger disabledJenkinsTrigger = new Trigger(false, null, 'jenkins', 'master', 'job', null, null, null, null, null, null, null)
+  final Trigger nonJenkinsTrigger = new Trigger(true, null, 'not jenkins', 'master', 'job', null, null, null, null, null, null, null)
+  final Trigger enabledStashTrigger = new Trigger(true, null, 'git', null, null, null, null, null, 'stash', 'project', 'slug', null)
+  final Trigger disabledStashTrigger = new Trigger(false, null, 'git', 'master', 'job', null, null, null, 'stash', 'project', 'slug', null)
+  final Trigger enabledGithubTrigger = new Trigger(false, null, 'git', 'master', 'job', null, null, null, 'github', 'project', 'slug', null)
 
   private nextId = new AtomicInteger(1)
 
@@ -32,8 +35,15 @@ trait RetrofitStubs {
     def build = result ? new BuildEvent.Build(result == BUILDING, 1, result) : null
     new BuildEvent(new BuildEvent.Content(
       new BuildEvent.Project("job", build), "master"),
-      new BuildEvent.Details(BuildEventMonitor.ECHO_EVENT_TYPE)
+      new BuildEvent.Details(BuildEvent.BUILD_EVENT_TYPE)
     )
+  }
+
+  BuildEvent createStashEvent() {
+    new BuildEvent(new BuildEvent.Content(
+      null, null, "project", "slug", "hash"
+    ),
+      new BuildEvent.Details(BuildEvent.GIT_EVENT_TYPE, "stash"))
   }
 
   Pipeline createPipelineWith(Trigger... triggers) {

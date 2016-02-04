@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.echo.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import groovy.transform.Canonical
 
@@ -26,17 +27,24 @@ class BuildEvent {
   Content content;
   Details details;
 
+  public static final String BUILD_EVENT_TYPE = "build";
+  public static final String GIT_EVENT_TYPE = "git";
+
   @Canonical
   @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Content {
     Project project;
     String master;
+    String repoProject;
+    String slug;
+    String hash;
   }
 
   @Canonical
   @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Details {
     String type;
+    String source;
   }
 
   @Canonical
@@ -56,5 +64,25 @@ class BuildEvent {
 
   public enum Result {
     SUCCESS, UNSTABLE, BUILDING, ABORTED, FAILURE, NOT_BUILT
+  }
+
+  @JsonIgnore
+  public boolean isBuild() {
+    return details.getType() == BUILD_EVENT_TYPE;
+  }
+
+  @JsonIgnore
+  public boolean isGit() {
+    return details.getType() == GIT_EVENT_TYPE;
+  }
+
+  @JsonIgnore
+  public int getBuildNumber() {
+    return isBuild() ? content.getProject().getLastBuild().getNumber() : 0;
+  }
+
+  @JsonIgnore
+  public String getHash() {
+    return isGit() ? content.hash : null;
   }
 }
