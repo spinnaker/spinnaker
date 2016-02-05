@@ -1,7 +1,3 @@
-# This file is intended to override the default configuration in the spinnaker.yml file.
-# In order for Spinnaker to discover it, it must be copied to a file named
-# "spinnaker-local.yml" and placed in the $HOME/.spinnaker directory.
-
 providers:
   aws:
     # If you want to deploy some services to Amazon Web Services (AWS),
