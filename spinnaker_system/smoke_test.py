@@ -102,12 +102,10 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
         contract=contract)
 
   def create_load_balancer(self):
-    load_balancer_name = self.bindings['TEST_APP_COMPONENT_NAME']
-    target_pool_name = '{0}/targetPools/{1}-tp'.format(
-        self.bindings['TEST_GCE_REGION'], load_balancer_name)
-
     bindings = self.bindings
-    account_name = bindings['GCE_CREDENTIALS']
+    load_balancer_name = bindings['TEST_APP_COMPONENT_NAME']
+    target_pool_name = '{0}/targetPools/{1}-tp'.format(
+        bindings['TEST_GCE_REGION'], load_balancer_name)
 
     spec = {
       'checkIntervalSec': 9,
