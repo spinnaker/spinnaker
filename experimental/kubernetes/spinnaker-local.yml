@@ -7,12 +7,7 @@ providers:
     # If you want to deploy some services to Amazon Web Services (AWS),
     # set enabled and provide primary credentials for deploying.
     # Enabling AWS is independent of other providers.
-    enabled: true
-    defaultRegion: us-east-1
-    defaultIAMRole: BaseIAMRole
-    primaryCredentials:
-      name: my-aws-account
-      # Store actual credentials in /home/spinnaker/.aws/credentials
+    enabled: false
 
   google:
     # If you want to deploy some services to Google Cloud Platform (google),
