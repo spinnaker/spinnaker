@@ -45,7 +45,7 @@ class WebhooksController {
     if (type == 'git' && source == 'stash') {
       event.content.hash = postedEvent.refChanges?.first().toHash
       event.content.branch = postedEvent.refChanges?.first().refId.replace('refs/heads/', '')
-      event.content.repoProject = postedEvent.repository.project
+      event.content.repoProject = postedEvent.repository.project.key
       event.content.slug = postedEvent.repository.slug
     }
 
