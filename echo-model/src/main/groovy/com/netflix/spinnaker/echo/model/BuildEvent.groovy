@@ -68,12 +68,12 @@ class BuildEvent {
 
   @JsonIgnore
   public boolean isBuild() {
-    return details.getType() == BUILD_EVENT_TYPE;
+    return details.getType().equals(BUILD_EVENT_TYPE);
   }
 
   @JsonIgnore
   public boolean isGit() {
-    return details.getType() == GIT_EVENT_TYPE;
+    return details.getType().equals(GIT_EVENT_TYPE);
   }
 
   @JsonIgnore

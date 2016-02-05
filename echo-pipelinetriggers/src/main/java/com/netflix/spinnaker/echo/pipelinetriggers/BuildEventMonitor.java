@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.echo.pipelinetriggers;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -117,7 +116,7 @@ public class BuildEventMonitor implements EchoEventListener {
   }
 
   private Predicate<Trigger> matchTriggerFor(final BuildEvent event) {
-    if (event.getDetails().getType() == GIT_TRIGGER_TYPE) {
+    if (event.getDetails().getType().equals(GIT_TRIGGER_TYPE)) {
       String source = event.getDetails().getSource();
       String project = event.getContent().getRepoProject();
       String slug = event.getContent().getSlug();
@@ -137,9 +136,9 @@ public class BuildEventMonitor implements EchoEventListener {
     val id = registry.createId("pipelines.triggered")
       .withTag("application", pipeline.getApplication())
       .withTag("name", pipeline.getName());
-    if (pipeline.getTrigger().getType() == JENKINS_TRIGGER_TYPE) {
+    if (pipeline.getTrigger().getType().equals(JENKINS_TRIGGER_TYPE)) {
       id.withTag("job", pipeline.getTrigger().getJob());
-    } else if (pipeline.getTrigger().getType() == GIT_TRIGGER_TYPE) {
+    } else if (pipeline.getTrigger().getType().equals(GIT_TRIGGER_TYPE)) {
       id.withTag("repository", pipeline.getTrigger().getProject() + ' ' + pipeline.getTrigger().getSlug());
     }
     registry.counter(id).increment();
