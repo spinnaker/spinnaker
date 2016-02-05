@@ -205,12 +205,12 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
   @property
   def gce_observer(self):
     """The observer for inspecting GCE platform state, if configured."""
-    return self._gce_observer
+    return self.__gce_observer
 
   @property
   def aws_observer(self):
     """The observer for inspecting AWS platform state, if configured."""
-    return self._aws_observer
+    return self.__aws_observer
 
   def __init__(self, bindings, agent=None):
     """Constructor
@@ -222,43 +222,43 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     """
     super(SpinnakerTestScenario, self).__init__(bindings, agent)
     agent = self.agent
-    bindings = self._bindings  # base class made a copy
+    bindings = self.bindings  # base class made a copy
 
-    if not self._bindings['TEST_GCE_ZONE']:
-      self._bindings['TEST_GCE_ZONE'] = self._bindings['GCE_ZONE']
-    if not self._bindings['TEST_AWS_ZONE']:
-      self._bindings['TEST_AWS_ZONE'] = self._bindings['AWS_ZONE']
+    if not bindings['TEST_GCE_ZONE']:
+      bindings['TEST_GCE_ZONE'] = bindings['GCE_ZONE']
+    if not bindings['TEST_AWS_ZONE']:
+      bindings['TEST_AWS_ZONE'] = bindings['AWS_ZONE']
 
-    if not self._bindings.get('TEST_GCE_REGION', ''):
-      self._bindings['TEST_GCE_REGION'] = self._bindings['TEST_GCE_ZONE'][:-2]
+    if not bindings.get('TEST_GCE_REGION', ''):
+      bindings['TEST_GCE_REGION'] = bindings['TEST_GCE_ZONE'][:-2]
 
-    if not self._bindings.get('TEST_AWS_REGION', ''):
-      self._bindings['TEST_AWS_REGION'] = self._bindings['TEST_AWS_ZONE'][:-1]
-    self._update_bindings_with_subsystem_configuration(agent)
+    if not bindings.get('TEST_AWS_REGION', ''):
+      bindings['TEST_AWS_REGION'] = bindings['TEST_AWS_ZONE'][:-1]
+    self.__update_bindings_with_subsystem_configuration(agent)
 
-    if self._bindings.get('GOOGLE_PRIMARY_MANAGED_PROJECT_ID'):
-      self._gce_observer = gcp.GCloudAgent(
-          project=self._bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'],
-          zone=self._bindings['TEST_GCE_ZONE'],
-          ssh_passphrase_file=self._bindings['GCE_SSH_PASSPHRASE_FILE'])
+    if bindings.get('GOOGLE_PRIMARY_MANAGED_PROJECT_ID'):
+      self.__gce_observer = gcp.GCloudAgent(
+          project=bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'],
+          zone=bindings['TEST_GCE_ZONE'],
+          ssh_passphrase_file=bindings['GCE_SSH_PASSPHRASE_FILE'])
     else:
-      self._gce_observer = None
+      self.__gce_observer = None
       logger = logging.getLogger(__name__)
       logger.warning(
           '--managed_gce_project was not set nor could it be inferred.'
           ' Therefore, we will not be able to observe Google Compute Engine.')
 
-    if self._bindings.get('AWS_PROFILE'):
-      self._aws_observer = aws.AwsAgent(
-          self._bindings['AWS_PROFILE'], self._bindings['TEST_AWS_REGION'])
+    if bindings.get('AWS_PROFILE'):
+      self.__aws_observer = aws.AwsAgent(
+          bindings['AWS_PROFILE'], bindings['TEST_AWS_REGION'])
     else:
-      self._aws_observer = None
+      self.__aws_observer = None
       logger = logging.getLogger(__name__)
       logger.warning(
           '--aws_profile was not set.'
           ' Therefore, we will not be able to observe Amazon Web Services.')
 
-  def _update_bindings_with_subsystem_configuration(self, agent):
+  def __update_bindings_with_subsystem_configuration(self, agent):
     """Helper function for setting agent bindings from actual configuration.
 
     This uses the agent's runtime_config, if available, to supply some
@@ -268,26 +268,26 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     # pylint: disable=bad-indentation
     for key, value in agent.runtime_config.items():
         try:
-          if self._bindings[key]:
+          if self.bindings[key]:
             continue
         except KeyError:
           pass
-        self._bindings[key] = value
+        self.bindings[key] = value
 
-    if not self._bindings['GCE_CREDENTIALS']:
-      self._bindings['GCE_CREDENTIALS'] = self.agent.deployed_config.get(
+    if not self.bindings['GCE_CREDENTIALS']:
+      self.bindings['GCE_CREDENTIALS'] = self.agent.deployed_config.get(
           'providers.google.primaryCredentials.name', None)
 
-    if not self._bindings['AWS_CREDENTIALS']:
-      self._bindings['AWS_CREDENTIALS'] = self.agent.deployed_config.get(
+    if not self.bindings['AWS_CREDENTIALS']:
+      self.bindings['AWS_CREDENTIALS'] = self.agent.deployed_config.get(
           'providers.aws.primaryCredentials.name', None)
 
-    if not self._bindings.get('GOOGLE_PRIMARY_MANAGED_PROJECT_ID'):
+    if not self.bindings.get('GOOGLE_PRIMARY_MANAGED_PROJECT_ID'):
       # Default to the project we are managing.
-      self._bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'] = (
+      self.bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'] = (
           self.agent.deployed_config.get(
               'providers.google.primaryCredentials.project', None))
-      if not self._bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID']:
+      if not self.bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID']:
         # But if that wasnt defined then default to the subsystem's project.
-        self._bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'] = (
-            self._bindings['GCE_PROJECT'])
+        self.bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'] = (
+            self.bindings['GCE_PROJECT'])

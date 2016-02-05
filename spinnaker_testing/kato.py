@@ -40,11 +40,11 @@ class _KatoStatus(sk.SpinnakerStatus):
 
   @property
   def finished(self):
-    return self._finished
+    return self.__finished
 
   @property
   def finished_ok(self):
-    return self._finished and not self._failed
+    return self.__finished and not self.__failed
 
   @property
   def timed_out(self):
@@ -59,8 +59,8 @@ class _KatoStatus(sk.SpinnakerStatus):
     """
     super(_KatoStatus, self).__init__(operation, original_response)
 
-    self._finished = False
-    self._failed = False
+    self.__finished = False
+    self.__failed = False
 
     doc = None
     try:
@@ -74,9 +74,9 @@ class _KatoStatus(sk.SpinnakerStatus):
       self._bind_detail_path(doc['resourceUri'])
       self._bind_id(doc['id'])
     else:
-      self._error = 'Invalid response="{0}"'.format(original_response)
-      self._finished = True
-      self._failed = True
+      self._bind_error('Invalid response="{0}"'.format(original_response))
+      self.__finished = True
+      self.__failed = True
       self.current_state = 'CITEST_INTERNAL_ERROR'
 
   def _update_response_from_json(self, doc):
@@ -87,12 +87,12 @@ class _KatoStatus(sk.SpinnakerStatus):
     status = doc['status']
     failed = status['failed']
     self.current_state = status['phase']
-    self._exception_details = None
+    self._bind_exception_details(None)
     if status['completed']:
-      self._finished = True
-      self._failed = failed
+      self.__finished = True
+      self.__failed = failed
     if failed:
-      self._exception_details = status['status']
+      self._bind_exception_details(status['status'])
 
 
 class KatoAgent(sk.SpinnakerAgent):
