@@ -75,7 +75,7 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
 
   def upsert_load_balancer(self):
     detail_raw_name = 'katotestlb' + self.test_id
-    self._use_lb_name = detail_raw_name
+    self.__use_lb_name = detail_raw_name
 
     bindings = self.bindings
     region = self.TEST_AWS_REGION
@@ -121,7 +121,7 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
        .collect_resources(
            aws_module='elb',
            command='describe-load-balancers',
-           args=['--load-balancer-names', self._use_lb_name])
+           args=['--load-balancer-names', self.__use_lb_name])
        .contains_group(
            [jc.PathContainsPredicate(
                'LoadBalancerDescriptions/HealthCheck', health_check),
@@ -142,7 +142,7 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
           {
             'credentials': self.bindings['AWS_CREDENTIALS'],
             'regions': [self.TEST_AWS_REGION],
-            'loadBalancerName': self._use_lb_name
+            'loadBalancerName': self.__use_lb_name
           })
 
     builder = aws.AwsContractBuilder(self.aws_observer)
@@ -150,9 +150,9 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
         .collect_resources(
             aws_module='elb',
             command='describe-load-balancers',
-            args=['--load-balancer-names', self._use_lb_name],
+            args=['--load-balancer-names', self.__use_lb_name],
             no_resources_ok=True)
-        .excludes('LoadBalancerName', self._use_lb_name))
+        .excludes('LoadBalancerName', self.__use_lb_name))
 
     return st.OperationContract(
       self.new_post_operation(

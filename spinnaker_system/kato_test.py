@@ -245,25 +245,25 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
 
   def create_http_load_balancer(self):
     logical_http_lb_name = 'katotest-httplb-' + self.test_id
-    self._use_http_lb_name = logical_http_lb_name
+    self.__use_http_lb_name = logical_http_lb_name
 
     # TODO(ewiseblatt): 20150530
     # This needs to be abbreviated to hc.
-    self._use_http_lb_hc_name = logical_http_lb_name + '-health-check'
+    self.__use_http_lb_hc_name = logical_http_lb_name + '-health-check'
 
     # TODO(ewiseblatt): 20150530
     # This needs to be abbreviated to bs.
-    self._use_http_lb_bs_name = logical_http_lb_name + '-backend-service'
+    self.__use_http_lb_bs_name = logical_http_lb_name + '-backend-service'
 
-    self._use_http_lb_fr_name = logical_http_lb_name
+    self.__use_http_lb_fr_name = logical_http_lb_name
 
     # TODO(ewiseblatt): 20150530
     # This should be abbreviated (um?).
-    self._use_http_lb_map_name = logical_http_lb_name + '-url-map'
+    self.__use_http_lb_map_name = logical_http_lb_name + '-url-map'
 
     # TODO(ewiseblatt): 20150530
     # This should be abbreviated (px)?.
-    self._use_http_lb_proxy_name = logical_http_lb_name + '-target-http-proxy'
+    self.__use_http_lb_proxy_name = logical_http_lb_name + '-target-http-proxy'
 
     interval=231
     healthy=8
@@ -299,30 +299,30 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Http Health Check Added')
         .list_resources('http-health-checks')
         .contains_group(
-            [jc.PathContainsPredicate('name', self._use_http_lb_hc_name),
+            [jc.PathContainsPredicate('name', self.__use_http_lb_hc_name),
              jc.PathContainsPredicate(None, health_check)]))
     (builder.new_clause_builder('Forwarding Rule Added', retryable_for_secs=15)
        .list_resources('forwarding-rules')
        .contains_group(
-           [jc.PathContainsPredicate('name', self._use_http_lb_fr_name),
+           [jc.PathContainsPredicate('name', self.__use_http_lb_fr_name),
             jc.PathContainsPredicate('portRange', port_range)]))
     (builder.new_clause_builder('Backend Service Added')
        .list_resources('backend-services')
        .contains_group(
-           [jc.PathContainsPredicate('name', self._use_http_lb_bs_name),
+           [jc.PathContainsPredicate('name', self.__use_http_lb_bs_name),
             jc.PathElementsContainPredicate(
-                'healthChecks', self._use_http_lb_hc_name)]))
+                'healthChecks', self.__use_http_lb_hc_name)]))
     (builder.new_clause_builder('Url Map Added')
        .list_resources('url-maps')
        .contains_group(
-           [jc.PathContainsPredicate('name', self._use_http_lb_map_name),
+           [jc.PathContainsPredicate('name', self.__use_http_lb_map_name),
             jc.PathContainsPredicate(
-                'defaultService', self._use_http_lb_bs_name)]))
+                'defaultService', self.__use_http_lb_bs_name)]))
     (builder.new_clause_builder('Target Http Proxy Added')
        .list_resources('target-http-proxies')
        .contains_group(
-           [jc.PathContainsPredicate('name', self._use_http_lb_proxy_name),
-            jc.PathContainsPredicate('urlMap', self._use_http_lb_map_name)]))
+           [jc.PathContainsPredicate('name', self.__use_http_lb_proxy_name),
+            jc.PathContainsPredicate('urlMap', self.__use_http_lb_map_name)]))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -332,26 +332,26 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
   def delete_http_load_balancer(self):
     payload = self.agent.type_to_payload(
         'deleteGoogleHttpLoadBalancerDescription',
-        { 'loadBalancerName': self._use_http_lb_name,
+        { 'loadBalancerName': self.__use_http_lb_name,
           'credentials': self.bindings['GCE_CREDENTIALS']
         })
 
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Health Check Removed')
        .list_resources('http-health-checks')
-       .excludes('name', self._use_http_lb_hc_name))
+       .excludes('name', self.__use_http_lb_hc_name))
     (builder.new_clause_builder('Forwarding Rules Removed')
        .list_resources('forwarding-rules')
-       .excludes('name', self._use_http_lb_fr_name))
+       .excludes('name', self.__use_http_lb_fr_name))
     (builder.new_clause_builder('Backend Service Removed')
        .list_resources('backend-services')
-       .excludes('name', self._use_http_lb_bs_name))
+       .excludes('name', self.__use_http_lb_bs_name))
     (builder.new_clause_builder('Url Map Removed')
        .list_resources('url-maps')
-       .excludes('name', self._use_http_lb_map_name))
+       .excludes('name', self.__use_http_lb_map_name))
     (builder.new_clause_builder('Target Http Proxy Removed')
        .list_resources('target-http-proxies')
-       .excludes('name', self._use_http_lb_proxy_name))
+       .excludes('name', self.__use_http_lb_proxy_name))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -360,17 +360,17 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
 
 
   def upsert_load_balancer(self):
-    self._use_lb_name = 'katotest-lb-' + self.test_id
-    self._use_lb_hc_name = '%s-hc' % self._use_lb_name
-    self._use_lb_tp_name = '%s-tp' % self._use_lb_name
-    self._use_lb_target = '{0}/targetPools/{1}'.format(
-        self._bindings['TEST_GCE_REGION'], self._use_lb_tp_name)
+    self.__use_lb_name = 'katotest-lb-' + self.test_id
+    self.__use_lb_hc_name = '%s-hc' % self.__use_lb_name
+    self.__use_lb_tp_name = '%s-tp' % self.__use_lb_name
+    self.__use_lb_target = '{0}/targetPools/{1}'.format(
+        self.bindings['TEST_GCE_REGION'], self.__use_lb_tp_name)
 
     interval=123
     healthy=4
     unhealthy=5
     timeout=78
-    path='/' + self._use_lb_target
+    path='/' + self.__use_lb_target
 
     health_check = {
         'checkIntervalSec': interval,
@@ -384,24 +384,24 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
         { 'healthCheck': health_check,
           'region': self.bindings['TEST_GCE_REGION'],
           'credentials': self.bindings['GCE_CREDENTIALS'],
-          'loadBalancerName': self._use_lb_name
+          'loadBalancerName': self.__use_lb_name
         })
 
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Forwarding Rules Added',
                                 retryable_for_secs=30)
        .list_resources('forwarding-rules')
-       .contains('name', self._use_lb_name)
-       .contains('target', self._use_lb_target))
+       .contains('name', self.__use_lb_name)
+       .contains('target', self.__use_lb_target))
     (builder.new_clause_builder('Target Pool Added', retryable_for_secs=15)
        .list_resources('target-pools')
-       .contains('name', self._use_lb_tp_name))
+       .contains('name', self.__use_lb_tp_name))
 
      # We list the resources here because the name isnt exact
      # and the list also returns the details we need.
     (builder.new_clause_builder('Health Check Added', retryable_for_secs=15)
        .list_resources('http-health-checks')
-       .contains_group([jc.PathContainsPredicate('name', self._use_lb_hc_name),
+       .contains_group([jc.PathContainsPredicate('name', self.__use_lb_hc_name),
                         jc.PathContainsPredicate(None, health_check)]))
 
     return st.OperationContract(
@@ -414,19 +414,19 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
       'deleteGoogleLoadBalancerDescription',
       { 'region': self.bindings['TEST_GCE_REGION'],
         'credentials': self.bindings['GCE_CREDENTIALS'],
-        'loadBalancerName': self._use_lb_name
+        'loadBalancerName': self.__use_lb_name
       })
 
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Health Check Removed')
        .list_resources('http-health-checks')
-       .excludes('name', self._use_lb_hc_name))
+       .excludes('name', self.__use_lb_hc_name))
     (builder.new_clause_builder('Target Pool Removed')
        .list_resources('target-pools')
-       .excludes('name', self._use_lb_tp_name))
+       .excludes('name', self.__use_lb_tp_name))
     (builder.new_clause_builder('Forwarding Rule Removed')
        .list_resources('forwarding-rules')
-       .excludes('name', self._use_lb_name))
+       .excludes('name', self.__use_lb_name))
 
     return st.OperationContract(
       self.new_post_operation(
@@ -447,7 +447,7 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     """
     payload = self.agent.type_to_payload(
         'registerInstancesWithGoogleLoadBalancerDescription',
-        { 'loadBalancerNames': [ self._use_lb_name ],
+        { 'loadBalancerNames': [ self.__use_lb_name ],
           'instanceIds': self.use_instance_names[:2],
           'region': self.bindings['TEST_GCE_REGION'],
           'credentials': self.bindings['GCE_CREDENTIALS']
@@ -458,14 +458,14 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
                                 retryable_for_secs=15)
        .list_resources('target-pools')
        .contains_group(
-          [jc.PathContainsPredicate('name', self._use_lb_tp_name),
+          [jc.PathContainsPredicate('name', self.__use_lb_tp_name),
            jc.PathEqPredicate('region', self.bindings['TEST_GCE_REGION']),
            jc.PathElementsContainPredicate(
               'instances', self.use_instance_names[0]),
            jc.PathElementsContainPredicate(
               'instances', self.use_instance_names[1])])
        .excludes_group(
-           [jc.PathContainsPredicate('name', self._use_lb_tp_name),
+           [jc.PathContainsPredicate('name', self.__use_lb_tp_name),
             jc.PathElementsContainPredicate(
                 'instances', self.use_instance_names[2])]))
 
@@ -484,7 +484,7 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
               
     payload = self.agent.type_to_payload(
        'deregisterInstancesFromGoogleLoadBalancerDescription',
-        { 'loadBalancerNames': [ self._use_lb_name ],
+        { 'loadBalancerNames': [ self.__use_lb_name ],
           'instanceIds': self.use_instance_names[:2],
           'region': self.bindings['TEST_GCE_REGION'],
           'credentials': self.bindings['GCE_CREDENTIALS']
@@ -502,7 +502,7 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
           'target-pools',
           extra_args=['--region', self.bindings['TEST_GCE_REGION']])
        .excludes_group(
-          [jc.PathContainsPredicate('name', self._use_lb_tp_name),
+          [jc.PathContainsPredicate('name', self.__use_lb_tp_name),
            jc.PathElementsContainPredicate(
               'instances', self.use_instance_names[0]),
            jc.PathElementsContainPredicate(

@@ -110,9 +110,22 @@ class SpinnakerStatus(service_testing.HttpOperationStatus):
     self.__current_state = state
 
   @property
+  def error(self):
+    """Returns the error, if any."""
+    return self.__error
+
+  def _bind_error(self, error):
+    """Sets the error, if any."""
+    self.__error = error
+
+  @property
   def exception_details(self):
     """The exceptions clause from the detail if the task status is an error."""
-    return self._exception_details
+    return self.__exception_details
+
+  def _bind_exception_details(self, details):
+    """Sets the exception details."""
+    self.__exception_details = details
 
   @property
   def id(self):
@@ -155,7 +168,8 @@ class SpinnakerStatus(service_testing.HttpOperationStatus):
     self.__request_id = original_response.output
     self.__current_state = None  # Last known state (after last refresh()).
     self.__detail_path = None    # The URL path on spinnaker for this status.
-    self._exception_details = None
+    self.__exception_details = None
+    self.__error = None
     self.__json_doc = None
 
     if not original_response or original_response.retcode < 0:

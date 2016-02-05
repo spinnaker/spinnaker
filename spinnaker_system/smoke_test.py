@@ -91,22 +91,22 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
     contract = jc.Contract()
     return st.OperationContract(
         self.agent.make_create_app_operation(
-            bindings=self._bindings, application=self.TEST_APP),
+            bindings=self.bindings, application=self.TEST_APP),
         contract=contract)
 
   def delete_app(self):
     contract = jc.Contract()
     return st.OperationContract(
         self.agent.make_delete_app_operation(
-            bindings=self._bindings, application=self.TEST_APP),
+            bindings=self.bindings, application=self.TEST_APP),
         contract=contract)
 
   def create_load_balancer(self):
-    load_balancer_name = self._bindings['TEST_APP_COMPONENT_NAME']
+    load_balancer_name = self.bindings['TEST_APP_COMPONENT_NAME']
     target_pool_name = '{0}/targetPools/{1}-tp'.format(
-        self._bindings['TEST_GCE_REGION'], load_balancer_name)
+        self.bindings['TEST_GCE_REGION'], load_balancer_name)
 
-    bindings = self._bindings
+    bindings = self.bindings
     account_name = bindings['GCE_CREDENTIALS']
 
     spec = {
@@ -165,8 +165,8 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
         contract=builder.build())
 
   def delete_load_balancer(self):
-    load_balancer_name = self._bindings['TEST_APP_COMPONENT_NAME']
-    bindings = self._bindings
+    load_balancer_name = self.bindings['TEST_APP_COMPONENT_NAME']
+    bindings = self.bindings
     payload = self.agent.make_payload(
        job=[{
           'type': 'deleteLoadBalancer',
@@ -205,7 +205,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
     # which will be the following:
     group_name = '{app}-{stack}-v000'.format(
         app=self.TEST_APP,
-        stack=self._bindings['TEST_STACK'])
+        stack=self.bindings['TEST_STACK'])
 
     bindings=self.bindings
     payload = self.agent.make_payload(
@@ -246,7 +246,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
         contract=builder.build())
 
   def delete_server_group(self):
-    bindings = self._bindings
+    bindings = self.bindings
     group_name = '{app}-{stack}-v000'.format(
         app=self.TEST_APP,
         stack=bindings['TEST_STACK'])
