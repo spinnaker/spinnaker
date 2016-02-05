@@ -10,7 +10,7 @@ It requires you to have the [Google Cloud SDK](https://cloud.google.com/sdk/#Qui
   ```
 
 ## Warning
-This setup exposes the Spinnaker UI (and therefore, control over your GCE/AWS VM environments) to the world, unprotected, on a public IP address. It is not recommended to leave this exposed without other restrictions, such as authentication and/or source IP address filtering.
+This setup exposes the Spinnaker UI (and therefore, control over your GCE VM environments) to the world, unprotected, on a public IP address. It is not recommended to leave this exposed without other restrictions, such as authentication and/or source IP address filtering.
 
 ## Limitations
 
@@ -86,13 +86,6 @@ Spinnaker needs the set of [configuration files](../../config) to be available t
   ```
   $ gcloud compute ssh root@$MY_GKE_NODE 'mkdir -p /root/.spinnaker/.gce'
   $ gcloud compute copy-files /PATH/TO/MY/CREDENTIALS.json root@$MY_GKE_NODE:/root/.spinnaker/.gce/gce.json
-  ```
-
-1. (Optional) Copy your AWS credentials to the node.
-
-  ```
-  $ gcloud compute ssh root@$MY_GKE_NODE 'mkdir -p /root/.spinnaker/.aws'
-  $ gcloud compute copy-files $HOME/.aws/* root@$MY_GKE_NODE:/root/.spinnaker/.aws
   ```
 
 ## Deploy Spinnaker Dependencies
