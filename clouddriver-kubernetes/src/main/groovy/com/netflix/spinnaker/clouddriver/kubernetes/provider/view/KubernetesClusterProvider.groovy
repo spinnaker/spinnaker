@@ -48,7 +48,7 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
   @Override
   Set<KubernetesCluster> getClusters(String applicationName, String account) {
     CacheData application = cacheView.get(Keys.Namespace.APPLICATIONS.ns, Keys.getApplicationKey(applicationName), RelationshipCacheFilter.include(Keys.Namespace.CLUSTERS.ns))
-    if (application == null) {
+    if (!application) {
       return [] as Set
     }
 
@@ -163,7 +163,6 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
 
   @Override
   Map<String, Set<KubernetesCluster>> getClusters() {
-    print ",, get em all!!"
     Collection<CacheData> clusterData = cacheView.getAll(Keys.Namespace.CLUSTERS.ns)
     Collection<KubernetesCluster> clusters = translateClusters(clusterData, true)
     mapResponse(clusters)
@@ -177,6 +176,10 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
   ServerGroup getServerGroup(String account, String namespace, String name) {
     String serverGroupKey = Keys.getServerGroupKey(account, namespace, name)
     CacheData serverGroupData = cacheView.get(Keys.Namespace.SERVER_GROUPS.ns, serverGroupKey)
+    if (!serverGroupData) {
+      return null
+    }
+
     Set<CacheData> instances = KubernetesProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.INSTANCES.ns, Keys.getInstanceKey(account, namespace, name, "*"))
 
     def replicationController = objectMapper.convertValue(serverGroupData.attributes.replicationController, ReplicationController)

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.description
 
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesContainerDescription
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import groovy.transform.AutoClone
 import groovy.transform.Canonical

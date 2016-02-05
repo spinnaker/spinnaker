@@ -74,7 +74,7 @@ class KubernetesHealthIndicator implements HealthIndicator {
             NamespaceBuilder namespaceBuilder = new NamespaceBuilder();
             EditableNamespace newNamespace = namespaceBuilder.withNewMetadata().withName(namespace).endMetadata().build()
             kubernetesCredentials.client.namespaces().create(newNamespace)
-            LOG.info "Created missing namespace " + namespace
+            LOG.info "Created missing namespace $namespace"
           }
         }
       }
