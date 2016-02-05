@@ -169,7 +169,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
 
   @Override
   OnDemandAgent.OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data) {
-    if (!data.containsKey("asgName")) {
+    if (!data.containsKey("serverGroupName")) {
       return null
     }
     if (!data.containsKey("account")) {
@@ -187,18 +187,18 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
       return null
     }
 
-    String asgName = data.asgName.toString()
+    String serverGroupName = data.serverGroupName.toString()
 
     Map onDemandData = metricsSupport.readData {
       def clients = new AmazonClients(amazonClientProvider, account, region, true)
 
       List<AutoScalingGroup> asgs = clients.autoScaling.describeAutoScalingGroups(
-        new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(asgName)
+        new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(serverGroupName)
       ).autoScalingGroups
 
-      Map<String, Collection<Map>> scalingPolicies = asgs ? loadScalingPolicies(clients, asgName) : [:]
+      Map<String, Collection<Map>> scalingPolicies = asgs ? loadScalingPolicies(clients, serverGroupName) : [:]
 
-      Map<String, Collection<Map>> scheduledActions = asgs ? loadScheduledActions(clients, asgName) : [:]
+      Map<String, Collection<Map>> scheduledActions = asgs ? loadScheduledActions(clients, serverGroupName) : [:]
 
       Map<String, String> subnetMap = [:]
       asgs.each {
@@ -222,7 +222,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
 
     metricsSupport.onDemandStore {
       def cacheData = new DefaultCacheData(
-        Keys.getServerGroupKey(asgName, account.name, region),
+        Keys.getServerGroupKey(serverGroupName, account.name, region),
         10 * 60,
         [
           cacheTime     : new Date(),
@@ -236,7 +236,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
 
     Map<String, Collection<String>> evictions = onDemandData.asgs ? [:] : [
       (SERVER_GROUPS.ns): [
-        Keys.getServerGroupKey(asgName, account.name, region)
+        Keys.getServerGroupKey(serverGroupName, account.name, region)
       ]
     ]
 
