@@ -42,10 +42,8 @@ class KubernetesCredentialsInitializer implements CredentialsInitializerSynchron
   @Autowired
   ApplicationContext appContext;
 
-  /*
   @Autowired
   List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers
-  */
 
   @Bean
   List<? extends KubernetesNamedAccountCredentials> kubernetesNamedAccountCredentials(
@@ -62,9 +60,9 @@ class KubernetesCredentialsInitializer implements CredentialsInitializerSynchron
   @Bean
   List<?> synchronizeKubernetesAccounts(KubernetesConfigurationProperties kubernetesConfigurationProperties, CatsModule catsModule) {
     def (ArrayList<KubernetesConfigurationProperties.ManagedAccount> accountsToAdd, List<String> namesOfDeletedAccounts) =
-      ProviderUtils.calculateAccountDeltas(accountCredentialsRepository,
-                                           KubernetesNamedAccountCredentials,
-                                           kubernetesConfigurationProperties.accounts)
+    ProviderUtils.calculateAccountDeltas(accountCredentialsRepository,
+                                         KubernetesNamedAccountCredentials,
+                                         kubernetesConfigurationProperties.accounts)
 
     accountsToAdd.each { KubernetesConfigurationProperties.ManagedAccount managedAccount ->
       try {
@@ -84,14 +82,9 @@ class KubernetesCredentialsInitializer implements CredentialsInitializerSynchron
 
     ProviderUtils.unscheduleAndDeregisterAgents(namesOfDeletedAccounts, catsModule)
 
-    /*
-     * Uncomment this when we are ready to add support for loading Kubernetes
-     * accounts without restarting clouddriver
-     * TODO(lwander)
     if (accountsToAdd && catsModule) {
       ProviderUtils.synchronizeAgentProviders(appContext, providerSynchronizerTypeWrappers)
     }
-    */
 
     accountCredentialsRepository.all.findAll {
       it instanceof KubernetesNamedAccountCredentials

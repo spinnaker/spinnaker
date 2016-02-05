@@ -165,7 +165,7 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
           assert(rc.spec.template.spec.containers[0][idx].resources.limits.memory == LIMIT_MEMORY[idx])
         }
       }) >> replicationControllerMock
-      2 * replicationControllerMock.getMetadata() >> metadataMock
-      2 * metadataMock.getName() >> replicationControllerName
+      5 * replicationControllerMock.getMetadata() >> metadataMock
+      3 * metadataMock.getName() >> replicationControllerName
   }
 }

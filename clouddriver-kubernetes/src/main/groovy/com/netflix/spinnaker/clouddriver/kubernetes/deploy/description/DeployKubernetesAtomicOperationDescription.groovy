@@ -41,7 +41,6 @@ class KubernetesContainerDescription {
   String image
   KubernetesResourceDescription requests
   KubernetesResourceDescription limits
-
 }
 
 @AutoClone

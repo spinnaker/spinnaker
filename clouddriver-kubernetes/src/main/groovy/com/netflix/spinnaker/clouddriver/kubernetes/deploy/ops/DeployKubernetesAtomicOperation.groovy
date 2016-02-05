@@ -53,7 +53,8 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
 
     ReplicationController rc = deployDescription()
     DeploymentResult deploymentResult = new DeploymentResult()
-    deploymentResult.serverGroupNames = Arrays.asList(rc.metadata.name)
+    deploymentResult.serverGroupNames = Arrays.asList("${rc.metadata.namespace}:${rc.metadata.name}".toString())
+    deploymentResult.serverGroupNameByRegion[rc.metadata.namespace] = rc.metadata.name
     return deploymentResult
   }
 
@@ -98,7 +99,7 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
 
     task.updateStatus BASE_PHASE, "Setting replication controller metadata labels..."
 
-    replicationControllerBuilder = replicationControllerBuilder.addToLabels(sequenceIndex, "true")
+    replicationControllerBuilder = replicationControllerBuilder.addToLabels(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicationControllerName)
 
     for (def securityGroup : description.securityGroups) {
       replicationControllerBuilder = replicationControllerBuilder.addToLabels(KubernetesUtil.securityGroupKey(securityGroup), "true")
@@ -118,7 +119,7 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
 
     task.updateStatus BASE_PHASE, "Setting replication controller spec labels..."
     // Metadata in spec and replication controller need to match, hence the apparent duplication
-    replicationControllerBuilder = replicationControllerBuilder.addToLabels(sequenceIndex, "true")
+    replicationControllerBuilder = replicationControllerBuilder.addToLabels(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicationControllerName)
 
     for (def securityGroup : description.securityGroups) {
       replicationControllerBuilder = replicationControllerBuilder.addToLabels(KubernetesUtil.securityGroupKey(securityGroup), "true")
