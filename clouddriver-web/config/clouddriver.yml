@@ -205,8 +205,8 @@ google:
 kubernetes:
   enabled: false
 
-docker:
-  enabled: ${DOCKER_ENABLED:false}
+dockerRegistry:
+  enabled: ${DOCKER_REGISTRY_ENABLED:false}
 
 titan:
   enabled: ${TITAN_ENABLED:false}

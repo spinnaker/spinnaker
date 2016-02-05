@@ -17,13 +17,13 @@
 rootProject.name="clouddriver"
 
 def subs = [
-  kato: ["kato-web", "kato-manual", "kato-jedis", "kato-docker", "kato-titan"],
+  kato: ["kato-web", "kato-manual", "kato-jedis", "kato-titan"],
   oort: ["oort-web", "oort-aws", "oort-bench", "oort-titan"],
   mort: ["mort-web", "mort-aws"],
   cats: ["cats-core", "cats-redis", "cats-test"]
 ]
 
-def topLevels = [ 'clouddriver-core', 'clouddriver-security', 'clouddriver-web', 'clouddriver-aws', 'clouddriver-titan', 'clouddriver-google', 'clouddriver-cf', 'clouddriver-azure', 'clouddriver-kubernetes' ]
+def topLevels = [ 'clouddriver-core', 'clouddriver-security', 'clouddriver-web', 'clouddriver-aws', 'clouddriver-titan', 'clouddriver-google', 'clouddriver-cf', 'clouddriver-azure', 'clouddriver-kubernetes', 'clouddriver-docker' ]
 
 String[] allmodules = (topLevels +  subs.collect { String sub, List<String> children -> [sub] + children.collect { sub + ':' + it } }.flatten()).toArray()
 
