@@ -217,8 +217,17 @@ providers:
   kubernetes:
     # If you want to deploy some services to kubernetes,
     # set enabled and provide primary credentials for deploying.
+    # Furthermore, you need to enable the docker registry account.
     # Enabling kubernetes is independent of other providers.
     enabled: false
     primaryCredentials:
       name: my-kubernetes-account
-      namespace: default
+      dockerRegistryAccount: my-docker-registry-account
+  dockerRegistry:
+    # If you want to use a container based provider, you need to configure and
+    # enable this provider to cache images.
+    enabled: false
+    primaryCredentials:
+      name: my-docker-registry-account
+      address: https://index.docker.io/
+      repository: library/nginx
