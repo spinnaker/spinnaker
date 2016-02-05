@@ -8,5 +8,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger', [
     require('./jenkins/jenkinsTrigger.module.js'),
     require('./pipeline/pipelineTrigger.module.js'),
     require('./cron/cronTrigger.module.js'),
+    require('./git/gitTrigger.module.js'),
     require('../stages/stage.module.js'),
   ]);

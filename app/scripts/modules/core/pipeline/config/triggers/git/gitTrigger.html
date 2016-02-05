@@ -1,0 +1,46 @@
+<ng-form name="cronForm">
+  <div class="form-group" ng-if="gitTriggerTypes.length > 1">
+    <label class="col-md-3 sm-label-right">
+      Repo Type
+      <help-field key="pipeline.config.git.repotype"></help-field>
+    </label>
+    <div class="col-md-6">
+      <select
+        class="form-control input-sm"
+        ng-options="repoType for repoType in gitTriggerTypes"
+        ng-model="vm.trigger.source">
+        <option value="">Select Repo Type</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-md-3 sm-label-right">
+      {{vm.trigger.source === 'stash' ? 'Project' : 'Organization or User'}}
+      <help-field key="pipeline.config.git.project"></help-field>
+    </label>
+
+    <div class="col-md-9">
+      <input type="text" class="form-control input-sm"
+             ng-model="vm.trigger.project"
+             name="project"
+             required
+             placeholder="Enter your {{vm.trigger.source === 'stash' ? 'repository project' : 'organization or user'}} name, i.e. spinnaker for github.com/spinnaker/echo"
+      />
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-md-3 sm-label-right">
+      {{vm.trigger.source === 'stash' ? 'Repo Name' : 'Project'}}
+      <help-field key="pipeline.config.git.slug"></help-field>
+    </label>
+    <div class="col-md-9">
+      <input type="text" class="form-control input-sm"
+             ng-model="vm.trigger.slug"
+             name="slug"
+             required
+             placeholder="Enter your {{vm.trigger.source === 'stash' ? 'source repository' : 'project'}} name (not the url), i.e, echo for github.com/spinnaker/echo"
+             pattern="^((?!\:\/\/).)*$"
+      />
+    </div>
+  </div>
+</ng-form>
