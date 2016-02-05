@@ -19,7 +19,7 @@ near production grade.
 
 ## TODOs
 
-1. Cassadra deployment options:
+1. Cassandra deployment options:
     1. Create own Dockerfile that executes the keyspace creation scripts (how?).
     1. Use embedded/in-memory Cassandra (like docker-compose deployment)
     1. Remove Cassandra dependency altogether
