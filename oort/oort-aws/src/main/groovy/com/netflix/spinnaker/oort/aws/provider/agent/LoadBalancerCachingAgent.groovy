@@ -243,6 +243,11 @@ class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAw
     buildCacheResult(allLoadBalancers, usableOnDemandCacheDatas.collectEntries { [it.id, it] }, start, evictableOnDemandCacheDatas)
   }
 
+  @Override
+  Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+    return []
+  }
+
   private CacheResult buildCacheResult(Collection<LoadBalancerDescription> allLoadBalancers, Map<String, CacheData> onDemandCacheDataByLb, long start, Collection<CacheData> evictableOnDemandCacheDatas) {
 
     Map<String, CacheData> instances = cache()

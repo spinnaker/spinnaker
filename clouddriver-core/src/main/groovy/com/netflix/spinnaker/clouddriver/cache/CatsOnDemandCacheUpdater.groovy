@@ -94,4 +94,13 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
       }
     }
   }
+
+  @Override
+  Collection<Map> pendingOnDemandRequests(String type, String cloudProvider) {
+    Collection<OnDemandAgent> onDemandAgents = onDemandAgents.findAll { it.handles(type, cloudProvider) }
+    return onDemandAgents.collect {
+      def providerCache = catsModule.getProviderRegistry().getProviderCache(it.providerName)
+      it.pendingOnDemandRequests(providerCache)
+    }.flatten()
+  }
 }

@@ -42,4 +42,9 @@ class NoopOnDemandCacheUpdater implements OnDemandCacheUpdater {
   void handle(String type, String cloudProvider, Map<String, ? extends Object> data) {
 
   }
+
+  @Override
+  Collection<Map> pendingOnDemandRequests(String type, String cloudProvider) {
+    return []
+  }
 }
