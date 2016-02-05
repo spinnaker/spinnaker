@@ -332,4 +332,16 @@ class ContextParameterProcessorSpec extends Specification {
     '7.5' | 7.5f
   }
 
+  @Unroll
+  def 'json reader returns a list if the item passed starts with a ['() {
+    expect:
+    expectedClass.isInstance(ContextStringUtilities.readJson(json))
+
+    where:
+    json               | expectedClass
+    '[ "one", "two" ]' | List
+    '{ "one":"two" }'  | Map
+
+  }
+
 }

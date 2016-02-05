@@ -115,8 +115,12 @@ class ContextParameterProcessor {
       evaluationContext.addPropertyAccessor(MapPropertyAccessor)
       evaluationContext.registerFunction('alphanumerical', ContextStringUtilities.getDeclaredMethod("alphanumerical", String))
       evaluationContext.registerFunction('toJson', ContextStringUtilities.getDeclaredMethod("toJson", Object))
+      evaluationContext.registerFunction('readJson', ContextStringUtilities.getDeclaredMethod("readJson", String))
       evaluationContext.registerFunction('toInt', ContextStringUtilities.getDeclaredMethod("toInt", String))
       evaluationContext.registerFunction('toFloat', ContextStringUtilities.getDeclaredMethod("toFloat", String))
+      evaluationContext.registerFunction('fromUrl', ContextStringUtilities.getDeclaredMethod("fromUrl", String))
+      evaluationContext.registerFunction('jsonFromUrl', ContextStringUtilities.getDeclaredMethod("jsonFromUrl", String))
+
       try {
         Expression exp = parser.parseExpression(parameters, parserContext)
         convertedValue = exp.getValue(evaluationContext)
@@ -124,7 +128,7 @@ class ContextParameterProcessor {
         convertedValue = parameters
       }
 
-      if(convertedValue == null){
+      if (convertedValue == null) {
         convertedValue = parameters
       }
 
@@ -140,15 +144,31 @@ abstract class ContextStringUtilities {
   static String alphanumerical(String str) {
     str.replaceAll('[^A-Za-z0-9]', '')
   }
+
   static String toJson(Object o) {
     new ObjectMapper().writeValueAsString(o)
   }
+
   static Integer toInt(String str) {
     Integer.valueOf(str)
   }
+
   static Float toFloat(String str) {
     Float.valueOf(str)
   }
+
+  static String fromUrl(String url) {
+    new URL(url).text
+  }
+
+  static Object readJson(String text){
+    new ObjectMapper().readValue(text, text.startsWith('[') ? List : Map)
+  }
+
+  static Object jsonFromUrl(String url) {
+    readJson(fromUrl(url))
+  }
+
 }
 
 class MapPropertyAccessor extends ReflectivePropertyAccessor {
