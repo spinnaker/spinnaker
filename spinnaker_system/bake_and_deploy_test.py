@@ -162,18 +162,18 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
 
     return st.OperationContract(
         self.agent.make_create_app_operation(
-            bindings=self._bindings, application=self.TEST_APP),
+            bindings=self.bindings, application=self.TEST_APP),
         builder.build())
 
   def delete_app(self):
     contract = jc.Contract()
     return st.OperationContract(
         self.agent.make_delete_app_operation(
-            bindings=self._bindings, application=self.TEST_APP),
+            bindings=self.bindings, application=self.TEST_APP),
         contract=contract)
 
   def create_load_balancer(self):
-    bindings = self._bindings
+    bindings = self.bindings
     load_balancer_name = self.__full_lb_name
 
     spec = {
@@ -229,7 +229,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
         contract=builder.build())
 
   def delete_load_balancer(self):
-    bindings = self._bindings
+    bindings = self.bindings
     payload = self.agent.make_payload(
        job=[{
           'type': 'deleteLoadBalancer',

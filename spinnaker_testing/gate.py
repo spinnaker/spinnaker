@@ -75,7 +75,7 @@ class GateTaskStatus(sk.SpinnakerStatus):
       self._bind_detail_path(doc['ref'])
       self._bind_id(self.detail_path)
     else:
-      self._error = "Invalid response='{0}'".format(original_response)
+      self._bind_error("Invalid response='{0}'".format(original_response))
       self.current_state = 'CITEST_INTERNAL_ERROR'
 
   def _update_response_from_json(self, doc):
@@ -87,7 +87,7 @@ class GateTaskStatus(sk.SpinnakerStatus):
        doc: [dict] JSON Document object read from response payload.
     """
     self.current_state = doc['status']
-    self._exception_details = None
+    self._bind_exception_details(None)
 
     exception_details = None
     gate_exception = None
@@ -104,7 +104,7 @@ class GateTaskStatus(sk.SpinnakerStatus):
               gate_exception = task['exception']['message']
               break
 
-    self._exception_details = exception_details or gate_exception
+    self._bind_exception_details(exception_details or gate_exception)
 
 
 class GatePipelineStatus(sk.SpinnakerStatus):
@@ -158,10 +158,10 @@ class GatePipelineStatus(sk.SpinnakerStatus):
     Args:
        doc: [dict] JSON Document object read from response payload.
     """
-    self._exception_details = None
+    self._bind_exception_details(None)
 
     if not isinstance(doc, list):
-      self._error = "Invalid response='{0}'".format(doc)
+      self._bind_error("Invalid response='{0}'".format(doc))
       self.current_state = 'CITEST_INTERNAL_ERROR'
 
     # It can take a while for the running pipelines to show up.
@@ -183,7 +183,7 @@ class GatePipelineStatus(sk.SpinnakerStatus):
 
     # TODO(ewiseblatt): Not sure what these look like yet.
     exception_details = None
-    self._exception_details = exception_details
+    self._bind_exception_details(exception_details)
 
 
 class GateAgent(sk.SpinnakerAgent):
