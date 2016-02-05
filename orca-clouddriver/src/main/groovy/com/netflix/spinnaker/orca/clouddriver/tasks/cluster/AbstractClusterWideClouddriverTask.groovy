@@ -198,12 +198,12 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
       switch (location.type) {
         case Location.Type.ZONE:
           deployedServerGroups.addAll(clusterServerGroups.findAll {
-            it.zones.contains(location.value) && dsgs[it.region].contains(it.name)
+            it.zones.contains(location.value) && dsgs[it.region]?.contains(it.name)
           })
           break;
         case Location.Type.REGION:
           deployedServerGroups.addAll(clusterServerGroups.findAll {
-            it.region == location.value && dsgs[location.value].contains(it.name)
+            it.region == location.value && dsgs[location.value]?.contains(it.name)
           })
           break;
       }
