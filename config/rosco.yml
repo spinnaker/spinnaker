@@ -3,7 +3,7 @@ server:
   address: ${services.rosco.host:localhost}
 
 redis:
-  host: ${services.redis.host:localhost}
+  connection: ${services.redis.connection:redis://localhost:6379}
 
 aws:
   enabled: ${providers.aws.enabled:false}
