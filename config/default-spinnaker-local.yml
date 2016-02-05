@@ -7,7 +7,7 @@ providers:
     # If you want to deploy some services to Amazon Web Services (AWS),
     # set enabled and provide primary credentials for deploying.
     # Enabling AWS is independent of other providers.
-    enabled: ${SPINNAKER_AWS_ENABLED}
+    enabled: ${SPINNAKER_AWS_ENABLED:false}
     defaultRegion: ${SPINNAKER_AWS_DEFAULT_REGION}
     defaultIAMRole: BaseIAMRole
     primaryCredentials:
@@ -18,7 +18,7 @@ providers:
     # If you want to deploy some services to Google Cloud Platform (google),
     # set enabled and provide primary credentials for deploying.
     # Enabling google is independent of other providers.
-    enabled: ${SPINNAKER_GOOGLE_ENABLED}
+    enabled: ${SPINNAKER_GOOGLE_ENABLED:false}
     defaultRegion: ${SPINNAKER_GOOGLE_DEFAULT_REGION}
     defaultZone: ${SPINNAKER_GOOGLE_DEFAULT_ZONE}
     primaryCredentials:
