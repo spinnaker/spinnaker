@@ -42,11 +42,19 @@ class WebhooksController {
     event.details.type = type
     event.content = postedEvent
 
-    if (type == 'git' && source == 'stash') {
-      event.content.hash = postedEvent.refChanges?.first().toHash
-      event.content.branch = postedEvent.refChanges?.first().refId.replace('refs/heads/', '')
-      event.content.repoProject = postedEvent.repository.project.key
-      event.content.slug = postedEvent.repository.slug
+    if (type == 'git') {
+      if (source == 'stash') {
+        event.content.hash = postedEvent.refChanges?.first().toHash
+        event.content.branch = postedEvent.refChanges?.first().refId.replace('refs/heads/', '')
+        event.content.repoProject = postedEvent.repository.project.key
+        event.content.slug = postedEvent.repository.slug
+      }
+      if (source == 'github') {
+        event.content.hash = postedEvent.after
+        event.content.branch = postedEvent.ref.replace('refs/heads/', '')
+        event.content.repoProject = postedEvent.repository.owner.name
+        event.content.slug = postedEvent.repository.name
+      }
     }
 
     log.info("Webhook ${source}:${type}:${event.content}")
