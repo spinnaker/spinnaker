@@ -20,10 +20,12 @@ import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.squareup.okhttp.Credentials
+import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.beans.factory.annotation.Value
 import retrofit.Endpoints
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
@@ -31,6 +33,7 @@ import retrofit.client.OkClient
 import retrofit.converter.SimpleXMLConverter
 
 import javax.validation.Valid
+import java.util.concurrent.TimeUnit
 
 /**
  * Converts the list of Jenkins Configuration properties a collection of clients to access the Jenkins hosts
@@ -40,11 +43,14 @@ import javax.validation.Valid
 @CompileStatic
 class JenkinsConfig {
 
+    @Value('${client.timeout:30000}')
+    int clientTimeout
+
     @Bean
     JenkinsMasters jenkinsMasters(@Valid JenkinsProperties jenkinsProperties) {
         new JenkinsMasters(map: jenkinsProperties?.masters?.collectEntries { JenkinsProperties.JenkinsHost host ->
             log.info "bootstrapping ${host.address} as ${host.name}"
-            [(host.name): jenkinsService(host.name, jenkinsClient(host.address, host.username, host.password))]
+            [(host.name): jenkinsService(host.name, jenkinsClient(host.address, host.username, host.password, clientTimeout))]
         })
     }
 
@@ -52,11 +58,14 @@ class JenkinsConfig {
         return new JenkinsService(jenkinsHostId, jenkinsClient)
     }
 
-    static JenkinsClient jenkinsClient(String address, String username, String password) {
+    static JenkinsClient jenkinsClient(String address, String username, String password, int timeout = 30000) {
+        OkHttpClient client = new OkHttpClient()
+        client.setReadTimeout(timeout, TimeUnit.MILLISECONDS)
+
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(address))
             .setRequestInterceptor(new BasicAuthRequestInterceptor(username, password))
-            .setClient(new OkClient())
+            .setClient(new OkClient(client))
             .setConverter(new SimpleXMLConverter())
             .build()
             .create(JenkinsClient)
