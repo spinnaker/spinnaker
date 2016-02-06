@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.cache
 
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 
 class Keys {
   static enum Namespace {

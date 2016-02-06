@@ -16,13 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.security;
 
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class KubernetesNamedAccountCredentials implements AccountCredentials<KubernetesCredentials> {
     public KubernetesNamedAccountCredentials(String accountName, String environment, String accountType, String master, String username, String password, List<String> namespaces) {

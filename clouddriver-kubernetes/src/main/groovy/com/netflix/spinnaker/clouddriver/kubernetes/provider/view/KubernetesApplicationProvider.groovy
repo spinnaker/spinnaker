@@ -29,7 +29,8 @@ import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys.Namespace.*
+import static com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys.Namespace.APPLICATIONS
+import static com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys.Namespace.CLUSTERS
 
 @Component
 class KubernetesApplicationProvider implements ApplicationProvider {

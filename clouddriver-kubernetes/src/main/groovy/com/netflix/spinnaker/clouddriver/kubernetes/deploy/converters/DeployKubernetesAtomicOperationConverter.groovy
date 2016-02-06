@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters
 
-import com.netflix.spinnaker.clouddriver.deploy.DeployAtomicOperation
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.DeployKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.DeployKubernetesAtomicOperation

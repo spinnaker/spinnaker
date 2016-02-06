@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.model
 
-import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
