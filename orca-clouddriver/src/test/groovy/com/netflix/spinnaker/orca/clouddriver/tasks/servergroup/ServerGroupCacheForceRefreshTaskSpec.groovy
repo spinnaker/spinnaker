@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.client.Response
@@ -25,7 +27,7 @@ import spock.lang.Subject
 
 class ServerGroupCacheForceRefreshTaskSpec extends Specification {
 
-  @Subject task = new ServerGroupCacheForceRefreshTask()
+  @Subject task = new ServerGroupCacheForceRefreshTask(objectMapper: new ObjectMapper())
   def stage = new PipelineStage(type: "whatever")
 
   def deployConfig = [
@@ -52,9 +54,9 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
       expectations = body
       return new Response('oort', 202, 'ok', [], new TypedString("[]"))
     }
-    expectations.asgName == (deployConfig."deploy.server.groups"."us-east-1").get(0)
+    expectations.serverGroupName == (deployConfig."deploy.server.groups"."us-east-1").get(0)
     expectations.account == deployConfig."account.name"
     expectations.region == "us-east-1"
-    result.outputs == [:]
+    result.status == ExecutionStatus.RUNNING
   }
 }
