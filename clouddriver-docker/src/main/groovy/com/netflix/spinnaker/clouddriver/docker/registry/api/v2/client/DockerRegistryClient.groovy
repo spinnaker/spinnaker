@@ -35,12 +35,10 @@ class DockerRegistryClient {
   public String address
   private DockerRegistryService registryService
   private GsonConverter converter
-  private RequestResource requester
 
   DockerRegistryClient(String address, String email, String username, String password) {
     this.tokenService = new DockerBearerTokenService(username, password)
-    this.registryService = new RestAdapter.Builder().setEndpoint(address).setLogLevel(RestAdapter.LogLevel.BASIC).build().create(DockerRegistryService)
-    this.requester = new RequestResource()
+    this.registryService = new RestAdapter.Builder().setEndpoint(address).setLogLevel(RestAdapter.LogLevel.NONE).build().create(DockerRegistryService)
     this.converter = new GsonConverter(new GsonBuilder().create())
     this.address = address
   }
@@ -108,28 +106,5 @@ class DockerRegistryClient {
       }
     }
     return true
-  }
-
-  private class RequestResource<T> {
-    Callback<T> Request(Closure store, Closure<T> retry) {
-      return new Callback<T>() {
-        @Override
-        void success(T t, Response response) {
-          T convertedResult = (T) converter.fromBody(response.body, T)
-          store(convertedResult)
-        }
-
-        @Override
-        void failure(RetrofitError error) {
-          if (error.response.status == 401) {
-            def tokenResponse = tokenService.getToken(error.response.headers)
-            def token = tokenResponse.bearer_token ?: tokenResponse.token
-            store(retry(token))
-          } else {
-            throw error
-          }
-        }
-      }
-    }
   }
 }
