@@ -62,6 +62,7 @@ class ApplicationService {
   ExecutorService executorService
 
   private AtomicReference<List<Map>> allApplicationsCache = new AtomicReference<>([])
+  private AtomicReference<List<String>> globalAccountsCache = new AtomicReference<>([])
 
   @PostConstruct
   void startMonitoring() {
@@ -187,8 +188,9 @@ class ApplicationService {
 
   private Collection<String> fetchGlobalAccounts() {
     HystrixFactory.newListCommand(GROUP, "fetchGlobalAccounts", {
-      front50Service.credentials.findAll { it.global == true }.collect { it.name }
-    }, { [] }).execute()
+      globalAccountsCache.set(front50Service.credentials.findAll { it.global == true }.collect { it.name } as List<String>)
+      return globalAccountsCache.get()
+    }, { globalAccountsCache.get() }).execute()
   }
 
   @CompileDynamic
