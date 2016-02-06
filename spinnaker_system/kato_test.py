@@ -50,7 +50,6 @@ from citest.base import JournalLogger
 import citest.gcp_testing as gcp
 import citest.json_contract as jc
 import citest.service_testing as st
-import citest.service_testing.http_agent as http_agent
 
 # Spinnaker modules.
 import spinnaker_testing as sk
@@ -63,16 +62,17 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
   # especially terminate.
   use_instance_names = []
   use_instance_zones = []
-  _use_lb_name = ''     # The load balancer name.
-  _use_lb_tp_name = ''  # The load balancer's target pool name.
-  _use_lb_hc_name = ''  # The load balancer's health check name.
-  _use_lb_target = ''   # The load balancer's 'target' resource.
-  _use_http_lb_name = '' # The HTTP load balancer name.
-  _use_http_lb_hc_name = '' # The HTTP load balancer health check name.
-  _use_http_lb_bs_name = '' # The HTTP load balancer backend service name.
-  _use_http_lb_fr_name = '' # The HTTP load balancer forwarding rule.
-  _use_http_lb_map_name = '' # The HTTP load balancer url map name.
-  _use_http_lb_http_proxy_name = '' # The HTTP load balancer target http proxy.
+  __use_lb_name = ''     # The load balancer name.
+  __use_lb_tp_name = ''  # The load balancer's target pool name.
+  __use_lb_hc_name = ''  # The load balancer's health check name.
+  __use_lb_target = ''   # The load balancer's 'target' resource.
+  __use_http_lb_name = '' # The HTTP load balancer name.
+  __use_http_lb_proxy_name = '' # The HTTP load balancer target proxy name.
+  __use_http_lb_hc_name = '' # The HTTP load balancer health check name.
+  __use_http_lb_bs_name = '' # The HTTP load balancer backend service name.
+  __use_http_lb_fr_name = '' # The HTTP load balancer forwarding rule.
+  __use_http_lb_map_name = '' # The HTTP load balancer url map name.
+  __use_http_lb_http_proxy_name = '' # The HTTP load balancer target http proxy.
 
   @classmethod
   def new_agent(cls, bindings):
@@ -140,20 +140,23 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     instance_spec = []
     builder = gcp.GceContractBuilder(self.gce_observer)
     for i in range(3):
+      # pylint: disable=bad-continuation
       instance_spec.append(
-        { 'createGoogleInstanceDescription': {
+        {
+          'createGoogleInstanceDescription': {
             'instanceName': self.use_instance_names[i],
             'image': image_name[i],
             'instanceType': machine_type[i],
             'zone': self.use_instance_zones[i],
-            'credentials': self.bindings['GCE_CREDENTIALS'] }
+            'credentials': self.bindings['GCE_CREDENTIALS']
+            }
         })
 
       # Verify we created an instance, whether or not it boots.
       (builder.new_clause_builder(
           'Instance %d Created' % i, retryable_for_secs=90)
-           .list_resources('instances')
-           .contains('name', self.use_instance_names[i]))
+            .list_resources('instances')
+            .contains('name', self.use_instance_names[i]))
       if i < 2:
         # Verify the details are what we asked for.
         # Since we've finished the created clause, this already exists.
@@ -208,9 +211,11 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
       # objects, but not necessarily all of them.
       clause.add_mapped_constraint(jc.IF(name_matches_pred, is_stopping_pred))
 
+    # pylint: disable=bad-continuation
     payload = self.agent.type_to_payload(
           'terminateInstances',
-          { 'instanceIds': names,
+          {
+            'instanceIds': names,
             'zone': zone,
             'credentials': self.bindings['GCE_CREDENTIALS']
           })
@@ -221,14 +226,16 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
         contract=builder.build())
 
   def upsert_google_server_group_tags(self):
+    # pylint: disable=bad-continuation
     server_group_name = 'katotest-server-group'
     payload = self.agent.type_to_payload(
-      'upsertGoogleServerGroupTagsDescription',
-      { 'credentials': self.bindings['GCE_CREDENTIALS'],
-        'zone': self.bindings['TEST_GCE_ZONE'],
-        'serverGroupName': 'katotest-server-group',
-        'tags': ['test-tag-1', 'test-tag-2']
-      })
+        'upsertGoogleServerGroupTagsDescription',
+        {
+          'credentials': self.bindings['GCE_CREDENTIALS'],
+          'zone': self.bindings['TEST_GCE_ZONE'],
+          'serverGroupName': 'katotest-server-group',
+          'tags': ['test-tag-1', 'test-tag-2']
+        })
 
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Server Group Tags Added')
@@ -236,7 +243,7 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
         .contains_group(
             [jc.PathContainsPredicate('name', server_group_name),
              jc.PathContainsPredicate(
-                 "tags/items", ['test-tag-1','test-tag-2'])]))
+                 "tags/items", ['test-tag-1', 'test-tag-2'])]))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -254,7 +261,6 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     # TODO(ewiseblatt): 20150530
     # This needs to be abbreviated to bs.
     self.__use_http_lb_bs_name = logical_http_lb_name + '-backend-service'
-
     self.__use_http_lb_fr_name = logical_http_lb_name
 
     # TODO(ewiseblatt): 20150530
@@ -265,11 +271,11 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     # This should be abbreviated (px)?.
     self.__use_http_lb_proxy_name = logical_http_lb_name + '-target-http-proxy'
 
-    interval=231
-    healthy=8
-    unhealthy=9
-    timeout=65
-    path='/hello/world'
+    interval = 231
+    healthy = 8
+    unhealthy = 9
+    timeout = 65
+    path = '/hello/world'
 
     # TODO(ewiseblatt): 20150530
     # This field might be broken. 123-456 still resolves to 80-80
@@ -284,16 +290,18 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
         'healthyThreshold': healthy,
         'unhealthyThreshold': unhealthy,
         'timeoutSec': timeout,
-        'requestPath': path }
+        'requestPath': path
+        }
 
+    # pylint: disable=bad-continuation
     payload = self.agent.type_to_payload(
         'createGoogleHttpLoadBalancerDescription',
-        { 'healthCheck': health_check,
+        {
+          'healthCheck': health_check,
           'portRange': port_range,
           'loadBalancerName': logical_http_lb_name,
           'credentials': self.bindings['GCE_CREDENTIALS']
         })
-
 
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Http Health Check Added')
@@ -330,9 +338,11 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
         contract=builder.build())
 
   def delete_http_load_balancer(self):
+    # pylint: disable=bad-continuation
     payload = self.agent.type_to_payload(
         'deleteGoogleHttpLoadBalancerDescription',
-        { 'loadBalancerName': self.__use_http_lb_name,
+        {
+          'loadBalancerName': self.__use_http_lb_name,
           'credentials': self.bindings['GCE_CREDENTIALS']
         })
 
@@ -366,22 +376,25 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     self.__use_lb_target = '{0}/targetPools/{1}'.format(
         self.bindings['TEST_GCE_REGION'], self.__use_lb_tp_name)
 
-    interval=123
-    healthy=4
-    unhealthy=5
-    timeout=78
-    path='/' + self.__use_lb_target
+    interval = 123
+    healthy = 4
+    unhealthy = 5
+    timeout = 78
+    path = '/' + self.__use_lb_target
 
     health_check = {
         'checkIntervalSec': interval,
         'healthyThreshold': healthy,
         'unhealthyThreshold': unhealthy,
         'timeoutSec': timeout,
-        'requestPath': path }
+        'requestPath': path
+        }
 
+    # pylint: disable=bad-continuation
     payload = self.agent.type_to_payload(
         'upsertGoogleLoadBalancerDescription',
-        { 'healthCheck': health_check,
+        {
+          'healthCheck': health_check,
           'region': self.bindings['TEST_GCE_REGION'],
           'credentials': self.bindings['GCE_CREDENTIALS'],
           'loadBalancerName': self.__use_lb_name
@@ -410,12 +423,14 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
       contract=builder.build())
 
   def delete_load_balancer(self):
+    # pylint: disable=bad-continuation
     payload = self.agent.type_to_payload(
-      'deleteGoogleLoadBalancerDescription',
-      { 'region': self.bindings['TEST_GCE_REGION'],
-        'credentials': self.bindings['GCE_CREDENTIALS'],
-        'loadBalancerName': self.__use_lb_name
-      })
+        'deleteGoogleLoadBalancerDescription',
+        {
+          'region': self.bindings['TEST_GCE_REGION'],
+          'credentials': self.bindings['GCE_CREDENTIALS'],
+          'loadBalancerName': self.__use_lb_name
+        })
 
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Health Check Removed')
@@ -445,9 +460,11 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     Returns:
       st.OperationContract
     """
+    # pylint: disable=bad-continuation
     payload = self.agent.type_to_payload(
         'registerInstancesWithGoogleLoadBalancerDescription',
-        { 'loadBalancerNames': [ self.__use_lb_name ],
+        {
+          'loadBalancerNames': [self.__use_lb_name],
           'instanceIds': self.use_instance_names[:2],
           'region': self.bindings['TEST_GCE_REGION'],
           'credentials': self.bindings['GCE_CREDENTIALS']
@@ -481,10 +498,11 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     Returns:
       st.OperationContract
     """
-              
+    # pylint: disable=bad-continuation
     payload = self.agent.type_to_payload(
        'deregisterInstancesFromGoogleLoadBalancerDescription',
-        { 'loadBalancerNames': [ self.__use_lb_name ],
+        {
+          'loadBalancerNames': [self.__use_lb_name],
           'instanceIds': self.use_instance_names[:2],
           'region': self.bindings['TEST_GCE_REGION'],
           'credentials': self.bindings['GCE_CREDENTIALS']
@@ -545,7 +563,7 @@ class KatoIntegrationTest(st.AgentTestCase):
       self.run_test_case(
           self.scenario.terminate_instances(
               [self.scenario.use_instance_names[1]],
-               self.scenario.use_instance_zones[1]))
+              self.scenario.use_instance_zones[1]))
     finally:
       # Always give this a try, even if the first test fails.
       # that increases our chances of cleaning everything up.
@@ -553,7 +571,7 @@ class KatoIntegrationTest(st.AgentTestCase):
           self.scenario.terminate_instances(
               [self.scenario.use_instance_names[0],
                self.scenario.use_instance_names[2]],
-               self.scenario.use_instance_zones[0]))
+              self.scenario.use_instance_zones[0]))
 
   def test_z_delete_load_balancer(self):
     # TODO(ewiseblatt): 20151220
