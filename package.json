@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "Select2": "git://github.com/select2/select2.git#3.4.8",
-    "angular": "^1.4.1",
+    "angular": "~1.4.1",
     "angular-animate": "^1.4.1",
     "angular-cache": "^4.2.2",
     "angular-debounce": "git://github.com/shahata/angular-debounce.git#0.1.7",
