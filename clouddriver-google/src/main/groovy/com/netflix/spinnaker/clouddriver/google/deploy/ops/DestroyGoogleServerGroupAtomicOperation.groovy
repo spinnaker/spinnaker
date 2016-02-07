@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DestroyGoogleServerGroupDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
@@ -63,7 +64,7 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
         compute.instanceGroupManagers().delete(project, zone, serverGroupName).execute()
     def instanceGroupOperationName = instanceGroupManagerDeleteOperation.getName()
 
-    task.updateStatus BASE_PHASE, "Waiting on delete operation for managed instance group."
+    task.updateStatus BASE_PHASE, "Waiting on delete operation for managed instance group..."
 
     // We must make sure the managed instance group is deleted before deleting the instance template.
     googleOperationPoller.waitForZonalOperation(compute, project, zone, instanceGroupOperationName, null, task,
@@ -74,6 +75,14 @@ class DestroyGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
     compute.instanceTemplates().delete(project, instanceTemplateName).execute()
 
     task.updateStatus BASE_PHASE, "Deleted instance template."
+
+    task.updateStatus BASE_PHASE, "Checking for autoscaler..."
+
+    if (GCEUtil.queryZonalAutoscaler(project, zone, serverGroupName, description.credentials)) {
+      compute.autoscalers().delete(project, zone, serverGroupName).execute()
+
+      task.updateStatus BASE_PHASE, "Deleted autoscaler."
+    }
 
     task.updateStatus BASE_PHASE, "Done destroying server group $serverGroupName in $zone."
     null

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.handlers
 
+import com.google.api.services.compute.model.Autoscaler
 import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
@@ -165,14 +166,30 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     googleOperationPoller.waitForGlobalOperation(compute, project, instanceTemplateCreateOperation.getName(),
         null, task, "instance template " + GCEUtil.getLocalName(instanceTemplateUrl), BASE_PHASE)
 
-    compute.instanceGroupManagers().insert(project,
-                                           zone,
-                                           new InstanceGroupManager()
-                                               .setName(serverGroupName)
-                                               .setBaseInstanceName(serverGroupName)
-                                               .setInstanceTemplate(instanceTemplateUrl)
-                                               .setTargetSize(description.targetSize)
-                                               .setTargetPools(networkLoadBalancers)).execute()
+    if (autoscalerIsSpecified(description)) {
+      GCEUtil.calibrateTargetSizeWithAutoscaler(description)
+    }
+
+    def migCreateOperation = compute.instanceGroupManagers().insert(project,
+                                                                    zone,
+                                                                    new InstanceGroupManager()
+                                                                        .setName(serverGroupName)
+                                                                        .setBaseInstanceName(serverGroupName)
+                                                                        .setInstanceTemplate(instanceTemplateUrl)
+                                                                        .setTargetSize(description.targetSize)
+                                                                        .setTargetPools(networkLoadBalancers)).execute()
+
+    if (autoscalerIsSpecified(description)) {
+      // Before creating the Autoscaler we must wait until the managed instance group is created.
+      googleOperationPoller.waitForZonalOperation(compute, project, zone, migCreateOperation.getName(),
+        null, task, "managed instance group $serverGroupName", BASE_PHASE)
+
+      task.updateStatus BASE_PHASE, "Creating autoscaler for $serverGroupName..."
+
+      Autoscaler autoscaler = GCEUtil.buildAutoscaler(serverGroupName, migCreateOperation, description)
+
+      compute.autoscalers().insert(project, zone, autoscaler).execute()
+    }
 
     task.updateStatus BASE_PHASE, "Done creating server group $serverGroupName in $zone."
 
@@ -180,5 +197,11 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     deploymentResult.serverGroupNames = ["$region:$serverGroupName".toString()]
     deploymentResult.serverGroupNameByRegion[region] = serverGroupName
     deploymentResult
+  }
+
+  private boolean autoscalerIsSpecified(BasicGoogleDeployDescription description) {
+    return description.autoscalingPolicy?.with {
+      cpuUtilization || loadBalancingUtilization || customMetricUtilizations
+    }
   }
 }

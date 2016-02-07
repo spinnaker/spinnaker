@@ -262,4 +262,39 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
       1 * errors.rejectValue('instanceType', _)
       1 * errors.rejectValue('zone', _)
   }
+
+  void "nonsensical autoscaling policy min, max or cooldown fails validation"() {
+    setup:
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], new BasicGoogleDeployDescription(autoscalingPolicy: [minNumReplicas: -5]), errors)
+
+    then:
+      1 * errors.rejectValue("autoscalingPolicy.minNumReplicas",
+                             "basicGoogleDeployDescription.autoscalingPolicy.minNumReplicas.negative")
+
+    when:
+      validator.validate([], new BasicGoogleDeployDescription(autoscalingPolicy: [maxNumReplicas: -5]), errors)
+
+    then:
+      1 * errors.rejectValue("autoscalingPolicy.maxNumReplicas",
+                             "basicGoogleDeployDescription.autoscalingPolicy.maxNumReplicas.negative")
+
+    when:
+      validator.validate([], new BasicGoogleDeployDescription(autoscalingPolicy: [coolDownPeriodSec: -5]), errors)
+
+    then:
+      1 * errors.rejectValue("autoscalingPolicy.coolDownPeriodSec",
+                             "basicGoogleDeployDescription.autoscalingPolicy.coolDownPeriodSec.negative")
+
+    when:
+      validator.validate([], new BasicGoogleDeployDescription(autoscalingPolicy: [minNumReplicas: 5, maxNumReplicas: 3]), errors)
+
+    then:
+      1 * errors.rejectValue("autoscalingPolicy.maxNumReplicas",
+                             "basicGoogleDeployDescription.autoscalingPolicy.maxNumReplicas.lessThanMin",
+                             "basicGoogleDeployDescription.autoscalingPolicy.maxNumReplicas must not be less than " +
+                                 "basicGoogleDeployDescription.autoscalingPolicy.minNumReplicas.")
+  }
 }

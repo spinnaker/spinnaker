@@ -49,5 +49,15 @@ class BasicGoogleDeployDescriptionValidator extends DescriptionValidator<BasicGo
     helper.validateName(description.application, "application")
     helper.validateNotEmpty(description.targetSize, "targetSize")
     helper.validateNonNegativeLong(description.targetSize ?: 0, "targetSize")
+
+    description.autoscalingPolicy?.with {
+      helper.validateNonNegativeLong(minNumReplicas, "autoscalingPolicy.minNumReplicas")
+      helper.validateNonNegativeLong(maxNumReplicas, "autoscalingPolicy.maxNumReplicas")
+      helper.validateNonNegativeLong(coolDownPeriodSec, "autoscalingPolicy.coolDownPeriodSec")
+      helper.validateMaxNotLessThanMin(minNumReplicas,
+                                       maxNumReplicas,
+                                       "autoscalingPolicy.minNumReplicas",
+                                       "autoscalingPolicy.maxNumReplicas")
+    }
   }
 }

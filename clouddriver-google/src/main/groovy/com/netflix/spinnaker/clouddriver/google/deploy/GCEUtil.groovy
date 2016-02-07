@@ -28,6 +28,7 @@ import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.description.CreateGoogleHttpLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleSecurityGroupDescription
@@ -248,6 +249,23 @@ class GCEUtil {
     allMIGSInRegion
   }
 
+  static Autoscaler queryZonalAutoscaler(String projectName,
+                                         String zone,
+                                         String serverGroupName,
+                                         GoogleCredentials credentials) {
+    try {
+      return credentials.compute.autoscalers().get(projectName, zone, serverGroupName).execute()
+    } catch (GoogleJsonResponseException e) {
+      // 404 is thrown, and the details are populated, if the autoscaler does not exist in the given zone.
+      // Any other exception needs to be propagated.
+      if (e.getStatusCode() != 404 || !e.details) {
+        throw e
+      }
+
+      return null
+    }
+  }
+
   static Set<String> querySecurityGroupTags(Set<String> securityGroupNames,
                                             String accountName,
                                             GoogleSecurityGroupProvider googleSecurityGroupProvider,
@@ -356,6 +374,45 @@ class GCEUtil {
     )
   }
 
+  static BasicGoogleDeployDescription.AutoscalingPolicy buildAutoscalingPolicyDescriptionFromAutoscalingPolicy(
+    Autoscaler autoscaler) {
+    autoscaler.autoscalingPolicy.with {
+      def autoscalingPolicyDescription =
+          new BasicGoogleDeployDescription.AutoscalingPolicy(
+              coolDownPeriodSec: coolDownPeriodSec,
+              minNumReplicas: minNumReplicas,
+              maxNumReplicas: maxNumReplicas
+          )
+
+      if (cpuUtilization) {
+        autoscalingPolicyDescription.cpuUtilization =
+            new BasicGoogleDeployDescription.AutoscalingPolicy.CpuUtilization(
+                utilizationTarget: cpuUtilization.utilizationTarget
+            )
+      }
+
+      if (loadBalancingUtilization) {
+        autoscalingPolicyDescription.loadBalancingUtilization =
+            new BasicGoogleDeployDescription.AutoscalingPolicy.LoadBalancingUtilization(
+                utilizationTarget: loadBalancingUtilization.utilizationTarget
+            )
+      }
+
+      if (customMetricUtilizations) {
+        autoscalingPolicyDescription.customMetricUtilizations =
+            customMetricUtilizations.collect {
+              new BasicGoogleDeployDescription.AutoscalingPolicy.CustomMetricUtilization(
+                  metric: it.metric,
+                  utilizationTarget: it.utilizationTarget,
+                  utilizationTargetType: it.utilizationTargetType
+              )
+            }
+      }
+
+      return autoscalingPolicyDescription
+    }
+  }
+
   static List<String> retrieveScopesFromDefaultServiceAccount(List<ServiceAccount> serviceAccounts) {
     serviceAccounts?.find { it.email == "default" }?.scopes
   }
@@ -423,6 +480,50 @@ class GCEUtil {
 
   static Tags buildTagsFromList(List<String> tagsList) {
     return new Tags(items: tagsList)
+  }
+
+
+  static Autoscaler buildAutoscaler(String serverGroupName,
+                                    Operation migCreateOperation,
+                                    BasicGoogleDeployDescription description) {
+    description.autoscalingPolicy.with {
+      def gceAutoscalingPolicy = new AutoscalingPolicy(coolDownPeriodSec: coolDownPeriodSec,
+                                                       minNumReplicas: minNumReplicas,
+                                                       maxNumReplicas: maxNumReplicas)
+
+      if (cpuUtilization) {
+        gceAutoscalingPolicy.cpuUtilization =
+            new AutoscalingPolicyCpuUtilization(utilizationTarget: cpuUtilization.utilizationTarget)
+      }
+
+      if (loadBalancingUtilization) {
+        gceAutoscalingPolicy.loadBalancingUtilization =
+            new AutoscalingPolicyLoadBalancingUtilization(utilizationTarget: loadBalancingUtilization.utilizationTarget)
+      }
+
+      if (customMetricUtilizations) {
+        gceAutoscalingPolicy.customMetricUtilizations = customMetricUtilizations.collect {
+          new AutoscalingPolicyCustomMetricUtilization(metric: it.metric,
+                                                       utilizationTarget: it.utilizationTarget,
+                                                       utilizationTargetType: it.utilizationTargetType)
+        }
+      }
+
+      return new Autoscaler(name: serverGroupName,
+                            zone: migCreateOperation.zone,
+                            target: migCreateOperation.targetLink,
+                            autoscalingPolicy: gceAutoscalingPolicy)
+    }
+  }
+
+  static void calibrateTargetSizeWithAutoscaler(BasicGoogleDeployDescription description) {
+    description.autoscalingPolicy.with {
+      if (description.targetSize < minNumReplicas) {
+        description.targetSize = minNumReplicas
+      } else if (description.targetSize > maxNumReplicas) {
+        description.targetSize = maxNumReplicas
+      }
+    }
   }
 
   static List<String> resolveAuthScopes(List<String> authScopes) {
