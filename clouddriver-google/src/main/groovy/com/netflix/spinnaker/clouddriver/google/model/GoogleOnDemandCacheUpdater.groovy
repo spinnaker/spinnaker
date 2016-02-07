@@ -47,8 +47,9 @@ class GoogleOnDemandCacheUpdater implements OnDemandCacheUpdater {
   }
 
   @Override
-  void handle(String type, Map<String, ? extends Object> data) {
+  OnDemandCacheUpdater.OnDemandCacheStatus handle(String type, Map<String, ? extends Object> data) {
     googleResourceRetriever.handleCacheUpdate(data)
+    return OnDemandCacheUpdater.OnDemandCacheStatus.SUCCESSFUL
   }
 
   @Override
@@ -57,8 +58,9 @@ class GoogleOnDemandCacheUpdater implements OnDemandCacheUpdater {
   }
 
   @Override
-  void handle(String type, String cloudProvider, Map<String, ? extends Object> data) {
+  OnDemandCacheUpdater.OnDemandCacheStatus handle(String type, String cloudProvider, Map<String, ? extends Object> data) {
     handle(type, data)
+    return OnDemandCacheUpdater.OnDemandCacheStatus.SUCCESSFUL
   }
 
   @Override

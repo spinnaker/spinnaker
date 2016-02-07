@@ -29,8 +29,8 @@ class NoopOnDemandCacheUpdater implements OnDemandCacheUpdater {
   }
 
   @Override
-  void handle(String type, Map<String, ? extends Object> data) {
-
+  OnDemandCacheUpdater.OnDemandCacheStatus handle(String type, Map<String, ? extends Object> data) {
+    return OnDemandCacheUpdater.OnDemandCacheStatus.SUCCESSFUL
   }
 
   @Override
@@ -39,8 +39,8 @@ class NoopOnDemandCacheUpdater implements OnDemandCacheUpdater {
   }
 
   @Override
-  void handle(String type, String cloudProvider, Map<String, ? extends Object> data) {
-
+  OnDemandCacheUpdater.OnDemandCacheStatus handle(String type, String cloudProvider, Map<String, ? extends Object> data) {
+    return OnDemandCacheUpdater.OnDemandCacheStatus.SUCCESSFUL
   }
 
   @Override

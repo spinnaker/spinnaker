@@ -44,12 +44,9 @@ class CacheController {
   ResponseEntity handleOnDemand(@PathVariable String cloudProvider,
                                 @PathVariable String type,
                                 @RequestBody Map<String, ? extends Object> data) {
-    for (updater in onDemandCacheUpdaters) {
-      if (updater.handles(type, cloudProvider)) {
-        updater.handle(type, cloudProvider, data)
-      }
-    }
-    new ResponseEntity(HttpStatus.ACCEPTED)
+    def cacheStatus = onDemandCacheUpdaters.find { it.handles(type, cloudProvider) }?.handle(type, cloudProvider, data)
+    def httpStatus = (cacheStatus == OnDemandCacheUpdater.OnDemandCacheStatus.PENDING) ? HttpStatus.ACCEPTED : HttpStatus.OK
+    return new ResponseEntity(httpStatus)
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/{cloudProvider}/{type}")
