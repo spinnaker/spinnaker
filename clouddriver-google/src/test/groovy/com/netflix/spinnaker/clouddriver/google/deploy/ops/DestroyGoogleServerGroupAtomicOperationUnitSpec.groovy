@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
+import com.google.api.services.compute.model.Autoscaler
+import com.google.api.services.compute.model.AutoscalingPolicy
 import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.Operation
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -51,11 +53,11 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def instanceGroupManager = new InstanceGroupManager()
       instanceGroupManager.setInstanceTemplate(INSTANCE_TEMPLATE_NAME)
       def instanceGroupManagersDeleteMock = Mock(Compute.InstanceGroupManagers.Delete)
-      def instanceGroupManagersDeleteOp = new Operation(
-          name: INSTANCE_GROUP_OP_NAME,
-          status: DONE)
+      def instanceGroupManagersDeleteOp = new Operation(name: INSTANCE_GROUP_OP_NAME, status: DONE)
       def instanceTemplatesMock = Mock(Compute.InstanceTemplates)
       def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
+      def autoscalersMock = Mock(Compute.Autoscalers)
+      def autoscalersGetMock = Mock(Compute.Autoscalers.Get)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new DestroyGoogleServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                 zone: ZONE,
@@ -84,5 +86,63 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock
       1 * instanceTemplatesMock.delete(PROJECT_NAME, INSTANCE_TEMPLATE_NAME) >> instanceTemplatesDeleteMock
       1 * instanceTemplatesDeleteMock.execute()
+
+      1 * computeMock.autoscalers() >> autoscalersMock
+      1 * autoscalersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> autoscalersGetMock
+  }
+
+  void "should delete managed instance group and autoscaler if defined"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
+      def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
+      def zoneOperations = Mock(Compute.ZoneOperations)
+      def zoneOperationsGet = Mock(Compute.ZoneOperations.Get)
+      def instanceGroupManager = new InstanceGroupManager()
+      instanceGroupManager.setInstanceTemplate(INSTANCE_TEMPLATE_NAME)
+      def instanceGroupManagersDeleteMock = Mock(Compute.InstanceGroupManagers.Delete)
+      def instanceGroupManagersDeleteOp = new Operation(name: INSTANCE_GROUP_OP_NAME, status: DONE)
+      def instanceTemplatesMock = Mock(Compute.InstanceTemplates)
+      def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
+      def autoscalersMock = Mock(Compute.Autoscalers)
+      def autoscalersGetMock = Mock(Compute.Autoscalers.Get)
+      def autoscalersDeleteMock = Mock(Compute.Autoscalers.Delete)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def description = new DestroyGoogleServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
+                                                                zone: ZONE,
+                                                                accountName: ACCOUNT_NAME,
+                                                                credentials: credentials)
+      @Subject def operation = new DestroyGoogleServerGroupAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
+      1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
+
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * instanceGroupManagersMock.delete(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersDeleteMock
+      1 * instanceGroupManagersDeleteMock.execute() >> instanceGroupManagersDeleteOp
+
+      1 * computeMock.zoneOperations() >> zoneOperations
+      1 * zoneOperations.get(PROJECT_NAME, ZONE, INSTANCE_GROUP_OP_NAME) >> zoneOperationsGet
+      1 * zoneOperationsGet.execute() >> instanceGroupManagersDeleteOp
+
+      1 * computeMock.instanceTemplates() >> instanceTemplatesMock
+      1 * instanceTemplatesMock.delete(PROJECT_NAME, INSTANCE_TEMPLATE_NAME) >> instanceTemplatesDeleteMock
+      1 * instanceTemplatesDeleteMock.execute()
+
+      2 * computeMock.autoscalers() >> autoscalersMock
+      1 * autoscalersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> autoscalersGetMock
+      1 * autoscalersGetMock.execute() >> new Autoscaler(autoscalingPolicy: new AutoscalingPolicy(coolDownPeriodSec: 45,
+                                                                                                  minNumReplicas: 2,
+                                                                                                  maxNumReplicas: 5))
+
+      1 * autoscalersMock.delete(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> autoscalersDeleteMock
+      1 * autoscalersDeleteMock.execute()
   }
 }

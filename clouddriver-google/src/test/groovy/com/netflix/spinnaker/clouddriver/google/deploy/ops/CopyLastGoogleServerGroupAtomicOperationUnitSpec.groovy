@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
+import com.google.api.services.compute.model.Autoscaler
+import com.google.api.services.compute.model.AutoscalingPolicy
 import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceGroupManagerList
@@ -82,6 +84,8 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private def instanceGroupManagersDeleteMock
   private def instanceTemplatesMock
   private def instanceTemplatesGetMock
+  private def autoscalersMock
+  private def autoscalersGetMock
 
   private def sourceImage
   private def network
@@ -113,6 +117,8 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     instanceGroupManagersDeleteMock = Mock(Compute.InstanceGroupManagers.Delete)
     instanceTemplatesMock = Mock(Compute.InstanceTemplates)
     instanceTemplatesGetMock = Mock(Compute.InstanceTemplates.Get)
+    autoscalersMock = Mock(Compute.Autoscalers)
+    autoscalersGetMock = Mock(Compute.Autoscalers.Get)
 
     sourceImage = new Image(selfLink: IMAGE)
     network = new Network(selfLink: DEFAULT_NETWORK_NAME)
@@ -165,6 +171,12 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          network: "other-network",
                                                          loadBalancers: ["testlb-west-1", "testlb-west-2"],
                                                          securityGroups: ["sg-3", "sg-4"] as Set,
+                                                         autoscalingPolicy:
+                                                            new BasicGoogleDeployDescription.AutoscalingPolicy(
+                                                                coolDownPeriodSec: 90,
+                                                                minNumReplicas: 5,
+                                                                maxNumReplicas: 9
+                                                            ),
                                                          source: [region: REGION,
                                                                   serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
                                                          accountName: ACCOUNT_NAME,
@@ -193,6 +205,13 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * instanceTemplatesMock.get(PROJECT_NAME, INSTANCE_TEMPLATE_NAME) >> instanceTemplatesGetMock
       1 * instanceTemplatesGetMock.execute() >> instanceTemplate
       1 * googleSecurityGroupProviderMock.getAllByAccount(false, ACCOUNT_NAME) >> []
+
+      1 * computeMock.autoscalers() >> autoscalersMock
+      1 * autoscalersMock.get(PROJECT_NAME, ZONE, ANCESTOR_SERVER_GROUP_NAME) >> autoscalersGetMock
+      1 * autoscalersGetMock.execute() >> new Autoscaler(autoscalingPolicy: new AutoscalingPolicy(coolDownPeriodSec: 45,
+                                                                                                  minNumReplicas: 2,
+                                                                                                  maxNumReplicas: 5))
+
       1 * basicGoogleDeployHandlerMock.handle(newDescription, _) >> deploymentResult
   }
 
@@ -221,6 +240,9 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.network = DEFAULT_NETWORK_NAME
       newDescription.loadBalancers = LOAD_BALANCERS
       newDescription.securityGroups = SECURITY_GROUPS
+      newDescription.autoscalingPolicy = new BasicGoogleDeployDescription.AutoscalingPolicy(coolDownPeriodSec: 45,
+                                                                                            minNumReplicas: 2,
+                                                                                            maxNumReplicas: 5)
       def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
       @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
       operation.googleSecurityGroupProvider = googleSecurityGroupProviderMock
@@ -245,6 +267,13 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
         new GoogleSecurityGroup(name: SECURITY_GROUP_1, targetTags: [HTTP_SERVER_TAG]),
         new GoogleSecurityGroup(name: SECURITY_GROUP_2, targetTags: [HTTPS_SERVER_TAG])
       ]
+
+      1 * computeMock.autoscalers() >> autoscalersMock
+      1 * autoscalersMock.get(PROJECT_NAME, ZONE, ANCESTOR_SERVER_GROUP_NAME) >> autoscalersGetMock
+      1 * autoscalersGetMock.execute() >> new Autoscaler(autoscalingPolicy: new AutoscalingPolicy(coolDownPeriodSec: 45,
+                                                                                                  minNumReplicas: 2,
+                                                                                                  maxNumReplicas: 5))
+
       1 * basicGoogleDeployHandlerMock.handle(newDescription, _) >> deploymentResult
   }
 
@@ -281,6 +310,10 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
         new GoogleSecurityGroup(name: SECURITY_GROUP_1, targetTags: [HTTP_SERVER_TAG]),
         new GoogleSecurityGroup(name: SECURITY_GROUP_2, targetTags: [HTTPS_SERVER_TAG])
       ]
+
+      1 * computeMock.autoscalers() >> autoscalersMock
+      1 * autoscalersMock.get(PROJECT_NAME, ZONE, ANCESTOR_SERVER_GROUP_NAME) >> autoscalersGetMock
+
       1 * basicGoogleDeployHandlerMock.handle(_, _) >> {
         it[0].tags == TAGS - HTTP_SERVER_TAG
 
@@ -321,6 +354,10 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
         new GoogleSecurityGroup(name: SECURITY_GROUP_1, targetTags: [HTTP_SERVER_TAG]),
         new GoogleSecurityGroup(name: SECURITY_GROUP_2, targetTags: [HTTPS_SERVER_TAG])
       ]
+
+      1 * computeMock.autoscalers() >> autoscalersMock
+      1 * autoscalersMock.get(PROJECT_NAME, ZONE, ANCESTOR_SERVER_GROUP_NAME) >> autoscalersGetMock
+
       1 * basicGoogleDeployHandlerMock.handle(_, _) >> {
         it[0].tags == TAGS - HTTP_SERVER_TAG - HTTPS_SERVER_TAG
 

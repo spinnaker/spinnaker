@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.model.AttachedDisk
+import com.google.api.services.compute.model.Autoscaler
 import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceProperties
 import com.netflix.frigga.Names
@@ -206,6 +207,15 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
         }
       }
     }
+
+    Autoscaler ancestorAutoscaler = GCEUtil.queryZonalAutoscaler(project,
+                                                                 Utils.getLocalName(ancestorServerGroup.zone),
+                                                                 ancestorServerGroup.name,
+                                                                 description.credentials)
+    BasicGoogleDeployDescription.AutoscalingPolicy ancestorAutoscalingPolicy =
+        ancestorAutoscaler ? GCEUtil.buildAutoscalingPolicyDescriptionFromAutoscalingPolicy(ancestorAutoscaler) : null
+
+    newDescription.autoscalingPolicy = description.autoscalingPolicy ?: ancestorAutoscalingPolicy
 
     return newDescription
   }

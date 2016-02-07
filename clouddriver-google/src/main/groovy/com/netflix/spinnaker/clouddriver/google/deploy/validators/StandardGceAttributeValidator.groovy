@@ -191,6 +191,17 @@ class StandardGceAttributeValidator {
     return result
   }
 
+  def validateMaxNotLessThanMin(long minValue, long maxValue, String minAttribute, String maxAttribute) {
+    def result = true
+    if (maxValue < minValue) {
+      errors.rejectValue(maxAttribute,
+                         "${context}.${maxAttribute}.lessThanMin",
+                         "${context}.${maxAttribute} must not be less than ${context}.${minAttribute}.")
+      result = false
+    }
+    return result
+  }
+
   def validateServerGroupName(String serverGroupName) {
     validateName(serverGroupName, "serverGroupName")
   }

@@ -30,6 +30,7 @@ import com.google.api.services.compute.model.InstancesScopedList
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import groovy.mock.interceptor.MockFor
@@ -430,5 +431,22 @@ class GCEUtilSpec extends Specification {
       ["cloud-platform"]                                           | ["https://www.googleapis.com/auth/cloud-platform"]
       ["devstorage.read_only"]                                     | ["https://www.googleapis.com/auth/devstorage.read_only"]
       ["https://www.googleapis.com/auth/logging.write", "compute"] | ["https://www.googleapis.com/auth/logging.write", "https://www.googleapis.com/auth/compute"]
+  }
+
+  @Unroll
+  void "calibrateTargetSizeWithAutoscaler should adjust target size to within autoscaler min/max range if necessary"() {
+    when:
+      def autoscalingPolicy = new BasicGoogleDeployDescription.AutoscalingPolicy(minNumReplicas: minNumReplicas, maxNumReplicas: maxNumReplicas)
+      def description = new BasicGoogleDeployDescription(targetSize: origTargetSize, autoscalingPolicy: autoscalingPolicy)
+      GCEUtil.calibrateTargetSizeWithAutoscaler(description)
+
+    then:
+      description.targetSize == expectedTargetSize
+
+    where:
+      origTargetSize | minNumReplicas | maxNumReplicas | expectedTargetSize
+      3              | 5              | 7              | 5
+      9              | 5              | 7              | 7
+      6              | 5              | 7              | 6
   }
 }
