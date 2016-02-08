@@ -199,7 +199,6 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     '<p><strong>Note:</strong> values for "DayOfWeek" are 1-7, where Sunday is 1, Monday is 2, etc. You can also use MON,TUE,WED, etc.',
 
     'cluster.description': '<p>A cluster is a collection of server groups with the same name (stack + detail) in the same account.</p>',
-
     'pipeline.config.findAmi.cluster': 'The cluster to look at when selecting the image to use in this pipeline.',
     'pipeline.config.dependsOn': 'Declares which stages must be run <em>before</em> this stage begins.',
     'pipeline.config.parallel.execution': '<p>Enabling parallel stage execution allows you to run stages only after dependent ' +
@@ -266,4 +265,12 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'user.verification': 'Typing into this verification field is annoying! But it serves as a reminder that you are ' +
     'changing something in an account deemed important, and prevents you from accidentally changing something ' +
     'when you meant to click on the "Cancel" button.',
+    'azure.securityGroup.ingress.description': 'Friendly description of the rule you want to enable (limit 80 chars.)',
+    'azure.securityGroup.ingress.priority': 'Rules are processed in priority order; the lower the number, the higher the priority.  We recommend leaving gaps between rules - 100, 200, 300, etc. - so that it\'s easier to add new rules without having to edit existing rules.  There are several default rules that can be overridden with priority (65000, 65001 and 65500).  For more information visit http://portal.azure.com.' ,
+    'azure.securityGroup.ingress.source': 'The source filter can be Any, an IP address range or a default tag(\'Internet\', \'VirtualNetwork\', \AzureLoadBalancer\').  It specifies the incoming traffic from a specific source IP address range (CIDR format) that will be allowed or denied by this rule.',
+    'azure.securityGroup.ingress.sourcePortRange': 'The source port range can be a single port, such as 80, or a port range, such as 1024-65535.  This specifies from which ports incoming traffic will be allowed or denied by this rule.  Provide an asterisk (*) to allow traffic from clients connecting from any port.',
+    'azure.securityGroup.ingress.destination': 'The destination filter can be Any, an IP address range or a default tag(\'Internet\', \'VirtualNetwork\', \AzureLoadBalancer\').  It specifies the outgoing traffic from a specific destination IP address range (CIDR format) that will be allowed or denied by this rule.',
+    'azure.securityGroup.ingress.destinationPortRange': 'The destination port range can be a single port, such as 80, or a port range, such as 1024-65535.  This specifies from which destination ports traffic will be allowed or denied by this rule.  Provide an asterisk (*) to allow traffic from clients connecting from any port.',
+    'azure.securityGroup.ingress.direction': 'Specifies whether the rule is for inbound or outbound traffic.',
+    'azure.securityGroup.ingress.actions': 'To adjust the priority of a rule, move it up or down in the list of rules.  Rules at the top of the list have the highest priority.',
   });

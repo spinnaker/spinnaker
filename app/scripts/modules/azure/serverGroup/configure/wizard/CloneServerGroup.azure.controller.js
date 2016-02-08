@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
       basicSettings: require('./basicSettings.html'),
-/*      loadBalancers: require('./loadBalancers.html'),
+/*    loadBalancers: require('./loadBalancers.html'),
       securityGroups: require('./securityGroups.html'),
       instanceArchetype: require('./instanceArchetype.html'),
       instanceType: require('./instanceType.html'),
@@ -164,19 +164,16 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
     }
 
     this.isValid = function () {
-      //TODO:larrygug - modify to fit Azure model. Need to change the command object completely.
       return $scope.command &&
-        ($scope.command.viewState.useAllImageSelection ? $scope.command.viewState.allImageSelection !== null : $scope.command.amiName !== null) &&
         ($scope.command.application !== null) &&
-        ($scope.command.credentials !== null) && ($scope.command.instanceType !== null) &&
-        ($scope.command.region !== null) && ($scope.command.availabilityZones !== null) &&
-        ($scope.command.capacity.min !== null) && ($scope.command.capacity.max !== null) &&
-        ($scope.command.capacity.desired !== null) &&
+        ($scope.command.credentials !== null) &&
+        ($scope.command.region !== null) &&
         modalWizardService.getWizard().isComplete();
     };
 
     this.showSubmitButton = function () {
-      return modalWizardService.getWizard().allPagesVisited();
+      //return modalWizardService.getWizard().allPagesVisited();
+      return true;
     };
 
     this.submit = function () {

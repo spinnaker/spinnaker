@@ -8,7 +8,6 @@ module.exports = angular
     require('../../../core/task/monitor/taskMonitorService.js'),
     require('../../../core/securityGroup/securityGroup.write.service.js'),
     require('../../../core/account/account.service.js'),
-    require('../../vpc/vpc.read.service.js'),
     require('../../../core/modal/wizard/modalWizard.service.js'),
     require('../../../core/utils/lodash.js'),
   ])
@@ -23,7 +22,6 @@ module.exports = angular
                                                              accountService,
                                                              modalWizardService,
                                                              cacheInitializer,
-                                                             vpcReader,
                                                              _ ) {
 
 
@@ -114,37 +112,6 @@ module.exports = angular
     //};
 
     ctrl.regionUpdated = function() {
-      var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
-      vpcReader.listVpcs().then(function(vpcs) {
-        var vpcsByName = _.groupBy(vpcs, 'label');
-        $scope.allVpcs = vpcs;
-        var available = [];
-        _.forOwn(vpcsByName, function(vpcsToTest, label) {
-          var foundInAllRegions = true;
-          _.forEach($scope.securityGroup.regions, function(region) {
-            if (!_.some(vpcsToTest, { region: region, account: account })) {
-              foundInAllRegions = false;
-            }
-          });
-          if (foundInAllRegions) {
-            available.push( {
-              ids: _.pluck(vpcsToTest, 'id'),
-              label: label,
-              deprecated: vpcsToTest[0].deprecated,
-            });
-          }
-        });
-
-        $scope.activeVpcs = available.filter(function(vpc) { return !vpc.deprecated; });
-        $scope.deprecatedVpcs = available.filter(function(vpc) { return vpc.deprecated; });
-        $scope.vpcs = available;
-
-        var match = _.find(available, function(vpc) {
-          return vpc.ids.indexOf($scope.securityGroup.vpcId) !== -1;
-        });
-        $scope.securityGroup.vpcId = match ? match.ids[0] : null;
-        ctrl.vpcUpdated();
-      });
     };
 
     this.vpcUpdated = function() {

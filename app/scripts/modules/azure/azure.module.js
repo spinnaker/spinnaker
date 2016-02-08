@@ -29,7 +29,6 @@ module.exports = angular.module('spinnaker.azure', [
   require('./securityGroup/securityGroup.transformer.js'),
   require('./securityGroup/securityGroup.reader.js'),
   require('./subnet/subnet.module.js'),
-  require('./vpc/vpc.module.js'),
   require('./image/image.reader.js'),
   require('./cache/cacheConfigurer.service.js'),
 ])

@@ -2,7 +2,7 @@
 
 describe('azureServerGroupTransformer', function () {
 
-  var transformer, azureVpcReader, $q, $scope;
+  var transformer, $q, $scope;
 
   beforeEach(
     window.module(
@@ -11,80 +11,57 @@ describe('azureServerGroupTransformer', function () {
   );
 
   beforeEach(function () {
-    window.inject(function (_azureServerGroupTransformer_, _azureVpcReader_, _$q_, $rootScope) {
+    window.inject(function (_azureServerGroupTransformer_, $rootScope) {
       transformer = _azureServerGroupTransformer_;
-      azureVpcReader = _azureVpcReader_;
-      $q = _$q_;
       $scope = $rootScope.$new();
-    });
-  });
-
-  describe('normalize server group', function () {
-    beforeEach(function() {
-      spyOn(azureVpcReader, 'listVpcs').and.returnValue($q.when([
-        {account: 'test', region: 'us-east-1', id: 'vpc-1', name: 'main'}
-      ]));
-    });
-
-    it('adds vpc name to server group', function () {
-      var serverGroup = {
-        account: 'test',
-        region: 'us-east-1',
-        vpcId: 'vpc-1',
-        instances: [],
-      };
-      transformer.normalizeServerGroup(serverGroup);
-      $scope.$digest();
-      expect(serverGroup.vpcName).toBe('main');
-    });
-
-    it('adds empty vpc name when no vpcId found on server group', function () {
-      var serverGroup = {
-        account: 'test',
-        region: 'us-east-1',
-        instances: [],
-      };
-      transformer.normalizeServerGroup(serverGroup);
-      $scope.$digest();
-      expect(serverGroup.vpcName).toBe('');
     });
   });
 
   describe('command transforms', function () {
 
-    it('sets amiName from allImageSelection', function () {
-      var command = {
-        viewState: {
-          mode: 'create',
-          useAllImageSelection: true,
-          allImageSelection: 'something-packagebase',
-        },
-        application: { name: 'theApp'}
+    it('sets name correctly with no stack or detail', function () {
+      var base = {
+        application: 'myApp'
       };
 
-      var transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
+      var transformed = transformer.convertServerGroupCommandToDeployConfiguration(base);
 
-      expect(transformed.amiName).toBe('something-packagebase');
+      expect(transformed.name).toBe('myApp');
 
     });
 
-    it('removes subnetType property when null', function () {
+    it('it sets name correctly with only stack', function () {
       var command = {
-        viewState: {
-          mode: 'create',
-          useAllImageSelection: true,
-          allImageSelection: 'something-packagebase',
-        },
-        subnetType: null,
-        application: { name: 'theApp'}
+        stack: 's1',
+        application: 'theApp'
       };
 
       var transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
-      expect(transformed.subnetType).toBe(undefined);
 
-      command.subnetType = 'internal';
-      transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
-      expect(transformed.subnetType).toBe('internal');
+      expect(transformed.name).toBe('theApp-s1');
+    });
+
+    it('it sets name correctly with only detail', function () {
+      var command = {
+        details: 'd1',
+        application: 'theApp'
+      };
+
+      var transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
+
+      expect(transformed.name).toBe('theApp-d1');
+    });
+
+    it('it sets name correctly with both stack and detail', function () {
+      var command = {
+        stack: 's1',
+        details: 'd1',
+        application: 'theApp'
+      };
+
+      var transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
+
+      expect(transformed.name).toBe('theApp-s1-d1');
     });
 
   });

@@ -7,11 +7,10 @@ module.exports = angular
     require('../../../core/account/account.service.js'),
     require('../../../core/task/monitor/taskMonitorService.js'),
     require('../../../core/securityGroup/securityGroup.write.service.js'),
-    require('../../../amazon/vpc/vpc.read.service.js'),
     require('../../../core/utils/lodash.js'),
-    require('../configure/configSecurityGroup.mixin.controller.js')
+    require('../configure/CreateSecurityGroupCtrl.js')
   ])
-  .controller('azureCloneSecurityGroupController', function($scope, $modalInstance, $controller, taskMonitorService, accountService, securityGroupWriter, vpcReader, securityGroup, application, _) {
+  .controller('azureCloneSecurityGroupController', function($scope, $modalInstance, $controller, taskMonitorService, accountService, securityGroupWriter, securityGroup, application, _) {
     var vm = this;
 
     $scope.pages = {
@@ -19,7 +18,7 @@ module.exports = angular
       ingress: require('../configure/createSecurityGroupIngress.html'),
     };
 
-    angular.extend(this, $controller('azureConfigSecurityGroupMixin', {
+    angular.extend(this, $controller('azureCreateSecurityGroupCtrl', {
       $scope: $scope,
       $modalInstance: $modalInstance,
       application: application,

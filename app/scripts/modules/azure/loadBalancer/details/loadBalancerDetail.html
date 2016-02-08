@@ -66,7 +66,7 @@
         </dd>
       </dl>
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
-        <dt ng-if="loadBalancer.elb.dnsname">DNS Name</dt>
+        <dt ng-if="loadBalancer.elb.dnsName">DNS Name:</dt>
         <dd>
           <a target=_blank href="http://{{loadBalancer.elb.dnsname}}">{{loadBalancer.elb.dnsName}}</a>
           <copy-to-clipboard
