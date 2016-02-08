@@ -56,7 +56,9 @@ abstract class AbstractEnableDisableInstanceDiscoveryAtomicOperation implements 
 
     def asgService = regionScopedProviderFactory.forRegion(description.credentials, description.region).asgService
     asgService.getAutoScalingGroups(description.asgName ? [description.asgName] : null).each { AutoScalingGroup asg ->
-      def asgInstanceIds = asg.instances*.instanceId as Set<String>
+      def asgInstanceIds = asg.instances.findAll {
+        it.lifecycleState == "InService" || it.lifecycleState.startsWith("Pending")
+      }*.instanceId as Set<String>
       def instancesInAsg = description.instanceIds.findAll {
         asgInstanceIds.contains(it)
       }.collect { new Instance(it)}
