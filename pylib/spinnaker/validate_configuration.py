@@ -31,7 +31,7 @@ def _host_regex_token():
   ip6_group = '[a-fA-F0-9]{1,4}'
   ip6_full_host_token='(?:{group}:){{7}}{group}'.format(group=ip6_group)
 
-  # This isnt strictly correct but allows for '::' abbreviations.
+  # This isn't strictly correct but allows for '::' abbreviations.
   # The spec says there can only be one use. This permits multiple and
   # other nonsensical use of ':'.
   ip6_abbrev_host_token='(?:{group}::?){{1,6}}:?'.format(group=ip6_group)
@@ -164,7 +164,7 @@ class ValidateConfig(object):
       self.__errors.append('Missing "{name}".'.format(name=name))
       return False
 
-    # We dont really need a full URL since we're validating base urls,
+    # We don't really need a full URL since we're validating base urls,
     # (without query parameters and fragments), so the scheme will be optional.
     scheme_token = '[a-z0-9]+'
     host_token = _host_regex_token()

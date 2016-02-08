@@ -26,7 +26,7 @@ class InstallationParameters(object):
 
   Attributes:
     USER_CONFIG_DIR: Path to directory containing installation configuration
-       files for the indivual subsystems.
+       files for the individual subsystems.
 
     LOG_DIR: Path to directory where individual log files are written.
 
@@ -35,10 +35,10 @@ class InstallationParameters(object):
 
     SPINNAKER_INSTALL_DIR: Path to the root spinnaker installation directory.
 
-    UTILITY_SCRIPT_DIR: Path to directory containing spinnaker maintainence
+    UTILITY_SCRIPT_DIR: Path to directory containing spinnaker maintenance
        and other utility scripts.
 
-    EXTERNAL_DEPENDENCY_SCRIPT_DIR: Path to directory containing maintainence
+    EXTERNAL_DEPENDENCY_SCRIPT_DIR: Path to directory containing maintenance
         and utility scripts for managing dependencies outside spinnaker itself.
 
     INSTALLED_CONFIG_DIR: Path to directory containing the master configuration
@@ -113,7 +113,7 @@ class Configurator(object):
       if os.geteuid():
           # If we are not running as root and there is an installation on
           # this machine as well as a user/.spinnaker directory then it is
-          # ambiguous which we are validating. For saftey we'll force this
+          # ambiguous which we are validating. For safety we'll force this
           # to be the normal system installation. Warn that we are doing this.
           installed_bindings = yaml_util.load_bindings(
                installation_parameters.INSTALLED_CONFIG_DIR,
@@ -207,7 +207,7 @@ class Configurator(object):
         settings.append('var {name} = {value};\n'.format(
            name=name, value=str(value).lower()))
       else:
-        # Quote strings, dont quote numbers.
+        # Quote strings, don't quote numbers.
         settings.append('var {name} = {value!r};\n'.format(
            name=name, value=value))
 
