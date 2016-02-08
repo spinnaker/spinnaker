@@ -6,7 +6,7 @@
     "update_os": "false",
     "json_credentials":  "",
     "zone": "us-central1-f",
-    "source_image": "ubuntu-1404-trusty-v20151113",
+    "source_image": "ubuntu-1404-trusty-v20160114e",
     "target_image": "{{env `USER`}}-spinnaker-{{timestamp}}"
  },
 
@@ -32,11 +32,16 @@
         "/tmp/install_spinnaker.sh --repository {{user `debian_repo`}} --cloud_provider google --google_region us-central1 --quiet"
      ]
   },
+
   {
     "type": "shell",
     "inline": [
-        "if [ '{{user `update_os`}}' = 'true' ]; then apt-get update -y; apt-get -y dist-upgrade; sed -i 's/start_rpc: false/start_rpc: true/' /etc/cassandra/cassandra.yaml; fi"
+        "dpkg --list | grep linux-image | awk '{ print $2 }' | sort -V | sed -n '/'`uname -r`'/q;p' | xargs sudo apt-get -y purge",
+        "if [ '{{user `update_os`}}' = 'true' ]; then apt-get update -y; apt-get -y dist-upgrade; sed -i 's/start_rpc: false/start_rpc: true/' /etc/cassandra/cassandra.yaml; fi",
+        "apt-get autoremove -y"
      ]
   }
- ]
+ ],
+
+ "_comment": "inline shell command above will: (1) Prune off the older kernels that might have been in the source image. (2) Upgrade the remaining kernels. (3) Remove anything that is no longer used."
 }

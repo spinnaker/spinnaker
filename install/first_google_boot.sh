@@ -35,6 +35,18 @@ STATUS_PREFIX="*"
 METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
 INSTANCE_METADATA_URL="$METADATA_URL/instance"
 
+SPINNAKER_SUBSYSTEMS="spinnaker-clouddriver spinnaker-deck spinnaker-echo spinnaker-front50 spinnaker-gate spinnaker-igor spinnaker-orca spinnaker-rosco spinnaker-rush spinnaker"
+
+# By default we'll tradeoff the utmost in security for less startup latency
+# (often several minutes worth if there are any OS updates at all).
+# Note that this is only the initial boot off the image in this script, which is 
+# intended to configure spinnaker from metadata, which is typically an adhoc or trial
+# scenario. A production instance would probably be using a different means to configure
+# spinnaker, or might be baked in, or might have different security policies not requiring
+# an initial upgrade.
+RESTART_BEFORE_UPGRADE="true"
+
+
 function write_default_value() {
   name="$1"
   value="$2"
@@ -207,47 +219,30 @@ function process_args() {
   done
 }
 
+MY_ZONE=""
 if full_zone=$(curl -s -H "Metadata-Flavor: Google" "$INSTANCE_METADATA_URL/zone"); then
   MY_ZONE=$(basename $full_zone)
   MY_PROJECT=$(curl -s -H "Metadata-Flavor: Google" "$METADATA_URL/project/project-id")
-
-  write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
-  write_default_value "SPINNAKER_GOOGLE_PROJECT_ID" "$MY_PROJECT"
-  write_default_value "SPINNAKER_GOOGLE_DEFAULT_ZONE" "$MY_ZONE"
-  write_default_value "SPINNAKER_GOOGLE_DEFAULT_REGION" "${MY_ZONE%-*}"
 else
   echo "Not running on Google Cloud Platform."
   exit -1
-  MY_ZONE=""
 fi
-
-# There appears to be a race condition within cassandra starting thrift while
-# we perform the dist-upgrade below. So we're going to try working around
-# that by waiting for cassandra to get past its thrift initialization.
-# Otherwise, we'd prefer to upgrade first, then wait for cassandra to
-# be ready for JMX (7199).
-if ! nc -z localhost 9160; then
-    echo "Waiting for Cassandra to start..."
-    while ! nc -z localhost 9160; do
-       sleep 1
-    done
-    echo "Cassandra is ready."
-fi
-
-# Apply outstanding OS updates since time of image creation
-# but keep spinnaker version itself intact only during forced dist-upgrade
-apt-mark hold spinnaker-clouddriver spinnaker-deck spinnaker-echo spinnaker-front50 spinnaker-gate spinnaker-igor spinnaker-orca spinnaker-rosco spinnaker-rush spinnaker
-apt-get -y update
-apt-get -y dist-upgrade
-apt-mark unhold spinnaker-clouddriver spinnaker-deck spinnaker-echo spinnaker-front50 spinnaker-gate spinnaker-igor spinnaker-orca spinnaker-rosco spinnaker-rush spinnaker
-sed -i "s/start_rpc: false/start_rpc: true/" /etc/cassandra/cassandra.yaml
-while ! $(nodetool enablethrift >& /dev/null); do
-    sleep 1
-    echo "Retrying..."
-done
-
 
 process_args
+
+
+# Spinnaker automatically starts up in the image.
+# In this script we are going to reconfigure it,
+# therefore we do not want it to become available until we've done so.
+# Otherwise it would be running with the wrong (old/default) configuration.
+echo "Stopping spinnaker while we configure it."
+stop spinnaker
+
+echo "$STATUS_PREFIX  Configuring Default Values"
+write_default_value "SPINNAKER_GOOGLE_ENABLED" "true"
+write_default_value "SPINNAKER_GOOGLE_PROJECT_ID" "$MY_PROJECT"
+write_default_value "SPINNAKER_GOOGLE_DEFAULT_ZONE" "$MY_ZONE"
+write_default_value "SPINNAKER_GOOGLE_DEFAULT_REGION" "${MY_ZONE%-*}"
 
 echo "$STATUS_PREFIX  Extracting Configuration Info"
 extract_spinnaker_local_yaml
@@ -264,7 +259,45 @@ $SPINNAKER_INSTALL_DIR/scripts/reconfigure_spinnaker.sh
 echo "$STATUS_PREFIX  Cleaning Up"
 replace_startup_script
 
-echo "$STATUS_PREFIX  Restarting Spinnaker"
-stop spinnaker
-start spinnaker
+if [[ "$RESTART_BEFORE_UPGRADE" != "true" ]]; then
+  echo "Waiting for upgrade before restarting spinnaker."
+else
+  echo "$STATUS_PREFIX  Restarting Spinnaker"
+  start spinnaker
+fi
+
+
+# There appears to be a race condition within cassandra starting thrift while
+# we perform the dist-upgrade below. So we're going to try working around
+# that by waiting for cassandra to get past its thrift initialization.
+# Otherwise, we'd prefer to upgrade first, then wait for cassandra to
+# be ready for JMX (7199).
+if ! nc -z localhost 9160; then
+    echo "Waiting for Cassandra to start..."
+    while ! nc -z localhost 9160; do
+       sleep 1
+    done
+    echo "Cassandra is ready."
+fi
+
+# Apply outstanding OS updates since time of image creation
+# but keep spinnaker version itself intact only during forced dist-upgrade
+# This can take several minutes so we are performing it at the end after
+# spinnaker has already started and is available.
+
+apt-mark hold $SPINNAKER_SUBSYSTEMS
+apt-get -y update
+apt-get -y dist-upgrade
+apt-mark unhold $SPINNAKER_SUBSYSTEMS
+sed -i "s/start_rpc: false/start_rpc: true/" /etc/cassandra/cassandra.yaml
+while ! $(nodetool enablethrift >& /dev/null); do
+    sleep 1
+    echo "Retrying..."
+done
+
+if [[ "$RESTART_BEFORE_UPGRADE" != "true" ]]; then
+  echo "$STATUS_PREFIX  Restarting Spinnaker"
+  start spinnaker
+fi
+
 echo "$STATUS_PREFIX  Spinnaker is now configured"
