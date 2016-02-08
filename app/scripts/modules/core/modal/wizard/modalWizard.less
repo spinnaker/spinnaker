@@ -13,6 +13,10 @@ v2-modal-wizard {
     margin: 0;
     padding: 0;
     list-style-type: none;
+    height: auto;
+    position: relative;
+    background-color: #ffffff;
+    z-index: 5;
     .clearfix();
     li {
       display: block;
@@ -32,13 +36,9 @@ v2-modal-wizard {
         width: @indicator-size;
         height: @indicator-size;
         border-radius: 100%;
-        background-color: #e6e6e6;
+        background-color: transparent;
         content: '';
         transition: 0.25s;
-      }
-
-      a:before {
-        background-color: transparent;
         font-size: 135%;
         font-family: 'Glyphicons Halflings';
       }
@@ -78,9 +78,10 @@ v2-modal-wizard {
   }
 
   .steps {
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     clear: both;
-    max-height: calc(~"100vh - 250px");
+    max-height: calc(~"100vh - 215px");
     .wizard-subheading {
       padding: 0;
       h4 {
@@ -89,6 +90,33 @@ v2-modal-wizard {
         color: @lightest_grey;
         background-color: @dark_blue_background;
         font-weight: 300;
+        @media(max-width: 992px) {
+          padding-left: 0;
+          &:before {
+            display: inline-block;
+            margin: 0 10px;
+            width: @indicator-size;
+            height: @indicator-size;
+            border-radius: 100%;
+            background-color: #808080;
+            content: '';
+            transition: 0.25s;
+          }
+          &.done {
+            &:before {
+              background-color: @healthy_green_icon;
+            }
+          }
+          &.dirty {
+            &:before {
+              color: @state-danger-text;
+              background-color: transparent;
+              content: "\e088";
+              top: 11px;
+            }
+          }
+
+        }
       }
       margin-bottom: 10px;
     }
