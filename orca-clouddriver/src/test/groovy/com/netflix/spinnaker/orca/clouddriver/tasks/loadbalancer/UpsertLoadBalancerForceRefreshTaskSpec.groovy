@@ -44,7 +44,8 @@ class UpsertLoadBalancerForceRefreshTaskSpec extends Specification {
     task.execute(stage.asImmutable())
 
     then:
-    1 * task.oort.forceCacheUpdate(UpsertLoadBalancerForceRefreshTask.REFRESH_TYPE, _) >> { String type, Map<String, ? extends Object> body ->
+    1 * task.oort.forceCacheUpdate('aws', UpsertLoadBalancerForceRefreshTask.REFRESH_TYPE, _) >> { String cloudProvider, String type, Map<String, ? extends Object> body ->
+      assert cloudProvider == "aws"
       assert body.loadBalancerName == "flapjack-frontend"
       assert body.account == "fzlem"
       assert body.region == "us-west-1"

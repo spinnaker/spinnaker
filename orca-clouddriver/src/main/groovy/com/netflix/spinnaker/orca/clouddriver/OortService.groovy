@@ -76,17 +76,14 @@ interface OortService {
                                    @Path("region") String region,
                                    @Path("name") String name)
 
-  /**
-   * @deprecated Use "/cache/{cloudProvider}/{type}" instead
-   */
-  @Deprecated
-  @POST("/cache/{type}")
-  Response forceCacheUpdate(@Path("type") String type, @Body Map<String, ? extends Object> data)
-
   @POST("/cache/{cloudProvider}/{type}")
   Response forceCacheUpdate(@Path("cloudProvider") String cloudProvider,
                             @Path("type") String type,
                             @Body Map<String, ? extends Object> data)
+
+  @GET("/cache/{cloudProvider}/{type}")
+  Collection<Map> pendingForceCacheUpdates(@Path("cloudProvider") String cloudProvider,
+                                           @Path("type") String type)
 
   @GET("/{type}/images/{account}/{region}/{imageId}")
   Response getByAmiId(@Path("type") String type,
