@@ -54,24 +54,27 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
   }
 
   @Override
-  void handle(String type, Map<String, ? extends Object> data) {
+  OnDemandCacheUpdater.OnDemandCacheStatus handle(String type, Map<String, ? extends Object> data) {
     Collection<OnDemandAgent> onDemandAgents = onDemandAgents.findAll { it.handles(type) }
-    handle(type, onDemandAgents, data)
+    return handle(type, onDemandAgents, data)
   }
 
   @Override
-  void handle(String type, String cloudProvider, Map<String, ? extends Object> data) {
+  OnDemandCacheUpdater.OnDemandCacheStatus handle(String type, String cloudProvider, Map<String, ? extends Object> data) {
     Collection<OnDemandAgent> onDemandAgents = onDemandAgents.findAll { it.handles(type, cloudProvider) }
-    handle(type, onDemandAgents, data)
+    return handle(type, onDemandAgents, data)
   }
 
-  void handle(String type, Collection<OnDemandAgent> onDemandAgents, Map<String, ? extends Object> data) {
+  OnDemandCacheUpdater.OnDemandCacheStatus handle(String type, Collection<OnDemandAgent> onDemandAgents, Map<String, ? extends Object> data) {
+    boolean hasOnDemandResults = false
     for (OnDemandAgent agent : onDemandAgents) {
       try {
         final long startTime = System.nanoTime()
         def providerCache = catsModule.getProviderRegistry().getProviderCache(agent.providerName)
         OnDemandAgent.OnDemandResult result = agent.handle(providerCache, data)
         if (result) {
+          hasOnDemandResults = true
+
           if (result.cacheResult) {
             agent.metricsSupport.cacheWrite {
               providerCache.putCacheResult(result.sourceAgentType, result.authoritativeTypes, result.cacheResult)
@@ -93,6 +96,8 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
         log.warn("$agent.providerName/$agent.onDemandAgentType failed to handle on demand update for $type", e)
       }
     }
+
+    return hasOnDemandResults ? OnDemandCacheUpdater.OnDemandCacheStatus.PENDING : OnDemandCacheUpdater.OnDemandCacheStatus.SUCCESSFUL
   }
 
   @Override
