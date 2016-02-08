@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.serverGroup.diff.securityGroupDiff.directive', [
-    require('../../../core/modal/wizard/modalWizard.service.js'),
+    require('../../../core/modal/wizard/v2modalWizard.service.js'),
   ])
   .directive('netflixSecurityGroupDiff', function () {
     return {
@@ -17,9 +17,9 @@ module.exports = angular
       controllerAs: 'vm',
       controller: 'netflixSecurityGroupDiffCtrl',
     };
-  }).controller('netflixSecurityGroupDiffCtrl', function (modalWizardService) {
+  }).controller('netflixSecurityGroupDiffCtrl', function (v2modalWizardService) {
     this.acknowledgeSecurityGroupDiff = () => {
       this.command.viewState.securityGroupDiffs = [];
-      modalWizardService.getWizard().markClean('security-groups');
+      v2modalWizardService.markClean('security-groups');
     };
   });
