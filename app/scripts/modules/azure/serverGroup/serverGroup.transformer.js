@@ -38,10 +38,10 @@ module.exports = angular.module('spinnaker.azure.serverGroup.transformer', [
         },
       };
 
-      if (typeof base.stack != 'undefined') {
+      if (typeof base.stack !== 'undefined') {
         command.name = command.name + '-' + base.stack;
       }
-      if(typeof base.details != 'undefined') {
+      if (typeof base.details !== 'undefined') {
         command.name = command.name + '-' + base.details;
       }
 
