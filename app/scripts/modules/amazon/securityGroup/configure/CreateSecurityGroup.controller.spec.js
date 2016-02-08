@@ -13,14 +13,14 @@ describe('Controller: CreateSecurityGroup', function () {
   describe('filtering', function() {
 
     // Initialize the controller and a mock scope
-    beforeEach(window.inject(function ($controller, $rootScope, $q, accountService, securityGroupReader, modalWizardService,
+    beforeEach(window.inject(function ($controller, $rootScope, $q, accountService, securityGroupReader, v2modalWizardService,
                                 taskMonitorService, securityGroupWriter, vpcReader) {
 
       this.$scope = $rootScope.$new();
       this.$q = $q;
       this.accountService = accountService;
       this.securityGroupReader = securityGroupReader;
-      this.modalWizardService = modalWizardService;
+      this.v2modalWizardService = v2modalWizardService;
       this.taskMonitorService = taskMonitorService;
       this.securityGroupWriter = securityGroupWriter;
       this.vpcReader = vpcReader;
@@ -85,7 +85,7 @@ describe('Controller: CreateSecurityGroup', function () {
           $modalInstance: { result: this.$q.when(null) },
           accountService: this.accountService,
           securityGroupReader: this.securityGroupReader,
-          modalWizardService: this.modalWizardService,
+          v2modalWizardService: this.v2modalWizardService,
           taskMonitorService: this.taskMonitorService,
           securityGroupWriter: this.securityGroupWriter,
           vpcReader: this.vpcReader,

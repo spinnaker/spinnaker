@@ -9,7 +9,7 @@ module.exports = angular
     require('../../../core/securityGroup/securityGroup.write.service.js'),
     require('../../../core/account/account.service.js'),
     require('../../vpc/vpc.read.service.js'),
-    require('../../../core/modal/wizard/modalWizard.service.js'),
+    require('../../../core/modal/wizard/v2modalWizard.service.js'),
     require('../../../core/utils/lodash.js'),
   ])
   .controller('awsConfigSecurityGroupMixin', function ($scope,
@@ -21,7 +21,7 @@ module.exports = angular
                                                              securityGroupReader,
                                                              securityGroupWriter,
                                                              accountService,
-                                                             modalWizardService,
+                                                             v2modalWizardService,
                                                              cacheInitializer,
                                                              vpcReader,
                                                              _ ) {
@@ -41,6 +41,8 @@ module.exports = angular
         currentItems: 20,
       },
     };
+
+    $scope.wizard = v2modalWizardService;
 
     ctrl.addMoreItems = function() {
       $scope.state.infiniteScroll.currentItems += $scope.state.infiniteScroll.numToAdd;
@@ -206,7 +208,7 @@ module.exports = angular
         return true;
       });
       if (removed.length) {
-        modalWizardService.getWizard().markDirty('Ingress');
+        v2modalWizardService.markDirty('Ingress');
       }
     }
 
@@ -277,14 +279,13 @@ module.exports = angular
     };
 
     ctrl.dismissRemovedRules = function() {
-       $scope.state.removedRules = [];
-       modalWizardService.getWizard().markClean('Ingress');
-       modalWizardService.getWizard().markComplete('Ingress');
+      $scope.state.removedRules = [];
+      v2modalWizardService.markClean('Ingress');
+      v2modalWizardService.markComplete('Ingress');
     };
 
     var classicPattern = /^[\x00-\x7F]+$/;
     var vpcPattern = /^[a-zA-Z0-9\s._\-:\/()#,@[\]+=&;{}!$*]+$/;
-
 
   });
 
