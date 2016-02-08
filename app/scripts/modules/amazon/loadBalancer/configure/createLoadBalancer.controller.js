@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
   require('../../../core/account/account.service.js'),
   require('../loadBalancer.transformer.js'),
   require('../../../core/securityGroup/securityGroup.read.service.js'),
-  require('../../../core/modal/wizard/modalWizard.service.js'),
+  require('../../../core/modal/wizard/v2modalWizard.service.js'),
   require('../../../core/task/monitor/taskMonitorService.js'),
   require('../../subnet/subnet.read.service.js'),
   require('../../../core/cache/cacheInitializer.js'),
@@ -24,7 +24,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
   .controller('awsCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, _,
                                                     accountService, awsLoadBalancerTransformer, securityGroupReader,
                                                     cacheInitializer, infrastructureCaches, loadBalancerReader,
-                                                    modalWizardService, loadBalancerWriter, taskMonitorService,
+                                                    v2modalWizardService, loadBalancerWriter, taskMonitorService,
                                                     subnetReader, namingService, settings,
                                                     application, loadBalancer, isNew) {
 
@@ -35,6 +35,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
       securityGroups: require('./securityGroups.html'),
       listeners: require('./listeners.html'),
       healthCheck: require('./healthCheck.html'),
+      advancedSettings: require('./advancedSettings.html'),
     };
 
     $scope.isNew = isNew;
@@ -180,7 +181,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
         });
         $scope.loadBalancer.securityGroups = _.unique(existingNames);
         if ($scope.state.removedSecurityGroups.length) {
-          modalWizardService.getWizard().markDirty('Security Groups');
+          v2modalWizardService.markDirty('Security Groups');
         }
       } else {
         clearSecurityGroups();
@@ -337,10 +338,10 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
         updateAvailableSecurityGroups(availableVpcIds);
       if (subnetPurpose) {
         $scope.loadBalancer.vpcId = availableVpcIds.length ? availableVpcIds[0] : null;
-        modalWizardService.getWizard().includePage('Security Groups');
+        v2modalWizardService.includePage('Security Groups');
       } else {
         $scope.loadBalancer.vpcId = null;
-        modalWizardService.getWizard().excludePage('Security Groups');
+        v2modalWizardService.excludePage('Security Groups');
       }
     };
 

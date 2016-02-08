@@ -295,6 +295,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
       $uibModal.open({
         templateUrl: require('../configure/wizard/serverGroupWizard.html'),
         controller: 'awsCloneServerGroupCtrl as ctrl',
+        size: 'lg',
         resolve: {
           title: () => 'Clone ' + serverGroup.name,
           application: () => app,

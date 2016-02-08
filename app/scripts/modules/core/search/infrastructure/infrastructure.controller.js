@@ -96,6 +96,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
         templateUrl: require('../../projects/configure/configureProject.modal.html'),
         controller: 'ConfigureProjectModalCtrl',
         controllerAs: 'ctrl',
+        size: 'lg',
         resolve: {
           projectConfig: () => { return {}; },
         }

@@ -34,33 +34,33 @@ module.exports = angular.module('spinnaker.core.utils.stickyHeader', [
           var positionHeader = _.throttle(function () {
 
             var sectionRect = $section.get(0).getBoundingClientRect(),
-              sectionTop = sectionRect.bottom - sectionRect.height,
+              sectionTop = sectionRect.top,
               windowHeight = $window.innerHeight,
               bottom = sectionRect.bottom;
 
-            if (sectionRect.bottom < 0 || sectionTop > windowHeight) {
+            if (bottom < 0 || sectionTop > windowHeight) {
               clearStickiness($section);
               return;
             }
 
             var containerTop = $scrollableContainer.offset().top,
-                top = sectionTop - containerTop - addedOffsetHeight;
+                top = sectionTop - containerTop;
 
             if (top < 0 && bottom > containerTop + addedOffsetHeight) {
               var headingRect = $heading.get(0).getBoundingClientRect(),
                   headingWidth = headingRect.width,
-                  headingHeight = headingRect.height;
-              var topBase = containerTop,
+                  headingHeight = $heading.outerHeight(true);
+              var topBase = containerTop + addedOffsetHeight,
                   zIndex = 3;
-              if (containerTop + headingHeight + addedOffsetHeight > bottom) {
-                topBase = bottom - headingHeight - addedOffsetHeight;
+              if (containerTop + headingHeight > bottom) {
+                topBase = bottom - headingHeight + addedOffsetHeight;
                 zIndex = 2;
               }
               $section.css({
                 paddingTop: headingHeight,
               });
               $heading.addClass('heading-sticky').css({
-                top: topBase + addedOffsetHeight,
+                top: topBase,
                 width: headingWidth,
                 zIndex: zIndex
               });

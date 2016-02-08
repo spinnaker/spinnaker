@@ -17,8 +17,8 @@ module.exports = angular
         { key: 'applicationNavHeader', value: require('../application/applicationNav.html') },
         { key: 'pipelineConfigActions', value: require('./pipelineConfigActions.html') },
         { key: 'spinnakerHeader', value: require('./spinnakerHeader.html') },
-        { key: 'aws.serverGroup.securityGroups', value: require('../serverGroup/awsServerGroupSecurityGroups.html') },
-        { key: 'aws.serverGroup.capacity', value: require('../serverGroup/capacity/awsServerGroupCapacity.html') },
+        { key: 'aws.serverGroup.securityGroups', value: require('../serverGroup/wizard/securityGroups/awsServerGroupSecurityGroups.html') },
+        { key: 'aws.serverGroup.capacity', value: require('../serverGroup/wizard/capacity/awsServerGroupCapacity.html') },
         { key: 'aws.resize.modal', value: require('../serverGroup/resize/awsResizeServerGroup.html') },
       ];
       templates.forEach((template) => overrideRegistry.overrideTemplate(template.key, template.value));

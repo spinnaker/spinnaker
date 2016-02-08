@@ -23,7 +23,7 @@ module.exports = angular
     require('./canary'),
     require('./templateOverride/templateOverrides.module.js'),
     require('./migrator/pipeline/pipeline.migrator.directive.js'),
-    require('./serverGroup/serverGroupCommandConfigurer.service.js'),
+    require('./serverGroup/wizard/serverGroupCommandConfigurer.service.js'),
     require('./serverGroup/diff/securityGroupDiff.directive.js'),
     require('./serverGroup/networking/networking.module.js'),
     require('./report/reservationReport.directive.js'),

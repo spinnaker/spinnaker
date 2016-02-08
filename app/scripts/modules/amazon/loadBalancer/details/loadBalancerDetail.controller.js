@@ -87,6 +87,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
       $uibModal.open({
         templateUrl: require('../configure/editLoadBalancer.html'),
         controller: 'awsCreateLoadBalancerCtrl as ctrl',
+        size: 'lg',
         resolve: {
           application: function() { return app; },
           loadBalancer: function() { return angular.copy($scope.loadBalancer); },
@@ -99,6 +100,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
       $uibModal.open({
         templateUrl: require('../configure/createLoadBalancer.html'),
         controller: 'awsCreateLoadBalancerCtrl as ctrl',
+        size: 'lg',
         resolve: {
           application: function() { return app; },
           loadBalancer: function() { return angular.copy($scope.loadBalancer); },

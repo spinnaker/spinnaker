@@ -1,16 +1,4 @@
-<form ng-controller="awsServerGroupSecurityGroupsCtrl as serverGroupSecurityGroupsCtrl" class="container-fluid form-horizontal" name="form" novalidate>
-  <div class="modal-body">
-    <server-group-security-groups-removed command="command"></server-group-security-groups-removed>
-    <server-group-security-group-selector command="command"></server-group-security-group-selector>
-  </div>
-  <aws-server-group-security-groups-footer
-      command="command"
-      wizard="wizard"
-      task-monitor="taskMonitor"
-      cancel="ctrl.cancel()"
-      is-valid="ctrl.isValid()"
-      show-submit-button="ctrl.showSubmitButton()"
-      submit="ctrl.submit()"
-      >
-  </aws-server-group-security-groups-footer>
-</form>
+<div class="row">
+  <server-group-security-groups-removed command="command"></server-group-security-groups-removed>
+  <server-group-security-group-selector command="command"></server-group-security-group-selector>
+</div>

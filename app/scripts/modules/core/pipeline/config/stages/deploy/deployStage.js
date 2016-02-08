@@ -65,6 +65,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
         $uibModal.open({
           templateUrl: config.cloneServerGroupTemplateUrl,
           controller: `${config.cloneServerGroupController} as ctrl`,
+          size: cloudProviderRegistry.getValue(selectedProvider, 'v2wizard') ? 'lg' : 'md',
           resolve: {
             title: function () {
               return 'Configure Deployment Cluster';
@@ -92,6 +93,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
       return $uibModal.open({
         templateUrl: providerConfig.serverGroup.cloneServerGroupTemplateUrl,
         controller: `${providerConfig.serverGroup.cloneServerGroupController} as ctrl`,
+        size: 'lg',
         resolve: {
           title: function () {
             return 'Configure Deployment Cluster';

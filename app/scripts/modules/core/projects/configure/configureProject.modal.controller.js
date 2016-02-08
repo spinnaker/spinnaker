@@ -61,6 +61,12 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
       $scope.command.config.pipelineConfigs = $scope.command.config.pipelineConfigs.filter(
           pipeline => pipeline.application !== null && pipeline.pipelineConfigId !== null
       );
+      $scope.command.config.clusters
+        .filter((cluster) => !cluster.useAllApplications)
+        .forEach((cluster) => {
+          cluster.applications = cluster.applications
+            .filter((app) => $scope.command.config.applications.indexOf(app) > -1);
+      });
     };
 
     this.removeCluster = (index) => {

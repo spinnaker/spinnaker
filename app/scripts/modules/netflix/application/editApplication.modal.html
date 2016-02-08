@@ -108,14 +108,14 @@
         </div>
       </div>
 
-      <div class="form-group row" ng-if="editApp.cloudProviders.length > 1">
+      <div class="form-group row" ng-if="editApp.data.cloudProviders.length > 1">
         <div class="col-md-3 sm-label-right">Cloud Provider</div>
         <div class="col-md-9">
           <ui-select multiple ng-model="editApp.applicationAttributes.cloudProviders" class="form-control input-sm">
             <ui-select-match>
               {{$item}}
             </ui-select-match>
-            <ui-select-choices repeat="provider in editApp.cloudProviders | filter: $select.search">
+            <ui-select-choices repeat="provider in editApp.data.cloudProviders | filter: $select.search">
               {{provider}}
             </ui-select-choices>
           </ui-select>
@@ -180,12 +180,10 @@
       <button type="submit"
               class="btn btn-primary"
               data-purpose="submit"
-              ng-disabled="!editApplicationForm.$valid || editApp.submitting"
+              ng-disabled="!editApplicationForm.$valid || editApp.state.submitting"
               ng-click="editApp.submit()">
-        <span class="glyphicon glyphicon-ok-circle" ng-if="!editApp.submitting"></span>
-        <span ng-if="editApp.submitting" class="button-busy-indicator">
-          <span us-spinner="{color: '#ffffff', left: '3px', top: '10px', radius:3, width: 2, length: 3}"></span>
-        </span>
+        <span class="glyphicon glyphicon-ok-circle" ng-if="!editApp.state.submitting"></span>
+        <button-busy-indicator ng-if="editApp.state.submitting"></button-busy-indicator>
         Update
       </button>
     </div>

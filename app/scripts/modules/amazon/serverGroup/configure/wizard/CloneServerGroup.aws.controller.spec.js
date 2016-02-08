@@ -17,7 +17,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
   beforeEach(function() {
     window.inject(function ($controller, $rootScope, accountService, serverGroupWriter, awsImageReader, settings,
-                     searchService, awsInstanceTypeService, modalWizardService, securityGroupReader, taskMonitorService,
+                     searchService, awsInstanceTypeService, v2modalWizardService, securityGroupReader, taskMonitorService,
                      awsServerGroupConfigurationService, $q, subnetReader, keyPairsReader, loadBalancerReader) {
 
       this.$scope = $rootScope.$new();
@@ -26,7 +26,7 @@ describe('Controller: awsCloneServerGroup', function () {
       this.awsImageReader = awsImageReader;
       this.searchService = searchService;
       this.awsInstanceTypeService = awsInstanceTypeService;
-      this.modalWizardService = modalWizardService;
+      this.v2modalWizardService = v2modalWizardService;
       this.securityGroupReader = securityGroupReader;
       this.awsServerGroupConfigurationService = awsServerGroupConfigurationService;
       this.taskMonitorService = taskMonitorService;
@@ -99,7 +99,7 @@ describe('Controller: awsCloneServerGroup', function () {
           awsImageReader: this.awsImageReader,
           searchService: this.searchService,
           awsInstanceTypeService: this.awsInstanceTypeService,
-          modalWizardService: this.modalWizardService,
+          v2modalWizardService: this.v2modalWizardService,
           securityGroupReader: this.securityGroupReader,
           awsServerGroupConfigurationService: this.awsServerGroupConfigurationService,
           taskMonitorService: this.taskMonitorService,
@@ -113,7 +113,6 @@ describe('Controller: awsCloneServerGroup', function () {
     function setupMocks() {
       var resolve = this.resolve;
 
-      this.wizard = jasmine.createSpyObj('wizard', ['markDirty', 'markComplete', 'includePage']);
       spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(resolve(AccountServiceFixture.preferredZonesByAccount));
       spyOn(this.accountService, 'getRegionsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
       spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
@@ -123,7 +122,8 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.awsImageReader, 'findImages').and.callFake(resolve([{attributes: {virtualizationType: 'hvm'}, amis: {'us-east-1': []}}]));
 
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
-      spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);
+      spyOn(this.v2modalWizardService, 'markComplete').and.stub();
+      spyOn(this.v2modalWizardService, 'markDirty').and.stub();
       spyOn(this.awsInstanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
       spyOn(this.awsInstanceTypeService, 'getAvailableTypesForRegions').and.returnValue([]);
     }
@@ -156,7 +156,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
       expect($scope.command.viewState.usePreferredZones).toBe(true);
       expect($scope.command.availabilityZones).toEqual(['c', 'd']);
-      expect(this.wizard.markDirty.calls.count()).toBe(0);
+      expect(this.v2modalWizardService.markDirty.calls.count()).toBe(0);
     });
 
     it('clears availability zones when region changed and not using preferred values', function() {
@@ -175,7 +175,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
       expect($scope.command.viewState.usePreferredZones).toBe(false);
       expect($scope.command.availabilityZones).toEqual(['b', 'c']);
-      expect(this.wizard.markDirty.calls.count()).toBe(1);
+      expect(this.v2modalWizardService.markDirty.calls.count()).toBe(1);
     });
 
     it('sets/clears availability zones to preferred zones when toggled on/off', function() {
@@ -215,7 +215,7 @@ describe('Controller: awsCloneServerGroup', function () {
           accountService: this.accountService,
           serverGroupWriter: this.serverGroupWriter,
           awsInstanceTypeService: this.awsInstanceTypeService,
-          modalWizardService: this.modalWizardService,
+          v2modalWizardService: this.v2modalWizardService,
           taskMonitorService: this.taskMonitorService,
           serverGroupCommand: serverGroupCommand,
           application: {name: 'x'},
@@ -236,7 +236,7 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.loadBalancerReader, 'listLoadBalancers').and.callFake(resolve([]));
 
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
-      spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);
+      spyOn(this.v2modalWizardService, 'markComplete').and.stub();
       spyOn(this.awsInstanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
       spyOn(this.awsInstanceTypeService, 'getAvailableTypesForRegions').and.returnValue([]);
     }
@@ -370,7 +370,7 @@ describe('Controller: awsCloneServerGroup', function () {
           accountService: this.accountService,
           serverGroupWriter: this.serverGroupWriter,
           awsInstanceTypeService: this.awsInstanceTypeService,
-          modalWizardService: this.modalWizardService,
+          v2modalWizardService: this.v2modalWizardService,
           taskMonitorService: this.taskMonitorService,
           serverGroupCommand: serverGroup,
           application: {name: 'x'},
@@ -383,7 +383,6 @@ describe('Controller: awsCloneServerGroup', function () {
       var resolve = this.resolve,
           spec = this;
 
-      this.wizard = jasmine.createSpyObj('wizard', ['markDirty', 'markComplete', 'includePage']);
       spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(resolve(AccountServiceFixture.preferredZonesByAccount));
       spyOn(this.accountService, 'getRegionsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
       spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
@@ -392,7 +391,7 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.loadBalancerReader, 'listLoadBalancers').and.callFake(resolve([]));
 
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
-      spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);
+      spyOn(this.v2modalWizardService, 'markComplete').and.stub();
       spyOn(this.awsInstanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
       spyOn(this.awsInstanceTypeService, 'getAvailableTypesForRegions').and.returnValue([]);
       spyOn(this.awsImageReader, 'findImages').and.callFake(this.resolve([]));

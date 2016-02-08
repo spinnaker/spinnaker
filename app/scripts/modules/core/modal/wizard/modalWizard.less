@@ -1,0 +1,99 @@
+@import "../../presentation/less/imports/commonImports.less";
+
+@indicator-size: 14px;
+@indicator-radius: @indicator-size/2;
+
+v2-modal-wizard {
+  .modal-header {
+    /* Set to keep sticky section headings beneath modal header*/
+    position: relative;
+    z-index: 3;
+  }
+  ul.wizard-navigation {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+    .clearfix();
+    li {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 0;
+      a {
+        display: block;
+        width: 100%;
+        font-weight: normal;
+        padding: 10px 5px 10px 32px;
+      }
+      a:before {
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        width: @indicator-size;
+        height: @indicator-size;
+        border-radius: 100%;
+        background-color: #e6e6e6;
+        content: '';
+        transition: 0.25s;
+      }
+
+      a:before {
+        background-color: transparent;
+        font-size: 135%;
+        font-family: 'Glyphicons Halflings';
+      }
+
+      &.done {
+        a:before {
+          background-color: @healthy_green_icon;
+        }
+      }
+      &.default {
+        pointer-events: auto;
+        a:before {
+          background-color: #808080;
+        }
+      }
+      &.current, &:hover, &:active {
+        transition: 0.25s;
+        background-color: @lighter_grey;
+        a {
+          color: @text-color;
+          font-weight: 600;
+        }
+        a:before {
+          background-color: @spinnaker-blue;
+          content: '';
+        }
+      }
+      &.dirty {
+        a:before {
+          color: @state-danger-text;
+          background-color: transparent;
+          content: "\e088";
+          top: 11px;
+        }
+      }
+    }
+  }
+
+  .steps {
+    overflow: auto;
+    clear: both;
+    max-height: calc(~"100vh - 250px");
+    .wizard-subheading {
+      padding: 0;
+      h4 {
+        padding: 10px;
+        margin-bottom: 0;
+        color: @lightest_grey;
+        background-color: @dark_blue_background;
+        font-weight: 300;
+      }
+      margin-bottom: 10px;
+    }
+    .wizard-page-body {
+      padding: 10px 0 20px;
+    }
+  }
+}

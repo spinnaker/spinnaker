@@ -74,6 +74,9 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         backingData.scalingProcesses = autoScalingProcessService.listProcesses();
         command.backingData = backingData;
         configureVpcId(command);
+        if (command.viewState.disableImageSelection) {
+          configureInstanceTypes(command);
+        }
 
         if (command.loadBalancers && command.loadBalancers.length) {
           // verify all load balancers are accounted for; otherwise, try refreshing load balancers cache

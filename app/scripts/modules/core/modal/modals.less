@@ -19,87 +19,109 @@
 
 .modal-header {
   background-color: #f5f5f5;
-  padding: 25px;
+}
 
-  h2, h3 {
-    margin-top: 0;
-    margin-bottom: 0;
-  }
+modal-wizard {
+  .modal-header {
+    padding: 25px;
 
-  .steps-indicator {
-    @indicator-size: 18px;
-    @indicator-radius: @indicator-size/2;
-    position: relative;
-    height: 74px;
-    overflow-x: hidden;
-    padding-top: @indicator-size;
-
-    &:before {
-      top: @indicator-size + 10;
+    h2, h3 {
+      margin-top: 0;
+      margin-bottom: 0;
     }
 
-    li {
-      margin-top: 10px;
-      font-size: 80%;
-      padding: @indicator-size - 5 3px 0;
-      transition: all 0.25s ease-in-out;
+    .steps-indicator {
+      @indicator-size: 18px;
+      @indicator-radius: @indicator-size/2;
+      position: relative;
+      height: 74px;
+      overflow-x: hidden;
+      padding-top: @indicator-size;
 
-      &.ng-enter {
-        transform: scale(2.0);
-        opacity: 0.6;
-      }
-      &.ng-enter.ng-enter-active {
-        transform: scale(1.0);
-        opacity: 1;
-      }
-      &.ng-leave {
-        transform: scale(1.0);
-        opacity: 1;
-      }
-      &.ng-leave.ng-leave-active {
-        transform: scale(0.0);
-        opacity: 0;
+      &:before {
+        top: @indicator-size + 10;
       }
 
-      a:before {
-        top: @indicator-radius * -1;
-        width: @indicator-size;
-        height: @indicator-size;
-        background-color: transparent;
-        font-size: 175%;
-        font-family: 'Glyphicons Halflings';
-        left: ~'calc(50% - @{indicator-radius})';
-      }
+      li {
+        margin-top: 10px;
+        font-size: 80%;
+        padding: @indicator-size - 5 3px 0;
+        transition: all 0.25s ease-in-out;
 
-      &.done {
-        a:before {
-          background-color: #339933;
+        &.ng-enter {
+          transform: scale(2.0);
+          opacity: 0.6;
         }
-        &.dirty {
+        &.ng-enter.ng-enter-active {
+          transform: scale(1.0);
+          opacity: 1;
+        }
+        &.ng-leave {
+          transform: scale(1.0);
+          opacity: 1;
+        }
+        &.ng-leave.ng-leave-active {
+          transform: scale(0.0);
+          opacity: 0;
+        }
+
+        a:before {
+          top: @indicator-radius * -1;
+          width: @indicator-size;
+          height: @indicator-size;
+          background-color: transparent;
+          font-size: 175%;
+          font-family: 'Glyphicons Halflings';
+          left: ~'calc(50% - @{indicator-radius})';
+        }
+
+        &.done {
           a:before {
-            .pulsing();
-            color: @state-danger-text;
-            background-color: transparent;
-            content: "\e088";
-            top: -7px;
+            background-color: #339933;
+          }
+          &.dirty {
+            a:before {
+              .pulsing();
+              color: @state-danger-text;
+              background-color: transparent;
+              content: "\e088";
+              top: -7px;
+            }
+          }
+        }
+        &.current {
+          a {
+            color: @text-color;
+          }
+          a:before {
+            background-color: @spinnaker-blue;
+            content: '';
+          }
+        }
+        &.default {
+          a:before {
+            background-color: #808080;
           }
         }
       }
-      &.current {
-        a {
-          color: @text-color;
-        }
-        a:before {
-          background-color: @spinnaker-blue;
-          content: '';
-        }
-      }
-      &.default {
-        a:before {
-          background-color: #808080;
-        }
-      }
     }
+  }
+  .wizard-subheading {
+    padding: 15px 0 0 15px;
+    h4 {
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+  }
+  .steps {
+    width: 1200px;
+    overflow-x: hidden;
+    .modal-page {
+      position: relative;
+      width: 600px;
+      float: left;
+    }
+    .clearfix();
   }
 }
 
@@ -107,25 +129,6 @@
   h3, h4 {
     margin-top: 0;
   }
-}
-
-.wizard-subheading {
-  padding: 15px 0 0 15px;
-  h4 {
-    margin-top: 0;
-    margin-bottom: 0;
-  }
-}
-
-.steps {
-  width: 1200px;
-  overflow-x: hidden;
-  .modal-page {
-    position: relative;
-    width: 600px;
-    float: left;
-  }
-  .clearfix();
 }
 
 .forward {
@@ -351,6 +354,9 @@ abbr.select2-search-choice-close {
   opacity: 0;
   overflow-y: auto;
   border-bottom: 2px solid @dark_blue_background;
+  background-color: #ffffff;
+  z-index: 5;
+  position: relative;
 
   .overlay-modal-status {
     padding: 0 30px;

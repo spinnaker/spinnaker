@@ -23,21 +23,28 @@ module.exports = angular
       controllerAs: 'vm',
     };
   })
-  .controller('ReservationReportCtrl', function (reservationReportReader) {
+  .controller('ReservationReportCtrl', function ($scope, reservationReportReader) {
     this.viewState = {
       loading: true,
       error: false,
     };
 
-    reservationReportReader.getReservationsFor(this.account, this.region, this.instanceType)
-      .then(
-      (report) => {
-        this.report = report.filter((row) => this.zones.indexOf(row.availabilityZone) > -1);
-        this.viewState.loading = false;
-      },
-      () => {
-        this.viewState.loading = false;
-        this.viewState.error = true;
+    let initialize = () => {
+      if (!this.instanceType) {
+        return;
       }
-    );
+      reservationReportReader.getReservationsFor(this.account, this.region, this.instanceType)
+        .then(
+        (report) => {
+          this.report = report.filter((row) => this.zones.indexOf(row.availabilityZone) > -1);
+          this.viewState.loading = false;
+        },
+        () => {
+          this.viewState.loading = false;
+          this.viewState.error = true;
+        }
+      );
+    };
+
+    $scope.$watch(() => this.instanceType, initialize);
   });

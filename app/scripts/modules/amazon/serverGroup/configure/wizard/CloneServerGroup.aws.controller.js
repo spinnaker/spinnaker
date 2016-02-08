@@ -9,25 +9,25 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
   require('../serverGroupConfiguration.service.js'),
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js'),
-  require('../../../../core/modal/wizard/modalWizard.service.js'),
+  require('../../../../core/modal/wizard/v2modalWizard.service.js'),
   require('../../../../core/overrideRegistry/override.registry.js'),
   require('../../../../core/serverGroup/configure/common/serverGroupCommand.registry.js'),
   require('../../../../core/task/modal/reason.directive.js'),
   ])
   .controller('awsCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $state,
-                                                  serverGroupWriter, modalWizardService, taskMonitorService,
+                                                  serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                   overrideRegistry, awsServerGroupConfigurationService,
                                                   serverGroupCommandRegistry,
                                                   serverGroupCommand, application, title) {
     $scope.pages = {
-      templateSelection: overrideRegistry.getTemplate('aws.serverGroup.templateSelection', require('./templateSelection.html')),
-      basicSettings: overrideRegistry.getTemplate('aws.serverGroup.basicSettings', require('./basicSettings.html')),
-      loadBalancers: overrideRegistry.getTemplate('aws.serverGroup.loadBalancers', require('./loadBalancers.html')),
+      templateSelection: overrideRegistry.getTemplate('aws.serverGroup.templateSelection', require('./templateSelection/templateSelection.html')),
+      basicSettings: overrideRegistry.getTemplate('aws.serverGroup.basicSettings', require('./location/basicSettings.html')),
+      loadBalancers: overrideRegistry.getTemplate('aws.serverGroup.loadBalancers', require('./loadBalancers/loadBalancers.html')),
       securityGroups: overrideRegistry.getTemplate('aws.serverGroup.securityGroups', require('./securityGroups/securityGroups.html')),
-      instanceArchetype: overrideRegistry.getTemplate('aws.serverGroup.instanceArchetype', require('./instanceArchetype.html')),
-      instanceType: overrideRegistry.getTemplate('aws.serverGroup.instanceType', require('./instanceType.html')),
+      instanceType: overrideRegistry.getTemplate('aws.serverGroup.instanceType', require('./instanceType/instanceType.html')),
       capacity: overrideRegistry.getTemplate('aws.serverGroup.capacity', require('./capacity/capacity.html')),
-      advancedSettings: overrideRegistry.getTemplate('aws.serverGroup.advancedSettings', require('./advancedSettings.html')),
+      zones: overrideRegistry.getTemplate('aws.serverGroup.zones', require('./capacity/zones.html')),
+      advancedSettings: overrideRegistry.getTemplate('aws.serverGroup.advancedSettings', require('./advancedSettings/advancedSettings.html')),
     };
 
     $scope.title = title;
@@ -102,18 +102,17 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
 
     function initializeWizardState() {
       if (serverGroupCommand.viewState.instanceProfile && serverGroupCommand.viewState.instanceProfile !== 'custom') {
-        modalWizardService.getWizard().includePage('instance-type');
-        modalWizardService.getWizard().markComplete('instance-type');
+        v2modalWizardService.markComplete('instance-type');
       }
       var mode = serverGroupCommand.viewState.mode;
       if (mode === 'clone' || mode === 'editPipeline') {
-        modalWizardService.getWizard().markComplete('location');
-        modalWizardService.getWizard().markComplete('load-balancers');
-        modalWizardService.getWizard().markComplete('security-groups');
-        modalWizardService.getWizard().markComplete('instance-profile');
-        modalWizardService.getWizard().markComplete('instance-type');
-        modalWizardService.getWizard().markComplete('capacity');
-        modalWizardService.getWizard().markComplete('advanced');
+        v2modalWizardService.markComplete('location');
+        v2modalWizardService.markComplete('instance-type');
+        v2modalWizardService.markComplete('load-balancers');
+        v2modalWizardService.markComplete('security-groups');
+        v2modalWizardService.markComplete('capacity');
+        v2modalWizardService.markComplete('zones');
+        v2modalWizardService.markComplete('advanced');
       }
     }
 
@@ -151,20 +150,17 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
 
     function processCommandUpdateResult(result) {
       if (result.dirty.loadBalancers) {
-        modalWizardService.getWizard().markDirty('load-balancers');
+        v2modalWizardService.markDirty('load-balancers');
       }
       if (result.dirty.securityGroups) {
-        modalWizardService.getWizard().markDirty('security-groups');
+        v2modalWizardService.markDirty('security-groups');
       }
       if (result.dirty.availabilityZones) {
-        modalWizardService.getWizard().markDirty('capacity');
+        v2modalWizardService.markDirty('capacity');
       }
       if (result.dirty.instanceType) {
-        if ($scope.command.viewState.instanceProfile === 'custom') {
-          modalWizardService.getWizard().markDirty('instance-profile');
-        } else {
-          modalWizardService.getWizard().markDirty('instance-type');
-        }
+        v2modalWizardService.markIncomplete('instance-type');
+        v2modalWizardService.markDirty('instance-type');
       }
     }
 
@@ -181,17 +177,17 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
 
     this.isValid = function () {
       return $scope.command &&
-        ($scope.command.amiName !== null) &&
-        ($scope.command.application !== null) &&
-        ($scope.command.credentials !== null) && ($scope.command.instanceType !== null) &&
-        ($scope.command.region !== null) && ($scope.command.availabilityZones !== null) &&
-        ($scope.command.capacity.min !== null) && ($scope.command.capacity.max !== null) &&
-        ($scope.command.capacity.desired !== null) &&
-        modalWizardService.getWizard().isComplete();
+        ($scope.command.viewState.disableImageSelection || $scope.command.amiName) &&
+        ($scope.command.application) &&
+        ($scope.command.credentials) && ($scope.command.instanceType) &&
+        ($scope.command.region) && ($scope.command.availabilityZones) &&
+        ($scope.command.capacity.min >= 0) && ($scope.command.capacity.max >= 0) &&
+        ($scope.command.capacity.desired >= 0) &&
+        v2modalWizardService.isComplete();
     };
 
     this.showSubmitButton = function () {
-      return modalWizardService.getWizard().allPagesVisited();
+      return v2modalWizardService.allPagesVisited();
     };
 
     this.submit = function () {

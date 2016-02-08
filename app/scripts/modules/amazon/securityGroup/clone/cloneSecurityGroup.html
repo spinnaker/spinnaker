@@ -1,4 +1,3 @@
-
 <modal-wizard heading="Clone Security Group">
   <wizard-page key="Location" label="Location">
     <ng-include src="pages.location"></ng-include>
@@ -7,3 +6,10 @@
     <ng-include src="pages.ingress"></ng-include>
   </wizard-page>
 </modal-wizard>
+<div class="modal-footer">
+  <button class="btn btn-default"
+          ng-click="ctrl.cancel()">Cancel
+  </button>
+  <submit-button is-disabled="form.$invalid || !wizard.isComplete() || state.submitting"
+                 submitting="state.submitting" on-click="ctrl.upsert()" is-new="isNew"></submit-button>
+</div>

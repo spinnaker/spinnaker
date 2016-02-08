@@ -537,6 +537,9 @@ body > .container {
 }
 .sm-label-right {
   text-align: right;
+  @media(max-width: 992px) {
+    text-align: left;
+  }
 }
 
 .form-inline {
@@ -557,6 +560,7 @@ body > .container {
 .modal-content {
   overflow-x: hidden;
   overflow-y: hidden;
+  border-radius: 3px;
 }
 
 .modal-pages {
@@ -1089,6 +1093,11 @@ ul.select2-results {
 }
 
 .select2.select2-container {
+  &.ng-invalid-required {
+    a.select2-default {
+      border: 1px solid @unhealthy_red_border;
+    }
+  }
   .select2-choice {
     .select2-chosen {
       padding-left: 0;
