@@ -21,8 +21,10 @@ import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 
 class Keys {
   static enum Namespace {
+    LOAD_BALANCERS,
+    NETWORKS,
     SECURITY_GROUPS,
-    NETWORKS
+
 
     final String ns
 
@@ -51,12 +53,15 @@ class Keys {
     }
 
     switch (result.type) {
-      case Namespace.SECURITY_GROUPS.ns:
-        def names = Names.parseName(parts[2])
-        result << [application: names.app, name: parts[2], id: parts[3], region: parts[4], account: parts[5]]
+      case Namespace.LOAD_BALANCERS.ns:
+        result << [account: parts[2], region: parts[3], name: parts[4]]
         break
       case Namespace.NETWORKS.ns:
         result << [id: parts[2], account: parts[3], region: parts[4]]
+        break
+      case Namespace.SECURITY_GROUPS.ns:
+        def names = Names.parseName(parts[2])
+        result << [application: names.app, name: parts[2], id: parts[3], region: parts[4], account: parts[5]]
         break
       default:
         return null
@@ -66,12 +71,11 @@ class Keys {
     result
   }
 
-  static String getSecurityGroupKey(GoogleCloudProvider googleCloudProvider,
-                                    String securityGroupName,
-                                    String securityGroupId,
-                                    String region,
-                                    String account) {
-    "$googleCloudProvider.id:${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}"
+  static String getLoadBalancerKey(GoogleCloudProvider googleCloudProvider,
+                                   String region,
+                                   String account,
+                                   String loadBalancerName) {
+    "$googleCloudProvider.id:${Namespace.LOAD_BALANCERS}:${account}:${region}:${loadBalancerName}"
   }
 
   static String getNetworkKey(GoogleCloudProvider googleCloudProvider,
@@ -79,5 +83,13 @@ class Keys {
                               String region,
                               String account) {
     "$googleCloudProvider.id:${Namespace.NETWORKS}:${networkName}:${account}:${region}"
+  }
+
+  static String getSecurityGroupKey(GoogleCloudProvider googleCloudProvider,
+                                    String securityGroupName,
+                                    String securityGroupId,
+                                    String region,
+                                    String account) {
+    "$googleCloudProvider.id:${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}"
   }
 }
