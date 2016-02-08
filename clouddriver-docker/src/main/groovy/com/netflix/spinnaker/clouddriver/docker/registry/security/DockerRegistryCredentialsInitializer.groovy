@@ -42,10 +42,8 @@ class DockerRegistryCredentialsInitializer implements CredentialsInitializerSync
   @Autowired
   ApplicationContext appContext;
 
-  /*
   @Autowired
   List<ProviderSynchronizerTypeWrapper> providerSynchronizerTypeWrappers
-  */
 
   @Bean
   List<? extends DockerRegistryNamedAccountCredentials> dockerRegistryNamedAccountCredentials(
@@ -82,14 +80,9 @@ class DockerRegistryCredentialsInitializer implements CredentialsInitializerSync
 
     ProviderUtils.unscheduleAndDeregisterAgents(namesOfDeletedAccounts, catsModule)
 
-    /*
-     * Uncomment this when we are ready to add support for loading DockerRegistry
-     * accounts without restarting clouddriver
-     * TODO(lwander)
     if (accountsToAdd && catsModule) {
       ProviderUtils.synchronizeAgentProviders(appContext, providerSynchronizerTypeWrappers)
     }
-    */
 
     accountCredentialsRepository.all.findAll {
       it instanceof DockerRegistryNamedAccountCredentials

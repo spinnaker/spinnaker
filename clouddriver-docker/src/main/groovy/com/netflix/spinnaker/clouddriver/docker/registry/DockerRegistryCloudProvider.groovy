@@ -27,7 +27,7 @@ import java.lang.annotation.Annotation
  *       Instead, the intent is to provide an interface to query for docker tags hosted by the supplied docker registry.
  */
 @Component
-class DockerRegistryProvider implements CloudProvider {
+class DockerRegistryCloudProvider implements CloudProvider {
   final String id = "dockerRegistry"
   final String displayName = "Docker Registry"
   // The docker registry is only used for caching, so none of the op/ endpoints will be hit.
