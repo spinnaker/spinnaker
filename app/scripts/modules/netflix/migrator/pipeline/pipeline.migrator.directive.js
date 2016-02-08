@@ -8,14 +8,13 @@ module.exports = angular
   .module('spinnaker.migrator.pipeline.directive', [
     require('angular-ui-bootstrap'),
     require('../../../amazon/vpc/vpc.read.service.js'),
-    require('../../../amazon/subnet/subnet.read.service.js'),
     require('../../../core/config/settings.js'),
     require('../migrator.service.js'),
-    require('../../../core/utils/lodash.js'),
     require('../../../core/presentation/autoScroll/autoScroll.directive.js'),
     require('../../../core/pipeline/config/services/pipelineConfigService.js'),
     require('../../../core/utils/scrollTo/scrollTo.service.js'),
     require('../../../core/cache/cacheInitializer.js'),
+    require('../../../core/task/task.read.service.js'),
   ])
   .directive('pipelineMigrator', function () {
     return {
@@ -30,72 +29,52 @@ module.exports = angular
       controllerAs: 'migratorActionCtrl',
     };
   })
-  .controller('PipelineMigratorActionCtrl', function ($scope, $uibModal, vpcReader, settings, subnetReader, _) {
+  .controller('PipelineMigratorActionCtrl', function ($scope, $uibModal, vpcReader, settings) {
 
     $scope.showAction = false;
 
     $scope.submittingTemplateUrl = require('../migrator.modal.submitting.html');
 
-    var subnets,
-        actionableDeployStages = [];
+    var actionableDeployStages = [];
 
     function testCluster(stage) {
       return function(cluster) {
-        var region = cluster.availabilityZones ? Object.keys(cluster.availabilityZones)[0] : null;
-        var account = cluster.account;
-        var subnetType = cluster.subnetType;
-        if (subnetType) {
-          var subnetMatches = _(subnets)
-            .filter({account: account, region: region, purpose: subnetType})
-            .reject({target: 'elb'})
-            .valueOf();
-          if (subnetMatches.length) {
-            return vpcReader.getVpcName(subnetMatches[0].vpcId).then(function (vpc) {
-              if (vpc === 'Main') {
-                $scope.showAction = true;
-                if (cluster.strategy === 'highlander' || cluster.strategy === 'redblack') {
-                  actionableDeployStages.push({strategy: cluster.strategy, name: stage.name});
-                }
-              }
-            });
+        if (!cluster.subnetType && cluster.provider === 'aws') {
+          $scope.showAction = true;
+          if (cluster.strategy !== '') {
+            actionableDeployStages.push({strategy: cluster.strategy, name: stage.name});
           }
         }
       };
     }
 
     if (settings.feature.vpcMigrator) {
-      subnetReader.listSubnets().then(function (loadedSubnets) {
-        subnets = loadedSubnets;
-        var stages = $scope.pipeline.stages || [];
-        stages.forEach(function (stage) {
-          if (stage.type === 'deploy') {
-            var clusters = stage.clusters || [];
-            clusters.forEach(testCluster(stage));
-          }
-          if (stage.type === 'canary') {
-            var clusterPairs = stage.clusterPairs || [];
-            clusterPairs.forEach(function (clusterPair) {
-              testCluster(stage)(clusterPair.baseline);
-              testCluster(stage)(clusterPair.canary);
-            });
-          }
-        });
+      var stages = $scope.pipeline.stages || [];
+      stages.forEach((stage) => {
+        if (stage.type === 'deploy') {
+          var clusters = stage.clusters || [];
+          clusters.forEach(testCluster(stage));
+        }
+        if (stage.type === 'canary') {
+          var clusterPairs = stage.clusterPairs || [];
+          clusterPairs.forEach((clusterPair) => {
+            testCluster(stage)(clusterPair.baseline);
+            testCluster(stage)(clusterPair.canary);
+          });
+        }
       });
     }
 
     this.previewMigration = function () {
       $uibModal.open({
         templateUrl: require('./pipeline.migrator.modal.html'),
-        controller: 'PipelineMigratorCtrl as ctrl',
+        controller: 'PipelineMigratorCtrl as vm',
         resolve: {
           pipeline: function () {
             return $scope.pipeline;
           },
           application: function () {
             return $scope.application;
-          },
-          type: function() {
-            return $scope.type;
           },
           actionableDeployStages: function() {
             return actionableDeployStages;
@@ -104,20 +83,79 @@ module.exports = angular
       });
     };
   })
-  .controller('PipelineMigratorCtrl', function ($scope, pipeline, application, type, actionableDeployStages,
-                                                $modalInstance,
+  .controller('PipelineMigratorCtrl', function ($scope, pipeline, application, actionableDeployStages,
+                                                $modalInstance, taskReader, $timeout, $state,
                                                 migratorService, pipelineConfigService, scrollToService,
                                                 cacheInitializer) {
 
-    $scope.application = application;
-    $scope.pipeline = pipeline;
-    $scope.actionableDeployStages = actionableDeployStages;
+    this.submittingTemplateUrl = require('../migrator.modal.submitting.html');
 
-    $scope.viewState = {
+    this.actionableDeployStages = actionableDeployStages;
+
+    this.viewState = {
       computing: true,
+      executing: false,
+      error: false,
+      migrationComplete: false,
     };
 
-    var source = { pipelineId: pipeline.id, vpcName: 'Main', },
+    // shared component used by "submitting" overlay to indicate what's being operated against
+    this.component = {
+      name: pipeline.name
+    };
+
+    // Async handlers
+
+    let errorMode = (error) => {
+      this.viewState.computing = false;
+      this.viewState.executing = false;
+      this.viewState.error = error || 'An unknown error occurred. Please try again later.';
+      if (!error && this.task && this.task.getTideException()) {
+        this.viewState.error = this.task.getTideException();
+      }
+    };
+
+    let dryRunComplete = () => {
+      this.viewState.computing = false;
+      this.preview = this.task.getPreview();
+    };
+
+    let dryRunStarted = (task) => {
+      this.task = task;
+      taskReader.waitUntilTaskCompletes(application.name, task).then(dryRunComplete, errorMode);
+    };
+
+    let reinitialize = () => {
+      pipelineConfigService.getPipelinesForApplication(application.name).then((pipelines) => {
+        application.pipelines = pipelines;
+        // TODO: pipeline ID is not yet populated in the task result from Tide, so build it out based on name
+        var [newPipeline] = pipelines.filter(function(test) {
+          return test.name.indexOf(pipeline.name + ' - vpc0') === 0;
+        });
+        if (newPipeline) {
+          $state.go('^.pipelineConfig', {pipelineId: newPipeline.id});
+        }
+        if (this.preview.securityGroups && this.preview.securityGroups.length) {
+          cacheInitializer.refreshCache('securityGroups');
+        }
+        if (this.preview.loadBalancers && this.preview.loadBalancers.length) {
+          cacheInitializer.refreshCache('loadBalancers');
+        }
+      });
+    };
+
+    let migrationComplete = () => {
+      this.viewState.executing = false;
+      this.viewState.migrationComplete = true;
+      reinitialize();
+    };
+
+    let migrationStarted = (task) => {
+      this.task = task;
+      taskReader.waitUntilTaskCompletes(application.name, task).then(migrationComplete, errorMode);
+    };
+
+    var source = { pipelineId: pipeline.id },
         target = { vpcName: 'vpc0', };
 
 
@@ -130,61 +168,20 @@ module.exports = angular
       dryRun: true,
     };
 
-    var dryRun = migratorService.executeMigration(migrationConfig);
+    // Generate preview
+    let executor = migratorService.executeMigration(migrationConfig);
 
-    dryRun.deferred.promise.then(
-      function () {
-        $scope.viewState.computing = false;
-        $scope.preview = dryRun.executionPlan;
-      },
-      function (error) {
-        $scope.viewState.computing = false;
-        $scope.viewState.error = error;
-      }
-    );
+    executor.then(dryRunStarted, errorMode);
 
-    this.cancel = function () {
-      dryRun.deferred.promise.cancelled = true;
-      if ($scope.executor) {
-        $scope.executor.deferred.promise.cancelled = true;
-      }
+    this.cancel = () => {
+      $timeout.cancel(this.task.poller);
       $modalInstance.dismiss();
     };
 
-    this.submit = function () {
-      $scope.viewState.executing = true;
+    this.submit = () => {
+      this.viewState.executing = true;
       migrationConfig.dryRun = false;
-      var executor = migratorService.executeMigration(migrationConfig);
-      executor.deferred.promise.then(
-        function () {
-          $scope.viewState.executing = false;
-          $scope.viewState.migrationComplete = true;
-          reinitialize();
-        },
-        function (error) {
-          $scope.viewState.executing = false;
-          $scope.viewState.error = error;
-        }
-      );
-      $scope.executor = executor;
+      let executor = migratorService.executeMigration(migrationConfig);
+      executor.then(migrationStarted, errorMode);
     };
-
-    function reinitialize() {
-      pipelineConfigService.getPipelinesForApplication(application.name).then(function (pipelines) {
-        application.pipelines = pipelines;
-        // TODO: pipeline ID is not yet populated in the task result from Tide, so build it out based on name
-        var newPipelines = pipelines.filter(function(test) {
-          return test.name.indexOf(pipeline.name + ' - vpc0') === 0;
-        });
-        if (newPipelines && newPipelines.length) {
-          scrollToService.scrollTo('pipeline-config-' + newPipelines[0].id, '.execution-groups', 180);
-        }
-        if ($scope.preview.securityGroups && $scope.preview.securityGroups.length) {
-          cacheInitializer.refreshCache('securityGroups');
-        }
-        if ($scope.preview.loadBalancers && $scope.preview.loadBalancers.length) {
-          cacheInitializer.refreshCache('loadBalancers');
-        }
-      });
-    }
   });

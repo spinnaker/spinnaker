@@ -49,7 +49,7 @@ module.exports = angular
       if (tideTask.taskComplete && tideTask.taskComplete.status === 'failure') {
         return tideTask.taskComplete.message;
       }
-      return null;
+      return task.failureMessage;
     }
 
     function getPreview(task) {
