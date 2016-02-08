@@ -52,6 +52,7 @@ window.spinnakerSettings = {
     fileName: 'news.md',
   },
   authEnabled: process.env.AUTH === 'enabled',
+  gitSources: ['stash', 'github'],
   feature: {
     pipelines: true,
     notifications: false,

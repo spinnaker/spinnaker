@@ -1,13 +1,13 @@
 <div modal-page class="migrator-modal">
-  <div ng-include="submittingTemplateUrl"></div>
+  <div ng-include="vm.submittingTemplateUrl"></div>
   <form role="form" name="form">
     <modal-close></modal-close>
     <div class="modal-header">
-      <h3>Migrate {{pipeline.name}} to VPC0</h3>
+      <h3>Migrate {{vm.component.name}} to VPC0</h3>
     </div>
     <div class="modal-body">
 
-      <div class="row" ng-if="viewState.computing">
+      <div class="row" ng-if="vm.viewState.computing">
         <div class="col-md-10 col-md-offset-1">
           <h3 class="text-center">
             <span class="small glyphicon glyphicon-asterisk glyphicon-spinning"></span>
@@ -16,52 +16,52 @@
         </div>
       </div>
 
-      <div class="row preview" ng-if="preview && !viewState.computing && !viewState.executing && !viewState.error">
+      <div class="row preview" ng-if="vm.preview && !vm.viewState.computing && !vm.viewState.executing && !vm.viewState.error">
         <div class="col-md-10 col-md-offset-1">
-          <div ng-if="!viewState.migrationComplete">
+          <div ng-if="!vm.viewState.migrationComplete">
             <p>This will create new pipeline named
-              <strong>{{preview.pipelines[0].mutationDetails.pipelineToCreate.name}}</strong>. All triggers will be disabled.</p>
-            <p ng-if="!preview.securityGroups.length && !preview.loadBalancers.length">
+              <strong>{{vm.preview.pipelines[0].mutationDetails.pipelineToCreate.name}}</strong>. All triggers will be disabled.</p>
+            <p ng-if="!vm.preview.securityGroups.length && !vm.preview.loadBalancers.length">
               All load balancers and security groups needed for server groups deployed in the pipeline have already
               been migrated to VPC0, so this will just create the new pipeline.
             </p>
-            <p ng-if="preview.securityGroups.length || preview.loadBalancers.length">As part of this migration, the following
-              <span ng-if="preview.securityGroups.length">security groups</span>
-              <span ng-if="preview.securityGroups.length && preview.loadBalancers.length"> and </span>
-              <span ng-if="preview.loadBalancers.length">load balancers</span>
+            <p ng-if="vm.preview.securityGroups.length || vm.preview.loadBalancers.length">As part of this migration, the following
+              <span ng-if="vm.preview.securityGroups.length">security groups</span>
+              <span ng-if="vm.preview.securityGroups.length && vm.preview.loadBalancers.length"> and </span>
+              <span ng-if="vm.preview.loadBalancers.length">load balancers</span>
               will be created in VPC0:</p>
           </div>
-          <div ng-if="viewState.migrationComplete">
-            <p ng-if="preview.securityGroups.length || preview.loadBalancers.length">The following items have been created:</p>
+          <div ng-if="vm.viewState.migrationComplete">
+            <p ng-if="vm.preview.securityGroups.length || vm.preview.loadBalancers.length">The following items have been created:</p>
           </div>
-          <div ng-if="preview.securityGroups.length">
+          <div ng-if="vm.preview.securityGroups.length">
             <h4><span class="glyphicon glyphicon-transfer small"></span> Security Groups</h4>
-            <div ng-repeat="securityGroup in preview.securityGroups" class="preview-entry">{{securityGroup.mutationDetails.awsReference.identity.groupName}}</div>
+            <div ng-repeat="securityGroup in vm.preview.securityGroups" class="preview-entry">{{securityGroup.mutationDetails.awsReference.identity.groupName}}</div>
           </div>
-          <div ng-if="preview.loadBalancers.length">
+          <div ng-if="vm.preview.loadBalancers.length">
             <h4><span class="small icon icon-elb"></span> Load Balancers</h4>
-            <div ng-repeat="loadBalancer in preview.loadBalancers" class="preview-entry">{{loadBalancer.mutationDetails.awsReference.identity.loadBalancerName}}</div>
+            <div ng-repeat="loadBalancer in vm.preview.loadBalancers" class="preview-entry">{{loadBalancer.mutationDetails.awsReference.identity.loadBalancerName}}</div>
             <p class="note">Note: if Route53 or sticky session policies are configured for the current load balancer,
               you will need to set that up in the AWS console.
             </p>
           </div>
-          <div ng-if="viewState.migrationComplete">
+          <div ng-if="vm.viewState.migrationComplete">
             <p>The new pipeline named
-              <strong>{{preview.pipelines[0].mutationDetails.pipelineToCreate.name}}</strong> is available for review.</p>
+              <strong>{{vm.preview.pipelines[0].mutationDetails.pipelineToCreate.name}}</strong> is available for review.</p>
           </div>
-          <div ng-if="actionableDeployStages.length && viewState.migrationComplete" class="alert alert-warning">
+          <div ng-if="vm.actionableDeployStages.length && vm.viewState.migrationComplete" class="alert alert-warning">
             <h4 style="margin-top:0;">Important</h4>
             <p>
               The following deployment stages use deployment strategies:
             </p>
             <ul>
-              <li ng-repeat="stage in actionableDeployStages">
+              <li ng-repeat="stage in vm.actionableDeployStages">
                 {{stage.name}} (strategy: {{stage.strategy}})
               </li>
             </ul>
             <p>
               Spinnaker's deployment strategies do not differentiate between VPCs when cleaning up previous server groups.
-              Running this pipeline will clean up (i.e. disable or remove) the <em>current server groups</em> in VPC Main.
+              Running this pipeline will clean up (i.e. disable or remove) the <em>current server groups</em> in EC2 Classic.
             </p>
             <p>If this is undesirable, you should switch the deployment strategies to "None" before running the new pipeline.</p>
           </div>
@@ -69,23 +69,23 @@
       </div>
     </div>
 
-    <div class="row" ng-if="viewState.error">
+    <div class="row" ng-if="vm.viewState.error">
       <div class="col-md-10 col-md-offset-1">
-        <h4>We could not calculate an execution plan for {{component.name}} at this time.</h4>
-        <p>Reason: {{viewState.error}}</p>
+        <h4>We could not calculate an execution plan for {{vm.component.name}} at this time.</h4>
+        <p>Reason: {{vm.viewState.error}}</p>
       </div>
     </div>
 
-    <div class="modal-footer" ng-if="viewState.error">
-      <button class="btn btn-default" ng-click="ctrl.cancel()">Close</button>
+    <div class="modal-footer" ng-if="vm.viewState.error">
+      <button class="btn btn-default" ng-click="vm.cancel()">Close</button>
     </div>
 
-    <div class="modal-footer" ng-if="!viewState.error && !viewState.executing">
-      <button class="btn btn-default" ng-click="ctrl.cancel()">{{viewState.migrationComplete ? 'Close' : 'Cancel'}}</button>
+    <div class="modal-footer" ng-if="!vm.viewState.error && !vm.viewState.executing">
+      <button class="btn btn-default" ng-click="vm.cancel()">{{vm.viewState.migrationComplete ? 'Close' : 'Cancel'}}</button>
       <button class="btn btn-primary"
-              ng-if="!viewState.executing && !viewState.computing && !viewState.migrationComplete"
-              ng-click="ctrl.submit()">
-        Migrate {{component.name}} to VPC0
+              ng-if="!vm.viewState.executing && !vm.viewState.computing && !vm.viewState.migrationComplete"
+              ng-click="vm.submit()">
+        Migrate {{vm.component.name}} to VPC0
       </button>
     </div>
 
