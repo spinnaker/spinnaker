@@ -41,6 +41,7 @@ import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -441,8 +442,13 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   @Override
   Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
     def keys = providerCache.getIdentifiers(ON_DEMAND.ns)
-    return providerCache.getAll(ON_DEMAND.ns, keys).collect {
+    keys = keys.findAll {
+      def key = Keys.parse(it)
+      key.type == SERVER_GROUPS.ns && key.account == account.name && key.region == region
+    }
+    return providerCache.getAll(ON_DEMAND.ns, keys, RelationshipCacheFilter.none()).collect {
       [
+        id: it.id,
         details  : Keys.parse(it.id),
         cacheTime: it.attributes.cacheTime,
         processedCount: it.attributes.processedCount,
