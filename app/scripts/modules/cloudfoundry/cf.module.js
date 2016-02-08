@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./logo/cf.logo.less');
+
 // load all templates into the $templateCache
 var templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
@@ -35,7 +37,7 @@ module.exports = angular.module('spinnaker.cf', [
         cloudProviderRegistryProvider.registerProvider('cf', {
             name: 'Cloud Foundry',
             logo: {
-                path: require('./logo_cf.png'),
+                path: require('./logo/logo_cf.png'),
             },
             cache: {
                 configurer: 'cfCacheConfigurer',
