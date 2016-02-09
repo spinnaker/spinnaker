@@ -18,24 +18,20 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops
 
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.DeployKubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
+import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.DeployKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesContainerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesResourceDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.IntOrString
-import io.fabric8.kubernetes.api.model.ReplicationController
-import io.fabric8.kubernetes.api.model.ReplicationControllerList
-import io.fabric8.kubernetes.api.model.Service
-import io.fabric8.kubernetes.api.model.ServiceList
-import io.fabric8.kubernetes.api.model.ServicePort
-import io.fabric8.kubernetes.api.model.ServiceSpec
-import io.fabric8.kubernetes.client.KubernetesClient;
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.client.dsl.internal.ReplicationControllerOperationsImpl
 import io.fabric8.kubernetes.client.dsl.internal.ServiceOperationsImpl
-import spock.lang.Subject
 import spock.lang.Specification
+import spock.lang.Subject
 
 class DeployKubernetesAtomicOperationSpec extends Specification {
   private static final NAMESPACE = "default"
@@ -51,10 +47,9 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
   private static final REQUEST_MEMORY = ["100Mi", "200Mi"]
   private static final LIMIT_CPU = ["120m", "200m"]
   private static final LIMIT_MEMORY = ["200Mi", "300Mi"]
-  private static final TARGET_PORT = 80
+  private static final DOCKER_REGISTRY_ACCOUNTS = [new LinkedDockerRegistryConfiguration(accountName: "my-docker-account")]
 
-  def kubernetesClientMock
-  def kubernetesUtilMock
+  def apiMock
   def credentials
   def containers
   def description
@@ -74,13 +69,14 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
   def clusterName
   def replicationControllerName
 
+  def accountCredentialsRepositoryMock
+
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
   def setup() {
-    kubernetesClientMock = Mock(KubernetesClient)
-    kubernetesUtilMock = Mock(KubernetesUtil)
+    apiMock = Mock(KubernetesApiAdaptor)
     replicationControllerOperationsMock = Mock(ReplicationControllerOperationsImpl)
     replicationControllerListMock = Mock(ReplicationControllerList)
     replicationControllerMock = Mock(ReplicationController)
@@ -91,8 +87,17 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
     servicePortMock = Mock(ServicePort)
     metadataMock = Mock(ObjectMeta)
     intOrStringMock = Mock(IntOrString)
+    accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
 
-    credentials = new KubernetesCredentials([NAMESPACE], kubernetesClientMock)
+    DOCKER_REGISTRY_ACCOUNTS.forEach({ account ->
+      def dockerRegistryAccountMock = Mock(DockerRegistryNamedAccountCredentials)
+      accountCredentialsRepositoryMock.getOne(account.accountName) >> dockerRegistryAccountMock
+      dockerRegistryAccountMock.getAccountName() >> account
+      apiMock.getSecret(NAMESPACE, account.accountName) >> null
+      apiMock.createSecret(NAMESPACE, _) >> null
+    })
+
+    credentials = new KubernetesCredentials(apiMock, [NAMESPACE], DOCKER_REGISTRY_ACCOUNTS, accountCredentialsRepositoryMock)
     clusterName = KubernetesUtil.combineAppStackDetail(APPLICATION, STACK, DETAILS)
     replicationControllerName = String.format("%s-v%s", clusterName, SEQUENCE)
 
@@ -118,25 +123,16 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
       )
 
       @Subject def operation = new DeployKubernetesAtomicOperation(description)
-      operation.kubernetesUtil = kubernetesUtilMock
 
     when:
       operation.operate([])
 
     then:
-      1 * kubernetesUtilMock.getNextSequence(_, NAMESPACE, _) >> SEQUENCE
-      SECURITY_GROUP_NAMES.each { name ->
-        1 * kubernetesUtilMock.getSecurityGroup(credentials, NAMESPACE, name) >> serviceMock
-        1 * serviceMock.getSpec() >> serviceSpecMock
-        1 * serviceSpecMock.getPorts() >> [servicePortMock]
-        1 * servicePortMock.getTargetPort() >> intOrStringMock
-        1 * intOrStringMock.getIntVal() >> TARGET_PORT
-      }
 
-    then:
-      1 * kubernetesClientMock.replicationControllers() >> replicationControllerOperationsMock
-      1 * replicationControllerOperationsMock.inNamespace(NAMESPACE) >> replicationControllerOperationsMock
-      1 * replicationControllerOperationsMock.create({ rc ->
+      1 * apiMock.getReplicationControllers(NAMESPACE) >> []
+      5 * replicationControllerMock.getMetadata() >> metadataMock
+      3 * metadataMock.getName() >> replicationControllerName
+      1 * apiMock.createReplicationController(NAMESPACE, { ReplicationController rc ->
         LOAD_BALANCER_NAMES.each { name ->
           assert(rc.metadata.labels[KubernetesUtil.loadBalancerKey(name)])
         }
@@ -153,19 +149,16 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
           assert(rc.spec.template.metadata.labels[KubernetesUtil.securityGroupKey(name)])
         }
 
-        assert(rc.spec[0].replicas == TARGET_SIZE)
+        assert(rc.spec.replicas == TARGET_SIZE)
 
         CONTAINER_NAMES.eachWithIndex { name, idx ->
-          assert(rc.spec.template.spec.containers[0][idx].name == name)
-          assert(rc.spec.template.spec.containers[0][idx].image == name)
-          assert(rc.spec.template.spec.containers[0][idx].ports[0].containerPort == TARGET_PORT)
-          assert(rc.spec.template.spec.containers[0][idx].resources.requests.cpu == REQUEST_CPU[idx])
-          assert(rc.spec.template.spec.containers[0][idx].resources.requests.memory == REQUEST_MEMORY[idx])
-          assert(rc.spec.template.spec.containers[0][idx].resources.limits.cpu == LIMIT_CPU[idx])
-          assert(rc.spec.template.spec.containers[0][idx].resources.limits.memory == LIMIT_MEMORY[idx])
+          assert(rc.spec.template.spec.containers[idx].name == name)
+          assert(rc.spec.template.spec.containers[idx].image == name)
+          assert(rc.spec.template.spec.containers[idx].resources.requests.cpu == REQUEST_CPU[idx])
+          assert(rc.spec.template.spec.containers[idx].resources.requests.memory == REQUEST_MEMORY[idx])
+          assert(rc.spec.template.spec.containers[idx].resources.limits.cpu == LIMIT_CPU[idx])
+          assert(rc.spec.template.spec.containers[idx].resources.limits.memory == LIMIT_MEMORY[idx])
         }
       }) >> replicationControllerMock
-      5 * replicationControllerMock.getMetadata() >> metadataMock
-      3 * metadataMock.getName() >> replicationControllerName
   }
 }

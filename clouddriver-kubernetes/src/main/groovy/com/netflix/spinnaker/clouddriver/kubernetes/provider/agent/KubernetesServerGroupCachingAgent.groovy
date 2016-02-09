@@ -48,7 +48,6 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
   final String accountName
   final String namespace
   final KubernetesCredentials credentials
-  final KubernetesUtil util
   final ObjectMapper objectMapper
 
   final OnDemandMetricsSupport metricsSupport
@@ -65,14 +64,12 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
                                     KubernetesCredentials credentials,
                                     String namespace,
                                     ObjectMapper objectMapper,
-                                    Registry registry,
-                                    KubernetesUtil util) {
+                                    Registry registry) {
     this.kubernetesCloudProvider = kubernetesCloudProvider
     this.accountName = accountName
     this.credentials = credentials
     this.objectMapper = objectMapper
     this.namespace = namespace
-    this.util = util
     this.metricsSupport = new OnDemandMetricsSupport(registry, this, kubernetesCloudProvider.id + ":" + ON_DEMAND_TYPE)
   }
 
@@ -142,11 +139,11 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
   }
 
   List<ReplicationController> loadReplicationControllers() {
-    util.getReplicationControllers(credentials, namespace).items
+    credentials.apiAdaptor.getReplicationControllers(namespace)
   }
 
   List<Pod> loadPods(String replicationControllerName) {
-    util.getPods(credentials, namespace, replicationControllerName).items
+    credentials.apiAdaptor.getPods(namespace, replicationControllerName)
   }
 
   @Override
@@ -175,7 +172,7 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
       def applicationKey = Keys.getApplicationKey(applicationName)
       def clusterKey = Keys.getClusterKey(accountName, applicationName, clusterName)
       def instanceKeys = []
-      def loadBalancerKeys = util.getDescriptionLoadBalancers(replicationController).collect({
+      def loadBalancerKeys = KubernetesUtil.getDescriptionLoadBalancers(replicationController).collect({
         Keys.getLoadBalancerKey(accountName, namespace, it)
       })
 

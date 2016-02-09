@@ -28,6 +28,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.DependsOn
 import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Component
 
@@ -58,21 +59,25 @@ class KubernetesCredentialsInitializer implements CredentialsInitializerSynchron
 
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
+  @DependsOn("dockerRegistryNamedAccountCredentials")
   List<?> synchronizeKubernetesAccounts(KubernetesConfigurationProperties kubernetesConfigurationProperties, CatsModule catsModule) {
     def (ArrayList<KubernetesConfigurationProperties.ManagedAccount> accountsToAdd, List<String> namesOfDeletedAccounts) =
     ProviderUtils.calculateAccountDeltas(accountCredentialsRepository,
                                          KubernetesNamedAccountCredentials,
                                          kubernetesConfigurationProperties.accounts)
 
+    // TODO(lwander): Modify accounts when their dockerRegistries attribute is updated as well -- need to ask @duftler.
     accountsToAdd.each { KubernetesConfigurationProperties.ManagedAccount managedAccount ->
       try {
-        def kubernetesAccount = new KubernetesNamedAccountCredentials(managedAccount.name,
+        def kubernetesAccount = new KubernetesNamedAccountCredentials(accountCredentialsRepository,
+                                                                      managedAccount.name,
                                                                       managedAccount.environment ?: managedAccount.name,
                                                                       managedAccount.accountType ?: managedAccount.name,
                                                                       managedAccount.master,
                                                                       managedAccount.username,
                                                                       managedAccount.password,
-                                                                      managedAccount.namespaces)
+                                                                      managedAccount.namespaces,
+                                                                      managedAccount.dockerRegistries)
 
         accountCredentialsRepository.save(managedAccount.name, kubernetesAccount)
       } catch (e) {

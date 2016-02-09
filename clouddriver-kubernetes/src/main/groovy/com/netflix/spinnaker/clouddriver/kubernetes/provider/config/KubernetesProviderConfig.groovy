@@ -74,13 +74,12 @@ class KubernetesProviderConfig {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(kubernetesProvider)
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, KubernetesNamedAccountCredentials)
 
-    def util = new KubernetesUtil()
     allAccounts.each { KubernetesNamedAccountCredentials credentials ->
       if (!scheduledAccounts.contains(credentials.accountName)) {
         def newlyAddedAgents = []
 
         credentials.credentials.namespaces.forEach({ namespace ->
-          newlyAddedAgents << new KubernetesServerGroupCachingAgent(kubernetesCloudProvider, credentials.accountName, credentials.credentials, namespace, objectMapper, registry, util)
+          newlyAddedAgents << new KubernetesServerGroupCachingAgent(kubernetesCloudProvider, credentials.accountName, credentials.credentials, namespace, objectMapper, registry)
         })
 
         // If there is an agent scheduler, then this provider has been through the AgentController in the past.

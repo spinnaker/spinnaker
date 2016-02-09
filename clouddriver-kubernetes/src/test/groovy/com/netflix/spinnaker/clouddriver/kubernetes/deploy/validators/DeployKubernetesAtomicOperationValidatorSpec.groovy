@@ -17,11 +17,15 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
+import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.DeployKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesContainerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesResourceDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import org.springframework.validation.Errors
@@ -30,6 +34,10 @@ import spock.lang.Specification
 
 class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   private static final DESCRIPTION = "deployKubernetesAtomicOperationDescription"
+  private static final List<String> NAMESPACES = ["default", "prod"]
+  private static final List<LinkedDockerRegistryConfiguration> DOCKER_REGISTRY_ACCOUNTS = [
+    new LinkedDockerRegistryConfiguration(accountName: "my-docker-account"),
+    new LinkedDockerRegistryConfiguration(accountName: "restricted-docker-account", namespaces: ["prod"])]
 
   private static final VALID_APPLICATION = "app"
   private static final VALID_STACK = "stack"
@@ -44,7 +52,8 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   private static final VALID_CREDENTIALS = "auto"
   private static final VALID_LOAD_BALANCERS = ["x", "y"]
   private static final VALID_SECURITY_GROUPS = ["a-1", "b-2"]
-  private static final VALID_NAMESPACE = "default"
+  private static final VALID_NAMESPACE = NAMESPACES[0]
+  private static final VALID_SECRET = DOCKER_REGISTRY_ACCOUNTS[0].accountName
 
   private static final INVALID_APPLICATION = "-app-"
   private static final INVALID_STACK = " stack"
@@ -67,8 +76,23 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     def credentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
     def namedCredentialsMock = Mock(KubernetesNamedAccountCredentials)
+
+    def apiMock = Mock(KubernetesApiAdaptor)
+    def accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
+
+    DOCKER_REGISTRY_ACCOUNTS.forEach({ account ->
+      def dockerRegistryAccountMock = Mock(DockerRegistryNamedAccountCredentials)
+      accountCredentialsRepositoryMock.getOne(account.accountName) >> dockerRegistryAccountMock
+      dockerRegistryAccountMock.getAccountName() >> account
+      NAMESPACES.forEach({ namespace ->
+        apiMock.getSecret(namespace, account.accountName) >> null
+        apiMock.createSecret(namespace, _) >> null
+      })
+    })
+
+    def credentials = new KubernetesCredentials(apiMock, NAMESPACES, DOCKER_REGISTRY_ACCOUNTS, accountCredentialsRepositoryMock)
     namedCredentialsMock.getName() >> VALID_CREDENTIALS
-    namedCredentialsMock.getCredentials() >> new KubernetesCredentials(null, null)
+    namedCredentialsMock.getCredentials() >> credentials
     credentialsRepo.save(VALID_CREDENTIALS, namedCredentialsMock)
     validator.accountCredentialsProvider = credentialsProvider
   }
@@ -104,6 +128,7 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
         namespace: VALID_NAMESPACE,
         freeFormDetails: VALID_STACK,
         targetSize: VALID_TARGET_SIZE,
+        imagePullSecrets: [VALID_SECRET],
         containers: [
           fullValidContainerDescription1,
           fullValidContainerDescription2
@@ -238,7 +263,7 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
     when:
       validator.validate([], description, errorsMock)
     then:
-      1 * errorsMock.rejectValue("${DESCRIPTION}.namespace", "${DESCRIPTION}.namespace.invalid (Must match ${StandardKubernetesAttributeValidator.namePattern})")
+      1 * errorsMock.rejectValue("${DESCRIPTION}.namespace", "${DESCRIPTION}.namespace.notRegistered")
       0 * errorsMock._
   }
 

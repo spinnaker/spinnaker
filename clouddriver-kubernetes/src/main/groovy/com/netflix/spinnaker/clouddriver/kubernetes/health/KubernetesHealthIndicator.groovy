@@ -69,11 +69,11 @@ class KubernetesHealthIndicator implements HealthIndicator {
         // This verifies that the specified credentials are sufficient to
         // access the referenced Kubernetes master endpoint.
         kubernetesCredentials.getNamespaces().each { namespace ->
-          Namespace res = kubernetesCredentials.client.namespaces().withName(namespace).get();
+          Namespace res = kubernetesCredentials.apiAdaptor.getNamespace(namespace)
           if (res == null) {
             NamespaceBuilder namespaceBuilder = new NamespaceBuilder();
             EditableNamespace newNamespace = namespaceBuilder.withNewMetadata().withName(namespace).endMetadata().build()
-            kubernetesCredentials.client.namespaces().create(newNamespace)
+            kubernetesCredentials.apiAdaptor.createNamespace(newNamespace)
             LOG.info "Created missing namespace $namespace"
           }
         }

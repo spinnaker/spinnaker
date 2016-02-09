@@ -29,7 +29,15 @@ class KubernetesConfigurationProperties {
     String username
     String password
     List<String> namespaces
+    List<LinkedDockerRegistryConfiguration> dockerRegistries
+
   }
 
   List<ManagedAccount> accounts = []
+}
+
+@ToString(includeNames = true)
+class LinkedDockerRegistryConfiguration {
+  String accountName
+  List<String> namespaces
 }

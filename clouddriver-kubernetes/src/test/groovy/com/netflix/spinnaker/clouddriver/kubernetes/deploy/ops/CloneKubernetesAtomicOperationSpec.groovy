@@ -18,19 +18,13 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops
 
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
+import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.CloneKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesContainerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesResourceDescription
-import io.fabric8.kubernetes.api.model.Container
-import io.fabric8.kubernetes.api.model.ObjectMeta
-import io.fabric8.kubernetes.api.model.PodSpec
-import io.fabric8.kubernetes.api.model.PodTemplateSpec
-import io.fabric8.kubernetes.api.model.Quantity
-import io.fabric8.kubernetes.api.model.ReplicationController
-import io.fabric8.kubernetes.api.model.ReplicationControllerSpec
-import io.fabric8.kubernetes.api.model.ResourceRequirements
-import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import io.fabric8.kubernetes.api.model.*
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -60,15 +54,17 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
   def podTemplateSpec
   def objectMetadata
   def podSpec
-  def kubernetesUtilMock
   def replicationControllerContainers
+  def apiMock
+  def credentials
+  def accountCredentialsRepositoryMock
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
   def setup() {
-    kubernetesUtilMock = Mock(KubernetesUtil)
+    apiMock = Mock(KubernetesApiAdaptor)
 
     containers = []
     CONTAINER_NAMES.eachWithIndex { name, idx ->
@@ -99,6 +95,8 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
     podTemplateSpec= new PodTemplateSpec()
     objectMetadata = new ObjectMeta()
     podSpec = new PodSpec()
+    accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
+    credentials = new KubernetesCredentials(apiMock, [], [], accountCredentialsRepositoryMock)
 
     objectMetadata.setLabels(LABELS)
     podTemplateSpec.setMetadata(objectMetadata)
@@ -133,13 +131,13 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
   void "builds a description based on ancestor server group, overrides nothing"() {
     setup:
       def inputDescription = new CloneKubernetesAtomicOperationDescription(
-        source: [serverGroupName: ANCESTOR_SERVER_GROUP_NAME, namespace: NAMESPACE1]
+        source: [serverGroupName: ANCESTOR_SERVER_GROUP_NAME, namespace: NAMESPACE1],
+        kubernetesCredentials: credentials
       )
 
       @Subject def operation = new CloneKubernetesAtomicOperation(inputDescription)
 
-      kubernetesUtilMock.getReplicationController(inputDescription.kubernetesCredentials, NAMESPACE1, inputDescription.source.serverGroupName) >> replicationController
-      operation.kubernetesUtil = kubernetesUtilMock
+      apiMock.getReplicationController(NAMESPACE1, inputDescription.source.serverGroupName) >> replicationController
 
     when:
       def resultDescription = operation.cloneAndOverrideDescription()
@@ -173,13 +171,13 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
         loadBalancers: LOAD_BALANCER_NAMES,
         securityGroups: SECURITY_GROUP_NAMES,
         containers: containers,
+        kubernetesCredentials: credentials,
         source: [serverGroupName: ANCESTOR_SERVER_GROUP_NAME, namespace: NAMESPACE2]
       )
 
       @Subject def operation = new CloneKubernetesAtomicOperation(inputDescription)
 
-      kubernetesUtilMock.getReplicationController(inputDescription.kubernetesCredentials, NAMESPACE2, inputDescription.source.serverGroupName) >> replicationController
-      operation.kubernetesUtil = kubernetesUtilMock
+      apiMock.getReplicationController(NAMESPACE2, inputDescription.source.serverGroupName) >> replicationController
 
     when:
       def resultDescription = operation.cloneAndOverrideDescription()

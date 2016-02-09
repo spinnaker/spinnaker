@@ -20,8 +20,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
+import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentialsInitializer
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import io.fabric8.kubernetes.api.model.ObjectMeta
 import io.fabric8.kubernetes.api.model.PodList
 import io.fabric8.kubernetes.api.model.ReplicationController
@@ -39,8 +43,9 @@ class KubernetesServerGroupCachingAgentSpec extends Specification {
   KubernetesServerGroupCachingAgent cachingAgent
   ReplicationControllerList replicationControllerList
   PodList podList
-  KubernetesUtil utilMock
+  KubernetesApiAdaptor apiMock
   Registry registryMock
+  KubernetesCredentials kubernetesCredentials
 
   String applicationKey
   String clusterKey
@@ -55,16 +60,18 @@ class KubernetesServerGroupCachingAgentSpec extends Specification {
     replicationControllerList = Mock(ReplicationControllerList)
     podList = Mock(PodList)
 
-    utilMock = Mock(KubernetesUtil)
-    utilMock.getReplicationControllers(_, NAMESPACE) >> replicationControllerList
-    utilMock.getPods(_, NAMESPACE, _) >> podList
+    apiMock = Mock(KubernetesApiAdaptor)
+
+    def accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
+
+    kubernetesCredentials = new KubernetesCredentials(apiMock, [], [], accountCredentialsRepositoryMock)
 
     applicationKey = Keys.getApplicationKey(APP)
     clusterKey = Keys.getClusterKey(ACCOUNT_NAME, APP, CLUSTER)
     serverGroupKey = Keys.getServerGroupKey(ACCOUNT_NAME, NAMESPACE, REPLICATION_CONTROLLER)
     instanceKey = Keys.getInstanceKey(ACCOUNT_NAME, NAMESPACE, REPLICATION_CONTROLLER, POD)
 
-    cachingAgent = new KubernetesServerGroupCachingAgent(new KubernetesCloudProvider(), ACCOUNT_NAME, null, NAMESPACE, new ObjectMapper(), registryMock, utilMock)
+    cachingAgent = new KubernetesServerGroupCachingAgent(new KubernetesCloudProvider(), ACCOUNT_NAME, kubernetesCredentials, NAMESPACE, new ObjectMapper(), registryMock)
   }
 
   void "Should store a single replication controller object and relationships"() {
@@ -79,9 +86,10 @@ class KubernetesServerGroupCachingAgentSpec extends Specification {
       podMetadataMock.getName() >> POD
       podMock.getMetadata() >> podMetadataMock
 
+      apiMock.getReplicationControllers(NAMESPACE) >> [replicationControllerMock]
+      apiMock.getPods(NAMESPACE, _) >> [podMock]
+
     when:
-      replicationControllerList.getItems() >> [replicationControllerMock]
-      podList.getItems() >> [podMock]
       def result = cachingAgent.loadData(null)
 
     then:
