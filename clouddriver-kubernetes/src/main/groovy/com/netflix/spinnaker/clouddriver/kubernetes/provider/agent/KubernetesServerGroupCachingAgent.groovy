@@ -126,19 +126,25 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
 
     def jsonResult = objectMapper.writeValueAsString(result.cacheResults)
 
-    metricsSupport.onDemandStore {
-      def cacheData = new DefaultCacheData(
-        Keys.getServerGroupKey(accountName, namespace, serverGroupName),
-        10 * 60, // ttl is 10 minutes
-        [
-          cacheTime: System.currentTimeMillis(),
-          cacheResults: jsonResult,
-          processedTime: 0,
-        ],
-        [:]
-      )
+    if (result.cacheResults.values().flatten().isEmpty()) {
+      // Avoid writing an empty onDemand cache record (instead delete any that may have previously existed).
+      providerCache.evictDeletedItems(Keys.Namespace.ON_DEMAND.ns, [Keys.getServerGroupKey(accountName, namespace, serverGroupName)])
+    } else {
+      metricsSupport.onDemandStore {
+        def cacheData = new DefaultCacheData(
+          Keys.getServerGroupKey(accountName, namespace, serverGroupName),
+          10 * 60, // ttl is 10 minutes
+          [
+            cacheTime: System.currentTimeMillis(),
+            cacheResults: jsonResult,
+            processedCount: 0,
+            processedTime: null
+          ],
+          [:]
+        )
 
-      providerCache.putCacheData(Keys.Namespace.ON_DEMAND.ns, cacheData)
+        providerCache.putCacheData(Keys.Namespace.ON_DEMAND.ns, cacheData)
+      }
     }
 
     // Evict this server group if it no longer exists.
@@ -148,7 +154,7 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
       ]
     ]
 
-    log.info("On demand cache refresh (data: ${data}, evictions: ${evictions}, cacheResult: ${jsonResult})")
+    log.info("On demand cache refresh (data: ${data}) succeeded.")
 
     return new OnDemandAgent.OnDemandResult(
       sourceAgentType: getOnDemandAgentType(),
@@ -160,7 +166,7 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
   @Override
   Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
     def keys = providerCache.getIdentifiers(Keys.Namespace.ON_DEMAND.ns)
-    def got = providerCache.getAll(Keys.Namespace.ON_DEMAND.ns, keys).collect {
+    providerCache.getAll(Keys.Namespace.ON_DEMAND.ns, keys).collect {
       [
         details  : Keys.parse(it.id),
         cacheTime: it.attributes.cacheTime,
@@ -168,7 +174,6 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
         processedTime: it.attributes.processedTime
       ]
     }
-    return got
   }
 
   @Override
@@ -186,7 +191,7 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
   }
 
   ReplicationController loadReplicationController(String name) {
-    credentials.apiAdaptor.getReplicationController(credentials, namespace, name)
+    credentials.apiAdaptor.getReplicationController(namespace, name)
   }
 
   List<Pod> loadPods(String replicationControllerName) {
