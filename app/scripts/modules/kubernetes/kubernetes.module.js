@@ -11,6 +11,7 @@ templates.keys().forEach(function(key) {
 module.exports = angular.module('spinnaker.kubernetes', [
   require('./serverGroup/configure/CommandBuilder.js'),
   require('./serverGroup/configure/configure.kubernetes.module.js'),
+  require('./serverGroup/details/details.kubernetes.module.js'),
   require('./serverGroup/transformer.js'),
 ])
   .config(function(cloudProviderRegistryProvider) {
@@ -21,6 +22,8 @@ module.exports = angular.module('spinnaker.kubernetes', [
       },
       serverGroup: {
         transformer: 'kubernetesServerGroupTransformer',
+        detailsTemplateUrl: require('./serverGroup/details/details.html'),
+        detailsController: 'kubernetesDetailsController',
         cloneServerGroupController: 'kubernetesCloneServerGroupController',
         cloneServerGroupTemplateUrl: require('./serverGroup/configure/wizard/wizard.html'),
         commandBuilder: 'kubernetesServerGroupCommandBuilder',
