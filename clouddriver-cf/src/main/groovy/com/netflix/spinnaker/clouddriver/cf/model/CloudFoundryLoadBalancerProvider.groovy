@@ -29,34 +29,6 @@ class CloudFoundryLoadBalancerProvider implements LoadBalancerProvider<CloudFoun
   @Autowired
   CloudFoundryResourceRetriever cloudFoundryResourceRetriever
 
-  Map<String, Set<CloudFoundryLoadBalancer>> getLoadBalancers() {
-    cloudFoundryResourceRetriever.loadBalancersByAccount
-  }
-
-  Set<CloudFoundryLoadBalancer> getLoadBalancers(String account) {
-    cloudFoundryResourceRetriever.loadBalancersByAccount[account]
-  }
-
-  Set<CloudFoundryLoadBalancer> getLoadBalancers(String account, String cluster) {
-    cloudFoundryResourceRetriever.loadBalancersByAccountAndClusterName[account][cluster]
-  }
-
-  Set<CloudFoundryLoadBalancer> getLoadBalancers(String account, String cluster, String type) {
-    cloudFoundryResourceRetriever.loadBalancersByAccountAndClusterName[account][cluster]
-  }
-
-  Set<CloudFoundryLoadBalancer> getLoadBalancer(String account, String cluster, String type, String loadBalancerName) {
-    cloudFoundryResourceRetriever.loadBalancersByAccountAndClusterName[account][cluster].findAll{
-      it.name == loadBalancerName
-    } as Set<CloudFoundryLoadBalancer>
-  }
-
-  CloudFoundryLoadBalancer getLoadBalancer(String account, String cluster, String type, String loadBalancerName, String region) {
-    cloudFoundryResourceRetriever.loadBalancersByAccountAndClusterName[account][cluster].findAll{
-      it.name == loadBalancerName
-    } as Set<CloudFoundryLoadBalancer>
-  }
-
   @Override
   Set<CloudFoundryLoadBalancer> getApplicationLoadBalancers(String application) {
     cloudFoundryResourceRetriever.loadBalancersByApplication[application]

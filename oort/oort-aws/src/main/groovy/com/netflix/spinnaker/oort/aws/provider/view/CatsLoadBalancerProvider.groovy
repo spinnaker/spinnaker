@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.oort.aws.provider.view
 
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
@@ -30,12 +29,7 @@ import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.APPLICATIONS
-import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.CLUSTERS
-import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.HEALTH
-import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
-import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.LOAD_BALANCERS
-import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.SERVER_GROUPS
+import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.*
 
 @Component
 class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalancer> {
@@ -47,14 +41,6 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
   public CatsLoadBalancerProvider(Cache cacheView, AwsProvider awsProvider) {
     this.cacheView = cacheView
     this.awsProvider = awsProvider
-  }
-
-  Map<String, Set<AmazonLoadBalancer>> getLoadBalancers() {
-    Map<String, Set<AmazonLoadBalancer>> partitionedLb = [:].withDefault { new HashSet<AmazonLoadBalancer>() }
-    Collection<AmazonLoadBalancer> allLb = cacheView.getAll(LOAD_BALANCERS.ns).findResults(this.&translate)
-    for (AmazonLoadBalancer lb : allLb) {
-      partitionedLb[lb.account].add(lb)
-    }
   }
 
   AmazonLoadBalancer translate(CacheData cacheData) {
@@ -75,42 +61,6 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
   private Collection<CacheData> resolveRelationshipDataForCollection(Collection<CacheData> sources, String relationship, CacheFilter cacheFilter = null) {
     Set<String> relationships = sources.findResults { it.relationships[relationship]?: [] }.flatten()
     relationships ? cacheView.getAll(relationship, relationships, cacheFilter) : []
-  }
-
-  Set<AmazonLoadBalancer> getLoadBalancers(String account) {
-    def searchKey = Keys.getLoadBalancerKey('*', account, '*', null)
-    def filteredIds = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey)
-    cacheView.getAll(LOAD_BALANCERS.ns, filteredIds).findResults(this.&translate) as Set<AmazonLoadBalancer>
-  }
-
-  Set<AmazonLoadBalancer> getLoadBalancers(String account, String cluster) {
-    Names names = Names.parseName(cluster)
-    CacheData clusterData = cacheView.get(CLUSTERS.ns, Keys.getClusterKey(cluster, names.app, account))
-
-    resolveRelationshipData(clusterData, LOAD_BALANCERS.ns).findResults(this.&translate)
-  }
-
-  Set<AmazonLoadBalancer> getLoadBalancers(String account, String cluster, String type) {
-    getLoadBalancers(account, cluster)
-  }
-
-  Set<AmazonLoadBalancer> getLoadBalancer(String account, String cluster, String type, String loadBalancerName) {
-    getLoadBalancers(account, cluster).findAll { it.name == loadBalancerName }
-  }
-
-  AmazonLoadBalancer getLoadBalancer(String account, String cluster, String type, String loadBalancerName, String region) {
-    def searchKey = Keys.getLoadBalancerKey(loadBalancerName, account, region, null) + '*'
-    def lbs = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey)
-    def keys = lbs.findAll {
-      Keys.parse(it).loadBalancer == loadBalancerName
-    }
-
-    def candidates = cacheView.getAll(LOAD_BALANCERS.ns, keys).findResults(this.&translate)
-    if (candidates.isEmpty()) {
-      null
-    } else {
-      candidates.first()
-    }
   }
 
   @Override
