@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -74,7 +73,7 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
     }
 
     boolean allAreComplete = processPendingForceCacheUpdates(account, cloudProvider, stageData, stage.startTime)
-    return new DefaultTaskResult(allAreComplete ? SUCCEEDED : RUNNING, objectMapper.convertValue(stageData, Map))
+    return new DefaultTaskResult(allAreComplete ? SUCCEEDED : RUNNING, convertAndStripNullValues(stageData))
   }
 
   /**
@@ -119,10 +118,7 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
       }
     }
 
-    def result = objectMapper.convertValue(stageData, Map)
-    result.values().removeAll { it == null }
-
-    return Optional.of(new DefaultTaskResult(status, result))
+    return Optional.of(new DefaultTaskResult(status, convertAndStripNullValues(stageData)))
   }
 
   /**
@@ -180,6 +176,14 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
       }
     }
     return finishedProcessing
+  }
+
+  private Map convertAndStripNullValues(StageData stageData) {
+    def result = objectMapper.convertValue(stageData, Map)
+
+    result.values().removeAll { it == null }
+
+    return result
   }
 
   static class StageData {
