@@ -56,12 +56,11 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
     function initializeWizardState() {
       var mode = serverGroupCommand.viewState.mode;
       if (mode === 'clone' || mode === 'editPipeline') {
-        if ($scope.command.image || $scope.command.viewState.disableImageSelection) {
-          modalWizardService.getWizard().markComplete('location');
-        }
+        modalWizardService.getWizard().markComplete('location');
         modalWizardService.getWizard().markComplete('load-balancers');
         modalWizardService.getWizard().markComplete('security-groups');
         modalWizardService.getWizard().markComplete('containers');
+        modalWizardService.getWizard().markComplete('capacity');
       }
     }
 
