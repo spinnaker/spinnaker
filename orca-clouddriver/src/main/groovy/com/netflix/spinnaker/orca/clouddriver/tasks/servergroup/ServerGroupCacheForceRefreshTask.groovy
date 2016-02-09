@@ -118,7 +118,11 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
         stageData.errors << e.message
       }
     }
-    return Optional.of(new DefaultTaskResult(status, objectMapper.convertValue(stageData, Map)))
+
+    def result = objectMapper.convertValue(stageData, Map)
+    result.values().removeAll { it == null }
+
+    return Optional.of(new DefaultTaskResult(status, result))
   }
 
   /**
@@ -188,10 +192,9 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
     @JsonProperty("force.cache.refresh.errors")
     Collection<String> errors = []
 
-    String zone
     Collection<String> zones = []
+    String zone
 
-    @JsonIgnore
     String getZone() {
       return this.zone ?: (zones ? zones[0] : null)
     }
