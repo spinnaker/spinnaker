@@ -73,6 +73,7 @@ class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult
 
     def credentials = description.kubernetesCredentials
 
+    description.source.namespace = description.source.namespace ?: "default"
     ReplicationController ancestorServerGroup = credentials.apiAdaptor.getReplicationController(description.source.namespace, description.source.serverGroupName)
 
     if (!ancestorServerGroup) {
