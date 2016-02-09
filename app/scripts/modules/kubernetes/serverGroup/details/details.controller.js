@@ -5,6 +5,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.controller', [
   require('angular-ui-router'),
+  require('../configure/configure.kubernetes.module.js'),
   require('../../../core/serverGroup/serverGroup.read.service.js'),
   require('../../../core/serverGroup/details/serverGroupWarningMessage.service.js'),
   require('../../../core/serverGroup/serverGroup.write.service.js'),
@@ -15,7 +16,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
 ])
   .controller('kubernetesDetailsController', function ($scope, $state, app, serverGroup, InsightFilterStateModel,
                                                        serverGroupReader, $uibModal, serverGroupWriter,
-                                                       runningExecutionsService, serverGroupWarningMessageService) {
+                                                       runningExecutionsService, serverGroupWarningMessageService,
+                                                       kubernetesServerGroupCommandBuilder) {
 
     let application = app;
 
@@ -112,7 +114,17 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
     this.resizeServerGroup = function resizeServerGroup() {
     };
 
-    this.cloneServerGroup = function cloneServerGroup() {
+    this.cloneServerGroup = function cloneServerGroup(serverGroup) {
+      $uibModal.open({
+        templateUrl: require('../configure/wizard/wizard.html'),
+        controller: 'kubernetesCloneServerGroupController as ctrl',
+        resolve: {
+          title: function() { return 'Clone ' + serverGroup.name; },
+          application: function() { return application; },
+          serverGroup: function() { return serverGroup; },
+          serverGroupCommand: function() { return kubernetesServerGroupCommandBuilder.buildServerGroupCommandFromExisting(application, serverGroup); },
+        }
+      });
     };
   }
 );
