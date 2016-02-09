@@ -132,11 +132,11 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
       keys.addAll(serverGroup.relationships[LOAD_BALANCERS.ns] ?: [])
     }
 
-    def nameMatches = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, '*:' + applicationName + '-*')
+    def nameMatches = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, 'aws:*:' + applicationName + '-*')
     // include non-VPC exact matches
-    nameMatches.addAll(cacheView.filterIdentifiers(LOAD_BALANCERS.ns, '*:' + applicationName));
+    nameMatches.addAll(cacheView.filterIdentifiers(LOAD_BALANCERS.ns, 'aws:*:' + applicationName));
     // include VPC exact matches
-    nameMatches.addAll(cacheView.filterIdentifiers(LOAD_BALANCERS.ns, '*:' + applicationName + ':*'));
+    nameMatches.addAll(cacheView.filterIdentifiers(LOAD_BALANCERS.ns, 'aws:*:' + applicationName + ':*'));
 
     keys.addAll(nameMatches)
 
