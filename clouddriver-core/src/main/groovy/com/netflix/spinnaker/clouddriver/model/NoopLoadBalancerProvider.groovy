@@ -17,35 +17,6 @@
 package com.netflix.spinnaker.clouddriver.model
 
 class NoopLoadBalancerProvider implements LoadBalancerProvider<LoadBalancer> {
-  @Override
-  Map<String, Set<LoadBalancer>> getLoadBalancers() {
-    Collections.emptyMap()
-  }
-
-  @Override
-  Set<LoadBalancer> getLoadBalancers(String account) {
-    Collections.emptySet()
-  }
-
-  @Override
-  Set<LoadBalancer> getLoadBalancers(String account, String cluster) {
-    Collections.emptySet()
-  }
-
-  @Override
-  Set<LoadBalancer> getLoadBalancers(String account, String cluster, String type) {
-    Collections.emptySet()
-  }
-
-  @Override
-  Set<LoadBalancer> getLoadBalancer(String account, String cluster, String type, String loadBalancerName) {
-    Collections.emptySet()
-  }
-
-  @Override
-  LoadBalancer getLoadBalancer(String account, String cluster, String type, String loadBalancerName, String region) {
-    null
-  }
 
   @Override
   Set<LoadBalancer> getApplicationLoadBalancers(String application) {
