@@ -221,18 +221,23 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     }
     def cacheResultAsJson = objectMapper.writeValueAsString(cacheResult.cacheResults)
 
-    metricsSupport.onDemandStore {
-      def cacheData = new DefaultCacheData(
-        Keys.getServerGroupKey(serverGroupName, account.name, region),
-        10 * 60,
-        [
-          cacheTime     : new Date(),
-          cacheResults  : cacheResultAsJson
-        ],
-        [:]
-      )
+    if (cacheResult.cacheResults.values().flatten().isEmpty()) {
+      // avoid writing an empty onDemand cache record (instead delete any that may have previously existed)
+      providerCache.evictDeletedItems(ON_DEMAND.ns, [Keys.getServerGroupKey(serverGroupName, account.name, region)])
+    } else {
+      metricsSupport.onDemandStore {
+        def cacheData = new DefaultCacheData(
+          Keys.getServerGroupKey(serverGroupName, account.name, region),
+          10 * 60,
+          [
+            cacheTime   : new Date(),
+            cacheResults: cacheResultAsJson
+          ],
+          [:]
+        )
 
-      providerCache.putCacheData(ON_DEMAND.ns, cacheData)
+        providerCache.putCacheData(ON_DEMAND.ns, cacheData)
+      }
     }
 
     Map<String, Collection<String>> evictions = onDemandData.asgs ? [:] : [
