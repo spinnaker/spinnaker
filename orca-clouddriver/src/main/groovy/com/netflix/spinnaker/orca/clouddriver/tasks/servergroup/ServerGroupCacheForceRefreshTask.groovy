@@ -29,6 +29,7 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+import java.time.Clock
 import java.util.concurrent.TimeUnit
 
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
@@ -39,7 +40,9 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
   static final String REFRESH_TYPE = "ServerGroup"
 
   long backoffPeriod = TimeUnit.SECONDS.toMillis(5)
-  long timeout = TimeUnit.MINUTES.toMillis(10)
+  long timeout = TimeUnit.MINUTES.toMillis(15)
+
+  long autoSucceedAfterMs = TimeUnit.MINUTES.toMillis(12)
 
   @Autowired
   OortService oort
@@ -47,8 +50,20 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
   @Autowired
   ObjectMapper objectMapper
 
+  Clock clock = Clock.systemUTC()
+
   @Override
   TaskResult execute(Stage stage) {
+    if ((clock.millis() - stage.startTime) > autoSucceedAfterMs) {
+      /*
+       * If an issue arises performing a refresh, wait at least 10 minutes (the default ttl of a cache record) before
+       * short-circuiting and succeeding.
+       *
+       * Under normal operations, this refresh task should complete sub-minute.
+       */
+      return new DefaultTaskResult(SUCCEEDED, ["shortCircuit": true])
+    }
+
     def account = getCredentials(stage)
     def cloudProvider = getCloudProvider(stage)
     def stageData = stage.mapTo(StageData)
@@ -141,7 +156,7 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
         }
 
         if (forceCacheUpdate) {
-          if (!forceCacheUpdate.processedTime || !forceCacheUpdate.cacheTime) {
+          if (!forceCacheUpdate.processedTime) {
             // there is a pending cache update that is still awaiting processing
             log.warn("Awaiting processing on pending cache refresh request (model: ${model})")
 
