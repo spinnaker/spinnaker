@@ -401,4 +401,63 @@ describe('Service: awsServerGroupConfiguration', function () {
 
   });
 
+  describe('configureImages', function () {
+    beforeEach(function() {
+      this.command = {
+        viewState: {},
+        backingData: {
+          filtered: {},
+          regionsKeyedByAccount: {
+            test: {
+              defaultKeyPair: 'test-pair'
+            },
+            prod: {
+              defaultKeyPair: 'prod-pair'
+            },
+          },
+          packageImages: [
+            { amis: { 'us-east-1': [ {} ] }, attributes: { virtualizationType: 'hvm', }, imageName: 'ami-1234' },
+            { amis: { 'us-east-1': [ {} ], 'eu-west-1': [ {} ] }, attributes: { virtualizationType: 'pv', }, imageName: 'ami-1235' },
+            { amis: { 'us-west-1': [ {} ] }, attributes: { virtualizationType: 'hvm', }, imageName: 'ami-1236' },
+          ],
+        },
+        credentials: 'test',
+        region: 'us-west-1',
+        amiName: 'ami-1236'
+      };
+    });
+
+    it('clears virtualization type if no ami present', function () {
+      this.command.virtualizationType = 'pv';
+      this.command.amiName = null;
+      service.configureImages(this.command);
+      expect(this.command.virtualizationType).toBe(null);
+    });
+
+    it('clears amiName if region is absent and sets dirty flag', function () {
+      this.command.region = null;
+      let result = service.configureImages(this.command);
+      expect(this.command.amiName).toBe(null);
+      expect(result.dirty.amiName).toBe(true);
+    });
+
+    it('clears amiName and sets dirty flag if image is not found in region', function () {
+      this.command.region = 'us-east-1';
+      let result = service.configureImages(this.command);
+      expect(this.command.amiName).toBe(null);
+      expect(result.dirty.amiName).toBe(true);
+    });
+
+    it('preserves amiName if image is found in region, and sets virtualizationType on command', function () {
+      this.command.region = 'us-east-1';
+      this.command.amiName = 'ami-1235';
+      let result = service.configureImages(this.command);
+      expect(this.command.amiName).toBe('ami-1235');
+      expect(result.dirty.amiName).toBeUndefined();
+      expect(this.command.virtualizationType).toBe('pv');
+    });
+
+
+  });
+
 });
