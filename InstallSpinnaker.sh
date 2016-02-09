@@ -338,7 +338,6 @@ function install_redis_server() {
     echo "Manually downloading and installing redis-server..."
     mkdir /tmp/deppkgs && pushd /tmp/deppkgs
     curl -L -O http://mirrors.kernel.org/ubuntu/pool/universe/j/jemalloc/libjemalloc1_3.5.1-2_amd64.deb
-    curl -L -O https://launchpad.net/~chris-lea/+archive/ubuntu/redis-server/+build/8137860/+files/redis-tools_3.0.5-1chl1~trusty1_amd64.deb
     curl -L -O https://launchpad.net/~chris-lea/+archive/ubuntu/redis-server/+build/8137860/+files/redis-server_3.0.5-1chl1~trusty1_amd64.deb
     dpkg -i *.deb
     popd
