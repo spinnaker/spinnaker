@@ -72,7 +72,7 @@ module.exports = angular
       this.viewState.executing = false;
       this.viewState.error = error || 'An unknown error occurred. Please try again later.';
       if (!error && this.task) {
-        this.viewState.error = this.task.getTideException();
+        this.viewState.error = this.task.failureMessage;
       }
     };
 

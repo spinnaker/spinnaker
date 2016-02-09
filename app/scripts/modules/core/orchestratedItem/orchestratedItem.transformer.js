@@ -6,6 +6,43 @@ module.exports = angular.module('spinnaker.core.orchestratedItem.transformer', [
   require('../utils/moment.js')
 ])
   .factory('orchestratedItemTransformer', function(momentService, $log) {
+
+    function getOrchestrationException(task) {
+      var katoTasks = task.getValueFor('kato.tasks');
+      if (katoTasks && katoTasks.length) {
+        var steps = katoTasks[katoTasks.length - 1].history;
+        var exception = katoTasks[katoTasks.length - 1].exception;
+        if (exception) {
+          return exception.message;
+        }
+        if (steps && steps.length) {
+          return steps[steps.length - 1].status;
+        }
+      }
+      return null;
+    }
+
+    function getGeneralException(task) {
+      var generalException = task.getValueFor('exception');
+      if (generalException) {
+        if (generalException.details && generalException.details.errors && generalException.details.errors.length) {
+          return generalException.details.errors.join(', ');
+        }
+        if (generalException.details && generalException.details.error) {
+          return generalException.details.error;
+        }
+      }
+      return null;
+    }
+
+    function getMigrationException(task) {
+      let tideTask = task.getValueFor('tide.task');
+      if (tideTask && tideTask.taskComplete && tideTask.taskComplete.status === 'failure') {
+        return tideTask.taskComplete.message;
+      }
+      return null;
+    }
+
     function defineProperties(item) {
       if (!item || typeof item !== 'object') {
         return;
@@ -15,8 +52,24 @@ module.exports = angular.module('spinnaker.core.orchestratedItem.transformer', [
         return;
       }
 
+      item.getValueFor = function(key) {
+        if (item.context) {
+          return item.context[key];
+        }
+        if (!item.variables) {
+          return null;
+        }
+        var [matching] = item.variables.filter((item) => item.key === key).map((variable) => variable.value);
+        return matching;
+      };
+
       item.originalStatus = item.status;
       Object.defineProperties(item, {
+        failureMessage: {
+          get: function() {
+            return getGeneralException(item) || getMigrationException(item) || getOrchestrationException(item) || null;
+          }
+        },
         isCompleted: {
           get: function() {
             return item.status === 'COMPLETED';

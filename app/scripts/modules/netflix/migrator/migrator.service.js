@@ -24,7 +24,6 @@ module.exports = angular
 
       return taskStarter.then((task) => {
         task.getEventLog = () => getEventLog(task);
-        task.getTideException = () => getTideException(task);
         task.getPreview = () => getPreview(task);
         return task;
       });
@@ -42,14 +41,6 @@ module.exports = angular
       return _(tideTask.history).sortBy('timeStamp')
         .pluck('message')
         .valueOf();
-    }
-
-    function getTideException(task) {
-      let tideTask = getTideTask(task);
-      if (tideTask.taskComplete && tideTask.taskComplete.status === 'failure') {
-        return tideTask.taskComplete.message;
-      }
-      return task.failureMessage;
     }
 
     function getPreview(task) {

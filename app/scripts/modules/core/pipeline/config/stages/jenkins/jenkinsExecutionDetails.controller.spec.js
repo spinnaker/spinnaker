@@ -71,9 +71,9 @@ describe('Jenkins Execution Details Controller:', function () {
       expect($scope.failureMessage).toBe('Build failed.');
     });
 
-    it ('should fall back to "no reason provided" message when not failing', function () {
+    it ('should set failureMessage to undefined when not failing', function () {
       this.initializeController({});
-      expect($scope.failureMessage).toBe('No reason provided.');
+      expect($scope.failureMessage).toBeUndefined();
     });
 
   });

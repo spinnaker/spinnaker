@@ -57,7 +57,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.details.co
           var resultObjects = context['kato.tasks'][0].resultObjects;
           if (resultObjects && resultObjects.length) {
             results = [];
-            addDeployedArtifacts('asgNameByRegion'); // TODO: Remove after 5/11/15
             addDeployedArtifacts('serverGroupNameByRegion');
           }
         }
