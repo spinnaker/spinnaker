@@ -70,6 +70,7 @@ class GoogleResourceRetriever {
   private appMap = new HashMap<String, GoogleApplication>()
   private standaloneInstanceMap = new HashMap<String, List<GoogleInstance>>()
   private imageMap = new HashMap<String, List<Map>>()
+  // accountName -> region -> GoogleLoadBalancer
   private networkLoadBalancerMap = new HashMap<String, Map<String, List<GoogleLoadBalancer>>>()
 
   @PostConstruct
@@ -297,13 +298,14 @@ class GoogleResourceRetriever {
     }
   }
 
-  private static executeIfRequestsAreQueued(BatchRequest batch) {
+  // TODO(ttomsu): These functions are handy. Move them somewhere more common in the 'provider.agent' package.
+  static executeIfRequestsAreQueued(BatchRequest batch) {
     if (batch.size()) {
       batch.execute()
     }
   }
 
-  private static BatchRequest buildBatchRequest(def compute, def googleApplicationName) {
+  static BatchRequest buildBatchRequest(def compute, def googleApplicationName) {
     return compute.batch(
       new HttpRequestInitializer() {
         @Override
