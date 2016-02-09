@@ -38,8 +38,8 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
   def stage = new PipelineStage(type: "whatever")
 
   def deployConfig = [
-    "cloudProvider" : "aws",
-    "account.name" : "fzlem",
+    "cloudProvider"       : "aws",
+    "account.name"        : "fzlem",
     "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]
   ]
 
@@ -62,8 +62,8 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
     then:
     1 * task.oort.forceCacheUpdate(stage.context.cloudProvider, ServerGroupCacheForceRefreshTask.REFRESH_TYPE, _) >> {
       String cloudProvider, String type, Map<String, ? extends Object> body ->
-      expectations = body
-      return new Response('oort', 202, 'ok', [], new TypedString("[]"))
+        expectations = body
+        return new Response('oort', 202, 'ok', [], new TypedString("[]"))
     }
     expectations.serverGroupName == (deployConfig."deploy.server.groups"."us-east-1").get(0)
     expectations.account == deployConfig."account.name"
@@ -127,7 +127,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
     )
 
     when:
-    def processingComplete = task.processPendingForceCacheUpdates("test", "aws", stageData, 0, )
+    def processingComplete = task.processPendingForceCacheUpdates("test", "aws", stageData, 0,)
 
     then:
     1 * task.oort.pendingForceCacheUpdates("aws", "ServerGroup") >> { return pendingForceCacheUpdates }
@@ -141,6 +141,32 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
     ["s-v001"]           | [pFCU("s-v001", -1, 1)]                       || false   // cacheTime < startTime, processedTime > startTime
     ["s-v001"]           | [pFCU("s-v001", 1, -1)]                       || false   // cacheTime > startTime, processedTime < startTime
     ["s-v001"]           | []                                            || false   // no pending force cache update
+  }
+
+  @Unroll
+  void "should correctly extract `zone` from `zones` in StageData"() {
+    given:
+    def objectMapper = new ObjectMapper()
+    def json = objectMapper.writeValueAsString([
+      "deploy.server.groups"   : ["us-west-1": ["s-v001"]],
+      "refreshed.server.groups": [
+        [serverGroup: "s-v001"]
+      ],
+      zones: zones,
+      zone: zone
+    ])
+
+    when:
+    def stageData = objectMapper.readValue(json, ServerGroupCacheForceRefreshTask.StageData)
+
+    then:
+    stageData.zone == expectedZone
+
+    where:
+    zones              | zone    || expectedZone
+    ["zone1"]          | null    || "zone1"
+    ["zone1", "zone2"] | "zone3" || "zone3"
+    null               | null    || null
   }
 
   static Map pFCU(String serverGroupName, long cacheTime, long processedTime) {
