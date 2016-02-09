@@ -197,6 +197,9 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
         new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(serverGroupName)
       ).autoScalingGroups
 
+      // A non-null status indicates that the ASG is in the process of being destroyed (no sense indexing)
+      asgs = asgs.findAll { !it.status }
+
       Map<String, Collection<Map>> scalingPolicies = asgs ? loadScalingPolicies(clients, serverGroupName) : [:]
 
       Map<String, Collection<Map>> scheduledActions = asgs ? loadScheduledActions(clients, serverGroupName) : [:]
