@@ -11,56 +11,11 @@ module.exports = angular
 
     const activeStatuses = ['RUNNING', 'SUSPENDED', 'NOT_STARTED'];
 
-    function getOrchestrationException(task) {
-      var katoTasks = task.getValueFor('kato.tasks');
-      if (katoTasks) {
-        var steps = katoTasks[katoTasks.length - 1].history;
-        var exception = katoTasks[katoTasks.length - 1].exception;
-        if (exception) {
-          return exception.message || 'No reason provided';
-        }
-        return steps && steps.length ? steps[steps.length - 1].status : 'No reason provided';
-      }
-      return null;
-    }
-
-    function getGeneralException(task) {
-      var generalException = task.getValueFor('exception');
-      if (generalException) {
-        if (generalException.details && generalException.details.errors && generalException.details.errors.length) {
-          return generalException.details.errors.join(', ');
-        }
-        if (generalException.details && generalException.details.error) {
-          return generalException.details.error;
-        }
-        return 'No reason provided';
-      }
-      return null;
-    }
-
     function setTaskProperties(task) {
       orchestratedItemTransformer.defineProperties(task);
       if (task.steps && task.steps.length) {
         task.steps.forEach(orchestratedItemTransformer.defineProperties);
       }
-
-      task.getValueFor = function(key) {
-        if (!task.variables) {
-          return null;
-        }
-        var matching = task.variables.filter(function(item) {
-          return item.key === key;
-        });
-        return matching.length > 0 ? matching[0].value : null;
-      };
-
-      Object.defineProperties(task, {
-        failureMessage: {
-          get: function() {
-            return getGeneralException(task) || getOrchestrationException(task) || false;
-          }
-        },
-      });
     }
 
     function getRunningTasks(applicationName) {
@@ -97,9 +52,9 @@ module.exports = angular
       if (!task) {
         deferred.reject();
       } else if (closure(task)) {
-        deferred.resolve();
+        deferred.resolve(task);
       } else if (failureClosure && failureClosure(task)) {
-        deferred.reject();
+        deferred.reject(task);
       } else {
         task.poller = $timeout(() => {
           getTask(application, task.id).then((updated) => {

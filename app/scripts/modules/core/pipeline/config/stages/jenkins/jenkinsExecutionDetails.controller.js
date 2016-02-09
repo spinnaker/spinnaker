@@ -18,7 +18,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkins.execution
     }
 
     function getFailureMessage() {
-      var failureMessage = 'No reason provided.',
+      var failureMessage = $scope.stage.failureMessage,
           context = $scope.stage.context || {},
           buildInfo = context.buildInfo || {},
           testResults = buildInfo && buildInfo.testResults && buildInfo.testResults.length ?
