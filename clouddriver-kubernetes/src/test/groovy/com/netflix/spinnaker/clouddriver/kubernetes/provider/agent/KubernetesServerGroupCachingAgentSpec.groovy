@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.provider.agent
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.CacheResult
+import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
@@ -59,7 +60,6 @@ class KubernetesServerGroupCachingAgentSpec extends Specification {
 
     replicationControllerList = Mock(ReplicationControllerList)
     podList = Mock(PodList)
-
     apiMock = Mock(KubernetesApiAdaptor)
 
     def accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
@@ -89,8 +89,11 @@ class KubernetesServerGroupCachingAgentSpec extends Specification {
       apiMock.getReplicationControllers(NAMESPACE) >> [replicationControllerMock]
       apiMock.getPods(NAMESPACE, _) >> [podMock]
 
+      def providerCacheMock = Mock(ProviderCache)
+      providerCacheMock.getAll(_, _) >> []
+
     when:
-      def result = cachingAgent.loadData(null)
+      def result = cachingAgent.loadData(providerCacheMock)
 
     then:
       result.cacheResults.applications.attributes.name == [APP]

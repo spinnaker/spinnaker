@@ -25,6 +25,7 @@ class Keys {
     SERVER_GROUPS,
     INSTANCES,
     LOAD_BALANCERS,
+    ON_DEMAND,
 
     static String provider = "kubernetes"
 
@@ -64,7 +65,7 @@ class Keys {
         break
       case Namespace.SERVER_GROUPS.ns:
         def names = Names.parseName(parts[4])
-        result << [application: names.app, account: parts[2], name: parts[4], namespace: parts[3], stack: names.stack, cluster: names.cluster, detail: names.detail, sequence: names.sequence?.toString()]
+        result << [application: names.app, account: parts[2], name: parts[4], namespace: parts[3], stack: names.stack, cluster: names.cluster, detail: names.detail, sequence: names.sequence?.toString(), serverGroup: parts[4], region: parts[3]]
         break
       case Namespace.LOAD_BALANCERS.ns:
         def names = Names.parseName(parts[4])
