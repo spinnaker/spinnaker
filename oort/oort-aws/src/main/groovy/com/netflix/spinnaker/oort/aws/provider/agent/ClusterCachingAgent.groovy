@@ -398,13 +398,13 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     def evictableOnDemandCacheDatas = []
     def usableOnDemandCacheDatas = []
     providerCache.getAll(ON_DEMAND.ns, asgs.collect { Keys.getServerGroupKey(it.autoScalingGroupName, account.name, region) }).each {
-      if (it.attributes.cacheTime < start) {
+      if (it.attributes.cacheTime < start && it.attributes.processedCount > 0) {
         if (account.eddaEnabled) {
           def asgFromEdda = asgs.find { asg -> it.id.endsWith(":${asg.autoScalingGroupName}") }
           def asgFromAws = loadAutoScalingGroup(asgFromEdda.autoScalingGroupName, true)
 
           if (areSimilarAutoScalingGroups(asgFromEdda, asgFromAws)) {
-            log.info("Evicting previous onDemand value for ${asgFromEdda.autoScalingGroupName} (${flattenAutoScalingGroup(asgFromEdda)} vs ${flattenAutoScalingGroup(asgFromAws)}")
+            log.info("Evicting previous onDemand value for ${asgFromEdda.autoScalingGroupName} (processedCount: ${it.attributes.processedCount} ... ${flattenAutoScalingGroup(asgFromEdda)} vs ${flattenAutoScalingGroup(asgFromAws)}")
             evictableOnDemandCacheDatas << it
           } else {
             log.info("Preserving previous onDemand value for ${asgFromEdda.autoScalingGroupName} (${flattenAutoScalingGroup(asgFromEdda)} vs ${flattenAutoScalingGroup(asgFromAws)}")
