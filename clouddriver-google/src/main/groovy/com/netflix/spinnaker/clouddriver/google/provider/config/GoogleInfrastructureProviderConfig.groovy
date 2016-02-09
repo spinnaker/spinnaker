@@ -23,7 +23,6 @@ import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.provider.GoogleInfrastructureProvider
-import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleLoadBalancerCachingAgent
 import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleNetworkCachingAgent
 import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleSecurityGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
@@ -95,15 +94,16 @@ class GoogleInfrastructureProviderConfig {
         newlyAddedAgents << new GoogleSecurityGroupCachingAgent(googleCloudProvider, credentials.accountName, credentials.credentials, objectMapper, registry)
         newlyAddedAgents << new GoogleNetworkCachingAgent(googleCloudProvider, credentials.accountName, credentials.credentials, objectMapper)
 
-        credentials.regions.keySet().each { String region ->
-          newlyAddedAgents << new GoogleLoadBalancerCachingAgent(googleCloudProvider,
-                                                                 googleConfiguration.googleApplicationName(),
-                                                                 credentials.accountName,
-                                                                 region,
-                                                                 credentials.credentials.project,
-                                                                 credentials.credentials.compute,
-                                                                 objectMapper)
-        }
+        // TODO(ttomsu): Re-enable this when we've migrated the cache to cats/redis.
+//        credentials.regions.keySet().each { String region ->
+//          newlyAddedAgents << new GoogleLoadBalancerCachingAgent(googleCloudProvider,
+//                                                                 googleConfiguration.googleApplicationName(),
+//                                                                 credentials.accountName,
+//                                                                 region,
+//                                                                 credentials.credentials.project,
+//                                                                 credentials.credentials.compute,
+//                                                                 objectMapper)
+//        }
 
         // If there is an agent scheduler, then this provider has been through the AgentController in the past.
         // In that case, we need to do the scheduling here (because accounts have been added to a running system).
