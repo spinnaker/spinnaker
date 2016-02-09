@@ -27,7 +27,6 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
   @Autowired
   GoogleResourceRetriever googleResourceRetriever
 
-  @Override
   Map<String, Set<GoogleLoadBalancer>> getLoadBalancers() {
     Map<String, Map<String, List<GoogleLoadBalancer>>> networkLoadBalancerMap = googleResourceRetriever.networkLoadBalancerMap
     def loadBalancersByAccount = [:].withDefault { new HashSet<GoogleLoadBalancer>() }
@@ -41,29 +40,24 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
     loadBalancersByAccount
   }
 
-  @Override
   Set<GoogleLoadBalancer> getLoadBalancers(String account) {
     getLoadBalancers()[account]
   }
 
-  @Override
   Set<GoogleLoadBalancer> getLoadBalancers(String account, String cluster) {
     getLoadBalancers(account).findAll { loadBalancer ->
       Names.parseName(loadBalancer.name).cluster == cluster
     }
   }
 
-  @Override
   Set<GoogleLoadBalancer> getLoadBalancers(String account, String cluster, String type) {
     getLoadBalancers(account, cluster)
   }
 
-  @Override
   Set<GoogleLoadBalancer> getLoadBalancer(String account, String cluster, String type, String loadBalancerName) {
     getLoadBalancers(account, cluster).findAll { it.name == loadBalancerName }
   }
 
-  @Override
   GoogleLoadBalancer getLoadBalancer(String account, String cluster, String type, String loadBalancerName, String region) {
     Set<GoogleLoadBalancer> loadBalancerSet = getLoadBalancers(account, cluster)
 

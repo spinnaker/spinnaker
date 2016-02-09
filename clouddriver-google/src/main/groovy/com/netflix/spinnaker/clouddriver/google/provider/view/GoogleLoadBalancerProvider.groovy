@@ -49,38 +49,4 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
       objectMapper.convertValue(it.attributes, GoogleLoadBalancer)
     }
   }
-
-  ///
-  /// Delete these - they're unused, therefore unnecessary.
-  ///
-
-  @Override
-  Map<String, Set<GoogleLoadBalancer>> getLoadBalancers() {
-    return null
-  }
-
-  @Override
-  Set<GoogleLoadBalancer> getLoadBalancers(String account) {
-    return null
-  }
-
-  @Override
-  Set<GoogleLoadBalancer> getLoadBalancers(String account, String cluster) {
-    return null
-  }
-
-  @Override
-  Set<GoogleLoadBalancer> getLoadBalancers(String account, String cluster, String type) {
-    return null
-  }
-
-  @Override
-  Set<GoogleLoadBalancer> getLoadBalancer(String account, String cluster, String type, String loadBalancerName) {
-    return null
-  }
-
-  @Override
-  GoogleLoadBalancer getLoadBalancer(String account, String cluster, String type, String loadBalancerName, String region) {
-    return null
-  }
 }

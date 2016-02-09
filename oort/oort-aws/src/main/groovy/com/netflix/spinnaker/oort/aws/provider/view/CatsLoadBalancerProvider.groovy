@@ -49,7 +49,6 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
     this.awsProvider = awsProvider
   }
 
-  @Override
   Map<String, Set<AmazonLoadBalancer>> getLoadBalancers() {
     Map<String, Set<AmazonLoadBalancer>> partitionedLb = [:].withDefault { new HashSet<AmazonLoadBalancer>() }
     Collection<AmazonLoadBalancer> allLb = cacheView.getAll(LOAD_BALANCERS.ns).findResults(this.&translate)
@@ -78,14 +77,12 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
     relationships ? cacheView.getAll(relationship, relationships, cacheFilter) : []
   }
 
-  @Override
   Set<AmazonLoadBalancer> getLoadBalancers(String account) {
     def searchKey = Keys.getLoadBalancerKey('*', account, '*', null)
     def filteredIds = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey)
     cacheView.getAll(LOAD_BALANCERS.ns, filteredIds).findResults(this.&translate) as Set<AmazonLoadBalancer>
   }
 
-  @Override
   Set<AmazonLoadBalancer> getLoadBalancers(String account, String cluster) {
     Names names = Names.parseName(cluster)
     CacheData clusterData = cacheView.get(CLUSTERS.ns, Keys.getClusterKey(cluster, names.app, account))
@@ -93,17 +90,14 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
     resolveRelationshipData(clusterData, LOAD_BALANCERS.ns).findResults(this.&translate)
   }
 
-  @Override
   Set<AmazonLoadBalancer> getLoadBalancers(String account, String cluster, String type) {
     getLoadBalancers(account, cluster)
   }
 
-  @Override
   Set<AmazonLoadBalancer> getLoadBalancer(String account, String cluster, String type, String loadBalancerName) {
     getLoadBalancers(account, cluster).findAll { it.name == loadBalancerName }
   }
 
-  @Override
   AmazonLoadBalancer getLoadBalancer(String account, String cluster, String type, String loadBalancerName, String region) {
     def searchKey = Keys.getLoadBalancerKey(loadBalancerName, account, region, null) + '*'
     def lbs = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey)
