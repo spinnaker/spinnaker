@@ -18,43 +18,45 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.Instance
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.DiscoverySupport.DiscoveryStatus
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory.RegionScopedProvider
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
+import static com.amazonaws.services.autoscaling.model.LifecycleState.*
 
 class EnableDisableInstancesInDiscoveryAtomicOperationUnitSpec extends Specification {
   @Shared
   def description = new EnableDisableInstanceDiscoveryDescription([
-      asgName    : "kato-main-v000",
-      region     : "us-west-1",
-      credentials: TestCredential.named('test', [discovery: 'http://%s.discovery.netflix.net']),
-      instanceIds: ["i-123456"]
+    asgName    : "kato-main-v000",
+    region     : "us-west-1",
+    credentials: TestCredential.named('test', [discovery: 'http://%s.discovery.netflix.net']),
+    instanceIds: ["i-123456"]
   ])
 
   @Unroll
   void "should enable/disable instances in discovery"() {
     setup:
-    TaskRepository.threadLocalTask.set(Mock(Task) {
-      _ * updateStatus(_, _)
-    })
+    TaskRepository.threadLocalTask.set(Stub(Task))
 
-    def asg = Mock(AutoScalingGroup) {
-      1 * getInstances() >> description.instanceIds.collect { new Instance().withInstanceId(it) }
-      0 * _._
+    def asg = Stub(AutoScalingGroup) {
+      getInstances() >> description.instanceIds.collect {
+        new Instance().withInstanceId(it).withLifecycleState(InService)
+      }
     }
-    def asgService = Mock(AsgService) {
-      1 * getAutoScalingGroups([description.asgName]) >> [asg]
+    def asgService = Stub(AsgService) {
+      getAutoScalingGroups([description.asgName]) >> [asg]
     }
     operation.discoverySupport = Mock(DiscoverySupport)
-    operation.regionScopedProviderFactory = Mock(RegionScopedProviderFactory) {
-      1 * forRegion(_,_) >> Mock(RegionScopedProviderFactory.RegionScopedProvider) {
-        1 * getAsgService() >> asgService
+    operation.regionScopedProviderFactory = Stub(RegionScopedProviderFactory) {
+      forRegion(_, _) >> Stub(RegionScopedProvider) {
+        getAsgService() >> asgService
       }
     }
 
@@ -63,12 +65,52 @@ class EnableDisableInstancesInDiscoveryAtomicOperationUnitSpec extends Specifica
 
     then:
     1 * operation.discoverySupport.updateDiscoveryStatusForInstances(
-        _, _, _, expectedDiscoveryStatus, description.instanceIds
+      _, _, _, expectedDiscoveryStatus, description.instanceIds
     )
 
     where:
     operation                                                   || expectedDiscoveryStatus
-    new EnableInstancesInDiscoveryAtomicOperation(description)  || DiscoverySupport.DiscoveryStatus.Enable
-    new DisableInstancesInDiscoveryAtomicOperation(description) || DiscoverySupport.DiscoveryStatus.Disable
+    new EnableInstancesInDiscoveryAtomicOperation(description)  || DiscoveryStatus.Enable
+    new DisableInstancesInDiscoveryAtomicOperation(description) || DiscoveryStatus.Disable
+  }
+
+  @Unroll
+  void "should not enable instances in discovery if they are in the #lifecycleState state"() {
+    setup:
+    TaskRepository.threadLocalTask.set(Stub(Task))
+
+    def asg = Stub(AutoScalingGroup) {
+      getInstances() >> description.instanceIds.collect {
+        new Instance().withInstanceId(it).withLifecycleState(lifecycleState)
+      }
+    }
+    def asgService = Stub(AsgService) {
+      getAutoScalingGroups([description.asgName]) >> [asg]
+    }
+    def operation = new EnableInstancesInDiscoveryAtomicOperation(description)
+    operation.discoverySupport = Mock(DiscoverySupport)
+    operation.regionScopedProviderFactory = Stub(RegionScopedProviderFactory) {
+      forRegion(_, _) >> Stub(RegionScopedProvider) {
+        getAsgService() >> asgService
+      }
+    }
+
+    when:
+    operation.operate([])
+
+    then:
+    0 * operation.discoverySupport.updateDiscoveryStatusForInstances(*_)
+
+    where:
+    lifecycleState     | _
+    Terminated         | _
+    Terminating        | _
+    TerminatingProceed | _
+    TerminatingWait    | _
+    Quarantined        | _
+    Detached           | _
+    Detaching          | _
+    EnteringStandby    | _
+    Standby            | _
   }
 }
