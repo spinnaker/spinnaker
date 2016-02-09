@@ -24,7 +24,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesInstance
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider
 import io.fabric8.kubernetes.api.model.Pod
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
+@Component
 class KubernetesInstanceProvider implements InstanceProvider<KubernetesInstance> {
   private final Cache cacheView
   private final ObjectMapper objectMapper
@@ -50,7 +52,7 @@ class KubernetesInstanceProvider implements InstanceProvider<KubernetesInstance>
 
     CacheData instanceData = instances.toArray()[0]
 
-    def pod = objectMapper.convertValue(instanceData.attributes.replicationController, Pod)
+    def pod = objectMapper.convertValue(instanceData.attributes.pod, Pod)
 
     return new KubernetesInstance(pod)
   }
