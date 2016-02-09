@@ -32,9 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired
 class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult> {
   private static final String BASE_PHASE = "CLONE_SERVER_GROUP"
 
-  @Autowired
-  KubernetesUtil kubernetesUtil
-
   CloneKubernetesAtomicOperation(CloneKubernetesAtomicOperationDescription description) {
     this.description = description
   }
@@ -46,8 +43,8 @@ class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult
   CloneKubernetesAtomicOperationDescription description
 
   /*
-   * curl -X POST -H "Content-Type: application/json" -d  '[ { "cloneServerGroup": { "source": { "serverGroupName": "k8s-test-v000" }, "credentials":  "my-k8s-account" } } ]' localhost:7002/kubernetes/ops
-   * curl -X POST -H "Content-Type: application/json" -d  '[ { "cloneServerGroup": { "stack": "prod", "freeFormDetails": "mdservice", "targetSize": "4", "source": { "serverGroupName": "k8s-test-v000" }, "credentials":  "my-k8s-account" } } ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ { "cloneServerGroup": { "source": { "serverGroupName": "kub-test-v000" }, "credentials":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ { "cloneServerGroup": { "stack": "prod", "freeFormDetails": "mdservice", "targetSize": "4", "source": { "serverGroupName": "kub-test-v000" }, "credentials":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
   */
   @Override
   DeploymentResult operate(List priorOutputs) {
@@ -57,7 +54,6 @@ class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult
       "${description.source.serverGroupName}..."
 
     DeployKubernetesAtomicOperation deployer = new DeployKubernetesAtomicOperation(newDescription)
-    deployer.kubernetesUtil = kubernetesUtil
     DeploymentResult deploymentResult = deployer.operate(priorOutputs)
 
     task.updateStatus BASE_PHASE, "Finished copying server group for " +
@@ -75,7 +71,9 @@ class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult
 
     task.updateStatus BASE_PHASE, "Reading ancestor server group ${description.source.serverGroupName}..."
 
-    ReplicationController ancestorServerGroup = kubernetesUtil.getReplicationController(description.kubernetesCredentials, description.source.namespace, description.source.serverGroupName)
+    def credentials = description.kubernetesCredentials
+
+    ReplicationController ancestorServerGroup = credentials.apiAdaptor.getReplicationController(description.source.namespace, description.source.serverGroupName)
 
     if (!ancestorServerGroup) {
       throw new KubernetesResourceNotFoundException("Source server group $description.source.serverGroupName does not exist.")
@@ -91,6 +89,7 @@ class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult
     newDescription.namespace = description.namespace ?: description.source.namespace
     newDescription.loadBalancers = description.loadBalancers != null ? description.loadBalancers : KubernetesUtil.getDescriptionLoadBalancers(ancestorServerGroup)
     newDescription.securityGroups = description.securityGroups != null ? description.securityGroups : KubernetesUtil.getDescriptionSecurityGroups(ancestorServerGroup)
+    newDescription.imagePullSecrets = description.imagePullSecrets != null ? description.imagePullSecrets : ancestorServerGroup.spec?.template?.spec?.imagePullSecrets?.collect({ it.name })
     if (!description.containers) {
       newDescription.containers = []
       ancestorServerGroup.spec?.template?.spec?.containers?.each { it ->

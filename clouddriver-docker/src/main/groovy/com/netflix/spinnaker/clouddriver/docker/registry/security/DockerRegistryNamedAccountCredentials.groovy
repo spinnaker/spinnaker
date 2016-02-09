@@ -16,88 +16,118 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.security
 
-import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryClient;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
-
-import java.util.*;
+import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryClient
+import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 
 public class DockerRegistryNamedAccountCredentials implements AccountCredentials<DockerRegistryCredentials> {
   public DockerRegistryNamedAccountCredentials(String accountName, String environment, String accountType,
                                                String address, String username, String password, String email,
                                                List<String> repositories) {
-    this(accountName, environment, accountType, address, username, password, email, repositories, null);
+    this(accountName, environment, accountType, address, username, password, email, repositories, null)
   }
 
   public DockerRegistryNamedAccountCredentials(String accountName, String environment, String accountType,
                                                String address, String username, String password, String email,
                                                List<String> repositories, List<String> requiredGroupMembership) {
-    this.accountName = accountName;
-    this.environment = environment;
-    this.accountType = accountType;
-    this.address = address;
-    this.username = username;
-    this.password = password;
-    this.email = email;
+    if (!accountName == 0) {
+      throw new IllegalArgumentException("Docker Registry account must be provided with a name.")
+    }
+    this.accountName = accountName
+    this.environment = environment
+    this.accountType = accountType
+
+    if (!address == 0) {
+      throw new IllegalArgumentException("Docker Registry account $accountName must provide an endpoint address.");
+    } else {
+      int addressLen = address.length();
+      if (address[addressLen - 1] == '/') {
+        address = address.substring(0, addressLen - 1)
+        addressLen -= 1
+      }
+      // Strip the v2 endpoint, as the Docker API assumes it's not present.
+      if (address.endsWith('/v2')) {
+        address = address.substring(0, addressLen - 3)
+      }
+    }
+
+    this.address = address
+    this.username = username
+    this.password = password
+    this.email = email
     this.repositories = (repositories == null) ? [] : repositories
-    this.requiredGroupMembership = requiredGroupMembership == null ? Collections.emptyList() : Collections.unmodifiableList(requiredGroupMembership);
-    this.credentials = buildCredentials();
+    this.requiredGroupMembership = requiredGroupMembership == null ? Collections.emptyList() : Collections.unmodifiableList(requiredGroupMembership)
+    this.credentials = buildCredentials()
   }
 
   @Override
   public String getName() {
-    return accountName;
+    return accountName
+  }
+
+  public String getBasicAuth() {
+    return this.credentials ?
+      this.credentials.client ?
+        this.credentials.client.basicAuth ?
+          this.credentials.client.basicAuth :
+          "" :
+        "" :
+      ""
+  }
+
+  public String getEmail() {
+    return email
+  }
+
+  public String getV2Endpoint() {
+    return "$address/v2"
   }
 
   @Override
   public String getEnvironment() {
-    return environment;
+    return environment
   }
 
   @Override
   public String getAccountType() {
-    return accountType;
+    return accountType
   }
 
   @Override
   public String getCloudProvider() {
-    return CLOUD_PROVIDER;
+    return CLOUD_PROVIDER
   }
 
   public DockerRegistryCredentials getCredentials() {
-    return credentials;
+    return credentials
   }
 
   private DockerRegistryCredentials buildCredentials() {
-    DockerRegistryClient client = new DockerRegistryClient(this.address, this.email, this.username, this.password);
-    return new DockerRegistryCredentials(client, this.repositories);
-  }
-
-  private static String getLocalName(String fullUrl) {
-    return fullUrl.substring(fullUrl.lastIndexOf('/') + 1);
+    DockerRegistryClient client = new DockerRegistryClient(this.address, this.email, this.username, this.password)
+    return new DockerRegistryCredentials(client, this.repositories)
   }
 
   @Override
   public String getProvider() {
-    return getCloudProvider();
+    return getCloudProvider()
   }
 
   public String getAccountName() {
-    return accountName;
+    return accountName
   }
 
   public List<String> getRequiredGroupMembership() {
-    return requiredGroupMembership;
+    return requiredGroupMembership
   }
 
-  private static final String CLOUD_PROVIDER = "dockerRegistry";
-  private final String accountName;
-  private final String environment;
-  private final String accountType;
-  private final String address;
-  private final String username;
-  private final String password;
-  private final String email;
-  private final List<String> repositories;
-  private final DockerRegistryCredentials credentials;
-  private final List<String> requiredGroupMembership;
+  private static final String CLOUD_PROVIDER = "dockerRegistry"
+  private final String accountName
+  private final String environment
+  private final String accountType
+  private final String address
+  private final String username
+  private final String password
+  private final String email
+  private final List<String> repositories
+  private final DockerRegistryCredentials credentials
+  private final List<String> requiredGroupMembership
 }

@@ -27,16 +27,16 @@ import retrofit.http.Query
 class DockerBearerTokenService {
   private Map<String, TokenService> realmToService
   private Map<String, DockerBearerToken> cachedTokens
-  private String basicAuthenticate
+  public String basicAuth
 
   DockerBearerTokenService(String username, String password) {
     realmToService = new HashMap<String, TokenService>()
     cachedTokens = new HashMap<String, DockerBearerToken>()
     if (username) {
-      basicAuthenticate = new String(Base64.encoder.encode(("${username}:${password}").bytes))
-      basicAuthenticate = "Basic $basicAuthenticate"
+      basicAuth = new String(Base64.encoder.encode(("${username}:${password}").bytes))
+      basicAuth = "Basic $basicAuth"
     } else {
-      basicAuthenticate = null
+      basicAuth = null
     }
   }
 
@@ -168,8 +168,8 @@ class DockerBearerTokenService {
 
     def tokenService = getTokenService(authenticateDetails.realm)
     def token
-    if (basicAuthenticate) {
-      token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, basicAuthenticate)
+    if (basicAuth) {
+      token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, basicAuth)
     }
     else {
       token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope)

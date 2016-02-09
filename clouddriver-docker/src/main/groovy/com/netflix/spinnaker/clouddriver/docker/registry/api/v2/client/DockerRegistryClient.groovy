@@ -35,10 +35,16 @@ class DockerRegistryClient {
   public String address
   private DockerRegistryService registryService
   private GsonConverter converter
+  private String basicAuth
+
+  public getBasicAuth() {
+    return basicAuth
+  }
 
   DockerRegistryClient(String address, String email, String username, String password) {
     this.tokenService = new DockerBearerTokenService(username, password)
-    this.registryService = new RestAdapter.Builder().setEndpoint(address).setLogLevel(RestAdapter.LogLevel.NONE).build().create(DockerRegistryService)
+    this.basicAuth = this.tokenService.basicAuth;
+    this.registryService = new RestAdapter.Builder().setEndpoint(address).setLogLevel(RestAdapter.LogLevel.BASIC).build().create(DockerRegistryService)
     this.converter = new GsonConverter(new GsonBuilder().create())
     this.address = address
   }

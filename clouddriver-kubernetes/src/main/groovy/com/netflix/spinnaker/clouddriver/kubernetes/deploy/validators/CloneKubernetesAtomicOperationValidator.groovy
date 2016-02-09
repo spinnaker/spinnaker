@@ -17,8 +17,9 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.CloneKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.CloneKubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,8 +35,13 @@ class CloneKubernetesAtomicOperationValidator extends DescriptionValidator<Clone
   @Override
   void validate(List priorDescriptions, CloneKubernetesAtomicOperationDescription description, Errors errors) {
     def helper = new StandardKubernetesAttributeValidator("cloneKubernetesAtomicOperationDescription", errors)
-    helper.validateCredentials(description.credentials, accountCredentialsProvider)
-    helper.validateSource(description.source, "source")
+    if (!helper.validateCredentials(description.credentials, accountCredentialsProvider)) {
+      return
+    }
+
+    KubernetesCredentials credentials = (KubernetesCredentials) accountCredentialsProvider.getCredentials(description.credentials).credentials
+
+    helper.validateCloneSource(description.source, "source")
     if (description.application) {
       helper.validateApplication(description.application, "application")
     }
@@ -53,20 +59,31 @@ class CloneKubernetesAtomicOperationValidator extends DescriptionValidator<Clone
     }
 
     if (description.namespace) {
-      helper.validateNamespace(description.namespace, "namespace")
+      helper.validateNamespace(credentials, description.namespace, "namespace")
     }
 
-    description.loadBalancers.eachWithIndex { name, idx ->
-      helper.validateName(name, "loadBalancers[${idx}]")
+    if (description.imagePullSecrets) {
+      description.imagePullSecrets.eachWithIndex { name, idx ->
+        helper.validateImagePullSecret(credentials, name, description.namespace ?: 'default', "imagePullSecrets[${idx}]")
+      }
     }
 
-    description.securityGroups.eachWithIndex { name, idx ->
-      helper.validateName(name, "securityGroups[${idx}]")
+    if (description.loadBalancers) {
+      description.loadBalancers.eachWithIndex { name, idx ->
+        helper.validateName(name, "loadBalancers[${idx}]")
+      }
     }
 
-    description.containers.eachWithIndex { container, idx ->
-      KubernetesContainerValidator.validate(container, helper, "container[${idx}]")
+    if (description.securityGroups) {
+      description.securityGroups.eachWithIndex { name, idx ->
+        helper.validateName(name, "securityGroups[${idx}]")
+      }
     }
 
+    if (description.containers) {
+      description.containers.eachWithIndex { container, idx ->
+        KubernetesContainerValidator.validate(container, helper, "container[${idx}]")
+      }
+    }
   }
 }

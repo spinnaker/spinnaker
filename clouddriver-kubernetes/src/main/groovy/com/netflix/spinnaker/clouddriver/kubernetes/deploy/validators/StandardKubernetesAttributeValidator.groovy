@@ -97,11 +97,24 @@ class StandardKubernetesAttributeValidator {
     }
   }
 
-  def validateNamespace(String value, String attribute) {
+  def validateImagePullSecret(KubernetesCredentials credentials, String value, String namespace, String attribute) {
+    if (!credentials.isRegisteredImagePullSecret(value, namespace)) {
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.notRegistered")
+      return false
+    }
+    return validateByRegex(value, attribute, namePattern)
+  }
+
+
+  def validateNamespace(KubernetesCredentials credentials, String value, String attribute) {
     // Namespace is optional, empty taken to mean 'default'.
     if (!value) {
       return true
     } else {
+      if (!credentials.isRegisteredNamespace(value)) {
+        errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.notRegistered")
+        return false
+      }
       return validateByRegex(value, attribute, namePattern)
     }
   }
@@ -139,7 +152,7 @@ class StandardKubernetesAttributeValidator {
     result
   }
 
-  def validateSource(Object value, String attribute) {
+  def validateCloneSource(Object value, String attribute) {
     if (!value) {
       errors.rejectValue("${context}.${attribute}",  "${context}.${attribute}.empty")
       return false

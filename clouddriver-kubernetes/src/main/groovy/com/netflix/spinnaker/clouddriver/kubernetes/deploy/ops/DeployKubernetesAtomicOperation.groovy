@@ -25,13 +25,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesI
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder
-import org.springframework.beans.factory.annotation.Autowired
 
 class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResult> {
   private static final String BASE_PHASE = "DEPLOY"
-
-  @Autowired
-  KubernetesUtil kubernetesUtil
 
   DeployKubernetesAtomicOperation(DeployKubernetesAtomicOperationDescription description) {
     this.description = description
@@ -44,17 +40,17 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
   DeployKubernetesAtomicOperationDescription description
 
   /*
-   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "k8s", "stack": "test",  "targetSize": "3", "securityGroups": [], "loadBalancers":  [],  "containers": [ { "name": "nginx", "image": "nginx" } ], "credentials":  "my-k8s-account" } } ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "securityGroups": [], "loadBalancers":  [],  "containers": [ { "name": "nginx", "image": "nginx" } ], "credentials":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
    *
-   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "k8s", "stack": "test",  "targetSize": "3", "securityGroups": ["frontend-sg"], "loadBalancers":  ["frontend-lb"],  "containers": [ { "name": "nginx", "image": "nginx" } ], "credentials":  "my-k8s-account" } } ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "securityGroups": ["frontend-sg"], "loadBalancers":  ["frontend-lb"],  "containers": [ { "name": "nginx", "image": "nginx" } ], "imagePullSecrets": ["my-docker-account"], "credentials":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
   */
   @Override
   DeploymentResult operate(List priorOutputs) {
 
-    ReplicationController rc = deployDescription()
+    ReplicationController replicationController = deployDescription()
     DeploymentResult deploymentResult = new DeploymentResult()
-    deploymentResult.serverGroupNames = Arrays.asList("${rc.metadata.namespace}:${rc.metadata.name}".toString())
-    deploymentResult.serverGroupNameByRegion[rc.metadata.namespace] = rc.metadata.name
+    deploymentResult.serverGroupNames = Arrays.asList("${replicationController.metadata.namespace}:${replicationController.metadata.name}".toString())
+    deploymentResult.serverGroupNameByRegion[replicationController.metadata.namespace] = replicationController.metadata.name
     return deploymentResult
   }
 
@@ -79,20 +75,10 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
 
     def clusterName = KubernetesUtil.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
     task.updateStatus BASE_PHASE, "Looking up next sequence index..."
-    def sequenceIndex = kubernetesUtil.getNextSequence(clusterName, namespace, credentials)
+    def sequenceIndex = KubernetesUtil.getNextSequence(clusterName, namespace, credentials)
     task.updateStatus BASE_PHASE, "Sequence index chosen to be ${sequenceIndex}."
     def replicationControllerName = String.format("%s-v%s", clusterName, sequenceIndex)
     task.updateStatus BASE_PHASE, "Replication controller name chosen to be ${replicationControllerName}."
-
-    task.updateStatus BASE_PHASE, "Collecting ports for associated security groups..."
-    def ports = []
-    for (def securityGroupName : description.securityGroups) {
-      def securityGroup = kubernetesUtil.getSecurityGroup(credentials, namespace, securityGroupName)
-
-      for (def port : securityGroup.getSpec().getPorts()) {
-        ports.add(port.getTargetPort().intVal)
-      }
-    }
 
     def replicationControllerBuilder = new ReplicationControllerBuilder()
                         .withNewMetadata().withName(replicationControllerName)
@@ -131,13 +117,16 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
 
     replicationControllerBuilder = replicationControllerBuilder.endMetadata().withNewSpec()
 
+    task.updateStatus BASE_PHASE, "Adding image pull secrets... "
+    replicationControllerBuilder = replicationControllerBuilder.withImagePullSecrets()
+
+    for (def imagePullSecret : description.imagePullSecrets) {
+      replicationControllerBuilder = replicationControllerBuilder.addNewImagePullSecret(imagePullSecret)
+    }
+
     for (def container : description.containers) {
       task.updateStatus BASE_PHASE, "Adding container ${container.name} with image ${container.image}..."
       replicationControllerBuilder = replicationControllerBuilder.addNewContainer().withName(container.name).withImage(container.image)
-      task.updateStatus BASE_PHASE, "Opening container ports..."
-      for (def port : ports) {
-        replicationControllerBuilder = replicationControllerBuilder.addNewPort().withContainerPort(port).endPort()
-      }
 
       replicationControllerBuilder = replicationControllerBuilder.withNewResources()
       if (container.requests) {
@@ -171,13 +160,13 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
       task.updateStatus BASE_PHASE, "Finished adding container ${container.name}."
     }
 
-    replicationControllerBuilder = replicationControllerBuilder.endSpec().endTemplate().endSpec().build()
+    replicationControllerBuilder = replicationControllerBuilder.endSpec().endTemplate().endSpec()
 
     task.updateStatus BASE_PHASE, "Sending replication controller spec to the Kubernetes master."
-	  ReplicationController rc = credentials.client.replicationControllers().inNamespace(namespace).create(replicationControllerBuilder)
+	  ReplicationController replicationController = credentials.apiAdaptor.createReplicationController(namespace, replicationControllerBuilder.build())
 
-    task.updateStatus BASE_PHASE, "Finished creating replication controller ${rc.metadata.name}."
+    task.updateStatus BASE_PHASE, "Finished creating replication controller ${replicationController.metadata.name}."
 
-    return rc
+    return replicationController
   }
 }
