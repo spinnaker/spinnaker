@@ -3,6 +3,34 @@
 let angular = require('angular');
 
 module.exports = function($provide) {
+
+  $provide.decorator('uiSelectChoicesDirective', function($delegate) {
+    var directive = $delegate[0];
+
+    var templateUrl = directive.templateUrl;
+
+    directive.templateUrl = function(element) {
+      element.addClass('ui-select-choices');
+      return templateUrl(element);
+    };
+
+    return $delegate;
+
+  });
+
+  $provide.decorator('uiSelectMatchDirective', function($delegate) {
+    var directive = $delegate[0];
+
+    var templateUrl = directive.templateUrl;
+
+    directive.templateUrl = function(element) {
+      element.addClass('ui-select-match');
+      return templateUrl(element);
+    };
+
+    return $delegate;
+  });
+
   $provide.decorator('uiSelectDirective', function ($delegate, $parse, $timeout, $document, uiSelectMinErr, uisOffset, uiSelectConfig) {
     var uiSelect = $delegate[0];
 
@@ -298,4 +326,5 @@ module.exports = function($provide) {
 
     return $delegate;
   });
+
 };
