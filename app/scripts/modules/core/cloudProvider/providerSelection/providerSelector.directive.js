@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./providerSelection.modal.less');
+
 module.exports = angular.module('spinnaker.providerSelection.directive', [
   require('../../account/account.service.js'),
 ])

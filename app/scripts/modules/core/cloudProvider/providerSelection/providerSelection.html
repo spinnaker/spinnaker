@@ -4,15 +4,15 @@
       <h3>Pick your provider:</h3>
     </div>
     <div class="modal-body">
-      <div class="row">
-        <div class="col-md-4 col-narrow" ng-repeat="provider in providerOptions" ng-class="{'col-md-offset-1' : providerOptions.length < 3}">
-          <button class="instance-profile"
+      <div class="provider-options providers-{{providerOptions.length}}">
+        <div class="provider" ng-repeat="provider in providerOptions">
+          <button class="instance-profile provider-selection-logo"
                   ng-class="{active: command.provider === provider}"
                   ng-click="command.provider = provider">
               <span is-visible="command.provider === provider"
                     class="glyphicon glyphicon-ok-circle selected-indicator"></span>
             <div class="panel-heading">
-              <h4><img height="98px" width="150px" ng-src="{{getImage(provider)}}" alt="{{provider}}"/></h4>
+              <h4 ng-style="{'background-image': 'url('+getImage(provider)+')'}"><span class="sr-only" ng-bind="provider"></span></h4>
             </div>
           </button>
         </div>
