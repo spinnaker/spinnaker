@@ -73,9 +73,8 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
         def providerCache = catsModule.getProviderRegistry().getProviderCache(agent.providerName)
         OnDemandAgent.OnDemandResult result = agent.handle(providerCache, data)
         if (result) {
-          hasOnDemandResults = true
-
           if (result.cacheResult) {
+            hasOnDemandResults = !(result.cacheResult.cacheResults ?: [:]).values().flatten().isEmpty()
             agent.metricsSupport.cacheWrite {
               providerCache.putCacheResult(result.sourceAgentType, result.authoritativeTypes, result.cacheResult)
             }
