@@ -56,7 +56,7 @@ describe('Service: applicationReader', function () {
 
     describe('loading executions', function () {
       it('loads executions and sets appropriate flags', function () {
-        spyOn(executionService, 'getRunningExecutions').and.returnValue($q.when([{status: 'COMPLETED', stages: []}]));
+        spyOn(executionService, 'getRunningExecutions').and.returnValue($q.when([{status: 'SUCCEEDED', stages: []}]));
         var result = null;
         loadApplication([], [], [], {executions: true}).then((app) => {
           result = app;
@@ -84,7 +84,7 @@ describe('Service: applicationReader', function () {
 
     describe('reload executions', function () {
       it('reloads executions and sets appropriate flags', function () {
-        spyOn(executionService, 'getRunningExecutions').and.returnValue($q.when([{status: 'COMPLETED', stages: []}]));
+        spyOn(executionService, 'getRunningExecutions').and.returnValue($q.when([{status: 'SUCCEEDED', stages: []}]));
         var result = null,
             nextCalls = 0;
         loadApplication([], [], [], {executions: true}).then((app) => {
@@ -138,7 +138,7 @@ describe('Service: applicationReader', function () {
 
     describe('loading tasks', function () {
       it('loads tasks and sets appropriate flags', function () {
-        spyOn(taskReader, 'getRunningTasks').and.returnValue($q.when([{status: 'COMPLETED'}]));
+        spyOn(taskReader, 'getRunningTasks').and.returnValue($q.when([{status: 'SUCCEEDED'}]));
         var result = null;
         loadApplication([], [], [], {tasks: true}).then((app) => {
           result = app;
@@ -166,7 +166,7 @@ describe('Service: applicationReader', function () {
 
     describe('reload tasks', function () {
       it('reloads tasks and sets appropriate flags', function () {
-        spyOn(taskReader, 'getRunningTasks').and.returnValue($q.when([{status: 'COMPLETED'}]));
+        spyOn(taskReader, 'getRunningTasks').and.returnValue($q.when([{status: 'SUCCEEDED'}]));
         var result = null,
             nextCalls = 0;
         loadApplication([], [], [], {tasks: true}).then((app) => {

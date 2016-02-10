@@ -160,7 +160,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.transfo
               status = 'RUNNING';
             }
             if (canaryStatus.complete) {
-              status = 'COMPLETED';
+              status = 'SUCCEEDED';
             }
             if (canaryStatus.status === 'DISABLED') {
               status = 'DISABLED';

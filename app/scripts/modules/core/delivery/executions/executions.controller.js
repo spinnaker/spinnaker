@@ -41,13 +41,18 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       this.updateExecutionGroups();
     };
 
-    this.updateExecutionGroups = () => {
+    this.updateExecutionGroups = (reload) => {
       normalizeExecutionNames();
       ExecutionFilterModel.applyParamsToUrl();
-      executionFilterService.updateExecutionGroups(this.application);
-      this.tags = ExecutionFilterModel.tags;
-      // updateExecutionGroups is debounced by 25ms, so we need to delay setting the loading flag a bit
-      $timeout(() => { this.viewState.loading = false; }, 50);
+      if (reload) {
+        this.application.reloadingExecutionsForFilters = true;
+        this.application.reloadExecutions();
+      } else {
+        executionFilterService.updateExecutionGroups(this.application);
+        this.tags = ExecutionFilterModel.tags;
+        // updateExecutionGroups is debounced by 25ms, so we need to delay setting the loading flag a bit
+        $timeout(() => { this.viewState.loading = false; }, 50);
+      }
     };
 
     this.viewState = {
@@ -72,7 +77,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       }
     });
 
-    $scope.filterCountOptions = [1, 2, 5, 10, 20];
+    $scope.filterCountOptions = [1, 2, 5, 10, 20, 30, 40, 50];
 
     let dataInitializationFailure = () => {
       this.viewState.loading = false;

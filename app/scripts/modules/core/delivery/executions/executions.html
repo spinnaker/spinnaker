@@ -37,7 +37,7 @@
         </div>
         <div class="form-group">
           <label>Show</label>
-          <select class="form-control input-sm" ng-model="vm.filter.count" ng-change="vm.updateExecutionGroups()"
+          <select class="form-control input-sm" ng-model="vm.filter.count" ng-change="vm.updateExecutionGroups(true)"
                   ng-options="count for count in filterCountOptions">
           </select>
           executions per pipeline
@@ -66,6 +66,8 @@
     </div>
     <div class="text-center" ng-if="vm.viewState.loading">
       <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
+    </div>
+    <div class="text-center transition-overlay" ng-if="vm.application.reloadingExecutionsForFilters" style="margin-left: -25px">
     </div>
     <div class="text-center" ng-if="!vm.viewState.loading && !vm.application.executions.length && !vm.application.pipelineConfigs.length">
       <h4>No pipelines configured for this application.</h4>

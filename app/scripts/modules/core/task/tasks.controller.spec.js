@@ -125,7 +125,7 @@ describe('Controller: tasks', function () {
   describe('Filtering Task list with one running task', function () {
     var application = {
       tasks: [
-        {status: 'COMPLETED', name: 'a'},
+        {status: 'SUCCEEDED', name: 'a'},
         {status: 'RUNNING', name: 'a'},
       ]
     };
@@ -161,8 +161,8 @@ describe('Controller: tasks', function () {
   describe('Filtering Task list with zero running task', function () {
     var application = {
       tasks: [
-        {status: 'COMPLETED', startTime: 22, name: 'a'},
-        {status: 'COMPLETED', startTime: 100, name: 'a'},
+        {status: 'SUCCEEDED', startTime: 22, name: 'a'},
+        {status: 'SUCCEEDED', startTime: 100, name: 'a'},
       ]
     };
 
@@ -173,7 +173,7 @@ describe('Controller: tasks', function () {
       expect(sortedList.length).toBe(2);
       expect(sortedList[0].startTime).toBe(100);
       sortedList.forEach(function(task) {
-        expect(task.status).toEqual('COMPLETED');
+        expect(task.status).toEqual('SUCCEEDED');
       });
     });
   });

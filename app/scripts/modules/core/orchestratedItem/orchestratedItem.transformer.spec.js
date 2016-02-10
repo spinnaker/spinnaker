@@ -241,7 +241,7 @@ describe('orchestratedItem transformer', function () {
     });
 
     it('returns null if no failure message is present', function () {
-      expect(getMessage({ status: 'COMPLETED' })).toBe(null);
+      expect(getMessage({ status: 'SUCCEEDED' })).toBe(null);
     });
 
     it('returns null if tide task succeeded', function () {

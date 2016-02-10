@@ -5,21 +5,23 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
   require('../../cache/deckCacheFactory.js'),
   require('../../utils/appendTransform.js'),
   require('../../config/settings.js'),
+  require('../filter/executionFilter.model.js'),
   require('./executions.transformer.service.js')
 ])
-  .factory('executionService', function($http, $timeout, $q, $log,
+  .factory('executionService', function($http, $timeout, $q, $log, ExecutionFilterModel,
                                          settings, appendTransform, executionsTransformer) {
 
     const activeStatuses = ['RUNNING', 'SUSPENDED', 'PAUSED', 'NOT_STARTED'];
+    const runningLimit = 30;
 
     function getRunningExecutions(applicationName) {
-      return getExecutions(applicationName, activeStatuses);
+      return getExecutions(applicationName, {statuses: activeStatuses, limit: runningLimit});
     }
 
-    function getExecutions(applicationName, statuses = []) {
-      let url = [ settings.gateUrl, 'applications', applicationName, 'pipelines'].join('/');
+    function getExecutions(applicationName, {statuses = Object.keys(ExecutionFilterModel.sortFilter.status), limit = ExecutionFilterModel.sortFilter.count} = {}) {
+      let url = [ settings.gateUrl, 'applications', applicationName, `pipelines?limit=${limit}`].join('/');
       if (statuses.length) {
-        url += '?statuses=' + statuses.map((status) => status.toUpperCase()).join(',');
+        url += '&statuses=' + statuses.map((status) => status.toUpperCase()).join(',');
       }
       return $http({
         method: 'GET',

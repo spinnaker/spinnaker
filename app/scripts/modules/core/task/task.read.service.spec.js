@@ -39,7 +39,7 @@ describe('Service: taskReader', function () {
       $http.whenGET('/applications/deck/tasks/1').respond(200, {
         id: 1,
         foo: 3,
-        status: 'COMPLETED'
+        status: 'SUCCEEDED'
       });
 
       var completed = false;
@@ -58,7 +58,7 @@ describe('Service: taskReader', function () {
       $http.whenGET('/applications/deck/tasks/1').respond(200, {
         id: 1,
         foo: 3,
-        status: 'COMPLETED'
+        status: 'SUCCEEDED'
       });
 
       var completed = false,
@@ -105,7 +105,7 @@ describe('Service: taskReader', function () {
       expect(failed).toBe(false);
 
       // succeeds
-      $http.expectGET('/applications/deck/tasks/1').respond(200, { id: 1, status: 'COMPLETED' });
+      $http.expectGET('/applications/deck/tasks/1').respond(200, { id: 1, status: 'SUCCEEDED' });
       cycle();
       expect(completed).toBe(true);
       expect(failed).toBe(false);
@@ -179,7 +179,7 @@ describe('Service: taskReader', function () {
     it('uses start time to calculate running time if endTime is zero', function () {
       $http.whenGET('/applications/deck/tasks/1').respond(200, {
         id: 2,
-        status: 'COMPLETED',
+        status: 'SUCCEEDED',
         startTime: new Date(),
         endTime: 0
       });
@@ -192,7 +192,7 @@ describe('Service: taskReader', function () {
     it('uses start time to calculate running time if endTime is not present', function () {
       $http.whenGET('/applications/deck/tasks/1').respond(200, {
         id: 2,
-        status: 'COMPLETED',
+        status: 'SUCCEEDED',
         startTime: new Date()
       });
 
@@ -206,7 +206,7 @@ describe('Service: taskReader', function () {
           end = start + 120 * 1000;
       $http.whenGET('/applications/deck/tasks/1').respond(200, {
         id: 2,
-        status: 'COMPLETED',
+        status: 'SUCCEEDED',
         startTime: start,
         endTime: end
       });
@@ -221,7 +221,7 @@ describe('Service: taskReader', function () {
           offset = 200000;
       $http.whenGET('/applications/deck/tasks/1').respond(200, {
         id: 2,
-        status: 'COMPLETED',
+        status: 'SUCCEEDED',
         startTime: now + offset
       });
 

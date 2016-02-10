@@ -49,7 +49,7 @@ describe('Service: taskMonitorService', function () {
       $http.flush();
       expect(monitor.task.isCompleted).toBe(false);
 
-      $http.expectGET(['/applications', 'deck', 'tasks', 'a'].join('/')).respond(200, { status: 'COMPLETED' });
+      $http.expectGET(['/applications', 'deck', 'tasks', 'a'].join('/')).respond(200, { status: 'SUCCEEDED' });
       $timeout.flush(); // complete second time
       $http.flush();
 
