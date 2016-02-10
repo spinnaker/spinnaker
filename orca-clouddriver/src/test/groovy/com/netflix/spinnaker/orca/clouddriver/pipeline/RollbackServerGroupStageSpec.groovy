@@ -20,6 +20,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.EnableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.RollbackServerGroupStage
+import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory
@@ -33,7 +34,7 @@ class RollbackServerGroupStageSpec extends Specification {
   @Shared
   def disableServerGroupStage = new DisableServerGroupStage()
 
-  def "should inject enable and disable stages corresponding to the server group being restored and rollbacked"() {
+  def "should inject enable, resize and disable stages corresponding to the server group being restored and rollbacked"() {
     given:
     def autowireCapableBeanFactory = Stub(AutowireCapableBeanFactory) {
       autowireBean(_) >> { RollbackServerGroupStage.ExplicitRollback rollback ->
@@ -50,7 +51,9 @@ class RollbackServerGroupStageSpec extends Specification {
       rollbackContext: [
         restoreServerGroupName: "servergroup-v001",
         rollbackServerGroupName: "servergroup-v002"
-      ]
+      ],
+      credentials: "test",
+      cloudProvider: "aws"
     ])
 
     when:
@@ -61,11 +64,16 @@ class RollbackServerGroupStageSpec extends Specification {
     then:
     steps == []
     beforeStages.isEmpty()
-    afterStages.size() == 2
+    afterStages.size() == 3
     afterStages[0].context == stage.context + [
       serverGroupName: "servergroup-v001"
     ]
     afterStages[1].context == stage.context + [
+      action: "scale_to_server_group",
+      source: new ResizeStrategy.Source(null, null, null, null, "servergroup-v002", "test", "aws"),
+      asgName: "servergroup-v001"
+    ]
+    afterStages[2].context == stage.context + [
       serverGroupName: "servergroup-v002"
     ]
   }
