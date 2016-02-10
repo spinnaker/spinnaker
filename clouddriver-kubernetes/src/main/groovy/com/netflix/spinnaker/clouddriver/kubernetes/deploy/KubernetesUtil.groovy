@@ -47,6 +47,10 @@ class KubernetesUtil {
     String.format("%03d", ++maxSeqNumber)
   }
 
+  static List<String> getImagePullSecrets(ReplicationController rc) {
+    rc.spec?.template?.spec?.imagePullSecrets?.collect({ it.name })
+  }
+
   static List<String> getDescriptionLoadBalancers(ReplicationController rc) {
     def loadBalancers = []
     rc.spec?.template?.metadata?.labels?.each { key, val ->

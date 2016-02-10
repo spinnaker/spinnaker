@@ -90,7 +90,6 @@ class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult
     newDescription.namespace = description.namespace ?: description.source.namespace
     newDescription.loadBalancers = description.loadBalancers != null ? description.loadBalancers : KubernetesUtil.getDescriptionLoadBalancers(ancestorServerGroup)
     newDescription.securityGroups = description.securityGroups != null ? description.securityGroups : KubernetesUtil.getDescriptionSecurityGroups(ancestorServerGroup)
-    newDescription.imagePullSecrets = description.imagePullSecrets != null ? description.imagePullSecrets : ancestorServerGroup.spec?.template?.spec?.imagePullSecrets?.collect({ it.name })
     if (!description.containers) {
       newDescription.containers = []
       ancestorServerGroup.spec?.template?.spec?.containers?.each { it ->

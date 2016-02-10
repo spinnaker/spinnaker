@@ -253,7 +253,7 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
     for (ReplicationController replicationController : replicationControllers) {
       def onDemandData = onDemandKeep ? onDemandKeep[Keys.getServerGroupKey(replicationController.metadata.name, accountName, namespace)] : null
 
-      if (onDemandData && onDemandData.attributes.cachetime >= start) {
+      if (onDemandData && onDemandData.attributes.cacheTime >= start) {
         Map<String, List<CacheData>> cacheResults = objectMapper.readValue(onDemandData.attributes.cacheResults as String, new TypeReference<Map<String, List<MutableCacheData>>>() { })
         cache(cacheResults, Keys.Namespace.APPLICATIONS.ns, cachedApplications)
         cache(cacheResults, Keys.Namespace.CLUSTERS.ns, cachedClusters)
