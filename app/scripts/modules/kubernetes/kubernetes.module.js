@@ -19,6 +19,7 @@ module.exports = angular.module('spinnaker.kubernetes', [
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('kubernetes', {
+      v2wizard: true,
       name: 'Kubernetes',
       logo: {
         path: require('./logo/kubernetes.logo.png'),
