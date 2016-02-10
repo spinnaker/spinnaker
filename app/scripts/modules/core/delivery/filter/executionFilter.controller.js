@@ -26,9 +26,14 @@ module.exports = angular.module('spinnaker.core.delivery.filter.executionFilter.
       this.pipelineSortOptions.disabled = true;
     };
 
-    this.updateExecutionGroups = () => {
+    this.updateExecutionGroups = (reload) => {
       ExecutionFilterModel.applyParamsToUrl();
-      executionFilterService.updateExecutionGroups(this.application);
+      if (reload) {
+        this.application.reloadingExecutionsForFilters = true;
+        this.application.reloadExecutions();
+      } else {
+        executionFilterService.updateExecutionGroups(this.application);
+      }
     };
 
     this.clearFilters = () => {
@@ -46,6 +51,7 @@ module.exports = angular.module('spinnaker.core.delivery.filter.executionFilter.
         .map((option) => option.name);
       this.pipelineNames = _.uniq(allOptions);
       this.updateExecutionGroups();
+      this.application.reloadingExecutionsForFilters = false;
     };
 
     var executionWatcher = this.application.executionRefreshStream.subscribe(this.initialize);

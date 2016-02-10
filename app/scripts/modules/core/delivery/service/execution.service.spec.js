@@ -15,12 +15,13 @@ describe('Service: executionService', function () {
   );
 
   beforeEach(
-    window.inject(function (_executionService_, _$httpBackend_, _settings_, _$timeout_, _$q_) {
+    window.inject(function (_executionService_, _$httpBackend_, _settings_, _$timeout_, _$q_, ExecutionFilterModel) {
       executionService = _executionService_;
       $httpBackend = _$httpBackend_;
       settings = _settings_;
       timeout = _$timeout_;
       $q = _$q_;
+      ExecutionFilterModel.sortFilter.count = 3;
     })
   );
 
@@ -35,7 +36,7 @@ describe('Service: executionService', function () {
       let executionId = 'abc';
       let cancelUrl = [ settings.gateUrl, 'applications', 'deck', 'pipelines', executionId, 'cancel' ].join('/');
       let checkUrl = [ settings.gateUrl, 'applications', 'deck', 'pipelines' ].join('/')
-        .concat('?statuses=RUNNING,SUSPENDED,PAUSED,NOT_STARTED');
+        .concat('?limit=30&statuses=RUNNING,SUSPENDED,PAUSED,NOT_STARTED');
       let application = { name: 'deck', reloadExecutions: () => $q.when(null) };
 
       $httpBackend.expectPUT(cancelUrl).respond(200, []);
@@ -70,7 +71,7 @@ describe('Service: executionService', function () {
       let completed = false;
       let executionId = 'abc';
       let deleteUrl = [ settings.gateUrl, 'pipelines', executionId ].join('/');
-      let checkUrl = [ settings.gateUrl, 'applications', 'deck', 'pipelines' ].join('/');
+      let checkUrl = [ settings.gateUrl, 'applications', 'deck', 'pipelines?limit=3' ].join('/');
       let application = { name: 'deck', reloadExecutions: () => $q.when(null) };
 
       $httpBackend.expectDELETE(deleteUrl).respond(200, []);
@@ -153,7 +154,7 @@ describe('Service: executionService', function () {
           settings.gateUrl,
           'applications',
           'deck',
-          'pipelines',
+          'pipelines?limit=3',
         ].join('/');
 
       $httpBackend.expectGET(url).respond(200, []);
@@ -177,7 +178,7 @@ describe('Service: executionService', function () {
         settings.gateUrl,
         'applications',
         'deck',
-        'pipelines',
+        'pipelines?limit=3',
       ].join('/');
 
       $httpBackend.expectGET(url).respond(429, []);

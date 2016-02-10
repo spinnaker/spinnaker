@@ -17,7 +17,7 @@ TasksFixture.initialSnapshot = [
   },
   {
     id: 2,
-    status: 'COMPLETED',
+    status: 'SUCCEEDED',
     variables: [
       {
         key: 'description',
@@ -50,7 +50,7 @@ TasksFixture.initialSnapshot = [
 TasksFixture.secondSnapshot = [
   {
     id: 1,
-    status: 'COMPLETED',
+    status: 'SUCCEEDED',
     variables: [
       {
         key: 'description',
@@ -65,7 +65,7 @@ TasksFixture.secondSnapshot = [
   },
   {
     id: 2,
-    status: 'COMPLETED',
+    status: 'SUCCEEDED',
     variables: [
       {
         key: 'description',
@@ -110,7 +110,7 @@ TasksFixture.secondSnapshot = [
   },
   {
     id: 5,
-    status: 'COMPLETED',
+    status: 'SUCCEEDED',
     variables: [
       {
         key: 'description',

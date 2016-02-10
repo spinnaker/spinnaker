@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stages.canary.status
         function applyLabel() {
           scope.statusLabel = scope.status === 'LAUNCHED' ? 'launched'
             : scope.status === 'RUNNING' ? 'running'
-            : scope.status === 'COMPLETED' ? 'completed'
+            : scope.status === 'SUCCEEDED' ? 'completed'
             : scope.status === 'FAILED' ? 'failed'
             : scope.status === 'TERMINATED' ? 'terminated'
             : scope.status === 'CANCELED' ? 'canceled'

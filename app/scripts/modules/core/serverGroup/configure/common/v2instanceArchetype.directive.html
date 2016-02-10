@@ -15,7 +15,6 @@
     <select class="form-control input-sm"
             ng-model="command.instanceType"
             ng-options="customType for customType in command.backingData.filtered.instanceTypes"
-            ng-change="instanceArchetypeCtrl.updateInstanceType()"
             required>
       <option value="">Select an instance type...</option>
     </select>

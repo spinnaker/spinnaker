@@ -54,12 +54,6 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
             );
             if (!found) {
               $scope.command.instanceType = null;
-              try {
-                v2modalWizardService.markIncomplete('instance-type');
-              } catch (e) {
-                $log.warn('DEV NOTE: Using deprecated wizard service; consider upgrading to v2 modal wizard');
-                modalWizardService.getWizard().markIncomplete('instance-type');
-              }
             }
           }
         }
@@ -74,8 +68,17 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
           $log.warn('DEV NOTE: Using deprecated wizard service; consider upgrading to v2 modal wizard');
           modalWizardService.getWizard().markComplete('instance-type');
         }
+      } else {
+        try {
+          v2modalWizardService.markIncomplete('instance-type');
+        } catch (e) {
+          $log.warn('DEV NOTE: Using deprecated wizard service; consider upgrading to v2 modal wizard');
+          modalWizardService.getWizard().markIncomplete('instance-type');
+        }
       }
     };
+
+    $scope.$watch('command.instanceType', this.updateInstanceType);
 
     if ($scope.command.region && $scope.command.instanceType && !$scope.command.viewState.instanceProfile) {
       this.selectInstanceType('custom');
