@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./logo/kubernetes.logo.less');
+
 // load all templates into the $templateCache
 var templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
