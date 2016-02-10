@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.application.model
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.netflix.spinnaker.clouddriver.model.Application
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
@@ -25,11 +26,16 @@ import groovy.util.logging.Slf4j
 @CompileStatic
 @EqualsAndHashCode(includes = ["name"])
 class AzureApplication implements Application, Serializable {
+  public static final TypeReference<Map<String, String>> ATTRIBUTES = new TypeReference<Map<String, String>>() {}
   String name
   Map<String, Set<String>> clusterNames = Collections.synchronizedMap(new HashMap<String, Set<String>>())
   Map<String, String> attributes = Collections.synchronizedMap(new HashMap<String, String>())
 
-  AzureApplication() {
+  AzureApplication(String name, Map<String, String> attributes, Map<String, Set<String>> clusterNames) {
     log.info("Constructor....AzureApplication")
+
+    this.name = name
+    this.attributes = attributes
+    this.clusterNames = clusterNames
   }
 }

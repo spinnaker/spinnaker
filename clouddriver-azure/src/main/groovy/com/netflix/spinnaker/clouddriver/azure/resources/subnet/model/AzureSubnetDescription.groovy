@@ -19,11 +19,11 @@ package com.netflix.spinnaker.clouddriver.azure.resources.subnet.model
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
 
 class AzureSubnetDescription extends AzureResourceOpsDescription {
-  String id
-  String addressPrefix
+  String id = "unknown"
+  String addressPrefix = "unknown"
   String etag
-  List<String> ipConfigurations
+  List<String> ipConfigurations = []
   String networkSecurityGroup
-  String provisioningState
   String routeTable
+  String vnet = "unknown"
 }

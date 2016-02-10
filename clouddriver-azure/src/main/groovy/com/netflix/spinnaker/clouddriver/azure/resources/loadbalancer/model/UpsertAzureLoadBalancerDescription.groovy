@@ -17,4 +17,5 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model
 
 class UpsertAzureLoadBalancerDescription extends AzureLoadBalancerDescription {
+  // TODO Remove references to this class and then remove the class itself.
 }

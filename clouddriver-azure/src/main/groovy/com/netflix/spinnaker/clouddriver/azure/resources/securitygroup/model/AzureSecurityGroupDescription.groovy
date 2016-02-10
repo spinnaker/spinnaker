@@ -17,28 +17,24 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.model
 
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
-import com.netflix.spinnaker.clouddriver.azure.resources.subnet.model.AzureSubnetDescription
-import com.microsoft.azure.management.network.models.NetworkSecurityGroup
 
 class AzureSecurityGroupDescription extends AzureResourceOpsDescription {
+  String securityGroupName
   String id
   String etag
   String location
   String type
-  Map<String, String> tags
+  Map<String, String> tags = [:]
   String provisioningState
   String resourceGuid
-  List<AzureSGRule> defaultSecurityRules
-  List<AzureSGRule> securityRules
-  List<AzureSGRule> inboundRules
-  List<AzureSGRule> outboundRules
-  List<String> networkInterfaces
-  List<AzureSubnetDescription> subnets
+  List<AzureSGRule> securityRules = []
+  List<String> networkInterfaces = []
+  List<String> subnets = []
+  String subnet
 
-  class AzureSGRule {
+  static class AzureSGRule {
     String id
     String name
-    String etag
 
     String description /* restricted to 140 chars */
     String access /* gets or sets network traffic is allowed or denied; possible values are “Allow” and “Deny” */
@@ -47,7 +43,6 @@ class AzureSecurityGroupDescription extends AzureResourceOpsDescription {
     String direction /* InBound or Outbound */
     Integer priority /* value can be between 100 and 4096 */
     String protocol /* Tcp, Udp or All(*) */
-    String provisioningState /* Updating/Deleting/Failed */
     String sourceAddressPrefix /* CIDR or source IP range; asterix “*” can also be used to match all source IPs; default tags such as ‘VirtualNetwork’, ‘AzureLoadBalancer’ and ‘Internet’ can also be used */
     String sourcePortRange /* Integer or range between 0 and 65535; asterix “*” can also be used to match all ports */
   }

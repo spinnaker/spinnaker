@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops.validators
 
+import com.netflix.spinnaker.clouddriver.azure.common.StandardAzureAttributeValidator
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.DeleteAzureLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.DeleteAzureLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.azure.common.StandardAzureAttributeValidator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
@@ -34,10 +34,9 @@ class DeleteAzureLoadBalancerDescriptionValidator extends
   void validate(List priorDescriptions, DeleteAzureLoadBalancerDescription description, Errors errors) {
     def helper = new StandardAzureAttributeValidator("deleteAzureLoadBalancerDescription", errors)
 
-/*
-    helper.validateCredentials(description.cloudProvider, accountCredentialsProvider)
-    helper.validateRegion(description.region)
+    helper.validateCredentials(description.credentials, accountCredentialsProvider)
+    helper.validateRegionList(description.regions)
     helper.validateName(description.loadBalancerName, "loadBalancerName")
-*/
+    helper.validateName(description.appName, "appName")
   }
 }

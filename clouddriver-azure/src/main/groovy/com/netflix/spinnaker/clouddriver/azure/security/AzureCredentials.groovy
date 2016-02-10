@@ -27,7 +27,6 @@ import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
 class AzureCredentials {
-  private static final Logger log = Logger.getLogger(this.class.simpleName)
   static final String MANAGEMENT_URL = "https://management.core.windows.net/"
   static final String AAD_URL = "https://login.windows.net/"
 

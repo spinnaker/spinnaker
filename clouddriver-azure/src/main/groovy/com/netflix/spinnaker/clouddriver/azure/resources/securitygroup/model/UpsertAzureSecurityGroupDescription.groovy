@@ -14,18 +14,8 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.azure.common
+package com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.model
 
-import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
-
-class AzureBaseDescription {
-  String cloudProvider
-  String providerType
-  String appName
-  AzureCredentials credentials
-  String region
-  String name
-  String user
-
-  public AzureBaseDescription() {}
+class UpsertAzureSecurityGroupDescription extends AzureSecurityGroupDescription {
+  // TODO Remove references to this and eventually this class
 }

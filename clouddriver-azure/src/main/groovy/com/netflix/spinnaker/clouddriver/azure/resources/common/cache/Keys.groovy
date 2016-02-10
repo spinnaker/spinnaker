@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.azure.common
+package com.netflix.spinnaker.clouddriver.azure.resources.common.cache
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
@@ -22,8 +22,13 @@ import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 class Keys {
   static enum Namespace {
     SECURITY_GROUPS,
-    SUBNETS,
-    NETWORKS
+    AZURE_SUBNETS,
+    AZURE_NETWORKS,
+    AZURE_LOAD_BALANCERS,
+    AZURE_APPLICATIONS,
+    AZURE_CLUSTERS,
+    AZURE_SERVER_GROUPS,
+    AZURE_INSTANCES
 
     final String ns
 
@@ -56,11 +61,18 @@ class Keys {
         def names = Names.parseName(parts[2])
         result << [application: names.app, name: parts[2], id: parts[3], region: parts[4], account: parts[5]]
         break
-      case Namespace.NETWORKS.ns:
+      case Namespace.AZURE_NETWORKS.ns:
         result << [id: parts[2], account: parts[3], region: parts[4]]
         break
-      case Namespace.SUBNETS.ns:
+      case Namespace.AZURE_SUBNETS.ns:
         result << [id: parts[2], account: parts[3], region: parts[4]]
+        break
+      case Namespace.AZURE_LOAD_BALANCERS.ns:
+        def names = Names.parseName(parts[2])
+        result << [application: names.app, name: parts[2], id: parts[3], cluster: parts[4], appname: parts[5], region: parts[6], account: parts[7]]
+        break
+      case Namespace.AZURE_APPLICATIONS.ns:
+        result << [application: parts[2].toLowerCase()]
         break
       default:
         return null
@@ -82,13 +94,29 @@ class Keys {
                              String subnetId,
                              String region,
                              String account) {
-    "$azureCloudProvider.id:${Namespace.SUBNETS}:${subnetId}:${account}:${region}"
+    "$azureCloudProvider.id:${Namespace.AZURE_SUBNETS}:${subnetId}:${account}:${region}"
   }
 
   static String getNetworkKey(AzureCloudProvider azureCloudProvider,
                               String networkId,
                               String region,
                               String account) {
-    "$azureCloudProvider.id:${Namespace.NETWORKS}:${networkId}:${account}:${region}"
+    "$azureCloudProvider.id:${Namespace.AZURE_NETWORKS}:${networkId}:${account}:${region}"
+  }
+
+  static String getLoadBalancerKey(AzureCloudProvider azureCloudProvider,
+                                   String loadBalancerName,
+                                   String loadBalancerId,
+                                   String application,
+                                   String cluster,
+                                   String region,
+                                   String account) {
+    "$azureCloudProvider.id:${Namespace.AZURE_LOAD_BALANCERS}:${loadBalancerName}:${loadBalancerId}:${cluster}:${application}:${region}:${account}"
+  }
+
+  static String getApplicationKey(AzureCloudProvider azureCloudProvider,
+                                  String application ) {
+    //TODO revisit this method when we are ready to store into the cache the Azure server groups
+    "$azureCloudProvider.id:${Namespace.AZURE_APPLICATIONS}:${application.toLowerCase()}"
   }
 }

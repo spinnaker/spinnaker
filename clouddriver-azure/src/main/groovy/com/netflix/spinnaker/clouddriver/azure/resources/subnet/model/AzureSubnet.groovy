@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.azure.config.ops
+package com.netflix.spinnaker.clouddriver.azure.resources.subnet.model
 
-import org.springframework.context.annotation.Bean
-import org.springframework.stereotype.Component
-import groovy.util.logging.Slf4j
+import com.netflix.spinnaker.clouddriver.model.Subnet
+import groovy.transform.Canonical
 
-@Slf4j
-@Component
-class KatoAzureConfig {
-  KatoAzureConfig() {
-    log.info("Constructor....AzureOpsConfig")
-  }
+@Canonical
+class AzureSubnet implements Subnet {
+  String name
+  String id
+  String cloudProvider
+  String account
+  String region
+  String vnet
+  String addressPrefix
+  String networkSecurityGroup
+  String tag
+  String purpose
 }
-

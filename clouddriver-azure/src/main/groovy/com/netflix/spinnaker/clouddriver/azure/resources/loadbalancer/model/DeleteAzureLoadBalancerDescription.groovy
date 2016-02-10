@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model
 
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
-import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 
 class DeleteAzureLoadBalancerDescription extends AzureResourceOpsDescription {
   String loadBalancerName
