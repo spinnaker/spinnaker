@@ -13,6 +13,7 @@ module.exports = angular.module('spinnaker.kubernetes', [
   require('./serverGroup/configure/configure.kubernetes.module.js'),
   require('./serverGroup/details/details.kubernetes.module.js'),
   require('./serverGroup/transformer.js'),
+  require('./instance/details/details.kubernetes.module.js'),
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('kubernetes', {
@@ -23,10 +24,14 @@ module.exports = angular.module('spinnaker.kubernetes', [
       image: {
         reader: 'kubernetesImageReader',
       },
+      instance: {
+        detailsTemplateUrl: require('./instance/details/details.html'),
+        detailsController: 'kubernetesInstanceDetailsController',
+      },
       serverGroup: {
         transformer: 'kubernetesServerGroupTransformer',
         detailsTemplateUrl: require('./serverGroup/details/details.html'),
-        detailsController: 'kubernetesDetailsController',
+        detailsController: 'kubernetesServerGroupDetailsController',
         cloneServerGroupController: 'kubernetesCloneServerGroupController',
         cloneServerGroupTemplateUrl: require('./serverGroup/configure/wizard/wizard.html'),
         commandBuilder: 'kubernetesServerGroupCommandBuilder',
