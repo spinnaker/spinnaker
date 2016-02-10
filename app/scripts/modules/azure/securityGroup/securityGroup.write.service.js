@@ -31,10 +31,10 @@ module.exports = angular
 
     function deleteSecurityGroup(securityGroup, application, params = {}) {
       params.type = 'deleteSecurityGroup';
-      params.securityGroup = securityGroup.name;
+      params.securityGroupName = securityGroup.name;
       params.regions = [securityGroup.region];
       params.credentials = securityGroup.accountId;
-      params.cloudProvider = securityGroup.providerType;
+      //params.cloudProvider = securityGroup.providerType;
       params.appName = application.name;
 
       var operation = taskExecutor.executeTask({
