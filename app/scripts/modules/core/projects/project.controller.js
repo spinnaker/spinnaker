@@ -81,6 +81,7 @@ module.exports = angular.module('spinnaker.core.projects.project.controller', [
         templateUrl: require('./configure/configureProject.modal.html'),
         controller: 'ConfigureProjectModalCtrl',
         controllerAs: 'ctrl',
+        size: 'lg',
         resolve: {
           projectConfig: () => projectConfiguration,
         },
