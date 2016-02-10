@@ -1,0 +1,212 @@
+<div class="details-panel">
+  <div class="header" ng-if="state.loading">
+    <div class="close-button" ng-if="!state.standalone">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <h4 class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
+  </div>
+
+  <div class="header" ng-if="!state.loading">
+    <div class="close-button" ng-if="!state.standalone">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text">
+      <span class="glyphicon glyphicon-hdd {{instance.healthState}}"></span>
+      <h3 select-on-dbl-click>
+        {{instance.instanceId}}
+      </h3>
+    </div>
+    <div>
+      <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }" ng-if="instance.placement">
+        <div class="dropdown" uib-dropdown dropdown-append-to-body>
+          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" ng-disabled="disabled" uib-dropdown-toggle>
+            Instance Actions <span class="caret"></span>
+          </button>
+          <ul class="uib-dropdown-menu" role="menu">
+            <li><a href ng-click="console.log('why did you click this')">Coming soon...</a></li>
+          </ul>
+        </div>
+        <div class="dropdown" ng-if="instance.insightActions.length > 0" uib-dropdown dropdown-append-to-body>
+          <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
+            Insight <span class="caret"></span>
+          </button>
+          <ul class="uib-dropdown-menu" role="menu">
+            <li ng-repeat="action in instance.insightActions"><a target=_blank href="{{action.url}}">{{action.label}}</a></li>
+          </ul>
+        </div>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+  </div>
+  <div class="content" ng-if="!state.loading">
+    <collapsible-section heading="Instance Information" expanded="true">
+      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+        <dt>Launched</dt>
+        <dd ng-if="instance.launchTime">{{instance.launchTime | timestamp}}</dd>
+        <dd ng-if="!instance.launchTime">(Unknown)</dd>
+        <dt>In</dt>
+        <dd>
+          <account-tag account="instance.account" pad="right"></account-tag>
+        </dd>
+        <dt ng-if="instance.serverGroup">Server Group</dt>
+        <dd ng-if="instance.serverGroup">
+          <a ui-sref="^.serverGroup({region: instance.region,
+              accountId: instance.account,
+              serverGroup: instance.serverGroup,
+              provider: instance.provider})">{{instance.serverGroup}}</a>
+        </dd>
+        <dt ng-if="instance.apiVersion">API Version</dt>
+        <dd ng-if="instance.apiVersion">{{instance.apiVersion}}</dd>
+        <dt ng-if="instance.kind">Kind</dt>
+        <dd ng-if="instance.apiVersion">{{instance.kind}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Status" expanded="true">
+      <p ng-if="instance.healthState !== 'Starting' && !healthMetrics.length">
+        No health metrics found for this instance
+      </p>
+      <p ng-if="instance.healthState === 'Starting' && !healthMetrics.length">
+        <span class="glyphicon glyphicon-Starting-triangle"></span> <strong>Starting</strong>
+      </p>
+
+      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '': 'dl-horizontal'">
+        <dt ng-repeat-start="metric in healthMetrics | orderBy: 'type'">{{metric.type | robotToHuman}}</dt>
+        <dd ng-repeat-end>
+          <div ng-if="metric.type !== 'LoadBalancer'">
+            <span uib-tooltip="{{metric.state.toLowerCase() === 'down' ? metric.description : ''}}" tooltip-placement="left">
+              <span class="glyphicon glyphicon-{{metric.state}}-triangle"></span>
+              {{metric.state | robotToHuman}}
+            </span>
+            <span class="pad-left small">
+              <a ng-if="metric.healthCheckUrl" target="_blank" href="{{metric.healthCheckUrl}}">Health Check</a>
+              <span ng-if="metric.healthCheckUrl && metric.statusPageUrl"> | </span>
+              <a ng-if="metric.statusPageUrl" target="_blank" href="{{metric.statusPageUrl}}">Status</a>
+            </span>
+          </div>
+          <div ng-if="metric.type === 'LoadBalancer' && metric.loadBalancers.length" ng-repeat="loadBalancer in metric.loadBalancers">
+            <instance-load-balancer-health load-balancer="loadBalancer"></instance-load-balancer-health>
+          </div>
+        </dd>
+        {{instance.phase}}
+      </dl>
+    </collapsible-section>
+    <div class="content-section" ng-if="instance.notFound">
+      <div class="content-body">
+        <p>Could not find the instance. No other details provided.</p>
+      </div>
+    </div>
+    <collapsible-section heading="DNS" ng-if="!instance.notFound">
+      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal'">
+        <dt ng-if="instance.dnsPolicy">DNS Policy</dt>
+        <dd ng-if="instance.dnsPolicy">
+          {{instance.dnsPolicy}}
+        <dt ng-if="instance.hostIp">Host IP</dt>
+        <dd ng-if="instance.hostIp">
+          <a href="http://{{instance.hostIp}}" target="_blank">{{instance.hostIp}}</a>
+          <copy-to-clipboard
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="{{instance.hostIp}}"
+              tool-tip="Copy to clipboard">
+          </copy-to-clipboard>
+        </dd>
+        <dt ng-if="instance.podIp">Pod IP</dt>
+        <dd ng-if="instance.podIp">
+          <a href="http://{{instance.podIp}}" target="_blank">{{instance.podIp}}</a>
+          <copy-to-clipboard
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="{{instance.podIp}}"
+              tool-tip="Copy to clipboard">
+          </copy-to-clipboard>
+        </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section ng-if="!instance.notFound" heading="Labels">
+      <dl ng-repeat="(key, value) in instance.metadata.labels" class="dl-horizontal"
+          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+        {{key}}: {{value}}
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Containers">
+      <div ng-if="!instance.containers.length">No containers associated with this pod</div>
+      <dl ng-repeat="container in instance.containers" ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal'">
+        <dt>Name</dt>
+        <dd>{{container.name}}</dd>
+        <dt>Image</dt>
+        <dd>{{container.image}}</dd>
+        <div ng-if="container.resources">
+          <div ng-if="container.resources.limits">
+            <div ng-if="container.resources.limits.cpu">
+              <dt>CPU Limit</dt>
+              <dd>{{container.resources.limits.cpu}}</dd>
+            </div>
+            <div ng-if="container.resources.limits.memory">
+              <dt>Memory Limit</dt>
+              <dd>{{container.resources.limits.memory}}</dd>
+            </div>
+          </div>
+          <div ng-if="container.resources.requests">
+            <div ng-if="container.resources.requests.cpu">
+              <dt>CPU Request</dt>
+              <dd>{{container.resources.requests.cpu}}</dd>
+            </div>
+            <div ng-if="container.resources.requests.memory">
+              <dt>Memory Request</dt>
+              <dd>{{container.resources.requests.memory}}</dd>
+            </div>
+          </div>
+        </div>
+        <dt>Image Pull Policy</dt>
+        <dd>{{container.imagePullPolicy}}</dd>
+        <dt>Termination Message Path</dt>
+        <dd>{{container.terminationMessagePath}}
+          <copy-to-clipboard
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="{{container.terminationMessagePath}}"
+              tool-tip="Copy to clipboard">
+          </copy-to-clipboard>
+        </dd>
+        <dl ng-repeat="volumeMount in container.volumeMounts" class="dl-horizontal"
+            ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+        </dl>
+        <dt>Ready</dt>
+        <dd>{{instance.containerStatuses[$index].ready}}</dd>
+        <dt>Restart Count</dt>
+        <dd>{{instance.containerStatuses[$index].restartCount}}</dd>
+        <div ng-if="instance.containerStatuses[$index].state.running">
+          <dt>Running</dt>
+          <dd>
+            Started At: {{instance.containerStatuses[$index].state.running.startedAt}}
+          </dd>
+        </div>
+        <div ng-if="instance.containerStatuses[$index].state.waiting">
+          <dt>Waiting</dt>
+          <dd>
+            Reason: {{instance.containerStatuses[$index].state.waiting.reason}}
+            Message: {{instance.containerStatuses[$index].state.waiting.message}}
+          </dd>
+        </div>
+        <div ng-if="instance.containerStatuses[$index].state.terminated">
+          <dt>Terminated</dt>
+          <dd>
+            Started At: {{instance.containerStatuses[$index].state.terminated.finishedAt}}
+            Finished At: {{instance.containerStatuses[$index].state.terminated.startedAt}}
+            Message: {{instance.containerStatuses[$index].state.terminated.message}}
+            Reason: {{instance.containerStatuses[$index].state.terminated.reason}}
+            Exit Code: {{instance.containerStatuses[$index].state.terminated.exitCode}}
+            Signal: {{instance.containerStatuses[$index].state.terminated.signal}}
+          </dd>
+        </div>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Logs">
+    </collapsible-section>
+  </div>
+</div>
