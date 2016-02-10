@@ -253,7 +253,7 @@ describe('Service: InstanceType', function () {
       it('ignores non-running tasks', function() {
         var app = this.application;
         this.buildCommonTask('resizeasg');
-        app.tasks[0].status = 'COMPLETED';
+        app.tasks[0].status = 'SUCCEEDED';
         clusterService.addTasksToServerGroups(app);
         app.serverGroups.forEach(function(serverGroup) {
           expect(serverGroup.runningTasks.length).toBe(0);

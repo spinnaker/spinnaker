@@ -53,7 +53,7 @@
           <label>
             <input type="checkbox"
                    ng-model="sortFilter.status.RUNNING"
-                   ng-change="vm.updateExecutionGroups()"/>
+                   ng-change="vm.updateExecutionGroups(true)"/>
             Running
           </label>
         </div>
@@ -61,23 +61,23 @@
           <label>
             <input type="checkbox"
                    ng-model="sortFilter.status.FAILED"
-                   ng-change="vm.updateExecutionGroups()"/>
+                   ng-change="vm.updateExecutionGroups(true)"/>
             Failed
           </label>
         </div>
         <div class="checkbox">
           <label>
             <input type="checkbox"
-                   ng-model="sortFilter.status.COMPLETED"
-                   ng-change="vm.updateExecutionGroups()"/>
-            Completed
+                   ng-model="sortFilter.status.SUCCEEDED"
+                   ng-change="vm.updateExecutionGroups(true)"/>
+            Succeeded
           </label>
         </div>
         <div class="checkbox">
           <label>
             <input type="checkbox"
                    ng-model="sortFilter.status.NOT_STARTED"
-                   ng-change="vm.updateExecutionGroups()"/>
+                   ng-change="vm.updateExecutionGroups(true)"/>
             Not Started
           </label>
         </div>
@@ -85,7 +85,7 @@
           <label>
             <input type="checkbox"
                    ng-model="sortFilter.status.CANCELED"
-                   ng-change="vm.updateExecutionGroups()"/>
+                   ng-change="vm.updateExecutionGroups(true)"/>
             Canceled
           </label>
         </div>
@@ -93,7 +93,7 @@
           <label>
             <input type="checkbox"
                    ng-model="sortFilter.status.STOPPED"
-                   ng-change="vm.updateExecutionGroups()"/>
+                   ng-change="vm.updateExecutionGroups(true)"/>
             Stopped
           </label>
         </div>
