@@ -14,10 +14,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
   require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
-  .controller('kubernetesDetailsController', function ($scope, $state, app, serverGroup, InsightFilterStateModel,
-                                                       serverGroupReader, $uibModal, serverGroupWriter,
-                                                       runningExecutionsService, serverGroupWarningMessageService,
-                                                       kubernetesServerGroupCommandBuilder) {
+  .controller('kubernetesServerGroupDetailsController', function ($scope, $state, app, serverGroup, InsightFilterStateModel,
+                                                                  serverGroupReader, $uibModal, serverGroupWriter,
+                                                                  runningExecutionsService, serverGroupWarningMessageService,
+                                                                  kubernetesServerGroupCommandBuilder) {
 
     let application = app;
 
