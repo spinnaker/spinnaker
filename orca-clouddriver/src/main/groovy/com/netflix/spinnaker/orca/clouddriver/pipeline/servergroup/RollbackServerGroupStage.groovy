@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Step
@@ -79,11 +80,26 @@ class RollbackServerGroupStage extends LinearStage {
     @JsonIgnore
     DisableServerGroupStage disableServerGroupStage
 
+    @Autowired
+    @JsonIgnore
+    ResizeServerGroupStage resizeServerGroupStage
+
     @JsonIgnore
     List<Step> buildSteps(Stage stage) {
       Map enableServerGroupContext = new HashMap(stage.context)
       enableServerGroupContext.serverGroupName = restoreServerGroupName
       injectAfter(stage, "enable", enableServerGroupStage, enableServerGroupContext)
+
+      Map resizeServerGroupContext = new HashMap(stage.context) + [
+        action : ResizeStrategy.ResizeAction.scale_to_server_group.toString(),
+        source : {
+          def source = stage.mapTo(ResizeStrategy.Source)
+          source.serverGroupName = rollbackServerGroupName
+          return source
+        }.call(),
+        asgName: restoreServerGroupName
+      ]
+      injectAfter(stage, "resize", resizeServerGroupStage, resizeServerGroupContext)
 
       Map disableServerGroupContext = new HashMap(stage.context)
       disableServerGroupContext.serverGroupName = rollbackServerGroupName

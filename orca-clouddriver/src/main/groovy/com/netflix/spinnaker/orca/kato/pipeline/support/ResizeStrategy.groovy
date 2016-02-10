@@ -22,7 +22,7 @@ import groovy.transform.Canonical
 
 interface ResizeStrategy {
   static enum ResizeAction {
-    scale_exact, scale_up, scale_down, scale_to_cluster
+    scale_exact, scale_up, scale_down, scale_to_cluster, scale_to_server_group
   }
 
   static class OptionalConfiguration {
@@ -50,6 +50,28 @@ interface ResizeStrategy {
     Integer max
     Integer desired
     Integer min
+  }
+
+  @Canonical
+  static class Source implements Serializable {
+    Collection<String> zones
+    Collection<String> regions
+    String region
+    String zone
+
+    String serverGroupName
+    String credentials
+    String cloudProvider
+
+    public String getLocation() {
+      def location = region ?: (regions ? regions[0] : null)
+
+      if (!location) {
+        location = zone ?: (zones ? zones[0] : null)
+      }
+
+      return location
+    }
   }
 
   boolean handles(ResizeAction resizeAction)
