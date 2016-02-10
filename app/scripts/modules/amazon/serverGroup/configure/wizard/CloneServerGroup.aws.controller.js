@@ -101,13 +101,9 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
     }
 
     function initializeWizardState() {
-      if (serverGroupCommand.viewState.instanceProfile && serverGroupCommand.viewState.instanceProfile !== 'custom') {
-        v2modalWizardService.markComplete('instance-type');
-      }
       var mode = serverGroupCommand.viewState.mode;
       if (mode === 'clone' || mode === 'editPipeline') {
         v2modalWizardService.markComplete('location');
-        v2modalWizardService.markComplete('instance-type');
         v2modalWizardService.markComplete('load-balancers');
         v2modalWizardService.markComplete('security-groups');
         v2modalWizardService.markComplete('capacity');
@@ -159,7 +155,6 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
         v2modalWizardService.markDirty('capacity');
       }
       if (result.dirty.instanceType) {
-        v2modalWizardService.markIncomplete('instance-type');
         v2modalWizardService.markDirty('instance-type');
       }
     }
