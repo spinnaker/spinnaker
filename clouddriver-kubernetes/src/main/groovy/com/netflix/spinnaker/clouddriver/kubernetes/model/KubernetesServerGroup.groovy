@@ -39,6 +39,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
   Map<String, Object> launchConfig
   Map<String, String> labels = [:]
   List<Container> containers
+  ReplicationController replicationController
 
   Boolean isDisabled() {
     this.labels ? !(this.labels.any { key, value -> KubernetesUtil.isLoadBalancerLabel(key) && value == "true" }) : false
@@ -61,6 +62,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     this.launchConfig = [:]
     this.labels = replicationController.spec?.template?.metadata?.labels
     this.containers = replicationController.spec?.template?.spec?.containers
+    this.replicationController = replicationController
   }
 
   @Override

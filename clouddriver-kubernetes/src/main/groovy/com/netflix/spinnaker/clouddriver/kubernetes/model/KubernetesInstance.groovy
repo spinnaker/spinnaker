@@ -29,6 +29,7 @@ class KubernetesInstance implements Instance, Serializable {
   String zone
   List<Map<String, String>> health
   String serverGroupName
+  Pod pod
 
   static HealthState convertContainerState(ContainerState state) {
     state?.running ? HealthState.Up :
@@ -42,6 +43,7 @@ class KubernetesInstance implements Instance, Serializable {
     this.launchTime = KubernetesModelUtil.translateTime(pod.status?.startTime)
     this.zone = pod.metadata?.namespace
     this.health = []
+    this.pod = pod
     pod.status?.containerStatuses?.forEach {
       this.health << [name: it.name,
                       state: convertContainerState(it.state).toString(),
