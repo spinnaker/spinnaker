@@ -1,96 +1,78 @@
 <form ng-controller="kubernetesServerGroupContainersController as containersController" class="container-fluid form-horizontal" name="containers" novalidate>
-  <div class="modal-body">
-    <ng-form name="containers">
-      <div ng-repeat="container in command.containers">
+  <ng-form name="containers">
+    <div ng-repeat="container in command.containers">
 
-        <hr ng-if="$index > 0">
+      <hr ng-if="$index > 0">
 
-        <div class="form-group">
-          <div class="col-md-4 sm-label-right">
-            Image
-            <help-field key="kubernetes.containers.image"></help-field>
-          </div>
-          <div class="col-md-6">
-            <p>{{container.image}}</p>
-          </div>
+      <div class="form-group">
+        <div class="col-md-4 sm-label-right">
+          Image
+          <help-field key="kubernetes.containers.image"></help-field>
         </div>
-
-        <div class="form-group">
-          <div class="col-md-4 sm-label-right">
-            Name
-            <help-field key="kubernetes.containers.name"></help-field>
-          </div>
-          <div class="col-md-6">
-            <input type="text" class="form-control input-sm" name="details" ng-model="container.name"/>
-          </div>
+        <div class="col-md-6">
+          <p>{{container.image}}</p>
         </div>
-
-        </br>
-        <div ng-click="container.viewState.configureResources = !container.viewState.configureResources">
-          <span class="glyphicon" ng-class="{'glyphicon-chevron-up': !container.viewState.configureResources, 'glyphicon-chevron-down': container.viewState.configureResources}"/>
-          <em>Configure Resources</em>
-        </div>
-
-        <div ng-show="container.viewState.configureResources">
-          </br>
-          <div class="form-group">
-            <div class="col-md-4 sm-label-right">
-              CPU requested
-              <help-field key="kubernetes.containers.requests.cpu"></help-field>
-            </div>
-            <div class="col-md-6">
-              <input type="text" class="form-control input-sm" name="details" ng-model="container.requests.cpu" ng-pattern="containersController.cpuPattern"/>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <div class="col-md-4 sm-label-right">
-              Memory requested
-              <help-field key="kubernetes.containers.requests.memory"></help-field>
-            </div>
-            <div class="col-md-6">
-              <input type="text" class="form-control input-sm" name="details" ng-model="container.requests.memory" ng-pattern="containersController.memoryPattern"/>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <div class="col-md-4 sm-label-right">
-              CPU limit
-              <help-field key="kubernetes.containers.limits.cpu"></help-field>
-            </div>
-            <div class="col-md-6">
-              <input type="text" class="form-control input-sm" name="details" ng-model="container.limits.cpu" ng-pattern="containersController.cpuPattern"/>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <div class="col-md-4 sm-label-right">
-              Memory limit
-              <help-field key="kubernetes.containers.limits.memory"></help-field>
-            </div>
-            <div class="col-md-6">
-              <input type="text" class="form-control input-sm" name="details" ng-model="container.limits.memory" ng-pattern="containersController.memoryPattern"/>
-            </div>
-          </div>
-        </div>
-
       </div>
-    </ng-form>
-  </div>
 
-  <div class="modal-footer">
-    <button class="btn btn-default pull-left"
-            ng-click="wizard.previousPage(form.$valid)">
-      <span class="glyphicon glyphicon-chevron-left"></span> Back
-    </button>
-    <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
-    <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="form.$invalid || !ctrl.isValid() || taskMonitor.submitting"
-                   label="command.viewState.submitButtonLabel"
-                   submitting="taskMonitor.submitting" on-click="ctrl.clone()" is-new="true"></submit-button>
-    <button class="btn btn-primary"
-            ng-disabled="form.$invalid"
-            ng-click="wizard.nextPage(form.$valid)">
-      Next <span class="glyphicon glyphicon-chevron-right"></span>
-    </button>
-  </div>
+      <div class="form-group">
+        <div class="col-md-4 sm-label-right">
+          Name
+          <help-field key="kubernetes.containers.name"></help-field>
+        </div>
+        <div class="col-md-6">
+          <input type="text" class="form-control input-sm" name="details" ng-model="container.name"/>
+        </div>
+      </div>
+
+      </br>
+      <div ng-click="container.viewState.configureResources = !container.viewState.configureResources">
+        <span class="glyphicon" ng-class="{'glyphicon-chevron-up': !container.viewState.configureResources, 'glyphicon-chevron-down': container.viewState.configureResources}"/>
+        <em>Configure Resources</em>
+      </div>
+
+      <div ng-show="container.viewState.configureResources">
+        </br>
+        <div class="form-group">
+          <div class="col-md-4 sm-label-right">
+            CPU requested
+            <help-field key="kubernetes.containers.requests.cpu"></help-field>
+          </div>
+          <div class="col-md-6">
+            <input type="text" class="form-control input-sm" name="details" ng-model="container.requests.cpu" ng-pattern="containersController.cpuPattern"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-md-4 sm-label-right">
+            Memory requested
+            <help-field key="kubernetes.containers.requests.memory"></help-field>
+          </div>
+          <div class="col-md-6">
+            <input type="text" class="form-control input-sm" name="details" ng-model="container.requests.memory" ng-pattern="containersController.memoryPattern"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-md-4 sm-label-right">
+            CPU limit
+            <help-field key="kubernetes.containers.limits.cpu"></help-field>
+          </div>
+          <div class="col-md-6">
+            <input type="text" class="form-control input-sm" name="details" ng-model="container.limits.cpu" ng-pattern="containersController.cpuPattern"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-md-4 sm-label-right">
+            Memory limit
+            <help-field key="kubernetes.containers.limits.memory"></help-field>
+          </div>
+          <div class="col-md-6">
+            <input type="text" class="form-control input-sm" name="details" ng-model="container.limits.memory" ng-pattern="containersController.memoryPattern"/>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </ng-form>
 </form>

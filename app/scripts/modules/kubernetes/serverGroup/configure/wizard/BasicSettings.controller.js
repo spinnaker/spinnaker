@@ -6,13 +6,13 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.basi
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
   require('../../../../core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
-  require('../../../../core/modal/wizard/modalWizard.service.js'),
+  require('../../../../core/modal/wizard/v2modalWizard.service.js'),
   require('../../../../core/utils/rx.js'),
   require('../../../../core/image/image.reader.js'),
   require('../../../../core/naming/naming.service.js'),
 ])
   .controller('kubernetesServerGroupBasicSettingsController', function($scope, $controller, $uibModalStack, $state,
-                                                          modalWizardService, rx, imageReader, namingService) {
+                                                          v2modalWizardService, rx, imageReader, namingService) {
 
     function searchImages(q) {
       $scope.command.backingData.filtered.images = [
@@ -65,9 +65,10 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.basi
 
     $scope.$watch('form.$valid', function(newVal) {
       if (newVal) {
-        modalWizardService.getWizard().markClean('location');
+        v2modalWizardService.markClean('location');
+        v2modalWizardService.markComplete('location');
       } else {
-        modalWizardService.getWizard().markDirty('location');
+        v2modalWizardService.markIncomplete('location');
       }
     });
   });
