@@ -18,12 +18,9 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy
 
 import com.netflix.frigga.NameValidation
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesIllegalArgumentException
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
-import io.fabric8.kubernetes.api.model.PodList
 import io.fabric8.kubernetes.api.model.ReplicationController
-import io.fabric8.kubernetes.api.model.ReplicationControllerList
-import io.fabric8.kubernetes.api.model.Secret
-import io.fabric8.kubernetes.api.model.Service
 
 class KubernetesUtil {
   static String SECURITY_GROUP_LABEL_PREFIX = "security-group-"
@@ -49,6 +46,20 @@ class KubernetesUtil {
 
   static List<String> getImagePullSecrets(ReplicationController rc) {
     rc.spec?.template?.spec?.imagePullSecrets?.collect({ it.name })
+  }
+
+  static String validateNamespace(KubernetesCredentials credentials, String namespace) {
+    def resolvedNamespace = namespace ?: "default"
+    if (!credentials.isRegisteredNamespace(resolvedNamespace)) {
+      def error = "Registered namespaces are ${credentials.getNamespaces()}."
+      if (namespace) {
+        error = "Namespace '$namespace' was not registered with provided credentials. $error"
+      } else {
+        error = "No provided namespace assumed to mean 'default' was not registered with provided credentials. $error"
+      }
+      throw new KubernetesIllegalArgumentException(error)
+    }
+    return resolvedNamespace
   }
 
   static List<String> getDescriptionLoadBalancers(ReplicationController rc) {

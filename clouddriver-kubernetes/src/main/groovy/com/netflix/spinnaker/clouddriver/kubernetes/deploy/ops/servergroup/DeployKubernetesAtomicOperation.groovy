@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 Google, Inc.
+ * Copyright 2016 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops
+package com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.servergroup
 
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.DeployKubernetesAtomicOperationDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesIllegalArgumentException
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder
@@ -56,22 +55,10 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
 
   ReplicationController deployDescription() {
     task.updateStatus BASE_PHASE, "Initializing creation of replication controller."
-
-
     task.updateStatus BASE_PHASE, "Looking up provided namespace..."
 
     def credentials = description.kubernetesCredentials
-    def namespace = description.namespace ? description.namespace : "default"
-
-    if (!credentials.isRegisteredNamespace(namespace)) {
-      def error = "Registered namespaces are ${credentials.getNamespaces()}."
-      if (description.namespace) {
-        error = "Namespace '$namespace' was not registered with account '$description.credentials'. $error"
-      } else {
-        error = "No provided namespace assumed to mean 'default' was not registered with account '$description.credentials'. $error"
-      }
-      throw new KubernetesIllegalArgumentException(error)
-    }
+    def namespace = KubernetesUtil.validateNamespace(credentials, description.namespace)
 
     def clusterName = KubernetesUtil.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
     task.updateStatus BASE_PHASE, "Looking up next sequence index..."

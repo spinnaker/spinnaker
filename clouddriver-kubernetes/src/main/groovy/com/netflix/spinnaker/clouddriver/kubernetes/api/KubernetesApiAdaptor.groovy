@@ -54,12 +54,12 @@ class KubernetesApiAdaptor {
     client.services().inNamespace(namespace).withName(service).get()
   }
 
-  Service getSecurityGroup(String namespace, String securityGroup) {
-    getService(namespace, securityGroup)
+  Service createService(String namespace, Service service) {
+    client.services().inNamespace(namespace).create(service)
   }
 
-  Service getLoadBalancer(String namespace, String loadBalancer) {
-    getService(namespace, loadBalancer)
+  Service replaceService(String namespace, String name, Service service) {
+    client.services().inNamespace(namespace).withName(name).replace(service)
   }
 
   Secret getSecret(String namespace, String secret) {
