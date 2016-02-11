@@ -20,5 +20,9 @@ module.exports = angular
     require('./strategies/scopeLadder/scopeLadder.module.js'),
     require('./strategies/aca/aca.module.js'),
     require('./fastPropertyPromotion.directive.js'),
-    require('./modal/wizard/fastPropertyWizard.module')
+    require('./modal/wizard/fastPropertyWizard.module'),
+    require('./regionSelector.component'),
+    require('./stackSelector.component'),
+    require('./clusterSelector.component'),
+    require('./asgSelector.component'),
   ]);

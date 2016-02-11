@@ -1,0 +1,20 @@
+<property
+  ng-repeat="property in propertyList.stage.persistedProperties"
+  property="property"
+  index="$index"
+  property-list="propertyList.propertyList"
+  stage="propertyList.stage">
+</property>
+
+
+<div class="form-group">
+  <div class="col-md-7 col-md-offset-2">
+    <p ng-if="!propertyList.stage.persistedProperties.length">
+      You don't have any persisted properties configured.
+    </p>
+    <button class="btn btn-block btn-add-trigger add-new" ng-click="propertyList.addProperty()">
+      <span class="glyphicon glyphicon-plus-sign"></span> Add Property
+    </button>
+  </div>
+</div>
+

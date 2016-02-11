@@ -1,0 +1,135 @@
+<form role="form" novalidate name="fastPropertyScopeForm">
+  <div class="modal-body">
+    <div class="row">
+
+      <!--{{propertyStage.stage}}-->
+
+      <div class="row">
+          <div class="col-md-12">
+            <h4 class="section">Properties</h4>
+            <stage-config-field
+              label="Copy From Stage"
+              ng-if="propertyStage.hasPreviousPropertyStages()">
+
+              <div class="row" style="margin-bottom: 10px">
+                <div class="col-md-10">
+                  <select
+                    name="previousStageName"
+                    class="form-control input-sm"
+                    ng-model="propertyStage.stage.copiedFromName"
+                    ng-options="name for name in propertyStage.getPreviousPropertyStageNames()">
+                  </select>
+                </div>
+                <div class="col-md-2">
+                  <button class="btn btn-primary btn-sm pull-right" ng-click="propertyStage.setStageFromPrevious()">Copy</button>
+                </div>
+              </div>
+            </stage-config-field>
+
+
+            <div class="form-horizontal fp-scope-config-view">
+
+              <persisted-property-create-list
+                stage="propertyStage.stage"
+                property-list="propertyStage.appPropertyList">
+              </persisted-property-create-list>
+
+              <h4 class="section">Scope</h4>
+
+              <stage-config-field label="Environment">
+                <select
+                  autofocus
+                  name="env"
+                  class="form-control input-sm"
+                  ng-model="propertyStage.stage.scope.env"
+                  required
+                  ng-options="env for env in ['prod', 'test']">
+                </select>
+              </stage-config-field>
+
+              <stage-config-field
+                label="Enable Rollback" help-key="pipeline.config.fastProperty.rollback">
+                <input
+                  type="checkbox"
+                  style="margin-top: 10px"
+                  ng-model="propertyStage.stage.rollbackProperties" >
+              </stage-config-field>
+
+              <stage-config-field ng-if="!propertyStage.applicationsLoaded">
+                <div
+                  style="margin: 35px"
+                  us-spinner="{radius:8, width:3, length:5}">
+                </div>
+              </stage-config-field>
+
+              <div ng-if="propertyStage.applicationsLoaded">
+
+                <stage-config-field label="Application">
+                  <p class="form-control-static input-sm ">{{application.name}}</p>
+                </stage-config-field>
+
+                <stage-config-field
+                  label="Region"
+                  ng-if="propertyStage.stage.scope.appIdList && propertyStage.scopeLists.region.length">
+                  <region-selector
+                    model="propertyStage.stage.scope.region"
+                    regions="propertyStage.scopeLists.region"
+                    on-change="propertyStage.regionChange(region)"
+                  >
+                  </region-selector>
+                </stage-config-field>
+
+                <stage-config-field
+                  label="Stack"
+                  ng-if="propertyStage.stage.scope.region">
+                  <stack-selector
+                    model="propertyStage.stage.scope.stack"
+                    stacks="propertyStage.scopeLists.stack"
+                    on-change="propertyStage.stackChange(stack)">
+                  </stack-selector>
+                </stage-config-field>
+
+                <stage-config-field
+                  label="Cluster"
+                  ng-if="propertyStage.stage.scope.stack">
+                  <cluster-selector-component
+                    model="propertyStage.stage.scope.cluster"
+                    clusters="propertyStage.scopeLists.cluster"
+                    on-change="propertyStage.clusterChange(cluster)" >
+                  </cluster-selector-component>
+                </stage-config-field>
+
+
+                <stage-config-field label="Impact Count">
+                  <p ng-if="!propertyStage.impactLoading"
+                     style="color:#b82525; font-weight: 600; font-size: larger; padding-top: 3px; margin-left: 9px">
+                    {{propertyStage.impact}} instances
+                  </p>
+                  <p ng-if="propertyStage.impactLoading" us-spinner="{radius:8, width:3, length: 5}"></p>
+                </stage-config-field>
+
+              </div>
+
+
+
+              <h4 class="section">Notifications</h4>
+
+              <stage-config-field label="Email">
+                <input type="text" class="form-control input-sm" ng-model="propertyStage.stage.email">
+              </stage-config-field>
+
+              <stage-config-field label="CMC">
+                <input type="text" class="form-control input-sm" ng-model="propertyStage.stage.cmcTicket">
+              </stage-config-field>
+
+            </div>
+          </div>
+        </div>
+
+    </div>
+
+  </div>
+</form>
+
+
+<h4 class="section">Stage Details</h4>

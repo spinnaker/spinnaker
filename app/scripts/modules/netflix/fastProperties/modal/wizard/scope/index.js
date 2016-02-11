@@ -11,5 +11,5 @@ module.exports = angular
     require('./scopeAsgSelector.directive'),
     require('./scopeAvailabilityZoneSelector.directive'),
     require('./scopeInstanceSelector.directive'),
-
+    require('./scopeSingleAppSelector.directive'),
   ]);

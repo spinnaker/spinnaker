@@ -1,39 +1,44 @@
 <div class="form-horizontal">
 
-  <h4 ng-if="!pipeline.strategy" style="margin-top: 0">Concurrent Executions</h4>
-  <div class="form-group" ng-if="!pipeline.strategy">
-    <div class="col-md-11 col-md-offset-1">
-      <div class="checkbox">
-        <label>
-          <input type="checkbox" ng-model="pipeline.limitConcurrent">
-         <strong>Disable concurrent pipeline executions (only run one at a time). </strong>
-        </label>
+  <!--<h4 ng-if="!pipeline.strategy" style="margin-top: 0">Concurrent Executions</h4>-->
+  <!--<div class="form-group" ng-if="!pipeline.strategy">-->
+    <!--<div class="col-md-11 col-md-offset-1">-->
+      <!--<div class="checkbox">-->
+        <!--<label>-->
+          <!--<input type="checkbox" ng-model="pipeline.limitConcurrent">-->
+         <!--<strong>Disable concurrent pipeline executions (only run one at a time). </strong>-->
+        <!--</label>-->
+      <!--</div>-->
+    <!--</div>-->
+  <!--</div>-->
+
+  <div ng-if="!pipeline.strategy">
+    <h4>Automated Triggers</h4>
+    <trigger ng-repeat="trigger in pipeline.triggers" trigger="trigger" pipeline="pipeline" application="application"></trigger>
+    <div class="row" ng-if="!pipeline.triggers.length">
+      <p class="col-md-12">
+        You don't have any triggers configured for {{pipeline.name}}.
+      </p>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <button class="btn btn-block btn-add-trigger add-new" ng-click="triggersCtrl.addTrigger()">
+          <span class="glyphicon glyphicon-plus-sign"></span> Add Trigger
+        </button>
       </div>
     </div>
   </div>
 
-  <div ng-if="!pipeline.strategy">
-  <h4>Automated Triggers</h4>
-  <trigger ng-repeat="trigger in pipeline.triggers" trigger="trigger" pipeline="pipeline" application="application"></trigger>
-  <div class="row" ng-if="!pipeline.triggers.length">
-    <p class="col-md-12">
-      You don't have any triggers configured for {{pipeline.name}}.
-    </p>
-  </div>
-  <div class="row">
-    <div class="col-md-12">
-      <button class="btn btn-block btn-add-trigger add-new" ng-click="triggersCtrl.addTrigger()">
-        <span class="glyphicon glyphicon-plus-sign"></span> Add Trigger
-      </button>
-    </div>
-  </div>
-  </div>
+  <!--<h4 ng-style="{'margin-top': pipeline.strategy ? '0' : '25px'}">Parameters</h4>-->
+  <!--<parameters pipeline="pipeline"></parameters>-->
 
-  <h4 ng-style="{'margin-top': pipeline.strategy ? '0' : '25px'}">Parameters</h4>
-  <parameters pipeline="pipeline"></parameters>
+  <!--<h4 ng-if="!pipeline.strategy">Notifications</h4>-->
+  <!--<notification-list ng-if="!pipeline.strategy" level="pipeline" notifications="pipeline.notifications" parent="pipeline">-->
+  <!--</notification-list>-->
 
-  <h4 ng-if="!pipeline.strategy">Notifications</h4>
-  <notification-list ng-if="!pipeline.strategy" level="pipeline" notifications="pipeline.notifications" parent="pipeline">
-  </notification-list>
+  <!--<h4>Persisted Properties</h4>-->
+  <!--<persisted-property-list-->
+    <!--pipeline="pipeline">-->
+  <!--</persisted-property-list>-->
 
 </div>
