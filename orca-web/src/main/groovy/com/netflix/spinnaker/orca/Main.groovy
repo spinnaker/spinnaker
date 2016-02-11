@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.config.ErrorConfiguration
 import com.netflix.spinnaker.config.TomcatConfiguration
 import com.netflix.spinnaker.orca.applications.config.ApplicationConfig
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
@@ -53,6 +54,7 @@ import org.springframework.scheduling.annotation.EnableAsync
 @EnableBatchProcessing(modular = true)
 @Import([
   WebConfiguration,
+  ErrorConfiguration,
   OrcaConfiguration,
   OrcaPersistenceConfiguration,
   RedisConfiguration,
