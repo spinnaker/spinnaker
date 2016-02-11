@@ -27,8 +27,10 @@ import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
@@ -64,55 +66,115 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     FAIL
   }
 
+  @Value('${findImage.defaultResolveMissingLocations:false}')
+  boolean defaultResolveMissingLocations = false
+
   @Autowired
   OortService oortService
   @Autowired
   ObjectMapper objectMapper
 
+  @Canonical
+  static class FindImageConfiguration {
+    String cluster
+    List<String> regions
+    List<String> zones
+    Boolean onlyEnabled = true
+    Boolean resolveMissingLocations
+    SelectionStrategy selectionStrategy = SelectionStrategy.NEWEST
+
+    String getApplication() {
+      Names.parseName(cluster).app
+    }
+
+    Set<Location> getRequiredLocations() {
+        return regions?.collect { new Location(Location.Type.REGION, it) } ?:
+          zones?.collect { new Location(Location.Type.ZONE, it) } ?:
+            []
+    }
+  }
+
   @Override
   TaskResult execute(Stage stage) {
     String cloudProvider = getCloudProvider(stage)
-    String app = Names.parseName(stage.context.cluster).app
     String account = getCredentials(stage)
-    String cluster = stage.context.cluster
-    Set<Location> requiredLocations = []
-    if (stage.context.regions) {
-      requiredLocations = stage.context.regions.collect({
-        return new Location(type: Location.Type.REGION, value: it)
-      }) as Set
-    } else if (stage.context.zones) {
-      requiredLocations = stage.context.zones.collect({
-        return new Location(type: Location.Type.ZONE, value: it)
-      }) as Set
+    FindImageConfiguration config = stage.mapTo(FindImageConfiguration)
+    if (config.resolveMissingLocations == null) {
+      config.resolveMissingLocations = defaultResolveMissingLocations
     }
 
-    def onlyEnabled = stage.context.onlyEnabled == null ? true : (Boolean.valueOf(stage.context.onlyEnabled.toString()))
-    def selectionStrat = SelectionStrategy.valueOf(stage.context.selectionStrategy?.toString() ?: "NEWEST")
+    List<Location> missingLocations = []
 
-    Map<Location, Map<String, Object>> imageSummaries = requiredLocations.collectEntries { location ->
+    Set<String> imageNames = []
+    Map<Location, String> imageIds = [:]
+
+    Map<Location, Map<String, Object>> imageSummaries = config.requiredLocations.collectEntries { location ->
       try {
         def lookupResults = oortService.getServerGroupSummary(
-          app,
+          config.application,
           account,
-          cluster,
+          config.cluster,
           cloudProvider,
           location.value,
-          selectionStrat.toString(),
+          config.selectionStrategy.toString(),
           SUMMARY_TYPE,
-          onlyEnabled.toString())
+          config.onlyEnabled.toString())
+        imageNames << lookupResults.imageName
+        imageIds[location] = lookupResults.imageId
         return [(location): lookupResults]
       } catch (RetrofitError e) {
         if (e.response.status == 404) {
-          def message = "Could not find cluster '$cluster' for '$account' in '$location.value'."
+          final Map reason
           try {
-            Map reason = objectMapper.readValue(e.response.body.in(), new TypeReference<Map<String, Object>>() {})
-            if (reason.error.contains("target.fail.strategy")){
-              message = "Multiple possible server groups present in ${location.value}"
-            }
-          } catch (Exception ignored) {}
-          throw new IllegalStateException(message)
+            reason = objectMapper.readValue(e.response.body.in(), new TypeReference<Map<String, Object>>() {})
+          } catch (Exception ex) {
+            throw new IllegalStateException("Unexpected response from API")
+          }
+          if (reason.error?.contains("target.fail.strategy")){
+            throw new IllegalStateException("Multiple possible server groups present in ${location.value}")
+          }
+          if (config.resolveMissingLocations) {
+            missingLocations << location
+            return [(location): null]
+          }
+
+          throw new IllegalStateException("Could not find cluster '$config.cluster' for '$account' in '$location.value'.")
         }
         throw e
+      }
+    }
+
+    if (missingLocations) {
+      if (imageNames.size() != 1) {
+        throw new IllegalStateException("Request to resolve images for missing ${config.requiredLocations.first().pluralType()} requires exactly one image. (Found ${imageNames})")
+      }
+
+      def searchImage = imageIds.entrySet().first()
+
+      def deploymentDetailTemplate = imageSummaries.find { k, v -> v != null}.value
+      if (!(deploymentDetailTemplate.image && deploymentDetailTemplate.buildInfo)) {
+        throw new IllegalStateException("Missing image or buildInfo on ${deploymentDetailTemplate}")
+      }
+
+      def mkDeploymentDetail = { String imageId -> [imageId: imageId, imageName: imageNames[0], serverGroupName: config.cluster, image: deploymentDetailTemplate.image + [imageId: imageId], buildInfo: deploymentDetailTemplate.buildInfo] }
+
+      Map image = oortService.getByAmiId(cloudProvider, account, searchImage.key.value, searchImage.value).getAt(0)
+      if (!(image && image.amis)) {
+        throw new IllegalStateException("No image located for $cloudProvider/$account/$searchImage.key.value/${searchImage.value}: $image")
+      }
+
+      for (Location location : missingLocations) {
+        if (image.amis[location.value]) {
+          List<String> regionalImages = image.amis[location.value]
+          if (regionalImages) {
+            imageSummaries[location] = mkDeploymentDetail(regionalImages.first())
+          }
+        }
+      }
+
+      def unresolved = imageSummaries.findResults { it.value == null ? it.key : null }
+      if (unresolved) {
+        throw new IllegalStateException("Still missing images in $unresolved.value")
       }
     }
 

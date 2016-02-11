@@ -132,9 +132,7 @@ class GetCommitsTask implements DiffTask {
   }
 
   String resolveCommitFromAmi(String ami, String account, String region) {
-    TypeReference<List> jsonListType = new TypeReference<List>() {}
-    def amiDetails = objectMapper.readValue(oortService.getByAmiId("aws", account,
-      region, ami).body.in(), jsonListType)
+    List<Map> amiDetails = oortService.getByAmiId("aws", account, region, ami)
     def appVersion = amiDetails[0]?.tags?.appversion
 
     if (appVersion) {

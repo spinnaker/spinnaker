@@ -86,8 +86,8 @@ interface OortService {
                                            @Path("type") String type)
 
   @GET("/{type}/images/{account}/{region}/{imageId}")
-  Response getByAmiId(@Path("type") String type,
-                      @Path("account") String account,
-                      @Path("region") String region,
-                      @Path("imageId") imageId)
+  List<Map> getByAmiId(@Path("type") String type,
+                       @Path("account") String account,
+                       @Path("region") String region,
+                       @Path("imageId") imageId)
 }

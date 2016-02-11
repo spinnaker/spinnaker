@@ -24,10 +24,10 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.StageBuilder
+import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.FindImageFromClusterTask
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import com.netflix.spinnaker.orca.kato.tasks.DiffTask
 import com.netflix.spinnaker.orca.mine.MineService
-import com.netflix.spinnaker.orca.oort.tasks.FindAmiFromClusterTask
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -39,7 +39,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import java.util.concurrent.TimeUnit
 
 @Slf4j
 @Component
@@ -48,7 +47,7 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
   public static final String PIPELINE_CONFIG_TYPE = "deployCanary"
 
   @Autowired
-  FindAmiFromClusterTask findAmi
+  FindImageFromClusterTask findImage
 
   @Autowired(required = false)
   List<DiffTask> diffTasks
@@ -74,7 +73,7 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
       def baseline = canaryDeployment.baseline
       baseline.strategy = "highlander"
       def baselineAmi = baselineAmis.find { it.region == baseline.availabilityZones.keySet()[0] }
-      baseline.amiName = baselineAmi?.ami
+      baseline.amiName = baselineAmi?.imageId
       baseline.buildUrl = createBuildUrl(baselineAmi)
 
       [baseline, canary]
@@ -83,9 +82,9 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
 
   List<Map> findBaselineAmis(Stage stage) {
     Set<String> regions = stage.context.clusterPairs.collect { it.canary.availabilityZones.keySet() + it.baseline.availabilityZones.keySet() }.flatten()
-    def findAmiCtx = [application: stage.execution.application, account: stage.context.baseline.account, cluster: stage.context.baseline.cluster, regions: regions]
-    Stage s = new OrchestrationStage(new Orchestration(), "findAmi", findAmiCtx)
-    TaskResult result = findAmi.execute(s)
+    def findImageCtx = [application: stage.execution.application, account: stage.context.baseline.account, cluster: stage.context.baseline.cluster, regions: regions]
+    Stage s = new OrchestrationStage(new Orchestration(), "findImage", findImageCtx)
+    TaskResult result = findImage.execute(s)
     return result.stageOutputs.amiDetails
   }
 

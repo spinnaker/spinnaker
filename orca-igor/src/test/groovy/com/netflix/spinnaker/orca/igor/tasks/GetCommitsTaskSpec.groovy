@@ -214,8 +214,8 @@ class GetCommitsTaskSpec extends Specification {
     task.objectMapper = new ObjectMapper()
     def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
     Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
-    Response sourceResponse = new Response('http://oort', 200, 'OK', [], new TypedString('[{ "tags" : { "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" }}]'))
-    Response targetResponse = new Response('http://oort', 200, 'OK', [], new TypedString('[{ "tags" : { "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" }}]'))
+    List<Map> sourceResponse = [[ "tags" : [ "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" ]]]
+    List<Map> targetResponse = [[ "tags" : [ "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" ]]]
     task.oortService = oortService
     serverGroupCalls * oortService.getServerGroup(app, account, cluster, serverGroup, region, "aws") >> response
     oortCalls * oortService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
@@ -260,8 +260,8 @@ class GetCommitsTaskSpec extends Specification {
     task.objectMapper = new ObjectMapper()
     def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
     Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
-    Response sourceResponse = new Response('http://oort', 200, 'OK', [], new TypedString('[{ "tags" : { "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" }}]'))
-    Response targetResponse = new Response('http://oort', 200, 'OK', [], new TypedString('[{ "tags" : { "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" }}]'))
+    List<Map> sourceResponse = [[ "tags" : [ "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" ]]]
+    List<Map> targetResponse = [[ "tags" : [ "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" ]]]
 
     task.oortService = oortService
     1 * oortService.getServerGroup(app, account, cluster, serverGroup, region, "aws") >> response
@@ -344,12 +344,10 @@ class GetCommitsTaskSpec extends Specification {
     task.objectMapper = new ObjectMapper()
     def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
     Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
-    Response sourceResponse = new Response('http://oort', 200, 'OK', [], new TypedString(sourceTags))
-    Response targetResponse = new Response('http://oort', 200, 'OK', [], new TypedString(targetTags))
     task.oortService = oortService
     1 * oortService.getServerGroup(app, account, cluster, serverGroup, region, "aws") >> response
-    oortService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
-    oortService.getByAmiId("aws", account, region, targetImage) >> targetResponse
+    oortService.getByAmiId("aws", account, region, sourceImage) >> sourceTags
+    oortService.getByAmiId("aws", account, region, targetImage) >> targetTags
 
     when:
     def result = task.execute(stage)
@@ -367,8 +365,8 @@ class GetCommitsTaskSpec extends Specification {
     taskStatus = ExecutionStatus.SUCCEEDED
 
     cluster | serverGroup | targetServerGroup | sourceTags | targetTags
-    "myapp" | "myapp-v001" | "myapp-v002" | '[{ "tags" : { "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" }}]' | '[{ "tags" : { }}]'
-    "myapp" | "myapp-v001" | "myapp-v002" | '[{ "tags" : { }}]' | '[{ "tags" : { "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" }}]'
+    "myapp" | "myapp-v001" | "myapp-v002" | [[ "tags" : [ "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" ]]] | [[ "tags" : [ ]]]
+    "myapp" | "myapp-v001" | "myapp-v002" | [[ "tags" : [ ]]] | [[ "tags" : [ "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" ]]]
   }
 
 
@@ -396,8 +394,8 @@ class GetCommitsTaskSpec extends Specification {
     task.objectMapper = new ObjectMapper()
     def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
     Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
-    Response sourceResponse = new Response('http://oort', 404, 'OK', [], new TypedString('[{ "tags" : { "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" }}]'))
-    Response targetResponse = new Response('http://oort', 200, 'OK', [], new TypedString('[{ "tags" : { "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" }}]'))
+    List<Map> sourceResponse = [[ "tags" : [ "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" ]]]
+    List<Map> targetResponse = [[ "tags" : [ "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" ]]]
     task.oortService = oortService
     1 * oortService.getServerGroup(app, account, cluster, serverGroup, region, "aws") >>> response
 
@@ -465,8 +463,8 @@ class GetCommitsTaskSpec extends Specification {
     task.objectMapper = new ObjectMapper()
     def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
     Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
-    Response sourceResponse = new Response('http://oort', 200, 'OK', [], new TypedString('[{ "tags" : { "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" }}]'))
-    Response targetResponse = new Response('http://oort', 200, 'OK', [], new TypedString('[{ "tags" : { "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" }}]'))
+    List<Map> sourceResponse = [[ "tags" : [ "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" ]]]
+    List<Map> targetResponse = [[ "tags" : [ "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" ]]]
     task.oortService = oortService
     1 * oortService.getServerGroup(app, account, cluster, serverGroup, region, "aws") >> response
     1 * oortService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
