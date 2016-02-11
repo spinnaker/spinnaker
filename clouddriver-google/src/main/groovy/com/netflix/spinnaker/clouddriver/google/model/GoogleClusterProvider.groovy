@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
 import java.util.concurrent.Callable
 
+@Deprecated
 @Component
 @CompileStatic
 class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {

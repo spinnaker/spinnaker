@@ -45,6 +45,10 @@ class CacheResultBuilder {
       cacheDataBuilders.get(key)
     }
 
+    int size() {
+      cacheDataBuilders.size()
+    }
+
     List<DefaultCacheData> build() {
       cacheDataBuilders.values().collect { b -> b.build() }
     }

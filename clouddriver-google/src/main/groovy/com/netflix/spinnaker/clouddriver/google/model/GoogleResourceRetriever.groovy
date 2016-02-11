@@ -298,7 +298,6 @@ class GoogleResourceRetriever {
     }
   }
 
-  // TODO(ttomsu): These functions are handy. Move them somewhere more common in the 'provider.agent' package.
   static executeIfRequestsAreQueued(BatchRequest batch) {
     if (batch.size()) {
       batch.execute()

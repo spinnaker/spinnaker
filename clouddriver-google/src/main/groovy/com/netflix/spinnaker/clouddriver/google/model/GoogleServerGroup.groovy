@@ -30,7 +30,7 @@ class GoogleServerGroup implements ServerGroup, Serializable {
   String name
   String region
   Set<String> zones = new HashSet<>()
-  Set<Instance> instances = new HashSet<>()
+  Set<GoogleInstance> instances = new HashSet<>()
   Set health = new HashSet<>()
   Map<String, Object> launchConfig
   Map<String, Object> asg
