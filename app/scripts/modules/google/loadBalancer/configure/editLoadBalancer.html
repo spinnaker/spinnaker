@@ -1,8 +1,15 @@
-<modal-wizard heading="Edit {{loadBalancer.name}}: {{loadBalancer.region}}: {{loadBalancer.credentials}}">
-  <wizard-page key="Listener" label="Listener" done="true">
+<v2-modal-wizard heading="Edit {{loadBalancer.name}}: {{loadBalancer.region}}: {{loadBalancer.credentials}}">
+  <v2-wizard-page key="Listener" label="Listener" done="true">
     <ng-include src="pages.listeners"></ng-include>
-  </wizard-page>
-  <wizard-page key="Health Check" label="Health Check" done="true" render="loadBalancer.listeners[0].healthCheck" hide-subheading="true">
+  </v2-wizard-page>
+  <v2-wizard-page key="Health Check" label="Health Check" done="true" render="loadBalancer.listeners[0].healthCheck" hide-subheading="true">
     <ng-include src="pages.healthCheck"></ng-include>
-  </wizard-page>
-</modal-wizard>
+  </v2-wizard-page>
+</v2-modal-wizard>
+<div class="modal-footer">
+  <button ng-disabled="taskMonitor.submitting" class="btn btn-default"
+          ng-click="ctrl.cancel()">Cancel
+  </button>
+  <submit-button is-disabled="form.$invalid || taskMonitor.submitting"
+                 submitting="taskMonitor.submitting" on-click="ctrl.submit()" is-new="isNew"></submit-button>
+</div>

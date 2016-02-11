@@ -15,7 +15,10 @@
 <div class="form-group">
   <div class="col-md-3 sm-label-right"><b>Security Groups</b></div>
   <div class="col-md-9">
-    <ui-select multiple ng-model="command.securityGroups" class="form-control input-sm">
+    <ui-select ng-if="command.backingData.filtered.securityGroups.length"
+               multiple
+               ng-model="command.securityGroups"
+               class="form-control input-sm">
       <ui-select-match>{{$item.name}}</ui-select-match>
       <ui-select-choices repeat="securityGroup.id as securityGroup in command.backingData.filtered.securityGroups | anyFieldFilter: {name: $select.search, id: $select.search}">
         <span ng-bind-html="securityGroup.name | highlight: $select.search"></span>

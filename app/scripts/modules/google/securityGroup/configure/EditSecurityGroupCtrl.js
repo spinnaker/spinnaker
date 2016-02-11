@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
   .controller('gceEditSecurityGroupCtrl', function($scope, $modalInstance, $state,
                                                    accountService, securityGroupReader,
                                                    taskMonitorService, cacheInitializer, infrastructureCaches,
-                                                   _, application, securityGroup, securityGroupWriter) {
+                                                   _, application, securityGroup, securityGroupWriter, $controller) {
 
     $scope.pages = {
       ingress: require('./createSecurityGroupIngress.html'),
@@ -24,6 +24,15 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
     $scope.state = {
       refreshingSecurityGroups: false,
     };
+
+    angular.extend(this, $controller('gceConfigSecurityGroupMixin', {
+      $scope: $scope,
+      $modalInstance: $modalInstance,
+      application: application,
+      securityGroup: securityGroup,
+    }));
+
+    $scope.isNew = false;
 
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,

@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
   require('../../../core/loadBalancer/loadBalancer.read.service.js'),
   require('../../../core/account/account.service.js'),
   require('../loadBalancer.transformer.js'),
-  require('../../../core/modal/wizard/modalWizard.service.js'),
+  require('../../../core/modal/wizard/v2modalWizard.service.js'),
   require('../../../core/task/monitor/taskMonitorService.js'),
   require('../../gceRegionSelectField.directive.js'),
   require('../../../core/search/search.service.js'),
@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
   .controller('gceCreateLoadBalancerCtrl', function($scope, $modalInstance, $state,
                                                  application, loadBalancer, isNew, loadBalancerReader,
                                                  accountService, gceLoadBalancerTransformer,
-                                                 _, searchService, modalWizardService, loadBalancerWriter, taskMonitorService) {
+                                                 _, searchService, v2modalWizardService, loadBalancerWriter, taskMonitorService) {
 
     var ctrl = this;
 
@@ -155,7 +155,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
     };
 
     this.setVisibilityHealthCheckTab = function() {
-      var wizard = modalWizardService.getWizard();
+      var wizard = v2modalWizardService;
 
       if ($scope.loadBalancer.listeners[0].healthCheck) {
         wizard.includePage('Health Check');

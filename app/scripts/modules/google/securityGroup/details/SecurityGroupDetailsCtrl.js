@@ -129,6 +129,7 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
       $uibModal.open({
         templateUrl: require('../configure/editSecurityGroup.html'),
         controller: 'gceEditSecurityGroupCtrl as ctrl',
+        size: 'lg',
         resolve: {
           securityGroup: function() {
             return angular.copy($scope.securityGroup.plain());
@@ -143,6 +144,7 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
       $uibModal.open({
         templateUrl: require('../clone/cloneSecurityGroup.html'),
         controller: 'gceCloneSecurityGroupController as ctrl',
+        size: 'lg',
         resolve: {
           securityGroup: function() {
             var securityGroup = angular.copy($scope.securityGroup.plain());

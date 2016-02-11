@@ -80,6 +80,12 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
 
     $scope.$watch('command.instanceType', this.updateInstanceType);
 
+    this.updateInstanceTypeDetails = () => {
+      instanceTypeService.getInstanceTypeDetails($scope.command.selectedProvider, $scope.command.instanceType).then(function(instanceTypeDetails) {
+        $scope.command.viewState.instanceTypeDetails = instanceTypeDetails;
+      });
+    };
+
     if ($scope.command.region && $scope.command.instanceType && !$scope.command.viewState.instanceProfile) {
       this.selectInstanceType('custom');
     }

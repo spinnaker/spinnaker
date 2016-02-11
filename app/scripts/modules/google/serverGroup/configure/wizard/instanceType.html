@@ -1,20 +1,8 @@
-<form ng-controller="gceInstanceTypeCtrl as instanceTypeCtrl" class="container-fluid form-horizontal" name="form" novalidate>
-  <div class="modal-body">
-    <instance-type-selector command="command"></instance-type-selector>
+<div ng-if="!!(command.viewState.disableImageSelection || command.image)">
+  <v2-instance-archetype-selector command="command"></v2-instance-archetype-selector>
+  <div style="padding: 0 15px">
+    <v2-instance-type-selector ng-if="command.viewState.instanceProfile && command.viewState.instanceProfile !== 'custom'" command="command"></v2-instance-type-selector>
   </div>
-  <div class="modal-footer">
-    <button class="btn btn-default pull-left"
-            ng-click="wizard.previousPage(form.$valid)">
-      <span class="glyphicon glyphicon-chevron-left"></span> Back
-    </button>
-    <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
-    <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="form.$invalid || !ctrl.isValid() || taskMonitor.submitting"
-                   label="command.viewState.submitButtonLabel"
-                   submitting="taskMonitor.submitting" on-click="ctrl.clone()" is-new="true"></submit-button>
-    <button class="btn btn-primary"
-            ng-disabled="!command.viewState.instanceProfile || form.$invalid"
-            ng-click="wizard.nextPage(form.$valid)">
-      Next <span class="glyphicon glyphicon-chevron-right"></span>
-    </button>
-  </div>
-</form>
+</div>
+<h5 class="text-center"
+    ng-if="!command.image && !command.viewState.disableImageSelection">Please select an image.</h5>
