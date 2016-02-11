@@ -36,6 +36,7 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
         targetSize: 1,
         cloudProvider: 'kubernetes',
         selectedProvider: 'kubernetes',
+        namespace: 'default',
         containers: [],
         viewState: {
           instanceProfile: 'custom',
@@ -73,6 +74,7 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
         targetSize: serverGroup.replicas,
         cloudProvider: 'kubernetes',
         selectedProvider: 'kubernetes',
+        namespace: serverGroup.namespace,
         containers: serverGroup.containers,
         source: {
           serverGroupName: serverGroup.name,
@@ -80,6 +82,7 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
           zone: serverGroup.namespace,
           account: serverGroup.account,
           region: serverGroup.namespace,
+          namespace: serverGroup.namespace,
         },
         viewState: {
           allImageSelection: null,
