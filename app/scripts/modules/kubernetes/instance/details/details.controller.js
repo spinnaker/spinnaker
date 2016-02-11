@@ -80,6 +80,7 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
           $scope.instance = _.defaults(details, instanceSummary);
           $scope.instance.account = account;
           $scope.instance.namespace = namespace;
+          $scope.instance.region = namespace;
           $scope.instance.loadBalancers = loadBalancers;
           var pod = $scope.instance.pod;
           $scope.instance.dnsPolicy = pod.spec.dnsPolicy;
