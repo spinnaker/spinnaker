@@ -17,15 +17,14 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.view
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.azure.common.AzureResourceRetriever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
-import com.microsoft.azure.management.network.models.LoadBalancer
 
 @RestController
 @RequestMapping("/azure/loadBalancers")
@@ -35,42 +34,36 @@ class AzureLoadBalancerController {
   AccountCredentialsProvider accountCredentialsProvider
 
   @Autowired
-  AzureResourceRetriever azureResourceRetriever
+  AzureLoadBalancerProvider azureLoadBalancerProvider
 
   @RequestMapping(method = RequestMethod.GET)
   List<AzureLoadBalancerSummary> list() {
-    return getSummaryForLoadBalancers(azureResourceRetriever.applicationLoadBalancerMap).values() as List
+    getSummaryForLoadBalancers().values() as List
   }
 
-  private Map<String, AzureLoadBalancerSummary> getSummaryForLoadBalancers(Map<String, Map<String, Set<LoadBalancer>>> loadBalancerMap) {
+  private Map<String, AzureLoadBalancerSummary> getSummaryForLoadBalancers() {
     Map<String, AzureLoadBalancerSummary> map = [:]
+    def loadBalancers = azureLoadBalancerProvider.getLoadBalancers("*","*","azure")
 
-    loadBalancerMap?.each() { account, appMap ->
-      appMap.each() { application, loadBalancerList ->
-        loadBalancerList.each() { AzureLoadBalancerDescription loadBalancer ->
-
-          def summary = map.get(loadBalancer.loadBalancerName)
+    loadBalancers?.each() { lb ->
+          def summary = map.get(lb.name)
 
           if (!summary) {
-            summary = new AzureLoadBalancerSummary(name: loadBalancer.loadBalancerName)
-            map.put loadBalancer.loadBalancerName, summary
+            summary = new AzureLoadBalancerSummary(name: lb.name)
+            map.put lb.name, summary
           }
 
-          def loadBalancerDetail = new AzureLoadBalancerDetail(account: account, name: loadBalancer.loadBalancerName, region: loadBalancer.region)
+          def loadBalancerDetail = new AzureLoadBalancerDetail(account: lb.account, name: lb.name, region: lb.region)
 
-          summary.getOrCreateAccount(account).getOrCreateRegion(loadBalancer.region).loadBalancers << loadBalancerDetail
-
-        }
-      }
+          summary.getOrCreateAccount(lb.account).getOrCreateRegion(lb.region).loadBalancers << loadBalancerDetail
     }
     map
   }
 
   @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
   List<Map> getDetailsInAccountAndRegionByName(@PathVariable String account, @PathVariable String region, @PathVariable String name) {
-    String appName = azureResourceRetriever.getAppNameFromLoadBalancer(name)
-
-    AzureLoadBalancerDescription azureLoadBalancerDescription = azureResourceRetriever.getLoadBalancer(account, appName, name)
+    String appName = AzureUtilities.getAppNameFromAzureResourceName(name)
+    AzureLoadBalancerDescription azureLoadBalancerDescription = azureLoadBalancerProvider.getLoadBalancerDescription(account, appName, region, name)
 
     if (azureLoadBalancerDescription) {
       def lbDetail = [

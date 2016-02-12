@@ -109,7 +109,7 @@ class AzureLoadBalancerResourceTemplateSpec extends Specification {
     "publicIPAddressName" : "pip-azuremasm-st1-d11",
     "publicIPAddressType" : "Dynamic",
     "loadBalancerFrontEnd" : "fe-azuremasm-st1-d11",
-    "dnsNameForLBIP" : "dns-azuremasm",
+    "dnsNameForLBIP" : "dns-azuremasm-st1-d11",
     "ipConfigName" : "ipc-azuremasm-st1-d11",
     "loadBalancerID" : "[resourceID('Microsoft.Network/loadBalancers',variables('loadBalancerName'))]",
     "publicIPAddressID" : "[resourceID('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]",
@@ -120,6 +120,7 @@ class AzureLoadBalancerResourceTemplateSpec extends Specification {
     "name" : "[variables('publicIPAddressName')]",
     "type" : "Microsoft.Network/publicIPAddresses",
     "location" : "[parameters('location')]",
+    "tags" : null,
     "properties" : {
       "publicIPAllocationMethod" : "[variables('publicIPAddressType')]",
       "dnsSettings" : {
@@ -131,12 +132,12 @@ class AzureLoadBalancerResourceTemplateSpec extends Specification {
     "name" : "[variables('loadBalancerName')]",
     "type" : "Microsoft.Network/loadBalancers",
     "location" : "[parameters('location')]",
-    "dependsOn" : [ "[concat('Microsoft.Network/publicIPAddresses/',variables('publicIPAddressName'))]" ],
     "tags" : {
       "appName" : "azureMASM",
       "stack" : "st1",
       "detail" : "d11"
     },
+    "dependsOn" : [ "[concat('Microsoft.Network/publicIPAddresses/',variables('publicIPAddressName'))]" ],
     "properties" : {
       "frontEndIPConfigurations" : [ {
         "name" : "[variables('loadBalancerFrontEnd')]",

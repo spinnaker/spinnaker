@@ -16,18 +16,18 @@
 
 package com.netflix.spinnaker.clouddriver.azure.client
 
-import com.microsoft.azure.management.compute.ComputeManagementClient
-import com.microsoft.azure.management.compute.ComputeManagementService
-import com.microsoft.azure.management.resources.ResourceManagementClient
-import com.microsoft.azure.management.resources.ResourceManagementService
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.microsoft.windowsazure.Configuration
 import com.microsoft.windowsazure.management.configuration.ManagementConfiguration
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import groovy.transform.CompileStatic
 
 @CompileStatic
-public class AzureBaseClient {
+public abstract class AzureBaseClient {
   final String subscriptionId
+
+  static ObjectMapper mapper = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true)
 
   protected AzureBaseClient(String subscriptionId) {
     this.subscriptionId = subscriptionId

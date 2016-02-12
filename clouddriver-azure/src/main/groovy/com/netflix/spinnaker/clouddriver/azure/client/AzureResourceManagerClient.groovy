@@ -16,11 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.azure.client
 
-import com.microsoft.azure.management.network.NetworkResourceProviderService
-import com.microsoft.azure.management.network.models.AddressSpace
-import com.microsoft.azure.management.network.models.VirtualNetwork
-import com.microsoft.azure.management.resources.ResourceManagementClient
-import com.microsoft.azure.management.resources.ResourceManagementService
 import com.microsoft.azure.management.resources.models.Deployment
 import com.microsoft.azure.management.resources.models.DeploymentExtended
 import com.microsoft.azure.management.resources.models.DeploymentMode
@@ -29,20 +24,12 @@ import com.microsoft.azure.management.resources.models.DeploymentOperationsListP
 import com.microsoft.azure.management.resources.models.DeploymentOperationsListResult
 import com.microsoft.azure.management.resources.models.DeploymentProperties
 import com.microsoft.azure.management.resources.models.ResourceGroup
-import com.microsoft.azure.management.resources.models.ResourceGroupExtended
-import com.microsoft.azure.management.resources.models.ResourceGroupListParameters
-import com.microsoft.azure.management.resources.models.ResourceGroupListResult
-import com.microsoft.azure.utility.ResourceHelper
+import com.microsoft.azure.management.resources.ResourceManagementClient
+import com.microsoft.azure.management.resources.ResourceManagementService
 import com.microsoft.windowsazure.exception.ServiceException
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import groovy.transform.Canonical
-import groovy.json.JsonBuilder
-
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
-
 import groovy.transform.CompileStatic
 
 @CompileStatic
@@ -56,15 +43,16 @@ class AzureResourceManagerClient extends AzureBaseClient {
                                                 String template,
                                                 String resourceGroupName,
                                                 String region,
-                                                String resourceName) {
+                                                String resourceName,
+                                                Map<String, String> templateParams = [:]) {
 
-    if (!resourceGroupExists(credentials, resourceGroupName)) {
-      createResourceGroup(credentials, resourceGroupName, region)
-      createResourceGroupVNet(credentials, resourceGroupName, region)
-    }
+    // TODO validate that all callers invoke this themselves, then remove this call
+    initializeResourceGroupAndVNet(credentials, resourceGroupName, null, region)
 
     String deploymentName = resourceName + AzureUtilities.NAME_SEPARATOR +"deployment"
-    def templateParams = [location : region]
+    if (!templateParams['location']) {
+      templateParams['location'] = region
+    }
 
     DeploymentExtended deployment = createTemplateDeployment(this.getResourceManagementClient(credentials),
       resourceGroupName,
@@ -86,12 +74,17 @@ class AzureResourceManagerClient extends AzureBaseClient {
     }
   }
 
-  ArrayList<ResourceGroup> getResourcesGroupsForApp(AzureCredentials creds, String applicationName) {
-    ResourceGroupListParameters parameters = new ResourceGroupListParameters()
-    parameters.setTagName("filter")
-    parameters.setTagValue(applicationName)
+  ResourceGroup initializeResourceGroupAndVNet(AzureCredentials creds, String resourceGroupName, String virtualNetworkName, String region) {
+    ResourceGroup resourceGroup
+    if (!resourceGroupExists(creds, resourceGroupName)) {
+      resourceGroup = createResourceGroup(creds, resourceGroupName, region)
+    } else {
+      resourceGroup = this.getResourceManagementClient(creds).getResourceGroupsOperations().get(resourceGroupName).getResourceGroup()
+    }
 
-    this.getResourceManagementClient(creds).getResourceGroupsOperations().list(parameters).resourceGroups
+    initializeResourceGroupVNet(creds, resourceGroupName, virtualNetworkName, region)
+
+    resourceGroup
   }
 
   boolean resourceGroupExists(AzureCredentials creds, String resourceGroupName) {
@@ -112,10 +105,6 @@ class AzureResourceManagerClient extends AzureBaseClient {
     this.getResourceManagementClient(creds).getDeploymentsOperations().get(resourceGroupName, deploymentName).deployment
   }
 
-  List<ResourceGroupExtended> getAllResourceGroups(AzureCredentials creds) {
-    this.getResourceManagementClient(creds).getResourceGroupsOperations().list(null).getResourceGroups()
-  }
-
   String getResourceGroupLocation(String resourceGroupName, AzureCredentials creds) {
     this.getResourceManagementClient(creds).getResourceGroupsOperations().get(resourceGroupName).getResourceGroup().getLocation()
   }
@@ -133,10 +122,17 @@ class AzureResourceManagerClient extends AzureBaseClient {
     ResourceManagementService.create(this.buildConfiguration(creds))
   }
 
-  private static void createResourceGroupVNet(AzureCredentials creds, String resourceGroupName, String region) {
-    def vNetName = AzureUtilities.VNET_NAME_PREFIX + resourceGroupName
+  private static void initializeResourceGroupVNet(AzureCredentials creds, String resourceGroupName, String virtualNetworkName = null, String region) {
+    def vNetName = virtualNetworkName ?
+      virtualNetworkName : AzureUtilities.getVirtualNetworkName(resourceGroupName)
 
-    creds.getNetworkClient().createVirtualNetwork(creds, resourceGroupName, vNetName, region)
+    try {
+      creds.getNetworkClient().getVirtualNetwork(creds, resourceGroupName, vNetName)
+      }
+    catch (ServiceException ignore) {
+      // Assumes that a service exception means that the rest call failed to locate the vNet
+      creds.getNetworkClient().createVirtualNetwork(creds, resourceGroupName, vNetName, region)
+    }
   }
 
   private static DeploymentExtended createTemplateDeployment(
@@ -159,7 +155,8 @@ class AzureResourceManagerClient extends AzureBaseClient {
       for (Map.Entry<String, String> entry : templateParameters.entrySet()) {
         parameters.put(entry.getKey(), new ParameterValue(entry.getValue()))
       }
-      deploymentProperties.setParameters(new JsonBuilder(parameters).toString())
+
+      deploymentProperties.setParameters(mapper.writeValueAsString(parameters))
     }
 
     // kick off the deployment

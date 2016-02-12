@@ -84,12 +84,12 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
     return new AzureCredentials(this.tenantId, this.clientId, this.appKey, rmClient, networkClient, computeClient)
   }
 
-  private List<AzureRegion> buildRegions(List<String> regions) {
+  private static List<AzureRegion> buildRegions(List<String> regions) {
     return regions?.collect {new AzureRegion(it)}
   }
 
   public static class AzureRegion {
-    public final String name;
+    public final String name
 
     public AzureRegion(String name) {
       if (name == null) {

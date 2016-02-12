@@ -23,6 +23,7 @@ class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
   String vnet
   String securityGroups
   String dnsName
+  String cluster
   List<AzureLoadBalancerProbe> probes = []
   List<AzureLoadBalancingRule> loadBalancingRules = []
   List<AzureLoadBalancerInboundNATRule> inboundNATRules = []
@@ -70,65 +71,3 @@ class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
   }
 
 }
-
-/*
-  "exception" : {
-    "exceptionType" : "RetrofitError",
-    "operation" : "stageEnd",
-    "details" : {
-      "error" : "timeout",
-      "errors" : [ ],
-      "responseBody" : null,
-      "kind" : "NETWORK",
-      "status" : null,
-      "url" : null
-    },
-    "shouldRetry" : true
-  }
-},
-  Stage Context: {
-    "cloudProvider" : "azure",
-    "providerType" : "azure",
-    "appName" : "azure1",
-    "loadBalancerName" : "azure1-st1-d1",
-    "stack" : "st1",
-    "detail" : "d1",
-    "credentials" : "azure-test",
-    "region" : "West US",
-    "vnet" : null,
-    "probes" : [ {
-      "probeName" : "healthcheck1",
-      "probeProtocol" : "HTTP",
-      "probePort" : 7001,
-      "probePath" : "/healthcheck",
-      "probeInterval" : 10,
-      "unhealthyThreshold" : 2
-    } ],
-    "securityGroups" : null,
-    "loadBalancingRules" : [ {
-      "ruleName" : "lbRule1",
-      "protocol" : "TCP",
-      "externalPort" : "80",
-      "backendPort" : "80",
-      "probeName" : "healthcheck1",
-      "persistence" : "None",
-      "idleTimeout" : "4"
-    } ],
-    "inboundNATRules" : [ {
-      "ruleName" : "inboundRule1",
-      "serviceType" : "SSH",
-      "protocol" : "TCP",
-      "port" : "80"
-    } ],
-    "name" : "azure1-st1-d1",
-    "user" : "[anonymous]",
-    "stageDetails" : {
-      "name" : null,
-      "type" : "upsertAmazonLoadBalancer_azure",
-      "startTime" : 1447111560073,
-      "isSynthetic" : false
-    },
-    "batch.task.id.stageStart" : 41
-  }
-
-*/

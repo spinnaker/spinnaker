@@ -122,8 +122,8 @@ class StandardAzureAttributeValidator {
     validateNotEmpty(region, "region")
   }
 
-  def validateNetwork(String vnet) {
-    validateNotEmpty(vnet, "network")
+  def validateRegionList(List<String> regions) {
+    validateNameList(regions, "regions")
   }
 
   def validateNonNegativeInt(int value, String attribute) {
@@ -133,14 +133,6 @@ class StandardAzureAttributeValidator {
       result = false
     }
     return result
-  }
-
-  def validateServerGroupName(String serverGroupName) {
-    validateName(serverGroupName, "serverGroupName")
-  }
-
-  def validateImage(String image) {
-    validateNotEmpty(image, "image")
   }
 
   def validateNameList(List<String> names, String componentDescription) {
@@ -161,21 +153,5 @@ class StandardAzureAttributeValidator {
       result &= validateNameAsPart(value, "${componentDescription}s", "$componentDescription$index")
     }
     return result
-  }
-
-  def validateInstanceIds(List<String> instanceIds) {
-    return validateNameList(instanceIds, "instanceId")
-  }
-
-  def validateInstanceName(String instanceName) {
-    validateName(instanceName, "instanceName")
-  }
-
-  def validateInstanceType(String instanceType) {
-    validateNotEmpty(instanceType, "instanceType")
-  }
-
-  def validateTags(List<String> tags) {
-    return validateOptionalNameList(tags, "tag")
   }
 }

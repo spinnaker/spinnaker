@@ -18,12 +18,8 @@ package com.netflix.spinnaker.clouddriver.azure.client
 
 import com.microsoft.azure.management.compute.ComputeManagementClient
 import com.microsoft.azure.management.compute.ComputeManagementService
-import com.microsoft.azure.management.compute.models.ImageReference
-import com.microsoft.azure.utility.ComputeHelper
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import groovy.transform.CompileStatic
-
-import javax.imageio.ImageReader
 
 @CompileStatic
 public class AzureComputeClient extends AzureBaseClient {
@@ -31,6 +27,8 @@ public class AzureComputeClient extends AzureBaseClient {
     super(subscriptionId)
   }
 
+  // This method will be required as we begin using the Compute client to access
+  // the scale set and Virtual machines functionality/features in Azure
   protected ComputeManagementClient getComputeClient(AzureCredentials creds) {
     ComputeManagementService.create(this.buildConfiguration(creds))
   }
