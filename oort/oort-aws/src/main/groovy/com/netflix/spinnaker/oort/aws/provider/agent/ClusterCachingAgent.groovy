@@ -191,28 +191,19 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     String serverGroupName = data.serverGroupName.toString()
 
     Map onDemandData = metricsSupport.readData {
+      def asg = loadAutoScalingGroup(serverGroupName, true)
+
       def clients = new AmazonClients(amazonClientProvider, account, region, true)
-
-      List<AutoScalingGroup> asgs = clients.autoScaling.describeAutoScalingGroups(
-        new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(serverGroupName)
-      ).autoScalingGroups
-
-      // A non-null status indicates that the ASG is in the process of being destroyed (no sense indexing)
-      asgs = asgs.findAll { !it.status }
-
-      Map<String, Collection<Map>> scalingPolicies = asgs ? loadScalingPolicies(clients, serverGroupName) : [:]
-
-      Map<String, Collection<Map>> scheduledActions = asgs ? loadScheduledActions(clients, serverGroupName) : [:]
+      Map<String, Collection<Map>> scalingPolicies = asg ? loadScalingPolicies(clients, serverGroupName) : [:]
+      Map<String, Collection<Map>> scheduledActions = asg ? loadScheduledActions(clients, serverGroupName) : [:]
 
       Map<String, String> subnetMap = [:]
-      asgs.each {
-        if (it.getVPCZoneIdentifier()) {
-          subnetMap.putAll(getSubnetToVpcIdMap(clients, it.getVPCZoneIdentifier().split(',')))
-        }
+      if (asg?.getVPCZoneIdentifier()) {
+        subnetMap.putAll(getSubnetToVpcIdMap(clients, asg.getVPCZoneIdentifier().split(',')))
       }
 
       return [
-        asgs            : asgs,
+        asgs            : [asg],
         scalingPolicies : scalingPolicies,
         scheduledActions: scheduledActions,
         subnetMap       : subnetMap
@@ -300,6 +291,9 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
       }
       start = System.currentTimeMillis()
     }
+
+    // A non-null status indicates that the ASG is in the process of being destroyed (no sense indexing)
+    asgs = asgs.findAll { it.status == null }
 
     new AutoScalingGroupsResults(start: start, asgs: asgs)
   }
@@ -601,7 +595,10 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     )
 
     if (result.autoScalingGroups && !result.autoScalingGroups.isEmpty()) {
-      return result.autoScalingGroups.get(0)
+      def asg = result.autoScalingGroups.get(0)
+
+      // A non-null status indicates that the ASG is in the process of being destroyed
+      return (asg.status == null) ? asg : null
     }
 
     return null
