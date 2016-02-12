@@ -5,7 +5,7 @@
       <h3>Talk to Us</h3>
     </div>
     <div class="modal-body">
-      <div ng-if="state === states.EDITING">
+      <div ng-if="state !== states.SUBMITTED">
         <p>
           Having a problem or looking for something that's not in Spinnaker? Let us know.
         </p>
@@ -38,10 +38,15 @@
         <div class="form-group" ng-if="!form.$valid">
           <p class="warning-text text-right"><strong><span class="glyphicon glyphicon-asterisk"></span> All fields are required.</strong></p>
         </div>
-      </div>
 
-      <div ng-if="state === states.SUBMITTING">
-        <h3><span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span> Creating your issue</h3>
+        <div class="alert alert-danger" ng-if="state === states.ERROR">
+          <h3>Something went horribly wrong.</h3>
+          <p>
+            Really sorry - you can try to submit this again, or send us an email at:
+            <br/> delivery-engineering@netflix.com <br/>
+            and we'll try to get this straightened out as soon as possible.
+          </p>
+
       </div>
 
       <div ng-if="state === states.SUBMITTED">
@@ -51,24 +56,14 @@
         </p>
       </div>
 
-      <div ng-if="state === states.ERROR">
-        <h3><span class="glyphicon glyphicon-warning-sign"></span> Something went horribly wrong.</h3>
-        <p>
-          Really sorry - you can send us an email at delivery-engineering@netflix.com and we'll try to
-          get this straightened out as soon as possible.
-        </p>
-      </div>
-
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" ng-click="ctrl.cancel()">{{state === states.EDITING ? 'Cancel' : 'Close'}}</button>
-      <button class="btn btn-primary"
-              ng-disabled="!form.$valid"
-              ng-if="state === states.EDITING"
-              ng-click="ctrl.submit()">
-        <span class="glyphicon glyphicon-envelope"></span>
-        Submit issue
-      </button>
+      <submit-button ng-if="state !== states.SUBMITTED"
+                     label="'Submit issue'"
+                     is-disabled="!form.$valid"
+                     submitting="state === states.SUBMITTING"
+                     on-click="ctrl.submit()"></submit-button>
     </div>
 
   </form>
