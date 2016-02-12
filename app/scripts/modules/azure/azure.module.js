@@ -34,6 +34,8 @@ module.exports = angular.module('spinnaker.azure', [
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('azure', {
+      v2wizard: true,
+      name: 'Azure',
       logo: {
         path: require('./logo_azure.png'),
       },

@@ -8,9 +8,6 @@ module.exports = angular.module('spinnaker.azure.image.reader', [
   .factory('azureImageReader', function ($q, Restangular) {
 
     function findImages(params) {
-      if (!params.q || params.q.length < 3) {
-        return $q.when([{message: 'Please enter at least 3 characters...'}]);
-      }
       return Restangular.all('images/find').getList(params, {})
         .then(function(results) {
           return results;

@@ -87,21 +87,6 @@ describe('Service: Azure Image Reader', function() {
       expect(result[0].success).toBe(true);
     });
 
-    it('returns a message prompting user to enter more characters when less than 3 are supplied', function() {
-      query = 'ab';
-
-      var result = null;
-
-      service.findImages({provider: 'azure', q: query, region: region}).then(function(results) {
-        result = results;
-      });
-
-      scope.$digest();
-
-      expect(result.length).toBe(1);
-      expect(result[0].message).toBe('Please enter at least 3 characters...');
-    });
-
     it('returns an empty array when server errors', function() {
       query = 'abc';
       var result = null;
