@@ -360,6 +360,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       $uibModal.open({
         templateUrl: require('../configure/wizard/serverGroupWizard.html'),
         controller: 'gceCloneServerGroupCtrl as ctrl',
+        size: 'lg',
         resolve: {
           title: function() { return 'Clone ' + serverGroup.name; },
           application: function() { return application; },

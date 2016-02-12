@@ -1,4 +1,4 @@
-  <form role="form" class="container-fluid form-horizontal" name="form" novalidate>
+  <div class="container-fluid form-horizontal">
     <div class="modal-body">
       <div class="form-group">
         <div class="col-md-12 well" ng-class="{'alert-danger': form.securityGroupName.$error.validateUnique, 'alert-info': !form.securityGroupName.$error.validateUnique}">
@@ -38,16 +38,4 @@
       </div>
       <gce-network-select-field label-columns="4" field-columns="8" component="securityGroup" field="network" account="securityGroup.credentials" networks="securityGroup.backingData.networks"></gce-network-select-field>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-default pull-left"
-              ng-click="ctrl.cancel()">Cancel
-      </button>
-      <submit-button is-disabled="form.$invalid || !wizard.isComplete() || state.submitting"
-                     submitting="state.submitting" on-click="ctrl.upsert()" is-new="isNew"></submit-button>
-      <button type="submit" class="btn btn-primary"
-              ng-disabled="form.$invalid"
-              ng-click="wizard.markComplete('Location'); wizard.nextPage()">
-        <span class="glyphicon glyphicon-chevron-right"></span> Next
-      </button>
-    </div>
-  </form>
+  </div>

@@ -76,6 +76,10 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
         containers: serverGroup.containers,
         source: {
           serverGroupName: serverGroup.name,
+          asgName: serverGroup.name,
+          zone: serverGroup.namespace,
+          account: serverGroup.account,
+          region: serverGroup.namespace,
         },
         viewState: {
           allImageSelection: null,

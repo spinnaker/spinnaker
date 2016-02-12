@@ -80,6 +80,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
       $uibModal.open({
         templateUrl: require('../configure/editLoadBalancer.html'),
         controller: 'gceCreateLoadBalancerCtrl as ctrl',
+        size: 'lg',
         resolve: {
           application: function() { return application; },
           loadBalancer: function() { return angular.copy($scope.loadBalancer); },

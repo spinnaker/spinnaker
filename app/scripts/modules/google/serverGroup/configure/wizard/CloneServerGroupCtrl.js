@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
   require('../../../../core/application/modal/platformHealthOverride.directive.js'),
 ])
   .controller('gceCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $state,
-                                                  serverGroupWriter, modalWizardService, taskMonitorService,
+                                                  serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                   gceServerGroupConfigurationService,
                                                   serverGroupCommand, application, title) {
     $scope.pages = {
@@ -15,7 +15,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       basicSettings: require('./basicSettings.html'),
       loadBalancers: require('./loadBalancers.html'),
       securityGroups: require('./securityGroups.html'),
-      instanceArchetype: require('./instanceArchetype.html'),
       instanceType: require('./instanceType.html'),
       capacity: require('./capacity.html'),
       advancedSettings: require('./advancedSettings.html'),
@@ -84,28 +83,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
           }
         }
         $scope.state.loaded = true;
-        initializeWizardState();
         initializeSelectOptions();
         initializeWatches();
       });
-    }
-
-    function initializeWizardState() {
-      if (serverGroupCommand.viewState.instanceProfile && serverGroupCommand.viewState.instanceProfile !== 'custom') {
-        modalWizardService.getWizard().markComplete('instance-type');
-      }
-      var mode = serverGroupCommand.viewState.mode;
-      if (mode === 'clone' || mode === 'editPipeline') {
-        if ($scope.command.image || $scope.command.viewState.disableImageSelection) {
-          modalWizardService.getWizard().markComplete('location');
-        }
-        modalWizardService.getWizard().markComplete('load-balancers');
-        modalWizardService.getWizard().markComplete('security-groups');
-        modalWizardService.getWizard().markComplete('instance-profile');
-        modalWizardService.getWizard().markComplete('instance-type');
-        modalWizardService.getWizard().markComplete('capacity');
-        modalWizardService.getWizard().markComplete('advanced');
-      }
     }
 
     function initializeWatches() {
@@ -129,13 +109,13 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
 
     function processCommandUpdateResult(result) {
       if (result.dirty.loadBalancers) {
-        modalWizardService.getWizard().markDirty('load-balancers');
+        v2modalWizardService.markDirty('load-balancers');
       }
       if (result.dirty.securityGroups) {
-        modalWizardService.getWizard().markDirty('security-groups');
+        v2modalWizardService.markDirty('security-groups');
       }
       if (result.dirty.availabilityZones) {
-        modalWizardService.getWizard().markDirty('capacity');
+        v2modalWizardService.markDirty('capacity');
       }
     }
 
@@ -162,11 +142,11 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
         ($scope.command.credentials !== null) && ($scope.command.instanceType !== null) &&
         ($scope.command.region !== null) && ($scope.command.zone !== null) &&
         ($scope.command.capacity.desired !== null) &&
-        modalWizardService.getWizard().isComplete();
+        v2modalWizardService.isComplete();
     };
 
     this.showSubmitButton = function () {
-      return modalWizardService.getWizard().allPagesVisited();
+      return v2modalWizardService.allPagesVisited();
     };
 
     function generateDiskDescriptors() {

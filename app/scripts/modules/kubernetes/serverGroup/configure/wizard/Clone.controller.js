@@ -6,12 +6,12 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
   require('angular-ui-router'),
   require('../../../../core/application/modal/platformHealthOverride.directive.js'),
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
-  require('../../../../core/modal/wizard/modalWizard.service.js'),
+  require('../../../../core/modal/wizard/v2modalWizard.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js'),
   require('../configuration.service.js'),
 ])
   .controller('kubernetesCloneServerGroupController', function($scope, $modalInstance, _, $q, $state,
-                                                         serverGroupWriter, modalWizardService, taskMonitorService,
+                                                         serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                          kubernetesServerGroupConfigurationService,
                                                          serverGroupCommand, application, title) {
     $scope.pages = {
@@ -56,22 +56,22 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
     function initializeWizardState() {
       var mode = serverGroupCommand.viewState.mode;
       if (mode === 'clone' || mode === 'editPipeline') {
-        modalWizardService.getWizard().markComplete('location');
-        modalWizardService.getWizard().markComplete('load-balancers');
-        modalWizardService.getWizard().markComplete('security-groups');
-        modalWizardService.getWizard().markComplete('containers');
-        modalWizardService.getWizard().markComplete('capacity');
+        v2modalWizardService.markComplete('location');
+        v2modalWizardService.markComplete('load-balancers');
+        v2modalWizardService.markComplete('security-groups');
+        v2modalWizardService.markComplete('containers');
+        v2modalWizardService.markComplete('capacity');
       }
     }
 
     this.isValid = function () {
       return $scope.command && $scope.command.containers.length > 0 &&
         $scope.command.credentials !== null &&
-        modalWizardService.getWizard().isComplete();
+        v2modalWizardService.isComplete();
     };
 
     this.showSubmitButton = function () {
-      return modalWizardService.getWizard().allPagesVisited();
+      return v2modalWizardService.allPagesVisited();
     };
 
     this.clone = function () {
