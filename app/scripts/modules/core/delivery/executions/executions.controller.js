@@ -38,7 +38,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
 
     this.clearFilters = () => {
       executionFilterService.clearFilters();
-      this.updateExecutionGroups();
+      this.updateExecutionGroups(true);
     };
 
     this.updateExecutionGroups = (reload) => {

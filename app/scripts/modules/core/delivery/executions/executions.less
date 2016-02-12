@@ -49,7 +49,7 @@ executions {
 .execution-status-executing, .execution-status-running {
   color: @spinnaker-blue;
 }
-.execution-status-failed {
+.execution-status-terminal {
   color: @unhealthy_red;
 }
 .execution-status-succeeded {
@@ -59,9 +59,9 @@ executions {
 .execution-marker {
   fill: @stage-default;
   background-color: @stage-default;
-  &.execution-marker-failed {
-    fill: @stage-failed;
-    background-color: @stage-failed;
+  &.execution-marker-terminal {
+    fill: @stage-terminal;
+    background-color: @stage-terminal;
   }
   &.execution-marker-succeeded {
     fill: @stage-succeeded;

@@ -139,7 +139,7 @@ describe('Service: taskReader', function () {
       expect(failed).toBe(false);
 
       // succeeds
-      $http.expectGET('/applications/deck/tasks/1').respond(200, { id: 1, status: 'FAILED' });
+      $http.expectGET('/applications/deck/tasks/1').respond(200, { id: 1, status: 'TERMINAL' });
       cycle();
       expect(completed).toBe(false);
       expect(failed).toBe(true);
