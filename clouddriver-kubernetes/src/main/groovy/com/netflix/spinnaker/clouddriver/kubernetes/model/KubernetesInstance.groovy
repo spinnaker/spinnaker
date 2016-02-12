@@ -51,8 +51,7 @@ class KubernetesInstance implements Instance, Serializable {
                       ready: it.ready.toString(),
                       running: it.state?.running?.toString(),
                       waiting: it.state?.waiting?.toString(),
-                      terminated: it.state?.terminated?.toString(),
-      ]
+                      terminated: it.state?.terminated?.toString()]
     }
 
     def phase = pod.status?.phase

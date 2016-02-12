@@ -120,7 +120,7 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     task.updateStatus BASE_PHASE, "Adding image pull secrets... "
     replicationControllerBuilder = replicationControllerBuilder.withImagePullSecrets()
 
-    for (def imagePullSecret : description.imagePullSecrets) {
+    for (def imagePullSecret : credentials.imagePullSecrets[namespace]) {
       replicationControllerBuilder = replicationControllerBuilder.addNewImagePullSecret(imagePullSecret)
     }
 

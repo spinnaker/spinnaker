@@ -62,12 +62,6 @@ class CloneKubernetesAtomicOperationValidator extends DescriptionValidator<Clone
       helper.validateNamespace(credentials, description.namespace, "namespace")
     }
 
-    if (description.imagePullSecrets) {
-      description.imagePullSecrets.eachWithIndex { name, idx ->
-        helper.validateImagePullSecret(credentials, name, description.namespace ?: 'default', "imagePullSecrets[${idx}]")
-      }
-    }
-
     if (description.loadBalancers) {
       description.loadBalancers.eachWithIndex { name, idx ->
         helper.validateName(name, "loadBalancers[${idx}]")

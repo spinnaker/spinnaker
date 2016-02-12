@@ -30,7 +30,6 @@ class DeployKubernetesAtomicOperationDescription extends KubernetesAtomicOperati
   Integer targetSize
   List<String> loadBalancers
   List<String> securityGroups
-  List<String> imagePullSecrets
   List<KubernetesContainerDescription> containers
 }
 

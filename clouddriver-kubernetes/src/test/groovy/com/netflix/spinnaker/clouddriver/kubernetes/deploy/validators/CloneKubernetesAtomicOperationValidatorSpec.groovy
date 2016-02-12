@@ -132,7 +132,6 @@ class CloneKubernetesAtomicOperationValidatorSpec extends Specification {
         loadBalancers: VALID_LOAD_BALANCERS,
         securityGroups: VALID_SECURITY_GROUPS,
         credentials: VALID_CREDENTIALS,
-        imagePullSecrets: [VALID_SECRET],
         source: [
           serverGroupName: VALID_SOURCE_SERVER_GROUP_NAME
         ])

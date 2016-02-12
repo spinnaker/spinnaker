@@ -128,7 +128,6 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
         namespace: VALID_NAMESPACE,
         freeFormDetails: VALID_STACK,
         targetSize: VALID_TARGET_SIZE,
-        imagePullSecrets: [VALID_SECRET],
         containers: [
           fullValidContainerDescription1,
           fullValidContainerDescription2

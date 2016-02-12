@@ -48,10 +48,6 @@ class DeployKubernetesAtomicOperationValidator extends DescriptionValidator<Depl
     helper.validateNonNegative(description.targetSize, "targetSize")
     helper.validateNamespace(credentials, description.namespace, "namespace")
 
-    description.imagePullSecrets.eachWithIndex { name, idx ->
-      helper.validateImagePullSecret(credentials, name, description.namespace ?: 'default', "imagePullSecrets[${idx}]")
-    }
-
     description.loadBalancers.eachWithIndex { name, idx ->
       helper.validateName(name, "loadBalancers[${idx}]")
     }
