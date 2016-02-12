@@ -48,7 +48,7 @@ class AbstractWaitForInstanceHealthChangeTaskSpec extends Specification {
 //TODO(duftler): Explain the new behavior here...
     where:
     instanceDetails                                                | interestingHealthProviderNames || expectedResult
-    []                                                             | null                            | ExecutionStatus.FAILED
+    []                                                             | null                            | ExecutionStatus.TERMINAL
     []                                                             | []                              | ExecutionStatus.SUCCEEDED
     [[instanceId: "1", health: [h("LB", "Up"), h("D", "Up")]]]     | null                            | ExecutionStatus.RUNNING
     [[instanceId: "1", health: [h("LB", "Up"), h("D", "Up")]]]     | []                              | ExecutionStatus.SUCCEEDED
@@ -89,7 +89,7 @@ class AbstractWaitForInstanceHealthChangeTaskSpec extends Specification {
 //TODO(duftler): Explain the new behavior here...
     where:
     instanceDetails                                                | interestingHealthProviderNames || expectedResult
-    []                                                             | null                            | ExecutionStatus.FAILED
+    []                                                             | null                            | ExecutionStatus.TERMINAL
     []                                                             | []                              | ExecutionStatus.SUCCEEDED
     [[instanceId: "1", health: [h("LB", "Up"), h("D", "Down")]]]   | null                            | ExecutionStatus.RUNNING
     [[instanceId: "1", health: [h("LB", "Up"), h("D", "Down")]]]   | []                              | ExecutionStatus.SUCCEEDED

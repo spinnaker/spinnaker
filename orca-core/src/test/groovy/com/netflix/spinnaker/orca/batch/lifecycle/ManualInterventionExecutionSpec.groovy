@@ -48,7 +48,7 @@ class ManualInterventionExecutionSpec extends AbstractBatchLifecycleSpec {
 
   def "pipeline will stop if the first task fails"() {
     given:
-    preInterventionTask.execute(null) >> new DefaultTaskResult(FAILED)
+    preInterventionTask.execute(null) >> new DefaultTaskResult(TERMINAL)
 
     when:
     launchJob()

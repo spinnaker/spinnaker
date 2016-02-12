@@ -56,8 +56,8 @@ class MonitorBakeTaskSpec extends Specification {
     BakeStatus.State.PENDING   | null                      || ExecutionStatus.RUNNING
     BakeStatus.State.RUNNING   | null                      || ExecutionStatus.RUNNING
     BakeStatus.State.COMPLETED | BakeStatus.Result.SUCCESS || ExecutionStatus.SUCCEEDED
-    BakeStatus.State.COMPLETED | BakeStatus.Result.FAILURE || ExecutionStatus.FAILED
-    BakeStatus.State.COMPLETED | null                      || ExecutionStatus.FAILED
+    BakeStatus.State.COMPLETED | BakeStatus.Result.FAILURE || ExecutionStatus.TERMINAL
+    BakeStatus.State.COMPLETED | null                      || ExecutionStatus.TERMINAL
     BakeStatus.State.SUSPENDED | null                      || ExecutionStatus.RUNNING
 
     id = randomUUID().toString()

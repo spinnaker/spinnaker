@@ -50,7 +50,7 @@ class MonitorDockerTask implements RetryableTask {
     if (execution.status == 'SUCCESSFUL') {
       return ExecutionStatus.SUCCEEDED
     } else if (execution.status == 'FAILURE') {
-      return ExecutionStatus.FAILED
+      return ExecutionStatus.TERMINAL
     } else {
       return ExecutionStatus.RUNNING
     }

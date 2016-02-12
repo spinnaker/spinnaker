@@ -65,7 +65,7 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
     Map<String, List<String>> serverGroups = getServerGroups(stage)
 
     if (!serverGroups || !serverGroups?.values()?.flatten()) {
-      return new DefaultTaskResult(ExecutionStatus.FAILED)
+      return new DefaultTaskResult(ExecutionStatus.TERMINAL)
     }
     Names names = Names.parseName(serverGroups.values().flatten()[0])
     try {
