@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.provider.view
 
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 
 class KubernetesProviderUtils {
@@ -27,5 +28,19 @@ class KubernetesProviderUtils {
 
   private static Set<CacheData> loadResults(Cache cacheView, String namespace, Collection<String> identifiers) {
     cacheView.getAll(namespace, identifiers, RelationshipCacheFilter.none())
+  }
+
+  static Collection<CacheData> resolveRelationshipData(Cache cacheView, CacheData source, String relationship) {
+    resolveRelationshipData(cacheView, source, relationship) { true }
+  }
+
+  static Collection<CacheData> resolveRelationshipData(Cache cacheView, CacheData source, String relationship, Closure<Boolean> relFilter) {
+    Collection<String> filteredRelationships = source?.relationships[relationship]?.findAll(relFilter)
+    filteredRelationships ? cacheView.getAll(relationship, filteredRelationships) : []
+  }
+
+  static Collection<CacheData> resolveRelationshipDataForCollection(Cache cacheView, Collection<CacheData> sources, String relationship, CacheFilter cacheFilter = null) {
+    Set<String> relationships = sources.findResults { it.relationships[relationship]?: [] }.flatten()
+    relationships ? cacheView.getAll(relationship, relationships, cacheFilter) : []
   }
 }

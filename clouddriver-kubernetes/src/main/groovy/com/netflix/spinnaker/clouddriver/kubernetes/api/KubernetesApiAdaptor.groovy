@@ -58,6 +58,14 @@ class KubernetesApiAdaptor {
     client.services().inNamespace(namespace).create(service)
   }
 
+  List<Service> getServices(String namespace) {
+    client.services().inNamespace(namespace).list().items
+  }
+
+  Service getSecurityGroup(String namespace, String securityGroup) {
+    getService(namespace, securityGroup)
+  }
+
   Service replaceService(String namespace, String name, Service service) {
     client.services().inNamespace(namespace).withName(name).replace(service)
   }
