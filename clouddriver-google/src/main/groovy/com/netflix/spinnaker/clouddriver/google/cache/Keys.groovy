@@ -21,10 +21,13 @@ import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 
 class Keys {
   static enum Namespace {
+    APPLICATIONS,
+    CLUSTERS,
+    INSTANCES,
     LOAD_BALANCERS,
     NETWORKS,
     SECURITY_GROUPS,
-
+    SERVER_GROUPS,
 
     final String ns
 
@@ -39,6 +42,7 @@ class Keys {
     }
   }
 
+  // TODO(ttomsu): Remove GoogleCloudProvider from most if not all of the method signatures in this class.
   static Map<String, String> parse(GoogleCloudProvider googleCloudProvider, String key) {
     def parts = key.split(':')
 
@@ -53,15 +57,65 @@ class Keys {
     }
 
     switch (result.type) {
+      case Namespace.APPLICATIONS.ns:
+        result << [application: parts[2]]
+        break
+      case Namespace.CLUSTERS.ns:
+        def names = Names.parseName(parts[4])
+        result << [
+            application: parts[3],
+            account    : parts[2],
+            name       : parts[4],
+            stack      : names.stack,
+            detail     : names.detail
+        ]
+        break
+      case Namespace.INSTANCES.ns:
+        def names = Names.parseName(parts[4])
+        result << [
+            application: names.app,
+            account    : parts[2],
+            serverGroup: parts[4],
+            namespace  : parts[3],
+            name       : parts[5]
+        ]
+        break
       case Namespace.LOAD_BALANCERS.ns:
-        result << [account: parts[2], region: parts[3], name: parts[4]]
+        result << [
+            account: parts[2],
+            region : parts[3],
+            name   : parts[4]
+        ]
         break
       case Namespace.NETWORKS.ns:
-        result << [id: parts[2], account: parts[3], region: parts[4]]
+        result << [
+            id     : parts[2],
+            account: parts[3],
+            region : parts[4]
+        ]
         break
       case Namespace.SECURITY_GROUPS.ns:
         def names = Names.parseName(parts[2])
-        result << [application: names.app, name: parts[2], id: parts[3], region: parts[4], account: parts[5]]
+        result << [
+            application: names.app,
+            name       : parts[2],
+            id         : parts[3],
+            region     : parts[4],
+            account    : parts[5]
+        ]
+        break
+      case Namespace.SERVER_GROUPS.ns:
+        def names = Names.parseName(parts[5])
+        result << [
+            application: names.app.toLowerCase(),
+            cluster    : parts[2],
+            account    : parts[3],
+            region     : parts[4],
+            serverGroup: parts[5],
+            stack      : names.stack,
+            detail     : names.detail,
+            sequence   : names.sequence?.toString()
+        ]
         break
       default:
         return null
@@ -69,6 +123,25 @@ class Keys {
     }
 
     result
+  }
+
+  static String getApplicationKey(GoogleCloudProvider googleCloudProvider,
+                                  String application) {
+    "$googleCloudProvider.id:${Namespace.APPLICATIONS}:${application}"
+  }
+
+  static String getClusterKey(GoogleCloudProvider googleCloudProvider,
+                              String account,
+                              String application,
+                              String clusterName) {
+    "$googleCloudProvider.id:${Namespace.CLUSTERS}:${account}:${application}:${clusterName}"
+  }
+
+  static String getInstanceKey(GoogleCloudProvider googleCloudProvider,
+                               String account,
+                               String location,
+                               String name) {
+    "$googleCloudProvider.id:${Namespace.INSTANCES}:${account}:${location}:${name}"
   }
 
   static String getLoadBalancerKey(GoogleCloudProvider googleCloudProvider,
@@ -91,5 +164,13 @@ class Keys {
                                     String region,
                                     String account) {
     "$googleCloudProvider.id:${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}"
+  }
+
+  static String getServerGroupKey(GoogleCloudProvider googleCloudProvider,
+                                  String managedInstanceGroupName,
+                                  String account,
+                                  String region) {
+    Names names = Names.parseName(managedInstanceGroupName)
+    "$googleCloudProvider.id:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
   }
 }

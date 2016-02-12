@@ -23,8 +23,10 @@ import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.provider.GoogleInfrastructureProvider
+import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleLoadBalancerCachingAgent
 import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleNetworkCachingAgent
 import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleSecurityGroupCachingAgent
+import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleServerGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
@@ -103,6 +105,13 @@ class GoogleInfrastructureProviderConfig {
 //                                                                 credentials.credentials.project,
 //                                                                 credentials.credentials.compute,
 //                                                                 objectMapper)
+//          newlyAddedAgents << new GoogleServerGroupCachingAgent(googleCloudProvider,
+//                                                                googleConfiguration.googleApplicationName(),
+//                                                                credentials.accountName,
+//                                                                region,
+//                                                                credentials.credentials.project,
+//                                                                credentials.credentials.compute,
+//                                                                objectMapper)
 //        }
 
         // If there is an agent scheduler, then this provider has been through the AgentController in the past.

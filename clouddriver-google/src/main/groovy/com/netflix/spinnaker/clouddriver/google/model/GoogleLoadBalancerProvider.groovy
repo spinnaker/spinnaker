@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+@Deprecated
 @Component
 class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalancer> {
 

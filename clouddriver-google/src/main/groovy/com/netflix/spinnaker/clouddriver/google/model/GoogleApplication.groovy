@@ -26,6 +26,8 @@ class GoogleApplication implements Application, Serializable {
   String name
   Map<String, Set<String>> clusterNames = Collections.synchronizedMap(new HashMap<String, Set<String>>())
   Map<String, String> attributes = Collections.synchronizedMap(new HashMap<String, String>())
+  // accountName -> clusterName -> cluster (I think?)
+  // TODO(ttomsu): If the above is correct, make `getClusterNames` a method that uses this amalgamation field.
   Map<String, Map<String, GoogleCluster>> clusters = Collections.synchronizedMap(new HashMap<String, Map<String, GoogleCluster>>())
 
   // Used as a deep copy-constructor.

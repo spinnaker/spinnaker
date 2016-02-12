@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.google.api.client.googleapis.batch.BatchRequest
@@ -25,10 +24,8 @@ import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.ForwardingRule
-import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
-import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
@@ -38,27 +35,16 @@ import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.GoogleResourceRetriever
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
-import com.netflix.spinnaker.clouddriver.google.provider.GoogleInfrastructureProvider
 import groovy.transform.TupleConstructor
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 
 @Slf4j
-class GoogleLoadBalancerCachingAgent implements CachingAgent, AccountAware {
+class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
 
-  // TODO(ttomsu): This will be shared across a few caching agents. Move to common class.
-  static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
-
-  final GoogleCloudProvider googleCloudProvider
-  final String googleApplicationName // "Spinnaker/${version}" HTTP header string
-  final String accountName
   final String region
-  final String project
-  final Compute compute
-  final ObjectMapper objectMapper
 
-  final String providerName = GoogleInfrastructureProvider.PROVIDER_NAME
   final Set<AgentDataType> providedDataTypes = Collections.unmodifiableSet([
     AUTHORITATIVE.forType(Keys.Namespace.LOAD_BALANCERS.ns)
   ] as Set)
