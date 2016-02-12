@@ -626,4 +626,87 @@ class StandardKubernetesAttributeValidatorSpec extends Specification {
       1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.notRegistered")
       0 * errorsMock._
   }
+
+  void "port accept"() {
+    setup:
+      def errorsMock = Mock(Errors)
+      def validator = new StandardKubernetesAttributeValidator(DECORATOR, errorsMock)
+      def label = "label"
+
+    when:
+      validator.validatePort(80, label)
+    then:
+      0 * errorsMock._
+
+    when:
+      validator.validatePort(111, label)
+    then:
+      0 * errorsMock._
+
+    when:
+      validator.validatePort(65535, label)
+    then:
+      0 * errorsMock._
+  }
+
+  void "port reject"() {
+    setup:
+      def errorsMock = Mock(Errors)
+      def validator = new StandardKubernetesAttributeValidator(DECORATOR, errorsMock)
+      def label = "label"
+
+    when:
+      validator.validatePort(0, label)
+    then:
+      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must be in range [1, $StandardKubernetesAttributeValidator.maxPort])")
+      0 * errorsMock._
+
+    when:
+      validator.validatePort(-1, label)
+    then:
+      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must be in range [1, $StandardKubernetesAttributeValidator.maxPort])")
+      0 * errorsMock._
+
+    when:
+      validator.validatePort(65536, label)
+    then:
+      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must be in range [1, $StandardKubernetesAttributeValidator.maxPort])")
+      0 * errorsMock._
+  }
+
+  void "protocol accept"() {
+    setup:
+      def errorsMock = Mock(Errors)
+      def validator = new StandardKubernetesAttributeValidator(DECORATOR, errorsMock)
+      def label = "label"
+
+    when:
+      validator.validateProtocol('TCP', label)
+    then:
+      0 * errorsMock._
+
+    when:
+      validator.validateProtocol('UDP', label)
+    then:
+      0 * errorsMock._
+  }
+
+  void "protocol reject"() {
+    setup:
+      def errorsMock = Mock(Errors)
+      def validator = new StandardKubernetesAttributeValidator(DECORATOR, errorsMock)
+      def label = "label"
+
+    when:
+      validator.validateProtocol('', label)
+    then:
+      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.empty")
+      0 * errorsMock._
+
+    when:
+      validator.validateProtocol('UPD', label)
+    then:
+      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must be one of $StandardKubernetesAttributeValidator.protocolList)")
+      0 * errorsMock._
+  }
 }

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import org.apache.http.conn.util.InetAddressUtils
 import org.springframework.validation.Errors
 
 class StandardKubernetesAttributeValidator {
@@ -25,6 +26,9 @@ class StandardKubernetesAttributeValidator {
   static final credentialsPattern = /^[a-z0-9]+([-a-z0-9_]*[a-z0-9])?$/
   static final prefixPattern = /^[a-z0-9]+$/
   static final quantityPattern = /^([+-]?[0-9.]+)([eEimkKMGTP]*[-+]?[0-9]*)$/
+  static final protocolList = ['TCP', 'UDP']
+  static final serviceTypeList= ['LoadBalancer']
+  static final maxPort = (1 << 16) - 1
 
   String context
 
@@ -46,6 +50,17 @@ class StandardKubernetesAttributeValidator {
     result
   }
 
+  def validateByContainment(Object value, String attribute, List<Object> list) {
+    def result
+    if (list.contains(value)) {
+      result = true
+    } else {
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid (Must be one of $list)")
+      result = false
+    }
+    result
+  }
+
   def validateDetails(String value, String attribute) {
     // Details are optional.
     if (!value) {
@@ -61,6 +76,34 @@ class StandardKubernetesAttributeValidator {
     } else {
       return false
     }
+  }
+
+  def validateProtocol(String value, String attribute) {
+    if (validateNotEmpty(value, attribute)) {
+      return validateByContainment(value, attribute, protocolList)
+    } else {
+      return false
+    }
+  }
+
+  def validateIpv4(String value, String attribute) {
+    def result = InetAddressUtils.isIPv4Address(value)
+    if (!result) {
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid (Not valid IPv4 address)")
+    }
+    result
+  }
+
+  def validateServiceType(String value, String attribute) {
+    value ? validateByContainment(value, attribute, serviceTypeList) : true
+  }
+
+  def validatePort(int port, String attribute) {
+    def result = (port >= 1 && port <= maxPort)
+    if (!result) {
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid (Must be in range [1, $maxPort])")
+    }
+    result
   }
 
   def validateApplication(String value, String attribute) {

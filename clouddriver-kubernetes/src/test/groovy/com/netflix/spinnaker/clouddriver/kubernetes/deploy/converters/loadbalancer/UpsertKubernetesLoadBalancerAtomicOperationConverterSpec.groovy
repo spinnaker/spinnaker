@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 Google, Inc.
+ * Copyright 2016 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,32 +14,30 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters
+package com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.loadbalancer
 
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.DeployKubernetesAtomicOperationDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.DeployKubernetesAtomicOperation
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.UpsertKubernetesLoadBalancerAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.loadbalancer.UpsertKubernetesLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.fasterxml.jackson.databind.ObjectMapper
 import spock.lang.Shared
 import spock.lang.Specification
 
-class DeployKubernetesAtomicOperationConverterSpec extends Specification {
+class UpsertKubernetesLoadBalancerAtomicOperationConverterSpec extends Specification {
   private static final CREDENTIALS = "my-test-account"
-  private static final APPLICATION = "app"
-  private static final STACK = "stack"
-  private static final DETAILS = "details"
+  private static final NAME = "johanson"
 
   @Shared
   ObjectMapper mapper = new ObjectMapper()
 
   @Shared
-  DeployKubernetesAtomicOperationConverter converter
+  UpsertKubernetesLoadBalancerAtomicOperationConverter converter
 
   def mockCredentials
 
   def setupSpec() {
-    converter = new DeployKubernetesAtomicOperationConverter(objectMapper: mapper)
+    converter = new UpsertKubernetesLoadBalancerAtomicOperationConverter(objectMapper: mapper)
   }
 
   def setup() {
@@ -47,24 +45,22 @@ class DeployKubernetesAtomicOperationConverterSpec extends Specification {
     converter.accountCredentialsProvider = Mock(AccountCredentialsProvider)
   }
 
-  void "DeployKubernetesAtomicOperationConverter type returns DeployKubernetesAtomicOperation and DeployKubernetesAtomicOperationDescription"() {
+  void "UpsertKubernetesLoadBalancerAtomicOperationSpec matches type signature of parent method"() {
     setup:
-      def input = [app: APPLICATION,
-                   stack: STACK,
-                   freeFormDetails: DETAILS,
+      def input = [name: NAME,
                    credentials: CREDENTIALS]
     when:
       def description = converter.convertDescription(input)
 
     then:
       1 * converter.accountCredentialsProvider.getCredentials(_) >> mockCredentials
-      description instanceof DeployKubernetesAtomicOperationDescription 
+      description instanceof UpsertKubernetesLoadBalancerAtomicOperationDescription
 
     when:
       def operation = converter.convertOperation(input)
 
     then:
       1 * converter.accountCredentialsProvider.getCredentials(_) >> mockCredentials
-      operation instanceof DeployKubernetesAtomicOperation 
+      operation instanceof UpsertKubernetesLoadBalancerAtomicOperation
   }
 }
