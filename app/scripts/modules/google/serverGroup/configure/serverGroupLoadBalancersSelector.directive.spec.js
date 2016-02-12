@@ -10,6 +10,7 @@ describe('Directive: GCE Load Balancers Selector', function() {
       require('./serverGroupLoadBalancersSelector.directive.js'),
       require('./serverGroupConfiguration.service.js'),
       require('exports?"ui.select"!ui-select'),
+      require('../../../core/forms/uiSelect.decorator'),
       require('../../../core/utils/timeFormatters.js'),
       require('../../../core/utils/moment.js')
     )

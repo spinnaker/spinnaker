@@ -7,7 +7,8 @@ describe('Directive: GCE Group Advanced Settings Selector', function() {
 
   beforeEach(
     window.module(
-      require('./serverGroupAdvancedSettingsSelector.directive.js')
+      require('./serverGroupAdvancedSettingsSelector.directive.js'),
+      require('../../../core/forms/uiSelect.decorator')
     )
   );
 
