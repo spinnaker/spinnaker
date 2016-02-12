@@ -144,7 +144,6 @@ class TaskTaskletSpec extends Specification {
     where:
     taskResultStatus | repeatStatus             | exitStatus
     SUCCEEDED        | RepeatStatus.FINISHED    | ExitStatus.COMPLETED
-    FAILED           | RepeatStatus.FINISHED    | ExitStatus.FAILED
     RUNNING          | RepeatStatus.CONTINUABLE | ExitStatus.EXECUTING
     SUSPENDED        | RepeatStatus.FINISHED    | ExitStatus.STOPPED
     TERMINAL         | RepeatStatus.FINISHED    | ExitStatus.FAILED
@@ -166,7 +165,6 @@ class TaskTaskletSpec extends Specification {
     where:
     taskResultStatus | _
     SUCCEEDED        | _
-    FAILED           | _
     RUNNING          | _
     SUSPENDED        | _
   }
@@ -187,7 +185,6 @@ class TaskTaskletSpec extends Specification {
     where:
     taskStatus | _
     RUNNING    | _
-    FAILED     | _
     SUCCEEDED  | _
 
     outputs = [foo: "bar", baz: "qux", appConfig: [:]]

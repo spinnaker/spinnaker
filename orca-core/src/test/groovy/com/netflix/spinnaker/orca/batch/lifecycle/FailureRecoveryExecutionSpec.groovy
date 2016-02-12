@@ -50,21 +50,6 @@ class FailureRecoveryExecutionSpec extends AbstractBatchLifecycleSpec {
     jobExecution.exitStatus == ExitStatus.COMPLETED
   }
 
-  def "if the first task fails the recovery task is run"() {
-    given:
-    startTask.execute(_) >> new DefaultTaskResult(FAILED)
-
-    when:
-    def jobExecution = launchJob()
-
-    then:
-    1 * recoveryTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
-    1 * endTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
-
-    and:
-    jobExecution.exitStatus == ExitStatus.COMPLETED
-  }
-
   @Ignore
   def "if a task is TERMINAL, the pipeline stops"() {
     given:

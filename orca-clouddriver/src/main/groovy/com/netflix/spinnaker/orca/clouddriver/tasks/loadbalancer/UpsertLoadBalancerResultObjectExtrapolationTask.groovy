@@ -34,7 +34,7 @@ class UpsertLoadBalancerResultObjectExtrapolationTask implements Task {
     def lastKatoTask = katoTasks.find { it.id.toString() == lastTaskId.id }
 
     if (!lastKatoTask) {
-      return new DefaultTaskResult(ExecutionStatus.FAILED)
+      return new DefaultTaskResult(ExecutionStatus.TERMINAL)
     }
 
     def resultObjects = lastKatoTask.resultObjects as List<Map>

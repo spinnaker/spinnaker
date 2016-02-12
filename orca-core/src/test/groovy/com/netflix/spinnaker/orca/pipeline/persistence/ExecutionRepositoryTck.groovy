@@ -305,7 +305,6 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     execution                  | status
     new Pipeline(buildTime: 0) | CANCELED
     new Orchestration()        | SUCCEEDED
-    new Orchestration()        | FAILED
     new Orchestration()        | TERMINAL
 
     type = execution.getClass().simpleName

@@ -126,7 +126,6 @@ class PipelineRecoveryListenerSpec extends Specification {
     status    | _
     CANCELED  | _
     SUCCEEDED | _
-    FAILED    | _
     TERMINAL  | _
     SUSPENDED | _
 

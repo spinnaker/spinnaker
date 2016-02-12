@@ -35,7 +35,6 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 class EchoEventSpec extends Specification {
 
   public static final taskSuccess = new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
-  public static final taskFailed = new DefaultTaskResult(ExecutionStatus.FAILED)
   public static final taskTerminal = new DefaultTaskResult(ExecutionStatus.TERMINAL)
   public static final taskMustRepeat = new DefaultTaskResult(ExecutionStatus.RUNNING)
 
@@ -143,7 +142,7 @@ class EchoEventSpec extends Specification {
                             "orca:pipeline:failed"]
 
     where:
-    failure << [taskFailed, taskTerminal]
+    failure << [taskTerminal]
   }
 
   /**

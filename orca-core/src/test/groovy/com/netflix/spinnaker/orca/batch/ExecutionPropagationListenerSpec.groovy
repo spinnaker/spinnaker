@@ -117,7 +117,6 @@ class ExecutionPropagationListenerSpec extends Specification {
     stageStatus | expectedStatus
     ExecutionStatus.CANCELED | ExecutionStatus.CANCELED
     ExecutionStatus.TERMINAL | ExecutionStatus.TERMINAL
-    ExecutionStatus.FAILED | ExecutionStatus.CANCELED
   }
 
   private static StepExecution stepExecution(String stepName,

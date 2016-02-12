@@ -48,7 +48,7 @@ abstract class AbstractWaitForInstanceHealthChangeTask implements RetryableTask 
 
     def instanceIds = getInstanceIds(stage)
     if (!instanceIds) {
-      return new DefaultTaskResult(ExecutionStatus.FAILED)
+      return new DefaultTaskResult(ExecutionStatus.TERMINAL)
     }
 
     def stillRunning = instanceIds.find {

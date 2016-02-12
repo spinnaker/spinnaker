@@ -72,13 +72,13 @@ class MonitorBakeTask implements RetryableTask {
   private ExecutionStatus mapStatus(BakeStatus newStatus) {
     switch (newStatus.state) {
       case BakeStatus.State.COMPLETED:
-        return newStatus.result == BakeStatus.Result.SUCCESS ? ExecutionStatus.SUCCEEDED : ExecutionStatus.FAILED
+        return newStatus.result == BakeStatus.Result.SUCCESS ? ExecutionStatus.SUCCEEDED : ExecutionStatus.TERMINAL
       // Rosco returns CANCELED.
       case BakeStatus.State.CANCELED:
-        return ExecutionStatus.FAILED
+        return ExecutionStatus.TERMINAL
       // Netflix's internal bakery returns CANCELLED.
       case BakeStatus.State.CANCELLED:
-        return ExecutionStatus.FAILED
+        return ExecutionStatus.TERMINAL
       default:
         return ExecutionStatus.RUNNING
     }
