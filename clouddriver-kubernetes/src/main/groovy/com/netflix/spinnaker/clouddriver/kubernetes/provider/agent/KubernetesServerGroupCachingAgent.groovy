@@ -58,6 +58,7 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
     INFORMATIVE.forType(Keys.Namespace.APPLICATIONS.ns),
     INFORMATIVE.forType(Keys.Namespace.CLUSTERS.ns),
+    INFORMATIVE.forType(Keys.Namespace.LOAD_BALANCERS.ns),
     AUTHORITATIVE.forType(Keys.Namespace.SERVER_GROUPS.ns),
     AUTHORITATIVE.forType(Keys.Namespace.INSTANCES.ns),
   ] as Set)
@@ -249,9 +250,10 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
     Map<String, MutableCacheData> cachedClusters = MutableCacheData.mutableCacheMap()
     Map<String, MutableCacheData> cachedServerGroups = MutableCacheData.mutableCacheMap()
     Map<String, MutableCacheData> cachedInstances = MutableCacheData.mutableCacheMap()
+    Map<String, MutableCacheData> cachedLoadBalancers = MutableCacheData.mutableCacheMap()
 
     for (ReplicationController replicationController : replicationControllers) {
-      def onDemandData = onDemandKeep ? onDemandKeep[Keys.getServerGroupKey(replicationController.metadata.name, accountName, namespace)] : null
+      def onDemandData = onDemandKeep ? onDemandKeep[Keys.getServerGroupKey(accountName, namespace, replicationController.metadata.name)] : null
 
       if (onDemandData && onDemandData.attributes.cacheTime >= start) {
         Map<String, List<CacheData>> cacheResults = objectMapper.readValue(onDemandData.attributes.cacheResults as String, new TypeReference<Map<String, List<MutableCacheData>>>() { })
@@ -301,6 +303,13 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
           }
         }
 
+        loadBalancerKeys.forEach { loadBalancerKey ->
+          cachedLoadBalancers[loadBalancerKey].with {
+            relationships[Keys.Namespace.SERVER_GROUPS.ns].add(serverGroupKey)
+            relationships[Keys.Namespace.INSTANCES.ns].addAll(instanceKeys)
+          }
+        }
+
         cachedServerGroups[serverGroupKey].with {
           attributes.name = replicationControllerName
           attributes.replicationController = replicationController
@@ -319,6 +328,7 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
 
     new DefaultCacheResult([
       (Keys.Namespace.APPLICATIONS.ns): cachedApplications.values(),
+      (Keys.Namespace.LOAD_BALANCERS.ns): cachedLoadBalancers.values(),
       (Keys.Namespace.CLUSTERS.ns): cachedClusters.values(),
       (Keys.Namespace.SERVER_GROUPS.ns): cachedServerGroups.values(),
       (Keys.Namespace.INSTANCES.ns): cachedInstances.values(),

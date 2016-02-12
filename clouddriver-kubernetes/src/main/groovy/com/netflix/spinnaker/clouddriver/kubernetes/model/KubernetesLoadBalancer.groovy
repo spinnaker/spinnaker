@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.model
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
+import io.fabric8.kubernetes.api.model.Service
 
 @CompileStatic
 @EqualsAndHashCode(includes = ["name", "accountName"])
@@ -26,6 +27,27 @@ class KubernetesLoadBalancer implements LoadBalancer, Serializable {
   String name
   String type = "kubernetes"
   String region
+  String namespace
   String accountName
-  Set<Map<String, Object>> serverGroups
+  Service service
+  // Set of server groups represented as maps of strings -> objects.
+  Set<Map<String, Object>> serverGroups = [] as Set
+
+  KubernetesLoadBalancer(String name, String namespace, String accountName) {
+    this.name = name
+    this.namespace = namespace
+    this.region = namespace
+    this.accountName = accountName
+  }
+
+  KubernetesLoadBalancer(Service service, List<KubernetesServerGroup> serverGroupList, String accountName) {
+    this.service = service
+    this.name = service.metadata.name
+    this.namespace = service.metadata.namespace
+    this.region = this.namespace
+    this.accountName = accountName
+    this.serverGroups = serverGroupList.collect { KubernetesServerGroup serverGroup
+      [name: serverGroup.name, serverGroup: serverGroup]
+    } as Set
+  }
 }

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.provider.KubernetesProvider
+import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesLoadBalancerCachingAgent
 import com.netflix.spinnaker.clouddriver.kubernetes.provider.agent.KubernetesServerGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
@@ -80,6 +81,7 @@ class KubernetesProviderConfig {
 
         credentials.credentials.namespaces.forEach({ namespace ->
           newlyAddedAgents << new KubernetesServerGroupCachingAgent(kubernetesCloudProvider, credentials.accountName, credentials.credentials, namespace, objectMapper, registry)
+          newlyAddedAgents << new KubernetesLoadBalancerCachingAgent(kubernetesCloudProvider, credentials.accountName, credentials.credentials, namespace, objectMapper, registry)
         })
 
         // If there is an agent scheduler, then this provider has been through the AgentController in the past.

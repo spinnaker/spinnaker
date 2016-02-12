@@ -60,22 +60,13 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
   @Override
   Map<String, Set<KubernetesCluster>> getClusterSummaries(String applicationName) {
     CacheData application = cacheView.get(Keys.Namespace.APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
-    application ? mapResponse(translateClusters(resolveRelationshipData(application, Keys.Namespace.CLUSTERS.ns), false)) : null
-  }
-
-  private Collection<CacheData> resolveRelationshipData(CacheData source, String relationship) {
-    resolveRelationshipData(source, relationship) { true }
-  }
-
-  private Collection<CacheData> resolveRelationshipData(CacheData source, String relationship, Closure<Boolean> relFilter) {
-    Collection<String> filteredRelationships = source.relationships[relationship]?.findAll(relFilter)
-    filteredRelationships ? cacheView.getAll(relationship, filteredRelationships) : []
+    application ? mapResponse(translateClusters(KubernetesProviderUtils.resolveRelationshipData(cacheView, application, Keys.Namespace.CLUSTERS.ns), false)) : null
   }
 
   @Override
   Map<String, Set<KubernetesCluster>> getClusterDetails(String applicationName) {
     CacheData application = cacheView.get(Keys.Namespace.APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
-    application ? mapResponse(translateClusters(resolveRelationshipData(application, Keys.Namespace.CLUSTERS.ns), true)) : null
+    application ? mapResponse(translateClusters(KubernetesProviderUtils.resolveRelationshipData(cacheView, application, Keys.Namespace.CLUSTERS.ns), true)) : null
   }
 
   @Override
@@ -114,7 +105,7 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
       } else {
         cluster.loadBalancers = clusterDataEntry.relationships[Keys.Namespace.LOAD_BALANCERS.ns]?.collect { loadBalancerKey ->
           Map parts = Keys.parse(loadBalancerKey)
-          new KubernetesLoadBalancer(name: parts.loadBalancer, region: parts.namespace)
+          new KubernetesLoadBalancer(parts.name, parts.namespace, parts.account)
         }
 
         cluster.serverGroups = clusterDataEntry.relationships[Keys.Namespace.SERVER_GROUPS.ns]?.collect { serverGroupKey ->
@@ -157,7 +148,7 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
   private static Map<String, KubernetesLoadBalancer> translateLoadBalancers(Collection<CacheData> loadBalancerData) {
     loadBalancerData.collectEntries { loadBalancerEntry ->
       Map<String, String> parts = Keys.parse(loadBalancerEntry.id)
-      [(loadBalancerEntry.id) : new KubernetesLoadBalancer(name: parts.loadBalancer, account: parts.account, region: parts.namespace)]
+      [(loadBalancerEntry.id) : new KubernetesLoadBalancer(parts.name, parts.namespace, parts.account)]
     }
   }
 
