@@ -72,10 +72,11 @@ class StandardKubernetesAttributeValidator {
   }
 
   def validateStack(String value, String attribute) {
-    if (validateNotEmpty(value, attribute)) {
-      return validateByRegex(value, attribute, prefixPattern)
+    // Stack is optional
+    if (!value) {
+      return true
     } else {
-      return false
+      return validateByRegex(value, attribute, prefixPattern)
     }
   }
 
@@ -105,7 +106,6 @@ class StandardKubernetesAttributeValidator {
     return validateByRegex(value, attribute, namePattern)
   }
 
-
   def validateNamespace(KubernetesCredentials credentials, String value, String attribute) {
     // Namespace is optional, empty taken to mean 'default'.
     if (!value) {
@@ -118,6 +118,7 @@ class StandardKubernetesAttributeValidator {
       return validateByRegex(value, attribute, namePattern)
     }
   }
+
   def validateNotEmpty(Object value, String attribute) {
     def result
     if (value != "" && value != null && value != []) {

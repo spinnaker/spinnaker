@@ -178,23 +178,6 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
       0 * errorsMock._
   }
 
-  void "validation reject (missing stack)"() {
-    setup:
-      def description = new DeployKubernetesAtomicOperationDescription(application: VALID_APPLICATION,
-        targetSize: VALID_TARGET_SIZE,
-        containers: [
-          partialValidContainerDescription
-        ],
-        credentials: VALID_CREDENTIALS)
-      def errorsMock = Mock(Errors)
-
-    when:
-      validator.validate([], description, errorsMock)
-    then:
-      1 * errorsMock.rejectValue("${DESCRIPTION}.stack", "${DESCRIPTION}.stack.empty")
-      0 * errorsMock._
-  }
-
   void "validation reject (missing application)"() {
     setup:
       def description = new DeployKubernetesAtomicOperationDescription(stack: VALID_STACK,

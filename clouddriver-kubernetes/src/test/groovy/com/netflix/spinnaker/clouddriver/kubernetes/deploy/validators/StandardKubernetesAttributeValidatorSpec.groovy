@@ -442,12 +442,6 @@ class StandardKubernetesAttributeValidatorSpec extends Specification {
     then:
       1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.prefixPattern})")
       0 * errorsMock._
-
-    when:
-      validator.validateStack("", label)
-    then:
-      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.empty")
-      0 * errorsMock._
   }
 
   void "memory accept"() {
