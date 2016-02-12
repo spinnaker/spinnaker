@@ -18,11 +18,13 @@ package com.netflix.spinnaker.clouddriver.google.cache
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import com.netflix.spinnaker.clouddriver.google.model.GoogleHealth
 
 class Keys {
   static enum Namespace {
     APPLICATIONS,
     CLUSTERS,
+    HEALTH,
     INSTANCES,
     LOAD_BALANCERS,
     NETWORKS,
@@ -68,6 +70,13 @@ class Keys {
             name       : parts[4],
             stack      : names.stack,
             detail     : names.detail
+        ]
+        break
+      case Namespace.HEALTH.ns:
+        result << [
+            account   : parts[2],
+            healthType: parts[3],
+            name      : parts[4]
         ]
         break
       case Namespace.INSTANCES.ns:
@@ -135,6 +144,13 @@ class Keys {
                               String application,
                               String clusterName) {
     "$googleCloudProvider.id:${Namespace.CLUSTERS}:${account}:${application}:${clusterName}"
+  }
+
+  static String getHealthKey(GoogleCloudProvider googleCloudProvider,
+                             String account,
+                             GoogleHealth.Type type,
+                             String instanceName) {
+    "$googleCloudProvider.id:${Namespace.HEALTH}:${account}:${type}:${instanceName}"
   }
 
   static String getInstanceKey(GoogleCloudProvider googleCloudProvider,
