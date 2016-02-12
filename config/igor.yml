@@ -9,6 +9,9 @@ jenkins:
       username: ${services.jenkins.defaultMaster.username}
       password: ${services.jenkins.defaultMaster.password}
 
+redis:
+  connection: ${services.redis.connection:redis://localhost:6379}
+
 # This is recursive
 #services:
 #  echo:
