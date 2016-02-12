@@ -35,7 +35,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class CredentialsLoader<T extends AmazonCredentials> {
 
@@ -90,6 +92,7 @@ public class CredentialsLoader<T extends AmazonCredentials> {
                             Region fromDefault = find(defaults, region.getName());
                             if (fromDefault != null) {
                                 region.setPreferredZones(fromDefault.getPreferredZones());
+                                region.setDeprecated(fromDefault.getDeprecated());
                             }
                         }
                         result.addAll(resolved);
@@ -104,6 +107,10 @@ public class CredentialsLoader<T extends AmazonCredentials> {
         if (toInit == null) {
             return defaults.get();
         }
+
+        Map<String, Region> toInitByName = toInit.stream().collect(
+            Collectors.toMap(Region::getName, Function.identity())
+        );
 
         List<Region> result = new ArrayList<>(toInit.size());
         List<String> toLookup = new ArrayList<>();
@@ -136,6 +143,17 @@ public class CredentialsLoader<T extends AmazonCredentials> {
             }
             result.addAll(resolved);
         }
+
+        // make a clone of all regions such that modifications apply only to this specific instance (and not global defaults)
+        result = result.stream().map(Region::copyOf).collect(Collectors.toList());
+
+        for (Region r : result) {
+          Region toInitRegion = toInitByName.get(r.getName());
+          if (toInitRegion != null && toInitRegion.getDeprecated() != null) {
+            r.setDeprecated(toInitRegion.getDeprecated());
+          }
+        }
+
         return result;
     }
 

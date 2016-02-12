@@ -27,6 +27,7 @@ public class CredentialsConfig {
         private String name;
         private List<String> availabilityZones;
         private List<String> preferredZones;
+        private Boolean deprecated;
 
         public String getName() {
             return name;
@@ -50,6 +51,24 @@ public class CredentialsConfig {
 
         public void setPreferredZones(List<String> preferredZones) {
             this.preferredZones = preferredZones;
+        }
+
+        public Boolean getDeprecated() {
+            return deprecated;
+        }
+
+        public void setDeprecated(Boolean deprecated) {
+            this.deprecated = deprecated;
+        }
+
+        Region copyOf() {
+            Region clone = new Region();
+            clone.setName(getName());
+            clone.setAvailabilityZones(getAvailabilityZones());
+            clone.setPreferredZones(getPreferredZones());
+            clone.setDeprecated(getDeprecated());
+
+            return clone;
         }
     }
 

@@ -128,24 +128,32 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
     public static class AWSRegion {
 
         private final String name;
+        private final Boolean deprecated;
         private final List<String> availabilityZones;
         private final List<String> preferredZones;
 
         public AWSRegion(@JsonProperty("name") String name,
                          @JsonProperty("availabilityZones") List<String> availabilityZones,
-                         @JsonProperty("preferredZones") List<String> preferredZones) {
+                         @JsonProperty("preferredZones") List<String> preferredZones,
+                         @JsonProperty("deprecated") Boolean deprecated) {
             if (name == null) {
                 throw new NullPointerException("name");
             }
+
             this.name = name;
             this.availabilityZones = availabilityZones == null ? Collections.<String>emptyList() : Collections.unmodifiableList(availabilityZones);
             List<String> preferred = (preferredZones == null || preferredZones.isEmpty()) ? new ArrayList<>(this.availabilityZones) : new ArrayList<>(preferredZones);
             preferred.retainAll(this.availabilityZones);
             this.preferredZones = Collections.unmodifiableList(preferred);
+
+            if (deprecated == null) {
+                deprecated = Boolean.FALSE;
+            }
+            this.deprecated = deprecated;
         }
 
         public AWSRegion(String name, List<String> availabilityZones) {
-            this(name, availabilityZones, Collections.emptyList());
+            this(name, availabilityZones, Collections.emptyList(), null);
         }
 
         public String getName() {
@@ -160,7 +168,11 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
             return preferredZones;
         }
 
-        @Override
+        public Boolean getDeprecated() {
+            return deprecated;
+        }
+
+      @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
