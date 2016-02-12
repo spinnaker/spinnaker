@@ -54,6 +54,11 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         return command.suspendedProcesses.indexOf(process) !== -1;
       };
 
+      command.regionIsDeprecated = () => {
+        return command.backingData &&
+        command.backingData.filtered.regions.filter((region) => region.name === command.region && region.deprecated).length;
+      };
+
       return $q.all({
         regionsKeyedByAccount: accountService.getRegionsKeyedByAccount('aws'),
         securityGroups: securityGroupReader.getAllSecurityGroups(),
