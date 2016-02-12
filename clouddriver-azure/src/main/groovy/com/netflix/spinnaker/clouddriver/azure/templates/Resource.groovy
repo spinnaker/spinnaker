@@ -41,4 +41,5 @@ class Resource {
   String name
   String type
   String location
+  Map<String, String> tags
 }

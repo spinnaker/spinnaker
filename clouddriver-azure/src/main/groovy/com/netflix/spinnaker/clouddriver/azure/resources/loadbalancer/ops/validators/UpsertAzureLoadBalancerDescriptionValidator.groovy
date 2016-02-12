@@ -36,18 +36,9 @@ class UpsertAzureLoadBalancerDescriptionValidator extends
   void validate(List priorDescriptions, UpsertAzureLoadBalancerDescription description, Errors errors) {
     def helper = new StandardAzureAttributeValidator("upsertAzureLoadBalancerDescription", errors)
 
-
     helper.validateCredentials(description.credentials, accountCredentialsProvider)
     helper.validateRegion(description.region)
     helper.validateName(description.loadBalancerName, "loadBalancerName")
-
-    /*
-
-    // If the IP protocol is specified, it must be contained in the list of supported protocols.
-    if (description.ipProtocol && !SUPPORTED_IP_PROTOCOLS.contains(description.ipProtocol)) {
-      errors.rejectValue("ipProtocol",
-        "upsertAzureLoadBalancerDescription.ipProtocol.notSupported")
-    }
-    */
+    helper.validateName(description.appName, "appName")
   }
 }

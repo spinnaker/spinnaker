@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops.converters
 
+import com.netflix.spinnaker.clouddriver.azure.AzureOperation
 import com.netflix.spinnaker.clouddriver.azure.common.AzureAtomicOperationConverterHelper
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.DeleteAzureLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops.DeleteAzureLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
-import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.DeleteAzureLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops.DeleteAzureLoadBalancerAtomicOperation
-import com.netflix.spinnaker.clouddriver.azure.AzureOperation
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
@@ -41,6 +41,7 @@ class DeleteAzureLoadBalancerAtomicOperationConverter extends AbstractAtomicOper
 
   @Override
   DeleteAzureLoadBalancerDescription convertDescription(Map input) {
-    AzureAtomicOperationConverterHelper.convertDescription(input, this, DeleteAzureLoadBalancerDescription)
+    AzureAtomicOperationConverterHelper.
+      convertDescription(input, this, DeleteAzureLoadBalancerDescription) as DeleteAzureLoadBalancerDescription
   }
 }

@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.clouddriver.azure
 
 import com.netflix.spinnaker.clouddriver.core.CloudProvider
-import org.springframework.stereotype.Component
 import java.lang.annotation.Annotation
+import org.springframework.stereotype.Component
 
 @Component
 class AzureCloudProvider implements CloudProvider {

@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.azure.common
+package com.netflix.spinnaker.clouddriver.azure.resources.common.cache.provider
 
 import com.netflix.spinnaker.cats.agent.Agent
+import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
+import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
-import com.netflix.spinnaker.clouddriver.azure.common.Keys
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 
-import static com.netflix.spinnaker.clouddriver.azure.common.Keys.Namespace.SECURITY_GROUPS
+import static com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys.Namespace.SECURITY_GROUPS
 
-class AzureInfrastructureProvider implements SearchableProvider {
+@ConditionalOnProperty('azure.enabled')
+class AzureInfrastructureProvider extends AgentSchedulerAware implements SearchableProvider {
   public static final String PROVIDER_NAME = AzureInfrastructureProvider.name
 
   private final AzureCloudProvider azureCloudProvider
@@ -31,7 +34,7 @@ class AzureInfrastructureProvider implements SearchableProvider {
 
   AzureInfrastructureProvider(AzureCloudProvider azureCloudProvider, Collection<Agent> agents) {
     this.azureCloudProvider = azureCloudProvider
-    this.agents = Collections.unmodifiableCollection(agents)
+    this.agents = agents
   }
 
   @Override

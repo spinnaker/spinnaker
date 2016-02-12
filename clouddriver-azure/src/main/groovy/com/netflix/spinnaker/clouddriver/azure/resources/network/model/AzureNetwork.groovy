@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.azure.config.cache
+package com.netflix.spinnaker.clouddriver.azure.resources.network.model
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.Configuration
-import groovy.util.logging.Slf4j
+import com.netflix.spinnaker.clouddriver.model.Network
 
-@Slf4j
-@Configuration
-@ConditionalOnProperty('azure.enabled')
-@ComponentScan(["com.netflix.spinnaker.clouddriver.azure"])
-class AzureCacheConfig {
-  AzureCacheConfig() {
-    log.info("Constructor....AzureCacheConfig")
-  }
-
+class AzureNetwork implements Network {
+  String cloudProvider
+  String id
+  String name
+  String account
+  String region
 }
