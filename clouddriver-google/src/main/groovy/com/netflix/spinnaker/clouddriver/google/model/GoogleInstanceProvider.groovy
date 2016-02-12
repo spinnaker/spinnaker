@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+@Deprecated
 @Component
 class GoogleInstanceProvider implements InstanceProvider<GoogleInstance> {
 

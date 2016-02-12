@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 Google, Inc.
+ * Copyright 2016 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,37 +18,29 @@ package com.netflix.spinnaker.clouddriver.google.model
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 
-@Deprecated
-class GoogleInstance implements Instance, Serializable {
+class GoogleInstance2 implements Instance, Serializable {
 
   String name
+  String instanceId
+  String instanceType
   Long launchTime
-  List<Map<String, Object>> health = []
+  String zone
+  List<GoogleHealth> healths
 
   private Map<String, Object> dynamicProperties = new HashMap<String, Object>()
 
-  // Used as a deep copy-constructor.
-  public static GoogleInstance newInstance(GoogleInstance originalGoogleInstance) {
-    GoogleInstance copyGoogleInstance = new GoogleInstance()
-
-    // Don't want to copy 'class' and 'healthState' has a getter but no setter.
-    def keySet = originalGoogleInstance.properties.keySet() - "class" - "healthState"
-
-    keySet += originalGoogleInstance.anyProperty().keySet()
-
-    keySet.each { key ->
-      def valueCopy = Utils.getImmutableCopy(originalGoogleInstance.hasProperty(key) ? originalGoogleInstance[key] : originalGoogleInstance.anyProperty()[key])
-
-      if (valueCopy) {
-        copyGoogleInstance[key] = valueCopy
-      }
-    }
-
-    copyGoogleInstance
+  @Override
+  @JsonIgnore
+  List<Map<String, String>> getHealth() {
+    ObjectMapper mapper = new ObjectMapper()
+    return healths.collect { mapper.convertValue(it, new TypeReference<Map<String, String>>() {}) }
   }
 
   @JsonAnyGetter
@@ -64,10 +56,10 @@ class GoogleInstance implements Instance, Serializable {
   @Override
   HealthState getHealthState() {
     someUpRemainingUnknown(health) ? HealthState.Up :
-      anyStarting(health) ? HealthState.Starting :
-        anyDown(health) ? HealthState.Down :
-          anyOutOfService(health) ? HealthState.OutOfService :
-            HealthState.Unknown
+        anyStarting(health) ? HealthState.Starting :
+            anyDown(health) ? HealthState.Down :
+                anyOutOfService(health) ? HealthState.OutOfService :
+                    HealthState.Unknown
   }
 
   private static boolean anyDown(List<Map<String, String>> healthList) {
@@ -75,7 +67,7 @@ class GoogleInstance implements Instance, Serializable {
   }
 
   private static boolean someUpRemainingUnknown(List<Map<String, String>> healthList) {
-    List<Map<String, String>> knownHealthList = healthList.findAll{ it.state != HealthState.Unknown }
+    List<Map<String, String>> knownHealthList = healthList.findAll { it.state != HealthState.Unknown }
     knownHealthList ? knownHealthList.every { it.state == HealthState.Up } : false
   }
 
@@ -88,14 +80,10 @@ class GoogleInstance implements Instance, Serializable {
   }
 
   @Override
-  String getZone() {
-    anyProperty().get("placement")?.availabilityZone
-  }
-
-  @Override
   boolean equals(Object o) {
-    if (o instanceof GoogleInstance)
-    o.name.equals(name)
+    if (o instanceof GoogleInstance2) {
+      o.name.equals(name)
+    }
   }
 
   @Override
