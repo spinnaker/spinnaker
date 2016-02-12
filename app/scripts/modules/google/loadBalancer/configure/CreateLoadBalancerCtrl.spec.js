@@ -13,7 +13,7 @@ describe('Controller: gceCreateLoadBalancerCtrl', function () {
     });
 
   // Initialize the controller and a mock scope
-  beforeEach(window.inject(function ($controller, $rootScope, _modalWizardService_) {
+  beforeEach(window.inject(function ($controller, $rootScope, _v2modalWizardService_) {
     this.$scope = $rootScope.$new();
     this.ctrl = $controller('gceCreateLoadBalancerCtrl', {
       $scope: this.$scope,
@@ -22,7 +22,7 @@ describe('Controller: gceCreateLoadBalancerCtrl', function () {
       loadBalancer: null,
       isNew: true
     });
-    this.wizardService = _modalWizardService_;
+    this.wizardService = _v2modalWizardService_;
   }));
 
   it('requires health check path for HTTP/S', function () {
@@ -59,15 +59,17 @@ describe('Controller: gceCreateLoadBalancerCtrl', function () {
   });
 
   it('should make the health check tab invisible then visible again', function() {
-    var wiz = jasmine.createSpyObj('wizard', ['markComplete', 'markIncomplete', 'includePage', 'excludePage']);
-    spyOn(this.wizardService, 'getWizard').and.returnValue(wiz);
+    spyOn(this.wizardService, 'includePage');
+    spyOn(this.wizardService, 'markIncomplete');
+    spyOn(this.wizardService, 'excludePage');
+    spyOn(this.wizardService, 'markComplete');
     this.$scope.loadBalancer.listeners[0].healthCheck = false;
     this.ctrl.setVisibilityHealthCheckTab();
-    expect(wiz.excludePage.calls.count()).toEqual(1);
+    expect(this.wizardService.excludePage.calls.count()).toEqual(1);
 
     this.$scope.loadBalancer.listeners[0].healthCheck = true;
     this.ctrl.setVisibilityHealthCheckTab();
-    expect(wiz.includePage.calls.count()).toEqual(1);
+    expect(this.wizardService.includePage.calls.count()).toEqual(1);
   });
 
 });

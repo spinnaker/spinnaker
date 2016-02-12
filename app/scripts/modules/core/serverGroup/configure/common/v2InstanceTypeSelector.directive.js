@@ -39,7 +39,7 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
     }
 
     $scope.$watch('command.viewState.instanceProfile', updateFamilies);
-    $scope.$watch('command.virtualizationType', updateFamilies);
+    $scope.$watch('command.backingData.filtered.instanceTypes', updateFamilies);
 
     this.selectInstanceType = function(type) {
       if (type.unavailable) {

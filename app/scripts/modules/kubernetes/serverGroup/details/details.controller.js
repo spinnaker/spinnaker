@@ -118,6 +118,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
       $uibModal.open({
         templateUrl: require('../configure/wizard/wizard.html'),
         controller: 'kubernetesCloneServerGroupController as ctrl',
+        size: 'lg',
         resolve: {
           title: function() { return 'Clone ' + serverGroup.name; },
           application: function() { return application; },

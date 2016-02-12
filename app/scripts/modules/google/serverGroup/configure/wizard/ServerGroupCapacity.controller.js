@@ -3,16 +3,13 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.capacity.controller', [])
-  .controller('gceServerGroupCapacityCtrl', function($scope, modalWizardService) {
-
-    modalWizardService.getWizard().markComplete('capacity');
-    modalWizardService.getWizard().markClean('capacity');
+  .controller('gceServerGroupCapacityCtrl', function($scope, v2modalWizardService) {
 
     $scope.$watch('form.$valid', function(newVal) {
       if (newVal) {
-        modalWizardService.getWizard().markClean('capacity');
+        v2modalWizardService.markClean('capacity');
       } else {
-        modalWizardService.getWizard().markDirty('capacity');
+        v2modalWizardService.markDirty('capacity');
       }
     });
 

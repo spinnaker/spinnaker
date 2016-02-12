@@ -8,7 +8,7 @@ module.exports = angular
     require('../../../core/task/monitor/taskMonitorService.js'),
     require('../../../core/securityGroup/securityGroup.write.service.js'),
     require('../../../core/account/account.service.js'),
-    require('../../../core/modal/wizard/modalWizard.service.js'),
+    require('../../../core/modal/wizard/v2modalWizard.service.js'),
     require('../../../core/network/network.read.service.js'),
     require('../../../core/utils/lodash.js'),
   ])
@@ -21,7 +21,7 @@ module.exports = angular
                                                        securityGroupReader,
                                                        securityGroupWriter,
                                                        accountService,
-                                                       modalWizardService,
+                                                       v2modalWizardService,
                                                        cacheInitializer,
                                                        networkReader,
                                                        _ ) {
@@ -41,6 +41,8 @@ module.exports = angular
         currentItems: 20,
       },
     };
+
+    $scope.wizard = v2modalWizardService;
 
     ctrl.addMoreItems = function() {
       $scope.state.infiniteScroll.currentItems += $scope.state.infiniteScroll.numToAdd;
