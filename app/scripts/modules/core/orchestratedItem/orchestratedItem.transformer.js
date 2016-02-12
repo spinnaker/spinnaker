@@ -82,7 +82,7 @@ module.exports = angular.module('spinnaker.core.orchestratedItem.transformer', [
         },
         isFailed: {
           get: function() {
-            return item.status === 'FAILED';
+            return item.status === 'TERMINAL';
           },
         },
         isActive: {
@@ -145,7 +145,7 @@ module.exports = angular.module('spinnaker.core.orchestratedItem.transformer', [
           return 'RUNNING';
         case 'FAILED':
         case 'TERMINAL':
-          return 'FAILED';
+          return 'TERMINAL';
         case 'STOPPED':
           return 'STOPPED';
         case 'SUSPENDED':

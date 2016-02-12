@@ -62,7 +62,7 @@
           <create-new application="application"></create-new>
         </div>
       </form>
-      <filter-tags tags="vm.tags" tag-cleared="vm.updateClusterGroups()" clear-filters="vm.clearFilters()"></filter-tags>
+      <filter-tags tags="vm.tags" tag-cleared="vm.updateExecutionGroups(true)" clear-filters="vm.clearFilters()"></filter-tags>
     </div>
     <div class="text-center" ng-if="vm.viewState.loading">
       <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>

@@ -79,8 +79,22 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
       addBuildInfo(execution);
     }
 
+    function siblingStageSorter(a, b) {
+      if (!a.startTime && !b.startTime) {
+        return 0;
+      }
+      if (!a.startTime) {
+        return 1;
+      }
+      if (!b.startTime) {
+        return -1;
+      }
+      return a.startTime - b.startTime;
+    }
+
     function flattenStages(stages, stage) {
       if (stage.before && stage.before.length) {
+        stage.before.sort(siblingStageSorter);
         stage.before.forEach(function(beforeStage) {
           flattenStages(stages, beforeStage);
         });
@@ -91,6 +105,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
         stages.push(stage);
       }
       if (stage.after && stage.after.length) {
+        stage.after.sort(siblingStageSorter);
         stage.after.forEach(function(afterStage) {
           flattenStages(stages, afterStage);
         });
@@ -102,23 +117,6 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
       return flattenStages([], stage)
         .filter(function(stage) {
           return stage.type !== 'initialization' && stage.initializationStage !== true;
-        })
-        .sort(function(a, b) {
-          if (a.syntheticStageOwner === 'STAGE_BEFORE' &&
-            b.syntheticStageOwner === 'STAGE_BEFORE' &&
-            a.parentStageId === b.parentStageId) {
-              if (!a.startTime && !b.startTime) {
-                return 0;
-              }
-              if (!a.startTime) {
-                return 1;
-              }
-              if (!b.startTime) {
-                return -1;
-              }
-              return a.startTime - b.startTime;
-          }
-          return 0;
         });
     }
 
