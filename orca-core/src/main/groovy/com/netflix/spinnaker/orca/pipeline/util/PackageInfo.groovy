@@ -51,7 +51,7 @@ class PackageInfo {
     requestMap.putAll(stage.context)
     if (stage.execution instanceof Pipeline) {
       Map trigger = ((Pipeline) stage.execution).trigger
-      Map buildInfo = [:]
+      Map buildInfo = null
       if (requestMap.buildInfo) { // package was built as part of the pipeline
         buildInfo = mapper.convertValue(requestMap.buildInfo, Map)
       }
@@ -72,9 +72,21 @@ class PackageInfo {
   @CompileDynamic
   @VisibleForTesting
   private Map createAugmentedRequest(Map trigger, Map buildInfo, Map request) {
+
+    if (isUrl(request.package) || !trigger) {
+      return request
+    }
+
     List<Map> triggerArtifacts = trigger.buildInfo?.artifacts ?: trigger.parentExecution?.trigger?.buildInfo?.artifacts
-    List<Map> buildArtifacts = buildInfo.artifacts
-    if ((!triggerArtifacts && !buildArtifacts) || isUrl(request.package)) {
+    List<Map> buildArtifacts = buildInfo?.artifacts
+
+    if (!buildInfo || (buildInfo && !buildArtifacts)) {
+      if (!triggerArtifacts && (trigger.buildInfo != null || trigger.parentExecution?.trigger?.buildInfo != null)) {
+        throw new IllegalStateException("Jenkins job detected but no artifacts found, please archive the packages in your job and try again.")
+      }
+    }
+
+    if (!buildArtifacts && !triggerArtifacts) {
       return request
     }
 
@@ -94,7 +106,7 @@ class PackageInfo {
 
     if (triggerArtifact) {
       packageName = extractPackageName(triggerArtifact, fileExtension)
-      if(extractVersion) {
+      if (extractVersion) {
         packageVersion = extractPackageVersion(triggerArtifact, prefix, fileExtension)
       }
     }
@@ -106,7 +118,7 @@ class PackageInfo {
       }
     }
 
-    if(packageVersion) {
+    if (packageVersion) {
       request.put('packageVersion', packageVersion)
     }
 
@@ -163,8 +175,8 @@ class PackageInfo {
   @CompileDynamic
   private String extractPackageVersion(Map artifact, String filePrefix, String fileExtension) {
     String version = artifact.fileName.substring(artifact.fileName.indexOf(filePrefix) + filePrefix.length(), artifact.fileName.lastIndexOf(fileExtension))
-    if(version.contains(versionDelimiter)) { // further strip in case of _all is in the file name
-      version = version.substring(0,version.indexOf(versionDelimiter))
+    if (version.contains(versionDelimiter)) { // further strip in case of _all is in the file name
+      version = version.substring(0, version.indexOf(versionDelimiter))
     }
     return version
   }

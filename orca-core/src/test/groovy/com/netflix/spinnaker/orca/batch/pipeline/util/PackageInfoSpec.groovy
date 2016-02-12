@@ -84,4 +84,23 @@ class PackageInfoSpec extends Specification {
     "http://jenkins.com/job/folder/job/job name/123" || ["http://jenkins.com/", "folder/job/job name", "123"]
   }
 
+  @Unroll
+  void "should throw an exception when a trigger has no artifacts"() {
+    when:
+    Map request = ['package': 'dos']
+    info.createAugmentedRequest(providedTrigger, null, request)
+
+    then:
+    def exception = thrown(IllegalStateException)
+    exception.message == "Jenkins job detected but no artifacts found, please archive the packages in your job and try again."
+
+    where:
+    buildInfo       | providedTrigger
+    null            | [buildInfo: [buildNumber: 6]]
+    null            | [buildInfo: [buildNumber: 6, artifacts: []]]
+    [artifacts: []] | [buildInfo: [buildNumber: 6]]
+    null            | [parentExecution: [trigger: [buildInfo: [buildNumber: 6]]]]
+    null            | [buildInfo: [buildNumber: 6], parentExecution: [trigger: [buildInfo: [buildNumber: 6]]]]
+  }
+
 }
