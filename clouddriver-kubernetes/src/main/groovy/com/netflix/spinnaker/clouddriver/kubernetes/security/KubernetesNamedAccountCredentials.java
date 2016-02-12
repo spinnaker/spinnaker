@@ -63,6 +63,14 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     // TODO(lwander): what is this?
     this.requiredGroupMembership = requiredGroupMembership == null ? Collections.emptyList() : Collections.unmodifiableList(requiredGroupMembership);
     this.dockerRegistries = dockerRegistries != null ? dockerRegistries : new ArrayList<>();
+
+    for (int i = 0; i < this.dockerRegistries.size(); i++) {
+      LinkedDockerRegistryConfiguration registry = this.dockerRegistries.get(i);
+      if (registry.getNamespaces() == null || registry.getNamespaces().size() == 0) {
+        registry.setNamespaces(this.namespaces);
+      }
+    }
+
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.credentials = buildCredentials();
   }
@@ -93,6 +101,10 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
 
   public KubernetesCredentials getCredentials() {
     return credentials;
+  }
+
+  public List<String> getNamespaces() {
+    return namespaces;
   }
 
   private KubernetesCredentials buildCredentials() {
