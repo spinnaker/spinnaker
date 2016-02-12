@@ -38,7 +38,9 @@ class CredentialsLoaderSpec extends Specification {
                 defaultDiscoveryTemplate: 'http://%s.discovery{{name}}.netflix.net',
                 defaultAssumeRole: 'role/asgard',
                 accounts: [
-                        new Account(name: 'test', accountId: 12345),
+                        new Account(name: 'test', accountId: 12345, regions: [
+                            new Region(name: 'us-west-2', deprecated: true)
+                        ]),
                         new Account(name: 'prod', accountId: 67890)
                 ]
         )
@@ -56,8 +58,18 @@ class CredentialsLoaderSpec extends Specification {
             cred.defaultKeyPair == 'nf-prod-keypair-a'
             cred.regions.size() == 2
             cred.regions.find { it.name == 'us-east-1' }.availabilityZones.size() == 3
+            cred.regions.find { it.name == 'us-east-1' }.deprecated == false
             cred.regions.find { it.name == 'us-west-2' }.availabilityZones.size() == 2
+            cred.regions.find { it.name == 'us-west-2' }.deprecated == false
             cred.credentialsProvider == provider
+        }
+        with(creds.find { it.name == 'test' }) { AmazonCredentials cred ->
+          cred.accountId == "12345"
+          cred.defaultKeyPair == 'nf-test-keypair-a'
+          cred.regions.size() == 1
+          cred.regions.find { it.name == 'us-west-2' }.availabilityZones.size() == 2
+          cred.regions.find { it.name == 'us-west-2' }.deprecated == true
+          cred.credentialsProvider == provider
         }
         0 * _
     }
