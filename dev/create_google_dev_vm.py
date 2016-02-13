@@ -371,7 +371,7 @@ def maybe_copy_master_yml(options):
     with open(options.master_yml, 'r') as f:
         content = f.read()
 
-    # Replace all the occurances of the original credentials path with the
+    # Replace all the occurrences of the original credentials path with the
     # path that we are going to place the file in on the new instance.
     if json_credential_path:
         if not os.path.exists(json_credential_path):

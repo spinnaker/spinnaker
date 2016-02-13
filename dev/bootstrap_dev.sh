@@ -37,7 +37,7 @@
 #       reference the authoritative repository for the given repository.
 #       (e.g. the spinnaker github repository corresponding to your origin).
 #
-#       If the environment variable GIHUB_REPOSITORY_OWNER is set then
+#       If the environment variable GITHUB_REPOSITORY_OWNER is set then
 #       the repositories will be cloned from that github user. Otherwise it
 #       will be cloned from the user in your .git-credentials. If the owner
 #       is "upstream" then it will clone the authoritative repository for each
@@ -203,7 +203,7 @@ if prompt_YN "Y" "Install (or update) Google Cloud Platform SDK?"; then
 fi
 
 # Setup AWS SDK
-# If awscli isnt installed, give a second chance here for consistency
+# If awscli isn't installed, give a second chance here for consistency
 if ! aws --version >& /dev/null && prompt_YN "Y" "Install AWS Platform SDK?"; then
     sudo apt-get install -y awscli
 fi
@@ -233,7 +233,7 @@ echo "{\"interactive\":false}" > ~/.bowerrc
 
 
 # If this script was run in a different shell then we
-# dont have the environment variables we set, and arent in the build directory.
+# don't have the environment variables we set, and aren't in the build directory.
 function print_invoke_instructions() {
 cat <<EOF
 
