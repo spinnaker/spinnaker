@@ -3,18 +3,20 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.cf.loadBalancers.controller', [
-        require('../../../../core/modal/wizard/modalWizard.service.js'),
+        require('../../../../core/modal/wizard/v2modalWizard.service.js'),
     ])
-    .controller('cfServerGroupLoadBalancersCtrl', function($scope, modalWizardService) {
+    .controller('cfServerGroupLoadBalancersCtrl', function($scope, v2modalWizardService) {
 
-        modalWizardService.getWizard().markComplete('loadBalancers');
+        // TODO(GLT): Fix roles after Find/Bake updates are rolled in.
 
-        $scope.$watch('form.$valid', function(newVal) {
-            if (newVal) {
-                modalWizardService.getWizard().markClean('loadBalancers');
-            } else {
-                modalWizardService.getWizard().markDirty('loadBalancers');
-            }
-        });
+        //v2modalWizardService.markComplete('loadBalancers');
+        //
+        //$scope.$watch('form.$valid', function(newVal) {
+        //    if (newVal) {
+        //        v2modalWizardService.markClean('loadBalancers');
+        //    } else {
+        //        v2modalWizardService.markDirty('loadBalancers');
+        //    }
+        //});
 
     });

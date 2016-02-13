@@ -3,18 +3,20 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.cf.envs.controller', [
-        require('../../../../core/modal/wizard/modalWizard.service.js'),
+        require('../../../../core/modal/wizard/v2modalWizard.service.js'),
     ])
-    .controller('cfServerGroupEnvsCtrl', function($scope, modalWizardService) {
+    .controller('cfServerGroupEnvsCtrl', function($scope, v2modalWizardService) {
 
-        modalWizardService.getWizard().markComplete('envs');
+        // TODO(GLT): Fix roles after Find/Bake updates are rolled in.
 
-        $scope.$watch('form.$valid', function(newVal) {
-            if (newVal) {
-                modalWizardService.getWizard().markClean('envs');
-            } else {
-                modalWizardService.getWizard().markDirty('envs');
-            }
-        });
+        //v2modalWizardService.markComplete('envs');
+        //
+        //$scope.$watch('form.$valid', function(newVal) {
+        //    if (newVal) {
+        //        v2modalWizardService.markClean('envs');
+        //    } else {
+        //        v2modalWizardService.markDirty('envs');
+        //    }
+        //});
 
     });
