@@ -55,8 +55,8 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
       };
 
       command.regionIsDeprecated = () => {
-        return command.backingData &&
-        command.backingData.filtered.regions.filter((region) => region.name === command.region && region.deprecated).length;
+        return _.has(command, 'backingData.filtered.regions') &&
+          command.backingData.filtered.regions.some((region) => region.name === command.region && region.deprecated);
       };
 
       return $q.all({
