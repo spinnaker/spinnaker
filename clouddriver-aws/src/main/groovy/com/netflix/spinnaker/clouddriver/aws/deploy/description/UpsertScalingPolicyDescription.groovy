@@ -16,27 +16,38 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
+import com.amazonaws.services.autoscaling.model.StepAdjustment
+
 class UpsertScalingPolicyDescription extends AbstractAmazonCredentialsDescription {
-  String name
+
+  // required
   String asgName
   String region
+  AdjustmentType adjustmentType = AdjustmentType.ChangeInCapacity
 
-  Metric metric
-  Integer threshold
-  Integer period = 300
-  Integer numPeriods = 5
+  // optional
+  String name
+  Integer minAdjustmentMagnitude
 
-  ScaleStrategy scalingStrategy = ScaleStrategy.exact
-  Integer scaleAmount
-  String scaleUpTopic
-  String scaleDownTopic
+  Simple simple
+  Step step
 
-  static enum ScaleStrategy {
-    exact, percentage
+  static class Simple {
+    Integer cooldown = 600
+    Integer	scalingAdjustment
   }
 
-  static class Metric {
-    String namespace
-    String name
+  static class Step {
+    Collection<StepAdjustment> stepAdjustments
+    Integer estimatedInstanceWarmup
+    MetricAggregationType metricAggregationType
   }
+}
+
+enum AdjustmentType {
+  ChangeInCapacity, ExactCapacity, PercentChangeInCapacity
+}
+
+enum MetricAggregationType {
+  Minimum, Maximum, Average
 }

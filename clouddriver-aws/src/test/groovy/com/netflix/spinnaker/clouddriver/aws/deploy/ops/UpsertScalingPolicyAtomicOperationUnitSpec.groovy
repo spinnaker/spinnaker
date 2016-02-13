@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,14 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.PutScalingPolicyRequest
 import com.amazonaws.services.autoscaling.model.PutScalingPolicyResult
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch
-import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest
-import com.amazonaws.services.sns.AmazonSNS
-import com.amazonaws.services.sns.model.ListTopicsResult
-import com.amazonaws.services.sns.model.Topic
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.UpsertScalingPolicyAtomicOperation
+import com.amazonaws.services.autoscaling.model.StepAdjustment
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.AdjustmentType
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.MetricAggregationType
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertScalingPolicyDescription
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -38,101 +35,107 @@ class UpsertScalingPolicyAtomicOperationUnitSpec extends Specification {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
-  def description = new UpsertScalingPolicyDescription(
-    name: "dansScalingPolicy",
+  final description = new UpsertScalingPolicyDescription(
     asgName: "kato-main-v000",
     region: "us-west-1",
-    metric: new UpsertScalingPolicyDescription.Metric([
-      name: "CPUUtilization",
-      namespace: "AWS/EC2"
-    ]),
-    threshold: 81,
-    scaleAmount: 1
+    adjustmentType: AdjustmentType.PercentChangeInCapacity,
+    minAdjustmentMagnitude: 3,
+    simple: new UpsertScalingPolicyDescription.Simple(
+      scalingAdjustment: 5,
+      cooldown: 1
+    )
   )
 
-  @Subject op = new UpsertScalingPolicyAtomicOperation(description)
-
-  @Shared
-  AmazonCloudWatch cloudWatch
-
-  @Shared
-  AmazonAutoScaling autoScaling
-
-  @Shared
-  AmazonSNS sns
-
-  def setup() {
-    cloudWatch = Mock(AmazonCloudWatch)
-    autoScaling = Mock(AmazonAutoScaling)
-    sns = Mock(AmazonSNS)
-    def amazonClientProvider = Mock(AmazonClientProvider)
-    amazonClientProvider.getCloudWatch(_, _, true) >> cloudWatch
-    amazonClientProvider.getAutoScaling(_, _, true) >> autoScaling
-    amazonClientProvider.getAmazonSNS(_, _, true) >> sns
-    op.amazonClientProvider = amazonClientProvider
+  final autoScaling = Mock(AmazonAutoScaling)
+  final amazonClientProvider = Stub(AmazonClientProvider) {
+    getAutoScaling(_, _, true) >> autoScaling
   }
 
-  void "creates the scalingPolicy based on description"() {
-    when:
-    op.operate([])
+  @Subject final op = new UpsertScalingPolicyAtomicOperation(description)
 
-    then:
-    1 * autoScaling.putScalingPolicy(_) >> { PutScalingPolicyRequest request ->
-      assert request.policyName == "${description.name}--${description.asgName}-${description.threshold}"
-      assert request.adjustmentType == "ChangeInCapacity"
-      assert request.scalingAdjustment == description.scaleAmount
-      assert request.autoScalingGroupName == description.asgName
-      Mock(PutScalingPolicyResult) {
-        getPolicyARN() >> "foo/bar"
+  def setup() {
+    op.amazonClientProvider = amazonClientProvider
+    op.IdGenerator = new IdGenerator() {
+      int nextId = 0
+      String nextId() {
+        ++nextId
       }
     }
   }
 
-  void "topics are written as actions when they are supplied"() {
-    setup:
-    description.scaleUpTopic = "foo"
-    description.scaleDownTopic = "bar"
+  void "creates unnamed scaling policy"() {
 
     when:
-    op.operate([])
+    final result = op.operate([])
 
     then:
-    1 * autoScaling.putScalingPolicy(_) >> Mock(PutScalingPolicyResult) {
-      getPolicyARN() >> "foo/bar"
+    1 * autoScaling.putScalingPolicy(new PutScalingPolicyRequest(
+      policyName: "kato-main-v000-policy-1",
+      autoScalingGroupName: "kato-main-v000",
+      adjustmentType: "PercentChangeInCapacity",
+      cooldown: 1,
+      minAdjustmentMagnitude: 3,
+      scalingAdjustment: 5,
+      policyType: "SimpleScaling"
+    )) >> {
+      new PutScalingPolicyResult(policyARN: "arn", )
     }
-    2 * sns.listTopics(_) >>> [new ListTopicsResult().withTopics(new Topic().withTopicArn("arn:aws:sns:foo")),
-                               new ListTopicsResult().withTopics(new Topic().withTopicArn("arn:aws:sns:bar"))]
-    1 * cloudWatch.putMetricAlarm(_) >> { PutMetricAlarmRequest request ->
-      assert request.alarmActions.contains("arn:aws:sns:foo")
-    }
-    1 * cloudWatch.putMetricAlarm(_) >> { PutMetricAlarmRequest request ->
-      assert request.alarmActions.contains("arn:aws:sns:bar")
-    }
+
+    result == new UpsertScalingPolicyResult(policyArn: "arn", policyName: "kato-main-v000-policy-1")
   }
 
-  void "creates the scale-up and scale-down policy based on description"() {
+  void "creates unnamed step scaling policy"() {
+    description.step = new UpsertScalingPolicyDescription.Step(
+      estimatedInstanceWarmup: 2,
+      metricAggregationType: MetricAggregationType.Average,
+      stepAdjustments: [
+            new StepAdjustment(metricIntervalLowerBound: 100, metricIntervalUpperBound: 200, scalingAdjustment: 30)
+      ]
+    )
+
     when:
-    op.operate([])
+    final result = op.operate([])
 
     then:
-    1 * autoScaling.putScalingPolicy(_) >> Mock(PutScalingPolicyResult) {
-      getPolicyARN() >> "foo/bar"
+    1 * autoScaling.putScalingPolicy(new PutScalingPolicyRequest(
+      policyName: "kato-main-v000-policy-1",
+      autoScalingGroupName: "kato-main-v000",
+      adjustmentType: "PercentChangeInCapacity",
+      estimatedInstanceWarmup: 2,
+      minAdjustmentMagnitude: 3,
+      stepAdjustments: [
+        new StepAdjustment(metricIntervalLowerBound: 100, metricIntervalUpperBound: 200, scalingAdjustment: 30)
+      ],
+      metricAggregationType: "Average",
+      policyType: "StepScaling"
+    )) >> {
+      new PutScalingPolicyResult(policyARN: "arn")
     }
-    1 * cloudWatch.putMetricAlarm(_) >> { PutMetricAlarmRequest request ->
-      assert request.alarmName == "${description.name}-scaleUp--${description.asgName}-${description.threshold}"
-      assert request.metricName == description.metric.name
-      assert request.namespace == description.metric.namespace
-      assert request.threshold == description.threshold
-      assert request.alarmActions[0] == "foo/bar"
-      (Void)null
-    }
-    1 * cloudWatch.putMetricAlarm(_) >> { PutMetricAlarmRequest request ->
-      assert request.alarmName == "${description.name}-scaleDown--${description.asgName}-${description.threshold}"
-      assert request.metricName == description.metric.name
-      assert request.namespace == description.metric.namespace
-      assert request.threshold == description.threshold
-      assert request.alarmActions[0] == "foo/bar"
-      (Void)null
-    }
+
+    result == new UpsertScalingPolicyResult(policyArn: "arn", policyName: "kato-main-v000-policy-1")
   }
+
+
+  void "updates named scaling policy"() {
+    description.name = "existingPolicy"
+
+    when:
+    final result = op.operate([])
+
+    then:
+    1 * autoScaling.putScalingPolicy(new PutScalingPolicyRequest(
+      policyName: "existingPolicy",
+      autoScalingGroupName: "kato-main-v000",
+      adjustmentType: "PercentChangeInCapacity",
+      cooldown: 1,
+      minAdjustmentMagnitude: 3,
+      scalingAdjustment: 5,
+      policyType: "SimpleScaling"
+    )) >> {
+      new PutScalingPolicyResult(policyARN: "arn")
+    }
+
+    result == new UpsertScalingPolicyResult(policyArn: "arn", policyName: "existingPolicy")
+  }
+
 }

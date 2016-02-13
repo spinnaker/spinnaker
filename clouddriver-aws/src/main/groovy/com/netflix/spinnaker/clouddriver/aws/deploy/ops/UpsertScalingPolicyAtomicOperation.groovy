@@ -25,12 +25,12 @@ import com.amazonaws.services.cloudwatch.model.Statistic
 import com.amazonaws.services.sns.model.ListTopicsRequest
 import com.amazonaws.services.sns.model.Topic
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertScalingPolicyDescription
 import org.springframework.beans.factory.annotation.Autowired
 
-class UpsertScalingPolicyAtomicOperation implements AtomicOperation<Map<String, String>> {
-  private static final Integer DEFAULT_COOLDOWN_SECONDS = 600
+class UpsertScalingPolicyAtomicOperation implements AtomicOperation<UpsertScalingPolicyResult> {
 
   UpsertScalingPolicyDescription description
 
@@ -41,81 +41,39 @@ class UpsertScalingPolicyAtomicOperation implements AtomicOperation<Map<String, 
   @Autowired
   AmazonClientProvider amazonClientProvider
 
+  IdGenerator IdGenerator = new IdGenerator()
+
   @Override
-  Map<String, String> operate(List priorOutputs) {
+  UpsertScalingPolicyResult operate(List priorOutputs) {
+    final policyName = description.name ?: "${description.asgName}-policy-${idGenerator.nextId()}"
+    final request = new PutScalingPolicyRequest(
+      policyName: policyName,
+      autoScalingGroupName: description.asgName,
+      adjustmentType: description.adjustmentType.toString(),
+      minAdjustmentMagnitude: description.minAdjustmentMagnitude
+    )
+    if (description.step) {
+      request.withPolicyType(PolicyType.StepScaling.toString()).
+        withEstimatedInstanceWarmup(description.step.estimatedInstanceWarmup).
+        withStepAdjustments(description.step.stepAdjustments).
+        withMetricAggregationType(description.step.metricAggregationType.toString())
+    } else {
+      request.withPolicyType(PolicyType.SimpleScaling.toString()).
+        withCooldown(description.simple.cooldown).
+        withScalingAdjustment(description.simple.scalingAdjustment)
+    }
 
-    // scaling policy
-    def policyName = "${description.name}--${description.asgName}-${description.threshold}"
-    def scalingPolicyRequest = new PutScalingPolicyRequest()
-      .withPolicyName(policyName)
-      .withScalingAdjustment(description.scaleAmount)
-      .withAdjustmentType(description.scalingStrategy == UpsertScalingPolicyDescription.ScaleStrategy.exact ? 'ChangeInCapacity' : 'PercentChangeInCapacity')
-      .withCooldown(DEFAULT_COOLDOWN_SECONDS)
-      .withAutoScalingGroupName(description.asgName)
+    final autoScaling = amazonClientProvider.getAutoScaling(description.credentials, description.region, true)
+    PutScalingPolicyResult scalingPolicyResult = autoScaling.putScalingPolicy(request)
 
-    def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, description.region, true)
-    PutScalingPolicyResult scalingPolicyResult = autoScaling.putScalingPolicy(scalingPolicyRequest)
-
-    // up & down alarms
-    def scaleUpAlarmReq = createAlarmRequest(scalingPolicyResult.policyARN)
-    def scaleDownAlarmReq = createAlarmRequest(scalingPolicyResult.policyARN, true)
-
-    def cloudWatch = amazonClientProvider.getCloudWatch(description.credentials, description.region, true)
-    cloudWatch.putMetricAlarm(scaleUpAlarmReq)
-    cloudWatch.putMetricAlarm(scaleDownAlarmReq)
-
-    [policyName: policyName.toString()]
+    new UpsertScalingPolicyResult(
+      policyName: policyName.toString(),
+      policyArn: scalingPolicyResult?.policyARN
+    )
   }
 
-  private PutMetricAlarmRequest createAlarmRequest(String policyArn, boolean scaleDown = Boolean.FALSE) {
-    def req = new PutMetricAlarmRequest()
-      .withAlarmName("${description.name}-${scaleDown ? 'scaleDown' : 'scaleUp'}--${description.asgName}-${description.threshold}")
-      .withComparisonOperator(scaleDown ? ComparisonOperator.LessThanOrEqualToThreshold : ComparisonOperator.GreaterThanOrEqualToThreshold)
-      .withThreshold(description.threshold)
-      .withPeriod(description.period)
-      .withEvaluationPeriods(description.numPeriods)
-      .withStatistic(Statistic.Average)
-      .withActionsEnabled(true)
-      .withAlarmActions(policyArn)
-      .withMetricName(description.metric.name)
-      .withNamespace(description.metric.namespace)
-      .withDimensions(new Dimension().withName("AutoScalingGroupName").withValue(description.asgName))
-
-    def sns
-    if (scaleDown && description.scaleDownTopic) {
-      sns = description.scaleDownTopic
-    } else if (!scaleDown && description.scaleUpTopic) {
-      sns = description.scaleUpTopic
-    }
-
-    if (sns) {
-      def topic = getTopic(sns)
-      if (topic) {
-        req.withAlarmActions(topic.topicArn)
-      }
-    }
-
-    req
-  }
-
-  private Topic getTopic(String name) {
-    if (!name.startsWith('arn:aws:sns:')) {
-      name = "arn:aws:sns:${name}"
-    }
-    def sns = amazonClientProvider.getAmazonSNS(description.credentials, description.region, true)
-    def request = new ListTopicsRequest()
-    def result = sns.listTopics(request)
-    while (true) {
-      def topic = result.topics?.find { it.topicArn == name }
-      if (topic) {
-        return topic
-      }
-      if (!result.nextToken) {
-        return null
-      } else {
-        result = sns.listTopics(request.withNextToken(result.nextToken))
-      }
-    }
+  enum PolicyType {
+    SimpleScaling, StepScaling
   }
 
 }
