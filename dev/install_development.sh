@@ -14,7 +14,7 @@ function process_args() {
         --no_awscli)
             NO_AWSCLI=true
             ;;
-        # Keep around for compatability with docs people have.
+        # Keep around for compatibility with docs people have.
         --package_manager)
             echo "--package_manager option is no longer needed and deprecated."
             ;;
@@ -41,7 +41,7 @@ sudo apt-get install -y build-essential
 sudo apt-get install -y redis-server
 
 
-# Add shortcut devvm host for convienence
+# Add shortcut devvm host for convenience
 if ! egrep '(^| )devvm( |$)' /etc/hosts; then
     sed -i 's/^127.0.0.1 /127.0.0.1 devvm /'
 fi
@@ -63,10 +63,10 @@ EOF
 sudo bash -c "echo '$content' > /etc/profile.d/nvm.sh"
 
 
-# Install aws command-line tool (for convienence)
+# Install aws command-line tool (for convenience)
 if [ "x$NO_AWSCLI" = "x" ] && ! aws --version >& /dev/null; then
     sudo apt-get install -y awscli
 fi
 
-# Install google command-line tool (for convienence)
+# Install google command-line tool (for convenience)
 # in the bootstrap_dev.sh because it typically is not installed as root.

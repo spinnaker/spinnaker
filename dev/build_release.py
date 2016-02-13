@@ -76,7 +76,7 @@ def ensure_gcs_bucket(name, project=''):
       bucket configured to gcloud.
 
   Raises:
-    RutimeError if the bucket could not be created.
+    RuntimeError if the bucket could not be created.
   """
   bucket = 'gs://'+ name
   if not project:
@@ -122,7 +122,7 @@ def ensure_s3_bucket(name, region=""):
     region [string]: The S3 region for the bucket. If empty use aws default.
 
   Raises:
-    RutimeError if the bucket could not be created.
+    RuntimeError if the bucket could not be created.
   """
   bucket = 's3://' + name
   list_result = run_quick('aws s3 ls ' + bucket, echo=False)
@@ -144,7 +144,7 @@ class BackgroundProcess(
 
   Attributes:
     name [string]: The visible name of the process for reporting.
-    subproces [subprocess]: The subprocess instance.
+    subprocess [subprocess]: The subprocess instance.
   """
 
   @staticmethod
@@ -270,9 +270,9 @@ class Builder(object):
               # The problem here is that BinTray does not allow packages to change once
               # they have been published (even though we are explicitly asking it to
               # override). PATCH wont work either.
-              # Since we are building from source, we dont really have a version
+              # Since we are building from source, we don't really have a version
               # yet, since we are still modifying the code. Either we need to generate a new
-              # version number every time or we dont want to publish these.
+              # version number every time or we don't want to publish these.
               # Ideally we could control whether or not to publish. However,
               # if we do not publish, then the repository will not be visible without
               # credentials, and adding conditional credentials into the packer scripts
@@ -293,7 +293,7 @@ class Builder(object):
                 urllib2.urlopen(delete_request)
                 print 'Deleted...'
               except HTTPError as ex:
-                # Maybe it didnt exist. Try again anyway.
+                # Maybe it didn't exist. Try again anyway.
                 print 'Delete {url} got {ex}. Try again anyway.'.format(url=url, ex=ex)
                 pass
               print 'Retrying {url}'.format(url=url)

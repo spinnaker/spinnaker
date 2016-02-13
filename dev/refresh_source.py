@@ -184,7 +184,7 @@ class Refresher(object):
       """Determine the URL for a given github repository.
 
       Args:
-        respository [string]: The upstream SourceRepository.
+        repository [string]: The upstream SourceRepository.
         owner [string]: The explicit owner for the repository we want.
                If not provided then use the github_user in the bound options.
       """
@@ -216,7 +216,7 @@ class Refresher(object):
       upstream_url = 'https://github.com/{upstream_user}/{name}.git'.format(
               upstream_user=upstream_user, name=name)
 
-      # Dont echo because we're going to hide some failure.
+      # Don't echo because we're going to hide some failure.
       print 'Cloning {name} from {origin_url} -b {branch}.'.format(
           name=name, origin_url=origin_url, branch=branch)
       shell_result = run_and_monitor(
@@ -287,7 +287,7 @@ class Refresher(object):
               .format(name=name, branch=branch))
 
   def pull_from_upstream_if_master(self, repository):
-      """Pulls the master branch fromthe upstream repository.
+      """Pulls the master branch from the upstream repository.
 
       This will only have effect if the local repository exists
       and is currently in the master branch.
@@ -456,7 +456,7 @@ bash -c "(npm start >> '$LOG_DIR/{name}.log') 2>&1\
       """
 
       # Note that we only pull the master branch from upstream.
-      # Pulling other branches dont normally make sense.
+      # Pulling other branches don't normally make sense.
       parser.add_argument('--pull_upstream', default=False,
                           action='store_true',
                           help='If the local branch is master, then refresh it'
@@ -482,7 +482,7 @@ bash -c "(npm start >> '$LOG_DIR/{name}.log') 2>&1\
 
   @classmethod
   def init_argument_parser(cls, parser):
-      """Initiaize command-line arguments."""
+      """Initialize command-line arguments."""
       parser.add_argument('--use_https', default=True, action='store_true',
                           help='Use https when cloning github repositories.')
       parser.add_argument('--use_ssh', dest='use_https', action='store_false',
