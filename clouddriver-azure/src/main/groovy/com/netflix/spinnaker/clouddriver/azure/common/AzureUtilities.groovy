@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.azure.common
 
+import com.microsoft.windowsazure.core.utils.CollectionStringBuilder
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
 
 import java.util.regex.Matcher
@@ -193,5 +194,26 @@ class AzureUtilities {
       throw new ArithmeticException("Overflow occurred getting next valid subnet after $subnetAddrPrefix within vnet $vnetAddrPrefix")
     }
     return resultPrefix
+  }
+
+  public static String getAzureRESTUrl(String subscriptionId, String baseUrl, String targetUrl, List<String> queryParameters) {
+    String url = baseUrl
+    // Trim '/' character from the end of baseUrl.
+    if (url && url.charAt(url.length() - 1) == (char) '/') {
+      url = url.substring(0, (url.length() - 1) + 0)
+    }
+    url += "/subscriptions/"
+    if (subscriptionId != null) {
+      url = url + URLEncoder.encode(subscriptionId, "UTF-8")
+    }
+    if (targetUrl && targetUrl.charAt(0) != (char) '/')
+      url += "/"
+    url += targetUrl
+    if (queryParameters && queryParameters.size() > 0) {
+      url = url + "?" + CollectionStringBuilder.join(queryParameters, "&")
+    }
+    url = url.replace(" ", "%20")
+
+    url
   }
 }

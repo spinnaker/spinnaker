@@ -17,14 +17,14 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops
 
 import com.microsoft.azure.management.resources.models.DeploymentExtended
-import com.microsoft.azure.management.resources.models.DeploymentOperation
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
-import com.netflix.spinnaker.clouddriver.azure.client.AzureResourceManagerClient
+import com.netflix.spinnaker.clouddriver.azure.resources.common.model.AzureDeploymentOperation
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.azure.templates.AzureLoadBalancerResourceTemplate
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.UpsertAzureLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationException
 
 class UpsertAzureLoadBalancerAtomicOperation implements AtomicOperation<Map> {
   private static final String BASE_PHASE = "UPSERT_LOAD_BALANCER"
@@ -47,10 +47,10 @@ class UpsertAzureLoadBalancerAtomicOperation implements AtomicOperation<Map> {
    */
   @Override
   Map operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing upsert of load balancer $description.loadBalancerName " +
-      "in $description.region..."
+    task.updateStatus(BASE_PHASE, "Initializing upsert of load balancer ${description.loadBalancerName} " +
+      "in ${description.region}...")
 
-    Map<String, Boolean> resourceCompletedState = new HashMap<String, Boolean>()
+    def errList = new ArrayList<String>()
 
     try {
 
@@ -63,41 +63,20 @@ class UpsertAzureLoadBalancerAtomicOperation implements AtomicOperation<Map> {
         description.region,
         description.loadBalancerName)
 
-      String deploymentState = deployment.properties.provisioningState
-
-      while (deploymentIsRunning(deploymentState)) {
-        for (DeploymentOperation d : description.credentials.resourceManagerClient.getDeploymentOperations(description.credentials, resourceGroupName, deployment.name)) {
-          if (!resourceCompletedState.containsKey(d.id)){
-            resourceCompletedState[d.id] = false
-          }
-          if (d.properties.provisioningState == AzureResourceManagerClient.DeploymentState.SUCCEEDED) {
-            if (!resourceCompletedState[d.id]) {
-              task.updateStatus BASE_PHASE, String.format("Resource %s created", d.properties.targetResource.resourceName)
-              resourceCompletedState[d.id] = true
-            }
-          }
-          else if (d.properties.provisioningState == AzureResourceManagerClient.DeploymentState.FAILED) {
-            if (!resourceCompletedState[d.id]) {
-              task.updateStatus BASE_PHASE, String.format("Failed to create resource %s: %s", d.properties.targetResource.resourceName, d.properties.statusMessage)
-              resourceCompletedState[d.id] = true
-            }
-          }
-        }
-        deploymentState = description.credentials.resourceManagerClient.getDeployment(description.credentials, resourceGroupName, deployment.name).properties.provisioningState
-      }
-
-      task.updateStatus BASE_PHASE, "Deployment for load balancer $description.loadBalancerName in $description.region has succeeded."
+      errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task,BASE_PHASE, description.credentials, resourceGroupName, deployment.name)
     } catch (Exception e) {
-      task.updateStatus BASE_PHASE, String.format("Deployment of load balancer $description.loadBalancerName failed: %s", e.message)
-      throw e
+      task.updateStatus(BASE_PHASE, "Deployment of load balancer ${description.loadBalancerName} failed: ${e.message}")
+      errList.add(e.message)
     }
-    [loadBalancers: [(description.region): [name: description.loadBalancerName]]]
-  }
+    if (errList.isEmpty()) {
+      task.updateStatus(BASE_PHASE, "Deployment for load balancer ${description.loadBalancerName} in ${description.region} has succeeded.")
+    }
+    else {
+      throw new AtomicOperationException(
+        error: "${description.loadBalancerName} deployment failed",
+        errors: errList)
+    }
 
-  private static boolean deploymentIsRunning(String deploymentState) {
-    deploymentState != AzureResourceManagerClient.DeploymentState.CANCELED &&
-      deploymentState != AzureResourceManagerClient.DeploymentState.DELETED &&
-      deploymentState != AzureResourceManagerClient.DeploymentState.FAILED &&
-      deploymentState != AzureResourceManagerClient.DeploymentState.SUCCEEDED
+    [loadBalancers: [(description.region): [name: description.loadBalancerName]]]
   }
 }

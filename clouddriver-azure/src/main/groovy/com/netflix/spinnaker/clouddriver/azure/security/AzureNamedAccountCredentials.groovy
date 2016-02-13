@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.azure.security
 import com.netflix.spinnaker.clouddriver.azure.client.AzureComputeClient
 import com.netflix.spinnaker.clouddriver.azure.client.AzureNetworkClient
 import com.netflix.spinnaker.clouddriver.azure.client.AzureResourceManagerClient
+import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import groovy.transform.CompileStatic
 
@@ -33,6 +34,7 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
   private final String clientId
   private final String appKey
   final List<AzureRegion> regions
+  final List<AzureVMImage> vmImages
   final String applicationName
   final List<String> requiredGroupMembership
   final AzureCredentials credentials
@@ -46,6 +48,7 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
                                String tenantId,
                                String subscriptionId,
                                List<String> regions,
+                               List<AzureVMImage> vmImages,
                                String applicationName,
                                List<String> requiredGroupMembership = null) {
     this.accountName = accountName
@@ -56,6 +59,7 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
     this.tenantId = tenantId
     this.subscriptionId = subscriptionId
     this.regions = buildRegions(regions)
+    this.vmImages = vmImages ?: [] as List<AzureVMImage>
     this.applicationName = applicationName
     this.requiredGroupMembership = requiredGroupMembership ?: [] as List<String>
     this.credentials = appKey.isEmpty() ? null : buildCredentials()

@@ -43,7 +43,7 @@ class AzureLoadBalancerController {
 
   private Map<String, AzureLoadBalancerSummary> getSummaryForLoadBalancers() {
     Map<String, AzureLoadBalancerSummary> map = [:]
-    def loadBalancers = azureLoadBalancerProvider.getLoadBalancers("*","*","azure")
+    def loadBalancers = azureLoadBalancerProvider.getApplicationLoadBalancers('*')
 
     loadBalancers?.each() { lb ->
           def summary = map.get(lb.name)

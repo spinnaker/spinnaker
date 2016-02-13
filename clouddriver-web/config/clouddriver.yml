@@ -70,6 +70,31 @@ azure:
       tenantId: ${AZURE_TENANT_ID}
       subscriptionId: ${AZURE_SUBSCRIPTION_ID}
       regions: ["westus", "eastus"]
+      vmImages:
+      - publisher: "MicrosoftWindowsServer"
+        offer: "WindowsServer"
+        sku: "2012-R2-Datacenter"
+        version: "4.0.20151214"
+      - publisher: "Canonical"
+        offer: "UbuntuServer"
+        sku: "14.04.3-DAILY-LTS"
+        version: "14.04.201602010"
+      - publisher: "credativ"
+        offer: "Debian"
+        sku: "8"
+        version: "8.0.201602010"
+      - publisher: "OpenLogic"
+        offer: "CentOS"
+        sku: "7.1"
+        version: "7.1.20150731"
+      - publisher: "SUSE"
+        offer: "openSUSE-Leap"
+        sku: "42.1"
+        version: "2016.01.14"
+      - publisher: "SUSE"
+        offer: "SLES"
+        sku: "12-SP1"
+        version: "2015.12.15"
 
 google:
   enabled: false

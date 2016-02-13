@@ -26,6 +26,7 @@ class AzureVirtualNetworkDescription extends AzureResourceOpsDescription {
   List<String> dhcpOptions /* see dnsServers */
   String provisioningState
   String resourceGuid
+  String resourceId /*Azure resource ID*/
   String etag
   String location
   Map<String, String> tags

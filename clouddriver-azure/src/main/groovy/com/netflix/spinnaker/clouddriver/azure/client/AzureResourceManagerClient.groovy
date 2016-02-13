@@ -181,6 +181,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
     public static final String READY = "Ready"
     public static final String DELETED = "Deleted"
     public static final String ACCEPTED = "Accepted"
+    public static final String DEPLOYING = "Deploying"
   }
 
 }

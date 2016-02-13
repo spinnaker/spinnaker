@@ -117,4 +117,19 @@ class AzureUtilitiesSpec extends Specification {
     '255.0.0.0/8'         | '255.255.255.0/24'
     '254.255.255.0/24'    | '254.255.255.0/24'
   }
+
+  def "Get Azure REST URL"() {
+    expect:
+    AzureUtilities.getAzureRESTUrl(subscriptionId, baseUrl, targetUrl, qParams) == url
+
+    where:
+    subscriptionId  | baseUrl                         | targetUrl                                                                              | qParams                    |  url
+    '12345'         | 'https://management.azure.com'  | 'resourceGroups/rg1/providers/Microsoft.Resources/deployments/deploy12345/operations'  | ['api-version=2015-11-01'] | 'https://management.azure.com/subscriptions/12345/resourceGroups/rg1/providers/Microsoft.Resources/deployments/deploy12345/operations?api-version=2015-11-01'
+    '12345'         | 'https://management.azure.com/' | '/resourceGroups/rg1/providers/Microsoft.Resources/deployments/deploy12345/operations' | ['api-version=2015-11-01'] | 'https://management.azure.com/subscriptions/12345/resourceGroups/rg1/providers/Microsoft.Resources/deployments/deploy12345/operations?api-version=2015-11-01'
+    '1'             | 'a.b.com'                       | '/c/d/e'                                                                               | ['1=1', '2=2']             | 'a.b.com/subscriptions/1/c/d/e?1=1&2=2'
+    '1'             | 'a.b.com'                       | '/c/d/e'                                                                               | []                         | 'a.b.com/subscriptions/1/c/d/e'
+    null            | 'a.b.com'                       | '/c/d/e'                                                                               | ['1=1', '2=2']             | 'a.b.com/subscriptions//c/d/e?1=1&2=2'
+    null            | 'a.b.com'                       | '/c/d/e'                                                                               | ['1 1', '2=2']             | 'a.b.com/subscriptions//c/d/e?1%201&2=2'
+    null            | null                            | null                                                                                   | null                       | 'null/subscriptions/null'
+  }
 }

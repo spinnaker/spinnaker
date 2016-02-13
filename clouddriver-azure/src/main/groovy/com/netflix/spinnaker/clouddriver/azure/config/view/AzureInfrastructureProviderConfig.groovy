@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.cache.Azur
 import com.netflix.spinnaker.clouddriver.azure.resources.network.cache.AzureNetworkCachingAgent
 import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.cache.AzureSecurityGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.azure.resources.subnet.cache.AzureSubnetCachingAgent
+import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.cache.AzureVMImageCachingAgent
 import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.provider.AzureInfrastructureProvider
@@ -91,6 +92,7 @@ class AzureInfrastructureProviderConfig {
           newlyAddedAgents << new AzureSecurityGroupCachingAgent(azureCloudProvider, creds.accountName, creds.credentials, region.name, objectMapper)
           newlyAddedAgents << new AzureNetworkCachingAgent(azureCloudProvider, creds.accountName, creds.credentials, region.name, objectMapper)
           newlyAddedAgents << new AzureSubnetCachingAgent(azureCloudProvider, creds.accountName, creds.credentials, region.name, objectMapper)
+          newlyAddedAgents << new AzureVMImageCachingAgent(azureCloudProvider, creds.accountName, creds.credentials, region.name, objectMapper)
 
           // If there is an agent scheduler, then this provider has been through the AgentController in the past.
           // In that case, we need to do the scheduling here (because accounts have been added to a running system).

@@ -14,25 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.azure.config
+package com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model
 
-import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
-import groovy.transform.ToString
-
-class AzureConfigurationProperties {
-
-  @ToString(includeNames = true)
-  static class ManagedAccount {
-    String name
-    String environment
-    String accountType
-    String clientId
-    String appKey
-    String tenantId
-    String subscriptionId
-    List<String> regions
-    List<AzureVMImage> vmImages
-  }
-
-  List<ManagedAccount> accounts = []
+class AzureVMImage {
+  String publisher
+  String offer
+  String sku
+  String version
 }
