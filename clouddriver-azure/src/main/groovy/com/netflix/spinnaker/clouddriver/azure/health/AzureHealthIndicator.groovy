@@ -68,7 +68,7 @@ class AzureHealthIndicator implements HealthIndicator {
       for (AzureNamedAccountCredentials accountCredentials in azureCredentialsSet) {
         try {
           // This verifies that the specified credentials are sufficient to access the referenced project.
-          accountCredentials.credentials.getResourceManagerClient().healthCheck(accountCredentials.getCredentials())
+          accountCredentials.credentials.resourceManagerClient.healthCheck()
         } catch (IOException e) {
           throw new AzureIOException(e)
         }

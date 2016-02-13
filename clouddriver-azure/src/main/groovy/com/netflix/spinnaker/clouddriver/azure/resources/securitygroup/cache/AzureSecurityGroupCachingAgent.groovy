@@ -131,7 +131,7 @@ class AzureSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Acc
 
     try {
       updatedSecurityGroup = metricsSupport.readData {
-        creds.networkClient.getNetworkSecurityGroup(creds, resourceGroupName, securityGroupName)
+        creds.networkClient.getNetworkSecurityGroup(resourceGroupName, securityGroupName)
       }
     } catch (Exception e ) {
       log.error("handle->Unexpected exception", e)
@@ -170,7 +170,7 @@ class AzureSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Acc
     log.info("Describing items in ${agentType}")
     def currentTime = System.currentTimeMillis()
 
-    buildCacheResult(providerCache, creds.networkClient.getNetworkSecurityGroupsAll(creds, region), currentTime, null, null)
+    buildCacheResult(providerCache, creds.networkClient.getNetworkSecurityGroupsAll(region), currentTime, null, null)
   }
 
   @WithWriteLock
@@ -232,7 +232,6 @@ class AzureSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Acc
         // Attempt to add entry into the OnDemand respective cache
         if (updateCache(providerCache, updatedSecurityGroup, "OnDemandUpdated")) {
           CacheData data = buildCacheData(updatedSecurityGroup)
-
           log.info("Caching 1 OnDemand updated item in ${agentType}")
           return new DefaultCacheResult([(Keys.Namespace.SECURITY_GROUPS.ns): [data]])
         } else {

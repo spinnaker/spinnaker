@@ -26,12 +26,17 @@ import groovy.util.logging.Slf4j
 
 @Slf4j
 class AzureDeploymentOperation {
+
   static final Integer AZURE_DEPLOYMENT_OPERATION_STATUS_RETRIES_MAX = 1000
+  static ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+
+  static AzureDeploymentOperation getObjectFromJson(String responseContent) {
+    mapper.readValue(responseContent, AzureDeploymentOperation.class)
+  }
 
   /**
    * Return a collection of deployment related errors (empty list if deployment was successful)
    * @param task the current task to be updated
-   * @param creds the credentials to use when communicating to the Azure subscription(s)
    * @param resourceGroupName the resource group where we try to deploy
    * @param deploymentName the name of the deployment
    * @return a Collection of error messages capturing deployment related errors
@@ -43,39 +48,36 @@ class AzureDeploymentOperation {
     Integer checkDeployment = 0
 
     while (checkDeployment < AZURE_DEPLOYMENT_OPERATION_STATUS_RETRIES_MAX) {
-      deploymentState = creds.resourceManagerClient.getDeployment(creds, resourceGroupName, deploymentName).properties.provisioningState
+      deploymentState = creds.resourceManagerClient.getDeployment(resourceGroupName, deploymentName).properties.provisioningState
 
-      creds.resourceManagerClient.getDeploymentOperations(creds, resourceGroupName, deploymentName).each {DeploymentOperation d ->
+      creds.resourceManagerClient.getDeploymentOperations(resourceGroupName, deploymentName).each { DeploymentOperation d ->
 
-        if (!resourceCompletedState.containsKey(d.id)){
-          resourceCompletedState[d.id] = false
-        }
-        if (d.properties.provisioningState == AzureResourceManagerClient.DeploymentState.SUCCEEDED) {
-          if (!resourceCompletedState[d.id]) {
-            task.updateStatus opsName, String.format("Resource %s created", d.properties.targetResource.resourceName)
-            resourceCompletedState[d.id] = true
+        // NOTE: With SDK 1.0 we've started getting an extra deployment operation returned. It doesn't show in
+        // the portal and the target resource listed is null so we don't know what resource this operation is\
+        // acting on. The operations for all the resources created in the deployment do get returned and we can
+        // identify which operation is for what resource. So for now, until we get clarity from the SDK, we will
+        // ignore those operations that have a null target resource.
+        if (d.properties.targetResource) {
+          if (!resourceCompletedState.containsKey(d.id)) {
+            resourceCompletedState[d.id] = false
           }
-        }
-        else if (d.properties.provisioningState == AzureResourceManagerClient.DeploymentState.FAILED) {
-          if (!resourceCompletedState[d.id]) {
 
-            // Work around for Azure SDK bug while retrieving the status message
-            // TODO remove the REST call and use d.properties.satusMessage.error.message instead
+          if (d.properties.provisioningState == AzureResourceManagerClient.DeploymentState.SUCCEEDED) {
 
-            AzureDeploymentOperation updatedDeploymentOperation = creds.resourceManagerClient.
-              getAzureRESTJson(
-                              creds,
-                              "https://management.azure.com",
-                              "resourceGroups/${resourceGroupName}/providers/Microsoft.Resources/deployments/${deploymentName}/operations",
-                              ["api-version=2015-11-01"],
-                              AzureDeploymentOperation.class
-                              )
-            String statusMessage = updatedDeploymentOperation?.value?.first()?.properties?.statusMessage?.error?.message
-            String err = "Failed to create resource ${d.properties.targetResource.resourceName}: "
-            err += statusMessage?:"See Azure Portal for more information."
-            task.updateStatus opsName, err
-            resourceCompletedState[d.id] = true
-            errList.add(err)
+            if (!resourceCompletedState[d.id]) {
+              task.updateStatus opsName, String.format("Resource %s created", d.properties.targetResource.resourceName)
+              resourceCompletedState[d.id] = true
+            }
+          } else if (d.properties.provisioningState == AzureResourceManagerClient.DeploymentState.FAILED) {
+            if (!resourceCompletedState[d.id]) {
+
+              //String statusMessage = updatedDeploymentOperation?.value?.first()?.properties?.statusMessage?.error?.message
+              String err = "Failed to create resource ${d.properties.targetResource.resourceName}: "
+              err += d.properties.statusMessage ? d.properties.statusMessage : "See Azure Portal for more information."
+              task.updateStatus opsName, err
+              resourceCompletedState[d.id] = true
+              errList.add(err)
+            }
           }
         }
       }

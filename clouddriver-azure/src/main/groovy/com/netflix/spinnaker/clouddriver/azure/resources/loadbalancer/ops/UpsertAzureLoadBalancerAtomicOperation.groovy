@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops
 
+import com.microsoft.azure.CloudException
 import com.microsoft.azure.management.resources.models.DeploymentExtended
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.model.AzureDeploymentOperation
@@ -51,23 +52,27 @@ class UpsertAzureLoadBalancerAtomicOperation implements AtomicOperation<Map> {
       "in ${description.region}...")
 
     def errList = new ArrayList<String>()
+    String resourceGroupName = AzureUtilities.getResourceGroupName(description.appName, description.region)
 
     try {
 
       task.updateStatus(BASE_PHASE, "Beginning load balancer deployment")
 
-      String resourceGroupName = AzureUtilities.getResourceGroupName(description.appName, description.region)
       DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(description.credentials,
         AzureLoadBalancerResourceTemplate.getTemplate(description),
         resourceGroupName,
         description.region,
         description.loadBalancerName)
 
-      errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task,BASE_PHASE, description.credentials, resourceGroupName, deployment.name)
+      errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name)
+    } catch (CloudException ce) {
+      task.updateStatus(BASE_PHASE, "One or more deployment operations have failed. Please see Azure portal for more information. Resource Group: ${resourceGroupName} Load Balancer: ${description.loadBalancerName}")
+      errList.add(ce.message)
     } catch (Exception e) {
-      task.updateStatus(BASE_PHASE, "Deployment of load balancer ${description.loadBalancerName} failed: ${e.message}")
+      task.updateStatus(BASE_PHASE, "Deployment of load balancer ${description.loadBalancerName} failed: ${e.message}. Please see Azure Portal for more information")
       errList.add(e.message)
     }
+
     if (errList.isEmpty()) {
       task.updateStatus(BASE_PHASE, "Deployment for load balancer ${description.loadBalancerName} in ${description.region} has succeeded.")
     }

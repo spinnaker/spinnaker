@@ -83,7 +83,9 @@ class AzureNetworkCachingAgent implements CachingAgent, AccountAware {
   CacheResult loadData(ProviderCache providerCache) {
     log.info("Describing items in ${agentType}")
 
-    def networks = creds.networkClient.getVirtualNetworksAll(creds, region)
+    def networks = creds
+      .networkClient
+      .getVirtualNetworksAll(region)
 
     List<CacheData> data = networks.collect() { AzureVirtualNetworkDescription network ->
       Map<String, Object> attributes = [network: network]
