@@ -26,7 +26,7 @@ import com.netflix.spinnaker.clouddriver.docker.registry.DockerRegistryConfigura
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesConfiguration
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
-import com.netflix.spinnaker.clouddriver.titan.TitanConfiguration
+import com.netflix.spinnaker.clouddriver.titus.TitanConfiguration
 import org.springframework.boot.actuate.autoconfigure.ManagementSecurityAutoConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
@@ -59,9 +59,6 @@ import java.security.Security
 ])
 @ComponentScan([
   'com.netflix.spinnaker.config',
-  'com.netflix.spinnaker.kato.config',
-  'com.netflix.spinnaker.mort.config',
-  'com.netflix.spinnaker.oort.config'
 ])
 @EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration, SecurityAutoConfiguration,
 ManagementSecurityAutoConfiguration])

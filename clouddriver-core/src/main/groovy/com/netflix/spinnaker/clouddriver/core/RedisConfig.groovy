@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.core
 
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.data.task.jedis.JedisTaskRepository
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.actuate.health.Health
@@ -35,6 +37,11 @@ class RedisConfig {
   @ConfigurationProperties('redis')
   GenericObjectPoolConfig redisPoolConfig() {
     new GenericObjectPoolConfig(maxTotal: 100, maxIdle: 100, minIdle: 25)
+  }
+
+  @Bean
+  TaskRepository taskRepository() {
+    new JedisTaskRepository()
   }
 
   @Bean

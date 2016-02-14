@@ -20,7 +20,7 @@ import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
 import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
-import com.netflix.spinnaker.oort.aws.model.AmazonApplication
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonApplication
 import spock.lang.Shared
 import spock.lang.Specification
 

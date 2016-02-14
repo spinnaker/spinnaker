@@ -1,9 +1,0 @@
-tasks.bintrayUpload.enabled = false
-subprojects {
-  dependencies {
-    spinnaker.group("test")
-    compile spinnaker.dependency('groovy')
-    compile spinnaker.dependency('bootActuator')
-  }
-}
-

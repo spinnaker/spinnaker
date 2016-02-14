@@ -22,7 +22,7 @@ import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
-import com.netflix.spinnaker.oort.aws.model.edda.InstanceLoadBalancers
+import com.netflix.spinnaker.clouddriver.aws.model.edda.InstanceLoadBalancers
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder

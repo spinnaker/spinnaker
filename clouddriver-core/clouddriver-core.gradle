@@ -11,4 +11,5 @@ dependencies {
   compile project(':cats:cats-core')
   compile project(':cats:cats-redis')
   compile project(':clouddriver-security')
+  testCompile project(':cats:cats-test')
 }
