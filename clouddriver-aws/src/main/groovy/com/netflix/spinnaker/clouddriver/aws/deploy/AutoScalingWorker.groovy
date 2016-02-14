@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy
 import com.amazonaws.services.autoscaling.model.CreateAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.SuspendProcessesRequest
+import com.amazonaws.services.autoscaling.model.Tag
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult
 import com.amazonaws.services.ec2.model.Subnet
@@ -69,6 +70,7 @@ class AutoScalingWorker {
   private List<String> securityGroups
   private List<String> availabilityZones
   private List<AmazonBlockDevice> blockDevices
+  private Map<String, String> tags
 
   private int minInstances
   private int maxInstances
@@ -179,6 +181,13 @@ class AutoScalingWorker {
       .withHealthCheckGracePeriod(healthCheckGracePeriod)
       .withHealthCheckType(healthCheckType)
       .withTerminationPolicies(terminationPolicies)
+
+    tags?.each { key, value ->
+      request.withTags(new Tag()
+                        .withKey(key)
+                        .withValue(value)
+                        .withPropagateAtLaunch(true))
+    }
 
     // Favor subnetIds over availability zones
     def subnetIds = subnetIds?.join(',')

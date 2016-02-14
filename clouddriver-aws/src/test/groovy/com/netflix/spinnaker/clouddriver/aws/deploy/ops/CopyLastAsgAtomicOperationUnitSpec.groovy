@@ -23,6 +23,7 @@ import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequ
 import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsResult
 import com.amazonaws.services.autoscaling.model.Ebs
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
+import com.amazonaws.services.autoscaling.model.TagDescription
 import com.amazonaws.services.ec2.AmazonEC2
 import com.netflix.spinnaker.clouddriver.aws.deploy.AWSServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -74,6 +75,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
       new BasicAmazonDeployDescription(application: 'asgard', stack: 'stack', keyPair: 'key-pair-name',
         securityGroups: ['someGroupName', 'sg-12345a'], availabilityZones: [(region): null],
         capacity: new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5),
+        tags: [Name: 'name-tag'],
         source: new BasicAmazonDeployDescription.Source(
           asgName: "asgard-stack-v000",
           account: 'baz',
@@ -100,6 +102,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
       mockAsg.getMaxSize() >> 2
       mockAsg.getDesiredCapacity() >> 4
       mockAsg.getLaunchConfigurationName() >> "foo"
+      mockAsg.getTags() >> [new TagDescription().withKey('Name').withValue('name-tag')]
       new DescribeAutoScalingGroupsResult().withAutoScalingGroups([mockAsg])
     }
     2 * serverGroupNameResolver.resolveLatestServerGroupName("asgard-stack") >> { "asgard-stack-v000" }
