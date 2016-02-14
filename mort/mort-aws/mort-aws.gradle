@@ -1,9 +1,0 @@
-dependencies {
-  compile project(":clouddriver-aws")
-  compile spinnaker.dependency("frigga")
-  spinnaker.group('amazon')
-  compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.15'
-
-  compile project(':cats:cats-core')
-  compile project(':cats:cats-redis')
-}

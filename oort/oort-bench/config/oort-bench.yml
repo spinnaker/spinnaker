@@ -1,6 +1,0 @@
-#example configuration
-endpoints:
-  vipName: oort
-  discoveryUrl: http://discovery:7001/eureka
-  paths:
-    - /aws/loadBalancers
