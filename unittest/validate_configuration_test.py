@@ -266,7 +266,7 @@ class ValidateConfigurationTest(unittest.TestCase):
         }
         self.baseUrl_test_helper(tests, False, scheme_optional=False)
 
-    def test_verify_protection_good(self):
+    def test_verify_user_access_only_good(self):
         bindings = YamlBindings()
         validator = ValidateConfig(
               configurator=Configurator(bindings=bindings))
@@ -281,7 +281,7 @@ class ValidateConfigurationTest(unittest.TestCase):
         finally:
             os.remove(temp)
 
-    def test_verify_protection_bad(self):
+    def test_verify_user_access_only_bad(self):
         bindings = YamlBindings()
         validator = ValidateConfig(
               configurator=Configurator(bindings=bindings))
@@ -308,7 +308,7 @@ class ValidateConfigurationTest(unittest.TestCase):
         finally:
             os.remove(temp)
 
-    def test_verify_protection_good(self):
+    def test_verify_at_least_one_provider_enabled_good(self):
         bindings = YamlBindings()
         bindings.import_dict({
             'providers': {
@@ -321,7 +321,7 @@ class ValidateConfigurationTest(unittest.TestCase):
               configurator=Configurator(bindings=bindings))
         self.assertTrue(validator.verify_at_least_one_provider_enabled())
 
-    def test_verify_protection_bad(self):
+    def test_verify_at_least_one_provider_enabled_bad(self):
         bindings = YamlBindings()
         bindings.import_dict({
             'providers': {
