@@ -1,29 +1,18 @@
 <div ng-controller="gceResizeAsgStageCtrl as resizeAsgStageCtrl">
   <div ng-if="!pipeline.strategy">
+
+
     <div ng-if="viewState.loading">
       <h4 class="text-center">
         <span us-spinner="{radius:20, width:6, length: 12}"></span>
       </h4>
     </div>
     <div ng-if="!viewState.loading">
-      <stage-config-field label="Account">
-        <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="resizeAsgStageCtrl.reset()" required></account-select-field>
-      </stage-config-field>
-      <stage-config-field label="Zones">
-        <p ng-if="!stage.credentials" class="form-control-static">(Select an Account)</p>
-        <checkmap
-          ng-if="stage.credentials"
-          item-map="zones"
-          on-change="resizeAsgStageCtrl.resetSelectedCluster()"
-          selected-items="stage.zones">
-        </checkmap>
-      </stage-config-field>
-      <stage-config-field label="Cluster" help-key="pipeline.config.resizeAsg.cluster">
-        <cluster-selector
-          clusters="clusterList"
-          model="stage.cluster">
-        </cluster-selector>
-      </stage-config-field>
+      <account-zone-cluster-selector
+        application="application"
+        component="stage"
+        accounts="accounts">
+      </account-zone-cluster-selector>
     </div>
   </div>
   <stage-config-field label="Target">

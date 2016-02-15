@@ -33,11 +33,6 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsgS
     $scope.stage.application = $scope.application.name;
     $scope.stage.healthProviders = ['Discovery'];
 
-    let setClusterList = () => {
-      let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndRegion($scope.stage.account, $scope.stage.region);
-      $scope.clusterList = appListExtractorService.getClusters([$scope.application], clusterFilter);
-    };
-
     $scope.state = {
       accounts: false,
       regionsLoaded: false
@@ -46,18 +41,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsgS
     accountService.listAccounts().then(function (accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
-      setClusterList();
     });
-
-    $scope.resetSelectedCluster = () => {
-      $scope.stage.clusterName = undefined;
-      setClusterList();
-    };
-
-    $scope.reset = () => {
-      $scope.accountUpdated();
-      $scope.resetSelectedCluster();
-    };
 
     $scope.accountUpdated = function() {
       let accountFilter = (cluster) => cluster.account === $scope.stage.credentials;
@@ -68,12 +52,6 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsgS
       $scope.regionsLoaded = true;
       $scope.stage.account = $scope.stage.credentials;
     };
-
-    (function() {
-      if ($scope.stage.credentials) {
-        $scope.accountUpdated();
-      }
-    })();
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
   });

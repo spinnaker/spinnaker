@@ -5,7 +5,6 @@ let angular = require('angular');
 //BEN_TODO: where is this defined?
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableClusterStage', [
-  require('../../../../../../core/application/listExtractor/listExtractor.service'),
   require('../../../../../account/account.service.js'),
   require('./disableClusterExecutionDetails.controller.js')
 ])
@@ -22,7 +21,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableCluste
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('gceDisableClusterStageCtrl', function($scope, accountService, appListExtractorService) {
+  }).controller('gceDisableClusterStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -32,35 +31,14 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableCluste
       zonesLoaded: false
     };
 
-    let setClusterList = () => {
-      let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndZone($scope.stage.credentials, $scope.stage.zones);
-      $scope.clusterList = appListExtractorService.getClusters([$scope.application], clusterFilter);
-    };
-
-    ctrl.resetSelectedCluster = () => {
-      $scope.stage.cluster = undefined;
-      setClusterList();
-    };
 
     accountService.listAccounts('gce').then(function (accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
-      setClusterList();
     });
 
     $scope.zones = {'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c']};
 
-    ctrl.accountUpdated = function() {
-      accountService.getRegionsForAccount(stage.credentials).then(function(zoneMap) {
-        $scope.zones = zoneMap;
-        $scope.zonesLoaded = true;
-      });
-    };
-
-    ctrl.reset = () => {
-      ctrl.accountUpdated();
-      ctrl.resetSelectedCluster();
-    };
 
     stage.zones = stage.zones || [];
     stage.cloudProvider = 'gce';
@@ -71,10 +49,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableCluste
 
     if (!stage.credentials && $scope.application.defaultCredentials.gce) {
       stage.credentials = $scope.application.defaultCredentials.gce;
-    }
-
-    if (stage.credentials) {
-      ctrl.accountUpdated();
     }
 
     if (stage.remainingEnabledServerGroups === undefined) {

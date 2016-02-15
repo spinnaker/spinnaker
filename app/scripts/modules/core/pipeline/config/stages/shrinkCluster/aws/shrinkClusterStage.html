@@ -1,25 +1,12 @@
 <div ng-controller="awsShrinkClusterStageCtrl as shrinkClusterStageCtrl" class="form-horizontal">
   <div ng-if="!pipeline.strategy">
-  <stage-config-field label="Account">
-    <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="shrinkClusterStageCtrl.reset()" required></account-select-field>
-  </stage-config-field>
-  <stage-config-field label="Regions">
-    <p ng-if="!stage.credentials" class="form-control-static">(Select an Account)</p>
-    <checklist
-      ng-if="stage.credentials"
-      items="regions"
-      model="stage.regions"
-      inline="true"
-      on-change="shrinkClusterStageCtrl.resetSelectedCluster()"
-      include-select-all-button="true">
-    </checklist>
-  </stage-config-field>
-  <stage-config-field label="Cluster" help-key="pipeline.config.shrinkCluster.cluster">
-    <cluster-selector
-      clusters="clusterList"
-      model="stage.cluster">
-    </cluster-selector>
-  </stage-config-field>
+
+    <account-region-cluster-selector
+      application="application"
+      component="stage"
+      accounts="accounts" >
+    </account-region-cluster-selector>
+
   </div>
   <stage-config-field label="Shrink Options">
     <div class="form-inline">
