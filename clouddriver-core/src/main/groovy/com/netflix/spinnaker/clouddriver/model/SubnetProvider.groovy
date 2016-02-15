@@ -17,5 +17,6 @@
 package com.netflix.spinnaker.clouddriver.model
 
 interface SubnetProvider<T extends Subnet> {
+  String getType()
   Set<T> getAll()
 }

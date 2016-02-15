@@ -42,7 +42,7 @@ class AzureSubnetProvider implements SubnetProvider<AzureSubnet> {
     this.objectMapper = objectMapper
   }
 
-  String getCloudProvider() {
+  String getType() {
     return azureCloudProvider.id
   }
 
@@ -56,7 +56,7 @@ class AzureSubnetProvider implements SubnetProvider<AzureSubnet> {
     def parts = Keys.parse(azureCloudProvider, cacheData.id)
 
     new AzureSubnet(
-      cloudProvider: "azure",
+      type: "azure",
       id: subnet.id,
       name: subnet.name,
       account: parts.account?: "azure-cred1",
