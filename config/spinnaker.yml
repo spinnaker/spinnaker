@@ -54,6 +54,11 @@ services:
         token: # the part after http://hooks.slack.com/services/
 
   deck:
+    host: ${services.default.host}
+    port: 9000
+    baseUrl: ${services.default.protocol}://${services.deck.host}:${services.deck.port}
+    gateUrl: ${services.gate.baseUrl}
+    bakeryUrl: ${services.bakery.baseUrl}
     timezone: 'America/Los_Angeles'
     auth:
       enabled: false

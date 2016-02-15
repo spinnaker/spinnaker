@@ -9,8 +9,8 @@
  */
 // BEGIN reconfigure_spinnaker
 
-// var gateUrl = ${services.gate.baseUrl};
-// var bakeryBaseUrl = ${services.bakery.baseUrl};
+// var gateUrl = ${services.deck.gateUrl};
+// var bakeryUrl = ${services.deck.bakeryUrl};
 // var authEnabled = ${services.deck.auth.enabled};
 // var defaultTimeZone = ${services.deck.timezone};
 // var awsDefaultRegion = ${providers.aws.defaultRegion};
@@ -36,7 +36,7 @@
 
 window.spinnakerSettings = {
   gateUrl: gateUrl,
-  bakeryDetailUrl: bakeryBaseUrl + '/api/v1/global/logs/{{context.status.id}}?html=true',
+  bakeryDetailUrl: bakeryUrl + '/api/v1/global/logs/{{context.status.id}}?html=true',
   authEndpoint: gateUrl + '/auth/info',
   pollSchedule: 30000,
   defaultTimeZone: defaultTimeZone, // see http://momentjs.com/timezone/docs/#/data-utilities/
