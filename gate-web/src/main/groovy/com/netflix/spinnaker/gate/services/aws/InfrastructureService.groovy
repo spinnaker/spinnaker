@@ -48,9 +48,10 @@ class InfrastructureService {
     } execute()
   }
 
+  @Deprecated
   List<Map> getSubnets() {
     command("subnets") {
-      clouddriverService.subnets
+      clouddriverService.getSubnets('aws')
     } execute()
   }
 

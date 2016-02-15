@@ -199,6 +199,9 @@ interface ClouddriverService {
   @GET('/subnets')
   List<Map> getSubnets()
 
+  @GET('/subnets/{cloudProvider}')
+  List<Map> getSubnets(@Path("cloudProvider") String cloudProvider)
+
   @GET('/networks')
   Map getNetworks()
 
