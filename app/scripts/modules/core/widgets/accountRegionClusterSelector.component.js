@@ -35,10 +35,6 @@ module.exports = angular
           vm.clusterList = appListExtractorService.getClusters([vm.application], clusterFilter);
         };
 
-        vm.accountChange = () => {
-          vm.accountUpdated();
-        };
-
         vm.regionChanged = () => {
           setClusterList();
           if (!isTextInputForClusterFiled && !vm.clusterList.includes(vm.component.cluster)) {
