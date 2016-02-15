@@ -23,9 +23,9 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
-import com.netflix.spinnaker.clouddriver.model.SubnetProvider
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonSubnet
+import com.netflix.spinnaker.clouddriver.model.SubnetProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -49,8 +49,24 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
   }
 
   @Override
+  String getType() {
+    return amazonCloudProvider.id
+  }
+
+  @Override
   Set<AmazonSubnet> getAll() {
-    cacheView.getAll(SUBNETS.ns, RelationshipCacheFilter.none()).collect(this.&fromCacheData)
+    getAllMatchingKeyPattern(Keys.getSubnetKey(amazonCloudProvider, '*', '*', '*'))
+  }
+
+  Set<AmazonSubnet> getAllMatchingKeyPattern(String pattern) {
+    loadResults(cacheView.filterIdentifiers(SUBNETS.ns, pattern))
+  }
+
+  Set<AmazonSubnet> loadResults(Collection<String> identifiers) {
+    def data = cacheView.getAll(SUBNETS.ns, identifiers, RelationshipCacheFilter.none())
+    def transformed = data.collect(this.&fromCacheData)
+
+    return transformed
   }
 
   AmazonSubnet fromCacheData(CacheData cacheData) {
@@ -77,7 +93,9 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
       }
     }
 
-    new AmazonSubnet(id: subnet.subnetId,
+    new AmazonSubnet(
+      type: amazonCloudProvider.id,
+      id: subnet.subnetId,
       state: subnet.state,
       vpcId: subnet.vpcId,
       cidrBlock: subnet.cidrBlock,

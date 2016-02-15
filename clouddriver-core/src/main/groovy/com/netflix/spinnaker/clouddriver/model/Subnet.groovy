@@ -21,6 +21,13 @@ package com.netflix.spinnaker.clouddriver.model
  */
 interface Subnet {
   /**
+   * The cloud provider associated with this subnet
+   *
+   * @return
+   */
+  String getType()
+
+  /**
    * The ID associated with this subnet
    * @return
    */

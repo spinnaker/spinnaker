@@ -28,6 +28,7 @@ class Keys {
     INSTANCES,
     LOAD_BALANCERS,
     NETWORKS,
+    SUBNETS,
     SECURITY_GROUPS,
     SERVER_GROUPS,
 
@@ -103,6 +104,13 @@ class Keys {
             region : parts[4]
         ]
         break
+      case Namespace.SUBNETS.ns:
+        result << [
+            id     : parts[2],
+            account: parts[3],
+            region : parts[4]
+        ]
+        break
       case Namespace.SECURITY_GROUPS.ns:
         def names = Names.parseName(parts[2])
         result << [
@@ -172,6 +180,13 @@ class Keys {
                               String region,
                               String account) {
     "$googleCloudProvider.id:${Namespace.NETWORKS}:${networkName}:${account}:${region}"
+  }
+
+  static String getSubnetKey(GoogleCloudProvider googleCloudProvider,
+                             String subnetName,
+                             String region,
+                             String account) {
+    "$googleCloudProvider.id:${Namespace.SUBNETS}:${subnetName}:${account}:${region}"
   }
 
   static String getSecurityGroupKey(GoogleCloudProvider googleCloudProvider,

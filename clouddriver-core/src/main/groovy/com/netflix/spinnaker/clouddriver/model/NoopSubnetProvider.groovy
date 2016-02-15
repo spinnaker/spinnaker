@@ -17,8 +17,13 @@
 package com.netflix.spinnaker.clouddriver.model
 
 class NoopSubnetProvider implements SubnetProvider<Subnet> {
-    @Override
-    Set<Subnet> getAll() {
-        Collections.emptySet()
-    }
+  @Override
+  String getType() {
+    return null
+  }
+
+  @Override
+  Set<Subnet> getAll() {
+    Collections.emptySet()
+  }
 }

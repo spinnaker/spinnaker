@@ -19,6 +19,7 @@ import groovy.transform.Canonical
 
 @Canonical
 class AmazonSubnet implements Subnet {
+    String type
     String id
     String state
     String vpcId

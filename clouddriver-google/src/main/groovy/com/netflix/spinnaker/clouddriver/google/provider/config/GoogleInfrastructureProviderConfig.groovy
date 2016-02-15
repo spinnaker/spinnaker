@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleLoadBalance
 import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleNetworkCachingAgent
 import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleSecurityGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleServerGroupCachingAgent
+import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleSubnetCachingAgent
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
@@ -96,6 +97,10 @@ class GoogleInfrastructureProviderConfig {
 
         newlyAddedAgents << new GoogleSecurityGroupCachingAgent(googleCloudProvider, credentials.accountName, credentials.credentials, objectMapper, registry)
         newlyAddedAgents << new GoogleNetworkCachingAgent(googleCloudProvider, credentials.accountName, credentials.credentials, objectMapper)
+
+        credentials.regions.keySet().each { String region ->
+          newlyAddedAgents << new GoogleSubnetCachingAgent(googleCloudProvider, credentials.accountName, region, credentials.credentials, objectMapper)
+        }
 
         // TODO(ttomsu): Re-enable this when we've migrated the cache to cats/redis.
 //        newlyAddedAgents << new GoogleInstanceCachingAgent(googleCloudProvider,

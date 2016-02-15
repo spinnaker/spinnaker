@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.controllers
 import com.netflix.spinnaker.clouddriver.model.Subnet
 import com.netflix.spinnaker.clouddriver.model.SubnetProvider
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
@@ -35,6 +36,15 @@ class SubnetController {
     subnetProviders.collectMany {
       it.all
     } as Set
+  }
+
+  @RequestMapping(method = RequestMethod.GET, value = "/{cloudProvider}")
+  Set<Subnet> listByCloudProvider(@PathVariable String cloudProvider) {
+    subnetProviders.findAll { subnetProvider ->
+      subnetProvider.type == cloudProvider
+    } collectMany {
+      it.all
+    }
   }
 
   // TODO: implement the rest
