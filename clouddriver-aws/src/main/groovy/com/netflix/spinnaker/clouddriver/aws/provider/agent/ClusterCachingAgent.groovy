@@ -203,7 +203,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
       }
 
       return [
-        asgs            : [asg],
+        asgs            : asg ? [asg] : [],
         scalingPolicies : scalingPolicies,
         scheduledActions: scheduledActions,
         subnetMap       : subnetMap
