@@ -14,6 +14,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
   require('../../../core/utils/lodash.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('./resize/resizeServerGroup.controller'),
+  require('./rollback/rollbackServerGroup.controller'),
   require('../../../core/modal/closeable/closeable.modal.controller.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
@@ -222,6 +223,21 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
           submitMethod: submitMethod
         });
 
+      };
+
+      this.rollbackServerGroup = function rollbackServerGroup() {
+        $uibModal.open({
+          templateUrl: require('./rollback/rollbackServerGroup.html'),
+          controller: 'cfRollbackServerGroupCtrl as ctrl',
+          resolve: {
+            serverGroup: function() { return $scope.serverGroup; },
+            disabledServerGroups: function() {
+              var cluster = _.find(app.clusters, {name: $scope.serverGroup.cluster, account: $scope.serverGroup.account});
+              return _.filter(cluster.serverGroups, {isDisabled: true, region: $scope.serverGroup.region});
+            },
+            application: function() { return app; }
+          }
+        });
       };
 
       this.resizeServerGroup = function resizeServerGroup() {
