@@ -7,6 +7,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.bakeStage', [
   require('../../../pipelineConfigProvider.js'),
   require('./bakeExecutionDetails.controller.js'),
   require('../bakery.service.js'),
+  require('../modal/addExtendedAttribute.controller.modal.js'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -29,11 +30,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.bakeStage', [
       restartable: true,
     });
   })
-  .controller('awsBakeStageCtrl', function($scope, bakeryService, $q, _, authenticationService, settings) {
+  .controller('awsBakeStageCtrl', function($scope, bakeryService, $q, _, authenticationService, settings, $uibModal) {
 
-    var stage = $scope.stage;
-
-    stage.regions = stage.regions || [];
+    $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
+    $scope.stage.regions = $scope.stage.regions || [];
 
     if (!$scope.stage.user) {
       $scope.stage.user = authenticationService.getAuthenticatedUser().name;
@@ -92,6 +92,31 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.bakeStage', [
         }
       });
     }
+
+    this.addExtendedAttribute = function() {
+      if (!$scope.stage.extendedAttributes) {
+           $scope.stage.extendedAttributes = {};
+      }
+      $uibModal.open({
+        templateUrl: require('../modal/addExtendedAttribute.html'),
+        controller: 'bakeStageAddExtendedAttributeController',
+        controllerAs: 'addExtendedAttribute',
+        resolve: {
+          extendedAttribute: function () {
+            return {
+              key: '',
+              value: '',
+            };
+          }
+        }
+      }).result.then(function(extendedAttribute) {
+          $scope.stage.extendedAttributes[extendedAttribute.key] = extendedAttribute.value;
+      });
+    };
+
+    this.removeExtendedAttribute = function (key) {
+      delete $scope.stage.extendedAttributes[key];
+    };
 
     $scope.$watch('stage', deleteEmptyProperties, true);
 
