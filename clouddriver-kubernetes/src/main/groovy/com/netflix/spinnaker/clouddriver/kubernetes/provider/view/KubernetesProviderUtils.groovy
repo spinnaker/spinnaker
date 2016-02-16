@@ -16,10 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.provider.view
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesInstance
+import io.fabric8.kubernetes.api.model.Pod
 
 class KubernetesProviderUtils {
   static Set<CacheData> getAllMatchingKeyPattern(Cache cacheView, String namespace, String pattern) {
@@ -42,5 +45,15 @@ class KubernetesProviderUtils {
   static Collection<CacheData> resolveRelationshipDataForCollection(Cache cacheView, Collection<CacheData> sources, String relationship, CacheFilter cacheFilter = null) {
     Set<String> relationships = sources.findResults { it.relationships[relationship]?: [] }.flatten()
     relationships ? cacheView.getAll(relationship, relationships, cacheFilter) : []
+  }
+
+  static Map<String, Set<KubernetesInstance>> serverGroupToInstanceMap(ObjectMapper objectMapper, Collection<CacheData> instances) {
+    Map<String, Set<KubernetesInstance>> instanceMap = [:].withDefault { _ -> [] as Set }
+    instances?.forEach {
+      def pod = objectMapper.convertValue(it.attributes.pod, Pod)
+      KubernetesInstance instance = new KubernetesInstance(pod)
+      instanceMap[instance.serverGroupName].add(instance)
+    }
+    return instanceMap
   }
 }
