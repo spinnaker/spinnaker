@@ -25,12 +25,7 @@
       </div>
 
       </br>
-      <div ng-click="container.viewState.configureResources = !container.viewState.configureResources">
-        <span class="glyphicon" ng-class="{'glyphicon-chevron-up': !container.viewState.configureResources, 'glyphicon-chevron-down': container.viewState.configureResources}"/>
-        <em>Configure Resources</em>
-      </div>
-
-      <div ng-show="container.viewState.configureResources">
+      <collapsible-section heading="Resource Configuration" expanded="false">
         </br>
         <div class="form-group">
           <div class="col-md-4 sm-label-right">
@@ -71,7 +66,7 @@
             <input type="text" class="form-control input-sm" name="details" ng-model="container.limits.memory" ng-pattern="containersController.memoryPattern"/>
           </div>
         </div>
-      </div>
+      </collapsible-section>
 
     </div>
   </ng-form>

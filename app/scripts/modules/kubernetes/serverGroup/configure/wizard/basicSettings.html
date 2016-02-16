@@ -8,6 +8,8 @@
         <account-select-field component="command" field="credentials" accounts="command.backingData.accounts" provider="'kubernetes'"></account-select-field>
       </div>
     </div>
+
+      <namespace-select-field component="command" field="namespace" account="command.credentials" namespaces="command.backingData.filtered.namespaces"></namespace-select-field>
     <div class="form-group">
       <div class="col-md-3 sm-label-right">
         Stack
@@ -53,6 +55,7 @@
         </ui-select>
       </div>
     </div>
+
 
     <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
       <div class="col-md-9 col-md-offset-2">

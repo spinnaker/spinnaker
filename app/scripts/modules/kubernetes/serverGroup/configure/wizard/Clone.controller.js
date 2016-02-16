@@ -44,13 +44,15 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
 
     function configureCommand() {
       kubernetesServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function () {
-        var mode = serverGroupCommand.viewState.mode;
-        if (mode === 'clone' || mode === 'create') {
-          serverGroupCommand.viewState.useAllImageSelection = true;
-        }
         $scope.state.loaded = true;
         initializeWizardState();
+        initializeWatches();
       });
+    }
+
+    function initializeWatches() {
+      $scope.$watch('command.credentials', $scope.command.credentialsChanged);
+      $scope.$watch('command.namespace', $scope.command.namespaceChanged);
     }
 
     function initializeWizardState() {

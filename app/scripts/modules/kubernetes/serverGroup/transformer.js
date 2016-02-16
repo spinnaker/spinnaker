@@ -24,10 +24,10 @@ module.exports = angular
       delete command.selectedProvider;
       delete command.interestingHealthProviderNames;
 
-      command.region = 'n/a';
+      command.region = command.namespace;
 
       command.containers.forEach(function transformContainerCommand(element, index, array) {
-        delete array[index].viewState;
+        delete array[index].accountName;
       });
 
       return command;
