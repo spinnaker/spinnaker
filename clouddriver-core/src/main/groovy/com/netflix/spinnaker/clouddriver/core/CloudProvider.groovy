@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.core
 import java.lang.annotation.Annotation
 
 /**
- * Different cloud providers (AWS, GCE, Titan, etc.) should implement this interface and
+ * Different cloud providers (AWS, GCE, Titus, etc.) should implement this interface and
  * annotate different implementations with annotation class indicated by {@code getAnnotation} method
  * to identify the cloud provider specific implementations
  *
