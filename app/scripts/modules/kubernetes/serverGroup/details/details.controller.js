@@ -18,7 +18,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
                                                                   serverGroupReader, $uibModal, serverGroupWriter,
                                                                   runningExecutionsService, serverGroupWarningMessageService,
                                                                   kubernetesServerGroupCommandBuilder) {
-
     let application = app;
 
     $scope.state = {
