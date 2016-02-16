@@ -21,9 +21,11 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
+import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesInstance
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesLoadBalancer
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesServerGroup
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
+import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.Service
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,18 +44,37 @@ class KubernetesLoadBalancerProvider implements LoadBalancerProvider<KubernetesL
 
   @Override
   Set<KubernetesLoadBalancer> getApplicationLoadBalancers(String applicationName) {
-    String loadBalancerGlobKey = Keys.getLoadBalancerKey("*", "*", KubernetesUtil.combineAppStackDetail(applicationName, '*', null))
     String applicationKey = Keys.getApplicationKey(applicationName)
 
     CacheData application = cacheView.get(Keys.Namespace.APPLICATIONS.ns, applicationKey)
+    Set<String> loadBalancerKeys = []
+    Set<String> instanceKeys = []
 
-    Set<CacheData> loadBalancers = KubernetesProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.LOAD_BALANCERS.ns, loadBalancerGlobKey)
-    loadBalancers.addAll(KubernetesProviderUtils.resolveRelationshipData(cacheView, application, Keys.Namespace.LOAD_BALANCERS.ns))
+
+    def applicationServerGroups = application ? KubernetesProviderUtils.resolveRelationshipData(cacheView, application, Keys.Namespace.SERVER_GROUPS.ns) : []
+    applicationServerGroups.each { CacheData serverGroup ->
+      loadBalancerKeys.addAll(serverGroup.relationships[Keys.Namespace.LOAD_BALANCERS.ns] ?: [])
+    }
+
+    loadBalancerKeys.addAll(cacheView.filterIdentifiers(Keys.Namespace.LOAD_BALANCERS.ns,
+                                            Keys.getLoadBalancerKey("*", "*", KubernetesUtil.combineAppStackDetail(applicationName, '*', null))))
+    loadBalancerKeys.addAll(cacheView.filterIdentifiers(Keys.Namespace.LOAD_BALANCERS.ns,
+                                            Keys.getLoadBalancerKey("*", "*", KubernetesUtil.combineAppStackDetail(applicationName, null, null))))
+
+
+    def loadBalancers = cacheView.getAll(Keys.Namespace.LOAD_BALANCERS.ns, loadBalancerKeys)
     Set<CacheData> allServerGroups = KubernetesProviderUtils.resolveRelationshipDataForCollection(cacheView, loadBalancers, Keys.Namespace.SERVER_GROUPS.ns)
+    allServerGroups.each { CacheData serverGroup ->
+      instanceKeys.addAll(serverGroup.relationships[Keys.Namespace.INSTANCES.ns] ?: [])
+    }
+
+    def instances = cacheView.getAll(Keys.Namespace.INSTANCES.ns, instanceKeys)
+
+    def instanceMap = KubernetesProviderUtils.serverGroupToInstanceMap(objectMapper, instances)
 
     Map<String, KubernetesServerGroup> serverGroupMap = allServerGroups.collectEntries { serverGroupData ->
       ReplicationController replicationController = objectMapper.convertValue(serverGroupData.attributes.replicationController, ReplicationController)
-      [(serverGroupData.id): new KubernetesServerGroup(replicationController, [])] // Not collecting pods as they manage their own health checks.
+      [(serverGroupData.id): new KubernetesServerGroup(replicationController, instanceMap[(String)serverGroupData.attributes.name])]
     }
 
     return loadBalancers.collect {

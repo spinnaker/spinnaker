@@ -119,21 +119,10 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
     clusters
   }
 
-  private Map<String, Set<KubernetesInstance>> translateInstances(Collection<CacheData> instanceData) {
-    Map<String, Set<KubernetesInstance>> instances = [:].withDefault { _ -> [] as Set }
-    instanceData?.forEach {
-      def pod = objectMapper.convertValue(it.attributes.pod, Pod)
-      KubernetesInstance instance = new KubernetesInstance(pod)
-      instances[instance.serverGroupName].add(instance)
-    }
-
-    instances
-  }
-
   private Map<String, Set<KubernetesServerGroup>> translateServerGroups(Collection<CacheData> serverGroupData) {
     Collection<CacheData> allInstances = resolveRelationshipDataForCollection(serverGroupData, Keys.Namespace.INSTANCES.ns, RelationshipCacheFilter.none())
 
-    Map<String, Set<KubernetesInstance>> instances = translateInstances(allInstances)
+    Map<String, Set<KubernetesInstance>> instances = KubernetesProviderUtils.serverGroupToInstanceMap(objectMapper, allInstances)
 
     Map<String, Set<KubernetesServerGroup>> serverGroups = [:].withDefault { _ -> [] as Set }
     serverGroupData.forEach {
@@ -174,6 +163,6 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
     Set<CacheData> instances = KubernetesProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.INSTANCES.ns, Keys.getInstanceKey(account, namespace, name, "*"))
 
     def replicationController = objectMapper.convertValue(serverGroupData.attributes.replicationController, ReplicationController)
-    serverGroupData ? new KubernetesServerGroup(replicationController, translateInstances(instances)[name]) : null
+    serverGroupData ? new KubernetesServerGroup(replicationController, KubernetesProviderUtils.serverGroupToInstanceMap(objectMapper, instances)[name]) : null
   }
 }
