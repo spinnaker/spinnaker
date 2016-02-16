@@ -18,8 +18,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
       basicSettings: require('./basicSettings.html'),
       loadBalancers: require('./loadBalancers.html'),
       securityGroups: require('./securityGroups.html'),
-      containers: require('./containers.html'),
-      capacity: require('./capacity.html'),
+      replicas: require('./replicas.html'),
     };
 
     $scope.title = title;
@@ -61,8 +60,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
         v2modalWizardService.markComplete('location');
         v2modalWizardService.markComplete('load-balancers');
         v2modalWizardService.markComplete('security-groups');
-        v2modalWizardService.markComplete('containers');
-        v2modalWizardService.markComplete('capacity');
+        v2modalWizardService.markComplete('replicas');
       }
     }
 

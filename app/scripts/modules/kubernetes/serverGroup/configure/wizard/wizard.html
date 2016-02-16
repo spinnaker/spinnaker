@@ -15,12 +15,14 @@
     <v2-wizard-page key="security-groups" label="Security Groups" done="true">
       <ng-include src="pages.securityGroups"></ng-include>
     </v2-wizard-page>
-    <v2-wizard-page key="containers" label="Containers" done="true">
-      <ng-include src="pages.containers"></ng-include>
+    <v2-wizard-page key="replicas" label="Replicas" done="true">
+      <ng-include src="pages.replicas"></ng-include>
     </v2-wizard-page>
-    <v2-wizard-page key="capacity" label="Capacity" done="true">
-      <ng-include src="pages.capacity"></ng-include>
-    </v2-wizard-page>
+    <div ng-repeat="container in command.containers">
+      <v2-wizard-page key="container-{{$index}}" label="Container {{container.image}}" done="true">
+        <kubernetes-container-configurer container="container"></kubernetes-container-configurer>
+      </v2-wizard-page>
+    </div>
   </v2-modal-wizard>
 </div>
 <div class="modal-footer" ng-if="!state.requiresTemplateSelection && state.loaded">

@@ -99,10 +99,10 @@
         <dd>{{serverGroup.region}}</dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Size" expanded="true">
+    <collapsible-section heading="Replicas" expanded="true">
       <dl class="dl-horizontal"
           ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'" >
-        <dt>Min/Max</dt>
+        <dt>Desired</dt>
         <dd>{{serverGroup.capacity.desired}}</dd>
         <dt>Current</dt>
         <dd>{{serverGroup.instances.length}}</dd>
@@ -118,9 +118,9 @@
         </dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Launch Configuration">
-      <dl ng-repeat="container in serverGroup.containers" class="dl-horizontal"
-          ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'" >
+    <dl ng-repeat="container in serverGroup.containers" class="dl-horizontal"
+        ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'" >
+      <collapsible-section heading="Container {{container.name}}">
         <dt>Name</dt> 
         <dd>{{container.name}}</dd>
         <dt>Image</dt>
@@ -147,8 +147,8 @@
             </div>
           </div>
         </div>
-      </dl>
-    </collapsible-section>
+      </collapsible-section>
+    </dl>
     <collapsible-section heading="Labels">
       <div ng-if="!serverGroup.labels">No labels associated with this replication controller</div>
       <dl ng-repeat="(key, value) in serverGroup.labels" class="dl-horizontal"
