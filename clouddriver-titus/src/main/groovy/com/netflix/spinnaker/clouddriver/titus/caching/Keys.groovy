@@ -19,7 +19,8 @@ import com.netflix.frigga.Names
 
 class Keys {
 
-  private static final PROVIDER = "titan"
+  //TODO(cfieber) - titan->titus. This is still externally referenced in a bunch of spots, rename in conjunction with updates to orca/deck
+  public static final PROVIDER = "titan"
 
   static enum Namespace {
     IMAGES,
@@ -45,6 +46,10 @@ class Keys {
     def parts = key.split(':')
 
     if (parts.length < 2) {
+      return null
+    }
+
+    if (parts[0] != PROVIDER) {
       return null
     }
 
@@ -83,8 +88,8 @@ class Keys {
     "${PROVIDER}:${Namespace.IMAGES}:${account}:${region}:${imageId}"
   }
 
-  static String getServerGroupKey(String autoScalingGroupName, String account, String region) {
-    Names names = Names.parseName(autoScalingGroupName)
+  static String getServerGroupKey(String serverGroupName, String account, String region) {
+    Names names = Names.parseName(serverGroupName)
     "${PROVIDER}:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
   }
 

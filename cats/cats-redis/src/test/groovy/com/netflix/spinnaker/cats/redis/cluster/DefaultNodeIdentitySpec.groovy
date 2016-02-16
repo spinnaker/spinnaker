@@ -16,8 +16,11 @@
 
 package com.netflix.spinnaker.cats.redis.cluster
 
+import com.netflix.spinnaker.cats.redis.test.NetworkUnavailableCheck
+import spock.lang.IgnoreIf
 import spock.lang.Specification
 
+@IgnoreIf({NetworkUnavailableCheck.networkUnavailable()})
 class DefaultNodeIdentitySpec extends Specification {
 
     def 'should resolve to valid network interface'() {

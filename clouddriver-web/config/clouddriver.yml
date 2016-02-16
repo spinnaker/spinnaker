@@ -208,8 +208,8 @@ kubernetes:
 dockerRegistry:
   enabled: ${DOCKER_REGISTRY_ENABLED:false}
 
-titan:
-  enabled: ${TITAN_ENABLED:false}
+titus:
+  enabled: ${TITUS_ENABLED:false}
 
 cf:
   enabled: ${providers.cf.enabled:false}
