@@ -214,7 +214,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
       });
     };
 
-    this.cloneServerGroup = function cloneServerGroup(serverGroup) {
+    this.cloneServerGroup = function cloneServerGroup() {
+      var serverGroup = $scope.serverGroup;
       $uibModal.open({
         templateUrl: require('../configure/wizard/serverGroupWizard.html'),
         controller: 'titanCloneServerGroupCtrl as ctrl',
