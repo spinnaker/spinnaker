@@ -242,9 +242,30 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
     }
   }
 
+  void "should handle VPC ELB creation backward compatibility"() {
+    description.subnetType = "internal"
+    description.isInternal = null;
+    when:
+    operation.operate([])
+
+    then:
+    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])) >> null
+    1 * loadBalancing.createLoadBalancer(new CreateLoadBalancerRequest(
+            loadBalancerName: "kato-main-frontend",
+            listeners: [
+                    new Listener(protocol: "HTTP", loadBalancerPort: 80, instanceProtocol: "HTTP", instancePort: 8501)
+            ],
+            subnets: ["subnet1"],
+            securityGroups: ["sg-1234"],
+            tags: [],
+            scheme: "internal"
+    )) >> new CreateLoadBalancerResult(dNSName: "dnsName1")
+    1 * mockSubnetAnalyzer.getSubnetIdsForZones(["us-east-1a"], "internal", SubnetTarget.ELB) >> ["subnet1"]
+  }
+
   void "should handle VPC ELB creation"() {
       description.subnetType = "internal"
-
+      description.isInternal = true;
       when:
       operation.operate([])
 
