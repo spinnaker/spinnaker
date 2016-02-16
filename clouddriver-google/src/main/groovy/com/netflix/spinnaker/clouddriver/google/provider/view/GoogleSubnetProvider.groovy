@@ -75,7 +75,7 @@ class GoogleSubnetProvider implements SubnetProvider<GoogleSubnet> {
     Map<String, String> parts = Keys.parse(googleCloudProvider, cacheData.id)
 
     new GoogleSubnet(
-      cloudProvider: googleCloudProvider.id,
+      type: googleCloudProvider.id,
       id: subnet.name,
       name: subnet.name,
       gatewayAddress: subnet.gatewayAddress,
