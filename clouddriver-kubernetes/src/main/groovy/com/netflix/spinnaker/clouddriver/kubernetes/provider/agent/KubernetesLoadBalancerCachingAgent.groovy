@@ -166,6 +166,15 @@ class KubernetesLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent,
   @Override
   Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
     def keys = providerCache.getIdentifiers(Keys.Namespace.ON_DEMAND.ns)
+    keys = keys.findResults {
+      def parse = Keys.parse(it)
+      if (parse && parse.namespace == namespace && parse.account == accountName) {
+        return it
+      } else {
+        return null
+      }
+    }
+
     providerCache.getAll(Keys.Namespace.ON_DEMAND.ns, keys).collect {
       [
         details  : Keys.parse(it.id),
