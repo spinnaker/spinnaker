@@ -146,6 +146,7 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
       return {
         stack: '',
         detail: '',
+        isInternal: false,
         credentials: defaultCredentials,
         region: defaultRegion,
         vpcId: null,
