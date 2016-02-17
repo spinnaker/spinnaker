@@ -2,9 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.modifyScalingProcessStage', [
-    require('../../../../../core/application/listExtractor/listExtractor.service'),
-])
+module.exports = angular.module('spinnaker.core.pipeline.stage.modifyScalingProcessStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Modify Scaling Process',
@@ -26,7 +24,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.modifyScalingProc
       cloudProvider: 'aws',
       strategy: true,
     });
-  }).controller('ModifyScalingProcessStageCtrl', function($scope, stage, accountService, stageConstants, appListExtractorService) {
+  }).controller('ModifyScalingProcessStageCtrl', function($scope, stage, accountService, stageConstants) {
     $scope.stage = stage;
 
     $scope.state = {
@@ -34,32 +32,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.modifyScalingProc
       regionsLoaded: false
     };
 
-    let setClusterList = () => {
-      let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndRegion($scope.stage.credentials, $scope.stage.regions);
-      $scope.clusterList = appListExtractorService.getClusters([$scope.application], clusterFilter);
-    };
-
-    $scope.resetSelectedCluster = () => {
-      $scope.stage.cluster = undefined;
-      setClusterList();
-    };
-
     accountService.listAccounts('aws').then(function (accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
-      setClusterList();
     });
-
-    $scope.accountUpdated = function() {
-      let accountFilter = (cluster) => cluster.account === $scope.stage.credentials;
-      $scope.regions = appListExtractorService.getRegions([$scope.application], accountFilter);
-      $scope.state.regionsLoaded = true;
-    };
-
-    $scope.reset = () => {
-      $scope.accountUpdated();
-      $scope.resetSelectedCluster();
-    };
 
     $scope.targets = stageConstants.targetList;
 
@@ -88,10 +64,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.modifyScalingProc
     }
     if (!stage.regions.length && $scope.application.defaultRegions.aws) {
       stage.regions.push($scope.application.defaultRegions.aws);
-    }
-
-    if (stage.credentials) {
-      $scope.accountUpdated();
     }
 
     $scope.toggleProcess = function(process) {

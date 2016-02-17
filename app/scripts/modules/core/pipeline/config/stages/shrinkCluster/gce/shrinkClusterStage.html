@@ -1,23 +1,11 @@
 <div ng-controller="gceShrinkClusterStageCtrl as shrinkClusterStageCtrl" class="form-horizontal">
-  <stage-config-field label="Account">
-    <account-select-field component="stage" field="credentials" accounts="accounts" provider="'gce'" on-change="shrinkClusterStageCtrl.reset()" required></account-select-field>
-  </stage-config-field>
-  <stage-config-field label="Zones">
-    <p ng-if="!stage.credentials" class="form-control-static">(Select an Account)</p>
-    <checkmap
-      ng-if="stage.credentials"
-      item-map="zones"
-      on-change="shrinkClusterStageCtrl.resetSelectedCluster()"
-      selected-items="stage.zones">
-    </checkmap>
-  </stage-config-field>
-  <stage-config-field label="Cluster" help-key="pipeline.config.shrinkCluster.cluster">
-    <cluster-selector
-      clusters="clusterList"
-      model="stage.cluster">
-    </cluster-selector>
-  </stage-config-field>
-  </div>
+
+  <account-zone-cluster-selector
+    application="application"
+    component="stage"
+    accounts="accounts">
+  </account-zone-cluster-selector>
+
   <stage-config-field label="Shrink Options">
     <div class="form-inline">
       Shrink to

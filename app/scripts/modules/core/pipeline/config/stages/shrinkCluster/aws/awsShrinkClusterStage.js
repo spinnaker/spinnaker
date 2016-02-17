@@ -20,7 +20,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.shrinkCluster
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('awsShrinkClusterStageCtrl', function($scope, accountService, stageConstants, appListExtractorService) {
+  }).controller('awsShrinkClusterStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -30,32 +30,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.shrinkCluster
       regionsLoaded: false
     };
 
-    let setClusterList = () => {
-      let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndRegion($scope.stage.credentials, $scope.stage.regions);
-      $scope.clusterList = appListExtractorService.getClusters([$scope.application], clusterFilter);
-    };
-
-    ctrl.resetSelectedCluster = () => {
-      $scope.stage.cluster = undefined;
-      setClusterList();
-    };
-
     accountService.listAccounts('aws').then(function (accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
-      setClusterList();
     });
-
-    ctrl.accountUpdated = function() {
-      let accountFilter = (cluster) => cluster.account === $scope.stage.credentials;
-      $scope.regions = appListExtractorService.getRegions([$scope.application], accountFilter);
-      $scope.viewState.regionsLoaded = true;
-    };
-
-    ctrl.reset = () => {
-      ctrl.accountUpdated();
-      ctrl.resetSelectedCluster();
-    };
 
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'aws';
@@ -65,10 +43,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.shrinkCluster
     }
     if (!stage.regions.length && $scope.application.defaultRegions.aws) {
       stage.regions.push($scope.application.defaultRegions.aws);
-    }
-
-    if (stage.credentials) {
-      ctrl.accountUpdated();
     }
 
     if (stage.shrinkToSize === undefined) {
