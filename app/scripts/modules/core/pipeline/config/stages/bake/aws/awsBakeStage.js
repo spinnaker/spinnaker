@@ -32,6 +32,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.bakeStage', [
   })
   .controller('awsBakeStageCtrl', function($scope, bakeryService, $q, _, authenticationService, settings, $uibModal) {
 
+    $scope._ = _;
     $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
     $scope.stage.regions = $scope.stage.regions || [];
 

@@ -72,12 +72,12 @@
                ng-model="stage.templateFileName"/>
       </stage-config-field>
       <stage-config-field label="Extended Attributes" help-key="pipeline.config.bake.extendedAttributes"
-                          ng-if="viewState.roscoMode || stage.templateFileName">
+                          ng-if="viewState.roscoMode || (stage.extendedAttributes && _.size(stage.extendedAttributes) > 0)">
         <table class="table table-condensed packed">
           <thead>
           <tr>
-            <th style="width:30%">Key</th>
-            <th style="width:30%">Value</th>
+            <th style="width:40%">Key</th>
+            <th style="width:60%">Value</th>
             <th class="text-right">Actions</th>
           </tr>
           </thead>
