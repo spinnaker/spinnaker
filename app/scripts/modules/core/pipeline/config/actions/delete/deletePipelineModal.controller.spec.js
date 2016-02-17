@@ -5,12 +5,14 @@ describe('Controller: deletePipelineModal', function() {
 
   beforeEach(
     window.module(
-      require('./delete.module.js')
+      require('./delete.module.js'),
+      require('../../../../application/service/applications.read.service.js')
     )
   );
 
-  beforeEach(window.inject(function($controller, $rootScope, $log, $q, pipelineConfigService, $state) {
+  beforeEach(window.inject(function($controller, $rootScope, $log, $q, pipelineConfigService, $state, applicationReader) {
     this.$q = $q;
+    this.addSection = applicationReader.addSectionToApplication;
     this.initializeController = function(application, pipeline) {
       this.$state = $state;
       this.$scope = $rootScope.$new();
@@ -37,8 +39,14 @@ describe('Controller: deletePipelineModal', function() {
         {name: 'c', index: 2}
       ];
 
-      this.application = { name: 'the_app', pipelineConfigs: [this.pipelines[0], this.pipelines[1], this.pipelines[2]]};
-      this.application.reloadPipelineConfigs = function () {};
+      this.application = { name: 'the_app' };
+      this.addSection({
+        key: 'pipelineConfigs',
+        lazy: true,
+        loader: () => this.$q.when(null),
+        onLoad: () => this.$q.when(null),
+      }, this.application);
+      this.application.pipelineConfigs.data = [this.pipelines[0], this.pipelines[1], this.pipelines[2]];
       this.initializeController(this.application, this.pipelines[1]);
 
     });
@@ -67,7 +75,7 @@ describe('Controller: deletePipelineModal', function() {
 
       expect(submittedPipeline).toBe('b');
       expect(submittedApplication).toBe('the_app');
-      expect(this.application.pipelineConfigs).toEqual([this.pipelines[0], this.pipelines[2]]);
+      expect(this.application.pipelineConfigs.data).toEqual([this.pipelines[0], this.pipelines[2]]);
       expect(this.pipelineConfigService.savePipeline).toHaveBeenCalledWith(this.pipelines[2]);
       expect(this.pipelineConfigService.savePipeline.calls.count()).toEqual(1);
       expect(this.pipelines[2].index).toBe(1);

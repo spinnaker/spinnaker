@@ -5,12 +5,14 @@ describe('Controller: renamePipelineModal', function() {
 
   beforeEach(
     window.module(
-      require('./rename.module.js')
+      require('./rename.module.js'),
+      require('../../../../application/service/applications.read.service.js')
     )
   );
 
-  beforeEach(window.inject(function($controller, $rootScope, _, $log, $q, pipelineConfigService) {
+  beforeEach(window.inject(function($controller, $rootScope, _, $log, $q, pipelineConfigService, applicationReader) {
     this.$q = $q;
+    this.addSection = applicationReader.addSectionToApplication;
     this.initializeController = function(application, pipeline) {
       this.$scope = $rootScope.$new();
       this.pipelineConfigService = pipelineConfigService;
@@ -34,8 +36,14 @@ describe('Controller: renamePipelineModal', function() {
       {name: 'c'}
     ];
 
-    this.application = { name: 'the_app', pipelines: [this.pipelines[0], this.pipelines[1], this.pipelines[2]]};
-    this.application.reloadPipelineConfigs = function () {};
+    this.application = { name: 'the_app' };
+    this.addSection({
+      key: 'pipelineConfigs',
+      lazy: true,
+      loader: () => this.$q.when(null),
+      onLoad: () => this.$q.when(null),
+    }, this.application);
+    this.application.pipelineConfigs.data = [this.pipelines[0], this.pipelines[1], this.pipelines[2]];
     this.initializeController(this.application, this.pipelines[1]);
 
   });
@@ -72,7 +80,7 @@ describe('Controller: renamePipelineModal', function() {
       expect(submittedNewName).toBe('d');
       expect(submittedCurrentName).toBe('b');
       expect(submittedApplication).toBe('the_app');
-      expect(this.application.pipelines[1].name).toEqual('d');
+      expect(this.application.pipelineConfigs.data[1].name).toEqual('d');
     });
 
     it('sets error flag, message when save is rejected', function() {

@@ -28,14 +28,14 @@ describe('Controller: ManualPipelineExecution', function () {
     describe('No pipeline provided', function () {
       it('sets pipeline options on controller from application', function () {
         let application = {
-          pipelineConfigs: [
+          pipelineConfigs: { data: [
             { id: 'a' },
             { id: 'b' }
-          ]
+          ]}
         };
         this.initializeController(application);
 
-        expect(this.ctrl.pipelineOptions).toBe(application.pipelineConfigs);
+        expect(this.ctrl.pipelineOptions).toBe(application.pipelineConfigs.data);
       });
     });
 
