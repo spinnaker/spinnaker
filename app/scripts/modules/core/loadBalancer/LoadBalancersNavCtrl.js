@@ -24,7 +24,7 @@ module.exports = angular.module('spinnaker.core.loadBalancer.nav.controller', [
     };
 
     this.getLoadBalancersFor = function getLoadBalancersFor(value) {
-      return app.loadBalancers.filter(function (loadBalancer) {
+      return app.loadBalancers.data.filter(function (loadBalancer) {
         return loadBalancer[$scope.sortField] === value;
       });
     };

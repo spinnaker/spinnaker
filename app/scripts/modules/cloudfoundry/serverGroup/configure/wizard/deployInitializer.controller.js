@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.deployInitia
 
     $scope.templates = [ noTemplate ];
 
-    var allClusters = _.groupBy(_.filter($scope.application.serverGroups, { type: 'cf' }), function(serverGroup) {
+    var allClusters = _.groupBy(_.filter($scope.application.serverGroups.data, { type: 'cf' }), function(serverGroup) {
       return [serverGroup.cluster, serverGroup.account, serverGroup.region].join(':');
     });
 

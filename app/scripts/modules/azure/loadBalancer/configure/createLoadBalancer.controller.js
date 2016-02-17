@@ -67,8 +67,8 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
     }
 
     function onTaskComplete() {
-      application.refreshImmediately();
-      application.registerOneTimeRefreshHandler(onApplicationRefresh);
+      application.loadBalancers.refresh();
+      application.loadBalancers.onNextRefresh($scope, onApplicationRefresh);
     }
 
 

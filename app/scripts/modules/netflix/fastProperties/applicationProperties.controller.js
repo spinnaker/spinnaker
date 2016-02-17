@@ -268,8 +268,8 @@ module.exports = angular
     }
 
 
-    application.registerAutoRefreshHandler(fetchFastProperties, $scope);
-    application.registerAutoRefreshHandler(loadPromotions, $scope);
+    application.onRefresh($scope, fetchFastProperties);
+    application.onRefresh($scope, loadPromotions);
 
     fetchFastProperties();
     loadPromotions();

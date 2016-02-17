@@ -11,6 +11,5 @@ module.exports = angular
     require('./statusGlyph.directive.js'),
     require('./task.read.service.js'),
     require('./task.write.service.js'),
-    require('./taskDetails.controller.js'),
     require('./tasks.controller.js'),
   ]);

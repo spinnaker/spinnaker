@@ -1,15 +1,15 @@
 <ul class="nav nav-pills" ng-if="!application.notFound">
   <li>
     <a ui-sref=".executions"
-       ng-if="!application.executionsLoadFailure"
+       ng-if="!application.executions.loadFailure"
        ng-class="{active: $state.includes('**.executions.**') || $state.includes('**.pipelineConfig')}">
       Pipelines
       <span class="badge"
-            ng-if="( application.executions | filter:{isActive:true}).length > 0">
-        {{ (application.executions | filter:{isActive:true}).length }}
+            ng-if="( application.executions.data | filter:{isActive:true}).length > 0">
+        {{ (application.executions.data | filter:{isActive:true}).length }}
       </span>
     </a>
-    <a ng-if="application.executionsLoadFailure">
+    <a ng-if="application.executions.loadFailure">
       Pipelines
       <span class="small glyphicon glyphicon-exclamation-sign"
             uib-tooltip="There was an error loading pipelines. We'll try again shortly."></span>
@@ -42,15 +42,15 @@
   <li>
   <li>
     <a ui-sref=".tasks"
-       ng-if="!application.tasksLoadFailure"
+       ng-if="!application.tasks.loadFailure"
        ng-class="{active: $state.includes('**.tasks.**')}">
       Tasks
       <span class="badge"
-            ng-if="( application.tasks | filter:{isActive:true}).length > 0">
-        {{ (application.tasks | filter:{isActive:true}).length }}
+            ng-if="( application.tasks.data | filter:{isActive:true}).length > 0">
+        {{ (application.tasks.data | filter:{isActive:true}).length }}
       </span>
     </a>
-    <a ng-if="application.tasksLoadFailure">
+    <a ng-if="application.tasks.loadFailure">
       Tasks
       <span class="small glyphicon glyphicon-exclamation-sign"
             uib-tooltip="There was an error loading tasks. We'll try again shortly."></span>

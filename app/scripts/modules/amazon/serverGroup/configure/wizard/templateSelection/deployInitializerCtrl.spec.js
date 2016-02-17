@@ -42,7 +42,7 @@ describe('DeployInitializerCtrl', function() {
     it('creates separate template options for each account and region of a cluster', function() {
 
       var application = {
-        serverGroups: [
+        serverGroups: { data: [
           {
             name: 'sg1',
             cluster: 'cluster1',
@@ -64,7 +64,7 @@ describe('DeployInitializerCtrl', function() {
             region: 'us-east-1',
             type: 'aws',
           },
-        ]
+        ]}
       };
 
       this.$scope.application = application;

@@ -237,7 +237,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.transfo
             }
 
             if (deployedClusterPair) {
-              var canaryServerGroup = _.find(application.serverGroups, {
+              var canaryServerGroup = _.find(application.serverGroups.data, {
                 name: deployedClusterPair.canaryCluster.serverGroup,
                 account: deployedClusterPair.canaryCluster.accountName,
                 region: deployedClusterPair.canaryCluster.region
@@ -248,7 +248,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.transfo
                 deployment.canaryCluster.capacity = 'n/a';
               }
 
-              var baselineServerGroup = _.find(application.serverGroups, {
+              var baselineServerGroup = _.find(application.serverGroups.data, {
                 name: deployedClusterPair.baselineCluster.serverGroup,
                 account: deployedClusterPair.baselineCluster.accountName,
                 region: deployedClusterPair.baselineCluster.region

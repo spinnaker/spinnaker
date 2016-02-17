@@ -43,6 +43,13 @@ module.exports = angular.module('spinnaker.core.orchestratedItem.transformer', [
       return null;
     }
 
+    function calculateRunningTime(item) {
+      return function() {
+        let normalizedNow = Math.max(new Date().getTime(), item.startTime);
+        return (parseInt(item.endTime) || normalizedNow) - parseInt(item.startTime);
+      };
+    }
+
     function defineProperties(item) {
       if (!item || typeof item !== 'object') {
         return;
@@ -126,10 +133,22 @@ module.exports = angular.module('spinnaker.core.orchestratedItem.transformer', [
           }
         },
         runningTimeInMs: {
-          get: function() {
-            let normalizedNow = Math.max(new Date().getTime(), item.startTime);
-            return (parseInt(item.endTime) || normalizedNow) - parseInt(item.startTime);
-          }
+          get: calculateRunningTime(item)
+        }
+      });
+    }
+
+    function addRunningTime(item) {
+      if (!item || typeof item !== 'object') {
+        return;
+      }
+      var testDescriptor = Object.getOwnPropertyDescriptor(item, 'runningTime');
+      if (testDescriptor && !testDescriptor.enumerable) {
+        return;
+      }
+      Object.defineProperties(item, {
+        runningTimeInMs: {
+          get: calculateRunningTime(item)
         }
       });
     }
@@ -171,5 +190,6 @@ module.exports = angular.module('spinnaker.core.orchestratedItem.transformer', [
 
     return {
       defineProperties: defineProperties,
+      addRunningTime: addRunningTime,
     };
   });

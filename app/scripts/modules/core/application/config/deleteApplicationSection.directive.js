@@ -22,7 +22,11 @@ module.exports = angular
     };
   })
   .controller('DeleteApplicationSectionCtrl', function ($state, applicationWriter, confirmationModalService) {
-    this.serverGroupCount = Array.isArray(this.application.serverGroups) ? this.application.serverGroups.length : 0;
+    if (this.application.notFound) {
+      return;
+    }
+
+    this.serverGroupCount = this.application.serverGroups.data.length;
     this.hasServerGroups = Boolean(this.serverGroupCount);
 
     this.deleteApplication = () => {

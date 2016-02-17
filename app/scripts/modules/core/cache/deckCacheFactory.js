@@ -9,6 +9,8 @@ module.exports = angular.module('spinnaker.core.cache.deckCacheFactory', [
 
     var caches = Object.create(null);
 
+    var cacheProxy = Object.create(null);
+
     function buildCacheKey(namespace, cacheId) {
       if (!namespace || !cacheId) {
         return namespace || cacheId;
@@ -58,14 +60,24 @@ module.exports = angular.module('spinnaker.core.cache.deckCacheFactory', [
       setItem: function(k, v) {
         try {
           window.localStorage.setItem(k, v);
+          cacheProxy[k] = v;
         } catch (e) {
           $log.warn('Local Storage Error! Clearing caches and trying again.\nException:', e);
+          delete cacheProxy[k];
           window.localStorage.clear();
           window.localStorage.setItem(k, v);
         }
       },
-      getItem: function(k) { return window.localStorage.getItem(k); },
-      removeItem: function(k) { return window.localStorage.removeItem(k); },
+      getItem: function(k) {
+        if (cacheProxy[k] !== undefined) {
+          return cacheProxy[k];
+        }
+        return window.localStorage.getItem(k);
+      },
+      removeItem: function(k) {
+        delete cacheProxy[k];
+        return window.localStorage.removeItem(k);
+      },
     };
 
     function addLocalStorageCache(namespace, cacheId, cacheConfig) {

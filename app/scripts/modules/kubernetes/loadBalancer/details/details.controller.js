@@ -48,10 +48,9 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
 
     extractLoadBalancer().then(() => {
       // If the user navigates away from the view before the initial extractLoadBalancer call completes,
-      // do not bother subscribing to the autoRefreshStream
+      // do not bother subscribing to the refresh
       if (!$scope.$$destroyed) {
-        let refreshWatcher = app.autoRefreshStream.subscribe(extractLoadBalancer);
-        $scope.$on('$destroy', () => refreshWatcher.dispose());
+        app.loadBalancers.onRefresh($scope, extractLoadBalancer);
       }
     });
 

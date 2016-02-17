@@ -63,11 +63,11 @@ module.exports = angular
     }
 
     function textFilter(execution) {
-      addSearchText(execution);
       var filter = ExecutionFilterModel.sortFilter.filter.toLowerCase();
       if (!filter) {
         return true;
       }
+      addSearchText(execution);
       return execution.searchField.indexOf(filter) !== -1;
     }
 
@@ -89,7 +89,7 @@ module.exports = angular
     }
 
     function addEmptyPipelines(groups, application) {
-      let configs = application.pipelineConfigs || [];
+      let configs = application.pipelineConfigs.data || [];
       if (!isFilterable(ExecutionFilterModel.sortFilter.pipeline) &&
         !isFilterable(ExecutionFilterModel.sortFilter.status) &&
         !ExecutionFilterModel.sortFilter.filter) {
@@ -104,7 +104,7 @@ module.exports = angular
     }
 
     function fixName(execution, application) {
-      let config = _.find(application.pipelineConfigs, { id: execution.pipelineConfigId});
+      let config = _.find(application.pipelineConfigs.data, { id: execution.pipelineConfigId});
       if (config) {
         execution.name = config.name;
       }
@@ -125,7 +125,7 @@ module.exports = angular
       if (ExecutionFilterModel.sortFilter.groupBy === 'name') {
         var executionGroups = _.groupBy(executions, 'name');
         _.forOwn(executionGroups, function (executions, key) {
-          let config = application.pipelineConfigs.filter((config) => config.id === executions[0].pipelineConfigId);
+          let config = application.pipelineConfigs.data.filter((config) => config.id === executions[0].pipelineConfigId);
           executions.sort(executionSorter);
           groups.push({
             heading: key,
@@ -170,9 +170,9 @@ module.exports = angular
           return null;
         }
       }
-      let executions = application.executions || [];
+      let executions = application.executions.data || [];
       executions.forEach((execution) => fixName(execution, application));
-      var filtered = filterExecutionsForDisplay(application.executions);
+      var filtered = filterExecutionsForDisplay(application.executions.data);
 
       var groups = groupExecutions(filtered, application);
 

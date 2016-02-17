@@ -8,7 +8,6 @@ describe('Controller: pipelineExecutions', function () {
   var scope;
   var $state;
   var $stateParams;
-  var $q;
   var $timeout;
   var rx;
   var scrollToService;
@@ -21,17 +20,23 @@ describe('Controller: pipelineExecutions', function () {
   );
 
   beforeEach(
-    window.inject(function ($rootScope, $controller, _$q_, _$timeout_, _rx_, _scrollToService_) {
+    window.inject(function ($rootScope, $controller, _$timeout_, _rx_, _scrollToService_) {
       scope = $rootScope.$new();
       $state = { go: angular.noop };
       $stateParams = {};
-      $q = _$q_;
       $timeout = _$timeout_;
       rx = _rx_;
       scrollToService = _scrollToService_;
 
       this.initializeController = function (application) {
         scope.application = application;
+        application.executions.refreshStream = new rx.Subject();
+        application.executions.onRefresh = function($scope, method) { return application.executions.refreshStream.subscribe(method); };
+        application.executions.onNextRefresh = function($scope, method) { return application.executions.refreshStream.take(1).subscribe(method); };
+        application.pipelineConfigs.refreshStream = new rx.Subject();
+        application.pipelineConfigs.onRefresh = function($scope, method) { return application.pipelineConfigs.refreshStream.subscribe(method); };
+        application.pipelineConfigs.onNextRefresh = function($scope, method) { return application.pipelineConfigs.refreshStream.take(1).subscribe(method); };
+
         controller = $controller('ExecutionsCtrl', {
           $scope: scope,
           $state: $state,
@@ -43,24 +48,18 @@ describe('Controller: pipelineExecutions', function () {
   );
 
   it('should not set loading flag to false until executions and pipeline configs have been loaded', function () {
-    var executionRefreshStream = new rx.Subject(),
-        pipelineConfigRefreshStream = new rx.Subject();
     var application = {
       name: 'foo',
-      executionsLoaded: false,
-      pipelineConfigsLoaded: false,
-      executionRefreshStream: executionRefreshStream,
-      pipelineConfigRefreshStream: pipelineConfigRefreshStream,
-      reloadExecutions: () => executionRefreshStream.onNext(),
-      reloadPipelineConfigs: () => pipelineConfigRefreshStream.onNext(),
+      executions: { refresh: angular.noop, },
+      pipelineConfigs: { refresh: angular.noop, },
     };
     this.initializeController(application);
     scope.$digest();
 
     expect(controller.viewState.loading).toBe(true);
 
-    executionRefreshStream.onNext();
-    pipelineConfigRefreshStream.onNext();
+    application.executions.refreshStream.onNext();
+    application.pipelineConfigs.refreshStream.onNext();
     scope.$digest();
     $timeout.flush();
 
@@ -68,17 +67,9 @@ describe('Controller: pipelineExecutions', function () {
   });
 
   it('should update execution name when pipelineConfigId is present and name differs in config', function () {
-    var executionRefreshStream = new rx.Subject(),
-        pipelineConfigRefreshStream = new rx.Subject();
     var application = {
       name: 'foo',
-      pipelineConfigsLoading: false,
-      executionsLoaded: true,
-      executionRefreshStream: executionRefreshStream,
-      pipelineConfigRefreshStream: pipelineConfigRefreshStream,
-      reloadExecutions: () => executionRefreshStream.onNext(),
-      reloadPipelineConfigs: () => pipelineConfigRefreshStream.onNext(),
-      pipelineConfigs: [
+      pipelineConfigs: { data: [
         {
           id: 'a1',
           name: 'updated name',
@@ -87,8 +78,8 @@ describe('Controller: pipelineExecutions', function () {
           id: 'a2',
           name: 'unchanged',
         },
-      ],
-      executions: [
+      ], loaded: true},
+      executions: { data: [
         {
           pipelineConfigId: 'a1',
           name: 'oldName',
@@ -104,29 +95,26 @@ describe('Controller: pipelineExecutions', function () {
           name: 'no longer configured',
           stageSummaries: [],
         }
-      ],
+      ], loaded: true},
     };
     this.initializeController(application);
+    $timeout.flush();
 
-    executionRefreshStream.onNext();
-
-    expect(application.executions[0].name).toBe('updated name');
-    expect(application.executions[1].name).toBe('unchanged');
-    expect(application.executions[2].name).toBe('no longer configured');
+    expect(application.executions.data[0].name).toBe('updated name');
+    expect(application.executions.data[1].name).toBe('unchanged');
+    expect(application.executions.data[2].name).toBe('no longer configured');
   });
 
   describe('auto-scrolling behavior', function () {
 
-    var executionRefreshStream, application;
+    var application;
 
     beforeEach(function () {
       spyOn(scrollToService, 'scrollTo');
-      executionRefreshStream = new rx.Subject();
       application = {
         name: 'foo',
-        executionRefreshStream: executionRefreshStream,
-        pipelineConfigs: [],
-        reloadExecutions: () => executionRefreshStream.onNext(),
+        executions: { data: [], loaded: true },
+        pipelineConfigs: { data: [], loaded: true },
       };
     });
 

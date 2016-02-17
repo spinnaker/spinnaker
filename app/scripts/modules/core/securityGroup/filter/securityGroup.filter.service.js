@@ -15,6 +15,19 @@ module.exports = angular
 
     var lastApplication = null;
 
+    function addSearchFields(securityGroup) {
+      if (!securityGroup.searchField) {
+        securityGroup.searchField = [
+          securityGroup.name,
+          securityGroup.id,
+          securityGroup.accountName,
+          securityGroup.region,
+          _.pluck(securityGroup.usages.serverGroups, 'name').join(' '),
+          _.pluck(securityGroup.usages.loadBalancers, 'name').join(' ')
+        ].join(' ');
+      }
+    }
+
     function checkSearchTextFilter(securityGroup) {
       var filter = SecurityGroupFilterModel.sortFilter.filter;
       if (!filter) {
@@ -26,6 +39,7 @@ module.exports = angular
         return securityGroup.vpcName.toLowerCase() === vpcName.toLowerCase();
       }
 
+      addSearchFields(securityGroup);
       return filter.split(' ').every(function(testWord) {
         return securityGroup.searchField.indexOf(testWord) !== -1;
       });
@@ -57,7 +71,7 @@ module.exports = angular
       var groups = [];
 
       var filter = SecurityGroupFilterModel.sortFilter.filter.toLowerCase();
-      var securityGroups = filterSecurityGroupsForDisplay(application.securityGroups, filter);
+      var securityGroups = filterSecurityGroupsForDisplay(application.securityGroups.data, filter);
       var grouped = _.groupBy(securityGroups, 'account');
 
       _.forOwn(grouped, function(group, key) {

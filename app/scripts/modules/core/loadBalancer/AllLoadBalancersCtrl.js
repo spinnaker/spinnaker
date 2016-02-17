@@ -25,25 +25,6 @@ module.exports = angular.module('spinnaker.core.loadBalancer.controller', [
 
     this.groupingsTemplate = require('./groupings.html');
 
-    function addSearchFields() {
-      app.loadBalancers.forEach(function(loadBalancer) {
-        if (!loadBalancer.searchField) {
-          loadBalancer.searchField = [
-            loadBalancer.name,
-            loadBalancer.region.toLowerCase(),
-            loadBalancer.account,
-            _.pluck(loadBalancer.serverGroups, 'name').join(' '),
-            _.pluck(loadBalancer.instances, 'id').join(' '),
-          ].join(' ');
-        }
-      });
-    }
-
-    this.clearFilters = function() {
-      loadBalancerFilterService.clearFilters();
-      updateLoadBalancerGroups();
-    };
-
     let updateLoadBalancerGroups = () => {
       LoadBalancerFilterModel.applyParamsToUrl();
       $scope.$evalAsync(() => {
@@ -53,6 +34,11 @@ module.exports = angular.module('spinnaker.core.loadBalancer.controller', [
         // Timeout because the updateLoadBalancerGroups method is debounced by 25ms
         $timeout(() => { this.initialized = true; }, 50);
       });
+    };
+
+    this.clearFilters = function() {
+      loadBalancerFilterService.clearFilters();
+      updateLoadBalancerGroups();
     };
 
     this.createLoadBalancer = function createLoadBalancer() {
@@ -73,13 +59,13 @@ module.exports = angular.module('spinnaker.core.loadBalancer.controller', [
 
     this.updateLoadBalancerGroups = _.debounce(updateLoadBalancerGroups, 200);
 
-    function autoRefreshHandler() {
-      addSearchFields();
+    if (app.loadBalancers.loaded) {
       updateLoadBalancerGroups();
     }
 
-    autoRefreshHandler();
+    app.activeState = app.loadBalancers;
+    $scope.$on('$destroy', () => app.activeState = app);
 
-    app.registerAutoRefreshHandler(autoRefreshHandler, $scope);
+    app.loadBalancers.onRefresh($scope, updateLoadBalancerGroups);
   }
 );

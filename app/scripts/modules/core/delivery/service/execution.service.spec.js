@@ -37,7 +37,7 @@ describe('Service: executionService', function () {
       let cancelUrl = [ settings.gateUrl, 'applications', 'deck', 'pipelines', executionId, 'cancel' ].join('/');
       let checkUrl = [ settings.gateUrl, 'applications', 'deck', 'pipelines' ].join('/')
         .concat('?limit=30&statuses=RUNNING,SUSPENDED,PAUSED,NOT_STARTED');
-      let application = { name: 'deck', reloadExecutions: () => $q.when(null) };
+      let application = { name: 'deck', executions: { refresh: () => $q.when(null) } };
 
       $httpBackend.expectPUT(cancelUrl).respond(200, []);
       $httpBackend.expectGET(checkUrl).respond(200, [{id: executionId}]);
@@ -56,7 +56,7 @@ describe('Service: executionService', function () {
       let failed = false;
       let executionId = 'abc';
       let cancelUrl = [ settings.gateUrl, 'applications', 'deck', 'pipelines', executionId, 'cancel' ].join('/');
-      let application = { name: 'deck', reloadExecutions: () => $q.when(null) };
+      let application = { name: 'deck', executions: { refresh: () => $q.when(null) } };
 
       $httpBackend.expectPUT(cancelUrl).respond(500, []);
 
@@ -72,7 +72,7 @@ describe('Service: executionService', function () {
       let executionId = 'abc';
       let deleteUrl = [ settings.gateUrl, 'pipelines', executionId ].join('/');
       let checkUrl = [ settings.gateUrl, 'applications', 'deck', 'pipelines?limit=3' ].join('/');
-      let application = { name: 'deck', reloadExecutions: () => $q.when(null) };
+      let application = { name: 'deck', executions: { refresh: () => $q.when(null) } };
 
       $httpBackend.expectDELETE(deleteUrl).respond(200, []);
       $httpBackend.expectGET(checkUrl).respond(200, [{id: executionId}]);
@@ -91,7 +91,7 @@ describe('Service: executionService', function () {
       let failed = false;
       let executionId = 'abc';
       let deleteUrl = [ settings.gateUrl, 'pipelines', executionId ].join('/');
-      let application = { name: 'deck', reloadExecutions: () => $q.when(null) };
+      let application = { name: 'deck', executions: { refresh: () => $q.when(null) } };
 
       $httpBackend.expectDELETE(deleteUrl).respond(500, []);
 
@@ -107,7 +107,7 @@ describe('Service: executionService', function () {
       let executionId = 'abc';
       let pauseUrl = [ settings.gateUrl, 'pipelines', executionId, 'pause' ].join('/');
       let singleExecutionUrl = [ settings.gateUrl, 'pipelines', executionId ].join('/');
-      let application = { name: 'deck', reloadExecutions: () => $q.when(null) };
+      let application = { name: 'deck', executions: { refresh: () => $q.when(null) } };
 
       $httpBackend.expectPUT(pauseUrl).respond(200, []);
       $httpBackend.expectGET(singleExecutionUrl).respond(200, {id: executionId, status: 'RUNNING'});
@@ -130,7 +130,7 @@ describe('Service: executionService', function () {
       let executionId = 'abc';
       let pauseUrl = [ settings.gateUrl, 'pipelines', executionId, 'resume' ].join('/');
       let singleExecutionUrl = [ settings.gateUrl, 'pipelines', executionId ].join('/');
-      let application = { name: 'deck', reloadExecutions: () => $q.when(null) };
+      let application = { name: 'deck', executions: { refresh: () => $q.when(null) } };
 
       $httpBackend.expectPUT(pauseUrl).respond(200, []);
       $httpBackend.expectGET(singleExecutionUrl).respond(200, {id: executionId, status: 'PAUSED'});
@@ -269,6 +269,74 @@ describe('Service: executionService', function () {
       $httpBackend.flush();
       expect(succeeded).toBe(false);
       expect(failed).toBe(true);
+    });
+  });
+
+  describe('adding executions to applications', function () {
+    var application;
+    beforeEach(function() {
+      application = { executions: { data: [] }};
+    });
+    it('should add all executions if there are none on application', function () {
+      let execs = [{a:1}];
+
+      executionService.addExecutionsToApplication(application, execs);
+
+      expect(application.executions.data).toBe(execs);
+    });
+
+    it('should add new executions', function () {
+      let original = {id:1, stringVal: 'ac'};
+      let newOne = {id:2, stringVal: 'ab'};
+      let execs = [original, newOne];
+      application.executions.data = [original];
+
+      executionService.addExecutionsToApplication(application, execs);
+
+      expect(application.executions.data).toEqual([original, newOne]);
+    });
+
+    it('should replace an existing execution if stringVal has changed', function () {
+      let original = {id:1, stringVal: 'ac'};
+      let updated = {id:1, stringVal: 'ab'};
+      let execs = [updated];
+      application.executions.data = [original];
+
+      executionService.addExecutionsToApplication(application, execs);
+
+      expect(application.executions.data).toEqual([updated]);
+    });
+
+    it('should remove an execution if it is not in the new set', function () {
+      let transient = {id:1, stringVal: 'ac'};
+      let persistent = {id:2, stringVal: 'ab'};
+      let execs = [persistent];
+      application.executions.data = [transient];
+
+      executionService.addExecutionsToApplication(application, execs);
+
+      expect(application.executions.data).toEqual([persistent]);
+    });
+
+    it('should remove multiple executions if not in the new set', function () {
+      let transient1 = {id:1, stringVal: 'ac'};
+      let persistent = {id:2, stringVal: 'ab'};
+      let transient3 = {id:3, stringVal: 'ac'};
+      let execs = [persistent];
+      application.executions.data = [transient1, persistent, transient3];
+
+      executionService.addExecutionsToApplication(application, execs);
+
+      expect(application.executions.data).toEqual([persistent]);
+    });
+
+    it('should replace the existing executions if application has executions comes back empty', function () {
+      let execs = [];
+      application.executions.data = [{a:1}];
+
+      executionService.addExecutionsToApplication(application, execs);
+
+      expect(application.executions.data).toEqual([]);
     });
 
   });

@@ -20,9 +20,8 @@ describe('Controller: titanServerGroupDetailsCtrl', function () {
       controller = $controller('titanServerGroupDetailsCtrl', {
         $scope: scope,
         app: {
-          serverGroups: [],
-          loadBalancers: [],
-          registerAutoRefreshHandler: angular.noop
+          serverGroups: {data: []},
+          loadBalancers: {data: []},
         },
         serverGroup: {}
       });

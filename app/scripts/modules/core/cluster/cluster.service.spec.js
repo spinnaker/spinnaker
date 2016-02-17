@@ -1,6 +1,6 @@
 'use strict';
 
-describe('Service: InstanceType', function () {
+describe('Service: Cluster', function () {
   beforeEach(
     window.module(
       require('./cluster.service.js')
@@ -22,13 +22,13 @@ describe('Service: InstanceType', function () {
     };
 
     this.application = {
-      serverGroups: [
+      serverGroups: { data: [
         {name: 'the-target', account: 'not-the-target', region: 'us-east-1'},
         {name: 'the-target', account: 'test', region: 'not-the-target'},
         {name: 'the-target', account: 'test', region: 'us-east-1'},
         {name: 'not-the-target', account: 'test', region: 'us-east-1'},
         {name: 'the-source', account: 'test', region: 'us-east-1'}
-      ]
+      ]}
     };
 
   }));
@@ -36,16 +36,16 @@ describe('Service: InstanceType', function () {
   describe('health count rollups', function() {
     it('aggregates health counts from server groups', function() {
       var application = {
-        serverGroups: [
+        serverGroups: {data: [
           {cluster: 'cluster-a', name: 'cluster-a-v001', account: 'test', region: 'us-east-1', instances: [], instanceCounts: {total: 1, up: 1} },
           {cluster: 'cluster-a', name: 'cluster-a-v001', account: 'test', region: 'us-west-1', instances: [], instanceCounts: {total: 2, down: 2} },
           {cluster: 'cluster-b', name: 'cluster-b-v001', account: 'test', region: 'us-east-1', instances: [], instanceCounts: {total: 1, starting: 1} },
           {cluster: 'cluster-b', name: 'cluster-b-v001', account: 'test', region: 'us-west-1', instances: [], instanceCounts: {total: 1, outOfService: 1} },
           {cluster: 'cluster-b', name: 'cluster-b-v002', account: 'test', region: 'us-west-1', instances: [], instanceCounts: {total: 2, unknown: 1, outOfService: 1} },
-        ]
+        ]}
       };
 
-      var clusters = clusterService.createServerGroupClusters(application.serverGroups);
+      var clusters = clusterService.createServerGroupClusters(application.serverGroups.data);
       var cluster0counts = clusters[0].instanceCounts;
       var cluster1counts = clusters[1].instanceCounts;
       expect(clusters.length).toBe(2);
@@ -70,29 +70,29 @@ describe('Service: InstanceType', function () {
     describe('rollback tasks', function () {
       it('attaches to source and target', function () {
         var app = this.application;
-        app.tasks = [
+        app.runningTasks = {data: [
           this.buildTask({status: 'RUNNING', variables: [
             { key: 'credentials', value: 'test' },
             { key: 'regions', value: ['us-east-1'] },
             { key: 'targetop.asg.disableServerGroup.name', value: 'the-source' },
             { key: 'targetop.asg.enableServerGroup.name', value: 'the-target' }
           ]})
-        ];
+        ]};
 
-        app.tasks[0].execution = {stages: [ { type: 'rollbackServerGroup', context: {} }] };
+        app.runningTasks.data[0].execution = {stages: [ { type: 'rollbackServerGroup', context: {} }] };
         clusterService.addTasksToServerGroups(app);
-        expect(app.serverGroups[0].runningTasks.length).toBe(0);
-        expect(app.serverGroups[1].runningTasks.length).toBe(0);
-        expect(app.serverGroups[2].runningTasks.length).toBe(1);
-        expect(app.serverGroups[3].runningTasks.length).toBe(0);
-        expect(app.serverGroups[4].runningTasks.length).toBe(1);
+        expect(app.serverGroups.data[0].runningTasks.length).toBe(0);
+        expect(app.serverGroups.data[1].runningTasks.length).toBe(0);
+        expect(app.serverGroups.data[2].runningTasks.length).toBe(1);
+        expect(app.serverGroups.data[3].runningTasks.length).toBe(0);
+        expect(app.serverGroups.data[4].runningTasks.length).toBe(1);
       });
     });
 
     describe('createcopylastasg tasks', function() {
       it('attaches to source and target', function() {
         var app = this.application;
-        app.tasks = [
+        app.runningTasks = {data: [
           this.buildTask({status: 'RUNNING', variables: [
             { key: 'notification.type', value: 'createcopylastasg'},
             { key: 'deploy.account.name', value: 'test'},
@@ -100,19 +100,19 @@ describe('Service: InstanceType', function () {
             { key: 'deploy.server.groups', value: {'us-east-1': ['the-target']}},
             { key: 'source', value: { asgName: 'the-source', account: 'test', region: 'us-east-1'}}
           ]})
-        ];
+        ]};
 
         clusterService.addTasksToServerGroups(app);
-        expect(app.serverGroups[0].runningTasks.length).toBe(0);
-        expect(app.serverGroups[1].runningTasks.length).toBe(0);
-        expect(app.serverGroups[2].runningTasks.length).toBe(1);
-        expect(app.serverGroups[3].runningTasks.length).toBe(0);
-        expect(app.serverGroups[4].runningTasks.length).toBe(1);
+        expect(app.serverGroups.data[0].runningTasks.length).toBe(0);
+        expect(app.serverGroups.data[1].runningTasks.length).toBe(0);
+        expect(app.serverGroups.data[2].runningTasks.length).toBe(1);
+        expect(app.serverGroups.data[3].runningTasks.length).toBe(0);
+        expect(app.serverGroups.data[4].runningTasks.length).toBe(1);
       });
 
       it('still attaches to source when target not found', function() {
         var app = this.application;
-        app.tasks = [
+        app.runningTasks = {data: [
           this.buildTask({status: 'RUNNING', variables: [
             { key: 'notification.type', value: 'createcopylastasg'},
             { key: 'deploy.account.name', value: 'test'},
@@ -120,52 +120,52 @@ describe('Service: InstanceType', function () {
             { key: 'deploy.server.groups', value: {'us-east-1': ['not-found-target']}},
             { key: 'source', value: { asgName: 'the-source', account: 'test', region: 'us-east-1'}}
           ]})
-        ];
+        ]};
 
         clusterService.addTasksToServerGroups(app);
-        expect(app.serverGroups[0].runningTasks.length).toBe(0);
-        expect(app.serverGroups[1].runningTasks.length).toBe(0);
-        expect(app.serverGroups[2].runningTasks.length).toBe(0);
-        expect(app.serverGroups[3].runningTasks.length).toBe(0);
-        expect(app.serverGroups[4].runningTasks.length).toBe(1);
+        expect(app.serverGroups.data[0].runningTasks.length).toBe(0);
+        expect(app.serverGroups.data[1].runningTasks.length).toBe(0);
+        expect(app.serverGroups.data[2].runningTasks.length).toBe(0);
+        expect(app.serverGroups.data[3].runningTasks.length).toBe(0);
+        expect(app.serverGroups.data[4].runningTasks.length).toBe(1);
       });
     });
 
     describe('createdeploy', function() {
       it('attaches to deployed server group', function() {
         var app = this.application;
-        app.tasks = [
+        app.runningTasks = {data: [
           this.buildTask({status: 'RUNNING', variables: [
             { key: 'notification.type', value: 'createdeploy'},
             { key: 'deploy.account.name', value: 'test'},
             { key: 'deploy.server.groups', value: {'us-east-1': ['the-target']}},
           ]})
-        ];
+        ]};
 
         clusterService.addTasksToServerGroups(app);
-        expect(app.serverGroups[0].runningTasks.length).toBe(0);
-        expect(app.serverGroups[1].runningTasks.length).toBe(0);
-        expect(app.serverGroups[2].runningTasks.length).toBe(1);
-        expect(app.serverGroups[3].runningTasks.length).toBe(0);
-        expect(app.serverGroups[4].runningTasks.length).toBe(0);
+        expect(app.serverGroups.data[0].runningTasks.length).toBe(0);
+        expect(app.serverGroups.data[1].runningTasks.length).toBe(0);
+        expect(app.serverGroups.data[2].runningTasks.length).toBe(1);
+        expect(app.serverGroups.data[3].runningTasks.length).toBe(0);
+        expect(app.serverGroups.data[4].runningTasks.length).toBe(0);
       });
 
       it('does nothing when target not found', function() {
         var app = this.application;
-        app.tasks = [
+        app.runningTasks = {data: [
           this.buildTask({status: 'RUNNING', variables: [
             { key: 'notification.type', value: 'createdeploy'},
             { key: 'deploy.account.name', value: 'test'},
             { key: 'deploy.server.groups', value: {'us-east-1': ['not-found-target']}},
           ]})
-        ];
+        ]};
 
         clusterService.addTasksToServerGroups(app);
-        expect(app.serverGroups[0].runningTasks.length).toBe(0);
-        expect(app.serverGroups[1].runningTasks.length).toBe(0);
-        expect(app.serverGroups[2].runningTasks.length).toBe(0);
-        expect(app.serverGroups[3].runningTasks.length).toBe(0);
-        expect(app.serverGroups[4].runningTasks.length).toBe(0);
+        expect(app.serverGroups.data[0].runningTasks.length).toBe(0);
+        expect(app.serverGroups.data[1].runningTasks.length).toBe(0);
+        expect(app.serverGroups.data[2].runningTasks.length).toBe(0);
+        expect(app.serverGroups.data[3].runningTasks.length).toBe(0);
+        expect(app.serverGroups.data[4].runningTasks.length).toBe(0);
       });
     });
 
@@ -178,29 +178,29 @@ describe('Service: InstanceType', function () {
         describe(name, function() {
           it ('finds instance within server group (' + name + ')', function() {
             var app = this.application;
-            app.serverGroups[2].instances = [
+            app.serverGroups.data[2].instances = [
               { id: 'in-1' },
               { id: 'in-2' },
             ];
-            app.serverGroups[4].instances = [
+            app.serverGroups.data[4].instances = [
               { id: 'in-3'},
               { id: 'in-2'},
             ];
-            app.tasks = [
+            app.runningTasks = {data: [
               this.buildTask({status: 'RUNNING', variables: [
                 { key: 'notification.type', value: name},
                 { key: 'credentials', value: 'test'},
                 { key: 'region', value: 'us-east-1'},
                 { key: 'instanceIds', value: ['in-2']}
               ]})
-            ];
+            ]};
 
             clusterService.addTasksToServerGroups(app);
-            expect(app.serverGroups[0].runningTasks.length).toBe(0);
-            expect(app.serverGroups[1].runningTasks.length).toBe(0);
-            expect(app.serverGroups[2].runningTasks.length).toBe(1);
-            expect(app.serverGroups[3].runningTasks.length).toBe(0);
-            expect(app.serverGroups[4].runningTasks.length).toBe(1);
+            expect(app.serverGroups.data[0].runningTasks.length).toBe(0);
+            expect(app.serverGroups.data[1].runningTasks.length).toBe(0);
+            expect(app.serverGroups.data[2].runningTasks.length).toBe(1);
+            expect(app.serverGroups.data[3].runningTasks.length).toBe(0);
+            expect(app.serverGroups.data[4].runningTasks.length).toBe(1);
           });
         });
       });
@@ -211,22 +211,22 @@ describe('Service: InstanceType', function () {
         this.validateTaskAttached = function() {
           var app = this.application;
           clusterService.addTasksToServerGroups(app);
-          expect(app.serverGroups[0].runningTasks.length).toBe(0);
-          expect(app.serverGroups[1].runningTasks.length).toBe(0);
-          expect(app.serverGroups[2].runningTasks.length).toBe(1);
-          expect(app.serverGroups[3].runningTasks.length).toBe(0);
-          expect(app.serverGroups[4].runningTasks.length).toBe(0);
+          expect(app.serverGroups.data[0].runningTasks.length).toBe(0);
+          expect(app.serverGroups.data[1].runningTasks.length).toBe(0);
+          expect(app.serverGroups.data[2].runningTasks.length).toBe(1);
+          expect(app.serverGroups.data[3].runningTasks.length).toBe(0);
+          expect(app.serverGroups.data[4].runningTasks.length).toBe(0);
         };
 
         this.buildCommonTask = function(type) {
-          this.application.tasks = [
+          this.application.runningTasks = {data: [
             this.buildTask({status: 'RUNNING', variables: [
               { key: 'notification.type', value: type},
               { key: 'credentials', value: 'test'},
               { key: 'regions', value: ['us-east-1']},
               { key: 'asgName', value: 'the-target'},
             ]})
-          ];
+          ]};
         };
       });
 
@@ -250,21 +250,11 @@ describe('Service: InstanceType', function () {
         this.validateTaskAttached();
       });
 
-      it('ignores non-running tasks', function() {
-        var app = this.application;
-        this.buildCommonTask('resizeasg');
-        app.tasks[0].status = 'SUCCEEDED';
-        clusterService.addTasksToServerGroups(app);
-        app.serverGroups.forEach(function(serverGroup) {
-          expect(serverGroup.runningTasks.length).toBe(0);
-        });
-      });
-
       it('some unknown task', function() {
         var app = this.application;
         this.buildCommonTask('someuknownthing');
         clusterService.addTasksToServerGroups(app);
-        app.serverGroups.forEach(function(serverGroup) {
+        app.serverGroups.data.forEach(function(serverGroup) {
           expect(serverGroup.runningTasks.length).toBe(0);
         });
       });
@@ -302,13 +292,13 @@ describe('Service: InstanceType', function () {
       var application = {};
 
       beforeEach(function() {
-        application.serverGroups = [
+        application.serverGroups = {data: [
           {
             name: 'foo-v001',
             account: 'test',
             region: 'us-west-1'
           }
-        ];
+        ]};
       });
 
       it('should successfully add a matched execution to a server group', function () {
@@ -328,10 +318,10 @@ describe('Service: InstanceType', function () {
           }
         ];
 
-        application.executions = executions;
+        application.runningExecutions = {data: executions};
         var result = clusterService.addExecutionsToServerGroups(application);
 
-        expect(result.serverGroups[0].executions.length).toBe(1);
+        expect(result.serverGroups.data[0].executions.length).toBe(1);
       });
 
 
@@ -352,10 +342,10 @@ describe('Service: InstanceType', function () {
           }
         ];
 
-        application.executions = executions;
+        application.runningExecutions = {data: executions};
         var result = clusterService.addExecutionsToServerGroups(application);
 
-        expect(result.serverGroups[0].executions.length).toBe(0);
+        expect(result.serverGroups.data[0].executions.length).toBe(0);
       });
 
 
@@ -376,10 +366,10 @@ describe('Service: InstanceType', function () {
           }
         ];
 
-        application.executions = executions;
+        application.runningExecutions = {data: executions};
         var result = clusterService.addExecutionsToServerGroups(application);
 
-        expect(result.serverGroups[0].executions.length).toBe(0);
+        expect(result.serverGroups.data[0].executions.length).toBe(0);
       });
     });
 
@@ -388,13 +378,13 @@ describe('Service: InstanceType', function () {
       var application = {};
 
       beforeEach(function() {
-        application.serverGroups = [
+        application.serverGroups = {data: [
           {
             name: 'foo-v001',
             account: 'test',
             region: 'us-west-1'
           }
-        ];
+        ]};
       });
 
       it('should successfully add a matched execution to a server group', function () {
@@ -413,10 +403,10 @@ describe('Service: InstanceType', function () {
           }
         ];
 
-        application.executions = executions;
+        application.runningExecutions = {data: executions};
         var result = clusterService.addExecutionsToServerGroups(application);
 
-        expect(result.serverGroups[0].executions.length).toBe(1);
+        expect(result.serverGroups.data[0].executions.length).toBe(1);
       });
 
 
@@ -436,10 +426,10 @@ describe('Service: InstanceType', function () {
           }
         ];
 
-        application.executions = executions;
+        application.runningExecutions = {data: executions};
         var result = clusterService.addExecutionsToServerGroups(application);
 
-        expect(result.serverGroups[0].executions.length).toBe(0);
+        expect(result.serverGroups.data[0].executions.length).toBe(0);
       });
 
 
@@ -459,10 +449,10 @@ describe('Service: InstanceType', function () {
           }
         ];
 
-        application.executions = executions;
+        application.runningExecutions = {data: executions};
         var result = clusterService.addExecutionsToServerGroups(application);
 
-        expect(result.serverGroups[0].executions.length).toBe(0);
+        expect(result.serverGroups.data[0].executions.length).toBe(0);
       });
     });
   });

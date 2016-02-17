@@ -73,8 +73,8 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
     }
 
     function onTaskComplete() {
-      application.refreshImmediately();
-      application.registerOneTimeRefreshHandler(onApplicationRefresh);
+      application.serverGroups.refresh();
+      application.serverGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
@@ -94,23 +94,11 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
         }
         $scope.state.loaded = true;
         initializeCommand();
-        initializeWizardState();
         initializeSelectOptions();
         initializeWatches();
       });
     }
 
-    function initializeWizardState() {
-      var mode = serverGroupCommand.viewState.mode;
-      if (mode === 'clone' || mode === 'editPipeline') {
-        v2modalWizardService.markComplete('location');
-        v2modalWizardService.markComplete('load-balancers');
-        v2modalWizardService.markComplete('security-groups');
-        v2modalWizardService.markComplete('capacity');
-        v2modalWizardService.markComplete('zones');
-        v2modalWizardService.markComplete('advanced');
-      }
-    }
 
     function initializeWatches() {
       $scope.$watch('command.credentials', createResultProcessor($scope.command.credentialsChanged));

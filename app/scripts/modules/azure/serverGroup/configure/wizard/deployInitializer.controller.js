@@ -19,7 +19,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.deployIni
       $scope.templates = [ noTemplate ];
     }
 
-    var allClusters = _.groupBy(_.filter($scope.application.serverGroups, { type: 'azure' }), function(serverGroup) {
+    var allClusters = _.groupBy(_.filter($scope.application.serverGroups.data, { type: 'azure' }), function(serverGroup) {
       return [serverGroup.cluster, serverGroup.account, serverGroup.region].join(':');
     });
 

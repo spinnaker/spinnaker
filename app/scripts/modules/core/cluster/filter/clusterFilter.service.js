@@ -42,6 +42,30 @@ module.exports = angular
       return shouldInclude;
     }
 
+    function addSearchField(serverGroup) {
+      if (serverGroup.searchField) {
+        return;
+      }
+      var buildInfo = '';
+      if (serverGroup.buildInfo && serverGroup.buildInfo.jenkins) {
+        buildInfo = [
+          '#' + serverGroup.buildInfo.jenkins.number,
+          serverGroup.buildInfo.jenkins.host,
+          serverGroup.buildInfo.jenkins.name].join(' ').toLowerCase();
+      }
+      if (!serverGroup.searchField) {
+        serverGroup.searchField = [
+          serverGroup.region.toLowerCase(),
+          serverGroup.name.toLowerCase(),
+          serverGroup.account.toLowerCase(),
+          buildInfo,
+          _.pluck(serverGroup.loadBalancers, 'name').join(' '),
+          _.pluck(serverGroup.instances, 'id').join(' ')
+        ].join(' ');
+      }
+    }
+
+
     function textFilter(serverGroup) {
       var filter = ClusterFilterModel.sortFilter.filter.toLowerCase();
       if (!filter) {
@@ -66,6 +90,7 @@ module.exports = angular
         let [, clusterName] = filter.split('cluster:');
         return serverGroup.cluster === clusterName;
       } else {
+        addSearchField(serverGroup);
         return filter.split(' ').every(function(testWord) {
           return serverGroup.searchField.indexOf(testWord) !== -1;
         });
@@ -196,7 +221,7 @@ module.exports = angular
       var groups = [];
 
       var filter = ClusterFilterModel.sortFilter.filter.toLowerCase();
-      var serverGroups = filterServerGroupsForDisplay(application.serverGroups, filter);
+      var serverGroups = filterServerGroupsForDisplay(application.serverGroups.data, filter);
 
       var grouped = _.groupBy(serverGroups, 'account');
 

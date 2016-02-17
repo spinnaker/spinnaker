@@ -67,8 +67,8 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
     }
 
     function onTaskComplete() {
-      application.refreshImmediately();
-      application.registerOneTimeRefreshHandler(onApplicationRefresh);
+      application.serverGroups.refresh();
+      application.serverGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
 
