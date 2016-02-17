@@ -1,23 +1,12 @@
 <div class="form-horizontal">
   <div ng-if="!pipeline.strategy">
-    <stage-config-field label="Account">
-      <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="reset()" required></account-select-field>
-    </stage-config-field>
-    <stage-config-field label="Regions" field-columns="8" ng-if="stage.credentials">
-      <checklist
-        items="regions"
-        model="stage.regions"
-        inline="true"
-        on-change="resetSelectedCluster()"
-        include-select-all-button="true">
-      </checklist>
-    </stage-config-field>
-    <stage-config-field label="Cluster" help-key="pipeline.config.modifyScalingProcess.cluster">
-      <cluster-selector
-        clusters="clusterList"
-        model="stage.cluster">
-      </cluster-selector>
-    </stage-config-field>
+
+    <account-region-cluster-selector
+      application="application"
+      component="stage"
+      accounts="accounts" >
+    </account-region-cluster-selector>
+
   </div>
   <stage-config-field label="Target">
     <target-select model="stage" options="targets"></target-select>

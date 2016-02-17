@@ -24,7 +24,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller
 
     function extractLoadBalancer() {
 
-      $scope.loadBalancer = app.loadBalancers.filter(function (test) {
+      $scope.loadBalancer = app.loadBalancers.data.filter(function (test) {
         return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.accountId;
       })[0];
 
@@ -65,10 +65,9 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller
 
     extractLoadBalancer().then(() => {
       // If the user navigates away from the view before the initial extractLoadBalancer call completes,
-      // do not bother subscribing to the autoRefreshStream
+      // do not bother subscribing to the refresh
       if (!$scope.$$destroyed) {
-        let refreshWatcher = app.autoRefreshStream.subscribe(extractLoadBalancer);
-        $scope.$on('$destroy', () => refreshWatcher.dispose());
+        app.loadBalancers.onRefresh($scope, extractLoadBalancer);
       }
     });
 

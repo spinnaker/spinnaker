@@ -18,7 +18,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
                                                                   serverGroupReader, $uibModal, serverGroupWriter,
                                                                   runningExecutionsService, serverGroupWarningMessageService,
                                                                   kubernetesServerGroupCommandBuilder) {
-
     let application = app;
 
     $scope.state = {
@@ -28,11 +27,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
     $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractServerGroupSummary() {
-      var summary = _.find(application.serverGroups, function (toCheck) {
+      var summary = _.find(application.serverGroups.data, function (toCheck) {
         return toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region;
       });
       if (!summary) {
-        application.loadBalancers.some(function (loadBalancer) {
+        application.loadBalancers.data.some(function (loadBalancer) {
           if (loadBalancer.account === serverGroup.accountId && loadBalancer.region === serverGroup.region) {
             return loadBalancer.serverGroups.some(function (possibleServerGroup) {
               if (possibleServerGroup.name === serverGroup.name) {
@@ -77,10 +76,9 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
 
     retrieveServerGroup().then(() => {
       // If the user navigates away from the view before the initial retrieveServerGroup call completes,
-      // do not bother subscribing to the autoRefreshStream
+      // do not bother subscribing to the refresh
       if (!$scope.$$destroyed) {
-        let refreshWatcher = app.autoRefreshStream.subscribe(retrieveServerGroup);
-        $scope.$on('$destroy', () => refreshWatcher.dispose());
+        app.serverGroups.onRefresh($scope, retrieveServerGroup);
       }
     });
 

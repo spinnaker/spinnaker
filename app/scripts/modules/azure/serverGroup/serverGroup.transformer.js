@@ -20,10 +20,10 @@ module.exports = angular.module('spinnaker.azure.serverGroup.transformer', [
         type: 'createServerGroup',
 
         image: {
-          publisher: 'Canonical',
-          offer: 'UbuntuServer',
-          sku: '15.10',
-          version: 'latest',
+          publisher: base.selectedImage.publisher,
+          offer: base.selectedImage.offer,
+          sku: base.selectedImage.sku,
+          version: base.selectedImage.version,
         },
 
         sku: {

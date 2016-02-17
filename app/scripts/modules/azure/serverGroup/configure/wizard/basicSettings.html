@@ -43,42 +43,22 @@
           <span>Only dot(.), underscore(_), and dash(-) special characters are allowed in the Detail field.</span>
         </div>
       </div>
-      <!--
-      <div class="form-group" ng-if="!command.viewState.disableImageSelection">
+      <div class="form-group">
         <div class="col-md-3 sm-label-right">
           Image
-          <help-field key="aws.serverGroup.imageName"></help-field>
+          <help-field key="azure.serverGroup.imageName"></help-field>
         </div>
-        <div class="col-md-9" ng-if="command.viewState.useAllImageSelection">
-          <ui-select ng-model="command.amiName"
-                     class="form-control input-sm"
-                     on-select="basicSettingsCtrl.imageChanged($item)"
-                     required>
-            <ui-select-match placeholder="Search for an image...">{{$select.selected.imageName || 'Search for an image...'}}</ui-select-match>
-            <ui-select-choices repeat="result.imageName as result in command.backingData.filtered.images track by $index"
-                               refresh="basicSettingsCtrl.searchImages($select.search)"
-                               ui-disable-choice="result.message"
-                               reset-search-input="false">
-              <span ng-bind-html="result.message"></span>
-              <span ng-bind-html="result.imageName | highlight: $select.search"></span>
-              <span ng-if="result.ami">(<span ng-bind-html="result.ami | highlight: $select.search"></span>)</span>
-            </ui-select-choices>
-          </ui-select>
-        </div>
-        <div class="col-md-9" ng-if="!command.viewState.useAllImageSelection">
+        <div class="col-md-9">
           <ui-select class="form-control input-sm" required
-                     ng-model="command.amiName"
+                     ng-model="command.imageName"
                      on-select="basicSettingsCtrl.imageChanged($item)">
             <ui-select-match placeholder="Pick an image">{{$select.selected.imageName}}</ui-select-match>
-            <ui-select-choices repeat="image.imageName as image in command.backingData.filtered.images | anyFieldFilter: {imageName: $select.search, ami: $select.search } | orderBy: '-imageName'">
+            <ui-select-choices repeat="image.imageName as image in command.images | anyFieldFilter: {imageName: $select.search, ami: $select.search } | orderBy: '-imageName'">
               <span ng-bind-html="image.imageName | highlight: $select.search"></span>
-              (<span ng-bind-html="image.ami | highlight: $select.search"></span>)
             </ui-select-choices>
           </ui-select>
-          <a href ng-click="basicSettingsCtrl.enableAllImageSearch()">Search All Images</a><help-field key="aws.serverGroup.allImages"></help-field>
         </div>
       </div>
-      -->
       <deployment-strategy-selector label-columns="3" field-columns="9" ng-if="!command.viewState.disableStrategySelection && command.selectedProvider" command="command"></deployment-strategy-selector>
       <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
         <div class="col-md-12">

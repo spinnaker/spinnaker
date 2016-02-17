@@ -20,9 +20,7 @@ describe('Controller: gceInstanceDetailsCtrl', function () {
       controller = $controller('gceInstanceDetailsCtrl', {
         $scope: scope,
         instance: {},
-        app: {
-          registerAutoRefreshHandler: angular.noop
-        }
+        app: {}
       });
     })
   );

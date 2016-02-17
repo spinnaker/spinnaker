@@ -11,17 +11,24 @@ templates.keys().forEach(function(key) {
 });
 
 module.exports = angular.module('spinnaker.kubernetes', [
+  require('./cache/configurer.service.js'),
   require('./serverGroup/configure/CommandBuilder.js'),
   require('./serverGroup/configure/configure.kubernetes.module.js'),
   require('./serverGroup/details/details.kubernetes.module.js'),
   require('./serverGroup/transformer.js'),
+  require('./loadBalancer/transformer.js'),
+  require('./loadBalancer/details/details.kubernetes.module.js'),
   require('./instance/details/details.kubernetes.module.js'),
-  require('./namespace/namespaceSelectField.directive.js'),
+  require('./namespace/selectField.directive.js'),
+  require('./container/configurer.directive.js'),
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('kubernetes', {
       v2wizard: true,
       name: 'Kubernetes',
+      cache: {
+        configurer: 'kubernetesCacheConfigurer',
+      },
       logo: {
         path: require('./logo/kubernetes.logo.png'),
       },
@@ -31,6 +38,11 @@ module.exports = angular.module('spinnaker.kubernetes', [
       instance: {
         detailsTemplateUrl: require('./instance/details/details.html'),
         detailsController: 'kubernetesInstanceDetailsController',
+      },
+      loadBalancer: {
+        transformer: 'kubernetesLoadBalancerTransformer',
+        detailsTemplateUrl: require('./loadBalancer/details/details.html'),
+        detailsController: 'kubernetesLoadBalancerDetailsController',
       },
       serverGroup: {
         transformer: 'kubernetesServerGroupTransformer',

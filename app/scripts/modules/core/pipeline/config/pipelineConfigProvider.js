@@ -3,8 +3,9 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.configProvider', [
+  require('../../utils/lodash'),
 ])
-  .provider('pipelineConfig', function() {
+  .provider('pipelineConfig', function(_) {
 
     var triggerTypes = [],
         stageTypes = [],
@@ -71,7 +72,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.configProvider',
       });
     }
 
-    function getStageConfig(stage) {
+    let getStageConfig = _.memoize(function (stage) {
       if (!stage || !stage.type) {
         return null;
       }
@@ -80,10 +81,12 @@ module.exports = angular.module('spinnaker.core.pipeline.config.configProvider',
       });
       if (matches.length > 1) {
         var provider = stage.cloudProvider || stage.cloudProviderType || 'aws';
-        matches = matches.filter((stageType) => { return stageType.cloudProvider === provider; });
+        matches = matches.filter((stageType) => {
+          return stageType.cloudProvider === provider;
+        });
       }
       return matches.length ? matches[0] : null;
-    }
+    }, (stage) => stage ? stage.type : '');
 
     function getTriggerConfig(type) {
       var matches = getTriggerTypes().filter(function(triggerType) { return triggerType.key === type; });

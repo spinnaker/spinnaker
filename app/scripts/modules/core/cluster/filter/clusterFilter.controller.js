@@ -37,11 +37,11 @@ module.exports = angular.module('cluster', [
 
 
     function getHeadingsForOption(option) {
-      return _.compact(_.uniq(_.pluck(app.serverGroups, option))).sort();
+      return _.compact(_.uniq(_.pluck(app.serverGroups.data, option))).sort();
     }
 
     function getAvailabilityZones() {
-      return _(app.serverGroups)
+      return _(app.serverGroups.data)
         .pluck('instances')
         .flatten()
         .pluck('availabilityZone')
@@ -65,9 +65,12 @@ module.exports = angular.module('cluster', [
       $scope.clusters = app.clusters;
     };
 
-    this.initialize();
 
-    app.registerAutoRefreshHandler(this.initialize, $scope);
+    if (app.serverGroups.loaded) {
+      this.initialize();
+    }
+
+    app.serverGroups.onRefresh($scope, this.initialize);
 
     $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', () => {
       ClusterFilterModel.activate();

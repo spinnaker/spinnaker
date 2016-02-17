@@ -27,28 +27,6 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
 
     this.groupingsTemplate = require('./groupings.html');
 
-    function addSearchFields() {
-      app.serverGroups.forEach(function(serverGroup) {
-        var buildInfo = '';
-        if (serverGroup.buildInfo && serverGroup.buildInfo.jenkins) {
-          buildInfo = [
-              '#' + serverGroup.buildInfo.jenkins.number,
-              serverGroup.buildInfo.jenkins.host,
-              serverGroup.buildInfo.jenkins.name].join(' ').toLowerCase();
-        }
-        if (!serverGroup.searchField) {
-          serverGroup.searchField = [
-            serverGroup.region.toLowerCase(),
-            serverGroup.name.toLowerCase(),
-            serverGroup.account.toLowerCase(),
-            buildInfo,
-            _.pluck(serverGroup.loadBalancers, 'name').join(' '),
-            _.pluck(serverGroup.instances, 'id').join(' ')
-          ].join(' ');
-        }
-      });
-    }
-
     let updateClusterGroups = () => {
       ClusterFilterModel.applyParamsToUrl();
       $scope.$evalAsync(() => {
@@ -86,12 +64,14 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
 
     this.updateClusterGroups = _.debounce(updateClusterGroups, 200);
 
-    function autoRefreshHandler() {
-      addSearchFields();
+    if (app.serverGroups.loaded) {
       updateClusterGroups();
     }
 
-    autoRefreshHandler();
+    app.activeState = app.serverGroups;
+    app.serverGroups.onRefresh($scope, updateClusterGroups);
+    $scope.$on('$destroy', () => {
+      app.activeState = app;
+    });
 
-    app.registerAutoRefreshHandler(autoRefreshHandler, $scope);
   });

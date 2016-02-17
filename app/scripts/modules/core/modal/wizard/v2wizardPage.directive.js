@@ -38,6 +38,7 @@ module.exports = angular
         $scope.label = attrs.label;
         $scope.state = state;
         v2modalWizardService.registerPage($scope.key, $scope.label, state);
+        $scope.$on('$destroy', () => v2modalWizardService.setRendered($scope.key, false));
       },
     };
   });

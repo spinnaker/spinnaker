@@ -1,6 +1,5 @@
 'use strict';
 
-
 describe('Controller: MultipleInstances', function () {
 
   var controller;
@@ -11,19 +10,24 @@ describe('Controller: MultipleInstances', function () {
 
   beforeEach(
     window.module(
-      require('./multipleInstances.controller')
+      require('./multipleInstances.controller'),
+      require('../../application/service/applications.read.service')
     )
   );
 
   beforeEach(
-    window.inject(function ($rootScope, $controller, _$q_, _rx_, _ClusterFilterModel_) {
+    window.inject(function ($rootScope, $controller, _$q_, _rx_, _ClusterFilterModel_, applicationReader) {
       scope = $rootScope.$new();
       ClusterFilterModel = _ClusterFilterModel_;
       rx = _rx_;
       refreshStream = new rx.Subject();
 
-      this.createController = function (application) {
-        application.autoRefreshStream = application.autoRefreshStream || refreshStream;
+      this.createController = function (serverGroups) {
+        let application = {};
+        applicationReader.addSectionToApplication({key: 'serverGroups', lazy: true}, application);
+        application.serverGroups.data = serverGroups;
+        this.application = application;
+
         controller = $controller('MultipleInstancesCtrl', {
           $scope: scope,
           app: application,
@@ -62,7 +66,7 @@ describe('Controller: MultipleInstances', function () {
       this.addInstance(this.serverGroupB, 'g-234');
       // no instances
       this.getInstanceGroup(this.serverGroupC);
-      this.createController({ serverGroups: [this.serverGroupA, this.serverGroupB, this.serverGroupC]});
+      this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
 
       expect(ClusterFilterModel.multiselectInstanceGroups.length).toBe(3);
       expect(controller.selectedGroups.length).toBe(2);
@@ -79,24 +83,22 @@ describe('Controller: MultipleInstances', function () {
       expect(controller.instancesCount).toBe(2);
     });
 
-    it('re-retrieves instances when application refreshes', function () {
-      let application = { serverGroups: [this.serverGroupA, this.serverGroupB, this.serverGroupC]};
+    it('re-retrieves instances when serverGroups refresh', function () {
       this.addInstance(this.serverGroupA, 'i-234');
-      this.createController(application);
+      this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
 
       expect(controller.selectedGroups.length).toBe(1);
       expect(controller.selectedGroups[0].instances[0].healthState).toBe('Up');
 
       this.serverGroupA.instances[1].healthState = 'Down';
-      application.autoRefreshStream.onNext();
+      this.application.serverGroups.refreshStream.onNext();
 
       expect(controller.selectedGroups[0].instances[0].healthState).toBe('Down');
     });
 
     it('re-retrieves instances when multiselectInstancesStream refreshes', function () {
-      let application = { serverGroups: [this.serverGroupA, this.serverGroupB, this.serverGroupC]};
       this.addInstance(this.serverGroupA, 'i-234');
-      this.createController(application);
+      this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
 
       expect(controller.selectedGroups.length).toBe(1);
       expect(controller.selectedGroups[0].instances.length).toBe(1);
@@ -112,10 +114,6 @@ describe('Controller: MultipleInstances', function () {
   });
 
   describe('discovery actions', function () {
-    beforeEach(function () {
-      this.application = { serverGroups: [this.serverGroupA, this.serverGroupB, this.serverGroupC]};
-    });
-
     it('can register with discovery when discovery is out of service for all selected instances', function () {
       this.serverGroupA.instances.forEach((instance) => {
         instance.health = [{type: 'Discovery', state: 'OutOfService'}];
@@ -125,7 +123,7 @@ describe('Controller: MultipleInstances', function () {
         instance.health = [{type: 'Discovery', state: 'OutOfService'}];
         this.addInstance(this.serverGroupB, instance.id);
       });
-      this.createController(this.application);
+      this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
       expect(controller.canRegisterWithDiscovery()).toBe(true);
       expect(controller.canDeregisterWithDiscovery()).toBe(false);
     });
@@ -139,7 +137,7 @@ describe('Controller: MultipleInstances', function () {
         instance.health = [{type: 'Discovery', state: 'Up'}];
         this.addInstance(this.serverGroupB, instance.id);
       });
-      this.createController(this.application);
+      this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
       expect(controller.canDeregisterWithDiscovery()).toBe(true);
       expect(controller.canRegisterWithDiscovery()).toBe(false);
     });
@@ -152,7 +150,7 @@ describe('Controller: MultipleInstances', function () {
       this.serverGroupB.instances.forEach((instance) => {
         this.addInstance(this.serverGroupB, instance.id);
       });
-      this.createController(this.application);
+      this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
       expect(controller.canRegisterWithDiscovery()).toBe(false);
       expect(controller.canDeregisterWithDiscovery()).toBe(false);
     });
@@ -166,7 +164,7 @@ describe('Controller: MultipleInstances', function () {
         instance.health = [{type: 'Discovery', state: 'OutOfService'}];
         this.addInstance(this.serverGroupB, instance.id);
       });
-      this.createController(this.application);
+      this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
       expect(controller.canDeregisterWithDiscovery()).toBe(false);
       expect(controller.canRegisterWithDiscovery()).toBe(false);
     });
@@ -174,7 +172,6 @@ describe('Controller: MultipleInstances', function () {
 
   describe('load balancer actions', function () {
     beforeEach(function () {
-      this.application = { serverGroups: [this.serverGroupA, this.serverGroupB, this.serverGroupC]};
       this.makeLoadBalancerHealth = () => {
         return [{type: 'LoadBalancer', loadBalancers: [{name: 'lb-1'}, {name: 'lb-2'}]}];
       };
@@ -185,7 +182,7 @@ describe('Controller: MultipleInstances', function () {
     it('can register with load balancers when server groups have the same load balancers and no instances have lb health', function () {
       this.serverGroupA.instances.forEach((instance) => this.addInstance(this.serverGroupA, instance.id));
       this.serverGroupB.instances.forEach((instance) => this.addInstance(this.serverGroupB, instance.id));
-      this.createController(this.application);
+      this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
       expect(controller.canRegisterWithLoadBalancers()).toBe(true);
     });
 
@@ -193,7 +190,7 @@ describe('Controller: MultipleInstances', function () {
       this.serverGroupA.instances.forEach((instance) => this.addInstance(this.serverGroupA, instance.id));
       this.serverGroupB.instances.forEach((instance) => this.addInstance(this.serverGroupB, instance.id));
       this.serverGroupB.instances[0].health = [{type: 'LoadBalancer'}];
-      this.createController(this.application);
+      this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
       expect(controller.canRegisterWithLoadBalancers()).toBe(false);
     });
 
@@ -201,7 +198,7 @@ describe('Controller: MultipleInstances', function () {
       this.serverGroupA.instances.forEach((instance) => this.addInstance(this.serverGroupA, instance.id));
       this.serverGroupB.instances.forEach((instance) => this.addInstance(this.serverGroupB, instance.id));
       this.serverGroupB.loadBalancers = [ 'lb-1', 'lb-3' ];
-      this.createController(this.application);
+      this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
       expect(controller.canRegisterWithLoadBalancers()).toBe(false);
     });
 
@@ -210,7 +207,7 @@ describe('Controller: MultipleInstances', function () {
       this.serverGroupB.instances.forEach((instance) => this.addInstance(this.serverGroupB, instance.id));
       this.serverGroupA.loadBalancers = [];
       this.serverGroupB.loadBalancers = [];
-      this.createController(this.application);
+      this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
       expect(controller.canRegisterWithLoadBalancers()).toBe(false);
     });
 
@@ -223,7 +220,7 @@ describe('Controller: MultipleInstances', function () {
         instance.health = this.makeLoadBalancerHealth();
         this.addInstance(this.serverGroupB, instance.id);
       });
-      this.createController(this.application);
+      this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
       expect(controller.canDeregisterFromLoadBalancers()).toBe(true);
     });
 
@@ -233,7 +230,7 @@ describe('Controller: MultipleInstances', function () {
         this.addInstance(this.serverGroupA, instance.id);
       });
       this.serverGroupB.instances.forEach((instance) => this.addInstance(this.serverGroupB, instance.id));
-      this.createController(this.application);
+      this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
       expect(controller.canDeregisterFromLoadBalancers()).toBe(false);
     });
 
@@ -248,7 +245,7 @@ describe('Controller: MultipleInstances', function () {
         instance.health = health;
         this.addInstance(this.serverGroupB, instance.id);
       });
-      this.createController(this.application);
+      this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
       expect(controller.canDeregisterFromLoadBalancers()).toBe(false);
     });
 
@@ -262,7 +259,7 @@ describe('Controller: MultipleInstances', function () {
         this.addInstance(this.serverGroupB, instance.id);
       });
       this.serverGroupB.loadBalancers = [ 'lb-2', 'lb-1', 'lb-3' ];
-      this.createController(this.application);
+      this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
       expect(controller.canDeregisterFromLoadBalancers()).toBe(false);
     });
   });

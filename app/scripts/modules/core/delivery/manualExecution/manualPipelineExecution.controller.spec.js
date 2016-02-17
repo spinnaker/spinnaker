@@ -42,24 +42,24 @@ describe('Controller: ManualPipelineExecution', function () {
     describe('Pipeline provided', function () {
       it ('sets running executions on ctrl', function () {
         let application = {
-          pipelineConfigs: [
+          pipelineConfigs: { data: [
             { id: 'a', triggers: [], stages: [] },
             { id: 'b' }
-          ],
-          executions: [
+          ]},
+          executions: { data: [
             { pipelineConfigId: 'a', isActive: false },
             { pipelineConfigId: 'a', isActive: true },
             { pipelineConfigId: 'b', isActive: true },
-          ]
+          ]}
         };
 
-        this.initializeController(application, application.pipelineConfigs[0]);
-        expect(this.ctrl.currentlyRunningExecutions).toEqual([application.executions[1]]);
+        this.initializeController(application, application.pipelineConfigs.data[0]);
+        expect(this.ctrl.currentlyRunningExecutions).toEqual([application.executions.data[1]]);
       });
 
       it('sets showRebakeOption if any stage is a bake stage', function () {
         let application = {
-          pipelineConfigs: [
+          pipelineConfigs: { data: [
             {
               id: 'a',
               triggers: [],
@@ -70,19 +70,19 @@ describe('Controller: ManualPipelineExecution', function () {
               triggers: [],
               stages: [ {type: 'not-a-bake'}, {type: 'bake'}]
             },
-          ],
-          executions: []
+          ]},
+          executions: { data: []}
         };
 
-        this.initializeController(application, application.pipelineConfigs[0]);
+        this.initializeController(application, application.pipelineConfigs.data[0]);
         expect(this.ctrl.showRebakeOption).toBe(false);
-        this.initializeController(application, application.pipelineConfigs[1]);
+        this.initializeController(application, application.pipelineConfigs.data[1]);
         expect(this.ctrl.showRebakeOption).toBe(true);
       });
 
       it('sets parameters if present', function () {
         let application = {
-          pipelineConfigs: [
+          pipelineConfigs: { data: [
             {
               id: 'a',
               triggers: [],
@@ -94,11 +94,11 @@ describe('Controller: ManualPipelineExecution', function () {
                 { name: 'bojack', 'default': null }
               ]
             },
-          ],
-          executions: []
+          ]},
+          executions: { data: []}
         };
 
-        this.initializeController(application, application.pipelineConfigs[0]);
+        this.initializeController(application, application.pipelineConfigs.data[0]);
         expect(this.ctrl.parameters).toEqual({foo: undefined, bar: 'mr. peanutbutter', baz: '', bojack: null});
       });
     });
@@ -115,12 +115,12 @@ describe('Controller: ManualPipelineExecution', function () {
     });
     it('adds a placeholder trigger if none present', function () {
       let application = {
-        pipelineConfigs: [
+        pipelineConfigs: { data: [
           { id: 'a', name: 'aa', triggers: [], stages: []},
-        ],
-        executions: []
+        ]},
+        executions: { data: []}
       };
-      this.initializeController(application, application.pipelineConfigs[0], this.modalInstance);
+      this.initializeController(application, application.pipelineConfigs.data[0], this.modalInstance);
 
       this.ctrl.execute();
       expect(this.command.trigger).toEqual({type: 'manual'});
@@ -128,7 +128,7 @@ describe('Controller: ManualPipelineExecution', function () {
 
     it('adds parameters if configured', function () {
       let application = {
-        pipelineConfigs: [
+        pipelineConfigs: { data: [
           {
             id: 'a',
             triggers: [],
@@ -137,11 +137,11 @@ describe('Controller: ManualPipelineExecution', function () {
               { name: 'bar', 'default': 'mr. peanutbutter' },
             ]
           },
-        ],
-        executions: []
+        ]},
+        executions: { data: []}
       };
 
-      this.initializeController(application, application.pipelineConfigs[0], this.modalInstance);
+      this.initializeController(application, application.pipelineConfigs.data[0], this.modalInstance);
       this.ctrl.execute();
       expect(this.command.trigger.parameters).toEqual({bar: 'mr. peanutbutter'});
     });

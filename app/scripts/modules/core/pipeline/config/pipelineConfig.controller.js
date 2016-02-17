@@ -19,9 +19,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.controller', [
     };
 
     this.initialize = () => {
-      this.pipelineConfig = _.find(application.pipelineConfigs, { id: $stateParams.pipelineId });
+      this.pipelineConfig = _.find(application.pipelineConfigs.data, { id: $stateParams.pipelineId });
       if (!this.pipelineConfig) {
-          this.pipelineConfig = _.find(application.strategyConfigs, { id: $stateParams.pipelineId });
+          this.pipelineConfig = _.find(application.strategyConfigs.data, { id: $stateParams.pipelineId });
           if(!this.pipelineConfig) {
             this.state.notFound = true;
           }
@@ -30,8 +30,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.controller', [
     };
 
     if (!application.notFound) {
-      if (!application.pipelineConfigs || !application.pipelineConfigs.length) {
-        application.pipelineConfigRefreshStream.take(1).subscribe(this.initialize);
+      if (!application.pipelineConfigs.loaded) {
+        application.pipelineConfigs.onNextRefresh($scope, this.initialize);
       } else {
         this.initialize();
       }

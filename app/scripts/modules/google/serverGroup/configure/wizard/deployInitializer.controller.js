@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.deployIniti
 
     $scope.templates = [ noTemplate ];
 
-    var allClusters = _.groupBy(_.filter($scope.application.serverGroups, { type: 'gce' }), function(serverGroup) {
+    var allClusters = _.groupBy(_.filter($scope.application.serverGroups.data, { type: 'gce' }), function(serverGroup) {
       return [serverGroup.cluster, serverGroup.account, serverGroup.region].join(':');
     });
 

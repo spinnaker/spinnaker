@@ -1,23 +1,11 @@
 <div ng-controller="gceDestroyAsgStageCtrl as destroyAsgStageCtrl" class="form-horizontal">
   <div ng-if="!pipeline.strategy">
-    <stage-config-field label="Account">
-      <account-select-field component="stage" field="credentials" accounts="accounts" provider="'gce'" on-change="destroyAsgStageCtrl.reset()" required></account-select-field>
-    </stage-config-field>
-    <stage-config-field label="Zones">
-      <p ng-if="!stage.credentials" class="form-control-static">(Select an Account)</p>
-      <checkmap
-        ng-if="stage.credentials"
-        item-map="zones"
-        on-change="resetSelectedCluster()"
-        selected-items="stage.zones">
-      </checkmap>
-    </stage-config-field>
-    <stage-config-field label="Cluster" help-key="pipeline.config.destroyAsg.cluster">
-      <cluster-selector
-        clusters="clusterList"
-        model="stage.cluster">
-      </cluster-selector>
-    </stage-config-field>
+    <account-zone-cluster-selector
+      application="application"
+      component="stage"
+      accounts="accounts">
+    </account-zone-cluster-selector>
+
   </div>
   <stage-config-field label="Target">
     <target-select model="stage" options="targets"></target-select>

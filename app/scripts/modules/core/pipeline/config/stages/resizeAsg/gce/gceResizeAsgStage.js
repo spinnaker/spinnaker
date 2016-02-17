@@ -3,7 +3,6 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStage', [
-  require('../../../../../../core/application/listExtractor/listExtractor.service'),
   require('../../../../../application/modal/platformHealthOverride.directive.js'),
   require('../../../../../account/account.service.js'),
   require('./resizeAsgExecutionDetails.controller.js'),
@@ -27,7 +26,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'}
       ],
     });
-  }).controller('gceResizeAsgStageCtrl', function($scope, accountService, stageConstants, appListExtractorService) {
+  }).controller('gceResizeAsgStageCtrl', function($scope, accountService, stageConstants) {
 
     var ctrl = this;
 
@@ -38,35 +37,13 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
       zonesLoaded: false
     };
 
-    let setClusterList = () => {
-      let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndZone($scope.stage.credentials, $scope.stage.zones);
-      $scope.clusterList = appListExtractorService.getClusters([$scope.application], clusterFilter);
-    };
-
-    ctrl.resetSelectedCluster = () => {
-      $scope.stage.cluster = undefined;
-      setClusterList();
-    };
-
     accountService.listAccounts('gce').then(function (accounts) {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
-      setClusterList();
     });
 
     $scope.zones = {'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c']};
 
-    ctrl.accountUpdated = function () {
-      accountService.getRegionsForAccount(stage.credentials).then(function(zoneMap) {
-        $scope.zones = zoneMap;
-        $scope.zonesLoaded = true;
-      });
-    };
-
-    ctrl.reset = () => {
-      ctrl.accountUpdated();
-      ctrl.resetSelectedCluster();
-    };
 
     $scope.resizeTargets = stageConstants.targetList;
 
@@ -117,10 +94,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
 
     if (!stage.credentials && $scope.application.defaultCredentials.gce) {
       stage.credentials = $scope.application.defaultCredentials.gce;
-    }
-
-    if (stage.credentials) {
-      ctrl.accountUpdated();
     }
 
     ctrl.updateResizeType = function() {

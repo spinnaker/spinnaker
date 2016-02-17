@@ -18,6 +18,18 @@ module.exports = angular
 
     var lastApplication = null;
 
+    function addSearchFields(loadBalancer) {
+      if (!loadBalancer.searchField) {
+        loadBalancer.searchField = [
+          loadBalancer.name,
+          loadBalancer.region.toLowerCase(),
+          loadBalancer.account,
+          _.pluck(loadBalancer.serverGroups, 'name').join(' '),
+          _.pluck(loadBalancer.instances, 'id').join(' '),
+        ].join(' ');
+      }
+    }
+
     function checkSearchTextFilter(loadBalancer) {
       var filter = LoadBalancerFilterModel.sortFilter.filter;
       if (!filter) {
@@ -28,7 +40,7 @@ module.exports = angular
         let [, vpcName] = /vpc:([\w-]*)/.exec(filter);
         return loadBalancer.vpcName.toLowerCase() === vpcName.toLowerCase();
       }
-
+      addSearchFields(loadBalancer);
       return filter.split(' ').every(function(testWord) {
         return loadBalancer.searchField.indexOf(testWord) !== -1;
       });
@@ -99,7 +111,7 @@ module.exports = angular
       var groups = [];
 
       var filter = LoadBalancerFilterModel.sortFilter.filter.toLowerCase();
-      var loadBalancers = filterLoadBalancersForDisplay(application.loadBalancers, filter);
+      var loadBalancers = filterLoadBalancersForDisplay(application.loadBalancers.data, filter);
 
       var grouped = _.groupBy(loadBalancers, 'account');
 

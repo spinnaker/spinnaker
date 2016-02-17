@@ -67,16 +67,16 @@
     <div class="text-center" ng-if="vm.viewState.loading">
       <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
     </div>
-    <div class="text-center transition-overlay" ng-if="vm.application.reloadingExecutionsForFilters" style="margin-left: -25px">
+    <div class="text-center transition-overlay" ng-if="vm.application.executions.reloadingForFilters" style="margin-left: -25px">
     </div>
-    <div class="text-center" ng-if="!vm.viewState.loading && !vm.application.executions.length && !vm.application.pipelineConfigs.length">
+    <div class="text-center" ng-if="!vm.viewState.loading && !vm.application.executions.data.length && !vm.application.pipelineConfigs.data.length">
       <h4>No pipelines configured for this application.</h4>
     </div>
-    <div class="text-center" ng-if="vm.application.executionsLoadFailure">
+    <div class="text-center" ng-if="vm.application.executions.loadFailure">
       <h4>There was an error loading executions. We'll try again shortly.</h4>
     </div>
     <execution-groups
         application="vm.application"
-        ng-if="!vm.viewState.loading && (vm.application.executions.length || vm.application.pipelineConfigs.length)"></execution-groups>
+        ng-if="!vm.viewState.loading && (vm.application.executions.data.length || vm.application.pipelineConfigs.data.length)"></execution-groups>
   </div>
 </div>

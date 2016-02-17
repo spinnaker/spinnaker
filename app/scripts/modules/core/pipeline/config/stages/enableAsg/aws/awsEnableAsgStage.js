@@ -5,7 +5,6 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.enableAsgStage', [
-  require('../../../../../../core/application/listExtractor/listExtractor.service'),
   require('../../../../../application/modal/platformHealthOverride.directive.js'),
   require('../../stageConstants.js'),
   require('./enableAsgExecutionDetails.controller.js')
@@ -25,7 +24,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.enableAsgStag
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('awsEnableAsgStageCtrl', function($scope, accountService, stageConstants, appListExtractorService) {
+  }).controller('awsEnableAsgStageCtrl', function($scope, accountService, stageConstants) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -35,27 +34,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.enableAsgStag
       regionsLoaded: false
     };
 
-    let setClusterList = () => {
-      let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndRegion($scope.stage.credentials, $scope.stage.regions);
-      $scope.clusterList = appListExtractorService.getClusters([$scope.application], clusterFilter);
-    };
-
-    ctrl.resetSelectedCluster = () => {
-      $scope.stage.cluster = undefined;
-      setClusterList();
-    };
-
     accountService.listAccounts('aws').then(function (accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
-      setClusterList();
     });
-
-    ctrl.accountUpdated = function() {
-      let accountFilter = (cluster) => cluster.account === $scope.stage.credentials;
-      $scope.regions = appListExtractorService.getRegions([$scope.application], accountFilter);
-      $scope.state.regionsLoaded = true;
-    };
 
     ctrl.reset = () => {
       ctrl.accountUpdated();
@@ -78,9 +60,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.enableAsgStag
       stage.regions.push($scope.application.defaultRegions.aws);
     }
 
-    if (stage.credentials) {
-      ctrl.accountUpdated();
-    }
     if (!stage.target) {
       stage.target = $scope.targets[0].val;
     }

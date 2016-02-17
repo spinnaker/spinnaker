@@ -20,7 +20,6 @@
          app: {
            serverGroups: [],
            loadBalancers: [],
-           registerAutoRefreshHandler: angular.noop
          },
          serverGroup: {}
        });

@@ -70,8 +70,8 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     }
 
     function onTaskComplete() {
-      application.refreshImmediately();
-      application.registerOneTimeRefreshHandler(onApplicationRefresh);
+      application.loadBalancers.refresh();
+      application.loadBalancers.onNextRefresh($scope, onApplicationRefresh);
     }
 
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({

@@ -28,7 +28,7 @@ describe('Controller: manualJudgmentExecutionDetails', function () {
         let reloadCalled = false,
             viewState = $scope.viewState;
         $scope.application = {
-          reloadExecutions: () => reloadCalled = true
+          executions: { refresh: () => reloadCalled = true }
         };
 
         spyOn(manualJudgmentService, 'provideJudgment').and.returnValue($q.when(null));
@@ -53,7 +53,7 @@ describe('Controller: manualJudgmentExecutionDetails', function () {
         let reloadCalled = false,
             viewState = $scope.viewState;
         $scope.application = {
-          reloadExecutions: () => reloadCalled = true
+          executions: { refresh: () => reloadCalled = true }
         };
 
         spyOn(manualJudgmentService, 'provideJudgment').and.returnValue($q.reject(null));

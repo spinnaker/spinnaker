@@ -4,7 +4,6 @@ let angular = require('angular');
 
 //BEN_TODO
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.findAmiStage', [
-  require('../../../../../../core/application/listExtractor/listExtractor.service'),
   require('./findAmiExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
@@ -21,8 +20,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.findAmiStage'
         { type: 'requiredField', fieldName: 'credentials' }
       ]
     });
-  }).controller('awsFindAmiStageCtrl', function($scope, accountService, appListExtractorService) {
-    var ctrl = this;
+  }).controller('awsFindAmiStageCtrl', function($scope, accountService) {
 
     let stage = $scope.stage;
 
@@ -31,34 +29,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.findAmiStage'
       regionsLoaded: false
     };
 
-    let setClusterList = () => {
-      let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndRegion($scope.stage.credentials, $scope.stage.regions);
-      $scope.clusterList = appListExtractorService.getClusters([$scope.application], clusterFilter);
-    };
-
-    ctrl.resetSelectedCluster = () => {
-      $scope.stage.cluster = undefined;
-      setClusterList();
-    };
-
     accountService.listAccounts('aws').then(function (accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
-      setClusterList();
     });
-
-    $scope.regions = ['us-east-1', 'us-west-1', 'eu-west-1', 'us-west-2'];
-
-    ctrl.accountUpdated = function() {
-      let accountFilter = (cluster) => cluster.account === stage.credentials;
-      $scope.regions = appListExtractorService.getRegions([$scope.application], accountFilter);
-      $scope.state.regionsLoaded = true;
-    };
-
-    ctrl.reset = () => {
-      ctrl.accountUpdated();
-      ctrl.resetSelectedCluster();
-    };
 
     $scope.selectionStrategies = [{
       label: 'Largest',
@@ -93,9 +67,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.findAmiStage'
       stage.regions.push($scope.application.defaultRegions.aws);
     }
 
-    if (stage.credentials) {
-      ctrl.accountUpdated();
-    }
     $scope.$watch('stage.credentials', $scope.accountUpdated);
   });
 

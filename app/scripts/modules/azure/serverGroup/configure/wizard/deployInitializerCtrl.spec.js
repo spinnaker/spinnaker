@@ -42,7 +42,7 @@
      it('creates separate template options for each account and region of a cluster', function() {
 
        var application = {
-         serverGroups: [
+         serverGroups: { data: [
            {
              name: 'sg1',
              cluster: 'cluster1',
@@ -64,7 +64,7 @@
              region: 'us-east-1',
              type: 'azure',
            },
-         ]
+         ]}
        };
 
        this.$scope.application = application;

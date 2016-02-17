@@ -4,7 +4,6 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.disableAsgStage', [
   require('../../../../../application/modal/platformHealthOverride.directive.js'),
-  require('../../../../../../core/application/listExtractor/listExtractor.service'),
   require('../../stageConstants.js'),
   require('./disableAsgExecutionDetails.controller.js')
 ])
@@ -27,8 +26,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.disableAsgSta
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
-  }).controller('awsDisableAsgStageCtrl', function($scope, accountService, stageConstants, appListExtractorService) {
-    var ctrl = this;
+  }).controller('awsDisableAsgStageCtrl', function($scope, accountService, stageConstants) {
 
     let stage = $scope.stage;
 
@@ -37,32 +35,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.disableAsgSta
       regionsLoaded: false
     };
 
-    let setClusterList = () => {
-      let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndRegion($scope.stage.credentials, $scope.stage.regions);
-      $scope.clusterList = appListExtractorService.getClusters([$scope.application], clusterFilter);
-    };
-
     accountService.listAccounts('aws').then(function (accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
-      setClusterList();
     });
 
-    ctrl.resetSelectedCluster = () => {
-      $scope.stage.cluster = undefined;
-      setClusterList();
-    };
-
-    ctrl.accountUpdated = function() {
-      let accountFilter = (cluster) => cluster.account === $scope.stage.credentials;
-      $scope.regions = appListExtractorService.getRegions([$scope.application], accountFilter);
-      $scope.state.regionsLoaded = true;
-    };
-
-    ctrl.reset = () => {
-      ctrl.accountUpdated();
-      ctrl.resetSelectedCluster();
-    };
 
     $scope.targets = stageConstants.targetList;
 
@@ -80,9 +57,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.disableAsgSta
       stage.regions.push($scope.application.defaultRegions.aws);
     }
 
-    if (stage.credentials) {
-      ctrl.accountUpdated();
-    }
     if (!stage.target) {
       stage.target = $scope.targets[0].val;
     }

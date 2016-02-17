@@ -54,8 +54,8 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
     }
 
     function onTaskComplete() {
-      application.refreshImmediately();
-      application.registerOneTimeRefreshHandler(onApplicationRefresh);
+      application.loadBalancers.refresh();
+      application.loadBalancers.onNextRefresh($scope, onApplicationRefresh);
     }
 
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({

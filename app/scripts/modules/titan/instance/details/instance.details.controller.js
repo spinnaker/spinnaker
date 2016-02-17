@@ -57,7 +57,7 @@ module.exports = angular.module('spinnaker.instance.detail.titan.controller', [
     function retrieveInstance() {
       var extraData = {};
       var instanceSummary, loadBalancers, account, region, vpcId;
-      app.serverGroups.some(function (serverGroup) {
+      app.serverGroups.data.some(function (serverGroup) {
         return serverGroup.instances.some(function (possibleInstance) {
           if (possibleInstance.id === instance.instanceId) {
             instanceSummary = possibleInstance;
@@ -215,11 +215,10 @@ module.exports = angular.module('spinnaker.instance.detail.titan.controller', [
     retrieveInstance().then(() => {
       // Two things to look out for here:
       //  1. If the retrieveInstance call completes *after* the user has navigated away from the view, there
-      //     is no point in subscribing to the autoRefreshStream
+      //     is no point in subscribing to the refresh
       //  2. If this is a standalone instance, there is no application that will refresh
       if (!$scope.$$destroyed && !app.isStandalone) {
-        let refreshWatcher = app.autoRefreshStream.subscribe(retrieveInstance);
-        $scope.$on('$destroy', () => refreshWatcher.dispose());
+        app.serverGroups.onRefresh($scope, retrieveInstance);
       }
     });
 

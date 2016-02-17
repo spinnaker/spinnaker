@@ -50,7 +50,7 @@ module.exports = angular
       return executionService.getSectionCacheKey(ExecutionFilterModel.sortFilter.groupBy, this.application.name, this.group.heading);
     };
 
-    this.pipelineConfig = _.find(this.application.pipelineConfigs, { name: this.group.heading });
+    this.pipelineConfig = _.find(this.application.pipelineConfigs.data, { name: this.group.heading });
 
     this.viewState = {
       triggeringExecution: false,

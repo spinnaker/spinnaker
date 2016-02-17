@@ -134,9 +134,8 @@
         {{key}}: {{value}}
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Containers">
-      <div ng-if="!instance.containers.length">No containers associated with this pod</div>
-      <dl ng-repeat="container in instance.containers" ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal'">
+    <dl ng-repeat="container in instance.containers" ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal'">
+      <collapsible-section heading="Container {{container.image}}">
         <dt>Name</dt>
         <dd>{{container.name}}</dd>
         <dt>Image</dt>
@@ -189,23 +188,23 @@
         <div ng-if="instance.containerStatuses[$index].state.waiting">
           <dt>Waiting</dt>
           <dd>
-            Reason: {{instance.containerStatuses[$index].state.waiting.reason}}
-            Message: {{instance.containerStatuses[$index].state.waiting.message}}
+          <p>Reason: {{instance.containerStatuses[$index].state.waiting.reason}}</p>
+          <p>Message: {{instance.containerStatuses[$index].state.waiting.message}}</p>
           </dd>
         </div>
         <div ng-if="instance.containerStatuses[$index].state.terminated">
           <dt>Terminated</dt>
           <dd>
-            Started At: {{instance.containerStatuses[$index].state.terminated.finishedAt}}
-            Finished At: {{instance.containerStatuses[$index].state.terminated.startedAt}}
-            Message: {{instance.containerStatuses[$index].state.terminated.message}}
-            Reason: {{instance.containerStatuses[$index].state.terminated.reason}}
-            Exit Code: {{instance.containerStatuses[$index].state.terminated.exitCode}}
-            Signal: {{instance.containerStatuses[$index].state.terminated.signal}}
+          <p>Started At: {{instance.containerStatuses[$index].state.terminated.finishedAt}}</p>
+          <p>Finished At: {{instance.containerStatuses[$index].state.terminated.startedAt}}</p>
+          <p>Message: {{instance.containerStatuses[$index].state.terminated.message}}</p>
+          <p>Reason: {{instance.containerStatuses[$index].state.terminated.reason}}</p>
+          <p>Exit Code: {{instance.containerStatuses[$index].state.terminated.exitCode}}</p>
+          <p>Signal: {{instance.containerStatuses[$index].state.terminated.signal}}</p>
           </dd>
         </div>
-      </dl>
-    </collapsible-section>
+      </collapsible-section>
+    </dl>
     <collapsible-section heading="Logs">
     </collapsible-section>
   </div>

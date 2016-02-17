@@ -14,7 +14,7 @@
     </form>
   </filter-section>
 </div>
-<div class="content">
+<div class="content" ng-if="application.loadBalancers.loaded">
 
   <filter-section heading="Account" expanded="true">
     <div class="checkbox" ng-repeat="heading in loadBalancerFilters.accountHeadings | orderBy:'toString()'  ">

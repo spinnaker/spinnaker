@@ -4,7 +4,6 @@
 describe('Controller: AllLoadBalancersCtrl', function () {
 
   var scope;
-  var autoRefresh;
 
   beforeEach(
     window.module(
@@ -15,27 +14,16 @@ describe('Controller: AllLoadBalancersCtrl', function () {
   beforeEach(
     window.inject(function($rootScope, $controller) {
       scope = $rootScope.$new();
-      $controller('AllLoadBalancersCtrl', {
+      this.controller = $controller('AllLoadBalancersCtrl', {
         $scope: scope,
         app: {
-          registerAutoRefreshHandler: function(handler) { autoRefresh = handler; },
-          loadBalancers: [],
+          loadBalancers: { data: [], onRefresh: angular.noop },
         }
       });
     })
   );
 
-  it('should add search fields to each load balancer', function () {
-    scope.application.loadBalancers = [
-      { name: 'elb-1', region: 'us-east-1', account: 'prod',
-        serverGroups: [ { name: 'asg-1' }, { name: 'asg-2' } ],
-        instances: [ { id: 'i-1234' }, { id: 'i-2345' }]
-      }
-    ];
-
-    autoRefresh();
-
-    expect(scope.application.loadBalancers[0].searchField).toBe('elb-1 us-east-1 prod asg-1 asg-2 i-1234 i-2345');
-
+  it('should initialize the controller', function () {
+    expect(this.controller).toBeDefined();
   });
 });
