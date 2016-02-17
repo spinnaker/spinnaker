@@ -64,7 +64,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
         account = instance.account;
         region = instance.region;
       } else {
-        app.serverGroups.some(function (serverGroup) {
+        app.serverGroups.data.some(function (serverGroup) {
           return serverGroup.instances.some(function (possibleInstance) {
             if (possibleInstance.id === instance.instanceId) {
               instanceSummary = possibleInstance;
@@ -78,7 +78,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
         });
         if (!instanceSummary) {
           // perhaps it is in a server group that is part of another application
-          app.loadBalancers.some(function (loadBalancer) {
+          app.loadBalancers.data.some(function (loadBalancer) {
             return loadBalancer.instances.some(function (possibleInstance) {
               if (possibleInstance.id === instance.instanceId) {
                 instanceSummary = possibleInstance;
@@ -92,7 +92,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
           });
           if (!instanceSummary) {
             // perhaps it is in a disabled server group via a load balancer
-            app.loadBalancers.some(function (loadBalancer) {
+            app.loadBalancers.data.some(function (loadBalancer) {
               return loadBalancer.serverGroups.some(function (serverGroup) {
                 if (!serverGroup.isDisabled) {
                   return false;
@@ -167,7 +167,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
     function augmentTagsWithHelp() {
       if (_.has($scope, 'instance.tags.items') && _.has($scope, 'instance.securityGroups')) {
         let securityGroups = _($scope.instance.securityGroups).map(securityGroup => {
-          return _.find(app.securityGroups, { accountName: $scope.instance.account, region: 'global', id: securityGroup.groupdId });
+          return _.find(app.securityGroups.data, { accountName: $scope.instance.account, region: 'global', id: securityGroup.groupdId });
         }).compact().value();
 
         let helpMap = {};
@@ -419,11 +419,10 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
     retrieveInstance().then(() => {
       // Two things to look out for here:
       //  1. If the retrieveInstance call completes *after* the user has navigated away from the view, there
-      //     is no point in subscribing to the autoRefreshStream
+      //     is no point in subscribing to the refresh
       //  2. If this is a standalone instance, there is no application that will refresh
       if (!$scope.$$destroyed && !app.isStandalone) {
-        let refreshWatcher = app.autoRefreshStream.subscribe(retrieveInstance);
-        $scope.$on('$destroy', () => refreshWatcher.dispose());
+        app.serverGroups.onRefresh($scope, retrieveInstance);
       }
     });
 

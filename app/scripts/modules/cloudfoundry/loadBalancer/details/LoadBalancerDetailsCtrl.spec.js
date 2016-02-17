@@ -1,6 +1,5 @@
 'use strict';
 
-
 describe('Controller: LoadBalancerDetailsCtrl', function () {
   const angular = require('angular');
   //NOTE: This is just a skeleton test to test DI.  Please add more tests.;
@@ -19,22 +18,23 @@ describe('Controller: LoadBalancerDetailsCtrl', function () {
 
   beforeEach(
     window.module(
-      require('./LoadBalancerDetailsCtrl')
+      require('./LoadBalancerDetailsCtrl'),
+      require('../../../core/application/service/applications.read.service')
     )
   );
 
   beforeEach(
     window.inject(
-      function($controller, $rootScope, _$state_) {
+      function($controller, $rootScope, _$state_, applicationReader) {
         $scope = $rootScope.$new();
         $state = _$state_;
+        let app = {};
+        applicationReader.addSectionToApplication({key: 'loadBalancers', lazy: true}, app);
+        app.loadBalancers.data.push(loadBalancer);
         controller = $controller('cfLoadBalancerDetailsCtrl', {
           $scope: $scope,
           loadBalancer: loadBalancer,
-          app: {
-            loadBalancers:[loadBalancer],
-            registerAutoRefreshHandler: angular.noop
-          },
+          app: app,
           $state: $state
         });
       }

@@ -8,17 +8,17 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
   require('../filter/executionFilter.model.js'),
   require('./executions.transformer.service.js')
 ])
-  .factory('executionService', function($http, $timeout, $q, $log, ExecutionFilterModel,
+  .factory('executionService', function($http, $timeout, $q, $log, ExecutionFilterModel, $state,
                                          settings, appendTransform, executionsTransformer) {
 
     const activeStatuses = ['RUNNING', 'SUSPENDED', 'PAUSED', 'NOT_STARTED'];
     const runningLimit = 30;
 
     function getRunningExecutions(applicationName) {
-      return getExecutions(applicationName, {statuses: activeStatuses, limit: runningLimit});
+      return getFilteredExecutions(applicationName, {statuses: activeStatuses, limit: runningLimit});
     }
 
-    function getExecutions(applicationName, {statuses = Object.keys(ExecutionFilterModel.sortFilter.status), limit = ExecutionFilterModel.sortFilter.count} = {}) {
+    function getFilteredExecutions(applicationName, {statuses = Object.keys(ExecutionFilterModel.sortFilter.status), limit = ExecutionFilterModel.sortFilter.count} = {}) {
       let url = [ settings.gateUrl, 'applications', applicationName, `pipelines?limit=${limit}`].join('/');
       if (statuses.length) {
         url += '&statuses=' + statuses.map((status) => status.toUpperCase()).join(',');
@@ -29,6 +29,10 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
         timeout: settings.pollSchedule * 2 + 5000, // TODO: replace with apiHost call
       })
         .then((resp) => resp.data);
+    }
+
+    function getExecutions(applicationName) {
+      return getFilteredExecutions(applicationName);
     }
 
     function getExecution(executionId) {
@@ -47,7 +51,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       executions.forEach((execution) => {
         let stringVal = JSON.stringify(execution);
         // do not transform if it hasn't changed
-        let match = (application.executions || []).filter((test) => test.id === execution.id);
+        let match = (application.executions.data || []).filter((test) => test.id === execution.id);
         if (!match.length || !match[0].stringVal || match[0].stringVal !== stringVal) {
           execution.stringVal = stringVal;
           executionsTransformer.transformExecution(application, execution);
@@ -63,7 +67,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
         });
         var deferred = $q.defer();
         if (match && match.length) {
-          application.reloadExecutions().then(deferred.resolve);
+          application.executions.refresh().then(deferred.resolve);
           return deferred.promise;
         } else {
           return $timeout(function() {
@@ -78,7 +82,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
         let match = executions.filter((execution) => execution.id === executionId);
         let deferred = $q.defer();
         if (match && !match.length) {
-          application.reloadExecutions().then(deferred.resolve);
+          application.executions.refresh().then(deferred.resolve);
           return deferred.promise;
         }
         return $timeout(() => waitUntilPipelineIsCancelled(application, executionId), 1000);
@@ -91,7 +95,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
         let match = executions.filter((execution) => execution.id === executionId);
         let deferred = $q.defer();
         if (match && !match.length) {
-          application.reloadExecutions().then(deferred.resolve);
+          application.executions.refresh().then(deferred.resolve);
           return deferred.promise;
         }
         return $timeout(() => waitUntilPipelineIsDeleted(application, executionId), 1000);
@@ -132,7 +136,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
           'pause',
         ].join('/')
       }).then(
-        () => waitUntilExecutionMatches(executionId, matcher).then(application.reloadExecutions).then(deferred.resolve),
+        () => waitUntilExecutionMatches(executionId, matcher).then(application.executions.refresh).then(deferred.resolve),
         (exception) => deferred.reject(exception && exception.data ? exception.message : null)
     );
       return deferred.promise;
@@ -153,7 +157,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
           'resume',
         ].join('/')
       }).then(
-        () => waitUntilExecutionMatches(executionId, matcher).then(application.reloadExecutions).then(deferred.resolve),
+        () => waitUntilExecutionMatches(executionId, matcher).then(application.executions.refresh).then(deferred.resolve),
         (exception) => deferred.reject(exception && exception.data ? exception.message : null)
     );
       return deferred.promise;
@@ -213,6 +217,39 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       });
     }
 
+    function addExecutionsToApplication(application, executions = []) {
+      // only add executions if we actually got some executions back
+      // this will fail if there was just one execution and someone just deleted it
+      // but that is much less likely at this point than orca falling over under load,
+      // resulting in an empty list of executions coming back
+      if (application.executions.data && application.executions.data.length && executions.length) {
+
+        // remove any that have dropped off, update any that have changed
+        let toRemove = [];
+        application.executions.data.forEach((execution, idx) => {
+          let matches = executions.filter((test) => test.id === execution.id);
+          if (!matches.length) {
+            toRemove.push(idx);
+          } else {
+            if (execution.stringVal && matches[0].stringVal && execution.stringVal !== matches[0].stringVal) {
+              application.executions.data[idx] = matches[0];
+            }
+          }
+        });
+
+        toRemove.reverse().forEach((idx) => application.executions.data.splice(idx, 1));
+
+        // add any new ones
+        executions.forEach((execution) => {
+          if (!application.executions.data.filter((test) => test.id === execution.id).length) {
+            application.executions.data.push(execution);
+          }
+        });
+      } else {
+        application.executions.data = executions;
+      }
+    }
+
     return {
       getExecutions: getExecutions,
       getRunningExecutions: getRunningExecutions,
@@ -225,5 +262,6 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       waitUntilExecutionMatches: waitUntilExecutionMatches,
       getSectionCacheKey: getSectionCacheKey,
       getProjectExecutions: getProjectExecutions,
+      addExecutionsToApplication: addExecutionsToApplication,
     };
   });

@@ -13,6 +13,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
   require('../projects/dashboard/dashboard.controller.js'),
   require('../projects/service/project.read.service.js'),
   require('../overrideRegistry/override.registry.js'),
+  require('../application/service/applications.read.service.js'),
 ])
   .provider('states', function($stateProvider, $urlRouterProvider, stateHelperProvider, deliveryStates) {
 
@@ -362,7 +363,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
           url: `${relativeUrl}/:application`,
           resolve: {
             app: ['$stateParams', 'applicationReader', function($stateParams, applicationReader) {
-              return applicationReader.getApplication($stateParams.application, {tasks: true, executions: true, pipelineConfigs: true})
+              return applicationReader.getApplication($stateParams.application)
                 .then(
                 function(app) {
                   return app || { notFound: true, name: $stateParams.application };
@@ -519,7 +520,6 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
             // we need the application to have a security group index (so rules get attached and linked properly)
             // and its name should just be the name of the security group (so cloning works as expected)
             return securityGroupReader.loadSecurityGroups()
-              .then(securityGroupReader.indexSecurityGroups)
               .then((securityGroupsIndex) => {
                 return {
                   name: $stateParams.name,

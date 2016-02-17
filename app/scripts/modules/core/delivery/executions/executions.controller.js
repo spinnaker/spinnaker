@@ -29,8 +29,8 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       return;
     }
 
-    application.loadAllExecutions = true;
-    $scope.$on('$destroy', () => application.loadAllExecutions = false);
+    application.activeState = application.executions;
+    $scope.$on('$destroy', () => application.activeState = application);
 
     this.InsightFilterStateModel = InsightFilterStateModel;
 
@@ -45,8 +45,8 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       normalizeExecutionNames();
       ExecutionFilterModel.applyParamsToUrl();
       if (reload) {
-        this.application.reloadingExecutionsForFilters = true;
-        this.application.reloadExecutions();
+        this.application.executions.refresh(true);
+        this.application.executions.reloadingForFilters = true;
       } else {
         executionFilterService.updateExecutionGroups(this.application);
         this.tags = ExecutionFilterModel.tags;
@@ -60,17 +60,21 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       triggeringExecution: false,
     };
 
-    let executionLoader = application.reloadExecutions(true);
-
-    let deferred = $q.defer();
-    let configLoader = deferred.promise;
-    if (application.pipelineConfigs) {
-      deferred.resolve();
+    let executionLoader = $q.defer();
+    if (application.executions.loaded) {
+      executionLoader.resolve();
     } else {
-      application.pipelineConfigRefreshStream.take(1).subscribe(deferred.resolve);
+      application.executions.onNextRefresh($scope, executionLoader.resolve);
     }
 
-    $q.all([executionLoader, configLoader]).then(() => {
+    let configLoader = $q.defer();
+    if (application.pipelineConfigs.loaded) {
+      configLoader.resolve();
+    } else {
+      application.pipelineConfigs.onNextRefresh($scope, configLoader.resolve);
+    }
+
+    $q.all([executionLoader.promise, configLoader.promise]).then(() => {
       this.updateExecutionGroups();
       if ($stateParams.executionId) {
         scrollIntoView();
@@ -85,11 +89,11 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
     };
 
     function normalizeExecutionNames() {
-      if (application.executionsLoadFailure) {
+      if (application.executions.loadFailure) {
         dataInitializationFailure();
       }
-      let executions = application.executions || [];
-      var configurations = application.pipelineConfigs || [];
+      let executions = application.executions.data || [];
+      var configurations = application.pipelineConfigs.data || [];
       executions.forEach(function(execution) {
         if (execution.pipelineConfigId) {
           var configMatches = configurations.filter(function(configuration) {
@@ -102,8 +106,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       });
     }
 
-    let executionWatcher = this.application.executionRefreshStream.subscribe(normalizeExecutionNames, dataInitializationFailure);
-    $scope.$on('$destroy', () => executionWatcher.dispose());
+    this.application.executions.onRefresh($scope, normalizeExecutionNames, dataInitializationFailure);
 
     this.toggleExpansion = (expand) => {
       $scope.$broadcast('toggle-expansion', expand);

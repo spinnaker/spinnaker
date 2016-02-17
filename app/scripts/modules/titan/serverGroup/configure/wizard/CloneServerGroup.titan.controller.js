@@ -58,8 +58,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.cloneServ
     }
 
     function onTaskComplete() {
-      application.refreshImmediately();
-      application.registerOneTimeRefreshHandler(onApplicationRefresh);
+      application.serverGroups.refresh();
+      application.serverGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({

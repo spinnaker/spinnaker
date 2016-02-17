@@ -1,42 +1,29 @@
 'use strict';
 
-
 describe('Controller: azureInstanceDetailsCtrl', function () {
-
-  //NOTE: This is only testing the controllers dependencies. Please add more tests.
 
   var controller;
   var scope;
   var instanceReader;
   var $q;
-  var rx;
-  var refreshStream;
+  var applicationReader;
 
   beforeEach(
     window.module(
       require('./instance.details.controller'),
-      require('../../../core/utils/rx')
+      require('../../../core/utils/rx'),
+      require('../../../core/application/service/applications.read.service')
     )
   );
 
   beforeEach(
-    window.inject(function ($rootScope, $controller, _instanceReader_, _$q_, _rx_) {
+    window.inject(function ($rootScope, $controller, _instanceReader_, _$q_, _applicationReader_) {
       scope = $rootScope.$new();
       instanceReader = _instanceReader_;
       $q = _$q_;
-      rx = _rx_;
-      refreshStream = new rx.Subject();
-
-      controller = $controller('azureInstanceDetailsCtrl', {
-        $scope: scope,
-        instance: {},
-        app: {
-          autoRefreshStream: refreshStream
-        }
-      });
+      applicationReader = _applicationReader_;
 
       this.createController = function(application, instance) {
-        application.autoRefreshStream = application.autoRefreshStream || refreshStream;
         controller = $controller('azureInstanceDetailsCtrl', {
           $scope: scope,
           instance: instance,
@@ -67,22 +54,22 @@ describe('Controller: azureInstanceDetailsCtrl', function () {
           }
         })
       );
-      var application = {
-        serverGroups: [
-          {
-            account: 'test',
-            region: 'us-west-1',
-            instances: [
-              {
-                id: 'i-123',
-                health: [
-                  { type: 'Discovery', status: 'Down', reason: 'original reason'}
-                ]
-              }
-            ]
-          }
-        ]
-      };
+      var application = {};
+      applicationReader.addSectionToApplication({key: 'serverGroups', lazy: true}, application);
+      application.serverGroups.data = [
+        {
+          account: 'test',
+          region: 'us-west-1',
+          instances: [
+            {
+              id: 'i-123',
+              health: [
+                { type: 'Discovery', status: 'Down', reason: 'original reason'}
+              ]
+            }
+          ]
+        }
+      ];
 
       this.createController(application, params);
       scope.$digest();
@@ -109,22 +96,22 @@ describe('Controller: azureInstanceDetailsCtrl', function () {
         })
       );
 
-      var application = {
-        serverGroups: [
-          {
-            account: 'test',
-            region: 'us-west-1',
-            instances: [
-              {
-                id: 'i-123',
-                health: [
-                  { type: 'Discovery', state: 'Up', reason: 'original reason'}
-                ]
-              }
-            ]
-          }
-        ]
-      };
+      var application = {};
+      applicationReader.addSectionToApplication({key: 'serverGroups', lazy: true}, application);
+      application.serverGroups.data = [
+        {
+          account: 'test',
+          region: 'us-west-1',
+          instances: [
+            {
+              id: 'i-123',
+              health: [
+                { type: 'Discovery', state: 'Up', reason: 'original reason'}
+              ]
+            }
+          ]
+        }
+      ];
 
       this.createController(application, params);
       scope.$digest();

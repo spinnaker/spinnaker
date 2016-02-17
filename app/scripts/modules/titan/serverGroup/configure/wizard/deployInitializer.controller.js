@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.deployIni
 
     $scope.templates = [ noTemplate ];
 
-    var allClusters = _.groupBy(_.filter($scope.application.serverGroups, { type: 'titan' }), function(serverGroup) {
+    var allClusters = _.groupBy(_.filter($scope.application.serverGroups.data, { type: 'titan' }), function(serverGroup) {
       return [serverGroup.cluster, serverGroup.account, serverGroup.region].join(':');
     });
 

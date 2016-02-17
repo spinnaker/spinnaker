@@ -29,16 +29,16 @@ describe('Service: executionFilterService', function () {
 
     it('limits executions per pipeline', function () {
       let application = {
-        executions: [
+        executions: { data: [
           { pipelineConfigId: '1', name: 'pipeline 1', endTime: 1, stages: [] },
           { pipelineConfigId: '1', name: 'pipeline 1', endTime: 2, stages: [] },
           { pipelineConfigId: '1', name: 'pipeline 1', endTime: 3, stages: [] },
           { pipelineConfigId: '2', name: 'pipeline 2', endTime: 1, stages: [] },
-        ],
-        pipelineConfigs: [
+        ]},
+        pipelineConfigs: { data: [
           { name: 'pipeline 1', pipelineConfigId: '1' },
           { name: 'pipeline 2', pipelineConfigId: '2' },
-        ]
+        ]}
       };
 
       ExecutionFilterModel.sortFilter.count = 2;

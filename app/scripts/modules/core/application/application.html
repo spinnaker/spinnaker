@@ -1,9 +1,9 @@
   <div class="page-header application-header navbar">
     <h2 ng-if="!application.notFound">
       <span class="application-name">{{application.name}}</span>
-      <component-refresher state="application"
+      <component-refresher state="application.activeState || application"
                            template-url="refreshTooltipTemplate"
-                           refresh="application.refreshImmediately(true)"></component-refresher>
+                           refresh="application.refresh(true)"></component-refresher>
     </h2>
 
     <div ng-if="application.notFound">

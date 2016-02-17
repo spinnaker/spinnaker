@@ -20,9 +20,7 @@ describe('Controller: cfInstanceDetailsCtrl', function () {
       controller = $controller('cfInstanceDetailsCtrl', {
         $scope: scope,
         instance: {},
-        app: {
-          registerAutoRefreshHandler: angular.noop
-        }
+        app: {}
       });
     })
   );

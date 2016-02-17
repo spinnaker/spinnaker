@@ -158,7 +158,7 @@ module.exports = angular.module('spinnaker.core.instance.details.multipleInstanc
      */
 
     function getServerGroup(group) {
-      let [serverGroup] = app.serverGroups.filter((serverGroup) => serverGroup.name === group.serverGroup &&
+      let [serverGroup] = app.serverGroups.data.filter((serverGroup) => serverGroup.name === group.serverGroup &&
           serverGroup.account === group.account && serverGroup.region === group.region);
 
       return serverGroup;
@@ -212,7 +212,7 @@ module.exports = angular.module('spinnaker.core.instance.details.multipleInstanc
     };
 
     let multiselectWatcher = ClusterFilterModel.multiselectInstancesStream.subscribe(retrieveInstances);
-    let refreshWatcher = app.autoRefreshStream.subscribe(retrieveInstances);
+    app.serverGroups.onRefresh($scope, retrieveInstances);
 
     retrieveInstances();
 
@@ -222,7 +222,6 @@ module.exports = angular.module('spinnaker.core.instance.details.multipleInstanc
       if (countInstances() !== 1) {
         ClusterFilterModel.clearAllMultiselectGroups();
       }
-      refreshWatcher.dispose();
       multiselectWatcher.dispose();
     });
 

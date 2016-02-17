@@ -32,8 +32,8 @@ module.exports = angular.module('spinnaker.core.taskExecutor', [
         function(task) {
           var taskId = task.ref.substring(task.ref.lastIndexOf('/') + 1);
 
-          if (owner.reloadTasks) {
-            owner.reloadTasks();
+          if (owner.tasks && owner.tasks.refresh) {
+            owner.tasks.refresh();
           }
           return taskReader.getTask(owner.name, taskId);
         },

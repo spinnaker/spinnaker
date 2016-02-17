@@ -10,19 +10,19 @@ describe('Controller: AllClustersCtrl', function () {
 
   beforeEach(
     window.module(
-      require('./allClusters.controller.js')
+      require('./allClusters.controller.js'),
+      require('../application/service/applications.read.service')
     )
   );
 
   beforeEach(
-    window.inject(function ($rootScope, $controller) {
+    window.inject(function ($rootScope, $controller, applicationReader) {
       scope = $rootScope.$new();
+      let application = {};
+      applicationReader.addSectionToApplication({key: 'serverGroups', lazy: true}, application);
       controller = $controller('AllClustersCtrl', {
         $scope: scope,
-        app: {
-          serverGroups: [],
-          registerAutoRefreshHandler: angular.noop
-        }
+        app: application,
       });
     })
   );

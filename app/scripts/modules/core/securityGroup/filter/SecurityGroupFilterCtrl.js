@@ -22,7 +22,7 @@ module.exports = angular.module('securityGroup.filter.controller', [
     };
 
     function getHeadingsForOption(option) {
-      return _.compact(_.uniq(_.pluck(app.securityGroups, option))).sort();
+      return _.compact(_.uniq(_.pluck(app.securityGroups.data, option))).sort();
     }
 
     function clearFilters() {
@@ -36,12 +36,13 @@ module.exports = angular.module('securityGroup.filter.controller', [
       ctrl.stackHeadings = ['(none)'].concat(getHeadingsForOption('stack'));
       ctrl.providerTypeHeadings = getHeadingsForOption('provider');
       ctrl.clearFilters = clearFilters;
-      $scope.securityGroups = app.securityGroups;
     };
 
     this.initialize();
 
-    app.registerAutoRefreshHandler(this.initialize, $scope);
+    app.serverGroups.onRefresh($scope, this.initialize);
+    app.loadBalancers.onRefresh($scope, this.initialize);
+    app.securityGroups.onRefresh($scope, this.initialize);
 
     $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', () => {
       SecurityGroupFilterModel.activate();

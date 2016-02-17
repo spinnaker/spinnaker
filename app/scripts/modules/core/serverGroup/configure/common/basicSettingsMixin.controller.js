@@ -29,7 +29,7 @@ module.exports = angular
     this.getLatestServerGroup = function() {
       var command = $scope.command;
       var cluster = namingService.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
-      var inCluster = $scope.application.serverGroups.filter(function(serverGroup) {
+      var inCluster = $scope.application.serverGroups.data.filter(function(serverGroup) {
         return serverGroup.cluster === cluster &&
           serverGroup.account === command.credentials &&
           serverGroup.region === command.region;

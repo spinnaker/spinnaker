@@ -16,7 +16,7 @@ describe('ClusterFilter Controller', function () {
       controller = $controller('ClusterFilterCtrl', {
         $scope: scope,
         app: {
-          registerAutoRefreshHandler: angular.noop
+          serverGroups: { data: [], loaded: true, onRefresh: angular.noop }
         }
       });
     })

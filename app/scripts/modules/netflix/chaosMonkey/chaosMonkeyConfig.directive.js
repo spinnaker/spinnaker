@@ -25,6 +25,9 @@ module.exports = angular
     };
   })
   .controller('ChaosMonkeyConfigCtrl', function($scope, _, applicationWriter, settings) {
+    if (this.application.notFound) {
+      return;
+    }
     let config = this.application.attributes.chaosMonkey || {
         enabled: false,
         meanTimeBetweenKillsInWorkDays: 5,

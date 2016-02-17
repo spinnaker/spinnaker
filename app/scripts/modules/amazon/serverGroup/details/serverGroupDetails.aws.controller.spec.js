@@ -8,20 +8,20 @@ describe('Controller: AWS ServerGroupDetailsCtrl', function () {
 
   beforeEach(
     window.module(
-      require('./serverGroupDetails.aws.controller')
+      require('./serverGroupDetails.aws.controller'),
+      require('../../../core/application/service/applications.read.service')
     )
   );
 
   beforeEach(
-    window.inject( function($controller, $rootScope) {
+    window.inject( function($controller, $rootScope, applicationReader) {
       $scope = $rootScope.$new();
+      let application = {};
+      applicationReader.addSectionToApplication({key: 'serverGroups', lazy: true}, application);
+      applicationReader.addSectionToApplication({key: 'loadBalancers', lazy: true}, application);
       controller = $controller('awsServerGroupDetailsCtrl', {
         $scope: $scope,
-        app: {
-          serverGroups: [],
-          loadBalancers: [],
-          registerAutoRefreshHandler: angular.noop
-        },
+        app: application,
         serverGroup: {}
       });
     })

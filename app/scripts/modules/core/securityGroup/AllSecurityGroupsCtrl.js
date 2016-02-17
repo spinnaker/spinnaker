@@ -24,26 +24,6 @@ module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
 
     this.groupingsTemplate = require('./groupings.html');
 
-    function addSearchFields() {
-      app.securityGroups.forEach(function(securityGroup) {
-        if (!securityGroup.searchField) {
-          securityGroup.searchField = [
-            securityGroup.name,
-            securityGroup.id,
-            securityGroup.accountName,
-            securityGroup.region,
-            _.pluck(securityGroup.usages.serverGroups, 'name').join(' '),
-            _.pluck(securityGroup.usages.loadBalancers, 'name').join(' ')
-          ].join(' ');
-        }
-      });
-    }
-
-    this.clearFilters = function() {
-      securityGroupFilterService.clearFilters();
-      updateSecurityGroups();
-    };
-
     let updateSecurityGroups = () => {
       SecurityGroupFilterModel.applyParamsToUrl();
       $scope.$evalAsync(() => {
@@ -53,6 +33,11 @@ module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
         // Timeout because the updateSecurityGroups method is debounced by 25ms
         $timeout(() => { this.initialized = true; }, 50);
       });
+    };
+
+    this.clearFilters = function() {
+      securityGroupFilterService.clearFilters();
+      updateSecurityGroups();
     };
 
     this.createSecurityGroup = function createSecurityGroup() {
@@ -84,13 +69,19 @@ module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
 
     this.updateSecurityGroups = _.debounce(updateSecurityGroups, 200);
 
-    function autoRefreshHandler() {
-      addSearchFields();
-      updateSecurityGroups();
+    function handleRefresh() {
+      if (app.securityGroups.loaded && app.loadBalancers.loaded && app.serverGroups.loaded) {
+        updateSecurityGroups();
+      }
     }
 
-    autoRefreshHandler();
+    handleRefresh();
 
-    app.registerAutoRefreshHandler(autoRefreshHandler, $scope);
+    app.activeState = app.securityGroups;
+    $scope.$on('$destroy', () => app.activeState = app);
+
+    app.serverGroups.onRefresh($scope, handleRefresh);
+    app.loadBalancers.onRefresh($scope, handleRefresh);
+    app.securityGroups.onRefresh($scope, handleRefresh);
   }
 );

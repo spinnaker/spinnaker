@@ -25,7 +25,7 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.details.controller', 
     $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractLoadBalancer() {
-      $scope.loadBalancer = application.loadBalancers.filter(function (test) {
+      $scope.loadBalancer = application.loadBalancers.data.filter(function (test) {
         var testVpc = test.vpcId || null;
         return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.accountId && testVpc === loadBalancer.vpcId;
       })[0];
@@ -68,10 +68,9 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.details.controller', 
 
     extractLoadBalancer().then(() => {
       // If the user navigates away from the view before the initial extractLoadBalancer call completes,
-      // do not bother subscribing to the autoRefreshStream
+      // do not bother subscribing to the refresh
       if (!$scope.$$destroyed) {
-        let refreshWatcher = app.autoRefreshStream.subscribe(extractLoadBalancer);
-        $scope.$on('$destroy', () => refreshWatcher.dispose());
+        app.loadBalancers.onRefresh($scope, extractLoadBalancer);
       }
     });
 

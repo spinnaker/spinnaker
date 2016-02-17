@@ -13,7 +13,7 @@ describe('Application Property Controller:', function () {
     controller = $controller('ApplicationPropertiesController', {
       '$scope': $rootScope.$new(),
       'app': {
-        registerAutoRefreshHandler: function() {}
+        onRefresh: function() {}
       }
     });
   }));

@@ -295,7 +295,7 @@ describe('Service: clusterFilterService', function () {
     it('should filter by starting status if checked', function() {
       var appCopy = _.cloneDeep(applicationJSON);
       var starting = { healthState: 'Unknown'},
-        serverGroup = appCopy.serverGroups[0];
+        serverGroup = appCopy.serverGroups.data[0];
       serverGroup.instances.push(starting);
 
       ClusterFilterModel.sortFilter.status = {Starting: true};
@@ -318,7 +318,7 @@ describe('Service: clusterFilterService', function () {
     it('should filter by out of service status if checked', function() {
       var appCopy = _.cloneDeep(applicationJSON);
       var starting = { healthState: 'Unknown' },
-        serverGroup = appCopy.serverGroups[0];
+        serverGroup = appCopy.serverGroups.data[0];
       serverGroup.instances.push(starting);
 
       ClusterFilterModel.sortFilter.status = {OutOfService: true};
@@ -479,7 +479,7 @@ describe('Service: clusterFilterService', function () {
 
     it('should remove all instanceIds if server group is no longer visible, and add back when visible again', function () {
       ClusterFilterModel.sortFilter.listInstances = true;
-      let serverGroup = applicationJSON.serverGroups[0],
+      let serverGroup = applicationJSON.serverGroups.data[0],
           multiselectGroup = ClusterFilterModel.getOrCreateMultiselectInstanceGroup(serverGroup);
 
       serverGroup.instances.push({id: 'i-1234'});
@@ -502,7 +502,7 @@ describe('Service: clusterFilterService', function () {
 
     it('should remove instances that are no longer visible', function () {
       ClusterFilterModel.sortFilter.listInstances = true;
-      let serverGroup = applicationJSON.serverGroups[0];
+      let serverGroup = applicationJSON.serverGroups.data[0];
 
       ClusterFilterModel.toggleMultiselectInstance(serverGroup, 'i-1234');
       ClusterFilterModel.toggleMultiselectInstance(serverGroup, 'i-2345');
@@ -522,7 +522,7 @@ describe('Service: clusterFilterService', function () {
 
     it('should add all instances when selectAll is selected and new instances appear in server group', function () {
       ClusterFilterModel.sortFilter.listInstances = true;
-      let serverGroup = applicationJSON.serverGroups[0];
+      let serverGroup = applicationJSON.serverGroups.data[0];
 
       ClusterFilterModel.getOrCreateMultiselectInstanceGroup(serverGroup).selectAll = true;
       ClusterFilterModel.toggleMultiselectInstance(serverGroup, 'i-1234');
@@ -539,7 +539,7 @@ describe('Service: clusterFilterService', function () {
 
     it('should remove all instance groups when listInstances is false', function () {
       ClusterFilterModel.sortFilter.listInstances = false;
-      let serverGroup = applicationJSON.serverGroups[0];
+      let serverGroup = applicationJSON.serverGroups.data[0];
 
       ClusterFilterModel.toggleMultiselectInstance(serverGroup, 'i-1234');
 
@@ -596,11 +596,11 @@ describe('Service: clusterFilterService', function () {
 
     it('adds a group when new one provided', function() {
       var application = {
-        serverGroups: [
+        serverGroups: { data: [
           this.serverGroup000,
           this.serverGroup001,
           { cluster: 'cluster-a', name: 'cluster-a-v003', account: 'test', region: 'us-east-1', stringVal: 'new' },
-        ]
+        ]}
       };
       service.updateClusterGroups(application);
       $timeout.flush();
@@ -616,11 +616,11 @@ describe('Service: clusterFilterService', function () {
 
     it('adds a subgroup when new one provided', function() {
       var application = {
-        serverGroups: [
+        serverGroups: { data: [
           this.serverGroup000,
           this.serverGroup001,
           { cluster: 'cluster-b', name: 'cluster-a-v003', account: 'prod', region: 'us-east-1', stringVal: 'new' },
-        ]
+        ]}
       };
       service.updateClusterGroups(application);
       $timeout.flush();
@@ -635,11 +635,11 @@ describe('Service: clusterFilterService', function () {
 
     it('adds a sub-subgroup when new one provided', function() {
       var application = {
-        serverGroups: [
+        serverGroups: { data: [
           this.serverGroup000,
           this.serverGroup001,
           { cluster: 'cluster-a', name: 'cluster-a-v003', account: 'prod', region: 'us-west-1', stringVal: 'new' },
-        ]
+        ]}
       };
       service.updateClusterGroups(application);
       $timeout.flush();
@@ -653,11 +653,11 @@ describe('Service: clusterFilterService', function () {
 
     it('adds a server group when new one provided in same sub-sub-group', function() {
       var application = {
-        serverGroups: [
+        serverGroups: { data: [
           this.serverGroup000,
           this.serverGroup001,
           { cluster: 'cluster-a', name: 'cluster-a-v003', account: 'prod', region: 'us-east-1', stringVal: 'new' },
-        ]
+        ]}
       };
       service.updateClusterGroups(application);
       $timeout.flush();
@@ -670,17 +670,17 @@ describe('Service: clusterFilterService', function () {
 
     it('removes a group when one goes away', function() {
       var application = {
-        serverGroups: [
+        serverGroups: { data: [
           this.serverGroup000,
           this.serverGroup001,
           { cluster: 'cluster-a', name: 'cluster-a-v003', account: 'test', region: 'us-east-1', stringVal: 'new' },
-        ]
+        ]}
       };
       service.updateClusterGroups(application);
       $timeout.flush();
       expect(ClusterFilterModel.groups.length).toBe(2);
 
-      application.serverGroups.splice(0, 2);
+      application.serverGroups.data.splice(0, 2);
       service.updateClusterGroups(application);
       $timeout.flush();
       expect(ClusterFilterModel.groups.length).toBe(1);
@@ -689,18 +689,18 @@ describe('Service: clusterFilterService', function () {
 
     it('removes a subgroup when one goes away', function() {
       var application = {
-        serverGroups: [
+        serverGroups: { data: [
           this.serverGroup000,
           this.serverGroup001,
           { cluster: 'cluster-b', name: 'cluster-a-v003', account: 'prod', region: 'us-east-1', stringVal: 'new' },
-        ]
+        ]}
       };
       service.updateClusterGroups(application);
       $timeout.flush();
       expect(ClusterFilterModel.groups.length).toBe(1);
       expect(ClusterFilterModel.groups[0].subgroups.length).toBe(2);
 
-      application.serverGroups.splice(0, 2);
+      application.serverGroups.data.splice(0, 2);
       service.updateClusterGroups(application);
       $timeout.flush();
       expect(ClusterFilterModel.groups.length).toBe(1);
@@ -710,11 +710,11 @@ describe('Service: clusterFilterService', function () {
 
     it('removes a sub-subgroup when one goes away', function() {
       var application = {
-        serverGroups: [
+        serverGroups: { data: [
           this.serverGroup000,
           this.serverGroup001,
           { cluster: 'cluster-a', name: 'cluster-a-v003', account: 'prod', region: 'us-west-1', stringVal: 'new' },
-        ]
+        ]}
       };
       service.updateClusterGroups(application);
       $timeout.flush();
@@ -722,7 +722,7 @@ describe('Service: clusterFilterService', function () {
       expect(ClusterFilterModel.groups[0].subgroups.length).toBe(1);
       expect(ClusterFilterModel.groups[0].subgroups[0].subgroups.length).toBe(2);
 
-      application.serverGroups.splice(0, 2);
+      application.serverGroups.data.splice(0, 2);
       service.updateClusterGroups(application);
       $timeout.flush();
       expect(ClusterFilterModel.groups.length).toBe(1);
@@ -733,9 +733,9 @@ describe('Service: clusterFilterService', function () {
 
     it('removes a server group when one goes away', function() {
       var application = {
-        serverGroups: [
+        serverGroups: { data: [
           this.serverGroup001,
-        ]
+        ]}
       };
       service.updateClusterGroups(application);
       $timeout.flush();
@@ -748,10 +748,10 @@ describe('Service: clusterFilterService', function () {
 
     it('leaves server groups alone when stringVal does not change', function() {
       var application = {
-        serverGroups: [
+        serverGroups: { data: [
           { cluster: 'cluster-a', name: 'cluster-a-v000', account: 'prod', region: 'us-east-1', stringVal: 'should be deleted' },
           { cluster: 'cluster-a', name: 'cluster-a-v001', account: 'prod', region: 'us-east-1', stringVal: 'original' },
-        ]
+        ]}
       };
       service.updateClusterGroups(application);
       $timeout.flush();
@@ -761,15 +761,15 @@ describe('Service: clusterFilterService', function () {
 
     it('replaces server group when stringVal changes', function() {
       var application = {
-        serverGroups: [
+        serverGroups: { data: [
           { cluster: 'cluster-a', name: 'cluster-a-v000', account: 'prod', region: 'us-east-1', stringVal: 'mutated' },
           { cluster: 'cluster-a', name: 'cluster-a-v001', account: 'prod', region: 'us-east-1', stringVal: 'original' },
-        ]
+        ]}
       };
       service.updateClusterGroups(application);
       $timeout.flush();
       expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups[0]).not.toBe(this.serverGroup000);
-      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups[0]).toBe(application.serverGroups[0]);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups[0]).toBe(application.serverGroups.data[0]);
       expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups[1]).toBe(this.serverGroup001);
     });
 
@@ -777,11 +777,11 @@ describe('Service: clusterFilterService', function () {
       var runningTasks = [ { name: 'a' } ],
           executions = [ { name: 'b' } ];
       var application = {
-        serverGroups: [
+        serverGroups: { data: [
           { cluster: 'cluster-a', name: 'cluster-a-v001', account: 'prod', region: 'us-east-1', stringVal: 'original',
             runningTasks: runningTasks, executions: executions,
           },
-        ]
+        ]}
       };
       service.updateClusterGroups(application);
       $timeout.flush();

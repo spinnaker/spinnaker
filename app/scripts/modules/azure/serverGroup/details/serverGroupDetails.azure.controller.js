@@ -49,11 +49,11 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
     }
 
     function extractServerGroupSummary() {
-      var summary = _.find(app.serverGroups, function (toCheck) {
+      var summary = _.find(app.serverGroups.data, function (toCheck) {
         return toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region;
       });
       if (!summary) {
-        app.loadBalancers.some(function (loadBalancer) {
+        app.loadBalancers.data.some(function (loadBalancer) {
           if (loadBalancer.account === serverGroup.accountId && loadBalancer.region === serverGroup.region) {
             return loadBalancer.serverGroups.some(function (possibleServerGroup) {
               if (possibleServerGroup.name === serverGroup.name) {
@@ -106,8 +106,8 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
 
           if (details.launchConfig && details.launchConfig.securityGroups) {
             $scope.securityGroups = _(details.launchConfig.securityGroups).map(function(id) {
-              return _.find(app.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
-                _.find(app.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
+              return _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
+                _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
             }).compact().value();
           }
 
@@ -125,10 +125,9 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
 
     retrieveServerGroup().then(() => {
       // If the user navigates away from the view before the initial retrieveServerGroup call completes,
-      // do not bother subscribing to the autoRefreshStream
+      // do not bother subscribing to the refresh
       if (!$scope.$$destroyed) {
-        let refreshWatcher = app.autoRefreshStream.subscribe(retrieveServerGroup);
-        $scope.$on('$destroy', () => refreshWatcher.dispose());
+        app.serverGroups.onRefresh($scope, retrieveServerGroup);
       }
     });
 

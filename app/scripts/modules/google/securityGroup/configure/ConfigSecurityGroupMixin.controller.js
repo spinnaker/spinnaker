@@ -69,8 +69,8 @@ module.exports = angular
     }
 
     function onTaskComplete() {
-      application.refreshImmediately();
-      application.registerOneTimeRefreshHandler(onApplicationRefresh);
+      application.securityGroups.refresh();
+      application.securityGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({

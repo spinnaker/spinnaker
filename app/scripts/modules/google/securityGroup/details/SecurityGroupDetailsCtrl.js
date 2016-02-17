@@ -118,10 +118,9 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
 
     extractSecurityGroup().then(() => {
       // If the user navigates away from the view before the initial extractSecurityGroup call completes,
-      // do not bother subscribing to the autoRefreshStream
+      // do not bother subscribing to the refresh
       if (!$scope.$$destroyed && !app.isStandalone) {
-        let refreshWatcher = app.autoRefreshStream.subscribe(extractSecurityGroup);
-        $scope.$on('$destroy', () => refreshWatcher.dispose());
+        app.securityGroups.onRefresh($scope, extractSecurityGroup);
       }
     });
 
