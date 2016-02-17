@@ -1,21 +1,11 @@
 <div class="form-horizontal">
-  <stage-config-field label="Account">
-    <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="reset()" required></account-select-field>
-  </stage-config-field>
-  <region-select-field component="stage"
-                       field="region"
-                       account="stage.credentials"
-                       provider="'aws'"
-                       regions="regions"
-                       label-columns="2 col-md-offset-1"
-                       on-change="resetSelectedCluster()"
-                       field-columns="6"></region-select-field>
-  <stage-config-field label="Cluster" help-key="pipeline.config.quickPatchAsg.cluster">
-    <cluster-selector
-      clusters="clusterList"
-      model="stage.clusterName">
-    </cluster-selector>
-  </stage-config-field>
+
+  <account-region-cluster-selector
+    application="application"
+    component="stage"
+    accounts="accounts" >
+  </account-region-cluster-selector>
+
   <stage-config-field label="Package" help-key="pipeline.config.quickPatchAsg.package">
     <input type="text" required ng-model="stage.package"
            class="form-control input-sm" />

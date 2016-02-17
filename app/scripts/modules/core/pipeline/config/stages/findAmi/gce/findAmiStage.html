@@ -1,28 +1,11 @@
 <div ng-controller="gceFindAmiStageCtrl as findAmiCtrl" class="form-horizontal">
-  <stage-config-field label="Account">
-    <account-select-field
-      component="stage"
-      field="credentials"
-      accounts="accounts"
-      provider="'gce'"
-      on-change="findAmiCtrl.reset()"
-      required></account-select-field>
-  </stage-config-field>
-  <stage-config-field label="Zones">
-    <p ng-if="!stage.credentials" class="form-control-static">(Select an Account)</p>
-    <checkmap
-      ng-if="stage.credentials"
-      item-map="zones"
-      selected-items="stage.zones"
-      on-change="findAmiCtrl.resetSelectedCluster()">
-    </checkmap>
-  </stage-config-field>
-  <stage-config-field label="Cluster" help-key="pipeline.config.findAmi.cluster">
-    <cluster-selector
-      clusters="clusterList"
-      model="stage.cluster">
-    </cluster-selector>
-  </stage-config-field>
+
+  <account-zone-cluster-selector
+    application="application"
+    component="stage"
+    accounts="accounts">
+  </account-zone-cluster-selector>
+
   <stage-config-field label="Server Group Selection">
     <ui-select ng-model="stage.selectionStrategy" class="form-control input-sm">
       <ui-select-match placeholder="None">{{$select.selected.label}}</ui-select-match>

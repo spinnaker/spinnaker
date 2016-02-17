@@ -46,7 +46,7 @@
             <br/> delivery-engineering@netflix.com <br/>
             and we'll try to get this straightened out as soon as possible.
           </p>
-
+        </div>
       </div>
 
       <div ng-if="state === states.SUBMITTED">
@@ -55,8 +55,8 @@
           You can follow the progress of your issue <span ng-if="issueId">({{issueId}})</span> <a target=_blank href="{{issueUrl}}">here</a> .
         </p>
       </div>
-
     </div>
+
     <div class="modal-footer">
       <button class="btn btn-default" ng-click="ctrl.cancel()">{{state === states.EDITING ? 'Cancel' : 'Close'}}</button>
       <submit-button ng-if="state !== states.SUBMITTED"
