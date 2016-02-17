@@ -67,12 +67,12 @@
     </div>
     <div ng-class="{collapse: stage.showAdvancedOptions !== true, 'collapse.in': stage.showAdvancedOptions === true}">
       <stage-config-field label="Template File Name" help-key="pipeline.config.bake.templateFileName"
-                          ng-if="viewState.roscoMode || stage.templateFileName">
+                          ng-if="bakeStageCtrl.showTemplateFileName()">
         <input type="text" class="form-control input-sm"
                ng-model="stage.templateFileName"/>
       </stage-config-field>
       <stage-config-field label="Extended Attributes" help-key="pipeline.config.bake.extendedAttributes"
-                          ng-if="viewState.roscoMode || (stage.extendedAttributes && _.size(stage.extendedAttributes) > 0)">
+                          ng-if="bakeStageCtrl.showExtendedAttributes()">
         <table class="table table-condensed packed">
           <thead>
           <tr>

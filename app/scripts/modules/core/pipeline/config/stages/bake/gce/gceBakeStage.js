@@ -27,7 +27,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.bakeStage', [
   })
   .controller('gceBakeStageCtrl', function($scope, bakeryService, $q, _, authenticationService, settings, $uibModal) {
 
-    $scope._ = _;
     $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
     $scope.stage.region = 'global';
 
@@ -90,6 +89,14 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.bakeStage', [
 
     this.removeExtendedAttribute = function (key) {
       delete $scope.stage.extendedAttributes[key];
+    };
+
+    this.showTemplateFileName = function() {
+      return $scope.viewState.roscoMode || $scope.stage.templateFileName;
+    };
+
+    this.showExtendedAttributes = function() {
+      return $scope.viewState.roscoMode || ($scope.stage.extendedAttributes && _.size($scope.stage.extendedAttributes) > 0);
     };
 
     $scope.$watch('stage', deleteEmptyProperties, true);
