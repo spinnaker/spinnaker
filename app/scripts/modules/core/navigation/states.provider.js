@@ -388,6 +388,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
             tasks,
             deliveryStates.executions,
             deliveryStates.configure,
+            deliveryStates.executionDetails,
             config,
           ],
         };

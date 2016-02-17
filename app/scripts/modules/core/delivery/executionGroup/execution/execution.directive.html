@@ -1,7 +1,8 @@
 <div class="execution" id="execution-{{vm.execution.id}}">
   <execution-status execution="vm.execution"
                     toggle-details="vm.toggleDetails"
-                    showing-details="vm.showDetails">
+                    showing-details="vm.showDetails"
+                    standalone="vm.standalone">
   </execution-status>
   <div class="execution-bar">
     <div class="stages">
@@ -64,14 +65,14 @@
 
   <div ng-if="vm.showDetails()" class="execution-details">
     <div class="row">
-      <execution-details execution="vm.execution" application="vm.application">
+      <execution-details execution="vm.execution" application="vm.application" standalone="vm.standalone">
       </execution-details>
     </div>
     <div class="row permalinks text-right">
       <div class="col-md-12">
         <a target="_blank" ng-href="{{vm.pipelinesUrl + vm.execution.id}}">Source</a>
         |
-        <a target="_blank" ng-href="{{vm.getUrl()}}">Permalink</a>
+        <a ng-href="{{vm.getUrl()}}">Permalink</a>
         <copy-to-clipboard text="{{vm.getUrl()}}" tool-tip="Copy permalink to clipboard"></copy-to-clipboard>
       </div>
     </div>

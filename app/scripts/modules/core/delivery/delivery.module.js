@@ -5,6 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.delivery', [
 
   require('./details/executionDetails.controller.js'),
+  require('./details/singleExecutionDetails.controller.js'),
   require('./details/executionDetails.directive.js'),
   require('./details/executionDetailsSectionNav.directive.js'),
 

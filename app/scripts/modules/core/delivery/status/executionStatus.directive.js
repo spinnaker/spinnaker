@@ -17,6 +17,7 @@ module.exports = angular
         execution: '=',
         toggleDetails: '=',
         showingDetails: '=',
+        standalone: '=',
       },
       templateUrl: require('./executionStatus.html'),
       controller: 'executionStatus as vm',

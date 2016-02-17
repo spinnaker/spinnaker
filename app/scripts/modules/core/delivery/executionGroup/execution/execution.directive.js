@@ -19,6 +19,7 @@ module.exports = angular
       bindToController: {
         application: '=',
         execution: '=',
+        standalone: '=',
       },
       controller: 'ExecutionCtrl',
       controllerAs: 'vm',
@@ -30,8 +31,8 @@ module.exports = angular
     this.pipelinesUrl = [settings.gateUrl, 'pipelines/'].join('/');
 
     this.showDetails = () => {
-      return this.execution.id === $stateParams.executionId &&
-        $state.includes('**.execution.**');
+      return this.standalone === true || ( this.execution.id === $stateParams.executionId &&
+        $state.includes('**.execution.**') );
     };
 
     this.isActive = (stageIndex) => {
@@ -43,7 +44,7 @@ module.exports = angular
       if ($state.includes('**.execution', params)) {
         $state.go('^');
       } else {
-        if ($state.current.name.indexOf('.executions.execution') !== -1) {
+        if ($state.current.name.indexOf('.executions.execution') !== -1 || $state.current.name.indexOf('.executionDetails.execution') !== -1) {
           $state.go('.', params);
         } else {
           $state.go('.execution', params);
@@ -52,13 +53,11 @@ module.exports = angular
     };
 
     this.getUrl = () => {
-      // replace any search text with the execution id
-      let [url, queryString] = $location.absUrl().split('?');
-      let queryParams = urlParser.parseQueryString(queryString);
-      queryParams.q = this.execution.id;
-      url += '?';
-      let newQueryParts = Object.keys(queryParams).map((param) => param + '=' + queryParams[param]);
-      return url + newQueryParts.join('&');
+      let url = $location.absUrl();
+      if (!this.standalone) {
+        url = url.replace('/executions', '/executions/details');
+      }
+      return url;
     };
 
     let updateViewStateDetails = () => {
@@ -81,7 +80,11 @@ module.exports = angular
         header: 'Really delete execution?',
         buttonText: 'Delete',
         body: '<p>This will permanently delete the execution history.</p>',
-        submitMethod: () => executionService.deleteExecution(this.application, this.execution.id)
+        submitMethod: () => executionService.deleteExecution(this.application, this.execution.id).then( () => {
+          if (this.standalone) {
+            $state.go('^.^.executions');
+          }
+        })
       });
     };
 
