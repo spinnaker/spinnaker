@@ -8,10 +8,10 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
   require('../serverGroupConfiguration.service.js'),
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js'),
-  require('../../../../core/modal/wizard/modalWizard.service.js'),
+  require('../../../../core/modal/wizard/v2modalWizard.service.js'),
 ])
   .controller('azureCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,
-                                                  serverGroupWriter, modalWizardService, taskMonitorService,
+                                                  serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                   azureServerGroupConfigurationService, serverGroupCommand, application, title) {
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
@@ -98,18 +98,18 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
 
     function initializeWizardState() {
       if (serverGroupCommand.viewState.instanceProfile && serverGroupCommand.viewState.instanceProfile !== 'custom') {
-        modalWizardService.getWizard().includePage('instance-type');
-        modalWizardService.getWizard().markComplete('instance-type');
+        v2modalWizardService.includePage('instance-type');
+        v2modalWizardService.markComplete('instance-type');
       }
       var mode = serverGroupCommand.viewState.mode;
       if (mode === 'clone' || mode === 'editPipeline') {
-        modalWizardService.getWizard().markComplete('location');
-        modalWizardService.getWizard().markComplete('load-balancers');
-        modalWizardService.getWizard().markComplete('security-groups');
-        modalWizardService.getWizard().markComplete('instance-profile');
-        modalWizardService.getWizard().markComplete('instance-type');
-        modalWizardService.getWizard().markComplete('capacity');
-        modalWizardService.getWizard().markComplete('advanced');
+        v2modalWizardService.markComplete('location');
+        v2modalWizardService.markComplete('load-balancers');
+        v2modalWizardService.markComplete('security-groups');
+        v2modalWizardService.markComplete('instance-profile');
+        v2modalWizardService.markComplete('instance-type');
+        v2modalWizardService.markComplete('capacity');
+        v2modalWizardService.markComplete('advanced');
       }
     }
 
@@ -122,7 +122,7 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
       $scope.$watch('command.freeFormDetails', $scope.command.clusterChanged);
       $scope.$watch('command.viewState.securityGroupDiffs', function(newVal) {
         if (newVal && newVal.length) {
-          modalWizardService.getWizard().markDirty('security-groups');
+          v2modalWizardService.markDirty('security-groups');
         }
       });
       $scope.$watch('command.securityGroups', $scope.command.configureSecurityGroupDiffs);
@@ -142,13 +142,13 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
 
     function processCommandUpdateResult(result) {
       if (result.dirty.loadBalancers) {
-        modalWizardService.getWizard().markDirty('load-balancers');
+        v2modalWizardService.markDirty('load-balancers');
       }
       if (result.dirty.securityGroups) {
-        modalWizardService.getWizard().markDirty('security-groups');
+        v2modalWizardService.markDirty('security-groups');
       }
       if (result.dirty.availabilityZones) {
-        modalWizardService.getWizard().markDirty('capacity');
+        v2modalWizardService.markDirty('capacity');
       }
     }
 
@@ -168,7 +168,7 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
         ($scope.command.application !== null) &&
         ($scope.command.credentials !== null) &&
         ($scope.command.region !== null) &&
-        modalWizardService.getWizard().isComplete();
+        v2modalWizardService.isComplete();
     };
 
     this.showSubmitButton = function () {

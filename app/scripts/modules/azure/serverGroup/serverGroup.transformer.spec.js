@@ -21,7 +21,13 @@ describe('azureServerGroupTransformer', function () {
 
     it('sets name correctly with no stack or detail', function () {
       var base = {
-        application: 'myApp'
+        application: 'myApp',
+        selectedImage:{
+          publisher: 'Microsoft',
+          offer: 'Windows',
+          sku: 'Server2016',
+          version: '12.0.0.1',
+        }
       };
 
       var transformed = transformer.convertServerGroupCommandToDeployConfiguration(base);
@@ -33,7 +39,13 @@ describe('azureServerGroupTransformer', function () {
     it('it sets name correctly with only stack', function () {
       var command = {
         stack: 's1',
-        application: 'theApp'
+        application: 'theApp',
+        selectedImage:{
+          publisher: 'Microsoft',
+          offer: 'Windows',
+          sku: 'Server2016',
+          version: '12.0.0.1',
+        }
       };
 
       var transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
@@ -44,7 +56,13 @@ describe('azureServerGroupTransformer', function () {
     it('it sets name correctly with only detail', function () {
       var command = {
         details: 'd1',
-        application: 'theApp'
+        application: 'theApp',
+        selectedImage:{
+          publisher: 'Microsoft',
+          offer: 'Windows',
+          sku: 'Server2016',
+          version: '12.0.0.1',
+        }
       };
 
       var transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
@@ -56,7 +74,13 @@ describe('azureServerGroupTransformer', function () {
       var command = {
         stack: 's1',
         details: 'd1',
-        application: 'theApp'
+        application: 'theApp',
+        selectedImage:{
+          publisher: 'Microsoft',
+          offer: 'Windows',
+          sku: 'Server2016',
+          version: '12.0.0.1',
+        }
       };
 
       var transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);

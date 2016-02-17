@@ -42,7 +42,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.service',
       return $q.all({
         regionsKeyedByAccount: accountService.getRegionsKeyedByAccount('azure'),
         securityGroups: securityGroupReader.getAllSecurityGroups(),
-        loadBalancers: loadBalancerReader.listLoadBalancers('azure'),
+        loadBalancers: loadBalancerReader.loadLoadBalancers(application.name),
         subnets: subnetReader.listSubnets(),
         preferredZones: accountService.getPreferredZonesByAccount(),
         keyPairs: keyPairsReader.listKeyPairs(),
