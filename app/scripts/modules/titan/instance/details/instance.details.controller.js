@@ -113,8 +113,8 @@ module.exports = angular.module('spinnaker.instance.detail.titan.controller', [
     };
 
     this.canRegisterWithDiscovery = function() {
-      var instance = $scope.instance;
-      var discoveryHealth = instance.health.filter(function(health) {
+      let healthMetrics = $scope.instance.health || [];
+      var discoveryHealth = healthMetrics.filter(function(health) {
         return health.type === 'Discovery';
       });
       return discoveryHealth.length ? discoveryHealth[0].state === 'OutOfService' : false;
@@ -205,8 +205,8 @@ module.exports = angular.module('spinnaker.instance.detail.titan.controller', [
     };
 
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
-      var instance = $scope.instance;
-      return (instance.health.some(function (health) {
+      let healthMetrics = $scope.instance.health || [];
+      return (healthMetrics.some(function (health) {
         return health.type === healthProviderType && health.state === state;
       })
       );
