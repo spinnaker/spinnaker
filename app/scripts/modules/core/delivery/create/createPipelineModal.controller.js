@@ -19,10 +19,8 @@ module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
 
     $scope.viewState = {};
 
-    application.pipelineConfigs = application.pipelineConfigs || [];
-
-    $scope.templates = [noTemplate].concat(application.pipelineConfigs);
-    $scope.strategyTemplates = [noTemplate].concat(application.strategyConfigs);
+    $scope.templates = [noTemplate].concat(application.pipelineConfigs.data);
+    $scope.strategyTemplates = [noTemplate].concat(application.strategyConfigs.data);
 
     $scope.existingNames = _.pluck($scope.templates, 'name');
     $scope.existingStrategyNames = _.pluck($scope.strategyTemplates, 'name');
@@ -47,7 +45,7 @@ module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
       }
 
       template.name = $scope.command.name;
-      template.index = application.pipelineConfigs.length;
+      template.index = application.pipelineConfigs.data.length;
       delete template.id;
 
       if($scope.command.strategy === true) {
@@ -58,8 +56,8 @@ module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
       return pipelineConfigService.savePipeline(template).then(
         function() {
           template.isNew = true;
-          application.reloadPipelineConfigs().then(() => {
-            let newPipeline = _.find(template.strategy === true ? application.strategyConfigs : application.pipelineConfigs, {name: template.name});
+          application.pipelineConfigs.refresh().then(() => {
+            let newPipeline = _.find(template.strategy === true ? application.strategyConfigs.data : application.pipelineConfigs.data, {name: template.name});
             if (!newPipeline) {
               $log.warn('Could not find new pipeline after save succeeded.');
               $scope.viewState.saveError = true;

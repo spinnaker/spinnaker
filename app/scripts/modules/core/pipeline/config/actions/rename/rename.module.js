@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.rename',
     $scope.viewState = {};
 
     $scope.pipeline = pipeline;
-    $scope.existingNames = _.without(_.pluck(application.pipelines, 'name'), currentName);
+    $scope.existingNames = _.without(_.pluck(application.pipelineConfigs.data, 'name'), currentName);
     $scope.command = {
       newName: currentName
     };
@@ -31,7 +31,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.rename',
             dirtyPipelineTracker.remove(currentName);
             dirtyPipelineTracker.add(pipeline.name);
           }
-          application.reloadPipelineConfigs();
+          application.pipelineConfigs.refresh();
           $modalInstance.close();
         },
         function(response) {

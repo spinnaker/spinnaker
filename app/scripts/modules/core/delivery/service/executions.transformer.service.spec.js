@@ -115,6 +115,30 @@ describe('executionTransformerService', function() {
       expect(execution.stageSummaries[2].endTime).toBeUndefined();
     });
 
+    it('should set summary status to canceled', function () {
+      var execution = {
+        stages: [
+          { id: '2', name: 'deploy', status: 'SUCCEEDED', startTime: 7, endTime: 8 },
+          { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'CANCELED', startTime: 4, endTime: 6},
+          { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'NOT_STARTED', startTime: 6 },
+        ]
+      };
+      this.transformer.transformExecution({}, execution);
+      expect(execution.stageSummaries[0].status).toBe('CANCELED');
+    });
+
+    it('should set summary status to not started', function () {
+      var execution = {
+        stages: [
+          { id: '2', name: 'deploy', status: 'SUCCEEDED', startTime: 7, endTime: 8 },
+          { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'COMPLETED', startTime: 4, endTime: 6},
+          { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'NOT_STARTED', startTime: 6 },
+        ]
+      };
+      this.transformer.transformExecution({}, execution);
+      expect(execution.stageSummaries[0].status).toBe('NOT_STARTED');
+    });
+
     it('should remove stage summary end time if current stage is still running', function () {
       var execution = {
         stages: [

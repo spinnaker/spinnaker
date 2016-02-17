@@ -4,11 +4,11 @@
     </button>
     <ul class="uib-dropdown-menu" role="menu">
         <li><create-pipeline-button application="application"></create-pipeline-button></li>
-        <li class="dropdown-header" style="margin-top:0" ng-if="application.pipelineConfigs.length">PIPELINES</li>
-        <li ng-repeat="pipeline in application.pipelineConfigs"><a href
+        <li class="dropdown-header" style="margin-top:0" ng-if="application.pipelineConfigs.data.length">PIPELINES</li>
+        <li ng-repeat="pipeline in application.pipelineConfigs.data"><a href
                                                                    ui-sref="^.pipelineConfig({pipelineId: pipeline.id})">{{pipeline.name}}</a></li>
-        <li class="dropdown-header" style="margin-top:0" ng-if="application.strategyConfigs.length">DEPLOYMENT STRATEGIES</li>
-        <li  ng-repeat="pipeline in application.strategyConfigs"><a href
+        <li class="dropdown-header" style="margin-top:0" ng-if="application.strategyConfigs.data.length">DEPLOYMENT STRATEGIES</li>
+        <li  ng-repeat="pipeline in application.strategyConfigs.data"><a href
                                                                     ui-sref="^.pipelineConfig({pipelineId: pipeline.id})">{{pipeline.name}}</a></li>
     </ul>
 </div>

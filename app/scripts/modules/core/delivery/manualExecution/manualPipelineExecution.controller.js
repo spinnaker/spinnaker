@@ -102,7 +102,7 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
     }
 
     if (!pipeline) {
-      this.pipelineOptions = application.pipelineConfigs;
+      this.pipelineOptions = application.pipelineConfigs.data;
     }
 
   });

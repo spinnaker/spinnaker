@@ -19,15 +19,15 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.delete',
     this.deletePipeline = function() {
       return pipelineConfigService.deletePipeline(application.name, pipeline, pipeline.name).then(
         function() {
-          application.pipelineConfigs.splice(application.pipelineConfigs.indexOf(pipeline), 1);
-          application.pipelineConfigs.forEach(function(pipeline, index) {
+          application.pipelineConfigs.data.splice(application.pipelineConfigs.data.indexOf(pipeline), 1);
+          application.pipelineConfigs.data.forEach(function(pipeline, index) {
             if (pipeline.index !== index) {
               pipeline.index = index;
               pipelineConfigService.savePipeline(pipeline);
             }
           });
           dirtyPipelineTracker.remove(pipeline.name);
-          application.reloadPipelineConfigs();
+          application.pipelineConfigs.refresh();
           $state.go('^.executions', null, {location: 'replace'});
         },
         function(response) {
