@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.con
   require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('azureSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, app, InsightFilterStateModel,
-                                                    confirmationModalService, securityGroupWriter, securityGroupReader,
+                                                    confirmationModalService, azureSecurityGroupWriter, securityGroupReader,
                                                     $modal, _) {
 
     const application = app;
@@ -92,8 +92,9 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.con
       };
 
       var submitMethod = function () {
-        return securityGroupWriter.deleteSecurityGroup(securityGroup, application, {
-          cloudProvider: $scope.securityGroup.type,
+        $scope.securityGroup.type = 'deleteSecurityGroup';
+        return azureSecurityGroupWriter.deleteSecurityGroup(securityGroup, application, {
+          cloudProvider: 'azure',
           vpcId: $scope.securityGroup.vpcId,
         });
       };

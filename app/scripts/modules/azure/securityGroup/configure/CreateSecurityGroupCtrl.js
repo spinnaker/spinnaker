@@ -16,18 +16,8 @@ module.exports = angular
     require('../../../core/cache/cacheInitializer.js'),
   ])
 
-  .controller('azureCreateSecurityGroupCtrl', function ($scope,
-    $modalInstance,
-    $state,
-    $controller,
-    accountService,
-    securityGroupReader,
-    taskMonitorService,
-    cacheInitializer,
-    infrastructureCaches,
-    application,
-    securityGroup,
-    azureSecurityGroupWriter
+  .controller('azureCreateSecurityGroupCtrl', function ($scope, $modalInstance, $state, $controller, accountService, securityGroupReader,
+    taskMonitorService, cacheInitializer, infrastructureCaches, application, securityGroup, azureSecurityGroupWriter
     ) {
 
     $scope.pages = {
@@ -128,8 +118,7 @@ module.exports = angular
     };
 
     ctrl.addRule = function(ruleset) {
-      ruleset.push({
-        name: $scope.securityGroup.name + '-Rule' + ruleset.length,
+      ruleset.push({ name: $scope.securityGroup.name + '-Rule' + ruleset.length,
         priority: ruleset.length == 0 ? 100 : 100 * (ruleset.length + 1),
         protocol: 'tcp',
         access: 'Allow',
@@ -143,8 +132,7 @@ module.exports = angular
       });
     };
 
-    ctrl.portUpdated = function(ruleset, index)
-    {
+    ctrl.portUpdated = function(ruleset, index) {
         ruleset[index].destinationPortRange =
             ruleset[index].startPort + '-' + ruleset[index].endPort;
     };
@@ -154,18 +142,17 @@ module.exports = angular
     };
 
     ctrl.moveUp = function(ruleset, index) {
-      if(index == 0)
+      if(index === 0)
         return;
       swapRules(ruleset, index, index - 1);
     };
     ctrl.moveDown = function(ruleset, index) {
-      if(index == ruleset.length - 1)
+      if(index === ruleset.length - 1)
         return;
       swapRules(ruleset, index, index + 1);
     };
 
-    function swapRules(ruleset, a, b)
-    {
+    function swapRules(ruleset, a, b) {
       var temp, priorityA, priorityB;
       temp = ruleset[b];
       priorityA = ruleset[a].priority;

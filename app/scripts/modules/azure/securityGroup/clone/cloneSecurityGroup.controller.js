@@ -6,68 +6,154 @@ module.exports = angular
   .module('spinnaker.azure.securityGroup.clone.controller', [
     require('../../../core/account/account.service.js'),
     require('../../../core/task/monitor/taskMonitorService.js'),
-    require('../../../core/securityGroup/securityGroup.write.service.js'),
+    require('../securityGroup.write.service.js'),
     require('../../../core/utils/lodash.js'),
     require('../configure/CreateSecurityGroupCtrl.js')
   ])
-  .controller('azureCloneSecurityGroupController', function($scope, $modalInstance, $controller, taskMonitorService, accountService, securityGroupWriter, securityGroup, application, _) {
-    var vm = this;
+  .controller('azureCloneSecurityGroupController', function($scope, $modalInstance, $controller, $state, taskMonitorService, accountService,
+    azureSecurityGroupWriter, securityGroup, application, _) {
+    var ctrl = this;
 
     $scope.pages = {
       location: require('../configure/createSecurityGroupProperties.html'),
       ingress: require('../configure/createSecurityGroupIngress.html'),
     };
 
-    angular.extend(this, $controller('azureCreateSecurityGroupCtrl', {
-      $scope: $scope,
-      $modalInstance: $modalInstance,
-      application: application,
-      securityGroup: securityGroup,
-    }));
+    securityGroup.securityRules = _.map(securityGroup.securityRules,function(rule) {
+      var temp = rule.destinationPortRange.split('-');
+      rule.startPort = Number(temp[0]);
+      rule.endPort = Number(temp[1]);
+      return rule;
+    });
 
+    ctrl.accountUpdated = function() {
+      accountService.getRegionsForAccount($scope.securityGroup.credentials).then(function(regions) {
+        $scope.regions = regions;
+        $scope.securityGroup.regions = regions;
+        ctrl.updateName();
+      });
+    };
+
+    ctrl.cancel = function () {
+      $modalInstance.dismiss();
+    };
+
+    ctrl.updateName = function() {
+      var securityGroup = $scope.securityGroup,
+        name = application.name;
+      if (securityGroup.detail) {
+        name += '-' + securityGroup.detail;
+      }
+      securityGroup.name = name;
+      $scope.namePreview = name;
+    };
+
+    $scope.securityGroup = securityGroup;
+
+    $scope.state = {
+      refreshingSecurityGroups: false,
+    };
+
+    $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
+      application: application,
+      title: 'Updating your security group',
+      modalInstance: $modalInstance,
+      onTaskComplete: onTaskComplete,
+    });
 
     accountService.listAccounts('azure').then(function(accounts) {
       $scope.accounts = accounts;
-      vm.accountUpdated();
+      ctrl.accountUpdated();
     });
 
-    securityGroup.securityGroupIngress = _(securityGroup.inboundRules)
-      .filter(function(rule) {
-        return rule.securityGroup;
-      }).map(function(rule) {
-        return rule.portRanges.map(function(portRange) {
-          return {
-            name: rule.securityGroup.name,
-            type: rule.protocol,
-            startPort: portRange.startPort,
-            endPort: portRange.endPort
-          };
-        });
-      })
-      .flatten()
-      .value();
-
-    securityGroup.ipIngress = _(securityGroup.inboundRules)
-      .filter(function(rule) {
-        return rule.range;
-      }).map(function(rule) {
-        return rule.portRanges.map(function(portRange) {
-          return {
-            cidr: rule.range.ip + rule.range.cidr,
-            type: rule.protocol,
-            startPort: portRange.startPort,
-            endPort: portRange.endPort
-          };
-        });
-      })
-      .flatten()
-      .value();
-
-
-    vm.upsert = function () {
-      vm.mixinUpsert('Clone');
+    ctrl.addRule = function(ruleset) {
+      ruleset.push({
+        name: $scope.securityGroup.name + '-Rule' + ruleset.length,
+        priority: ruleset.length === 0 ? 100 : 100 * (ruleset.length + 1),
+        protocol: 'tcp',
+        access: 'Allow',
+        direction: 'InBound',
+        sourceAddressPrefix: '*',
+        sourcePortRange: '*',
+        destinationAddressPrefix: '*',
+        destinationPortRange: '7001-7001',
+        startPort: 7001,
+        endPort: 7001
+      });
     };
 
-    vm.initializeSecurityGroups();
+    function onApplicationRefresh() {
+      // If the user has already closed the modal, do not navigate to the new details view
+      if ($scope.$$destroyed) {
+        return;
+      }
+      $modalInstance.close();
+      var newStateParams = {
+        name: $scope.securityGroup.name,
+        accountId: $scope.securityGroup.credentials || $scope.securityGroup.accountName,
+        region: $scope.securityGroup.region,
+        provider: 'azure',
+      };
+      if (!$state.includes('**.securityGroupDetails')) {
+        $state.go('.securityGroupDetails', newStateParams);
+      } else {
+        $state.go('^.securityGroupDetails', newStateParams);
+      }
+    }
 
+    function onTaskComplete() {
+      application.securityGroups.refresh();
+      application.securityGroups.onNextRefresh($scope, onApplicationRefresh);
+    }
+
+    ctrl.portUpdated = function(ruleset, index)
+    {
+        ruleset[index].destinationPortRange =
+            ruleset[index].startPort + '-' + ruleset[index].endPort;
+    };
+    ctrl.removeRule = function(ruleset, index) {
+      ruleset.splice(index, 1);
+    };
+    ctrl.moveUp = function(ruleset, index) {
+      if(index === 0)
+        return;
+      swapRules(ruleset, index, index - 1);
+    };
+    ctrl.moveDown = function(ruleset, index) {
+      if(index === ruleset.length - 1)
+        return;
+      swapRules(ruleset, index, index + 1);
+    };
+    function swapRules(ruleset, a, b) {
+      var temp, priorityA, priorityB;
+      temp = ruleset[b];
+      priorityA = ruleset[a].priority;
+      priorityB = ruleset[b].priority;
+      //swap elements
+      ruleset[b] = ruleset[a];
+      ruleset[a] = temp;
+      //swap priorities
+      ruleset[a].priority = priorityA;
+      ruleset[b].priority = priorityB;
+    }
+
+    $scope.taskMonitor.onApplicationRefresh = $modalInstance.dismiss;
+
+    ctrl.upsert = function () {
+      $scope.taskMonitor.submit(
+        function() {
+          let params = {
+            cloudProvider: 'azure',
+            appName: application.name,
+            securityGroupName: $scope.securityGroup.name,
+            region: $scope.securityGroup.region,
+            subnet : 'none',
+            vpcId: 'null'
+            };
+          $scope.securityGroup.type = 'upsertSecurityGroup';
+
+          return azureSecurityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Clone', params);
+        }
+      );
+    };
   });
