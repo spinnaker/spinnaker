@@ -48,14 +48,14 @@ class AzureServerGroupResourceTemplate {
 
     /**
      *
-     * @param desrciption
+     * @param description
      */
-    ServerGroupTemplate(AzureServerGroupDescription desrciption) {
+    ServerGroupTemplate(AzureServerGroupDescription description) {
       parameters = new ServerGroupTemplateParameters()
-      variables = new ServerGroupTemplateVariables(desrciption)
+      variables = new ServerGroupTemplateVariables(description)
 
-      resources.add(new StorageAccount(desrciption))
-      resources.add(new VirtualMachineScaleSet(desrciption))
+      resources.add(new StorageAccount(description))
+      resources.add(new VirtualMachineScaleSet(description))
     }
 
   }
@@ -95,8 +95,10 @@ class AzureServerGroupResourceTemplate {
       //vhdContainerNameVar = vhdContainerName.class.name
       //newStorageAccountsSuffixVar = newStorageAccountSuffix.class.name
 
+      String simpleName = description.name.replaceAll('-', '')
+
       for (int i = 0; i < description.getStorageAccountCount(); i++) {
-        String uniqueName = String.format("[concat(uniqueString(concat(resourceGroup().id, variables('%s'), '%s')))]", newStorageAccountsSuffixVar, i)
+        String uniqueName = String.format("[concat(uniqueString(concat(resourceGroup().id, subscription().id, '%s', variables('%s'), '%s')))]", simpleName, newStorageAccountsSuffixVar, i)
         uniqueStorageNameArray.add(uniqueName)
       }
     }
@@ -165,7 +167,7 @@ class AzureServerGroupResourceTemplate {
 
       copy = new CopyOperation("storageLoop", description.getStorageAccountCount())
       tags = ["appName":description.application, "stack":description.stack, "detail":description.detail]
-      properties = new StorageAccountProperties(description)
+      properties = new StorageAccountProperties()
     }
   }
 
@@ -179,7 +181,7 @@ class AzureServerGroupResourceTemplate {
      *
      * @param description
      */
-    StorageAccountProperties(AzureServerGroupDescription description) {
+    StorageAccountProperties() {
       accountType = "Standard_LRS" // TODO get this from the description
     }
   }
@@ -344,7 +346,7 @@ class AzureServerGroupResourceTemplate {
      */
     NetworkInterfaceIPConfiguration(AzureServerGroupDescription description) {
       name = AzureUtilities.IPCONFIG_NAME_PREFIX + description.getIdentifier()
-      properties = new NetworkInterfaceIPConfigurationsProperty(description)
+      properties = new NetworkInterfaceIPConfigurationsProperty()
     }
   }
 
@@ -358,8 +360,8 @@ class AzureServerGroupResourceTemplate {
      *
      * @param description
      */
-    NetworkInterfaceIPConfigurationsProperty(AzureServerGroupDescription description) {
-      subnet = new NetworkInterfaceIPConfigurationSubnet(description)
+    NetworkInterfaceIPConfigurationsProperty() {
+      subnet = new NetworkInterfaceIPConfigurationSubnet()
     }
   }
 
@@ -368,7 +370,7 @@ class AzureServerGroupResourceTemplate {
    */
   static class NetworkInterfaceIPConfigurationSubnet {
     String id
-    NetworkInterfaceIPConfigurationSubnet(AzureServerGroupDescription description) {
+    NetworkInterfaceIPConfigurationSubnet() {
       id = "[parameters('subnetId')]"
     }
   }
