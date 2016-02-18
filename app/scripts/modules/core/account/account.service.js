@@ -94,6 +94,42 @@ module.exports = angular.module('spinnaker.core.account.service', [
       return deferred.promise;
     });
 
+    let getUniqueRegionsForAllAccounts = _.memoize((provider) => {
+      return getRegionsKeyedByAccount(provider)
+        .then(function(regionsByAccount) {
+          let regions = _.chain(regionsByAccount)
+            .values()
+            .map(acct => acct.regions)
+            .flatten()
+            .map(reg => reg.name)
+            .uniq()
+            .value();
+
+          return regions;
+        });
+    });
+
+    let getUniqueGceZonesForAllAccounts = _.memoize((provider) => {
+      return getRegionsKeyedByAccount(provider)
+        .then(function(regionsByAccount) {
+          return _.chain(regionsByAccount)
+            .values()
+            .map(acct => acct.regions)
+            .flatten()
+            .reduce((acc, obj) => {
+              Object.keys(obj).forEach((key) => {
+                if(acc[key]) {
+                  acc[key] = _.uniq(acc[key].concat(obj[key]));
+                } else {
+                  acc[key] = obj[key];
+                }
+              });
+              return acc;
+            }, {})
+            .value();
+        });
+    });
+
     function getAccountDetails(accountName) {
       return Restangular.one('credentials', accountName)
         .withHttpConfig({cache: true})
@@ -126,6 +162,8 @@ module.exports = angular.module('spinnaker.core.account.service', [
       getRegionsForAccount: getRegionsForAccount,
       getRegionsKeyedByAccount: getRegionsKeyedByAccount,
       getPreferredZonesByAccount: getPreferredZonesByAccount,
+      getUniqueRegionsForAllAccounts: getUniqueRegionsForAllAccounts,
+      getUniqueGceZonesForAllAccounts: getUniqueGceZonesForAllAccounts,
       getAvailabilityZonesForAccountAndRegion: getAvailabilityZonesForAccountAndRegion
     };
   });
