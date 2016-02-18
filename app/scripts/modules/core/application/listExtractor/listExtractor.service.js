@@ -37,6 +37,13 @@ module.exports = angular
 
     let defaultClusterFilter = (/*cluster*/) => true;
 
+    let clusterFilterForCredentials = (credentials) => {
+      return (cluster) => {
+        let acctFilter = credentials ? cluster.account === credentials : true;
+        return acctFilter;
+      };
+    };
+
     let clusterFilterForCredentialsAndRegion = (credentials, region) => {
       return (cluster) => {
         let acctFilter = credentials ? cluster.account === credentials : true;
@@ -146,6 +153,7 @@ module.exports = angular
       getRegions: getRegions,
       getStacks: getStacks,
       getClusters: getClusters,
+      clusterFilterForCredentials: clusterFilterForCredentials,
       clusterFilterForCredentialsAndRegion: clusterFilterForCredentialsAndRegion,
       clusterFilterForCredentialsAndZone: clusterFilterForCredentialsAndZone,
       getAsgs: getAsgs,
