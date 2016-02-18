@@ -34,6 +34,8 @@ class CloudFoundryAccountCredentials implements AccountCredentials<CloudCredenti
   String environment
   String accountType
   String password
+  String artifactUsername
+  String artifactPassword
 
   @Override
   CloudCredentials getCredentials() {

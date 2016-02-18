@@ -15,17 +15,15 @@
  */
 
 package com.netflix.spinnaker.clouddriver.cf.model
-
+import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConstants
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
-import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.cloudfoundry.client.lib.domain.CloudApplication
 /**
  * A Cloud Foundry application combined with its org/space coordinates.
  */
-@CompileStatic
 @EqualsAndHashCode(includes = ["name"])
 class CloudFoundryServerGroup implements ServerGroup, Serializable {
 
@@ -126,8 +124,10 @@ class CloudFoundryServerGroup implements ServerGroup, Serializable {
     def bi = buildInfo
     return new ServerGroup.ImageSummary() {
       String serverGroupName = name
-      String imageName
-      String imageId
+      String imageName = launchConfig?."${CloudFoundryConstants.ARTIFACT}"
+      String imageId = launchConfig?."${CloudFoundryConstants.REPOSITORY}" +
+          "::" + launchConfig?."${CloudFoundryConstants.ARTIFACT}" +
+          "::" + launchConfig?."${CloudFoundryConstants.ACCOUNT}"
 
       @Override
       Map<String, Object> getBuildInfo() {
@@ -136,7 +136,10 @@ class CloudFoundryServerGroup implements ServerGroup, Serializable {
 
       @Override
       Map<String, Object> getImage() {
-        return [:]
+        return [
+            imageName: imageName,
+            imageId: imageId
+        ]
       }
     }
   }

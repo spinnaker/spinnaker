@@ -21,12 +21,31 @@ package com.netflix.spinnaker.clouddriver.cf.config
  */
 class CloudFoundryConstants {
 
+  /**
+   * Jenkins-specific metadata
+   */
   static String COMMIT_HASH = 'SPINNAKER_BUILD_COMMITHASH'
   static String COMMIT_BRANCH = 'SPINNAKER_BUILD_COMMITBRANCH'
   static String JENKINS_HOST = 'SPINNAKER_BUILD_JENKINS_HOST'
   static String JENKINS_NAME = 'SPINNAKER_BUILD_JENKINS_NAME'
   static String JENKINS_BUILD = 'SPINNAKER_BUILD_JENKINS_BUILD'
+
+  /**
+   * General build info
+   */
   static String PACKAGE = 'SPINNAKER_BUILD_PACKAGE'
+
+  /**
+   * Assigned loadbalancers
+   */
   static String LOAD_BALANCERS = 'SPINNAKER_LOAD_BALANCERS'
+
+  /**
+   * Image metadata
+   *
+   */
+  static String REPOSITORY = 'SPINNAKER_REPOSITORY'
+  static String ARTIFACT = 'SPINNAKER_ARTIFACT'
+  static String ACCOUNT = 'SPINNAKER_ACCOUNT'
 
 }
