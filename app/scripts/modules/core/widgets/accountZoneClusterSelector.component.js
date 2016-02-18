@@ -3,7 +3,11 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.accountZoneClusterSelector.directive', [])
+  .module('spinnaker.core.accountZoneClusterSelector.directive', [
+    require('../../core/application/listExtractor/listExtractor.service'),
+    require('../../core/account/account.service'),
+    require('../../core/utils/lodash'),
+  ])
   .directive('accountZoneClusterSelector', function() {
     return {
       restrict: 'E',
@@ -15,16 +19,16 @@ module.exports = angular
       },
       templateUrl: require('./accountZoneClusterSelector.component.html'),
       controllerAs: 'vm',
-      controller: function controller(appListExtractorService, accountService) {
+      controller: function controller(appListExtractorService, accountService, _) {
         let vm = this;
         let isTextInputForClusterFiled;
 
-        let zones = {'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c']};
+        let zones;
 
         let setZoneList = () => {
-          accountService.getRegionsForAccount(vm.component.credentials).then(function(zoneMap) {
-            vm.zones = zoneMap ? zoneMap : zones;
-          });
+          let accountFilter = (cluster) => cluster.account === vm.component.credentials;
+          let zoneList = appListExtractorService.getRegions([vm.application], accountFilter);
+          vm.zones = zoneList.length ? zoneList : zones;
         };
 
         let setClusterList = () => {
@@ -34,7 +38,7 @@ module.exports = angular
 
         vm.zoneChanged = () => {
           setClusterList();
-          if (!isTextInputForClusterFiled && !vm.clusterList.includes(vm.component.cluster)) {
+          if (!isTextInputForClusterFiled && _.includes(!vm.clusterList, vm.component.cluster)) {
             vm.component.cluster = undefined;
           }
         };
@@ -61,9 +65,15 @@ module.exports = angular
         };
 
         let init = () => {
-          setZoneList();
-          setClusterList();
-          vm.zones = vm.clusterList.includes(vm.component.cluster) ? vm.zones : zones;
+          accountService.getUniqueGceZonesForAllAccounts(vm.component.cloudProviderType).then((allZones) => {
+            zones = allZones;
+            return allZones;
+          })
+          .then((allZones) => {
+            setZoneList();
+            setClusterList();
+            vm.zones = _.includes(vm.clusterList, vm.component.cluster) ? vm.zones : allZones;
+          });
         };
 
         init();

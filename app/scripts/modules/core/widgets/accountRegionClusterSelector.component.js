@@ -5,6 +5,8 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.core.accountRegionClusterSelector.directive', [
     require('../../core/application/listExtractor/listExtractor.service'),
+    require('../../core/account/account.service'),
+    require('../../core/utils/lodash')
   ])
   .directive('accountRegionClusterSelector', function() {
     return {
@@ -17,11 +19,11 @@ module.exports = angular
       },
       templateUrl: require('./accountRegionClusterSelector.component.html'),
       controllerAs: 'vm',
-      controller: function controller(appListExtractorService) {
+      controller: function controller(appListExtractorService, accountService, _) {
         let vm = this;
         let isTextInputForClusterFiled;
 
-        let regions = ['us-east-1', 'us-west-1', 'eu-west-1', 'us-west-2'];
+        let regions;
 
         let setRegionList = () => {
           let accountFilter = (cluster) => cluster.account === vm.component.credentials;
@@ -37,7 +39,7 @@ module.exports = angular
 
         vm.regionChanged = () => {
           setClusterList();
-          if (!isTextInputForClusterFiled && !vm.clusterList.includes(vm.component.cluster)) {
+          if (!isTextInputForClusterFiled && ! _.includes(vm.clusterList, vm.component.cluster)) {
             vm.component.cluster = undefined;
           }
         };
@@ -64,9 +66,15 @@ module.exports = angular
         };
 
         let init = () => {
-          setRegionList();
-          setClusterList();
-          vm.regions = vm.clusterList.includes(vm.component.cluster) ? vm.regions : regions;
+          accountService.getUniqueRegionsForAllAccounts(vm.component.cloudProviderType).then((allRegions) => {
+            regions = allRegions;
+            return allRegions;
+          })
+          .then((allRegions) => {
+            setRegionList();
+            setClusterList();
+            vm.regions = _.includes(vm.clusterList, vm.component.cluster) ? vm.regions : allRegions;
+          });
         };
 
         init();
