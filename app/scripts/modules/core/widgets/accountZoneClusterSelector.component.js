@@ -27,8 +27,8 @@ module.exports = angular
 
         let setZoneList = () => {
           let accountFilter = (cluster) => cluster.account === vm.component.credentials;
-          let zoneList = appListExtractorService.getRegions([vm.application], accountFilter);
-          vm.zones = zoneList.length ? zoneList : zones;
+          let zoneList = appListExtractorService.getZonesByRegion([vm.application], accountFilter);
+          vm.zones = Object.keys(zoneList).length ? zoneList : zones;
         };
 
         let setClusterList = () => {
