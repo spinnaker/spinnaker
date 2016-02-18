@@ -1,8 +1,6 @@
 'use strict';
 
 describe('Controller: titanServerGroupDetailsCtrl', function () {
-  const angular = require('angular');
-
   //NOTE: This is only testing the controllers dependencies. Please add more tests.
 
   var controller;

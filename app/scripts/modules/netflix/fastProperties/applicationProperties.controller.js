@@ -19,7 +19,7 @@ module.exports = angular
 
 
     let refreshApp = () => {
-      app.refreshImmediately(true);
+      app.refresh(true);
     };
 
     vm.application = app;

@@ -66,7 +66,7 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.control
         modalInstance: $modalInstance,
         application: application,
         title: 'Resizing ' + serverGroup.name,
-        onTaskComplete: application.refreshImmediately,
+        onTaskComplete: application.serverGroups.refresh,
       };
 
       $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);

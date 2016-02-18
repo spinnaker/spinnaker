@@ -52,7 +52,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.scheduledAc
         modalInstance: $modalInstance,
         application: application,
         title: 'Update Scheduled Actions for ' + serverGroup.name,
-        onTaskComplete: application.refreshImmediately,
+        onTaskComplete: application.serverGroups.refresh,
       };
 
       $scope.taskMonitor = taskMonitorService.buildTaskMonitor(taskMonitorConfig);

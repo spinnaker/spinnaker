@@ -38,7 +38,7 @@ module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
       application: application,
       title: 'Updating your security group',
       modalInstance: $modalInstance,
-      onTaskComplete: application.refreshImmediately,
+      onTaskComplete: application.securityGroups.refresh,
     });
 
     securityGroup.securityGroupIngress = _(securityGroup.inboundRules)

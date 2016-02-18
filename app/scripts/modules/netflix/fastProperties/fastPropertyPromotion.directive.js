@@ -28,7 +28,7 @@ module.exports = angular
     let vm = this;
 
     let refreshApp = () => {
-      vm.application.refreshImmediately(true);
+      vm.application.refresh(true);
     };
 
     vm.promotionPaneOpen = true;
