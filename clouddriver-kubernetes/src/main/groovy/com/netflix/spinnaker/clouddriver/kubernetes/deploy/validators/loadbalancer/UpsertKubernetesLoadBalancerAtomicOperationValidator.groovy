@@ -58,6 +58,12 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidator extends DescriptionVa
       helper.validateIpv4(ip, "externalIps[$idx]")
     }
 
+    description.clusterIp ? helper.validateIpv4(description.clusterIp, "clusterIp")  : null
+
+    description.loadBalancerIp ? helper.validateIpv4(description.loadBalancerIp, "loadBalancerIp")  : null
+
+    helper.validateSessionAffinity(description.sessionAffinity, "sessionAffinity")
+
     helper.validateServiceType(description.type, "type")
   }
 }

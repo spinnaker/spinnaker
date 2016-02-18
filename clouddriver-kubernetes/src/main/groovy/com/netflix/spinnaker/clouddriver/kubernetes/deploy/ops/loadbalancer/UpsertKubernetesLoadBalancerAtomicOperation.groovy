@@ -88,8 +88,8 @@ class UpsertKubernetesLoadBalancerAtomicOperation implements AtomicOperation<Map
 
       serviceBuilder = port.name ? serviceBuilder.withName(port.name) : serviceBuilder
       serviceBuilder = port.targetPort ? serviceBuilder.withNewTargetPort(port.targetPort) : serviceBuilder
-      serviceBuilder = port.port ? serviceBuilder.withPort(port.targetPort) : serviceBuilder
-      serviceBuilder = port.nodePort ? serviceBuilder.withNodePort(port.targetPort) : serviceBuilder
+      serviceBuilder = port.port ? serviceBuilder.withPort(port.port) : serviceBuilder
+      serviceBuilder = port.nodePort ? serviceBuilder.withNodePort(port.nodePort) : serviceBuilder
       serviceBuilder = port.protocol ? serviceBuilder.withProtocol(port.protocol) : serviceBuilder
 
       serviceBuilder = serviceBuilder.endPort()
@@ -106,8 +106,22 @@ class UpsertKubernetesLoadBalancerAtomicOperation implements AtomicOperation<Map
     task.updateStatus BASE_PHASE, "Setting type..."
 
     def type = description.type != null ? description.type : existingService?.spec?.type
-
     serviceBuilder = type ? serviceBuilder.withType(type) : serviceBuilder
+
+    task.updateStatus BASE_PHASE, "Setting load balancer IP..."
+
+    def loadBalancerIp = description.loadBalancerIp != null ? description.loadBalancerIp : existingService?.spec?.loadBalancerIP
+    serviceBuilder = loadBalancerIp ? serviceBuilder.withLoadBalancerIP(loadBalancerIp) : serviceBuilder
+
+    task.updateStatus BASE_PHASE, "Setting cluster IP..."
+
+    def clusterIp = description.clusterIp != null ? description.clusterIp : existingService?.spec?.clusterIP
+    serviceBuilder = clusterIp ? serviceBuilder.withClusterIP(clusterIp) : serviceBuilder
+
+    task.updateStatus BASE_PHASE, "Setting session affinity..."
+
+    def sessionAffinity = description.sessionAffinity != null ? description.sessionAffinity : existingService?.spec?.sessionAffinity
+    serviceBuilder = sessionAffinity ? serviceBuilder.withSessionAffinity(sessionAffinity) : serviceBuilder
 
     serviceBuilder = serviceBuilder.endSpec()
 
