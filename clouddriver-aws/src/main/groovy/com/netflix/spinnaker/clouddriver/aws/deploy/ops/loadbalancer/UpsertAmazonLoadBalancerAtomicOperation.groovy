@@ -76,6 +76,9 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
       def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, region)
       def loadBalancerName = description.name ?: "${description.clusterName}-frontend".toString()
 
+      //maintains bwc with the contains internal check.
+      boolean isInternal = description.isInternal != null ? description.isInternal : description.subnetType?.contains('internal')
+
       task.updateStatus BASE_PHASE, "Beginning deployment to $region in $availabilityZones for $loadBalancerName"
 
       def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, region, true)
@@ -120,7 +123,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
           subnetIds = regionScopedProvider.subnetAnalyzer.getSubnetIdsForZones(availabilityZones,
                   description.subnetType, SubnetTarget.ELB)
         }
-        dnsName = createLoadBalancer(loadBalancing, loadBalancerName, availabilityZones, subnetIds, listeners, securityGroups)
+        dnsName = createLoadBalancer(loadBalancing, loadBalancerName, isInternal, availabilityZones, subnetIds, listeners, securityGroups)
       } else {
         dnsName = loadBalancer.DNSName
         updateLoadBalancer(loadBalancing, loadBalancer, listeners, securityGroups)
@@ -202,7 +205,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
     }
   }
 
-  private String createLoadBalancer(AmazonElasticLoadBalancing loadBalancing, String loadBalancerName,
+  private String createLoadBalancer(AmazonElasticLoadBalancing loadBalancing, String loadBalancerName, boolean isInternal,
                                     Collection<String> availabilityZones, Collection<String> subnetIds,
                                     Collection<Listener> listeners, Collection<String> securityGroups) {
     def request = new CreateLoadBalancerRequest(loadBalancerName)
@@ -211,7 +214,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
     if (description.subnetType) {
       task.updateStatus BASE_PHASE, "Subnet type: ${description.subnetType} = [$subnetIds]"
       request.withSubnets(subnetIds)
-      if (description.subnetType.contains('internal')) {
+      if (isInternal) {
         request.scheme = 'internal'
       }
     } else {
