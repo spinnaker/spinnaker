@@ -38,7 +38,7 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
       application: application,
       title: 'Updating your security group',
       modalInstance: $modalInstance,
-      onTaskComplete: application.refreshImmediately,
+      onTaskComplete: application.securityGroups.refresh,
     });
 
     securityGroup.sourceRanges = _.map(securityGroup.sourceRanges, function(sourceRange) {

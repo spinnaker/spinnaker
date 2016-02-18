@@ -18,11 +18,13 @@ describe('Controller: modifyScalingProcesses', function() {
     this.initializeController = function(serverGroup, processes) {
       this.processes = processes;
 
+
+
       this.controller = $controller('ModifyScalingProcessesCtrl', {
         $scope: this.$scope,
         serverGroup: serverGroup,
         processes: this.processes,
-        application: {},
+        application: { serverGroups: { refresh: angular.noop } },
         taskMonitorService: this.taskMonitorService,
         taskExecutor: this.taskExecutor,
         $modalInstance: this.$modalInstance,

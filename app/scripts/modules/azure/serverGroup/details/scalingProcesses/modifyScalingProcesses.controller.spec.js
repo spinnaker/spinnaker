@@ -22,7 +22,7 @@ describe('Controller: azureModifyScalingProcesses', function() {
         $scope: this.$scope,
         serverGroup: serverGroup,
         processes: this.processes,
-        application: {},
+        application: { serverGroups: { refresh: angular.noop } },
         taskMonitorService: this.taskMonitorService,
         taskExecutor: this.taskExecutor,
         $modalInstance: this.$modalInstance,
