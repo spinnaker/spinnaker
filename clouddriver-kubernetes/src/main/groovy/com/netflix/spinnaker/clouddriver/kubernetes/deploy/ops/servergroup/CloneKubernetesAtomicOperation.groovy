@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.CloneKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerPort
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesResourceDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
@@ -92,8 +93,9 @@ class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult
     if (!description.containers) {
       newDescription.containers = []
       ancestorServerGroup.spec?.template?.spec?.containers?.each { it ->
-        def newLimits
-        def newRequests
+        KubernetesResourceDescription newLimits = null
+        KubernetesResourceDescription newRequests = null
+        List<KubernetesContainerPort> newPorts
         if (it.resources?.limits) {
           newLimits = new KubernetesResourceDescription()
           if (it.resources.limits.memory) {
@@ -114,7 +116,24 @@ class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult
             newRequests.cpu = it.resources.requests.cpu.amount
           }
         }
-        def newContainer = new KubernetesContainerDescription(it.name, it.image, newRequests, newLimits)
+
+        newPorts = it.ports?.collect {
+          new KubernetesContainerPort([
+            name: it.name,
+            containerPort: it.containerPort,
+            hostPort: it.hostPort,
+            protocol: it.protocol,
+            hostIp: it.hostIP,
+          ])
+        }
+
+        def newContainer = new KubernetesContainerDescription([
+          name: it.name,
+          image: it.image,
+          requests: newRequests,
+          limits: newLimits,
+          ports: newPorts,
+        ])
         newDescription.containers.push(newContainer)
       }
     }

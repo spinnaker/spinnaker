@@ -33,5 +33,23 @@ class KubernetesContainerValidator {
       helper.validateCpu(description.requests.cpu, "${prefix}.requests.cpu")
       helper.validateMemory(description.requests.memory, "${prefix}.requests.memory")
     }
+
+    description.ports?.eachWithIndex { port, i ->
+      if (port.name) {
+        helper.validateName(port.name, "${prefix}.ports[$i].name")
+      }
+      if (port.containerPort) {
+        helper.validatePort(port.containerPort, "${prefix}.ports[$i].containerPort")
+      }
+      if (port.hostPort) {
+        helper.validatePort(port.hostPort, "${prefix}.ports[$i].hostPort")
+      }
+      if (port.hostIp) {
+        helper.validateIpv4(port.hostIp, "${prefix}.ports[$i].hostIp")
+      }
+      if (port.protocol) {
+        helper.validateProtocol(port.protocol, "${prefix}.ports[$i].protocol")
+      }
+    }
   }
 }
