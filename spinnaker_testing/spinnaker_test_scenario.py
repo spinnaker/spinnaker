@@ -237,9 +237,11 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     self.__update_bindings_with_subsystem_configuration(agent)
 
     if bindings.get('GOOGLE_PRIMARY_MANAGED_PROJECT_ID'):
+      service_account = bindings.get('GCE_SERVICE_ACCOUNT', None)
       self.__gce_observer = gcp.GCloudAgent(
           project=bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'],
           zone=bindings['TEST_GCE_ZONE'],
+          service_account=service_account,
           ssh_passphrase_file=bindings['GCE_SSH_PASSPHRASE_FILE'])
     else:
       self.__gce_observer = None
