@@ -251,6 +251,8 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'execution.forceRebake': '<p>By default, the bakery will <b>not</b> create a new image if the contents of the package have not changed; ' +
       'instead, it will return the previously baked image.</p>' +
       '<p>Select this option to force the bakery to create a new image, regardless of whether or not the selected package exists.</p>',
+    'kubernetes.serverGroup.stack': '(Optional) One of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',
+    'kubernetes.serverGroup.detail': '(Optional) A string of free-form alphanumeric characters and hyphens to describe any other variables.',
     'kubernetes.serverGroup.containers': '(Required) Select at least one image to run in this server group (pod). ' +
       'If multiple images are selected, they will be colocated and replicated equally.',
     'kubernetes.containers.image': 'The image selected under Basic Settings whose container is to be configured.',
@@ -263,7 +265,25 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
       'and passed to Docker as the --memory flag. Otherwise there are no restrictions on memory usage',
     'kubernetes.containers.requests.memory': '(Optional) This is used for scheduling. It assures that this container will always be scheduled on a machine ' +
       'with at least this much memory available.',
-    'kubernetes.namespace': 'The namespace you have configured with the above selected account. This will often be referred to as "Region" in Spinnaker.',
+    'kubernetes.namespace': 'The namespace you have configured with the above selected account. This will often be referred to as <b>Region</b> in Spinnaker.',
+    'kubernetes.loadBalancer.detail': '<p>(Optional) A string of free-form alphanumeric characters; by convention, we recommend using "frontend".',
+    'kubernetes.loadBalancer.stack': '(Optional) One of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.' ,
+    'kubernetes.service.ports.name': '(Optional) A name for this port. Can be found using DNS lookup if specified.',
+    'kubernetes.service.ports.port': 'The port this service will expose to resources internal to the cluster.',
+    'kubernetes.service.ports.nodePort': '(Optional) A port to open on every node in the cluster. This allows you to receive external traffic without ' +
+      'having to provision a cloud load balancer. <b>Type</b> in <b>Advanced Settings</b> cannot be set to <b>ClusterIP</b> for this to work.',
+    'kubernetes.service.ports.targetPort': '(Optional) The port to forward incoming traffic to for pods associated with this load balancer.',
+    'kubernetes.service.ports.protocol': 'The protocol this port listens to.',
+    'kubernetes.service.type': '<b>ClusterIP</b> means this is an internal load balancer only. <b>LoadBalancer</b> provisions a cloud load balancer if possible ' +
+      'at address <b>Load Balancer IP</b>. <b>NodePort</b> means this load balancer forwards traffic from ports with <b>Node Port</b> specified.',
+    'kubernetes.service.sessionAffinity': '<b>None</b> means incoming connections are not associated with the pods they are routed to. <b>ClientIP</b> ' +
+      'associates connections with pods by incoming IP address.',
+    'kubernetes.service.clusterIp': '(Optional) If specified, and available, this internal IP address will be the internal endpoint for this load balancer.' +
+      'If not specified, one will be assigned.',
+    'kubernetes.service.loadBalancerIp': 'If specified, and available, this external IP address will be the external endpoint for this load balancer ' +
+      'when <b>Type</b> is set to <b>LoadBalancer</b>.',
+    'kubernetes.service.externalIps': 'IP addresses for which nodes in the cluster also accept traffic. This is not managed by Kubernetes and the ' +
+      'responsibility of the user to configure.',
     'user.verification': 'Typing into this verification field is annoying! But it serves as a reminder that you are ' +
     'changing something in an account deemed important, and prevents you from accidentally changing something ' +
     'when you meant to click on the "Cancel" button.',

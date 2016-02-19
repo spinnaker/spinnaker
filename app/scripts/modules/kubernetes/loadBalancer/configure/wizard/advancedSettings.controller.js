@@ -1,0 +1,17 @@
+'use strict';
+
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.loadBalancer.configure.kubernetes.advancedSettings', [])
+  .controller('kubernetesLoadBalancerAdvancedSettingsController', function($scope) {
+    this.addExternalIp = function() {
+      $scope.loadBalancer.externalIps.push({});
+    };
+
+    this.removeExternalIp = function(index) {
+      $scope.loadBalancer.externalIps.splice(index, 1);
+    };
+
+    this.sessionAffinities = ['None', 'ClientIP'];
+    this.types = ['ClusterIP', 'LoadBalancer', 'NodePort'];
+  });
