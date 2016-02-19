@@ -247,6 +247,7 @@ module.exports = angular
 
       return $http.get([settings.gateUrl, 'applications', applicationName].join('/'))
         .then((response) => {
+          delete response.data.clusters; // do not overwrite the clusters we constructed!
           angular.extend(application, response.data);
           applicationLoadSuccess(application);
           return application;

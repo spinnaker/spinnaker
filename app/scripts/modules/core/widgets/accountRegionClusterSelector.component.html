@@ -8,10 +8,17 @@
     required>
   </account-select-field>
 </stage-config-field>
-<stage-config-field label="Regions">
+<stage-config-field label="{{vm.singleRegion ? 'Region' : 'Regions'}}">
   <p ng-if="!vm.component.credentials" class="form-control-static">(Select an Account)</p>
+  <select class="form-control input-sm"
+          ng-if="vm.component.credentials && vm.singleRegion"
+          ng-model="vm.component.region"
+          ng-change="vm.regionChanged()"
+          ng-options="region for region in vm.regions"
+          required>
+  </select>
   <checklist
-    ng-if="vm.component.credentials"
+    ng-if="vm.component.credentials && !vm.singleRegion"
     items="vm.regions"
     model="vm.component.regions"
     inline="true"
@@ -22,7 +29,7 @@
 <stage-config-field label="Cluster" help-key="pipeline.config.findAmi.cluster">
   <cluster-selector
     clusters="vm.clusterList"
-    model="vm.component.cluster"
+    model="vm.component[vm.clusterField]"
     toggled="vm.clusterSelectInputToggled(isToggled)">
   </cluster-selector>
 </stage-config-field>
