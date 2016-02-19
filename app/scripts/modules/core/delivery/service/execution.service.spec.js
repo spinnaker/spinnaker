@@ -35,18 +35,17 @@ describe('Service: executionService', function () {
       let completed = false;
       let executionId = 'abc';
       let cancelUrl = [ settings.gateUrl, 'applications', 'deck', 'pipelines', executionId, 'cancel' ].join('/');
-      let checkUrl = [ settings.gateUrl, 'applications', 'deck', 'pipelines' ].join('/')
-        .concat('?limit=30&statuses=RUNNING,SUSPENDED,PAUSED,NOT_STARTED');
+      let checkUrl = [ settings.gateUrl, 'pipelines', executionId ].join('/');
       let application = { name: 'deck', executions: { refresh: () => $q.when(null) } };
 
       $httpBackend.expectPUT(cancelUrl).respond(200, []);
-      $httpBackend.expectGET(checkUrl).respond(200, [{id: executionId}]);
+      $httpBackend.expectGET(checkUrl).respond(200, {id: executionId, status: 'RUNNING'});
 
       executionService.cancelExecution(application, executionId).then(() => completed = true);
       $httpBackend.flush();
       expect(completed).toBe(false);
 
-      $httpBackend.expectGET(checkUrl).respond(200, [{id: 'some-other-execution'}]);
+      $httpBackend.expectGET(checkUrl).respond(200, {id: executionId, status: 'CANCELED'});
       timeout.flush();
       $httpBackend.flush();
       expect(completed).toBe(true);
@@ -71,17 +70,17 @@ describe('Service: executionService', function () {
       let completed = false;
       let executionId = 'abc';
       let deleteUrl = [ settings.gateUrl, 'pipelines', executionId ].join('/');
-      let checkUrl = [ settings.gateUrl, 'applications', 'deck', 'pipelines?limit=3' ].join('/');
+      let checkUrl = [ settings.gateUrl, 'pipelines', executionId ].join('/');
       let application = { name: 'deck', executions: { refresh: () => $q.when(null) } };
 
       $httpBackend.expectDELETE(deleteUrl).respond(200, []);
-      $httpBackend.expectGET(checkUrl).respond(200, [{id: executionId}]);
+      $httpBackend.expectGET(checkUrl).respond(200, {id: executionId});
 
       executionService.deleteExecution(application, executionId).then(() => completed = true);
       $httpBackend.flush();
       expect(completed).toBe(false);
 
-      $httpBackend.expectGET(checkUrl).respond(200, [{id: 'some-other-execution'}]);
+      $httpBackend.expectGET(checkUrl).respond(404, null);
       timeout.flush();
       $httpBackend.flush();
       expect(completed).toBe(true);

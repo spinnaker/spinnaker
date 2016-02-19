@@ -62,11 +62,11 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
     function waitUntilNewTriggeredPipelineAppears(application, pipelineName, triggeredPipelineId) {
 
       return getRunningExecutions(application.name).then(function(executions) {
-        var match = executions.filter(function(execution) {
+        var [match] = executions.filter(function(execution) {
           return execution.id === triggeredPipelineId;
         });
         var deferred = $q.defer();
-        if (match && match.length) {
+        if (match) {
           application.executions.refresh().then(deferred.resolve);
           return deferred.promise;
         } else {
@@ -78,28 +78,18 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
     }
 
     function waitUntilPipelineIsCancelled(application, executionId) {
-      return getRunningExecutions(application.name).then((executions) => {
-        let match = executions.filter((execution) => execution.id === executionId);
-        let deferred = $q.defer();
-        if (match && !match.length) {
-          application.executions.refresh().then(deferred.resolve);
-          return deferred.promise;
-        }
-        return $timeout(() => waitUntilPipelineIsCancelled(application, executionId), 1000);
-      });
+      return waitUntilExecutionMatches(executionId, (execution) => execution.status === 'CANCELED')
+        .then(application.executions.refresh);
     }
 
     function waitUntilPipelineIsDeleted(application, executionId) {
-
-      return getExecutions(application.name).then((executions) => {
-        let match = executions.filter((execution) => execution.id === executionId);
-        let deferred = $q.defer();
-        if (match && !match.length) {
-          application.executions.refresh().then(deferred.resolve);
-          return deferred.promise;
-        }
-        return $timeout(() => waitUntilPipelineIsDeleted(application, executionId), 1000);
-      });
+      let deferred = $q.defer();
+      getExecution(executionId).then(
+        () => $timeout(() => waitUntilPipelineIsDeleted(application, executionId).then(deferred.resolve), 1000),
+        deferred.resolve
+      );
+      deferred.promise.then(application.executions.refresh);
+      return deferred.promise;
     }
 
     function cancelExecution(application, executionId) {
