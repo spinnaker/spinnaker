@@ -31,6 +31,28 @@ describe('Service: securityGroupReader', function () {
     })
   );
 
+  it('does nothing when index not in place', function () {
+    var application = {
+      accounts: [ 'test' ],
+      securityGroups: { data: [] },
+      serverGroups: {data: []},
+      loadBalancers: {data: [
+        {
+          name: 'my-elb',
+          account: 'test',
+          region: 'us-east-1',
+          securityGroups: [
+            'not-cached',
+          ]
+        }
+      ]}
+    };
+
+    securityGroupReader.attachSecurityGroups(application);
+    $scope.$digest();
+    expect(application.securityGroups.data.length).toBe(0);
+  });
+
   it('attaches load balancer to security group usages', function() {
     var application = {
       accounts: [ 'test' ],
@@ -61,6 +83,7 @@ describe('Service: securityGroupReader', function () {
       accounts: [ 'test' ],
       securityGroups: { data: [] },
       serverGroups: {data: []},
+      securityGroupsIndex: {},
       loadBalancers: {data: [
         {
           name: 'my-elb',
