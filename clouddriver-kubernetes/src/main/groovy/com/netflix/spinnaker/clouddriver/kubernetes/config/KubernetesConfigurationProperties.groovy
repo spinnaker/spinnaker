@@ -25,12 +25,11 @@ class KubernetesConfigurationProperties {
     String name
     String environment
     String accountType
-    String master
-    String username
-    String password
+    String cluster
+    String user
+    String kubeConfigFile
     List<String> namespaces
     List<LinkedDockerRegistryConfiguration> dockerRegistries
-
   }
 
   List<ManagedAccount> accounts = []

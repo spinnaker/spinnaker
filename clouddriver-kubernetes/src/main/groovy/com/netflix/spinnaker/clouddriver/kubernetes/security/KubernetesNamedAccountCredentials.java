@@ -24,7 +24,9 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.internal.KubeConfigUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,34 +37,47 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
                                            String accountName,
                                            String environment,
                                            String accountType,
-                                           String master,
-                                           String username,
-                                           String password,
+                                           String cluster,
+                                           String user,
+                                           String kubeConfigFile,
                                            List<String> namespaces,
                                            List<LinkedDockerRegistryConfiguration> dockerRegistries) {
-    this(accountCredentialsRepository, accountName, environment, accountType, master, username, password, namespaces, dockerRegistries, null);
+    this(accountCredentialsRepository, accountName, environment, accountType, cluster, user, kubeConfigFile, namespaces, dockerRegistries, null);
   }
 
   public KubernetesNamedAccountCredentials(AccountCredentialsRepository accountCredentialsRepository,
                                            String accountName,
                                            String environment,
                                            String accountType,
-                                           String master,
-                                           String username,
-                                           String password,
+                                           String cluster,
+                                           String user,
+                                           String kubeConfigFile,
                                            List<String> namespaces,
                                            List<LinkedDockerRegistryConfiguration> dockerRegistries,
                                            List<String> requiredGroupMembership) {
+    if (accountName == null || accountName.isEmpty()) {
+      throw new IllegalArgumentException("Account name for Kubernetes provider missing.");
+    }
+    if (cluster == null || cluster.isEmpty()) {
+      throw new IllegalArgumentException("Cluster for Kubernetes account " + accountName + " missing.");
+    }
+    if (user == null || user.isEmpty()) {
+      throw new IllegalArgumentException("User for Kubernetes account " + accountName + " missing.");
+    }
+    if (dockerRegistries == null || dockerRegistries.size() == 0) {
+      throw new IllegalArgumentException("Docker registries for Kubernetes account " + accountName + " missing.");
+    }
     this.accountName = accountName;
     this.environment = environment;
     this.accountType = accountType;
-    this.master = master;
-    this.username = username;
-    this.password = password;
+    this.cluster = cluster;
+    this.user = user;
+    this.kubeConfigFile = kubeConfigFile != null && kubeConfigFile.length() > 0 ?
+      kubeConfigFile : System.getProperty("user.home") + "/.kube/config";
     this.namespaces = (namespaces == null || namespaces.size() == 0) ? Arrays.asList("default") : namespaces;
     // TODO(lwander): what is this?
     this.requiredGroupMembership = requiredGroupMembership == null ? Collections.emptyList() : Collections.unmodifiableList(requiredGroupMembership);
-    this.dockerRegistries = dockerRegistries != null ? dockerRegistries : new ArrayList<>();
+    this.dockerRegistries = dockerRegistries;
 
     for (int i = 0; i < this.dockerRegistries.size(); i++) {
       LinkedDockerRegistryConfiguration registry = this.dockerRegistries.get(i);
@@ -108,12 +123,12 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
   }
 
   private KubernetesCredentials buildCredentials() {
-    Config config = new ConfigBuilder().withMasterUrl(master).withUsername(username).withPassword(password).withTrustCerts(true).build();
+    Config config = KubernetesConfigParser.parse(this.kubeConfigFile, this.cluster, this.user, this.namespaces.get(0));
     KubernetesClient client;
     try {
       client = new DefaultKubernetesClient(config);
     } catch (Exception e) {
-      throw new RuntimeException("failed to create credentials", e);
+      throw new RuntimeException("Failed to create credentials.", e);
     }
     return new KubernetesCredentials(new KubernetesApiAdaptor(client), this.namespaces, this.dockerRegistries, this.accountCredentialsRepository);
   }
@@ -139,9 +154,9 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
   private final String accountName;
   private final String environment;
   private final String accountType;
-  private final String master;
-  private final String username;
-  private final String password;
+  private final String cluster;
+  private final String user;
+  private final String kubeConfigFile;
   private final List<String> namespaces;
   private final KubernetesCredentials credentials;
   private final List<String> requiredGroupMembership;
