@@ -35,13 +35,17 @@ class CatsReservationReportProvider implements ReservationReportProvider {
   ObjectMapper objectMapper
 
   @Override
-  ReservationReport getReservationReport() {
-    def cacheData = cacheView.get(RESERVATION_REPORTS.ns, "latest")
+  ReservationReport getReservationReport(String name) {
+    def cacheData = cacheView.get(RESERVATION_REPORTS.ns, name)
     if (!cacheData) {
       return null
     }
 
-    return objectMapper.readValue(objectMapper.writeValueAsString(cacheData.attributes.report), AmazonReservationReport)
+    return objectMapper.readValue(objectMapper.writeValueAsString(cacheData.attributes.report), MapBackedReservationReport)
+  }
+
+  static class MapBackedReservationReport extends HashMap implements ReservationReport {
+    // deserialize directly into a map avoids default values for AccountReservationDetail.[reservedVpc|usedVpc]
   }
 }
 

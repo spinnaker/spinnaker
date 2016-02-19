@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.controllers
 import com.netflix.spinnaker.clouddriver.model.ReservationReport
 import com.netflix.spinnaker.clouddriver.model.ReservationReportProvider
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
@@ -31,6 +32,11 @@ class ReservationReportController {
 
   @RequestMapping(method = RequestMethod.GET)
   Collection<ReservationReport> getReservationReports() {
-    reservationProviders.collect { it.reservationReport } - null
+    reservationProviders.collect { it.getReservationReport("v1") } - null
+  }
+
+  @RequestMapping(method = RequestMethod.GET, value = "/{name}")
+  Collection<ReservationReport> getReservationReportsByName(@PathVariable String name) {
+    reservationProviders.collect { it.getReservationReport(name) } - null
   }
 }

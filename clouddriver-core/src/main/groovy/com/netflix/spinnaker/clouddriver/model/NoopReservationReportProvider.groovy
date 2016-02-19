@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.model
 
 class NoopReservationReportProvider implements ReservationReportProvider {
   @Override
-  ReservationReport getReservationReport() {
+  ReservationReport getReservationReport(String name) {
     return null
   }
 }
