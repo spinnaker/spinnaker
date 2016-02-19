@@ -55,6 +55,7 @@ class BakeRequest {
   Boolean enhanced_networking
   String ami_name
   String ami_suffix
+  Boolean upgrade
 
   @ApiModelProperty("The explicit packer template to use, instead of resolving one from rosco's configuration")
   String template_file_name

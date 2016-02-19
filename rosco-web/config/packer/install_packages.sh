@@ -2,6 +2,7 @@
 
 echo "deb_repo=$deb_repo"
 echo "packages=$packages"
+echo "upgrade=$upgrade"
 
 # Strip leading/trailing quotes if present.
 deb_repo=`echo $deb_repo | sed 's/^"\(.*\)"$/\1/'`
@@ -16,4 +17,9 @@ if [[ "$deb_repo" != "" ]]; then
 fi
 
 sudo apt-get update
+
+if [[ "$upgrade" == "true" ]]; then
+  sudo unattended-upgrade -v
+fi
+
 sudo apt-get install --force-yes -y $packages

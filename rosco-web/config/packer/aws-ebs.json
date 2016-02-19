@@ -15,6 +15,7 @@
     "build_host": "",
     "deb_repo": "",
     "packages": "",
+    "upgrade": "",
     "configDir": null
   },
   "builders": [{
@@ -38,7 +39,8 @@
     "script": "{{user `configDir`}}/install_packages.sh",
     "environment_vars": [
       "deb_repo={{user `deb_repo`}}",
-      "packages={{user `packages`}}"
+      "packages={{user `packages`}}",
+      "upgrade={{user `upgrade`}}"
     ],
     "pause_before": "30s"
    }]

@@ -118,6 +118,10 @@ abstract class CloudProviderBakeHandler {
       parameterMap.build_host = bakeRequest.build_host
     }
 
+    if (bakeRequest.upgrade) {
+      parameterMap.upgrade = bakeRequest.upgrade
+    }
+
     parameterMap.configDir = configDir
 
     if (bakeRequest.extended_attributes) {
