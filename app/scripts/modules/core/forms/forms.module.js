@@ -8,4 +8,5 @@ module.exports = angular.module('spinnaker.core.forms', [
   require('./checkmap/checkmap.directive.js'),
   require('./ignoreEmptyDelete.directive.js'),
   require('./buttonBusyIndicator/buttonBusyIndicator.directive.js'),
+  require('./mapEditor/mapEditor.component.js'),
 ]);

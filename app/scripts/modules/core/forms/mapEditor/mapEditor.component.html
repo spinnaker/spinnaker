@@ -1,0 +1,41 @@
+<form name="mapEditor">
+  <table class="table table-condensed">
+    <thead>
+    <tr>
+      <th ng-bind="$ctrl.keyLabel"></th>
+      <th ng-bind="$ctrl.valueLabel"></th>
+      <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="pair in $ctrl.backingModel">
+      <td><input class="form-control input input-sm" type="text"
+                 name="{{$index}}"
+                 ng-model="pair.key"
+                 validate-unique="pair.checkUnique">
+        <div class="error-message" ng-if="mapEditor[$index].$error.validateUnique">Duplicate key</div>
+      </td>
+      <td><input class="form-control input input-sm" type="text"
+                 ng-model="pair.value"></td>
+      <td>
+        <div class="form-control-static">
+          <a href ng-click="$ctrl.removeField($index)">
+            <span class="glyphicon glyphicon-trash"></span>
+            <span class="sr-only">Remove field</span>
+          </a>
+        </div>
+      </td>
+    </tr>
+    </tbody>
+    <tfoot>
+    <tr>
+      <td colspan="3">
+        <button class="btn btn-block btn-sm add-new" ng-click="$ctrl.addField()">
+          <span class="glyphicon glyphicon-plus-sign"></span>
+          Add Field
+        </button>
+      </td>
+    </tr>
+    </tfoot>
+  </table>
+</form>
