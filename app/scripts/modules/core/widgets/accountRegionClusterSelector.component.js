@@ -16,10 +16,15 @@ module.exports = angular
         application: '=',
         component: '=',
         accounts: '=',
+        clusterField: '@',
+        singleRegion: '=',
       },
       templateUrl: require('./accountRegionClusterSelector.component.html'),
       controllerAs: 'vm',
       controller: function controller(appListExtractorService, accountService, _) {
+
+        this.clusterField = this.clusterField || 'cluster';
+
         let vm = this;
         let isTextInputForClusterFiled;
 
@@ -33,14 +38,15 @@ module.exports = angular
 
 
         let setClusterList = () => {
-          let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndRegion(vm.component.credentials, vm.component.regions);
+          let regionField = this.singleRegion ? vm.component.region : vm.component.regions;
+          let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndRegion(vm.component.credentials, regionField);
           vm.clusterList = appListExtractorService.getClusters([vm.application], clusterFilter);
         };
 
         vm.regionChanged = () => {
           setClusterList();
-          if (!isTextInputForClusterFiled && ! _.includes(vm.clusterList, vm.component.cluster)) {
-            vm.component.cluster = undefined;
+          if (!isTextInputForClusterFiled && ! _.includes(vm.clusterList, vm.component[this.clusterField])) {
+            vm.component[this.clusterField] = undefined;
           }
         };
 
@@ -50,7 +56,7 @@ module.exports = angular
         };
 
         let setUnToggledState = () => {
-          vm.component.cluster = undefined;
+          vm.component[this.clusterField] = undefined;
           isTextInputForClusterFiled = false;
           setRegionList();
         };
@@ -59,8 +65,8 @@ module.exports = angular
           isToggled ? setToggledState() : setUnToggledState();
         };
 
-        vm.accountUpdated = function() {
-          vm.component.cluster = undefined;
+        vm.accountUpdated = () => {
+          vm.component[this.clusterField] = undefined;
           setRegionList();
           setClusterList();
         };
@@ -73,7 +79,7 @@ module.exports = angular
           .then((allRegions) => {
             setRegionList();
             setClusterList();
-            vm.regions = _.includes(vm.clusterList, vm.component.cluster) ? vm.regions : allRegions;
+            vm.regions = _.includes(vm.clusterList, vm.component[this.clusterField]) ? vm.regions : allRegions;
           });
         };
 
