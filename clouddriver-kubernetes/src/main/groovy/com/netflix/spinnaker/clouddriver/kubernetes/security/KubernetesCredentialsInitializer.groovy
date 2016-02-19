@@ -73,9 +73,9 @@ class KubernetesCredentialsInitializer implements CredentialsInitializerSynchron
                                                                       managedAccount.name,
                                                                       managedAccount.environment ?: managedAccount.name,
                                                                       managedAccount.accountType ?: managedAccount.name,
-                                                                      managedAccount.master,
-                                                                      managedAccount.username,
-                                                                      managedAccount.password,
+                                                                      managedAccount.cluster,
+                                                                      managedAccount.user,
+                                                                      managedAccount.kubeConfigFile,
                                                                       managedAccount.namespaces,
                                                                       managedAccount.dockerRegistries)
 
