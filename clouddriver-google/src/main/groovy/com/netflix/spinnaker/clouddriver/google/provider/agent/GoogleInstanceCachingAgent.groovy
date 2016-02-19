@@ -31,10 +31,9 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
-import com.netflix.spinnaker.clouddriver.google.model.GoogleHealth
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance2
+import com.netflix.spinnaker.clouddriver.google.model.health.GoogleInstanceHealth
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
-import com.netflix.spinnaker.clouddriver.model.HealthState
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
@@ -85,17 +84,9 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
     CacheResultBuilder crb = new CacheResultBuilder()
 
     googleInstances.each { GoogleInstance2 instance ->
-      def instanceKey = Keys.getInstanceKey(googleCloudProvider, accountName, instance.zone, instance.name)
-
-      def healthKeys = []
-      // Purposefully uses "getHealths" vs. interface's "getHealth" method because strong typing is your friend.
-      instance.healths.each { GoogleHealth health ->
-        healthKeys << Keys.getHealthKey(googleCloudProvider, accountName, health.type, instance.instanceId)
-      }
-
+      def instanceKey = Keys.getInstanceKey(googleCloudProvider, accountName, instance.name)
       crb.namespace(INSTANCES.ns).get(instanceKey).with {
         attributes = objectMapper.convertValue(instance, ATTRIBUTES)
-        relationships[HEALTH.ns].addAll(healthKeys)
       }
     }
 
@@ -123,12 +114,15 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
           long instanceTimestamp = instance.creationTimestamp ?
               Utils.getTimeFromTimestamp(instance.creationTimestamp) :
               Long.MAX_VALUE
-          def googleInstance = new GoogleInstance2(name: instance.name,
-                                                   instanceId: instance.name,
-                                                   instanceType: Utils.getLocalName(instance.machineType),
-                                                   launchTime: instanceTimestamp,
-                                                   zone: localZoneName,
-                                                   healths: [buildGCEHealthState(instance.status)])
+          String instanceName = Utils.getLocalName(instance.name)
+          def googleInstance = new GoogleInstance2(
+              name: instanceName,
+              instanceType: Utils.getLocalName(instance.machineType),
+              launchTime: instanceTimestamp,
+              zone: localZoneName,
+              instanceHealth: new GoogleInstanceHealth(
+                  status: GoogleInstanceHealth.Status.valueOf(instance.getStatus())
+              ))
           instances << googleInstance
 
           // Set all google-provided attributes for use by non-deck callers.
@@ -139,20 +133,6 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
           }
         }
       }
-    }
-
-    static GoogleHealth buildGCEHealthState(String instanceStatus) {
-      new GoogleHealth(type: GoogleHealth.Type.Google,
-                       healthClass: GoogleHealth.HealthClass.platform,
-                       state: deriveInstanceGCEHealthState(instanceStatus))
-    }
-
-    // Map GCE-returned instance status to spinnaker health state.
-    static HealthState deriveInstanceGCEHealthState(String instanceStatus) {
-      instanceStatus == "PROVISIONING" ? HealthState.Starting :
-          instanceStatus == "STAGING" ? HealthState.Starting :
-              instanceStatus == "RUNNING" ? HealthState.Unknown :
-                  HealthState.Down
     }
   }
 }

@@ -21,27 +21,24 @@ import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
+import com.netflix.spinnaker.clouddriver.google.model.health.GoogleHealth
+import com.netflix.spinnaker.clouddriver.google.model.health.GoogleInstanceHealth
+import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
+import groovy.util.logging.Slf4j
 
-class GoogleInstance2 implements Instance, Serializable {
+@Slf4j
+class GoogleInstance2 {
 
   String name
-  String instanceId
   String instanceType
   Long launchTime
   String zone
-  List<GoogleHealth> healths
+  GoogleInstanceHealth instanceHealth
+  List<GoogleLoadBalancerHealth> loadBalancerHealths = []
 
   private Map<String, Object> dynamicProperties = new HashMap<String, Object>()
-
-  @Override
-  @JsonIgnore
-  List<Map<String, String>> getHealth() {
-    ObjectMapper mapper = new ObjectMapper()
-    return healths.collect { mapper.convertValue(it, new TypeReference<Map<String, String>>() {}) }
-  }
 
   @JsonAnyGetter
   public Map<String, Object> anyProperty() {
@@ -54,32 +51,6 @@ class GoogleInstance2 implements Instance, Serializable {
   }
 
   @Override
-  HealthState getHealthState() {
-    someUpRemainingUnknown(health) ? HealthState.Up :
-        anyStarting(health) ? HealthState.Starting :
-            anyDown(health) ? HealthState.Down :
-                anyOutOfService(health) ? HealthState.OutOfService :
-                    HealthState.Unknown
-  }
-
-  private static boolean anyDown(List<Map<String, String>> healthList) {
-    healthList.any { it.state == HealthState.Down }
-  }
-
-  private static boolean someUpRemainingUnknown(List<Map<String, String>> healthList) {
-    List<Map<String, String>> knownHealthList = healthList.findAll { it.state != HealthState.Unknown }
-    knownHealthList ? knownHealthList.every { it.state == HealthState.Up } : false
-  }
-
-  private static boolean anyStarting(List<Map<String, String>> healthList) {
-    healthList.any { it.state == HealthState.Starting }
-  }
-
-  private static boolean anyOutOfService(List<Map<String, String>> healthList) {
-    healthList.any { it.state == HealthState.OutOfService }
-  }
-
-  @Override
   boolean equals(Object o) {
     if (o instanceof GoogleInstance2) {
       o.name.equals(name)
@@ -89,5 +60,64 @@ class GoogleInstance2 implements Instance, Serializable {
   @Override
   int hashCode() {
     return name.hashCode()
+  }
+
+  @JsonIgnore
+  View getView() {
+    new View()
+  }
+
+  class View implements Instance {
+
+    final String providerType = "gce"
+
+    String name = GoogleInstance2.this.name
+    String instanceId = GoogleInstance2.this.name
+    String instanceType = GoogleInstance2.this.instanceType
+    Long launchTime = GoogleInstance2.this.launchTime
+    String zone = GoogleInstance2.this.zone
+
+    @JsonAnyGetter
+    public Map<String, Object> anyProperty() {
+      return GoogleInstance2.this.dynamicProperties;
+    }
+
+    @Override
+    List<Map<String, Object>> getHealth() {
+      ObjectMapper mapper = new ObjectMapper()
+      def healths = []
+      loadBalancerHealths.each { GoogleLoadBalancerHealth h ->
+        healths << mapper.convertValue(h.view, new TypeReference<Map<String, Object>>() {})
+      }
+      healths << mapper.convertValue(instanceHealth, new TypeReference<Map<String, Object>>() {})
+      healths
+    }
+
+    @Override
+    HealthState getHealthState() {
+      def allHealths = loadBalancerHealths.collect { it.view } + instanceHealth
+      someUpRemainingUnknown(allHealths) ? HealthState.Up :
+          anyStarting(allHealths) ? HealthState.Starting :
+              anyDown(allHealths) ? HealthState.Down :
+                  anyOutOfService(allHealths) ? HealthState.OutOfService :
+                      HealthState.Unknown
+    }
+
+    private static boolean anyDown(List<GoogleHealth> healthsList) {
+      healthsList.any { it.state == HealthState.Down }
+    }
+
+    private static boolean someUpRemainingUnknown(List<GoogleHealth> healthsList) {
+      List<GoogleHealth> knownHealthList = healthsList.findAll { it.state != HealthState.Unknown }
+      knownHealthList ? knownHealthList.every { it.state == HealthState.Up } : false
+    }
+
+    private static boolean anyStarting(List<GoogleHealth> healthsList) {
+      healthsList.any { it.state == HealthState.Starting }
+    }
+
+    private static boolean anyOutOfService(List<GoogleHealth> healthsList) {
+      healthsList.any { it.state == HealthState.OutOfService }
+    }
   }
 }

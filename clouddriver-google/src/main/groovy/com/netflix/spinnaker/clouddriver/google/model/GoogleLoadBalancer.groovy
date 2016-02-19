@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 
+@Deprecated
 class GoogleLoadBalancer implements LoadBalancer {
 
   private static final String GOOGLE_LOAD_BALANCER_TYPE = "gce"

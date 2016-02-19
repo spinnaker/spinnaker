@@ -19,9 +19,12 @@ package com.netflix.spinnaker.clouddriver.google.model
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 @Deprecated
+@ConditionalOnProperty(value = "google.providerImpl", havingValue = "old", matchIfMissing = true)
 @Component
 class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalancer> {
 

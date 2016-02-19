@@ -47,12 +47,13 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
 
   final String region
 
-  final Set<AgentDataType> providedDataTypes = Collections.unmodifiableSet([
+  final Set<AgentDataType> providedDataTypes = [
       AUTHORITATIVE.forType(SERVER_GROUPS.ns),
-      INFORMATIVE.forType(CLUSTERS.ns),
       INFORMATIVE.forType(APPLICATIONS.ns),
+      INFORMATIVE.forType(CLUSTERS.ns),
       INFORMATIVE.forType(INSTANCES.ns),
-  ] as Set)
+      INFORMATIVE.forType(LOAD_BALANCERS.ns),
+  ] as Set
 
   String agentType = "${accountName}/${region}/${GoogleServerGroupCachingAgent.simpleName}"
 
@@ -116,6 +117,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
                                           clusterName)
       def appKey = Keys.getApplicationKey(googleCloudProvider, applicationName)
       def instanceKeys = []
+      def loadBalancerKeys = []
 
       crb.namespace(APPLICATIONS.ns).get(appKey).with {
         attributes.name = applicationName
@@ -130,11 +132,13 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
       }
 
       serverGroup.instances.each { GoogleInstance partialInstance ->
-        instanceKeys << Keys.getInstanceKey(googleCloudProvider,
-                                            accountName,
-                                            serverGroup.zones[0],
-                                            partialInstance.name)
-
+        def instanceKey = Keys.getInstanceKey(googleCloudProvider,
+                                              accountName,
+                                              partialInstance.name)
+        instanceKeys << instanceKey
+        crb.namespace(INSTANCES.ns).get(instanceKey).with {
+          relationships[SERVER_GROUPS.ns].add(serverGroupKey)
+        }
       }
 
       crb.namespace(SERVER_GROUPS.ns).get(serverGroupKey).with {
@@ -143,11 +147,26 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
         relationships[CLUSTERS.ns].add(clusterKey)
         relationships[INSTANCES.ns].addAll(instanceKeys)
       }
+
+      serverGroup.asg.loadBalancerNames.each { String loadBalancerName ->
+        loadBalancerKeys << Keys.getLoadBalancerKey(googleCloudProvider,
+                                                    region,
+                                                    accountName,
+                                                    loadBalancerName)
+      }
+
+      loadBalancerKeys.each { String loadBalancerKey ->
+        crb.namespace(LOAD_BALANCERS.ns).get(loadBalancerKey).with {
+          relationships[SERVER_GROUPS.ns].add(serverGroupKey)
+        }
+      }
     }
 
     log.info("Caching ${crb.namespace(APPLICATIONS.ns).size()} applications in ${agentType}")
     log.info("Caching ${crb.namespace(CLUSTERS.ns).size()} clusters in ${agentType}")
     log.info("Caching ${crb.namespace(SERVER_GROUPS.ns).size()} server groups in ${agentType}")
+    log.info("Caching ${crb.namespace(INSTANCES.ns).size()} instance relationships in ${agentType}")
+    log.info("Caching ${crb.namespace(LOAD_BALANCERS.ns).size()} load balancer relationships in ${agentType}")
 
     crb.build()
   }
