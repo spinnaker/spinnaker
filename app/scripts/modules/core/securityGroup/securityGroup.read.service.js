@@ -123,6 +123,10 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
     }
 
     function attachSecurityGroups(application, nameBasedSecurityGroups, retryIfNotFound) {
+      if (!application.securityGroupsIndex) {
+        // security groups have not yet been indexed; bail
+        return $q.when(null);
+      }
       let notFoundCaught = false;
       if (nameBasedSecurityGroups) {
         // reset everything
