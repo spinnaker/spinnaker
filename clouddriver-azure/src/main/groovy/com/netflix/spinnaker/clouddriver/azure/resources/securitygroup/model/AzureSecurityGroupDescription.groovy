@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOps
 
 class AzureSecurityGroupDescription extends AzureResourceOpsDescription {
   String securityGroupName
+  String resourceId
   String id
   String etag
   String location
@@ -36,6 +37,7 @@ class AzureSecurityGroupDescription extends AzureResourceOpsDescription {
     String id
     String name
 
+    String resourceId /*Azure resource ID */
     String description /* restricted to 140 chars */
     String access /* gets or sets network traffic is allowed or denied; possible values are “Allow” and “Deny” */
     String destinationAddressPrefix /* CIDR or destination IP range; asterix “*” can also be used to match all source IPs; default tags such as ‘VirtualNetwork’, ‘AzureLoadBalancer’ and ‘Internet’ can also be used */

@@ -103,6 +103,7 @@ class AzureSecurityGroupProvider implements SecurityGroupProvider<AzureSecurityG
       type: "azure",
       id: sg.name,
       name: sg.name,
+      account: parts.account?: "none",
       accountName: parts.account?: "none",
       application: parts.application?: sg.name,
       region: sg.location,

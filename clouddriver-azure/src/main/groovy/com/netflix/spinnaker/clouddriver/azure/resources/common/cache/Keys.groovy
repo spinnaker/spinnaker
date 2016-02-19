@@ -28,7 +28,8 @@ class Keys {
     AZURE_APPLICATIONS,
     AZURE_CLUSTERS,
     AZURE_SERVER_GROUPS,
-    AZURE_INSTANCES
+    AZURE_INSTANCES,
+    AZURE_VMIMAGES
 
     final String ns
 
@@ -74,6 +75,9 @@ class Keys {
       case Namespace.AZURE_APPLICATIONS.ns:
         result << [application: parts[2].toLowerCase()]
         break
+      case Namespace.AZURE_VMIMAGES.ns:
+        result << [account: parts[2], region: parts[3], name: parts[4], vmversion: parts[5]]
+        break
       default:
         return null
         break
@@ -102,6 +106,15 @@ class Keys {
                               String region,
                               String account) {
     "$azureCloudProvider.id:${Namespace.AZURE_NETWORKS}:${networkId}:${account}:${region}"
+  }
+
+  static String getVMImageKey(AzureCloudProvider azureCloudProvider,
+                              String account,
+                              String region,
+                              String vmImageName,
+                              String vmImageVersion
+                              ) {
+    "$azureCloudProvider.id:${Namespace.AZURE_VMIMAGES}:${account}:${region}:${vmImageName}:${vmImageVersion}"
   }
 
   static String getLoadBalancerKey(AzureCloudProvider azureCloudProvider,

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOps
 class AzureSubnetDescription extends AzureResourceOpsDescription {
   String id = "unknown"
   String addressPrefix = "unknown"
+  String resourceId /*Azure resource ID*/
   String etag
   List<String> ipConfigurations = []
   String networkSecurityGroup

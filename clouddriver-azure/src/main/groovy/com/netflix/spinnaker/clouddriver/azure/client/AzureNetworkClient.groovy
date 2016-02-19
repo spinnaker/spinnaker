@@ -208,18 +208,20 @@ class AzureNetworkClient extends AzureBaseClient {
     def sgItem = new AzureSecurityGroupDescription()
 
     sgItem.name = item.name
+    sgItem.id = item.name
     sgItem.location = item.location
     sgItem.region = item.location
     sgItem.cloudProvider = "azure"
     sgItem.provisioningState = item.provisioningState
     sgItem.resourceGuid = item.resourceGuid
     sgItem.etag = item.etag
-    sgItem.id = item.id
+    sgItem.resourceId = item.id
     sgItem.tags = item.tags
     sgItem.type = item.type
     sgItem.securityRules = new ArrayList<AzureSecurityGroupDescription.AzureSGRule>()
     item.securityRules?.each {rule -> sgItem.securityRules += new AzureSecurityGroupDescription.AzureSGRule(
-      id: rule.id,
+      resourceId: rule.id,
+      id: rule.name,
       name: rule.name,
       access: rule.access,
       priority: rule.priority,
@@ -252,7 +254,8 @@ class AzureNetworkClient extends AzureBaseClient {
       subnetItem.cloudProvider = "azure"
       subnetItem.vnet = vnet.name
       subnetItem.etag = itemSubnet.etag
-      subnetItem.id = itemSubnet.id
+      subnetItem.resourceId = itemSubnet.id
+      subnetItem.id = itemSubnet.name
       subnetItem.addressPrefix = itemSubnet.addressPrefix
       itemSubnet.ipConfigurations.each {resourceId -> subnetItem.ipConfigurations += resourceId.id}
       subnetItem.networkSecurityGroup = itemSubnet.networkSecurityGroup?.id
@@ -368,7 +371,8 @@ class AzureNetworkClient extends AzureBaseClient {
     azureVirtualNetworkDescription.resourceGuid = vnet.resourceGuid
     azureVirtualNetworkDescription.subnets = subnets?.toList()
     azureVirtualNetworkDescription.etag = vnet.etag
-    azureVirtualNetworkDescription.id = vnet.id
+    azureVirtualNetworkDescription.resourceId = vnet.id
+    azureVirtualNetworkDescription.id = vnet.name
     azureVirtualNetworkDescription.tags = vnet.tags
     azureVirtualNetworkDescription.type = vnet.type
 

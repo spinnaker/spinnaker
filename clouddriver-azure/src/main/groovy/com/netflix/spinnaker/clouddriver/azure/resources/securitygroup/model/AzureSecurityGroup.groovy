@@ -33,6 +33,7 @@ class AzureSecurityGroup implements SecurityGroup {
   final String accountName
   final String region
   final String network
+  final String account
   final List<String> subnets = []
   final Map<String,String> tags = [:]
   final Set<Rule> inboundRules = []
