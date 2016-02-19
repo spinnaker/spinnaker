@@ -29,14 +29,14 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
   public DockerRegistryNamedAccountCredentials(String accountName, String environment, String accountType,
                                                String address, String username, String password, String email,
                                                List<String> repositories, List<String> requiredGroupMembership) {
-    if (!accountName == 0) {
+    if (!accountName) {
       throw new IllegalArgumentException("Docker Registry account must be provided with a name.")
     }
     this.accountName = accountName
     this.environment = environment
     this.accountType = accountType
 
-    if (!address == 0) {
+    if (!address) {
       throw new IllegalArgumentException("Docker Registry account $accountName must provide an endpoint address.");
     } else {
       int addressLen = address.length();
