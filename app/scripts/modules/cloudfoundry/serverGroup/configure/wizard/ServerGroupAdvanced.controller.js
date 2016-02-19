@@ -3,18 +3,20 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.cf.advanced.controller', [
-        require('../../../../core/modal/wizard/modalWizard.service.js'),
+        require('../../../../core/modal/wizard/v2modalWizard.service.js'),
     ])
-    .controller('cfServerGroupAdvancedCtrl', function($scope, modalWizardService) {
+    .controller('cfServerGroupAdvancedCtrl', function($scope, v2modalWizardService) {
 
-        modalWizardService.getWizard().markComplete('advanced');
+        // TODO(GLT): Fix roles after Find/Bake updates are rolled in.
 
-        $scope.$watch('form.$valid', function(newVal) {
-            if (newVal) {
-                modalWizardService.getWizard().markClean('advanced');
-            } else {
-                modalWizardService.getWizard().markDirty('advanced');
-            }
-        });
+        //v2modalWizardService.markComplete('advanced');
+        //
+        //$scope.$watch('form.$valid', function(newVal) {
+        //    if (newVal) {
+        //        v2modalWizardService.markClean('advanced');
+        //    } else {
+        //        v2modalWizardService.markDirty('advanced');
+        //    }
+        //});
 
     });

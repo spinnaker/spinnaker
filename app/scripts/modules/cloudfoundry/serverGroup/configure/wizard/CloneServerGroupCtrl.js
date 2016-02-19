@@ -4,10 +4,10 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerGroup', [
   require('angular-ui-router'),
-  require('../../../../core/modal/wizard/modalWizard.service.js'),
+  require('../../../../core/modal/wizard/v2modalWizard.service.js'),
 ])
   .controller('cfCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $state,
-                                                  serverGroupWriter, modalWizardService, taskMonitorService,
+                                                  serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                   cfServerGroupConfigurationService,
                                                   serverGroupCommand, application, title) {
     $scope.pages = {
@@ -87,7 +87,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
       var mode = serverGroupCommand.viewState.mode;
       if (mode === 'clone' || mode === 'editPipeline') {
         if ($scope.command.image || $scope.command.viewState.disableImageSelection) {
-          modalWizardService.getWizard().markComplete('location');
+          v2modalWizardService.markComplete('location');
         }
       }
     }
@@ -118,11 +118,11 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
         ($scope.command.credentials !== null) && ($scope.command.instanceType !== null) &&
         ($scope.command.region !== null) && ($scope.command.zone !== null) &&
         ($scope.command.capacity.desired !== null) &&
-        modalWizardService.getWizard().isComplete();
+        v2modalWizardService.isComplete();
     };
 
     this.showSubmitButton = function () {
-      return modalWizardService.getWizard().allPagesVisited();
+      return v2modalWizardService.allPagesVisited();
     };
 
     this.clone = function () {

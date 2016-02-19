@@ -3,18 +3,21 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.cf.artifactSettings.controller', [
-  require('../../../../core/modal/wizard/modalWizard.service.js'),
+  require('../../../../core/modal/wizard/v2modalWizard.service.js'),
 ])
-  .controller('cfServerGroupArtifactSettingsCtrl', function($scope, modalWizardService) {
+  .controller('cfServerGroupArtifactSettingsCtrl', function($scope, v2modalWizardService) {
 
-    modalWizardService.getWizard().markComplete('artifact');
+    // TODO(GLT): Fix roles after Find/Bake updates are rolled in.
 
-    $scope.$watch('form.$valid', function(newVal) {
-      if (newVal) {
-        modalWizardService.getWizard().markClean('artifact');
-      } else {
-        modalWizardService.getWizard().markDirty('artifact');
-      }
-    });
+    //v2modalWizardService.markComplete('artifact');
+    //
+    //$scope.$watch('artifact.$valid', function(newVal) {
+    //  if (newVal) {
+    //    v2modalWizardService.markClean('artifact');
+    //    v2modalWizardService.markComplete('artifact');
+    //  } else {
+    //    v2modalWizardService.markIncomplete('artifact');
+    //  }
+    //});
 
   });
