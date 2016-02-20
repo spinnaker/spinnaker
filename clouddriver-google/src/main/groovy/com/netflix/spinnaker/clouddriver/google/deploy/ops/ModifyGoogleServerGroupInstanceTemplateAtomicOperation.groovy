@@ -75,6 +75,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
     def compute = description.credentials.compute
     def project = description.credentials.project
     def zone = description.zone
+    def region = GCEUtil.getRegionFromZone(project, zone, compute)
     def serverGroupName = description.serverGroupName
 
     def instanceGroupManagers = compute.instanceGroupManagers()
@@ -178,7 +179,9 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
       // Override the instance template's network if network was specified.
       if (overriddenProperties.network) {
         def network = GCEUtil.queryNetwork(project, newDescription.network, compute, task, BASE_PHASE)
-        def networkInterface = GCEUtil.buildNetworkInterface(network, accessConfigName, accessConfigType)
+        def subnet =
+          description.subnet ? GCEUtil.querySubnet(project, region, description.subnet, compute, task, BASE_PHASE) : null
+        def networkInterface = GCEUtil.buildNetworkInterface(network, subnet, accessConfigName, accessConfigType)
 
         instanceTemplateProperties.setNetworkInterfaces([networkInterface])
       }

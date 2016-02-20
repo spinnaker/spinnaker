@@ -28,6 +28,7 @@ import com.google.api.services.compute.model.MachineType
 import com.google.api.services.compute.model.MachineTypeList
 import com.google.api.services.compute.model.Network
 import com.google.api.services.compute.model.NetworkList
+import com.google.api.services.compute.model.Zone
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
@@ -49,6 +50,8 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
   private static final MACHINE_TYPE_LINK = "http://..."
   private static final ZONE = "us-central1-b"
   private static final BASE_IMAGE_PROJECTS = ["centos-cloud", "ubuntu-os-cloud"]
+  private static final REGION = "us-central1"
+  private static final REGION_URL = "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/regions/$REGION"
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -60,6 +63,10 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
       def batchMock = new MockFor(BatchRequest)
       def imageProjects = [PROJECT_NAME] + BASE_IMAGE_PROJECTS
       def listMock = new MockFor(Compute.Images.List)
+
+      def zonesMock = Mock(Compute.Zones)
+      def zonesGetMock = Mock(Compute.Zones.Get)
+      def zonesGetReal = new Zone(region: [REGION_URL])
 
       def machineTypesMock = Mock(Compute.MachineTypes)
       def machineTypesListMock = Mock(Compute.MachineTypes.List)
@@ -75,6 +82,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
       def images = new Compute.Builder(
               httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build().images()
 
+      computeMock.demand.zones { zonesMock }
       computeMock.demand.machineTypes { machineTypesMock }
       computeMock.demand.batch { new BatchRequest(httpTransport, httpRequestInitializer) }
 
@@ -119,6 +127,10 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
       }
 
     then:
+      1 * zonesMock.get(PROJECT_NAME, ZONE) >> zonesGetMock
+      1 * zonesGetMock.execute() >> zonesGetReal
+
+    then:
       1 * machineTypesMock.list(PROJECT_NAME, ZONE) >> machineTypesListMock
       1 * machineTypesListMock.execute() >> new MachineTypeList(items: [new MachineType(name: INSTANCE_TYPE,
                                                                                         selfLink: MACHINE_TYPE_LINK)])
@@ -131,6 +143,9 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
   void "should fail to create instance because machine type is invalid"() {
     setup:
       def computeMock = Mock(Compute)
+      def zonesMock = Mock(Compute.Zones)
+      def zonesGetMock = Mock(Compute.Zones.Get)
+      def zonesGetReal = new Zone(region: [REGION_URL])
       def machineTypesMock = Mock(Compute.MachineTypes)
       def machineTypesListMock = Mock(Compute.MachineTypes.List)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
@@ -146,6 +161,11 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
       operation.operate([])
 
     then:
+      1 * computeMock.zones() >> zonesMock
+      1 * zonesMock.get(PROJECT_NAME, ZONE) >> zonesGetMock
+      1 * zonesGetMock.execute() >> zonesGetReal
+
+    then:
       1 * computeMock.machineTypes() >> machineTypesMock
       1 * machineTypesMock.list(PROJECT_NAME, ZONE) >> machineTypesListMock
       1 * machineTypesListMock.execute() >> new MachineTypeList(items: [])
@@ -158,7 +178,9 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
       def batchMock = new MockFor(BatchRequest)
       def imageProjects = [PROJECT_NAME] + BASE_IMAGE_PROJECTS
       def listMock = new MockFor(Compute.Images.List)
-
+      def zonesMock = Mock(Compute.Zones)
+      def zonesGetMock = Mock(Compute.Zones.Get)
+      def zonesGetReal = new Zone(region: [REGION_URL])
       def machineTypesMock = Mock(Compute.MachineTypes)
       def machineTypesListMock = Mock(Compute.MachineTypes.List)
 
@@ -169,6 +191,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
       def images = new Compute.Builder(
               httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build().images()
 
+      computeMock.demand.zones { zonesMock }
       computeMock.demand.machineTypes { machineTypesMock }
       computeMock.demand.batch { new BatchRequest(httpTransport, httpRequestInitializer) }
 
@@ -207,6 +230,10 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
           }
         }
       }
+
+    then:
+      1 * zonesMock.get(PROJECT_NAME, ZONE) >> zonesGetMock
+      1 * zonesGetMock.execute() >> zonesGetReal
 
     then:
       1 * machineTypesMock.list(PROJECT_NAME, ZONE) >> machineTypesListMock

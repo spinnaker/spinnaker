@@ -20,9 +20,11 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
+import groovy.transform.ToString
 
 @AutoClone
 @Canonical
+@ToString(includeNames = true)
 class BaseGoogleInstanceDescription {
   String image
   String instanceType
@@ -30,6 +32,7 @@ class BaseGoogleInstanceDescription {
   Map<String, String> instanceMetadata
   List<String> tags
   String network
+  String subnet
   List<String> authScopes
   Boolean preemptible
   Boolean automaticRestart
