@@ -112,6 +112,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def network = GCEUtil.queryNetwork(project, description.network ?: DEFAULT_NETWORK_NAME, compute, task, BASE_PHASE)
 
+    def subnet =
+      description.subnet ? GCEUtil.querySubnet(project, region, description.subnet, compute, task, BASE_PHASE) : null
+
     def networkLoadBalancers = []
 
     // We need the full url for each referenced network load balancer.
@@ -139,7 +142,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                    description.instanceType,
                                                    googleDeployDefaults)
 
-    def networkInterface = GCEUtil.buildNetworkInterface(network, ACCESS_CONFIG_NAME, ACCESS_CONFIG_TYPE)
+    def networkInterface = GCEUtil.buildNetworkInterface(network, subnet, ACCESS_CONFIG_NAME, ACCESS_CONFIG_TYPE)
 
     def metadata = GCEUtil.buildMetadataFromMap(description.instanceMetadata)
 
