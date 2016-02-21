@@ -29,6 +29,15 @@ module.exports = angular
           let accountFilter = (cluster) => cluster.account === vm.component.credentials;
           let zoneList = appListExtractorService.getZonesByRegion([vm.application], accountFilter);
           vm.zones = Object.keys(zoneList).length ? zoneList : zones;
+
+          // Deselect any zones that are not included in the filtered list.
+          let flattenedZoneList = _(vm.zones)
+            .map()
+            .flatten()
+            .value();
+          vm.component.zones = _.filter(vm.component.zones, zone => {
+            return _.includes(flattenedZoneList, zone);
+          });
         };
 
         let setClusterList = () => {

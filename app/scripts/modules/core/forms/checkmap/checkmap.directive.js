@@ -73,6 +73,7 @@ module.exports = angular.module('spinnaker.core.forms.checkmap.checkmap.directiv
 
         scope.updateSelectedItems = updateSelectedItems;
 
+        scope.$watch('itemMap', initializeModelHolder);
         scope.$watch('selectedItems', initializeModelHolder);
       }
     };
