@@ -104,6 +104,10 @@
           <account-tag account="serverGroup.account" pad="right"></account-tag>
           {{serverGroup.region}}
         </dd>
+        <dt>Network</dt>
+        <dd>{{serverGroup.network}}</dd>
+        <dt ng-if="serverGroup.subnet">Subnet</dt>
+        <dd ng-if="serverGroup.subnet">{{serverGroup.subnet}}</dd>
         <dt>Zone</dt>
         <dd>
           <ul>
@@ -161,7 +165,9 @@
           <help-field key="gce.instance.authScopes.{{authScope}}"></help-field>
         </dd>
         <dt>Network</dt>
-        <dd>{{ctrl.getNetwork()}}</dd>
+        <dd>{{serverGroup.network}}</dd>
+        <dt ng-if="serverGroup.subnet">Subnet</dt>
+        <dd ng-if="serverGroup.subnet">{{serverGroup.subnet}}</dd>
         <dt>Startup Script</dt>
         <dd ng-if="serverGroup.startupScript"><a href ng-click="ctrl.showStartupScript()">Show Startup Script</a></dd>
         <dd ng-if="!serverGroup.startupScript">[none]</dd>

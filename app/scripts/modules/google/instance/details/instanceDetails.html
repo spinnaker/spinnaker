@@ -81,6 +81,8 @@
         </dd>
         <dt>Network</dt>
         <dd>{{instance.network || '(Unknown)'}}</dd>
+        <dt ng-if="instance.subnet">Subnet</dt>
+        <dd ng-if="instance.subnet">{{instance.subnet}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">

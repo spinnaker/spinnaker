@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.subnet.read.service', [
     require('exports?"restangular"!imports?_=lodash!restangular'),
-    require('../../core/cache/infrastructureCaches.js')
+    require('../cache/infrastructureCaches.js')
   ])
   .factory('subnetReader', function (Restangular, infrastructureCaches) {
 
@@ -25,8 +25,15 @@ module.exports = angular
         });
     }
 
+    function listSubnetsByProvider(cloudProvider) {
+      return Restangular.one('subnets', cloudProvider)
+        .withHttpConfig({cache: infrastructureCaches.subnets})
+        .getList();
+    }
+
     return {
-      listSubnets: listSubnets
+      listSubnets: listSubnets,
+      listSubnetsByProvider: listSubnetsByProvider,
     };
 
   });
