@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.cf.basicSettings.controller', [])
-  .controller('cfServerGroupBasicSettingsCtrl', function($scope, v2modalWizardService) {
+  .controller('cfServerGroupBasicSettingsCtrl', function(/*$scope, v2modalWizardService*/) {
 
     // TODO(GLT): Fix roles after Find/Bake updates are rolled in.
 
