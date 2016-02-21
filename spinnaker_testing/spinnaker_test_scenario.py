@@ -22,6 +22,7 @@ to make appropriate observations.
 
 import logging
 
+from citest.base import JournalLogger
 import citest.service_testing as sk
 import citest.service_testing.http_agent as http_agent
 import citest.aws_testing as aws
@@ -156,6 +157,11 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         help='Spinnaker account name to use for test operations.'
              ' Only used when managing jobs running on AWS.')
 
+    parser.add_argument(
+        '--aws_iam_role', default=defaults.get('AWS_IAM_ROLE', None),
+        help='Spinnaker IAM role name for test operations.'
+             ' Only used when managing jobs running on AWS.')
+
     # Spinnaker Stuff
     parser.add_argument(
         '--managed_gce_project', dest='google_primary_managed_project_id',
@@ -194,6 +200,23 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
              ' creating test instances.')
 
     parser.add_argument(
+        '--test_aws_ami',
+        default=defaults.get(
+            'TEST_AWS_AMI',
+            'bitnami-tomcatstack-7.0.63-1-linux-ubuntu-14.04.1-x86_64-ebs'),
+        help='Default Amazon AMI to use when creating test instances.'
+            ' The default image will listen on port 80.')
+
+    parser.add_argument(
+        '--test_aws_vpc_id',
+        default=defaults.get('TEST_AWS_VPC_ID', None),
+        help='Default AWS VpcId to use when creating test resources.')
+    parser.add_argument(
+        '--test_aws_security_group_id',
+        default=defaults.get('TEST_AWS_SECURITY_GROUP_ID', None),
+        help='Default AWS SecurityGroupId when creating test resources.')
+
+    parser.add_argument(
         '--test_stack', default=defaults.get('TEST_STACK', 'test'),
         help='Default Spinnaker stack decorator.')
 
@@ -222,19 +245,70 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     """
     super(SpinnakerTestScenario, self).__init__(bindings, agent)
     agent = self.agent
-    bindings = self.bindings  # base class made a copy
+    self.__update_bindings_with_subsystem_configuration(agent)
+    JournalLogger.begin_context('Configure Cloud Bindings')
+    try:
+      self.__init_google_bindings()
+      self.__init_aws_bindings()
+    finally:
+      JournalLogger.end_context()
 
-    if not bindings['TEST_GCE_ZONE']:
-      bindings['TEST_GCE_ZONE'] = bindings['GCE_ZONE']
+  def __init_aws_bindings(self):
+    bindings = self.bindings  # base class made a copy
     if not bindings['TEST_AWS_ZONE']:
       bindings['TEST_AWS_ZONE'] = bindings['AWS_ZONE']
-
-    if not bindings.get('TEST_GCE_REGION', ''):
-      bindings['TEST_GCE_REGION'] = bindings['TEST_GCE_ZONE'][:-2]
-
     if not bindings.get('TEST_AWS_REGION', ''):
       bindings['TEST_AWS_REGION'] = bindings['TEST_AWS_ZONE'][:-1]
-    self.__update_bindings_with_subsystem_configuration(agent)
+
+    if bindings.get('AWS_PROFILE'):
+      self.__aws_observer = aws.AwsAgent(
+          bindings['AWS_PROFILE'], bindings['TEST_AWS_REGION'])
+      if not bindings.get('TEST_AWS_VPC_ID', ''):
+        # We need to figure out a specific aws vpc id to use.
+        logger = logging.getLogger(__name__)
+        logger.info('Determine default AWS VpcId...')
+        vpc_list = self.__aws_observer.get_resource_list(
+            root_key='Vpcs',
+            aws_command='describe-vpcs', args=[],
+            region=bindings['TEST_AWS_REGION'],
+            aws_module='ec2', profile=self.__aws_observer.profile)
+        for entry in vpc_list:
+          if (entry.get('CidrBlock', '').startswith('10.')
+              and entry.get('State', None) == 'available'):
+            bindings['TEST_AWS_VPC_ID'] = entry['VpcId']
+            break
+        logger.info('Using discovered default VpcId=%s',
+                    str(bindings['TEST_AWS_VPC_ID']))
+
+      if not bindings.get('TEST_AWS_SECURITY_GROUP', ''):
+        # We need to figure out a specific security group that is compatable
+        # with the VpcId we are using.
+        logger = logging.getLogger(__name__)
+        logger.info('Determine default AWS SecurityGroupId...')
+        sg_list = self.__aws_observer.get_resource_list(
+            root_key='SecurityGroups',
+            aws_command='describe-security-groups', args=[],
+            region=bindings['TEST_AWS_REGION'],
+            aws_module='ec2', profile=self.__aws_observer.profile)
+        for entry in sg_list:
+          if entry.get('VpcId', None) == bindings['TEST_AWS_VPC_ID']:
+            bindings['TEST_AWS_SECURITY_GROUP_ID'] = entry['GroupId']
+            break
+        logger.info('Using discovered default SecurityGroupId=%s',
+                    str(bindings['TEST_AWS_SECURITY_GROUP_ID']))
+    else:
+      self.__aws_observer = None
+      logger = logging.getLogger(__name__)
+      logger.warning(
+          '--aws_profile was not set.'
+          ' Therefore, we will not be able to observe Amazon Web Services.')
+
+  def __init_google_bindings(self):
+    bindings = self.bindings  # base class made a copy
+    if not bindings['TEST_GCE_ZONE']:
+      bindings['TEST_GCE_ZONE'] = bindings['GCE_ZONE']
+    if not bindings.get('TEST_GCE_REGION', ''):
+      bindings['TEST_GCE_REGION'] = bindings['TEST_GCE_ZONE'][:-2]
 
     if bindings.get('GOOGLE_PRIMARY_MANAGED_PROJECT_ID'):
       service_account = bindings.get('GCE_SERVICE_ACCOUNT', None)
@@ -249,16 +323,6 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       logger.warning(
           '--managed_gce_project was not set nor could it be inferred.'
           ' Therefore, we will not be able to observe Google Compute Engine.')
-
-    if bindings.get('AWS_PROFILE'):
-      self.__aws_observer = aws.AwsAgent(
-          bindings['AWS_PROFILE'], bindings['TEST_AWS_REGION'])
-    else:
-      self.__aws_observer = None
-      logger = logging.getLogger(__name__)
-      logger.warning(
-          '--aws_profile was not set.'
-          ' Therefore, we will not be able to observe Amazon Web Services.')
 
   def __update_bindings_with_subsystem_configuration(self, agent):
     """Helper function for setting agent bindings from actual configuration.
@@ -283,6 +347,10 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     if not self.bindings['AWS_CREDENTIALS']:
       self.bindings['AWS_CREDENTIALS'] = self.agent.deployed_config.get(
           'providers.aws.primaryCredentials.name', None)
+
+    if not self.bindings['AWS_IAM_ROLE']:
+      self.bindings['AWS_IAM_ROLE'] = self.agent.deployed_config.get(
+          'providers.aws.defaultIAMRole', None)
 
     if not self.bindings.get('GOOGLE_PRIMARY_MANAGED_PROJECT_ID'):
       # Default to the project we are managing.
