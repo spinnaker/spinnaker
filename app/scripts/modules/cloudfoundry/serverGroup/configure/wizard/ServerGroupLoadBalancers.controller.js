@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.serverGroup.configure.cf.loadBalancers.controller', [
         require('../../../../core/modal/wizard/v2modalWizard.service.js'),
     ])
-    .controller('cfServerGroupLoadBalancersCtrl', function($scope, v2modalWizardService) {
+    .controller('cfServerGroupLoadBalancersCtrl', function(/*$scope, v2modalWizardService*/) {
 
         // TODO(GLT): Fix roles after Find/Bake updates are rolled in.
 
