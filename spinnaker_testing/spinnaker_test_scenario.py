@@ -152,7 +152,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         help='aws command-line tool --profile parameter when observing AWS.')
 
     parser.add_argument(
-        '--aws_credentials', default=defaults.get('AWS_CREDENTIALS', 'default'),
+        '--aws_credentials', default=defaults.get('AWS_CREDENTIALS', None),
         help='Spinnaker account name to use for test operations.'
              ' Only used when managing jobs running on AWS.')
 
