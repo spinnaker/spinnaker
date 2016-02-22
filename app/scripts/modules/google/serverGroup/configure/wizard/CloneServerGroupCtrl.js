@@ -99,6 +99,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       processCommandUpdateResult($scope.command.credentialsChanged());
       processCommandUpdateResult($scope.command.regionChanged());
       processCommandUpdateResult($scope.command.networkChanged());
+      gceServerGroupConfigurationService.configureSubnets($scope.command);
     }
 
     function createResultProcessor(method) {

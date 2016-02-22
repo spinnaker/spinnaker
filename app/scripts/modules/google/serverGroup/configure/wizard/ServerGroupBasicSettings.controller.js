@@ -13,6 +13,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.basicSettin
   require('../../../gceRegionSelectField.directive.js'),
   require('../../../gceZoneSelectField.directive.js'),
   require('../../../gceNetworkSelectField.directive.js'),
+  require('../../../subnet/subnetSelectField.directive.js'),
 ])
   .controller('gceServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state,
                                                           v2modalWizardService, rx, imageReader, namingService) {
@@ -81,6 +82,18 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.basicSettin
           /^([a-zA-Z0-9-]*(\${.+})*)*$/ :
           /^[a-zA-Z0-9-]*$/;
         return pattern.test(detail);
+      }
+    };
+
+    this.getSubnetPlaceholder = () => {
+      if (!$scope.command.region) {
+        return '(Select an account)';
+      } else if ($scope.command.viewState.autoCreateSubnets) {
+        return '(Subnet will be automatically selected)';
+      } else if ($scope.command.viewState.autoCreateSubnets === null) {
+        return '(Subnets not supported)';
+      } else {
+        return null;
       }
     };
 

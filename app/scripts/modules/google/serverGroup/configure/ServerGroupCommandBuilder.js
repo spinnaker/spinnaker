@@ -31,14 +31,13 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
     }
 
     function extractNetworkName(serverGroup) {
-      if (_.has(serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces')) {
-        var networkInterfaces = serverGroup.launchConfig.instanceTemplate.properties.networkInterfaces;
-        if (networkInterfaces.length === 1) {
-          var networkUrl = networkInterfaces[0].network;
-          return _.last(networkUrl.split('/'));
-        }
-      }
-      return null;
+      let networkUrl = _.get(serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces[0].network');
+      return networkUrl ? _.last(networkUrl.split('/')) : null;
+    }
+
+    function extractSubnetName(serverGroup) {
+      let subnetworkUrl = _.get(serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces[0].subnetwork');
+      return subnetworkUrl ? _.last(subnetworkUrl.split('/')) : null;
     }
 
     function populateDisksFromExisting(disks, command) {
@@ -271,6 +270,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         },
         zone: serverGroup.zones[0],
         network: extractNetworkName(serverGroup),
+        subnet: extractSubnetName(serverGroup),
         instanceMetadata: [],
         tags: [],
         availabilityZones: [],

@@ -10,6 +10,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
   require('../../../core/serverGroup/serverGroup.read.service.js'),
   require('../../../core/serverGroup/details/serverGroupWarningMessage.service.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
+  require('../../../core/network/network.read.service.js'),
   require('../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../core/serverGroup/configure/common/runningExecutions.service.js'),
   require('../../../core/utils/lodash.js'),
@@ -21,7 +22,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 ])
   .controller('gceServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup, InsightFilterStateModel,
                                                      gceServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, _, serverGroupWriter,
-                                                     runningExecutionsService, serverGroupWarningMessageService) {
+                                                     runningExecutionsService, serverGroupWarningMessageService, networkReader) {
 
     let application = app;
 
@@ -70,6 +71,9 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
                 _.find(application.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': 'global', 'name': id });
             }).compact().value();
           }
+
+          $scope.serverGroup.network = getNetwork();
+          retrieveSubnet();
 
           var pathSegments = $scope.serverGroup.launchConfig.instanceTemplate.selfLink.split('/');
           var projectId = pathSegments[pathSegments.indexOf('projects') + 1];
@@ -195,6 +199,27 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
         $scope.serverGroup.launchConfig.instanceTemplate.properties.tags.helpMap = helpMap;
       }
+    }
+
+    function getNetwork() {
+      let networkUrl = _.get($scope.serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces[0].network');
+      return networkUrl ? _.last(networkUrl.split('/')) : null;
+    }
+
+    function retrieveSubnet() {
+      networkReader.listNetworksByProvider('gce').then(function(networks) {
+        let autoCreateSubnets = _(networks)
+          .filter({ account: $scope.serverGroup.account, name: $scope.serverGroup.network })
+          .pluck('autoCreateSubnets')
+          .head();
+
+        if (autoCreateSubnets) {
+          $scope.serverGroup.subnet = '(Auto-select)';
+        } else {
+          let subnetUrl = _.get($scope.serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces[0].subnetwork');
+          $scope.serverGroup.subnet = subnetUrl ? _.last(subnetUrl.split('/')) : null;
+        }
+      });
     }
 
     retrieveServerGroup().then(() => {
@@ -390,23 +415,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
     this.truncateCommitHash = function() {
       if ($scope.serverGroup && $scope.serverGroup.buildInfo && $scope.serverGroup.buildInfo.commit) {
         return $scope.serverGroup.buildInfo.commit.substring(0, 8);
-      }
-      return null;
-    };
-
-    this.getNetwork = function() {
-      if ($scope.serverGroup &&
-          $scope.serverGroup.launchConfig &&
-          $scope.serverGroup.launchConfig.instanceTemplate &&
-          $scope.serverGroup.launchConfig.instanceTemplate.properties &&
-          $scope.serverGroup.launchConfig.instanceTemplate.properties.networkInterfaces) {
-        var networkInterfaces = $scope.serverGroup.launchConfig.instanceTemplate.properties.networkInterfaces;
-
-        if (networkInterfaces.length === 1) {
-          var networkUrl = networkInterfaces[0].network;
-
-          return _.last(networkUrl.split('/'));
-        }
       }
       return null;
     };
