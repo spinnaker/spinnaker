@@ -120,12 +120,10 @@ class DockerRegistryImageCachingAgent implements CachingAgent, OnDemandAgent, Ac
   }
 
   private Map<String, Set<String>> loadTags() {
-    def res = new HashMap<String, Set<String>>().withDefault({ _ -> [] as Set })
-    credentials.repositories.forEach({ repository ->
-      DockerRegistryTags tags = credentials.client.getTags(repository)
-      res[tags.name].addAll(tags.tags)
-    })
-    return res
+    credentials.repositories.collectEntries {
+      DockerRegistryTags tags = credentials.client.getTags(it)
+      tags ? [(tags.name): tags.tags ?: []] : [:]
+    }
   }
 
   @Override
