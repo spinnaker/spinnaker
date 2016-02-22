@@ -33,14 +33,14 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
-import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
-import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance2
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup2
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*;
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
 @Slf4j
 class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
@@ -75,12 +75,12 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    List<GoogleServerGroup> serverGroups = getServerGroups()
+    List<GoogleServerGroup2> serverGroups = getServerGroups()
     buildCacheResult(providerCache, serverGroups)
   }
 
-  List<GoogleServerGroup> getServerGroups() {
-    List<GoogleServerGroup> serverGroups = Collections.synchronizedList(new ArrayList<GoogleServerGroup>())
+  List<GoogleServerGroup2> getServerGroups() {
+    List<GoogleServerGroup2> serverGroups = Collections.synchronizedList([])
 
     BatchRequest migsRequest = buildBatchRequest()
     BatchRequest instanceGroupsRequest = buildBatchRequest()
@@ -98,11 +98,11 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
     serverGroups
   }
 
-  CacheResult buildCacheResult(ProviderCache providerCache, List<GoogleServerGroup> serverGroups) {
+  CacheResult buildCacheResult(ProviderCache providerCache, List<GoogleServerGroup2> serverGroups) {
 
-    def crb = new CacheResultBuilder();
+    def cacheResultBuilder = new CacheResultBuilder();
 
-    serverGroups.each { GoogleServerGroup serverGroup ->
+    serverGroups.each { GoogleServerGroup2 serverGroup ->
       def names = Names.parseName(serverGroup.name)
       def applicationName = names.app
       def clusterName = names.cluster
@@ -119,34 +119,28 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
       def instanceKeys = []
       def loadBalancerKeys = []
 
-      crb.namespace(APPLICATIONS.ns).get(appKey).with {
+      cacheResultBuilder.namespace(APPLICATIONS.ns).get(appKey).with {
         attributes.name = applicationName
         relationships[CLUSTERS.ns].add(clusterKey)
       }
 
-      crb.namespace(CLUSTERS.ns).get(clusterKey).with {
+      cacheResultBuilder.namespace(CLUSTERS.ns).get(clusterKey).with {
         attributes.name = clusterName
         attributes.accountName = accountName
         relationships[APPLICATIONS.ns].add(appKey)
         relationships[SERVER_GROUPS.ns].add(serverGroupKey)
       }
 
-      serverGroup.instances.each { GoogleInstance partialInstance ->
+      serverGroup.instances.each { GoogleInstance2 partialInstance ->
         def instanceKey = Keys.getInstanceKey(googleCloudProvider,
                                               accountName,
                                               partialInstance.name)
         instanceKeys << instanceKey
-        crb.namespace(INSTANCES.ns).get(instanceKey).with {
+        cacheResultBuilder.namespace(INSTANCES.ns).get(instanceKey).with {
           relationships[SERVER_GROUPS.ns].add(serverGroupKey)
         }
       }
-
-      crb.namespace(SERVER_GROUPS.ns).get(serverGroupKey).with {
-        attributes = objectMapper.convertValue(serverGroup, ATTRIBUTES)
-        relationships[APPLICATIONS.ns].add(appKey)
-        relationships[CLUSTERS.ns].add(clusterKey)
-        relationships[INSTANCES.ns].addAll(instanceKeys)
-      }
+      serverGroup.instances.clear()
 
       serverGroup.asg.loadBalancerNames.each { String loadBalancerName ->
         loadBalancerKeys << Keys.getLoadBalancerKey(googleCloudProvider,
@@ -155,25 +149,33 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
                                                     loadBalancerName)
       }
 
+      cacheResultBuilder.namespace(SERVER_GROUPS.ns).get(serverGroupKey).with {
+        attributes = objectMapper.convertValue(serverGroup, ATTRIBUTES)
+        relationships[APPLICATIONS.ns].add(appKey)
+        relationships[CLUSTERS.ns].add(clusterKey)
+        relationships[INSTANCES.ns].addAll(instanceKeys)
+        relationships[LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
+      }
+
       loadBalancerKeys.each { String loadBalancerKey ->
-        crb.namespace(LOAD_BALANCERS.ns).get(loadBalancerKey).with {
+        cacheResultBuilder.namespace(LOAD_BALANCERS.ns).get(loadBalancerKey).with {
           relationships[SERVER_GROUPS.ns].add(serverGroupKey)
         }
       }
     }
 
-    log.info("Caching ${crb.namespace(APPLICATIONS.ns).size()} applications in ${agentType}")
-    log.info("Caching ${crb.namespace(CLUSTERS.ns).size()} clusters in ${agentType}")
-    log.info("Caching ${crb.namespace(SERVER_GROUPS.ns).size()} server groups in ${agentType}")
-    log.info("Caching ${crb.namespace(INSTANCES.ns).size()} instance relationships in ${agentType}")
-    log.info("Caching ${crb.namespace(LOAD_BALANCERS.ns).size()} load balancer relationships in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(APPLICATIONS.ns).size()} applications in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(CLUSTERS.ns).size()} clusters in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(SERVER_GROUPS.ns).size()} server groups in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(INSTANCES.ns).size()} instance relationships in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(LOAD_BALANCERS.ns).size()} load balancer relationships in ${agentType}")
 
-    crb.build()
+    cacheResultBuilder.build()
   }
 
   class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceGroupManagerList> {
 
-    List<GoogleServerGroup> serverGroups
+    List<GoogleServerGroup2> serverGroups
     String zone
     BatchRequest instanceGroupsRequest
 
@@ -189,7 +191,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
         def appName = names.app.toLowerCase()
 
         if (appName) {
-          def serverGroup = new GoogleServerGroup(
+          def serverGroup = new GoogleServerGroup2(
               name: instanceGroupManager.name,
               region: region,
               zones: [zone],
@@ -222,7 +224,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
 
   class InstanceGroupsCallback<InstanceGroupsListInstances> extends JsonBatchCallback<InstanceGroupsListInstances> {
 
-    GoogleServerGroup serverGroup
+    GoogleServerGroup2 serverGroup
 
     @Override
     void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
@@ -232,7 +234,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
     @Override
     void onSuccess(InstanceGroupsListInstances instanceGroupsListInstances, HttpHeaders responseHeaders) throws IOException {
       instanceGroupsListInstances?.items?.each { InstanceWithNamedPorts instance ->
-        serverGroup.instances << new GoogleInstance(name: Utils.getLocalName(instance.instance))
+        serverGroup.instances << new GoogleInstance2(name: Utils.getLocalName(instance.instance))
       }
     }
   }
@@ -242,7 +244,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
 
     private static final String LOAD_BALANCER_NAMES = "load-balancer-names"
 
-    GoogleServerGroup serverGroup
+    GoogleServerGroup2 serverGroup
 
     @Override
     void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {

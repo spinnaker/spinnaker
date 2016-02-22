@@ -54,7 +54,7 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2.View> {
   @Autowired
   ObjectMapper objectMapper
 
-  final String platform = "gce"
+  final String platform = GoogleCloudProvider.GCE
 
   @Override
   GoogleInstance2.View getInstance(String account, String _ /*region*/, String id) {

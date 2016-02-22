@@ -121,7 +121,7 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
   private CacheResult buildCacheResult(ProviderCache providerCache, List<Firewall> firewallList) {
     log.info("Describing items in ${agentType}")
 
-    CacheResultBuilder crb = new CacheResultBuilder()
+    CacheResultBuilder cacheResultBuilder = new CacheResultBuilder()
 
     firewallList.collect { Firewall firewall ->
       def securityGroupKey = Keys.getSecurityGroupKey(googleCloudProvider,
@@ -130,13 +130,13 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
                                                       "global",
                                                       accountName)
 
-      crb.namespace(SECURITY_GROUPS.ns).get(securityGroupKey).with {
+      cacheResultBuilder.namespace(SECURITY_GROUPS.ns).get(securityGroupKey).with {
         attributes = [firewall: firewall]
       }
     }
 
-    log.info("Caching ${crb.namespace(SECURITY_GROUPS.ns).size()} security groups in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(SECURITY_GROUPS.ns).size()} security groups in ${agentType}")
 
-    crb.build()
+    cacheResultBuilder.build()
   }
 }

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import groovy.transform.Canonical
@@ -39,8 +40,9 @@ class GoogleLoadBalancer2 {
     new View()
   }
 
+  @Canonical
   class View implements LoadBalancer {
-    final String type = "gce"
+    final String type = GoogleCloudProvider.GCE
 
     String name = GoogleLoadBalancer2.this.name
     String account = GoogleLoadBalancer2.this.account

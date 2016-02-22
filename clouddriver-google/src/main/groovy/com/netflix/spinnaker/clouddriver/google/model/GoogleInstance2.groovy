@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.google.model.health.GoogleInstanceHealt
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
+import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
 
 @Slf4j
@@ -67,9 +68,10 @@ class GoogleInstance2 {
     new View()
   }
 
+  @Canonical
   class View implements Instance {
 
-    final String providerType = "gce"
+    final String providerType = GoogleCloudProvider.GCE
 
     String name = GoogleInstance2.this.name
     String instanceId = GoogleInstance2.this.name
@@ -93,9 +95,21 @@ class GoogleInstance2 {
       healths
     }
 
+    @JsonIgnore
+    List<GoogleHealth> allHealths() {
+      def allHealths = []
+      loadBalancerHealths?.each{
+        allHealths << it.view
+      }
+      if (instanceHealth) {
+        allHealths << instanceHealth
+      }
+      allHealths
+    }
+
     @Override
     HealthState getHealthState() {
-      def allHealths = loadBalancerHealths.collect { it.view } + instanceHealth
+      def allHealths = allHealths()
       someUpRemainingUnknown(allHealths) ? HealthState.Up :
           anyStarting(allHealths) ? HealthState.Starting :
               anyDown(allHealths) ? HealthState.Down :

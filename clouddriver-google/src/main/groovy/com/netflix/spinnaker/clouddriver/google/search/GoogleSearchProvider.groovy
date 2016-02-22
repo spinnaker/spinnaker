@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.search
 
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
 import com.netflix.spinnaker.clouddriver.google.model.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.GoogleResourceRetriever
@@ -226,7 +227,7 @@ class GoogleSearchProvider implements SearchProvider {
     )
 
     resultSet.results.each { Map<String, String> result ->
-      result.provider = "gce"
+      result.provider = GoogleCloudProvider.GCE
 
       if (urlMappings.containsKey(result.type)) {
         def binding = [:]

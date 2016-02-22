@@ -35,6 +35,7 @@ class GoogleHealthCheck {
     new View()
   }
 
+  @Canonical
   class View implements Serializable {
     int checkIntervalSec = checkIntervalSec
     int timeoutSec = timeoutSec

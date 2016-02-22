@@ -81,23 +81,21 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
   }
 
   CacheResult buildCacheResults(ProviderCache providerCache, List<GoogleInstance2> googleInstances) {
-    CacheResultBuilder crb = new CacheResultBuilder()
+    CacheResultBuilder cacheResultBuilder = new CacheResultBuilder()
 
     googleInstances.each { GoogleInstance2 instance ->
       def instanceKey = Keys.getInstanceKey(googleCloudProvider, accountName, instance.name)
-      crb.namespace(INSTANCES.ns).get(instanceKey).with {
+      cacheResultBuilder.namespace(INSTANCES.ns).get(instanceKey).with {
         attributes = objectMapper.convertValue(instance, ATTRIBUTES)
       }
     }
 
-    log.info("Caching ${crb.namespace(INSTANCES.ns).size()} instances in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(INSTANCES.ns).size()} instances in ${agentType}")
 
-    crb.build()
+    cacheResultBuilder.build()
   }
 
   class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCallback<InstanceAggregatedList> {
-
-    private static final String GOOGLE_INSTANCE_TYPE = "gce"
 
     List<GoogleInstance2> instances
 

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.model
 
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -37,7 +38,7 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance> {
   @Autowired
   GoogleResourceRetriever googleResourceRetriever
 
-  String platform = "gce"
+  String platform = GoogleCloudProvider.GCE
 
   @Override
   GoogleInstance getInstance(String account, String region, String id) {
