@@ -33,7 +33,9 @@ class GCEBakeHandlerSpec extends Specification {
   private static final String REGION = "us-central1"
   private static final String SOURCE_UBUNTU_IMAGE_NAME = "some-ubuntu-image"
   private static final String SOURCE_TRUSTY_IMAGE_NAME = "some-trusty-image"
+  private static final String SOURCE_CENTOS_HVM_IMAGE_NAME = "some-centos-image"
   private static final String DEBIAN_REPOSITORY = "http://some-debian-repository"
+  private static final String YUM_REPOSITORY = "http://some-yum-repository"
 
   @Shared
   String configDir = "/some/path"
@@ -63,6 +65,13 @@ class GCEBakeHandlerSpec extends Specification {
             packageType: "DEB",
           ],
           virtualizationSettings: [sourceImage: SOURCE_TRUSTY_IMAGE_NAME]
+        ],
+        [
+          baseImage: [
+            id: "centos",
+            packageType: "RPM",
+          ],
+          virtualizationSettings: [sourceImage: SOURCE_CENTOS_HVM_IMAGE_NAME]
         ]
       ]
     ]
@@ -155,7 +164,8 @@ class GCEBakeHandlerSpec extends Specification {
         gce_network: gceBakeryDefaults.network,
         gce_source_image: SOURCE_UBUNTU_IMAGE_NAME,
         gce_target_image: targetImageName,
-        deb_repo: DEBIAN_REPOSITORY,
+        repository: DEBIAN_REPOSITORY,
+        package_type: BakeRequest.PackageType.DEB.packageType,
         packages: PACKAGE_NAME,
         configDir: configDir
       ]
@@ -176,6 +186,43 @@ class GCEBakeHandlerSpec extends Specification {
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
   }
 
+  void 'produces packer command with all required parameters for centos'() {
+    setup:
+    def imageNameFactoryMock = Mock(ImageNameFactory)
+    def packerCommandFactoryMock = Mock(PackerCommandFactory)
+    def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+            package_name: PACKAGE_NAME,
+            base_os: "centos",
+            cloud_provider_type: BakeRequest.CloudProviderType.gce)
+    def targetImageName = "kato-x8664-timestamp-centos"
+    def parameterMap = [
+            gce_project_id: googleConfigurationProperties.accounts.get(0).project,
+            gce_zone: gceBakeryDefaults.zone,
+            gce_network: gceBakeryDefaults.network,
+            gce_source_image: SOURCE_CENTOS_HVM_IMAGE_NAME,
+            gce_target_image: targetImageName,
+            repository: YUM_REPOSITORY,
+            package_type: BakeRequest.PackageType.RPM.packageType,
+            packages: PACKAGE_NAME,
+            configDir: configDir
+    ]
+
+    @Subject
+    GCEBakeHandler gceBakeHandler = new GCEBakeHandler(configDir: configDir,
+            gceBakeryDefaults: gceBakeryDefaults,
+            googleConfigurationProperties: googleConfigurationProperties,
+            imageNameFactory: imageNameFactoryMock,
+            packerCommandFactory: packerCommandFactoryMock,
+            yumRepository: YUM_REPOSITORY)
+
+    when:
+    gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+
+    then:
+    1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
+    1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
+  }
+
   void 'produces packer command with all required parameters for ubuntu, and overriding base image'() {
     setup:
       def imageNameFactoryMock = Mock(ImageNameFactory)
@@ -192,7 +239,8 @@ class GCEBakeHandlerSpec extends Specification {
         gce_network: gceBakeryDefaults.network,
         gce_source_image: "some-gce-image-name",
         gce_target_image: targetImageName,
-        deb_repo: DEBIAN_REPOSITORY,
+        repository: DEBIAN_REPOSITORY,
+        package_type: BakeRequest.PackageType.DEB.packageType,
         packages: PACKAGE_NAME,
         configDir: configDir
       ]
@@ -229,7 +277,8 @@ class GCEBakeHandlerSpec extends Specification {
         gce_network: gceBakeryDefaults.network,
         gce_source_image: SOURCE_UBUNTU_IMAGE_NAME,
         gce_target_image: targetImageName,
-        deb_repo: DEBIAN_REPOSITORY,
+        repository: DEBIAN_REPOSITORY,
+        package_type: BakeRequest.PackageType.DEB.packageType,
         packages: PACKAGE_NAME,
         configDir: configDir
       ]
@@ -266,7 +315,8 @@ class GCEBakeHandlerSpec extends Specification {
         gce_network: gceBakeryDefaults.network,
         gce_source_image: SOURCE_UBUNTU_IMAGE_NAME,
         gce_target_image: targetImageName,
-        deb_repo: DEBIAN_REPOSITORY,
+        repository: DEBIAN_REPOSITORY,
+        package_type: BakeRequest.PackageType.DEB.packageType,
         packages: PACKAGE_NAME,
         configDir: configDir,
         someAttr1: "someValue1",
@@ -305,7 +355,8 @@ class GCEBakeHandlerSpec extends Specification {
         gce_network: "other-network",
         gce_source_image: SOURCE_UBUNTU_IMAGE_NAME,
         gce_target_image: targetImageName,
-        deb_repo: DEBIAN_REPOSITORY,
+        repository: DEBIAN_REPOSITORY,
+        package_type: BakeRequest.PackageType.DEB.packageType,
         packages: PACKAGE_NAME,
         configDir: configDir
       ]
@@ -341,7 +392,8 @@ class GCEBakeHandlerSpec extends Specification {
         gce_network: gceBakeryDefaults.network,
         gce_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         gce_target_image: targetImageName,
-        deb_repo: DEBIAN_REPOSITORY,
+        repository: DEBIAN_REPOSITORY,
+        package_type: BakeRequest.PackageType.DEB.packageType,
         packages: PACKAGE_NAME,
         configDir: configDir
       ]
@@ -381,7 +433,8 @@ class GCEBakeHandlerSpec extends Specification {
         gce_network: gceBakeryDefaults.network,
         gce_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         gce_target_image: targetImageName,
-        deb_repo: DEBIAN_REPOSITORY,
+        repository: DEBIAN_REPOSITORY,
+        package_type: BakeRequest.PackageType.DEB.packageType,
         packages: fullyQualifiedPackageName,
         configDir: configDir,
         appversion: appVersionStr,
@@ -411,7 +464,7 @@ class GCEBakeHandlerSpec extends Specification {
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
-                                        base_os: "centos",
+                                        base_os: "wily",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
 
       @Subject
@@ -425,7 +478,7 @@ class GCEBakeHandlerSpec extends Specification {
 
     then:
       IllegalArgumentException e = thrown()
-      e.message == "No virtualization settings found for 'centos'."
+      e.message == "No virtualization settings found for 'wily'."
   }
 
   void 'throws exception when zero google accounts are configured'() {

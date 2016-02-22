@@ -9,7 +9,8 @@
     "gce_use_internal_ip": "false",
     "appversion": "",
     "build_host": "",
-    "deb_repo": "",
+    "repository": "",
+    "package_type": "",
     "packages": "",
     "upgrade": "",
     "configDir": null
@@ -29,8 +30,9 @@
     "type": "shell",
     "script": "{{user `configDir`}}/install_packages.sh",
     "environment_vars": [
-      "deb_repo={{user `deb_repo`}}",
+      "repository={{user `repository`}}",
       "packages={{user `packages`}}",
+      "package_type={{user `package_type`}}",
       "upgrade={{user `upgrade`}}"
     ],
     "pause_before": "30s"

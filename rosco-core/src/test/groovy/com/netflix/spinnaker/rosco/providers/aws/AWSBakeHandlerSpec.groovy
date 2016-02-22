@@ -33,7 +33,9 @@ class AWSBakeHandlerSpec extends Specification {
   private static final String SOURCE_UBUNTU_HVM_IMAGE_NAME = "ami-a123456b"
   private static final String SOURCE_UBUNTU_PV_IMAGE_NAME = "ami-a654321b"
   private static final String SOURCE_TRUSTY_HVM_IMAGE_NAME = "ami-c456789d"
+  private static final String SOURCE_AMZN_HVM_IMAGE_NAME = "ami-8fcee4e5"
   private static final String DEBIAN_REPOSITORY = "http://some-debian-repository"
+  private static final String YUM_REPOSITORY = "http://some-yum-repository"
 
   @Shared
   String configDir = "/some/path"
@@ -84,6 +86,21 @@ class AWSBakeHandlerSpec extends Specification {
               sshUserName: "ubuntu"
             ]
           ]
+        ],
+        [
+          baseImage: [
+           id: "amzn",
+           packageType: "RPM",
+          ],
+          virtualizationSettings: [
+            [
+              region: REGION,
+              virtualizationType: "hvm",
+              instanceType: "t2.micro",
+              sourceAmi: SOURCE_AMZN_HVM_IMAGE_NAME,
+              sshUserName: "ec2-user"
+          ]
+         ]
         ]
       ]
     ]
@@ -197,7 +214,8 @@ class AWSBakeHandlerSpec extends Specification {
         aws_instance_type: "t2.micro",
         aws_source_ami: SOURCE_UBUNTU_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
-        deb_repo: DEBIAN_REPOSITORY,
+        repository: DEBIAN_REPOSITORY,
+        package_type: BakeRequest.PackageType.DEB.packageType,
         packages: PACKAGE_NAME,
         configDir: configDir
       ]
@@ -217,6 +235,44 @@ class AWSBakeHandlerSpec extends Specification {
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
+  void 'produces packer command with all required parameters for amzn, using default vm type'() {
+    setup:
+    def imageNameFactoryMock = Mock(ImageNameFactory)
+    def packerCommandFactoryMock = Mock(PackerCommandFactory)
+    def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                      package_name: PACKAGE_NAME,
+                                      base_os: "amzn",
+                                      vm_type: BakeRequest.VmType.hvm,
+                                      cloud_provider_type: BakeRequest.CloudProviderType.aws)
+    def targetImageName = "kato-x8664-timestamp-amzn"
+    def parameterMap = [
+      aws_access_key: awsBakeryDefaults.awsAccessKey,
+      aws_secret_key: awsBakeryDefaults.awsSecretKey,
+      aws_region: REGION,
+      aws_ssh_username: "ec2-user",
+      aws_instance_type: "t2.micro",
+      aws_source_ami: SOURCE_AMZN_HVM_IMAGE_NAME,
+      aws_target_ami: targetImageName,
+      repository: YUM_REPOSITORY,
+      package_type: BakeRequest.PackageType.RPM.packageType,
+      packages: PACKAGE_NAME,
+      configDir: configDir
+    ]
+
+    @Subject
+    AWSBakeHandler awsBakeHandler = new AWSBakeHandler(configDir: configDir,
+                                                       awsBakeryDefaults: awsBakeryDefaults,
+                                                       imageNameFactory: imageNameFactoryMock,
+                                                       packerCommandFactory: packerCommandFactoryMock,
+                                                       yumRepository: YUM_REPOSITORY)
+
+    when:
+    awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+
+    then:
+    1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
+    1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
+  }
   void 'produces packer command with all required parameters for ubuntu, using default vm type, and overriding base ami'() {
     setup:
       def imageNameFactoryMock = Mock(ImageNameFactory)
@@ -236,7 +292,8 @@ class AWSBakeHandlerSpec extends Specification {
         aws_instance_type: "t2.micro",
         aws_source_ami: "ami-12345678",
         aws_target_ami: targetImageName,
-        deb_repo: DEBIAN_REPOSITORY,
+        repository: DEBIAN_REPOSITORY,
+        package_type: BakeRequest.PackageType.DEB.packageType,
         packages: PACKAGE_NAME,
         configDir: configDir
       ]
@@ -274,7 +331,8 @@ class AWSBakeHandlerSpec extends Specification {
         aws_instance_type: "m3.medium",
         aws_source_ami: SOURCE_UBUNTU_PV_IMAGE_NAME,
         aws_target_ami: targetImageName,
-        deb_repo: DEBIAN_REPOSITORY,
+        repository: DEBIAN_REPOSITORY,
+        package_type: BakeRequest.PackageType.DEB.packageType,
         packages: PACKAGE_NAME,
         configDir: configDir
       ]
@@ -313,7 +371,8 @@ class AWSBakeHandlerSpec extends Specification {
         aws_instance_type: "m3.medium",
         aws_source_ami: SOURCE_UBUNTU_PV_IMAGE_NAME,
         aws_target_ami: targetImageName,
-        deb_repo: DEBIAN_REPOSITORY,
+        repository: DEBIAN_REPOSITORY,
+        package_type: BakeRequest.PackageType.DEB.packageType,
         packages: PACKAGE_NAME,
         configDir: configDir
       ]
@@ -352,7 +411,8 @@ class AWSBakeHandlerSpec extends Specification {
         aws_instance_type: "m3.medium",
         aws_source_ami: SOURCE_UBUNTU_PV_IMAGE_NAME,
         aws_target_ami: targetImageName,
-        deb_repo: DEBIAN_REPOSITORY,
+        repository: DEBIAN_REPOSITORY,
+        package_type: BakeRequest.PackageType.DEB.packageType,
         packages: PACKAGE_NAME,
         configDir: configDir,
         someAttr1: "someValue1",
@@ -392,7 +452,8 @@ class AWSBakeHandlerSpec extends Specification {
         aws_instance_type: "t2.micro",
         aws_source_ami: SOURCE_TRUSTY_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
-        deb_repo: DEBIAN_REPOSITORY,
+        repository: DEBIAN_REPOSITORY,
+        package_type: BakeRequest.PackageType.DEB.packageType,
         packages: PACKAGE_NAME,
         configDir: configDir
       ]
@@ -434,7 +495,8 @@ class AWSBakeHandlerSpec extends Specification {
         aws_instance_type: "t2.micro",
         aws_source_ami: SOURCE_TRUSTY_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
-        deb_repo: DEBIAN_REPOSITORY,
+        repository: DEBIAN_REPOSITORY,
+        package_type: BakeRequest.PackageType.DEB.packageType,
         packages: fullyQualifiedPackageName,
         configDir: configDir,
         appversion: appVersionStr,
@@ -476,7 +538,8 @@ class AWSBakeHandlerSpec extends Specification {
         aws_instance_type: "t2.micro",
         aws_source_ami: SOURCE_UBUNTU_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
-        deb_repo: DEBIAN_REPOSITORY,
+        repository: DEBIAN_REPOSITORY,
+        package_type: BakeRequest.PackageType.DEB.packageType,
         packages: PACKAGE_NAME,
         upgrade: true,
         configDir: configDir

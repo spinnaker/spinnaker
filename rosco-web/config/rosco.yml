@@ -28,10 +28,14 @@ executionStatusToBakeResults:
     - executionStatus: FAILED
       bakeResult: FAILURE
 
-# If a repository is set here, it will be added by packer as an apt repository when baking images for GCE and AWS.
-# It is safe to leave this out (or blank) if you do not need to configure your own apt repository.
+# If a repository is set here, it will be added by packer as repository when baking images for GCE and AWS.
+# It is safe to leave this out (or blank) if you do not need to configure your own repository.
+# You can specify an apt repository (used when baking debian based images) and/or a yum repository (used when baking an
+# rpm based imaged)
 # The following commented-out line is an example of what a valid entry looks like.
 # debianRepository: http://dl.bintray.com/spinnaker/ospackages ./
+# yumRepository: https://https://jfrog.bintray.com/...
+
 
 defaultCloudProviderType: aws
 
