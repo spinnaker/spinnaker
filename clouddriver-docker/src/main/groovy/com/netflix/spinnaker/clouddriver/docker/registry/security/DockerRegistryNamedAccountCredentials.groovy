@@ -51,6 +51,13 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
     }
 
     this.address = address
+    if (address.startsWith('https://')) {
+      this.registry = address.substring('https://'.length())
+    } else if (address.startsWith('http://')) {
+      this.registry = address.substring('http://'.length())
+    } else {
+      this.registry = address
+    }
     this.username = username
     this.password = password
     this.email = email
@@ -74,31 +81,13 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
       ""
   }
 
-  public String getEmail() {
-    return email
-  }
-
   public String getV2Endpoint() {
     return "$address/v2"
   }
 
   @Override
-  public String getEnvironment() {
-    return environment
-  }
-
-  @Override
-  public String getAccountType() {
-    return accountType
-  }
-
-  @Override
   public String getCloudProvider() {
     return CLOUD_PROVIDER
-  }
-
-  public DockerRegistryCredentials getCredentials() {
-    return credentials
   }
 
   private DockerRegistryCredentials buildCredentials() {
@@ -111,23 +100,16 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
     return getCloudProvider()
   }
 
-  public String getAccountName() {
-    return accountName
-  }
-
-  public List<String> getRequiredGroupMembership() {
-    return requiredGroupMembership
-  }
-
   private static final String CLOUD_PROVIDER = "dockerRegistry"
-  private final String accountName
-  private final String environment
-  private final String accountType
-  private final String address
-  private final String username
-  private final String password
-  private final String email
-  private final List<String> repositories
-  private final DockerRegistryCredentials credentials
-  private final List<String> requiredGroupMembership
+  final String accountName
+  final String environment
+  final String accountType
+  final String address
+  final String registry
+  final String username
+  final String password
+  final String email
+  final List<String> repositories
+  final DockerRegistryCredentials credentials
+  final List<String> requiredGroupMembership
 }
