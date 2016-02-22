@@ -97,8 +97,6 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
 
   class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCallback<InstanceAggregatedList> {
 
-    private static final String GOOGLE_INSTANCE_TYPE = "gce"
-
     List<GoogleInstance2> instances
 
     @Override

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.model
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
@@ -57,7 +58,7 @@ class GoogleServerGroup2 {
 
   @Canonical
   class View implements ServerGroup {
-    final String type = "gce"
+    final String type = GoogleCloudProvider.GCE
 
     String name = GoogleServerGroup2.this.name
     String region = GoogleServerGroup2.this.region

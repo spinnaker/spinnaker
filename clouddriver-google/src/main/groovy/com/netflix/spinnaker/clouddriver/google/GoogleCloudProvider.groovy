@@ -26,7 +26,9 @@ import java.lang.annotation.Annotation
  */
 @Component
 class GoogleCloudProvider implements CloudProvider {
-  final String id = "gce"
+  public static final String GCE = "gce"
+
+  final String id = GCE
   final String displayName = "Google"
   final Class<Annotation> operationAnnotationType = GoogleOperation.class
 }

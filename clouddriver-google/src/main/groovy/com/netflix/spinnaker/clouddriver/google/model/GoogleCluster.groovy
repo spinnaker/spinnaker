@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.model
 
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.model.Cluster
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
@@ -25,7 +26,7 @@ import groovy.transform.EqualsAndHashCode
 @EqualsAndHashCode(includes = ["name", "accountName"])
 class GoogleCluster implements Cluster, Serializable {
   String name
-  String type = "gce"
+  String type = GoogleCloudProvider.GCE
   String accountName
   Set<GoogleServerGroup> serverGroups = Collections.synchronizedSet(new HashSet<GoogleServerGroup>())
   Set<GoogleLoadBalancer> loadBalancers = Collections.synchronizedSet(new HashSet<GoogleLoadBalancer>())

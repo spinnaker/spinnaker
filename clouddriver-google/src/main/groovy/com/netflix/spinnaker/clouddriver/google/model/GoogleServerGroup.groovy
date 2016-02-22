@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.model
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
@@ -25,8 +26,6 @@ import com.netflix.spinnaker.clouddriver.model.ServerGroup
 
 @Deprecated
 class GoogleServerGroup implements ServerGroup, Serializable {
-
-  private static final String GOOGLE_SERVER_GROUP_TYPE = "gce"
 
   String name
   String region
@@ -79,7 +78,7 @@ class GoogleServerGroup implements ServerGroup, Serializable {
 
   @Override
   String getType() {
-    return GOOGLE_SERVER_GROUP_TYPE
+    return GoogleCloudProvider.GCE
   }
 
   @Override

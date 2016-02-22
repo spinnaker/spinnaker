@@ -71,7 +71,7 @@ class GoogleInstance2 {
   @Canonical
   class View implements Instance {
 
-    final String providerType = "gce"
+    final String providerType = GoogleCloudProvider.GCE
 
     String name = GoogleInstance2.this.name
     String instanceId = GoogleInstance2.this.name

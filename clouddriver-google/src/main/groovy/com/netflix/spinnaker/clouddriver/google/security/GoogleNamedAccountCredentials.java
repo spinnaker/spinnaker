@@ -28,6 +28,7 @@ import com.google.api.services.compute.ComputeScopes;
 import com.google.api.services.compute.model.Region;
 import com.google.api.services.compute.model.RegionList;
 import com.google.common.annotations.VisibleForTesting;
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 
 import java.io.ByteArrayInputStream;
@@ -73,7 +74,7 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
 
     @Override
     public String getCloudProvider() {
-      return CLOUD_PROVIDER;
+      return GoogleCloudProvider.GCE;
     }
 
     public Map<String, List<String>> getRegions() {
@@ -180,7 +181,6 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
       return applicationName;
     }
 
-    private static final String CLOUD_PROVIDER = "gce";
     private final Map<String, List<String>> regionToZonesMap;
     private final String accountName;
     private final String environment;
