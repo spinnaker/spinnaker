@@ -187,7 +187,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       filteredData.zones =
         command.backingData.regionsKeyedByAccount[command.credentials].regions[command.region];
       if (!_(filteredData.zones).contains(command.zone)) {
-        command.zone = "";
+        command.zone = '';
         result.dirty.zone = true;
       }
       return result;
@@ -255,7 +255,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         .valueOf();
 
       if (!_(filteredData.subnets).contains(command.subnet)) {
-        command.subnet = "";
+        command.subnet = '';
         result.dirty.subnet = true;
       }
       return result;
