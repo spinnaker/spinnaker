@@ -62,7 +62,9 @@ interface Cluster {
    */
   @Empty
   @JsonSerialize(nullsUsing = NullCollectionSerializer)
+  // TODO(ttomsu): Why are load balancers associated with Clusters instead of ServerGroups?
   Set<LoadBalancer> getLoadBalancers()
+
 
   static class SimpleCluster implements Cluster {
     String name

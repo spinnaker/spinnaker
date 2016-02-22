@@ -39,6 +39,7 @@ class GoogleLoadBalancer2 {
     new View()
   }
 
+  @Canonical
   class View implements LoadBalancer {
     final String type = "gce"
 

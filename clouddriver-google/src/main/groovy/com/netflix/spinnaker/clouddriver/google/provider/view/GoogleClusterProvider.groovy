@@ -20,13 +20,17 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.model.Firewall
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleApplication
-import com.netflix.spinnaker.clouddriver.google.model.GoogleCluster
-import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.model.GoogleCluster2
+import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance2
+import com.netflix.spinnaker.clouddriver.google.model.GoogleLoadBalancer2
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup2
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
+import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,7 +41,7 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
 @ConditionalOnProperty(value = "google.providerImpl", havingValue = "new")
 @Component
-class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {
+class GoogleClusterProvider implements ClusterProvider<GoogleCluster2> {
 
   @Autowired
   GoogleCloudProvider googleCloudProvider
@@ -47,31 +51,33 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {
   ObjectMapper objectMapper
 
   @Override
-  Map<String, Set<GoogleCluster>> getClusters() {
+  Map<String, Set<GoogleCluster2>> getClusters() {
     cacheView.getAll(CLUSTERS.ns).groupBy { it.accountName }
   }
 
   @Override
-  Map<String, Set<GoogleCluster>> getClusterDetails(String application) {
-    getClusters(application)
+  Map<String, Set<GoogleCluster2>> getClusterDetails(String applicationName) {
+    CacheData cacheData = cacheView.get(APPLICATIONS.ns,
+                                        Keys.getApplicationKey(googleCloudProvider, applicationName),
+                                        RelationshipCacheFilter.include(CLUSTERS.ns))
+    applicationFromCacheData(cacheData).clusters.collectEntries { String accountName, Map<String, GoogleCluster2> clusterNameMap ->
+      [(accountName): clusterNameMap.values()]
+    } as Map<String, Set<GoogleCluster2>>
   }
 
   @Override
-  Map<String, Set<GoogleCluster>> getClusterSummaries(String application) {
+  Map<String, Set<GoogleCluster2>> getClusterSummaries(String application) {
     getClusterDetails(application)
     // TODO(ttomsu): Provide a higher level view (load balancer, security group names only)
   }
 
   @Override
-  Set<GoogleCluster> getClusters(String applicationName, String account) {
-    CacheData cacheData = cacheView.get(APPLICATIONS.ns,
-                                        Keys.getApplicationKey(googleCloudProvider, applicationName),
-                                        RelationshipCacheFilter.include(CLUSTERS.ns))
-    applicationFromCacheData(cacheData).clusters[account].values()
+  Set<GoogleCluster2> getClusters(String applicationName, String account) {
+    getClusterDetails(applicationName)?.get(account)
   }
 
   @Override
-  GoogleCluster getCluster(String application, String account, String name) {
+  GoogleCluster2 getCluster(String application, String account, String name) {
     getClusters(application, account).find { it.name == name }
   }
 
@@ -93,31 +99,60 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {
     }
 
     def accountClusterMap = clusters.groupBy { it.accountName }
-    application.clusters = accountClusterMap.collectEntries { String accountName, List<GoogleCluster> gClusters ->
-      [(accountName): gClusters.collectEntries { GoogleCluster gc -> [(gc.name): gc] }]
+    application.clusters = accountClusterMap.collectEntries { String accountName, List<GoogleCluster2> gClusters ->
+      [(accountName): gClusters.collectEntries { GoogleCluster2 gc -> [(gc.name): gc] }]
     }
 
     application
   }
 
-  GoogleCluster clusterFromCacheData(CacheData cacheData) {
-    GoogleCluster cluster = objectMapper.convertValue(cacheData.attributes, GoogleCluster)
+  GoogleCluster2 clusterFromCacheData(CacheData cacheData) {
+    GoogleCluster2 cluster = objectMapper.convertValue(cacheData.attributes, GoogleCluster2)
 
     def serverGroupKeys = cacheData.relationships[SERVER_GROUPS.ns]
-    cacheView.getAll(SERVER_GROUPS.ns, serverGroupKeys).each { CacheData serverGroupCacheData ->
-      cluster.serverGroups << serverGroupFromCacheData(serverGroupCacheData)
+    cacheView.getAll(SERVER_GROUPS.ns,
+                     serverGroupKeys,
+                     RelationshipCacheFilter.include(LOAD_BALANCERS.ns, INSTANCES.ns)).each { CacheData serverGroupCacheData ->
+      cluster.serverGroups << serverGroupFromCacheData(serverGroupCacheData, cluster)
     }
+
     cluster
   }
 
-  GoogleServerGroup serverGroupFromCacheData(CacheData cacheData) {
-    GoogleServerGroup serverGroup = objectMapper.convertValue(cacheData.attributes, GoogleServerGroup)
+  GoogleServerGroup2.View serverGroupFromCacheData(CacheData cacheData, GoogleCluster2 cluster) {
+    GoogleServerGroup2 serverGroup = objectMapper.convertValue(cacheData.attributes, GoogleServerGroup2)
+
+    def loadBalancerKeys = cacheData.relationships[LOAD_BALANCERS.ns]
+    List<GoogleLoadBalancer2> loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys).collect {
+      GoogleLoadBalancer2 loadBalancer = objectMapper.convertValue(it.attributes, GoogleLoadBalancer2)
+      cluster.loadBalancers << loadBalancer.view
+      loadBalancer
+    }
+
+    def instanceKeys = cacheData.relationships[INSTANCES.ns]
+    cacheView.getAll(INSTANCES.ns, instanceKeys).each { CacheData instanceCacheData ->
+      GoogleInstance2 instance = instanceFromCacheData(instanceCacheData)
+      instance.loadBalancerHealths = getLoadBalancerHealths(instance.name, loadBalancers)
+      serverGroup.instances << instance
+    }
 
     String networkName = serverGroup.anyProperty().networkName
     List<String> instanceTemplateTags = serverGroup.anyProperty().instanceTemplateTags
     serverGroup.securityGroups = getSecurityGroups(networkName, instanceTemplateTags)
 
-    serverGroup
+    serverGroup.view
+  }
+
+  List<GoogleLoadBalancerHealth> getLoadBalancerHealths(String instanceName, List<GoogleLoadBalancer2> loadBalancers) {
+    loadBalancers*.healths.findResults { List<GoogleLoadBalancerHealth> glbhs ->
+      glbhs.findAll { GoogleLoadBalancerHealth glbh ->
+        glbh.instanceName == instanceName
+      }
+    }.flatten()
+  }
+
+  GoogleInstance2 instanceFromCacheData(CacheData cacheData) {
+    objectMapper.convertValue(cacheData.attributes, GoogleInstance2)
   }
 
   List<String> getSecurityGroups(String networkName, List<String> instanceTemplateTags) {

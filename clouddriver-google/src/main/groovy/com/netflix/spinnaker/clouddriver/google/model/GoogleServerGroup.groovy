@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 
+@Deprecated
 class GoogleServerGroup implements ServerGroup, Serializable {
 
   private static final String GOOGLE_SERVER_GROUP_TYPE = "gce"

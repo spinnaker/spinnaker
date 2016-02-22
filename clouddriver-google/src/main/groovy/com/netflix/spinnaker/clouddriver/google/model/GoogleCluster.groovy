@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.model.Cluster
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 
+@Deprecated
 @CompileStatic
 @EqualsAndHashCode(includes = ["name", "accountName"])
 class GoogleCluster implements Cluster, Serializable {
