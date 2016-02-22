@@ -17,5 +17,5 @@
 package com.netflix.spinnaker.clouddriver.model
 
 interface ReservationReportProvider<T extends ReservationReport> {
-  T getReservationReport()
+  T getReservationReport(String name)
 }

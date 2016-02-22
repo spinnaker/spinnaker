@@ -20,8 +20,13 @@ import com.amazonaws.services.ec2.model.DescribeInstancesRequest
 import com.amazonaws.services.ec2.model.DescribeReservedInstancesRequest
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.databind.SerializerProvider
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -34,6 +39,8 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonReservationReport
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
 import groovy.util.logging.Slf4j
+
+import java.util.concurrent.atomic.AtomicInteger
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.RESERVATION_REPORTS
@@ -62,13 +69,19 @@ class ReservationReportCachingAgent implements CachingAgent {
   final AmazonClientProvider amazonClientProvider
   final Collection<NetflixAmazonCredentials> accounts
   final ObjectMapper objectMapper
+  final AccountReservationDetailSerializer accountReservationDetailSerializer
 
   ReservationReportCachingAgent(AmazonClientProvider amazonClientProvider,
                                 Collection<NetflixAmazonCredentials> accounts,
                                 ObjectMapper objectMapper) {
     this.amazonClientProvider = amazonClientProvider
     this.accounts = accounts
-    this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+
+    def module = new SimpleModule()
+    accountReservationDetailSerializer = new AccountReservationDetailSerializer()
+    module.addSerializer(AmazonReservationReport.AccountReservationDetail.class, accountReservationDetailSerializer)
+
+    this.objectMapper = objectMapper.copy().enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).registerModule(module)
   }
 
   static class MutableCacheData implements CacheData {
@@ -102,7 +115,7 @@ class ReservationReportCachingAgent implements CachingAgent {
       def (availabilityZone, operatingSystemType, instanceType) = key.split(":")
       new AmazonReservationReport.OverallReservationDetail(
         availabilityZone: availabilityZone,
-        os: AmazonReservationReport.OperatingSystemType.valueOf(operatingSystemType as String),
+        os: AmazonReservationReport.OperatingSystemType.valueOf(operatingSystemType as String).name,
         instanceType: instanceType,
       )
     }
@@ -132,10 +145,15 @@ class ReservationReportCachingAgent implements CachingAgent {
           it.state.equalsIgnoreCase("active") &&
           ["Heavy Utilization", "Partial Upfront", "All Upfront", "No Upfront"].contains(it.offeringType)
         }.each {
-          def productDescription = operatingSystemType(it.productDescription)
-          def reservation = reservations["${it.availabilityZone}:${productDescription}:${it.instanceType}"]
+          def osType = operatingSystemType(it.productDescription)
+          def reservation = reservations["${it.availabilityZone}:${osType.name}:${it.instanceType}"]
           reservation.totalReserved.addAndGet(it.instanceCount)
-          reservation.accounts[credentials.name].reserved.addAndGet(it.instanceCount)
+
+          if (osType.isVpc) {
+            reservation.accounts[credentials.name].reservedVpc.addAndGet(it.instanceCount)
+          } else {
+            reservation.accounts[credentials.name].reserved.addAndGet(it.instanceCount)
+          }
         }
 
         def describeInstancesRequest = new DescribeInstancesRequest()
@@ -148,10 +166,15 @@ class ReservationReportCachingAgent implements CachingAgent {
                 return
               }
 
-              def productDescription = operatingSystemType(it.platform ? "Windows" : "Linux/UNIX")
-              def reservation = reservations["${it.placement.availabilityZone}:${productDescription}:${it.instanceType}"]
+              def osTypeName = operatingSystemType(it.platform ? "Windows" : "Linux/UNIX").name
+              def reservation = reservations["${it.placement.availabilityZone}:${osTypeName}:${it.instanceType}"]
               reservation.totalUsed.incrementAndGet()
-              reservation.accounts[credentials.name].used.incrementAndGet()
+
+              if (it.vpcId) {
+                reservation.accounts[credentials.name].usedVpc.incrementAndGet()
+              } else {
+                reservation.accounts[credentials.name].used.incrementAndGet()
+              }
             }
           }
 
@@ -171,8 +194,19 @@ class ReservationReportCachingAgent implements CachingAgent {
       a,b -> a.availabilityZone <=> b.availabilityZone ?: a.instanceType <=> b.instanceType ?: a.os <=> b.os
     }
     log.info("Caching ${reservations.size()} items in ${agentType}")
+
+    // v1 is a legacy report that does not differentiate between vpc and non-vpc reserved instances
+    accountReservationDetailSerializer.mergeVpcReservations = true
+    def v1 = objectMapper.convertValue(amazonReservationReport, Map)
+
+    accountReservationDetailSerializer.mergeVpcReservations = false
+    def v2 = objectMapper.convertValue(amazonReservationReport, Map)
+
     return new DefaultCacheResult(
-      (RESERVATION_REPORTS.ns): [new MutableCacheData("latest", ["report": amazonReservationReport], [:])]
+      (RESERVATION_REPORTS.ns): [
+        new MutableCacheData("v1", ["report": v1], [:]),
+        new MutableCacheData("v2", ["report": v2], [:])
+      ]
     )
   }
 
@@ -181,11 +215,11 @@ class ReservationReportCachingAgent implements CachingAgent {
       case "Linux/UNIX".toUpperCase():
         return AmazonReservationReport.OperatingSystemType.LINUX
       case "Linux/UNIX (Amazon VPC)".toUpperCase():
-        return AmazonReservationReport.OperatingSystemType.LINUX
+        return AmazonReservationReport.OperatingSystemType.LINUX_VPC
       case "Windows".toUpperCase():
         return AmazonReservationReport.OperatingSystemType.WINDOWS
       case "Windows (Amazon VPC)".toUpperCase():
-        return AmazonReservationReport.OperatingSystemType.WINDOWS
+        return AmazonReservationReport.OperatingSystemType.WINDOWS_VPC
       case "Red Hat Enterprise Linux".toUpperCase():
         return AmazonReservationReport.OperatingSystemType.RHEL
       case "Windows with SQL Server Standard".toUpperCase():
@@ -193,6 +227,28 @@ class ReservationReportCachingAgent implements CachingAgent {
       default:
         log.error("Unknown product description (${productDescription})")
         return AmazonReservationReport.OperatingSystemType.UNKNOWN
+    }
+  }
+
+  static class AccountReservationDetailSerializer extends JsonSerializer<AmazonReservationReport.AccountReservationDetail> {
+    ObjectMapper objectMapper = new ObjectMapper()
+    boolean mergeVpcReservations
+
+
+    @Override
+    void serialize(AmazonReservationReport.AccountReservationDetail value,
+                   JsonGenerator gen,
+                   SerializerProvider serializers) throws IOException, JsonProcessingException {
+      if (mergeVpcReservations) {
+        value = new AmazonReservationReport.AccountReservationDetail(
+          reserved: new AtomicInteger(value.reserved.intValue() + value.reservedVpc.intValue()),
+          used: new AtomicInteger(value.used.intValue() + value.usedVpc.intValue()),
+          reservedVpc: null,
+          usedVpc: null
+        )
+      }
+
+      gen.writeObject(objectMapper.convertValue(value, Map))
     }
   }
 }
