@@ -58,12 +58,6 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     if (accountName == null || accountName.isEmpty()) {
       throw new IllegalArgumentException("Account name for Kubernetes provider missing.");
     }
-    if (cluster == null || cluster.isEmpty()) {
-      throw new IllegalArgumentException("Cluster for Kubernetes account " + accountName + " missing.");
-    }
-    if (user == null || user.isEmpty()) {
-      throw new IllegalArgumentException("User for Kubernetes account " + accountName + " missing.");
-    }
     if (dockerRegistries == null || dockerRegistries.size() == 0) {
       throw new IllegalArgumentException("Docker registries for Kubernetes account " + accountName + " missing.");
     }
@@ -74,7 +68,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     this.user = user;
     this.kubeConfigFile = kubeConfigFile != null && kubeConfigFile.length() > 0 ?
       kubeConfigFile : System.getProperty("user.home") + "/.kube/config";
-    this.namespaces = (namespaces == null || namespaces.size() == 0) ? Arrays.asList("default") : namespaces;
+    this.namespaces = namespaces;
     // TODO(lwander): what is this?
     this.requiredGroupMembership = requiredGroupMembership == null ? Collections.emptyList() : Collections.unmodifiableList(requiredGroupMembership);
     this.dockerRegistries = dockerRegistries;
@@ -123,7 +117,10 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
   }
 
   private KubernetesCredentials buildCredentials() {
-    Config config = KubernetesConfigParser.parse(this.kubeConfigFile, this.cluster, this.user, this.namespaces.get(0));
+    Config config = KubernetesConfigParser.parse(this.kubeConfigFile, this.cluster, this.user, this.namespaces);
+    if (this.namespaces == null || this.namespaces.isEmpty()) {
+      this.namespaces = Collections.singletonList(config.getNamespace());
+    }
     KubernetesClient client;
     try {
       client = new DefaultKubernetesClient(config);
@@ -157,7 +154,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
   private final String cluster;
   private final String user;
   private final String kubeConfigFile;
-  private final List<String> namespaces;
+  private List<String> namespaces;
   private final KubernetesCredentials credentials;
   private final List<String> requiredGroupMembership;
   private final List<LinkedDockerRegistryConfiguration> dockerRegistries;
