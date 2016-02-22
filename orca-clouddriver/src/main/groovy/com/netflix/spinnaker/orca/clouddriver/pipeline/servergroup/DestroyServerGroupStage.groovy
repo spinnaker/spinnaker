@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.DestroyServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.DisableServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForAllInstancesDownTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForAllInstancesNotUpTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForDestroyedServerGroupTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Step
@@ -47,7 +47,7 @@ class DestroyServerGroupStage extends TargetServerGroupLinearStageSupport {
       [
         buildStep(stage, "disableServerGroup", DisableServerGroupTask),
         buildStep(stage, "monitorServerGroup", MonitorKatoTask),
-        buildStep(stage, "waitForDownInstances", WaitForAllInstancesDownTask),
+        buildStep(stage, "waitForNotUpInstances", WaitForAllInstancesNotUpTask),
         buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
 
         buildStep(stage, "destroyServerGroup", DestroyServerGroupTask),
