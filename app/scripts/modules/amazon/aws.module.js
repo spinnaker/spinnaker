@@ -38,6 +38,7 @@ module.exports = angular.module('spinnaker.aws', [
   require('./securityGroup/configure/EditSecurityGroupCtrl.js'),
   require('./securityGroup/securityGroup.transformer.js'),
   require('./securityGroup/securityGroup.reader.js'),
+  require('./subnet/subnet.renderer.js'),
   require('./validation/applicationName.validator.js'),
   require('./vpc/vpc.module.js'),
   require('./image/image.reader.js'),
@@ -85,6 +86,9 @@ module.exports = angular.module('spinnaker.aws', [
         detailsController: 'awsSecurityGroupDetailsCtrl',
         createSecurityGroupTemplateUrl: require('./securityGroup/configure/createSecurityGroup.html'),
         createSecurityGroupController: 'awsCreateSecurityGroupCtrl',
+      },
+      subnet: {
+        renderer: 'awsSubnetRenderer',
       },
       search: {
         resultFormatter: 'awsSearchResultFormatter',

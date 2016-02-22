@@ -13,7 +13,7 @@
           <th>Account</th>
           <th>Cluster</th>
           <th>Region</th>
-          <th ng-if="deployStageCtrl.hasAmazonDeployments()">Subnet</th>
+          <th ng-if="deployStageCtrl.hasSubnetDeployments()">Subnet</th>
           <th>Strategy</th>
           <th>Capacity</th>
           <th>Actions</th>
@@ -35,8 +35,8 @@
           <td>
             {{ deployStageCtrl.getRegion(cluster) }}
           </td>
-          <td ng-if="deployStageCtrl.hasAmazonDeployments()">
-            {{!cluster.providerType || cluster.provider === 'aws' || cluster.providerType === 'aws' ? cluster.subnetType || '[none]' : '-'}}
+          <td ng-if="deployStageCtrl.hasSubnetDeployments()">
+            {{deployStageCtrl.getSubnet(cluster)}}
           </td>
           <td>
             {{cluster.strategy || '[none]'}}
