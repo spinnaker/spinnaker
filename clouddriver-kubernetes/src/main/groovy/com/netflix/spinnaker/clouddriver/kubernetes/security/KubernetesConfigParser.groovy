@@ -23,12 +23,20 @@ import io.fabric8.kubernetes.client.Config
 import io.fabric8.kubernetes.client.internal.KubeConfigUtils
 
 class KubernetesConfigParser {
-  static Config parse(String kubeConfigFile, String cluster, String user, String namespace) {
+  static Config parse(String kubeConfigFile, String cluster, String user, List<String> namespaces) {
 
     def kubeConfig = KubeConfigUtils.parseConfig(new File(kubeConfigFile))
     Config config = new Config()
 
-    Context currentContext = new Context(cluster, null, namespace, user)
+    Context currentContext = KubeConfigUtils.getCurrentContext(kubeConfig)
+
+    currentContext.user = user ?: currentContext.user
+    currentContext.cluster = cluster ?: currentContext.cluster
+    if (namespaces) {
+      currentContext.namespace = namespaces[0]
+    } else if (!currentContext.namespace) {
+      currentContext.namespace = "default"
+    }
 
     Cluster currentCluster = KubeConfigUtils.getCluster(kubeConfig, currentContext);
     config.setApiVersion("v1") // TODO(lwander) Make config parameter when new versions arrive.
