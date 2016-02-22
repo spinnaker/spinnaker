@@ -35,7 +35,6 @@ import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -63,7 +62,7 @@ class GoogleInfrastructureProviderConfig {
                                                             ObjectMapper objectMapper,
                                                             Registry registry) {
     def googleInfrastructureProvider =
-      new GoogleInfrastructureProvider(googleCloudProvider, Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
+        new GoogleInfrastructureProvider(googleCloudProvider, Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
 
     synchronizeGoogleInfrastructureProvider(googleInfrastructureProvider,
                                             googleCloudProvider,
@@ -90,26 +89,40 @@ class GoogleInfrastructureProviderConfig {
 
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
-  GoogleInfrastructureProviderSynchronizer synchronizeGoogleInfrastructureProvider(GoogleInfrastructureProvider googleInfrastructureProvider,
-                                                                                   GoogleCloudProvider googleCloudProvider,
-                                                                                   AccountCredentialsRepository accountCredentialsRepository,
-                                                                                   ObjectMapper objectMapper,
-                                                                                   Registry registry) {
+  GoogleInfrastructureProviderSynchronizer synchronizeGoogleInfrastructureProvider(
+      GoogleInfrastructureProvider googleInfrastructureProvider,
+      GoogleCloudProvider googleCloudProvider,
+      AccountCredentialsRepository accountCredentialsRepository,
+      ObjectMapper objectMapper,
+      Registry registry) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(googleInfrastructureProvider)
-    def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, GoogleNamedAccountCredentials)
+    def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository,
+                                                                 GoogleNamedAccountCredentials)
 
     allAccounts.each { GoogleNamedAccountCredentials credentials ->
       if (!scheduledAccounts.contains(credentials.accountName)) {
         def newlyAddedAgents = []
 
-        newlyAddedAgents << new GoogleSecurityGroupCachingAgent(googleCloudProvider, credentials.accountName, credentials.credentials, objectMapper, registry)
-        newlyAddedAgents << new GoogleNetworkCachingAgent(googleCloudProvider, credentials.accountName, credentials.credentials, objectMapper)
+        newlyAddedAgents << new GoogleSecurityGroupCachingAgent(googleCloudProvider,
+                                                                credentials.accountName,
+                                                                credentials.credentials.project,
+                                                                credentials.credentials.compute,
+                                                                objectMapper,
+                                                                registry)
+        newlyAddedAgents << new GoogleNetworkCachingAgent(googleCloudProvider,
+                                                          credentials.accountName,
+                                                          credentials.credentials,
+                                                          objectMapper)
 
         credentials.regions.keySet().each { String region ->
-          newlyAddedAgents << new GoogleSubnetCachingAgent(googleCloudProvider, credentials.accountName, region, credentials.credentials, objectMapper)
+          newlyAddedAgents << new GoogleSubnetCachingAgent(googleCloudProvider,
+                                                           credentials.accountName,
+                                                           region,
+                                                           credentials.credentials,
+                                                           objectMapper)
         }
 
-        if (providerImpl == "new"){
+        if (providerImpl == "new") {
           newlyAddedAgents << new GoogleInstanceCachingAgent(googleCloudProvider,
                                                              googleConfiguration.googleApplicationName(),
                                                              credentials.accountName,
