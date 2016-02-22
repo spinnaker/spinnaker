@@ -21,9 +21,13 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.context.annotation.Conditional
 import org.springframework.stereotype.Component
 
 @Deprecated
+@ConditionalOnProperty(value = "google.providerImpl", havingValue = "old", matchIfMissing = true)
 @Component
 class GoogleInstanceProvider implements InstanceProvider<GoogleInstance> {
 

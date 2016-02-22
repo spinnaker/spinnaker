@@ -23,12 +23,16 @@ import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
 import java.util.concurrent.Callable
 
 @Deprecated
+@ConditionalOnProperty(value = "google.providerImpl", havingValue = "old", matchIfMissing = true)
 @Component
 @CompileStatic
 class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {

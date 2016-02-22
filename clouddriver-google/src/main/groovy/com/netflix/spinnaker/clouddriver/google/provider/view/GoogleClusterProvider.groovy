@@ -28,10 +28,10 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
-@ConditionalOnMissingClass(com.netflix.spinnaker.clouddriver.google.model.GoogleClusterProvider.class)
+@ConditionalOnProperty(value = "google.providerImpl", havingValue = "new")
 @Component
 class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {
 

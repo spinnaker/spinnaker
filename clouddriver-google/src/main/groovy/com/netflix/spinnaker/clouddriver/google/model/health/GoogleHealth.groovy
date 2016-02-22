@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.google.model
+package com.netflix.spinnaker.clouddriver.google.model.health
 
 import com.netflix.spinnaker.clouddriver.model.Health
-import com.netflix.spinnaker.clouddriver.model.HealthState
 
-class GoogleHealth implements Health, Serializable {
-  Type type
-  HealthClass healthClass
-  HealthState state
+abstract class GoogleHealth implements Health, Serializable {
 
   enum Type {
     Google,
     LoadBalancer,
   }
 
+  abstract Type getType()
+
   enum HealthClass {
     platform
   }
+
+  abstract HealthClass getHealthClass()
 }

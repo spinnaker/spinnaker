@@ -23,21 +23,24 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance2
+import com.netflix.spinnaker.clouddriver.google.model.GoogleLoadBalancer2
+import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.HEALTH
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.LOAD_BALANCERS
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.SERVER_GROUPS
 
-@ConditionalOnMissingClass(com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceProvider.class)
+@ConditionalOnProperty(value = "google.providerImpl", havingValue = "new")
 @Component
 @Slf4j
-class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2> {
+class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2.View> {
 
   @Autowired
   final Cache cacheView
@@ -54,19 +57,22 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2> {
   final String platform = "gce"
 
   @Override
-  GoogleInstance2 getInstance(String account, String _ /*region*/, String id) {
-    def pattern = Keys.getInstanceKey(googleCloudProvider, account, "*", id)
+  GoogleInstance2.View getInstance(String account, String _ /*region*/, String id) {
+    def pattern = Keys.getInstanceKey(googleCloudProvider, account, id)
     def identifiers = cacheView.filterIdentifiers(INSTANCES.ns, pattern)
-    Collection<CacheData> cacheData = cacheView.getAll(INSTANCES.ns, identifiers, RelationshipCacheFilter.include(HEALTH.ns))
+    Collection<CacheData> cacheData = cacheView.getAll(INSTANCES.ns,
+                                                       identifiers,
+                                                       RelationshipCacheFilter.include(LOAD_BALANCERS.ns,
+                                                                                       SERVER_GROUPS.ns))
 
     if (!cacheData) {
       return null
     }
-    objectMapper.convertValue(cacheData.first().attributes, GoogleInstance2)
+    instanceFromCacheData(cacheData.first())
   }
 
   @Override
-  String getConsoleOutput(String account, String _ /*region*/, String id) {
+  String getConsoleOutput(String account, String region, String id) {
     def accountCredentials = accountCredentialsProvider.getCredentials(account)
 
     if (!(accountCredentials?.credentials instanceof GoogleCredentials)) {
@@ -83,5 +89,24 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2> {
     }
 
     return null
+  }
+
+  GoogleInstance2.View instanceFromCacheData(CacheData cacheData) {
+    GoogleInstance2 instance = objectMapper.convertValue(cacheData.attributes, GoogleInstance2)
+
+    def serverGroupKey = cacheData.relationships[SERVER_GROUPS.ns].first()
+    if (serverGroupKey) {
+      instance.set("serverGroup", Keys.parse(googleCloudProvider, serverGroupKey).serverGroup)
+    }
+
+    def loadBalancerKeys = cacheData.relationships[LOAD_BALANCERS.ns]
+    cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys).each { CacheData loadBalancerCacheData ->
+      GoogleLoadBalancer2 loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleLoadBalancer2)
+      instance.loadBalancerHealths << loadBalancer.healths.findAll { GoogleLoadBalancerHealth health ->
+        health.instanceName == instance.name
+      }
+    }
+
+    instance.view
   }
 }

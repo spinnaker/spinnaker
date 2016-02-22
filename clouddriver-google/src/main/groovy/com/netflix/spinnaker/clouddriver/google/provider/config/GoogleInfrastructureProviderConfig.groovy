@@ -33,7 +33,10 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
@@ -44,10 +47,14 @@ import java.util.concurrent.ConcurrentHashMap
 
 @Configuration
 @Import(GoogleConfiguration)
+@EnableConfigurationProperties
 class GoogleInfrastructureProviderConfig {
 
   @Autowired
   GoogleConfiguration googleConfiguration
+
+  @Value('${google.providerImpl}')
+  String providerImpl
 
   @Bean
   @DependsOn('googleNamedAccountCredentials')
@@ -102,29 +109,30 @@ class GoogleInfrastructureProviderConfig {
           newlyAddedAgents << new GoogleSubnetCachingAgent(googleCloudProvider, credentials.accountName, region, credentials.credentials, objectMapper)
         }
 
-        // TODO(ttomsu): Re-enable this when we've migrated the cache to cats/redis.
-//        newlyAddedAgents << new GoogleInstanceCachingAgent(googleCloudProvider,
-//                                                           googleConfiguration.googleApplicationName(),
-//                                                           credentials.accountName,
-//                                                           credentials.credentials.project,
-//                                                           credentials.credentials.compute,
-//                                                           objectMapper)
-//        credentials.regions.keySet().each { String region ->
-//          newlyAddedAgents << new GoogleLoadBalancerCachingAgent(googleCloudProvider,
-//                                                                 googleConfiguration.googleApplicationName(),
-//                                                                 credentials.accountName,
-//                                                                 region,
-//                                                                 credentials.credentials.project,
-//                                                                 credentials.credentials.compute,
-//                                                                 objectMapper)
-//          newlyAddedAgents << new GoogleServerGroupCachingAgent(googleCloudProvider,
-//                                                                googleConfiguration.googleApplicationName(),
-//                                                                credentials.accountName,
-//                                                                region,
-//                                                                credentials.credentials.project,
-//                                                                credentials.credentials.compute,
-//                                                                objectMapper)
-//        }
+        if (providerImpl == "new"){
+          newlyAddedAgents << new GoogleInstanceCachingAgent(googleCloudProvider,
+                                                             googleConfiguration.googleApplicationName(),
+                                                             credentials.accountName,
+                                                             credentials.credentials.project,
+                                                             credentials.credentials.compute,
+                                                             objectMapper)
+          credentials.regions.keySet().each { String region ->
+            newlyAddedAgents << new GoogleLoadBalancerCachingAgent(googleCloudProvider,
+                                                                   googleConfiguration.googleApplicationName(),
+                                                                   credentials.accountName,
+                                                                   region,
+                                                                   credentials.credentials.project,
+                                                                   credentials.credentials.compute,
+                                                                   objectMapper)
+            newlyAddedAgents << new GoogleServerGroupCachingAgent(googleCloudProvider,
+                                                                  googleConfiguration.googleApplicationName(),
+                                                                  credentials.accountName,
+                                                                  region,
+                                                                  credentials.credentials.project,
+                                                                  credentials.credentials.compute,
+                                                                  objectMapper)
+          }
+        }
 
         // If there is an agent scheduler, then this provider has been through the AgentController in the past.
         // In that case, we need to do the scheduling here (because accounts have been added to a running system).
