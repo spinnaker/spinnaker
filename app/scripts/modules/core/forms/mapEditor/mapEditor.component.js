@@ -21,6 +21,7 @@ module.exports = angular
       this.onChange = this.onChange || angular.noop;
       this.keyLabel = this.keyLabel || 'Key';
       this.valueLabel = this.valueLabel || 'Value';
+      this.allowEmpty = this.allowEmpty || false;
 
       let modelKeys = () => Object.keys(this.model);
 
