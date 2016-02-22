@@ -65,7 +65,6 @@ interface Cluster {
   // TODO(ttomsu): Why are load balancers associated with Clusters instead of ServerGroups?
   Set<LoadBalancer> getLoadBalancers()
 
-
   static class SimpleCluster implements Cluster {
     String name
     String type

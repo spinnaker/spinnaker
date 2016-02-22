@@ -26,6 +26,6 @@ class GoogleCluster2 implements Cluster, Serializable {
   String name
   String type = "gce"
   String accountName
-  Set<GoogleServerGroup2.View> serverGroups = Collections.synchronizedSet(new HashSet<GoogleServerGroup2.View>())
-  Set<GoogleLoadBalancer2.View> loadBalancers = Collections.synchronizedSet(new HashSet<GoogleLoadBalancer2.View>())
+  Set<GoogleServerGroup2.View> serverGroups = Collections.synchronizedSet([])
+  Set<GoogleLoadBalancer2.View> loadBalancers = Collections.synchronizedSet([])
 }

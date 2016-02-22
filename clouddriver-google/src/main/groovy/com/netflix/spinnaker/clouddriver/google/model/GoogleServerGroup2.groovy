@@ -29,21 +29,21 @@ class GoogleServerGroup2 {
 
   String name
   String region
-  Set<String> zones = new HashSet<>()
-  Set<GoogleInstance2> instances = new HashSet<>()
-  Set health = new HashSet<>()
+  Set<String> zones = []
+  Set<GoogleInstance2> instances = []
+  Set health = []
   Map<String, Object> launchConfig
   Map<String, Object> asg
   Set<String> securityGroups
   Map buildInfo
   Boolean disabled = false
 
-  private Map<String, Object> dynamicProperties = new HashMap<String, Object>()
-
   @JsonAnyGetter
   public Map<String, Object> anyProperty() {
     return dynamicProperties;
   }
+
+  private Map<String, Object> dynamicProperties = [:]
 
   @JsonAnySetter
   public void set(String name, Object value) {

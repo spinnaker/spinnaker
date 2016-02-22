@@ -98,7 +98,7 @@ azure:
 
 google:
   enabled: false
-  providerImpl: new # or new
+  providerImpl: old # or new
   baseImageProjects:
   - centos-cloud
   - coreos-cloud

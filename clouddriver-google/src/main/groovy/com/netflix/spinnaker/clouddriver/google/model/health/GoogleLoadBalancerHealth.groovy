@@ -44,7 +44,7 @@ class GoogleLoadBalancerHealth {
     }
 
     LBHealthSummary.ServiceStatus toServiceStatus() {
-      switch(this) {
+      switch (this) {
         case HEALTHY:
           return LBHealthSummary.ServiceStatus.InService
         default:
@@ -62,7 +62,7 @@ class GoogleLoadBalancerHealth {
     String getDescription() {
       state == ServiceStatus.OutOfService ?
           "Instance has failed at least the Unhealthy Threshold number of health checks consecutively." :
-          null
+          "Healthy"
     }
 
     enum ServiceStatus {

@@ -79,7 +79,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
   }
 
   List<GoogleLoadBalancer2> getLoadBalancers() {
-    List<GoogleLoadBalancer2> loadBalancers = new ArrayList<GoogleLoadBalancer2>()
+    List<GoogleLoadBalancer2> loadBalancers = []
 
     BatchRequest forwardingRulesRequest = buildBatchRequest()
     BatchRequest targetPoolsRequest = buildBatchRequest()
@@ -103,7 +103,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
   CacheResult buildCacheResult(ProviderCache providerCache, List<GoogleLoadBalancer2> googleLoadBalancers) {
     log.info "Describing items in ${agentType}"
 
-    def crb = new CacheResultBuilder()
+    def cacheResultBuilder = new CacheResultBuilder()
 
     googleLoadBalancers.each { GoogleLoadBalancer2 loadBalancer ->
       def loadBalancerKey = Keys.getLoadBalancerKey(googleCloudProvider,
@@ -114,20 +114,20 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
         Keys.getInstanceKey(googleCloudProvider, accountName, health.instanceName)
       }
 
-      crb.namespace(LOAD_BALANCERS.ns).get(loadBalancerKey).with {
+      cacheResultBuilder.namespace(LOAD_BALANCERS.ns).get(loadBalancerKey).with {
         attributes = objectMapper.convertValue(loadBalancer, ATTRIBUTES)
       }
       instanceKeys.each { String instanceKey ->
-        crb.namespace(INSTANCES.ns).get(instanceKey).with {
+        cacheResultBuilder.namespace(INSTANCES.ns).get(instanceKey).with {
           relationships[LOAD_BALANCERS.ns].add(loadBalancerKey)
         }
       }
     }
 
-    log.info "Caching ${crb.namespace(LOAD_BALANCERS.ns).size()} load balancers in ${agentType}"
-    log.info "Caching ${crb.namespace(INSTANCES.ns).size()} instance relationsihps in ${agentType}"
+    log.info "Caching ${cacheResultBuilder.namespace(LOAD_BALANCERS.ns).size()} load balancers in ${agentType}"
+    log.info "Caching ${cacheResultBuilder.namespace(INSTANCES.ns).size()} instance relationsihps in ${agentType}"
 
-    crb.build()
+    cacheResultBuilder.build()
   }
 
   class ForwardingRulesCallback<ForwardingRuleList> extends JsonBatchCallback<ForwardingRuleList> implements FailureLogger {

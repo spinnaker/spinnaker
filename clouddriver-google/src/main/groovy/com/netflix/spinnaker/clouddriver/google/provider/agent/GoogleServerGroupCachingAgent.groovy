@@ -80,7 +80,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
   }
 
   List<GoogleServerGroup2> getServerGroups() {
-    List<GoogleServerGroup2> serverGroups = Collections.synchronizedList(new ArrayList<GoogleServerGroup2>())
+    List<GoogleServerGroup2> serverGroups = Collections.synchronizedList([])
 
     BatchRequest migsRequest = buildBatchRequest()
     BatchRequest instanceGroupsRequest = buildBatchRequest()
@@ -100,7 +100,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
 
   CacheResult buildCacheResult(ProviderCache providerCache, List<GoogleServerGroup2> serverGroups) {
 
-    def crb = new CacheResultBuilder();
+    def cacheResultBuilder = new CacheResultBuilder();
 
     serverGroups.each { GoogleServerGroup2 serverGroup ->
       def names = Names.parseName(serverGroup.name)
@@ -119,12 +119,12 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
       def instanceKeys = []
       def loadBalancerKeys = []
 
-      crb.namespace(APPLICATIONS.ns).get(appKey).with {
+      cacheResultBuilder.namespace(APPLICATIONS.ns).get(appKey).with {
         attributes.name = applicationName
         relationships[CLUSTERS.ns].add(clusterKey)
       }
 
-      crb.namespace(CLUSTERS.ns).get(clusterKey).with {
+      cacheResultBuilder.namespace(CLUSTERS.ns).get(clusterKey).with {
         attributes.name = clusterName
         attributes.accountName = accountName
         relationships[APPLICATIONS.ns].add(appKey)
@@ -136,7 +136,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
                                               accountName,
                                               partialInstance.name)
         instanceKeys << instanceKey
-        crb.namespace(INSTANCES.ns).get(instanceKey).with {
+        cacheResultBuilder.namespace(INSTANCES.ns).get(instanceKey).with {
           relationships[SERVER_GROUPS.ns].add(serverGroupKey)
         }
       }
@@ -149,7 +149,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
                                                     loadBalancerName)
       }
 
-      crb.namespace(SERVER_GROUPS.ns).get(serverGroupKey).with {
+      cacheResultBuilder.namespace(SERVER_GROUPS.ns).get(serverGroupKey).with {
         attributes = objectMapper.convertValue(serverGroup, ATTRIBUTES)
         relationships[APPLICATIONS.ns].add(appKey)
         relationships[CLUSTERS.ns].add(clusterKey)
@@ -158,19 +158,19 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
       }
 
       loadBalancerKeys.each { String loadBalancerKey ->
-        crb.namespace(LOAD_BALANCERS.ns).get(loadBalancerKey).with {
+        cacheResultBuilder.namespace(LOAD_BALANCERS.ns).get(loadBalancerKey).with {
           relationships[SERVER_GROUPS.ns].add(serverGroupKey)
         }
       }
     }
 
-    log.info("Caching ${crb.namespace(APPLICATIONS.ns).size()} applications in ${agentType}")
-    log.info("Caching ${crb.namespace(CLUSTERS.ns).size()} clusters in ${agentType}")
-    log.info("Caching ${crb.namespace(SERVER_GROUPS.ns).size()} server groups in ${agentType}")
-    log.info("Caching ${crb.namespace(INSTANCES.ns).size()} instance relationships in ${agentType}")
-    log.info("Caching ${crb.namespace(LOAD_BALANCERS.ns).size()} load balancer relationships in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(APPLICATIONS.ns).size()} applications in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(CLUSTERS.ns).size()} clusters in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(SERVER_GROUPS.ns).size()} server groups in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(INSTANCES.ns).size()} instance relationships in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(LOAD_BALANCERS.ns).size()} load balancer relationships in ${agentType}")
 
-    crb.build()
+    cacheResultBuilder.build()
   }
 
   class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceGroupManagerList> {
