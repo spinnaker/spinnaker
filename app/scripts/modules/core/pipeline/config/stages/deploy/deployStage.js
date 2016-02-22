@@ -29,7 +29,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
       strategy: true,
     });
   })
-  .controller('DeployStageCtrl', function ($scope, $uibModal, stage, namingService, providerSelectionService,
+  .controller('DeployStageCtrl', function ($injector, $scope, $uibModal, stage, namingService, providerSelectionService,
                                            cloudProviderRegistry, serverGroupCommandBuilder, serverGroupTransformer, stageConstants) {
     $scope.stage = stage;
 
@@ -51,8 +51,25 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
       return 'n/a';
     };
 
-    this.hasAmazonDeployments = () => {
-      return stage.clusters.some((cluster) => cluster.provider === 'aws');
+    this.hasSubnetDeployments = () => {
+      return stage.clusters.some((cluster) => {
+        let cloudProvider = cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws';
+        return cloudProviderRegistry.hasValue(cloudProvider, 'subnet');
+      });
+    };
+
+    this.getSubnet = (cluster) => {
+      let cloudProvider = cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws';
+      if (cloudProviderRegistry.hasValue(cloudProvider, 'subnet')) {
+        let subnetRenderer = cloudProviderRegistry.getValue(cloudProvider, 'subnet').renderer;
+        if ($injector.has(subnetRenderer)) {
+          return $injector.get(subnetRenderer).render(cluster);
+        } else {
+          throw new Error('No "' + subnetRenderer + '" service found for provider "' + cloudProvider + '".');
+        }
+      } else {
+        return '[none]';
+      }
     };
 
     this.getClusterName = function(cluster) {

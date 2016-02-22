@@ -39,6 +39,7 @@ module.exports = angular.module('spinnaker.gce', [
   require('./securityGroup/configure/EditSecurityGroupCtrl.js'),
   require('./securityGroup/securityGroup.transformer.js'),
   require('./securityGroup/securityGroup.reader.js'),
+  require('./subnet/subnet.renderer.js'),
   require('./validation/applicationName.validator.js'),
   require('./image/image.reader.js'),
   require('./cache/cacheConfigurer.service.js'),
@@ -85,6 +86,9 @@ module.exports = angular.module('spinnaker.gce', [
         detailsController: 'gceSecurityGroupDetailsCtrl',
         createSecurityGroupTemplateUrl: require('./securityGroup/configure/createSecurityGroup.html'),
         createSecurityGroupController: 'gceCreateSecurityGroupCtrl',
+      },
+      subnet: {
+        renderer: 'gceSubnetRenderer',
       },
     });
   });
