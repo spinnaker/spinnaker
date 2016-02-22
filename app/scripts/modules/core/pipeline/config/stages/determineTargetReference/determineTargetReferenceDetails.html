@@ -1,7 +1,7 @@
 <div>
   <div class="step-section-details">
     <div class="row">
-      <div class="col-md-6">
+      <div class="col-md-12">
         <dl class="dl-narrow dl-horizontal">
           <dt>Account</dt>
           <dd>
@@ -15,7 +15,10 @@
           <dd>{{stage.context.cluster}}</dd>
           <dt>Server Groups</dt>
           <dd ng-if="stage.context.targetReferences.length">
-            <div data-ng-repeat="tr in stage.context.targetReferences">{{tr.name}}</div>
+            <div data-ng-repeat="tr in stage.context.targetReferences">
+              {{tr.name}}
+              <span ng-if="tr.region || tr.zone">({{tr.region || tr.zone}})</span>
+            </div>
           </dd>
           <dd ng-if="!stage.context.targetReferences.length">[n/a]</dd>
         </dl>

@@ -17,7 +17,7 @@
     </div>
     <stage-failure-message is-failed="stage.isFailed" message="stage.failureMessage"></stage-failure-message>
 
-    <div class="row" ng-if="stage.isCompleted && stage.context.asgName">
+    <div class="row" ng-if="stage.isCompleted && stage.context.serverGroupName">
       <div class="col-md-12">
         <div class="well alert alert-info">
           <strong>Destroyed:</strong>
