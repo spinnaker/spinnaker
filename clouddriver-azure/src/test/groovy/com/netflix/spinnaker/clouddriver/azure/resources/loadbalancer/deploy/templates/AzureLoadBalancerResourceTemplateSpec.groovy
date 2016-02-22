@@ -15,16 +15,9 @@
  */
 package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.deploy.templates
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops.converters.UpsertAzureLoadBalancerAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.azure.templates.AzureLoadBalancerResourceTemplate
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.UpsertAzureLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import spock.lang.Shared
 import spock.lang.Specification
 
 class AzureLoadBalancerResourceTemplateSpec extends Specification {
@@ -109,6 +102,7 @@ class AzureLoadBalancerResourceTemplateSpec extends Specification {
     "publicIPAddressName" : "pip-azuremasm-st1-d11",
     "publicIPAddressType" : "Dynamic",
     "loadBalancerFrontEnd" : "fe-azuremasm-st1-d11",
+    "loadBalancerBackEnd" : "be-azuremasm-st1-d11",
     "dnsNameForLBIP" : "dns-azuremasm-st1-d11",
     "ipConfigName" : "ipc-azuremasm-st1-d11",
     "loadBalancerID" : "[resourceID('Microsoft.Network/loadBalancers',variables('loadBalancerName'))]",
@@ -146,6 +140,9 @@ class AzureLoadBalancerResourceTemplateSpec extends Specification {
             "id" : "[variables('publicIPAddressID')]"
           }
         }
+      } ],
+      "backendAddressPools" : [ {
+        "name" : "[variables('loadBalancerBackEnd')]"
       } ],
       "loadBalancingRules" : [ {
         "name" : "lbrule1",
