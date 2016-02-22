@@ -166,6 +166,10 @@ interface ClouddriverService {
   List<Map> getReservationReports()
 
   @Headers("Accept: application/json")
+  @GET("/reports/reservation/{name}")
+  List<Map> getReservationReports(@Path("name") String name)
+
+  @Headers("Accept: application/json")
   @GET("/{provider}/images/find")
   List<Map> findImages(@Path("provider") String provider,
                        @Query("q") String query,
