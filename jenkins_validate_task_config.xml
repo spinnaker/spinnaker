@@ -1,0 +1,382 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>14</daysToKeep>
+        <numToKeep>-1</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>IMAGE_TO_VALIDATE</name>
+          <description>The name of the image to validate.</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>IMAGE_PROJECT</name>
+          <description>The GCE project containing the $IMAGE_TO_VALIDATE. If changing this, you will also need to make sure that the TESTER_SERVICE_ACCOUNT has permission to View (or Edit) the project so that it can download the image.</description>
+          <defaultValue>PROJECT USED FOR YOUR IMAGES</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>MY_INSTANCE_NAME</name>
+          <description>The name of the instance to deploy when testing.
+
+The default is a function of this task&apos;s BUILD_NUMBER which is completely unrelated to the actual image being tested so you may want to override this name. However, the name must be unique. So a good choice of name could be a function of the calling processes&apos; $BUILD_NUMBER.</description>
+          <defaultValue>validate-$BUILD_NUMBER-$IMAGE_TO_VALIDATE</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>PARALLELIZE_TESTS</name>
+          <description>Run each of the top-level test suites in parallel.
+This will run much faster, though might be more flaky and harder to debug.
+
+Each test will report independent of the others, but there could be interactions on the spinnaker server itself,
+and the data created by the different tests will be seen across tests (which should be ok, but adds noise into the logging).
+
+If there is a bug, the individual tests are probably run anyway, and running in parallel adds a little concurrency testing.</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.4.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/google/citest.git</url>
+        <credentialsId>7165af79-0905-45c5-9d2d-70f08f569c22</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.LocalBranch>
+        <localBranch>master</localBranch>
+      </hudson.plugins.git.extensions.impl.LocalBranch>
+    </extensions>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <EnvInjectBuilder plugin="envinject@1.92.1">
+      <info>
+        <propertiesContent>HOME=/home/jenkins
+
+MY_SPINNAKER_PROJECT=# The GCP Project to deploy Spinnaker into
+MY_ZONE=us-central1-f
+
+# Note: the my-spinnaker-local.yml is the spinnaker-local to deploy into
+# our test instance. The SharedSpinnaker.json are the GCP credentials to
+# give to the deployment so that it can manage another GCP project.
+SPINNAKER_LOCAL_YML_PATH=$HOME/supporting_data/my-spinnaker-local.yml
+OPT_FILE_METADATA=managed_project_credentials=$HOME/supporting_data/SharedSpinnaker.json
+JENKINS_URL=# URL to jenkins server here
+
+TESTER_SERVICE_ACCOUNT=# Service account name to authenticate gcloud with
+# Let us know we&apos;re still waiting every so often (secs)
+REPORT_EVERY=30</propertiesContent>
+      </info>
+    </EnvInjectBuilder>
+    <hudson.tasks.Shell>
+      <command># Remove old log files from previous runs
+rm -f *.journal *.html logs.tz
+rm -rf server_logs
+
+# Create copy of base config.
+mkdir -p $HOME/tmp
+
+# Augment copied config with AWS credentials if provided.
+if [ &quot;$AWS_ACCESS_KEY&quot; ] &amp;&amp; [ &quot;$AWS_SECRET_KEY&quot; ]; then
+  TMP_AWS_CREDENTIALS=$HOME/tmp/aws_credentials.$BUILD_NUMBER
+  rm -f $TMP_AWS_CREDENTIALS; touch $TMP_AWS_CREDENTIALS
+  chmod 600 $TMP_AWS_CREDENTIALS
+  OPT_FILE_METADATA=$OPT_FILE_METADATA,aws_credentials=$TMP_AWS_CREDENTIALS
+  cat &gt;&gt; $TMP_AWS_CREDENTIALS &lt;&lt;EOF
+[default]
+aws_secret_access_key = $AWS_SECRET_KEY
+aws_access_key_id = $AWS_ACCESS_KEY
+EOF
+else
+  TMP_AWS_CREDENTIALS=&quot;&quot;
+fi
+
+# I think this is using the image project service account to access the image project.
+# The validate project permits the image project access.
+gcloud compute instances create $MY_INSTANCE_NAME \
+  --account $TESTER_SERVICE_ACCOUNT \
+  --project $MY_SPINNAKER_PROJECT \
+  --image $IMAGE_TO_VALIDATE \
+  --image-project $IMAGE_PROJECT \
+  --machine-type n1-standard-8 \
+  --zone $MY_ZONE \
+  --scopes=compute-rw \
+  --metadata \
+      startup-script=/opt/spinnaker/install/first_google_boot.sh \
+  --metadata-from-file=spinnaker_local=$SPINNAKER_LOCAL_YML_PATH,$OPT_FILE_METADATA
+
+# Remove the copied yml since it may contain AWS keys.
+if [ ! -z &quot;$TMP_AWS_CREDENTIALS&quot; ]; then
+  rm $TMP_AWS_CREDENTIALS
+fi
+</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command># Give it a minute to start up so we have a machine to ssh into.
+sleep 90
+
+# Wait for process to complete or die to avoid hanging forever
+# By exiting, we are treating this &quot;timeout&quot; as a test failure.
+function wait_on_pid_or_die() {
+  pid=$1
+  secs=$2
+  set +x # Turn off line-level tracing in our loops
+  while kill -0 $pid &gt;&amp; /dev/null; do
+     if [[ $secs -le 0 ]]; then
+        echo &quot;Timed out waiting for pid=$pid. FAILED.&quot;
+        kill -9 $pid
+        exit -1
+     fi
+     sleep 1
+     secs=$(expr $secs - 1)
+  done
+  set -x # Turn back on line-level tracing in our loops
+}
+  
+# Wait for gate to become available.
+date
+echo &quot;Waiting for spinnaker...&quot;
+gcloud compute ssh \
+   --account $TESTER_SERVICE_ACCOUNT \
+   --command &quot;while ! nc -z localhost 8084; do sleep 1; done; echo &apos;gate is up.&apos;&quot; \
+   --project $MY_SPINNAKER_PROJECT \
+   --zone $MY_ZONE $MY_INSTANCE_NAME &amp;
+wait_on_pid_or_die $! 120
+
+# Wait for webserver to start serving.
+gcloud compute ssh \
+   --account $TESTER_SERVICE_ACCOUNT \
+   --command &quot;while ! curl -s http://localhost:8084/env &gt;&amp; /dev/null; do echo &apos;gate not yet ready...&apos;; sleep 1; done&quot; \
+   --project $MY_SPINNAKER_PROJECT \
+   --zone $MY_ZONE $MY_INSTANCE_NAME &amp;
+wait_on_pid_or_die $! 60
+echo &quot;GATE is ready&quot;
+date
+
+gcloud compute ssh \
+   --account $TESTER_SERVICE_ACCOUNT \
+   --command &quot;while ! curl -s http://localhost:7002/env &gt;&amp; /dev/null; do echo &apos;clouddriver not yet ready...&apos;; sleep 1; done&quot; \
+   --project $MY_SPINNAKER_PROJECT \
+   --zone $MY_ZONE $MY_INSTANCE_NAME &amp;
+wait_on_pid_or_die $! 120
+echo &quot;CLOUDDRIVER is ready&quot;
+date
+
+# We still seem to have trouble connecting from jenkins some times.
+# Give it a bit more time
+echo &quot;Gate seems to be available, but waiting a little longer to be conservative.&quot;
+sleep 60
+echo &quot;STARTING TESTS&quot;
+
+</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command># Run all the tests, even if some fail.
+# Unfortunately Jenkins seems to be all or none as far as failures goes.
+# We need to run these in the same shell so we can remember if anything failed
+# so that we can know whether or not to fail jenkins.
+# Surely there is a better way. Otherwise we could store state in a file across
+# shells. For the time being, we&apos;ll lump all the tests into one shell.
+
+declare -a FAILED_TESTS
+declare -a test_pid
+
+
+function wait_on_tests() {
+  set +x # Turn off line-level tracing in our loops
+  # We&apos;ll show an update every REPORT_EVERY seconds
+  echo_in=0
+  while [[ ! -z ${!test_pid[@]} ]]; do
+    for pid in &quot;${!test_pid[@]}&quot;; do
+        test_name=&quot;${test_pid[$pid]}&quot;
+        if kill -0 $pid; then
+          # still running
+          if [[ $echo_in -eq 0 ]]; then
+            echo `date &quot;+%Y-%m-%d %H:%M:%S&quot;`  &quot;Waiting on $test_name...&quot;
+            tail -1 $test_name.log || echo &quot;$test_name hasnt started logging yet.&quot;
+            echo &quot;&quot;
+          fi
+        else
+          unset test_pid[$pid]
+          echo `date &quot;+%Y-%m-%d %H:%M:%S&quot;`  &quot;Finished $test_name:&quot;
+          cat $test_name.out
+          if ! wait $pid; then
+            FAILED_TESTS+=(&quot;$test_name&quot;)
+            echo  &quot;  FAILED $test_name&quot;
+          else
+            echo  &quot;  PASSED $test_name&quot;
+          fi
+        fi
+    done
+    sleep 1
+    if [[ echo_in -gt 0 ]]; then
+       echo_in=$((echo_in - 1))
+    else
+       echo_in=$REPORT_EVERY
+    fi
+  done
+  set -x # Resume line-level tracing
+}
+
+export JENKINS_PASSWORD
+export JENKINS_USER=user
+
+# We are going to run all the tests in parallel.
+# They should be independent of one another.
+# This will run much more quickly, but debugging may be harder.
+
+echo `date &quot;+%Y-%m-%d %H:%M:%S&quot;` &quot;Starting bake_and_deploy_test&quot;
+PYTHONPATH=.:spinnaker python \
+spinnaker/spinnaker_system/bake_and_deploy_test.py \
+  --gce_service_account $TESTER_SERVICE_ACCOUNT \
+  --gce_project=$MY_SPINNAKER_PROJECT \
+  --gce_zone=$MY_ZONE \
+  --gce_instance=$MY_INSTANCE_NAME \
+  --test_stack=jenkins \
+  --jenkins_url=$JENKINS_URL \
+  --jenkins_job=NoOpTrigger \
+  --jenkins_token=TRIGGER_TOKEN \
+  --jenkins_master=jenkins-1 \
+  --test_google &gt;&amp; bake_and_deploy_test.out &amp;
+test_pid[$!]=&quot;bake_and_deploy_test&quot;
+if ! $PARALLELIZE_TESTS; then
+   wait_on_tests
+fi
+
+echo `date &quot;+%Y-%m-%d %H:%M:%S&quot;` &quot;Starting smoke tests&quot;
+PYTHONPATH=.:spinnaker python \
+spinnaker/spinnaker_system/smoke_test.py \
+  --gce_service_account $TESTER_SERVICE_ACCOUNT \
+  --gce_project=$MY_SPINNAKER_PROJECT \
+  --gce_zone=$MY_ZONE \
+  --gce_instance=$MY_INSTANCE_NAME \
+  --test_stack=jenkins &gt;&amp; smoke_test.out &amp;
+test_pid[$!]=&quot;smoke_test&quot;
+if ! $PARALLELIZE_TESTS; then
+   wait_on_tests
+fi
+
+
+echo `date &quot;+%Y-%m-%d %H:%M:%S&quot;` &quot;Starting clouddriver tests&quot;
+PYTHONPATH=.:spinnaker python \
+spinnaker/spinnaker_system/kato_test.py \
+  --gce_service_account $TESTER_SERVICE_ACCOUNT \
+  --gce_project=$MY_SPINNAKER_PROJECT \
+  --gce_zone=$MY_ZONE \
+  --gce_instance=$MY_INSTANCE_NAME \
+  --test_stack=jenkins &gt;&amp; kato_test.out &amp;
+test_pid[$!]=&quot;kato_test&quot;
+if ! $PARALLELIZE_TESTS; then
+   wait_on_tests
+fi
+
+
+echo `date &quot;+%Y-%m-%d %H:%M:%S&quot;` &quot;Starting server group tests&quot;
+PYTHONPATH=.:spinnaker python \
+spinnaker/spinnaker_system/server_group_tests.py \
+  --gce_service_account $TESTER_SERVICE_ACCOUNT \
+  --gce_project=$MY_SPINNAKER_PROJECT \
+  --gce_zone=$MY_ZONE \
+  --gce_instance=$MY_INSTANCE_NAME \
+  --test_stack=jenkins &gt;&amp; server_group_tests.out &amp;
+test_pid[$!]=&quot;server_group_tests&quot;
+if ! $PARALLELIZE_TESTS; then
+   wait_on_tests
+fi
+
+
+wait_on_tests
+
+# Render the journals into HTML
+for i in *.journal; do
+   PYTHONPATH=. python -m citest.reporting.generate_html_report $i;
+done
+
+# Grab the log files from the instance before we succeed or fail
+# The logs we grab here could help diagnose errors
+echo &quot;Collecting log files from server...&quot;
+gcloud compute ssh \
+   --account $TESTER_SERVICE_ACCOUNT \
+   --command &quot;cd /var/log; sudo tar czf $HOME/logs.tz spinnaker cassandra/system.log redis/redis-server.log  syslog upstart/spinnaker.log startupscript.log&quot; \
+   --project $MY_SPINNAKER_PROJECT \
+   --zone $MY_ZONE \
+   $MY_INSTANCE_NAME
+gcloud compute copy-files $MY_INSTANCE_NAME:logs.tz . \
+   --account $TESTER_SERVICE_ACCOUNT \
+   --project $MY_SPINNAKER_PROJECT \
+   --zone $MY_ZONE
+   mkdir -p server_logs
+cd server_logs
+tar xzf ../logs.tz
+mv syslog syslog.log
+
+
+# Now either succeed or fail this step
+if [[ ! -z &quot;${FAILED_TESTS[*]}&quot; ]]; then
+  echo &quot;TESTS FAILED: ${FAILED_TESTS[*]}&quot;
+  exit -1
+fi
+echo &quot;FINISHED SUCCESSFULLY&quot;
+</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command># clean up external resources
+gcloud compute instances delete -q $MY_INSTANCE_NAME \
+  --project $MY_SPINNAKER_PROJECT \
+  --zone $MY_ZONE \
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>*.journal,*.html,*.log,server_logs/**/*.log</artifacts>
+      <allowEmptyArchive>false</allowEmptyArchive>
+      <onlyIfSuccessful>false</onlyIfSuccessful>
+      <fingerprint>false</fingerprint>
+      <defaultExcludes>true</defaultExcludes>
+      <caseSensitive>true</caseSensitive>
+    </hudson.tasks.ArtifactArchiver>
+  </publishers>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.6">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>a8a4addf-b729-4fa3-875f-556680928469</credentialsId>
+          <variable>AWS_ACCESS_KEY</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>8868e0e5-0887-4c0a-8f75-a01d493a8394</credentialsId>
+          <variable>AWS_SECRET_KEY</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>36c6bdf6-0f67-4f26-aeb5-471611110c5b</credentialsId>
+          <variable>JENKINS_PASSWORD</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>
