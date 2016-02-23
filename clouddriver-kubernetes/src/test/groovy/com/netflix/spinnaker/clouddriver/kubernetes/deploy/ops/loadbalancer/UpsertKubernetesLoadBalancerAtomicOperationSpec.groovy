@@ -62,7 +62,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationSpec extends Specification {
 
   void "should upsert a new loadbalancer"() {
     setup:
-      def description = new UpsertKubernetesLoadBalancerAtomicOperationDescription(name: VALID_NAME1, externalIps: [VALID_IP1], ports: [namedPort1], kubernetesCredentials: credentials, namespace: NAMESPACE)
+      def description = new UpsertKubernetesLoadBalancerAtomicOperationDescription(name: VALID_NAME1, externalIps: [VALID_IP1], ports: [namedPort1], credentials: credentials, namespace: NAMESPACE)
       def resultServiceMock = Mock(Service)
 
       @Subject def operation = new UpsertKubernetesLoadBalancerAtomicOperation(description)
@@ -90,7 +90,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationSpec extends Specification {
 
   void "should upsert a new loadbalancer, and overwrite port data"() {
     setup:
-    def description = new UpsertKubernetesLoadBalancerAtomicOperationDescription(name: VALID_NAME1, externalIps: [VALID_IP1], ports: [namedPort1], kubernetesCredentials: credentials, namespace: NAMESPACE)
+    def description = new UpsertKubernetesLoadBalancerAtomicOperationDescription(name: VALID_NAME1, externalIps: [VALID_IP1], ports: [namedPort1], credentials: credentials, namespace: NAMESPACE)
       def resultServiceMock = Mock(Service)
       def existingServiceMock = Mock(Service)
       def servicePortMock = Mock(ServicePort)
@@ -127,7 +127,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationSpec extends Specification {
 
   void "should upsert a new loadbalancer, and insert port data"() {
     setup:
-      def description = new UpsertKubernetesLoadBalancerAtomicOperationDescription(name: VALID_NAME1, externalIps: [VALID_IP1], kubernetesCredentials: credentials, namespace: NAMESPACE)
+      def description = new UpsertKubernetesLoadBalancerAtomicOperationDescription(name: VALID_NAME1, externalIps: [VALID_IP1], credentials: credentials, namespace: NAMESPACE)
       def resultServiceMock = Mock(Service)
       def existingServiceMock = Mock(Service)
       def servicePortMock = Mock(ServicePort)
@@ -163,7 +163,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationSpec extends Specification {
 
   void "should upsert a new loadbalancer, and insert ip data"() {
     setup:
-      def description = new UpsertKubernetesLoadBalancerAtomicOperationDescription(name: VALID_NAME1, kubernetesCredentials: credentials, namespace: NAMESPACE)
+      def description = new UpsertKubernetesLoadBalancerAtomicOperationDescription(name: VALID_NAME1, credentials: credentials, namespace: NAMESPACE)
       def resultServiceMock = Mock(Service)
       def existingServiceMock = Mock(Service)
       def serviceSpecMock = Mock(ServiceSpec)

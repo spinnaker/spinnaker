@@ -37,11 +37,11 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidator extends DescriptionVa
   void validate(List priorDescriptions, UpsertKubernetesLoadBalancerAtomicOperationDescription description, Errors errors) {
     def helper = new StandardKubernetesAttributeValidator("upsertKubernetesLoadBalancerAtomicOperationDescription", errors)
 
-    if (!helper.validateCredentials(description.credentials, accountCredentialsProvider)) {
+    if (!helper.validateCredentials(description.account, accountCredentialsProvider)) {
       return
     }
 
-    KubernetesCredentials credentials = (KubernetesCredentials) accountCredentialsProvider.getCredentials(description.credentials).credentials
+    KubernetesCredentials credentials = (KubernetesCredentials) accountCredentialsProvider.getCredentials(description.account).credentials
 
     helper.validateName(description.name, "name")
     helper.validateNamespace(credentials, description.namespace, "namespace")

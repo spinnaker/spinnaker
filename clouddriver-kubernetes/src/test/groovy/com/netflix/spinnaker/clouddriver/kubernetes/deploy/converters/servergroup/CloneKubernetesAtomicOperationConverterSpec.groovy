@@ -25,7 +25,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class CloneKubernetesAtomicOperationConverterSpec extends Specification {
-  private static final CREDENTIALS = "my-test-account"
+  private static final ACCOUNT = "my-test-account"
   private static final APPLICATION = "app"
   private static final STACK = "stack"
   private static final DETAILS = "details"
@@ -52,7 +52,7 @@ class CloneKubernetesAtomicOperationConverterSpec extends Specification {
       def input = [app: APPLICATION,
                    stack: STACK,
                    freeFormDetails: DETAILS,
-                   credentials: CREDENTIALS]
+                   account: ACCOUNT]
     when:
       def description = converter.convertDescription(input)
 

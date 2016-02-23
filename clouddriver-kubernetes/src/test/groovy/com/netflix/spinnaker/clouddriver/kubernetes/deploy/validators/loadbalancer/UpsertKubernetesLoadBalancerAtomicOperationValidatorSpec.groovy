@@ -40,7 +40,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidatorSpec extends Specifica
   final static String INVALID_NAME = "bad name ?"
   final static String VALID_IP = "127.0.0.1"
   final static String INVALID_IP = "0.127.0.0.1"
-  final static String VALID_CREDENTIALS = "my-kubernetes-account"
+  final static String VALID_ACCOUNT = "my-kubernetes-account"
 
   UpsertKubernetesLoadBalancerAtomicOperationValidator validator
 
@@ -60,9 +60,9 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidatorSpec extends Specifica
     def accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
 
     def credentials = new KubernetesCredentials(apiMock, NAMESPACES, [], accountCredentialsRepositoryMock)
-    namedCredentialsMock.getName() >> VALID_CREDENTIALS
+    namedCredentialsMock.getName() >> VALID_ACCOUNT
     namedCredentialsMock.getCredentials() >> credentials
-    credentialsRepo.save(VALID_CREDENTIALS, namedCredentialsMock)
+    credentialsRepo.save(VALID_ACCOUNT, namedCredentialsMock)
     validator.accountCredentialsProvider = credentialsProvider
 
     validPort = new KubernetesNamedServicePort(name: VALID_NAME, port: VALID_PORT, protocol: VALID_PROTOCOL)
@@ -76,7 +76,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidatorSpec extends Specifica
       def description = new UpsertKubernetesLoadBalancerAtomicOperationDescription(name: VALID_NAME,
         externalIps: [VALID_IP],
         ports: [validPort],
-        credentials: VALID_CREDENTIALS,
+        account: VALID_ACCOUNT,
         namespace: NAMESPACE)
       def errorsMock = Mock(Errors)
 
@@ -91,7 +91,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidatorSpec extends Specifica
     setup:
       def description = new UpsertKubernetesLoadBalancerAtomicOperationDescription(name: VALID_NAME,
         ports: [validPort],
-        credentials: VALID_CREDENTIALS)
+        account: VALID_ACCOUNT)
       def errorsMock = Mock(Errors)
 
     when:
@@ -104,7 +104,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidatorSpec extends Specifica
     setup:
       def description = new UpsertKubernetesLoadBalancerAtomicOperationDescription(name: VALID_NAME,
         ports: [invalidProtocolPort],
-        credentials: VALID_CREDENTIALS)
+        account: VALID_ACCOUNT)
       def errorsMock = Mock(Errors)
 
     when:
@@ -118,7 +118,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidatorSpec extends Specifica
     setup:
       def description = new UpsertKubernetesLoadBalancerAtomicOperationDescription(name: VALID_NAME,
         ports: [invalidNamePort],
-        credentials: VALID_CREDENTIALS)
+        account: VALID_ACCOUNT)
       def errorsMock = Mock(Errors)
 
     when:
@@ -132,7 +132,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidatorSpec extends Specifica
     setup:
       def description = new UpsertKubernetesLoadBalancerAtomicOperationDescription(name: VALID_NAME,
         ports: [invalidPortPort],
-        credentials: VALID_CREDENTIALS)
+        account: VALID_ACCOUNT)
       def errorsMock = Mock(Errors)
 
     when:
@@ -147,7 +147,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidatorSpec extends Specifica
       def description = new UpsertKubernetesLoadBalancerAtomicOperationDescription(name: VALID_NAME,
         ports: [validPort],
         externalIps: [INVALID_IP],
-        credentials: VALID_CREDENTIALS)
+        account: VALID_ACCOUNT)
       def errorsMock = Mock(Errors)
 
     when:

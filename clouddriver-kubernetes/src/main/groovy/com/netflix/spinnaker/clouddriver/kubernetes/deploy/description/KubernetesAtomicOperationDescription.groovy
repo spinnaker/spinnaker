@@ -25,6 +25,6 @@ import groovy.transform.Canonical
 @AutoClone
 @Canonical
 class KubernetesAtomicOperationDescription implements DeployDescription {
-  String credentials
-  KubernetesCredentials kubernetesCredentials 
+  String account
+  KubernetesCredentials credentials
 }
