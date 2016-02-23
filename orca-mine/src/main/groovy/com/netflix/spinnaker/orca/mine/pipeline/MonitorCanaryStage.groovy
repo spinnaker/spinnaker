@@ -45,6 +45,13 @@ class MonitorCanaryStage extends LinearStage implements CancellableStage {
 
   @Override
   List<Step> buildSteps(Stage stage) {
+
+    // unless explicitly defined, default the stage timeout to two hours longer than the canary lifetime
+    if (!stage.context.stageTimeoutMs) {
+      int timeoutHours = (stage.context.canary?.canaryConfig?.lifetimeHours ?: 0) + 2
+      stage.context.stageTimeoutMs = timeoutHours * 60 * 60 * 1000
+    }
+
     [
       buildStep(stage, "registerCanary", RegisterCanaryTask),
       buildStep(stage, "monitorCanary", MonitorCanaryTask),
