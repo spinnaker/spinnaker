@@ -20,7 +20,8 @@ fi
 # vhosts
 rm -rf /etc/apache2/sites-enabled/*.conf
 
-ln -s /etc/apache2/sites-available/spinnaker.conf /etc/apache2/sites-enabled/spinnaker.conf
+/usr/sbin/a2ensite spinnaker
+/usr/sbin/a2enmod proxy_http
 
 sed -i "s/Listen\ 80/Listen 127.0.0.1:9000/" /etc/apache2/ports.conf
 

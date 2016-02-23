@@ -9,8 +9,8 @@
  */
 // BEGIN reconfigure_spinnaker
 
-// var gateUrl = ${services.gate.baseUrl};
-// var bakeryBaseUrl = ${services.bakery.baseUrl};
+// var gateUrl = ${services.deck.gateUrl};
+// var bakeryBaseUrl = ${services.deck.bakeryUrl};
 // var authEnabled = ${services.deck.auth.enabled};
 // var defaultTimeZone = ${services.deck.timezone};
 // var awsDefaultRegion = ${providers.aws.defaultRegion};

@@ -96,6 +96,11 @@ services:
 
   deck:
     # Frontend configuration.
+    # If you are proxying Spinnaker behind a single host, you may want to
+    # override these values. Remember to run `reconfigure_spinnaker.sh` after.
+    #baseUrl: http://spinnaker.mydomain.com
+    #gateUrl: ${services.deck.baseUrl}/gate
+    #bakeryUrl: ${services.deck.baseUrl}/rosco
     timezone: 'America/Los_Angeles' # See: http://momentjs.com/timezone/docs/#/data-utilities/
     auth:
       enabled: false
