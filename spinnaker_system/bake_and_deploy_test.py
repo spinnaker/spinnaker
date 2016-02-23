@@ -158,7 +158,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     builder = st.HttpContractBuilder(self.agent)
     (builder.new_clause_builder('Has Application', retryable_for_secs=60)
        .get_url_path('applications')
-       .contains('name', self.TEST_APP))
+       .contains_path_value('name', self.TEST_APP))
 
     return st.OperationContract(
         self.agent.make_create_app_operation(
@@ -215,12 +215,12 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Health Check Added',
                                 retryable_for_secs=30)
          .list_resources('http-health-checks')
-         .contains('name', load_balancer_name + '-hc'))
+         .contains_path_value('name', load_balancer_name + '-hc'))
 
     (builder.new_clause_builder('Load Balancer Created',
                                 retryable_for_secs=60)
          .list_resources('forwarding-rules')
-         .contains('name', self.__full_lb_name))
+         .contains_path_value('name', self.__full_lb_name))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -249,7 +249,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Health Check Removed', retryable_for_secs=30)
          .list_resources('http-health-checks')
-         .excludes('name', self.__full_lb_name + '-hc'))
+         .excludes_path_value('name', self.__full_lb_name + '-hc'))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -377,7 +377,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Has Pipeline')
        .get_url_path(
            'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
-       .contains(None, pipeline_spec))
+       .contains_path_value(None, pipeline_spec))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -416,7 +416,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Has Pipeline')
        .get_url_path(
            'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
-       .contains(None, pipeline_spec))
+       .contains_path_value(None, pipeline_spec))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -455,7 +455,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Has Pipeline')
        .get_url_path(
            'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
-       .contains(None, pipeline_spec))
+       .contains_path_value(None, pipeline_spec))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -471,7 +471,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Has Pipeline')
        .get_url_path(
            'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
-       .excludes('name', pipeline_id))
+       .excludes_path_value('name', pipeline_id))
 
     return st.OperationContract(
         self.new_delete_operation(

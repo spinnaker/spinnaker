@@ -151,7 +151,7 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
          aws_module='elb',
          command='describe-load-balancers',
          args=['--load-balancer-names', self.__use_lb_name])
-     .contains_group([
+     .contains_pred_list([
          jc.PathContainsPredicate(
              'LoadBalancerDescriptions/HealthCheck', health_check),
          jc.PathEqPredicate(
@@ -188,7 +188,7 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
          command='describe-load-balancers',
          args=['--load-balancer-names', self.__use_lb_name],
          no_resources_ok=True)
-     .excludes('LoadBalancerName', self.__use_lb_name))
+     .excludes_path_value('LoadBalancerName', self.__use_lb_name))
 
     return st.OperationContract(
         self.new_post_operation(
