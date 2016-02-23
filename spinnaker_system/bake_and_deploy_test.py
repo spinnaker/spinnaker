@@ -30,16 +30,28 @@
 #         1. Take note of your Jenkins server baseUrl,
 #            i.e <protocol>://<host>[:port]/[basePath]
 #            and store it as $JENKINS_URL.
+#
 #         2. Create a file, fill it with
 #            <username> <password>
 #            corresponding to valid Jenkins credentials, and store its path
 #            as $JENKINS_AUTH_PATH (also chmod 400).
+#            Or, set JENKINS_USER and JENKINS_PASSWORD environment variables.
+#
 #         3. Take note of the Jenkins job you have configured in Igor,
 #            and store its name as $JENKINS_JOB.
-#         3. On your Jenkins server, navigate to /job/$JENKINS_JOB/configure,
-#            and under "Build Triggers", check "Trigger builds remotely". In
-#            the "Authentication Token" field, write some token and store it
-#            as $JENKINS_TOKEN.
+#
+#         4. On your Jenkins server, navigate to /job/$JENKINS_JOB/configure
+#               a) Under "Build Triggers", check "Trigger builds remotely".
+#               b) In the "Authentication Token" field, write some token
+#                  and store it as $JENKINS_TOKEN.
+#               c) Add a build step that produces a file.
+#                  mkdir -p somedir
+#                  touch somedir/vim_2:7.4.052-lubuntu3_amd64.deb
+#                  Note that this might need to be consistent with the
+#                  platform the bakery is on. The above works on Ubuntu 14.04
+#               d) Add post build action to archive the artifacts
+#                  files to archive: somedir/vim_2:7.4.052-1ubuntu3_amd64.deb
+#            
 #
 #   PYTHONPATH=$CITEST_ROOT:$CITEST_ROOT/spinnaker \
 #     python $CITEST_ROOT/spinnaker/spinnaker_system/bake_and_deploy_test.py \
