@@ -61,11 +61,7 @@ class DockerRegistryImageLookupController {
     account = account ?: '*'
     tag = tag ?: '*'
 
-    print ",, image = $image, account = $account, tag = $tag\n"
-
     def key = Keys.getTaggedImageKey(account, image, tag)
-
-    print ",, key = $key\n"
 
     Set<CacheData> images = DockerRegistryProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.TAGGED_IMAGE.ns, key)
 
