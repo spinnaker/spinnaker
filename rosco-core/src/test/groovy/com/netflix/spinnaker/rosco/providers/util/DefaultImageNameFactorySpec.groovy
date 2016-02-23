@@ -63,6 +63,64 @@ class DefaultImageNameFactorySpec extends Specification {
       packagesParameter == "nflx-djangobase-enhanced=0.1-3"
   }
 
+  void "should build the imageName based on the ami_name tag"() {
+    setup:
+      def clockMock = Mock(Clock)
+      def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
+      def selectedOptions = new BakeOptions.Selected(baseImage: new BakeOptions.BaseImage(id: "ubuntu", packageType: "DEB"))
+      def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced_0.1-3_all",
+              base_os: "ubuntu",
+              ami_name: "nflx-base")
+
+    when:
+      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest, selectedOptions)
+
+    then:
+      1 * clockMock.millis() >> 123456
+      imageName == "nflx-base-all-123456-ubuntu"
+      appVersionStr == "nflx-djangobase-enhanced-0.1"
+      packagesParameter == "nflx-djangobase-enhanced=0.1-3"
+  }
+
+  void "should build the imageName based on the ami_suffix tag"() {
+    setup:
+      def clockMock = Mock(Clock)
+      def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
+      def selectedOptions = new BakeOptions.Selected(baseImage: new BakeOptions.BaseImage(id: "ubuntu", packageType: "DEB"))
+      def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced_0.1-3_all",
+              base_os: "ubuntu",
+              ami_suffix: "1.0")
+
+    when:
+     def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest, selectedOptions)
+
+    then:
+      1 * clockMock.millis() >> 123456
+      imageName == "nflx-djangobase-enhanced-all-1.0-ubuntu"
+      appVersionStr == "nflx-djangobase-enhanced-0.1"
+      packagesParameter == "nflx-djangobase-enhanced=0.1-3"
+  }
+
+  void "should build the imageName based on the ami_name and ami_suffix tag"() {
+    setup:
+      def clockMock = Mock(Clock)
+      def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
+      def selectedOptions = new BakeOptions.Selected(baseImage: new BakeOptions.BaseImage(id: "ubuntu", packageType: "DEB"))
+      def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced_0.1-3_all",
+              base_os: "ubuntu",
+              ami_name: "nflx-base",
+              ami_suffix: "1.0")
+
+    when:
+      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest, selectedOptions)
+
+    then:
+      1 * clockMock.millis() >> 123456
+      imageName == "nflx-base-all-1.0-ubuntu"
+      appVersionStr == "nflx-djangobase-enhanced-0.1"
+      packagesParameter == "nflx-djangobase-enhanced=0.1-3"
+  }
+
   void "should recognize unqualified ubuntu package name"() {
     setup:
       def clockMock = Mock(Clock)
