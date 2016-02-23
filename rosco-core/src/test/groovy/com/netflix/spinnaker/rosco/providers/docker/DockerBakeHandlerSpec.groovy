@@ -34,7 +34,9 @@ class DockerBakeHandlerSpec extends Specification {
   private static final String TEMPLATE_FILE = "docker_template.json"
   private static final String SOURCE_UBUNTU_IMAGE_NAME = "ubuntu:precise"
   private static final String SOURCE_TRUSTY_IMAGE_NAME = "ubuntu:trusty"
+  private static final String SOURCE_CENTOS_HVM_IMAGE_NAME = "centos:6"
   private static final String DEBIAN_REPOSITORY = "http://some-debian-repository"
+  private static final String YUM_REPOSITORY = "http://some-yum-repository"
 
   @Shared
   String configDir = "/some/path"
@@ -60,6 +62,13 @@ class DockerBakeHandlerSpec extends Specification {
             packageType: "DEB",
           ],
           virtualizationSettings: [sourceImage: SOURCE_TRUSTY_IMAGE_NAME]
+        ],
+        [
+          baseImage: [
+            id: "centos",
+            packageType: "RPM",
+          ],
+          virtualizationSettings: [sourceImage: SOURCE_CENTOS_HVM_IMAGE_NAME]
         ]
       ]
     ]
@@ -147,7 +156,8 @@ class DockerBakeHandlerSpec extends Specification {
         docker_source_image: SOURCE_UBUNTU_IMAGE_NAME,
         docker_target_image: targetImageName,
         docker_target_repository: TARGET_REPOSITORY,
-        deb_repo: DEBIAN_REPOSITORY,
+        repository: DEBIAN_REPOSITORY,
+        package_type: BakeRequest.PackageType.DEB.packageType,
         packages: PACKAGE_NAME,
         configDir: configDir
       ]
@@ -182,7 +192,8 @@ class DockerBakeHandlerSpec extends Specification {
         docker_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         docker_target_image: targetImageName,
         docker_target_repository: TARGET_REPOSITORY,
-        deb_repo: DEBIAN_REPOSITORY,
+        repository: DEBIAN_REPOSITORY,
+        package_type: BakeRequest.PackageType.DEB.packageType,
         packages: PACKAGE_NAME,
         configDir: configDir
       ]
@@ -204,6 +215,42 @@ class DockerBakeHandlerSpec extends Specification {
                                                       "$configDir/$dockerBakeryDefaults.templateFile")
   }
 
+  void 'produces packer command with all required parameters for centos'() {
+    setup:
+    def imageNameFactoryMock = Mock(ImageNameFactory)
+    def packerCommandFactoryMock = Mock(PackerCommandFactory)
+    def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+            package_name: PACKAGE_NAME,
+            base_os: "centos",
+            cloud_provider_type: BakeRequest.CloudProviderType.docker)
+    def targetImageName = "kato-x8664-timestamp-centos"
+    def parameterMap = [
+            docker_source_image: SOURCE_CENTOS_HVM_IMAGE_NAME,
+            docker_target_image: targetImageName,
+            docker_target_repository: TARGET_REPOSITORY,
+            repository: YUM_REPOSITORY,
+            package_type: BakeRequest.PackageType.RPM.packageType,
+            packages: PACKAGE_NAME,
+            configDir: configDir
+    ]
+
+    @Subject
+    DockerBakeHandler dockerBakeHandler = new DockerBakeHandler(configDir: configDir,
+            dockerBakeryDefaults: dockerBakeryDefaults,
+            imageNameFactory: imageNameFactoryMock,
+            packerCommandFactory: packerCommandFactoryMock,
+            yumRepository: YUM_REPOSITORY)
+
+    when:
+    dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
+
+    then:
+    1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
+    1 * packerCommandFactoryMock.buildPackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND,
+            parameterMap,
+            "$configDir/$dockerBakeryDefaults.templateFile")
+  }
+
   void 'produces packer command with all required parameters including appversion and build_host for trusty'() {
     setup:
       def imageNameFactoryMock = Mock(ImageNameFactory)
@@ -221,7 +268,8 @@ class DockerBakeHandlerSpec extends Specification {
         docker_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         docker_target_image: targetImageName,
         docker_target_repository: TARGET_REPOSITORY,
-        deb_repo: DEBIAN_REPOSITORY,
+        repository: DEBIAN_REPOSITORY,
+        package_type: BakeRequest.PackageType.DEB.packageType,
         packages: fullyQualifiedPackageName,
         configDir: configDir,
         appversion: appVersionStr,
@@ -252,7 +300,7 @@ class DockerBakeHandlerSpec extends Specification {
       def packerCommandFactoryMock = Mock(PackerCommandFactory)
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
-                                        base_os: "centos",
+                                        base_os: "wily",
                                         cloud_provider_type: BakeRequest.CloudProviderType.docker)
 
       @Subject
@@ -266,7 +314,7 @@ class DockerBakeHandlerSpec extends Specification {
 
     then:
       IllegalArgumentException e = thrown()
-      e.message == "No virtualization settings found for 'centos'."
+      e.message == "No virtualization settings found for 'wily'."
   }
 
 }

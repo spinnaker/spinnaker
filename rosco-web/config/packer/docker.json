@@ -4,7 +4,8 @@
     "docker_target_image": null,
     "docker_target_image_tag": "latest",
     "docker_target_repository": null,
-    "deb_repo": null,
+    "repository": "",
+    "package_type": "",
     "packages": "",
     "configDir": null
   },
@@ -17,7 +18,8 @@
     "type": "shell",
     "script": "{{user `configDir`}}/install_packages.sh",
     "environment_vars": [
-      "deb_repo={{user `deb_repo`}}",
+      "repository={{user `repository`}}",
+      "package_type={{user `package_type`}}",
       "packages={{user `packages`}}"
     ],
     "pause_before": "30s"

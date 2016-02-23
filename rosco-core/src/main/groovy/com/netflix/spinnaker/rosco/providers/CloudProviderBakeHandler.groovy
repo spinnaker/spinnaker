@@ -39,6 +39,9 @@ abstract class CloudProviderBakeHandler {
   @Value('${debianRepository:}')
   String debianRepository
 
+  @Value('${yumRepository:}')
+  String yumRepository
+
   /**
    * @return A cloud provider-specific set of defaults.
    */
@@ -103,9 +106,13 @@ abstract class CloudProviderBakeHandler {
 
     def parameterMap = buildParameterMap(region, virtualizationSettings, imageName, bakeRequest)
 
-    if (debianRepository) {
-      parameterMap.deb_repo = debianRepository
+    if (debianRepository && selectedOptions.baseImage.packageType == BakeRequest.PackageType.DEB) {
+      parameterMap.repository = debianRepository
+    } else if (yumRepository && selectedOptions.baseImage.packageType == BakeRequest.PackageType.RPM) {
+      parameterMap.repository = yumRepository
     }
+
+    parameterMap.package_type = selectedOptions.baseImage.packageType.packageType
 
     // TODO(duftler): Build out proper support for installation of packages.
     parameterMap.packages = packagesParameter
