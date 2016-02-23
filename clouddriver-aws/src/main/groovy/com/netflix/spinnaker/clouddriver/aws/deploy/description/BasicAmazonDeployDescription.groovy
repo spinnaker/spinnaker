@@ -57,6 +57,7 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   Map<String, List<String>> availabilityZones = [:]
   Capacity capacity = new Capacity()
   Source source = new Source()
+  Map<String, String> tags
 
   @Canonical
   static class Capacity {
