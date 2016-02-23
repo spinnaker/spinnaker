@@ -1,15 +1,24 @@
 <form ng-controller="kubernetesContainerConfigurerController as containerController" class="container-fluid form-horizontal" name="containers" novalidate>
   <div class="form-group">
-    <div class="col-md-4 sm-label-right">
+    <div class="col-md-3 sm-label-right">
       Image
       <help-field key="kubernetes.containers.image"></help-field>
     </div>
     <div class="col-md-6">
-      <p>{{container.image}}</p>
+      <p class="form-control-static">{{container.image}}</p>
     </div>
   </div>
   <div class="form-group">
-    <div class="col-md-4 sm-label-right">
+    <div class="col-md-3 sm-label-right">
+      Registry 
+      <help-field key="kubernetes.containers.registry"></help-field>
+    </div>
+    <div class="col-md-6">
+      <p class="form-control-static">{{container.registry}}</p>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right">
       Name
       <help-field key="kubernetes.containers.name"></help-field>
     </div>
@@ -17,45 +26,110 @@
       <input type="text" class="form-control input-sm" name="details" ng-model="container.name"/>
     </div>
   </div>
-  </br>
-  </br>
-  <div class="form-group">
-    <div class="col-md-4 sm-label-right">
-      CPU requested
-      <help-field key="kubernetes.containers.requests.cpu"></help-field>
-    </div>
-    <div class="col-md-6">
-      <input type="text" class="form-control input-sm" name="details" ng-model="container.requests.cpu" ng-pattern="containerController.cpuPattern"/>
-    </div>
-  </div>
 
-  <div class="form-group">
-    <div class="col-md-4 sm-label-right">
-      Memory requested
-      <help-field key="kubernetes.containers.requests.memory"></help-field>
+  <collapsible-section heading="Resources" expanded="false">
+    <div class="form-group">
+      <div class="col-md-3">
+      </div>
+      <div class="col-md-4 sm-label-left">
+        <b> 
+          Requests 
+          <help-field key="kubernetes.containers.requests"></help-field>
+        </b>
+      </div>
+      <div class="col-md-4 sm-label-left">
+        <b> 
+          Limits 
+          <help-field key="kubernetes.containers.limits"></help-field>
+        </b>
+      </div>
     </div>
-    <div class="col-md-6">
-      <input type="text" class="form-control input-sm" name="details" ng-model="container.requests.memory" ng-pattern="containerController.memoryPattern"/>
-    </div>
-  </div>
 
-  <div class="form-group">
-    <div class="col-md-4 sm-label-right">
-      CPU limit
-      <help-field key="kubernetes.containers.limits.cpu"></help-field>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        CPU
+        <help-field key="kubernetes.containers.cpu"></help-field>
+      </div>
+      <div class="col-md-4">
+        <input type="text" class="form-control input-sm" name="details" ng-model="container.requests.cpu" ng-pattern="containerController.cpuPattern"/>
+      </div>
+      <div class="col-md-4">
+        <input type="text" class="form-control input-sm" name="details" ng-model="container.limits.cpu" ng-pattern="containerController.cpuPattern"/>
+      </div>
     </div>
-    <div class="col-md-6">
-      <input type="text" class="form-control input-sm" name="details" ng-model="container.limits.cpu" ng-pattern="containerController.cpuPattern"/>
-    </div>
-  </div>
 
-  <div class="form-group">
-    <div class="col-md-4 sm-label-right">
-      Memory limit
-      <help-field key="kubernetes.containers.limits.memory"></help-field>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Memory
+        <help-field key="kubernetes.containers.memory"></help-field>
+      </div>
+      <div class="col-md-4">
+        <input type="text" class="form-control input-sm" name="details" ng-model="container.requests.memory" ng-pattern="containerController.memoryPattern"/>
+      </div>
+      <div class="col-md-4">
+        <input type="text" class="form-control input-sm" name="details" ng-model="container.limits.memory" ng-pattern="containerController.memoryPattern"/>
+      </div>
     </div>
-    <div class="col-md-6">
-      <input type="text" class="form-control input-sm" name="details" ng-model="container.limits.memory" ng-pattern="containerController.memoryPattern"/>
+  </collapsible-section>
+
+  <collapsible-section heading="Ports" expanded="false">
+    <div ng-repeat="port in container.ports">
+      <hr ng-if="$index > 0">
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">
+          Name
+          <help-field key="kubernetes.containers.ports.name"></help-field>
+        </div>
+        <div class="col-md-4">
+          <input type="text" class="form-control input-sm" name="details" ng-model="port.name"/>
+        </div>
+        <div class="col-md-1">
+          <a class="btn btn-link sm-label" ng-click="containerController.removePort($index)">
+            <span class="glyphicon glyphicon-trash"></span>  Remove Port</a>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">
+          Container Port
+          <help-field key="kubernetes.containers.ports.containerPort"></help-field>
+        </div>
+        <div class="col-md-2">
+          <input type="number" class="form-control input-sm" name="details" ng-model="port.containerPort"
+                 min="1" max="{{containerController.maxPort}}"/>
+        </div>
+        <div class="col-md-2 sm-label-right">
+          Host IP
+          <help-field key="kubernetes.containers.ports.hostIp"></help-field>
+        </div>
+        <div class="col-md-3">
+          <input type="text" class="form-control input-sm" name="details" ng-model="port.hostIp"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">
+          Host Port
+          <help-field key="kubernetes.containers.ports.hostPort"></help-field>
+        </div>
+        <div class="col-md-2">
+          <input type="number" class="form-control input-sm" name="details" ng-model="port.hostPort"
+                 min="1" max="{{containerController.maxPort}}" />
+        </div>
+        <div class="col-md-2 sm-label-right">
+          Protocol
+          <help-field key="kubernetes.containers.ports.protocol"></help-field>
+        </div>
+        <div class="col-md-2">
+          <select class="form-control input-sm"
+                  ng-model="port.protocol">
+            <option ng-repeat="protocol in containerController.protocols"
+                    value="{{protocol}}"
+                    ng-selected="port.protocol === protocol">{{protocol}}</option>
+          </select>
+        </div>
+      </div>
     </div>
-  </div>
+    <button class="add-new col-md-12" ng-click="containerController.addPort()"><span
+      class="glyphicon glyphicon-plus-sign"></span> Add New Port
+    </button>
+  </collapsible-section>
 </div>

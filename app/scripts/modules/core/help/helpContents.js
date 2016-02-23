@@ -263,17 +263,22 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'kubernetes.serverGroup.containers': '(Required) Select at least one image to run in this server group (pod). ' +
       'If multiple images are selected, they will be colocated and replicated equally.',
     'kubernetes.containers.image': 'The image selected under Basic Settings whose container is to be configured.',
+    'kubernetes.containers.registry': 'The registry the selected image will be pulled from.',
     'kubernetes.containers.name': '(Required) The name of the container associated with the above image. Used for resource identification',
-    'kubernetes.containers.limits.cpu': '(Optional) The relative CPU shares to allocate this container. If set, it is multiplied by 1024, then ' +
+    'kubernetes.containers.cpu': '(Optional) The relative CPU shares to allocate this container. If set, it is multiplied by 1024, then ' +
       'passed to Docker as the --cpu-shares flag. Otherwise the default of 1 (1024) is used',
-    'kubernetes.containers.requests.cpu': '(Optional) This is used for scheduling. It assures that this container will always be scheduled on a machine ' +
-      'with at least this much CPU available.',
-    'kubernetes.containers.limits.memory': '(Optional) The relative memory in megabytes to allocate this container. If set, it is converted to an integer ' +
-      'and passed to Docker as the --memory flag. Otherwise there are no restrictions on memory usage',
-    'kubernetes.containers.requests.memory': '(Optional) This is used for scheduling. It assures that this container will always be scheduled on a machine ' +
-      'with at least this much memory available.',
+    'kubernetes.containers.memory': '(Optional) The relative memory in megabytes to allocate this container. If set, it is converted to an integer ' +
+      'and passed to Docker as the --memory flag',
+    'kubernetes.containers.requests': '(Optional) This is used for scheduling. It assures that this container will always be scheduled on a machine ' +
+      'with at least this much of the resource available.',
+    'kubernetes.containers.ports.name': '(Optional) A name for this port. Can be found using DNS lookup if specified.',
+    'kubernetes.containers.ports.containerPort': '(Required) The port to expose on this container.',
+    'kubernetes.containers.ports.hostPort': '(Optional) The port to expose on <b>Host IP</b>. Most containers do not need this',
+    'kubernetes.containers.ports.hostIp': '(Optional) The IP to bind the external port to. Most containers do not need this.',
+    'kubernetes.containers.ports.protocol': '(Required) The protocol for this port.',
+    'kubernetes.containers.limits': '(Optional) This provides a hard limit on this resource for the given container.',
     'kubernetes.namespace': 'The namespace you have configured with the above selected account. This will often be referred to as <b>Region</b> in Spinnaker.',
-    'kubernetes.loadBalancer.detail': '<p>(Optional) A string of free-form alphanumeric characters; by convention, we recommend using "frontend".',
+    'kubernetes.loadBalancer.detail': '(Optional) A string of free-form alphanumeric characters; by convention, we recommend using "frontend".',
     'kubernetes.loadBalancer.stack': '(Optional) One of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.' ,
     'kubernetes.service.ports.name': '(Optional) A name for this port. Can be found using DNS lookup if specified.',
     'kubernetes.service.ports.port': 'The port this service will expose to resources internal to the cluster.',

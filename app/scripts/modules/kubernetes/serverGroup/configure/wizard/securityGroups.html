@@ -1,28 +1,2 @@
 <form class="container-fluid form-horizontal" name="form" novalidate>
-  <div class="col-md-12" ng-if="command.viewState.dirty.securityGroups" style="max-height: 200px">
-    <div class="alert alert-warning" style="max-height: 175px; overflow: auto">
-      <p><span class="glyphicon glyphicon-warning-sign"></span>
-        The following security groups could not be found in the selected account/network and were removed:
-      </p>
-      <ul>
-        <li ng-repeat="securityGroup in command.viewState.dirty.securityGroups">{{securityGroup}}</li>
-      </ul>
-      <p class="text-right">
-        <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="command.viewState.dirty.securityGroups = null">Okay</a>
-      </p>
-    </div>
-  </div>
-
-  <div class="form-group">
-    <div class="col-md-3 sm-label-right"><b>Security Groups</b></div>
-    <div class="col-md-9">
-      <ui-select multiple ng-model="command.securityGroups" class="form-control input-sm">
-        <ui-select-match>{{$item.name}}</ui-select-match>
-        <ui-select-choices repeat="securityGroup.id as securityGroup in command.backingData.filtered.securityGroups | anyFieldFilter: {name: $select.search, id: $select.search}">
-          <span ng-bind-html="securityGroup.name | highlight: $select.search"></span>
-          (<span ng-bind-html="securityGroup.id  | highlight: $select.search"></span>)
-        </ui-select-choices>
-      </ui-select>
-    </div>
-  </div>
 </form>

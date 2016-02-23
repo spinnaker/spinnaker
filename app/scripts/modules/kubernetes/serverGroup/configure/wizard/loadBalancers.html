@@ -1,8 +1,8 @@
-<form class="container-fluid form-horizontal" name="form" novalidate>
+<form class="container-fluid form-horizontal" ng-controller="kubernetesServerGroupLoadBalancersController as loadBalancersController" name="form" novalidate>
   <div class="col-md-12" ng-if="command.viewState.dirty.loadBalancers">
     <div class="alert alert-warning">
       <p><span class="glyphicon glyphicon-warning-sign"></span>
-        The following load balancers could not be found in the selected namespace and were removed:
+        The following load balancers could not be found in the selected account/namespace and were removed:
       </p>
       <ul>
         <li ng-repeat="loadBalancer in command.viewState.dirty.loadBalancers">{{loadBalancer}}</li>
@@ -16,12 +16,29 @@
   <div class="form-group">
     <div class="col-md-3 sm-label-right"><b>Load Balancers</b></div>
     <div class="col-md-9">
-      <ui-select multiple ng-model="command.loadBalancers" class="form-control input-sm">
+      <ui-select ng-if="command.backingData.filtered.loadBalancers.length"
+                 multiple
+                 ng-model="command.loadBalancers"
+                 class="form-control input-sm">
         <ui-select-match>{{$item}}</ui-select-match>
         <ui-select-choices repeat="loadBalancer in command.backingData.filtered.loadBalancers | filter: $select.search">
           <span ng-bind-html="loadBalancer | highlight: $select.search"></span>
         </ui-select-choices>
       </ui-select>
+    </div>
+  </div>
+
+  <div class="form-group small" style="margin-top: 20px">
+    <div class="col-md-9 col-md-offset-3">
+      <p>
+        <span ng-if="refreshing"><span class="small glyphicon glyphicon-refresh glyphicon-spinning"></span></span>
+        Load balancers
+        <span ng-if="!refreshing">last refreshed {{ loadBalancersController.getLoadBalancerRefreshTime() | timestamp }}</span>
+        <span ng-if="refreshing"> refreshing...</span>
+      </p>
+      <p>If you're not finding a load balancer that was recently added,
+        <a href ng-click="loadBalancersController.refreshLoadBalancers()">click here</a> to refresh the list.
+      </p>
     </div>
   </div>
 </form>
