@@ -31,8 +31,8 @@
     "script": "{{user `configDir`}}/install_packages.sh",
     "environment_vars": [
       "repository={{user `repository`}}",
-      "packages={{user `packages`}}",
       "package_type={{user `package_type`}}",
+      "packages={{user `packages`}}",
       "upgrade={{user `upgrade`}}"
     ],
     "pause_before": "30s"

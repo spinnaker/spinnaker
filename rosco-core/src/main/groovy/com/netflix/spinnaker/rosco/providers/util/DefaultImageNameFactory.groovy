@@ -83,7 +83,7 @@ public class DefaultImageNameFactory implements ImageNameFactory {
       imageName = baseImagePackageName ? "$baseImagePackageName-" : ""
     }
 
-    def release = bakeRequest.ami_suffix ? bakeRequest.ami_suffix : timestamp
+    def release = bakeRequest.ami_suffix ?: timestamp
 
     // TODO(duftler): Get architecture from OsPackageName.
     imageName += "all-$release-$bakeRequest.base_os"

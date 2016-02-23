@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Strip the first part to avoid credentials leaks
+# Strip the first part to avoid credentials leaks.
 echo "repository=$(echo $repository | sed s/^.*@//g)"
 echo "package_type=$package_type"
 echo "packages=$packages"
@@ -10,7 +10,7 @@ echo "upgrade=$upgrade"
 repository=`echo $repository | sed 's/^"\(.*\)"$/\1/'`
 
 # Strip leading/trailing quotes if present.
-# Also convert a comma separated list to a whitespace separated one
+# Also convert a comma-separated list to a whitespace-separated one.
 packages=`echo $packages | sed 's/^"\(.*\)"$/\1/' | sed 's/,/ /g'`
 
 
@@ -24,7 +24,7 @@ function provision_deb() {
     sudo unattended-upgrade -v
   fi
 
-  # Enforce the package installation order
+  # Enforce the package installation order.
   for package in $packages; do sudo apt-get install --force-yes -y $package; done
 }
 

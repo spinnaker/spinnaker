@@ -45,5 +45,5 @@
       "upgrade={{user `upgrade`}}"
     ],
     "pause_before": "30s"
-   }]
+  }]
 }
