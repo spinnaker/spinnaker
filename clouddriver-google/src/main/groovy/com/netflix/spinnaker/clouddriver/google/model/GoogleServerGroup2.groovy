@@ -39,12 +39,12 @@ class GoogleServerGroup2 {
   Map buildInfo
   Boolean disabled = false
 
+  private Map<String, Object> dynamicProperties = [:]
+
   @JsonAnyGetter
   public Map<String, Object> anyProperty() {
     return dynamicProperties;
   }
-
-  private Map<String, Object> dynamicProperties = [:]
 
   @JsonAnySetter
   public void set(String name, Object value) {

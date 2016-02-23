@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleHealth
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleInstanceHealth
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
@@ -39,7 +40,7 @@ class GoogleInstance2 {
   GoogleInstanceHealth instanceHealth
   List<GoogleLoadBalancerHealth> loadBalancerHealths = []
 
-  private Map<String, Object> dynamicProperties = new HashMap<String, Object>()
+  private Map<String, Object> dynamicProperties = [:]
 
   @JsonAnyGetter
   public Map<String, Object> anyProperty() {
