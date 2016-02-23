@@ -99,8 +99,8 @@ class AWSBakeHandlerSpec extends Specification {
               instanceType: "t2.micro",
               sourceAmi: SOURCE_AMZN_HVM_IMAGE_NAME,
               sshUserName: "ec2-user"
+            ]
           ]
-         ]
         ]
       ]
     ]
@@ -237,42 +237,43 @@ class AWSBakeHandlerSpec extends Specification {
 
   void 'produces packer command with all required parameters for amzn, using default vm type'() {
     setup:
-    def imageNameFactoryMock = Mock(ImageNameFactory)
-    def packerCommandFactoryMock = Mock(PackerCommandFactory)
-    def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                      package_name: PACKAGE_NAME,
-                                      base_os: "amzn",
-                                      vm_type: BakeRequest.VmType.hvm,
-                                      cloud_provider_type: BakeRequest.CloudProviderType.aws)
-    def targetImageName = "kato-x8664-timestamp-amzn"
-    def parameterMap = [
-      aws_access_key: awsBakeryDefaults.awsAccessKey,
-      aws_secret_key: awsBakeryDefaults.awsSecretKey,
-      aws_region: REGION,
-      aws_ssh_username: "ec2-user",
-      aws_instance_type: "t2.micro",
-      aws_source_ami: SOURCE_AMZN_HVM_IMAGE_NAME,
-      aws_target_ami: targetImageName,
-      repository: YUM_REPOSITORY,
-      package_type: BakeRequest.PackageType.RPM.packageType,
-      packages: PACKAGE_NAME,
-      configDir: configDir
-    ]
+      def imageNameFactoryMock = Mock(ImageNameFactory)
+      def packerCommandFactoryMock = Mock(PackerCommandFactory)
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: PACKAGE_NAME,
+                                        base_os: "amzn",
+                                        vm_type: BakeRequest.VmType.hvm,
+                                        cloud_provider_type: BakeRequest.CloudProviderType.aws)
+      def targetImageName = "kato-x8664-timestamp-amzn"
+      def parameterMap = [
+        aws_access_key: awsBakeryDefaults.awsAccessKey,
+        aws_secret_key: awsBakeryDefaults.awsSecretKey,
+        aws_region: REGION,
+        aws_ssh_username: "ec2-user",
+        aws_instance_type: "t2.micro",
+        aws_source_ami: SOURCE_AMZN_HVM_IMAGE_NAME,
+        aws_target_ami: targetImageName,
+        repository: YUM_REPOSITORY,
+        package_type: BakeRequest.PackageType.RPM.packageType,
+        packages: PACKAGE_NAME,
+        configDir: configDir
+      ]
 
-    @Subject
-    AWSBakeHandler awsBakeHandler = new AWSBakeHandler(configDir: configDir,
-                                                       awsBakeryDefaults: awsBakeryDefaults,
-                                                       imageNameFactory: imageNameFactoryMock,
-                                                       packerCommandFactory: packerCommandFactoryMock,
-                                                       yumRepository: YUM_REPOSITORY)
+      @Subject
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(configDir: configDir,
+                                                         awsBakeryDefaults: awsBakeryDefaults,
+                                                         imageNameFactory: imageNameFactoryMock,
+                                                         packerCommandFactory: packerCommandFactoryMock,
+                                                         yumRepository: YUM_REPOSITORY)
 
     when:
-    awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-    1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
-    1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
+
   void 'produces packer command with all required parameters for ubuntu, using default vm type, and overriding base ami'() {
     setup:
       def imageNameFactoryMock = Mock(ImageNameFactory)

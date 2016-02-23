@@ -188,39 +188,39 @@ class GCEBakeHandlerSpec extends Specification {
 
   void 'produces packer command with all required parameters for centos'() {
     setup:
-    def imageNameFactoryMock = Mock(ImageNameFactory)
-    def packerCommandFactoryMock = Mock(PackerCommandFactory)
-    def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-            package_name: PACKAGE_NAME,
-            base_os: "centos",
-            cloud_provider_type: BakeRequest.CloudProviderType.gce)
-    def targetImageName = "kato-x8664-timestamp-centos"
-    def parameterMap = [
-            gce_project_id: googleConfigurationProperties.accounts.get(0).project,
-            gce_zone: gceBakeryDefaults.zone,
-            gce_network: gceBakeryDefaults.network,
-            gce_source_image: SOURCE_CENTOS_HVM_IMAGE_NAME,
-            gce_target_image: targetImageName,
-            repository: YUM_REPOSITORY,
-            package_type: BakeRequest.PackageType.RPM.packageType,
-            packages: PACKAGE_NAME,
-            configDir: configDir
-    ]
+      def imageNameFactoryMock = Mock(ImageNameFactory)
+      def packerCommandFactoryMock = Mock(PackerCommandFactory)
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: PACKAGE_NAME,
+                                        base_os: "centos",
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce)
+      def targetImageName = "kato-x8664-timestamp-centos"
+      def parameterMap = [
+        gce_project_id: googleConfigurationProperties.accounts.get(0).project,
+        gce_zone: gceBakeryDefaults.zone,
+        gce_network: gceBakeryDefaults.network,
+        gce_source_image: SOURCE_CENTOS_HVM_IMAGE_NAME,
+        gce_target_image: targetImageName,
+        repository: YUM_REPOSITORY,
+        package_type: BakeRequest.PackageType.RPM.packageType,
+        packages: PACKAGE_NAME,
+        configDir: configDir
+      ]
 
-    @Subject
-    GCEBakeHandler gceBakeHandler = new GCEBakeHandler(configDir: configDir,
-            gceBakeryDefaults: gceBakeryDefaults,
-            googleConfigurationProperties: googleConfigurationProperties,
-            imageNameFactory: imageNameFactoryMock,
-            packerCommandFactory: packerCommandFactoryMock,
-            yumRepository: YUM_REPOSITORY)
+      @Subject
+      GCEBakeHandler gceBakeHandler = new GCEBakeHandler(configDir: configDir,
+                                                         gceBakeryDefaults: gceBakeryDefaults,
+                                                         googleConfigurationProperties: googleConfigurationProperties,
+                                                         imageNameFactory: imageNameFactoryMock,
+                                                         packerCommandFactory: packerCommandFactoryMock,
+                                                         yumRepository: YUM_REPOSITORY)
 
     when:
-    gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-    1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
-    1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$gceBakeryDefaults.templateFile")
   }
 
   void 'produces packer command with all required parameters for ubuntu, and overriding base image'() {

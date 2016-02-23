@@ -69,8 +69,8 @@ class DefaultImageNameFactorySpec extends Specification {
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
       def selectedOptions = new BakeOptions.Selected(baseImage: new BakeOptions.BaseImage(id: "ubuntu", packageType: "DEB"))
       def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced_0.1-3_all",
-              base_os: "ubuntu",
-              ami_name: "nflx-base")
+                                        base_os: "ubuntu",
+                                        ami_name: "nflx-base")
 
     when:
       def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest, selectedOptions)
@@ -88,8 +88,8 @@ class DefaultImageNameFactorySpec extends Specification {
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
       def selectedOptions = new BakeOptions.Selected(baseImage: new BakeOptions.BaseImage(id: "ubuntu", packageType: "DEB"))
       def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced_0.1-3_all",
-              base_os: "ubuntu",
-              ami_suffix: "1.0")
+                                        base_os: "ubuntu",
+                                        ami_suffix: "1.0")
 
     when:
      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest, selectedOptions)
@@ -107,9 +107,9 @@ class DefaultImageNameFactorySpec extends Specification {
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
       def selectedOptions = new BakeOptions.Selected(baseImage: new BakeOptions.BaseImage(id: "ubuntu", packageType: "DEB"))
       def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced_0.1-3_all",
-              base_os: "ubuntu",
-              ami_name: "nflx-base",
-              ami_suffix: "1.0")
+                                        base_os: "ubuntu",
+                                        ami_name: "nflx-base",
+                                        ami_suffix: "1.0")
 
     when:
       def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest, selectedOptions)
