@@ -66,9 +66,7 @@ class GateTaskStatus(sk.SpinnakerStatus):
     doc = None
     try:
       doc = json.JSONDecoder().decode(original_response.output)
-    except ValueError:
-      pass
-    except TypeError:
+    except (ValueError, TypeError):
       pass
 
     if isinstance(doc, dict):
@@ -192,19 +190,6 @@ class GateAgent(sk.SpinnakerAgent):
   This class just adds convienence methods specific to Gate.
   """
 
-  @staticmethod
-  def make_payload(**kwargs):
-    """Make a gate operation JSON payload string from Python objects.
-
-    Args:
-       kwargs: [dict] The dictionary defining the payload to send.
-          The payload will be the dictionary encoded as json.
-    Returns:
-       JSON encoded payload string for Gate request.
-    """
-    payload_dict = kwargs
-    return json.JSONEncoder().encode(payload_dict)
-
   def make_create_app_operation(self, bindings, application, description=None):
     """Create a Gate operation that will create a new application.
 
@@ -219,7 +204,7 @@ class GateAgent(sk.SpinnakerAgent):
     """
     account_name = bindings['GCE_CREDENTIALS']
     email = bindings.get('TEST_EMAIL', 'testuser@testhost.org')
-    payload = self.make_payload(
+    payload = self.make_json_payload_from_kwargs(
         job=[{
             'type': 'createApplication',
             'account': account_name,
@@ -248,7 +233,7 @@ class GateAgent(sk.SpinnakerAgent):
       AgentOperation.
     """
     account_name = bindings['GCE_CREDENTIALS']
-    payload = self.make_payload(
+    payload = self.make_json_payload_from_kwargs(
         job=[{
             'type': 'deleteApplication',
             'account': account_name,

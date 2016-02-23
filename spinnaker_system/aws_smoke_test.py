@@ -157,7 +157,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
         'Target':'HTTP:%d/' % listener['Listener']['InstancePort']
     }
 
-    payload = self.agent.make_payload(
+    payload = self.agent.make_json_payload_from_kwargs(
         job=[{
             'type': 'upsertLoadBalancer',
             'cloudProvider': 'aws',
@@ -226,7 +226,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
     created by upsert_load_balancer are no longer visible on AWS.
     """
     load_balancer_name = self.bindings['TEST_APP_COMPONENT_NAME']
-    payload = self.agent.make_payload(
+    payload = self.agent.make_json_payload_from_kwargs(
         job=[{
             'type': 'deleteLoadBalancer',
             'cloudProvider': 'aws',
@@ -272,7 +272,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
     region = bindings['TEST_AWS_REGION']
     avail_zones = [region + 'a', region + 'b']
 
-    payload = self.agent.make_payload(
+    payload = self.agent.make_json_payload_from_kwargs(
         job=[{
             'type': 'createServerGroup',
             'cloudProvider': 'aws',
@@ -335,7 +335,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
     group_name = '{app}-{stack}-v000'.format(
         app=self.TEST_APP, stack=bindings['TEST_STACK'])
 
-    payload = self.agent.make_payload(
+    payload = self.agent.make_json_payload_from_kwargs(
         job=[{
             'cloudProvider': 'aws',
             'type': 'destroyServerGroup',

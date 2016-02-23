@@ -142,7 +142,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
         'port': 80
     }
 
-    payload = self.agent.make_payload(
+    payload = self.agent.make_json_payload_from_kwargs(
         job=[{
             'cloudProvider': 'gce',
             'provider': 'gce',
@@ -197,7 +197,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
     """
     load_balancer_name = self.bindings['TEST_APP_COMPONENT_NAME']
     bindings = self.bindings
-    payload = self.agent.make_payload(
+    payload = self.agent.make_json_payload_from_kwargs(
         job=[{
             'type': 'deleteLoadBalancer',
             'cloudProvider': 'gce',
@@ -242,7 +242,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
     group_name = '{app}-{stack}-v000'.format(
         app=self.TEST_APP, stack=bindings['TEST_STACK'])
 
-    payload = self.agent.make_payload(
+    payload = self.agent.make_json_payload_from_kwargs(
         job=[{
             'cloudProvider': 'gce',
             'application': self.TEST_APP,
@@ -294,7 +294,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
 
     # TODO(ttomsu): Change this back from asgName to serverGroupName
     #               once it is fixed in orca.
-    payload = self.agent.make_payload(
+    payload = self.agent.make_json_payload_from_kwargs(
         job=[{
             'cloudProvider': 'gce',
             'serverGroupName': group_name,
