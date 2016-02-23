@@ -25,7 +25,7 @@ jar {
 
 node {
     // Version of node to use.
-    version = '5.6.0'
+    version = '0.12.3'
     npmVersion = '3.6.0'
 
     // Enabled the automatic download. False is the default (for now).
