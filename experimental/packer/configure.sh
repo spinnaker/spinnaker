@@ -224,7 +224,7 @@ RUN sudo apt-get update -q -y
 RUN sudo apt-get install -q -y wget
 RUN sudo apt-get install -q -y unzip
 WORKDIR /tmp
-RUN sudo wget -q https://dl.bintray.com/mitchellh/packer/packer_0.7.5_linux_amd64.zip
+RUN sudo wget -q https://releases.hashicorp.com/packer/0.7.5/packer_0.7.5_linux_amd64.zip
 RUN sudo mkdir /usr/local/packer
 WORKDIR /usr/local/packer
 RUN sudo unzip /tmp/packer_0.7.5_linux_amd64.zip

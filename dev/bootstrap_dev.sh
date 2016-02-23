@@ -160,7 +160,7 @@ nvm alias default $NODE_VERSION
 have_packer=$(which packer)
 if [[ ! $have_packer ]]; then
   echo "Installing packer"
-  url=https://dl.bintray.com/mitchellh/packer/packer_0.8.6_linux_amd64.zip
+  url=https://releases.hashicorp.com/packer/0.8.6/packer_0.8.6_linux_amd64.zip
   pushd $HOME
   if ! curl -s --location -O "$url"; then
      popd
