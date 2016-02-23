@@ -77,7 +77,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
      .list_resources('forwarding-rules')
      .contains('name', self.__lb_name))
 
-    payload = self.agent.make_payload(
+    payload = self.agent.make_json_payload_from_kwargs(
         job=job, description='Server Group Tests - create load balancer',
         application=self.TEST_APP)
 
@@ -120,7 +120,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
      .list_resources('instance-groups')
      .contains('name', self.__server_group_name))
 
-    payload = self.agent.make_payload(
+    payload = self.agent.make_json_payload_from_kwargs(
         job=job,
         description='Server Group Tests - create initial server group',
         application=self.TEST_APP)
@@ -158,7 +158,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
                        ['--zone', self.TEST_ZONE])
      .contains_eq('size', 2))
 
-    payload = self.agent.make_payload(
+    payload = self.agent.make_json_payload_from_kwargs(
         job=job, description='Server Group Tests - resize to 2 instances',
         application=self.TEST_APP)
 
@@ -205,7 +205,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
      .list_resources('managed-instance-groups')
      .contains('baseInstanceName', self.__cloned_server_group_name))
 
-    payload = self.agent.make_payload(
+    payload = self.agent.make_json_payload_from_kwargs(
         job=job, description='Server Group Tests - clone server group',
         application=self.TEST_APP)
 
@@ -236,7 +236,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
          jc.PathContainsPredicate('baseInstanceName', self.__server_group_name),
          jc.PathContainsPredicate('targetPools', 'https')]))
 
-    payload = self.agent.make_payload(
+    payload = self.agent.make_json_payload_from_kwargs(
         job=job, description='Server Group Tests - disable server group',
         application=self.TEST_APP)
 
@@ -266,7 +266,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
          jc.PathContainsPredicate('baseInstanceName', self.__server_group_name),
          jc.PathContainsPredicate('targetPools', 'https')]))
 
-    payload = self.agent.make_payload(
+    payload = self.agent.make_json_payload_from_kwargs(
         job=job, description='Server Group Tests - enable server group',
         application=self.TEST_APP)
 
@@ -295,7 +295,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
      .list_resources('managed-instance-groups')
      .excludes('baseInstanceName', serverGroupName))
 
-    payload = self.agent.make_payload(
+    payload = self.agent.make_json_payload_from_kwargs(
         job=job, description='Server Group Tests - destroy server group',
         application=self.TEST_APP)
 
@@ -321,7 +321,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
      .list_resources('forwarding-rules')
      .excludes('name', self.__lb_name))
 
-    payload = self.agent.make_payload(
+    payload = self.agent.make_json_payload_from_kwargs(
         job=job, description='Server Group Tests - delete load balancer',
         application=self.TEST_APP)
 

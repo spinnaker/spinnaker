@@ -113,19 +113,7 @@ class KatoAgent(sk.SpinnakerAgent):
     Returns:
        JSON encoded payload string for Kato request.
     """
-    return KatoAgent.make_payload([{name: payload_dict}])
-
-  @staticmethod
-  def make_payload(payload_dict_list):
-    """Make a kato operation JSON payload string.
-
-    Args:
-       payload_dict_list: An object representation of the entire payload.
-
-    Returns:
-       JSON encoded payload string for Kato request.
-    """
-    return json.JSONEncoder().encode(payload_dict_list)
+    return KatoAgent.make_json_payload_from_object([{name: payload_dict}])
 
 
 def new_agent(bindings, port=7002):

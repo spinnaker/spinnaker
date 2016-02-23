@@ -178,7 +178,7 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
                               extra_args=['--zone', self.use_instance_zones[i]])
             .contains_eq('status', 'RUNNING'))
 
-    payload = self.agent.make_payload(instance_spec)
+    payload = self.agent.make_json_payload_from_object(instance_spec)
 
     return st.OperationContract(
         self.new_post_operation(

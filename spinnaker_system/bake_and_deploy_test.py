@@ -184,7 +184,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
       'port': 80
     }
 
-    payload = self.agent.make_payload(
+    payload = self.agent.make_json_payload_from_kwargs(
       job=[{
           'cloudProvider': 'gce',
           'provider': 'gce',
@@ -230,7 +230,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
 
   def delete_load_balancer(self):
     bindings = self.bindings
-    payload = self.agent.make_payload(
+    payload = self.agent.make_json_payload_from_kwargs(
        job=[{
           'type': 'deleteLoadBalancer',
           'cloudProvider': 'gce',
@@ -371,7 +371,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
       limitConcurrent=True,
       appConfig={}
     )
-    payload = self.agent.make_payload(**pipeline_spec)
+    payload = self.agent.make_json_payload_from_kwargs(**pipeline_spec)
 
     builder = st.HttpContractBuilder(self.agent)
     (builder.new_clause_builder('Has Pipeline')
@@ -410,7 +410,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
       index=3
     )
 
-    payload = self.agent.make_payload(**pipeline_spec)
+    payload = self.agent.make_json_payload_from_kwargs(**pipeline_spec)
 
     builder = st.HttpContractBuilder(self.agent)
     (builder.new_clause_builder('Has Pipeline')
@@ -449,7 +449,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
       parallel=True,
       index=1
     )
-    payload = self.agent.make_payload(**pipeline_spec)
+    payload = self.agent.make_json_payload_from_kwargs(**pipeline_spec)
 
     builder = st.HttpContractBuilder(self.agent)
     (builder.new_clause_builder('Has Pipeline')
@@ -464,7 +464,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
         contract=builder.build())
 
   def delete_pipeline(self, pipeline_id):
-    payload = self.agent.make_payload(id=pipeline_id)
+    payload = self.agent.make_json_payload_from_kwargs(id=pipeline_id)
     path = os.path.join('pipelines', self.TEST_APP, pipeline_id)
 
     builder = st.HttpContractBuilder(self.agent)
