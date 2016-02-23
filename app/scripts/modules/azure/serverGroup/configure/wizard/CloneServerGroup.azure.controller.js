@@ -15,12 +15,11 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
                                                   azureServerGroupConfigurationService, serverGroupCommand, application, title) {
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
-      basicSettings: require('./basicSettings.html'),
-/*    loadBalancers: require('./loadBalancers.html'),
-      securityGroups: require('./securityGroups.html'),
+      basicSettings: require('./basicSettings/basicSettings.html'),
+      loadBalancers: require('./loadBalancers/loadBalancers.html'),
+/*    securityGroups: require('./securityGroups.html'),
       instanceArchetype: require('./instanceArchetype.html'),
       instanceType: require('./instanceType.html'),
-      capacity: require('./capacity.html'),
       advancedSettings: require('./advancedSettings.html'),
       */
     };
@@ -84,9 +83,7 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
       azureServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function () {
         var mode = serverGroupCommand.viewState.mode;
         if (mode === 'clone' || mode === 'create') {
-          if (!serverGroupCommand.backingData.packageImages.length) {
-            serverGroupCommand.viewState.useAllImageSelection = true;
-          }
+          serverGroupCommand.viewState.useAllImageSelection = true;
         }
         $scope.state.loaded = true;
         initializeCommand();
@@ -103,35 +100,24 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
       }
       var mode = serverGroupCommand.viewState.mode;
       if (mode === 'clone' || mode === 'editPipeline') {
-        v2modalWizardService.markComplete('location');
+        v2modalWizardService.markComplete('basic-settings');
         v2modalWizardService.markComplete('load-balancers');
-        v2modalWizardService.markComplete('security-groups');
-        v2modalWizardService.markComplete('instance-profile');
-        v2modalWizardService.markComplete('instance-type');
-        v2modalWizardService.markComplete('capacity');
-        v2modalWizardService.markComplete('advanced');
+        //v2modalWizardService.markComplete('security-groups');
+        //v2modalWizardService.markComplete('instance-profile');
+        //v2modalWizardService.markComplete('instance-type');
+        //v2modalWizardService.markComplete('capacity');
+        //v2modalWizardService.markComplete('advanced');
       }
     }
 
     function initializeWatches() {
       $scope.$watch('command.credentials', createResultProcessor($scope.command.credentialsChanged));
       $scope.$watch('command.region', createResultProcessor($scope.command.regionChanged));
-      $scope.$watch('command.subnetType', createResultProcessor($scope.command.subnetChanged));
-      $scope.$watch('command.viewState.usePreferredZones', createResultProcessor($scope.command.usePreferredZonesChanged));
-      $scope.$watch('command.stack', $scope.command.clusterChanged);
-      $scope.$watch('command.freeFormDetails', $scope.command.clusterChanged);
-      $scope.$watch('command.viewState.securityGroupDiffs', function(newVal) {
-        if (newVal && newVal.length) {
-          v2modalWizardService.markDirty('security-groups');
-        }
-      });
-      $scope.$watch('command.securityGroups', $scope.command.configureSecurityGroupDiffs);
     }
 
     function initializeSelectOptions() {
       processCommandUpdateResult($scope.command.credentialsChanged());
       processCommandUpdateResult($scope.command.regionChanged());
-      azureServerGroupConfigurationService.configureSubnetPurposes($scope.command);
     }
 
     function createResultProcessor(method) {
@@ -144,12 +130,12 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
       if (result.dirty.loadBalancers) {
         v2modalWizardService.markDirty('load-balancers');
       }
-      if (result.dirty.securityGroups) {
-        v2modalWizardService.markDirty('security-groups');
-      }
-      if (result.dirty.availabilityZones) {
-        v2modalWizardService.markDirty('capacity');
-      }
+      //if (result.dirty.securityGroups) {
+      //  v2modalWizardService.markDirty('security-groups');
+      //}
+      //if (result.dirty.availabilityZones) {
+      //  v2modalWizardService.markDirty('capacity');
+      //}
     }
 
     function initializeCommand() {

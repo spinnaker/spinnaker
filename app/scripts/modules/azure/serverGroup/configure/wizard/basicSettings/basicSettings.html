@@ -1,26 +1,27 @@
-<form name="form" class="container-fluid form-horizontal" ng-controller="azureServerGroupBasicSettingsCtrl as basicSettingsCtrl" novalidate>
+<form name="form" class="container-fluid form-horizontal" ng-controller="azureServerGroupBasicSettingsCtrl as basicSettingsCtrl"
+novalidate>
   <div class="modal-body">
-
-        <ng-form name="basicSettings">
+    <ng-form name="basicSettings">
       <div class="form-group">
         <div class="col-md-3 sm-label-right">
           Account
         </div>
         <div class="col-md-7">
-          <account-select-field read-only="command.viewState.readOnlyFields.credentials" component="command" field="credentials" accounts="command.backingData.accounts" provider="'aws'"></account-select-field>
+          <account-select-field required read-only="command.viewState.readOnlyFields.credentials" component="command" field="credentials" accounts="command.backingData.accounts"
+          provider="'azure'"></account-select-field>
         </div>
       </div>
-      <region-select-field read-only="command.viewState.readOnlyFields.region" label-columns="3" component="command" field="region" account="command.credentials" provider="'aws'" regions="command.backingData.filtered.regions"></region-select-field>
+      <region-select-field required read-only="command.viewState.readOnlyFields.region" label-columns="3" component="command" field="region"
+      account="command.credentials" provider="'azure'" regions="command.backingData.filtered.regions"></region-select-field>
       <div class="form-group">
         <div class="col-md-3 sm-label-right">
           Stack
-          <help-field key="aws.serverGroup.stack"></help-field>
+          <help-field key="azure.serverGroup.stack"></help-field>
         </div>
-        <div class="col-md-7"><input type="text"
-                                     class="form-control input-sm"
-                                     ng-pattern="basicSettingsCtrl.stackPattern"
-                                     name="stack"
-                                     ng-model="command.stack"/></div>
+        <div class="col-md-7">
+          <input requried type="text" class="form-control input-sm" ng-pattern="basicSettingsCtrl.stackPattern" name="stack" ng-model="command.stack"
+          />
+        </div>
       </div>
       <div class="form-group row slide-in animated" ng-if="basicSettings.stack.$error.pattern">
         <div class="col-sm-9 col-sm-offset-2 error-message">
@@ -30,13 +31,12 @@
       <div class="form-group">
         <div class="col-md-3 sm-label-right">
           Detail
-          <help-field key="aws.serverGroup.detail"></help-field>
+          <help-field key="azure.serverGroup.detail"></help-field>
         </div>
-        <div class="col-md-7"><input type="text"
-                                     class="form-control input-sm"
-                                     ng-pattern="basicSettingsCtrl.detailPattern"
-                                     name="details"
-                                     ng-model="command.details"/></div>
+        <div class="col-md-7">
+          <input required type="text" class="form-control input-sm" ng-pattern="basicSettingsCtrl.detailPattern" name="details" ng-model="command.details"
+          />
+        </div>
       </div>
       <div class="form-group row slide-in animated" ng-if="basicSettings.details.$error.pattern">
         <div class="col-sm-9 col-sm-offset-2 error-message">
@@ -49,9 +49,7 @@
           <help-field key="azure.serverGroup.imageName"></help-field>
         </div>
         <div class="col-md-9">
-          <ui-select class="form-control input-sm" required
-                     ng-model="command.imageName"
-                     on-select="basicSettingsCtrl.imageChanged($item)">
+          <ui-select class="form-control input-sm" required ng-model="command.imageName" on-select="basicSettingsCtrl.imageChanged($item)">
             <ui-select-match placeholder="Pick an image">{{$select.selected.imageName}}</ui-select-match>
             <ui-select-choices repeat="image.imageName as image in command.images | anyFieldFilter: {imageName: $select.search, ami: $select.search } | orderBy: '-imageName'">
               <span ng-bind-html="image.imageName | highlight: $select.search"></span>
@@ -59,7 +57,8 @@
           </ui-select>
         </div>
       </div>
-      <deployment-strategy-selector label-columns="3" field-columns="9" ng-if="!command.viewState.disableStrategySelection && command.selectedProvider" command="command"></deployment-strategy-selector>
+      <deployment-strategy-selector label-columns="3" field-columns="9" ng-if="!command.viewState.disableStrategySelection && command.selectedProvider"
+      command="command"></deployment-strategy-selector>
       <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
         <div class="col-md-12">
           <div class="well-compact" ng-class="basicSettingsCtrl.showPreviewAsWarning() ? 'alert alert-warning' : 'well'">
@@ -94,15 +93,5 @@
         </div>
       </div>
     </ng-form>
-
-  </div>
-  <div class="modal-footer">
-    <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
-    <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="form.$invalid || !ctrl.isValid() || taskMonitor.submitting"
-                   label="command.viewState.submitButtonLabel"
-                   submitting="taskMonitor.submitting" on-click="ctrl.submit()" is-new="true"></submit-button>
- <!--   <button type="button" class="btn btn-primary" ng-click="wizard.nextPage(form.$valid)" ng-disabled="form.$invalid">
-      Next <span class="glyphicon glyphicon-chevron-right"></span>
-    </button> -->
   </div>
 </form>
