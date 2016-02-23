@@ -86,7 +86,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.configProvider',
         });
       }
       return matches.length ? matches[0] : null;
-    }, (stage) => stage ? stage.type : '');
+    }, (stage) => [stage ? stage.type : '', stage.cloudProvider || stage.cloudProviderType || 'aws'].join(':'));
 
     function getTriggerConfig(type) {
       var matches = getTriggerTypes().filter(function(triggerType) { return triggerType.key === type; });
