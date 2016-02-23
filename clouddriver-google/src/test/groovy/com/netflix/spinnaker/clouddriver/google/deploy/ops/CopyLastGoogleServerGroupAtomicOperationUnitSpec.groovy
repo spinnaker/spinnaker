@@ -27,6 +27,7 @@ import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.Network
 import com.google.api.services.compute.model.Region
 import com.google.api.services.compute.model.Scheduling
+import com.google.api.services.compute.model.Subnetwork
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
@@ -71,6 +72,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final String DISK_TYPE = "pd-standard"
   private static final GoogleDisk DISK_PD_STANDARD = new GoogleDisk(type: DISK_TYPE, sizeGb: DISK_SIZE_GB)
   private static final String DEFAULT_NETWORK_NAME = "default"
+  private static final String SUBNET_NAME = "some-subnet"
   private static final String ACCESS_CONFIG_NAME = "External NAT"
   private static final String ACCESS_CONFIG_TYPE = "ONE_TO_ONE_NAT"
 
@@ -89,6 +91,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
   private def sourceImage
   private def network
+  private def subnet
   private def attachedDisks
   private def networkInterface
   private def instanceMetadata
@@ -122,6 +125,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
     sourceImage = new Image(selfLink: IMAGE)
     network = new Network(selfLink: DEFAULT_NETWORK_NAME)
+    subnet = new Subnetwork(selfLink: SUBNET_NAME)
     attachedDisks = GCEUtil.buildAttachedDisks(PROJECT_NAME,
                                                ZONE,
                                                sourceImage,
@@ -129,7 +133,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                false,
                                                INSTANCE_TYPE,
                                                new GoogleConfiguration.DeployDefaults())
-    networkInterface = GCEUtil.buildNetworkInterface(network, ACCESS_CONFIG_NAME, ACCESS_CONFIG_TYPE)
+    networkInterface = GCEUtil.buildNetworkInterface(network, subnet, ACCESS_CONFIG_NAME, ACCESS_CONFIG_TYPE)
     instanceMetadata = GCEUtil.buildMetadataFromMap(INSTANCE_METADATA)
     tags = GCEUtil.buildTagsFromList(TAGS)
     scheduling = new Scheduling(preemptible: false,
@@ -169,6 +173,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          onHostMaintenance: BaseGoogleInstanceDescription.OnHostMaintenance.TERMINATE,
                                                          authScopes: ["some-scope", "some-other-scope"],
                                                          network: "other-network",
+                                                         subnet: "other-subnet",
                                                          loadBalancers: ["testlb-west-1", "testlb-west-2"],
                                                          securityGroups: ["sg-3", "sg-4"] as Set,
                                                          autoscalingPolicy:
@@ -238,6 +243,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.onHostMaintenance = BaseGoogleInstanceDescription.OnHostMaintenance.MIGRATE
       newDescription.authScopes = AUTH_SCOPES
       newDescription.network = DEFAULT_NETWORK_NAME
+      newDescription.subnet = SUBNET_NAME
       newDescription.loadBalancers = LOAD_BALANCERS
       newDescription.securityGroups = SECURITY_GROUPS
       newDescription.autoscalingPolicy = new BasicGoogleDeployDescription.AutoscalingPolicy(coolDownPeriodSec: 45,

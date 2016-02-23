@@ -75,9 +75,9 @@ class ImagesCallback<ImageList> extends JsonBatchCallback<ImageList> {
       String fullImageName = image.name
       // TODO(duftler): Verify the naming convention and devise consistent pruning logic.
       // Public coreos images break the naming convention of the others.
-      int delimiter = fullImageName.startsWith("coreos-")
-                      ? fullImageName.indexOf('-', 7)
-                      : fullImageName.lastIndexOf('-')
+      int delimiter = fullImageName.startsWith("coreos-") ?
+          fullImageName.indexOf('-', 7) :
+          fullImageName.lastIndexOf('-')
       String nameWithoutDate = delimiter != -1 ? fullImageName.substring(0, delimiter) : fullImageName
 
       if (!map[nameWithoutDate]) {

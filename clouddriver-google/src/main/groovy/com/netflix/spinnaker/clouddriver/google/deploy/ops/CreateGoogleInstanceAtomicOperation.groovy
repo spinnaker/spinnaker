@@ -68,6 +68,7 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
     def compute = description.credentials.compute
     def project = description.credentials.project
     def zone = description.zone
+    def region = GCEUtil.getRegionFromZone(project, zone, compute)
 
     def machineType = GCEUtil.queryMachineType(project, zone, description.instanceType, compute, task, BASE_PHASE)
 
@@ -81,6 +82,9 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
 
     def network = GCEUtil.queryNetwork(project, description.network ?: DEFAULT_NETWORK_NAME, compute, task, BASE_PHASE)
 
+    def subnet =
+      description.subnet ? GCEUtil.querySubnet(project, region, description.subnet, compute, task, BASE_PHASE) : null
+
     task.updateStatus BASE_PHASE, "Composing instance..."
 
     def attachedDisks = GCEUtil.buildAttachedDisks(project,
@@ -91,7 +95,7 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
                                                    description.instanceType,
                                                    googleDeployDefaults)
 
-    def networkInterface = GCEUtil.buildNetworkInterface(network, accessConfigName, accessConfigType)
+    def networkInterface = GCEUtil.buildNetworkInterface(network, subnet, accessConfigName, accessConfigType)
 
     def metadata = GCEUtil.buildMetadataFromMap(description.instanceMetadata)
 

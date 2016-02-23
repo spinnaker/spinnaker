@@ -129,6 +129,22 @@ class GCEUtil {
     }
   }
 
+  static Subnetwork querySubnet(String projectName, String region, String subnetName, Compute compute, Task task, String phase) {
+    task.updateStatus phase, "Looking up subnet $subnetName in $region..."
+
+    try {
+      return compute.subnetworks().get(projectName, region, subnetName).execute()
+    } catch (GoogleJsonResponseException e) {
+      // 404 is thrown, and the details are populated, if the subnet does not exist in the given region.
+      // Any other exception should be propagated directly.
+      if (e.getStatusCode() == 404 && e.details) {
+        updateStatusAndThrowNotFoundException("Subnet $subnetName not found in $region.", task, phase)
+      } else {
+        throw e
+      }
+    }
+  }
+
   // If a forwarding rule with the specified name is found in any region, it is returned.
   static ForwardingRule queryRegionalForwardingRule(
     String projectName, String forwardingRuleName, Compute compute, Task task, String phase) {
@@ -452,10 +468,15 @@ class GCEUtil {
     }
   }
 
-  static NetworkInterface buildNetworkInterface(Network network, String accessConfigName, String accessConfigType) {
+  static NetworkInterface buildNetworkInterface(Network network,
+                                                Subnetwork subnet,
+                                                String accessConfigName,
+                                                String accessConfigType) {
     def accessConfig = new AccessConfig(name: accessConfigName, type: accessConfigType)
 
-    return new NetworkInterface(network: network.selfLink, accessConfigs: [accessConfig])
+    return new NetworkInterface(network: network.selfLink,
+                                subnetwork: subnet ? subnet.selfLink : null,
+                                accessConfigs: [accessConfig])
   }
 
   static Metadata buildMetadataFromMap(Map<String, String> instanceMetadata) {

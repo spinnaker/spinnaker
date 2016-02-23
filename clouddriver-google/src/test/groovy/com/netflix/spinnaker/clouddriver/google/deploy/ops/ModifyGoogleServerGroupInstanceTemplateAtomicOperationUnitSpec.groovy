@@ -26,6 +26,7 @@ import com.google.api.services.compute.model.Metadata
 import com.google.api.services.compute.model.NetworkInterface
 import com.google.api.services.compute.model.Operation
 import com.google.api.services.compute.model.Tags
+import com.google.api.services.compute.model.Zone
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
@@ -46,6 +47,8 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
   private static final PROJECT_NAME = "my_project"
   private static final SERVER_GROUP_NAME = "spinnaker-test-v000"
   private static final ZONE = "us-central1-b"
+  private static final REGION = "us-central1"
+  private static final REGION_URL = "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/regions/$REGION"
 
   private static final MACHINE_TYPE = "f1-micro"
   private static final NETWORK_1 = "default"
@@ -72,6 +75,9 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
   void "should not make any changes if no properties are overridden"() {
     setup:
       def computeMock = Mock(Compute)
+      def zonesMock = Mock(Compute.Zones)
+      def zonesGetMock = Mock(Compute.Zones.Get)
+      def zonesGetReal = new Zone(region: [REGION_URL])
       def instanceTemplatesMock = Mock(Compute.InstanceTemplates)
       def instanceTemplatesGetMock = Mock(Compute.InstanceTemplates.Get)
       def instanceTemplateReal = new InstanceTemplate(
@@ -108,6 +114,11 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       operation.operate([])
 
     then:
+      1 * computeMock.zones() >> zonesMock
+      1 * zonesMock.get(PROJECT_NAME, ZONE) >> zonesGetMock
+      1 * zonesGetMock.execute() >> zonesGetReal
+
+    then:
       // Query the managed instance group and its instance template.
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
@@ -120,6 +131,9 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
   void "should set metadata and tags on new instance template"() {
     setup:
       def computeMock = Mock(Compute)
+      def zonesMock = Mock(Compute.Zones)
+      def zonesGetMock = Mock(Compute.Zones.Get)
+      def zonesGetReal = new Zone(region: [REGION_URL])
       def globalOperations = Mock(Compute.GlobalOperations)
       def instanceTemplatesMock = Mock(Compute.InstanceTemplates)
       def instanceTemplatesGetMock = Mock(Compute.InstanceTemplates.Get)
@@ -171,6 +185,11 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       operation.operate([])
 
     then:
+      1 * computeMock.zones() >> zonesMock
+      1 * zonesMock.get(PROJECT_NAME, ZONE) >> zonesGetMock
+      1 * zonesGetMock.execute() >> zonesGetReal
+
+    then:
       // Query the managed instance group and its instance template.
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
@@ -209,6 +228,9 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
   void "should throw exception if no original instance template properties can be resolved"() {
     setup:
       def computeMock = Mock(Compute)
+      def zonesMock = Mock(Compute.Zones)
+      def zonesGetMock = Mock(Compute.Zones.Get)
+      def zonesGetReal = new Zone(region: [REGION_URL])
       def instanceTemplatesMock = Mock(Compute.InstanceTemplates)
       def instanceTemplatesGetMock = Mock(Compute.InstanceTemplates.Get)
       def instanceTemplateReal = new InstanceTemplate(name: ORIG_INSTANCE_TEMPLATE_NAME)
@@ -228,6 +250,11 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       operation.operate([])
 
     then:
+      1 * computeMock.zones() >> zonesMock
+      1 * zonesMock.get(PROJECT_NAME, ZONE) >> zonesGetMock
+      1 * zonesGetMock.execute() >> zonesGetReal
+
+    then:
       // Query the managed instance group and its instance template.
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
@@ -244,6 +271,9 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
   void "should throw exception if the original instance template defines a number of network interfaces other than one"() {
     setup:
       def computeMock = Mock(Compute)
+      def zonesMock = Mock(Compute.Zones)
+      def zonesGetMock = Mock(Compute.Zones.Get)
+      def zonesGetReal = new Zone(region: [REGION_URL])
       def instanceTemplatesMock = Mock(Compute.InstanceTemplates)
       def instanceTemplatesGetMock = Mock(Compute.InstanceTemplates.Get)
       def instanceTemplateReal = new InstanceTemplate(
@@ -279,6 +309,11 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       operation.operate([])
 
     then:
+      1 * computeMock.zones() >> zonesMock
+      1 * zonesMock.get(PROJECT_NAME, ZONE) >> zonesGetMock
+      1 * zonesGetMock.execute() >> zonesGetReal
+
+    then:
       // Query the managed instance group and its instance template.
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
@@ -302,6 +337,9 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
   void "should throw exception if the original instance template does not define any disks"() {
     setup:
       def computeMock = Mock(Compute)
+      def zonesMock = Mock(Compute.Zones)
+      def zonesGetMock = Mock(Compute.Zones.Get)
+      def zonesGetReal = new Zone(region: [REGION_URL])
       def instanceTemplatesMock = Mock(Compute.InstanceTemplates)
       def instanceTemplatesGetMock = Mock(Compute.InstanceTemplates.Get)
       def instanceTemplateReal = new InstanceTemplate(
@@ -330,6 +368,11 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
 
     when:
       operation.operate([])
+
+    then:
+      1 * computeMock.zones() >> zonesMock
+      1 * zonesMock.get(PROJECT_NAME, ZONE) >> zonesGetMock
+      1 * zonesGetMock.execute() >> zonesGetReal
 
     then:
       // Query the managed instance group and its instance template.

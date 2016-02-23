@@ -98,8 +98,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, region)
       def amazonEC2 = regionScopedProvider.amazonEC2
 
-      String classicLinkVpcId = null
-      if (!subnetType) {
+      String classicLinkVpcId = description.classicLinkVpcId
+      if (!subnetType && !classicLinkVpcId) {
         def result = amazonEC2.describeVpcClassicLink()
         def classicLinkVpc = result.vpcs.find { it.classicLinkEnabled }
         if (classicLinkVpc) {

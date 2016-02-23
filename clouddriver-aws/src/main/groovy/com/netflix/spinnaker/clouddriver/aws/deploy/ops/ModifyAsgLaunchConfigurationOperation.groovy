@@ -78,7 +78,7 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
       props.ami = ami.amiId
     }
 
-    if (!asg.getVPCZoneIdentifier()) {
+    if (!asg.getVPCZoneIdentifier() && !settings.classicLinkVpcId) {
       def classicLinkVpc = regionScopedProvider.amazonEC2.describeVpcClassicLink().vpcs.find { it.classicLinkEnabled }
       if (classicLinkVpc) {
         props.classicLinkVpcId = classicLinkVpc.vpcId

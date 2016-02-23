@@ -78,7 +78,9 @@ class GoogleNetworkProvider implements NetworkProvider<GoogleNetwork> {
       id: network.name,
       name: network.name,
       account: parts.account,
-      region: parts.region
+      region: parts.region,
+      autoCreateSubnets: network.autoCreateSubnetworks,
+      subnets: network.subnetworks
     )
   }
 }

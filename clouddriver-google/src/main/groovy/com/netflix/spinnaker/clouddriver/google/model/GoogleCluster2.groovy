@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Google, Inc.
+ * Copyright 2014 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.google.model
 
-import com.netflix.spinnaker.clouddriver.model.Network
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import com.netflix.spinnaker.clouddriver.model.Cluster
+import groovy.transform.CompileStatic
+import groovy.transform.EqualsAndHashCode
 
-class GoogleNetwork implements Network {
-  String cloudProvider
-  String id
+@CompileStatic
+@EqualsAndHashCode(includes = ["name", "accountName"])
+class GoogleCluster2 implements Cluster, Serializable {
   String name
-  String account
-  String region
-
-  Boolean autoCreateSubnets
-  List<String> subnets
+  String type = GoogleCloudProvider.GCE
+  String accountName
+  Set<GoogleServerGroup2.View> serverGroups = Collections.synchronizedSet([] as Set)
+  Set<GoogleLoadBalancer2.View> loadBalancers = Collections.synchronizedSet([] as Set)
 }

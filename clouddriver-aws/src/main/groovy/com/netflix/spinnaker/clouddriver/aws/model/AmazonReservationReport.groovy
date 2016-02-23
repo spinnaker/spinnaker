@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.model
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import com.netflix.spinnaker.clouddriver.model.ReservationReport
@@ -31,11 +32,21 @@ class AmazonReservationReport implements ReservationReport {
   Collection<OverallReservationDetail> reservations = []
 
   static enum OperatingSystemType {
-    LINUX,
-    WINDOWS,
-    WINDOWS_SQL_SERVER,
-    RHEL,
-    UNKNOWN
+    LINUX("LINUX", false),
+    LINUX_VPC("LINUX", true),
+    WINDOWS("WINDOWS", false),
+    WINDOWS_VPC("WINDOWS", true),
+    WINDOWS_SQL_SERVER("WINDOWS_SQL_SERVER", false),
+    RHEL("RHEL", false),
+    UNKNOWN("UNKNOWN", false)
+
+    String name
+    boolean isVpc
+
+    OperatingSystemType(String name, boolean isVpc) {
+      this.name = name
+      this.isVpc = isVpc
+    }
   }
 
   @JsonPropertyOrder(["availabilityZone", "region", "availabilityZoneId", "instanceType", "os", "totalReserved", "totalUsed", "totalSurplus", "details"])
@@ -66,13 +77,25 @@ class AmazonReservationReport implements ReservationReport {
     }
   }
 
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   static class AccountReservationDetail {
     AtomicInteger reserved = new AtomicInteger(0)
     AtomicInteger used = new AtomicInteger(0)
+    AtomicInteger reservedVpc = new AtomicInteger(0)
+    AtomicInteger usedVpc = new AtomicInteger(0)
 
     @JsonProperty
     int surplus() {
       return (reserved.intValue() - used.intValue())
+    }
+
+    @JsonProperty
+    Integer surplusVpc() {
+      if (reservedVpc == null || usedVpc == null) {
+        return null
+      }
+
+      return (reservedVpc.intValue() - usedVpc.intValue())
     }
   }
 }

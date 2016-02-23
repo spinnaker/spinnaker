@@ -20,6 +20,8 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.docker.registry.cache.Keys
 import com.netflix.spinnaker.clouddriver.docker.registry.provider.DockerRegistryProviderUtils
+import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -31,6 +33,9 @@ import org.springframework.web.bind.annotation.RestController
 class DockerRegistryImageLookupController {
   @Autowired
   private final Cache cacheView
+
+  @Autowired
+  AccountCredentialsProvider accountCredentialsProvider
 
   @RequestMapping(value = '/find', method = RequestMethod.GET)
   List<Map> find(LookupOptions lookupOptions) {
@@ -56,17 +61,18 @@ class DockerRegistryImageLookupController {
     account = account ?: '*'
     tag = tag ?: '*'
 
-    print ",, image = $image, account = $account, tag = $tag\n"
-
     def key = Keys.getTaggedImageKey(account, image, tag)
-
-    print ",, key = $key\n"
 
     Set<CacheData> images = DockerRegistryProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.TAGGED_IMAGE.ns, key)
 
+
     return images.collect({
-      [imageName: (String) it.attributes.name,
-       account: it.attributes.account]
+      def credentials = (DockerRegistryNamedAccountCredentials) accountCredentialsProvider.getCredentials((String) it.attributes.account)
+      return [
+        imageName: (String) it.attributes.name,
+        account: it.attributes.account,
+        registry: credentials.registry,
+      ]
     })
   }
 

@@ -23,7 +23,7 @@ import groovy.transform.ToString
 
 @AutoClone
 @Canonical
-@ToString(includeNames = true)
+@ToString(includeSuper = true, includeNames = true)
 class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription implements DeployDescription {
   String application
   String stack
