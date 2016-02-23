@@ -75,7 +75,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Load Balancer Created', retryable_for_secs=30)
      .list_resources('forwarding-rules')
-     .contains('name', self.__lb_name))
+     .contains_path_value('name', self.__lb_name))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job, description='Server Group Tests - create load balancer',
@@ -118,7 +118,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Instance Created', retryable_for_secs=150)
      .list_resources('instance-groups')
-     .contains('name', self.__server_group_name))
+     .contains_path_value('name', self.__server_group_name))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job,
@@ -156,7 +156,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
      .inspect_resource('instance-groups',
                        self.__server_group_name,
                        ['--zone', self.TEST_ZONE])
-     .contains_eq('size', 2))
+     .contains_path_eq('size', 2))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job, description='Server Group Tests - resize to 2 instances',
@@ -203,7 +203,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Server Group Cloned', retryable_for_secs=90)
      .list_resources('managed-instance-groups')
-     .contains('baseInstanceName', self.__cloned_server_group_name))
+     .contains_path_value('baseInstanceName', self.__cloned_server_group_name))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job, description='Server Group Tests - clone server group',
@@ -231,8 +231,8 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Server Group Disabled', retryable_for_secs=90)
      .list_resources('managed-instance-groups')
-     .contains('baseInstanceName', self.__server_group_name)
-     .excludes_group([
+     .contains_path_value('baseInstanceName', self.__server_group_name)
+     .excludes_pred_list([
          jc.PathContainsPredicate('baseInstanceName', self.__server_group_name),
          jc.PathContainsPredicate('targetPools', 'https')]))
 
@@ -262,7 +262,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Server Group Enabled', retryable_for_secs=90)
      .list_resources('managed-instance-groups')
-     .contains_group([
+     .contains_pred_list([
          jc.PathContainsPredicate('baseInstanceName', self.__server_group_name),
          jc.PathContainsPredicate('targetPools', 'https')]))
 
@@ -293,7 +293,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Server Group Destroyed', retryable_for_secs=90)
      .list_resources('managed-instance-groups')
-     .excludes('baseInstanceName', serverGroupName))
+     .excludes_path_value('baseInstanceName', serverGroupName))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job, description='Server Group Tests - destroy server group',
@@ -319,7 +319,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Load Balancer Created', retryable_for_secs=30)
      .list_resources('forwarding-rules')
-     .excludes('name', self.__lb_name))
+     .excludes_path_value('name', self.__lb_name))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job, description='Server Group Tests - delete load balancer',
