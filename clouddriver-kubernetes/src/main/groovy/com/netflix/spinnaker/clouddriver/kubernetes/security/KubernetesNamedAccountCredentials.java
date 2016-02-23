@@ -73,13 +73,6 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     this.requiredGroupMembership = requiredGroupMembership == null ? Collections.emptyList() : Collections.unmodifiableList(requiredGroupMembership);
     this.dockerRegistries = dockerRegistries;
 
-    for (int i = 0; i < this.dockerRegistries.size(); i++) {
-      LinkedDockerRegistryConfiguration registry = this.dockerRegistries.get(i);
-      if (registry.getNamespaces() == null || registry.getNamespaces().size() == 0) {
-        registry.setNamespaces(this.namespaces);
-      }
-    }
-
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.credentials = buildCredentials();
   }
@@ -117,17 +110,25 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
   }
 
   private KubernetesCredentials buildCredentials() {
-    Config config = KubernetesConfigParser.parse(this.kubeConfigFile, this.cluster, this.user, this.namespaces);
-    if (this.namespaces == null || this.namespaces.isEmpty()) {
-      this.namespaces = Collections.singletonList(config.getNamespace());
+    Config config = KubernetesConfigParser.parse(kubeConfigFile, cluster, user, namespaces);
+    if (namespaces == null || namespaces.isEmpty()) {
+      namespaces = Collections.singletonList(config.getNamespace());
     }
+
+    for (LinkedDockerRegistryConfiguration registry : dockerRegistries) {
+      if (registry.getNamespaces() == null || registry.getNamespaces().isEmpty()) {
+        registry.setNamespaces(namespaces);
+      }
+    }
+
     KubernetesClient client;
     try {
       client = new DefaultKubernetesClient(config);
     } catch (Exception e) {
       throw new RuntimeException("Failed to create credentials.", e);
     }
-    return new KubernetesCredentials(new KubernetesApiAdaptor(client), this.namespaces, this.dockerRegistries, this.accountCredentialsRepository);
+
+    return new KubernetesCredentials(new KubernetesApiAdaptor(client), namespaces, dockerRegistries, accountCredentialsRepository);
   }
 
   private static String getLocalName(String fullUrl) {
@@ -157,6 +158,6 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
   private List<String> namespaces;
   private final KubernetesCredentials credentials;
   private final List<String> requiredGroupMembership;
-  private final List<LinkedDockerRegistryConfiguration> dockerRegistries;
+  private List<LinkedDockerRegistryConfiguration> dockerRegistries;
   private final AccountCredentialsRepository accountCredentialsRepository;
 }
