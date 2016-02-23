@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
   require('../../../core/utils/lodash.js'),
 ])
   .factory('kubernetesServerGroupCommandBuilder', function (settings, $q, accountService, namingService, _) {
-    function attemptToSetValidCredentials(application, defaultCredentials, command) {
+    function attemptToSetValidAccount(application, defaultAccount, command) {
       return accountService.listAccounts('kubernetes').then(function(kubernetesAccounts) {
         var kubernetesAccountNames = _.pluck(kubernetesAccounts, 'name');
         var firstKubernetesAccount = null;
@@ -20,18 +20,18 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
           });
         }
 
-        var defaultCredentialsAreValid = defaultCredentials && kubernetesAccountNames.indexOf(defaultCredentials) !== -1;
+        var defaultAccountIsValid = defaultAccount && kubernetesAccountNames.indexOf(defaultAccount) !== -1;
 
-        command.credentials =
-          defaultCredentialsAreValid ? defaultCredentials : (firstKubernetesAccount ? firstKubernetesAccount : 'my-account-name');
+        command.account =
+          defaultAccountIsValid ? defaultAccount : (firstKubernetesAccount ? firstKubernetesAccount : 'my-account-name');
       });
     }
 
     function buildNewServerGroupCommand(application, defaults = {}) {
-      var defaultCredentials = defaults.account || settings.providers.kubernetes.defaults.account;
+      var defaultAccount = defaults.account || settings.providers.kubernetes.defaults.account;
 
       var command = {
-        credentials: defaultCredentials,
+        account: defaultAccount,
         application: application.name,
         targetSize: 1,
         cloudProvider: 'kubernetes',
@@ -39,12 +39,6 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
         namespace: 'default',
         containers: [],
         viewState: {
-          instanceProfile: 'custom',
-          allImageSelection: null,
-          useAllImageSelection: false,
-          useSimpleCapacity: true,
-          usePreferredZones: true,
-          listImplicitSecurityGroups: false,
           mode: defaults.mode || 'create',
           disableStrategySelection: true,
         }
@@ -54,9 +48,46 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
         command.interestingHealthProviderNames = ['Kubernetes'];
       }
 
-      attemptToSetValidCredentials(application, defaultCredentials, command);
+      attemptToSetValidAccount(application, defaultAccount, command);
 
       return $q.when(command);
+    }
+
+    function findUpstreamImages(current, all, visited = {}) {
+      // This actually indicates a loop in the stage dependencies.
+      if (visited[current.refId]) {
+        return [];
+      } else {
+        visited[current.refId] = true;
+      }
+      let result = [];
+      if (current.type === 'findImage') {
+        result.push(current.name);
+      }
+      current.requisiteStageRefIds.forEach(function(id) {
+        let [next] = all.filter((stage) => stage.refId === id);
+        if (next) {
+          result = result.concat(findUpstreamImages(next, all, visited));
+        }
+      });
+
+      return result;
+    }
+
+    function buildNewServerGroupCommandForPipeline(current, all) {
+      return $q.when({
+        viewState: {
+          contextImages: findUpstreamImages(current, all),
+          requiresTemplateSelection: true,
+        }
+      });
+    }
+
+    // Mutating map call - not the best, but a copy would be too expensive.
+    function buildContainerFromExisting(container) {
+      container.requests = container.resources.requests;
+      container.limits = container.resources.limits;
+      return container;
     }
 
     function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
@@ -68,28 +99,22 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
         application: application.name,
         stack: serverGroupName.stack,
         freeFormDetails: serverGroupName.freeFormDetails,
-        credentials: serverGroup.account,
+        account: serverGroup.account,
         loadBalancers: serverGroup.loadBalancers,
         securityGroups: serverGroup.securityGroups,
         targetSize: serverGroup.replicas,
         cloudProvider: 'kubernetes',
         selectedProvider: 'kubernetes',
-        namespace: serverGroup.namespace,
-        containers: serverGroup.containers,
+        namespace: serverGroup.region,
+        containers: _.map(serverGroup.containers, buildContainerFromExisting),
         source: {
           serverGroupName: serverGroup.name,
           asgName: serverGroup.name,
-          zone: serverGroup.namespace,
           account: serverGroup.account,
-          region: serverGroup.namespace,
-          namespace: serverGroup.namespace,
+          region: serverGroup.region,
+          namespace: serverGroup.region,
         },
         viewState: {
-          allImageSelection: null,
-          useAllImageSelection: false,
-          useSimpleCapacity: true,
-          usePreferredZones: false,
-          listImplicitSecurityGroups: false,
           mode: mode,
         },
       };
@@ -104,5 +129,6 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
     return {
       buildNewServerGroupCommand: buildNewServerGroupCommand,
       buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting,
+      buildNewServerGroupCommandForPipeline: buildNewServerGroupCommandForPipeline,
     };
   });

@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.kubernetes.cache.initializer', [
 
     let config = Object.create(null);
 
-    config.credentials = {
+    config.account = {
       initializers: [ () => accountService.getRegionsKeyedByAccount('kubernetes') ],
     };
 

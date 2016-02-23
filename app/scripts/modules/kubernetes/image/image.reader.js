@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.kubernetes.image.reader', [])
         });
     }
 
-    function getImage(/*amiName, region, credentials*/) {
+    function getImage(/*amiName, region, account*/) {
       // kubernetes images are not regional so we don't need to retrieve ids scoped to regions.
       return null;
     }

@@ -10,6 +10,7 @@ module.exports = angular.module('spinnaker.kubernetes.container.configurer.direc
       scope: {
         container: '=',
         index: '=',
+        command: '=',
       }
     };
   })

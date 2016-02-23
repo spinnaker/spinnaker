@@ -4,8 +4,13 @@
       Image
       <help-field key="kubernetes.containers.image"></help-field>
     </div>
-    <div class="col-md-6">
-      <p class="form-control-static">{{container.image}}</p>
+    <div class="col-md-9">
+      <ui-select ng-model="container.image" class="form-control input-sm">
+        <ui-select-match>{{$select.selected.image}}</ui-select-match>
+        <ui-select-choices repeat="container.image as container in command.backingData.filtered.containers | filter: { image: $select.search }">
+          <span ng-bind-html="'(' + container.registry + ') ' + container.image | highlight: $select.search"></span>
+        </ui-select-choices>
+      </ui-select>
     </div>
   </div>
   <div class="form-group">

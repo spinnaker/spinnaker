@@ -24,7 +24,7 @@ module.exports = angular.module('spinnaker.kubernetes.loadBalancer.transformer',
         stack: '',
         detail: '',
         type: 'ClusterIP',
-        credentials: settings.providers.kubernetes ? settings.providers.kubernetes.defaults.account : null,
+        account: settings.providers.kubernetes ? settings.providers.kubernetes.defaults.account : null,
         namespace: settings.providers.kubernetes ? settings.providers.kubernetes.defaults.namespace : null,
         ports: [
           {

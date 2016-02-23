@@ -20,7 +20,7 @@
     </v2-wizard-page>
     <div ng-repeat="container in command.containers">
       <v2-wizard-page key="container-{{$index}}" label="Container {{container.image}}" done="true">
-        <kubernetes-container-configurer index="$index" container="container"></kubernetes-container-configurer>
+        <kubernetes-container-configurer command="command" index="$index" container="container"></kubernetes-container-configurer>
       </v2-wizard-page>
     </div>
   </v2-modal-wizard>
