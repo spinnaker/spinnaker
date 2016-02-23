@@ -171,18 +171,19 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Health Check Added',
                                 retryable_for_secs=30)
      .list_resources('http-health-checks')
-     .contains_group(
+     .contains_pred_list(
          [jc.PathContainsPredicate('name', '%s-hc' % load_balancer_name),
           jc.DICT_SUBSET(spec)]))
     (builder.new_clause_builder('Target Pool Added',
                                 retryable_for_secs=30)
      .list_resources('target-pools')
-     .contains('name', '%s-tp' % load_balancer_name))
+     .contains_path_value('name', '%s-tp' % load_balancer_name))
     (builder.new_clause_builder('Forwarding Rules Added',
                                 retryable_for_secs=30)
      .list_resources('forwarding-rules')
-     .contains_group([jc.PathContainsPredicate('name', load_balancer_name),
-                      jc.PathContainsPredicate('target', target_pool_name)]))
+     .contains_pred_list([
+          jc.PathContainsPredicate('name', load_balancer_name),
+          jc.PathContainsPredicate('target', target_pool_name)]))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -216,13 +217,13 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Health Check Removed', retryable_for_secs=30)
      .list_resources('http-health-checks')
-     .excludes('name', '%s-hc' % load_balancer_name))
+     .excludes_path_value('name', '%s-hc' % load_balancer_name))
     (builder.new_clause_builder('TargetPool Removed')
      .list_resources('target-pools')
-     .excludes('name', '%s-tp' % load_balancer_name))
+     .excludes_path_value('name', '%s-tp' % load_balancer_name))
     (builder.new_clause_builder('Forwarding Rule Removed')
      .list_resources('forwarding-rules')
-     .excludes('name', load_balancer_name))
+     .excludes_path_value('name', load_balancer_name))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -275,7 +276,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Managed Instance Group Added',
                                 retryable_for_secs=30)
      .inspect_resource('managed-instance-groups', group_name)
-     .contains_eq('targetSize', 2))
+     .contains_path_eq('targetSize', 2))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -314,12 +315,12 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Managed Instance Group Removed')
      .inspect_resource('managed-instance-groups', group_name,
                        no_resource_ok=True)
-     .contains_eq('targetSize', 0))
+     .contains_path_eq('targetSize', 0))
 
     (builder.new_clause_builder('Instances Are Removed',
                                 retryable_for_secs=30)
      .list_resources('instances')
-     .excludes('name', group_name))
+     .excludes_path_value('name', group_name))
 
     return st.OperationContract(
         self.new_post_operation(

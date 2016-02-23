@@ -204,7 +204,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
          aws_module='elb',
          command='describe-load-balancers',
          args=['--load-balancer-names', load_balancer_name])
-     .contains_group([
+     .contains_pred_list([
          jc.PathContainsPredicate(
              'LoadBalancerDescriptions/HealthCheck', health_check),
          jc.PathEqPredicate(
@@ -248,7 +248,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
          command='describe-load-balancers',
          args=['--load-balancer-names', load_balancer_name],
          no_resources_ok=True)
-     .excludes('LoadBalancerName', load_balancer_name))
+     .excludes_path_value('LoadBalancerName', load_balancer_name))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -318,7 +318,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
                                 retryable_for_secs=30)
      .collect_resources('autoscaling', 'describe-auto-scaling-groups',
                         args=['--auto-scaling-group-names', group_name])
-     .contains('AutoScalingGroups', {'MaxSize': 2}))
+     .contains_path_value('AutoScalingGroups', {'MaxSize': 2}))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -354,12 +354,12 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
      .collect_resources('autoscaling', 'describe-auto-scaling-groups',
                         args=['--auto-scaling-group-names', group_name],
                         no_resources_ok=True)
-     .contains('AutoScalingGroups', {'MaxSize': 0}))
+     .contains_path_value('AutoScalingGroups', {'MaxSize': 0}))
 
     (builder.new_clause_builder('Instances Are Removed',
                                 retryable_for_secs=30)
      .collect_resources('ec2', 'describe-instances', no_resources_ok=True)
-     .excludes('name', group_name))
+     .excludes_path_value('name', group_name))
 
     return st.OperationContract(
         self.new_post_operation(
