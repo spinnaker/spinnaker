@@ -4,17 +4,20 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.configuration.service', [
   require('../../../core/account/account.service.js'),
-  require('../../image/image.reader.js'),
+  require('../../../core/cache/cacheInitializer.js'),
+  require('../../../core/loadBalancer/loadBalancer.read.service.js'),
   require('../../../core/utils/lodash.js'),
+  require('../../image/image.reader.js'),
 ])
-  .factory('kubernetesServerGroupConfigurationService', function($q, accountService, kubernetesImageReader, _) {
+  .factory('kubernetesServerGroupConfigurationService', function($q, accountService, kubernetesImageReader, _,
+                                                                 loadBalancerReader, cacheInitializer) {
     function configureCommand(application, command) {
       return $q.all({
         accounts: accountService.listAccounts('kubernetes'),
+        loadBalancers: loadBalancerReader.listLoadBalancers('kubernetes'),
         allImages: kubernetesImageReader.findImages({ provider: 'dockerRegistry' }),
       }).then(function(backingData) {
         backingData.filtered = {};
-        backingData.loadBalancers = [];
         backingData.securityGroups = [];
         command.backingData = backingData;
 
@@ -34,6 +37,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
       return {
         name: image.imageName.replace(/\W/g, '').toLowerCase(),
         image: image.imageName,
+        registry: image.registry,
         account: image.accountName,
         requests: {
           memory: null,
@@ -43,7 +47,43 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
           memory: null,
           cpu: null,
         },
+        ports: [
+        {
+          name: 'http',
+          containerPort: 80,
+          protocol: 'TCP',
+          hostPort: null,
+          hostIp: null,
+        }
+        ],
       };
+    }
+
+    function getLoadBalancerNames(command) {
+      return _(command.backingData.loadBalancers)
+        .filter({ account: command.credentials })
+        .filter({ namespace: command.namespace })
+        .pluck('name')
+        .flatten(true)
+        .unique()
+        .valueOf();
+    }
+
+    function configureLoadBalancers(command) {
+      var results = { dirty: {} };
+      var current = command.loadBalancers;
+      var newLoadBalancers = getLoadBalancerNames(command);
+
+      if (current && command.loadBalancers) {
+        var matched = _.intersection(newLoadBalancers, command.loadBalancers);
+        var removed = _.xor(matched, current);
+        command.loadBalancers = matched;
+        if (removed.length) {
+          results.dirty.loadBalancers = removed;
+        }
+      }
+      command.backingData.filtered.loadBalancers = newLoadBalancers;
+      return results;
     }
 
     function configureContainers(command) {
@@ -59,12 +99,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
         }
       });
       command.containers = validContainers;
-      return result;
-    }
-
-    function configureLoadBalancers(command) {
-      var result = { dirty : {} };
-      command.backingData.filtered.loadBalancers = command.backingData.loadBalancers;
       return result;
     }
 
@@ -88,6 +122,17 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
     }
     */
 
+    function refreshLoadBalancers(command, skipCommandReconfiguration) {
+      return cacheInitializer.refreshCache('loadBalancers').then(function() {
+        return loadBalancerReader.listLoadBalancers('kubernetes').then(function(loadBalancers) {
+          command.backingData.loadBalancers = loadBalancers;
+          if (!skipCommandReconfiguration) {
+            configureLoadBalancers(command);
+          }
+        });
+      });
+    }
+
     function configureNamespaces(command) {
       var result = { dirty: {} };
       command.backingData.filtered.namespaces = command.backingData.account.namespaces;
@@ -96,6 +141,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
         result.dirty.namespace = true;
       }
       angular.extend(result.dirty, configureContainers(command).dirty);
+      angular.extend(result.dirty, configureLoadBalancers(command).dirty);
       return result;
     }
 
@@ -110,7 +156,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
       command.backingData.account = command.backingData.accountMap[command.credentials];
       angular.extend(result.dirty, configureDockerRegistries(command).dirty);
       angular.extend(result.dirty, configureNamespaces(command).dirty);
-      angular.extend(result.dirty, configureLoadBalancers(command).dirty);
       angular.extend(result.dirty, configureSecurityGroups(command).dirty);
       return result;
     }
@@ -157,5 +202,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
       configureNamespaces: configureNamespaces,
       configureDockerRegistries: configureDockerRegistries,
       configureAccount: configureAccount,
+      refreshLoadBalancers: refreshLoadBalancers,
     };
   });
