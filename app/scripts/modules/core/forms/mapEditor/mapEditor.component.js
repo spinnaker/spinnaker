@@ -11,7 +11,7 @@ module.exports = angular
       model: '=',
       keyLabel: '@',
       valueLabel: '@',
-      allowEmpty: '=',
+      allowEmpty: '=?',
       onChange: '&',
     },
     controller: function($scope) {
