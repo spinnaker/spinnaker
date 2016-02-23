@@ -72,13 +72,21 @@ public class DefaultImageNameFactory implements ImageNameFactory {
       }
     }
 
-    // We need to replace the original fully-qualified package name with the unqualified package name before using
-    // it in the target image name.
-    def baseImagePackageName = osPackageName?.name ?: firstPackageName
-    def imageName = baseImagePackageName ? "$baseImagePackageName-" : ""
+    def imageName
+
+    if (bakeRequest.ami_name) {
+      imageName = "$bakeRequest.ami_name-"
+    } else {
+      // We need to replace the original fully-qualified package name with the unqualified package name before using
+      // it in the target image name.
+      def baseImagePackageName = osPackageName?.name ?: firstPackageName
+      imageName = baseImagePackageName ? "$baseImagePackageName-" : ""
+    }
+
+    def release = bakeRequest.ami_suffix ? bakeRequest.ami_suffix : timestamp
 
     // TODO(duftler): Get architecture from OsPackageName.
-    imageName += "all-$timestamp-$bakeRequest.base_os"
+    imageName += "all-$release-$bakeRequest.base_os"
 
     def packagesParameter = packageNameList ? packageNameList.join(" ") : ""
 
