@@ -1,0 +1,146 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Build a GCE Spinnaker Image from pre-built packages in an existing debian repository.&#xd;
+By default, this creates an image from what&apos;s already built and released into the wild.&#xd;
+&#xd;
+The use of the spinnaker git repository in this script, is only to get at the &quot;current&quot; script for creating GCE images since this script is not packaged into a debian package, rather is only available on github. If there were a spinnaker-dev package for developers, then we might want to consider that to build the image we are testing here.&#xd;
+&#xd;
+The GITHUB_REPOSITORY_OWNER allows a personal repository to be injected here, such as when testing a proposed change to the build_google_image.sh script. The job will always authenticate with github user &quot;spinnaker-ro&quot; so that user needs to have permission into the GITHUB_REPOSITORY_OWNER&apos;s project.</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>7</daysToKeep>
+        <numToKeep>-1</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.14.2">
+      <projectUrl>https://github.com/$GITHUB_REPOSITORY_OWNER/spinnaker.git/</projectUrl>
+      <displayName></displayName>
+    </com.coravy.hudson.plugins.github.GithubProjectProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>IMAGE_NAME</name>
+          <description>The name of the GCE image to create. This image will created in both this build project, as well as republished into the IMAGE_PROJECT</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>IMAGE_PROJECT</name>
+          <description>The name of the GCE project to publish the image into after it has been built. If you use a different project name, you will also need to make sure that the BUILDER_SERVICE_ACCOUNT has Edit permission so that it can write the new image into the project.</description>
+          <defaultValue>spinnaker-build</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>BUILDER_SERVICE_ACCOUNT</name>
+          <description>The service account to use when publishing into the image project.
+The default value is the service account for this project building the image. If you use another project,
+you will need to pass that project&apos;s service account here.
+
+Note that the jenkins user must already be authenticated to use this account. If not, you will need to log into the server and gcloud auth activate-service-account as the user &quot;jenkins&quot;.</description>
+          <defaultValue>*** Replace with your GCE service account ***</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>GITHUB_REPOSITORY_OWNER</name>
+          <description>The repository owner for the &apos;spinnaker&apos; repository that contains the build_google_image.sh script used within this job.</description>
+          <defaultValue>spinnaker</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>GITHUB_REPOSITORY_BRANCH</name>
+          <description>The branch within the repository that this job should use.</description>
+          <defaultValue>master</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>DEBIAN_REPO_URL</name>
+          <description>The [public] bintray repository to install from. The default is the official spinnaker repository.
+
+https://dl.bintray.com/$BINTRAY_REPO</description>
+          <defaultValue>https://dl.bintray.com/spinnaker/debians</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <com.cloudbees.plugins.credentials.CredentialsParameterDefinition plugin="credentials@1.24">
+          <name>BINTRAY_KEY</name>
+          <description>This is a hack so that we can plumb through private bintray repositories when building from source and passing in a private DEBIAN_REPO_URL (which is in bintray)</description>
+          <defaultValue>03e16cfd-f5d3-4d82-b394-a6dbe6f985c5</defaultValue>
+          <credentialType>org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl</credentialType>
+          <required>false</required>
+        </com.cloudbees.plugins.credentials.CredentialsParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>BINTRAY_USER</name>
+          <description>This is a hack so that we can plumb through private bintray repositories when building from source and passing in a private DEBIAN_REPO_URL (which is in bintray). This is the username to authenticate with bintray as.</description>
+          <defaultValue>*** Your BinTray username here ***</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>rm -rf spinnaker
+if [[ &quot;$GITHUB_REPOSITORY_OWNER&quot; == &quot;default&quot; ]]; then
+  GITHUB_REPOSITORY_OWNER=&quot;spinnaker&quot;
+fi
+git clone https://github.com/$GITHUB_REPOSITORY_OWNER/spinnaker.git -b $GITHUB_REPOSITORY_BRANCH
+</command>
+    </hudson.tasks.Shell>
+    <EnvInjectBuilder plugin="envinject@1.92.1">
+      <info>
+        <propertiesContent>HOME=/home/jenkins
+
+# This service account is used to build and store the image.
+BUILDER_SERVICE_ACCOUNT=builder@spinnaker-build.iam.gserviceaccount.com
+BUILDER_JSON_CREDENTIALS=$HOME/supporting_data/builder_spinnaker-build.json
+
+# We are always going to build the image in this project. The credentials we pass in are fixed since the project is fixed.
+BUILD_PROJECT=spinnaker-build
+
+# This zone is only used within this job. The resulting image is independent of any gce zone.
+LOCAL_ZONE=us-central1-f</propertiesContent>
+      </info>
+    </EnvInjectBuilder>
+    <hudson.tasks.Shell>
+      <command># Normally these BINTRAY variables arent needed or used.
+# However, this can give us access to passing a private bintray DEBIAN_REPO_URL
+export BINTRAY_KEY
+export BINTRAY_USER
+
+spinnaker/dev/build_google_image.sh \
+  --debian_repo $DEBIAN_REPO_URL \
+  --project_id $BUILD_PROJECT \
+  --update_os true \
+  --json_credentials $BUILDER_JSON_CREDENTIALS \
+  --image_project $BUILD_PROJECT \
+  --target_image $IMAGE_NAME \
+  --zone $LOCAL_ZONE</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>if [[ ! &quot;$IMAGE_PROJECT&quot; ]] || [[ &quot;$IMAGE_PROJECT&quot; == &quot;$BUILD_PROJECT&quot; ]]; then
+  # Already published into the desired project
+  exit 0
+fi
+
+spinnaker/google/dev/publish_gce_release.sh \
+  --service_account $BUILDER_SERVICE_ACCOUNT \
+  --original_project $BUILD_PROJECT \
+  --original_image $IMAGE_NAME \
+  --publish_project $IMAGE_PROJECT \
+  --publish_image $IMAGE_NAME \
+  --zone $LOCAL_ZONE</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.Mailer plugin="mailer@1.16">
+      <recipients>spinnaker-dev-ext@google.com</recipients>
+      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>false</sendToIndividuals>
+    </hudson.tasks.Mailer>
+  </publishers>
+  <buildWrappers/>
+</project>
