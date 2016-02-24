@@ -31,7 +31,6 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup2
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
-import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
@@ -76,9 +75,10 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster2.View> {
       }
     }
 
-    List<GoogleCluster2.View> clusters = cacheView.getAll(CLUSTERS.ns,
-                                                          clusterKeys,
-                                                          RelationshipCacheFilter.include(SERVER_GROUPS.ns)).collect { CacheData cacheData ->
+    List<GoogleCluster2.View> clusters = cacheView.getAll(
+        CLUSTERS.ns,
+        clusterKeys,
+        RelationshipCacheFilter.include(SERVER_GROUPS.ns)).collect { CacheData cacheData ->
       clusterFromCacheData(cacheData, includeInstanceDetails)
     }
 
@@ -96,12 +96,13 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster2.View> {
   }
 
   @Override
-  ServerGroup getServerGroup(String account, String region, String name) {
-    CacheData cacheData = cacheView.get(SERVER_GROUPS.ns,
-                                        Keys.getServerGroupKey(googleCloudProvider, name, account, region),
-                                        RelationshipCacheFilter.include(INSTANCES.ns))
-    //TODO(ttomsu): Fix this
-    serverGroupFromCacheData(cacheData)
+  GoogleServerGroup2.View getServerGroup(String account, String region , String name) {
+    def cacheData = cacheView.get(SERVER_GROUPS.ns,
+                                  Keys.getServerGroupKey(googleCloudProvider, name, account, region),
+                                  RelationshipCacheFilter.include(INSTANCES.ns, LOAD_BALANCERS.ns))
+    if (cacheData) {
+      return serverGroupFromCacheData(cacheData)?.view
+    }
   }
 
   GoogleCluster2.View clusterFromCacheData(CacheData cacheData, boolean includeInstanceDetails) {
@@ -115,20 +116,22 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster2.View> {
       cacheView.getAll(SERVER_GROUPS.ns,
                        serverGroupKeys,
                        filter).each { CacheData serverGroupCacheData ->
-        clusterView.serverGroups << serverGroupFromCacheData(serverGroupCacheData, clusterView)
+        GoogleServerGroup2 serverGroup = serverGroupFromCacheData(serverGroupCacheData)
+        clusterView.serverGroups << serverGroup.view
+        clusterView.loadBalancers.addAll(serverGroup.loadBalancers*.view)
       }
     }
 
     clusterView
   }
 
-  GoogleServerGroup2.View serverGroupFromCacheData(CacheData cacheData, GoogleCluster2.View clusterView) {
+  GoogleServerGroup2 serverGroupFromCacheData(CacheData cacheData) {
     GoogleServerGroup2 serverGroup = objectMapper.convertValue(cacheData.attributes, GoogleServerGroup2)
 
     def loadBalancerKeys = cacheData.relationships[LOAD_BALANCERS.ns]
     List<GoogleLoadBalancer2> loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys).collect {
       GoogleLoadBalancer2 loadBalancer = objectMapper.convertValue(it.attributes, GoogleLoadBalancer2)
-      clusterView.loadBalancers << loadBalancer.view
+      serverGroup.loadBalancers << loadBalancer
       loadBalancer
     }
 
@@ -146,7 +149,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster2.View> {
       serverGroup.securityGroups = getSecurityGroups(networkName, instanceTemplateTags)
     }
 
-    serverGroup.view
+    serverGroup
   }
 
   List<GoogleLoadBalancerHealth> getLoadBalancerHealths(String instanceName, List<GoogleLoadBalancer2> loadBalancers) {

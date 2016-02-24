@@ -110,7 +110,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
       def serverGroupKey = Keys.getServerGroupKey(googleCloudProvider,
                                                   serverGroup.name,
                                                   accountName,
-                                                  serverGroup.zones[0])
+                                                  serverGroup.region)
       def clusterKey = Keys.getClusterKey(googleCloudProvider,
                                           accountName,
                                           applicationName,

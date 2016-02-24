@@ -39,6 +39,8 @@ class GoogleServerGroup2 {
   Map buildInfo
   Boolean disabled = false
 
+  Set<GoogleLoadBalancer2> loadBalancers = []
+
   private Map<String, Object> dynamicProperties = [:]
 
   @JsonAnyGetter
