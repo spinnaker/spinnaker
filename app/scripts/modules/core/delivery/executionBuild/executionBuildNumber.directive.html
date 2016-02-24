@@ -17,7 +17,6 @@
   <span class="build-label">Build</span> #{{ execution.trigger.buildInfo.lastBuild.number }}
 </a>
 <a ng-if="execution.trigger.parentPipelineId"
-   href="/#/applications/{{execution.trigger.parentPipelineApplication}}/executions/{{execution.trigger.parentPipelineId}}"
-    >
+   ui-sref="^.executionDetails.execution({application: execution.trigger.parentPipelineApplication, executionId: execution.trigger.parentPipelineId})">
   {{execution.trigger.parentPipelineName}}
 </a>

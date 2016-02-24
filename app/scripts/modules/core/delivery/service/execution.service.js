@@ -44,6 +44,10 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
       }).then((resp) => resp.data);
     }
 
+    function transformExecution(application, execution) {
+      return executionsTransformer.transformExecution(application, execution);
+    }
+
     function transformExecutions(application, executions) {
       if (!executions || !executions.length) {
         return;
@@ -242,8 +246,10 @@ module.exports = angular.module('spinnaker.core.delivery.executions.service', [
 
     return {
       getExecutions: getExecutions,
+      getExecution: getExecution,
       getRunningExecutions: getRunningExecutions,
       transformExecutions: transformExecutions,
+      transformExecution: transformExecution,
       cancelExecution: cancelExecution,
       resumeExecution: resumeExecution,
       pauseExecution: pauseExecution,

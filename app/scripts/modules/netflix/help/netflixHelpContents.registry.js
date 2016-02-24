@@ -5,8 +5,9 @@ const angular = require('angular');
 module.exports = angular
   .module('spinnaker.netflix.help.registry', [
     require('../../core/help/helpContents.registry.js'),
+    require('../../core/config/settings.js'),
   ])
-  .run(function(helpContentsRegistry) {
+  .run(function(helpContentsRegistry, settings) {
     let helpContents = [
       {
         key: 'application.chaos.enabled',
@@ -52,7 +53,14 @@ module.exports = angular
         key: 'chaos.exceptions',
         contents: '<p>When Chaos Monkey is enabled, exceptions tell Chaos Monkey to leave certain clusters alone. ' +
         'You can use wildcards (*) to include all matching fields.</p>'
+      },
+      {
+        key: 'pipeline.config.bake.package',
+        contents: '<p>The name of the package you want installed (without any version identifiers).</p>' +
+        '<p>If your build produces a deb file named "myapp_1.27-h343", you would want to enter "myapp" here.</p>'
       }
     ];
-    helpContents.forEach((entry) => helpContentsRegistry.register(entry.key, entry.contents));
+    if (settings.feature && settings.feature.netflixMode) {
+      helpContents.forEach((entry) => helpContentsRegistry.register(entry.key, entry.contents));
+    }
   });
