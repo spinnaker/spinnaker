@@ -37,6 +37,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'aws.serverGroup.detail': '(Optional) <b>Detail</b> is a string of free-form alphanumeric characters and hyphens to describe any other variables.',
     'aws.serverGroup.imageName': '(Required) <b>Image</b> is the deployable Amazon Machine Image. Images are restricted to the account and region selected.',
     'aws.serverGroup.base64UserData': '(Optional) <b>UserData</b> is a base64 encoded string.',
+    'aws.serverGroup.tags': '(Optional) <b>Tags</b> are propagated to the instances in this cluster.',
     'aws.serverGroup.allImages': 'Search for an image that does not match the name of your application.',
     'aws.serverGroup.filterImages': 'Select from a pre-filtered list of images matching the name of your application.',
     'aws.serverGroup.strategy': 'The deployment strategy tells Spinnaker what to do with the previous version of the server group.',
@@ -120,6 +121,12 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'gce.serverGroup.autoscaling.minVMs': 'The least number of VM instances the group will contain, even if the target is not met.',
     'gce.serverGroup.autoscaling.maxVMs': 'The largest number of VM instances allowed, even if the target is exceeded.',
     'gce.serverGroup.autoscaling.cooldown': 'How long to wait before collecting information from a new instance. This should be at least the time it takes to initialize the instance. To find the minimum, create an instance from the same image and note how long it takes to start.',
+    'gce.serverGroup.subnet': 'Subnetworks allow you to regionally segment the network IP space into prefixes (subnets) and control which prefix a VM instance\'s internal IP address is allocated from. There are several types of GCE networks:' +
+      '<ul>' +
+      '<li><b>Legacy (non-subnet) Network</b>: IP address allocation occurs at the global network level. This means the network address space spans across all regions.</li>' +
+      '<li><b>Auto Subnet Network</b>: Server groups will be automatically assigned to the specified region\'s subnet.</li>' +
+      '<li><b>Custom Subnet Network</b>: A subnet must be selected for the server group. If no subnets have been created for the specified region, you will not be able to provision the server group.</li>' +
+      '</ul>',
     'pipeline.config.checkPreconditions.failPipeline': '' +
       '<p><strong>Checked</strong> - the overall pipeline will fail whenever this precondition is false.</p>' +
       '<p><strong>Unchecked</strong> - the overall pipeline will continue executing but this particular branch will stop.</p>',
@@ -251,19 +258,44 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'execution.forceRebake': '<p>By default, the bakery will <b>not</b> create a new image if the contents of the package have not changed; ' +
       'instead, it will return the previously baked image.</p>' +
       '<p>Select this option to force the bakery to create a new image, regardless of whether or not the selected package exists.</p>',
+    'kubernetes.serverGroup.stack': '(Optional) One of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',
+    'kubernetes.serverGroup.detail': '(Optional) A string of free-form alphanumeric characters and hyphens to describe any other variables.',
     'kubernetes.serverGroup.containers': '(Required) Select at least one image to run in this server group (pod). ' +
       'If multiple images are selected, they will be colocated and replicated equally.',
     'kubernetes.containers.image': 'The image selected under Basic Settings whose container is to be configured.',
+    'kubernetes.containers.registry': 'The registry the selected image will be pulled from.',
     'kubernetes.containers.name': '(Required) The name of the container associated with the above image. Used for resource identification',
-    'kubernetes.containers.limits.cpu': '(Optional) The relative CPU shares to allocate this container. If set, it is multiplied by 1024, then ' +
+    'kubernetes.containers.cpu': '(Optional) The relative CPU shares to allocate this container. If set, it is multiplied by 1024, then ' +
       'passed to Docker as the --cpu-shares flag. Otherwise the default of 1 (1024) is used',
-    'kubernetes.containers.requests.cpu': '(Optional) This is used for scheduling. It assures that this container will always be scheduled on a machine ' +
-      'with at least this much CPU available.',
-    'kubernetes.containers.limits.memory': '(Optional) The relative memory in megabytes to allocate this container. If set, it is converted to an integer ' +
-      'and passed to Docker as the --memory flag. Otherwise there are no restrictions on memory usage',
-    'kubernetes.containers.requests.memory': '(Optional) This is used for scheduling. It assures that this container will always be scheduled on a machine ' +
-      'with at least this much memory available.',
-    'kubernetes.namespace': 'The namespace you have configured with the above selected account. This will often be referred to as "Region" in Spinnaker.',
+    'kubernetes.containers.memory': '(Optional) The relative memory in megabytes to allocate this container. If set, it is converted to an integer ' +
+      'and passed to Docker as the --memory flag',
+    'kubernetes.containers.requests': '(Optional) This is used for scheduling. It assures that this container will always be scheduled on a machine ' +
+      'with at least this much of the resource available.',
+    'kubernetes.containers.ports.name': '(Optional) A name for this port. Can be found using DNS lookup if specified.',
+    'kubernetes.containers.ports.containerPort': '(Required) The port to expose on this container.',
+    'kubernetes.containers.ports.hostPort': '(Optional) The port to expose on <b>Host IP</b>. Most containers do not need this',
+    'kubernetes.containers.ports.hostIp': '(Optional) The IP to bind the external port to. Most containers do not need this.',
+    'kubernetes.containers.ports.protocol': '(Required) The protocol for this port.',
+    'kubernetes.containers.limits': '(Optional) This provides a hard limit on this resource for the given container.',
+    'kubernetes.namespace': 'The namespace you have configured with the above selected account. This will often be referred to as <b>Region</b> in Spinnaker.',
+    'kubernetes.loadBalancer.detail': '(Optional) A string of free-form alphanumeric characters; by convention, we recommend using "frontend".',
+    'kubernetes.loadBalancer.stack': '(Optional) One of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.' ,
+    'kubernetes.service.ports.name': '(Optional) A name for this port. Can be found using DNS lookup if specified.',
+    'kubernetes.service.ports.port': 'The port this service will expose to resources internal to the cluster.',
+    'kubernetes.service.ports.nodePort': '(Optional) A port to open on every node in the cluster. This allows you to receive external traffic without ' +
+      'having to provision a cloud load balancer. <b>Type</b> in <b>Advanced Settings</b> cannot be set to <b>ClusterIP</b> for this to work.',
+    'kubernetes.service.ports.targetPort': '(Optional) The port to forward incoming traffic to for pods associated with this load balancer.',
+    'kubernetes.service.ports.protocol': 'The protocol this port listens to.',
+    'kubernetes.service.type': '<b>ClusterIP</b> means this is an internal load balancer only. <b>LoadBalancer</b> provisions a cloud load balancer if possible ' +
+      'at address <b>Load Balancer IP</b>. <b>NodePort</b> means this load balancer forwards traffic from ports with <b>Node Port</b> specified.',
+    'kubernetes.service.sessionAffinity': '<b>None</b> means incoming connections are not associated with the pods they are routed to. <b>ClientIP</b> ' +
+      'associates connections with pods by incoming IP address.',
+    'kubernetes.service.clusterIp': '(Optional) If specified, and available, this internal IP address will be the internal endpoint for this load balancer.' +
+      'If not specified, one will be assigned.',
+    'kubernetes.service.loadBalancerIp': 'If specified, and available, this external IP address will be the external endpoint for this load balancer ' +
+      'when <b>Type</b> is set to <b>LoadBalancer</b>.',
+    'kubernetes.service.externalIps': 'IP addresses for which nodes in the cluster also accept traffic. This is not managed by Kubernetes and the ' +
+      'responsibility of the user to configure.',
     'user.verification': 'Typing into this verification field is annoying! But it serves as a reminder that you are ' +
     'changing something in an account deemed important, and prevents you from accidentally changing something ' +
     'when you meant to click on the "Cancel" button.',

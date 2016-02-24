@@ -28,6 +28,7 @@ module.exports = angular
 
       command.containers.forEach(function transformContainerCommand(element, index, array) {
         delete array[index].accountName;
+        delete array[index].registry;
       });
 
       return command;

@@ -14,6 +14,11 @@ module.exports = angular.module('spinnaker.core.task.controller', [
   require('../config/settings.js'),
 ])
   .controller('TasksCtrl', function ($scope, $state, $q, settings, app, _, viewStateCache, taskWriter, confirmationModalService) {
+
+    if (app.notFound) {
+      return;
+    }
+
     var controller = this;
     const application = app;
 

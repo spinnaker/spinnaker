@@ -11,6 +11,16 @@
     <gce-region-select-field label-columns="3" component="command" field="region" account="command.credentials" regions="command.backingData.filtered.regions"></gce-region-select-field>
     <gce-zone-select-field label-columns="3" component="command" field="zone" account="command.credentials" zones="command.backingData.filtered.zones"></gce-zone-select-field>
     <gce-network-select-field label-columns="3" component="command" field="network" account="command.credentials" networks="command.backingData.filtered.networks"></gce-network-select-field>
+    <gce-subnet-select-field label-columns="3"
+                             help-key="gce.serverGroup.subnet"
+                             component="command"
+                             field="subnet"
+                             account="command.credentials"
+                             region="command.region"
+                             subnets="command.backingData.filtered.subnets"
+                             subnet-placeholder="basicSettingsCtrl.getSubnetPlaceholder()"
+                             auto-create-subnets="command.viewState.autoCreateSubnets">
+    </gce-subnet-select-field>
 
     <div class="form-group">
       <div class="col-md-3 sm-label-right">

@@ -32,10 +32,11 @@ module.exports = angular
     function upsertLoadBalancer(loadBalancer, application, descriptor, params = {}) {
       var name = loadBalancer.clusterName || loadBalancer.name;
       loadBalancer.cloudProvider = loadBalancer.provider;
-      if (loadBalancer.healthCheckProtocol.indexOf('HTTP') === 0) {
-        loadBalancer.healthCheck = loadBalancer.healthCheckProtocol + ':' + loadBalancer.healthCheckPort + loadBalancer.healthCheckPath;
+      let protocol = loadBalancer.healthCheckProtocol || '';
+      if (protocol.startsWith('HTTP')) {
+        loadBalancer.healthCheck = `${protocol}:${loadBalancer.healthCheckPort}${loadBalancer.healthCheckPath}`;
       } else {
-        loadBalancer.healthCheck = loadBalancer.healthCheckProtocol + ':' + loadBalancer.healthCheckPort;
+        loadBalancer.healthCheck = `${protocol}:${loadBalancer.healthCheckPort}`;
       }
       loadBalancer.type = 'upsertLoadBalancer';
       loadBalancer.availabilityZones = {};

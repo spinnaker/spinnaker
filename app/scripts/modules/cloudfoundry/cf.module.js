@@ -21,6 +21,7 @@ module.exports = angular.module('spinnaker.cf', [
     require('../core/pipeline/config/stages/destroyAsg/cf/cfDestroyAsgStage.js'),
     require('../core/pipeline/config/stages/disableAsg/cf/cfDisableAsgStage.js'),
     require('../core/pipeline/config/stages/enableAsg/cf/cfEnableAsgStage.js'),
+    require('../core/pipeline/config/stages/findAmi/cf/cfFindAmiStage.js'),
     require('../core/pipeline/config/stages/resizeAsg/cf/cfResizeAsgStage.js'),
     require('../core/pipeline/config/stages/scaleDownCluster/cf/cfScaleDownClusterStage.js'),
     require('../core/pipeline/config/stages/shrinkCluster/cf/cfShrinkClusterStage.js'),
@@ -35,6 +36,7 @@ module.exports = angular.module('spinnaker.cf', [
 ])
     .config(function(cloudProviderRegistryProvider) {
         cloudProviderRegistryProvider.registerProvider('cf', {
+            v2wizard: true,
             name: 'Cloud Foundry',
             logo: {
                 path: require('./logo/logo_cf.png'),

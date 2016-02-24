@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../../../core/account/account.service.js'),
-  require('../../subnet/subnet.read.service.js'),
+  require('../../../core/subnet/subnet.read.service.js'),
   require('../../../core/instance/instanceTypeService.js'),
   require('../../../core/naming/naming.service.js'),
   require('./serverGroupConfiguration.service.js'),
@@ -52,13 +52,13 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
             ebsOptimized: false,
             selectedProvider: 'aws',
             iamRole: 'BaseIAMRole', // TODO: should not be hard coded here
-
             terminationPolicies: ['Default'],
             vpcId: null,
             availabilityZones: availabilityZones,
             keyPair: keyPair,
             suspendedProcesses: [],
             securityGroups: [],
+            tags: {},
             viewState: {
               instanceProfile: 'custom',
               useAllImageSelection: false,
@@ -197,6 +197,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
           suspendedProcesses: (serverGroup.asg.suspendedProcesses || [])
             .map((process) => process.processName)
             .filter((name) => enabledProcesses.indexOf(name) < 0),
+          tags: serverGroup.tags || {},
           viewState: {
             instanceProfile: asyncData.instanceProfile,
             useAllImageSelection: false,
@@ -261,4 +262,3 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
       buildUpdateServerGroupCommand: buildUpdateServerGroupCommand,
     };
 });
-

@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.core.scheduler', [
 ])
   .factory('schedulerFactory', function(rx, settings, $log, $window, $timeout) {
 
-    function createScheduler() {
+    function createScheduler(pollSchedule = settings.pollSchedule) {
       var scheduler = new rx.Subject();
 
       let lastRunTimestamp = new Date().getTime();
@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.core.scheduler', [
       // When creating the timer, use last run as the dueTime (first arg); zero can lead to concurrency issues
       // where the scheduler will fire shortly after being subscribed to, resulting in surprising immediate refreshes
       let source = rx.Observable
-        .timer(settings.pollSchedule, settings.pollSchedule)
+        .timer(pollSchedule, pollSchedule)
         .pausable(scheduler);
 
       let run = () => {
@@ -43,10 +43,10 @@ module.exports = angular.module('spinnaker.core.scheduler', [
       let resumeScheduler = () => {
         let now = new Date().getTime();
         $log.debug('auto refresh resumed');
-        if (now - lastRunTimestamp > settings.pollSchedule) {
+        if (now - lastRunTimestamp > pollSchedule) {
           run();
         } else {
-          scheduleNextRun(settings.pollSchedule - (now - lastRunTimestamp));
+          scheduleNextRun(pollSchedule - (now - lastRunTimestamp));
         }
       };
 
@@ -62,7 +62,7 @@ module.exports = angular.module('spinnaker.core.scheduler', [
       let scheduleImmediate = () => {
         run();
         source.pause();
-        scheduleNextRun(settings.pollSchedule);
+        scheduleNextRun(pollSchedule);
       };
 
       document.addEventListener('visibilitychange', watchDocumentVisibility);

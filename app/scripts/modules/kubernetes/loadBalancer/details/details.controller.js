@@ -25,7 +25,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
     $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractLoadBalancer() {
-      $scope.loadBalancer = application.loadBalancers.filter(function (test) {
+      $scope.loadBalancer = application.loadBalancers.data.filter(function (test) {
         return test.name === loadBalancer.name && test.namespace === loadBalancer.region && test.account === loadBalancer.accountId;
       })[0];
 
