@@ -53,5 +53,37 @@ module.exports = angular.module('spinnaker.core.delivery.states', [])
           title: 'pipeline config'
         }
       }
+    },
+    executionDetails: {
+      url: '/executions/details',
+      views: {
+        'insight': {
+          templateUrl: require('./details/singleExecutionDetails.html'),
+          controller: 'SingleExecutionDetailsCtrl',
+          controllerAs: 'vm',
+        },
+      },
+      name: 'executionDetails',
+      abstract: true,
+      children: [
+        {
+          name: 'execution',
+          url: '/:executionId?stage&step&details',
+          params: {
+            stage: {
+              value: '0',
+            },
+            step: {
+              value: '0',
+            },
+          },
+          data: {
+            pageTitleDetails: {
+              title: 'Execution Details',
+              nameParam: 'executionId'
+            }
+          }
+        },
+      ],
     }
   });

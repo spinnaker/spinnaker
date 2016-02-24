@@ -1,0 +1,30 @@
+<div style="padding-top:0">
+  <div class="row" ng-if="vm.execution">
+    <div class="col-md-10 col-md-offset-1">
+      <div class="pipeline-configurer">
+        <div class="pipeline-config-heading">
+          <h3>
+            <a class="btn btn-configure"
+               ui-sref="^.executions.execution({application: vm.application.name, executionId: vm.execution.id})"
+               uib-tooltip="Back to Executions">
+              <span class="glyphicon glyphicon glyphicon-circle-arrow-left"></span>
+            </a>
+            {{vm.execution.name}}
+          </h3>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row" ng-if="vm.execution" >
+    <div class="col-md-10 col-md-offset-1 executions">
+      <execution execution="vm.execution" application="vm.application" standalone="true"></execution>
+    </div>
+  </div>
+  <div class="row" ng-if="vm.stateNotFound" style="min-height: 300px">
+    <h4 class="text-center">
+      <p>The execution cannot be found.</p>
+      <a ui-sref="^.executions.execution({application: vm.application.name})">Back to Executions.</span>
+      </a>
+    </h4>
+  </div>
+</div>

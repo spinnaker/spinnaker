@@ -9,6 +9,8 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
   .controller('executionDetails', function($scope, $stateParams, $state, pipelineConfig) {
     var controller = this;
 
+    controller.standalone = $scope.standalone || false;
+
     function getCurrentStage() {
       return parseInt($stateParams.stage);
     }
