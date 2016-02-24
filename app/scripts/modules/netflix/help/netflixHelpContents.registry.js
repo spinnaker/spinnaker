@@ -5,8 +5,9 @@ const angular = require('angular');
 module.exports = angular
   .module('spinnaker.netflix.help.registry', [
     require('../../core/help/helpContents.registry.js'),
+    require('../../core/config/settings.js'),
   ])
-  .run(function(helpContentsRegistry) {
+  .run(function(helpContentsRegistry, settings) {
     let helpContents = [
       {
         key: 'application.chaos.enabled',
@@ -54,5 +55,7 @@ module.exports = angular
         'You can use wildcards (*) to include all matching fields.</p>'
       }
     ];
-    helpContents.forEach((entry) => helpContentsRegistry.register(entry.key, entry.contents));
+    if (settings.feature && settings.feature.netflixMode) {
+      helpContents.forEach((entry) => helpContentsRegistry.register(entry.key, entry.contents));
+    }
   });
