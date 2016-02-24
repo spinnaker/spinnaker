@@ -15,10 +15,10 @@
 
 import os
 
-from citest.service_testing import (testable_agent, http_agent)
+from citest.service_testing import (base_agent, http_agent)
 
 
-class JenkinsOperationStatus(testable_agent.AgentOperationStatus):
+class JenkinsOperationStatus(base_agent.AgentOperationStatus):
   """Specialization of AgentOperationStatus for Jenkins operations.
 
   Jenkins operations are interesting to the effect that we use them to
@@ -91,8 +91,8 @@ class JenkinsOperationStatus(testable_agent.AgentOperationStatus):
         snapshot, entity)
 
 
-class JenkinsAgent(testable_agent.TestableAgent):
-  """A specialization of TestableAgent for interacting with Jenkins."""
+class JenkinsAgent(base_agent.BaseAgent):
+  """A specialization of BaseAgent for interacting with Jenkins."""
   def __init__(self, baseUrl, auth_path, owner_agent):
     super(JenkinsAgent, self).__init__()
     self.__http_agent = http_agent.HttpAgent(baseUrl)
@@ -159,7 +159,7 @@ class JenkinsAgent(testable_agent.TestableAgent):
         status_path=status_path)
 
 
-class BaseJenkinsOperation(testable_agent.AgentOperation):
+class BaseJenkinsOperation(base_agent.AgentOperation):
   @property
   def status_class(self):
     return self.__status_class

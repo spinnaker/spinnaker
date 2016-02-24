@@ -26,7 +26,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
         like additional custom bindings it could add them to initArgumentParser.
 
     Returns:
-      A citest.service_testing.TestableAgent that can interact with Gate.
+      A citest.service_testing.BaseAgent that can interact with Gate.
       This is the agent that test operations will be posted to.
     '''
     return gate.new_agent(bindings)

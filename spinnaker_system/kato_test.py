@@ -86,7 +86,7 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
         like additional custom bindings it could add them to initArgumentParser.
 
     Returns:
-      A citest.service_testing.TestableAgent that can interact with Kato.
+      A citest.service_testing.BaseAgent that can interact with Kato.
       This is the agent that test operations will be posted to.
     """
     return kato.new_agent(bindings)
