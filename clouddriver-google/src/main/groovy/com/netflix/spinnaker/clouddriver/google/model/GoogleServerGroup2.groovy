@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.model
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.google.api.services.compute.model.InstanceGroupManagerActionsSummary
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
@@ -41,7 +42,10 @@ class GoogleServerGroup2 {
   String networkName
   Set<String> instanceTemplateTags = []
   String selfLink
+  InstanceGroupManagerActionsSummary currentActions
 
+  // Non-serialized values built up by providers
+  @JsonIgnore
   Set<GoogleLoadBalancer2> loadBalancers = []
 
   @JsonIgnore
@@ -63,6 +67,7 @@ class GoogleServerGroup2 {
     String networkName = GoogleServerGroup2.this.networkName
     Set<String> instanceTemplateTags = GoogleServerGroup2.this.instanceTemplateTags
     String selfLink = GoogleServerGroup2.this.selfLink
+    InstanceGroupManagerActionsSummary currentActions = GoogleServerGroup2.this.currentActions
 
     @Override
     Boolean isDisabled() { // Because groovy isn't smart enough to generate this method :-(
