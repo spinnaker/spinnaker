@@ -38,7 +38,7 @@ import retrofit.RetrofitError
 @Slf4j
 class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements RetryableTask {
 
-  static String SUMMARY_TYPE = "Image"
+  static String SUMMARY_TYPE = "Images"
 
   final long backoffPeriod = 2000
 
@@ -82,6 +82,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     Boolean onlyEnabled = true
     Boolean resolveMissingLocations
     SelectionStrategy selectionStrategy = SelectionStrategy.NEWEST
+    String imageNamePattern
 
     String getApplication() {
       Names.parseName(cluster).app
@@ -108,7 +109,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     Set<String> imageNames = []
     Map<Location, String> imageIds = [:]
 
-    Map<Location, Map<String, Object>> imageSummaries = config.requiredLocations.collectEntries { location ->
+    Map<Location, List<Map<String, Object>>> imageSummaries = config.requiredLocations.collectEntries { location ->
       try {
         def lookupResults = oortService.getServerGroupSummary(
           config.application,
@@ -119,9 +120,12 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
           config.selectionStrategy.toString(),
           SUMMARY_TYPE,
           config.onlyEnabled.toString())
-        imageNames << lookupResults.imageName
-        imageIds[location] = lookupResults.imageId
-        return [(location): lookupResults]
+        List<Map<String, Object>> summaries= (List<Map<String, Object>>) lookupResults.summaries
+        summaries?.forEach {
+          imageNames << (String) it.imageName
+          imageIds[location] = (String) it.imageId
+        }
+        return [(location): summaries]
       } catch (RetrofitError e) {
         if (e.response.status == 404) {
           final Map reason
@@ -150,7 +154,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
         throw new IllegalStateException("Request to resolve images for missing ${config.requiredLocations.first().pluralType()} requires exactly one image. (Found ${searchNames})")
       }
 
-      def deploymentDetailTemplate = imageSummaries.find { k, v -> v != null }.value
+      def deploymentDetailTemplate = imageSummaries.find { k, v -> v != null }.value[0]
       if (!(deploymentDetailTemplate.image && deploymentDetailTemplate.buildInfo)) {
         throw new IllegalStateException("Missing image or buildInfo on ${deploymentDetailTemplate}")
       }
@@ -169,7 +173,9 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
       for (Map image : images) {
         for (Location location : missingLocations) {
           if (imageSummaries[location] == null && image.amis && image.amis[location.value]) {
-            imageSummaries[location] = mkDeploymentDetail(image.imageName, image.amis[location.value][0])
+            imageSummaries[location] = [
+              mkDeploymentDetail((String) image.imageName, (String) image.amis[location.value][0])
+            ]
           }
         }
       }
@@ -180,29 +186,37 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
       }
     }
 
-    List<Map> deploymentDetails = imageSummaries.collect { location, summary ->
-      def result = [
-        ami              : summary.imageId, // TODO(ttomsu): Deprecate and remove this value.
-        imageId          : summary.imageId,
-        imageName        : summary.imageName,
-        sourceServerGroup: summary.serverGroupName
-      ]
+    List<Map> deploymentDetails = imageSummaries.collect { location, summaries ->
+      summaries.collect { summary ->
+        if (config.imageNamePattern && !(summary.imageName ==~ config.imageNamePattern)) {
+          return [:]
+        }
 
-      if (location.type == Location.Type.REGION) {
-        result.region = location.value
-      } else if (location.type == Location.Type.ZONE) {
-        result.zone = location.value
+        def result = [
+          ami              : summary.imageId, // TODO(ttomsu): Deprecate and remove this value.
+          imageId          : summary.imageId,
+          imageName        : summary.imageName,
+          cloudProvider    : cloudProvider,
+          imageNamePattern : config.imageNamePattern,
+          sourceServerGroup: summary.serverGroupName
+        ]
+
+        if (location.type == Location.Type.REGION) {
+          result.region = location.value
+        } else if (location.type == Location.Type.ZONE) {
+          result.zone = location.value
+        }
+
+        try {
+          result.putAll(summary.image ?: [:])
+          result.putAll(summary.buildInfo ?: [:])
+        } catch (Exception e) {
+          log.error("Unable to merge server group image/build info (summary: ${summary})", e)
+        }
+
+        return result
       }
-
-      try {
-        result.putAll(summary.image ?: [:])
-        result.putAll(summary.buildInfo ?: [:])
-      } catch (Exception e) {
-        log.error("Unable to merge server group image/build info (summary: ${summary})", e)
-      }
-
-      return result
-    }
+    }.flatten()
 
     return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
       amiDetails: deploymentDetails
