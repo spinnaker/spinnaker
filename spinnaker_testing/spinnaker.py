@@ -232,7 +232,7 @@ class SpinnakerStatus(service_testing.HttpOperationStatus):
 
 
 class SpinnakerAgent(service_testing.HttpAgent):
-  """A TestableAgent  to a spinnaker subsystem.
+  """A BaseAgent  to a spinnaker subsystem.
 
   The agent supports POST using the standard spinnaker subsystem protocol
   of returning status references and obtaining details through followup GETs.
