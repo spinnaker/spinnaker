@@ -7,4 +7,4 @@ $htmlToText.convert($notification.additionalContext.instructions)
 
 For more details, please visit:
 
-$baseUrl/#/applications/$notification.source.application/executions/$notification.source.executionId
+$baseUrl/#/applications/$notification.source.application/executions/details/$notification.source.executionId

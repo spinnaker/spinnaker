@@ -33,7 +33,7 @@ abstract class AbstractEventNotificationAgent implements EchoEventListener {
   static Map CONFIG = [
     'pipeline': [
       type: 'pipeline',
-      link: 'executions'
+      link: 'executions/details'
     ],
     'task'    : [
       type: 'task',
