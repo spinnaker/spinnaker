@@ -53,11 +53,36 @@ abstract class CloudProviderBakeHandler {
   abstract BakeOptions getBakeOptions()
 
   /**
+   * Build provider-specific naming component to use in composing bake key.
+   */
+  String produceProviderSpecificBakeKeyComponent(String region, BakeRequest bakeRequest) {
+    return null
+  }
+
+  /**
    * Build provider-specific key used to determine uniqueness. If a prior (or in-flight) bake exists
    * with the same bake key, it indicates that that image can be re-used instead of initiating a new
    * bake.
    */
-  abstract String produceBakeKey(String region, BakeRequest bakeRequest)
+  String produceBakeKey(String region, BakeRequest bakeRequest) {
+    bakeRequest.with {
+      def bakeKey = "bake:$cloud_provider_type:$base_os"
+
+      if (base_ami) {
+        bakeKey += ":$base_ami"
+      }
+
+      bakeKey += ":$package_name"
+
+      def providerSpecificBakeKeyComponent = produceProviderSpecificBakeKeyComponent(region, bakeRequest)
+
+      if (providerSpecificBakeKeyComponent) {
+        bakeKey += ":$providerSpecificBakeKeyComponent"
+      }
+
+      return bakeKey
+    }
+  }
 
   /**
    * Returns true if this cloud provider is the producer of this first line of logs content.

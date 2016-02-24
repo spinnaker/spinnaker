@@ -47,20 +47,15 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
   }
 
   @Override
-  String produceBakeKey(String region, BakeRequest bakeRequest) {
+  String produceProviderSpecificBakeKeyComponent(String region, BakeRequest bakeRequest) {
     if (!bakeRequest.vm_type) {
       bakeRequest = bakeRequest.copyWith(vm_type: awsBakeryDefaults.defaultVirtualizationType)
     }
 
-    // TODO(duftler): Work through definition of uniqueness.
     bakeRequest.with {
-      def enhancedNetworkingSegment = bakeRequest.enhanced_networking ? 'enhancedNWEnabled' : 'enhancedNWDisabled'
+      def enhancedNetworkingSegment = enhanced_networking ? 'enhancedNWEnabled' : 'enhancedNWDisabled'
 
-      if (bakeRequest.base_ami) {
-        return "bake:$cloud_provider_type:$region:$vm_type:$base_os:$bakeRequest.base_ami:$enhancedNetworkingSegment:$package_name"
-      } else {
-        return "bake:$cloud_provider_type:$region:$vm_type:$base_os:$enhancedNetworkingSegment:$package_name"
-      }
+      return "$region:$vm_type:$enhancedNetworkingSegment"
     }
   }
 
