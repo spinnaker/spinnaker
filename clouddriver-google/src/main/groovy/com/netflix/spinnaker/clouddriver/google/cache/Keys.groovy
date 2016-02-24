@@ -27,9 +27,9 @@ class Keys {
     INSTANCES,
     LOAD_BALANCERS,
     NETWORKS,
-    SUBNETS,
     SECURITY_GROUPS,
     SERVER_GROUPS,
+    SUBNETS,
 
     final String ns
 
@@ -96,13 +96,6 @@ class Keys {
             region : parts[4]
         ]
         break
-      case Namespace.SUBNETS.ns:
-        result << [
-            id     : parts[2],
-            account: parts[3],
-            region : parts[4]
-        ]
-        break
       case Namespace.SECURITY_GROUPS.ns:
         def names = Names.parseName(parts[2])
         result << [
@@ -124,6 +117,13 @@ class Keys {
             stack      : names.stack,
             detail     : names.detail,
             sequence   : names.sequence?.toString()
+        ]
+        break
+      case Namespace.SUBNETS.ns:
+        result << [
+            id     : parts[2],
+            account: parts[3],
+            region : parts[4]
         ]
         break
       default:
@@ -166,13 +166,6 @@ class Keys {
     "$googleCloudProvider.id:${Namespace.NETWORKS}:${networkName}:${account}:${region}"
   }
 
-  static String getSubnetKey(GoogleCloudProvider googleCloudProvider,
-                             String subnetName,
-                             String region,
-                             String account) {
-    "$googleCloudProvider.id:${Namespace.SUBNETS}:${subnetName}:${account}:${region}"
-  }
-
   static String getSecurityGroupKey(GoogleCloudProvider googleCloudProvider,
                                     String securityGroupName,
                                     String securityGroupId,
@@ -184,8 +177,15 @@ class Keys {
   static String getServerGroupKey(GoogleCloudProvider googleCloudProvider,
                                   String managedInstanceGroupName,
                                   String account,
-                                  String region) {
+                                  String zone) {
     Names names = Names.parseName(managedInstanceGroupName)
-    "$googleCloudProvider.id:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
+    "$googleCloudProvider.id:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${zone}:${names.group}"
+  }
+
+  static String getSubnetKey(GoogleCloudProvider googleCloudProvider,
+                             String subnetName,
+                             String region,
+                             String account) {
+    "$googleCloudProvider.id:${Namespace.SUBNETS}:${subnetName}:${account}:${region}"
   }
 }
