@@ -15,6 +15,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
                                                          kubernetesServerGroupConfigurationService,
                                                          serverGroupCommand, application, title) {
     $scope.pages = {
+      templateSelection: require('./templateSelection.html'),
       basicSettings: require('./basicSettings.html'),
       loadBalancers: require('./loadBalancers.html'),
       securityGroups: require('./securityGroups.html'),

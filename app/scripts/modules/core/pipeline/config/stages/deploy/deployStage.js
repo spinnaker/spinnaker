@@ -91,7 +91,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
               return $scope.application;
             },
             serverGroupCommand: function () {
-              return serverGroupCommandBuilder.buildNewServerGroupCommandForPipeline(selectedProvider);
+              return serverGroupCommandBuilder.buildNewServerGroupCommandForPipeline(selectedProvider, $scope.stage, $scope.$parent.pipeline.stages);
             },
           }
         }).result.then(function(command) {

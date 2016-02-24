@@ -41,7 +41,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
       $modalInstance.close();
       var newStateParams = {
         name: $scope.loadBalancer.name,
-        accountId: $scope.loadBalancer.credentials,
+        accountId: $scope.loadBalancer.account,
         region: $scope.loadBalancer.region,
         provider: 'kubernetes',
       };
@@ -75,8 +75,8 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
         $scope.state.accountsLoaded = true;
 
         var accountNames = _.pluck($scope.accounts, 'name');
-        if (accountNames.length && accountNames.indexOf($scope.loadBalancer.credentials) === -1) {
-          $scope.loadBalancer.credentials = accountNames[0];
+        if (accountNames.length && accountNames.indexOf($scope.loadBalancer.account) === -1) {
+          $scope.loadBalancer.account = accountNames[0];
         }
 
         ctrl.accountUpdated();
@@ -103,7 +103,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
     }
 
     function updateLoadBalancerNames() {
-      var account = $scope.loadBalancer.credentials;
+      var account = $scope.loadBalancer.account;
 
       if (allLoadBalancerNames[account]) {
         $scope.existingLoadBalancerNames = _.flatten(_.map(allLoadBalancerNames[account]));
@@ -134,7 +134,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
     };
 
     this.accountUpdated = function() {
-      accountService.getAccountDetails($scope.loadBalancer.credentials).then(function(details) {
+      accountService.getAccountDetails($scope.loadBalancer.account).then(function(details) {
         $scope.namespaces = details.namespaces;
         ctrl.namespaceUpdated();
       });

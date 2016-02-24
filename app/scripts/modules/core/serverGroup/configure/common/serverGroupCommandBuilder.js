@@ -26,8 +26,8 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.ser
       return getDelegate(serverGroup.type).buildServerGroupCommandFromExisting(application, serverGroup, mode);
     }
 
-    function buildNewServerGroupCommandForPipeline(provider) {
-      return getDelegate(provider).buildNewServerGroupCommandForPipeline();
+    function buildNewServerGroupCommandForPipeline(provider, currentStage, allStages) {
+      return getDelegate(provider).buildNewServerGroupCommandForPipeline(currentStage, allStages);
     }
 
     function buildServerGroupCommandFromPipeline(application, cluster) {
