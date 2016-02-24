@@ -68,8 +68,6 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
 
   @Override
   DeploymentResult handle(CloudFoundryDeployDescription description, List priorOutputs) {
-    def deploymentResult = new DeploymentResult()
-
     CloudFoundryClient client = clientFactory.createCloudFoundryClient(description.credentials, true)
 
     task.updateStatus BASE_PHASE, "Initializing handler..."
@@ -128,6 +126,7 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
         { InstancesInfo instancesInfo -> instancesInfo?.instances?.any {it.state == InstanceState.RUNNING}},
         null, task, description.serverGroupName, BASE_PHASE)
 
+    def deploymentResult = new DeploymentResult()
     deploymentResult.serverGroupNames << "${description.credentials.org}:${description.serverGroupName}".toString()
     deploymentResult.serverGroupNameByRegion[description.credentials.org] = description.serverGroupName
     deploymentResult.messages = task.history.collect { "${it.phase} : ${it.status}".toString() }

@@ -35,7 +35,6 @@ class CloudFoundryServerGroup implements ServerGroup, Serializable {
   Boolean disabled = true
   Set<CloudFoundryApplicationInstance> instances = new HashSet<>()
   Set<CloudFoundryService> services = [] as Set<CloudFoundryService>
-  Map<String, Object> envVariables = new HashMap<>()
   Map<String, Object> cfSettings = new HashMap<>() // scaling, memory, etc.
   Set<CloudFoundryLoadBalancer> nativeLoadBalancers
   Map buildInfo
@@ -72,12 +71,16 @@ class CloudFoundryServerGroup implements ServerGroup, Serializable {
 
   @Override
   Set<String> getLoadBalancers() {
-    nativeLoadBalancers?.collect {it.name} as Set<String>
+    if (nativeLoadBalancers != null) {
+      nativeLoadBalancers.collect { it?.name } as Set<String>
+    } else {
+      [] as Set
+    }
   }
 
   @Override
   Map<String, Object> getLaunchConfig() {
-    envVariables
+    nativeApplication.envAsMap
   }
 
   @Override
@@ -128,7 +131,7 @@ class CloudFoundryServerGroup implements ServerGroup, Serializable {
 
       @Override
       Map<String, Object> getBuildInfo() {
-        buildInfo
+        bi
       }
 
       @Override

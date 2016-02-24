@@ -15,11 +15,10 @@
  */
 
 package com.netflix.spinnaker.clouddriver.cf.model
-
+import com.fasterxml.jackson.core.type.TypeReference
 import com.netflix.spinnaker.clouddriver.model.Application
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
-import org.cloudfoundry.client.lib.domain.CloudApplication
 /**
  * A Cloud Foundry application with all parts (blue/green/complete).
  *
@@ -29,22 +28,15 @@ import org.cloudfoundry.client.lib.domain.CloudApplication
 @EqualsAndHashCode(includes = ["name"])
 class CloudFoundryApplication implements Application, Serializable {
 
-	String name
-  Map<String, String> attributes = [:].withDefault {[] as Set<String>}
+  static final TypeReference<Map<String, String>> ATTRIBUTES = new TypeReference<Map<String, String>>() {}
+  final String name
+  final Map<String, String> attributes
+  final Map<String, Set<String>> clusterNames
 
-  CloudApplication nativeApplication
-
-  Map<String, Set<CloudFoundryCluster>> applicationClusters = [:].withDefault {[] as Set<CloudFoundryCluster>}
-
-	@Override
-	Map<String, Set<String>> getClusterNames() {
-		Map<String, Set<String>> clusterNames = [:].withDefault {[] as Set<String>}
-
-    applicationClusters.each { String k, Set<CloudFoundryCluster> v ->
-      clusterNames.get(k).addAll(v.collect {it.name})
-    }
-
-    clusterNames
-	}
+  CloudFoundryApplication(String name, Map<String, String> attributes, Map<String, Set<String>> clusterNames) {
+    this.name = name
+    this.attributes = attributes
+    this.clusterNames = clusterNames
+  }
 
 }

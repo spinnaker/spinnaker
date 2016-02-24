@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.model.Instance
 import groovy.transform.EqualsAndHashCode
 import org.cloudfoundry.client.lib.domain.CloudApplication
 import org.cloudfoundry.client.lib.domain.InstanceInfo
+import org.cloudfoundry.client.lib.domain.InstanceState
 
 @EqualsAndHashCode(includes = ["name"])
 class CloudFoundryApplicationInstance implements Instance, Serializable {
@@ -40,7 +41,33 @@ class CloudFoundryApplicationInstance implements Instance, Serializable {
 
   @Override
   String getZone() {
-    nativeApplication.space?.organization?.name
+    nativeApplication.space?.name
+  }
+
+  static HealthState instanceStateToHealthState(InstanceState instanceState) {
+    switch (instanceState) {
+      case InstanceState.DOWN:
+        return HealthState.Down
+      case InstanceState.STARTING:
+        return HealthState.Starting
+      case InstanceState.RUNNING:
+        return HealthState.Up
+      case InstanceState.CRASHED:
+        return HealthState.Down
+      case InstanceState.FLAPPING:
+        return HealthState.Down
+      case InstanceState.UNKNOWN:
+        return HealthState.Unknown
+    }
+  }
+
+  static List<Map<String, String>> createInstanceHealth(CloudFoundryApplicationInstance instance) {
+    [[
+      state      : instance.healthState.toString(),
+      zone       : instance.zone,
+      type       : 'serverGroup',
+      description: 'Is this CF server group running?'
+    ]]
   }
 
 }
