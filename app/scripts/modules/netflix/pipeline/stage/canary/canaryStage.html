@@ -60,6 +60,7 @@
     </div>
     <div class="col-md-1 form-control-static">minutes</div>
   </div>
+
   <div class="checkbox col-md-offset-1">
     <label>
       <input type="checkbox" ng-model="canaryStageCtrl.terminateUnhealthyCanaryEnabled" ng-model-options="{ getterSetter: true }" />
@@ -77,7 +78,9 @@
       <span class="form-control-static"> minutes</span>
     </div>
   </div>
+
   <h5>Analysis Config</h5>
+
   <div class="horizontal-rule"></div>
   <stage-config-field label="Name" help-key="pipeline.config.canary.canaryConfigurationName" field-columns="3">
     <canary-analysis-name-selector
@@ -101,12 +104,41 @@
            class="form-control input-sm" style="width: 33%; display: inline-block"/>
     <span class="form-control-static"> minutes</span>
   </stage-config-field>
+
+  <div class="checkbox col-md-offset-1">
+    <label>
+      <input type="checkbox" ng-model="stage.canary.canaryConfig.canaryAnalysisConfig.useLookback"/>
+      <b>Use Look-back</b>
+      <help-field key="pipeline.config.canary.lookback"></help-field>
+    </label>
+  </div>
+  <div class="form-group" ng-if="stage.canary.canaryConfig.canaryAnalysisConfig.useLookback" style="margin-top: 10px;">
+    <div class="col-md-2 col-md-offset-1 sm-label-right">
+      <label>Look-back Duration</label>
+    </div>
+    <div class="col-md-2">
+      <input
+        type="number"
+        required
+        ng-model="stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins"
+        class="form-control input-sm" style="display: inline-block; width: 40%"/>
+      <span class="form-control-static"> minutes</span>
+    </div>
+    <div
+      class="error-message col-md-6"
+      ng-if="stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins > 0 && stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins < 30" >
+      <b>NOTE:</b> To provide enough data points for the Canary Analysis it is recommended to set the look-back time to at least 30 minutes.
+    </div>
+  </div>
+
+
   <h5>Owner</h5>
   <div class="horizontal-rule"></div>
   <stage-config-field label="Email">
     <input type="email" required ng-model="stage.canary.owner"
            class="form-control input-sm" />
   </stage-config-field>
+
   <h5>Baseline Version <help-field key="pipeline.config.canary.baselineVersion"></help-field></h5>
   <div class="horizontal-rule"></div>
   <stage-config-field label="Account">

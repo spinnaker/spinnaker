@@ -202,6 +202,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.canary.scaleUpCapacity': '<p>Desired capacity after canary and control clusters are scaled up</p>',
     'pipeline.config.canary.scaleUpDelay': '<p>Minutes to delay before initiating canary scale up</p>',
     'pipeline.config.canary.baselineVersion': '<p>The Canary stage will inspect the specified cluster to determine which version to deploy as the baseline in each cluster pair.</p>',
+    'pipeline.config.canary.lookback':'<p>By default ACA will look at the entire duration of the canary for its analysis. Setting a look-back duration limits the number of minutes that the canary will use for it\'s analysis report.<br> <b>Useful for long running canaries that span multiple days.</b></p>',
 
     'pipeline.config.cron.expression': '<strong>Format (Year is optional)</strong><p><samp>Seconds  Minutes  Hour  DayOfMonth  Month  DayOfWeek  (Year)</samp></p>' +
     '<p><strong>Example: every 30 minutes</strong></p><samp>0 0/30 * * * ?</samp>' +
