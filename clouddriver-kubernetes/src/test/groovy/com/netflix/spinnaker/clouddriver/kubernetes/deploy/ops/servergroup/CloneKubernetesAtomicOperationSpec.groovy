@@ -132,7 +132,7 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
     setup:
       def inputDescription = new CloneKubernetesAtomicOperationDescription(
         source: [serverGroupName: ANCESTOR_SERVER_GROUP_NAME, namespace: NAMESPACE1],
-        kubernetesCredentials: credentials
+        credentials: credentials
       )
 
       @Subject def operation = new CloneKubernetesAtomicOperation(inputDescription)
@@ -171,7 +171,7 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
         loadBalancers: LOAD_BALANCER_NAMES,
         securityGroups: SECURITY_GROUP_NAMES,
         containers: containers,
-        kubernetesCredentials: credentials,
+        credentials: credentials,
         source: [serverGroupName: ANCESTOR_SERVER_GROUP_NAME, namespace: NAMESPACE2]
       )
 

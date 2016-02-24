@@ -39,14 +39,14 @@ class UpsertKubernetesLoadBalancerAtomicOperation implements AtomicOperation<Map
   }
 
   /*
-   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "upsertLoadBalancer": { "name": "service",  "ports": [ { "name": "http", "port": 80, "targetPort": 9376 } ], "credentials":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "upsertLoadBalancer": { "name": "service",  "ports": [ { "name": "http", "port": 80, "targetPort": 9376 } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
   */
   @Override
   Map operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing upsert of load balancer $description.name..."
     task.updateStatus BASE_PHASE, "Looking up provided namespace..."
 
-    def credentials = description.kubernetesCredentials
+    def credentials = description.credentials
     def namespace = KubernetesUtil.validateNamespace(credentials, description.namespace)
     def name = description.name
 

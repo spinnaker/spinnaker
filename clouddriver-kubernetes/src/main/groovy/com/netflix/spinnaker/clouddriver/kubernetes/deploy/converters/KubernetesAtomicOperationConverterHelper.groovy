@@ -23,9 +23,9 @@ class KubernetesAtomicOperationConverterHelper {
   static Object convertDescription(Map input,
                                    AbstractAtomicOperationsCredentialsSupport credentialsSupport,
                                    Class targetDescriptionType) {
-    def rawcreds = input.credentials as String
+    def account = input.account as String
     // Save these to re-assign after ObjectMapper does its work.
-    def credentials = credentialsSupport.getCredentialsObject(rawcreds as String)?.getCredentials()
+    def credentials = credentialsSupport.getCredentialsObject(account as String)?.getCredentials()
 
     def converted = credentialsSupport.objectMapper
       .copy()
@@ -33,7 +33,7 @@ class KubernetesAtomicOperationConverterHelper {
       .convertValue(input, targetDescriptionType)
 
     // Re-assign the credentials.
-    converted.kubernetesCredentials = credentials
+    converted.credentials = credentials
 
     converted
   }

@@ -127,7 +127,8 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
     Map<String, Set<KubernetesServerGroup>> serverGroups = [:].withDefault { _ -> [] as Set }
     serverGroupData.forEach {
       def replicationController = objectMapper.convertValue(it.attributes.replicationController, ReplicationController)
-      def serverGroup = new KubernetesServerGroup(replicationController, instances[(String) it.attributes.name])
+      def parse = Keys.parse(it.id)
+      def serverGroup = new KubernetesServerGroup(replicationController, instances[(String) it.attributes.name], parse.account)
       serverGroups[Names.parseName(serverGroup.name).cluster].add(serverGroup)
     }
 
@@ -163,6 +164,6 @@ class KubernetesClusterProvider implements ClusterProvider<KubernetesCluster> {
     Set<CacheData> instances = KubernetesProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.INSTANCES.ns, Keys.getInstanceKey(account, namespace, name, "*"))
 
     def replicationController = objectMapper.convertValue(serverGroupData.attributes.replicationController, ReplicationController)
-    serverGroupData ? new KubernetesServerGroup(replicationController, KubernetesProviderUtils.serverGroupToInstanceMap(objectMapper, instances)[name]) : null
+    serverGroupData ? new KubernetesServerGroup(replicationController, KubernetesProviderUtils.serverGroupToInstanceMap(objectMapper, instances)[name], account) : null
   }
 }

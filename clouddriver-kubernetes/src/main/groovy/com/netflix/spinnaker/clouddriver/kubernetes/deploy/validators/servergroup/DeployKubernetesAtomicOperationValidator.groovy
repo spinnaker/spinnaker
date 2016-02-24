@@ -37,11 +37,11 @@ class DeployKubernetesAtomicOperationValidator extends DescriptionValidator<Depl
   void validate(List priorDescriptions, DeployKubernetesAtomicOperationDescription description, Errors errors) {
     def helper = new StandardKubernetesAttributeValidator("deployKubernetesAtomicOperationDescription", errors)
 
-    if (!helper.validateCredentials(description.credentials, accountCredentialsProvider)) {
+    if (!helper.validateCredentials(description.account, accountCredentialsProvider)) {
       return
     }
 
-    KubernetesCredentials credentials = (KubernetesCredentials) accountCredentialsProvider.getCredentials(description.credentials).credentials
+    KubernetesCredentials credentials = (KubernetesCredentials) accountCredentialsProvider.getCredentials(description.account).credentials
 
     helper.validateApplication(description.application, "application")
     helper.validateStack(description.stack, "stack")

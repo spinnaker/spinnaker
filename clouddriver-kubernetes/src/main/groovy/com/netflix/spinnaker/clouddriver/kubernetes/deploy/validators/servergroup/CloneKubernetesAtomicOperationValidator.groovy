@@ -36,11 +36,11 @@ class CloneKubernetesAtomicOperationValidator extends DescriptionValidator<Clone
   @Override
   void validate(List priorDescriptions, CloneKubernetesAtomicOperationDescription description, Errors errors) {
     def helper = new StandardKubernetesAttributeValidator("cloneKubernetesAtomicOperationDescription", errors)
-    if (!helper.validateCredentials(description.credentials, accountCredentialsProvider)) {
+    if (!helper.validateCredentials(description.account, accountCredentialsProvider)) {
       return
     }
 
-    KubernetesCredentials credentials = (KubernetesCredentials) accountCredentialsProvider.getCredentials(description.credentials).credentials
+    KubernetesCredentials credentials = (KubernetesCredentials) accountCredentialsProvider.getCredentials(description.account).credentials
 
     helper.validateCloneSource(description.source, "source")
     if (description.application) {
