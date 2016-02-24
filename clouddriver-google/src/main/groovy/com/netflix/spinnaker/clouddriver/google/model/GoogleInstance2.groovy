@@ -21,6 +21,10 @@ import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.services.compute.model.Disk
+import com.google.api.services.compute.model.Metadata
+import com.google.api.services.compute.model.NetworkInterface
+import com.google.api.services.compute.model.ServiceAccount
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleHealth
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleInstanceHealth
@@ -28,9 +32,9 @@ import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerH
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 import groovy.transform.Canonical
-import groovy.util.logging.Slf4j
+import groovy.transform.EqualsAndHashCode
 
-@Slf4j
+@EqualsAndHashCode(includes = "name")
 class GoogleInstance2 {
 
   String name
@@ -39,30 +43,12 @@ class GoogleInstance2 {
   String zone
   GoogleInstanceHealth instanceHealth
   List<GoogleLoadBalancerHealth> loadBalancerHealths = []
+  List<NetworkInterface> networkInterfaces
+  Metadata metadata
+  List<Disk> disks
+  List<ServiceAccount> serviceAccounts
+  String selfLink
 
-  private Map<String, Object> dynamicProperties = [:]
-
-  @JsonAnyGetter
-  public Map<String, Object> anyProperty() {
-    return dynamicProperties;
-  }
-
-  @JsonAnySetter
-  public void set(String name, Object value) {
-    dynamicProperties.put(name, value);
-  }
-
-  @Override
-  boolean equals(Object o) {
-    if (o instanceof GoogleInstance2) {
-      o.name.equals(name)
-    }
-  }
-
-  @Override
-  int hashCode() {
-    return name.hashCode()
-  }
 
   @JsonIgnore
   View getView() {
@@ -79,11 +65,14 @@ class GoogleInstance2 {
     String instanceType = GoogleInstance2.this.instanceType
     Long launchTime = GoogleInstance2.this.launchTime
     String zone = GoogleInstance2.this.zone
+    Map placement = ["availabilityZone": GoogleInstance2.this.zone]
+    List<NetworkInterface> networkInterfaces = GoogleInstance2.this.networkInterfaces
+    Metadata metadata = GoogleInstance2.this.metadata
+    List<Disk> disks = GoogleInstance2.this.disks
+    List<ServiceAccount> serviceAccounts = GoogleInstance2.this.serviceAccounts
+    String selfLink = GoogleInstance2.this.selfLink
 
-    @JsonAnyGetter
-    public Map<String, Object> anyProperty() {
-      return GoogleInstance2.this.dynamicProperties;
-    }
+    String serverGroup
 
     @Override
     List<Map<String, Object>> getHealth() {

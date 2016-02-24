@@ -94,11 +94,6 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2.View> {
   GoogleInstance2.View instanceFromCacheData(CacheData cacheData) {
     GoogleInstance2 instance = objectMapper.convertValue(cacheData.attributes, GoogleInstance2)
 
-    def serverGroupKey = cacheData.relationships[SERVER_GROUPS.ns].first()
-    if (serverGroupKey) {
-      instance.set("serverGroup", Keys.parse(googleCloudProvider, serverGroupKey).serverGroup)
-    }
-
     def loadBalancerKeys = cacheData.relationships[LOAD_BALANCERS.ns]
     cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys).each { CacheData loadBalancerCacheData ->
       GoogleLoadBalancer2 loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleLoadBalancer2)
@@ -107,6 +102,13 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2.View> {
       }
     }
 
-    instance.view
+    def instanceView = instance.view
+
+    def serverGroupKey = cacheData.relationships[SERVER_GROUPS.ns].first()
+    if (serverGroupKey) {
+      instanceView.serverGroup = Keys.parse(googleCloudProvider, serverGroupKey).serverGroup
+    }
+
+    instanceView
   }
 }

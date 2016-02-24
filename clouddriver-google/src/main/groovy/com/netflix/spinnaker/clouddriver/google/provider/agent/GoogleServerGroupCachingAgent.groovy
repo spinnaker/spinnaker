@@ -98,7 +98,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
     serverGroups
   }
 
-  CacheResult buildCacheResult(ProviderCache providerCache, List<GoogleServerGroup2> serverGroups) {
+  CacheResult buildCacheResult(ProviderCache _, List<GoogleServerGroup2> serverGroups) {
 
     def cacheResultBuilder = new CacheResultBuilder();
 
@@ -253,11 +253,17 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
 
     @Override
     void onSuccess(InstanceTemplate instanceTemplate, HttpHeaders responseHeaders) throws IOException {
-      serverGroup.launchConfig.with {
-        instanceTemplate = instanceTemplate
-        launchConfigurationName = instanceTemplate?.name
-        instanceType = instanceTemplate?.properties?.machineType
+      serverGroup.with {
+        networkName = Utils.getNetworkNameFromInstanceTemplate(instanceTemplate)
+        instanceTemplateTags = instanceTemplate?.properties?.tags?.items
+        launchConfig.with {
+          launchConfigurationName = instanceTemplate?.name
+          instanceType = instanceTemplate?.properties?.machineType
+        }
       }
+      // "instanceTemplate = instanceTemplate" in the above ".with{ }" blocks doesn't work because Groovy thinks it's
+      // assigning the same variable to itself, instead of to the "launchConfig" entry
+      serverGroup.launchConfig.instanceTemplate = instanceTemplate
 
       def sourceImageUrl = instanceTemplate?.properties?.disks?.find { disk ->
         disk.boot
@@ -274,10 +280,6 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
           serverGroup.asg.loadBalancerNames = loadBalancerNameList
         }
       }
-
-      // Find all firewall rules in this network with target tags matching the tags of this instance template.
-      serverGroup.set("networkName", Utils.getNetworkNameFromInstanceTemplate(instanceTemplate))
-      serverGroup.set("instanceTemplateTags", instanceTemplate?.properties?.tags?.items)
     }
   }
 }
