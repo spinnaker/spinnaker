@@ -33,11 +33,11 @@ class GoogleApplication2 {
   @Canonical
   class View implements Application {
     String name = GoogleApplication2.this.name
-    Map<String, String> attributes = Collections.synchronizedMap([:])
+    Map<String, String> attributes = [:]
 
     /**
      * Account name -> cluster names
      */
-    Map<String, Set<String>> clusterNames = Collections.synchronizedMap([:].withDefault {[] as Set})
+    Map<String, Set<String>> clusterNames = [:].withDefault {[] as Set}
   }
 }
