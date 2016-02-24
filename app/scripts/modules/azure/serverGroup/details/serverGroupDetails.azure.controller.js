@@ -74,6 +74,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
 
         var restangularlessDetails = details.plain();
         angular.extend(restangularlessDetails, summary);
+        restangularlessDetails.account = serverGroup.accountId; // it's possible the summary was not found because the clusters are still loading
 
         $scope.serverGroup = restangularlessDetails;
         $scope.runningExecutions = function() {

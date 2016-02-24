@@ -78,6 +78,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
 
         var plainDetails = details.plain();
         angular.extend(plainDetails, summary);
+        // it's possible the summary was not found because the clusters are still loading
+        plainDetails.account = serverGroup.accountId;
 
         this.serverGroup = plainDetails;
           this.runningExecutions = () => {
