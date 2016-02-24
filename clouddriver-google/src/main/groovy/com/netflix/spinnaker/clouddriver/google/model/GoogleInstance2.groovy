@@ -25,7 +25,9 @@ import com.google.api.services.compute.model.Disk
 import com.google.api.services.compute.model.Metadata
 import com.google.api.services.compute.model.NetworkInterface
 import com.google.api.services.compute.model.ServiceAccount
+import com.google.api.services.compute.model.Tags
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleHealth
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleInstanceHealth
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
@@ -48,7 +50,18 @@ class GoogleInstance2 {
   List<Disk> disks
   List<ServiceAccount> serviceAccounts
   String selfLink
+  Tags tags
 
+  // Non-serialized values built up by providers
+  @JsonIgnore
+  String serverGroup
+  @JsonIgnore
+  List<String> securityGroups = []
+
+  @JsonIgnore
+  String getNetworkName() {
+    return Utils.getLocalName(networkInterfaces?.getAt(0)?.network)
+  }
 
   @JsonIgnore
   View getView() {
@@ -71,8 +84,14 @@ class GoogleInstance2 {
     List<Disk> disks = GoogleInstance2.this.disks
     List<ServiceAccount> serviceAccounts = GoogleInstance2.this.serviceAccounts
     String selfLink = GoogleInstance2.this.selfLink
+    String serverGroup = GoogleInstance2.this.serverGroup
+    Tags tags = GoogleInstance2.this.tags
 
-    String serverGroup
+    List<Map<String, String>> getSecurityGroups() {
+      GoogleInstance2.this.securityGroups.collect {
+        ["groupName": it, "groupId": it]
+      }
+    }
 
     @Override
     List<Map<String, Object>> getHealth() {

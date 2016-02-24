@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance2
 import com.netflix.spinnaker.clouddriver.google.model.GoogleLoadBalancer2
+import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider
@@ -33,9 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.INSTANCES
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.LOAD_BALANCERS
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.SERVER_GROUPS
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
 @ConditionalOnProperty(value = "google.providerImpl", havingValue = "new")
 @Component
@@ -54,21 +53,34 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2.View> {
   @Autowired
   ObjectMapper objectMapper
 
+  @Autowired
+  GoogleSecurityGroupProvider securityGroupProvider
+
   final String platform = GoogleCloudProvider.GCE
 
   @Override
   GoogleInstance2.View getInstance(String account, String _ /*region*/, String id) {
-    def pattern = Keys.getInstanceKey(googleCloudProvider, account, id)
-    def identifiers = cacheView.filterIdentifiers(INSTANCES.ns, pattern)
-    Collection<CacheData> cacheData = cacheView.getAll(INSTANCES.ns,
-                                                       identifiers,
-                                                       RelationshipCacheFilter.include(LOAD_BALANCERS.ns,
-                                                                                       SERVER_GROUPS.ns))
-
-    if (!cacheData) {
-      return null
+    Set<GoogleSecurityGroup> securityGroups = securityGroupProvider.getAll(false)
+    def key = Keys.getInstanceKey(googleCloudProvider, account, id)
+    getInstanceCacheDatas([key])?.findResult { CacheData cacheData ->
+      instanceFromCacheData(cacheData, securityGroups)?.view
     }
-    instanceFromCacheData(cacheData.first())
+  }
+
+  /**
+   * Non-interface method for efficient building of GoogleInstance2 models during cluster or server group requests.
+   */
+  List<GoogleInstance2> getInstances(List<String> instanceKeys, Set<GoogleSecurityGroup> securityGroups) {
+    getInstanceCacheDatas(instanceKeys)?.collect {
+      instanceFromCacheData(it, securityGroups)
+    }
+  }
+
+  Collection<CacheData> getInstanceCacheDatas(List<String> keys) {
+    cacheView.getAll(INSTANCES.ns,
+                     keys,
+                     RelationshipCacheFilter.include(LOAD_BALANCERS.ns,
+                                                     SERVER_GROUPS.ns))
   }
 
   @Override
@@ -91,7 +103,7 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2.View> {
     return null
   }
 
-  GoogleInstance2.View instanceFromCacheData(CacheData cacheData) {
+  GoogleInstance2 instanceFromCacheData(CacheData cacheData, Set<GoogleSecurityGroup> securityGroups) {
     GoogleInstance2 instance = objectMapper.convertValue(cacheData.attributes, GoogleInstance2)
 
     def loadBalancerKeys = cacheData.relationships[LOAD_BALANCERS.ns]
@@ -102,13 +114,18 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2.View> {
       }
     }
 
-    def instanceView = instance.view
-
-    def serverGroupKey = cacheData.relationships[SERVER_GROUPS.ns].first()
+    def serverGroupKey = cacheData.relationships[SERVER_GROUPS.ns]?.first()
     if (serverGroupKey) {
-      instanceView.serverGroup = Keys.parse(googleCloudProvider, serverGroupKey).serverGroup
+      instance.serverGroup = Keys.parse(googleCloudProvider, serverGroupKey).serverGroup
     }
 
-    instanceView
+    instance.securityGroups = GoogleSecurityGroupProvider.getMatchingServerGroupNames(
+        securityGroups,
+        instance.tags.items as Set<String>,
+        instance.networkName)
+    
+    instance
   }
+
+
 }

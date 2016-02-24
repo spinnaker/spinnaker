@@ -195,6 +195,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
               name: instanceGroupManager.name,
               region: region,
               zones: [zone],
+              currentActions: instanceGroupManager.currentActions,
               launchConfig: [createdTime: Utils.getTimeFromTimestamp(instanceGroupManager.creationTimestamp)],
               asg: [minSize        : instanceGroupManager.targetSize,
                     maxSize        : instanceGroupManager.targetSize,

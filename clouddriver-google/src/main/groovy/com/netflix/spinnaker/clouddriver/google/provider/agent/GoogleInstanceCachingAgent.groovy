@@ -123,6 +123,7 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
               disks: instance.disks,
               serviceAccounts: instance.serviceAccounts,
               selfLink: instance.selfLink,
+              tags: instance.tags,
               instanceHealth: new GoogleInstanceHealth(
                   status: GoogleInstanceHealth.Status.valueOf(instance.getStatus())
               ))

@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.google.provider.view
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.api.services.compute.model.Firewall
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
@@ -27,8 +26,8 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleApplication2
 import com.netflix.spinnaker.clouddriver.google.model.GoogleCluster2
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance2
 import com.netflix.spinnaker.clouddriver.google.model.GoogleLoadBalancer2
+import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup2
-import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import org.springframework.beans.factory.annotation.Autowired
@@ -49,6 +48,10 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster2.View> {
   ObjectMapper objectMapper
   @Autowired
   GoogleApplicationProvider applicationProvider
+  @Autowired
+  GoogleInstanceProvider instanceProvider
+  @Autowired
+  GoogleSecurityGroupProvider securityGroupProvider
 
   @Override
   Map<String, Set<GoogleCluster2.View>> getClusters() {
@@ -96,7 +99,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster2.View> {
   }
 
   @Override
-  GoogleServerGroup2.View getServerGroup(String account, String region , String name) {
+  GoogleServerGroup2.View getServerGroup(String account, String region, String name) {
     def cacheData = cacheView.get(SERVER_GROUPS.ns,
                                   Keys.getServerGroupKey(googleCloudProvider, name, account, region),
                                   RelationshipCacheFilter.include(INSTANCES.ns, LOAD_BALANCERS.ns))
@@ -135,47 +138,28 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster2.View> {
       loadBalancer
     }
 
+    Set<GoogleSecurityGroup> securityGroups = securityGroupProvider.getAll(false)
+    serverGroup.securityGroups = GoogleSecurityGroupProvider.getMatchingServerGroupNames(
+        securityGroups,
+        serverGroup.instanceTemplateTags,
+        serverGroup.networkName)
+
     def instanceKeys = cacheData.relationships[INSTANCES.ns]
     if (instanceKeys) {
-      cacheView.getAll(INSTANCES.ns, instanceKeys).each { CacheData instanceCacheData ->
-        GoogleInstance2 instance = instanceFromCacheData(instanceCacheData)
+      serverGroup.instances = instanceProvider.getInstances(instanceKeys as List, securityGroups) as Set
+      serverGroup.instances.each { GoogleInstance2 instance ->
         instance.loadBalancerHealths = getLoadBalancerHealths(instance.name, loadBalancers)
-        serverGroup.instances << instance
       }
-
-      // The presence of instance keys indicate details are requested.
-      serverGroup.securityGroups = getSecurityGroups(serverGroup.networkName, serverGroup.instanceTemplateTags)
     }
 
     serverGroup
   }
 
-  List<GoogleLoadBalancerHealth> getLoadBalancerHealths(String instanceName, List<GoogleLoadBalancer2> loadBalancers) {
+  static List<GoogleLoadBalancerHealth> getLoadBalancerHealths(String instanceName, List<GoogleLoadBalancer2> loadBalancers) {
     loadBalancers*.healths.findResults { List<GoogleLoadBalancerHealth> glbhs ->
       glbhs.findAll { GoogleLoadBalancerHealth glbh ->
         glbh.instanceName == instanceName
       }
     }.flatten()
-  }
-
-  GoogleInstance2 instanceFromCacheData(CacheData cacheData) {
-    objectMapper.convertValue(cacheData.attributes, GoogleInstance2)
-  }
-
-  List<String> getSecurityGroups(String networkName, Set<String> instanceTemplateTags) {
-    cacheView.getAll(SECURITY_GROUPS.ns).findResults { CacheData cacheData ->
-      Firewall firewall = cacheData.attributes.firewall as Firewall
-      if (!firewall) {
-        return
-      }
-      def networkNameMatches = Utils.getLocalName(firewall.network as String) == networkName
-      boolean targetTagsEmpty = !firewall.targetTags
-      def targetTagsInCommon = []
-      if (!targetTagsEmpty) {
-        targetTagsInCommon = (firewall.targetTags).intersect(instanceTemplateTags)
-      }
-
-      networkNameMatches && (targetTagsEmpty || !targetTagsInCommon.empty) ? firewall.name : null
-    } as List<String>
   }
 }
