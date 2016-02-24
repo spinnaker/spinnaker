@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.model.Application
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 
+@Deprecated
 @CompileStatic
 @EqualsAndHashCode(includes = ["name"])
 class GoogleApplication implements Application, Serializable {
