@@ -17,14 +17,6 @@ module.exports = angular
     };
   })
   .controller('gceServerGroupAdvancedSettingsSelectorCtrl', function($scope) {
-    this.addInstanceMetadata = function() {
-      $scope.command.instanceMetadata.push({});
-    };
-
-    this.removeInstanceMetadata = function(index) {
-      $scope.command.instanceMetadata.splice(index, 1);
-    };
-
     this.addTag = function() {
       $scope.command.tags.push({});
     };

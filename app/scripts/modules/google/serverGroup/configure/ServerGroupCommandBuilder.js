@@ -126,19 +126,14 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           metadataItems.forEach(function (metadataItem) {
             // Don't show 'load-balancer-names' key/value pair in the wizard.
             if (metadataItem.key !== 'load-balancer-names') {
-              // The 'key' and 'value' attributes are used to enable the Add/Remove behavior in the wizard.
-              command.instanceMetadata.push(metadataItem);
+              command.instanceMetadata[metadataItem.key] = metadataItem.value;
             }
           });
         } else {
           for (var property in metadataItems) {
             // Don't show 'load-balancer-names' key/value pair in the wizard.
             if (property !== 'load-balancer-names') {
-              // The 'key' and 'value' attributes are used to enable the Add/Remove behavior in the wizard.
-              command.instanceMetadata.push({
-                key: property,
-                value: metadataItems[property],
-              });
+              command.instanceMetadata[property] = metadataItems[property];
             }
           }
         }
@@ -205,7 +200,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         persistentDiskType: 'pd-ssd',
         persistentDiskSizeGb: 10,
         localSSDCount: 1,
-        instanceMetadata: [],
+        instanceMetadata: {},
         tags: [],
         preemptible: false,
         automaticRestart: true,
@@ -271,7 +266,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         zone: serverGroup.zones[0],
         network: extractNetworkName(serverGroup),
         subnet: extractSubnetName(serverGroup),
-        instanceMetadata: [],
+        instanceMetadata: {},
         tags: [],
         availabilityZones: [],
         cloudProvider: 'gce',
@@ -349,7 +344,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
         return populateDisksFromPipeline(extendedCommand.disks, extendedCommand).then(function() {
           var instanceMetadata = extendedCommand.instanceMetadata;
-          extendedCommand.instanceMetadata = [];
+          extendedCommand.instanceMetadata = {};
           populateCustomMetadata(instanceMetadata, extendedCommand);
 
           var instanceTemplateTags = {items: extendedCommand.tags};
