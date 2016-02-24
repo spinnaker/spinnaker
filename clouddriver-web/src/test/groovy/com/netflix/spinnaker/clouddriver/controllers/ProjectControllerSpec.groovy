@@ -450,6 +450,7 @@ class ProjectControllerSpec extends Specification {
     String name
     String accountName
     ServerGroup.ImageSummary imageSummary
+    ServerGroup.ImagesSummary imagesSummary
     Long createdTime
     InstanceCounts instanceCounts
     String type = "test"

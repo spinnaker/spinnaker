@@ -120,28 +120,38 @@ class CloudFoundryServerGroup implements ServerGroup, Serializable {
   }
 
   @Override
-  ServerGroup.ImageSummary getImageSummary() {
-    def bi = buildInfo
-    return new ServerGroup.ImageSummary() {
-      String serverGroupName = name
-      String imageName = launchConfig?."${CloudFoundryConstants.ARTIFACT}"
-      String imageId = launchConfig?."${CloudFoundryConstants.REPOSITORY}" +
-          "::" + launchConfig?."${CloudFoundryConstants.ARTIFACT}" +
-          "::" + launchConfig?."${CloudFoundryConstants.ACCOUNT}"
-
+  ServerGroup.ImagesSummary getImagesSummary() {
+    return new ServerGroup.ImagesSummary() {
       @Override
-      Map<String, Object> getBuildInfo() {
-        bi
-      }
+      List<ServerGroup.ImageSummary> getSummaries() {
+        def bi = buildInfo
+        return [new ServerGroup.ImageSummary() {
+          String serverGroupName = name
+          String imageName = launchConfig?."${CloudFoundryConstants.ARTIFACT}"
+          String imageId = launchConfig?."${CloudFoundryConstants.REPOSITORY}" +
+            "::" + launchConfig?."${CloudFoundryConstants.ARTIFACT}" +
+            "::" + launchConfig?."${CloudFoundryConstants.ACCOUNT}"
 
-      @Override
-      Map<String, Object> getImage() {
-        return [
-            imageName: imageName,
-            imageId: imageId
-        ]
+          @Override
+          Map<String, Object> getBuildInfo() {
+            bi
+          }
+
+          @Override
+          Map<String, Object> getImage() {
+            return [
+              imageName: imageName,
+              imageId  : imageId
+            ]
+          }
+        }]
       }
     }
+  }
+
+  @Override
+  ServerGroup.ImageSummary getImageSummary() {
+    imagesSummary?.summaries?.get(0)
   }
 
   static Collection<Instance> filterInstancesByHealthState(Set<CloudFoundryApplicationInstance> instances,

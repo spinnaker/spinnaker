@@ -48,8 +48,8 @@ class KubernetesLoadBalancer implements LoadBalancer, Serializable {
     this.region = this.namespace
     this.account = accountName
     this.createdTime = KubernetesModelUtil.translateTime(service.metadata?.creationTimestamp)
-    this.serverGroups = serverGroupList.collect {
-      [name: it.name, serverGroup: it]
+    this.serverGroups = serverGroupList?.collect {
+      [name: it?.name, serverGroup: it]
     } as Set
   }
 }

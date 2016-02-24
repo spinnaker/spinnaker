@@ -417,6 +417,7 @@ class DiscoverySupportUnitSpec extends Specification {
     ServerGroup.InstanceCounts instanceCounts
     ServerGroup.Capacity capacity
     Boolean isDisabled() {disabled}
-    ServerGroup.ImageSummary getImageSummary() {null}
+    ServerGroup.ImageSummary getImageSummary() {}
+    ServerGroup.ImagesSummary getImagesSummary() {}
   }
 }
