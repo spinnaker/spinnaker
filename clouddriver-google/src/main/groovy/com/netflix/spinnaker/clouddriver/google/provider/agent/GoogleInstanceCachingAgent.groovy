@@ -118,17 +118,15 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
               instanceType: Utils.getLocalName(instance.machineType),
               launchTime: instanceTimestamp,
               zone: localZoneName,
+              networkInterfaces: instance.networkInterfaces,
+              metadata: instance.metadata,
+              disks: instance.disks,
+              serviceAccounts: instance.serviceAccounts,
+              selfLink: instance.selfLink,
               instanceHealth: new GoogleInstanceHealth(
                   status: GoogleInstanceHealth.Status.valueOf(instance.getStatus())
               ))
           instances << googleInstance
-
-          // Set all google-provided attributes for use by non-deck callers.
-          instance.keySet().each { key ->
-            if (!googleInstance.hasProperty(key)) {
-              googleInstance[key] = instance[key]
-            }
-          }
         }
       }
     }

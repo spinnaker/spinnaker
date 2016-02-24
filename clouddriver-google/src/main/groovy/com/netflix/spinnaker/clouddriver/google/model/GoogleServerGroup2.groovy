@@ -38,20 +38,11 @@ class GoogleServerGroup2 {
   Set<String> securityGroups
   Map buildInfo
   Boolean disabled = false
+  String networkName
+  Set<String> instanceTemplateTags = []
+  String selfLink
 
   Set<GoogleLoadBalancer2> loadBalancers = []
-
-  private Map<String, Object> dynamicProperties = [:]
-
-  @JsonAnyGetter
-  public Map<String, Object> anyProperty() {
-    return dynamicProperties;
-  }
-
-  @JsonAnySetter
-  public void set(String name, Object value) {
-    dynamicProperties.put(name, value);
-  }
 
   @JsonIgnore
   View getView() {
@@ -65,10 +56,13 @@ class GoogleServerGroup2 {
     String name = GoogleServerGroup2.this.name
     String region = GoogleServerGroup2.this.region
     Set<String> zones = GoogleServerGroup2.this.zones
-    Set<GoogleInstance2.View> instances = GoogleServerGroup2.this.instances.collect { it.view }
+    Set<GoogleInstance2.View> instances = GoogleServerGroup2.this.instances.collect { it?.view }
     Map<String, Object> launchConfig = GoogleServerGroup2.this.launchConfig
     Set<String> securityGroups = GoogleServerGroup2.this.securityGroups
     Boolean disabled = GoogleServerGroup2.this.disabled
+    String networkName = GoogleServerGroup2.this.networkName
+    Set<String> instanceTemplateTags = GoogleServerGroup2.this.instanceTemplateTags
+    String selfLink = GoogleServerGroup2.this.selfLink
 
     @Override
     Boolean isDisabled() { // Because groovy isn't smart enough to generate this method :-(

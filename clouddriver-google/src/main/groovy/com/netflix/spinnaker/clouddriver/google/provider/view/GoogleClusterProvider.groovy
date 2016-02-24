@@ -144,9 +144,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster2.View> {
       }
 
       // The presence of instance keys indicate details are requested.
-      String networkName = serverGroup.anyProperty().networkName
-      List<String> instanceTemplateTags = serverGroup.anyProperty().instanceTemplateTags as List
-      serverGroup.securityGroups = getSecurityGroups(networkName, instanceTemplateTags)
+      serverGroup.securityGroups = getSecurityGroups(serverGroup.networkName, serverGroup.instanceTemplateTags)
     }
 
     serverGroup
@@ -164,7 +162,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster2.View> {
     objectMapper.convertValue(cacheData.attributes, GoogleInstance2)
   }
 
-  List<String> getSecurityGroups(String networkName, List<String> instanceTemplateTags) {
+  List<String> getSecurityGroups(String networkName, Set<String> instanceTemplateTags) {
     cacheView.getAll(SECURITY_GROUPS.ns).findResults { CacheData cacheData ->
       Firewall firewall = cacheData.attributes.firewall as Firewall
       if (!firewall) {
