@@ -14,6 +14,10 @@ module.exports = {
   entry: {
     settings: './settings.js',
     app: './app/scripts/app.js',
+    vendor: ['jquery', 'angular', 'angular-animate', 'angular-ui-bootstrap', 'angular-ui-router', 'restangular',
+      'source-sans-pro', 'angular-cache', 'angular-debounce', 'angular-marked', 'angular-messages', 'angular-sanitize',
+      'bootstrap', 'clipboard', 'd3', 'jquery-ui', 'moment-timezone', 'rx'
+    ]
   },
   output: {
     path: path.join(__dirname, 'build', 'webpack', process.env.SPINNAKER_ENV || ''),
@@ -69,9 +73,8 @@ module.exports = {
     root: nodeModulePath
   },
   plugins: [
-    new CommonsChunkPlugin(
-      /* filename= */'init.js'
-    ),
+    new CommonsChunkPlugin('vendor', 'vendor.bundle.js'),
+    new CommonsChunkPlugin('init.js'),
     new HtmlWebpackPlugin({
       title: 'Spinnaker',
       template: './app/index.html',
