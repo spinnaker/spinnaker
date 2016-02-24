@@ -7,6 +7,6 @@ $notification.additionalContext.instructions
 #end
 For more details, please visit:
 <br/><br/>
-<a href="$baseUrl/#/applications/$notification.source.application/executions/$notification.source.executionId">
-  $baseUrl/#/applications/$notification.source.application/executions/$notification.source.executionId
+<a href="$baseUrl/#/applications/$notification.source.application/executions/details/$notification.source.executionId">
+  $baseUrl/#/applications/$notification.source.application/executions/details/$notification.source.executionId
 </a>

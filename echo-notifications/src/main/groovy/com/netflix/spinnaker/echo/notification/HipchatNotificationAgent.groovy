@@ -78,7 +78,7 @@ class HipchatNotificationAgent extends AbstractEventNotificationAgent {
         """${WordUtils.capitalize(application)}'s <a href="${
           spinnakerUrl
         }/#/applications/${application}/${
-          config.type == 'stage' ? 'executions' : config.link
+          config.type == 'stage' ? 'executions/details' : config.link
         }/${event.content?.execution?.id}">${
           event.content?.execution?.name ?: event.content?.execution?.description
         }</a> ${buildInfo} ${config.type == 'task' ? 'task' : 'pipeline'} ${status == 'starting' ? 'is' : 'has'} ${

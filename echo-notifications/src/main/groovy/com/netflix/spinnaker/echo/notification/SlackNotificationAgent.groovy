@@ -67,7 +67,7 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
         """${WordUtils.capitalize(application)}'s <${
           spinnakerUrl
         }/#/applications/${application}/${
-          config.type == 'stage' ? 'executions' : config.link
+          config.type == 'stage' ? 'executions/details' : config.link
         }/${event.content?.execution?.id}|${
           event.content?.execution?.name ?: event.content?.execution?.description
         }> ${buildInfo} ${config.type == 'task' ? 'task' : 'pipeline'} ${status == 'starting' ? 'is' : 'has'} ${

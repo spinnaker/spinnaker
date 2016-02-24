@@ -43,7 +43,7 @@ class TwilioNotificationAgent extends AbstractEventNotificationAgent {
   void sendNotifications(Map preference, String application, Event event, Map config, String status) {
     try {
       String name = event.content?.execution?.name ?: event.content?.execution?.description
-      String link = "${spinnakerUrl}/#/applications/${application}/${config.type == 'stage' ? 'executions' : config.link}/${event.content?.execution?.id}"
+      String link = "${spinnakerUrl}/#/applications/${application}/${config.type == 'stage' ? 'executions/details' : config.link}/${event.content?.execution?.id}"
 
       String buildInfo = ''
 
