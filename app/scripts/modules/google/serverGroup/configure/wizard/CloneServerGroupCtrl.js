@@ -169,18 +169,10 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
     this.clone = function () {
       generateDiskDescriptors();
 
-      var origInstanceMetadata = $scope.command.instanceMetadata;
-      var transformedInstanceMetadata = {};
-      // The instanceMetadata is stored using 'key' and 'value' attributes to enable the Add/Remove behavior in the wizard.
-      $scope.command.instanceMetadata.forEach(function(metadataPair) {
-        transformedInstanceMetadata[metadataPair.key] = metadataPair.value;
-      });
-
       // We use this list of load balancer names when 'Enabling' a server group.
       if ($scope.command.loadBalancers && $scope.command.loadBalancers.length > 0) {
-        transformedInstanceMetadata['load-balancer-names'] = $scope.command.loadBalancers.toString();
+        $scope.command.instanceMetadata['load-balancer-names'] = $scope.command.loadBalancers.toString();
       }
-      $scope.command.instanceMetadata = transformedInstanceMetadata;
 
       var origTags = $scope.command.tags;
       var transformedTags = [];
@@ -204,7 +196,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
           var promise = serverGroupWriter.cloneServerGroup(angular.copy($scope.command), application);
 
           // Copy back the original objects so the wizard can still be used if the command needs to be resubmitted.
-          $scope.command.instanceMetadata = origInstanceMetadata;
+          delete $scope.command.instanceMetadata['load-balancer-names'];
           $scope.command.tags = origTags;
 
           return promise;

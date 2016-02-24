@@ -11,6 +11,7 @@ module.exports = angular
       model: '=',
       keyLabel: '@',
       valueLabel: '@',
+      addButtonLabel: '@',
       allowEmpty: '=?',
       onChange: '&',
     },
@@ -21,6 +22,7 @@ module.exports = angular
       this.onChange = this.onChange || angular.noop;
       this.keyLabel = this.keyLabel || 'Key';
       this.valueLabel = this.valueLabel || 'Value';
+      this.addButtonLabel = this.addButtonLabel || 'Add Field';
       this.allowEmpty = this.allowEmpty || false;
 
       let modelKeys = () => Object.keys(this.model);
