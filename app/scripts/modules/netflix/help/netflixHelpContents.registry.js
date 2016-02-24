@@ -53,6 +53,11 @@ module.exports = angular
         key: 'chaos.exceptions',
         contents: '<p>When Chaos Monkey is enabled, exceptions tell Chaos Monkey to leave certain clusters alone. ' +
         'You can use wildcards (*) to include all matching fields.</p>'
+      },
+      {
+        key: 'pipeline.config.bake.package',
+        contents: '<p>The name of the package you want installed (without any version identifiers).</p>' +
+        '<p>If your build produces a deb file named "myapp_1.27-h343", you would want to enter "myapp" here.</p>'
       }
     ];
     if (settings.feature && settings.feature.netflixMode) {
