@@ -89,7 +89,7 @@ class AzureUtilities {
       resourceGroupName = parts[idx + 1]
     }
 
-    resourceGroupName
+    resourceGroupName.toLowerCase()
   }
 
   static String getAppNameFromAzureResourceName(String azureResourceName) {

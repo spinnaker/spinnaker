@@ -24,7 +24,6 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.resources.application.model.AzureApplication
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys
-import com.netflix.spinnaker.clouddriver.model.Application
 import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -43,7 +42,7 @@ class AzureApplicationProvider implements ApplicationProvider {
   }
 
   @Override
-  Set<Application> getApplications(boolean expand) {
+  Set<AzureApplication> getApplications(boolean expand) {
     def relationships = expand ? RelationshipCacheFilter.include(Keys.Namespace.AZURE_CLUSTERS.ns) : RelationshipCacheFilter.none()
     Collection<CacheData> applications = cacheView.getAll(
       Keys.Namespace.AZURE_APPLICATIONS.ns, cacheView.filterIdentifiers(Keys.Namespace.AZURE_APPLICATIONS.ns, "${azureCloudProvider.id}:*"), relationships
@@ -52,18 +51,11 @@ class AzureApplicationProvider implements ApplicationProvider {
   }
 
   @Override
-  Application getApplication(String name) {
-    Map<String, String> attributes = [:]
-    Map<String, Set<String>> clusterNames = [:].withDefault { new HashSet<String>() }
-
-    // return an application object with no attributes or clusters attached
-    // TODO: add support to retrieve azure clusters/server groups from cache for current app
-    // translate(cacheView.get(Keys.Namespace.AZURE_APPLICATIONS.ns, Keys.getApplicationKey(azureCloudProvider, name)))
-
-    new AzureApplication(name, attributes, clusterNames)
+  AzureApplication getApplication(String name) {
+    translate(cacheView.get(Keys.Namespace.AZURE_APPLICATIONS.ns, Keys.getApplicationKey(azureCloudProvider, name)))
   }
 
-  Application translate(CacheData cacheData) {
+  AzureApplication translate(CacheData cacheData) {
     if (cacheData == null) {
       return null
     }
@@ -73,8 +65,8 @@ class AzureApplicationProvider implements ApplicationProvider {
     Map<String, Set<String>> clusterNames = [:].withDefault { new HashSet<String>() }
     for (String clusterId : cacheData.relationships[Keys.Namespace.AZURE_CLUSTERS.ns]) {
       Map<String, String> cluster = Keys.parse(azureCloudProvider, clusterId)
-      if (cluster.account && cluster.cluster) {
-        clusterNames[cluster.account].add(cluster.cluster)
+      if (cluster.account && cluster.name) {
+        clusterNames[cluster.account].add(cluster.name)
       }
     }
     new AzureApplication(name, attributes, clusterNames)

@@ -28,7 +28,7 @@ class AzureResourceOpsDescription {
   AzureCredentials credentials
   String region
   String user
-  Integer createdTime
+  Long createdTime
   long lastReadTime
   Map<String,String> tags = [:]
 }

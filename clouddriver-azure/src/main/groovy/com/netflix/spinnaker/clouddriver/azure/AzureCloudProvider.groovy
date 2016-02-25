@@ -22,7 +22,9 @@ import org.springframework.stereotype.Component
 
 @Component
 class AzureCloudProvider implements CloudProvider {
-  final String id = "azure"
+  public static final AZURE = "azure"
+
+  final String id = AZURE
   final String displayName = "Azure"
   final Class<Annotation> operationAnnotationType = AzureOperation.class
 }

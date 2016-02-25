@@ -21,11 +21,27 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.model.AzureSecurityGroup
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureNamedImage
+import com.netflix.spinnaker.clouddriver.model.HealthState
+import com.netflix.spinnaker.clouddriver.model.Instance
+import com.netflix.spinnaker.clouddriver.model.ServerGroup
 
-class AzureServerGroupDescription extends AzureResourceOpsDescription {
+class AzureServerGroupDescription extends AzureResourceOpsDescription implements ServerGroup {
+
+  private static final AZURE_SERVER_GROUP_TYPE = "azure"
+
   static enum UpgradePolicy {
     Automatic, Manual
   }
+
+  Set<AzureInstance> instances
+  Set<String> loadBalancers
+  Set<String> securityGroups
+  Set<String> zones
+  String type = AZURE_SERVER_GROUP_TYPE
+  Map<String, Object> launchConfig
+  ServerGroup.Capacity capacity
+  ServerGroup.ImagesSummary imagesSummary
+  ServerGroup.ImageSummary imageSummary
 
   UpgradePolicy upgradePolicy
   String loadBalancerName
@@ -60,13 +76,39 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription {
     mode.toLowerCase() == "Automatic".toLowerCase() ? UpgradePolicy.Automatic : UpgradePolicy.Manual
   }
 
-  // For now, same thing as identifier
   String getClusterName() {
     clusterName ?: Names.parseName(name).cluster
   }
 
   String getIdentifier() {
     String.format("%s-%s-%s", application, stack, detail)
+  }
+
+  @Override
+  Boolean isDisabled() {
+    false
+    // TODO: (scotm) should be based on existence of LB. To be added
+  }
+
+  @Override
+  ServerGroup.InstanceCounts getInstanceCounts() {
+    Collection<AzureInstance> instances = getInstances()
+    new ServerGroup.InstanceCounts(
+      total: instances?.size() ?: 0,
+      up: filterInstancesByHealthState(instances, HealthState.Up)?.size() ?: 0,
+      down: filterInstancesByHealthState(instances, HealthState.Down)?.size() ?: 0,
+      unknown: filterInstancesByHealthState(instances, HealthState.Unknown)?.size() ?: 0,
+      starting: filterInstancesByHealthState(instances, HealthState.Starting)?.size() ?: 0,
+      outOfService: filterInstancesByHealthState(instances, HealthState.OutOfService)?.size() ?: 0)
+  }
+
+  @Override
+  ServerGroup.Capacity getCapacity() {
+    new ServerGroup.Capacity(
+      min: 1,
+      max: instances ? instances.size() : 1,
+      desired: 1 //TODO (scotm) figure out how these should be set correctly
+    )
   }
 
   static AzureServerGroupDescription build(VirtualMachineScaleSet scaleSet) {
@@ -96,7 +138,6 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription {
     }
 
     azureSG.region = scaleSet.location
-
     azureSG.upgradePolicy = getPolicyFromMode(scaleSet.upgradePolicy.mode)
 
     // Get the image reference data
@@ -135,5 +176,8 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription {
     azureSG
   }
 
+  static Collection<Instance> filterInstancesByHealthState(Set<Instance> instances, HealthState healthState) {
+    instances?.findAll { Instance it -> it.getHealthState() == healthState }
+  }
 
 }
