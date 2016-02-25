@@ -24,6 +24,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription {
   }
 
   UpgradePolicy upgradePolicy
+  String loadBalancerName
   AzureImage image
   AzureScaleSetSku sku
   AzureOperatingSystemConfig osConfig
@@ -55,24 +56,4 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription {
   String getIdentifier() {
     String.format("%s-%s-%s", application, stack, detail)
   }
-
-  /*
-   * TODO Still need to add in (or triage out) references to the following:
-   *  ! LoadBalancers
-   *  ! SecurityGroups
-   *  - health threshold
-   *  - avail zone
-   *  + advanced
-   *     - cooldown
-   *     - health check type
-   *     - health check grace period
-   *     - termination policies
-   *     - keypair name - Azure equivalent
-   *     - ramdisk id
-   *     - profile data
-   *     - user data
-   *     - monitoring
-   *     - public IP Y/N/default
-   *     - scaling process
-   */
 }

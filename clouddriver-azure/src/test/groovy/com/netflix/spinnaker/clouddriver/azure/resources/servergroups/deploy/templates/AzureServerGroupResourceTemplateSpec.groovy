@@ -42,6 +42,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
     description.detail = 'd11'
     description.region = 'westus'
     description.user = '[anonymous]'
+    description.loadBalancerName = 'azureMASM-st1-d11'
 
     description.upgradePolicy = AzureServerGroupDescription.UpgradePolicy.Manual
 
@@ -157,7 +158,10 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
                 "properties" : {
                   "subnet" : {
                     "id" : "[parameters('subnetId')]"
-                  }
+                  },
+                  "loadBalancerBackendAddressPools" : [ {
+                    "id" : "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', 'azureMASM-st1-d11', 'be-azureMASM-st1-d11')]"
+                  } ]
                 }
               } ]
             }

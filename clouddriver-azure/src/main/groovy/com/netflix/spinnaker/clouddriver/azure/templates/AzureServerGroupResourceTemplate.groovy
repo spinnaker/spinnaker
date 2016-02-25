@@ -95,10 +95,10 @@ class AzureServerGroupResourceTemplate {
       //vhdContainerNameVar = vhdContainerName.class.name
       //newStorageAccountsSuffixVar = newStorageAccountSuffix.class.name
 
-      String simpleName = description.name.replaceAll('-', '')
+      String noDashName = description.name.replaceAll("-", "")
 
       for (int i = 0; i < description.getStorageAccountCount(); i++) {
-        String uniqueName = String.format("[concat(uniqueString(concat(resourceGroup().id, subscription().id, '%s', variables('%s'), '%s')))]", simpleName, newStorageAccountsSuffixVar, i)
+        String uniqueName = "[concat(uniqueString(concat(resourceGroup().id, subscription().id, '$noDashName', variables('$newStorageAccountsSuffixVar'), '$i')))]"
         uniqueStorageNameArray.add(uniqueName)
       }
     }
@@ -346,7 +346,7 @@ class AzureServerGroupResourceTemplate {
      */
     NetworkInterfaceIPConfiguration(AzureServerGroupDescription description) {
       name = AzureUtilities.IPCONFIG_NAME_PREFIX + description.getIdentifier()
-      properties = new NetworkInterfaceIPConfigurationsProperty()
+      properties = new NetworkInterfaceIPConfigurationsProperty(description)
     }
   }
 
@@ -355,13 +355,15 @@ class AzureServerGroupResourceTemplate {
    */
   static class NetworkInterfaceIPConfigurationsProperty {
     NetworkInterfaceIPConfigurationSubnet subnet
+    ArrayList<LoadBalancerBackendAddressPool> loadBalancerBackendAddressPools = []
 
     /**
      *
      * @param description
      */
-    NetworkInterfaceIPConfigurationsProperty() {
+    NetworkInterfaceIPConfigurationsProperty(AzureServerGroupDescription description) {
       subnet = new NetworkInterfaceIPConfigurationSubnet()
+      loadBalancerBackendAddressPools.add(new LoadBalancerBackendAddressPool(description))
     }
   }
 
@@ -372,6 +374,14 @@ class AzureServerGroupResourceTemplate {
     String id
     NetworkInterfaceIPConfigurationSubnet() {
       id = "[parameters('subnetId')]"
+    }
+  }
+
+  static class LoadBalancerBackendAddressPool {
+    String id
+
+    LoadBalancerBackendAddressPool(AzureServerGroupDescription description) {
+      id = "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', '$description.loadBalancerName', 'be-$description.loadBalancerName')]"
     }
   }
 

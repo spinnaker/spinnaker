@@ -57,6 +57,7 @@ class AzureLoadBalancerResourceTemplate {
     String publicIPAddressName
     String publicIPAddressType = "Dynamic"
     String loadBalancerFrontEnd
+    String loadBalancerBackEnd
     String dnsNameForLBIP
     String ipConfigName
     String loadBalancerID = "[resourceID('Microsoft.Network/loadBalancers',variables('loadBalancerName'))]"
@@ -71,6 +72,7 @@ class AzureLoadBalancerResourceTemplate {
       virtualNetworkName = AzureUtilities.VNET_NAME_PREFIX + resourceGroupName.toLowerCase()
       publicIPAddressName = AzureUtilities.PUBLICIP_NAME_PREFIX + description.loadBalancerName.toLowerCase()
       loadBalancerFrontEnd = AzureUtilities.LBFRONTEND_NAME_PREFIX + description.loadBalancerName.toLowerCase()
+      loadBalancerBackEnd = AzureUtilities.LBBACKEND_NAME_PREFIX + description.loadBalancerName.toLowerCase()
       dnsNameForLBIP = AzureUtilities.DNS_NAME_PREFIX + description.loadBalancerName.toLowerCase()
       ipConfigName = AzureUtilities.IPCONFIG_NAME_PREFIX + description.loadBalancerName.toLowerCase()
     }
@@ -127,11 +129,13 @@ class AzureLoadBalancerResourceTemplate {
 
   static class LoadBalancerProperties{
     ArrayList<FrontEndIpConfiguration> frontEndIPConfigurations = []
+    ArrayList<BackEndAddressPool> backendAddressPools = []
     ArrayList<LoadBalancingRule> loadBalancingRules = []
     ArrayList<AzureProbe> probes = []
 
     LoadBalancerProperties(UpsertAzureLoadBalancerDescription description){
       frontEndIPConfigurations.add(new FrontEndIpConfiguration())
+      backendAddressPools.add(new BackEndAddressPool())
       description.loadBalancingRules?.each{loadBalancingRules.add(new LoadBalancingRule(it))}
       description.probes?.each{ probes.add(new AzureProbe(it))}
     }
@@ -139,12 +143,21 @@ class AzureLoadBalancerResourceTemplate {
 
   static class FrontEndIpConfiguration{
     String name
-    FrontEndIpProperties properties;
+    FrontEndIpProperties properties
 
     FrontEndIpConfiguration()
     {
       name = "[variables('loadBalancerFrontEnd')]"
       properties = new FrontEndIpProperties("[variables('publicIPAddressID')]")
+    }
+  }
+
+  static class BackEndAddressPool{
+    String name
+
+    BackEndAddressPool()
+    {
+      name = "[variables('loadBalancerBackEnd')]"
     }
   }
 
@@ -154,24 +167,6 @@ class AzureLoadBalancerResourceTemplate {
     FrontEndIpProperties(String id){
       publicIPAddress = new IdRef(id)
     }
-  }
-
-  static class VirtualNetworkResource extends Resource{
-    String apiVersion = '2015-05-01-preview'
-    String name = '''[variables('virtualNetworkName')]'''
-    String type = '''Microsoft.Network/virtualNetworks'''
-    String location = '''[parameters('location')]'''
-    VirtualNetworkProperties properties = new VirtualNetworkProperties()
-  }
-
-
-  static class VirtualNetworkProperties{
-    AddressSpace addressSpace = new AddressSpace();
-  }
-
-  static class AddressSpace{
-    def addressPrefixes = ['''[variables('addressPrefix')]''']
-    def subnets = [new Subnet()]
   }
 
   static class Subnet{
@@ -203,21 +198,8 @@ class AzureLoadBalancerResourceTemplate {
     String domainNameLabel = '''[variables('dnsNameForLBIP')]'''
   }
 
-  static class NetworkInterface extends DependingResource{
-
-    public NetworkInterface()
-    {
-      apiVersion = '''2015-05-01-preview'''
-      name = '''[variables('nicName')]'''
-      type = '''Microsoft.Network/networkInterfaces'''
-      location = '''[parameters('location')]'''
-    }
-
-    NetworkInterfaceProperties properties = new NetworkInterfaceProperties();
-  }
-
   static class NetworkInterfaceProperties{
-    ArrayList<IPConfiguration> ipConfigurations = new ArrayList<IPConfiguration>();
+    ArrayList<IPConfiguration> ipConfigurations = []
 
     public NetworkInterfaceProperties(){
       ipConfigurations.add( new IPConfiguration())
@@ -227,7 +209,7 @@ class AzureLoadBalancerResourceTemplate {
   static class IPConfiguration{
     String name = '''[variables('ipConfigName')]'''
     IPConfigurationProperties properties = new IPConfigurationProperties()
-    ArrayList<IdRef> loadBalancerBackendAddressPools = new ArrayList<IdRef>()
+    ArrayList<IdRef> loadBalancerBackendAddressPools = []
 
     public IPConfiguration()
     {
@@ -276,87 +258,3 @@ class AzureLoadBalancerResourceTemplate {
     }
   }
 }
-/*
- {
-     "apiVersion": "2015-05-01-preview",
-     "name": "[variables('loadBalancerName')]",
-     "type": "Microsoft.Network/loadBalancers",
-     "location": "[parameters('location')]",
-     "dependsOn": [
-       "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName1'))]",
-       "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName2'))]"
-     ],
-     "properties": {
-       "frontendIPConfigurations": [
-         {
-           "name": "loadBalancerFrontEnd1",
-           "properties": {
-             "publicIPAddress": {
-               "id": "[variables('publicIPAddressID1')]"
-             }
-           }
-         },
-         {
-           "name": "loadBalancerFrontEnd2",
-           "properties": {
-             "publicIPAddress": {
-               "id": "[variables('publicIPAddressID2')]"
-             }
-           }
-         }
-       ],
-       "backendAddressPools": [
-         {
-           "name": "loadBalancerBackEnd"
-         }
-       ],
-       "loadBalancingRules": [
-         {
-           "name": "LBRuleForVIP1",
-           "properties": {
-             "frontendIPConfiguration": {
-               "id": "[variables('frontEndIPConfigID1')]"
-             },
-             "backendAddressPool": {
-               "id": "[variables('lbBackendPoolID')]"
-             },
-             "protocol": "tcp",
-             "frontendPort": 443,
-             "backendPort": 443,
-             "probe": {
-               "id": "[variables('lbProbeID')]"
-             }
-           }
-         },
-         {
-           "name": "LBRuleForVIP2",
-           "properties": {
-             "frontendIPConfiguration": {
-               "id": "[variables('frontEndIPConfigID2')]"
-             },
-             "backendAddressPool": {
-               "id": "[variables('lbBackendPoolID')]"
-             },
-             "protocol": "tcp",
-             "frontendPort": 443,
-             "backendPort": 444,
-             "probe": {
-               "id": "[variables('lbProbeID')]"
-             }
-           }
-         }
-       ],
-       "probes": [
-         {
-           "name": "tcpProbe",
-           "properties": {
-             "protocol": "tcp",
-             "port": 445,
-             "intervalInSeconds": 5,
-             "numberOfProbes": 2
-           }
-         }
-       ]
-     }
-   }
-*/

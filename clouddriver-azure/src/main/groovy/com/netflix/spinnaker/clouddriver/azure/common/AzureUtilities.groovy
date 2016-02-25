@@ -30,6 +30,7 @@ class AzureUtilities {
   static final String SUBNET_NAME_PREFIX = "subnet-"
   static final String PUBLICIP_NAME_PREFIX = "pip-"
   static final String LBFRONTEND_NAME_PREFIX = "fe-"
+  static final String LBBACKEND_NAME_PREFIX = "be-"
   static final String DNS_NAME_PREFIX = "dns-"
   static final String IPCONFIG_NAME_PREFIX = "ipc-"
   static final String NETWORK_INTERFACE_PREFIX = "nic-"
