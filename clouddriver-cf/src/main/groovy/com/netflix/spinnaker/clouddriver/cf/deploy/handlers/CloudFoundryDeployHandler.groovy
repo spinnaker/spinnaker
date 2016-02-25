@@ -210,6 +210,10 @@ class CloudFoundryDeployHandler implements DeployHandler<CloudFoundryDeployDescr
     env[CloudFoundryConstants.PACKAGE] = description.artifact
     env[CloudFoundryConstants.LOAD_BALANCERS] = description.loadBalancers
 
+    env[CloudFoundryConstants.REPOSITORY] = description.repository
+    env[CloudFoundryConstants.ARTIFACT] = description.artifact
+    env[CloudFoundryConstants.ACCOUNT] = description.credentialAccount
+
     client.updateApplicationEnv(description.serverGroupName, env)
   }
 
