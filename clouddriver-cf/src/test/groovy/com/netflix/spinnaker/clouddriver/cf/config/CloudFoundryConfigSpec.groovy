@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cf.config
 import com.netflix.spinnaker.clouddriver.cf.deploy.handlers.CloudFoundryDeployHandler
-import com.netflix.spinnaker.clouddriver.cf.model.CloudFoundryResourceRetriever
 import com.netflix.spinnaker.clouddriver.cf.utils.CloudFoundryClientFactory
 import com.netflix.spinnaker.clouddriver.cf.utils.RestTemplateFactory
 import com.netflix.spinnaker.clouddriver.cf.utils.S3ServiceFactory
@@ -49,19 +48,15 @@ class CloudFoundryConfigSpec extends Specification {
   void "verify basic configuration"() {
     when:
     def properties = context.getBean(CloudFoundryConfigurationProperties)
-    def credentialsInitializer = context.getBean(CloudFoundryConfig.CloudFoundryCredentialsInitializer)
     def clientFactory = context.getBean(CloudFoundryClientFactory)
     def deployHandler = context.getBean(CloudFoundryDeployHandler)
     def operationPoller = context.getBean(OperationPoller)
-    def resourceRetriever = context.getBean(CloudFoundryResourceRetriever)
 
     then:
     properties.accounts.size() == 1
     properties.accounts[0].name == 'dev'
     properties.accounts[0].username == 'me@example.com'
     properties.accounts[0].password == 'my-password'
-
-    credentialsInitializer.cfConfigurationProperties == properties
 
     clientFactory != null
 
@@ -70,8 +65,6 @@ class CloudFoundryConfigSpec extends Specification {
     deployHandler.s3ServiceFactory instanceof S3ServiceFactory
 
     operationPoller != null
-
-    resourceRetriever != null
   }
 
   @Configuration

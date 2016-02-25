@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.clouddriver.cf.deploy.handlers
+
 import com.netflix.spinnaker.clouddriver.cf.TestCredential
 import com.netflix.spinnaker.clouddriver.cf.deploy.description.CloudFoundryDeployDescription
 import com.netflix.spinnaker.clouddriver.cf.security.TestCloudFoundryClientFactory
@@ -125,7 +126,10 @@ class CloudFoundryDeployHandlerSpec extends Specification {
         [
             CUSTOM_ENV              : 'test value',
             SPINNAKER_BUILD_PACKAGE : description.artifact,
-            SPINNAKER_LOAD_BALANCERS: description.loadBalancers
+            SPINNAKER_LOAD_BALANCERS: description.loadBalancers,
+            SPINNAKER_REPOSITORY    : description.repository,
+            SPINNAKER_ARTIFACT      : description.artifact,
+            SPINNAKER_ACCOUNT       : 'test'
         ])
     1 * client.updateApplicationInstances(serverGroupName, 2)
     1 * client.startApplication(serverGroupName)
@@ -186,7 +190,10 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.updateApplicationEnv(serverGroupName,
         [
             SPINNAKER_BUILD_PACKAGE : description.artifact,
-            SPINNAKER_LOAD_BALANCERS: description.loadBalancers
+            SPINNAKER_LOAD_BALANCERS: description.loadBalancers,
+            SPINNAKER_REPOSITORY    : description.repository,
+            SPINNAKER_ARTIFACT      : description.artifact,
+            SPINNAKER_ACCOUNT       : 'test'
         ])
     1 * client.startApplication(serverGroupName)
     0 * client._
@@ -226,7 +233,10 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.updateApplicationEnv(serverGroupName,
         [
             SPINNAKER_BUILD_PACKAGE : description.artifact,
-            SPINNAKER_LOAD_BALANCERS: description.loadBalancers
+            SPINNAKER_LOAD_BALANCERS: description.loadBalancers,
+            SPINNAKER_REPOSITORY    : description.repository,
+            SPINNAKER_ARTIFACT      : description.artifact,
+            SPINNAKER_ACCOUNT       : 'test'
         ])
     1 * client.startApplication(serverGroupName)
 
@@ -282,7 +292,10 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.updateApplicationEnv(serverGroupName,
         [
             SPINNAKER_BUILD_PACKAGE : description.artifact,
-            SPINNAKER_LOAD_BALANCERS: description.loadBalancers
+            SPINNAKER_LOAD_BALANCERS: description.loadBalancers,
+            SPINNAKER_REPOSITORY    : description.repository,
+            SPINNAKER_ARTIFACT      : description.artifact,
+            SPINNAKER_ACCOUNT       : 'test'
         ])
     1 * client.startApplication(serverGroupName)
   }
@@ -358,7 +371,10 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.updateApplicationEnv(serverGroupName,
         [
             SPINNAKER_BUILD_PACKAGE : description.artifact,
-            SPINNAKER_LOAD_BALANCERS: description.loadBalancers
+            SPINNAKER_LOAD_BALANCERS: description.loadBalancers,
+            SPINNAKER_REPOSITORY    : description.repository,
+            SPINNAKER_ARTIFACT      : description.artifact,
+            SPINNAKER_ACCOUNT       : 'test'
         ])
     1 * client.startApplication(serverGroupName)
     0 * client._
@@ -401,7 +417,10 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.updateApplicationEnv(serverGroupName,
         [
             SPINNAKER_BUILD_PACKAGE : description.artifact,
-            SPINNAKER_LOAD_BALANCERS: description.loadBalancers
+            SPINNAKER_LOAD_BALANCERS: description.loadBalancers,
+            SPINNAKER_REPOSITORY    : description.repository,
+            SPINNAKER_ARTIFACT      : description.artifact,
+            SPINNAKER_ACCOUNT       : 'test'
         ])
     1 * client.startApplication(serverGroupName)
     0 * client._
@@ -549,7 +568,10 @@ class CloudFoundryDeployHandlerSpec extends Specification {
             SPINNAKER_BUILD_COMMITHASH: description.trigger.buildInfo.scm[0].sha1,
             SPINNAKER_BUILD_COMMITBRANCH: description.trigger.buildInfo.scm[0].branch,
             SPINNAKER_BUILD_PACKAGE : description.artifact,
-            SPINNAKER_LOAD_BALANCERS: description.loadBalancers
+            SPINNAKER_LOAD_BALANCERS: description.loadBalancers,
+            SPINNAKER_REPOSITORY    : description.repository,
+            SPINNAKER_ARTIFACT      : description.artifact,
+            SPINNAKER_ACCOUNT       : 'test'
         ])
     1 * client.startApplication(serverGroupName)
     0 * client._
@@ -656,7 +678,10 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.updateApplicationEnv(serverGroupName,
         [
             SPINNAKER_BUILD_PACKAGE : description.artifact,
-            SPINNAKER_LOAD_BALANCERS: description.loadBalancers
+            SPINNAKER_LOAD_BALANCERS: description.loadBalancers,
+            SPINNAKER_REPOSITORY    : description.repository,
+            SPINNAKER_ARTIFACT      : description.artifact,
+            SPINNAKER_ACCOUNT       : 'test'
         ])
     1 * client.startApplication(serverGroupName)
     0 * client._
@@ -728,7 +753,10 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.updateApplicationEnv(serverGroupName,
         [
             SPINNAKER_BUILD_PACKAGE : description.artifact,
-            SPINNAKER_LOAD_BALANCERS: description.loadBalancers
+            SPINNAKER_LOAD_BALANCERS: description.loadBalancers,
+            SPINNAKER_REPOSITORY    : description.repository,
+            SPINNAKER_ARTIFACT      : description.artifact,
+            SPINNAKER_ACCOUNT       : 'test'
         ])
     1 * client.startApplication(serverGroupName)
     0 * client._
@@ -768,7 +796,10 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.updateApplicationEnv(serverGroupName,
         [
             SPINNAKER_BUILD_PACKAGE : description.artifact,
-            SPINNAKER_LOAD_BALANCERS: description.loadBalancers
+            SPINNAKER_LOAD_BALANCERS: description.loadBalancers,
+            SPINNAKER_REPOSITORY    : description.repository,
+            SPINNAKER_ARTIFACT      : description.artifact,
+            SPINNAKER_ACCOUNT       : 'test'
         ])
     1 * client.startApplication(serverGroupName)
     0 * client._
@@ -808,7 +839,10 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.updateApplicationEnv(serverGroupName,
         [
             SPINNAKER_BUILD_PACKAGE : description.artifact,
-            SPINNAKER_LOAD_BALANCERS: description.loadBalancers
+            SPINNAKER_LOAD_BALANCERS: description.loadBalancers,
+            SPINNAKER_REPOSITORY    : description.repository,
+            SPINNAKER_ARTIFACT      : description.artifact,
+            SPINNAKER_ACCOUNT       : 'test'
         ])
     1 * client.startApplication(serverGroupName)
     0 * client._
@@ -887,7 +921,10 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.updateApplicationEnv(serverGroupName,
         [
             SPINNAKER_BUILD_PACKAGE : description.artifact,
-            SPINNAKER_LOAD_BALANCERS: description.loadBalancers
+            SPINNAKER_LOAD_BALANCERS: description.loadBalancers,
+            SPINNAKER_REPOSITORY    : description.repository,
+            SPINNAKER_ARTIFACT      : description.artifact,
+            SPINNAKER_ACCOUNT       : 'test'
         ]) >> { throw new RuntimeException('Simulated CF failure') }
     1 * client.deleteApplication(serverGroupName)
     0 * client._
@@ -931,7 +968,10 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.updateApplicationEnv(serverGroupName,
         [
             SPINNAKER_BUILD_PACKAGE : description.artifact,
-            SPINNAKER_LOAD_BALANCERS: description.loadBalancers
+            SPINNAKER_LOAD_BALANCERS: description.loadBalancers,
+            SPINNAKER_REPOSITORY    : description.repository,
+            SPINNAKER_ARTIFACT      : description.artifact,
+            SPINNAKER_ACCOUNT       : 'test'
         ])
     1 * client.updateApplicationInstances(serverGroupName, 2)  >> { throw new CloudFoundryException(HttpStatus.INTERNAL_SERVER_ERROR, 'Simulated failure', 'Unable to set number of instances') }
     1 * client.deleteApplication(serverGroupName)
@@ -980,7 +1020,10 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.updateApplicationEnv(serverGroupName,
         [
             SPINNAKER_BUILD_PACKAGE : description.artifact,
-            SPINNAKER_LOAD_BALANCERS: description.loadBalancers
+            SPINNAKER_LOAD_BALANCERS: description.loadBalancers,
+            SPINNAKER_REPOSITORY    : description.repository,
+            SPINNAKER_ARTIFACT      : description.artifact,
+            SPINNAKER_ACCOUNT       : 'test'
         ])
     1 * client.startApplication(serverGroupName)
     2 * client.getApplicationInstances(serverGroupName) >> { instancesInfo }
@@ -1026,7 +1069,10 @@ class CloudFoundryDeployHandlerSpec extends Specification {
     1 * client.updateApplicationEnv(serverGroupName,
         [
             SPINNAKER_BUILD_PACKAGE : description.artifact,
-            SPINNAKER_LOAD_BALANCERS: description.loadBalancers
+            SPINNAKER_LOAD_BALANCERS: description.loadBalancers,
+            SPINNAKER_REPOSITORY    : description.repository,
+            SPINNAKER_ARTIFACT      : description.artifact,
+            SPINNAKER_ACCOUNT       : 'test'
         ])
     1 * client.startApplication(serverGroupName)
     2 * client.getApplicationInstances(serverGroupName) >> { instancesInfo }

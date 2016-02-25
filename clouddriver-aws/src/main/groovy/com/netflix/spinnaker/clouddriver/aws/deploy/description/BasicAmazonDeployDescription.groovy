@@ -45,6 +45,9 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   Boolean ebsOptimized
   String base64UserData
 
+  String classicLinkVpcId
+  List<String> classicLinkVPCSecurityGroups
+
   boolean ignoreSequence
   boolean startDisabled
 
@@ -54,6 +57,7 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   Map<String, List<String>> availabilityZones = [:]
   Capacity capacity = new Capacity()
   Source source = new Source()
+  Map<String, String> tags
 
   @Canonical
   static class Capacity {

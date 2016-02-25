@@ -74,7 +74,8 @@ class KubernetesLoadBalancerProvider implements LoadBalancerProvider<KubernetesL
 
     Map<String, KubernetesServerGroup> serverGroupMap = allServerGroups.collectEntries { serverGroupData ->
       ReplicationController replicationController = objectMapper.convertValue(serverGroupData.attributes.replicationController, ReplicationController)
-      [(serverGroupData.id): new KubernetesServerGroup(replicationController, instanceMap[(String)serverGroupData.attributes.name])]
+      def parse = Keys.parse(serverGroupData.id)
+      [(serverGroupData.id): new KubernetesServerGroup(replicationController, instanceMap[(String)serverGroupData.attributes.name], parse.account)]
     }
 
     return loadBalancers.collect {

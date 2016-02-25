@@ -50,7 +50,7 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   private static final VALID_MEMORY2 = "200Mi"
   private static final VALID_CPU1 = "200"
   private static final VALID_CPU2 = "200m"
-  private static final VALID_CREDENTIALS = "auto"
+  private static final VALID_ACCOUNT = "auto"
   private static final VALID_LOAD_BALANCERS = ["x", "y"]
   private static final VALID_SECURITY_GROUPS = ["a-1", "b-2"]
   private static final VALID_NAMESPACE = NAMESPACES[0]
@@ -64,7 +64,7 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   private static final INVALID_NAME = "a?name"
   private static final INVALID_MEMORY = "200?"
   private static final INVALID_CPU = "9z"
-  private static final INVALID_CREDENTIALS = "valid"
+  private static final INVALID_ACCOUNT = "valid"
   private static final INVALID_LOAD_BALANCERS = [" ", "--"]
   private static final INVALID_SECURITY_GROUPS = [" ", "--"]
   private static final INVALID_NAMESPACE = "!default"
@@ -92,9 +92,9 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
     })
 
     def credentials = new KubernetesCredentials(apiMock, NAMESPACES, DOCKER_REGISTRY_ACCOUNTS, accountCredentialsRepositoryMock)
-    namedCredentialsMock.getName() >> VALID_CREDENTIALS
+    namedCredentialsMock.getName() >> VALID_ACCOUNT
     namedCredentialsMock.getCredentials() >> credentials
-    credentialsRepo.save(VALID_CREDENTIALS, namedCredentialsMock)
+    credentialsRepo.save(VALID_ACCOUNT, namedCredentialsMock)
     validator.accountCredentialsProvider = credentialsProvider
   }
 
@@ -135,7 +135,7 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
         ],
         loadBalancers: VALID_LOAD_BALANCERS,
         securityGroups: VALID_SECURITY_GROUPS,
-        credentials: VALID_CREDENTIALS)
+        account: VALID_ACCOUNT)
       def errorsMock = Mock(Errors)
 
     when:
@@ -152,7 +152,7 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
         containers: [
           partialValidContainerDescription
         ],
-        credentials: VALID_CREDENTIALS)
+        account: VALID_ACCOUNT)
       def errorsMock = Mock(Errors)
 
     when:
@@ -185,7 +185,7 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
         containers: [
           partialValidContainerDescription
         ],
-        credentials: VALID_CREDENTIALS)
+        account: VALID_ACCOUNT)
       def errorsMock = Mock(Errors)
 
     when:
@@ -203,7 +203,7 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
         containers: [
           partialValidContainerDescription
         ],
-        credentials: VALID_CREDENTIALS)
+        account: VALID_ACCOUNT)
       def errorsMock = Mock(Errors)
 
     when:
@@ -221,7 +221,7 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
         containers: [
           partialValidContainerDescription
         ],
-        credentials: VALID_CREDENTIALS)
+        account: VALID_ACCOUNT)
       def errorsMock = Mock(Errors)
 
     when:
@@ -240,7 +240,7 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
         containers: [
           partialValidContainerDescription
         ],
-        credentials: VALID_CREDENTIALS)
+        account: VALID_ACCOUNT)
       def errorsMock = Mock(Errors)
 
     when:
@@ -258,7 +258,7 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
         containers: [
           partialValidContainerDescription
         ],
-        credentials: VALID_CREDENTIALS)
+        account: VALID_ACCOUNT)
       def errorsMock = Mock(Errors)
 
     when:
@@ -276,7 +276,7 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
         containers: [
           partialInvalidContainerDescription
         ],
-        credentials: VALID_CREDENTIALS)
+        account: VALID_ACCOUNT)
       def errorsMock = Mock(Errors)
 
     when:
@@ -295,7 +295,7 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
         containers: [
           fullInvalidContainerDescription
         ],
-        credentials: VALID_CREDENTIALS)
+        account: VALID_ACCOUNT)
       def errorsMock = Mock(Errors)
 
     when:
@@ -319,7 +319,7 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
           partialValidContainerDescription
         ],
         loadBalancers: INVALID_LOAD_BALANCERS,
-        credentials: VALID_CREDENTIALS)
+        account: VALID_ACCOUNT)
       def errorsMock = Mock(Errors)
 
     when:
@@ -339,7 +339,7 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
           partialValidContainerDescription
         ],
         securityGroups: INVALID_SECURITY_GROUPS,
-        credentials: VALID_CREDENTIALS)
+        account: VALID_ACCOUNT)
       def errorsMock = Mock(Errors)
 
     when:

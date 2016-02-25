@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2014 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.model.Application
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 
+@Deprecated
 @CompileStatic
 @EqualsAndHashCode(includes = ["name"])
 class GoogleApplication implements Application, Serializable {

@@ -61,7 +61,7 @@ class Keys {
         break
       case Namespace.CLUSTERS.ns:
         def names = Names.parseName(parts[4])
-        result << [application: parts[3], account: parts[2], name: parts[4], stack: names.stack, detail: names.detail]
+        result << [application: parts[3], account: parts[2], name: parts[4], cluster: parts[4], stack: names.stack, detail: names.detail]
         break
       case Namespace.SERVER_GROUPS.ns:
         def names = Names.parseName(parts[4])
@@ -69,7 +69,7 @@ class Keys {
         break
       case Namespace.LOAD_BALANCERS.ns:
         def names = Names.parseName(parts[4])
-        result << [application: names.app, account: parts[2], name: parts[4], namespace: parts[3], stack: names.stack, detail: names.detail]
+        result << [application: names.app, account: parts[2], name: parts[4], loadBalancer: parts[4], namespace: parts[3], stack: names.stack, detail: names.detail]
         break
       case Namespace.INSTANCES.ns:
         def names = Names.parseName(parts[4])

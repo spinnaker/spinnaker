@@ -98,6 +98,7 @@ azure:
 
 google:
   enabled: false
+  providerImpl: old # or new
   baseImageProjects:
   - centos-cloud
   - coreos-cloud
@@ -246,6 +247,13 @@ cf:
       space: ${providers.cf.defaultSpace}
       username: ${cf.account.name}
       password: ${cf.account.password}
+
+spring:
+  jackson:
+    mapper:
+      SORT_PROPERTIES_ALPHABETICALLY: true
+    serialization:
+      ORDER_MAP_ENTRIES_BY_KEYS: true
 
 ---
 

@@ -192,4 +192,19 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
 
     return urlParts[urlParts.length - 1]
   }
+
+  static List<String> getMatchingServerGroupNames(Set<GoogleSecurityGroup> securityGroups,
+                                                  Set<String> tags,
+                                                  String networkName) {
+    securityGroups?.findResults { GoogleSecurityGroup securityGroup ->
+      def networkNameMatches = securityGroup.network == networkName
+      boolean targetTagsEmpty = !securityGroup.targetTags
+      def targetTagsInCommon = []
+      if (!targetTagsEmpty) {
+        targetTagsInCommon = (securityGroup.targetTags).intersect(tags)
+      }
+
+      networkNameMatches && (targetTagsEmpty || !targetTagsInCommon.empty) ? securityGroup.name : null
+    } ?: []
+  }
 }

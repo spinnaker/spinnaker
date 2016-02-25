@@ -25,7 +25,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class UpsertKubernetesLoadBalancerAtomicOperationConverterSpec extends Specification {
-  private static final CREDENTIALS = "my-test-account"
+  private static final ACCOUNT = "my-test-account"
   private static final NAME = "johanson"
 
   @Shared
@@ -48,7 +48,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationConverterSpec extends Specifica
   void "UpsertKubernetesLoadBalancerAtomicOperationSpec matches type signature of parent method"() {
     setup:
       def input = [name: NAME,
-                   credentials: CREDENTIALS]
+                   account: ACCOUNT]
     when:
       def description = converter.convertDescription(input)
 

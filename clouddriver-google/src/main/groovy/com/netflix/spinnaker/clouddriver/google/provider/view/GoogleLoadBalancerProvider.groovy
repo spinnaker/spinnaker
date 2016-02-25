@@ -21,17 +21,17 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
-import com.netflix.spinnaker.clouddriver.google.model.GoogleLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.GoogleLoadBalancer2
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.LOAD_BALANCERS
 
-@ConditionalOnMissingClass(com.netflix.spinnaker.clouddriver.google.model.GoogleLoadBalancerProvider.class)
+@ConditionalOnProperty(value = "google.providerImpl", havingValue = "new")
 @Component
-class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalancer> {
+class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalancer2.View> {
 
   @Autowired
   final GoogleCloudProvider googleCloudProvider
@@ -41,12 +41,12 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
   final ObjectMapper objectMapper
 
   @Override
-  Set<GoogleLoadBalancer> getApplicationLoadBalancers(String application) {
+  Set<GoogleLoadBalancer2.View> getApplicationLoadBalancers(String application) {
     def pattern = Keys.getLoadBalancerKey(googleCloudProvider, "*", "*", "${application}*")
     def identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, pattern)
 
     cacheView.getAll(LOAD_BALANCERS.ns, identifiers, RelationshipCacheFilter.none()).collect {
-      objectMapper.convertValue(it.attributes, GoogleLoadBalancer)
+      objectMapper.convertValue(it.attributes, GoogleLoadBalancer2).view
     }
   }
 }

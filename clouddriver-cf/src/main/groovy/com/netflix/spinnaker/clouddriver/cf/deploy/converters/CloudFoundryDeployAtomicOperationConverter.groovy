@@ -16,11 +16,14 @@
 package com.netflix.spinnaker.clouddriver.cf.deploy.converters
 
 import com.netflix.spinnaker.clouddriver.cf.CloudFoundryOperation
+import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
 import com.netflix.spinnaker.clouddriver.deploy.DeployAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.clouddriver.cf.deploy.description.CloudFoundryDeployDescription
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 /**
@@ -31,6 +34,9 @@ import org.springframework.stereotype.Component
 @CloudFoundryOperation(AtomicOperations.CREATE_SERVER_GROUP)
 @Component("cloudFoundryDeployDescription")
 class CloudFoundryDeployAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+
+  @Autowired
+  private AccountCredentialsRepository repository
 
   @Override
   AtomicOperation convertOperation(Map input) {
@@ -46,6 +52,15 @@ class CloudFoundryDeployAtomicOperationConverter extends AbstractAtomicOperation
     def converted = objectMapper.convertValue(input, CloudFoundryDeployDescription)
 
     converted.credentials = getCredentialsObject(input.credentials as String)
+
+    if (input.containsKey('image')) {
+      def parts = input.image.split('::')
+      converted.repository = parts[0]
+      converted.artifact = parts[1]
+      def artifactAccount = (CloudFoundryAccountCredentials) repository.getOne(parts[2])
+      converted.username = artifactAccount.artifactUsername
+      converted.password = artifactAccount.artifactPassword
+    }
 
     /**
      * Convert supported template options, e.g. s3://example.com/{{job}}-{{buildNumber}}/

@@ -20,6 +20,7 @@ import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.model.HealthStatus
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
@@ -29,7 +30,7 @@ import org.apache.log4j.Logger
 class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCallback<InstanceAggregatedList> {
   protected static final Logger log = Logger.getLogger(this)
 
-  private static final String GOOGLE_INSTANCE_TYPE = "gce"
+  private static final String GOOGLE_INSTANCE_TYPE = GoogleCloudProvider.GCE
 
   private Set<GoogleSecurityGroup> googleSecurityGroups
   private Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap

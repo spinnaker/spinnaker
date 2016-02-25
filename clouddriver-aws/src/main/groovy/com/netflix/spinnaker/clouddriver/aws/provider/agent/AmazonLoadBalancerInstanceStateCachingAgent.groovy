@@ -95,7 +95,7 @@ class AmazonLoadBalancerInstanceStateCachingAgent implements CachingAgent,Health
   CacheResult loadData(ProviderCache providerCache) {
     log.info("Describing items in ${agentType}")
     def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region)
-    def loadBalancerKeys = getCacheView().getIdentifiers(LOAD_BALANCERS.ns)
+    def loadBalancerKeys = getCacheView().filterIdentifiers(LOAD_BALANCERS.ns, Keys.getLoadBalancerKey('*', '*', '*', '*'))
 
     Collection<CacheData> lbHealths = []
     Collection<CacheData> instances = []

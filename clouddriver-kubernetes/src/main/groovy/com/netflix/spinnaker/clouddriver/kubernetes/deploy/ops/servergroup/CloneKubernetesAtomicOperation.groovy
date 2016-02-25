@@ -43,8 +43,8 @@ class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult
   CloneKubernetesAtomicOperationDescription description
 
   /*
-   * curl -X POST -H "Content-Type: application/json" -d  '[ { "cloneServerGroup": { "source": { "serverGroupName": "kub-test-v000" }, "credentials":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
-   * curl -X POST -H "Content-Type: application/json" -d  '[ { "cloneServerGroup": { "stack": "prod", "freeFormDetails": "mdservice", "targetSize": "4", "source": { "serverGroupName": "kub-test-v000" }, "credentials":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ { "cloneServerGroup": { "source": { "serverGroupName": "kub-test-v000" }, "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ { "cloneServerGroup": { "stack": "prod", "freeFormDetails": "mdservice", "targetSize": "4", "source": { "serverGroupName": "kub-test-v000" }, "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
   */
   @Override
   DeploymentResult operate(List priorOutputs) {
@@ -71,7 +71,7 @@ class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult
 
     task.updateStatus BASE_PHASE, "Reading ancestor server group ${description.source.serverGroupName}..."
 
-    def credentials = description.kubernetesCredentials
+    def credentials = description.credentials
 
     description.source.namespace = description.source.namespace ?: "default"
     ReplicationController ancestorServerGroup = credentials.apiAdaptor.getReplicationController(description.source.namespace, description.source.serverGroupName)

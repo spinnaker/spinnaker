@@ -39,9 +39,9 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
   DeployKubernetesAtomicOperationDescription description
 
   /*
-   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "securityGroups": [], "loadBalancers":  [],  "containers": [ { "name": "nginx", "image": "nginx" } ], "credentials":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "securityGroups": [], "loadBalancers":  [],  "containers": [ { "name": "nginx", "image": "nginx" } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
    *
-   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "loadBalancers":  ["frontend-lb"],  "containers": [ { "name": "nginx", "image": "nginx", "ports": [ { "containerPort": "80", "hostPort": "80", "name": "http", "protocol": "TCP", "hostIp": "10.239.18.11" } ] } ], "credentials":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "loadBalancers":  ["frontend-lb"],  "containers": [ { "name": "nginx", "image": "nginx", "ports": [ { "containerPort": "80", "hostPort": "80", "name": "http", "protocol": "TCP", "hostIp": "10.239.18.11" } ] } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
   */
   @Override
   DeploymentResult operate(List priorOutputs) {
@@ -57,7 +57,7 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     task.updateStatus BASE_PHASE, "Initializing creation of replication controller."
     task.updateStatus BASE_PHASE, "Looking up provided namespace..."
 
-    def credentials = description.kubernetesCredentials
+    def credentials = description.credentials
     def namespace = KubernetesUtil.validateNamespace(credentials, description.namespace)
 
     def clusterName = KubernetesUtil.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)

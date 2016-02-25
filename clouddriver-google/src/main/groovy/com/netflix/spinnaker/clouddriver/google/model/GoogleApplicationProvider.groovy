@@ -21,11 +21,14 @@ import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
 import java.util.concurrent.Callable
 
+@Deprecated
+@ConditionalOnProperty(value = "google.providerImpl", havingValue = "old")
 @Component
 class GoogleApplicationProvider implements ApplicationProvider {
 

@@ -31,10 +31,9 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
-import com.netflix.spinnaker.clouddriver.google.model.GoogleHealth
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance2
+import com.netflix.spinnaker.clouddriver.google.model.health.GoogleInstanceHealth
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
-import com.netflix.spinnaker.clouddriver.model.HealthState
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
@@ -82,31 +81,21 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
   }
 
   CacheResult buildCacheResults(ProviderCache providerCache, List<GoogleInstance2> googleInstances) {
-    CacheResultBuilder crb = new CacheResultBuilder()
+    CacheResultBuilder cacheResultBuilder = new CacheResultBuilder()
 
     googleInstances.each { GoogleInstance2 instance ->
-      def instanceKey = Keys.getInstanceKey(googleCloudProvider, accountName, instance.zone, instance.name)
-
-      def healthKeys = []
-      // Purposefully uses "getHealths" vs. interface's "getHealth" method because strong typing is your friend.
-      instance.healths.each { GoogleHealth health ->
-        healthKeys << Keys.getHealthKey(googleCloudProvider, accountName, health.type, instance.instanceId)
-      }
-
-      crb.namespace(INSTANCES.ns).get(instanceKey).with {
+      def instanceKey = Keys.getInstanceKey(googleCloudProvider, accountName, instance.name)
+      cacheResultBuilder.namespace(INSTANCES.ns).get(instanceKey).with {
         attributes = objectMapper.convertValue(instance, ATTRIBUTES)
-        relationships[HEALTH.ns].addAll(healthKeys)
       }
     }
 
-    log.info("Caching ${crb.namespace(INSTANCES.ns).size()} instances in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(INSTANCES.ns).size()} instances in ${agentType}")
 
-    crb.build()
+    cacheResultBuilder.build()
   }
 
   class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCallback<InstanceAggregatedList> {
-
-    private static final String GOOGLE_INSTANCE_TYPE = "gce"
 
     List<GoogleInstance2> instances
 
@@ -123,36 +112,24 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
           long instanceTimestamp = instance.creationTimestamp ?
               Utils.getTimeFromTimestamp(instance.creationTimestamp) :
               Long.MAX_VALUE
-          def googleInstance = new GoogleInstance2(name: instance.name,
-                                                   instanceId: instance.name,
-                                                   instanceType: Utils.getLocalName(instance.machineType),
-                                                   launchTime: instanceTimestamp,
-                                                   zone: localZoneName,
-                                                   healths: [buildGCEHealthState(instance.status)])
+          String instanceName = Utils.getLocalName(instance.name)
+          def googleInstance = new GoogleInstance2(
+              name: instanceName,
+              instanceType: Utils.getLocalName(instance.machineType),
+              launchTime: instanceTimestamp,
+              zone: localZoneName,
+              networkInterfaces: instance.networkInterfaces,
+              metadata: instance.metadata,
+              disks: instance.disks,
+              serviceAccounts: instance.serviceAccounts,
+              selfLink: instance.selfLink,
+              tags: instance.tags,
+              instanceHealth: new GoogleInstanceHealth(
+                  status: GoogleInstanceHealth.Status.valueOf(instance.getStatus())
+              ))
           instances << googleInstance
-
-          // Set all google-provided attributes for use by non-deck callers.
-          instance.keySet().each { key ->
-            if (!googleInstance.hasProperty(key)) {
-              googleInstance[key] = instance[key]
-            }
-          }
         }
       }
-    }
-
-    static GoogleHealth buildGCEHealthState(String instanceStatus) {
-      new GoogleHealth(type: GoogleHealth.Type.Google,
-                       healthClass: GoogleHealth.HealthClass.platform,
-                       state: deriveInstanceGCEHealthState(instanceStatus))
-    }
-
-    // Map GCE-returned instance status to spinnaker health state.
-    static HealthState deriveInstanceGCEHealthState(String instanceStatus) {
-      instanceStatus == "PROVISIONING" ? HealthState.Starting :
-          instanceStatus == "STAGING" ? HealthState.Starting :
-              instanceStatus == "RUNNING" ? HealthState.Unknown :
-                  HealthState.Down
     }
   }
 }

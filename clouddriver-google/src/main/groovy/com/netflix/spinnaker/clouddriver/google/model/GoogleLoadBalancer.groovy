@@ -18,12 +18,14 @@ package com.netflix.spinnaker.clouddriver.google.model
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 
+@Deprecated
 class GoogleLoadBalancer implements LoadBalancer {
 
-  private static final String GOOGLE_LOAD_BALANCER_TYPE = "gce"
+  private static final String GOOGLE_LOAD_BALANCER_TYPE = GoogleCloudProvider.GCE
 
   String account
   String name

@@ -33,7 +33,8 @@ class TestCredential {
         name: name,
         password: 'test password',
         org: 'spinnaker',
-        space: 'test'
+        space: 'test',
+        console: 'http://console.cf.example.com'
     ] + params
     new ObjectMapper().convertValue(credJson, CloudFoundryAccountCredentials)
   }

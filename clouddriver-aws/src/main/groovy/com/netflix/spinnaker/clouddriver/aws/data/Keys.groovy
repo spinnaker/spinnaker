@@ -22,6 +22,8 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class Keys {
 
+  public static final PROVIDER = "aws"
+
   static enum Namespace {
     IMAGES,
     NAMED_IMAGES,
@@ -56,6 +58,10 @@ class Keys {
     }
 
     def result = [provider: parts[0], type: parts[1]]
+
+    if (result.provider != PROVIDER) {
+      return null
+    }
 
     switch (result.type) {
       case Namespace.IMAGES.ns:
@@ -98,39 +104,39 @@ class Keys {
   }
 
   static String getImageKey(String imageId, String account, String region) {
-    "aws:${Namespace.IMAGES}:${account}:${region}:${imageId}"
+    "${PROVIDER}:${Namespace.IMAGES}:${account}:${region}:${imageId}"
   }
 
   static String getNamedImageKey(String account, String imageName) {
-    "aws:${Namespace.NAMED_IMAGES}:${account}:${imageName}"
+    "${PROVIDER}:${Namespace.NAMED_IMAGES}:${account}:${imageName}"
   }
 
   static String getServerGroupKey(String autoScalingGroupName, String account, String region) {
     Names names = Names.parseName(autoScalingGroupName)
-    "aws:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
+    "${PROVIDER}:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
   }
 
   static String getInstanceKey(String instanceId, String account, String region) {
-    "aws:${Namespace.INSTANCES}:${account}:${region}:${instanceId}"
+    "${PROVIDER}:${Namespace.INSTANCES}:${account}:${region}:${instanceId}"
   }
 
   static String getLaunchConfigKey(String launchConfigName, String account, String region) {
-    "aws:${Namespace.LAUNCH_CONFIGS}:${account}:${region}:${launchConfigName}"
+    "${PROVIDER}:${Namespace.LAUNCH_CONFIGS}:${account}:${region}:${launchConfigName}"
   }
 
   static String getLoadBalancerKey(String loadBalancerName, String account, String region, String vpcId) {
-    "aws:${Namespace.LOAD_BALANCERS}:${account}:${region}:${loadBalancerName}${vpcId ? ':' + vpcId : ''}"
+    "${PROVIDER}:${Namespace.LOAD_BALANCERS}:${account}:${region}:${loadBalancerName}${vpcId ? ':' + vpcId : ''}"
   }
 
   static String getClusterKey(String clusterName, String application, String account) {
-    "aws:${Namespace.CLUSTERS}:${application.toLowerCase()}:${account}:${clusterName}"
+    "${PROVIDER}:${Namespace.CLUSTERS}:${application.toLowerCase()}:${account}:${clusterName}"
   }
 
   static String getApplicationKey(String application) {
-    "aws:${Namespace.APPLICATIONS}:${application.toLowerCase()}"
+    "${PROVIDER}:${Namespace.APPLICATIONS}:${application.toLowerCase()}"
   }
 
   static String getInstanceHealthKey(String instanceId, String account, String region, String provider) {
-    "aws:${Namespace.HEALTH}:${instanceId}:${account}:${region}:${provider}"
+    "${PROVIDER}:${Namespace.HEALTH}:${instanceId}:${account}:${region}:${provider}"
   }
 }

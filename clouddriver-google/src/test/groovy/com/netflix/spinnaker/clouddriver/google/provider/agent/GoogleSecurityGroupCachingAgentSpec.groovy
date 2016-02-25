@@ -44,15 +44,27 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
       def firewallsListMock = Mock(Compute.Firewalls.List)
       def securityGroupA = new Firewall(name: 'name-a')
       def securityGroupB = new Firewall(name: 'name-b')
-      def keyGroupA = Keys.getSecurityGroupKey(googleCloudProvider, securityGroupA.name, securityGroupA.name, REGION, ACCOUNT_NAME)
-      def keyGroupB = Keys.getSecurityGroupKey(googleCloudProvider, securityGroupB.name, securityGroupB.name, REGION, ACCOUNT_NAME)
+      def keyGroupA = Keys.getSecurityGroupKey(googleCloudProvider,
+                                               securityGroupA.name as String,
+                                               securityGroupA.name as String,
+                                               REGION,
+                                               ACCOUNT_NAME)
+      def keyGroupB = Keys.getSecurityGroupKey(googleCloudProvider,
+                                               securityGroupB.name as String,
+                                               securityGroupB.name as String,
+                                               REGION,
+                                               ACCOUNT_NAME)
       def firewallListReal = new FirewallList(items: [
         securityGroupA,
         securityGroupB
       ])
       def ProviderCache providerCache = Mock(ProviderCache)
-      @Subject GoogleSecurityGroupCachingAgent agent = new GoogleSecurityGroupCachingAgent(
-        googleCloudProvider, ACCOUNT_NAME, credentials, new ObjectMapper(), Spectator.registry())
+      @Subject GoogleSecurityGroupCachingAgent agent = new GoogleSecurityGroupCachingAgent(googleCloudProvider,
+                                                                                           ACCOUNT_NAME,
+                                                                                           credentials.project,
+                                                                                           credentials.compute,
+                                                                                           new ObjectMapper(),
+                                                                                           Spectator.registry())
 
     when:
       def cache = agent.loadData(providerCache)

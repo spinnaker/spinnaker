@@ -93,7 +93,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "version" : "latest"
     },
     "imageReference" : "[variables('osType')]",
-    "uniqueStorageNameArray" : [ "[concat(uniqueString(concat(resourceGroup().id, variables('newStorageAccountSuffix'), '0')))]" ]
+    "uniqueStorageNameArray" : [ "[concat(uniqueString(concat(resourceGroup().id, subscription().id, 'azureMASMst1d11', variables('newStorageAccountSuffix'), '0')))]" ]
   },
   "resources" : [ {
     "apiVersion" : "2015-06-15",

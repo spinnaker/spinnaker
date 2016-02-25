@@ -23,21 +23,23 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance2
+import com.netflix.spinnaker.clouddriver.google.model.GoogleLoadBalancer2
+import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
+import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.HEALTH
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
-@ConditionalOnMissingClass(com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceProvider.class)
+@ConditionalOnProperty(value = "google.providerImpl", havingValue = "new")
 @Component
 @Slf4j
-class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2> {
+class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2.View> {
 
   @Autowired
   final Cache cacheView
@@ -51,22 +53,38 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2> {
   @Autowired
   ObjectMapper objectMapper
 
-  final String platform = "gce"
+  @Autowired
+  GoogleSecurityGroupProvider securityGroupProvider
+
+  final String platform = GoogleCloudProvider.GCE
 
   @Override
-  GoogleInstance2 getInstance(String account, String _ /*region*/, String id) {
-    def pattern = Keys.getInstanceKey(googleCloudProvider, account, "*", id)
-    def identifiers = cacheView.filterIdentifiers(INSTANCES.ns, pattern)
-    Collection<CacheData> cacheData = cacheView.getAll(INSTANCES.ns, identifiers, RelationshipCacheFilter.include(HEALTH.ns))
-
-    if (!cacheData) {
-      return null
+  GoogleInstance2.View getInstance(String account, String _ /*region*/, String id) {
+    Set<GoogleSecurityGroup> securityGroups = securityGroupProvider.getAll(false)
+    def key = Keys.getInstanceKey(googleCloudProvider, account, id)
+    getInstanceCacheDatas([key])?.findResult { CacheData cacheData ->
+      instanceFromCacheData(cacheData, securityGroups)?.view
     }
-    objectMapper.convertValue(cacheData.first().attributes, GoogleInstance2)
+  }
+
+  /**
+   * Non-interface method for efficient building of GoogleInstance2 models during cluster or server group requests.
+   */
+  List<GoogleInstance2> getInstances(List<String> instanceKeys, Set<GoogleSecurityGroup> securityGroups) {
+    getInstanceCacheDatas(instanceKeys)?.collect {
+      instanceFromCacheData(it, securityGroups)
+    }
+  }
+
+  Collection<CacheData> getInstanceCacheDatas(List<String> keys) {
+    cacheView.getAll(INSTANCES.ns,
+                     keys,
+                     RelationshipCacheFilter.include(LOAD_BALANCERS.ns,
+                                                     SERVER_GROUPS.ns))
   }
 
   @Override
-  String getConsoleOutput(String account, String _ /*region*/, String id) {
+  String getConsoleOutput(String account, String region, String id) {
     def accountCredentials = accountCredentialsProvider.getCredentials(account)
 
     if (!(accountCredentials?.credentials instanceof GoogleCredentials)) {
@@ -84,4 +102,30 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2> {
 
     return null
   }
+
+  GoogleInstance2 instanceFromCacheData(CacheData cacheData, Set<GoogleSecurityGroup> securityGroups) {
+    GoogleInstance2 instance = objectMapper.convertValue(cacheData.attributes, GoogleInstance2)
+
+    def loadBalancerKeys = cacheData.relationships[LOAD_BALANCERS.ns]
+    cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys).each { CacheData loadBalancerCacheData ->
+      GoogleLoadBalancer2 loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleLoadBalancer2)
+      instance.loadBalancerHealths << loadBalancer.healths.findAll { GoogleLoadBalancerHealth health ->
+        health.instanceName == instance.name
+      }
+    }
+
+    def serverGroupKey = cacheData.relationships[SERVER_GROUPS.ns]?.first()
+    if (serverGroupKey) {
+      instance.serverGroup = Keys.parse(googleCloudProvider, serverGroupKey).serverGroup
+    }
+
+    instance.securityGroups = GoogleSecurityGroupProvider.getMatchingServerGroupNames(
+        securityGroups,
+        instance.tags.items as Set<String>,
+        instance.networkName)
+    
+    instance
+  }
+
+
 }

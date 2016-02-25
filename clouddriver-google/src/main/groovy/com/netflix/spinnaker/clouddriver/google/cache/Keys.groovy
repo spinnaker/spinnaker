@@ -18,19 +18,18 @@ package com.netflix.spinnaker.clouddriver.google.cache
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
-import com.netflix.spinnaker.clouddriver.google.model.GoogleHealth
+import com.netflix.spinnaker.clouddriver.google.model.health.GoogleHealth
 
 class Keys {
   static enum Namespace {
     APPLICATIONS,
     CLUSTERS,
-    HEALTH,
     INSTANCES,
     LOAD_BALANCERS,
     NETWORKS,
-    SUBNETS,
     SECURITY_GROUPS,
     SERVER_GROUPS,
+    SUBNETS,
 
     final String ns
 
@@ -73,13 +72,6 @@ class Keys {
             detail     : names.detail
         ]
         break
-      case Namespace.HEALTH.ns:
-        result << [
-            account   : parts[2],
-            healthType: parts[3],
-            name      : parts[4]
-        ]
-        break
       case Namespace.INSTANCES.ns:
         def names = Names.parseName(parts[4])
         result << [
@@ -98,13 +90,6 @@ class Keys {
         ]
         break
       case Namespace.NETWORKS.ns:
-        result << [
-            id     : parts[2],
-            account: parts[3],
-            region : parts[4]
-        ]
-        break
-      case Namespace.SUBNETS.ns:
         result << [
             id     : parts[2],
             account: parts[3],
@@ -134,6 +119,13 @@ class Keys {
             sequence   : names.sequence?.toString()
         ]
         break
+      case Namespace.SUBNETS.ns:
+        result << [
+            id     : parts[2],
+            account: parts[3],
+            region : parts[4]
+        ]
+        break
       default:
         return null
         break
@@ -154,18 +146,10 @@ class Keys {
     "$googleCloudProvider.id:${Namespace.CLUSTERS}:${account}:${application}:${clusterName}"
   }
 
-  static String getHealthKey(GoogleCloudProvider googleCloudProvider,
-                             String account,
-                             GoogleHealth.Type type,
-                             String instanceName) {
-    "$googleCloudProvider.id:${Namespace.HEALTH}:${account}:${type}:${instanceName}"
-  }
-
   static String getInstanceKey(GoogleCloudProvider googleCloudProvider,
                                String account,
-                               String location,
                                String name) {
-    "$googleCloudProvider.id:${Namespace.INSTANCES}:${account}:${location}:${name}"
+    "$googleCloudProvider.id:${Namespace.INSTANCES}:${account}:${name}"
   }
 
   static String getLoadBalancerKey(GoogleCloudProvider googleCloudProvider,
@@ -182,13 +166,6 @@ class Keys {
     "$googleCloudProvider.id:${Namespace.NETWORKS}:${networkName}:${account}:${region}"
   }
 
-  static String getSubnetKey(GoogleCloudProvider googleCloudProvider,
-                             String subnetName,
-                             String region,
-                             String account) {
-    "$googleCloudProvider.id:${Namespace.SUBNETS}:${subnetName}:${account}:${region}"
-  }
-
   static String getSecurityGroupKey(GoogleCloudProvider googleCloudProvider,
                                     String securityGroupName,
                                     String securityGroupId,
@@ -200,8 +177,15 @@ class Keys {
   static String getServerGroupKey(GoogleCloudProvider googleCloudProvider,
                                   String managedInstanceGroupName,
                                   String account,
-                                  String region) {
+                                  String zone) {
     Names names = Names.parseName(managedInstanceGroupName)
-    "$googleCloudProvider.id:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
+    "$googleCloudProvider.id:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${zone}:${names.group}"
+  }
+
+  static String getSubnetKey(GoogleCloudProvider googleCloudProvider,
+                             String subnetName,
+                             String region,
+                             String account) {
+    "$googleCloudProvider.id:${Namespace.SUBNETS}:${subnetName}:${account}:${region}"
   }
 }

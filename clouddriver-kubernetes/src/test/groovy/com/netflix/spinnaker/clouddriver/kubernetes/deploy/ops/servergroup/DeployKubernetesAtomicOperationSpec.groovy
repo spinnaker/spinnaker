@@ -119,7 +119,7 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
         loadBalancers: LOAD_BALANCER_NAMES,
         securityGroups: SECURITY_GROUP_NAMES,
         containers: containers,
-        kubernetesCredentials: credentials
+        credentials: credentials
       )
 
       @Subject def operation = new DeployKubernetesAtomicOperation(description)
