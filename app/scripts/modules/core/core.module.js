@@ -16,8 +16,6 @@ require('select2-bootstrap-css/select2-bootstrap.css');
 require('Select2/select2.css');
 require('ui-select/dist/select.css');
 
-require('angular-wizard/dist/angular-wizard.css');
-
 require('source-sans-pro');
 
 // load all templates into the $templateCache
