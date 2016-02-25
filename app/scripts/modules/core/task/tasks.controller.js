@@ -252,14 +252,7 @@ module.exports = angular.module('spinnaker.core.task.controller', [
 
     initializeViewState();
 
-    let taskLoader = $q.defer();
-    if (application.tasks.loading) {
-      application.tasks.onNextRefresh($scope, taskLoader.resolve);
-    } else {
-      taskLoader.resolve();
-    }
-
-    taskLoader.promise.then(() => {
+    application.tasks.ready().then(() => {
       $scope.viewState.loading = false;
       $scope.viewState.loadError = app.tasks.loadFailure;
       if (!app.tasks.loadFailure) {
