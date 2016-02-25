@@ -86,22 +86,96 @@ class FindImageFromClusterTaskSpec extends Specification {
       ]
   }
 
-  private void assertNorth(Map details) {
+  private void assertNorth(Map details, Map expectOverrides = [:]) {
     assert details != null
-    assert details.sourceServerGroup == "foo-test-v000"
-    assert details.ami == "ami-012"
-    assert details.imageId == "ami-012"
-    assert details.imageName == "ami-012-name"
-    assert details.foo == "bar"
+    with(details) {
+      sourceServerGroup == (expectOverrides.sourceServerGroup ?: "foo-test-v000")
+      ami == (expectOverrides.ami ?: "ami-012")
+      imageId == (expectOverrides.imageId ?: "ami-012")
+      imageName == (expectOverrides.imageName ?: "ami-012-name")
+      foo == (expectOverrides.foo ?: "bar")
+    }
   }
 
-  private void assertSouth(Map details) {
+  private void assertSouth(Map details, Map expectOverrides = [:]) {
     assert details != null
-    assert details.sourceServerGroup == "foo-test-v002"
-    assert details.ami == "ami-234"
-    assert details.imageId == "ami-234"
-    assert details.imageName == "ami-234-name"
-    assert details.foo == "baz"
+    with(details) {
+      sourceServerGroup == (expectOverrides.sourceServerGroup ?: "foo-test-v002")
+      ami == (expectOverrides.ami ?: "ami-234")
+      imageId == (expectOverrides.imageId ?: "ami-234")
+      imageName == (expectOverrides.imageName ?: "ami-234-name")
+      foo == (expectOverrides.foo ?: "baz")
+    }
+  }
+
+  def 'extractBaseImageNames should dedupe extraneous bakes'() {
+
+    expect:
+    task.extractBaseImageNames(names) == expected
+
+    where:
+    names                                                           | expected
+    ['foo-120.2-h180.ffea4c7-x86_64-20160218235358-trusty-pv-ebs']  | ['foo-120.2-h180.ffea4c7-x86_64-20160218235358-trusty-pv-ebs'] as Set
+    ['foo-120.2-h180.ffea4c7-x86_64-20160218235358-trusty-pv-ebs1'] | ['foo-120.2-h180.ffea4c7-x86_64-20160218235358-trusty-pv-ebs'] as Set
+    ['foo-120.2-h180.ffea4c7-x86_64-20160218235358-trusty-pv-s3']   | ['foo-120.2-h180.ffea4c7-x86_64-20160218235358-trusty-pv-s3'] as Set
+    ['foo-120.2-h180.ffea4c7-x86_64-20160218235358-trusty-pv-s4']   | [] as Set
+  }
+
+  def "should resolve images via find if not all regions exist in source server group"() {
+    given:
+    def pipe = new Pipeline.Builder()
+      .withApplication("contextAppName") // Should be ignored.
+      .build()
+    def stage = new PipelineStage(pipe, "findImage", [
+      resolveMissingLocations: true,
+      cloudProvider    : "cloudProvider",
+      cluster          : "foo-test",
+      account          : "test",
+      selectionStrategy: "LARGEST",
+      onlyEnabled      : "false",
+      regions          : [location1.value, location2.value]
+    ])
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * oortService.getServerGroupSummary("foo", "test", "foo-test", "cloudProvider", location1.value,
+      "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> oortResponse1
+    1 * oortService.getServerGroupSummary("foo", "test", "foo-test", "cloudProvider", location2.value,
+      "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> {
+      throw RetrofitError.httpError("http://clouddriver", new Response("http://clouddriver", 404, 'Not Found', [], new TypedString("{}")), null, Map)
+    }
+    1 * oortService.findImage("cloudProvider", "ami-012-name-ebs*", "test", null) >> imageSearchResult
+    assertNorth(result.globalOutputs?.deploymentDetails?.find { it.region == "north" } as Map, [imageName: "ami-012-name-ebs"])
+    assertSouth(result.globalOutputs?.deploymentDetails?.find { it.region == "south" } as Map, [sourceServerGroup: "foo-test", imageName: "ami-012-name-ebs1", foo: "bar"])
+
+    where:
+    location1 = new Location(type: Location.Type.REGION, value: "north")
+    location2 = new Location(type: Location.Type.REGION, value: "south")
+
+    oortResponse1 = [
+      serverGroupName: "foo-test-v000",
+      imageId        : "ami-012",
+      imageName      : "ami-012-name-ebs",
+      image          : [imageId: "ami-012", name: "ami-012-name-ebs", foo: "bar"],
+      buildInfo      : [job: "foo-build", buildNumber: 1]
+    ]
+
+    imageSearchResult = [
+      [
+        imageName: "ami-012-name-ebs",
+        amis     : [
+          "north": ["ami-012"]
+        ]
+      ],
+      [
+        imageName: "ami-012-name-ebs1",
+        amis : [
+          "south": ["ami-234"]
+        ]
+      ]
+    ]
   }
 
   def "should parse fail strategy error message"() {

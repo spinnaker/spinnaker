@@ -90,4 +90,10 @@ interface OortService {
                        @Path("account") String account,
                        @Path("region") String region,
                        @Path("imageId") imageId)
+
+  @GET("/{type}/images/find")
+  List<Map> findImage(@Path("type") String type,
+                      @Query("q") String query,
+                      @Query("account") String account,
+                      @Query("region") String region)
 }
