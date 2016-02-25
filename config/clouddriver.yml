@@ -50,8 +50,8 @@ cf:
       console: ${providers.cf.primaryCredentials.console}
       org: ${providers.cf.defaultOrg}
       space: ${providers.cf.defaultSpace}
-      username: ${cf.account.name:}
-      password: ${cf.account.password:}
+      username: ${providers.cf.account.name:}
+      password: ${providers.cf.account.password:}
 
 credentials:
   primaryAccountTypes: ${providers.aws.primaryCredentials.name}, ${providers.google.primaryCredentials.name}, ${providers.cf.primaryCredentials.name}
