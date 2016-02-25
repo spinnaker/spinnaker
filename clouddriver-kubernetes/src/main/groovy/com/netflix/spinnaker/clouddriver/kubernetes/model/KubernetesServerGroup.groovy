@@ -84,12 +84,33 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
   }
 
   @Override
+  ServerGroup.ImagesSummary getImagesSummary() {
+    return new ServerGroup.ImagesSummary() {
+      @Override
+      List<ServerGroup.ImageSummary> getSummaries () {
+        containers.collect({ Container it ->
+          new ServerGroup.ImageSummary() {
+            String serverGroupName = name
+            String imageName = it.name
+            String imageId = it.image
+
+            @Override
+            Map<String, Object> getBuildInfo() {
+              return it.additionalProperties
+            }
+
+            @Override
+            Map<String, Object> getImage() {
+              return [image: it.image, name: it.name]
+            }
+          }
+        })
+      }
+    }
+  }
+
+  @Override
   ServerGroup.ImageSummary getImageSummary() {
-    // TODO(lwander): Massage into more kubernetes native format (multiple images per server group).
-    return new KubernetesImageSummary(
-      image: containers?.collectEntries { [(it.name): it.image] },
-      serverGroupName: this.name,
-      imageName: containers[0]?.image // TODO(lwander): See above.
-    )
+    imagesSummary?.summaries?.get(0)
   }
 }

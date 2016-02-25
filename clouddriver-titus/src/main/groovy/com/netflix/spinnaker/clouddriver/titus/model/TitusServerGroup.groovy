@@ -115,25 +115,35 @@ class TitusServerGroup implements ServerGroup, Serializable {
   }
 
   @Override
-  ServerGroup.ImageSummary getImageSummary() {
+  ServerGroup.ImagesSummary getImagesSummary() {
     def i = image
-    return new ServerGroup.ImageSummary() {
-      String serverGroupName = name
-      // TODO(sthadeshwar): Give these values
-      String imageName
-      String imageId
-
+    return new ServerGroup.ImagesSummary() {
       @Override
-      Map<String, Object> getBuildInfo() {
-        // TODO(sthadeshwar): Where to get build info?
-        return null
-      }
+      List<ServerGroup.ImageSummary> getSummaries() {
+        return [new ServerGroup.ImageSummary() {
+          String serverGroupName = name
+          // TODO(sthadeshwar): Give these values
+          String imageName
+          String imageId
 
-      @Override
-      Map<String, Object> getImage() {
-        return i
+          @Override
+          Map<String, Object> getBuildInfo() {
+            // TODO(sthadeshwar): Where to get build info?
+            return null
+          }
+
+          @Override
+          Map<String, Object> getImage() {
+            return i
+          }
+        }]
       }
     }
+  }
+
+  @Override
+  ServerGroup.ImageSummary getImageSummary() {
+    imagesSummary?.summaries?.get(0)
   }
 
   static Set filterInstancesByHealthState(Set instances, HealthState healthState) {
