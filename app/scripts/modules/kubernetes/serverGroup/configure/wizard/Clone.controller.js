@@ -28,6 +28,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
     $scope.application = application;
 
     $scope.command = serverGroupCommand;
+    $scope.contextImages = serverGroupCommand.viewState.contextImages;
 
     $scope.state = {
       loaded: false,
@@ -43,6 +44,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
     });
 
     function configureCommand() {
+      serverGroupCommand.viewState.contextImages = $scope.contextImages;
+      $scope.contextImages = null;
       kubernetesServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function () {
         $scope.state.loaded = true;
         initializeWizardState();

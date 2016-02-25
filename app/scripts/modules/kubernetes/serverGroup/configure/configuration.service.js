@@ -19,6 +19,11 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
       }).then(function(backingData) {
         backingData.filtered = {};
         backingData.securityGroups = [];
+
+        if (command.viewState.contextImages) {
+          backingData.allImages = backingData.allImages.concat(command.viewState.contextImages);
+        }
+
         command.backingData = backingData;
 
         var accountMap = _.object(_.map(backingData.accounts, function(account) {
@@ -39,6 +44,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
         image: image.imageName,
         registry: image.registry,
         account: image.accountName,
+        fromContext: image.fromContext,
         requests: {
           memory: null,
           cpu: null,
@@ -92,7 +98,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
       command.backingData.filtered.containers = _.map(command.backingData.filtered.images, mapImageToContainer);
       var validContainers = [];
       command.containers.forEach(function(container) {
-        if (_.find(command.backingData.filtered.containers, { image: container.image })) {
+        if (container.fromContext || _.find(command.backingData.filtered.containers, { image: container.image })) {
           validContainers.push(container);
         } else {
           result.dirty.containers = result.dirty.containers || [];
@@ -172,7 +178,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
           return registry.accountName;
         });
         command.backingData.filtered.images = _.filter(command.backingData.allImages, function(image) {
-          return _.contains(accounts, image.account);
+          return image.fromContext || _.contains(accounts, image.account);
         });
       }
       return result;

@@ -38,6 +38,7 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
         selectedProvider: 'kubernetes',
         namespace: 'default',
         containers: [],
+        groupByContainer: groupByContainer,
         viewState: {
           mode: defaults.mode || 'create',
           disableStrategySelection: true,
@@ -62,7 +63,7 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
       }
       let result = [];
       if (current.type === 'findImage') {
-        result.push(current.name);
+        result.push({ fromContext: true, imageName: `${current.cluster} ${current.imageNamePattern}` });
       }
       current.requisiteStageRefIds.forEach(function(id) {
         let [next] = all.filter((stage) => stage.refId === id);
@@ -81,6 +82,14 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
           requiresTemplateSelection: true,
         }
       });
+    }
+
+    function groupByContainer(container) {
+      if (container.fromContext) {
+        return 'Find Image Result(s)';
+      } else {
+        return 'Registry Images';
+      }
     }
 
     // Mutating map call - not the best, but a copy would be too expensive.
@@ -107,6 +116,7 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
         selectedProvider: 'kubernetes',
         namespace: serverGroup.region,
         containers: _.map(serverGroup.containers, buildContainerFromExisting),
+        groupByContainer: groupByContainer,
         source: {
           serverGroupName: serverGroup.name,
           asgName: serverGroup.name,
