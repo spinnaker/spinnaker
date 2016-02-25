@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.microsoft.azure.management.resources.models.DeploymentOperation
 import com.netflix.spinnaker.clouddriver.azure.client.AzureResourceManagerClient
+import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import groovy.util.logging.Slf4j
@@ -44,7 +45,7 @@ class AzureDeploymentOperation {
   static List<String> checkDeploymentOperationStatus(Task task, String opsName, AzureCredentials creds, String resourceGroupName, String deploymentName) {
     def errList = new ArrayList<String>()
     Map<String, Boolean> resourceCompletedState = new HashMap<String, Boolean>()
-    String deploymentState = AzureResourceManagerClient.DeploymentState.DEPLOYING
+    String deploymentState = AzureUtilities.ProvisioningState.DEPLOYING
     Integer checkDeployment = 0
 
     while (checkDeployment < AZURE_DEPLOYMENT_OPERATION_STATUS_RETRIES_MAX) {
@@ -62,13 +63,13 @@ class AzureDeploymentOperation {
             resourceCompletedState[d.id] = false
           }
 
-          if (d.properties.provisioningState == AzureResourceManagerClient.DeploymentState.SUCCEEDED) {
+          if (d.properties.provisioningState == AzureUtilities.ProvisioningState.SUCCEEDED) {
 
             if (!resourceCompletedState[d.id]) {
               task.updateStatus opsName, String.format("Resource %s created", d.properties.targetResource.resourceName)
               resourceCompletedState[d.id] = true
             }
-          } else if (d.properties.provisioningState == AzureResourceManagerClient.DeploymentState.FAILED) {
+          } else if (d.properties.provisioningState == AzureUtilities.ProvisioningState.FAILED) {
             if (!resourceCompletedState[d.id]) {
 
               //String statusMessage = updatedDeploymentOperation?.value?.first()?.properties?.statusMessage?.error?.message
@@ -94,7 +95,7 @@ class AzureDeploymentOperation {
       }
     }
 
-    if (deploymentState != AzureResourceManagerClient.DeploymentState.SUCCEEDED) {
+    if (deploymentState != AzureUtilities.ProvisioningState.SUCCEEDED) {
       String err = "Failed to deploy ${deploymentName}; see Azure Portal for more information'}"
       task.updateStatus opsName, err
       errList.add(err)
@@ -104,10 +105,10 @@ class AzureDeploymentOperation {
   }
 
   private static boolean deploymentIsRunning(String deploymentState) {
-    deploymentState != AzureResourceManagerClient.DeploymentState.CANCELED &&
-      deploymentState != AzureResourceManagerClient.DeploymentState.DELETED &&
-      deploymentState != AzureResourceManagerClient.DeploymentState.FAILED &&
-      deploymentState != AzureResourceManagerClient.DeploymentState.SUCCEEDED
+    deploymentState != AzureUtilities.ProvisioningState.CANCELED &&
+      deploymentState != AzureUtilities.ProvisioningState.DELETED &&
+      deploymentState != AzureUtilities.ProvisioningState.FAILED &&
+      deploymentState != AzureUtilities.ProvisioningState.SUCCEEDED
   }
 
   List<OpsValue> value

@@ -48,6 +48,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
     description.application = 'azureMASM'
     description.stack = 'st1'
     description.detail = 'd11'
+    description.clusterName = description.getClusterName()
     description.region = 'westus'
     description.user = '[anonymous]'
     description.loadBalancerName = 'azureMASM-st1-d11'
@@ -136,7 +137,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
     "tags" : {
       "appName" : "azureMASM",
       "stack" : "st1",
-      "detail" : "d11"
+      "detail" : "d11",
+      "cluster" : "azureMASM-st1-d11"
     },
     "dependsOn" : [ "[concat('Microsoft.Storage/storageAccounts/', variables('uniqueStorageNameArray')[0], variables('newStorageAccountSuffix'))]" ],
     "sku" : {
@@ -213,7 +215,8 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
     "tags" : {
       "appName" : "azureMASM",
       "stack" : "st1",
-      "detail" : "d11"
+      "detail" : "d11",
+      "cluster" : "azureMASM-st1-d11"
     },
     "dependsOn" : [ ],
     "sku" : {

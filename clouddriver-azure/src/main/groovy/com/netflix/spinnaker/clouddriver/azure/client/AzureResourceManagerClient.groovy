@@ -256,14 +256,4 @@ class AzureResourceManagerClient extends AzureBaseClient {
     String value
   }
 
-  static class DeploymentState {
-    public static final String SUCCEEDED = "Succeeded"
-    public static final String FAILED = "Failed"
-    public static final String CANCELED = "Canceled"
-    public static final String READY = "Ready"
-    public static final String DELETED = "Deleted"
-    public static final String ACCEPTED = "Accepted"
-    public static final String DEPLOYING = "Deploying"
-  }
-
 }
