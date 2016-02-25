@@ -94,6 +94,8 @@ In the AWS config section for clouddriver, we add each of the accounts:
 aws:
   enabled: true
   defaultAssumeRole: role/spinnakerManaged
+  defaultRegions:
+    - name: us-east-1
   accounts:
     - name: managing
       accountId: 123456789012

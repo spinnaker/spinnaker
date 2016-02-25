@@ -116,10 +116,19 @@ interface ServerGroup {
   Capacity getCapacity()
 
   /**
-   * An ImageSummary is collection of data related to the build and VM image of the server group. This is merely a view
-   * of data from other parts of this object.
+   * This represents all images deployed to the server group. For most providers, this will be a singleton.
    */
   @JsonIgnore
+  ImagesSummary getImagesSummary()
+
+  /**
+   * An ImageSummary is collection of data related to the build and VM image of the server group. This is merely a view
+   * of data from other parts of this object.
+   *
+   * Deprecated in favor of getImagesSummary, which is a more generic getImageSummary.
+   */
+  @JsonIgnore
+  @Deprecated
   ImageSummary getImageSummary()
 
   static class InstanceCounts {
@@ -175,6 +184,7 @@ interface ServerGroup {
 
   /**
    * Cloud provider-specific data related to the build and VM image of the server group.
+   * Deprecated in favor of Images summary
    */
   @JsonInclude(JsonInclude.Include.NON_NULL)
   interface ImageSummary extends Summary {
@@ -186,6 +196,14 @@ interface ServerGroup {
 
     @Empty
     Map<String, Object> getBuildInfo()
+  }
+
+  /**
+   * Cloud provider-specific data related to the build and VM image of the server group.
+   */
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  interface ImagesSummary extends Summary {
+    List<ImageSummary> getSummaries()
   }
 
   static class SimpleServerGroup implements ServerGroup {
@@ -202,6 +220,7 @@ interface ServerGroup {
     ServerGroup.InstanceCounts instanceCounts
     ServerGroup.Capacity capacity
     ServerGroup.ImageSummary imageSummary
+    ServerGroup.ImagesSummary imagesSummary
 
     @Override
     Boolean isDisabled() {

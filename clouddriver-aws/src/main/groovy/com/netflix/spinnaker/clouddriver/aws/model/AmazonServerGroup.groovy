@@ -118,24 +118,34 @@ class AmazonServerGroup implements ServerGroup, Serializable {
   }
 
   @Override
-  ServerGroup.ImageSummary getImageSummary() {
+  ServerGroup.ImagesSummary getImagesSummary() {
     def i = image
     def bi = buildInfo
-    return new ServerGroup.ImageSummary() {
-      String serverGroupName = name
-      String imageName = i?.name
-      String imageId = i?.imageId
-
+    return new ServerGroup.ImagesSummary() {
       @Override
-      Map<String, Object> getBuildInfo() {
-        return bi
-      }
+      List<ServerGroup.ImageSummary> getSummaries() {
+        return [new ServerGroup.ImageSummary() {
+          String serverGroupName = name
+          String imageName = i?.name
+          String imageId = i?.imageId
 
-      @Override
-      Map<String, Object> getImage() {
-        return i
+          @Override
+          Map<String, Object> getBuildInfo() {
+            return bi
+          }
+
+          @Override
+          Map<String, Object> getImage() {
+            return i
+          }
+        }]
       }
     }
+  }
+
+    @Override
+  ServerGroup.ImageSummary getImageSummary() {
+    imagesSummary?.summaries?.get(0)
   }
 
   static Collection<Instance> filterInstancesByHealthState(Set<Instance> instances, HealthState healthState) {
