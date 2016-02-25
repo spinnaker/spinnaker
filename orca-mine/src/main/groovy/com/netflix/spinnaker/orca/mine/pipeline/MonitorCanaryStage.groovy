@@ -27,7 +27,6 @@ import com.netflix.spinnaker.orca.mine.tasks.RegisterCanaryTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
-import org.apache.commons.lang.StringUtils
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -46,14 +45,6 @@ class MonitorCanaryStage extends LinearStage implements CancellableStage {
 
   @Override
   List<Step> buildSteps(Stage stage) {
-
-    // unless explicitly defined, default the stage timeout to two hours longer than the canary lifetime
-    if (!stage.context.stageTimeoutMs) {
-      String configuredTimeout = (stage.context.canary?.canaryConfig?.lifetimeHours?.toString() ?: "46")
-      int timeoutHours = StringUtils.isNumeric(configuredTimeout) ? Integer.parseInt(configuredTimeout) + 2: 48
-      stage.context.stageTimeoutMs = timeoutHours * 60 * 60 * 1000
-    }
-
     [
       buildStep(stage, "registerCanary", RegisterCanaryTask),
       buildStep(stage, "monitorCanary", MonitorCanaryTask),

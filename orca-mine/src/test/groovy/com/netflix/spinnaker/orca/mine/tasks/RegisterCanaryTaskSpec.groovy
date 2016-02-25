@@ -25,6 +25,7 @@ import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class RegisterCanaryTaskSpec extends Specification {
 
@@ -125,5 +126,40 @@ class RegisterCanaryTaskSpec extends Specification {
       canaryConfig.lifetimeHours == 1
       canaryConfig.combinedCanaryResultStrategy == 'LOWEST'
     }
+  }
+
+  @Unroll
+  void "should set stage timeout to #hours hours based on canary #canary"() {
+
+    given:
+    def pipeline = new Pipeline(application: 'foo')
+    def deployCanaryStage = new PipelineStage(pipeline, DeployCanaryStage.PIPELINE_CONFIG_TYPE, [canary: canary, deployedClusterPairs: [:]])
+    def parentStageId = UUID.randomUUID().toString()
+    deployCanaryStage.parentStageId = parentStageId
+    def monitorCanaryStage = new PipelineStage(pipeline, MonitorCanaryStage.PIPELINE_CONFIG_TYPE, [:])
+
+    pipeline.stages.addAll([deployCanaryStage, monitorCanaryStage])
+
+    when:
+    def result = task.execute(deployCanaryStage)
+
+    then:
+    1 * mineService.registerCanary(_) >> { Map c ->
+      new Response('http:/mine', 200, 'OK', [], new TypedString('canaryId'))
+    }
+    1 * mineService.getCanary("canaryId") >> canary
+
+    result.stageOutputs.stageTimeoutMs == hours * 60 * 60 * 1000
+
+    where:
+    canary                                 || hours
+    [canaryConfig: [:]]                    || 48
+    [canaryConfig: [lifetimeHours: "n/a"]] || 48
+    [canaryConfig: [lifetimeHours: "0"]]   || 2
+    [canaryConfig: [lifetimeHours: "1"]]   || 3
+    [canaryConfig: [lifetimeHours: "100"]] || 102
+    [canaryConfig: [lifetimeHours: 0]]     || 2
+    [canaryConfig: [lifetimeHours: 1]]     || 3
+    [canaryConfig: [lifetimeHours: 8]]     || 10
   }
 }

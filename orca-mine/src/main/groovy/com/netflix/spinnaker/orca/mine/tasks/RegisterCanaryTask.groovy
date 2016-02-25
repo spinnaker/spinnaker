@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.mine.pipeline.DeployCanaryStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
+import org.apache.commons.lang.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.client.Response
@@ -50,8 +51,11 @@ class RegisterCanaryTask implements Task {
     } else {
       throw new IllegalStateException("Unable to handle $response")
     }
+
+    def canary = mineService.getCanary(canaryId)
     def outputs = [
-      canary: mineService.getCanary(canaryId),
+      canary: canary,
+      stageTimeoutMs: getMonitorTimeout(canary),
       deployedClusterPairs: deployStage.context.deployedClusterPairs
     ]
     return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
@@ -68,5 +72,11 @@ class RegisterCanaryTask implements Task {
     c.canaryConfig.name = c.canaryConfig.name ?: stage.execution.id
     c.canaryConfig.application = c.canaryConfig.application ?: c.application ?: app
     return c
+  }
+
+  private static Long getMonitorTimeout(Map canary) {
+    String configuredTimeout = (canary.canaryConfig.lifetimeHours.toString() ?: "46")
+    int timeoutHours = StringUtils.isNumeric(configuredTimeout) ? Integer.parseInt(configuredTimeout) + 2: 48
+    return timeoutHours * 60 * 60 * 1000
   }
 }
