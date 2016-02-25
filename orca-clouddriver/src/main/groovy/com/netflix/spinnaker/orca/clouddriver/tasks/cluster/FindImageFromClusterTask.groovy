@@ -145,29 +145,31 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     }
 
     if (missingLocations) {
-      if (imageNames.size() != 1) {
-        throw new IllegalStateException("Request to resolve images for missing ${config.requiredLocations.first().pluralType()} requires exactly one image. (Found ${imageNames})")
+      Set<String> searchNames = extractBaseImageNames(imageNames)
+      if (searchNames.size() != 1) {
+        throw new IllegalStateException("Request to resolve images for missing ${config.requiredLocations.first().pluralType()} requires exactly one image. (Found ${searchNames})")
       }
 
-      def searchImage = imageIds.entrySet().first()
-
-      def deploymentDetailTemplate = imageSummaries.find { k, v -> v != null}.value
+      def deploymentDetailTemplate = imageSummaries.find { k, v -> v != null }.value
       if (!(deploymentDetailTemplate.image && deploymentDetailTemplate.buildInfo)) {
         throw new IllegalStateException("Missing image or buildInfo on ${deploymentDetailTemplate}")
       }
 
-      def mkDeploymentDetail = { String imageId -> [imageId: imageId, imageName: imageNames[0], serverGroupName: config.cluster, image: deploymentDetailTemplate.image + [imageId: imageId], buildInfo: deploymentDetailTemplate.buildInfo] }
-
-      Map image = oortService.getByAmiId(cloudProvider, account, searchImage.key.value, searchImage.value).getAt(0)
-      if (!(image && image.amis)) {
-        throw new IllegalStateException("No image located for $cloudProvider/$account/$searchImage.key.value/${searchImage.value}: $image")
+      def mkDeploymentDetail = { String imageName, String imageId ->
+        [
+          imageId        : imageId,
+          imageName      : imageName,
+          serverGroupName: config.cluster,
+          image          : deploymentDetailTemplate.image + [imageId: imageId, name: imageName],
+          buildInfo      : deploymentDetailTemplate.buildInfo
+        ]
       }
 
-      for (Location location : missingLocations) {
-        if (image.amis[location.value]) {
-          List<String> regionalImages = image.amis[location.value]
-          if (regionalImages) {
-            imageSummaries[location] = mkDeploymentDetail(regionalImages.first())
+      List<Map> images = oortService.findImage(cloudProvider, searchNames[0] + '*', account, null)
+      for (Map image : images) {
+        for (Location location : missingLocations) {
+          if (imageSummaries[location] == null && image.amis && image.amis[location.value]) {
+            imageSummaries[location] = mkDeploymentDetail(image.imageName, image.amis[location.value][0])
           }
         }
       }
@@ -207,5 +209,15 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     ], [
       deploymentDetails: deploymentDetails
     ])
+  }
+
+  static Set<String> extractBaseImageNames(Collection<String> imageNames) {
+    //in the case of two simultaneous bakes, the bakery tacks a counter on the end of the name
+    // we want to use the base form of the name, as the search will glob out to the
+    def nameCleaner = ~/(.*(?:-ebs|-s3)){1}.*/
+    imageNames.findResults {
+      def matcher = nameCleaner.matcher(it)
+      matcher.matches() ? matcher.group(1) : null
+    }.toSet()
   }
 }
