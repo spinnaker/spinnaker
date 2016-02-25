@@ -180,8 +180,23 @@ module.exports = angular
           }
         },
       };
-      application[key].refresh = (forceRefresh) => {
-        let section = application[key];
+
+      let section = application[key];
+
+      section.ready = () => {
+        let deferred = $q.defer();
+        if (section.loaded) {
+          deferred.resolve();
+        } else if (section.loadFailure) {
+          deferred.reject();
+        } else {
+          section.refreshStream.take(1).subscribe(deferred.resolve);
+          section.refreshFailureStream.take(1).subscribe(deferred.reject);
+        }
+        return deferred.promise;
+      };
+
+      section.refresh = (forceRefresh) => {
         if (section.loading && !forceRefresh) {
           $log.warn(`${key} still loading, skipping refresh`);
           return $q.when(null);
@@ -244,6 +259,11 @@ module.exports = angular
       };
 
       applicationSections.forEach((section) => addSectionToApplication(section, application));
+
+      application.ready = () => {
+        let sections = applicationSections.map(s => application[s.key]);
+        return $q.all(sections.map((section) => section.ready()));
+      };
 
       return $http.get([settings.gateUrl, 'applications', applicationName].join('/'))
         .then((response) => {

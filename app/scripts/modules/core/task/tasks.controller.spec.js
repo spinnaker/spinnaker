@@ -25,6 +25,8 @@ describe('Controller: tasks', function () {
         let application = {};
         applicationReader.addSectionToApplication({key: 'tasks', lazy: true}, application);
         application.tasks.data = tasks || [];
+        application.tasks.loaded = true;
+        application.tasks.refreshStream.onNext();
 
         let confirmationModalService = {
           confirm: function(params) {
@@ -52,7 +54,6 @@ describe('Controller: tasks', function () {
     });
 
     it('loading flag should be false when tasks reloaded', function() {
-      this.initializeController();
       scope.$digest();
       expect(scope.viewState.loading).toBe(false);
     });

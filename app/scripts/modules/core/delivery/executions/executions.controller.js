@@ -60,21 +60,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       triggeringExecution: false,
     };
 
-    let executionLoader = $q.defer();
-    if (application.executions.loaded) {
-      executionLoader.resolve();
-    } else {
-      application.executions.onNextRefresh($scope, executionLoader.resolve);
-    }
-
-    let configLoader = $q.defer();
-    if (application.pipelineConfigs.loaded) {
-      configLoader.resolve();
-    } else {
-      application.pipelineConfigs.onNextRefresh($scope, configLoader.resolve);
-    }
-
-    $q.all([executionLoader.promise, configLoader.promise]).then(() => {
+    $q.all([application.executions.ready(), application.pipelineConfigs.ready()]).then(() => {
       this.updateExecutionGroups();
       if ($stateParams.executionId) {
         scrollIntoView();

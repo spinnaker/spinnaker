@@ -76,8 +76,8 @@ module.exports = angular
         applicationReader
           .getApplication(appName)
           .then( (application) => {
-            return application.refresh(true)  // This is a hack. Due to a race condition in the applicationReader. The clusters don't get bound to the application before tha app returns from the function. TODO: Revisit applicationReader design.
-              .then((application) => {
+            return application.ready()
+              .then(() => {
                 ctrl.chosenApps[appName] = application;
                 return ctrl.chosenApps;
               });
