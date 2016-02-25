@@ -25,8 +25,11 @@ describe('spinnaker.core.cache.infrastructure', function() {
   describe('cache initialization', function() {
 
     beforeEach(function() {
+      let keys = [];
       var cacheInstantiations = [];
       var removalCalls = [];
+      var removeCalls = [];
+      this.keys = keys;
 
       var cacheFactory = function(cacheId, config) {
         cacheInstantiations.push({cacheId: cacheId, config: config});
@@ -41,6 +44,12 @@ describe('spinnaker.core.cache.infrastructure', function() {
           removeAll: function() {
             removalCalls.push(cacheId);
           },
+          remove: function(key) {
+            removeCalls.push(key);
+          },
+          keys: function() {
+            return keys;
+          },
           destroy: angular.noop,
         };
       };
@@ -48,6 +57,7 @@ describe('spinnaker.core.cache.infrastructure', function() {
       this.cacheFactory = cacheFactory;
       this.cacheInstantiations = cacheInstantiations;
       this.removalCalls = removalCalls;
+      this.removeCalls = removeCalls;
 
     });
 
@@ -81,16 +91,19 @@ describe('spinnaker.core.cache.infrastructure', function() {
       expect(this.removalCalls).toEqual(['infrastructure:myCache']);
     });
 
-    it('should remove all keys when clearCache called', function() {
+    it('should remove each key when clearCache called', function() {
       infrastructureCaches.createCache('someBadCache', {
         cacheFactory: this.cacheFactory,
         version: 0,
         onReset: [],
       });
 
+      this.keys.push('a');
+      this.keys.push('b');
       var removalCallsAfterInitialization = this.removalCalls.length;
       infrastructureCaches.clearCache('someBadCache');
-      expect(this.removalCalls.length).toBe(removalCallsAfterInitialization + 1);
+      expect(this.removalCalls.length).toBe(removalCallsAfterInitialization);
+      expect(this.removeCalls).toEqual(['a', 'b']);
     });
 
   });

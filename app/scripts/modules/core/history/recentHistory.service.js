@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.core.history.service', [
   require('../utils/uuid.service.js'),
 ])
   .factory('recentHistoryService', function (_, deckCacheFactory, uuidService) {
-    const maxItems = 15;
+    const maxItems = 5;
 
     deckCacheFactory.createCache('history', 'user', {
       version: 3,
