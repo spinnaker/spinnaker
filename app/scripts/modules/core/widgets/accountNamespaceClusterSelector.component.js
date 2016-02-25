@@ -3,12 +3,12 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.accountRegionClusterSelector.directive', [
+  .module('spinnaker.core.accountNamespaceClusterSelector.directive', [
     require('../../core/application/listExtractor/listExtractor.service'),
     require('../../core/account/account.service'),
     require('../../core/utils/lodash')
   ])
-  .directive('accountRegionClusterSelector', function() {
+  .directive('accountNamespaceClusterSelector', function() {
     return {
       restrict: 'E',
       scope: {},
@@ -17,9 +17,9 @@ module.exports = angular
         component: '=',
         accounts: '=',
         clusterField: '@',
-        singleRegion: '=',
+        provider: '=',
       },
-      templateUrl: require('./accountRegionClusterSelector.component.html'),
+      templateUrl: require('./accountNamespaceClusterSelector.component.html'),
       controllerAs: 'vm',
       controller: function controller(appListExtractorService, accountService, _) {
 
@@ -28,22 +28,24 @@ module.exports = angular
         let vm = this;
         let isTextInputForClusterFiled;
 
-        let regions;
+        let namespaces;
 
-        let setRegionList = () => {
+        let setNamespaceList = () => {
           let accountFilter = (cluster) => cluster.account === vm.component.credentials;
-          let regionList = appListExtractorService.getRegions([vm.application], accountFilter);
-          vm.regions = regionList.length ? regionList : regions;
+          // TODO(lwander): Move away from regions to namespaces here.
+          let namespaceList = appListExtractorService.getRegions([vm.application], accountFilter);
+          vm.namespaces = namespaceList.length ? namespaceList : namespaces;
         };
 
 
         let setClusterList = () => {
-          let regionField = this.singleRegion ? vm.component.region : vm.component.regions;
-          let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndRegion(vm.component.credentials, regionField);
+          let namespaceField = vm.component.namespaces;
+          // TODO(lwander): Move away from regions to namespaces here.
+          let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndRegion(vm.component.credentials, namespaceField);
           vm.clusterList = appListExtractorService.getClusters([vm.application], clusterFilter);
         };
 
-        vm.regionChanged = () => {
+        vm.namespaceChanged = () => {
           setClusterList();
           if (!isTextInputForClusterFiled && ! _.includes(vm.clusterList, vm.component[this.clusterField])) {
             vm.component[this.clusterField] = undefined;
@@ -51,14 +53,14 @@ module.exports = angular
         };
 
         let setToggledState = () => {
-          vm.regions = regions;
+          vm.namespaces = namespaces;
           isTextInputForClusterFiled = true;
         };
 
         let setUnToggledState = () => {
           vm.component[this.clusterField] = undefined;
           isTextInputForClusterFiled = false;
-          setRegionList();
+          setNamespaceList();
         };
 
         vm.clusterSelectInputToggled = (isToggled) => {
@@ -67,19 +69,19 @@ module.exports = angular
 
         vm.accountUpdated = () => {
           vm.component[this.clusterField] = undefined;
-          setRegionList();
+          setNamespaceList();
           setClusterList();
         };
 
         let init = () => {
-          accountService.getUniqueAttributeForAllAccounts('regions')(vm.component.cloudProviderType).then((allRegions) => {
-            regions = allRegions;
-            return allRegions;
+          accountService.getUniqueAttributeForAllAccounts('namespaces')(vm.component.cloudProviderType).then((allNamespaces) => {
+            namespaces = allNamespaces;
+            return allNamespaces;
           })
-          .then((allRegions) => {
-            setRegionList();
+          .then((allNamespaces) => {
+            setNamespaceList();
             setClusterList();
-            vm.regions = _.includes(vm.clusterList, vm.component[this.clusterField]) ? vm.regions : allRegions;
+            vm.namespaces = _.includes(vm.clusterList, vm.component[this.clusterField]) ? vm.namespaces : allNamespaces;
           });
         };
 

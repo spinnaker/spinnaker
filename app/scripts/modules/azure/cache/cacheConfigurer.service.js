@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.azure.cache.initializer', [
     let config = Object.create(null);
 
     config.credentials = {
-      initializers: [ () => accountService.getRegionsKeyedByAccount('azure') ],
+      initializers: [ () => accountService.getCredentialsKeyedByAccount('azure') ],
     };
 
     config.instanceTypes = {

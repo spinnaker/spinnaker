@@ -11,17 +11,19 @@ templates.keys().forEach(function(key) {
 });
 
 module.exports = angular.module('spinnaker.kubernetes', [
+  require('../core/pipeline/config/stages/findAmi/kubernetes/kubernetesFindAmiStage.js'),
   require('./cache/configurer.service.js'),
+  require('./container/configurer.directive.js'),
+  require('./instance/details/details.kubernetes.module.js'),
+  require('./loadBalancer/configure/configure.kubernetes.module.js'),
+  require('./loadBalancer/details/details.kubernetes.module.js'),
+  require('./loadBalancer/transformer.js'),
+  require('./namespace/multiSelectField.component.js'),
+  require('./namespace/selectField.directive.js'),
   require('./serverGroup/configure/CommandBuilder.js'),
   require('./serverGroup/configure/configure.kubernetes.module.js'),
   require('./serverGroup/details/details.kubernetes.module.js'),
   require('./serverGroup/transformer.js'),
-  require('./loadBalancer/transformer.js'),
-  require('./loadBalancer/details/details.kubernetes.module.js'),
-  require('./loadBalancer/configure/configure.kubernetes.module.js'),
-  require('./instance/details/details.kubernetes.module.js'),
-  require('./namespace/selectField.directive.js'),
-  require('./container/configurer.directive.js'),
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('kubernetes', {

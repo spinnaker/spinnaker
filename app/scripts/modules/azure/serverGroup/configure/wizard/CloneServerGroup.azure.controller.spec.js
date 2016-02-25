@@ -75,7 +75,7 @@
        return {
          credentials: 'test',
          region: 'us-east-1',
-         availabilityZones: AccountServiceFixture.regionsKeyedByAccount.test.regions[0].availabilityZones,
+         availabilityZones: AccountServiceFixture.credentialsKeyedByAccount.test.regions[0].availabilityZones,
          securityGroups: [],
          selectedProvider: 'azure',
          instanceMonitoring: true,
@@ -115,7 +115,7 @@
 
        this.wizard = jasmine.createSpyObj('wizard', ['markDirty', 'markComplete', 'includePage']);
        spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(resolve(AccountServiceFixture.preferredZonesByAccount));
-       spyOn(this.accountService, 'getRegionsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
+       spyOn(this.accountService, 'getCredentialsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.credentialsKeyedByAccount));
        spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
        spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
        spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(resolve(securityGroupReaderFixture.allSecurityGroups));
@@ -229,7 +229,7 @@
 
        this.wizard = jasmine.createSpyObj('wizard', ['markDirty', 'markComplete', 'includePage']);
        spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(resolve(AccountServiceFixture.preferredZonesByAccount));
-       spyOn(this.accountService, 'getRegionsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
+       spyOn(this.accountService, 'getCredentialsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.credentialsKeyedByAccount));
        spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
        spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
        spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(resolve(securityGroupReaderFixture.allSecurityGroups));
@@ -385,7 +385,7 @@
 
        this.wizard = jasmine.createSpyObj('wizard', ['markDirty', 'markComplete', 'includePage']);
        spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(resolve(AccountServiceFixture.preferredZonesByAccount));
-       spyOn(this.accountService, 'getRegionsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
+       spyOn(this.accountService, 'getCredentialsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.credentialsKeyedByAccount));
        spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
        spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
        spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(resolve(securityGroupReaderFixture.allSecurityGroups));

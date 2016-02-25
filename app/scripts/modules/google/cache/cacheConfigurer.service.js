@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.gce.cache.initializer', [
     let config = Object.create(null);
 
     config.credentials = {
-      initializers: [ () => accountService.getRegionsKeyedByAccount('gce') ],
+      initializers: [ () => accountService.getCredentialsKeyedByAccount('gce') ],
     };
 
     config.instanceTypes = {

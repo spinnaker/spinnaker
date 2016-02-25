@@ -75,7 +75,7 @@ describe('Controller: awsCloneServerGroup', function () {
       return {
         credentials: 'test',
         region: 'us-east-1',
-        availabilityZones: AccountServiceFixture.regionsKeyedByAccount.test.regions[0].availabilityZones,
+        availabilityZones: AccountServiceFixture.credentialsKeyedByAccount.test.regions[0].availabilityZones,
         securityGroups: [],
         selectedProvider: 'aws',
         instanceMonitoring: true,
@@ -114,7 +114,7 @@ describe('Controller: awsCloneServerGroup', function () {
       var resolve = this.resolve;
 
       spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(resolve(AccountServiceFixture.preferredZonesByAccount));
-      spyOn(this.accountService, 'getRegionsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
+      spyOn(this.accountService, 'getCredentialsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.credentialsKeyedByAccount));
       spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
       spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
       spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(resolve(securityGroupReaderFixture.allSecurityGroups));
@@ -229,7 +229,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
       this.wizard = jasmine.createSpyObj('wizard', ['markDirty', 'markComplete', 'includePage']);
       spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(resolve(AccountServiceFixture.preferredZonesByAccount));
-      spyOn(this.accountService, 'getRegionsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
+      spyOn(this.accountService, 'getCredentialsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.credentialsKeyedByAccount));
       spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
       spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
       spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(resolve(securityGroupReaderFixture.allSecurityGroups));
@@ -384,7 +384,7 @@ describe('Controller: awsCloneServerGroup', function () {
           spec = this;
 
       spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(resolve(AccountServiceFixture.preferredZonesByAccount));
-      spyOn(this.accountService, 'getRegionsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
+      spyOn(this.accountService, 'getCredentialsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.credentialsKeyedByAccount));
       spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
       spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
       spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(resolve(securityGroupReaderFixture.allSecurityGroups));

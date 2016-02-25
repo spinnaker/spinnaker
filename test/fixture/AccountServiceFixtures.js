@@ -1,5 +1,5 @@
 var AccountServiceFixture = {};
-AccountServiceFixture.regionsKeyedByAccount = {
+AccountServiceFixture.credentialsKeyedByAccount = {
   'test': {
     regions: [
       {

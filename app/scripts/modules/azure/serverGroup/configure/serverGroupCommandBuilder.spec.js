@@ -15,7 +15,7 @@
      this.instanceTypeService = instanceTypeService;
      this.$q = $q;
      spyOn(accountService, 'getPreferredZonesByAccount').and.returnValue($q.when(AccountServiceFixture.preferredZonesByAccount));
-     spyOn(accountService, 'getRegionsKeyedByAccount').and.returnValue($q.when(AccountServiceFixture.regionsKeyedByAccount));
+     spyOn(accountService, 'getCredentialsKeyedByAccount').and.returnValue($q.when(AccountServiceFixture.credentialsKeyedByAccount));
      spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([]));
      spyOn(accountService, 'getAvailabilityZonesForAccountAndRegion').and.returnValue(
        this.$q.when(['a', 'b', 'c'])

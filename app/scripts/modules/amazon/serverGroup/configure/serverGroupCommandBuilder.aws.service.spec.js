@@ -77,7 +77,7 @@ describe('Service: awsServerGroup', function () {
         this.$q.when(['d', 'g'])
       );
 
-      spyOn(this.accountService, 'getRegionsKeyedByAccount').and.returnValue(
+      spyOn(this.accountService, 'getCredentialsKeyedByAccount').and.returnValue(
         this.$q.when({
           test: ['us-east-1', 'us-west-1'],
           prod: ['us-west-1', 'eu-west-1']

@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
 
     function buildNewServerGroupCommand (application, defaults) {
       defaults = defaults || {};
-      var regionsKeyedByAccountLoader = accountService.getRegionsKeyedByAccount('aws');
+      var credentialsLoader = accountService.getCredentialsKeyedByAccount('aws');
 
       var defaultCredentials = defaults.account || application.defaultCredentials.aws || settings.providers.aws.defaults.account;
       var defaultRegion = defaults.region || application.defaultRegions.aws || settings.providers.aws.defaults.region;
@@ -26,13 +26,13 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
 
       return $q.all({
         preferredZones: preferredZonesLoader,
-        regionsKeyedByAccount: regionsKeyedByAccountLoader,
+        credentialsKeyedByAccount: credentialsLoader,
       })
         .then(function (asyncData) {
           var availabilityZones = asyncData.preferredZones;
 
-          var regions = asyncData.regionsKeyedByAccount[defaultCredentials];
-          var keyPair = regions ? regions.defaultKeyPair : null;
+          var credentials = asyncData.credentialsKeyedByAccount[defaultCredentials];
+          var keyPair = credentials ? credentials.defaultKeyPair : null;
 
           var command = {
             application: application.name,

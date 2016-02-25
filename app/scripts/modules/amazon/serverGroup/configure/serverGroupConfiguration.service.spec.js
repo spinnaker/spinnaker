@@ -73,7 +73,7 @@ describe('Service: awsServerGroupConfiguration', function () {
 
   describe('configureCommand', function () {
     it ('attempts to reload load balancers if some are not found on initialization, but does not set dirty flag', function () {
-      spyOn(accountService, 'getRegionsKeyedByAccount').and.returnValue($q.when([]));
+      spyOn(accountService, 'getCredentialsKeyedByAccount').and.returnValue($q.when([]));
       spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
       spyOn(loadBalancerReader, 'listLoadBalancers').and.returnValue($q.when(this.allLoadBalancers));
       spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([]));
@@ -104,7 +104,7 @@ describe('Service: awsServerGroupConfiguration', function () {
     });
 
     it ('attempts to reload security groups if some are not found on initialization, but does not set dirty flag', function () {
-      spyOn(accountService, 'getRegionsKeyedByAccount').and.returnValue($q.when([]));
+      spyOn(accountService, 'getCredentialsKeyedByAccount').and.returnValue($q.when([]));
       spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
       spyOn(loadBalancerReader, 'listLoadBalancers').and.returnValue($q.when(this.allLoadBalancers));
       spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([]));
@@ -136,7 +136,7 @@ describe('Service: awsServerGroupConfiguration', function () {
     });
 
     it ('attempts to reload instance types if already selected on initialization, but does not set dirty flag', function () {
-      spyOn(accountService, 'getRegionsKeyedByAccount').and.returnValue($q.when([]));
+      spyOn(accountService, 'getCredentialsKeyedByAccount').and.returnValue($q.when([]));
       spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
       spyOn(loadBalancerReader, 'listLoadBalancers').and.returnValue($q.when([]));
       spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([]));
@@ -348,7 +348,7 @@ describe('Service: awsServerGroupConfiguration', function () {
       this.command = {
         backingData: {
           filtered: {},
-          regionsKeyedByAccount: {
+          credentialsKeyedByAccount: {
             test: {
               defaultKeyPair: 'test-pair'
             },
@@ -407,7 +407,7 @@ describe('Service: awsServerGroupConfiguration', function () {
         viewState: {},
         backingData: {
           filtered: {},
-          regionsKeyedByAccount: {
+          credentialsKeyedByAccount: {
             test: {
               defaultKeyPair: 'test-pair'
             },
