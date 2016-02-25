@@ -42,6 +42,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
         cancelLoader();
 
         var restangularlessDetails = details.plain();
+        // it's possible the summary was not found because the clusters are still loading
+        restangularlessDetails.account = serverGroup.accountId;
         angular.extend(restangularlessDetails, summary);
 
         $scope.serverGroup = restangularlessDetails;
