@@ -51,7 +51,7 @@ describe('recent history service', function() {
       initializeCache(15);
       service.addItem('whatever', 'state', {id: 'new item'});
       let ids = service.getItems('whatever').map((item) => { return item.params.id; });
-      expect(ids).toEqual(['new item', 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
+      expect(ids).toEqual(['new item', 0, 1, 2, 3]);
     });
 
     it('removes previous entry and adds replacement if params match', () => {

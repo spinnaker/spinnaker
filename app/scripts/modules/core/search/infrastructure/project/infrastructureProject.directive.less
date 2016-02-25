@@ -22,7 +22,11 @@ infrastructure-project {
   background-color: #ffffff;
   margin-bottom: 15px;
   a {
-    color: @text-color
+    color: @text-color;
+    display: block;
+    &:active, &:hover {
+      font-weight: 600;
+    }
   }
 
   .project-summary {
