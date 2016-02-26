@@ -11,7 +11,6 @@ describe('Controller: tasks', function () {
   beforeEach(
     window.module(
       require('./tasks.controller.js'),
-      require('../utils/rx.js'),
       require('../application/service/applications.read.service.js')
     )
   );
