@@ -51,7 +51,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
     }
 
     function initializeWatches() {
-      $scope.$watch('command.credentials', $scope.command.credentialsChanged);
+      $scope.$watch('command.account', $scope.command.accountChanged);
       $scope.$watch('command.namespace', $scope.command.namespaceChanged);
     }
 
@@ -67,7 +67,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
 
     this.isValid = function () {
       return $scope.command && $scope.command.containers.length > 0 &&
-        $scope.command.credentials !== null &&
+        $scope.command.account !== null &&
         v2modalWizardService.isComplete();
     };
 

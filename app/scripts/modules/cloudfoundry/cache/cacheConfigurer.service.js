@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.cf.cache.initializer', [
     let config = Object.create(null);
 
     config.credentials = {
-      initializers: [ () => accountService.getRegionsKeyedByAccount('cf') ],
+      initializers: [ () => accountService.getCredentialsKeyedByAccount('cf') ],
     };
 
     config.instanceTypes = {

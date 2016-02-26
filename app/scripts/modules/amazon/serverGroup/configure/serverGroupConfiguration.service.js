@@ -60,7 +60,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
       };
 
       return $q.all({
-        regionsKeyedByAccount: accountService.getRegionsKeyedByAccount('aws'),
+        credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('aws'),
         securityGroups: securityGroupReader.getAllSecurityGroups(),
         loadBalancers: loadBalancerReader.listLoadBalancers('aws'),
         subnets: subnetReader.listSubnets(),
@@ -74,7 +74,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         var loadBalancerReloader = $q.when(null);
         var securityGroupReloader = $q.when(null);
         var instanceTypeReloader = $q.when(null);
-        backingData.accounts = _.keys(backingData.regionsKeyedByAccount);
+        backingData.accounts = _.keys(backingData.credentialsKeyedByAccount);
         backingData.filtered = {};
         backingData.scalingProcesses = autoScalingProcessService.listProcesses();
         command.backingData = backingData;
@@ -149,7 +149,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
           .pluck('keyName')
           .valueOf();
         if (command.keyPair && filtered.indexOf(command.keyPair) === -1) {
-          var acct = command.backingData.regionsKeyedByAccount[command.credentials] || {regions: [], defaultKeyPair: null};
+          var acct = command.backingData.credentialsKeyedByAccount[command.credentials] || {regions: [], defaultKeyPair: null};
           command.keyPair = acct.defaultKeyPair;
           // Note: this will generally be ignored, so we probably won't flag it in the UI
           result.dirty.keyPair = true;
@@ -220,7 +220,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
 
     function configureAvailabilityZones(command) {
       command.backingData.filtered.availabilityZones =
-        _.find(command.backingData.regionsKeyedByAccount[command.credentials].regions, {name: command.region}).availabilityZones;
+        _.find(command.backingData.credentialsKeyedByAccount[command.credentials].regions, {name: command.region}).availabilityZones;
     }
 
     function configureSubnetPurposes(command) {
@@ -414,7 +414,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         var result = { dirty: {} };
         var backingData = command.backingData;
         if (command.credentials) {
-          var regionsForAccount = backingData.regionsKeyedByAccount[command.credentials] || {regions: [], defaultKeyPair: null};
+          var regionsForAccount = backingData.credentialsKeyedByAccount[command.credentials] || {regions: [], defaultKeyPair: null};
           backingData.filtered.regions = regionsForAccount.regions;
           if (!_(backingData.filtered.regions).some({name: command.region})) {
             command.region = null;

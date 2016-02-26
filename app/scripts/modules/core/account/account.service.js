@@ -77,7 +77,7 @@ module.exports = angular.module('spinnaker.core.account.service', [
       });
     };
 
-    let getRegionsKeyedByAccount = _.memoize((provider) => {
+    let getCredentialsKeyedByAccount = _.memoize((provider) => {
       var deferred = $q.defer();
       listAccounts(provider).then(function(accounts) {
         $q.all(accounts.reduce(function(acc, account) {
@@ -94,23 +94,25 @@ module.exports = angular.module('spinnaker.core.account.service', [
       return deferred.promise;
     });
 
-    let getUniqueRegionsForAllAccounts = _.memoize((provider) => {
-      return getRegionsKeyedByAccount(provider)
-        .then(function(regionsByAccount) {
-          let regions = _.chain(regionsByAccount)
-            .values()
-            .map(acct => acct.regions)
-            .flatten()
-            .map(reg => reg.name)
-            .uniq()
-            .value();
+    let getUniqueAttributeForAllAccounts = (attribute) => {
+      return _.memoize((provider) => {
+        return getCredentialsKeyedByAccount(provider)
+          .then(function(credentialsByAccount) {
+            let attributes = _.chain(credentialsByAccount)
+              .values()
+              .map(acct => acct[attribute])
+              .flatten()
+              .map(reg => reg.name)
+              .uniq()
+              .value();
 
-          return regions;
-        });
-    });
+            return attributes;
+          });
+       });
+    };
 
     let getUniqueGceZonesForAllAccounts = _.memoize((provider) => {
-      return getRegionsKeyedByAccount(provider)
+      return getCredentialsKeyedByAccount(provider)
         .then(function(regionsByAccount) {
           return _.chain(regionsByAccount)
             .values()
@@ -160,9 +162,9 @@ module.exports = angular.module('spinnaker.core.account.service', [
       getAccountDetails: getAccountDetails,
       getAllAccountDetailsForProvider: getAllAccountDetailsForProvider,
       getRegionsForAccount: getRegionsForAccount,
-      getRegionsKeyedByAccount: getRegionsKeyedByAccount,
+      getCredentialsKeyedByAccount: getCredentialsKeyedByAccount,
       getPreferredZonesByAccount: getPreferredZonesByAccount,
-      getUniqueRegionsForAllAccounts: getUniqueRegionsForAllAccounts,
+      getUniqueAttributeForAllAccounts: getUniqueAttributeForAllAccounts,
       getUniqueGceZonesForAllAccounts: getUniqueGceZonesForAllAccounts,
       getAvailabilityZonesForAccountAndRegion: getAvailabilityZonesForAccountAndRegion
     };

@@ -11,12 +11,12 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.configura
     function configureCommand(command) {
       command.image = command.viewState.imageId;
       return $q.all({
-        regionsKeyedByAccount: accountService.getRegionsKeyedByAccount('titan'),
+        credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('titan'),
         images: [],
       }).then(function(backingData) {
-        backingData.accounts = _.keys(backingData.regionsKeyedByAccount);
+        backingData.accounts = _.keys(backingData.credentialsKeyedByAccount);
         backingData.filtered = {};
-        backingData.filtered.regions = backingData.regionsKeyedByAccount[command.credentials].regions;
+        backingData.filtered.regions = backingData.credentialsKeyedByAccount[command.credentials].regions;
         command.backingData = backingData;
 
         return $q.all([]).then(function() {
@@ -26,7 +26,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.configura
     }
 
     function configureZones(command) {
-      command.backingData.filtered.regions = Object.keys(command.backingData.regionsKeyedByAccount[command.credentials].regions);
+      command.backingData.filtered.regions = Object.keys(command.backingData.credentialsKeyedByAccount[command.credentials].regions);
     }
 
     function attachEventHandlers(command) {
@@ -36,7 +36,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.configura
         var backingData = command.backingData;
         configureZones(command);
         if (command.credentials) {
-          backingData.filtered.regions = backingData.regionsKeyedByAccount[command.credentials].regions;
+          backingData.filtered.regions = backingData.credentialsKeyedByAccount[command.credentials].regions;
           if (backingData.filtered.regions.indexOf(command.region) === -1) {
             command.region = null;
             result.dirty.region = true;

@@ -41,8 +41,8 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
             $scope.loadBalancer.elb = filtered[0];
             $scope.loadBalancer.account = loadBalancer.accountId;
 
-            accountService.getRegionsKeyedByAccount('gce').then(function(regionsKeyedByAccount) {
-              $scope.loadBalancer.elb.availabilityZones = regionsKeyedByAccount[loadBalancer.accountId].regions[loadBalancer.region].sort();
+            accountService.getCredentialsKeyedByAccount('gce').then(function(credentialsKeyedByAccount) {
+              $scope.loadBalancer.elb.availabilityZones = credentialsKeyedByAccount[loadBalancer.accountId].regions[loadBalancer.region].sort();
             });
           }
           accountService.getAccountDetails(loadBalancer.accountId).then(function(accountDetails) {

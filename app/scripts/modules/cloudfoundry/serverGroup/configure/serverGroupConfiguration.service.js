@@ -16,12 +16,12 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
 
     function configureCommand(command) {
       return $q.all({
-        regionsKeyedByAccount: accountService.getRegionsKeyedByAccount('cf'),
+        credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('cf'),
         securityGroups: securityGroupReader.getAllSecurityGroups(),
         instanceTypes: cfInstanceTypeService.getAllTypesByRegion()
       }).then(function(backingData) {
         var securityGroupReloader = $q.when(null);
-        backingData.accounts = _.keys(backingData.regionsKeyedByAccount);
+        backingData.accounts = _.keys(backingData.credentialsKeyedByAccount);
         backingData.filtered = {};
         command.backingData = backingData;
         configureImages(command);
@@ -61,7 +61,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
 
     function configureZones(command) {
       command.backingData.filtered.zones =
-        command.backingData.regionsKeyedByAccount[command.credentials].regions[command.region];
+        command.backingData.credentialsKeyedByAccount[command.credentials].regions[command.region];
     }
 
     function getSecurityGroups(command) {
@@ -164,7 +164,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
         var result = { dirty: {} };
         var backingData = command.backingData;
         if (command.credentials) {
-          backingData.filtered.regions = Object.keys(backingData.regionsKeyedByAccount[command.credentials].regions);
+          backingData.filtered.regions = Object.keys(backingData.credentialsKeyedByAccount[command.credentials].regions);
           if (backingData.filtered.regions.indexOf(command.region) === -1) {
             command.region = null;
             result.dirty.region = true;

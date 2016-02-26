@@ -13,11 +13,7 @@ module.exports = angular.module('spinnaker.kubernetes.cache.initializer', [
     let config = Object.create(null);
 
     config.account = {
-      initializers: [ () => accountService.getRegionsKeyedByAccount('kubernetes') ],
-    };
-
-    config.instanceTypes = {
-      initializers: [ () => instanceTypeService.getAllTypesByRegion('kubernetes') ],
+      initializers: [ () => accountService.getCredentialsKeyedByAccount('kubernetes') ],
     };
 
     config.loadBalancers = {
