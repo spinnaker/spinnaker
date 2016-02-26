@@ -158,6 +158,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
         $uibModal.open({
           templateUrl: config.cloneServerGroupTemplateUrl,
           controller: `${config.cloneServerGroupController} as ctrl`,
+          size: 'lg',
           resolve: {
             title: function () {
               return 'Add Cluster Pair';
@@ -198,6 +199,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
       $uibModal.open({
         templateUrl: config.cloneServerGroupTemplateUrl,
         controller: `${config.cloneServerGroupController} as ctrl`,
+        size: 'lg',
         resolve: {
           title: function () {
             return 'Configure ' + type + ' Cluster';
