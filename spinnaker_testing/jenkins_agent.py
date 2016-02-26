@@ -46,7 +46,7 @@ class JenkinsOperationStatus(base_agent.AgentOperationStatus):
 
   @property
   def error(self):
-    return self.__trigger_status.error
+    return self.__trigger_status.error_message
 
   @property
   def status_agent(self):

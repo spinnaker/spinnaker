@@ -63,6 +63,11 @@ class GateTaskStatus(sk.SpinnakerStatus):
     """
     super(GateTaskStatus, self).__init__(operation, original_response)
 
+    if not original_response.ok():
+      self._bind_error(original_response.error_message)
+      self.current_state = 'HTTP_ERROR'
+      return
+
     doc = None
     try:
       doc = json.JSONDecoder().decode(original_response.output)
