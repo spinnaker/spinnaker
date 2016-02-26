@@ -547,7 +547,7 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     logger.debug('Looking up available images.')
     cli_result = gcloud_agent.list_resources('images', extra_args=extra_args)
 
-    if cli_result.retcode != 0:
+    if not cli_result.ok():
       raise RuntimeError('GCloud failed with: {0}'.format(str(cli_result)))
     json_doc = json_module.JSONDecoder().decode(cli_result.output)
 

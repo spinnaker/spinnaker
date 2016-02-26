@@ -172,7 +172,7 @@ class SpinnakerStatus(service_testing.HttpOperationStatus):
     self.__error = None
     self.__json_doc = None
 
-    if not original_response or original_response.retcode < 0:
+    if not original_response or original_response.http_code is None:
       self.__current_state = 'REQUEST_FAILED'
       return
 
@@ -211,7 +211,7 @@ class SpinnakerStatus(service_testing.HttpOperationStatus):
       http_response: [HttpResponseType] From the last status update.
     """
     # super(SpinnakerStatus, self).set_http_response(http_response)
-    if http_response.retcode < 0:
+    if http_response.http_code is None:
       self.__current_state = 'Unknown'
       return
 
@@ -473,7 +473,7 @@ class SpinnakerAgent(service_testing.HttpAgent):
         # We need to base64 the binary results so we return text.
         '; (sudo tar czf - $LIST 2> /dev/null | base64)')
 
-    if response.retcode != 0:
+    if not response.ok():
       logger.error(
           'Could not determine configuration:\n%s', response.error)
       return None

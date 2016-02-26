@@ -59,6 +59,11 @@ class _KatoStatus(sk.SpinnakerStatus):
     """
     super(_KatoStatus, self).__init__(operation, original_response)
 
+    if not original_response.ok():
+      self.__finished = True
+      self.__failed = True
+      return
+
     self.__finished = False
     self.__failed = False
 
