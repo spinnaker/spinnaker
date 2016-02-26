@@ -19,4 +19,5 @@ package com.netflix.spinnaker.clouddriver.titus.model
 class TitusInstancePlacement extends Placement {
   String zone
   String host
+  String containerIp
 }
