@@ -70,19 +70,23 @@ class FindImageFromClusterTaskSpec extends Specification {
       location2 = new Location(type: Location.Type.REGION, value: "south")
 
       oortResponse1 = [
-        serverGroupName:  "foo-test-v000",
-        imageId: "ami-012",
-        imageName: "ami-012-name",
-        image: [ imageId: "ami-012", name: "ami-012-name", foo: "bar" ],
-        buildInfo: [ job: "foo-build", buildNumber: 1 ]
+        summaries: [[
+          serverGroupName:  "foo-test-v000",
+          imageId: "ami-012",
+          imageName: "ami-012-name",
+          image: [ imageId: "ami-012", name: "ami-012-name", foo: "bar" ],
+          buildInfo: [ job: "foo-build", buildNumber: 1 ]
+        ]]
       ]
 
       oortResponse2 = [
-        serverGroupName:  "foo-test-v002",
-        imageId: "ami-234",
-        imageName: "ami-234-name",
-        image: [ imageId: "ami-234", name: "ami-234-name", foo: "baz" ],
-        buildInfo: [ job: "foo-build", buildNumber: 1 ]
+        summaries: [[
+          serverGroupName:  "foo-test-v002",
+          imageId: "ami-234",
+          imageName: "ami-234-name",
+          image: [ imageId: "ami-234", name: "ami-234-name", foo: "baz" ],
+          buildInfo: [ job: "foo-build", buildNumber: 1 ]
+        ]]
       ]
   }
 
@@ -155,11 +159,13 @@ class FindImageFromClusterTaskSpec extends Specification {
     location2 = new Location(type: Location.Type.REGION, value: "south")
 
     oortResponse1 = [
-      serverGroupName: "foo-test-v000",
-      imageId        : "ami-012",
-      imageName      : "ami-012-name-ebs",
-      image          : [imageId: "ami-012", name: "ami-012-name-ebs", foo: "bar"],
-      buildInfo      : [job: "foo-build", buildNumber: 1]
+      summaries: [[
+        serverGroupName: "foo-test-v000",
+        imageId        : "ami-012",
+        imageName      : "ami-012-name-ebs",
+        image          : [imageId: "ami-012", name: "ami-012-name-ebs", foo: "bar"],
+        buildInfo      : [job: "foo-build", buildNumber: 1]
+      ]]
     ]
 
     imageSearchResult = [
