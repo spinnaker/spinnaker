@@ -17,10 +17,13 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
+import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CreateServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
+import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
@@ -93,6 +96,30 @@ class AbstractClusterWideClouddriverTaskSpec extends Specification {
     [sg1]                      | [sg1, sg2, sg3, sg4] || []
     [sg2]                      | [sg1, sg2, sg3, sg4] || [sg1]
     [sg3, sg4]                 | [sg1, sg2, sg3, sg4] || [sg1, sg2]
+  }
+
+  def "should succeed immediately if cluster not found and continueIfClusterNotFound flag set in context"() {
+    given:
+    def pipeline = new Pipeline()
+    def stage = new PipelineStage(pipeline, DisableServerGroupStage.PIPELINE_CONFIG_TYPE, [
+        continueIfClusterNotFound: true
+    ])
+    def task = new AbstractClusterWideClouddriverTask() {
+      @Override
+      String getClouddriverOperation() {
+        return null
+      }
+    }
+    def oortHelper = Mock(OortHelper)
+    task.oortHelper = oortHelper;
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * oortHelper.getCluster(_, _, _, _) >> Optional.empty()
+    result == DefaultTaskResult.SUCCEEDED
+
   }
 
   static TargetServerGroup sg(String name, String region = "us-west-1", int createdTime = System.currentTimeMillis()) {

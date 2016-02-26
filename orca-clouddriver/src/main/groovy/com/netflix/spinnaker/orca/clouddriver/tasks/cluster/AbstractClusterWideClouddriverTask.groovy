@@ -92,6 +92,9 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
                                                   clusterSelection.cluster,
                                                   clusterSelection.cloudProvider)
     if (!cluster.isPresent()) {
+      if (stage.context.continueIfClusterNotFound) {
+        return DefaultTaskResult.SUCCEEDED;
+      }
       return missingClusterResult(stage, clusterSelection)
     }
 

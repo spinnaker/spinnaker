@@ -51,7 +51,8 @@ class ShrinkClusterStage extends AbstractClusterWideClouddriverOperationStage {
     if (stage.context.allowDeleteActive == true) {
       injectBefore(stage, "disableCluster", disableClusterStage, stage.context + [
         remainingEnabledServerGroups: stage.context.shrinkToSize,
-        preferLargerOverNewer       : stage.context.retainLargerOverNewer
+        preferLargerOverNewer       : stage.context.retainLargerOverNewer,
+        continueIfClusterNotFound   : stage.context.shrinkToSize == 0
       ])
     }
     return super.buildSteps(stage)
