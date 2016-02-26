@@ -29,7 +29,8 @@ class Keys {
     AZURE_CLUSTERS,
     AZURE_SERVER_GROUPS,
     AZURE_INSTANCES,
-    AZURE_VMIMAGES
+    AZURE_VMIMAGES,
+    AZURE_ON_DEMAND
 
     final String ns
 
