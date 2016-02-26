@@ -1,5 +1,5 @@
 <ul class="nav nav-pills" ng-if="!application.notFound">
-  <li>
+  <li ng-if="feature.pipelines !== false">
     <a ui-sref=".executions"
        ng-if="!application.executions.loadFailure"
        ng-class="{active: $state.includes('**.executions.**') || $state.includes('**.pipelineConfig')}">
