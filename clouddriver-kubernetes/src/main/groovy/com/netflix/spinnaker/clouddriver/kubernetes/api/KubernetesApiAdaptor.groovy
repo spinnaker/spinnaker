@@ -56,6 +56,10 @@ class KubernetesApiAdaptor {
     client.replicationControllers().inNamespace(namespace).create(replicationController)
   }
 
+  ReplicationController resizeReplicationController(String namespace, String name, int size) {
+    client.replicationControllers().inNamespace(namespace).withName(name).scale(size)
+  }
+
   Service getService(String namespace, String service) {
     client.services().inNamespace(namespace).withName(service).get()
   }
