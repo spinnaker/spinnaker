@@ -119,5 +119,10 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
       });
     };
 
+    if (app.isStandalone) {
+      app.securityGroups = {
+        refresh: extractSecurityGroup
+      };
+    }
   }
 );
