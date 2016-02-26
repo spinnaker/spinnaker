@@ -25,5 +25,4 @@ module.exports = angular.module('spinnaker.delivery', [
   require('../utils/appendTransform.js'),
   require('../utils/lodash.js'),
   require('../utils/moment.js'),
-  require('../utils/rx.js'),
 ]);
