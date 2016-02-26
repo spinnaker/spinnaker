@@ -21,6 +21,7 @@
     "angular-ui-router": "=0.2.13",
     "angular-ui-select2": "0.0.5",
     "angular-ui-sortable": "^0.13.4",
+    "angular-wizard": "^0.5.3",
     "bootstrap": "3.3.5",
     "clipboard": "git://github.com/zenorocha/clipboard.js.git#v1.3.1",
     "d3": "^3.5.6",
