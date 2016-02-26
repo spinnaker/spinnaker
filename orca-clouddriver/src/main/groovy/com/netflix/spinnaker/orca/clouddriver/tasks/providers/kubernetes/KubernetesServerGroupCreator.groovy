@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.kubernetes
 
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
@@ -32,7 +33,37 @@ class KubernetesServerGroupCreator implements ServerGroupCreator {
   List<Map> getOperations(Stage stage) {
     def operation = [:]
 
-    operation.putAll(stage.context)
+    // If this stage was synthesized by a parallel deploy stage, the operation properties will be under 'cluster'.
+    if (stage.context.containsKey("cluster")) {
+      operation.putAll(stage.context.cluster as Map)
+    } else {
+      operation.putAll(stage.context)
+    }
+
+    // If this is a stage in a pipeline, look in the context for the baked image.
+    def deploymentDetails = (stage.context.deploymentDetails ?: []) as List<Map>
+
+    def imagesByPattern = deploymentDetails.collectEntries {
+      if (it.cloudProvider == cloudProvider && it.imageNamePattern) {
+        def name = Names.parseName((String) it.sourceServerGroup)
+        return [("$name.cluster $it.imageNamePattern"): it.imageId]
+      } else {
+        return [:]
+      }
+    }
+
+    def containers = (List<Map<String, Object>>) operation.containers
+
+    containers.forEach { container ->
+      if (container.fromContext) {
+        def image = imagesByPattern[container.image]
+        if (!image) {
+          throw new IllegalStateException("No image found in context for pattern $container.image.")
+        } else {
+          container.image = image
+        }
+      }
+    }
 
     return [[(ServerGroupCreator.OPERATION): operation]]
   }
