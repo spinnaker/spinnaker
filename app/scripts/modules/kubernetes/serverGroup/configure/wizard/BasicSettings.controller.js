@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.basi
   require('../../../../core/naming/naming.service.js'),
 ])
   .controller('kubernetesServerGroupBasicSettingsController', function($scope, $controller, $uibModalStack, $state,
-                                                          v2modalWizardService, rx, imageReader, namingService) {
+                                                                       v2modalWizardService, rx, imageReader, namingService) {
 
     function searchImages(q) {
       $scope.command.backingData.filtered.images = [
@@ -48,11 +48,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.basi
 
     this.searchImages = function(q) {
       imageSearchResultsStream.onNext(q);
-    };
-
-    this.enableAllImageSearch = () => {
-      $scope.command.viewState.useAllImageSelection = true;
-      this.searchImages('');
     };
 
     angular.extend(this, $controller('BasicSettingsMixin', {
