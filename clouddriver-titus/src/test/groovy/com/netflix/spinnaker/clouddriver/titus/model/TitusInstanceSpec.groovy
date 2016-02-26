@@ -42,7 +42,8 @@ class TitusInstanceSpec extends Specification {
       state: TaskState.RUNNING,
       submittedAt: launchDate,
       region: 'us-east-1',
-      host: 'ec2-1-2-3-4.compute-1.amazonaws.com'
+      host: 'ec2-1-2-3-4.compute-1.amazonaws.com',
+      data: [ ipAddresses : [ nfvpc : '4.5.6.7'] ]
     )
 
     when:
@@ -61,6 +62,7 @@ class TitusInstanceSpec extends Specification {
     titusInstance.placement?.region == task.region
     titusInstance.placement?.zone == task.zone
     titusInstance.placement?.host == task.host
+    titusInstance.placement?.containerIp == task.data.ipAddresses.nfvpc
     titusInstance.resources?.cpu == job.cpu
     titusInstance.resources?.memory == job.memory
     titusInstance.resources?.disk == job.disk
