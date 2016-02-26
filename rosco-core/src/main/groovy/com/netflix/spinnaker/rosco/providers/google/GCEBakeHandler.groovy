@@ -50,18 +50,6 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
   }
 
   @Override
-  String produceBakeKey(String region, BakeRequest bakeRequest) {
-    // TODO(duftler): Work through definition of uniqueness.
-    bakeRequest.with {
-      if (bakeRequest.base_ami) {
-        return "bake:$cloud_provider_type:$base_os:$bakeRequest.base_ami:$package_name"
-      } else {
-        return "bake:$cloud_provider_type:$base_os:$package_name"
-      }
-    }
-  }
-
-  @Override
   def findVirtualizationSettings(String region, BakeRequest bakeRequest) {
     def virtualizationSettings = gceBakeryDefaults?.baseImages.find {
       it.baseImage.id == bakeRequest.base_os

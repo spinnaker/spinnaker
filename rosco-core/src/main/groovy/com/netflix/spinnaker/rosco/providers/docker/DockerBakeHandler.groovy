@@ -48,14 +48,6 @@ public class DockerBakeHandler extends CloudProviderBakeHandler {
   }
 
   @Override
-  String produceBakeKey(String region, BakeRequest bakeRequest) {
-    // TODO(duftler): Work through definition of uniqueness.
-    bakeRequest.with {
-      return "bake:$cloud_provider_type:$base_os:$package_name"
-    }
-  }
-
-  @Override
   def findVirtualizationSettings(String region, BakeRequest bakeRequest) {
     def virtualizationSettings = dockerBakeryDefaults?.baseImages.find {
       it.baseImage.id == bakeRequest.base_os
@@ -63,6 +55,11 @@ public class DockerBakeHandler extends CloudProviderBakeHandler {
 
     if (!virtualizationSettings) {
       throw new IllegalArgumentException("No virtualization settings found for '$bakeRequest.base_os'.")
+    }
+
+    if (bakeRequest.base_ami) {
+      virtualizationSettings = virtualizationSettings.clone()
+      virtualizationSettings.sourceImage = bakeRequest.base_ami
     }
 
     return virtualizationSettings

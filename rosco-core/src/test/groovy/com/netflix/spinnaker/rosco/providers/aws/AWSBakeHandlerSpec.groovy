@@ -609,4 +609,41 @@ class AWSBakeHandlerSpec extends Specification {
       e.message == "No virtualization settings found for region 'us-east-1', operating system 'trusty', and vm type 'pv'."
   }
 
+  void 'produce a default AWS bakeKey without base ami'() {
+    setup:
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: PACKAGE_NAME,
+                                        base_os: "centos",
+                                        vm_type: BakeRequest.VmType.hvm,
+                                        cloud_provider_type: BakeRequest.CloudProviderType.aws)
+
+      @Subject
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
+
+    when:
+      String bakeKey = awsBakeHandler.produceBakeKey(REGION, bakeRequest)
+
+    then:
+      bakeKey == "bake:aws:centos:kato:us-east-1:hvm:enhancedNWDisabled"
+  }
+
+  void 'produce a default AWS bakeKey with base ami'() {
+    setup:
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: PACKAGE_NAME,
+                                        base_os: "centos",
+                                        vm_type: BakeRequest.VmType.hvm,
+                                        cloud_provider_type: BakeRequest.CloudProviderType.aws,
+                                        base_ami: "ami-123456")
+
+      @Subject
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
+
+    when:
+      String bakeKey = awsBakeHandler.produceBakeKey(REGION, bakeRequest)
+
+    then:
+      bakeKey == "bake:aws:centos:ami-123456:kato:us-east-1:hvm:enhancedNWDisabled"
+  }
+
 }

@@ -507,4 +507,39 @@ class GCEBakeHandlerSpec extends Specification {
       e.message == "No Google account specified for bakery."
   }
 
+  void 'produce a default GCE bakeKey without base image'() {
+    setup:
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: PACKAGE_NAME,
+                                        base_os: "centos",
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce)
+
+      @Subject
+      GCEBakeHandler gceBakeHandler = new GCEBakeHandler()
+
+    when:
+      String bakeKey = gceBakeHandler.produceBakeKey(REGION, bakeRequest)
+
+    then:
+      bakeKey == "bake:gce:centos:kato"
+  }
+
+  void 'produce a default GCE bakeKey with base image'() {
+    setup:
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: PACKAGE_NAME,
+                                        base_os: "centos",
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce,
+                                        base_ami: "my-base-image")
+
+      @Subject
+      GCEBakeHandler gceBakeHandler = new GCEBakeHandler()
+
+    when:
+      String bakeKey = gceBakeHandler.produceBakeKey(REGION, bakeRequest)
+
+    then:
+      bakeKey == "bake:gce:centos:my-base-image:kato"
+  }
+
 }
