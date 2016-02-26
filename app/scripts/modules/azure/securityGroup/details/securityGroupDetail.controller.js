@@ -110,5 +110,12 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.con
       });
     };
 
+    if (app.isStandalone) {
+      // we still want the edit to refresh the security group details when the modal closes
+      app.securityGroups = {
+        refresh: extractSecurityGroup
+      };
+    }
+
   }
 );
