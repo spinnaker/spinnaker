@@ -9,7 +9,7 @@
   <option ng-repeat="account in vm.secondaryAccounts" value="{{account}}" ng-selected="vm.component[vm.field] === account">{{account}}</option>
 </select>
 
-  <p class="form-control-static" ng-if="readOnly">{{vm.component[vm.field]}}</p>
+  <p class="form-control-static" ng-if="vm.readOnly">{{vm.component[vm.field]}}</p>
 </div>
 
 <div ng-if="vm.multiselect">
