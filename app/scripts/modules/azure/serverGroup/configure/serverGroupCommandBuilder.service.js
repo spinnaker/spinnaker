@@ -4,8 +4,10 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.service', [
   require('../../image/image.reader.js'),
+  require('../../../core/loadBalancer/loadBalancer.read.service.js'),
+  require('../../../core/utils/lodash.js'),
 ])
-  .factory('azureServerGroupCommandBuilder', function ($q, settings, azureImageReader) {
+  .factory('azureServerGroupCommandBuilder', function ($q, settings, azureImageReader, loadBalancerReader) {
 
     function buildNewServerGroupCommand (application, defaults) {
       defaults = defaults || {};
@@ -17,12 +19,14 @@ module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.servi
 
       return $q.all({
         images: imageLoader,
+        loadBalancers: loadBalancerReader.loadLoadBalancers(application.name),
       }).then(function(backingData) {
-        return{
+        return {
           application: application.name,
           credentials: defaultCredentials,
           region: defaultRegion,
           images: backingData.images,
+          loadBalancers: [],
           strategy: '',
           capacity: {
             min: 1,
@@ -39,6 +43,7 @@ module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.servi
             usePreferredZones: true,
             mode: defaults.mode || 'create',
             disableStrategySelection: true,
+            loadBalancersConfigured: false,
           },
         };
       });

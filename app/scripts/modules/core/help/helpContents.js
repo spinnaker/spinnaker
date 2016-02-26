@@ -312,4 +312,6 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'azure.securityGroup.ingress.direction': 'Specifies whether the rule is for inbound or outbound traffic.',
     'azure.securityGroup.ingress.actions': 'To adjust the priority of a rule, move it up or down in the list of rules.  Rules at the top of the list have the highest priority.',
     'azure.serverGroup.imageName': '(Required) <b>Image</b> is the deployable Azure Machine Image.',
+    'azure.serverGroup.stack': '(Required) <b>Stack</b> is one of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',
+    'azure.serverGroup.detail': '(Required) <b>Detail</b> is a naming component to help distinguish specifics of the server group.',
   });

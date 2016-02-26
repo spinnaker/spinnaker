@@ -32,109 +32,29 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.service',
     }
 
     function configureCommand(application, command) {
-      var imageLoader;
-      if (command.viewState.disableImageSelection) {
-        imageLoader = $q.when(null);
-      } else {
-        imageLoader = command.viewState.imageId ? loadImagesFromAmi(command) : loadImagesFromApplicationName(application, command.selectedProvider);
-      }
-
       return $q.all({
         credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('azure'),
         securityGroups: securityGroupReader.getAllSecurityGroups(),
         loadBalancers: loadBalancerReader.loadLoadBalancers(application.name),
-        subnets: subnetReader.listSubnets(),
-        preferredZones: accountService.getPreferredZonesByAccount(),
-        keyPairs: keyPairsReader.listKeyPairs(),
-        packageImages: imageLoader,
-        instanceTypes: azureInstanceTypeService.getAllTypesByRegion(),
-        healthCheckTypes: $q.when(angular.copy(healthCheckTypes)),
-        terminationPolicies: $q.when(angular.copy(terminationPolicies)),
+        //instanceTypes: azureInstanceTypeService.getAllTypesByRegion(),
       }).then(function(backingData) {
         var loadBalancerReloader = $q.when(null);
-        var securityGroupReloader = $q.when(null);
-        var instanceTypeReloader = $q.when(null);
         backingData.accounts = _.keys(backingData.credentialsKeyedByAccount);
         backingData.filtered = {};
         command.backingData = backingData;
-        configureVpcId(command);
 
         if (command.loadBalancers && command.loadBalancers.length) {
           // verify all load balancers are accounted for; otherwise, try refreshing load balancers cache
-          var loadBalancerNames = getLoadBalancerNames(command);
+          var loadBalancerNames = getLoadBalancerNames(command.backingData.loadBalancers);
           if (_.intersection(loadBalancerNames, command.loadBalancers).length < command.loadBalancers.length) {
             loadBalancerReloader = refreshLoadBalancers(command, true);
           }
         }
-        if (command.securityGroups && command.securityGroups.length) {
-          var regionalSecurityGroupIds = _.pluck(getRegionalSecurityGroups(command), 'id');
-          if (_.intersection(command.securityGroups, regionalSecurityGroupIds).length < command.securityGroups.length) {
-            securityGroupReloader = refreshSecurityGroups(command, true);
-          }
-        }
-        if (command.instanceType) {
-          instanceTypeReloader = refreshInstanceTypes(command, true);
-        }
 
-        return $q.all([loadBalancerReloader, securityGroupReloader, instanceTypeReloader]).then(function() {
+        return $q.all([loadBalancerReloader]).then(function() {
           attachEventHandlers(command);
         });
       });
-    }
-
-    function loadImagesFromApplicationName(application, provider) {
-      return azureImageReader.findImages({
-        provider: provider,
-        q: application.name.replace(/_/g, '[_\\-]') + '*',
-      });
-    }
-
-    function loadImagesFromAmi(command) {
-      return azureImageReader.getImage(command.viewState.imageId, command.region, command.credentials).then(
-        function (namedImage) {
-          if (!namedImage) {
-            return [];
-          }
-          command.amiName = namedImage.imageName;
-
-          var packageBase = namedImage.imageName.split('_')[0];
-          var parts = packageBase.split('-');
-          if (parts.length > 3) {
-            packageBase = parts.slice(0, -3).join('-');
-          }
-          if (!packageBase || packageBase.length < 3) {
-            return [namedImage];
-          }
-
-          return azureImageReader.findImages({
-            provider: command.selectedProvider,
-            q: packageBase + '-*',
-          });
-        },
-        function() {
-          return [];
-        }
-      );
-    }
-
-    function configureKeyPairs(command) {
-      var result = { dirty: {} };
-      if (command.credentials && command.region) {
-        var filtered = _(command.backingData.keyPairs)
-          .filter({account: command.credentials, region: command.region})
-          .pluck('keyName')
-          .valueOf();
-        if (command.keyPair && filtered.indexOf(command.keyPair) === -1) {
-          var acct = command.backingData.credentialsKeyedByAccount[command.credentials] || {regions: [], defaultKeyPair: null};
-          command.keyPair = acct.defaultKeyPair;
-          // Note: this will generally be ignored, so we probably won't flag it in the UI
-          result.dirty.keyPair = true;
-        }
-        command.backingData.filtered.keyPairs = filtered;
-      } else {
-        command.backingData.filtered.keyPairs = [];
-      }
-      return result;
     }
 
     function configureInstanceTypes(command) {
@@ -244,16 +164,6 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.service',
       return result;
     }
 
-    function configureSecurityGroupDiffs(command) {
-      var currentOptions = command.backingData.filtered.securityGroups;
-      var currentSecurityGroupNames = command.securityGroups.map(function(groupId) {
-        var match = _(currentOptions).find({id: groupId});
-        return match ? match.name : groupId;
-      });
-      var result = diffService.diffSecurityGroups(currentSecurityGroupNames, command.viewState.clusterDiff, command.source);
-      command.viewState.securityGroupDiffs = result;
-    }
-
     function refreshSecurityGroups(command, skipCommandReconfiguration) {
       return cacheInitializer.refreshCache('securityGroups').then(function() {
         return securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
@@ -276,17 +186,8 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.service',
       });
     }
 
-    function getLoadBalancerNames(command) {
-      return _(command.backingData.loadBalancers)
-        .pluck('accounts')
-        .flatten(true)
-        .filter({name: command.credentials})
-        .pluck('regions')
-        .flatten(true)
-        .filter({name: command.region})
-        .pluck('loadBalancers')
-        .flatten(true)
-        .filter({vpcId: command.vpcId})
+    function getLoadBalancerNames(loadBalancers) {
+      return _(loadBalancers)
         .pluck('name')
         .unique()
         .valueOf()
@@ -296,7 +197,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.service',
     function configureLoadBalancerOptions(command) {
       var result = { dirty: {} };
       var current = command.loadBalancers;
-      var newLoadBalancers = getLoadBalancerNames(command);
+      var newLoadBalancers = getLoadBalancerNames(command.backingData.loadBalancers);
 
       if (current && command.loadBalancers) {
         var matched = _.intersection(newLoadBalancers, command.loadBalancers);
@@ -321,65 +222,23 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.service',
       });
     }
 
-    function configureVpcId(command) {
+    function configureLoadBalancers(command) {
       var result = { dirty: {} };
-      if (!command.subnetType) {
-        command.vpcId = null;
-        result.dirty.vpcId = true;
-      } else {
-        var subnet = _(command.backingData.subnets)
-          .find({purpose: command.subnetType, account: command.credentials, region: command.region});
-        command.vpcId = subnet ? subnet.vpcId : null;
-      }
+      var temp = command.backingData.loadBalancers;
+      var filterlist = _.filter(temp, function(lb) { return (lb.account === command.credentials && lb.region === command.region);});
+
+      command.loadBalancers = getLoadBalancerNames(filterlist);
+      command.viewState.loadBalancersConfigured = true;
+
       return result;
     }
 
     function attachEventHandlers(command) {
 
-      command.configureSecurityGroupDiffs = function () {
-        configureSecurityGroupDiffs(command);
-      };
-
-      command.usePreferredZonesChanged = function usePreferredZonesChanged() {
-        var currentZoneCount = command.availabilityZones ? command.availabilityZones.length : 0;
-        var result = { dirty: {} };
-        var preferredZonesForAccount = command.backingData.preferredZones[command.credentials];
-        if (preferredZonesForAccount && preferredZonesForAccount[command.region] && command.viewState.usePreferredZones) {
-          command.availabilityZones = angular.copy(preferredZonesForAccount[command.region].sort());
-        } else {
-          command.availabilityZones = _.intersection(command.availabilityZones, command.backingData.filtered.availabilityZones);
-          var newZoneCount = command.availabilityZones ? command.availabilityZones.length : 0;
-          if (currentZoneCount !== newZoneCount) {
-            result.dirty.availabilityZones = true;
-          }
-        }
-        return result;
-      };
-
-      command.subnetChanged = function subnetChanged() {
-        var result = configureVpcId(command);
-        angular.extend(result.dirty, configureSecurityGroupOptions(command).dirty);
-        angular.extend(result.dirty, configureLoadBalancerOptions(command).dirty);
-        command.viewState.dirty = command.viewState.dirty || {};
-        angular.extend(command.viewState.dirty, result.dirty);
-        return result;
-      };
-
       command.regionChanged = function regionChanged() {
         var result = { dirty: {} };
-        var filteredData = command.backingData.filtered;
-        angular.extend(result.dirty, configureSubnetPurposes(command).dirty);
-        if (command.region) {
-          angular.extend(result.dirty, command.subnetChanged().dirty);
-          angular.extend(result.dirty, configureInstanceTypes(command).dirty);
-
-          configureAvailabilityZones(command);
-          angular.extend(result.dirty, command.usePreferredZonesChanged().dirty);
-
-          angular.extend(result.dirty, configureImages(command).dirty);
-          angular.extend(result.dirty, configureKeyPairs(command).dirty);
-        } else {
-          filteredData.regionalAvailabilityZones = null;
+        if (command.region && command.credentials) {
+          angular.extend(result.dirty, configureLoadBalancers(command).dirty);
         }
 
         return result;
@@ -397,36 +256,25 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.service',
           } else {
             angular.extend(result.dirty, command.regionChanged().dirty);
           }
-          command.clusterChanged();
+          if (command.region) {
+            angular.extend(result.dirty, configureLoadBalancers(command).dirty);
+          }
         } else {
           command.region = null;
         }
         return result;
-      };
-
-      command.clusterChanged = function clusterChanged() {
-        if (!command.application) {
-          return;
-        }
-        diffService.getClusterDiffForAccount(command.credentials,
-            namingService.getClusterName(command.application, command.stack, command.freeFormDetails)).then((diff) => {
-              command.viewState.clusterDiff = diff;
-              configureSecurityGroupDiffs(command);
-        });
       };
     }
 
     return {
       configureUpdateCommand: configureUpdateCommand,
       configureCommand: configureCommand,
-      configureKeyPairs: configureKeyPairs,
       configureInstanceTypes: configureInstanceTypes,
       configureImages: configureImages,
       configureAvailabilityZones: configureAvailabilityZones,
       configureSubnetPurposes: configureSubnetPurposes,
       configureSecurityGroupOptions: configureSecurityGroupOptions,
       configureLoadBalancerOptions: configureLoadBalancerOptions,
-      configureVpcId: configureVpcId,
       refreshLoadBalancers: refreshLoadBalancers,
       refreshSecurityGroups: refreshSecurityGroups,
       refreshInstanceTypes: refreshInstanceTypes,
