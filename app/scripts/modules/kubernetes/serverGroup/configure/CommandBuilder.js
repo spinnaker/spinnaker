@@ -38,7 +38,8 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
         selectedProvider: 'kubernetes',
         namespace: 'default',
         containers: [],
-        groupByContainer: groupByContainer,
+        buildImageId: buildImageId,
+        groupByRegistry: groupByRegistry,
         viewState: {
           mode: defaults.mode || 'create',
           disableStrategySelection: true,
@@ -63,7 +64,7 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
       }
       let result = [];
       if (current.type === 'findImage') {
-        result.push({ fromContext: true, imageName: `${current.cluster} ${current.imageNamePattern}` });
+        result.push({ fromContext: true, cluster: current.cluster, pattern: current.imageNamePattern, repository: current.name });
       }
       current.requisiteStageRefIds.forEach(function(id) {
         let [next] = all.filter((stage) => stage.refId === id);
@@ -79,54 +80,53 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
       return $q.when({
         viewState: {
           contextImages: findUpstreamImages(current, all),
+          mode: 'editPipeline',
+          submitButtonLabel: 'Done',
           requiresTemplateSelection: true,
         }
       });
     }
 
-    function groupByContainer(container) {
-      if (container.fromContext) {
+    function groupByRegistry(container) {
+      if (container.imageDescription.fromContext) {
         return 'Find Image Result(s)';
       } else {
-        return 'Registry Images';
+        return container.imageDescription.registry;
       }
     }
 
-    // Mutating map call - not the best, but a copy would be too expensive.
-    function buildContainerFromExisting(container) {
-      container.requests = container.resources.requests;
-      container.limits = container.resources.limits;
-      return container;
+    function buildImageId(image) {
+      if (image.fromContext) {
+        return `${image.cluster} ${image.pattern}`;
+      } else {
+        return `${image.registry}/${image.repository}:${image.tag}`;
+      }
     }
 
     function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
       mode = mode || 'clone';
 
-      var serverGroupName = namingService.parseServerGroupName(serverGroup.name);
+      var command = serverGroup.deployDescription;
 
-      var command = {
-        application: application.name,
-        stack: serverGroupName.stack,
-        freeFormDetails: serverGroupName.freeFormDetails,
+      command.groupByRegistry = groupByRegistry;
+      command.cloudProvider = 'kubernetes';
+      command.selectedProvider = 'kubernetes';
+      command.account = serverGroup.account;
+      command.buildImageId = buildImageId;
+
+      command.containers.map((container) => {
+        container.imageDescription.imageId = buildImageId(container.imageDescription);
+      });
+
+      command.source = {
+        serverGroupName: serverGroup.name,
+        asgName: serverGroup.name,
         account: serverGroup.account,
-        loadBalancers: serverGroup.loadBalancers,
-        securityGroups: serverGroup.securityGroups,
-        targetSize: serverGroup.replicas,
-        cloudProvider: 'kubernetes',
-        selectedProvider: 'kubernetes',
+        region: serverGroup.region,
         namespace: serverGroup.region,
-        containers: _.map(serverGroup.containers, buildContainerFromExisting),
-        groupByContainer: groupByContainer,
-        source: {
-          serverGroupName: serverGroup.name,
-          asgName: serverGroup.name,
-          account: serverGroup.account,
-          region: serverGroup.region,
-          namespace: serverGroup.region,
-        },
-        viewState: {
+      };
+      command.viewState = {
           mode: mode,
-        },
       };
 
       if (application && application.attributes && application.attributes.platformHealthOnly) {

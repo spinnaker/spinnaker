@@ -38,30 +38,38 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
       });
     }
 
-    function mapImageToContainer(image) {
-      return {
-        name: image.imageName.replace(/\W/g, '').toLowerCase(),
-        image: image.imageName,
-        registry: image.registry,
-        account: image.accountName,
-        fromContext: image.fromContext,
-        requests: {
-          memory: null,
-          cpu: null,
-        },
-        limits: {
-          memory: null,
-          cpu: null,
-        },
-        ports: [
-        {
-          name: 'http',
-          containerPort: 80,
-          protocol: 'TCP',
-          hostPort: null,
-          hostIp: null,
-        }
-        ],
+    function mapImageToContainer(command) {
+      return (image) => {
+        return {
+          name: image.repository.replace(/\W/g, '').toLowerCase(),
+          imageDescription: {
+            repository: image.repository,
+            tag: image.tag,
+            imageId: command.buildImageId(image),
+            registry: image.registry,
+            fromContext: image.fromContext,
+            cluster: image.cluster,
+            pattern: image.pattern,
+          },
+          account: image.accountName,
+          requests: {
+            memory: null,
+            cpu: null,
+          },
+          limits: {
+            memory: null,
+            cpu: null,
+          },
+          ports: [
+          {
+            name: 'http',
+            containerPort: 80,
+            protocol: 'TCP',
+            hostPort: null,
+            hostIp: null,
+          }
+          ],
+        };
       };
     }
 
@@ -95,10 +103,10 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
     function configureContainers(command) {
       var result = { dirty : {} };
       angular.extend(result.dirty, configureImages(command).dirty);
-      command.backingData.filtered.containers = _.map(command.backingData.filtered.images, mapImageToContainer);
+      command.backingData.filtered.containers = _.map(command.backingData.filtered.images, mapImageToContainer(command));
       var validContainers = [];
       command.containers.forEach(function(container) {
-        if (container.fromContext || _.find(command.backingData.filtered.containers, { image: container.image })) {
+        if (container.imageDescription.fromContext || _.find(command.backingData.filtered.containers, { imageDescription: { imageId: container.imageDescription.imageId } })) {
           validContainers.push(container);
         } else {
           result.dirty.containers = result.dirty.containers || [];
