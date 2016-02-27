@@ -79,6 +79,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     String cluster
     List<String> regions
     List<String> zones
+    List<String> namespaces
     Boolean onlyEnabled = true
     Boolean resolveMissingLocations
     SelectionStrategy selectionStrategy = SelectionStrategy.NEWEST
@@ -91,7 +92,8 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     Set<Location> getRequiredLocations() {
         return regions?.collect { new Location(Location.Type.REGION, it) } ?:
           zones?.collect { new Location(Location.Type.ZONE, it) } ?:
-            []
+            namespaces?.collect { new Location(Location.Type.NAMESPACE, it) } ?:
+              []
     }
   }
 
@@ -188,10 +190,6 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
 
     List<Map> deploymentDetails = imageSummaries.collect { location, summaries ->
       summaries.collect { summary ->
-        if (config.imageNamePattern && !(summary.imageName ==~ config.imageNamePattern)) {
-          return [:]
-        }
-
         def result = [
           ami              : summary.imageId, // TODO(ttomsu): Deprecate and remove this value.
           imageId          : summary.imageId,

@@ -25,6 +25,7 @@ import groovy.transform.ToString
 class Location {
   enum Type {
     REGION,
+    NAMESPACE,
     ZONE
   }
   Type type
