@@ -100,12 +100,18 @@ class KubernetesApiAdaptor {
     def containerDescription = new KubernetesContainerDescription()
     containerDescription.name = container?.name
     containerDescription.imageDescription = KubernetesUtil.buildImageDescription(container?.image)
-    containerDescription.limits = new KubernetesResourceDescription()
-    containerDescription.limits.cpu = container?.resources?.limits?.cpu
-    containerDescription.limits.memory = container?.resources?.limits?.memory
-    containerDescription.requests = new KubernetesResourceDescription()
-    containerDescription.requests.cpu = container?.resources?.requests?.cpu
-    containerDescription.requests.memory = container?.resources?.requests?.memory
+
+    container?.resources?.with {
+      containerDescription.limits = new  KubernetesResourceDescription(
+        cpu: limits?.cpu?.amount,
+        memory: limits?.memory?.amount
+      )
+
+      containerDescription.requests = new  KubernetesResourceDescription(
+        cpu: requests?.cpu?.amount,
+        memory: requests?.memory?.amount
+      )
+    }
 
     containerDescription.ports = container?.ports?.collect {
       def port = new KubernetesContainerPort()
