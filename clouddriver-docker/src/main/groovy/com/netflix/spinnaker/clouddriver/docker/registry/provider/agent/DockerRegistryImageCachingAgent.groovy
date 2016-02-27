@@ -32,12 +32,7 @@ import groovy.util.logging.Slf4j
 import static java.util.Collections.unmodifiableSet
 
 @Slf4j
-class DockerRegistryImageCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
-  @Deprecated
-  private static final String LEGACY_ON_DEMAND_TYPE = 'DockerRegistryTaggedImage'
-
-  private static final String ON_DEMAND_TYPE = 'TaggedImage'
-
+class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware {
   static final Set<AgentDataType> types = unmodifiableSet([
     AgentDataType.Authority.AUTHORITATIVE.forType(Keys.Namespace.TAGGED_IMAGE.ns)
   ] as Set)
@@ -45,16 +40,13 @@ class DockerRegistryImageCachingAgent implements CachingAgent, OnDemandAgent, Ac
   private DockerRegistryCredentials credentials
   private DockerRegistryCloudProvider dockerRegistryCloudProvider
   private String accountName
-  private OnDemandMetricsSupport metricsSupport
 
   DockerRegistryImageCachingAgent(DockerRegistryCloudProvider dockerRegistryCloudProvider,
                                   String accountName,
-                                  DockerRegistryCredentials credentials,
-                                  Registry registry) {
+                                  DockerRegistryCredentials credentials) {
     this.dockerRegistryCloudProvider = dockerRegistryCloudProvider
     this.accountName = accountName
     this.credentials = credentials
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${Keys.Namespace.provider}:${ON_DEMAND_TYPE}".toString())
   }
 
   @Override
@@ -79,56 +71,11 @@ class DockerRegistryImageCachingAgent implements CachingAgent, OnDemandAgent, Ac
     DockerRegistryProvider.PROVIDER_NAME
   }
 
-  @Override
-  String getOnDemandAgentType() {
-    "${getAgentType()}-OnDemand"
-  }
-
-  @Override
-  OnDemandMetricsSupport getMetricsSupport() {
-    return metricsSupport
-  }
-
-  @Override
-  boolean handles(String type) {
-    type == LEGACY_ON_DEMAND_TYPE
-  }
-
-  @Override
-  boolean handles(String type, String cloudProvider) {
-    cloudProvider == Keys.Namespace.provider && type == ON_DEMAND_TYPE
-  }
-
-  @Override
-  OnDemandAgent.OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data) {
-    if (data.account != accountName) {
-      return null
-    }
-
-    Map<String, Set<String>> mapRepositoryToTags = metricsSupport.readData {
-      loadTags()
-    }
-
-    CacheResult result = metricsSupport.transformData {
-      buildCacheResult(mapRepositoryToTags)
-    }
-
-    new OnDemandAgent.OnDemandResult(
-      sourceAgentType: getAgentType(),
-      cacheResult: result
-    )
-  }
-
   private Map<String, Set<String>> loadTags() {
     credentials.repositories.collectEntries {
       DockerRegistryTags tags = credentials.client.getTags(it)
       tags ? [(tags.name): tags.tags ?: []] : [:]
     }
-  }
-
-  @Override
-  Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
-    return [:]
   }
 
   @Override

@@ -16,7 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.model
 
+import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerPort
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import groovy.transform.CompileStatic
@@ -39,7 +44,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
   Set<String> securityGroups
   Map<String, Object> launchConfig
   Map<String, String> labels = [:]
-  List<Container> containers
+  DeployKubernetesAtomicOperationDescription deployDescription
   ReplicationController replicationController
 
   Boolean isDisabled() {
@@ -63,7 +68,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     this.loadBalancers = KubernetesUtil.getDescriptionLoadBalancers(replicationController) as Set
     this.launchConfig = [:]
     this.labels = replicationController.spec?.template?.metadata?.labels
-    this.containers = replicationController.spec?.template?.spec?.containers
+    this.deployDescription = KubernetesApiAdaptor.fromReplicationController(replicationController)
     this.replicationController = replicationController
   }
 
@@ -88,20 +93,26 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     return new ServerGroup.ImagesSummary() {
       @Override
       List<ServerGroup.ImageSummary> getSummaries () {
-        containers.collect({ Container it ->
+        deployDescription.containers.collect({ KubernetesContainerDescription it ->
           new ServerGroup.ImageSummary() {
             String serverGroupName = name
             String imageName = it.name
-            String imageId = it.image
+            String imageId = KubernetesUtil.getImageId(it.imageDescription)
 
             @Override
             Map<String, Object> getBuildInfo() {
-              return it.additionalProperties
+              return [:]
             }
 
             @Override
             Map<String, Object> getImage() {
-              return [image: it.image, name: it.name]
+              return [
+                container: it.name,
+                registry: it.imageDescription.registry,
+                tag: it.imageDescription.tag,
+                repository: it.imageDescription.repository,
+                imageId: imageId
+              ]
             }
           }
         })

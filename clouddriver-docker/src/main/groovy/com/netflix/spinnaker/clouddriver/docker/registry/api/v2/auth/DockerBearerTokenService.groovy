@@ -34,7 +34,7 @@ class DockerBearerTokenService {
     cachedTokens = new HashMap<String, DockerBearerToken>()
     if (username) {
       basicAuth = new String(Base64.encoder.encode(("${username}:${password}").bytes))
-      basicAuth = "Basic $basicAuth"
+      basicAuth = "$basicAuth"
     } else {
       basicAuth = null
     }
@@ -169,7 +169,7 @@ class DockerBearerTokenService {
     def tokenService = getTokenService(authenticateDetails.realm)
     def token
     if (basicAuth) {
-      token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, basicAuth)
+      token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, "Basic $basicAuth")
     }
     else {
       token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope)

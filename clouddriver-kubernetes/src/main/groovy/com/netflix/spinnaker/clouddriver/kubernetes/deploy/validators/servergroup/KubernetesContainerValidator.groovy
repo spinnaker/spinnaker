@@ -22,7 +22,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKu
 class KubernetesContainerValidator {
   static void validate(KubernetesContainerDescription description, StandardKubernetesAttributeValidator helper, String prefix) {
     helper.validateName(description.name, "${prefix}.name")
-    helper.validateNotEmpty(description.image, "${prefix}.image")
+    helper.validateNotEmpty(description.imageDescription, "${prefix}.imageDescription")
 
     if (description.limits) {
       helper.validateCpu(description.limits.cpu, "${prefix}.limits.cpu")

@@ -46,9 +46,17 @@ class KubernetesContainerPort {
 
 @AutoClone
 @Canonical
+class KubernetesImageDescription {
+  String repository
+  String tag
+  String registry
+}
+
+@AutoClone
+@Canonical
 class KubernetesContainerDescription {
   String name
-  String image
+  KubernetesImageDescription imageDescription
   KubernetesResourceDescription requests
   KubernetesResourceDescription limits
   List<KubernetesContainerPort> ports

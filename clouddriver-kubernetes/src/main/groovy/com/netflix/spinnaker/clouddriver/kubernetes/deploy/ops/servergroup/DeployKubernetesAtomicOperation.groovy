@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder
@@ -39,9 +40,8 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
   DeployKubernetesAtomicOperationDescription description
 
   /*
-   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "securityGroups": [], "loadBalancers":  [],  "containers": [ { "name": "nginx", "image": "nginx" } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
-   *
-   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "loadBalancers":  ["frontend-lb"],  "containers": [ { "name": "nginx", "image": "nginx", "ports": [ { "containerPort": "80", "hostPort": "80", "name": "http", "protocol": "TCP", "hostIp": "10.239.18.11" } ] } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "securityGroups": [], "loadBalancers":  [],  "containers": [ { "name": "nginx", "imageDescription": { "repository": "nginx" } } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "loadBalancers":  ["frontend-lb"],  "containers": [ { "name": "nginx", "imageDescription": { "repository": "nginx", "tag": "latest", "registry": "gcr.io" }, "ports": [ { "containerPort": "80", "hostPort": "80", "name": "http", "protocol": "TCP", "hostIp": "10.239.18.11" } ] } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
   */
   @Override
   DeploymentResult operate(List priorOutputs) {
@@ -112,8 +112,10 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     }
 
     for (def container : description.containers) {
-      task.updateStatus BASE_PHASE, "Adding container ${container.name} with image ${container.image}..."
-      replicationControllerBuilder = replicationControllerBuilder.addNewContainer().withName(container.name).withImage(container.image)
+      KubernetesUtil.normalizeImageDescription(container.imageDescription)
+      def imageId = KubernetesUtil.getImageId(container.imageDescription)
+      task.updateStatus BASE_PHASE, "Adding container ${container.name} with image ${imageId}..."
+      replicationControllerBuilder = replicationControllerBuilder.addNewContainer().withName(container.name).withImage(imageId)
 
       if (container.ports) {
         task.updateStatus BASE_PHASE, "Setting container ports..."

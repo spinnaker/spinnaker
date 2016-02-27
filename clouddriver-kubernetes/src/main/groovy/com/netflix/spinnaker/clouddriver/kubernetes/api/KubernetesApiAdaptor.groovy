@@ -16,7 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.api
 
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerPort
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesResourceDescription
+import io.fabric8.kubernetes.api.model.Container
 import io.fabric8.kubernetes.api.model.Namespace
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.ReplicationController
@@ -88,5 +94,53 @@ class KubernetesApiAdaptor {
 
   Namespace createNamespace(Namespace namespace) {
     client.namespaces().create(namespace)
+  }
+
+  static KubernetesContainerDescription fromContainer(Container container) {
+    def containerDescription = new KubernetesContainerDescription()
+    containerDescription.name = container?.name
+    containerDescription.imageDescription = KubernetesUtil.buildImageDescription(container?.image)
+    containerDescription.limits = new KubernetesResourceDescription()
+    containerDescription.limits.cpu = container?.resources?.limits?.cpu
+    containerDescription.limits.memory = container?.resources?.limits?.memory
+    containerDescription.requests = new KubernetesResourceDescription()
+    containerDescription.requests.cpu = container?.resources?.requests?.cpu
+    containerDescription.requests.memory = container?.resources?.requests?.memory
+
+    containerDescription.ports = container?.ports?.collect {
+      def port = new KubernetesContainerPort()
+      port.hostIp = it?.hostIP
+      if (it?.hostPort) {
+        port.hostPort = it?.hostPort?.intValue()
+      }
+      if (it?.containerPort) {
+        port.containerPort = it?.containerPort?.intValue()
+      }
+      port.name = it?.name
+      port.protocol = it?.protocol
+
+      return port
+    }
+
+    return containerDescription
+  }
+
+  static DeployKubernetesAtomicOperationDescription fromReplicationController(ReplicationController replicationController) {
+    def deployDescription = new DeployKubernetesAtomicOperationDescription()
+    def parsedName = Names.parseName(replicationController?.metadata?.name)
+
+    deployDescription.application = parsedName?.app
+    deployDescription.stack = parsedName?.stack
+    deployDescription.freeFormDetails = parsedName?.detail
+    deployDescription.loadBalancers = KubernetesUtil?.getDescriptionLoadBalancers(replicationController)
+    deployDescription.namespace = replicationController?.metadata?.namespace
+    deployDescription.targetSize = replicationController?.spec?.replicas
+    deployDescription.securityGroups = []
+
+    deployDescription.containers = replicationController?.spec?.template?.spec?.containers?.collect {
+      fromContainer(it)
+    }
+
+    return deployDescription
   }
 }
