@@ -19,9 +19,11 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.servergroup
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.CloneKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesResourceDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.servergroup.KubernetesContainerValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import io.fabric8.kubernetes.api.model.*
@@ -40,6 +42,9 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
   private static final SECURITY_GROUP_NAMES = ["sg1", "sg2"]
   private static final LABELS = ["load-balancer-lb1": true, "load-balancer-lb2": true, "security-group-sg1": true, "security-group-sg2": true]
   private static final CONTAINER_NAMES = ["c1", "c2"]
+  private static final REGISTRY = 'index.docker.io'
+  private static final TAG = 'latest'
+  private static final REPOSITORY = 'library/nginx'
   private static final REQUEST_CPU = ["100m", null]
   private static final REQUEST_MEMORY = ["100Mi", "200Mi"]
   private static final LIMIT_CPU = ["120m", "200m"]
@@ -66,11 +71,14 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
   def setup() {
     apiMock = Mock(KubernetesApiAdaptor)
 
+    def imageId = KubernetesUtil.getImageId(REGISTRY, REPOSITORY, TAG)
+    def imageDescription = KubernetesUtil.buildImageDescription(imageId)
+
     containers = []
     CONTAINER_NAMES.eachWithIndex { name, idx ->
       def requests = new KubernetesResourceDescription(cpu: REQUEST_CPU[idx], memory: REQUEST_MEMORY[idx])
       def limits = new KubernetesResourceDescription(cpu: LIMIT_CPU[idx], memory: LIMIT_MEMORY[idx])
-      containers = containers << new KubernetesContainerDescription(name: name, image: name, requests: requests, limits: limits)
+      containers = containers << new KubernetesContainerDescription(name: name, imageDescription: imageDescription, requests: requests, limits: limits)
     }
 
     ancestorNames = [
@@ -119,7 +127,7 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
 
       def requests = new KubernetesResourceDescription(cpu: REQUEST_CPU[l - idx], memory: REQUEST_MEMORY[l - idx])
       def limits = new KubernetesResourceDescription(cpu: LIMIT_CPU[l - idx], memory: LIMIT_MEMORY[l - idx])
-      containers = containers << new KubernetesContainerDescription(name: name, image: name, requests: requests, limits: limits)
+      containers = containers << new KubernetesContainerDescription(name: name, imageDescription: imageDescription, requests: requests, limits: limits)
     }
 
     podSpec.setContainers(replicationControllerContainers)
@@ -151,7 +159,9 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
       resultDescription.securityGroups == expectedResultDescription.securityGroups
       resultDescription.namespace == expectedResultDescription.namespace
       resultDescription.containers.eachWithIndex { c, idx ->
-        c.image == expectedResultDescription.containers[idx].image
+        c.imageDescription.registry == expectedResultDescription.containers[idx].imageDescription.registry
+        c.imageDescription.tag == expectedResultDescription.containers[idx].imageDescription.tag
+        c.imageDescription.repository == expectedResultDescription.containers[idx].imageDescription.repository
         c.name == expectedResultDescription.containers[idx].name
         c.requests.cpu == expectedResultDescription.containers[idx].requests.cpu
         c.requests.memory == expectedResultDescription.containers[idx].requests.memory
@@ -191,7 +201,9 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
       resultDescription.securityGroups == expectedResultDescription.securityGroups
       resultDescription.namespace == expectedResultDescription.namespace
       resultDescription.containers.eachWithIndex { c, idx ->
-        c.image == expectedResultDescription.containers[idx].image
+        c.imageDescription.registry == expectedResultDescription.containers[idx].imageDescription.registry
+        c.imageDescription.tag == expectedResultDescription.containers[idx].imageDescription.tag
+        c.imageDescription.repository == expectedResultDescription.containers[idx].imageDescription.repository
         c.name == expectedResultDescription.containers[idx].name
         c.requests.cpu == expectedResultDescription.containers[idx].requests.cpu
         c.requests.memory == expectedResultDescription.containers[idx].requests.memory

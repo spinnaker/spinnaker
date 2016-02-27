@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.CloneKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerPort
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesImageDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesResourceDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
@@ -129,11 +130,12 @@ class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult
 
         def newContainer = new KubernetesContainerDescription([
           name: it.name,
-          image: it.image,
+          imageDescription: KubernetesUtil.buildImageDescription(it.image),
           requests: newRequests,
           limits: newLimits,
           ports: newPorts,
         ])
+
         newDescription.containers.push(newContainer)
       }
     }

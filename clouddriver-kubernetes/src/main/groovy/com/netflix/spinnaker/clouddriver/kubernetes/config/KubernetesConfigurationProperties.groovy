@@ -27,7 +27,7 @@ class KubernetesConfigurationProperties {
     String accountType
     String cluster
     String user
-    String kubeConfigFile
+    String kubeconfigFile
     List<String> namespaces
     List<LinkedDockerRegistryConfiguration> dockerRegistries
   }

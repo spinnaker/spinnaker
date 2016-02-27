@@ -23,9 +23,9 @@ import io.fabric8.kubernetes.client.Config
 import io.fabric8.kubernetes.client.internal.KubeConfigUtils
 
 class KubernetesConfigParser {
-  static Config parse(String kubeConfigFile, String cluster, String user, List<String> namespaces) {
+  static Config parse(String kubeconfigFile, String cluster, String user, List<String> namespaces) {
 
-    def kubeConfig = KubeConfigUtils.parseConfig(new File(kubeConfigFile))
+    def kubeConfig = KubeConfigUtils.parseConfig(new File(kubeconfigFile))
     Config config = new Config()
 
     Context currentContext = KubeConfigUtils.getCurrentContext(kubeConfig)

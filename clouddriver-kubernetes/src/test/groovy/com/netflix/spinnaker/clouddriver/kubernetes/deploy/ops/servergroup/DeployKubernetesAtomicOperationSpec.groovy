@@ -40,6 +40,9 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
   private static final DETAILS = "details"
   private static final SEQUENCE = "v000"
   private static final TARGET_SIZE = 3
+  private static final REGISTRY = 'index.docker.io'
+  private static final TAG = 'latest'
+  private static final REPOSITORY = 'library/nginx'
   private static final LOAD_BALANCER_NAMES = ["lb1", "lb2"]
   private static final SECURITY_GROUP_NAMES = ["sg1", "sg2", "sg3"]
   private static final CONTAINER_NAMES = ["c1", "c2"]
@@ -68,6 +71,7 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
 
   def clusterName
   def replicationControllerName
+  def imageId
 
   def accountCredentialsRepositoryMock
 
@@ -89,6 +93,9 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
     intOrStringMock = Mock(IntOrString)
     accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
 
+    imageId = KubernetesUtil.getImageId(REGISTRY, REPOSITORY, TAG)
+    def imageDescription = KubernetesUtil.buildImageDescription(imageId)
+
     DOCKER_REGISTRY_ACCOUNTS.forEach({ account ->
       def dockerRegistryAccountMock = Mock(DockerRegistryNamedAccountCredentials)
       accountCredentialsRepositoryMock.getOne(account.accountName) >> dockerRegistryAccountMock
@@ -105,7 +112,7 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
     CONTAINER_NAMES.eachWithIndex { name, idx ->
       def requests = new KubernetesResourceDescription(cpu: REQUEST_CPU[idx], memory: REQUEST_MEMORY[idx])
       def limits = new KubernetesResourceDescription(cpu: LIMIT_CPU[idx], memory: LIMIT_MEMORY[idx])
-      containers = containers << new KubernetesContainerDescription(name: name, image: name, requests: requests, limits: limits)
+      containers = containers << new KubernetesContainerDescription(name: name, imageDescription: imageDescription, requests: requests, limits: limits)
     }
   }
 
@@ -153,7 +160,7 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
 
         CONTAINER_NAMES.eachWithIndex { name, idx ->
           assert(rc.spec.template.spec.containers[idx].name == name)
-          assert(rc.spec.template.spec.containers[idx].image == name)
+          assert(rc.spec.template.spec.containers[idx].image == imageId)
           assert(rc.spec.template.spec.containers[idx].resources.requests.cpu == REQUEST_CPU[idx])
           assert(rc.spec.template.spec.containers[idx].resources.requests.memory == REQUEST_MEMORY[idx])
           assert(rc.spec.template.spec.containers[idx].resources.limits.cpu == LIMIT_CPU[idx])

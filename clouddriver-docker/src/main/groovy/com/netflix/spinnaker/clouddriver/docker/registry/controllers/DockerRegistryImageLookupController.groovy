@@ -23,7 +23,6 @@ import com.netflix.spinnaker.clouddriver.docker.registry.provider.DockerRegistry
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
@@ -65,11 +64,12 @@ class DockerRegistryImageLookupController {
 
     Set<CacheData> images = DockerRegistryProviderUtils.getAllMatchingKeyPattern(cacheView, Keys.Namespace.TAGGED_IMAGE.ns, key)
 
-
     return images.collect({
       def credentials = (DockerRegistryNamedAccountCredentials) accountCredentialsProvider.getCredentials((String) it.attributes.account)
+      def parse = Keys.parse(it.id)
       return [
-        imageName: (String) it.attributes.name,
+        repository: (String) parse.repository,
+        tag: (String) parse.tag,
         account: it.attributes.account,
         registry: credentials.registry,
       ]

@@ -39,10 +39,10 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
                                            String accountType,
                                            String cluster,
                                            String user,
-                                           String kubeConfigFile,
+                                           String kubeconfigFile,
                                            List<String> namespaces,
                                            List<LinkedDockerRegistryConfiguration> dockerRegistries) {
-    this(accountCredentialsRepository, accountName, environment, accountType, cluster, user, kubeConfigFile, namespaces, dockerRegistries, null);
+    this(accountCredentialsRepository, accountName, environment, accountType, cluster, user, kubeconfigFile, namespaces, dockerRegistries, null);
   }
 
   public KubernetesNamedAccountCredentials(AccountCredentialsRepository accountCredentialsRepository,
@@ -51,7 +51,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
                                            String accountType,
                                            String cluster,
                                            String user,
-                                           String kubeConfigFile,
+                                           String kubeconfigFile,
                                            List<String> namespaces,
                                            List<LinkedDockerRegistryConfiguration> dockerRegistries,
                                            List<String> requiredGroupMembership) {
@@ -66,8 +66,8 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     this.accountType = accountType;
     this.cluster = cluster;
     this.user = user;
-    this.kubeConfigFile = kubeConfigFile != null && kubeConfigFile.length() > 0 ?
-      kubeConfigFile : System.getProperty("user.home") + "/.kube/config";
+    this.kubeconfigFile = kubeconfigFile != null && kubeconfigFile.length() > 0 ?
+      kubeconfigFile : System.getProperty("user.home") + "/.kube/config";
     this.namespaces = namespaces;
     // TODO(lwander): what is this?
     this.requiredGroupMembership = requiredGroupMembership == null ? Collections.emptyList() : Collections.unmodifiableList(requiredGroupMembership);
@@ -110,7 +110,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
   }
 
   private KubernetesCredentials buildCredentials() {
-    Config config = KubernetesConfigParser.parse(kubeConfigFile, cluster, user, namespaces);
+    Config config = KubernetesConfigParser.parse(kubeconfigFile, cluster, user, namespaces);
     if (namespaces == null || namespaces.isEmpty()) {
       namespaces = Collections.singletonList(config.getNamespace());
     }
@@ -154,7 +154,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
   private final String accountType;
   private final String cluster;
   private final String user;
-  private final String kubeConfigFile;
+  private final String kubeconfigFile;
   private List<String> namespaces;
   private final KubernetesCredentials credentials;
   private final List<String> requiredGroupMembership;

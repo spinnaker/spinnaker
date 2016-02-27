@@ -77,7 +77,7 @@ class DockerRegistryProviderConfig {
       if (!scheduledAccounts.contains(credentials.accountName)) {
         def newlyAddedAgents = []
 
-        newlyAddedAgents << new DockerRegistryImageCachingAgent(dockerRegistryCloudProvider, credentials.accountName, credentials.credentials, registry)
+        newlyAddedAgents << new DockerRegistryImageCachingAgent(dockerRegistryCloudProvider, credentials.accountName, credentials.credentials)
 
         // If there is an agent scheduler, then this provider has been through the AgentController in the past.
         // In that case, we need to do the scheduling here (because accounts have been added to a running system).
