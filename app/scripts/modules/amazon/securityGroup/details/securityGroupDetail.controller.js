@@ -119,5 +119,11 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
       });
     };
 
+    if (app.isStandalone) {
+      // we still want the edit to refresh the security group details when the modal closes
+      app.securityGroups = {
+        refresh: extractSecurityGroup
+      };
+    }
   }
 );
