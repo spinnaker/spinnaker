@@ -33,7 +33,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationDescription extends KubernetesA
   String loadBalancerIp
   String sessionAffinity
 
-  String type
+  String serviceType
 }
 
 @AutoClone

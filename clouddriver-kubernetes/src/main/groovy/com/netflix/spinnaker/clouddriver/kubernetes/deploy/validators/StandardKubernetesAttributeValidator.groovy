@@ -27,7 +27,7 @@ class StandardKubernetesAttributeValidator {
   static final prefixPattern = /^[a-z0-9]+$/
   static final quantityPattern = /^([+-]?[0-9.]+)([eEimkKMGTP]*[-+]?[0-9]*)$/
   static final protocolList = ['TCP', 'UDP']
-  static final serviceTypeList = ['ClusterIp', 'NodePort', 'LoadBalancer']
+  static final serviceTypeList = ['ClusterIP', 'NodePort', 'LoadBalancer']
   static final sessionAffinityList = ['None', 'ClientIP']
   static final maxPort = (1 << 16) - 1
 

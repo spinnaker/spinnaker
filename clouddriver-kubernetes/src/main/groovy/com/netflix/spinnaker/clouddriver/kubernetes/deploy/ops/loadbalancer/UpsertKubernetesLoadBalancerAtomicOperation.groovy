@@ -105,7 +105,7 @@ class UpsertKubernetesLoadBalancerAtomicOperation implements AtomicOperation<Map
 
     task.updateStatus BASE_PHASE, "Setting type..."
 
-    def type = description.type != null ? description.type : existingService?.spec?.type
+    def type = description.serviceType != null ? description.serviceType : existingService?.spec?.type
     serviceBuilder = type ? serviceBuilder.withType(type) : serviceBuilder
 
     task.updateStatus BASE_PHASE, "Setting load balancer IP..."
