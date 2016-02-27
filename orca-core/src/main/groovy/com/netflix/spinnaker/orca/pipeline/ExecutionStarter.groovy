@@ -18,7 +18,10 @@ package com.netflix.spinnaker.orca.pipeline
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.appinfo.InstanceInfo
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.batch.core.*
@@ -62,6 +65,19 @@ abstract class ExecutionStarter<T extends Execution> {
 
   T startExecution(T subject) {
     def job = createJob(subject)
+    if (subject instanceof Pipeline) {
+      // restarting the job in a different host leads to duplicate stages being created wtih the same id. This removes it.
+      List<Stage> duplicateStages = []
+      subject.stages.each { stage ->
+        def isDuplicate = stage.status == ExecutionStatus.NOT_STARTED &&
+          subject.stages.findAll { it.id == stage.id }.size() > 1 &&
+          !duplicateStages*.id.contains(stage.id)
+        if (isDuplicate) {
+          duplicateStages.push(stage)
+        }
+      }
+      subject.stages.removeAll(duplicateStages)
+    }
     persistExecution(subject)
     if (!subject.startTime && subject.status.isComplete()) {
       // this execution has never been started but is already in a complete status (indicates a failure building execution graph)
@@ -108,7 +124,7 @@ abstract class ExecutionStarter<T extends Execution> {
    * Hook for subclasses to decide if this execution should be queued or start immediately.
    * @return true iff the stage should be queued.
    */
-  protected boolean queueExecution(T subject) {false}
+  protected boolean queueExecution(T subject) { false }
 
   /**
    * Hook for anything necessary after the job has started.
