@@ -16,7 +16,7 @@
       </div>
       <div class="col-md-3">
         <input type="text" class="form-control input-sm" name="details" ng-model="loadBalancer.loadBalancerIp"
-               ng-disabled="loadBalancer.type != 'LoadBalancer'"/>
+               ng-disabled="loadBalancer.serviceType != 'LoadBalancer'"/>
       </div>
       <div class="col-md-2 sm-label-right">
         Type
@@ -24,10 +24,10 @@
       </div>
       <div class="col-md-3">
         <select class="form-control input-sm"
-                ng-model="loadBalancer.type">
+                ng-model="loadBalancer.serviceType">
           <option ng-repeat="type in advancedController.types"
                   value="{{type}}"
-                  ng-selected="loadBalancer.type === type">{{type}}</option>
+                  ng-selected="loadBalancer.serviceType === type">{{type}}</option>
         </select>
       </div>
     </div>

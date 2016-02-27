@@ -148,11 +148,11 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
     this.submit = function () {
       var descriptor = isNew ? 'Create' : 'Update';
 
+      this.updateName();
       $scope.taskMonitor.submit(
         function() {
           let params = {
             cloudProvider: 'kubernetes',
-            loadBalancerName: $scope.loadBalancer.name,
           };
           return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
         }
