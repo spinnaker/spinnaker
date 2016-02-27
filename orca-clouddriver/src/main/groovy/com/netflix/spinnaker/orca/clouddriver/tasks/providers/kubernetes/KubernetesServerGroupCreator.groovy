@@ -43,24 +43,18 @@ class KubernetesServerGroupCreator implements ServerGroupCreator {
     // If this is a stage in a pipeline, look in the context for the baked image.
     def deploymentDetails = (stage.context.deploymentDetails ?: []) as List<Map>
 
-    def imagesByPattern = deploymentDetails.collectEntries {
-      if (it.cloudProvider == cloudProvider && it.imageNamePattern) {
-        def name = Names.parseName((String) it.sourceServerGroup)
-        return [("$name.cluster $it.imageNamePattern"): it.imageId]
-      } else {
-        return [:]
-      }
-    }
-
     def containers = (List<Map<String, Object>>) operation.containers
 
     containers.forEach { container ->
-      if (container.fromContext) {
-        def image = imagesByPattern[container.image]
+      if (container.imageDescription.fromContext) {
+        def image = deploymentDetails.find {
+          def cluster = Names.parseName(it.sourceServerGroup).cluster
+          cluster == container.imageDescription.cluster && it.imageName ==~ container.imageDescription.pattern
+        }
         if (!image) {
-          throw new IllegalStateException("No image found in context for pattern $container.image.")
+          throw new IllegalStateException("No image found in context for pattern $container.imageDescription.pattern.")
         } else {
-          container.image = image
+          container.imageDescription = [registry: image.registry, tag: image.tag, repository: image.repository]
         }
       }
     }

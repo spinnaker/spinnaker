@@ -50,13 +50,14 @@ class CloneServerGroupTask extends AbstractCloudProviderAwareTask implements Tas
     operation.amiName = operation.amiName ?: stage.preceding("bake")?.context?.amiName as String
     operation.imageId = operation.imageId ?: stage.preceding("bake")?.context?.imageId as String
     String cloudProvider = getCloudProvider(stage)
+    String credentials = getCredentials(stage)
     def taskId = kato.requestOperations(cloudProvider, getDescriptions(operation)).toBlocking().first()
 
     def outputs = [
       "notification.type"   : "createcopylastasg",
       "kato.result.expected": true,
       "kato.last.task.id"   : taskId,
-      "deploy.account.name" : operation.credentials,
+      "deploy.account.name" : credentials,
     ]
 
     if (stage.context.suspendedProcesses) {
