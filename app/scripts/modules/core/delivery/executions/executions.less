@@ -75,6 +75,10 @@ executions {
     fill: @stage-stopped;
     background-color: @stage-stopped;
   }
+  &.execution-marker-not_started, &.execution-marker-canceled {
+    fill: @stage-default;
+    background-color: @stage-default;
+  }
   &.execution-marker-paused {
     fill: @stage-running;
     background-color: @stage-running;

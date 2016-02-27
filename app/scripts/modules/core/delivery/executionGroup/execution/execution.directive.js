@@ -36,15 +36,17 @@ module.exports = angular
     };
 
     this.isActive = (stageIndex) => {
-      return this.showDetails(this.execution.id) && Number($stateParams.stage) === stageIndex;
+      return this.showDetails() && Number($stateParams.stage) === stageIndex;
     };
 
     this.toggleDetails = (node) => {
       const params = { executionId: node.executionId, stage: node.index};
       if ($state.includes('**.execution', params)) {
-        $state.go('^');
+        if (!this.standalone) {
+          $state.go('^');
+        }
       } else {
-        if ($state.current.name.indexOf('.executions.execution') !== -1 || $state.current.name.indexOf('.executionDetails.execution') !== -1) {
+        if ($state.current.name.indexOf('.executions.execution') !== -1 || this.standalone) {
           $state.go('.', params);
         } else {
           $state.go('.execution', params);
