@@ -29,7 +29,7 @@ class KubernetesUtilSpec extends Specification {
   private static final String TAG2 = 'mytag'
 
   @Unroll
-  void "should correctly build an image description 1"() {
+  void "should correctly build an image description"() {
     when:
       def imageDescription = KubernetesUtil.buildImageDescription("$registry/$repository:$tag")
 
