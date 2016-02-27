@@ -263,19 +263,17 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     }
 
     function certificateIdAsARN(accountId, certificateId) {
-      if (certificateId) {
+      if (certificateId && certificateId.indexOf('arn:aws:iam::') !== 0) {
         // If they really want to enter the ARN...
-        if (certificateId.indexOf('arn:aws:iam::') !== 0) {
-          return 'arn:aws:iam::' + accountId + ':server-certificate/' + certificateId;
-        }
+        return 'arn:aws:iam::' + accountId + ':server-certificate/' + certificateId;
       }
+      return certificateId;
     }
 
     function formatListeners() {
       return accountService.getAccountDetails($scope.loadBalancer.credentials).then(function (account) {
-        $scope.loadBalancer.listeners.forEach(function (listener, idx) {
-          var arn = certificateIdAsARN(account.accountId, listener.sslCertificateId);
-          $scope.loadBalancer.listeners[idx].sslCertificateId = arn;
+        $scope.loadBalancer.listeners.forEach(function (listener) {
+          listener.sslCertificateId = certificateIdAsARN(account.accountId, listener.sslCertificateId);
         });
       });
     }
