@@ -71,6 +71,8 @@
         <dd>{{instance.placement.region}}</dd>
         <dt>Host</dt>
         <dd>{{instance.placement.host}}</dd>
+        <dt ng-if="instance.placement.containerIp">Container IP</dt>
+        <dd ng-if="instance.placement.containerIp">{{instance.placement.containerIp}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Task Resources" expanded="true">
