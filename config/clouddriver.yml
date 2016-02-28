@@ -28,8 +28,8 @@ aws:
   # info on setting environment variables.
   #
   # TODO(ewiseblatt):
-  # This only works for root credentials, which you arent supposed to use.
-  # I havent been able to figure out how to get normal user accounts to work.
+  # This only works for root credentials, which you aren't supposed to use.
+  # I haven't been able to figure out how to get normal user accounts to work.
   # I'm leaving this broken for now hoping that once this gets mainlined some
   # body else will be able to fix it.
 

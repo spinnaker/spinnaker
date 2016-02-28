@@ -377,7 +377,7 @@ function install_apache2() {
 
 function install_cassandra() {
   # "service cassandra status" is currently broken in Ubuntu grep in the script is grepping for things that do not exist
-  # Cassandra 2.x can ship with RPC disabeld to enable run "nodetool enablethrift"
+  # Cassandra 2.x can ship with RPC disabled to enable run "nodetool enablethrift"
 
   local package_url="http://debian.datastax.com/community/pool"
 

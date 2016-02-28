@@ -47,7 +47,7 @@ echo 'deb https://dl.bintray.com/kenzanlabs/spinnaker trusty spinnaker' > /etc/a
 
 ## Install software
 # "service cassandra status" is currently broken in Ubuntu grep in the script is grepping for things that do not exist
-# Cassandra 2.x can ship with RPC disabeld to enable run "nodetool enablethrift"
+# Cassandra 2.x can ship with RPC disabled to enable run "nodetool enablethrift"
 
 apt-get update
 apt-get install -y oracle-java8-installer

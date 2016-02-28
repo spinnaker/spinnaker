@@ -330,7 +330,7 @@ services:
   default:
     # These defaults can be modified to change all the spinnaker subsystems
     # (clouddriver, gate, etc) at once, but not external systems (jenkins, etc).
-    # Individual systems can still be overriden using their own section entry
+    # Individual systems can still be overridden using their own section entry
     # directly under 'services'.
     protocol: http    # Assume all spinnaker subsystems are using http
     host: localhost   # Assume all spinnaker subsystems are on localhost
@@ -362,7 +362,7 @@ services:
     # Optional, but expected in spinnaker-local.yml if specified.
 
     # You'll need to provide it a Spinnaker account to use.
-    # Here we are assuming the default primary acccount.
+    # Here we are assuming the default primary account.
     #
     # If you have multiple accounts using docker then you will need to
     # provide a rush-local.yml.
@@ -378,7 +378,7 @@ services:
   jenkins:
     # If you are integrating Jenkins, set its location here using the baseUrl
     # field and provide the username/password credentials.
-    # You must also enable the "igor" service listed seperately.
+    # You must also enable the "igor" service listed separately.
     #
     # If you have multiple jenkins servers, you will need to list
     # them in an igor-local.yml. See jenkins.masters in config/igor.yml.
@@ -399,7 +399,7 @@ services:
   rush:
     # Spinnaker's "rush" subsystem is used by the "rosco" bakery.
     # You'll need to provide it a Spinnaker account to use.
-    # Here we are assuming the default primary acccount.
+    # Here we are assuming the default primary account.
     primaryAccount: \${services.default.primaryAccountName}
 EOT
 
