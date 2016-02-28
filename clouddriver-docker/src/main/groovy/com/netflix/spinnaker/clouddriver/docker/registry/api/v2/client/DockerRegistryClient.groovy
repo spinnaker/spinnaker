@@ -17,8 +17,10 @@
 package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client
 
 import com.google.gson.GsonBuilder
+import com.netflix.spinnaker.clouddriver.docker.registry.DockerRegistryConfiguration
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerToken
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerTokenService
+import org.springframework.beans.factory.annotation.Autowired
 import retrofit.Callback
 import retrofit.RestAdapter
 import retrofit.RetrofitError
@@ -37,6 +39,9 @@ class DockerRegistryClient {
   private GsonConverter converter
   private String basicAuth
 
+  @Autowired
+  String dockerApplicationName
+
   public getBasicAuth() {
     return basicAuth
   }
@@ -52,32 +57,76 @@ class DockerRegistryClient {
   interface DockerRegistryService {
     @GET("/v2/{repository}/tags/list")
     @Headers([
-      "User-Agent: Spinnaker-Clouddriver",
       "Docker-Distribution-API-Version: registry/2.0"
-    ]) // TODO(lwander) get clouddriver version #
-    Response getTags(@Path(value="repository", encode=false) String repository, @Header("Authorization") String token)
+    ])
+    Response getTags(@Path(value="repository", encode=false) String repository, @Header("Authorization") String token, @Header("User-Agent") String agent)
 
     @GET("/v2/{repository}/tags/list")
     @Headers([
+      "Docker-Distribution-API-Version: registry/2.0"
+    ])
+    Response getTags(@Path(value="repository", encode=false) String repository, @Header("User-Agent") String agent)
+
+    @GET("/v2/{name}/manifests/{reference}")
+    @Headers([
+      "Docker-Distribution-API-Version: registry/2.0"
+    ])
+    Response getManifest(@Path(value="name", encode=false) String name, @Path(value="reference", encode=false) String reference, @Header("Authorization") String token, @Header("User-Agent") String agent)
+
+    @GET("/v2/{name}/manifests/{reference}")
+    @Headers([
       "User-Agent: Spinnaker-Clouddriver",
       "Docker-Distribution-API-Version: registry/2.0"
-    ]) // TODO(lwander) get clouddriver version #
-    Response getTags(@Path(value="repository", encode=false) String repository)
+    ])
+    Response getManifest(@Path(value="name", encode=false) String name, @Path(value="reference", encode=false) String reference, @Header("User-Agent") String agent)
 
     @GET("/v2/")
     @Headers([
       "User-Agent: Spinnaker-Clouddriver",
       "Docker-Distribution-API-Version: registry/2.0"
-    ]) // TODO(lwander) get clouddriver version #
-    Response checkVersion()
+    ])
+    Response checkVersion(@Header("User-Agent") String agent)
+
+    @GET("/v2/")
+    @Headers([
+      "User-Agent: Spinnaker-Clouddriver",
+      "Docker-Distribution-API-Version: registry/2.0"
+    ])
+    Response checkVersion(@Header("Authorization") String token, @Header("User-Agent") String agent)
+  }
+
+  public DockerRegistryTags getTags(String repository) {
+    def response = request({
+      registryService.getTags(repository, dockerApplicationName)
+    }, { token ->
+      registryService.getTags(repository, token, dockerApplicationName)
+    }, repository)
+
+    return (DockerRegistryTags) converter.fromBody(response.body, DockerRegistryTags)
+  }
+
+  public String getDigest(String name, String tag) {
+    def response = request({
+      registryService.getManifest(name, tag, dockerApplicationName)
+    }, { token ->
+      registryService.getManifest(name, tag, token, dockerApplicationName)
+    }, name)
+
+    def headers = response.headers
+
+    def digest = headers?.find {
+      it.name == "Docker-Content-Digest"
+    }
+
+    return digest?.value
   }
 
   /*
    * Implements token request flow described here https://docs.docker.com/registry/spec/auth/token/
    * The tokenService also caches tokens for us, so it will attempt to use an old token before retrying.
    */
-  public DockerRegistryTags getTags(String repository) {
-    DockerBearerToken dockerToken = tokenService.getToken(repository)
+  public Response request(Closure<Response> withoutToken, Closure<Response> withToken, String target) {
+    DockerBearerToken dockerToken = tokenService.getToken(target)
     String token
     if (dockerToken) {
       token = "Bearer ${dockerToken.bearer_token ?: dockerToken.token}"
@@ -86,31 +135,35 @@ class DockerRegistryClient {
     Response response
     try {
       if (token) {
-        response = registryService.getTags(repository, token)
+        response = withToken(token)
       } else {
-        response = registryService.getTags(repository)
+        response = withoutToken()
       }
     } catch (RetrofitError error) {
       if (error.response.status == 401) {
-        dockerToken = tokenService.getToken(repository, error.response.headers)
+        dockerToken = tokenService.getToken(target, error.response.headers)
         token = "Bearer ${dockerToken.bearer_token ?: dockerToken.token}"
-        response = registryService.getTags(repository, token)
+        response = withToken(token)
       } else {
         throw error
       }
     }
 
-    return (DockerRegistryTags) converter.fromBody(response.body, DockerRegistryTags)
+    return response
   }
 
-  public Boolean isV2() {
-    try {
-      registryService.checkVersion()
-    } catch (RetrofitError error) {
-      if (error.response.status != 401) {
-        return false
-      }
-    }
-    return true
+  /*
+   * This method will hit the /v2/ endpoint of the configured docker registry. If it this endpoint is up,
+   * it will return silently. Otherwise, an exception is thrown detailing why the endpoint isn't available.
+   */
+  public void checkV2Availability() {
+    request({
+      registryService.checkVersion(dockerApplicationName)
+    }, { token ->
+      registryService.checkVersion(token, dockerApplicationName)
+    }, "v2 version check")
+
+    // Placate the linter (otherwise it expects to return the result of `request()`)
+    null
   }
 }

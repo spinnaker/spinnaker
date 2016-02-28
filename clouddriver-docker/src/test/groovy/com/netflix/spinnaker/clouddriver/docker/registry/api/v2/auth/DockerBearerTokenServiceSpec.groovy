@@ -88,7 +88,6 @@ class DockerBearerTokenServiceSpec extends Specification {
       result.scope == SCOPE2
   }
 
-  @Ignore
   void "DockerBearerTokenService should request a real token from Dockerhub's token registry."() {
     setup:
       def header = [:]
@@ -102,7 +101,6 @@ class DockerBearerTokenServiceSpec extends Specification {
       token.token.length() > 0
   }
 
-  @Ignore
   void "DockerBearerTokenService should request a real token from Dockerhub's token registry, and supply a cached one."() {
     setup:
       def header = [:]
