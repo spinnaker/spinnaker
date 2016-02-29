@@ -1,7 +1,7 @@
 buildscript {
     repositories { jcenter() }
     dependencies {
-        classpath 'com.netflix.nebula:gradle-netflixoss-project-plugin:3.1.2'
+        classpath 'com.netflix.nebula:gradle-netflixoss-project-plugin:3.2.3'
     }
 }
 
@@ -10,6 +10,8 @@ apply plugin: 'groovy'
 apply plugin: 'idea'
 
 group = 'com.netflix.spinnaker.gradle'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 idea {
   project {
@@ -37,6 +39,7 @@ dependencies {
   compile localGroovy()
   compile 'com.netflix.nebula:gradle-netflixoss-project-plugin:latest.release'
   compile 'com.netflix.nebula:gradle-ospackage-plugin:latest.release'
+  compile 'com.netflix.nebula:nebula-ospackage-plugin:latest.release'
   compile 'com.jfrog.bintray.gradle:gradle-bintray-plugin:latest.release'
   compile 'org.yaml:snakeyaml:latest.release'
 }
