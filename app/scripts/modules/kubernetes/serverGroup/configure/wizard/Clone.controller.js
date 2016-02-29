@@ -79,6 +79,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
     };
 
     this.clone = function () {
+      if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode == 'createPipeline') {
+        return $modalInstance.close($scope.command);
+      }
       $scope.taskMonitor.submit(
         function() {
           return serverGroupWriter.cloneServerGroup(angular.copy($scope.command), application);

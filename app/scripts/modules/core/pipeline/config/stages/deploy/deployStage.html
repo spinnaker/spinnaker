@@ -43,11 +43,16 @@
           </td>
           <td>
             <div ng-if="cluster.useSourceCapacity">Current Server Group</div>
-            <div ng-if="!cluster.useSourceCapacity && cluster.capacity.min === cluster.capacity.max">{{cluster.capacity.max}}</div>
-            <div ng-if="!cluster.useSourceCapacity && cluster.capacity.min !== cluster.capacity.max">
-              Min: {{cluster.capacity.min}},
-              Max: {{cluster.capacity.max}},
-              Desired: {{cluster.capacity.desired}}
+            <div ng-if="cluster.capacity">
+              <div ng-if="!cluster.useSourceCapacity && cluster.capacity.min === cluster.capacity.max">{{cluster.capacity.max}}</div>
+              <div ng-if="!cluster.useSourceCapacity && cluster.capacity.min !== cluster.capacity.max">
+                Min: {{cluster.capacity.min}},
+                Max: {{cluster.capacity.max}},
+                Desired: {{cluster.capacity.desired}}
+              </div>
+            </div>
+            <div ng-if"!cluster.capacity">
+              {{cluster.targetSize}}
             </div>
           </td>
           <td>

@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.findAm
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'selectionStrategy', fieldLabel: 'Server Group Selection'},
-        { type: 'requiredField', fieldName: 'namespace' },
+        { type: 'requiredField', fieldName: 'namespaces' },
         { type: 'requiredField', fieldName: 'imageNamePattern' },
         { type: 'requiredField', fieldName: 'credentials' }
       ]
@@ -27,7 +27,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.findAm
 
     $scope.state = {
       accounts: false,
-      zonesLoaded: false
+      regionsLoaded: false
     };
 
     accountService.listAccounts('kubernetes').then(function (accounts) {
@@ -53,7 +53,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.findAm
       description: 'When multiple server groups exist, fail'
     }];
 
-    stage.namespace = stage.namespace || [];
+    stage.namespaces = stage.namespaces || [];
     stage.cloudProvider = 'kubernetes';
     stage.selectionStrategy = stage.selectionStrategy || $scope.selectionStrategies[0].val;
 

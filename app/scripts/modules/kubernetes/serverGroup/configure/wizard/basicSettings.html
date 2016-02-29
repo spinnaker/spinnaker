@@ -61,9 +61,9 @@
       </div>
       <div class="col-md-9">
         <ui-select multiple ng-model="command.containers" class="form-control input-sm">
-          <ui-select-match>{{$item.image}}</ui-select-match>
-          <ui-select-choices repeat="container in command.backingData.filtered.containers | filter: { image: $select.search } | orderBy: 'fromContext'" group-by="command.groupByContainer">
-            <span ng-bind-html="container.registry + ' ' + container.image | highlight: $select.search"></span>
+          <ui-select-match>{{$item.imageDescription.imageId}}</ui-select-match>
+          <ui-select-choices repeat="container in command.backingData.filtered.containers | filter: { imageDescription: { imageId: $select.search } }" group-by="command.groupByRegistry">
+            <span ng-bind-html="container.imageDescription.imageId | highlight: $select.search"></span>
           </ui-select-choices>
         </ui-select>
       </div>
