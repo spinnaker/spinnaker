@@ -23,7 +23,9 @@ module.exports = angular.module('spinnaker.core.modalWizard.wizard.v2', [
 ).controller('v2ModalWizardCtrl', function($scope, v2modalWizardService) {
     $scope.wizard = v2modalWizardService;
     $scope.$on('waypoints-changed', (event, snapshot) => {
-      let ids = snapshot.lastWindow.map((entry) => entry.elem);
+      let ids = snapshot.lastWindow
+        .map((entry) => entry.elem)
+        .filter($scope.wizard.getPage);
       ids.reverse().forEach((id) => v2modalWizardService.setCurrentPage($scope.wizard.getPage(id), true));
     });
 
