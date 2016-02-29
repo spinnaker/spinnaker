@@ -44,52 +44,6 @@
   .faded {
     color: @mid_lighter_grey;
   }
-  .execution {
-    .timestamp {
-      color: @mid_grey;
-      font-size: .8em;
-      padding-top: 22px;
-    }
-    .panel {
-      .summary {
-        background-color: @mid_light_grey;
-        cursor: pointer;
-        padding-bottom: 0px;
-        h5 {
-          font-weight: bold;
-          display: inline-block;
-        }
-      }
-      .summary.current {
-        background-color: #FFF;
-      }
-
-      .details {
-        .tr {
-          background-color: lighten(@spinnaker-blue, 20%);
-        }
-      }
-
-    }
-    .label-succeeded {
-      background-color: @healthy_green_border;
-    }
-    .label-terminal, .label-terminated {
-      background-color: @unhealthy_red;
-    }
-    .label-running, .label-launched {
-      background-color: @spinnaker-blue;
-    }
-    .label {
-      text-transform: uppercase;
-      border-radius: 0;
-      color: #fff;
-      font-weight: 600;
-      .glyphicon {
-        color: #ffffff;
-      }
-    }
-  }
 }
 
 .canary-config-view {

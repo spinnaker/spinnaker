@@ -49,10 +49,10 @@
            ng-click="nodeClicked(stage)">
         <div ng-include="stage.labelTemplateUrl"></div>
       </div>
-      <div class="label-body node"
+      <div class="label-body node clickable"
            ng-if="!stage.labelTemplateUrl"
            ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
-           ng-click="nodeClicked(stage)"><a href>{{stage.name}}</a></div>
+           ng-click="nodeClicked(stage)"><a>{{stage.name}}</a></div>
     </foreignobject>
   </g>
 </svg>
