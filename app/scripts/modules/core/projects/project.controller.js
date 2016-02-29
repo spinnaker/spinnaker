@@ -56,7 +56,7 @@ module.exports = angular.module('spinnaker.core.projects.project.controller', [
       this.viewState.dashboard = !selectedApplication;
     };
 
-    if (!projectConfiguration.notFound) {
+    if (projectConfiguration.config) {
       initialize();
     }
 
