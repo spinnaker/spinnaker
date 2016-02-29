@@ -15,11 +15,11 @@ services:
   default:
     # These defaults can be modified to change all the spinnaker subsystems
     # (clouddriver, gate, etc) at once, but not external systems (jenkins, etc).
-    # Individual systems can still be overriden using their own section entry
+    # Individual systems can still be overridden using their own section entry
     # directly under 'services'.
     host: localhost
     protocol: http
-    primaryAccountName: service-default-primaryAcountName-not-defined
+    primaryAccountName: service-default-primaryAccountName-not-defined
 
   clouddriver:
     host: ${services.default.host}

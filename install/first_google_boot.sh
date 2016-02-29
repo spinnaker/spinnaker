@@ -28,7 +28,7 @@ LOCAL_CONFIG_DIR=$SPINNAKER_INSTALL_DIR/config
 
 # This status prefix provides a hook to inject output signals with status
 # messages for consumers like the Google Deployment Manager Coordinator.
-# Normally this isnt needed. Callers will populate it as they need
+# Normally this isn't needed. Callers will populate it as they need
 # using --status_prefix.
 STATUS_PREFIX="*"
 
@@ -149,7 +149,7 @@ function extract_spinnaker_google_credentials() {
   mkdir -p $(dirname $json_path)
   if clear_metadata_to_file "managed_project_credentials" $json_path; then
     # This is a workaround for difficulties using the Google Deployment Manager
-    # to express no value. We'll use the value "None". But we dont want
+    # to express no value. We'll use the value "None". But we don't want
     # to officially support this, so we'll just strip it out of this first
     # time boot if we happen to see it, and assume the Google Deployment Manager
     # got in the way.
@@ -182,7 +182,7 @@ function extract_spinnaker_aws_credentials() {
   mkdir -p $(dirname $credentials_path)
   if clear_metadata_to_file "aws_credentials" $credentials_path; then
     # This is a workaround for difficulties using the Google Deployment Manager
-    # to express no value. We'll use the value "None". But we dont want
+    # to express no value. We'll use the value "None". But we don't want
     # to officially support this, so we'll just strip it out of this first
     # time boot if we happen to see it, and assume the Google Deployment Manager
     # got in the way.
