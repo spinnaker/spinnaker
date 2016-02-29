@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy
 
+import com.amazonaws.services.ec2.model.BlockDeviceMapping
 import groovy.transform.Immutable
 
 /**
@@ -27,4 +28,5 @@ class ResolvedAmiResult {
   String region
   String amiId
   String virtualizationType
+  List<BlockDeviceMapping> blockDeviceMappings
 }

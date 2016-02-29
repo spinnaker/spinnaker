@@ -203,6 +203,46 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
         .withVirtualizationType('hvm'))
   }
 
+  @Unroll
+  void "should favour ami block device mappings over explicit description block devices and default config, if useAmiBlockDeviceMappings is set"() {
+    setup:
+    def deployCallCounts = 0
+    AutoScalingWorker.metaClass.deploy = { deployCallCounts++; "foo" }
+    List<AmazonBlockDevice> setBlockDevices = []
+    AutoScalingWorker.metaClass.setBlockDevices = { List<AmazonBlockDevice> blockDevices ->
+      setBlockDevices = blockDevices
+    }
+    def description = new BasicAmazonDeployDescription(amiName: "ami-12345")
+    description.instanceType = "m3.medium"
+    description.blockDevices = [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 125)]
+    description.useAmiBlockDeviceMappings = useAmiBlockDeviceMappings
+    description.availabilityZones = ["us-west-1": [], "us-east-1": []]
+    description.credentials = TestCredential.named('baz')
+
+    when:
+    def results = handler.handle(description, [])
+
+    then:
+    2 == deployCallCounts
+    results.serverGroupNames == ['us-west-1:foo', 'us-east-1:foo']
+    2 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
+    2 * amazonEC2.describeImages(_) >>
+      new DescribeImagesResult()
+          .withImages(new Image()
+                          .withImageId('ami-12345')
+                          .withBlockDeviceMappings([new BlockDeviceMapping()
+                                                        .withDeviceName("/dev/sdh")
+                                                        .withEbs(new Ebs().withVolumeSize(500))])
+                          .withVirtualizationType('hvm'))
+    setBlockDevices == expectedBlockDevices
+
+    where:
+    useAmiBlockDeviceMappings | expectedBlockDevices
+    true                      | [new AmazonBlockDevice(deviceName: "/dev/sdh", size: 500)]
+    false                     | [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 125)]
+    null                      | [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 125)]
+  }
+
   void "should resolve amiId from amiName"() {
     setup:
     def deployCallCounts = 0

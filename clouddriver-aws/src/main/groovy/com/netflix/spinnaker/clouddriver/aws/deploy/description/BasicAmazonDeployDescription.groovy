@@ -52,6 +52,7 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   boolean startDisabled
 
   List<AmazonBlockDevice> blockDevices
+  Boolean useAmiBlockDeviceMappings
   List<String> loadBalancers
   List<String> securityGroups
   Map<String, List<String>> availabilityZones = [:]
