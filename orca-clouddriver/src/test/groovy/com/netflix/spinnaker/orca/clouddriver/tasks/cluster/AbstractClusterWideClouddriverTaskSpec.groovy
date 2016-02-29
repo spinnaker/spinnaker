@@ -122,6 +122,30 @@ class AbstractClusterWideClouddriverTaskSpec extends Specification {
 
   }
 
+  def "should succeed immediately if cluster is empty and continueIfClusterNotFound flag set in context"() {
+    given:
+    def pipeline = new Pipeline()
+    def stage = new PipelineStage(pipeline, DisableServerGroupStage.PIPELINE_CONFIG_TYPE, [
+        continueIfClusterNotFound: true
+    ])
+    def task = new AbstractClusterWideClouddriverTask() {
+      @Override
+      String getClouddriverOperation() {
+        return null
+      }
+    }
+    def oortHelper = Mock(OortHelper)
+    task.oortHelper = oortHelper;
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * oortHelper.getCluster(_, _, _, _) >> Optional.of([ serverGroups: [] ])
+    result == DefaultTaskResult.SUCCEEDED
+
+  }
+
   static TargetServerGroup sg(String name, String region = "us-west-1", int createdTime = System.currentTimeMillis()) {
     new TargetServerGroup(serverGroup: [name: name, region: region, createdTime: createdTime])
   }
