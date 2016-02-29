@@ -27,8 +27,8 @@ import org.springframework.stereotype.Component
 @Component
 public class AWSBakeHandler extends CloudProviderBakeHandler {
 
-  private static final String BUILDER_TYPE = "amazon-ebs"
-  private static final String IMAGE_NAME_TOKEN = "amazon-ebs: Creating the AMI:"
+  private static final String BUILDER_TYPE = "amazon-(chroot|ebs)"
+  private static final String IMAGE_NAME_TOKEN = "amazon-(chroot|ebs): Creating the AMI:"
 
   @Autowired
   RoscoAWSConfiguration.AWSBakeryDefaults awsBakeryDefaults

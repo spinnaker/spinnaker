@@ -108,6 +108,51 @@ class AWSBakeHandlerSpec extends Specification {
     awsBakeryDefaults = new ObjectMapper().convertValue(awsBakeryDefaultsJson, RoscoAWSConfiguration.AWSBakeryDefaults)
   }
 
+  void 'can identify amazon-ebs builds'() {
+    setup:
+      @Subject
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
+
+    when:
+      def logsContent =
+        "    amazon-ebs: Processing triggers for libc-bin ...\n"
+
+      Boolean awsProducer = awsBakeHandler.isProducerOf(logsContent)
+
+    then:
+      awsProducer == true
+  }
+
+  void 'can identify amazon-chroot builds'() {
+    setup:
+      @Subject
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
+
+    when:
+      def logsContent =
+        "    amazon-chroot: Processing triggers for libc-bin ...\n"
+
+      Boolean awsProducer = awsBakeHandler.isProducerOf(logsContent)
+
+    then:
+      awsProducer == true
+  }
+
+  void 'rejects non amazon builds'() {
+    setup:
+      @Subject
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
+
+    when:
+      def logsContent =
+        "    somesystem-thing: Processing triggers for libc-bin ...\n"
+
+      Boolean awsProducer = awsBakeHandler.isProducerOf(logsContent)
+
+    then:
+      awsProducer == false
+  }
+
   void 'can scrape packer logs for image name'() {
     setup:
       @Subject
@@ -141,6 +186,41 @@ class AWSBakeHandlerSpec extends Specification {
         image_name == "kato-x8664-1422459898853-ubuntu"
       }
   }
+
+  void 'can scrape packer (amazon-chroot) logs for image name'() {
+    setup:
+      @Subject
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
+
+    when:
+      def logsContent =
+        "    amazon-chroot: Processing triggers for libc-bin ...\n" +
+        "    amazon-chroot: ldconfig deferred processing now taking place\n" +
+        "==> amazon-chroot: Stopping the source instance...\n" +
+        "==> amazon-chroot: Waiting for the instance to stop...\n" +
+        "==> amazon-chroot: Creating the AMI: kato-x8664-1422459898853-ubuntu\n" +
+        "    amazon-chroot: AMI: ami-2c014644\n" +
+        "==> amazon-chroot: Waiting for AMI to become ready...\n" +
+        "==> amazon-chroot: Terminating the source AWS instance...\n" +
+        "==> amazon-chroot: Deleting temporary security group...\n" +
+        "==> amazon-chroot: Deleting temporary keypair...\n" +
+        "Build 'amazon-chroot' finished.\n" +
+        "\n" +
+        "==> Builds finished. The artifacts of successful builds are:\n" +
+        "--> amazon-chroot: AMIs were created:\n" +
+        "\n" +
+        "us-east-1: ami-2c014644"
+
+      Bake bake = awsBakeHandler.scrapeCompletedBakeResults(REGION, "123", logsContent)
+
+    then:
+      with (bake) {
+        id == "123"
+        ami == "ami-2c014644"
+        image_name == "kato-x8664-1422459898853-ubuntu"
+      }
+  }
+
 
   void 'scraping returns null for missing image id'() {
     setup:
