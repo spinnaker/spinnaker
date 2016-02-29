@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.igor.pipeline
 
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.batch.RestartableStage
 import com.netflix.spinnaker.orca.igor.tasks.MonitorJenkinsJobTask
 import com.netflix.spinnaker.orca.igor.tasks.MonitorQueuedJenkinsJobTask
 import com.netflix.spinnaker.orca.igor.tasks.StartScriptTask
@@ -27,7 +29,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class ScriptStage extends LinearStage {
+class ScriptStage extends LinearStage implements RestartableStage {
   public static final String PIPELINE_CONFIG_TYPE = "script"
 
   ScriptStage() {
@@ -41,5 +43,26 @@ class ScriptStage extends LinearStage {
       buildStep(stage, "waitForScriptStart", MonitorQueuedJenkinsJobTask),
       buildStep(stage, "monitorScript", MonitorJenkinsJobTask)
     ]
+  }
+
+  @Override
+  Stage prepareStageForRestart(Stage stage) {
+    stage = super.prepareStageForRestart(stage)
+    stage.startTime = null
+    stage.endTime = null
+
+    if (stage.context.buildInfo) {
+      stage.context.restartDetails["previousBuildInfo"] = stage.context.buildInfo
+    }
+    stage.context.remove("buildInfo")
+    stage.context.remove("buildNumber")
+
+    stage.tasks.each { com.netflix.spinnaker.orca.pipeline.model.Task task ->
+      task.startTime = null
+      task.endTime = null
+      task.status = ExecutionStatus.NOT_STARTED
+    }
+
+    return stage
   }
 }
