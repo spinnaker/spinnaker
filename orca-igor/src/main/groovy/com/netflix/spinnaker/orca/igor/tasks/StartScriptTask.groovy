@@ -52,8 +52,9 @@ class StartScriptTask implements Task {
     String account = stage.context.account
     String cluster = stage.context.cluster
     String cmc = stage.context.cmc
+    String repoUrl = stage.context.repoUrl
 
-    if(stage.execution instanceof Pipeline && stage.execution.trigger.parameters?.strategy == true){
+    if (stage.execution instanceof Pipeline && stage.execution.trigger.parameters?.strategy == true) {
       Map trigger = ((Pipeline) stage.execution).trigger
       image = image ?: trigger.parameters.amiName ?: trigger.parameters.imageId ?: ''
       cluster = cluster ?: trigger.parameters.cluster ?: ''
@@ -70,6 +71,10 @@ class StartScriptTask implements Task {
       CLUSTER_PARAM: cluster,
       CMC          : cmc
     ]
+
+    if (repoUrl) {
+      parameters.REPO_URL = repoUrl
+    }
 
     String queuedBuild = buildService.build(master, job, parameters)
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [master: master, job: job, queuedBuild: queuedBuild])
