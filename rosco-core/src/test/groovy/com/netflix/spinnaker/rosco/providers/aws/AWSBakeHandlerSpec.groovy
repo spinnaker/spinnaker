@@ -649,11 +649,11 @@ class AWSBakeHandlerSpec extends Specification {
   void 'produce a default AWS bakeKey with enhanced network enabled'() {
     setup:
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-          package_name: PACKAGE_NAME,
-          base_os: "centos",
-          vm_type: BakeRequest.VmType.hvm,
-          cloud_provider_type: BakeRequest.CloudProviderType.aws,
-          enhanced_networking: true)
+                                        package_name: PACKAGE_NAME,
+                                        base_os: "centos",
+                                        vm_type: BakeRequest.VmType.hvm,
+                                        cloud_provider_type: BakeRequest.CloudProviderType.aws,
+                                        enhanced_networking: true)
 
       @Subject
       AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
@@ -668,11 +668,11 @@ class AWSBakeHandlerSpec extends Specification {
   void 'produce a default AWS bakeKey with ami name'() {
     setup:
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-          package_name: PACKAGE_NAME,
-          base_os: "centos",
-          vm_type: BakeRequest.VmType.hvm,
-          cloud_provider_type: BakeRequest.CloudProviderType.aws,
-          ami_name: "kato-app")
+                                        package_name: PACKAGE_NAME,
+                                        base_os: "centos",
+                                        vm_type: BakeRequest.VmType.hvm,
+                                        cloud_provider_type: BakeRequest.CloudProviderType.aws,
+                                        ami_name: "kato-app")
       @Subject
       AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
 
@@ -686,11 +686,11 @@ class AWSBakeHandlerSpec extends Specification {
   void 'produce a default AWS bakeKey with ami suffix'() {
     setup:
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-          package_name: PACKAGE_NAME,
-          base_os: "centos",
-          vm_type: BakeRequest.VmType.hvm,
-          cloud_provider_type: BakeRequest.CloudProviderType.aws,
-          ami_suffix: "1.0")
+                                        package_name: PACKAGE_NAME,
+                                        base_os: "centos",
+                                        vm_type: BakeRequest.VmType.hvm,
+                                        cloud_provider_type: BakeRequest.CloudProviderType.aws,
+                                        ami_suffix: "1.0")
       @Subject
       AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
 
@@ -704,12 +704,12 @@ class AWSBakeHandlerSpec extends Specification {
   void 'produce a default AWS bakeKey with ami name and suffix'() {
     setup:
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-          package_name: PACKAGE_NAME,
-          base_os: "centos",
-          vm_type: BakeRequest.VmType.hvm,
-          cloud_provider_type: BakeRequest.CloudProviderType.aws,
-          ami_name: "kato-app",
-          ami_suffix: "1.0")
+                                        package_name: PACKAGE_NAME,
+                                        base_os: "centos",
+                                        vm_type: BakeRequest.VmType.hvm,
+                                        cloud_provider_type: BakeRequest.CloudProviderType.aws,
+                                        ami_name: "kato-app",
+                                        ami_suffix: "1.0")
       @Subject
       AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
 
