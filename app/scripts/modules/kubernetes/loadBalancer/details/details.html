@@ -82,14 +82,25 @@
           </copy-to-clipboard>
         </dd>
       </dl>
-      <dl>
-        <dt>Cluster Ip</dt>
+      <dl ng-if="loadBalancer.service.spec.clusterIP">
+        <dt>Cluster IP</dt>
         <dd>
         {{loadBalancer.service.spec.clusterIP}}
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
               text="{{loadBalancer.service.spec.clusterIP}}"
               tool-tip="Copy Cluster IP to clipboard">
+          </copy-to-clipboard>
+        </dd>
+      </dl>
+      <dl ng-if="loadBalancer.service.spec.loadBalancerIP">
+        <dt>Load Balancer IP</dt>
+        <dd>
+        {{loadBalancer.service.spec.loadBalancerIP}}
+          <copy-to-clipboard
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="{{loadBalancer.service.spec.loadBalancerIP}}"
+              tool-tip="Copy Load Balancer IP to clipboard">
           </copy-to-clipboard>
         </dd>
       </dl>
