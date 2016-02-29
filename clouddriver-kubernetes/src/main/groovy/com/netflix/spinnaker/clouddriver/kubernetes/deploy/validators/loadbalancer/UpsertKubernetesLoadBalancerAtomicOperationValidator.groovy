@@ -64,6 +64,6 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidator extends DescriptionVa
 
     helper.validateSessionAffinity(description.sessionAffinity, "sessionAffinity")
 
-    helper.validateServiceType(description.type, "type")
+    helper.validateServiceType(description.serviceType, "serviceType")
   }
 }
