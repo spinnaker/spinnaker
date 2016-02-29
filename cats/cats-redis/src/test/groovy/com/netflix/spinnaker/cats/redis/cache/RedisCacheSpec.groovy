@@ -19,6 +19,7 @@ package com.netflix.spinnaker.cats.redis.cache
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.cache.WriteableCacheSpec
 import com.netflix.spinnaker.cats.redis.JedisPoolSource
 import com.netflix.spinnaker.cats.redis.test.LocalRedisCheck
@@ -29,6 +30,8 @@ import spock.lang.Unroll
 
 @IgnoreIf({ LocalRedisCheck.redisUnavailable() })
 class RedisCacheSpec extends WriteableCacheSpec {
+    static int MAX_MSET_SIZE = 2
+
 
     @Override
     Cache getSubject() {
@@ -43,7 +46,7 @@ class RedisCacheSpec extends WriteableCacheSpec {
         }
 
         def mapper = new ObjectMapper();
-        return new RedisCache('test', source, mapper)
+        return new RedisCache('test', source, mapper, MAX_MSET_SIZE)
     }
 
     @Unroll
@@ -97,6 +100,22 @@ class RedisCacheSpec extends WriteableCacheSpec {
         -1  || _
         1   || _
 
+    }
+
+    def 'verify MSET chunking behavior (> MAX_MSET_SIZE)'() {
+        setup:
+        ((WriteableCache) cache).mergeAll('foo', [createData('bar'), createData('baz'), createData('bam')])
+
+        expect:
+        cache.getIdentifiers('foo').sort() == ['bam', 'bar', 'baz']
+    }
+
+    def 'should fail if maxMsetSize is not even'() {
+        when:
+        new RedisCache('test', null, null, 7)
+
+        then:
+        thrown(IllegalArgumentException)
     }
 
     private static class Bean {

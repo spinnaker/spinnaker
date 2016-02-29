@@ -20,6 +20,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.CacheFilter;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
@@ -56,11 +58,17 @@ public class RedisCache implements WriteableCache {
     private final String prefix;
     private final JedisSource source;
     private final ObjectMapper objectMapper;
+    private final int maxMsetSize;
 
-    public RedisCache(String prefix, JedisSource source, ObjectMapper objectMapper) {
+    public RedisCache(String prefix, JedisSource source, ObjectMapper objectMapper, int maxMsetSize) {
+        Preconditions.checkArgument(
+          maxMsetSize % 2 == 0, String.format("maxMsetSize must be even (%s)", maxMsetSize)
+        );
+
         this.prefix = prefix;
         this.source = source;
         this.objectMapper = objectMapper.disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
+        this.maxMsetSize = maxMsetSize;
     }
 
     @Override
@@ -89,13 +97,16 @@ public class RedisCache implements WriteableCache {
 
         final String[] relationships = relationshipNames.toArray(new String[relationshipNames.size()]);
         final String[] ids = idSet.toArray(new String[idSet.size()]);
-        final String[] mset = keysToSet.toArray(new String[keysToSet.size()]);
 
-        if (mset.length > 0) {
+        if (keysToSet.size() > 0) {
             try (Jedis jedis = source.getJedis()) {
                 Pipeline pipeline = jedis.pipelined();
                 pipeline.sadd(allOfTypeId(type), ids);
-                pipeline.mset(mset);
+
+                Iterables.partition(keysToSet, maxMsetSize).forEach(keys -> {
+                  pipeline.mset(keys.toArray(new String[keys.size()]));
+                });
+
                 if (relationships.length > 0) {
                     pipeline.sadd(allRelationshipsId(type), relationships);
                 }
