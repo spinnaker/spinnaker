@@ -9,6 +9,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.scriptStage', [
         label: 'Script',
         description: 'Runs a script',
         key: 'script',
+        restartable: true,
         controller: 'ScriptStageCtrl',
         controllerAs: 'scriptStageCtrl',
         templateUrl: require('./scriptStage.html'),
