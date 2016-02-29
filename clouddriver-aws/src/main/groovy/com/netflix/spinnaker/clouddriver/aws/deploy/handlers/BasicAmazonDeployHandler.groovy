@@ -134,6 +134,10 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         throw new IllegalArgumentException("Unsupported account type ${account.class.simpleName} for this operation")
       }
 
+      if (description.useAmiBlockDeviceMappings) {
+        description.blockDevices = convertBlockDevices(ami.blockDeviceMappings)
+      }
+
       def autoScalingWorker = new AutoScalingWorker(
         application: description.application,
         region: region,
