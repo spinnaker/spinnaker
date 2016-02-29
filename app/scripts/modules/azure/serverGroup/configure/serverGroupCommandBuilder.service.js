@@ -28,10 +28,8 @@ module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.servi
           images: backingData.images,
           loadBalancers: [],
           strategy: '',
-          capacity: {
-            min: 1,
-            max: 1,
-            desired: 1
+          sku: {
+            capacity: 1,
           },
           selectedProvider: 'azure',
           securityGroups: [],

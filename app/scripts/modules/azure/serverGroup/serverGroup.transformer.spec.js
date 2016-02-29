@@ -2,7 +2,7 @@
 
 describe('azureServerGroupTransformer', function () {
 
-  var transformer, $q, $scope;
+  var transformer, $scope;
 
   beforeEach(
     window.module(
@@ -22,6 +22,9 @@ describe('azureServerGroupTransformer', function () {
     it('sets name correctly with no stack or detail', function () {
       var base = {
         application: 'myApp',
+        sku:{
+          capacity: 1,
+        },
         selectedImage:{
           publisher: 'Microsoft',
           offer: 'Windows',
@@ -40,6 +43,9 @@ describe('azureServerGroupTransformer', function () {
       var command = {
         stack: 's1',
         application: 'theApp',
+        sku:{
+          capacity: 1,
+        },
         selectedImage:{
           publisher: 'Microsoft',
           offer: 'Windows',
@@ -57,6 +63,9 @@ describe('azureServerGroupTransformer', function () {
       var command = {
         details: 'd1',
         application: 'theApp',
+        sku:{
+          capacity: 1,
+        },
         selectedImage:{
           publisher: 'Microsoft',
           offer: 'Windows',
@@ -75,6 +84,9 @@ describe('azureServerGroupTransformer', function () {
         stack: 's1',
         details: 'd1',
         application: 'theApp',
+        sku:{
+          capacity: 1,
+        },
         selectedImage:{
           publisher: 'Microsoft',
           offer: 'Windows',

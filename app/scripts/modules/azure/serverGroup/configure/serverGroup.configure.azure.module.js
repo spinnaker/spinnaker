@@ -13,6 +13,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure', [
   require('./wizard/ServerGroupSecurityGroups.controller.js'),
   require('./wizard/ServerGroupAdvancedSettings.controller.js'),
   require('./wizard/loadBalancers/serverGroupLoadBalancersSelector.directive.js'),
+  require('./wizard/capacity/capacitySelector.directive.js'),
   require('./serverGroupSecurityGroupsSelector.directive.js'),
   require('../serverGroup.transformer.js'),
   require('./serverGroupAdvancedSettingsSelector.directive.js'),
