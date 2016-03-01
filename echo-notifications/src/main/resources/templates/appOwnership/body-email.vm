@@ -1,0 +1,29 @@
+#if($notification.additionalContext.outdated.size() > 0)
+The following applications are owned by ex-employees:
+
+#foreach($application in $notification.additionalContext.outdated)
+  $application.name in $application.accounts owned by $application.owner.name<$application.owner.email>
+  #if($application.suggestedOwner)
+    - suggest reassigning to $application.suggestedOwner.name<$application.suggestedOwner.email>.
+  #else
+    - no suggested owner found for reassignment.
+  #end
+#end
+
+#end
+#if($notification.additionalContext.unknown.size() > 0)
+The following applications are owned by unidentifiable users:
+
+#foreach($application in $notification.additionalContext.unknown)
+  $application.name in $application.accounts owned by <$application.owner.email>
+#end
+
+#end
+#if($notification.additionalContext.multiple.size() > 0)
+The owner email for the following applications matches multiple users:
+
+#foreach($application in $notification.additionalContext.multiple)
+  $application.name in $application.accounts owned by <$application.owner.email>
+#end
+
+#end
