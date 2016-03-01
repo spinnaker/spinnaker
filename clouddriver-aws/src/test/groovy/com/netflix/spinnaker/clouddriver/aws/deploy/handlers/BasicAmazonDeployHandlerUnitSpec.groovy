@@ -131,24 +131,47 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   }
 
   void "should populate classic link VPC Id when classic link is enabled"() {
-    setup:
+    def actualClassicLinkVpcId
     AutoScalingWorker.metaClass.deploy = {
-      assert classicLinkVpcId == "vpc-456"
+      actualClassicLinkVpcId = classicLinkVpcId
       "foo"
     }
-    def description = new BasicAmazonDeployDescription(amiName: "ami-12345")
-    description.availabilityZones = ["us-west-1": []]
-    description.credentials = TestCredential.named('baz')
+    def description = new BasicAmazonDeployDescription(
+      amiName: "ami-12345",
+      availabilityZones: ["us-west-1": []],
+      credentials: TestCredential.named('baz')
+    )
 
     when:
     handler.handle(description, [])
 
     then:
+    actualClassicLinkVpcId == "vpc-456"
     1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult(vpcs: [
       new VpcClassicLink(vpcId: "vpc-123", classicLinkEnabled: false),
       new VpcClassicLink(vpcId: "vpc-456", classicLinkEnabled: true),
       new VpcClassicLink(vpcId: "vpc-789", classicLinkEnabled: false)
       ])
+  }
+
+  void "should not populate classic link VPC Id when there is a subnetType"() {
+    def actualClassicLinkVpcId
+    AutoScalingWorker.metaClass.deploy = {
+      actualClassicLinkVpcId = classicLinkVpcId
+      "foo"
+    }
+    def description = new BasicAmazonDeployDescription(
+      amiName: "ami-12345",
+      availabilityZones: ["us-west-1": []],
+      credentials: TestCredential.named('baz'),
+      subnetType: "internal"
+    )
+
+    when:
+    handler.handle(description, [])
+
+    then:
+    actualClassicLinkVpcId == null
   }
 
   void "should send instance class block devices to AutoScalingWorker when matched and none are specified"() {
