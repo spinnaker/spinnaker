@@ -157,7 +157,7 @@ services:
 providers:
   aws:
     # If you want to deploy some services to Amazon Web Services (AWS),
-    # set enabled and provide primary credentials for deploying.
+    # set enabled and provide credentials.
     # Enabling AWS is independent of other providers.
     enabled: false
     simpleDBEnabled: false
@@ -165,12 +165,12 @@ providers:
     defaultSimpleDBDomain: CLOUD_APPLICATIONS
     primaryCredentials:
       name: default
-      # You can use a standard $HOME/.aws/credentials file instead of providing
-      # these here. If provided here, then start_spinnaker will set environment
-      # variables before starting up the subsystems that interact with AWS.
-      # Do not remove these.
-      access_key_id:
-      secret_key:
+      # The actual credentials are set using a standard AWS client library mechanism
+      # http://docs.aws.amazon.com/AWSSdkDocsJava/latest/DeveloperGuide/credentials.html
+      # Typically this is a $HOME/.aws/credentials file (remember, a standard
+      # spinnaker installation runs as user "spinnaker" whose $HOME is
+      # /home/spinnaker). The primaryCredentials.name will identify which profile
+      # to use (for .aws/credentials).
 
   google:
     # If you want to deploy some services to Google Cloud Platform (google),
