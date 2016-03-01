@@ -101,6 +101,9 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     List<Map> serverGroups = cluster.get().serverGroups
 
     if (!serverGroups) {
+      if (stage.context.continueIfClusterNotFound) {
+        return DefaultTaskResult.SUCCEEDED;
+      }
       return emptyClusterResult(stage, clusterSelection, cluster.get())
     }
 
