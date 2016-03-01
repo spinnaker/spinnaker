@@ -184,8 +184,13 @@ class GatePipelineStatus(sk.SpinnakerStatus):
       logger = logging.getLogger(__name__)
       logger.info('Pipeline state is now %s', self.current_state)
 
-    # TODO(ewiseblatt): Not sure what these look like yet.
-    exception_details = None
+    # TODO(ewiseblatt): 20160308
+    # It looks like sometimes when we get an exception, the exception is
+    # burried in one of the interior stages and not propagated back up to
+    # the top level status. It's context is empty. So this might not
+    # be working at all, or at least is incomplete.
+    context = doc.get('context', {})
+    exception_details = context.get('exception', None)
     self._bind_exception_details(exception_details)
 
 
