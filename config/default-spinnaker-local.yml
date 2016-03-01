@@ -12,7 +12,8 @@ providers:
     defaultIAMRole: BaseIAMRole
     primaryCredentials:
       name: my-aws-account
-      # Store actual credentials in /home/spinnaker/.aws/credentials
+      # Store actual credentials in $HOME/.aws/credentials. See spinnaker.yml for
+      # more information, including alternatives.
 
   google:
     # If you want to deploy some services to Google Cloud Platform (google),
