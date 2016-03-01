@@ -1,1 +1,1 @@
-The application $notification.additionalContext.application has been reassigned to you
+The application $notification.additionalContext.application has been reassigned to $notification.additionalContext.newOwner.name
