@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -87,6 +88,7 @@ class DockerBearerTokenServiceSpec extends Specification {
       result.scope == SCOPE2
   }
 
+  @Ignore
   void "DockerBearerTokenService should request a real token from Dockerhub's token registry."() {
     setup:
       def header = [:]
@@ -100,6 +102,7 @@ class DockerBearerTokenServiceSpec extends Specification {
       token.token.length() > 0
   }
 
+  @Ignore
   void "DockerBearerTokenService should request a real token from Dockerhub's token registry, and supply a cached one."() {
     setup:
       def header = [:]

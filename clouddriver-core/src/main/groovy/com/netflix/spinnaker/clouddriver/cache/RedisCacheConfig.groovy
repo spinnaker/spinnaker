@@ -24,7 +24,6 @@ import com.netflix.spinnaker.cats.redis.JedisSource
 import com.netflix.spinnaker.cats.redis.cache.RedisNamedCacheFactory
 import com.netflix.spinnaker.cats.redis.cluster.AgentIntervalProvider
 import com.netflix.spinnaker.cats.redis.cluster.ClusteredAgentScheduler
-import com.netflix.spinnaker.cats.redis.cluster.DefaultAgentIntervalProvider
 import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeIdentity
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -44,8 +43,11 @@ class RedisCacheConfig {
   }
 
   @Bean
-  NamedCacheFactory cacheFactory(JedisSource jedisSource, ObjectMapper objectMapper) {
-    new RedisNamedCacheFactory(jedisSource, objectMapper)
+  NamedCacheFactory cacheFactory(
+    JedisSource jedisSource,
+    ObjectMapper objectMapper,
+    @Value('${redis.maxMsetSize:250000}') int maxMsetSize) {
+    new RedisNamedCacheFactory(jedisSource, objectMapper, maxMsetSize)
   }
 
   @Bean
