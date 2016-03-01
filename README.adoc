@@ -45,7 +45,7 @@ API_HOST=http://localhost:8084 npm start
 
 == Building &amp; Deploying
 
-To build the application, run `npm run build`. The built application lives in `dist/`.
+To build the application, run `npm run build`. The built application lives in `build/`.
 
 == Conventions
 
