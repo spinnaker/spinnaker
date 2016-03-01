@@ -11,5 +11,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.waitStage', [])
       templateUrl: require('./waitStage.html'),
       executionDetailsUrl: require('./waitExecutionDetails.html'),
       strategy: true,
+      validators: [
+        { type: 'requiredField', fieldName: 'waitTime' },
+      ],
     });
   });
