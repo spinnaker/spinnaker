@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -88,6 +89,48 @@ class FindImageFromClusterTaskSpec extends Specification {
           buildInfo: [ job: "foo-build", buildNumber: 1 ]
         ]]
       ]
+  }
+
+  def "should be RUNNING if summary does not include imageId"() {
+    given:
+    def stage = new PipelineStage(new Pipeline(), "findImage", [
+      cloudProvider    : "cloudProvider",
+      cluster          : "foo-test",
+      account          : "test",
+      selectionStrategy: "LARGEST",
+      onlyEnabled      : "false",
+      regions          : [location1.value, location2.value]
+    ])
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * oortService.getServerGroupSummary("foo", "test", "foo-test", "cloudProvider", location1.value,
+      "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> oortResponse1
+    1 * oortService.getServerGroupSummary("foo", "test", "foo-test", "cloudProvider", location2.value,
+      "LARGEST", FindImageFromClusterTask.SUMMARY_TYPE, false.toString()) >> oortResponse2
+    result.status == ExecutionStatus.RUNNING
+
+    where:
+    location1 = new Location(type: Location.Type.REGION, value: "north")
+    location2 = new Location(type: Location.Type.REGION, value: "south")
+
+    oortResponse1 = [
+      summaries: [[
+                    serverGroupName:  "foo-test-v000",
+                    imageId: "ami-012",
+                    imageName: "ami-012-name",
+                    image: [ imageId: "ami-012", name: "ami-012-name", foo: "bar" ],
+                    buildInfo: [ job: "foo-build", buildNumber: 1 ]
+                  ]]
+    ]
+
+    oortResponse2 = [
+      summaries: [[
+                    serverGroupName:  "foo-test-v002"
+                  ]]
+    ]
   }
 
   private void assertNorth(Map details, Map expectOverrides = [:]) {

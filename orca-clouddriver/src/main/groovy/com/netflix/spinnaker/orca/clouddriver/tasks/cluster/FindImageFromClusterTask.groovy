@@ -40,9 +40,9 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
 
   static String SUMMARY_TYPE = "Images"
 
-  final long backoffPeriod = 2000
+  final long backoffPeriod = 10000
 
-  final long timeout = 60000
+  final long timeout = 600000
 
   static enum SelectionStrategy {
     /**
@@ -71,6 +71,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
 
   @Autowired
   OortService oortService
+
   @Autowired
   ObjectMapper objectMapper
 
@@ -107,6 +108,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     }
 
     List<Location> missingLocations = []
+    List<Location> locationsWithMissingImageIds = []
 
     Set<String> imageNames = []
     Map<Location, String> imageIds = [:]
@@ -122,10 +124,14 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
           config.selectionStrategy.toString(),
           SUMMARY_TYPE,
           config.onlyEnabled.toString())
-        List<Map<String, Object>> summaries= (List<Map<String, Object>>) lookupResults.summaries
+        List<Map<String, Object>> summaries = (List<Map<String, Object>>) lookupResults.summaries
         summaries?.forEach {
           imageNames << (String) it.imageName
           imageIds[location] = (String) it.imageId
+
+          if (!it.imageId) {
+            locationsWithMissingImageIds << location
+          }
         }
         return [(location): summaries]
       } catch (RetrofitError e) {
@@ -133,7 +139,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
           final Map reason
           try {
             reason = objectMapper.readValue(e.response.body.in(), new TypeReference<Map<String, Object>>() {})
-          } catch (Exception ex) {
+          } catch (Exception ignored) {
             throw new IllegalStateException("Unexpected response from API")
           }
           if (reason.error?.contains("target.fail.strategy")){
@@ -148,6 +154,12 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
         }
         throw e
       }
+    }
+
+    if (!locationsWithMissingImageIds.isEmpty()) {
+      // signifies that at least one summary was missing image details, let's retry until we see image details
+      log.warn("One or more locations are missing image details (locations: ${locationsWithMissingImageIds*.value}, cluster: ${config.cluster}, account: ${account})")
+      return new DefaultTaskResult(ExecutionStatus.RUNNING)
     }
 
     if (missingLocations) {
