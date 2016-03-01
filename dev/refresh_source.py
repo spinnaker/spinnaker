@@ -211,7 +211,7 @@ class Refresher(object):
       name = repository.name
       repository_dir = get_repository_dir(name)
       upstream_user = repository.owner
-      branch = self.pull_branch
+      branch = self.pull_branch or 'master'
       origin_url = self.get_github_repository_url(repository, owner=owner)
       upstream_url = 'https://github.com/{upstream_user}/{name}.git'.format(
               upstream_user=upstream_user, name=name)
