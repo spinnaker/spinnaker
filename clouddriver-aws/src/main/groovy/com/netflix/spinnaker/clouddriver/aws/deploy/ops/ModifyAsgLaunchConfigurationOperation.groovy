@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 import com.amazonaws.services.autoscaling.model.DisableMetricsCollectionRequest
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
@@ -38,6 +39,9 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
   @Autowired
   RegionScopedProviderFactory regionScopedProviderFactory
 
+  @Autowired
+  AwsConfiguration.DeployDefaults deployDefaults
+
   private final ModifyAsgLaunchConfigurationDescription description
 
   ModifyAsgLaunchConfigurationOperation(ModifyAsgLaunchConfigurationDescription description) {
@@ -55,10 +59,21 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
 
     def settings = lcBuilder.buildSettingsFromLaunchConfiguration(description.credentials, description.region, existingLc)
 
-    def props = [:] + description.properties
+    def props = [:]
+    if (!asg.getVPCZoneIdentifier() && !settings.classicLinkVpcId) {
+      def classicLinkVpc = regionScopedProvider.amazonEC2.describeVpcClassicLink().vpcs.find { it.classicLinkEnabled }
+      if (classicLinkVpc) {
+        props.classicLinkVpcId = classicLinkVpc.vpcId
+        if (deployDefaults.classicLinkSecurityGroupName) {
+          props.classicLinkVpcSecurityGroups = [ deployDefaults.classicLinkSecurityGroupName ]
+        }
+      }
+    }
+
     def settingsKeys = settings.properties.keySet()
+    props = props + description.properties.findResults { k, v -> (v != null && settingsKeys.contains(k)) ? [k, v] : null }.collectEntries()
     props.remove('class')
-    props = props.findResults { k, v -> (v != null && settingsKeys.contains(k)) ? [k, v] : null}.collectEntries()
+
 
     if (description.amiName) {
       // find by 1) result of a previous step (we performed allow launch)
@@ -76,13 +91,6 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
             AmiIdResolver.resolveAmiId(amazonEC2, description.region, description.amiName, null, null)
 
       props.ami = ami.amiId
-    }
-
-    if (!asg.getVPCZoneIdentifier() && !settings.classicLinkVpcId) {
-      def classicLinkVpc = regionScopedProvider.amazonEC2.describeVpcClassicLink().vpcs.find { it.classicLinkEnabled }
-      if (classicLinkVpc) {
-        props.classicLinkVpcId = classicLinkVpc.vpcId
-      }
     }
 
     def newSettings = settings.copyWith(props)

@@ -46,7 +46,7 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   String base64UserData
 
   String classicLinkVpcId
-  List<String> classicLinkVPCSecurityGroups
+  List<String> classicLinkVpcSecurityGroups
 
   boolean ignoreSequence
   boolean startDisabled

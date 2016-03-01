@@ -34,7 +34,7 @@ interface LaunchConfigurationBuilder {
     String ami
     String iamRole
     String classicLinkVpcId
-    List<String> classicLinkVPCSecurityGroups
+    List<String> classicLinkVpcSecurityGroups
     String instanceType
     String keyPair
     String base64UserData

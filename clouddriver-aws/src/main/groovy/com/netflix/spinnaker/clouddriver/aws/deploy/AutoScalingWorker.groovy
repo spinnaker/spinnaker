@@ -48,6 +48,7 @@ class AutoScalingWorker {
   private String freeFormDetails
   private String ami
   private String classicLinkVpcId
+  private List<String> classicLinkVpcSecurityGroups
   private String instanceType
   private String iamRole
   private String keyPair
@@ -117,6 +118,7 @@ class AutoScalingWorker {
       ami: ami,
       iamRole: iamRole,
       classicLinkVpcId: classicLinkVpcId,
+      classicLinkVpcSecurityGroups: classicLinkVpcSecurityGroups,
       instanceType: instanceType,
       keyPair: keyPair,
       base64UserData: base64UserData,

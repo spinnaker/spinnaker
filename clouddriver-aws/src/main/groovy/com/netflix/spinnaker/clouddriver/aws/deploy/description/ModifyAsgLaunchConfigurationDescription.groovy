@@ -35,6 +35,8 @@ class ModifyAsgLaunchConfigurationDescription extends AbstractAmazonCredentialsD
   String ramdiskId
   Boolean instanceMonitoring
   Boolean ebsOptimized
+  String classicLinkVpcId
+  List<String> classicLinkVpcSecurityGroups
 
   List<AmazonBlockDevice> blockDevices
   List<String> securityGroups
