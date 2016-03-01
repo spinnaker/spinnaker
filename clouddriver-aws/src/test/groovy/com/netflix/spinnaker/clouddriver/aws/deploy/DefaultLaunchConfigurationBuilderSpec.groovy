@@ -36,7 +36,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
 
   @Subject
   DefaultLaunchConfigurationBuilder builder = new DefaultLaunchConfigurationBuilder(autoScaling, asgService,
-    securityGroupService, [userDataProvider], new AwsConfiguration.DeployDefaults())
+    securityGroupService, [userDataProvider])
 
   void "should lookup security groups when provided by name"() {
     when:
@@ -118,7 +118,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
             base64UserData: 'ZXhwb3J0IFVTRVJEQVRBPTEK',
             securityGroups: securityGroups)
   }
-  
+
   void "should add user data to launchconfig with user data provider if description userdata ommitted"() {
     when:
     builder.buildLaunchConfiguration(application, subnetType, settings)
@@ -195,7 +195,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
       suffix: '20150515',
       securityGroups: ["sg-000"],
       classicLinkVpcId: "vpc-123",
-      classicLinkVPCSecurityGroups: ["sg-123", "sg-456"])
+      classicLinkVpcSecurityGroups: ["sg-123", "sg-456"])
   }
 
   void "should try to look up classic link security group if vpc is linked"() {
@@ -224,8 +224,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
   }
 
   void "should look up and attach classic link security group if vpc is linked"() {
-    builder = new DefaultLaunchConfigurationBuilder(autoScaling, asgService, securityGroupService, [userDataProvider],
-      new AwsConfiguration.DeployDefaults(classicLinkSecurityGroupName: "nf-classiclink"))
+    builder = new DefaultLaunchConfigurationBuilder(autoScaling, asgService, securityGroupService, [userDataProvider])
 
     when:
     builder.buildLaunchConfiguration(application, subnetType, settings)
@@ -249,7 +248,8 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
       baseName: 'fooapp-v001',
       suffix: '20150515',
       securityGroups: ["sg-000"],
-      classicLinkVpcId: "vpc-123")
+      classicLinkVpcId: "vpc-123",
+      classicLinkVpcSecurityGroups: ["nf-classiclink"])
   }
 
   void "handles block device mappings"() {

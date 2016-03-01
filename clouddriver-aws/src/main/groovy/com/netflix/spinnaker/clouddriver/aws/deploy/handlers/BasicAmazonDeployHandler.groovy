@@ -99,6 +99,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       def amazonEC2 = regionScopedProvider.amazonEC2
 
       String classicLinkVpcId = null
+      List<String> classicLinkVpcSecurityGroups = null
       if (!subnetType) {
         classicLinkVpcId = description.classicLinkVpcId
         if (!classicLinkVpcId) {
@@ -106,6 +107,14 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
           def classicLinkVpc = result.vpcs.find { it.classicLinkEnabled }
           if (classicLinkVpc) {
             classicLinkVpcId = classicLinkVpc.vpcId
+          }
+        }
+        if (classicLinkVpcId) {
+          classicLinkVpcSecurityGroups = description.classicLinkVpcSecurityGroups
+          if (!classicLinkVpcSecurityGroups) {
+            if (deployDefaults.classicLinkSecurityGroupName) {
+              classicLinkVpcSecurityGroups = [deployDefaults.classicLinkSecurityGroupName]
+            }
           }
         }
       }
@@ -149,6 +158,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         freeFormDetails: description.freeFormDetails,
         ami: ami.amiId,
         classicLinkVpcId: classicLinkVpcId,
+        classicLinkVpcSecurityGroups: classicLinkVpcSecurityGroups,
         minInstances: description.capacity.min,
         maxInstances: description.capacity.max,
         desiredInstances: description.capacity.desired,

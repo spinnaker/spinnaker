@@ -25,6 +25,7 @@ import com.amazonaws.services.ec2.model.DescribeImagesRequest
 import com.amazonaws.services.ec2.model.DescribeImagesResult
 import com.amazonaws.services.ec2.model.DescribeVpcClassicLinkResult
 import com.amazonaws.services.ec2.model.Image
+import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.amazonaws.services.ec2.model.VpcClassicLink
@@ -43,10 +44,13 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
 
   def description = new ModifyAsgLaunchConfigurationDescription()
 
+  def defaults = new AwsConfiguration.DeployDefaults(classicLinkSecurityGroupName: 'nf-classiclink')
+
   @Subject op = new ModifyAsgLaunchConfigurationOperation(description)
 
   void setup() {
     def task = Stub(Task)
+    op.deployDefaults = defaults
     TaskRepository.threadLocalTask.set(task)
 
     def amazonEC2 = Stub(AmazonEC2) {
