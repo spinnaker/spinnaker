@@ -27,22 +27,20 @@ class ImagesCallback<ImageList> extends JsonBatchCallback<ImageList> {
   protected static final Logger log = Logger.getLogger(this)
 
   private List<Map> imageList
-  private boolean prune
+  private boolean filterForLatest
 
-  public ImagesCallback(List<Map> imageList, boolean prune) {
+  public ImagesCallback(List<Map> imageList, boolean filterForLatest) {
     this.imageList = imageList
-    this.prune = prune
+    this.filterForLatest = filterForLatest
   }
 
   @Override
   void onSuccess(ImageList imageListResult, HttpHeaders responseHeaders) throws IOException {
-    if (prune) {
-      imageList.addAll(pruneImageList(imageListResult))
-    } else {
-      imageListResult.items.each { image ->
-        imageList << image
-      }
+    List<Image> nonDeprecatedImages = imageListResult.items.findAll { image ->
+      !image.deprecated?.state
     }
+
+    imageList.addAll(filterForLatest ? filterImageListForLatest(nonDeprecatedImages) : nonDeprecatedImages)
   }
 
   @Override
@@ -50,9 +48,14 @@ class ImagesCallback<ImageList> extends JsonBatchCallback<ImageList> {
     log.error e.getMessage()
   }
 
-  private static List<Map> pruneImageList(ImageList imageListResult) {
+  /**
+   * This method returns a list containing the latest image from each 'image group'.
+   * Each 'image group' is identified by grouping by name, without regard to the date portion of each name.
+   * The date portion of each name is used to determine the 'latest' image.
+   */
+  private static List<Map> filterImageListForLatest(List<Image> imageList) {
     /*
-      Build a map from pruned image names to sorted sets of full image representations (images are sorted by name).
+      Build a map from trimmed image names to sorted sets of full image representations (images are sorted by name).
 
       An ImageList like the following:
       backports-debian-7-wheezy-v20141017
@@ -69,11 +72,8 @@ class ImagesCallback<ImageList> extends JsonBatchCallback<ImageList> {
      */
     Map<String, Set<String>> map = new HashMap<String, Set<String>>()
 
-    imageListResult.items.findAll { image ->
-      !image.deprecated?.state
-    }.each { image ->
+    imageList.each { image ->
       String fullImageName = image.name
-      // TODO(duftler): Verify the naming convention and devise consistent pruning logic.
       // Public coreos images break the naming convention of the others.
       int delimiter = fullImageName.startsWith("coreos-") ?
           fullImageName.indexOf('-', 7) :

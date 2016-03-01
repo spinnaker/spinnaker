@@ -22,7 +22,7 @@ import com.google.api.services.compute.model.ImageList
 import spock.lang.Specification
 
 class ImagesCallbackSpec extends Specification {
-  void "public image lists are pruned"() {
+  void "public image lists are filtered such that the latest non-deprecated image in each image group is retained"() {
     setup:
       def imageList = new ArrayList<String>()
       def imagesCallback1 = new ImagesCallback(imageList, true)
@@ -83,28 +83,26 @@ class ImagesCallbackSpec extends Specification {
                     new Image(name: "ubuntu-1404-trusty-v20141031a")]
   }
 
-  void "project image lists are not pruned"() {
+  void "project image lists are not filtered for latest, but are filtered for non-deprecated images"() {
     setup:
       def imageList = new ArrayList<String>()
       def imagesCallback = new ImagesCallback(imageList, false)
       def imageListResult = new ImageList()
       imageListResult.setItems([buildImage("my-image-1", false),
-                                buildImage("my-image-2", false),
+                                buildImage("my-image-2", true),
                                 buildImage("my-image-3", false),
                                 buildImage("my-other-image-1", false),
                                 buildImage("my-other-image-2", false),
-                                buildImage("my-other-image-3", false)])
+                                buildImage("my-other-image-3", true)])
 
     when:
       imagesCallback.onSuccess(imageListResult, null)
 
     then:
       imageList == [buildImage("my-image-1", false),
-                    buildImage("my-image-2", false),
                     buildImage("my-image-3", false),
                     buildImage("my-other-image-1", false),
-                    buildImage("my-other-image-2", false),
-                    buildImage("my-other-image-3", false)]
+                    buildImage("my-other-image-2", false)]
   }
 
   private Image buildImage(String imageName, boolean deprecated) {
