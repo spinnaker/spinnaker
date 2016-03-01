@@ -12,7 +12,14 @@ providers:
     defaultIAMRole: BaseIAMRole
     primaryCredentials:
       name: my-aws-account
-      # Store actual credentials in /home/spinnaker/.aws/credentials
+      # You can use a standard $HOME/.aws/credentials file instead of providing
+      # these here. ($HOME is /home/spinnaker for spinnaker installations and
+      # and /home/<logged-in-user> for development setups)
+      # If provided here, then start_spinnaker will set environment
+      # variables before starting up the subsystems that interact with AWS.
+      # Do not remove these.
+      access_key_id:
+      secret_key:
 
   google:
     # If you want to deploy some services to Google Cloud Platform (google),
