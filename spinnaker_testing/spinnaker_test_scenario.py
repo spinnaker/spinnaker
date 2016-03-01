@@ -269,14 +269,13 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         logger.info('Determine default AWS VpcId...')
         vpc_list = self.__aws_observer.get_resource_list(
             root_key='Vpcs',
-            aws_command='describe-vpcs', args=[],
+            aws_command='describe-vpcs',
+            args=['--filters', 'Name=tag:Name,Values=defaultvpc'],
             region=bindings['TEST_AWS_REGION'],
             aws_module='ec2', profile=self.__aws_observer.profile)
-        for entry in vpc_list:
-          if (entry.get('CidrBlock', '').startswith('10.')
-              and entry.get('State', None) == 'available'):
-            bindings['TEST_AWS_VPC_ID'] = entry['VpcId']
-            break
+        if not vpc_list:
+          raise ValueError('There is no vpc tagged as "defaultvpc"')
+        bindings['TEST_AWS_VPC_ID'] = vpc_list[0]['VpcId']
         logger.info('Using discovered default VpcId=%s',
                     str(bindings['TEST_AWS_VPC_ID']))
 

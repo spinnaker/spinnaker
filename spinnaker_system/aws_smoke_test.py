@@ -130,18 +130,65 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
             bindings=self.bindings, application=self.TEST_APP),
         contract=contract)
 
-  def upsert_load_balancer(self):
+  def upsert_load_balancer(self, use_vpc):
     """Creates OperationContract for upsertLoadBalancer.
 
     Calls Spinnaker's upsertLoadBalancer with a configuration, then verifies
     that the expected resources and configurations are visible on AWS. See
     the contract builder for more info on what the expectations are.
+
+    Args:
+      use_vpc: [bool] if True configure a VPC otherwise dont.
     """
     bindings = self.bindings
     load_balancer_name = bindings['TEST_APP_COMPONENT_NAME']
 
+    # We're assuming that the given region has 'A' and 'B' availability
+    # zones. This seems conservative but might be brittle since we permit
+    # any region.
     region = bindings['TEST_AWS_REGION']
     avail_zones = [region + 'a', region + 'b']
+
+    if use_vpc:
+      # TODO(ewiseblatt): 20160301
+      # We're hardcoding the VPC here, but not sure which we really want.
+      # I think this comes from the spinnaker.io installation instructions.
+      # What's interesting about this is that it is a 10.* CidrBlock,
+      # as opposed to the others, which are public IPs. All this is sensitive
+      # as to where the TEST_AWS_VPC_ID came from so this is going to be
+      # brittle. Ideally we only need to know the vpc_id and can figure the
+      # rest out based on what we have available.
+      subnet_type = 'internal (defaultvpc)'
+      vpc_id = bindings['TEST_AWS_VPC_ID']
+
+      # Not really sure how to determine this value in general.
+      security_groups = ['default']
+
+      # The resulting load balancer will only be available in the zone of
+      # the subnet we are using. We'll figure that out by looking up the
+      # subnet we want.
+      subnet_details = self.aws_observer.get_resource_list(
+          root_key='Subnets',
+          aws_command='describe-subnets',
+          aws_module='ec2',
+          args=['--filters',
+                'Name=vpc-id,Values={vpc_id}'
+                ',Name=tag:Name,Values=defaultvpc.internal.{region}'
+                .format(vpc_id=vpc_id, region=region)])
+      try:
+        expect_avail_zones = [subnet_details[0]['AvailabilityZone']]
+      except KeyError:
+        raise ValueError('vpc_id={0} appears to be unknown'.format(vpc_id))
+    else:
+      subnet_type = ""
+      vpc_id = None
+      security_groups = None
+      expect_avail_zones = avail_zones
+
+      # This will be a second load balancer not used in other tests.
+      # Decorate the name so as not to confuse it.
+      load_balancer_name += '-pub'
+
 
     listener = {
         'Listener': {
@@ -189,11 +236,11 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
 
             'user': '[anonymous]',
             'usePreferredZones': True,
-            'vpcId': bindings['TEST_AWS_VPC_ID'],
-            'subnetType': 'internal (defaultvpc)',
+            'vpcId': vpc_id,
+            'subnetType': subnet_type,
             # If I set security group to this then I get an error it is missing.
             # bindings['TEST_AWS_SECURITY_GROUP_ID']],
-            'securityGroups': ['default']
+            'securityGroups': security_groups
         }],
         description='Create Load Balancer: ' + load_balancer_name,
         application=self.TEST_APP)
@@ -208,24 +255,35 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
          jc.PathContainsPredicate(
              'LoadBalancerDescriptions/HealthCheck', health_check),
          jc.PathEqPredicate(
-             'LoadBalancerDescriptions/AvailabilityZones', avail_zones),
+             'LoadBalancerDescriptions/AvailabilityZones', expect_avail_zones),
          jc.PathElementsContainPredicate(
              'LoadBalancerDescriptions/ListenerDescriptions', listener)
          ])
     )
 
+    title_decorator = '_with_vpc' if use_vpc else '_without_vpc'
     return st.OperationContract(
         self.new_post_operation(
-            title='upsert_load_balancer', data=payload, path='tasks'),
+            title='upsert_load_balancer' + title_decorator,
+            data=payload,
+            path='tasks'),
         contract=builder.build())
 
-  def delete_load_balancer(self):
+  def delete_load_balancer(self, use_vpc):
     """Creates OperationContract for deleteLoadBalancer.
 
     To verify the operation, we just check that the AWS resources
     created by upsert_load_balancer are no longer visible on AWS.
+
+    Args:
+      use_vpc: [bool] if True delete the VPC load balancer, otherwise
+         the non-VPC load balancer.
     """
     load_balancer_name = self.bindings['TEST_APP_COMPONENT_NAME']
+    if not use_vpc:
+      # This is the second load balancer, where we decorated the name in upsert.
+      load_balancer_name += '-pub'
+
     payload = self.agent.make_json_payload_from_kwargs(
         job=[{
             'type': 'deleteLoadBalancer',
@@ -250,9 +308,12 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
          no_resources_ok=True)
      .excludes_path_value('LoadBalancerName', load_balancer_name))
 
+    title_decorator = '_with_vpc' if use_vpc else '_without_vpc'
     return st.OperationContract(
         self.new_post_operation(
-            title='delete_load_balancer', data=payload, path='tasks'),
+            title='delete_load_balancer' + title_decorator,
+            data=payload,
+            path='tasks'),
         contract=builder.build())
 
   def create_server_group(self):
@@ -378,8 +439,11 @@ class AwsSmokeTest(st.AgentTestCase):
   def test_a_create_app(self):
     self.run_test_case(self.scenario.create_app())
 
-  def test_b_upsert_load_balancer(self):
-    self.run_test_case(self.scenario.upsert_load_balancer())
+  def test_b_upsert_load_balancer_public(self):
+    self.run_test_case(self.scenario.upsert_load_balancer(use_vpc=False))
+
+  def test_b_upsert_load_balancer_vpc(self):
+    self.run_test_case(self.scenario.upsert_load_balancer(use_vpc=True))
 
   def test_c_create_server_group(self):
     # We'll permit this to timeout for now
@@ -391,8 +455,12 @@ class AwsSmokeTest(st.AgentTestCase):
   def test_x_delete_server_group(self):
     self.run_test_case(self.scenario.delete_server_group(), max_retries=5)
 
-  def test_y_delete_load_balancer(self):
-    self.run_test_case(self.scenario.delete_load_balancer(),
+  def test_y_delete_load_balancer_vpc(self):
+    self.run_test_case(self.scenario.delete_load_balancer(use_vpc=True),
+                       max_retries=5)
+
+  def test_y_delete_load_balancer_pub(self):
+    self.run_test_case(self.scenario.delete_load_balancer(use_vpc=False),
                        max_retries=5)
 
   def test_z_delete_app(self):
