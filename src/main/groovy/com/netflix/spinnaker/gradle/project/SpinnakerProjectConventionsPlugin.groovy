@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.gradle.project
 
 import com.jfrog.bintray.gradle.BintrayExtension
-import com.jfrog.bintray.gradle.BintrayPlugin
-import com.jfrog.bintray.gradle.BintrayUploadTask
 import com.netflix.spinnaker.gradle.ospackage.OspackageBintrayExtension
 import com.netflix.spinnaker.gradle.ospackage.OspackageBintrayPublishPlugin
 import nebula.plugin.info.scm.ScmInfoExtension
