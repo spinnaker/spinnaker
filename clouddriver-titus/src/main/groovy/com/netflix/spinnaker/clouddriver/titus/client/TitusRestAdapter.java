@@ -48,10 +48,13 @@ public interface TitusRestAdapter {
     Call<List<Job>> getJobsByType(@Query("type") String type);
 
     @GET("/v2/jobs")
-    Call<List<Job>> getJobsByTag(@Query("tags") String tag);
+    Call<List<Job>> getJobsByLabel(@Query("labels") String labels);
 
     @GET("/v2/jobs")
     Call<List<Job>> getJobsByUser(@Query("user") String user);
+
+    @GET("/v2/jobs")
+    Call<List<Job>> getJobsByApplication(@Query("appName") String application);
 
     @POST("/v2/tasks/terminate/{taskId}")
     Call<Void> terminateTask(@Path("taskId") String taskId);

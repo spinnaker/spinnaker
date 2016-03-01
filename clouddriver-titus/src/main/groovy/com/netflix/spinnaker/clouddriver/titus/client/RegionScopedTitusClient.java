@@ -114,7 +114,7 @@ public class RegionScopedTitusClient implements TitusClient {
 
     @Override
     public Job findJobByName(String jobName) {
-        List<Job> jobs = execute(titusRestAdapter.getJobsByTag(jobName));
+        List<Job> jobs = execute(titusRestAdapter.getJobsByLabel("name=" + jobName));
         if (jobs.isEmpty()) {
             return null;
         }
@@ -124,7 +124,7 @@ public class RegionScopedTitusClient implements TitusClient {
 
     @Override
     public List<Job> findJobsByApplication(String application) {
-        return execute(titusRestAdapter.getJobsByTag(application));
+        return execute(titusRestAdapter.getJobsByApplication(application));
     }
 
     @Override
@@ -138,8 +138,7 @@ public class RegionScopedTitusClient implements TitusClient {
         }
         jobDescription.setEnvParam("account", titusRegion.getAccount());
         jobDescription.setEnvParam("region", titusRegion.getName());
-        jobDescription.getTags().add(jobDescription.getName());
-        jobDescription.getTags().add(jobDescription.getAppName());
+        jobDescription.getLabels().put("name", jobDescription.getName());
         SubmitJobResponse response = execute(titusRestAdapter.submitJob(jobDescription));
         if (response == null) throw new RuntimeException(String.format("Failed to submit a titus job request for %s", jobDescription));
         String jobUri = response.getJobUri();

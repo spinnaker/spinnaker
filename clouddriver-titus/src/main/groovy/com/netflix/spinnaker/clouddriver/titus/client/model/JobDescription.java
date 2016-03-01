@@ -42,7 +42,7 @@ public class JobDescription {
     private String user;
     private List<String> softConstraints;
     private List<String> hardConstraints;
-    private List<String> tags;
+    private Map<String, String> labels;
 
     //Soft/Hard constraints
 
@@ -72,7 +72,7 @@ public class JobDescription {
                 .collect(Collectors.toList());
         user = request.getUser();
         env = request.getEnv() != null ? request.getEnv() : new HashMap<>();
-        tags = request.getTags() != null ? request.getTags() : new ArrayList<>();
+        labels = request.getLabels() != null ? request.getLabels() : new HashMap<>();
     }
 
     public String getName() {
@@ -218,11 +218,9 @@ public class JobDescription {
         this.env.put(key, value);
     }
 
-    public List<String> getTags() {
-        return tags;
-    }
+    public Map<String, String> getLabels() { return labels; }
 
-    public void setTags(List<String> tags) {
-        this.tags = tags;
+    public void setLabels(Map<String, String> labels) {
+        this.labels = labels;
     }
 }
