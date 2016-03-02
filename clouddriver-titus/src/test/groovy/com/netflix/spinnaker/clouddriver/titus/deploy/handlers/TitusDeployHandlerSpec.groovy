@@ -57,7 +57,7 @@ class TitusDeployHandlerSpec extends Specification {
       region: 'us-east-1',
       subnet: 'vpc0',
       imageId: 'api.server:master-201506020033-trusty-7366606',
-      capacity: [desired: 1],
+      capacity: [desired: 1, min: 1, max: 2],
       resources: [cpu: 2, memory: 4, disk: 4000, ports: [7001], allocateIpAddress: true],
       env: ['netflix.environment': 'test'],
       credentials: testCredentials
@@ -76,7 +76,9 @@ class TitusDeployHandlerSpec extends Specification {
       it.jobName == 'api-test-v000' &&
         it.dockerImageName == 'api.server' &&
         it.dockerImageVersion == 'master-201506020033-trusty-7366606' &&
-        it.instances == titusDeployDescription.capacity.desired &&
+        it.instancesMin == titusDeployDescription.capacity.min &&
+        it.instancesMax == titusDeployDescription.capacity.max &&
+        it.instancesDesired == titusDeployDescription.capacity.desired &&
         it.cpu == titusDeployDescription.resources.cpu &&
         it.memory == titusDeployDescription.resources.memory &&
         it.disk == titusDeployDescription.resources.disk &&

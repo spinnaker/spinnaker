@@ -47,7 +47,7 @@ class TitusDeployAtomicOperationConverterSpec extends Specification {
       source: [account: 'test', region: 'us-east-1'],
       subnetType: 'vpc0',
       imageId: 'api.server:master-201506020033-trusty-7366606',
-      capacity: [desired: 1],
+      capacity: [desired: 3, min: 2, max: 5],
       resources: [cpu: 2, memory: 4, disk: 4000, ports: [7001], allocateIpAddress: true],
       env: ['netflix.environment': 'test'],
       credentials: 'test'
@@ -71,7 +71,7 @@ class TitusDeployAtomicOperationConverterSpec extends Specification {
       source: [account: 'test', region: 'us-east-1'],
       subnetType: 'vpc0',
       imageId: 'api.server:master-201506020033-trusty-7366606',
-      capacity: [desired: 1],
+      capacity: [desired: 3, min: 2, max: 5],
       resources: [cpu: 2, memory: 4, disk: 4000, ports: [7001], allocateIpAddress: true],
       env: ['netflix.environment': 'test'],
       credentials: 'test'

@@ -64,6 +64,13 @@ public interface TitusClient {
 
     /**
      *
+     * @param resizeJobRequest
+     */
+    public void resizeJob(ResizeJobRequest resizeJobRequest);
+
+
+    /**
+     *
      * @param jobId
      */
     public void terminateJob(String jobId);
@@ -95,4 +102,5 @@ public interface TitusClient {
      * @return
      */
     public List<Job.TaskSummary> getAllTasks();
+
 }

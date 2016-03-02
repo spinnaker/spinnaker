@@ -25,10 +25,7 @@ import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.TitusDeployHandle
 import com.netflix.spinnaker.clouddriver.titus.deploy.ops.CloneTitusServerGroupAtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-/**
- *
- *
- */
+
 @TitusOperation(AtomicOperations.CLONE_SERVER_GROUP)
 @Component
 class CloneTitusServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {

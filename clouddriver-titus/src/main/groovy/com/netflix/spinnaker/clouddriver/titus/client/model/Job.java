@@ -158,6 +158,9 @@ public class Job {
     private String version;
     private String entryPoint;
     private int instances;
+    private int instancesMin;
+    private int instancesMax;
+    private int instancesDesired;
     private int cpu;
     private int memory;
     private int disk;
@@ -225,6 +228,30 @@ public class Job {
 
     public void setInstances(int instances) {
         this.instances = instances;
+    }
+
+    public int getInstancesMin() {
+      return instancesMin;
+    }
+
+    public void setInstancesMin(int instancesMin) {
+      this.instancesMin = instancesMin;
+    }
+
+    public int getInstancesMax() {
+      return instancesMax;
+    }
+
+    public void setInstancesMax(int instancesMax) {
+      this.instancesMax = instancesMax;
+    }
+
+    public int getInstancesDesired() {
+      return instancesDesired;
+    }
+
+    public void setInstancesDesired(int instancesDesired) {
+      this.instancesDesired = instancesDesired;
     }
 
     public int getCpu() {

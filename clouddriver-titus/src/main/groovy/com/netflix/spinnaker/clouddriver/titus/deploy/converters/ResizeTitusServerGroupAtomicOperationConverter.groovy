@@ -20,32 +20,33 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusOperation
-import com.netflix.spinnaker.clouddriver.titus.deploy.description.TerminateTitusInstancesDescription
-import com.netflix.spinnaker.clouddriver.titus.deploy.ops.TerminateTitusInstancesAtomicOperation
+import com.netflix.spinnaker.clouddriver.titus.deploy.description.DestroyTitusServerGroupDescription
+import com.netflix.spinnaker.clouddriver.titus.deploy.description.ResizeTitusServerGroupDescription
+import com.netflix.spinnaker.clouddriver.titus.deploy.ops.DestroyTitusServerGroupAtomicOperation
+import com.netflix.spinnaker.clouddriver.titus.deploy.ops.ResizeTitusServerGroupAtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-@TitusOperation(AtomicOperations.TERMINATE_INSTANCES)
+@TitusOperation(AtomicOperations.RESIZE_SERVER_GROUP)
 @Component
-class TerminateTitusInstancesAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+class ResizeTitusServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
   private final TitusClientProvider titusClientProvider
 
   @Autowired
-  TerminateTitusInstancesAtomicOperationConverter(TitusClientProvider titusClientProvider) {
+  ResizeTitusServerGroupAtomicOperationConverter(TitusClientProvider titusClientProvider) {
     this.titusClientProvider = titusClientProvider
   }
 
   @Override
   AtomicOperation convertOperation(Map input) {
-    new TerminateTitusInstancesAtomicOperation(titusClientProvider, convertDescription(input))
+    new ResizeTitusServerGroupAtomicOperation(titusClientProvider, convertDescription(input))
   }
 
   @Override
-  TerminateTitusInstancesDescription convertDescription(Map input) {
-    def converted = objectMapper.convertValue(input, TerminateTitusInstancesDescription)
+  ResizeTitusServerGroupDescription convertDescription(Map input) {
+    def converted = objectMapper.convertValue(input, ResizeTitusServerGroupDescription)
     converted.credentials = getCredentialsObject(input.credentials as String)
     converted
   }
-
 }

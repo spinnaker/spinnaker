@@ -23,10 +23,6 @@ import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription
 import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.TitusDeployHandler
 
-/**
- *
- *
- */
 class CloneTitusServerGroupAtomicOperation implements AtomicOperation<DeploymentResult> {
 
   private static final String PHASE = "CLONE_TITUS_SERVER_GROUP"
