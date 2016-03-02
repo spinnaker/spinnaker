@@ -22,12 +22,12 @@ import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.BuildContent
 import com.netflix.spinnaker.igor.history.model.BuildDetails
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
-import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
+import com.netflix.spinnaker.igor.polling.PollingMonitor
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.ApplicationListener
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
@@ -45,7 +45,8 @@ import java.util.concurrent.TimeUnit
 @Slf4j
 @Service
 @SuppressWarnings('CatchException')
-class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
+@ConditionalOnProperty('jenkins.enabled')
+class BuildMonitor implements PollingMonitor {
 
     @Autowired
     Environment environment
@@ -63,15 +64,31 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
 
     Long lastPoll
 
+    @Override
+    Long getLastPoll() {
+        lastPoll
+    }
+
     @SuppressWarnings('GStringExpressionWithinString')
     @Value('${spinnaker.build.pollInterval:60}')
     int pollInterval
+
+    @Override
+    int getPollInterval() {
+        pollInterval
+    }
 
     static final String BUILD_IN_PROGRESS = "BUILDING"
 
     @Autowired(required = false)
     DiscoveryClient discoveryClient
 
+    @Override
+    String getName() {
+        "jenkinsBuildMonitor"
+    }
+
+    @Override
     boolean isInService() {
         if (discoveryClient == null) {
             log.info("no DiscoveryClient, assuming InService")

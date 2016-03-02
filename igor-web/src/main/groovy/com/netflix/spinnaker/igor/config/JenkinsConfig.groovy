@@ -23,6 +23,7 @@ import com.squareup.okhttp.Credentials
 import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.beans.factory.annotation.Value
@@ -41,6 +42,7 @@ import java.util.concurrent.TimeUnit
 @Configuration
 @Slf4j
 @CompileStatic
+@ConditionalOnProperty("jenkins.enabled")
 class JenkinsConfig {
 
     @Value('${client.timeout:30000}')
