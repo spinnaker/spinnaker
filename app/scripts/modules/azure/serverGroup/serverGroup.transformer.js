@@ -30,7 +30,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.transformer', [
         sku: {
           name: 'Standard_A1',
           tier: 'Standard',
-          capacity: 2,
+          capacity: base.sku.capacity,
         },
 
         osConfig: {
