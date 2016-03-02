@@ -18,7 +18,7 @@
               ng-change="newFP.property.strategy.rolloutListString = ''"
               >
             <option value="number">Number of instances in the {{newFP.property.startScope.cluster}} cluster in {{newFP.property.startScope.region}}</option>
-            <option value="percentage">Percentage of instances in the <b>{{newFP.property.startScope.cluster}} cluster in <b>{{newFP.property.startScope.region}}</option>
+            <option value="percent">Percentage of instances in the <b>{{newFP.property.startScope.cluster}} cluster in <b>{{newFP.property.startScope.region}}</option>
           </select>
         </div>
 
@@ -39,7 +39,7 @@
           <input
               type="text"
               class="form-control input-sm"
-              placeholder="example: {{newFP.property.strategy.option === 'percentage' ? newFP.getSampleRolloutPercentage() : newFP.getSampleRolloutNumber()}}"
+              placeholder="example: {{newFP.property.strategy.option === 'percent' ? newFP.getSampleRolloutPercentage() : newFP.getSampleRolloutNumber()}}"
               required
               ng-model="newFP.property.strategy.rolloutListString"
               />
@@ -66,7 +66,7 @@
             </p>
 
             <p
-              ng-if="newFP.property.strategy.option === 'percentage' && newFP.property.strategy.rolloutListString"
+              ng-if="newFP.property.strategy.option === 'percent' && newFP.property.strategy.rolloutListString"
               ng-repeat="rolloutPct in newFP.getRolloutList() track by $index">
 
               <span ng-if="rolloutPct <= 100">
