@@ -73,6 +73,11 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
     }
 
     boolean allAreComplete = processPendingForceCacheUpdates(account, cloudProvider, stageData, stage.startTime)
+    if (allAreComplete) {
+      // ensure clean stage data such that a subsequent ServerGroupCacheForceRefresh (in this stage) starts fresh
+      stageData.reset()
+    }
+
     return new DefaultTaskResult(allAreComplete ? SUCCEEDED : RUNNING, convertAndStripNullValues(stageData))
   }
 
@@ -138,10 +143,17 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
 
     boolean finishedProcessing = true
     stageData.deployServerGroups.each { String region, Set<String> serverGroups ->
-      finishedProcessing = finishedProcessing && serverGroups.every { String serverGroup ->
-        def model = [
-          serverGroup: serverGroup, region: region, account: account
-        ]
+      def makeModel = { serverGroup ->
+        [serverGroup: serverGroup, region: region, account: account]
+      }
+
+      def processedServerGroups = serverGroups.findAll { String serverGroup ->
+        def model = makeModel(serverGroup)
+
+        if (stageData.processedServerGroups.contains(model)) {
+          // this server group has already been processed
+          return true
+        }
 
         def forceCacheUpdate = pendingForceCacheUpdates.find {
           (it.details as Map<String, String>).intersect(model) == model
@@ -174,6 +186,12 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
 
         return true
       }
+
+      stageData.processedServerGroups.addAll(processedServerGroups.collect {
+        makeModel(it)
+      })
+
+      finishedProcessing = finishedProcessing && (processedServerGroups == serverGroups)
     }
     return finishedProcessing
   }
@@ -193,6 +211,9 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
     @JsonProperty("refreshed.server.groups")
     Set<Map> refreshedServerGroups = []
 
+    @JsonProperty("processed.server.groups")
+    Set<Map> processedServerGroups = []
+
     @JsonProperty("force.cache.refresh.errors")
     Collection<String> errors = []
 
@@ -209,6 +230,12 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
           it.serverGroupName == serverGroupName && it.region == region && it.account == account
         }
       )
+    }
+
+    void reset() {
+      refreshedServerGroups = []
+      processedServerGroups = []
+      errors = []
     }
   }
 }
