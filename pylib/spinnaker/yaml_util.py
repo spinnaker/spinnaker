@@ -27,8 +27,14 @@ class YamlBindings(object):
   def __init__(self):
     self.__map = {}
 
-  def get(self, field):
+  def __getitem__(self, field):
     return self.__get_field_value(field, [], original=field)
+    
+  def get(self, field, default=None):
+    try:
+      return self.__get_field_value(field, [], original=field)
+    except KeyError:
+      return default
 
   def import_dict(self, d):
     for name,value in d.items():
@@ -139,7 +145,7 @@ class YamlBindings(object):
       Transformed source with value of key replaced to match the bindings.
     """
     try:
-      value = self.get(key)
+      value = self[key]
     except KeyError:
       return source
 
