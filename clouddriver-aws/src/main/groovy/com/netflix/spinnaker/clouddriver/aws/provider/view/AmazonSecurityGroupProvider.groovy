@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.provider.view
 
 import com.amazonaws.services.ec2.model.IpPermission
 import com.amazonaws.services.ec2.model.SecurityGroup
+import com.amazonaws.services.ec2.model.UserIdGroupPair
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableSet
 import com.netflix.spinnaker.cats.cache.Cache
@@ -25,7 +26,6 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
-import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.model.AddressableRange
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
@@ -126,7 +126,7 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
       Map<String, Map> ipRangeRules = [:]
       amznSecurityGroup.ipPermissions.each { permission ->
         addIpRangeRules(permission, ipRangeRules)
-        addSecurityGroupRules(permission, rules, account, region)
+        addSecurityGroupRules(permission, rules, securityGroup.vpcId, region)
       }
       inboundRules.addAll buildSecurityGroupRules(rules)
       inboundRules.addAll buildIpRangeRules(ipRangeRules)
@@ -167,7 +167,16 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
     securityGroupRules
   }
 
-  private void addSecurityGroupRules(IpPermission permission, Map<GroupAndProtocol, Map> rules, String account, String region) {
+  private String getIngressGroupName(UserIdGroupPair sg, String accountName, String region, String vpcId) {
+    if (sg.groupName) {
+      return sg.groupName
+    }
+    def keyPattern = Keys.getSecurityGroupKey(amazonCloudProvider, '*', sg.groupId, region, accountName ?: '*', vpcId)
+    def matches = cacheView.filterIdentifiers(SECURITY_GROUPS.ns, keyPattern)
+    return matches ? Keys.parse(amazonCloudProvider, matches[0]).name : null
+  }
+
+  private void addSecurityGroupRules(IpPermission permission, Map<GroupAndProtocol, Map> rules, String vpcId, String region) {
     permission.userIdGroupPairs.each { sg ->
       def groupAndProtocol = new GroupAndProtocol(sg.groupId, permission.ipProtocol)
       if (!rules.containsKey(groupAndProtocol)) {
@@ -178,10 +187,11 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
             new AmazonSecurityGroup(
               type: amazonCloudProvider.id,
               id: sg.groupId,
-              name: sg.groupName,
+              name: getIngressGroupName(sg, ingressAccount?.name, region, vpcId),
               accountId: sg.userId,
               accountName: ingressAccount?.name,
-              region: region
+              region: region,
+              vpcId: vpcId
             ),
           portRanges   : [] as SortedSet
         ])
