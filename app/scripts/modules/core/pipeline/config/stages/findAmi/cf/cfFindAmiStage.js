@@ -6,6 +6,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.findAmiStage',
   require('../../../../../../core/application/listExtractor/listExtractor.service'),
   require('./findAmiExecutionDetails.controller.js'),
   require('../../../../../account/account.service.js'),
+  require('../../../../../config/settings.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -19,7 +20,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.findAmiStage',
         { type: 'requiredField', fieldName: 'credentials' }
       ]
     });
-  }).controller('cfFindAmiStageCtrl', function($scope, accountService, appListExtractorService) {
+  }).controller('cfFindAmiStageCtrl', function($scope, accountService, appListExtractorService, settings) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -47,9 +48,15 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.findAmiStage',
     ctrl.accountUpdated = function() {
     };
 
+    ctrl.updateRegions = function() {
+      let preferredZoneList = settings.providers.cf.preferredZonesByAccount[$scope.stage.credentials];
+      stage.regions = Object.keys(preferredZoneList);
+    };
+
     ctrl.reset = () => {
       ctrl.accountUpdated();
       ctrl.resetSelectedCluster();
+      ctrl.updateRegions();
     };
 
     $scope.selectionStrategies = [{
@@ -70,6 +77,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.findAmiStage',
       description: 'When multiple server groups exist, fail'
     }];
 
+    stage.regions = stage.regions || [];
     stage.cloudProvider = 'cf';
     stage.selectionStrategy = stage.selectionStrategy || $scope.selectionStrategies[0].val;
 
@@ -79,6 +87,9 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.findAmiStage',
 
     if (!stage.credentials && $scope.application.defaultCredentials.cf) {
       stage.credentials = $scope.application.defaultCredentials.cf;
+    }
+    if (!stage.regions.length && $scope.application.defaultRegions.cf) {
+      stage.regions.push($scope.application.defaultRegions.cf);
     }
 
     if (stage.credentials) {
