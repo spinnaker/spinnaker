@@ -167,13 +167,16 @@ e:
     bindings.import_dict({'field': '${injected.value}', 'found': 'FOUND'})
     bindings.import_dict({'injected': {'value': '${found}'}})
     self.assertEqual('FOUND', bindings.get('field'))
+    self.assertEqual('FOUND', bindings['field'])
+    self.assertEqual('FOUND', bindings.get('field', None))
 
   def test_load_key_not_found(self):
     bindings = YamlBindings()
     bindings.import_dict({'field': '${injected.value}', 'injected': {}})
 
     with self.assertRaises(KeyError):
-      bindings.get('unknown')
+      bindings['unknown']
+    self.assertEqual(None, bindings.get('unknown', None))
 
   def test_cyclic_reference(self):
     bindings = YamlBindings()

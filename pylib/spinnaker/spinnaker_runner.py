@@ -274,10 +274,11 @@ class Runner(object):
     environ = dict(os.environ)
     # Set AWS environment variables for credentials if not already there.
     key_id = self.__bindings.get(
-    'providers.aws.primaryCredentials.access_key_id')
+        'providers.aws.primaryCredentials.access_key_id', None)
     secret_key = self.__bindings.get(
-      'providers.aws.primaryCredentials.secret_key')
-    if key_id:
+        'providers.aws.primaryCredentials.secret_key', None)
+
+    if key_id is not None:
       environ['AWS_ACCESS_KEY_ID'] = environ.get('AWS_ACCESS_KEY_ID', key_id)
 
       # TODO(ewiseblatt): 20151030
@@ -286,7 +287,7 @@ class Runner(object):
       # to work (when running from gradle). Instead the key needs to be
       # AWS_ACCESS_KEY, so we will set both for now.
       environ['AWS_ACCESS_KEY'] = environ.get('AWS_ACCESS_KEY', key_id)
-    if secret_key:
+    if secret_key is not None:
       environ['AWS_SECRET_KEY'] = environ.get('AWS_SECRET_KEY', secret_key)
 
     return environ
