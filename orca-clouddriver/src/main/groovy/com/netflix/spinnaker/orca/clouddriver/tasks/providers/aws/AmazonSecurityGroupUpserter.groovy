@@ -60,7 +60,8 @@ class AmazonSecurityGroupUpserter implements SecurityGroupUpserter, CloudProvide
               region              : region,
               vpcId               : vpcId,
               description         : operation.description,
-              securityGroupIngress: operation.securityGroupIngress
+              securityGroupIngress: operation.securityGroupIngress,
+              ipIngress           : operation.ipIngress
           ]
       ]
     }
