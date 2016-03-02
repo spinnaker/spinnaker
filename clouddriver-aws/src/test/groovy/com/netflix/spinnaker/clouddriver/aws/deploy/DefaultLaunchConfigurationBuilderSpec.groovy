@@ -36,7 +36,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
 
   @Subject
   DefaultLaunchConfigurationBuilder builder = new DefaultLaunchConfigurationBuilder(autoScaling, asgService,
-    securityGroupService, [userDataProvider])
+    securityGroupService, [userDataProvider], null)
 
   void "should lookup security groups when provided by name"() {
     when:
@@ -224,7 +224,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
   }
 
   void "should look up and attach classic link security group if vpc is linked"() {
-    builder = new DefaultLaunchConfigurationBuilder(autoScaling, asgService, securityGroupService, [userDataProvider])
+    builder = new DefaultLaunchConfigurationBuilder(autoScaling, asgService, securityGroupService, [userDataProvider], null)
 
     when:
     builder.buildLaunchConfiguration(application, subnetType, settings)

@@ -21,6 +21,12 @@ import org.springframework.stereotype.Component
 @Component
 @ConfigurationProperties("udf")
 class LocalFileUserDataProperties {
+  /*
+    Controls whether UserDataProviders are used to populate user data of new server groups.
+    If false, user data is copied over from ancestor server groups on both CopyLastAsgAtomicOperation and
+    ModifyAsgLaunchConfigurationOperation.
+   */
+  boolean enabled = true
   String udfRoot = '/apps/nflx-udf'
   boolean defaultLegacyUdf = true
 }

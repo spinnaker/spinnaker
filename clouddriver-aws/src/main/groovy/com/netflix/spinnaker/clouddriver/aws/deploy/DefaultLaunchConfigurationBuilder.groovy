@@ -23,6 +23,7 @@ import com.amazonaws.services.autoscaling.model.Ebs
 import com.amazonaws.services.autoscaling.model.InstanceMonitoring
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
+import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.aws.deploy.LaunchConfigurationBuilder.LaunchConfigurationSettings
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProvider
@@ -43,13 +44,16 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
   final AsgService asgService
   final SecurityGroupService securityGroupService
   final List<UserDataProvider> userDataProviders
+  final LocalFileUserDataProperties localFileUserDataProperties
 
   DefaultLaunchConfigurationBuilder(AmazonAutoScaling autoScaling, AsgService asgService,
-                                    SecurityGroupService securityGroupService, List<UserDataProvider> userDataProviders) {
+                                    SecurityGroupService securityGroupService, List<UserDataProvider> userDataProviders,
+                                    LocalFileUserDataProperties localFileUserDataProperties) {
     this.autoScaling = autoScaling
     this.asgService = asgService
     this.securityGroupService = securityGroupService
     this.userDataProviders = (userDataProviders ?: Collections.<UserDataProvider>emptyList()) as List<UserDataProvider>
+    this.localFileUserDataProperties = localFileUserDataProperties
   }
 
   /**
@@ -83,6 +87,12 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
       }
     }
 
+    /*
+      Copy over the original user data only if the UserDataProviders behavior is disabled.
+      This is to avoid having duplicate user data.
+     */
+    String base64UserData = (localFileUserDataProperties && !localFileUserDataProperties.enabled) ? lc.userData : null
+
     new LaunchConfigurationSettings(
       account: account.name,
       environment: account.environment,
@@ -103,7 +113,8 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
       spotPrice: lc.spotPrice,
       instanceMonitoring: lc.instanceMonitoring == null ? false : lc.instanceMonitoring.enabled,
       blockDevices: blockDevices,
-      securityGroups: lc.securityGroups
+      securityGroups: lc.securityGroups,
+      base64UserData: base64UserData
     )
   }
 
