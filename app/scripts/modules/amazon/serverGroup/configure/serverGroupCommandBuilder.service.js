@@ -244,6 +244,9 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
             instanceMonitoring: serverGroup.launchConfig.instanceMonitoring.enabled,
             ebsOptimized: serverGroup.launchConfig.ebsOptimized,
           });
+          if (serverGroup.launchConfig.userData) {
+            command.base64UserData = serverGroup.launchConfig.userData;
+          }
           command.viewState.imageId = serverGroup.launchConfig.imageId;
         }
 
