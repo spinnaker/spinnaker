@@ -45,7 +45,7 @@ The Spinnaker platform has a few prerequisites, which are installed as a part of
 
 === Mac OS X
 
-You need to have http://brew.sh/[homebrew] installed and ensure your version of git is above 2.0.  Cassandra must be 2.1.x where x > 11 or you must enable thrift.
+You need to have http://brew.sh/[homebrew] installed and ensure your version of git is above 2.0.  Cassandra must be 2.1.x where x >= 11 or you must enable thrift.
 
 [source,bash]
 ----
