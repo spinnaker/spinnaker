@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.titus.client.model;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 public class SubmitJobRequest {
     public static class Constraint {
@@ -67,7 +68,7 @@ public class SubmitJobRequest {
     private Map<String, String> env;
     private boolean allocateIpAddress;
     private List<Constraint> constraints = new ArrayList<>();
-    private List<String> tags = new ArrayList<>();
+    private Map<String, String> labels = new HashMap<String, String>();
 
     public SubmitJobRequest withJobType(String jobType) {
         this.jobType = jobType;
@@ -149,8 +150,8 @@ public class SubmitJobRequest {
         return this;
     }
 
-    public SubmitJobRequest withTag(String tag) {
-        this.tags.add(tag);
+    public SubmitJobRequest withLabel(String key, String value) {
+        this.labels.put(key, value);
         return this;
     }
 
@@ -221,8 +222,8 @@ public class SubmitJobRequest {
         return constraints;
     }
 
-    public List<String> getTags() {
-        return tags;
+    public Map<String, String> getLabels() {
+        return labels;
     }
 
     public JobDescription getJobDescription() {
