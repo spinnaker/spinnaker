@@ -118,6 +118,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
     ["s-v001"]           | ["s-v001"]            || null            || []                            || ["s-v001"]
   }
 
+  @Unroll
   void "should only complete when all deployed server groups have been processed"() {
     given:
     def stageData = new ServerGroupCacheForceRefreshTask.StageData(
