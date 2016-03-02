@@ -1,0 +1,5 @@
+The owner email for the following applications matches multiple users:
+
+#foreach($application in $notification.additionalContext.multiple)
+  $application.name in $application.accounts owned by <$application.owner.email>
+#end

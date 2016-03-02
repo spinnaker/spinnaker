@@ -1,0 +1,5 @@
+The following applications are owned by unidentifiable users:
+
+#foreach($application in $notification.additionalContext.unknown)
+  $application.name in $application.accounts owned by <$application.owner.email>
+#end

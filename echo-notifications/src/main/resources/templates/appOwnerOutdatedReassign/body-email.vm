@@ -1,0 +1,6 @@
+The following applications are owned by ex-employees:
+
+#foreach($application in $notification.additionalContext.applications)
+  $application.name in $application.accounts owned by $application.owner.name<$application.owner.email>
+    - suggest reassigning to $application.suggestedOwner.name<$application.suggestedOwner.email>.
+#end
