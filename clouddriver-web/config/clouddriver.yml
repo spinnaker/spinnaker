@@ -42,6 +42,14 @@ default:
 
 aws:
   enabled: ${AWS_ENABLED:false}
+  # proxy:
+  #  proxyHost: 10.0.0.54
+  #  proxyPort: 8888
+  #  proxyUsername: foo
+  #  proxyPassword: foo
+  #  proxyDomain: foo
+  #  proxyWorkstation: foo
+  #  protocol: HTTP
   defaults:
     iamRole: FooRole
     instanceClassBlockDevices:

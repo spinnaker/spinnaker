@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.security;
 
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.ClientConfiguration;
+import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.handlers.RequestHandler2;
 import com.amazonaws.regions.Region;
@@ -63,6 +64,7 @@ public class AmazonClientProvider {
   private final EddaTemplater eddaTemplater;
   private final RetryPolicy retryPolicy;
   private final List<RequestHandler2> requestHandlers;
+  private final AWSProxy proxy;
 
   public static class Builder {
     private HttpClient httpClient;
@@ -72,9 +74,15 @@ public class AmazonClientProvider {
     private RetryPolicy.BackoffStrategy backoffStrategy;
     private Integer maxErrorRetry;
     private List<RequestHandler2> requestHandlers = new ArrayList<>();
+    private AWSProxy proxy;
 
     public Builder httpClient(HttpClient httpClient) {
       this.httpClient = httpClient;
+      return this;
+    }
+
+    public Builder proxy(AWSProxy proxy) {
+      this.proxy = proxy;
       return this;
     }
 
@@ -113,8 +121,9 @@ public class AmazonClientProvider {
       ObjectMapper mapper = this.objectMapper == null ? new AmazonObjectMapper() : this.objectMapper;
       EddaTemplater templater = this.eddaTemplater == null ? EddaTemplater.defaultTemplater() : this.eddaTemplater;
       RetryPolicy policy = buildPolicy();
-
-      return new AmazonClientProvider(client, mapper, templater, policy, requestHandlers);
+      AWSProxy proxy = this.proxy;
+      
+      return new AmazonClientProvider(client, mapper, templater, policy, requestHandlers, proxy);
     }
 
     private RetryPolicy buildPolicy() {
@@ -145,7 +154,7 @@ public class AmazonClientProvider {
   }
 
   public AmazonClientProvider(HttpClient httpClient, ObjectMapper objectMapper) {
-    this(httpClient == null ? HttpClients.createDefault() : httpClient, objectMapper == null ? new AmazonObjectMapper() : objectMapper, EddaTemplater.defaultTemplater(), PredefinedRetryPolicies.getDefaultRetryPolicy(), Collections.emptyList());
+    this(httpClient == null ? HttpClients.createDefault() : httpClient, objectMapper == null ? new AmazonObjectMapper() : objectMapper, EddaTemplater.defaultTemplater(), PredefinedRetryPolicies.getDefaultRetryPolicy(), Collections.emptyList(), null);
   }
 
   public static <T> T notNull(T obj, String name) {
@@ -155,12 +164,13 @@ public class AmazonClientProvider {
     return obj;
   }
 
-  public AmazonClientProvider(HttpClient httpClient, ObjectMapper objectMapper, EddaTemplater eddaTemplater, RetryPolicy retryPolicy, List<RequestHandler2> requestHandlers) {
+  public AmazonClientProvider(HttpClient httpClient, ObjectMapper objectMapper, EddaTemplater eddaTemplater, RetryPolicy retryPolicy, List<RequestHandler2> requestHandlers, AWSProxy proxy) {
     this.httpClient = notNull(httpClient, "httpClient");
     this.objectMapper = notNull(objectMapper, "objectMapper");
     this.eddaTemplater = notNull(eddaTemplater, "eddaTemplater");
     this.retryPolicy = notNull(retryPolicy, "retryPolicy");
     this.requestHandlers = requestHandlers == null ? Collections.emptyList() : Collections.unmodifiableList(new ArrayList<>(requestHandlers));
+    this.proxy = proxy;
   }
 
   /**
@@ -281,6 +291,10 @@ public class AmazonClientProvider {
     ClientConfiguration clientConfiguration = new ClientConfiguration();
     clientConfiguration.setRetryPolicy(retryPolicy);
 
+    if (proxy != null && proxy.isProxyConfigMode()) {
+        proxy.apply(clientConfiguration);
+    }
+
     T delegate = constructor.newInstance(amazonCredentials.getCredentialsProvider(), clientConfiguration);
     for (RequestHandler2 requestHandler : requestHandlers) {
       delegate.addRequestHandler(requestHandler);
@@ -302,4 +316,5 @@ public class AmazonClientProvider {
     }
   }
 }
+
 
