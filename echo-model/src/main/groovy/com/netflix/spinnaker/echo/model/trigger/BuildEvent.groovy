@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,7 +15,7 @@
  */
 
 
-package com.netflix.spinnaker.echo.model
+package com.netflix.spinnaker.echo.model.trigger
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
@@ -23,28 +23,16 @@ import groovy.transform.Canonical
 
 @Canonical
 @JsonIgnoreProperties(ignoreUnknown = true)
-class BuildEvent {
+class BuildEvent extends TriggerEvent {
   Content content;
-  Details details;
 
-  public static final String BUILD_EVENT_TYPE = "build";
-  public static final String GIT_EVENT_TYPE = "git";
+  public static final String TYPE = "build";
 
   @Canonical
   @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Content {
     Project project;
     String master;
-    String repoProject;
-    String slug;
-    String hash;
-  }
-
-  @Canonical
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  public static class Details {
-    String type;
-    String source;
   }
 
   @Canonical
@@ -67,22 +55,7 @@ class BuildEvent {
   }
 
   @JsonIgnore
-  public boolean isBuild() {
-    return details.getType().equals(BUILD_EVENT_TYPE);
-  }
-
-  @JsonIgnore
-  public boolean isGit() {
-    return details.getType().equals(GIT_EVENT_TYPE);
-  }
-
-  @JsonIgnore
   public int getBuildNumber() {
-    return isBuild() ? content.getProject().getLastBuild().getNumber() : 0;
-  }
-
-  @JsonIgnore
-  public String getHash() {
-    return isGit() ? content.hash : null;
+    return content.getProject().getLastBuild().getNumber();
   }
 }
