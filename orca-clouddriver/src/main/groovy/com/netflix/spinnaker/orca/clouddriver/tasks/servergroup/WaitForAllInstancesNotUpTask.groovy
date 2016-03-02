@@ -20,8 +20,10 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.AbstractWaitingForInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
+@Slf4j
 @Component
 class WaitForAllInstancesNotUpTask extends AbstractWaitingForInstancesTask {
   @Override
