@@ -1,0 +1,6 @@
+The following applications are owned by ex-employees:
+
+#foreach($application in $notification.additionalContext.outdated)
+  $application.name in $application.accounts owned by $application.owner.name<$application.owner.email>
+    - no suggested owner found for reassignment.
+#end
