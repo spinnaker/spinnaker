@@ -101,8 +101,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.cloneServ
     };
 
     this.clone = function () {
-      $scope.command.capacity.min = $scope.command.capacity.desired;  // We want min/max set to the same value as desired
-      $scope.command.capacity.max = $scope.command.capacity.desired;
       let command = angular.copy($scope.command);
       command.env = dataConverterService.equalListToKeyValue(command.env);
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {

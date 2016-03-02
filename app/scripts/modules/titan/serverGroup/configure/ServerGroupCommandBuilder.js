@@ -27,8 +27,8 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
         network: 'default',
         strategy: '',
         capacity: {
-          min: 0,
-          max: 0,
+          min: 1,
+          max: 1,
           desired: 1
         },
         tags: [],
