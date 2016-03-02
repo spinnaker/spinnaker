@@ -298,6 +298,35 @@ class AmazonSecurityGroupProviderSpec extends Specification {
     cachedValue.inboundRules[1].portRanges.endPort == [8000]
   }
 
+  void "should fetch and include groupName if not present in ingress rule"() {
+    given:
+    String vpcId = 'vpc-1234'
+    String account = 'accountName1'
+    String region = 'us-east-1'
+    SecurityGroup securityGroupA = new SecurityGroup(ownerId: account, groupId: 'id-a', groupName: 'name-a', description: 'a', vpcId: vpcId)
+    SecurityGroup securityGroupB = new SecurityGroup(ownerId: account, groupId: 'id-b', groupName: 'name-b', description: 'b', vpcId: vpcId)
+    securityGroupA.ipPermissions = [
+        new IpPermission(ipProtocol: "TCP", fromPort: 7001, toPort: 7001, userIdGroupPairs: [
+            new UserIdGroupPair(userId: "accountId1", groupId: securityGroupB.groupId)
+        ])
+    ]
+    def keyA = Keys.getSecurityGroupKey(amazonCloudProvider, 'name-a', 'id-a', region, account, vpcId)
+    def keyB = Keys.getSecurityGroupKey(amazonCloudProvider, 'name-b', 'id-b', region, account, vpcId)
+    Map<String, Object> attributesA = mapper.convertValue(securityGroupA, AwsInfrastructureProvider.ATTRIBUTES)
+    Map<String, Object> attributesB = mapper.convertValue(securityGroupB, AwsInfrastructureProvider.ATTRIBUTES)
+    def cacheDataA = new DefaultCacheData(keyA, attributesA, [:])
+    def cacheDataB = new DefaultCacheData(keyB, attributesB, [:])
+    cache.mergeAll(Keys.Namespace.SECURITY_GROUPS.ns, [cacheDataA, cacheDataB])
+
+    when:
+    def sg = provider.get(account, region, 'name-a', vpcId)
+
+    then:
+    sg.inboundRules.size() == 1
+    sg.inboundRules[0].securityGroup.name == 'name-b'
+    0 * _
+  }
+
   @Shared
   Map<String, Map<String, List<SecurityGroup>>> securityGroupMap = [
     prod: [
