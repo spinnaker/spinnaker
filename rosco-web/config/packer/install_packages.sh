@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Make rush fail the build on errors.
+set -e
+
 # Strip the first part to avoid credentials leaks.
 echo "repository=$(echo $repository | sed s/^.*@//g)"
 echo "package_type=$package_type"
