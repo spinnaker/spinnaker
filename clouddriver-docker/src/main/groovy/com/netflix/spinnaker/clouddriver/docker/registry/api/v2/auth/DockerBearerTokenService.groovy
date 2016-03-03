@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth
 
+import com.netflix.spinnaker.clouddriver.docker.registry.DockerRegistryConfiguration
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.exception.DockerRegistryAuthenticationException
+import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RestAdapter
 import retrofit.client.Header
 import retrofit.http.GET
@@ -28,6 +30,9 @@ class DockerBearerTokenService {
   private Map<String, TokenService> realmToService
   private Map<String, DockerBearerToken> cachedTokens
   public String basicAuth
+
+  @Autowired
+  String dockerApplicationName
 
   DockerBearerTokenService(String username, String password) {
     realmToService = new HashMap<String, TokenService>()
@@ -123,9 +128,6 @@ class DockerBearerTokenService {
     if (!result.service) {
       throw new DockerRegistryAuthenticationException("Www-Authenticate header must provide 'service' parameter.")
     }
-    if (!result.scope) {
-      throw new DockerRegistryAuthenticationException("Www-Authenticate header must provide 'scope' parameter.")
-    }
 
     return result
   }
@@ -169,10 +171,10 @@ class DockerBearerTokenService {
     def tokenService = getTokenService(authenticateDetails.realm)
     def token
     if (basicAuth) {
-      token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, "Basic $basicAuth")
+      token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, "Basic $basicAuth", dockerApplicationName)
     }
     else {
-      token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope)
+      token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, dockerApplicationName)
     }
 
     cachedTokens[repository] = token
@@ -185,14 +187,16 @@ class DockerBearerTokenService {
       "Docker-Distribution-API-Version: registry/2.0"
     ])
     DockerBearerToken getToken(@Path(value="path", encode=false) String path,
-                               @Query(value="service") String service, @Query(value="scope") String scope)
+                               @Query(value="service") String service, @Query(value="scope") String scope,
+                               @retrofit.http.Header("User-Agent") String agent)
 
     @GET("/{path}")
     @Headers([
       "Docker-Distribution-API-Version: registry/2.0"
-    ]) // TODO(lwander) get clouddriver version #
+    ])
     DockerBearerToken getToken(@Path(value="path", encode=false) String path, @Query(value="service") String service,
-                               @Query(value="scope") String scope, @retrofit.http.Header("Authentication") String basic)
+                               @Query(value="scope") String scope, @retrofit.http.Header("Authentication") String basic,
+                               @retrofit.http.Header("User-Agent") String agent)
   }
 
   private class AuthenticateDetails {

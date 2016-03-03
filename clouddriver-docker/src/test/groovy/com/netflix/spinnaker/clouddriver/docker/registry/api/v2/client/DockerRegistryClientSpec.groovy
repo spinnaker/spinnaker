@@ -16,10 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import spock.lang.Shared
 import spock.lang.Specification
 
+/*
+ * These tests all communicate with dockerhub (index.docker.io), and will either fail
+ * with an exception indicating a network or HTTP error, or will fail to load data
+ * from dockerhub.
+ */
 class DockerRegistryClientSpec extends Specification {
   private static final REPOSITORY1 = "library/ubuntu"
 
@@ -41,9 +45,10 @@ class DockerRegistryClientSpec extends Specification {
 
   void "DockerRegistryClient should validate that it is pointing at a v2 endpoint."() {
     when:
-      Boolean result = client.isV2()
+      // Can only fail due to an exception thrown here.
+      client.checkV2Availability()
 
     then:
-      result
+      true
   }
 }

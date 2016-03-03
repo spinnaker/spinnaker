@@ -72,6 +72,7 @@ class DockerRegistryImageLookupController {
         tag: (String) parse.tag,
         account: it.attributes.account,
         registry: credentials.registry,
+        digest: it.attributes.digest,
       ]
     })
   }

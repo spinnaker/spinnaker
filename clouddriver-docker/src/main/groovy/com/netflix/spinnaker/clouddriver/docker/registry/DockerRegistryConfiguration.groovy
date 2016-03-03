@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.docker.registry
 import com.netflix.spinnaker.clouddriver.docker.registry.config.DockerRegistryConfigurationProperties
 import com.netflix.spinnaker.clouddriver.docker.registry.health.DockerRegistryHealthIndicator
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryCredentialsInitializer
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -27,6 +28,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.PropertySource
 import org.springframework.context.annotation.Scope
 import org.springframework.scheduling.annotation.EnableScheduling
 
@@ -35,6 +37,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @EnableScheduling
 @ConditionalOnProperty('dockerRegistry.enabled')
 @ComponentScan(["com.netflix.spinnaker.clouddriver.docker.registry"])
+@PropertySource(value = "classpath:META-INF/clouddriver-core.properties", ignoreResourceNotFound = true)
 @Import([ DockerRegistryCredentialsInitializer ])
 class DockerRegistryConfiguration {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -47,5 +50,10 @@ class DockerRegistryConfiguration {
   @Bean
   DockerRegistryHealthIndicator dockerRegistryHealthIndicator() {
     new DockerRegistryHealthIndicator()
+  }
+
+  @Bean
+  String dockerApplicationName(@Value('${Implementation-Version:Unknown}') String implementationVersion) {
+    "Spinnaker/$implementationVersion"
   }
 }

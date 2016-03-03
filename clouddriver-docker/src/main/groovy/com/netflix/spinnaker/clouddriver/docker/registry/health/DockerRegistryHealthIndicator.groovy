@@ -64,9 +64,7 @@ class DockerRegistryHealthIndicator implements HealthIndicator {
       for (DockerRegistryNamedAccountCredentials accountCredentials in dockerRegistryCredentialsSet) {
         DockerRegistryCredentials dockerRegistryCredentials = accountCredentials.credentials
 
-        if (!dockerRegistryCredentials.client.isV2()) {
-          throw new IllegalArgumentException("The docker registry ${dockerRegistryCredentials.client.address} must have a valid /v2/ endpoint.")
-        }
+        dockerRegistryCredentials.client.checkV2Availability()
       }
 
       lastException.set(null)
