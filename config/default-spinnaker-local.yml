@@ -50,7 +50,7 @@ providers:
     # If you want to deploy containers to Kubernetes,
     # set enabled and provide primary credentials for deploying.
     # Enabling kubernetes is dependent on dockerRegistry being enabled.
-    enabled: ${SPINNAKER_KUBERNETES_ENABLED}
+    enabled: ${SPINNAKER_KUBERNETES_ENABLED:false}
     primaryCredentials:
       # These credentials use authentication information at ~/.kube/config
       # by default.
@@ -62,7 +62,7 @@ providers:
     # If you want to deploy containers to a container management solution,
     # you must specifiy where these container images exist first.
     # Enabling dockerRegistry is independent of other providers.
-    enabled: ${SPINNAKER_KUBERNETES_ENABLED}
+    enabled: ${SPINNAKER_KUBERNETES_ENABLED:false}
     primaryCredentials:
       name: my-docker-registry-account
       address: ${SPINNAKER_DOCKER_ADDRESS}
@@ -107,6 +107,7 @@ services:
     #
     # Note that jenkins is not installed with Spinnaker so you must obtain this
     # on your own if you are interested.
+    enabled: false
     defaultMaster:
       name: Jenkins # The display name for this server
       baseUrl:
