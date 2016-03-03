@@ -66,7 +66,9 @@
         <dt ng-if="instance.apiVersion">API Version</dt>
         <dd ng-if="instance.apiVersion">{{instance.apiVersion}}</dd>
         <dt ng-if="instance.kind">Kind</dt>
-        <dd ng-if="instance.apiVersion">{{instance.kind}}</dd>
+        <dd ng-if="instance.kind">{{instance.kind}}</dd>
+        <dt>YAML</dt>
+        <dd><a href ng-click="ctrl.showYaml()">Show YAML</a></dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">

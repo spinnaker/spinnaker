@@ -53,6 +53,16 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
       $scope.healthMetrics = displayableMetrics;
     }
 
+    this.showYaml = function showYaml() {
+      $scope.userDataModalTitle = 'Pod YAML';
+      $scope.userData = $scope.instance.yaml;
+      $uibModal.open({
+        templateUrl: require('../../../core/serverGroup/details/userData.html'),
+        controller: 'CloseableModalCtrl',
+        scope: $scope
+      });
+    };
+
     function retrieveInstance() {
       var extraData = {};
       var instanceSummary, loadBalancers, account, namespace;

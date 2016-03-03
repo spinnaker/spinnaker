@@ -38,6 +38,16 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
       return $q.when(null);
     }
 
+    this.showYaml = function showYaml() {
+      $scope.userDataModalTitle = 'Service YAML';
+      $scope.userData = $scope.loadBalancer.yaml;
+      $uibModal.open({
+        templateUrl: require('../../../core/serverGroup/details/userData.html'),
+        controller: 'CloseableModalCtrl',
+        scope: $scope
+      });
+    };
+
     function autoClose() {
       if ($scope.$$destroyed) {
         return;
