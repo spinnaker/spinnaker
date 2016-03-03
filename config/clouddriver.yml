@@ -10,6 +10,12 @@ server:
 redis:
   connection: ${services.redis.connection:redis://localhost:6379}
 
+# Controls whether UserDataProviders are used to populate user data of new server groups.
+# If false, user data is copied over from ancestor server groups on both CopyLastAsgAtomicOperation and
+# ModifyAsgLaunchConfigurationOperation (only if no user data is provided on the given request).
+udf:
+  enabled: ${services.clouddriver.aws.udf.enabled:true}
+
 default:
   account:
     env: ${providers.aws.primaryCredentials.name}

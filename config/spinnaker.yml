@@ -25,6 +25,12 @@ services:
     host: ${services.default.host}
     port: 7002
     baseUrl: ${services.default.protocol}://${services.clouddriver.host}:${services.clouddriver.port}
+    # Controls whether UserDataProviders are used to populate user data of new server groups.
+    # If false, user data is copied over from ancestor server groups on both CopyLastAsgAtomicOperation and
+    # ModifyAsgLaunchConfigurationOperation (only if no user data is provided on the given request).
+    aws:
+      udf:
+        enabled: true
 
   echo:
     enabled: true
