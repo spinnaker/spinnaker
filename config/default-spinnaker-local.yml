@@ -90,6 +90,14 @@ services:
       username:
       password:
 
+  clouddriver:
+    # Controls whether UserDataProviders are used to populate user data of new server groups.
+    # If false, user data is copied over from ancestor server groups on both CopyLastAsgAtomicOperation and
+    # ModifyAsgLaunchConfigurationOperation (only if no user data is provided on the given request).
+    aws:
+      udf:
+        enabled: true
+
   igor:
     # If you are integrating Jenkins then you must also enable Spinnaker's
     # "igor" subsystem.
