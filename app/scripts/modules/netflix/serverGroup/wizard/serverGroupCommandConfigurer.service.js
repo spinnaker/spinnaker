@@ -66,9 +66,14 @@ module.exports = angular
       ];
     };
 
+    let beforeConfiguration = (command) => {
+      command.base64UserData = null;
+    };
+
     return {
       attachEventHandlers: attachEventHandlers,
       addWatches: addWatches,
+      beforeConfiguration: beforeConfiguration,
     };
 
   })

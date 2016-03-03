@@ -33,6 +33,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
     }
 
     function configureCommand(application, command) {
+      applyOverrides('beforeConfiguration', command);
       var imageLoader;
       if (command.viewState.disableImageSelection) {
         imageLoader = $q.when(null);
@@ -101,8 +102,17 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         }
 
         return $q.all([loadBalancerReloader, securityGroupReloader, instanceTypeReloader]).then(function() {
+          applyOverrides('afterConfiguration', command);
           attachEventHandlers(command);
         });
+      });
+    }
+
+    function applyOverrides(phase, command) {
+      serverGroupCommandRegistry.getCommandOverrides('aws').forEach((override) => {
+        if (override[phase]) {
+          override[phase](command);
+        }
       });
     }
 
@@ -430,11 +440,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
 
       command.imageChanged = () => configureInstanceTypes(command);
 
-      serverGroupCommandRegistry.getCommandOverrides('aws').forEach((override) => {
-        if (override.attachEventHandlers) {
-          override.attachEventHandlers(command);
-        }
-      });
+      applyOverrides('attachEventHandlers', command);
     }
 
     return {
