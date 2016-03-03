@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.aws.agent.CleanupDetachedInstancesAgent
 import com.netflix.spinnaker.clouddriver.aws.bastion.BastionConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.BasicAmazonDeployHandler
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProvider
+import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.NullOpUserDataProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.clouddriver.aws.model.SecurityGroupLookupFactory
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider
@@ -96,9 +97,15 @@ class AwsConfiguration {
   }
 
   @Bean
-  @ConditionalOnMissingBean(UserDataProvider)
+  @ConditionalOnProperty(value = 'udf.enabled', matchIfMissing = true)
   UserDataProvider userDataProvider() {
     new LocalFileUserDataProvider()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(UserDataProvider)
+  NullOpUserDataProvider nullOpUserDataProvider() {
+    new NullOpUserDataProvider()
   }
 
   @Bean

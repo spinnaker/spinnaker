@@ -19,6 +19,7 @@ import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.ec2.model.DescribeSubnetsRequest
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
+import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -50,6 +51,9 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
 
   @Autowired
   RegionScopedProviderFactory regionScopedProviderFactory
+
+  @Autowired
+  LocalFileUserDataProperties localFileUserDataProperties
 
   final BasicAmazonDeployDescription description
 
@@ -132,6 +136,15 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
       newDescription.classicLinkVpcId = description.classicLinkVpcId != null ? description.classicLinkVpcId : ancestorLaunchConfiguration.classicLinkVPCId
       newDescription.classicLinkVpcSecurityGroups = description.classicLinkVpcSecurityGroups != null ? description.classicLinkVpcSecurityGroups : ancestorLaunchConfiguration.classicLinkVPCSecurityGroups
       newDescription.tags = description.tags != null ? description.tags : ancestorAsg.tags.collectEntries { [(it.getKey()): it.getValue()] }
+
+      /*
+        Copy over the ancestor user data only if the UserDataProviders behavior is disabled and no user data is provided
+        on this request.
+        This is to avoid having duplicate user data.
+       */
+      if (localFileUserDataProperties && !localFileUserDataProperties.enabled) {
+        newDescription.base64UserData = description.base64UserData != null ? description.base64UserData : ancestorLaunchConfiguration.userData
+      }
 
       task.updateStatus BASE_PHASE, "Initiating deployment."
       def thisResult = basicAmazonDeployHandler.handle(newDescription, priorOutputs)

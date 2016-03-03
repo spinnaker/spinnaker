@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.services
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.ec2.AmazonEC2
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
+import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.deploy.AWSServerGroupNameResolver
@@ -45,6 +46,9 @@ class RegionScopedProviderFactory {
 
   @Autowired
   List<UserDataProvider> userDataProviders
+
+  @Autowired
+  LocalFileUserDataProperties localFileUserDataProperties
 
   @Autowired
   AwsConfiguration.DeployDefaults deployDefaults
@@ -99,7 +103,7 @@ class RegionScopedProviderFactory {
     }
 
     LaunchConfigurationBuilder getLaunchConfigurationBuilder() {
-      new DefaultLaunchConfigurationBuilder(getAutoScaling(), getAsgService(), getSecurityGroupService(), userDataProviders)
+      new DefaultLaunchConfigurationBuilder(getAutoScaling(), getAsgService(), getSecurityGroupService(), userDataProviders, localFileUserDataProperties)
     }
 
     Eureka getEureka() {
