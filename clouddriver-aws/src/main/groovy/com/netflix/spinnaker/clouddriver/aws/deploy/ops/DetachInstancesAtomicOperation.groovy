@@ -91,6 +91,11 @@ class DetachInstancesAtomicOperation implements AtomicOperation<Void> {
         }
       }
 
+      if (validInstanceIds.isEmpty()) {
+        task.updateStatus BASE_PHASE, "No detachable instances"
+        return
+      }
+
       task.updateStatus BASE_PHASE, "Tagging instances (${validInstanceIds.join(", ")})."
       def tags = [new Tag(TAG_DETACHED, description.asgName)]
       if (description.terminateDetachedInstances) {
