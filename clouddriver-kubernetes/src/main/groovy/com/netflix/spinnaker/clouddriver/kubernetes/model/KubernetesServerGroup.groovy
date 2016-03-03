@@ -28,6 +28,7 @@ import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import io.fabric8.kubernetes.api.model.Container
 import io.fabric8.kubernetes.api.model.ReplicationController
+import io.fabric8.kubernetes.client.internal.SerializationUtils
 
 @CompileStatic
 @EqualsAndHashCode(includes = ["name"])
@@ -46,6 +47,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
   Map<String, String> labels = [:]
   DeployKubernetesAtomicOperationDescription deployDescription
   ReplicationController replicationController
+  String yaml
 
   Boolean isDisabled() {
     this.labels ? !(this.labels.any { key, value -> KubernetesUtil.isLoadBalancerLabel(key) && value == "true" }) : false
@@ -70,6 +72,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     this.labels = replicationController.spec?.template?.metadata?.labels
     this.deployDescription = KubernetesApiAdaptor.fromReplicationController(replicationController)
     this.replicationController = replicationController
+    this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(replicationController)
   }
 
   @Override
