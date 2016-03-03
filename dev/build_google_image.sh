@@ -18,6 +18,7 @@ CURRENT_IMAGE=$(gcloud compute images list 2>1 | grep ubuntu-1404 | tail -1 | aw
 
 VARS="-var 'install_path=$(dirname $0)/../InstallSpinnaker.sh'"
 VARS="$VARS -var 'source_image=$CURRENT_IMAGE'"
+VARS="$VARS -var 'base_srcdir=$(dirname $0)/..'"
 
 function process_args() {
   PROJECT_ID="ok"

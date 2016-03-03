@@ -154,10 +154,10 @@ def init_argument_parser(parser):
         help='The IP address to assign to the new instance. The address may'
              ' be an IP address or the name or URI of an address resource.')
     parser.add_argument(
-        '--scopes', default='compute-rw,storage-rw',
+        '--scopes', default='compute-rw,storage-rw,monitoring-write,logging-write',
         help='Create the instance with these scopes.'
         'The default are the minimal scopes needed to run the development'
-        ' scripts. This is currently "compute-rw,storage-rw".')
+        ' scripts. This is currently "compute-rw,storage-rw,monitoring-write,logging-write".')
 
 
 def try_until_ready(command):
