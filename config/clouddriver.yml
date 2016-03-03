@@ -59,6 +59,21 @@ cf:
       username: ${providers.cf.account.name:}
       password: ${providers.cf.account.password:}
 
+kubernetes:
+  enabled: ${providers.kubernetes.enabled:false}
+  accounts:
+    - name: ${providers.kubernetes.primaryCredentials.name}
+      dockerRegistries:
+        - accountName: ${providers.kubernetes.primaryCredentials.dockerRegistryAccount}
+
+dockerRegistry:
+  enabled: ${providers.dockerRegistry.enabled:false}
+  accounts:
+    - name: ${providers.dockerRegistry.primaryCredentials.name}
+      address: ${providers.dockerRegistry.primaryCredentials.address}
+      repositories: 
+        - ${providers.dockerRegistry.primaryCredentials.repository}
+
 credentials:
   primaryAccountTypes: ${providers.aws.primaryCredentials.name}, ${providers.google.primaryCredentials.name}, ${providers.cf.primaryCredentials.name}
   challengeDestructiveActionsEnvironments: ${providers.aws.primaryCredentials.name}, ${providers.google.primaryCredentials.name}, ${providers.cf.primaryCredentials.name}

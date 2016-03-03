@@ -46,6 +46,29 @@ providers:
     #   name: my-cf-username
     #   password: my-cf-password
 
+  kubernetes:
+    # If you want to deploy containers to Kubernetes,
+    # set enabled and provide primary credentials for deploying.
+    # Enabling kubernetes is dependent on dockerRegistry being enabled.
+    enabled: ${SPINNAKER_KUBERNETES_ENABLED}
+    primaryCredentials:
+      # These credentials use authentication information at ~/.kube/config
+      # by default.
+      name: my-kubernetes-account
+      dockerRegistries:
+        - accountName: my-docker-registry-account
+
+  dockerRegistry:
+    # If you want to deploy containers to a container management solution,
+    # you must specifiy where these container images exist first.
+    # Enabling dockerRegistry is independent of other providers.
+    enabled: ${SPINNAKER_KUBERNETES_ENABLED}
+    primaryCredentials:
+      name: my-docker-registry-account
+      address: ${SPINNAKER_DOCKER_ADDRESS}
+      repositories:
+        - ${SPINNAKER_DOCKER_REPOSITORY}
+
 services:
   default:
     # These defaults can be modified to change all the spinnaker subsystems
