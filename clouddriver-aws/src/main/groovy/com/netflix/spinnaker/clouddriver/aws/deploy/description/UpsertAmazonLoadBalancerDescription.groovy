@@ -20,7 +20,7 @@ class UpsertAmazonLoadBalancerDescription extends AbstractAmazonCredentialsDescr
   String clusterName
   String name
   String vpcId
-  String isInternal
+  Boolean isInternal
   String subnetType
   List<String> securityGroups
   Map<String, List<String>> availabilityZones
