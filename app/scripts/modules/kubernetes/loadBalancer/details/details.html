@@ -50,6 +50,10 @@
         <dd><account-tag account="loadBalancer.account" pad="right"></account-tag></dd>
         <dt>Namespace</dt>
         <dd>{{loadBalancer.namespace}}</dd>
+        <dt>Kind</dt>
+        <dd>{{loadBalancer.service.kind}}</dd>
+        <dt>YAML</dt>
+        <dd><a href ng-click="ctrl.showYaml()">Show YAML</a></dd>
       </dl>
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
         <dt ng-if="loadBalancer.serverGroups">Server Groups</dt>

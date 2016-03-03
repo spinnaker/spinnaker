@@ -45,6 +45,16 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
       return summary;
     }
 
+    this.showYaml = function showYaml() {
+      $scope.userDataModalTitle = 'Replication Controller YAML';
+      $scope.userData = $scope.serverGroup.yaml;
+      $uibModal.open({
+        templateUrl: require('../../../core/serverGroup/details/userData.html'),
+        controller: 'CloseableModalCtrl',
+        scope: $scope
+      });
+    };
+
     function retrieveServerGroup() {
       var summary = extractServerGroupSummary();
       return serverGroupReader.getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {

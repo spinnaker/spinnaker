@@ -97,6 +97,10 @@
         <dd><account-tag account="serverGroup.account" pad="right"></account-tag><dd>
         <dt>Namespace<dt>
         <dd>{{serverGroup.region}}</dd>
+        <dt>Kind</dt>
+        <dd>{{serverGroup.replicationController.kind}}</dd>
+        <dt>YAML</dt>
+        <dd><a href ng-click="ctrl.showYaml()">Show YAML</a></dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Replicas" expanded="true">
