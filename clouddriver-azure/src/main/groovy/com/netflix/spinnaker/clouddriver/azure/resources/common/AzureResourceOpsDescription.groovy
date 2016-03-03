@@ -28,4 +28,5 @@ class AzureResourceOpsDescription {
   String region
   String user
   Integer createdTime
+  long lastReadTime
 }
