@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 import io.fabric8.kubernetes.api.model.ContainerState
 import io.fabric8.kubernetes.api.model.Pod
+import io.fabric8.kubernetes.client.internal.SerializationUtils
 
 class KubernetesInstance implements Instance, Serializable {
   String name
@@ -30,6 +31,7 @@ class KubernetesInstance implements Instance, Serializable {
   List<Map<String, String>> health
   String serverGroupName
   Pod pod
+  String yaml
 
   static HealthState convertContainerState(ContainerState state) {
     state?.running ? HealthState.Up :
@@ -44,6 +46,7 @@ class KubernetesInstance implements Instance, Serializable {
     this.zone = pod.metadata?.namespace
     this.health = []
     this.pod = pod
+    this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(pod)
     pod.status?.containerStatuses?.forEach {
       this.health << [name: it.name,
                       state: convertContainerState(it.state).toString(),
