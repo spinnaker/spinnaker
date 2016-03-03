@@ -1,10 +1,10 @@
 The following users are ex-employees but still own applications. We have identified possible managers or team members to reassign to.
 
 #foreach($event in $notification.additionalContext.events)
-$application.owner.name<$application.owner.email> owns...
+$event.user.name<$event.user.email> owns...
 #foreach($application in $event.applications)
 - $application.name in $application.accounts
 #end
-Suggest reassigning to $application.suggestedOwner.name<$application.suggestedOwner.email>
+Suggest reassigning to $event.suggestedUser.name<$event.suggestedUser.email>
 
 #end
