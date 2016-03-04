@@ -3,6 +3,7 @@ netflix:
     name: 'igor'
 
 jenkins:
+  enabled: true
   masters:
     -
       name: 'jenkins1'
@@ -10,6 +11,9 @@ jenkins:
       username: 'username'
       password: 'password'
 
+services:
+  clouddriver:
+    baseUrl: 'http://localhost:7002'
 
 spinnaker:
   build:

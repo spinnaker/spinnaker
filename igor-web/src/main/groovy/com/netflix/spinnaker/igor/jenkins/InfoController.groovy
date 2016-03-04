@@ -22,6 +22,8 @@ import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+
 import javax.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -40,6 +42,7 @@ import javax.ws.rs.QueryParam
  */
 @RestController
 @Slf4j
+@ConditionalOnProperty('jenkins.enabled')
 class InfoController {
 
     @Autowired

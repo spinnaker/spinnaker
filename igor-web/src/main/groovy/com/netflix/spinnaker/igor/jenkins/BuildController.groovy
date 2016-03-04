@@ -23,6 +23,7 @@ import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.web.bind.annotation.ExceptionHandler
 import retrofit.RetrofitError
 import javax.servlet.http.HttpServletRequest
@@ -40,6 +41,7 @@ import java.util.concurrent.ExecutorService
 
 @Slf4j
 @RestController
+@ConditionalOnProperty('jenkins.enabled')
 class BuildController {
     @Autowired
     JenkinsMasters masters
