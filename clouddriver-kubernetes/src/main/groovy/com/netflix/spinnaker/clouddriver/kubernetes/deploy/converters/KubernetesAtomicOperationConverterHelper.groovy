@@ -24,6 +24,7 @@ class KubernetesAtomicOperationConverterHelper {
                                    AbstractAtomicOperationsCredentialsSupport credentialsSupport,
                                    Class targetDescriptionType) {
     def account = input.account as String
+    input.remove('credentials')
     // Save these to re-assign after ObjectMapper does its work.
     def credentials = credentialsSupport.getCredentialsObject(account as String)?.getCredentials()
 
