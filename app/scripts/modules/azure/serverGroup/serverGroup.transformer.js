@@ -6,31 +6,32 @@ module.exports = angular.module('spinnaker.azure.serverGroup.transformer', [
   ])
   .factory('azureServerGroupTransformer', function () {
 
-    function convertServerGroupCommandToDeployConfiguration(base) {
-      var command = {
-        name: base.application,
-        cloudProvider: base.selectedProvider,
-        application: base.application,
-        stack: base.stack,
-        detail: base.details,
-        credentials: base.credentials,
-        region: base.region,
-        loadBalancerName: base.loadBalancerName,
+    function convertServerGroupCommandToDeployConfiguration(command) {
+      var configuration = {
+        name: command.application,
+        cloudProvider: command.selectedProvider,
+        application: command.application,
+        stack: command.stack,
+        detail: command.details,
+        credentials: command.credentials,
+        region: command.region,
+        securityGroup: command.selectedSecurityGroup,
+        loadBalancerName: command.loadBalancerName,
         user: '[anonymous]',
         upgradePolicy: 'Manual',
         type: 'createServerGroup',
 
         image: {
-          publisher: base.selectedImage.publisher,
-          offer: base.selectedImage.offer,
-          sku: base.selectedImage.sku,
-          version: base.selectedImage.version,
+          publisher: command.selectedImage.publisher,
+          offer: command.selectedImage.offer,
+          sku: command.selectedImage.sku,
+          version: command.selectedImage.version,
         },
 
         sku: {
           name: 'Standard_A1',
           tier: 'Standard',
-          capacity: base.sku.capacity,
+          capacity: command.sku.capacity,
         },
 
         osConfig: {
@@ -39,14 +40,14 @@ module.exports = angular.module('spinnaker.azure.serverGroup.transformer', [
         },
       };
 
-      if (typeof base.stack !== 'undefined') {
-        command.name = command.name + '-' + base.stack;
+      if (typeof command.stack !== 'undefined') {
+        configuration.name = configuration.name + '-' + command.stack;
       }
-      if (typeof base.details !== 'undefined') {
-        command.name = command.name + '-' + base.details;
+      if (typeof command.details !== 'undefined') {
+        configuration.name = configuration.name + '-' + command.details;
       }
 
-      return command;
+      return configuration;
     }
 
     return {

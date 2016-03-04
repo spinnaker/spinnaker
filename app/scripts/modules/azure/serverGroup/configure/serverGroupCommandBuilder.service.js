@@ -4,10 +4,9 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.service', [
   require('../../image/image.reader.js'),
-  require('../../../core/loadBalancer/loadBalancer.read.service.js'),
   require('../../../core/utils/lodash.js'),
 ])
-  .factory('azureServerGroupCommandBuilder', function ($q, settings, azureImageReader, loadBalancerReader) {
+  .factory('azureServerGroupCommandBuilder', function ($q, settings, azureImageReader) {
 
     function buildNewServerGroupCommand (application, defaults) {
       defaults = defaults || {};
@@ -19,7 +18,6 @@ module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.servi
 
       return $q.all({
         images: imageLoader,
-        loadBalancers: loadBalancerReader.loadLoadBalancers(application.name),
       }).then(function(backingData) {
         return {
           application: application.name,
@@ -27,12 +25,12 @@ module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.servi
           region: defaultRegion,
           images: backingData.images,
           loadBalancers: [],
+          securityGroups: [],
           strategy: '',
           sku: {
             capacity: 1,
           },
           selectedProvider: 'azure',
-          securityGroups: [],
           viewState: {
             instanceProfile: 'custom',
             allImageSelection: null,
@@ -42,6 +40,7 @@ module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.servi
             mode: defaults.mode || 'create',
             disableStrategySelection: true,
             loadBalancersConfigured: false,
+            securityGroupsConfigured: false,
           },
         };
       });

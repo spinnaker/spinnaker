@@ -8,17 +8,14 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.service',
   require('../../../netflix/serverGroup/diff/diff.service.js'),
   require('../../../core/naming/naming.service.js'),
   require('../../../core/securityGroup/securityGroup.read.service.js'),
-  require('../../../amazon/instance/awsInstanceType.service.js'),
-  require('../../subnet/subnet.read.service.js'),
-  require('../../keyPairs/keyPairs.read.service.js'),
   require('../../../core/loadBalancer/loadBalancer.read.service.js'),
   require('../../../core/cache/cacheInitializer.js'),
   require('../../../core/utils/lodash.js'),
 ])
   .factory('azureServerGroupConfigurationService', function($q, azureImageReader, accountService, securityGroupReader,
-                                                          azureInstanceTypeService, cacheInitializer,
+                                                          cacheInitializer,
                                                           diffService, namingService,
-                                                          subnetReader, keyPairsReader, loadBalancerReader, _) {
+                                                          loadBalancerReader, _) {
 
 
     var healthCheckTypes = ['EC2', 'ELB'],
@@ -34,9 +31,8 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.service',
     function configureCommand(application, command) {
       return $q.all({
         credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('azure'),
-        securityGroups: securityGroupReader.getAllSecurityGroups(),
+        securityGroups: securityGroupReader.loadSecurityGroups(),
         loadBalancers: loadBalancerReader.loadLoadBalancers(application.name),
-        //instanceTypes: azureInstanceTypeService.getAllTypesByRegion(),
       }).then(function(backingData) {
         var loadBalancerReloader = $q.when(null);
         backingData.accounts = _.keys(backingData.credentialsKeyedByAccount);
@@ -55,21 +51,6 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.service',
           attachEventHandlers(command);
         });
       });
-    }
-
-    function configureInstanceTypes(command) {
-      var result = { dirty: {} };
-      if (command.region) {
-        var filtered = azureInstanceTypeService.getAvailableTypesForRegions(command.backingData.instanceTypes, [command.region]);
-        if (command.instanceType && filtered.indexOf(command.instanceType) === -1) {
-          command.instanceType = null;
-          result.dirty.instanceType = true;
-        }
-        command.backingData.filtered.instanceTypes = filtered;
-      } else {
-        command.backingData.filtered.instanceTypes = [];
-      }
-      return result;
     }
 
     function configureImages(command) {
@@ -99,68 +80,38 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.service',
       return result;
     }
 
-    function configureAvailabilityZones(command) {
-      command.backingData.filtered.availabilityZones =
-        _.find(command.backingData.credentialsKeyedByAccount[command.credentials].regions, {name: command.region}).availabilityZones;
-    }
-
-    function configureSubnetPurposes(command) {
-      var result = { dirty: {} };
-      var filteredData = command.backingData.filtered;
-      if (command.region === null) {
-        return result;
-      }
-      filteredData.subnetPurposes = _(command.backingData.subnets)
-        .filter({account: command.credentials, region: command.region})
-        .reject({target: 'elb'})
-        .reject({purpose: null})
-        .uniq('purpose')
-        .valueOf();
-
-      if (!_(filteredData.subnetPurposes).some({purpose: command.subnetType})) {
-        command.subnetType = null;
-        result.dirty.subnetType = true;
-      }
-      return result;
-    }
-
     function getRegionalSecurityGroups(command) {
       var newSecurityGroups = command.backingData.securityGroups[command.credentials] || { azure: {}};
-      return _(newSecurityGroups.azure[command.region])
-        .filter({vpcId: command.vpcId || null})
+      return _(newSecurityGroups[command.region])
         .sortBy('name')
         .valueOf();
     }
 
     function configureSecurityGroupOptions(command) {
       var result = { dirty: {} };
-      var currentOptions = command.backingData.filtered.securityGroups;
-      var newRegionalSecurityGroups = getRegionalSecurityGroups(command);
-      if (currentOptions && command.securityGroups) {
-        // not initializing - we are actually changing groups
-        var currentGroupNames = command.securityGroups.map(function(groupId) {
-          var match = _(currentOptions).find({id: groupId});
-          return match ? match.name : groupId;
-        });
-
-        var matchedGroups = command.securityGroups.map(function(groupId) {
-          var securityGroup = _(currentOptions).find({id: groupId}) ||
-            _(currentOptions).find({name: groupId});
-          return securityGroup ? securityGroup.name : null;
-        }).map(function(groupName) {
-          return _(newRegionalSecurityGroups).find({name: groupName});
-        }).filter(function(group) {
-          return group;
-        });
-
-        var matchedGroupNames = _.pluck(matchedGroups, 'name');
-        var removed = _.xor(currentGroupNames, matchedGroupNames);
-        command.securityGroups = _.pluck(matchedGroups, 'id');
-        if (removed.length) {
-          result.dirty.securityGroups = removed;
-        }
+      var currentOptions;
+      if(command.backingData.filtered.securityGroups) {
+        currentOptions = command.backingData.filtered.securityGroups;
       }
-      command.backingData.filtered.securityGroups = newRegionalSecurityGroups;
+      var newRegionalSecurityGroups = getRegionalSecurityGroups(command);
+      if (command.selectedSecurityGroup) {
+        // one has not been previously selected. We are either configuring for the
+        //first time or they changed regions or account
+        command.selectedSecurityGroup = null;
+        result.dirty.securityGroups = true;
+      }
+      if(currentOptions != newRegionalSecurityGroups) {
+        command.backingData.filtered.securityGroups = newRegionalSecurityGroups;
+        result.dirty.securityGroups = true;
+      }
+
+      if(command.backingData.filtered.securityGroups === []) {
+        command.viewState.securityGroupsConfigured = false;
+      }
+      else {
+        command.viewState.securityGroupsConfigured = true;
+      }
+
       return result;
     }
 
@@ -170,17 +121,6 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.service',
           command.backingData.securityGroups = securityGroups;
           if (!skipCommandReconfiguration) {
             configureSecurityGroupOptions(command);
-          }
-        });
-      });
-    }
-
-    function refreshInstanceTypes(command, skipCommandReconfiguration) {
-      return cacheInitializer.refreshCache('instanceTypes').then(function() {
-        return azureInstanceTypeService.getAllTypesByRegion().then(function(instanceTypes) {
-          command.backingData.instanceTypes = instanceTypes;
-          if (!skipCommandReconfiguration) {
-            configureInstanceTypes(command);
           }
         });
       });
@@ -239,6 +179,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.service',
         var result = { dirty: {} };
         if (command.region && command.credentials) {
           angular.extend(result.dirty, configureLoadBalancers(command).dirty);
+          angular.extend(result.dirty, configureSecurityGroupOptions(command).dirty);
         }
 
         return result;
@@ -269,15 +210,12 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.service',
     return {
       configureUpdateCommand: configureUpdateCommand,
       configureCommand: configureCommand,
-      configureInstanceTypes: configureInstanceTypes,
       configureImages: configureImages,
-      configureAvailabilityZones: configureAvailabilityZones,
-      configureSubnetPurposes: configureSubnetPurposes,
       configureSecurityGroupOptions: configureSecurityGroupOptions,
       configureLoadBalancerOptions: configureLoadBalancerOptions,
       refreshLoadBalancers: refreshLoadBalancers,
       refreshSecurityGroups: refreshSecurityGroups,
-      refreshInstanceTypes: refreshInstanceTypes,
+      getRegionalSecurityGroups: getRegionalSecurityGroups,
     };
 
 
