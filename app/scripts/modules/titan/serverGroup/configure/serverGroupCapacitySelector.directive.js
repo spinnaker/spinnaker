@@ -13,9 +13,5 @@ module.exports = angular.module('spinnaker.titan.serverGroup.capacity.selector.d
       controller: 'titanServerGroupCapacitySelectorCtrl as serverGroupCapacityCtrl',
     };
   })
-  .controller('titanServerGroupCapacitySelectorCtrl', function($scope) {
-    $scope.setMinMax = function(newVal) {
-      $scope.command.capacity.min = newVal;
-      $scope.command.capacity.max = newVal;
-    };
+  .controller('titanServerGroupCapacitySelectorCtrl', function() {
   });

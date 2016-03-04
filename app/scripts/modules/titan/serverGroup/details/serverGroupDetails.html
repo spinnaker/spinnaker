@@ -36,6 +36,7 @@
             <!-- TODO: Uncomment below two lines when we have discovery integrated for titus containers-->
             <!--<li><a href ng-if="!serverGroup.isDisabled" ng-click="ctrl.disableServerGroup()">Disable</a></li>-->
             <!--<li><a href ng-if="serverGroup.isDisabled" ng-click="ctrl.enableServerGroup()">Enable</a></li>-->
+            <li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>
             <li><a href ng-click="ctrl.destroyServerGroup()">Destroy</a></li>
             <li><a href ng-click="ctrl.cloneServerGroup()">Clone</a></li>
           </ul>
@@ -115,7 +116,7 @@
     <collapsible-section heading="Size" expanded="true">
       <dl class="dl-horizontal"
           ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
-          ng-if="serverGroup.asg.minSize === serverGroup.asg.maxSize">
+          ng-if="serverGroup.capacity.min === serverGroup.capacity.max">
         <dt>Desired</dt>
         <dd>{{serverGroup.capacity.desired}}</dd>
         <dt>Current</dt>
@@ -123,7 +124,7 @@
       </dl>
       <dl class="dl-horizontal"
           ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'"
-          ng-if="serverGroup.asg.minSize !== serverGroup.asg.maxSize">
+          ng-if="serverGroup.capacity.min !== serverGroup.capacity.max">
         <dt>Min</dt>
         <dd>{{serverGroup.capacity.min}}</dd>
         <dt>Desired</dt>
@@ -133,7 +134,9 @@
         <dt>Current</dt>
         <dd>{{serverGroup.instances.length}}</dd>
       </dl>
-      <!--<a href ng-click="ctrl.resizeServerGroup()">Resize Server Group</a>-->
+      <div>
+        <a href ng-click="ctrl.resizeServerGroup()">Resize Server Group</a>
+      </div>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true">
       <dl class="dl-horizontal"
