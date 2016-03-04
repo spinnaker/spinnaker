@@ -1,19 +1,19 @@
 package com.netflix.spinnaker.echo.test
 
-import com.netflix.spinnaker.echo.model.BuildEvent
+import com.netflix.spinnaker.echo.model.Metadata
+import com.netflix.spinnaker.echo.model.trigger.BuildEvent
+import com.netflix.spinnaker.echo.model.trigger.GitEvent
 import com.netflix.spinnaker.echo.model.Trigger
-import com.netflix.spinnaker.echo.pipelinetriggers.BuildEventMonitor
 
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.netflix.spinnaker.echo.model.Pipeline
 import retrofit.RetrofitError
 import retrofit.client.Response
-import rx.Observable
-import static com.netflix.spinnaker.echo.model.BuildEvent.Result.BUILDING
+
+import static com.netflix.spinnaker.echo.model.trigger.BuildEvent.Result.BUILDING
 import static java.net.HttpURLConnection.HTTP_UNAVAILABLE
 import static retrofit.RetrofitError.httpError
-import static rx.Observable.just
 
 trait RetrofitStubs {
 
@@ -33,17 +33,17 @@ trait RetrofitStubs {
 
   BuildEvent createBuildEventWith(BuildEvent.Result result) {
     def build = result ? new BuildEvent.Build(result == BUILDING, 1, result) : null
-    new BuildEvent(new BuildEvent.Content(
-      new BuildEvent.Project("job", build), "master"),
-      new BuildEvent.Details(BuildEvent.BUILD_EVENT_TYPE)
-    )
+    def res = new BuildEvent()
+    res.content = new BuildEvent.Content(new BuildEvent.Project("job", build), "master")
+    res.details = new Metadata([type: BuildEvent.TYPE])
+    return res
   }
 
-  BuildEvent createStashEvent() {
-    new BuildEvent(new BuildEvent.Content(
-      null, null, "project", "slug", "hash"
-    ),
-      new BuildEvent.Details(BuildEvent.GIT_EVENT_TYPE, "stash"))
+  GitEvent createGitEvent() {
+    def res = new GitEvent()
+    res.content = new GitEvent.Content("project", "slug", "hash", "master")
+    res.details = new Metadata([type: GitEvent.TYPE, source: "stash"])
+    return res
   }
 
   Pipeline createPipelineWith(Trigger... triggers) {
