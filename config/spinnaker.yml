@@ -136,13 +136,14 @@ services:
 
   jenkins:
     # The "name" entry is used for the display name when selecting
-    # this server.
+    # this server. You must set `enabled` to true when enabling igor.
     #
     # If you have multiple jenkins servers, you will need to list
     # them in an igor-local.yml. See jenkins.masters in config/igor.yml.
     #
     # Note that jenkins is not installed with Spinnaker so you must obtain this
     # on your own if you are interested.
+    enabled: false
     defaultMaster:
       name: Jenkins
       baseUrl:   # Expected in spinnaker-local.yml

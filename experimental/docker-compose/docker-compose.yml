@@ -62,9 +62,11 @@ igor:
   env_file: ./compose.env
   environment: 
     - SERVICES_ECHO_HOST=echo
+    - SERVICES_CLOUDDRIVER_HOST=clouddriver
   image: quay.io/spinnaker/igor
   links: 
     - redis
+    - clouddriver
     - echo
   ports: 
     - "8088:8088"

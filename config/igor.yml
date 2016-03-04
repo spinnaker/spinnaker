@@ -3,6 +3,7 @@ server:
   address: ${services.igor.host:localhost}
 
 jenkins:
+  enabled: ${services.jenkins.enabled:false}
   masters:
     - name: ${services.jenkins.defaultMaster.name}
       address: ${services.jenkins.defaultMaster.baseUrl}
@@ -12,7 +13,9 @@ jenkins:
 redis:
   connection: ${services.redis.connection:redis://localhost:6379}
 
-# This is recursive
-#services:
+services:
+  clouddriver:
+    baseUrl: ${services.clouddriver.baseUrl}
 #  echo:
+#    This is recursive
 #    baseUrl: ${services.echo.baseUrl}
