@@ -86,7 +86,7 @@ class AzureServerGroupResourceTemplate {
     ServerGroupTemplateVariables(AzureServerGroupDescription description) {
 
       newStorageAccountSuffix = "sa"
-      vhdContainerName = description.getIdentifier()
+      vhdContainerName = description.getIdentifier().toLowerCase()
       osType = new OsType(description)
       imageReference = "[variables('osType')]"
 
@@ -95,7 +95,7 @@ class AzureServerGroupResourceTemplate {
       //vhdContainerNameVar = vhdContainerName.class.name
       //newStorageAccountsSuffixVar = newStorageAccountSuffix.class.name
 
-      String noDashName = description.name.replaceAll("-", "")
+      String noDashName = description.name.replaceAll("-", "").toLowerCase()
 
       for (int i = 0; i < description.getStorageAccountCount(); i++) {
         String uniqueName = "[concat(uniqueString(concat(resourceGroup().id, subscription().id, '$noDashName', variables('$newStorageAccountsSuffixVar'), '$i')))]"
