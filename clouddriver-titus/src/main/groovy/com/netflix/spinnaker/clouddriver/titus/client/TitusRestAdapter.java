@@ -61,4 +61,7 @@ public interface TitusRestAdapter {
 
     @GET("/v2/logs/{taskId}")
     Call<Logs> getLogs(@Path("taskId") String taskId);
+
+    @POST("/v2/jobs/setinstancecounts")
+    Call<Void> resizeJob(@Body ResizeJobRequest resizeJob);
 }

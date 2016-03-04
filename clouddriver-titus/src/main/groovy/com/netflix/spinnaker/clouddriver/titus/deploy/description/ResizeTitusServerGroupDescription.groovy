@@ -16,7 +16,18 @@
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.description
 
-class TerminateTitusInstancesDescription extends AbstractTitusCredentialsDescription {
+import groovy.transform.Canonical
+
+class ResizeTitusServerGroupDescription extends AbstractTitusCredentialsDescription {
   String region
-  List<String> instanceIds
+  String serverGroupName
+  String user
+  Capacity capacity
+
+  @Canonical
+  static class Capacity {
+    int min
+    int max
+    int desired
+  }
 }

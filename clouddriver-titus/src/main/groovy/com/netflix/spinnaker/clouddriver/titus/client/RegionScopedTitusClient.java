@@ -156,6 +156,14 @@ public class RegionScopedTitusClient implements TitusClient {
     }
 
     @Override
+    public void resizeJob(ResizeJobRequest resizeJobRequest){
+        if(resizeJobRequest.getUser() == null){
+           resizeJobRequest.withUser("spinnaker");
+        }
+        execute(titusRestAdapter.resizeJob(resizeJobRequest));
+    }
+
+    @Override
     public void terminateJob(String jobId) {
         execute(titusRestAdapter.killJob(RequestBody.create(MediaType.parse("text/plain"), jobId)));
     }
@@ -196,6 +204,6 @@ public class RegionScopedTitusClient implements TitusClient {
 
     private Stream<Job> getAllJobsStream() {
         return execute(titusRestAdapter.getJobsByType("service")).stream();
-
     }
+
 }

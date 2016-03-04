@@ -21,10 +21,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.TerminateTitusInstancesDescription
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
-/**
- *
- *
- */
+
 class TerminateTitusInstancesAtomicOperation implements AtomicOperation<Void> {
 
   private static final String PHASE = "TERMINATE_TITUS_INSTANCES"

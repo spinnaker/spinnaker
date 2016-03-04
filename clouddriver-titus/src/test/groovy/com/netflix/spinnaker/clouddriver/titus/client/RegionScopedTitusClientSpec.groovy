@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.titus.client
 
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
+import com.netflix.spinnaker.clouddriver.titus.client.model.ResizeJobRequest
 import com.netflix.spinnaker.clouddriver.titus.client.model.SubmitJobRequest
 import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState
 import org.slf4j.Logger
@@ -51,7 +52,9 @@ class RegionScopedTitusClientSpec extends Specification {
       .withUser("spinnaker")
       .withConstraint(SubmitJobRequest.Constraint.soft(SubmitJobRequest.Constraint.ZONE_BALANCE))
       .withDockerImageVersion("master-201508032132-trusty-5be2a2f")
-      .withInstances(1)
+      .withInstancesMin(1)
+      .withInstancesMax(5)
+      .withInstancesDesired(2)
       .withCpu(1)
       .withMemory(4096)
       .withDisk(2000)
@@ -119,6 +122,33 @@ class RegionScopedTitusClientSpec extends Specification {
     when:
     job = titusClient.getJob(jobId);
     logger.info("Found submitted job in the list of jobs");
+
+    then:
+
+
+    then:
+    job.instancesDesired == 2
+    job.instancesMax == 5
+    job.instancesMin == 1
+
+    when:
+    logger.info("Resizing Job {}", jobId);
+    titusClient.resizeJob(new ResizeJobRequest()
+      .withJobId(job.id)
+      .withUser('spinnaker')
+      .withInstancesDesired(1)
+      .withInstancesMin(1)
+      .withInstancesMax(10)
+    )
+
+    job = titusClient.getJob(jobId);
+
+    then:
+    job.instancesDesired == 1
+    job.instancesMax == 10
+    job.instancesMin == 1
+
+    when:
 
     logger.info("Terminating Job {}", jobId);
     titusClient.terminateJob(jobId);

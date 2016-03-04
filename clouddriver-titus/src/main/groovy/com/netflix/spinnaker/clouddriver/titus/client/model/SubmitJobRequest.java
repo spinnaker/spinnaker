@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
+import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +62,9 @@ public class SubmitJobRequest {
     private String stack;
     private String detail;
     private String user;
-    private int instances;
+    private int instancesMin;
+    private int instancesMax;
+    private int instancesDesired;
     private int cpu;
     private int memory;
     private int disk;
@@ -95,9 +99,19 @@ public class SubmitJobRequest {
         return this;
     }
 
-    public SubmitJobRequest withInstances(int instances) {
-        this.instances = instances;
+    public SubmitJobRequest withInstancesMin(int instancesMin) {
+        this.instancesMin = instancesMin;
         return this;
+    }
+
+    public SubmitJobRequest withInstancesMax(int instancesMax) {
+      this.instancesMax = instancesMax;
+      return this;
+    }
+
+    public SubmitJobRequest withInstancesDesired(int instancesDesired) {
+      this.instancesDesired = instancesDesired;
+      return this;
     }
 
     public SubmitJobRequest withCpu(int cpu) {
@@ -162,8 +176,16 @@ public class SubmitJobRequest {
         return jobType;
     }
 
-    public int getInstances() {
-        return instances;
+    public int getInstanceMin() {
+        return instancesMin;
+    }
+
+    public int getInstanceMax() {
+      return instancesMax;
+    }
+
+    public int getInstanceDesired() {
+      return instancesDesired;
     }
 
     public int getCpu() {

@@ -28,7 +28,9 @@ public class JobDescription {
     private String type;
     private String applicationName;
     private String version;
-    private int instances;
+    private int instancesDesired;
+    private int instancesMax;
+    private int instancesMin;
     private int cpu;
     private int memory;
     private int disk;
@@ -53,7 +55,9 @@ public class JobDescription {
         name = request.getJobName();
         applicationName = request.getDockerImageName();
         version = request.getDockerImageVersion();
-        instances = request.getInstances();
+        instancesDesired = request.getInstanceDesired();
+        instancesMin = request.getInstanceMin();
+        instancesMax = request.getInstanceMax();
         cpu = request.getCpu();
         memory = request.getMemory();
         disk = request.getDisk();
@@ -96,16 +100,32 @@ public class JobDescription {
     }
 
     public void setVersion(String version) {
-        this.version = version;
+      this.version = version;
     }
 
-    public int getInstances() {
-        return instances;
+    public int getInstancesMin() {
+      return instancesMin;
     }
 
-    public void setInstances(int instances) {
-        this.instances = instances;
+    public void setInstancesMin(int instances) {
+      this.instancesMin = instancesMin;
     }
+
+    public int getInstancesMax() {
+      return instancesMax;
+    }
+
+    public void setInstancesMax(int instances) {
+      this.instancesMax = instancesMax;
+    }
+
+    public int getInstancesDesired() {
+      return instancesDesired;
+    }
+
+    public void setInstancesDesired(int instances) {
+    this.instancesDesired = instancesDesired;
+  }
 
     public int getCpu() {
         return cpu;

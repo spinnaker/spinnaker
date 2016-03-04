@@ -35,6 +35,9 @@ class TitusServerGroupSpec extends Specification {
       disk: 5000,
       ports: [8080],
       instances: 2,
+      instancesMin: 1,
+      instancesMax: 10,
+      instancesDesired: 5,
       environment: [account: 'test'],
       submittedAt: launchDate,
       tasks: [new Job.TaskSummary(
@@ -68,8 +71,8 @@ class TitusServerGroupSpec extends Specification {
     titusServerGroup.instances?.size() == 1
     titusServerGroup.instances[0] instanceof TitusInstance
     titusServerGroup.instances[0].name == job.tasks[0].id
-    titusServerGroup.capacity?.min == job.instances
-    titusServerGroup.capacity?.max == job.instances
-    titusServerGroup.capacity?.desired == job.instances
+    titusServerGroup.capacity?.min == job.instancesMin
+    titusServerGroup.capacity?.max == job.instancesMax
+    titusServerGroup.capacity?.desired == job.instancesDesired
   }
 }
