@@ -50,6 +50,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
             fromContext: image.fromContext,
             cluster: image.cluster,
             pattern: image.pattern,
+            stageId: image.stageId,
           },
           account: image.accountName,
           requests: {

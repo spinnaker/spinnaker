@@ -91,7 +91,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
               return $scope.application;
             },
             serverGroupCommand: function () {
-              return serverGroupCommandBuilder.buildNewServerGroupCommandForPipeline(selectedProvider, $scope.stage, $scope.$parent.pipeline.stages);
+              return serverGroupCommandBuilder.buildNewServerGroupCommandForPipeline(selectedProvider, $scope.stage, $scope.$parent.pipeline);
             },
           }
         }).result.then(function(command) {
@@ -119,7 +119,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
             return $scope.application;
           },
           serverGroupCommand: function () {
-            return serverGroupCommandBuilder.buildServerGroupCommandFromPipeline($scope.application, cluster);
+            return serverGroupCommandBuilder.buildServerGroupCommandFromPipeline($scope.application, cluster, $scope.stage, $scope.$parent.pipeline);
           },
         }
       }).result.then(function(command) {
