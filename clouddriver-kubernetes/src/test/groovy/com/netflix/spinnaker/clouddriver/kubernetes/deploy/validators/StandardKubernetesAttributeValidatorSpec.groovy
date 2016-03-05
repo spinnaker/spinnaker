@@ -212,13 +212,13 @@ class StandardKubernetesAttributeValidatorSpec extends Specification {
     when:
       validator.validateCredentials(null, accountCredentialsProvider)
     then:
-      1 * errorsMock.rejectValue("${DECORATOR}.credentials", "${DECORATOR}.credentials.empty")
+      1 * errorsMock.rejectValue("${DECORATOR}.account", "${DECORATOR}.account.empty")
       0 * errorsMock._
 
     when:
       validator.validateCredentials("", accountCredentialsProvider)
     then:
-      1 * errorsMock.rejectValue("${DECORATOR}.credentials", "${DECORATOR}.credentials.empty")
+      1 * errorsMock.rejectValue("${DECORATOR}.account", "${DECORATOR}.account.empty")
       0 * errorsMock._
   }
 
@@ -230,7 +230,7 @@ class StandardKubernetesAttributeValidatorSpec extends Specification {
     when:
       validator.validateCredentials("You-don't-know-me", accountCredentialsProvider)
     then:
-      1 * errorsMock.rejectValue("${DECORATOR}.credentials", "${DECORATOR}.credentials.notFound")
+      1 * errorsMock.rejectValue("${DECORATOR}.account", "${DECORATOR}.account.notFound")
       0 * errorsMock._
   }
 

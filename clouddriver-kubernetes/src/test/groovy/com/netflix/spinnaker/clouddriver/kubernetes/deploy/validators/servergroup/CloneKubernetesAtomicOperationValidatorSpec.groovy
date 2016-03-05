@@ -175,7 +175,7 @@ class CloneKubernetesAtomicOperationValidatorSpec extends Specification {
     when:
       validator.validate([], description, errorsMock)
     then:
-      1 * errorsMock.rejectValue("${DESCRIPTION}.credentials", "${DESCRIPTION}.credentials.empty")
+      1 * errorsMock.rejectValue("${DESCRIPTION}.account", "${DESCRIPTION}.account.empty")
       0 * errorsMock._
   }
 
