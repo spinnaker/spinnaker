@@ -54,4 +54,8 @@ class Location {
   static Location region(String value) {
     return new Location(type: Location.Type.REGION, value: value)
   }
+
+  static Location namespace(String value) {
+    return new Location(type: Location.Type.NAMESPACE, value: value)
+  }
 }

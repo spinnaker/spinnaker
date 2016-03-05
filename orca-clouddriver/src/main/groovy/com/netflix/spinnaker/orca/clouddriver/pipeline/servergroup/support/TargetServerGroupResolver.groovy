@@ -82,7 +82,7 @@ class TargetServerGroupResolver {
         params.cloudProvider)
     }
     // Without zonal support in the getServerGroup call above, we have to do the filtering here.
-    def tsg = tsgList?.find { Map tsg -> tsg.region == location.value || tsg.zones.contains(location.value) }
+    def tsg = tsgList?.find { Map tsg -> tsg.region == location.value || tsg.zones.contains(location.value) || tsg.namespace == location.value }
     if (!tsg) {
       throw new TargetServerGroup.NotFoundException("Unable to locate $params.asgName in $params.credentials/$location.value/$params.cluster")
     }
@@ -113,13 +113,16 @@ class TargetServerGroupResolver {
     }
 
     def tsg = tsgs.find {
-      (stage.context.regions && stage.context.regions.contains(it.getLocation().value)) ||
-        (stage.context.zones && stage.context.zones.contains(it.getLocation().value))
+      def location = it.getLocation().value
+      return (stage.context.regions?.contains(location)) ||
+        (stage.context.zones?.contains(location)) ||
+        (stage.context.namespaces?.contains(location))
     }
     if (!tsg) {
       def locations = []
       stage.context.regions && locations << stage.context.regions
       stage.context.zones && locations << stage.context.zones
+      stage.context.namespaces && locations << stage.context.namespaces
       throw new TargetServerGroup.NotFoundException("No targets found on matching any location in ${locations} in " +
         "target server groups: ${tsgs}")
     }
