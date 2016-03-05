@@ -26,13 +26,14 @@ import lombok.experimental.Wither;
 @JsonDeserialize(builder = Trigger.TriggerBuilder.class)
 @Builder
 @Wither
-@ToString(of = {"type", "master", "job", "cronExpression", "source", "project", "slug"}, includeFieldNames = false)
+@ToString(of = {"type", "master", "job", "cronExpression", "source", "project", "slug", "registry", "repository", "tag"}, includeFieldNames = false)
 @Value
 public class Trigger {
   public enum Type {
     CRON("cron"),
     GIT("git"),
-    JENKINS("jenkins");
+    JENKINS("jenkins"),
+    DOCKER("docker");
 
     private final String type;
 
@@ -58,13 +59,21 @@ public class Trigger {
   String project;
   String slug;
   String hash;
+  String registry;
+  String repository;
+  String tag;
+  String digest;
 
   public Trigger atBuildNumber(final int buildNumber) {
-    return new Trigger(enabled, id, type, master, job, buildNumber, propertyFile, cronExpression, source, project, slug, null);
+    return new Trigger(enabled, id, type, master, job, buildNumber, propertyFile, cronExpression, source, project, slug, null, registry, repository, null, digest);
   }
 
   public Trigger atHash(final String hash) {
-    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, hash);
+    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, hash, registry, repository, null, digest);
+  }
+
+  public Trigger atTag(final String tag) {
+    return new Trigger(enabled, id, type, master, job, null, propertyFile, cronExpression, source, project, slug, null, registry, repository, tag, digest);
   }
 
   @JsonPOJOBuilder(withPrefix = "")

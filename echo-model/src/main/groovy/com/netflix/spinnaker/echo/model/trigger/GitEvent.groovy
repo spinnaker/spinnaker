@@ -23,22 +23,22 @@ import groovy.transform.Canonical
 @Canonical
 @JsonIgnoreProperties(ignoreUnknown = true)
 class GitEvent extends TriggerEvent {
-    Content content;
+  Content content
 
-    public static final String TYPE = 'GIT';
+  public static final String TYPE = 'GIT'
 
-    @Canonical
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Content {
-        String repoProject;
-        String slug;
-        String hash;
-        String branch;
-    }
+  @Canonical
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  static class Content {
+    String repoProject
+    String slug
+    String hash
+    String branch
+  }
 
-    @JsonIgnore
-    public String getHash() {
-        return content.hash;
-    }
+  @JsonIgnore
+  String getHash() {
+    return content.hash
+  }
 }
 

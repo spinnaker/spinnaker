@@ -16,5 +16,22 @@
 
 package com.netflix.spinnaker.echo.model.trigger
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import groovy.transform.Canonical
+
+@Canonical
+@JsonIgnoreProperties(ignoreUnknown = true)
 class DockerEvent extends TriggerEvent {
+  public static final String TYPE = "DOCKER"
+
+  Content content
+
+  @Canonical
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  static class Content {
+    String registry
+    String repository
+    String tag
+    String digest
+  }
 }
