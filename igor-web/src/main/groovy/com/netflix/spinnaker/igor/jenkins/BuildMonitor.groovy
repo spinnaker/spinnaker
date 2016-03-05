@@ -20,7 +20,7 @@ import com.netflix.appinfo.InstanceInfo
 import com.netflix.discovery.DiscoveryClient
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.BuildContent
-import com.netflix.spinnaker.igor.history.model.BuildDetails
+import com.netflix.spinnaker.igor.history.model.BuildEvent
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import com.netflix.spinnaker.igor.polling.PollingMonitor
@@ -185,8 +185,8 @@ class BuildMonitor implements PollingMonitor {
                                                 Project oldProject = new Project(name: project.name, lastBuild: build)
                                                 if( build.number != lastBuild
                                                     || ( build.number == lastBuild && cachedBuild.lastBuildBuilding != build.building )) {
-                                                   echoService.postBuild(
-                                                        new BuildDetails(content: new BuildContent(project: oldProject, master: master)))
+                                                   echoService.postEvent(
+                                                        new BuildEvent(content: new BuildContent(project: oldProject, master: master)))
                                                 }
                                             } catch (e) {
                                                 log.error("An error occurred fetching ${master}:${project.name}:${build.number}", e)
@@ -208,8 +208,8 @@ class BuildMonitor implements PollingMonitor {
                         log.debug "setting result to ${project.lastBuild.result}"
                         cache.setLastBuild(master, project.name, project.lastBuild.number, project.lastBuild.building)
                         if (echoService) {
-                            echoService.postBuild(
-                                new BuildDetails(content: new BuildContent(project: project, master: master))
+                            echoService.postEvent(
+                                new BuildEvent(content: new BuildContent(project: project, master: master))
                             )
                         }
                         results << [previous: cachedBuild, current: project]

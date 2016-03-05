@@ -3,7 +3,7 @@ package com.netflix.spinnaker.igor.history.model
 /**
  * A history entry that contains a build detail
  */
-class BuildDetails {
+class BuildEvent extends Event {
 
     BuildContent content
     Map details = [

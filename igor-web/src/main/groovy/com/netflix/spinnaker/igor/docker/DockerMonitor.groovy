@@ -19,7 +19,7 @@ package com.netflix.spinnaker.igor.docker
 import com.netflix.spinnaker.igor.docker.model.DockerRegistryAccounts
 import com.netflix.spinnaker.igor.docker.service.TaggedImage
 import com.netflix.spinnaker.igor.history.EchoService
-import com.netflix.spinnaker.igor.history.model.BuildDetails
+import com.netflix.spinnaker.igor.history.model.DockerEvent
 import com.netflix.spinnaker.igor.polling.PollingMonitor
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -81,21 +81,20 @@ class DockerMonitor implements PollingMonitor {
             log.info("Took ${System.currentTimeMillis() - startTime}ms to retrieve images (account: ${account})")
 
             Map<String, TaggedImage> imageIds = images.collectEntries {
-                [(DockerRegistryCache.formatImage(it.registry, it.repository, it.tag)): it]
+                [(cache.makeKey(account, it.registry, it.repository, it.tag)): it]
             }
             Observable.from(cachedImages).filter { String id ->
                 !(id in imageIds)
             }.subscribe( { String imageId ->
                 log.info "Removing $imageId."
-                def image = imageIds[imageId]
-                cache.remove(image.account, image.registry, image.repository, image.tag)
+                cache.remove(imageId)
             }, {
                 log.error("Error: ${it.message}")
             }, {} as Action0
             )
 
             Observable.from(images).subscribe( { TaggedImage image ->
-                def imageId = DockerRegistryCache.formatImage(image.registry, image.repository, image.tag)
+                def imageId = cache.makeKey(account, image.registry, image.repository, image.tag)
                 def updateCache = false
 
                 if (imageId in cachedImages) {
@@ -113,12 +112,12 @@ class DockerMonitor implements PollingMonitor {
                 if (updateCache) {
                     if (echoService) {
                         log.info "Sending tagged image info to echo: ${image.account}: ${imageId}"
-                        echoService.postBuild(new BuildDetails([details: [
+                        echoService.postEvent(new DockerEvent(content: new DockerEvent.Content(
                                 registry: image.registry,
                                 repository: image.repository,
                                 tag: image.tag,
                                 digest: image.digest,
-                        ]]))
+                        )))
                     }
 
                     cache.setLastDigest(image.account, image.registry, image.repository, image.tag, image.digest)

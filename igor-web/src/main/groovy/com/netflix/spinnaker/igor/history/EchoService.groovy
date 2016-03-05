@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.igor.history
 
-import com.netflix.spinnaker.igor.history.model.BuildDetails
+import com.netflix.spinnaker.igor.history.model.Event
 import retrofit.http.Body
 import retrofit.http.POST
 
@@ -9,5 +9,5 @@ import retrofit.http.POST
  */
 interface EchoService {
     @POST('/')
-    String postBuild(@Body BuildDetails build)
+    String postEvent(@Body Event event)
 }
