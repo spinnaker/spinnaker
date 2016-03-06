@@ -86,7 +86,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
   },
   "variables" : {
     "newStorageAccountSuffix" : "sa",
-    "vhdContainerName" : "azureMASM-st1-d11",
+    "vhdContainerName" : "azuremasm-st1-d11",
     "osType" : {
       "publisher" : "Canonical",
       "offer" : "UbuntuServer",
@@ -94,7 +94,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "version" : "latest"
     },
     "imageReference" : "[variables('osType')]",
-    "uniqueStorageNameArray" : [ "[concat(uniqueString(concat(resourceGroup().id, subscription().id, 'azureMASMst1d11', variables('newStorageAccountSuffix'), '0')))]" ]
+    "uniqueStorageNameArray" : [ "[concat(uniqueString(concat(resourceGroup().id, subscription().id, 'azuremasmst1d11', variables('newStorageAccountSuffix'), '0')))]" ]
   },
   "resources" : [ {
     "apiVersion" : "2015-06-15",
