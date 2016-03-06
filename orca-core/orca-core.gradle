@@ -28,7 +28,6 @@ dependencies {
   compile spinnaker.dependency('rxJava')
   compile spinnaker.dependency('spectatorApi')
   compile spinnaker.dependency('kork')
-  compile ("commons-collections:commons-collections:3.2.2")
   testCompile project(":orca-test")
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.6.3"
 }
