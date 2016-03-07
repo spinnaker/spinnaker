@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.docker
 
+import com.netflix.spinnaker.igor.docker.service.TaggedImage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -38,14 +39,7 @@ class DockerRegistryCache {
         Jedis resource = jedisPool.resource
         def key = "${prefix}:${id}:${account}*"
 
-        def res = resource.keys(key).collect {
-            def parse = parseKey(it)
-            if (parse) {
-                formatImage(parse.registry, parse.repository, parse.tag)
-            } else {
-                null
-            }
-        }.findAll { it != null }
+        List<String> res = resource.keys(key).removeAll([null]) as List
 
         jedisPool.returnResource(resource)
         return res
@@ -67,17 +61,17 @@ class DockerRegistryCache {
         jedisPool.returnResource(resource)
     }
 
-    void remove(String account, String registry, String repository, String tag) {
+    void remove(String imageId) {
         Jedis resource = jedisPool.resource
-        resource.del(makeKey(account, registry, repository, tag))
+        resource.del(imageId)
         jedisPool.returnResource(resource)
     }
 
-    private String makeKey(String account, String registry, String repository, String tag) {
+    public String makeKey(String account, String registry, String repository, String tag) {
         "${prefix}:${id}:${account}:${registry}:${repository}:${tag}"
     }
 
-    private Map<String, String> parseKey(String key) {
+    public Map<String, String> parseKey(String key) {
         def split = key?.split(":")
 
         if (!split || split[0] != prefix || split[1] != id || split.length != 6) {
@@ -85,10 +79,5 @@ class DockerRegistryCache {
         }
 
         [account: split[2], registry: split[3], repository: split[4], tag: split[5]]
-    }
-
-    static String formatImage(String registry, String repository, String tag) {
-        def res = "$registry/$repository:$tag"
-        return res.toString()
     }
 }

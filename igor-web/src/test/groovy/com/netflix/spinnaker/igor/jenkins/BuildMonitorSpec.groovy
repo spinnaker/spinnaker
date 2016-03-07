@@ -130,10 +130,10 @@ class BuildMonitorSpec extends Specification {
         then:
         1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 3, lastBuildRunning: true]
         1 * cache.setLastBuild(MASTER, 'job', 6, false)
-        1 * monitor.echoService.postBuild({it.content.project.lastBuild.number == 3})
-        1 * monitor.echoService.postBuild({it.content.project.lastBuild.number == 4})
-        1 * monitor.echoService.postBuild({it.content.project.lastBuild.number == 5})
-        1 * monitor.echoService.postBuild({it.content.project.lastBuild.number == 6})
+        1 * monitor.echoService.postEvent({it.content.project.lastBuild.number == 3})
+        1 * monitor.echoService.postEvent({it.content.project.lastBuild.number == 4})
+        1 * monitor.echoService.postEvent({it.content.project.lastBuild.number == 5})
+        1 * monitor.echoService.postEvent({it.content.project.lastBuild.number == 6})
     }
 
     void 'emits events only for builds in list'(){
@@ -158,8 +158,8 @@ class BuildMonitorSpec extends Specification {
         then:
         1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 3, lastBuildRunning: true]
         1 * cache.setLastBuild(MASTER, 'job', 6, false)
-        1 * monitor.echoService.postBuild({it.content.project.lastBuild.number == 3})
-        1 * monitor.echoService.postBuild({it.content.project.lastBuild.number == 6})
+        1 * monitor.echoService.postEvent({it.content.project.lastBuild.number == 3})
+        1 * monitor.echoService.postEvent({it.content.project.lastBuild.number == 6})
     }
 
     void 'does not send event for current unchanged build'(){
@@ -177,7 +177,7 @@ class BuildMonitorSpec extends Specification {
         then:
         1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 3, lastBuildBuilding: true]
         0 * jenkinsService.getBuilds('job')
-        0 * monitor.echoService.postBuild(_)
+        0 * monitor.echoService.postEvent(_)
     }
 
     void 'does not send event for past build with already sent event'(){
@@ -201,8 +201,8 @@ class BuildMonitorSpec extends Specification {
         then:
         1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 5, lastBuildBuilding: false]
         1 * cache.setLastBuild(MASTER, 'job', 6, true)
-        0 * monitor.echoService.postBuild({it.content.project.lastBuild.number == 5})
-        1 * monitor.echoService.postBuild({it.content.project.lastBuild.number == 6})
+        0 * monitor.echoService.postEvent({it.content.project.lastBuild.number == 5})
+        1 * monitor.echoService.postEvent({it.content.project.lastBuild.number == 6})
     }
 
     void 'does not send event for same build'(){
@@ -220,7 +220,7 @@ class BuildMonitorSpec extends Specification {
         then:
         1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 6, lastBuildBuilding: true]
         0 * jenkinsService.getBuilds('job')
-        0 * monitor.echoService.postBuild({_})
+        0 * monitor.echoService.postEvent({_})
     }
 
 
@@ -238,7 +238,7 @@ class BuildMonitorSpec extends Specification {
 
         then:
         1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 6, lastBuildBuilding: false]
-        1 * monitor.echoService.postBuild({it.content.project.lastBuild.number == 6})
+        1 * monitor.echoService.postEvent({it.content.project.lastBuild.number == 6})
     }
 
 }
