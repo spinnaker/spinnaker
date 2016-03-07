@@ -55,6 +55,24 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
       return $q.when(command);
     }
 
+    function reconcileUpstreamImages(containers, upstreamImages) {
+      let result = [];
+      containers.forEach((container) => {
+        if (container.imageDescription.fromContext) {
+          let [matchingImage] = upstreamImages.filter((image) => container.imageDescription.stageId == image.stageId);
+          if (matchingImage) {
+            container.imageDescription.cluster = matchingImage.cluster;
+            container.imageDescription.pattern = matchingImage.pattern;
+            container.imageDescription.repository = matchingImage.repository;
+            result.push(container);
+          }
+        } else {
+          result.push(container);
+        }
+      });
+      return result;
+    }
+
     function findUpstreamImages(current, all, visited = {}) {
       // This actually indicates a loop in the stage dependencies.
       if (visited[current.refId]) {
@@ -64,7 +82,13 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
       }
       let result = [];
       if (current.type === 'findImage') {
-        result.push({ fromContext: true, cluster: current.cluster, pattern: current.imageNamePattern, repository: current.name });
+        result.push({
+          fromContext: true,
+          cluster: current.cluster,
+          pattern: current.imageNamePattern,
+          repository: current.name,
+          stageId: current.refId
+        });
       }
       current.requisiteStageRefIds.forEach(function(id) {
         let [next] = all.filter((stage) => stage.refId === id);
@@ -76,15 +100,31 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
       return result;
     }
 
-    function buildNewServerGroupCommandForPipeline(current, all) {
+    function buildNewServerGroupCommandForPipeline(current, pipeline) {
       return $q.when({
         viewState: {
-          contextImages: findUpstreamImages(current, all),
+          contextImages: findUpstreamImages(current, pipeline.stages),
           mode: 'editPipeline',
           submitButtonLabel: 'Done',
           requiresTemplateSelection: true,
         }
       });
+    }
+
+    function buildServerGroupCommandFromPipeline(app, command, current, pipeline) {
+      let contextImages = findUpstreamImages(current, pipeline.stages);
+      command.containers = reconcileUpstreamImages(command.containers, contextImages);
+      command.containers.map((container) => {
+        container.imageDescription.imageId = buildImageId(container.imageDescription);
+      });
+      command.groupByRegistry = groupByRegistry;
+      command.buildImageId = buildImageId;
+      command.viewState = {
+        mode: 'editPipeline',
+        contextImages: contextImages,
+        submitButtonLabel: 'Done',
+      };
+      return $q.when(command);
     }
 
     function groupByRegistry(container) {
@@ -140,5 +180,6 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
       buildNewServerGroupCommand: buildNewServerGroupCommand,
       buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting,
       buildNewServerGroupCommandForPipeline: buildNewServerGroupCommandForPipeline,
+      buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
   });
