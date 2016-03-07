@@ -12,10 +12,11 @@ jenkins:
 
 redis:
   connection: ${services.redis.connection:redis://localhost:6379}
+  
 
-services:
-  clouddriver:
-    baseUrl: ${services.clouddriver.baseUrl}
+# services:
+#  clouddriver:
+#    baseUrl: ${services.clouddriver.baseUrl}
 #  echo:
 #    This is recursive
 #    baseUrl: ${services.echo.baseUrl}
