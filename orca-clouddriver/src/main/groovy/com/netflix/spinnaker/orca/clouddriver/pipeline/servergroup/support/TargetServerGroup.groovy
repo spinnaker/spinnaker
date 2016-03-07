@@ -23,6 +23,8 @@ import groovy.transform.InheritConstructors
 import groovy.transform.ToString
 import groovy.util.logging.Slf4j
 
+import javax.security.auth.callback.LanguageCallback
+
 /**
  * A TargetServerGroup is a ServerGroup that is dynamically resolved using a target like "current" or "oldest".
  */
@@ -58,6 +60,9 @@ class TargetServerGroup {
     } else if (loc.type == Location.Type.ZONE) {
       op.zone = loc.value
       op.zones = [loc.value]
+    } else if (loc.type == Location.Type.NAMESPACE) {
+      op.namespace = loc.value
+      op.namespaces = [loc.value]
     } else {
       throw new IllegalStateException("unsupported location type $loc.type")
     }
@@ -65,12 +70,30 @@ class TargetServerGroup {
   }
 
   public static class Support {
-    static Location locationFromServerGroup(Map<String, Object> serverGroup) {
-      // All Google server group operations currently work with zones, not regions.
-      if (serverGroup.type == "gce") {
-        return new Location(type: Location.Type.ZONE, value: serverGroup.zones[0])
+    static Location resolveLocation(String cloudProvider, String zone, String namespace, String region) {
+      if (cloudProvider == "gce") {
+        if (!zone) {
+          throw new IllegalArgumentException("No zone specified.")
+        } else {
+          return Location.zone(zone)
+        }
       }
-      return new Location(type: Location.Type.REGION, value: serverGroup.region)
+
+      if (namespace) {
+        return Location.namespace(namespace)
+      } else if (region) {
+        return Location.region(region)
+      } else{
+        throw new IllegalArgumentException("No known location type provided. Must be `region` or `namespace`.")
+      }
+    }
+
+    static Location locationFromServerGroup(Map<String, Object> serverGroup) {
+      try {
+        return resolveLocation(serverGroup.type, serverGroup.zones?.get(0), serverGroup.namespace, serverGroup.region)
+      } catch (e) {
+        throw new IllegalArgumentException("Incorrect location specified for ${serverGroup.serverGroupName ?: serverGroup.name}: ${e.message}")
+      }
     }
 
     static Location locationFromOperation(Map<String, Object> operation) {
@@ -81,14 +104,12 @@ class TargetServerGroup {
     }
 
     static Location locationFromStageData(StageData stageData) {
-      if (stageData.cloudProvider == "gce") {
-        def zones = stageData.availabilityZones.values().flatten().toArray()
-        if (!zones) {
-          throw new IllegalStateException("Cannot find GCE zones in stage data ${stageData}")
-        }
-        return new Location(type: Location.Type.ZONE, value: zones[0])
+      try {
+        List zones = stageData.availabilityZones?.values()?.flatten()?.toArray()
+        return resolveLocation(stageData.cloudProvider, zones?.get(0), stageData.namespace, stageData.region)
+      } catch (e) {
+        throw new IllegalArgumentException("Incorrect location specified for ${stageData}: ${e.message}")
       }
-      return new Location(type: Location.Type.REGION, value: stageData.region)
     }
 
     static Location locationFromCloudProviderValue(String cloudProvider, String value) {
@@ -155,6 +176,7 @@ class TargetServerGroup {
       } else {
         // Default to regions.
         p.locations = stage.context.regions.collect { String r -> Location.region(r) }
+        p.locations.addAll(stage.context.namespaces.collect { String r -> Location.namespace(r) })
       }
       p
     }

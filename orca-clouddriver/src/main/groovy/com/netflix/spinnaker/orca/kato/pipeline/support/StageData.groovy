@@ -23,6 +23,7 @@ class StageData {
   String account
   String credentials
   String region
+  String namespace
   String freeFormDetails
   String application
   String stack
