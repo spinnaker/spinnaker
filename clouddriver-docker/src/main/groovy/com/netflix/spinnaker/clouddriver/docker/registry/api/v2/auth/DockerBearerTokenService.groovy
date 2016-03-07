@@ -136,7 +136,7 @@ class DockerBearerTokenService {
     def tokenService = realmToService.get(realm)
 
     if (tokenService == null) {
-      def builder = new RestAdapter.Builder().setEndpoint(realm).setLogLevel(RestAdapter.LogLevel.FULL).build()
+      def builder = new RestAdapter.Builder().setEndpoint(realm).setLogLevel(RestAdapter.LogLevel.NONE).build()
       tokenService = builder.create(TokenService.class)
       realmToService[realm] = tokenService
     }

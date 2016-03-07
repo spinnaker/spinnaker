@@ -14,17 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.docker.registry.security;
+package com.netflix.spinnaker.clouddriver.docker.registry.security
 
-import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryClient;
+import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryClient
 
 public class DockerRegistryCredentials {
   private final DockerRegistryClient client;
-  private final List<String> repositories;
+  private List<String> repositories;
+  private final boolean reloadRepositories;
 
   public DockerRegistryCredentials(DockerRegistryClient client, List<String> repositories) {
     this.client = client;
-    this.repositories = repositories;
+    if (!repositories) {
+      this.reloadRepositories = true
+      this.repositories = client.getCatalog()?.repositories;
+    } else {
+      this.reloadRepositories = false
+      this.repositories = repositories
+    }
   }
 
   public DockerRegistryClient getClient() {
@@ -32,6 +39,9 @@ public class DockerRegistryCredentials {
   }
 
   public List<String> getRepositories() {
-    return repositories;
+    if (reloadRepositories) {
+      repositories = client.getCatalog()?.repositories;
+    }
+    return repositories
   }
 }
