@@ -21,6 +21,7 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesImageDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesIllegalArgumentException
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
+import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.ReplicationController
 import org.springframework.beans.factory.annotation.Value
 
@@ -117,6 +118,16 @@ class KubernetesUtil {
       throw new KubernetesIllegalArgumentException(error)
     }
     return resolvedNamespace
+  }
+
+  static List<String> getPodLoadBalancers(Pod pod) {
+    def loadBalancers = []
+    pod.metadata?.labels?.each { key, val ->
+      if (isLoadBalancerLabel(key)) {
+        loadBalancers.push(key.substring(LOAD_BALANCER_LABEL_PREFIX_LENGTH, key.length()))
+      }
+    }
+    return loadBalancers
   }
 
   static List<String> getDescriptionLoadBalancers(ReplicationController rc) {
