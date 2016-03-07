@@ -33,8 +33,8 @@ import java.util.concurrent.TimeUnit
 
 @Slf4j
 class CleanupDetachedInstancesAgent implements RunnableAgent, CustomScheduledAgent {
-  public static final long DEFAULT_POLL_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(5)
-  public static final long DEFAULT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(2)
+  public static final long DEFAULT_POLL_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(10)
+  public static final long DEFAULT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(20)
 
   final AmazonClientProvider amazonClientProvider
   final Collection<NetflixAmazonCredentials> accounts
