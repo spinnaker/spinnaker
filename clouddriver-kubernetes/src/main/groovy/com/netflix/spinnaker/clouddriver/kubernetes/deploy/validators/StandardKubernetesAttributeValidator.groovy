@@ -179,11 +179,11 @@ class StandardKubernetesAttributeValidator {
   }
 
   def validateCredentials(String credentials, AccountCredentialsProvider accountCredentialsProvider) {
-    def result = validateNotEmpty(credentials, "credentials")
+    def result = validateNotEmpty(credentials, "account")
     if (result) {
       def kubernetesCredentials = accountCredentialsProvider.getCredentials(credentials)
       if (!(kubernetesCredentials?.credentials instanceof KubernetesCredentials)) {
-        errors.rejectValue("${context}.credentials",  "${context}.credentials.notFound")
+        errors.rejectValue("${context}.account",  "${context}.account.notFound")
         result = false
       }
     }

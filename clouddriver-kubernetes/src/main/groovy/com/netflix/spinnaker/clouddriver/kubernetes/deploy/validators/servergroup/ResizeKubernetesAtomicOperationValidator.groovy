@@ -34,7 +34,7 @@ class ResizeKubernetesAtomicOperationValidator extends DescriptionValidator<Resi
 
   @Override
   void validate(List priorDescriptions, ResizeKubernetesAtomicOperationDescription description, Errors errors) {
-    def helper = new StandardKubernetesAttributeValidator("deployKubernetesAtomicOperationDescription", errors)
+    def helper = new StandardKubernetesAttributeValidator("resizeKubernetesAtomicOperationDescription", errors)
 
     if (!helper.validateCredentials(description.account, accountCredentialsProvider)) {
       return

@@ -36,6 +36,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
   String name
   String type = "kubernetes"
   String region
+  String namespace
   String account
   Long createdTime
   Integer replicas = 0
@@ -56,12 +57,14 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
   KubernetesServerGroup(String name, String namespace) {
     this.name = name
     this.region = namespace
+    this.namespace = namespace
   }
 
   KubernetesServerGroup(ReplicationController replicationController, Set<KubernetesInstance> instances, String account) {
     this.name = replicationController.metadata?.name
     this.account = account
     this.region = replicationController.metadata?.namespace
+    this.namespace = this.region
     this.createdTime = KubernetesModelUtil.translateTime(replicationController.metadata?.creationTimestamp)
     this.zones = [this.region] as Set
     this.instances = instances
