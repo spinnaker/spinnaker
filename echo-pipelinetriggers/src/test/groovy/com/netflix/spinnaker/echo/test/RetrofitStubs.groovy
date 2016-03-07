@@ -2,6 +2,7 @@ package com.netflix.spinnaker.echo.test
 
 import com.netflix.spinnaker.echo.model.Metadata
 import com.netflix.spinnaker.echo.model.trigger.BuildEvent
+import com.netflix.spinnaker.echo.model.trigger.DockerEvent
 import com.netflix.spinnaker.echo.model.trigger.GitEvent
 import com.netflix.spinnaker.echo.model.Trigger
 
@@ -18,12 +19,13 @@ import static retrofit.RetrofitError.httpError
 trait RetrofitStubs {
 
   final String url = "http://echo"
-  final Trigger enabledJenkinsTrigger = new Trigger(true, null, 'jenkins', 'master', 'job', null, null, null, null, null, null, null)
-  final Trigger disabledJenkinsTrigger = new Trigger(false, null, 'jenkins', 'master', 'job', null, null, null, null, null, null, null)
-  final Trigger nonJenkinsTrigger = new Trigger(true, null, 'not jenkins', 'master', 'job', null, null, null, null, null, null, null)
-  final Trigger enabledStashTrigger = new Trigger(true, null, 'git', null, null, null, null, null, 'stash', 'project', 'slug', null)
-  final Trigger disabledStashTrigger = new Trigger(false, null, 'git', 'master', 'job', null, null, null, 'stash', 'project', 'slug', null)
-  final Trigger enabledGithubTrigger = new Trigger(false, null, 'git', 'master', 'job', null, null, null, 'github', 'project', 'slug', null)
+  final Trigger enabledJenkinsTrigger = new Trigger(true, null, 'jenkins', 'master', 'job', null, null, null, null, null, null, null, null, null, null, null)
+  final Trigger disabledJenkinsTrigger = new Trigger(false, null, 'jenkins', 'master', 'job', null, null, null, null, null, null, null, null, null, null, null)
+  final Trigger nonJenkinsTrigger = new Trigger(true, null, 'not jenkins', 'master', 'job', null, null, null, null, null, null, null, null, null, null, null)
+  final Trigger enabledStashTrigger = new Trigger(true, null, 'git', null, null, null, null, null, 'stash', 'project', 'slug', null, null, null, null, null)
+  final Trigger disabledStashTrigger = new Trigger(false, null, 'git', 'master', 'job', null, null, null, 'stash', 'project', 'slug', null, null, null, null, null)
+  final Trigger enabledDockerTrigger = new Trigger(true, null, 'docker', null, null, null, null, null, null, null, null, null, 'registry', 'repository', 'tag', null)
+  final Trigger disabledDockerTrigger = new Trigger(false, null, 'git', null, null, null, null, null, null, null, null, null, 'registry', 'repository', 'tag', null)
 
   private nextId = new AtomicInteger(1)
 
@@ -43,6 +45,13 @@ trait RetrofitStubs {
     def res = new GitEvent()
     res.content = new GitEvent.Content("project", "slug", "hash", "master")
     res.details = new Metadata([type: GitEvent.TYPE, source: "stash"])
+    return res
+  }
+
+  DockerEvent createDockerEvent() {
+    def res = new DockerEvent()
+    res.content = new DockerEvent.Content("registry", "repository", "tag", "sha")
+    res.details = new Metadata([type: DockerEvent.TYPE, source: "spock"])
     return res
   }
 

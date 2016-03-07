@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2016 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
-import com.netflix.spinnaker.echo.model.trigger.GitEvent;
+import com.netflix.spinnaker.echo.model.trigger.DockerEvent;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import lombok.NonNull;
@@ -34,22 +34,19 @@ import rx.functions.Action1;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-/**
- * Triggers pipelines on _Orca_ when a trigger-enabled build completes successfully.
- */
 @Component
-public class GitEventMonitor extends TriggerMonitor {
+public class DockerEventMonitor extends TriggerMonitor {
 
-  public static final String GIT_TRIGGER_TYPE = "git";
+  public static final String TRIGGER_TYPE = "docker";
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   private final PipelineCache pipelineCache;
 
   @Autowired
-  public GitEventMonitor(@NonNull PipelineCache pipelineCache,
-                         @NonNull Action1<Pipeline> subscriber,
-                         @NonNull Registry registry) {
+  public DockerEventMonitor(@NonNull PipelineCache pipelineCache,
+                            @NonNull Action1<Pipeline> subscriber,
+                            @NonNull Registry registry) {
     super(subscriber, registry);
     this.pipelineCache = pipelineCache;
   }
@@ -57,57 +54,60 @@ public class GitEventMonitor extends TriggerMonitor {
   @Override
   public void processEvent(Event event) {
     super.validateEvent(event);
-    if (!event.getDetails().getType().equalsIgnoreCase(GitEvent.TYPE)) {
+    if (!event.getDetails().getType().equalsIgnoreCase(DockerEvent.TYPE)) {
       return;
     }
 
-    GitEvent buildEvent = objectMapper.convertValue(event, GitEvent.class);
-    Observable.just(buildEvent)
+    DockerEvent dockerEvent = objectMapper.convertValue(event, DockerEvent.class);
+    Observable.just(dockerEvent)
       .doOnNext(this::onEchoResponse)
       .subscribe(triggerEachMatchFrom(pipelineCache.getPipelines()));
+  }
+
+  @Override
+  protected boolean isSuccessfulTriggerEvent(final TriggerEvent event) {
+    DockerEvent dockerEvent = (DockerEvent) event;
+    String digest = dockerEvent.getContent().getDigest();
+    return digest != null && !digest.isEmpty();
+  }
+
+  @Override
+  protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, TriggerEvent event) {
+    DockerEvent dockerEvent = (DockerEvent) event;
+    return trigger -> pipeline.withTrigger(trigger.atTag(dockerEvent.getContent().getTag()));
   }
 
   @Override
   protected boolean isValidTrigger(final Trigger trigger) {
     return trigger.isEnabled() &&
       (
-        (GIT_TRIGGER_TYPE.equals(trigger.getType()) &&
-          trigger.getSource() != null &&
-          trigger.getProject() != null &&
-          trigger.getSlug() != null)
+        (TRIGGER_TYPE.equals(trigger.getType()) &&
+          trigger.getRegistry() != null &&
+          trigger.getRepository() != null)
       );
   }
 
   @Override
-  protected boolean isSuccessfulTriggerEvent(TriggerEvent event) {
-    return true;
-  }
-
-  @Override
   protected Predicate<Trigger> matchTriggerFor(final TriggerEvent event) {
-    GitEvent gitEvent = (GitEvent) event;
-    String source = gitEvent.getDetails().getSource();
-    String project = gitEvent.getContent().getRepoProject();
-    String slug = gitEvent.getContent().getSlug();
-    return trigger -> trigger.getType().equals(GIT_TRIGGER_TYPE) && trigger.getSource().equals(source) && trigger.getProject().equals(project) && trigger.getSlug().equals(slug);
+    DockerEvent dockerEvent = (DockerEvent) event;
+    String registry = dockerEvent.getContent().getRegistry();
+    String repository = dockerEvent.getContent().getRepository();
+    String tag = dockerEvent.getContent().getTag();
+    return trigger -> trigger.getType().equals(TRIGGER_TYPE) &&
+      trigger.getRegistry().equals(registry) &&
+      trigger.getRepository().equals(repository) &&
+      (trigger.getTag() == null || trigger.getTag().equals(tag));
   }
 
-  @Override
-  protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, TriggerEvent event) {
-    GitEvent gitEvent = (GitEvent) event;
-    return trigger -> pipeline.withTrigger(trigger.atHash(gitEvent.getHash()));
-  }
-
-  @Override
   protected void onMatchingPipeline(Pipeline pipeline) {
     super.onMatchingPipeline(pipeline);
     val id = registry.createId("pipelines.triggered")
       .withTag("application", pipeline.getApplication())
       .withTag("name", pipeline.getName());
-
-    id.withTag("repository", pipeline.getTrigger().getProject() + ' ' + pipeline.getTrigger().getSlug());
-
+    id.withTag("imageId", pipeline.getTrigger().getRegistry() + "/" +
+      pipeline.getTrigger().getRepository() + ":" +
+      pipeline.getTrigger().getTag());
     registry.counter(id).increment();
   }
-
 }
+

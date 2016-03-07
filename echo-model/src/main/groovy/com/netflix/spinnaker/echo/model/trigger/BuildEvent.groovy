@@ -24,38 +24,38 @@ import groovy.transform.Canonical
 @Canonical
 @JsonIgnoreProperties(ignoreUnknown = true)
 class BuildEvent extends TriggerEvent {
-  Content content;
+  Content content
 
-  public static final String TYPE = "build";
+  public static final String TYPE = "build"
 
   @Canonical
   @JsonIgnoreProperties(ignoreUnknown = true)
-  public static class Content {
-    Project project;
-    String master;
+  static class Content {
+    Project project
+    String master
   }
 
   @Canonical
   @JsonIgnoreProperties(ignoreUnknown = true)
-  public static class Project {
-    String name;
-    Build lastBuild;
+  static class Project {
+    String name
+    Build lastBuild
   }
 
   @Canonical
   @JsonIgnoreProperties(ignoreUnknown = true)
-  public static class Build {
-    boolean building;
-    int number;
-    Result result;
+  static class Build {
+    boolean building
+    int number
+    Result result
   }
 
-  public enum Result {
+  enum Result {
     SUCCESS, UNSTABLE, BUILDING, ABORTED, FAILURE, NOT_BUILT
   }
 
   @JsonIgnore
-  public int getBuildNumber() {
-    return content.getProject().getLastBuild().getNumber();
+  int getBuildNumber() {
+    return content.getProject().getLastBuild().getNumber()
   }
 }

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.pipelinetriggers.monitor;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.events.EchoEventListener;
+import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
@@ -41,68 +42,78 @@ import java.util.function.Predicate;
 @Slf4j
 abstract class TriggerMonitor implements EchoEventListener {
 
-    protected final Action1<Pipeline> subscriber;
-    protected final Registry registry;
+  protected final Action1<Pipeline> subscriber;
+  protected final Registry registry;
 
-    public TriggerMonitor(@NonNull Action1<Pipeline> subscriber,
-                          @NonNull Registry registry) {
-        this.subscriber = subscriber;
-        this.registry = registry;
+  protected void validateEvent(Event event) {
+    if (event.getDetails() == null) {
+      throw new IllegalArgumentException("Event details required by the event monitor.");
+    } else if (event.getDetails().getType() == null) {
+      throw new IllegalArgumentException("Event details type required by the event monitor.");
     }
+  }
 
-    protected void onEchoResponse(final TriggerEvent event) {
-        registry.gauge("echo.events.per.poll", 1);
-    }
+  public TriggerMonitor(@NonNull Action1<Pipeline> subscriber,
+                        @NonNull Registry registry) {
+    this.subscriber = subscriber;
+    this.registry = registry;
+  }
 
-    protected Action1<TriggerEvent> triggerEachMatchFrom(final List<Pipeline> pipelines) {
-        return event -> {
-            if (isSuccessfulTriggerEvent(event)) {
-                Observable.from(pipelines)
-                        .doOnCompleted(() -> onEventProcessed(event))
-                        .map(withMatchingTrigger(event))
-                        .filter(Optional::isPresent)
-                        .map(Optional::get)
-                        .doOnNext(this::onMatchingPipeline)
-                        .subscribe(subscriber, this::onSubscriberError);
-            } else {
-                onEventProcessed(event);
-            }
-        };
-    }
+  protected void onEchoResponse(final TriggerEvent event) {
+    registry.gauge("echo.events.per.poll", 1);
+  }
 
-    protected Func1<Pipeline, Optional<Pipeline>> withMatchingTrigger(final TriggerEvent event) {
-        val triggerPredicate = matchTriggerFor(event);
-        return pipeline -> {
-            if (pipeline.getTriggers() == null) {
-                return Optional.empty();
-            } else {
-                return pipeline.getTriggers()
-                        .stream()
-                        .filter(this::isValidTrigger)
-                        .filter(triggerPredicate)
-                        .findFirst()
-                        .map(buildTrigger(pipeline, event));
-            }
-        };
-    }
+  protected Action1<TriggerEvent> triggerEachMatchFrom(final List<Pipeline> pipelines) {
+    return event -> {
+      if (isSuccessfulTriggerEvent(event)) {
+        Observable.from(pipelines)
+          .doOnCompleted(() -> onEventProcessed(event))
+          .map(withMatchingTrigger(event))
+          .filter(Optional::isPresent)
+          .map(Optional::get)
+          .doOnNext(this::onMatchingPipeline)
+          .subscribe(subscriber, this::onSubscriberError);
+      } else {
+        onEventProcessed(event);
+      }
+    };
+  }
 
-    protected abstract boolean isSuccessfulTriggerEvent(TriggerEvent event);
+  protected Func1<Pipeline, Optional<Pipeline>> withMatchingTrigger(final TriggerEvent event) {
+    val triggerPredicate = matchTriggerFor(event);
+    return pipeline -> {
+      if (pipeline.getTriggers() == null) {
+        return Optional.empty();
+      } else {
+        return pipeline.getTriggers()
+          .stream()
+          .filter(this::isValidTrigger)
+          .filter(triggerPredicate)
+          .findFirst()
+          .map(buildTrigger(pipeline, event));
+      }
+    };
+  }
 
-    protected abstract Predicate<Trigger> matchTriggerFor(final TriggerEvent event);
+  protected abstract boolean isSuccessfulTriggerEvent(TriggerEvent event);
 
-    protected abstract Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, TriggerEvent event);
+  protected abstract Predicate<Trigger> matchTriggerFor(final TriggerEvent event);
 
-    protected abstract boolean isValidTrigger(final Trigger trigger);
+  protected abstract Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, TriggerEvent event);
 
-    protected abstract void onMatchingPipeline(Pipeline pipeline);
+  protected abstract boolean isValidTrigger(final Trigger trigger);
 
-    protected void onEventProcessed(final TriggerEvent event) {
-        registry.counter("echo.events.processed").increment();
-    }
+  protected void onMatchingPipeline(Pipeline pipeline) {
+    log.info("Found matching pipeline {}:{}", pipeline.getApplication(), pipeline.getName());
+  }
 
-    private void onSubscriberError(Throwable error) {
-        log.error("Subscriber raised an error processing pipeline", error);
-        registry.counter("trigger.errors").increment();
-    }
+  protected void onEventProcessed(final TriggerEvent event) {
+    registry.counter("echo.events.processed").increment();
+  }
+
+  private void onSubscriberError(Throwable error) {
+    log.error("Subscriber raised an error processing pipeline", error);
+    registry.counter("trigger.errors").increment();
+  }
 }
 

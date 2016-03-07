@@ -25,13 +25,13 @@ import com.netflix.spinnaker.echo.model.trigger.BuildEvent;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Action1;
 
+import java.util.IllegalFormatCodePointException;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -39,7 +39,6 @@ import java.util.function.Predicate;
  * Triggers pipelines on _Orca_ when a trigger-enabled build completes successfully.
  */
 @Component
-@Slf4j
 public class BuildEventMonitor extends TriggerMonitor {
 
   public static final String BUILD_TRIGGER_TYPE = "jenkins";
@@ -58,6 +57,7 @@ public class BuildEventMonitor extends TriggerMonitor {
 
   @Override
   public void processEvent(Event event) {
+    super.validateEvent(event);
     if (!event.getDetails().getType().equalsIgnoreCase(BuildEvent.TYPE)) {
       return;
     }
@@ -101,7 +101,7 @@ public class BuildEventMonitor extends TriggerMonitor {
 
   @Override
   protected void onMatchingPipeline(Pipeline pipeline) {
-    log.info("Found matching pipeline {}:{}", pipeline.getApplication(), pipeline.getName());
+    super.onMatchingPipeline(pipeline);
     val id = registry.createId("pipelines.triggered")
       .withTag("application", pipeline.getApplication())
       .withTag("name", pipeline.getName());
@@ -109,10 +109,5 @@ public class BuildEventMonitor extends TriggerMonitor {
       id.withTag("job", pipeline.getTrigger().getJob());
     }
     registry.counter(id).increment();
-  }
-
-  private void onSubscriberError(Throwable error) {
-    log.error("Subscriber raised an error processing pipeline", error);
-    registry.counter("trigger.errors").increment();
   }
 }

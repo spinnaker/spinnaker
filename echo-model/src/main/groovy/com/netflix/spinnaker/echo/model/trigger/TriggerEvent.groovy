@@ -19,5 +19,5 @@ package com.netflix.spinnaker.echo.model.trigger
 import com.netflix.spinnaker.echo.model.Metadata
 
 abstract class TriggerEvent {
-    Metadata details
+  Metadata details
 }
