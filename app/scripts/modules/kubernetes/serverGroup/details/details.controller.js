@@ -120,6 +120,14 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
     };
 
     this.resizeServerGroup = function resizeServerGroup() {
+      $uibModal.open({
+        templateUrl: require('./resize/resize.html'),
+        controller: 'kubernetesResizeServerGroupController as ctrl',
+        resolve: {
+          serverGroup: function() { return $scope.serverGroup; },
+          application: function() { return application; }
+        }
+      });
     };
 
     this.cloneServerGroup = function cloneServerGroup(serverGroup) {
