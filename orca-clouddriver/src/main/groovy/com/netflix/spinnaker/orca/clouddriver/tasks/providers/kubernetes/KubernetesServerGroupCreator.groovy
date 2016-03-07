@@ -48,8 +48,10 @@ class KubernetesServerGroupCreator implements ServerGroupCreator {
     containers.forEach { container ->
       if (container.imageDescription.fromContext) {
         def image = deploymentDetails.find {
-          def cluster = Names.parseName(it.sourceServerGroup).cluster
-          cluster == container.imageDescription.cluster && it.imageName ==~ container.imageDescription.pattern
+          // stageId is used here to match the source of the image to the find image stage specified by the user.
+          // Previously, this was done by matching the pattern used to the pattern selected in the deploy stage, but
+          // if the deploy stage's selected pattern wasn't updated before submitting the stage, this step here could fail.
+          it.refId == container.imageDescription.stageId
         }
         if (!image) {
           throw new IllegalStateException("No image found in context for pattern $container.imageDescription.pattern.")

@@ -207,7 +207,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
           imageId          : summary.imageId,
           imageName        : summary.imageName,
           cloudProvider    : cloudProvider,
-          imageNamePattern : config.imageNamePattern,
+          refId            : stage.refId,
           sourceServerGroup: summary.serverGroupName
         ]
 
