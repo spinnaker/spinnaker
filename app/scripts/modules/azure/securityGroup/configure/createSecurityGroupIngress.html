@@ -21,14 +21,13 @@
               </thead>
               <tbody>
                 <tr ng-repeat="rule in securityGroup.securityRules">
-<!--                   <td><select class="form-control input-sm" ng-model="rule.protocol" ng-options="protocol as protocol.toUpperCase() for protocol in ['tcp', 'udp', 'any']"> -->
                   <td><select class="form-control input-sm" ng-model="rule.protocol">
                     <option value="tcp">TCP</option>
                     <option value="udp">UDP</option>
                     <option value="*">ANY</option>
                   </select></td>
-                  <td><input class="form-control input-sm" type="number" min="1024" max="65535" ng-model="rule.startPort" ng-change="ctrl.portUpdated(securityGroup.securityRules, $index)" required/></td>
-                  <td><input class="form-control input-sm" type="number" min="1024" max="65535" ng-model="rule.endPort" ng-change="ctrl.portUpdated(securityGroup.securityRules, $index)" required/></td>
+                  <td><input class="form-control input-sm" type="number" min="0" max="65535" ng-model="rule.startPort" ng-change="ctrl.portUpdated(securityGroup.securityRules, $index)" required/></td>
+                  <td><input class="form-control input-sm" type="number" min="0" max="65535" ng-model="rule.endPort" ng-change="ctrl.portUpdated(securityGroup.securityRules, $index)" required/></td>
                   <td>
                     <a class="btn-link sm-label"
                       ng-click="ctrl.moveUp(securityGroup.securityRules, $index)"><span
