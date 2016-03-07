@@ -3,16 +3,16 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titan.parameters.controller', [])
-  .controller('titanServerGroupParametersCtrl', function($scope, modalWizardService) {
+  .controller('titanServerGroupParametersCtrl', function($scope, v2modalWizardService) {
 
-    modalWizardService.getWizard().markComplete('parameters');
-    modalWizardService.getWizard().markClean('parameters');
+    v2modalWizardService.markComplete('parameters');
+    v2modalWizardService.markClean('parameters');
 
     $scope.$watch('form.$valid', function(newVal) {
       if (newVal) {
-        modalWizardService.getWizard().markClean('parameters');
+        v2modalWizardService.markClean('parameters');
       } else {
-        modalWizardService.getWizard().markDirty('parameters');
+        v2modalWizardService.markDirty('parameters');
       }
     });
 

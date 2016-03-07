@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.cloneServ
   require('../../../../core/utils/dataConverter.service.js')
 ])
   .controller('titanCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $state,
-                                                  serverGroupWriter, modalWizardService, taskMonitorService,
+                                                  serverGroupWriter, v2modalWizardService, taskMonitorService,
                                                   titanServerGroupConfigurationService, dataConverterService,
                                                   serverGroupCommand, application, title) {
     $scope.pages = {
@@ -80,11 +80,11 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.cloneServ
       var mode = serverGroupCommand.viewState.mode;
       if (mode === 'clone' || mode === 'editPipeline') {
         if ($scope.command.image || $scope.command.viewState.disableImageSelection) {
-          modalWizardService.getWizard().markComplete('location');
+          v2modalWizardService.markComplete('location');
         }
-        modalWizardService.getWizard().markComplete('resources');
-        modalWizardService.getWizard().markComplete('capacity');
-        modalWizardService.getWizard().markComplete('parameters');
+        v2modalWizardService.markComplete('resources');
+        v2modalWizardService.markComplete('capacity');
+        v2modalWizardService.markComplete('parameters');
       }
     }
 
@@ -93,11 +93,11 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.cloneServ
         ($scope.command.credentials !== null) &&
         ($scope.command.region !== null) &&
         ($scope.command.capacity.desired !== null) &&
-        modalWizardService.getWizard().isComplete();
+        v2modalWizardService.isComplete();
     };
 
     this.showSubmitButton = function () {
-      return modalWizardService.getWizard().allPagesVisited();
+      return v2modalWizardService.allPagesVisited();
     };
 
     this.clone = function () {

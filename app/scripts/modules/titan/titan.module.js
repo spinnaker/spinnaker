@@ -22,6 +22,7 @@ module.exports = angular.module('spinnaker.titan', [
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('titan', {
+      v2wizard: true,
       name: 'Titan',
       logo: {
         path: require('./logo/titan.logo.png')

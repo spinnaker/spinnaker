@@ -220,6 +220,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titan.controller'
       $uibModal.open({
         templateUrl: require('../configure/wizard/serverGroupWizard.html'),
         controller: 'titanCloneServerGroupCtrl as ctrl',
+        size: 'lg',
         resolve: {
           title: function() { return 'Clone ' + serverGroup.name; },
           application: function() { return application; },

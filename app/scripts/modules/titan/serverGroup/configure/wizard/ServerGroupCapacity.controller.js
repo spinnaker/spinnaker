@@ -3,16 +3,16 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titan.capacity.controller', [])
-  .controller('titanServerGroupCapacityCtrl', function($scope, modalWizardService) {
+  .controller('titanServerGroupCapacityCtrl', function($scope, v2modalWizardService) {
 
-    modalWizardService.getWizard().markComplete('capacity');
-    modalWizardService.getWizard().markClean('capacity');
+    v2modalWizardService.markComplete('capacity');
+    v2modalWizardService.markClean('capacity');
 
     $scope.$watch('form.$valid', function(newVal) {
       if (newVal) {
-        modalWizardService.getWizard().markClean('capacity');
+        v2modalWizardService.markClean('capacity');
       } else {
-        modalWizardService.getWizard().markDirty('capacity');
+        v2modalWizardService.markDirty('capacity');
       }
     });
 
