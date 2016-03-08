@@ -33,6 +33,8 @@ class DockerRegistryConfigurationProperties {
     String email
     // Address of the registry.
     String address
+    // How many threads to cache all provided repos on. Really only useful if you have a ton of repos.
+    int cacheThreads
     // List of all repositories to index. Can be of the form <user>/<repo>,
     // or <library> for repositories like 'ubuntu'.
     List<String> repositories

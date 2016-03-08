@@ -113,7 +113,7 @@ class DockerRegistryClient {
       registryService.getTags(repository, token, dockerApplicationName)
     }, repository)
 
-    return (DockerRegistryTags) converter.fromBody(response.body, DockerRegistryTags)
+    (DockerRegistryTags) converter.fromBody(response.body, DockerRegistryTags)
   }
 
   public String getDigest(String name, String tag) {
@@ -165,7 +165,7 @@ class DockerRegistryClient {
         response = withoutToken()
       }
     } catch (RetrofitError error) {
-      if (error.response.status == 401) {
+      if (error.response?.status == 401) {
         dockerToken = tokenService.getToken(target, error.response.headers)
         token = "Bearer ${dockerToken.bearer_token ?: dockerToken.token}"
         response = withToken(token)
