@@ -427,7 +427,7 @@ class Runner(object):
       port, address = self.find_port_and_address(subsystem)
     except KeyError:
       error = ('A port for {subsystem} is not explicit in the configuration.'
-               ' Assuming it is up since it isn't clear how to test for it.'
+               ' Assuming it is up since it isn\'t clear how to test for it.'
                .format(subsystem=subsystem))
       sys.stderr.write(error)
       raise SystemExit(error)
