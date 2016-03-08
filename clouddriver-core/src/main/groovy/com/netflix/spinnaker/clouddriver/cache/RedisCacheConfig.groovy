@@ -47,7 +47,7 @@ class RedisCacheConfig {
     JedisSource jedisSource,
     ObjectMapper objectMapper,
     @Value('${redis.maxMsetSize:250000}') int maxMsetSize) {
-    new RedisNamedCacheFactory(jedisSource, objectMapper, maxMsetSize)
+    new RedisNamedCacheFactory(jedisSource, objectMapper, maxMsetSize, null)
   }
 
   @Bean

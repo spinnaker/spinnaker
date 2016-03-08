@@ -32,6 +32,7 @@ import spock.lang.Unroll
 class RedisCacheSpec extends WriteableCacheSpec {
     static int MAX_MSET_SIZE = 2
 
+    RedisCache.CacheMetrics cacheMetrics = Mock(RedisCache.CacheMetrics)
 
     @Override
     Cache getSubject() {
@@ -46,7 +47,7 @@ class RedisCacheSpec extends WriteableCacheSpec {
         }
 
         def mapper = new ObjectMapper();
-        return new RedisCache('test', source, mapper, MAX_MSET_SIZE)
+        return new RedisCache('test', source, mapper, MAX_MSET_SIZE, cacheMetrics)
     }
 
     @Unroll
@@ -112,10 +113,27 @@ class RedisCacheSpec extends WriteableCacheSpec {
 
     def 'should fail if maxMsetSize is not even'() {
         when:
-        new RedisCache('test', null, null, 7)
+        new RedisCache('test', null, null, 7, null)
 
         then:
         thrown(IllegalArgumentException)
+    }
+
+    def 'should not write an item if it is unchanged'() {
+        setup:
+        def data = createData('blerp', [a: 'b'])
+
+        when:
+        ((WriteableCache) cache).merge('foo', data)
+
+        then:
+        1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1)
+
+        when:
+        ((WriteableCache) cache).merge('foo', data)
+
+        then:
+        1 * cacheMetrics.merge('test', 'foo', 1, 0, 0, 1, 0)
     }
 
     private static class Bean {
