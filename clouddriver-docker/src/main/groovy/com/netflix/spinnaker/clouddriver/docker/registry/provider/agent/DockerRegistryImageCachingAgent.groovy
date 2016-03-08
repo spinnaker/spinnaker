@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.docker.registry.DockerRegistryCloudProv
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryTags
 import com.netflix.spinnaker.clouddriver.docker.registry.cache.DefaultCacheDataBuilder
 import com.netflix.spinnaker.clouddriver.docker.registry.cache.Keys
+import com.netflix.spinnaker.clouddriver.docker.registry.exception.DockerRegistryConfigException
 import com.netflix.spinnaker.clouddriver.docker.registry.provider.DockerRegistryProvider
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryCredentials
 import groovy.util.logging.Slf4j
@@ -94,8 +95,14 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware {
         cachedTags[tagKey].with {
           attributes.name = "${repository}:${tag}".toString()
           attributes.account = accountName
-          attributes.digest = credentials.client.getDigest(repository, tag)
+          def digest = credentials.client.getDigest(repository, tag)
+          if (!digest) {
+            throw new DockerRegistryConfigException("The selected docker registry ${credentials.client.address} " +
+                "does provide a 'Docker-Content-Digest' header, needed for image verification and build triggers.")
+          }
+          attributes.digest = digest
         }
+
       }
 
       null

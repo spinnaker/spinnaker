@@ -49,7 +49,7 @@ class DockerRegistryClient {
   DockerRegistryClient(String address, String email, String username, String password) {
     this.tokenService = new DockerBearerTokenService(username, password)
     this.basicAuth = this.tokenService.basicAuth;
-    this.registryService = new RestAdapter.Builder().setEndpoint(address).setLogLevel(RestAdapter.LogLevel.BASIC).build().create(DockerRegistryService)
+    this.registryService = new RestAdapter.Builder().setEndpoint(address).setLogLevel(RestAdapter.LogLevel.NONE).build().create(DockerRegistryService)
     this.converter = new GsonConverter(new GsonBuilder().create())
     this.address = address
   }
@@ -75,10 +75,21 @@ class DockerRegistryClient {
 
     @GET("/v2/{name}/manifests/{reference}")
     @Headers([
-      "User-Agent: Spinnaker-Clouddriver",
       "Docker-Distribution-API-Version: registry/2.0"
     ])
     Response getManifest(@Path(value="name", encode=false) String name, @Path(value="reference", encode=false) String reference, @Header("User-Agent") String agent)
+
+    @GET("/v2/_catalog")
+    @Headers([
+        "Docker-Distribution-API-Version: registry/2.0"
+    ])
+    Response getCatalog(@Header("User-Agent") String agent)
+
+    @GET("/v2/_catalog")
+    @Headers([
+        "Docker-Distribution-API-Version: registry/2.0"
+    ])
+    Response getCatalog(@Header("Authorization") String token, @Header("User-Agent") String agent)
 
     @GET("/v2/")
     @Headers([
@@ -119,6 +130,20 @@ class DockerRegistryClient {
     }
 
     return digest?.value
+  }
+
+  /*
+   * This method will get all repositories available on this registry. It may fail, as some registries
+   * don't want you to download their whole catalog (it's potentially a lot of data).
+   */
+  public DockerRegistryCatalog getCatalog() {
+    def response = request({
+      registryService.getCatalog(dockerApplicationName)
+    }, { token ->
+      registryService.getCatalog(token, dockerApplicationName)
+    }, "_catalog")
+
+    return (DockerRegistryCatalog) converter.fromBody(response.body, DockerRegistryCatalog)
   }
 
   /*

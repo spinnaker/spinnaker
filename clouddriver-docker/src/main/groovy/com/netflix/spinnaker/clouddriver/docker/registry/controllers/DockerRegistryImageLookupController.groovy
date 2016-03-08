@@ -66,14 +66,18 @@ class DockerRegistryImageLookupController {
 
     return images.collect({
       def credentials = (DockerRegistryNamedAccountCredentials) accountCredentialsProvider.getCredentials((String) it.attributes.account)
-      def parse = Keys.parse(it.id)
-      return [
-        repository: (String) parse.repository,
-        tag: (String) parse.tag,
-        account: it.attributes.account,
-        registry: credentials.registry,
-        digest: it.attributes.digest,
-      ]
+      if (!credentials) {
+        return [:]
+      } else {
+        def parse = Keys.parse(it.id)
+        return [
+            repository: (String) parse.repository,
+            tag       : (String) parse.tag,
+            account   : it.attributes.account,
+            registry  : credentials.registry,
+            digest    : it.attributes.digest,
+        ]
+      }
     })
   }
 

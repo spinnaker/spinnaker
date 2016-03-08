@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.clouddriver.docker.registry.security
 
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client.DockerRegistryClient
+import com.netflix.spinnaker.clouddriver.docker.registry.exception.DockerRegistryConfigException
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
+import retrofit.RetrofitError
 
 public class DockerRegistryNamedAccountCredentials implements AccountCredentials<DockerRegistryCredentials> {
   public DockerRegistryNamedAccountCredentials(String accountName, String environment, String accountType,
@@ -61,9 +63,12 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
     this.username = username
     this.password = password
     this.email = email
-    this.repositories = (repositories == null) ? [] : repositories
     this.requiredGroupMembership = requiredGroupMembership == null ? Collections.emptyList() : Collections.unmodifiableList(requiredGroupMembership)
-    this.credentials = buildCredentials()
+    this.credentials = buildCredentials(repositories)
+    this.repositories = this.credentials.repositories
+    if (!this.repositories) {
+      throw new DockerRegistryConfigException("No existing repositories found at for ${this.name} at ${this.address}.")
+    }
   }
 
   @Override
@@ -90,9 +95,17 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
     return CLOUD_PROVIDER
   }
 
-  private DockerRegistryCredentials buildCredentials() {
-    DockerRegistryClient client = new DockerRegistryClient(this.address, this.email, this.username, this.password)
-    return new DockerRegistryCredentials(client, this.repositories)
+  private DockerRegistryCredentials buildCredentials(List<String> repositories) {
+    try {
+      DockerRegistryClient client = new DockerRegistryClient(address, email, username, password)
+      return new DockerRegistryCredentials(client, repositories)
+    } catch (RetrofitError e) {
+      if (e.response.status == 404) {
+        throw new DockerRegistryConfigException("No repositories specified for ${name}, and the provided endpoint ${address} does not support /_catalog.")
+      } else {
+        throw e
+      }
+    }
   }
 
   @Override
