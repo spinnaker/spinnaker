@@ -2,9 +2,7 @@
 
 describe('Controller: cfInstanceDetailsCtrl', function () {
 
-  const angular = require('angular');
   //NOTE: This is only testing the controllers dependencies. Please add more tests.
-
   var controller;
   var scope;
 
@@ -20,7 +18,7 @@ describe('Controller: cfInstanceDetailsCtrl', function () {
       controller = $controller('cfInstanceDetailsCtrl', {
         $scope: scope,
         instance: {},
-        app: {}
+        app: { isStandalone: true},
       });
     })
   );

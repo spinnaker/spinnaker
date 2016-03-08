@@ -212,7 +212,11 @@ module.exports = angular.module('spinnaker.instance.detail.titan.controller', [
       );
     };
 
-    retrieveInstance().then(() => {
+    let initialize = app.isStandalone ?
+      retrieveInstance() :
+      app.serverGroups.ready().then(retrieveInstance);
+
+    initialize.then(() => {
       // Two things to look out for here:
       //  1. If the retrieveInstance call completes *after* the user has navigated away from the view, there
       //     is no point in subscribing to the refresh

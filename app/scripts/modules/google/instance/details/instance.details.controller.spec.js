@@ -1,8 +1,6 @@
 'use strict';
 
 describe('Controller: gceInstanceDetailsCtrl', function () {
-
-  const angular = require('angular');
   //NOTE: This is only testing the controllers dependencies. Please add more tests.
 
   var controller;
@@ -20,7 +18,7 @@ describe('Controller: gceInstanceDetailsCtrl', function () {
       controller = $controller('gceInstanceDetailsCtrl', {
         $scope: scope,
         instance: {},
-        app: {}
+        app: { isStandalone: true},
       });
     })
   );
