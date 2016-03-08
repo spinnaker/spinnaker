@@ -18,8 +18,8 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
       basicSettings: require('./basicSettings/basicSettings.html'),
       loadBalancers: require('./loadBalancers/loadBalancers.html'),
       capacity: require('./capacity/capacity.html'),
-/*    securityGroups: require('./securityGroups.html'),
-      instanceArchetype: require('./instanceArchetype.html'),
+      securityGroups: require('./securityGroup/securityGroups.html'),
+/*      instanceArchetype: require('./instanceArchetype.html'),
       instanceType: require('./instanceType.html'),
       advancedSettings: require('./advancedSettings.html'),
       */
@@ -87,7 +87,7 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
           serverGroupCommand.viewState.useAllImageSelection = true;
         }
         $scope.state.loaded = true;
-        initializeCommand();
+        initializeSpecificImage();
         initializeWizardState();
         initializeSelectOptions();
         initializeWatches();
@@ -95,19 +95,11 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
     }
 
     function initializeWizardState() {
-      if (serverGroupCommand.viewState.instanceProfile && serverGroupCommand.viewState.instanceProfile !== 'custom') {
-        v2modalWizardService.includePage('instance-type');
-        v2modalWizardService.markComplete('instance-type');
-      }
       var mode = serverGroupCommand.viewState.mode;
       if (mode === 'clone' || mode === 'editPipeline') {
         v2modalWizardService.markComplete('basic-settings');
         v2modalWizardService.markComplete('load-balancers');
-        //v2modalWizardService.markComplete('security-groups');
-        //v2modalWizardService.markComplete('instance-profile');
-        //v2modalWizardService.markComplete('instance-type');
-        //v2modalWizardService.markComplete('capacity');
-        //v2modalWizardService.markComplete('advanced');
+        v2modalWizardService.markComplete('security-groups');
       }
     }
 
@@ -131,15 +123,12 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
       if (result.dirty.loadBalancers) {
         v2modalWizardService.markDirty('load-balancers');
       }
-      //if (result.dirty.securityGroups) {
-      //  v2modalWizardService.markDirty('security-groups');
-      //}
-      //if (result.dirty.availabilityZones) {
-      //  v2modalWizardService.markDirty('capacity');
-      //}
+      if (result.dirty.securityGroups) {
+        v2modalWizardService.markDirty('security-groups');
+      }
     }
 
-    function initializeCommand() {
+    function initializeSpecificImage() {
       if (serverGroupCommand.viewState.imageId) {
         var foundImage = $scope.command.backingData.packageImages.filter(function(image) {
           return image.amis[serverGroupCommand.region] && image.amis[serverGroupCommand.region].indexOf(serverGroupCommand.viewState.imageId) !== -1;

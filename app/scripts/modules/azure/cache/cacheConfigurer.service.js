@@ -8,7 +8,6 @@ module.exports = angular.module('spinnaker.azure.cache.initializer', [
   require('../../core/instance/instanceTypeService.js'),
   require('../../core/securityGroup/securityGroup.read.service.js'),
   require('../subnet/subnet.read.service.js'),
-  require('../keyPairs/keyPairs.read.service.js'),
 ])
   .factory('azureCacheConfigurer', function ($q,
                                          accountService, instanceTypeService, securityGroupReader,
