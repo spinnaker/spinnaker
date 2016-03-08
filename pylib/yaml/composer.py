@@ -72,9 +72,9 @@ class Composer(object):
         anchor = event.anchor
         if anchor is not None:
             if anchor in self.anchors:
-                raise ComposerError("found duplicate anchor %r; first occurence"
+                raise ComposerError("found duplicate anchor %r; first occurrence"
                         % anchor.encode('utf-8'), self.anchors[anchor].start_mark,
-                        "second occurence", event.start_mark)
+                        "second occurrence", event.start_mark)
         self.descend_resolver(parent, index)
         if self.check_event(ScalarEvent):
             node = self.compose_scalar_node(anchor)
