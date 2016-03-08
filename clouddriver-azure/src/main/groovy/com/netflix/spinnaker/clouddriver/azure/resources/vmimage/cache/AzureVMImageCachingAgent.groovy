@@ -83,7 +83,7 @@ class AzureVMImageCachingAgent implements CachingAgent, AccountAware {
   CacheResult loadData(ProviderCache providerCache) {
     log.info("Describing items in ${agentType}")
 
-    def vmImages = creds.getComputeClient().getVMImagesAll(creds, region)
+    def vmImages = creds.computeClient.getVMImagesAll(region)
 
     List<CacheData> data = vmImages.collect() { AzureVMImage vmImage ->
       Map<String, Object> attributes = [vmimage: vmImage]

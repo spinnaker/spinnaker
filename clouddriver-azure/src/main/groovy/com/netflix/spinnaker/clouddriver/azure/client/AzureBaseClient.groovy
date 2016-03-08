@@ -18,92 +18,39 @@ package com.netflix.spinnaker.clouddriver.azure.client
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.microsoft.windowsazure.Configuration
-import com.microsoft.windowsazure.exception.ServiceException
-import com.microsoft.windowsazure.management.configuration.ManagementConfiguration
-import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
-import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.microsoft.azure.credentials.ApplicationTokenCredentials
+import com.microsoft.azure.credentials.AzureEnvironment
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import org.apache.commons.io.IOUtils
-import org.apache.http.HttpHost
-import org.apache.http.HttpResponse
-import org.apache.http.HttpStatus
-import org.apache.http.client.methods.HttpGet
-import org.apache.http.impl.client.HttpClientBuilder
+
 
 @Slf4j
 @CompileStatic
 public abstract class AzureBaseClient {
   final String subscriptionId
 
-  static ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+  static ObjectMapper mapper
 
+  /**
+   * Constructor
+   * @param subscriptionId - the Azure subscription to use
+   */
   protected AzureBaseClient(String subscriptionId) {
     this.subscriptionId = subscriptionId
+    mapper = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true)
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
   }
 
-  protected Configuration buildConfiguration(AzureCredentials creds) throws Exception {
-    try {
-      String baseUri = creds.MANAGEMENT_URL
-      return ManagementConfiguration.configure(
-        null,
-        new Configuration(),
-        new URI(baseUri),
-        this.subscriptionId,
-        creds.getAccessToken())
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to create Azure Resource Management Service", e)
-    }
+  /**
+   * Create the application token credentials object to use for calls to Azure
+   * @param clientId
+   * @param tenantId
+   * @param secret
+   * @return
+   */
+  static ApplicationTokenCredentials getTokenCredentials(String clientId, String tenantId, String secret) {
+    new ApplicationTokenCredentials(clientId, tenantId, secret, AzureEnvironment.AZURE)
   }
 
-  public <T> T getAzureRESTJson(AzureCredentials creds, String baseUrl, String targetUrl, List<String> queryParameters, Class<T> valueType){
-    String url = AzureUtilities.getAzureRESTUrl(subscriptionId, baseUrl, targetUrl, queryParameters)
-
-    try {
-      // create HTTP Client
-      def config = buildConfiguration(creds)
-      HttpClientBuilder httpClientBuilder = config.create(HttpClientBuilder.class)
-
-      String proxyHost = System.getProperty("http.proxyHost")
-      String proxyPort = System.getProperty("http.proxyPort")
-      if ((proxyHost != null) && (proxyPort != null)) {
-        HttpHost proxy = new HttpHost(proxyHost, Integer.parseInt(proxyPort))
-        if (proxy != null) {
-          httpClientBuilder.setProxy(proxy)
-        }
-      }
-
-      def httpClient = httpClientBuilder.build()
-
-      // Create HTTP transport objects
-      HttpGet httpRequest = new HttpGet(url)
-
-      // Set Headers
-      httpRequest.setHeader("Content-Type", "application/json")
-
-      // Send Request
-      HttpResponse httpResponse = httpClient.execute(httpRequest)
-      int statusCode = httpResponse.getStatusLine().getStatusCode()
-      if (statusCode != HttpStatus.SC_OK) {
-        ServiceException ex = ServiceException.createFromJson(httpRequest, null, httpResponse, httpResponse.getEntity())
-        throw ex
-      }
-
-      // Deserialize Response
-      def entity = httpResponse.getEntity()
-      def responseContent = entity.getContent()
-      String resultJson = IOUtils.toString(responseContent)
-
-      if (resultJson) {
-        return mapper.readValue(resultJson, valueType)
-      }
-    }
-    catch (Exception e) {
-      log.info("getVMImagesAll -> Unexpected exception " + e.toString())
-      throw new RuntimeException("Unable to make Azure REST call to ${url}", e)
-    }
-
-    null
-  }
 }

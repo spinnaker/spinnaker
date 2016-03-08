@@ -131,7 +131,7 @@ class AzureLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, Acco
 
     try {
       updatedLoadBalancer = metricsSupport.readData {
-        creds.networkClient.getLoadBalancer(creds, resourceGroupName, loadBalancerName)
+        creds.networkClient.getLoadBalancer(resourceGroupName, loadBalancerName)
       }
     } catch (Exception e ) {
       log.error("handle->Unexpected exception", e)
@@ -170,8 +170,7 @@ class AzureLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, Acco
   CacheResult loadData(ProviderCache providerCache) {
     log.info("Describing items in ${agentType}")
     def currentTime = System.currentTimeMillis()
-
-    buildCacheResult(providerCache, creds.networkClient.getLoadBalancersAll(creds, region), currentTime, null, null)
+    buildCacheResult(providerCache, creds.networkClient.getLoadBalancersAll(region), currentTime, null, null)
   }
 
   @WithWriteLock

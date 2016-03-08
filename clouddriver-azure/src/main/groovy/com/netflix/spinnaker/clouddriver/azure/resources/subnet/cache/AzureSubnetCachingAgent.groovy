@@ -84,7 +84,9 @@ class AzureSubnetCachingAgent implements CachingAgent, AccountAware {
   CacheResult loadData(ProviderCache providerCache) {
     log.info("Describing items in ${agentType}")
 
-    def subnets = creds.networkClient.getSubnetsInRegion(creds, region)
+    def subnets = creds
+      .networkClient
+      .getSubnetsInRegion(region)
 
     List<CacheData> data = subnets.collect() { AzureSubnetDescription subnet ->
       Map<String, Object> attributes = [ subnet: subnet]

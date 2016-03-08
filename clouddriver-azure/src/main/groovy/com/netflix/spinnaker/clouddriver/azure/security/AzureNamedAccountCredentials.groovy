@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.azure.security
 
-import com.netflix.spinnaker.clouddriver.azure.client.AzureComputeClient
-import com.netflix.spinnaker.clouddriver.azure.client.AzureNetworkClient
-import com.netflix.spinnaker.clouddriver.azure.client.AzureResourceManagerClient
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import groovy.transform.CompileStatic
@@ -81,11 +78,8 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
   }
 
   private AzureCredentials buildCredentials() {
-    AzureResourceManagerClient rmClient = new AzureResourceManagerClient(this.subscriptionId)
-    AzureNetworkClient networkClient = new AzureNetworkClient(this.subscriptionId)
-    AzureComputeClient computeClient = new AzureComputeClient(this.subscriptionId)
 
-    return new AzureCredentials(this.tenantId, this.clientId, this.appKey, rmClient, networkClient, computeClient)
+    return new AzureCredentials(this.tenantId, this.clientId, this.appKey, this.subscriptionId)
   }
 
   private static List<AzureRegion> buildRegions(List<String> regions) {

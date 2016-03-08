@@ -52,11 +52,20 @@ class DeleteAzureSecurityGroupAtomicOperation implements AtomicOperation<Void> {
       try {
         String resourceGroupName = AzureUtilities.getResourceGroupName(description.appName, region)
 
-        description.credentials.networkClient.deleteSecurityGroup(description.credentials,
-          resourceGroupName,
-          description.securityGroupName)
+        def response = description
+          .credentials
+          .networkClient
+          .deleteSecurityGroup(resourceGroupName, description.securityGroupName)
 
-        task.updateStatus BASE_PHASE, "Done deleting Azure network security group ${description.securityGroupName} in ${region}."
+        // Check to see if the operation succeeded
+        if (response.response.success) {
+          task.updateStatus BASE_PHASE, "Done deleting Azure network security group ${description.securityGroupName} in ${region}."
+        }
+        else {
+          task.updateStatus(BASE_PHASE,
+            String.format("Delete operation failed for security group ${description.securityGroupName}: %s", response.response.message()))
+          task.fail()
+        }
       } catch (Exception e) {
         task.updateStatus BASE_PHASE, String.format("Deletion of Azure network security group ${description.securityGroupName} failed: %s", e.message)
         throw new AtomicOperationException(

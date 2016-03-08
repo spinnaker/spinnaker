@@ -52,9 +52,10 @@ class DeleteAzureLoadBalancerAtomicOperation implements AtomicOperation<Void> {
       try {
         String resourceGroupName = AzureUtilities.getResourceGroupName(description.appName, region)
 
-        description.credentials.networkClient.deleteLoadBalancer(description.credentials,
-          resourceGroupName,
-          description.loadBalancerName)
+        description
+          .credentials
+          .networkClient
+          .deleteLoadBalancer(resourceGroupName, description.loadBalancerName)
 
         task.updateStatus(BASE_PHASE, "Deletion of Azure load balancer ${description.loadBalancerName} in ${region} has succeeded.")
       } catch (Exception e) {

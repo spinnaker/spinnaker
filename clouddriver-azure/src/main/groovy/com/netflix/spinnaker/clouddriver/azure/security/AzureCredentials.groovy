@@ -16,71 +16,37 @@
 
 package com.netflix.spinnaker.clouddriver.azure.security
 
-import com.microsoft.aad.adal4j.AuthenticationResult
-import com.microsoft.azure.utility.AuthHelper
+import com.netflix.spinnaker.clouddriver.azure.client.AzureBaseClient
 import com.netflix.spinnaker.clouddriver.azure.client.AzureComputeClient
 import com.netflix.spinnaker.clouddriver.azure.client.AzureNetworkClient
 import com.netflix.spinnaker.clouddriver.azure.client.AzureResourceManagerClient
-import org.apache.log4j.Logger
-
-import java.util.concurrent.locks.Lock
-import java.util.concurrent.locks.ReentrantLock
 
 class AzureCredentials {
-  static final String MANAGEMENT_URL = "https://management.core.windows.net/"
-  static final String AAD_URL = "https://login.windows.net/"
-
-  AuthenticationResult authenticationResult
-  protected Lock cacheLock = new ReentrantLock()
 
   final String tenantId
   final String clientId
   final String appKey
   final String project
+  final String subscriptionId
 
   final AzureResourceManagerClient resourceManagerClient
   final AzureNetworkClient networkClient
   final AzureComputeClient computeClient
 
-  AzureCredentials(String tenantId, String clientId, String appKey,
-                   AzureResourceManagerClient resourceManagerClient,
-                   AzureNetworkClient networkClient,
-                   AzureComputeClient computeClient) {
+  AzureCredentials(String tenantId, String clientId, String appKey, String subscriptionId) {
     this.tenantId = tenantId
     this.clientId = clientId
     this.appKey = appKey
+    this.subscriptionId = subscriptionId
     this.project = "AzureProject"
-    this.resourceManagerClient = resourceManagerClient
-    this.networkClient = networkClient
-    this.computeClient = computeClient
 
-  }
+    resourceManagerClient = new AzureResourceManagerClient(this.subscriptionId,
+      AzureBaseClient.getTokenCredentials(this.clientId, this.tenantId, this.appKey))
 
-  String getAccessToken() {
-    try {
-      cacheLock.lock()
-      if (!authenticationResult || nearExpiry(authenticationResult)) {
-        try {
-          authenticationResult = AuthHelper.getAccessTokenFromServicePrincipalCredentials(
-            MANAGEMENT_URL,
-            AAD_URL,
-            this.tenantId,
-            this.clientId,
-            this.appKey)
-        } catch (Exception e) {
-          throw new RuntimeException("Failed to create AccessTokenFromServicePrincipalCredentials", e)
-        }
-      }
-    } finally {
-      cacheLock.unlock()
-    }
-    authenticationResult.accessToken
-  }
+    networkClient = new AzureNetworkClient(this.subscriptionId,
+      AzureBaseClient.getTokenCredentials(this.clientId, this.tenantId, this.appKey))
 
-  private static boolean nearExpiry(AuthenticationResult result) {
-    Calendar today = Calendar.getInstance()
-    today.add(Calendar.MINUTE, 5)
-    Date now = today.getTime()
-    !now.before(result.getExpiresOnDate())
+    computeClient = new AzureComputeClient(this.subscriptionId,
+      AzureBaseClient.getTokenCredentials(this.clientId, this.tenantId, this.appKey))
   }
 }

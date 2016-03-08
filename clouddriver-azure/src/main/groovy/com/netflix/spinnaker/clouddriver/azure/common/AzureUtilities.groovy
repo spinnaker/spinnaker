@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.azure.common
 
-import com.microsoft.windowsazure.core.utils.CollectionStringBuilder
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
 
 import java.util.regex.Matcher
@@ -54,13 +53,6 @@ class AzureUtilities {
     description.appName + NAME_SEPARATOR + description.region
   }
 
-  static String getVirtualNetworkName(AzureResourceOpsDescription description) {
-    if (description == null) {
-      return null
-    }
-    VNET_NAME_PREFIX + getResourceGroupName(description)
-  }
-
   static String getVirtualNetworkName(String resourceGroupName) {
     if (resourceGroupName == null) {
       return null
@@ -82,18 +74,6 @@ class AzureUtilities {
       return null
     }
     appName + NAME_SEPARATOR + region.replace(' ', '').toLowerCase()
-  }
-
-  static String getResourceGroupLocation(AzureResourceOpsDescription description) {
-    if (description == null) {
-      return null
-    }
-    def resourceGroupName = getResourceGroupName(description)
-    if (resourceGroupName == null) {
-      return null
-    }
-
-    description.credentials.getResourceManagerClient().getResourceGroupLocation(resourceGroupName, description.getCredentials())
   }
 
   static String getResourceGroupNameFromResourceId(String resourceId) {
@@ -126,14 +106,6 @@ class AzureUtilities {
     }
 
     getResourceGroupNameFromResourceId(resourceId).split(NAME_SEPARATOR).first()
-  }
-
-  static String getLocationFromResourceGroupName(String resourceId) {
-    if (resourceId == null) {
-      return null
-    }
-
-    getResourceGroupNameFromResourceId(resourceId).split(NAME_SEPARATOR).last()
   }
 
   static String getNameFromResourceId(String resourceId) {
@@ -240,26 +212,5 @@ class AzureUtilities {
       throw new ArithmeticException("Overflow occurred getting next valid subnet after $subnetAddrPrefix within vnet $vnetAddrPrefix")
     }
     return resultPrefix
-  }
-
-  public static String getAzureRESTUrl(String subscriptionId, String baseUrl, String targetUrl, List<String> queryParameters) {
-    String url = baseUrl
-    // Trim '/' character from the end of baseUrl.
-    if (url && url.charAt(url.length() - 1) == (char) '/') {
-      url = url.substring(0, (url.length() - 1) + 0)
-    }
-    url += "/subscriptions/"
-    if (subscriptionId != null) {
-      url = url + URLEncoder.encode(subscriptionId, "UTF-8")
-    }
-    if (targetUrl && targetUrl.charAt(0) != (char) '/')
-      url += "/"
-    url += targetUrl
-    if (queryParameters && queryParameters.size() > 0) {
-      url = url + "?" + CollectionStringBuilder.join(queryParameters, "&")
-    }
-    url = url.replace(" ", "%20")
-
-    url
   }
 }
