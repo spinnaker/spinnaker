@@ -95,6 +95,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
       //Set appropriate attributes of instance to define resource group
       ResourceGroup resourceGroup = new ResourceGroup()
       resourceGroup.setLocation(region)
+
       client.getResourceGroupsOperations().createOrUpdate(resourceGroupName,resourceGroup).body
 
     } catch (e) {

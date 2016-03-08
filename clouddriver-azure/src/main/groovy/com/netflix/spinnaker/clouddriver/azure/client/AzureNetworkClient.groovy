@@ -408,6 +408,7 @@ class AzureNetworkClient extends AzureBaseClient {
     } catch (Exception e) {
       log.error("getSubnetsAll -> Unexpected exception ", e)
     }
+
     result
   }
 
