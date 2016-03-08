@@ -3,13 +3,13 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titan.basicSettings.controller', [])
-  .controller('titanServerGroupBasicSettingsCtrl', function($scope, modalWizardService) {
+  .controller('titanServerGroupBasicSettingsCtrl', function($scope, v2modalWizardService) {
 
     $scope.$watch('form.$valid', function(newVal) {
       if (newVal) {
-        modalWizardService.getWizard().markClean('location');
+        v2modalWizardService.markClean('location');
       } else {
-        modalWizardService.getWizard().markDirty('location');
+        v2modalWizardService.markDirty('location');
       }
     });
 
