@@ -33,6 +33,9 @@ import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -48,6 +51,19 @@ import java.util.Set;
 
 public class RedisCache implements WriteableCache {
 
+    public interface CacheMetrics {
+        void merge(String prefix, String type, int itemCount, int keysWritten, int relationshipCount, int hashMatches, int hashUpdates);
+        class NOOP implements CacheMetrics {
+            @Override
+            public void merge(String prefix, String type, int itemCount, int keysWritten, int relationshipCount, int hashMatches, int hashUpdates) {
+                //noop
+            }
+        }
+    }
+
+    private static final String DIGEST_ALGORITHM = "SHA1";
+    private static final String HASH_CHARSET = "UTF8";
+
     private static final int DEFAULT_SCAN_SIZE = 50000;
 
     private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {
@@ -59,8 +75,9 @@ public class RedisCache implements WriteableCache {
     private final JedisSource source;
     private final ObjectMapper objectMapper;
     private final int maxMsetSize;
+    private final CacheMetrics cacheMetrics;
 
-    public RedisCache(String prefix, JedisSource source, ObjectMapper objectMapper, int maxMsetSize) {
+    public RedisCache(String prefix, JedisSource source, ObjectMapper objectMapper, int maxMsetSize, CacheMetrics cacheMetrics) {
         Preconditions.checkArgument(
           maxMsetSize % 2 == 0, String.format("maxMsetSize must be even (%s)", maxMsetSize)
         );
@@ -69,6 +86,7 @@ public class RedisCache implements WriteableCache {
         this.source = source;
         this.objectMapper = objectMapper.disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
         this.maxMsetSize = maxMsetSize;
+        this.cacheMetrics = cacheMetrics == null ? new CacheMetrics.NOOP() : cacheMetrics;
     }
 
     @Override
@@ -81,12 +99,25 @@ public class RedisCache implements WriteableCache {
         final Set<String> idSet = new HashSet<>();
 
         final Map<String, Integer> ttlSecondsByKey = new HashMap<>();
+        int skippedWrites = 0;
+
+        final MessageDigest digest;
+        try {
+            digest = MessageDigest.getInstance(DIGEST_ALGORITHM);
+        } catch (NoSuchAlgorithmException nsae) {
+            throw new RuntimeException(nsae);
+        }
+
+        final Map<String, byte[]> hashes = getHashes(type, items);
+        final Map<byte[], byte[]> updatedHashes = new HashMap<>();
 
         for (CacheData item : items) {
-            MergeOp op = buildMergeOp(type, item);
+            MergeOp op = buildMergeOp(type, item, hashes, digest);
             relationshipNames.addAll(op.relNames);
             keysToSet.addAll(op.keysToSet);
             idSet.add(item.getId());
+            updatedHashes.putAll(op.hashesToSet);
+            skippedWrites += op.skippedWrites;
 
             if (item.getTtlSeconds() > 0) {
                 for (String key : op.keysToSet) {
@@ -103,9 +134,9 @@ public class RedisCache implements WriteableCache {
                 Pipeline pipeline = jedis.pipelined();
                 pipeline.sadd(allOfTypeId(type), ids);
 
-                Iterables.partition(keysToSet, maxMsetSize).forEach(keys -> {
-                  pipeline.mset(keys.toArray(new String[keys.size()]));
-                });
+                for (List<String> keys : Iterables.partition(keysToSet, maxMsetSize)) {
+                    pipeline.mset(keys.toArray(new String[keys.size()]));
+                }
 
                 if (relationships.length > 0) {
                     pipeline.sadd(allRelationshipsId(type), relationships);
@@ -114,9 +145,14 @@ public class RedisCache implements WriteableCache {
                 for (Map.Entry<String, Integer> ttlEntry : ttlSecondsByKey.entrySet()) {
                     pipeline.expire(ttlEntry.getKey(), ttlEntry.getValue());
                 }
+
+                if (!updatedHashes.isEmpty()) {
+                    pipeline.hmset(hashesId(type), updatedHashes);
+                }
                 pipeline.sync();
             }
         }
+        cacheMetrics.merge(prefix, type, items.size(), keysToSet.size() / 2, relationships.length, skippedWrites, updatedHashes.size());
     }
 
     @Override
@@ -146,6 +182,7 @@ public class RedisCache implements WriteableCache {
         try (Jedis jedis = source.getJedis()) {
             jedis.del(delKeys.toArray(new String[delKeys.size()]));
             jedis.srem(allOfTypeId(type), ids.toArray(new String[ids.size()]));
+            jedis.hdel(hashesId(type), stringsToBytes(delKeys));
         }
     }
 
@@ -267,17 +304,59 @@ public class RedisCache implements WriteableCache {
         }
     }
 
+    private byte[] stringToBytes(String string) {
+        return string.getBytes(Charset.forName(HASH_CHARSET));
+    }
+
+    private byte[][] stringsToBytes(Collection<String> strings) {
+        final byte[][] results = new byte[strings.size()][];
+        int i = 0;
+        for (String string : strings) {
+          results[i++] = stringToBytes(string);
+        }
+        return results;
+    }
+
     private static class MergeOp {
         final Set<String> relNames;
         final List<String> keysToSet;
+        final Map<byte[], byte[]> hashesToSet;
+        final int skippedWrites;
 
-        public MergeOp(Set<String> relNames, List<String> keysToSet) {
+        public MergeOp(Set<String> relNames, List<String> keysToSet, Map<byte[], byte[]> hashesToSet, int skippedWrites) {
             this.relNames = relNames;
             this.keysToSet = keysToSet;
+            this.hashesToSet = hashesToSet;
+            this.skippedWrites = skippedWrites;
         }
     }
 
-    private MergeOp buildMergeOp(String type, CacheData cacheData) {
+    /**
+     * Compares the hash of serializedValue against an existing hash, if they do not match adds
+     * serializedValue to keys and the new hash to updatedHashes.
+     * @param hashes the existing hash values
+     * @param id the id of the item
+     * @param serializedValue the serialized value
+     * @param digest the digest for hash computation
+     * @param keys values to persist - if the hash does not match id and serializedValue are appended
+     * @param updatedHashes hashes to persist - if the hash does not match adds an entry of id -> computed hash
+     * @return true if the hash matched, false otherwise
+     */
+    private boolean hashCheck(Map<String, byte[]> hashes, String id, String serializedValue, MessageDigest digest, List<String> keys, Map<byte[], byte[]> updatedHashes) {
+        final byte[] hash = digest.digest(stringToBytes(serializedValue));
+        final byte[] existingHash = hashes.get(id);
+        if (Arrays.equals(hash, existingHash)) {
+           return true;
+        }
+
+        keys.add(id);
+        keys.add(serializedValue);
+        updatedHashes.put(stringToBytes(id), hash);
+        return false;
+    }
+
+    private MergeOp buildMergeOp(String type, CacheData cacheData, Map<String, byte[]> hashes, MessageDigest digest) {
+        int skippedWrites = 0;
         final String serializedAttributes;
         try {
             if (cacheData.getAttributes().isEmpty()) {
@@ -289,24 +368,68 @@ public class RedisCache implements WriteableCache {
             throw new RuntimeException("Attribute serialization failed", serializationException);
         }
 
+        final Map<byte[], byte[]> hashesToSet = new HashMap<>();
         final List<String> keysToSet = new ArrayList<>((cacheData.getRelationships().size() + 1) * 2);
-        if (serializedAttributes != null) {
-            keysToSet.add(attributesId(type, cacheData.getId()));
-            keysToSet.add(serializedAttributes);
+        if (serializedAttributes != null &&
+            hashCheck(hashes, attributesId(type, cacheData.getId()), serializedAttributes, digest, keysToSet, hashesToSet)) {
+            skippedWrites++;
         }
 
         if (!cacheData.getRelationships().isEmpty()) {
             for (Map.Entry<String, Collection<String>> relationship : cacheData.getRelationships().entrySet()) {
-                keysToSet.add(relationshipId(type, cacheData.getId(), relationship.getKey()));
+                final String relationshipValue;
                 try {
-                    keysToSet.add(objectMapper.writeValueAsString(new LinkedHashSet<>(relationship.getValue())));
+                    relationshipValue = objectMapper.writeValueAsString(new LinkedHashSet<>(relationship.getValue()));
                 } catch (JsonProcessingException serializationException) {
                     throw new RuntimeException("Relationship serialization failed", serializationException);
+                }
+                if (hashCheck(hashes, relationshipId(type, cacheData.getId(), relationship.getKey()), relationshipValue, digest, keysToSet, hashesToSet)) {
+                    skippedWrites++;
                 }
             }
         }
 
-        return new MergeOp(cacheData.getRelationships().keySet(), keysToSet);
+        return new MergeOp(cacheData.getRelationships().keySet(), keysToSet, hashesToSet, skippedWrites);
+    }
+
+    private List<String> getKeys(String type, Collection<CacheData> cacheDatas) {
+        final Collection<String> keys = new HashSet<>();
+        for (CacheData cacheData : cacheDatas) {
+            if (!cacheData.getAttributes().isEmpty()) {
+                keys.add(attributesId(type, cacheData.getId()));
+            }
+            if (!cacheData.getRelationships().isEmpty()) {
+                for (String relationship : cacheData.getRelationships().keySet()) {
+                    keys.add(relationshipId(type, cacheData.getId(), relationship));
+                }
+            }
+        }
+        return new ArrayList<>(keys);
+    }
+
+    private Map<String, byte[]> getHashes(String type, Collection<CacheData> items) {
+        final List<String> hashKeys = getKeys(type, items);
+        if (hashKeys.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        final List<byte[]> hashValues;
+        final byte[] hashesId = hashesId(type);
+
+        try (Jedis jedis = source.getJedis()) {
+            hashValues = jedis.hmget(hashesId, stringsToBytes(hashKeys));
+        }
+        if (hashValues.size() != hashKeys.size()) {
+            throw new RuntimeException("Expected same size result as request");
+        }
+        final Map<String, byte[]> hashes = new HashMap<>(hashKeys.size());
+        for (int i = 0; i < hashValues.size(); i++) {
+            final byte[] hashValue = hashValues.get(i);
+            if (hashValue != null) {
+                hashes.put(hashKeys.get(i), hashValue);
+            }
+        }
+        return hashes;
     }
 
     private CacheData extractItem(String id, List<String> keyResult, List<String> knownRels) {
@@ -339,6 +462,10 @@ public class RedisCache implements WriteableCache {
 
     private String relationshipId(String type, String id, String relationship) {
         return String.format("%s:%s:relationships:%s:%s", prefix, type, id, relationship);
+    }
+
+    private byte[] hashesId(String type) {
+        return stringToBytes(String.format("%s:%s:hashes", prefix, type));
     }
 
     private String allRelationshipsId(String type) {
