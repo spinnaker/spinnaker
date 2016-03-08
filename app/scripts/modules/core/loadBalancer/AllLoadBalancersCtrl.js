@@ -51,7 +51,8 @@ module.exports = angular.module('spinnaker.core.loadBalancer.controller', [
           resolve: {
             application: function() { return app; },
             loadBalancer: function() { return null; },
-            isNew: function() { return true; }
+            isNew: function() { return true; },
+            forPipelineConfig: function() { return false; }
           }
         });
       });

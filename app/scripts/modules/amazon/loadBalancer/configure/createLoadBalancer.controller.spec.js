@@ -17,7 +17,8 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
       $modalInstance: { dismiss: angular.noop, result: { then: angular.noop } },
       application: {name: 'app', defaultCredentials: {}, defaultRegions: {}},
       loadBalancer: null,
-      isNew: true
+      isNew: true,
+      forPipelineConfig: false
     });
   }));
 

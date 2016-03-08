@@ -26,7 +26,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
                                                     cacheInitializer, infrastructureCaches, loadBalancerReader,
                                                     v2modalWizardService, loadBalancerWriter, taskMonitorService,
                                                     subnetReader, namingService, settings,
-                                                    application, loadBalancer, isNew) {
+                                                    application, loadBalancer, isNew, forPipelineConfig) {
 
     var ctrl = this;
 
@@ -39,6 +39,11 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     };
 
     $scope.isNew = isNew;
+    // if this controller is used in the context of "Create Load Balancer" stage,
+    // then forPipelineConfig flag will be true. In that case, the Load Balancer
+    // modal dialog will just return the Load Balancer object.
+    $scope.forPipelineConfig = forPipelineConfig;
+    $scope.submitButtonLabel = forPipelineConfig ? (isNew ? 'Add' : 'Done') : (isNew ? 'Create' : 'Update');
 
     $scope.state = {
       securityGroupsLoaded: false,
@@ -360,13 +365,20 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     this.submit = function () {
       var descriptor = isNew ? 'Create' : 'Update';
 
-      $scope.taskMonitor.submit(
-        function() {
-          return formatListeners().then(function () {
-            return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor);
-          });
-        }
-      );
+      if ($scope.forPipelineConfig == true) {
+        // don't submit to backend for creation. Just return the loadBalancer object
+        formatListeners().then(function () {
+          $modalInstance.close($scope.loadBalancer);
+        });
+      } else {
+        $scope.taskMonitor.submit(
+          function() {
+            return formatListeners().then(function () {
+              return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor);
+            });
+          }
+        );
+      }
     };
 
     this.cancel = function () {
