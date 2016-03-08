@@ -41,13 +41,18 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware {
   private DockerRegistryCredentials credentials
   private DockerRegistryCloudProvider dockerRegistryCloudProvider
   private String accountName
+  private final int index
+  private final int threadCount
 
   DockerRegistryImageCachingAgent(DockerRegistryCloudProvider dockerRegistryCloudProvider,
                                   String accountName,
-                                  DockerRegistryCredentials credentials) {
+                                  DockerRegistryCredentials credentials,
+                                  int index, int threadCount) {
     this.dockerRegistryCloudProvider = dockerRegistryCloudProvider
     this.accountName = accountName
     this.credentials = credentials
+    this.index = index
+    this.threadCount = threadCount
   }
 
   @Override
@@ -64,7 +69,7 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware {
 
   @Override
   String getAgentType() {
-    "${accountName}/${DockerRegistryImageCachingAgent.simpleName}"
+    "${accountName}/${DockerRegistryImageCachingAgent.simpleName}[${index + 1}/$threadCount]"
   }
 
   @Override
@@ -73,11 +78,13 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware {
   }
 
   private Map<String, Set<String>> loadTags() {
-    credentials.repositories.collectEntries {
-      DockerRegistryTags tags = credentials.client.getTags(it)
-      tags ? [(tags.name): tags.tags ?: []] : [:]
+    credentials.repositories.findAll { it ->
+      threadCount == 1 || it.hashCode() % threadCount == index
+    }.collectEntries {
+        DockerRegistryTags tags = credentials.client.getTags(it)
+        tags ? [(tags.name): tags.tags ?: []] : [:]
+      }
     }
-  }
 
   @Override
   String getAccountName() {

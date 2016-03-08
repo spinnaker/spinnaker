@@ -24,19 +24,20 @@ import retrofit.RetrofitError
 public class DockerRegistryNamedAccountCredentials implements AccountCredentials<DockerRegistryCredentials> {
   public DockerRegistryNamedAccountCredentials(String accountName, String environment, String accountType,
                                                String address, String username, String password, String email,
-                                               List<String> repositories) {
-    this(accountName, environment, accountType, address, username, password, email, repositories, null)
+                                               int cacheThreads, List<String> repositories) {
+    this(accountName, environment, accountType, address, username, password, email, repositories, cacheThreads, null)
   }
 
   public DockerRegistryNamedAccountCredentials(String accountName, String environment, String accountType,
                                                String address, String username, String password, String email,
-                                               List<String> repositories, List<String> requiredGroupMembership) {
+                                               List<String> repositories, int cacheThreads, List<String> requiredGroupMembership) {
     if (!accountName) {
       throw new IllegalArgumentException("Docker Registry account must be provided with a name.")
     }
     this.accountName = accountName
     this.environment = environment
     this.accountType = accountType
+    this.cacheThreads = cacheThreads ?: 1;
 
     if (!address) {
       throw new IllegalArgumentException("Docker Registry account $accountName must provide an endpoint address.");
@@ -122,6 +123,7 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
   final String username
   final String password
   final String email
+  final int cacheThreads
   final List<String> repositories
   final DockerRegistryCredentials credentials
   final List<String> requiredGroupMembership
