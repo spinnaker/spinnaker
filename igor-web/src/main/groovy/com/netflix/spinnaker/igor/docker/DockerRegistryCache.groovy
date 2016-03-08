@@ -39,7 +39,7 @@ class DockerRegistryCache {
         Jedis resource = jedisPool.resource
         def key = "${prefix}:${id}:${account}*"
 
-        List<String> res = resource.keys(key).removeAll([null]) as List
+        List<String> res = resource.keys(key).findAll { it } as List
 
         jedisPool.returnResource(resource)
         return res
