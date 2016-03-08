@@ -161,7 +161,7 @@ class ValidateConfigurationTest(unittest.TestCase):
             'mixed': 'myhost32.sub-domain23',
             'reference': '${ip4}',
 
-            # These arent valid, but are accepted as valid
+            # These aren't valid, but are accepted as valid
             # to keep the implementation simple.
             # They are here for documentation, but are not necessarily
             # guaranteed to pass in the future.

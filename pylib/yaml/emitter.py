@@ -41,7 +41,7 @@ class Emitter(object):
         # The stream should have the methods `write` and possibly `flush`.
         self.stream = stream
 
-        # Encoding can be overriden by STREAM-START.
+        # Encoding can be overridden by STREAM-START.
         self.encoding = None
 
         # Emitter is a state machine with a stack of states to handle nested

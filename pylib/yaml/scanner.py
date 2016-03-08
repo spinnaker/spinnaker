@@ -333,7 +333,7 @@ class Scanner(object):
         ## }
         #if self.flow_level and self.indent > column:
         #    raise ScannerError(None, None,
-        #            "invalid intendation or unclosed '[' or '{'",
+        #            "invalid indentation or unclosed '[' or '{'",
         #            self.get_mark())
 
         # In the flow context, indentation is ignored. We make the scanner less
@@ -371,7 +371,7 @@ class Scanner(object):
 
     def fetch_stream_end(self):
 
-        # Set the current intendation to -1.
+        # Set the current indentation to -1.
         self.unwind_indent(-1)
 
         # Reset simple keys.
@@ -390,7 +390,7 @@ class Scanner(object):
 
     def fetch_directive(self):
         
-        # Set the current intendation to -1.
+        # Set the current indentation to -1.
         self.unwind_indent(-1)
 
         # Reset simple keys.
@@ -408,7 +408,7 @@ class Scanner(object):
 
     def fetch_document_indicator(self, TokenClass):
 
-        # Set the current intendation to -1.
+        # Set the current indentation to -1.
         self.unwind_indent(-1)
 
         # Reset simple keys. Note that there could not be a block collection
@@ -520,7 +520,7 @@ class Scanner(object):
         # Block context needs additional checks.
         if not self.flow_level:
 
-            # Are we allowed to start a key (not nessesary a simple)?
+            # Are we allowed to start a key (not necessary a simple)?
             if not self.allow_simple_key:
                 raise ScannerError(None, None,
                         "mapping keys are not allowed here",
@@ -906,7 +906,7 @@ class Scanner(object):
         # The specification does not restrict characters for anchors and
         # aliases. This may lead to problems, for instance, the document:
         #   [ *alias, value ]
-        # can be interpteted in two ways, as
+        # can be interpreted in two ways, as
         #   [ "value" ]
         # and
         #   [ *alias , "value" ]
@@ -1217,7 +1217,7 @@ class Scanner(object):
                     for k in range(length):
                         if self.peek(k) not in u'0123456789ABCDEFabcdef':
                             raise ScannerError("while scanning a double-quoted scalar", start_mark,
-                                    "expected escape sequence of %d hexdecimal numbers, but found %r" %
+                                    "expected escape sequence of %d hexadecimal numbers, but found %r" %
                                         (length, self.peek(k).encode('utf-8')), self.get_mark())
                     code = int(self.prefix(length), 16)
                     chunks.append(unichr(code))
@@ -1418,7 +1418,7 @@ class Scanner(object):
             for k in range(2):
                 if self.peek(k) not in u'0123456789ABCDEFabcdef':
                     raise ScannerError("while scanning a %s" % name, start_mark,
-                            "expected URI escape sequence of 2 hexdecimal numbers, but found %r" %
+                            "expected URI escape sequence of 2 hexadecimal numbers, but found %r" %
                                 (self.peek(k).encode('utf-8')), self.get_mark())
             bytes.append(chr(int(self.prefix(2), 16)))
             self.forward(2)

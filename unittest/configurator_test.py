@@ -33,7 +33,7 @@ class ConfiguratorTest(unittest.TestCase):
                                'spinnaker-local.yml'), 'w') as f:
           f.write('empty:\n')
 
-        # We arent using HOME in a test, but want to verify that it is
+        # We aren't using HOME in a test, but want to verify that it is
         # being used.
         old_home = os.environ['HOME']
         os.environ['HOME'] = temp_homedir
