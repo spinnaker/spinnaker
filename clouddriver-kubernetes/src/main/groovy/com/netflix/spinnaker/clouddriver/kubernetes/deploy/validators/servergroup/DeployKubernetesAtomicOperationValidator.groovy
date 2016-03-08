@@ -48,6 +48,7 @@ class DeployKubernetesAtomicOperationValidator extends DescriptionValidator<Depl
     helper.validateDetails(description.freeFormDetails, "details")
     helper.validateNonNegative(description.targetSize, "targetSize")
     helper.validateNamespace(credentials, description.namespace, "namespace")
+    helper.validateRestartPolicy(description.restartPolicy, "restartPolicy")
 
     description.loadBalancers.eachWithIndex { name, idx ->
       helper.validateName(name, "loadBalancers[${idx}]")

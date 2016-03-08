@@ -21,8 +21,8 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import io.fabric8.kubernetes.api.model.IntOrString
 import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder
 
@@ -42,6 +42,7 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
   /*
    * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "securityGroups": [], "loadBalancers":  [],  "containers": [ { "name": "nginx", "imageDescription": { "repository": "nginx" } } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
    * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "loadBalancers":  ["frontend-lb"],  "containers": [ { "name": "nginx", "imageDescription": { "repository": "nginx", "tag": "latest", "registry": "gcr.io" }, "ports": [ { "containerPort": "80", "hostPort": "80", "name": "http", "protocol": "TCP", "hostIp": "10.239.18.11" } ] } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "loadBalancers":  [],  "containers": [ { "name": "nginx", "imageDescription": { "repository": "nginx", "tag": "latest", "registry": "gcr.io" }, "livenessProbe": { "handler": { "execAction": { "commands": [ "ls" ] } } } } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
   */
   @Override
   DeploymentResult operate(List priorOutputs) {
@@ -87,8 +88,8 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     task.updateStatus BASE_PHASE, "Setting target size to ${description.targetSize}..."
 
     replicationControllerBuilder = replicationControllerBuilder.withNewSpec().withReplicas(description.targetSize)
-                        .withNewTemplate()
-                        .withNewMetadata()
+        .withNewTemplate()
+        .withNewMetadata()
 
     task.updateStatus BASE_PHASE, "Setting replication controller spec labels..."
     // Metadata in spec and replication controller need to match, hence the apparent duplication
@@ -103,6 +104,10 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     }
 
     replicationControllerBuilder = replicationControllerBuilder.endMetadata().withNewSpec()
+
+    if (description.restartPolicy) {
+      replicationControllerBuilder.withRestartPolicy(description.restartPolicy)
+    }
 
     task.updateStatus BASE_PHASE, "Adding image pull secrets... "
     replicationControllerBuilder = replicationControllerBuilder.withImagePullSecrets()
@@ -142,6 +147,82 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
             replicationControllerBuilder = replicationControllerBuilder.withHostIP(it.hostIp)
           }
           replicationControllerBuilder = replicationControllerBuilder.endPort()
+        }
+      }
+
+      [liveness: container.livenessProbe, readiness: container.readinessProbe].each { k, v ->
+        def probe = v
+        if (probe) {
+          switch (k) {
+            case 'liveness':
+              task.updateStatus BASE_PHASE, 'Adding liveness probe...'
+              replicationControllerBuilder = replicationControllerBuilder.withNewLivenessProbe()
+              break
+            case 'readiness':
+              task.updateStatus BASE_PHASE, 'Adding readiness probe...'
+              replicationControllerBuilder = replicationControllerBuilder.withNewReadinessProbe()
+              break
+          }
+
+          if (probe.initialDelaySeconds) {
+            replicationControllerBuilder = replicationControllerBuilder.withInitialDelaySeconds(probe.initialDelaySeconds)
+          }
+
+          if (probe.timeoutSeconds) {
+            replicationControllerBuilder = replicationControllerBuilder.withTimeoutSeconds(probe.timeoutSeconds)
+          }
+
+          if (probe.failureThreshold) {
+            replicationControllerBuilder = replicationControllerBuilder.withFailureThreshold(probe.failureThreshold)
+          }
+
+          if (probe.successThreshold) {
+            replicationControllerBuilder = replicationControllerBuilder.withSuccessThreshold(probe.successThreshold)
+          }
+
+          if (probe.periodSeconds) {
+            replicationControllerBuilder = replicationControllerBuilder.withPeriodSeconds(probe.periodSeconds)
+          }
+
+          task.updateStatus BASE_PHASE, 'Adding probe handler..'
+          if (probe.handler?.execAction) {
+            replicationControllerBuilder = replicationControllerBuilder.withNewExec().withCommand(probe.handler.execAction.commands).endExec()
+          }
+
+          if (probe.handler?.tcpSocketAction) {
+            replicationControllerBuilder = replicationControllerBuilder.withNewTcpSocket().withNewPort(probe.handler.tcpSocketAction.port).endTcpSocket()
+          }
+
+          if (probe.handler?.httpGetAction) {
+            replicationControllerBuilder = replicationControllerBuilder.withNewHttpGet()
+            def get = probe.handler.httpGetAction
+
+            if (get.host) {
+              replicationControllerBuilder = replicationControllerBuilder.withHost(get.host)
+            }
+
+            if (get.path) {
+              replicationControllerBuilder = replicationControllerBuilder.withPath(get.path)
+            }
+
+            if (get.port) {
+              replicationControllerBuilder = replicationControllerBuilder.withPort(new IntOrString(get.port))
+            }
+
+            if (get.uriScheme) {
+              replicationControllerBuilder = replicationControllerBuilder.withScheme(get.uriScheme)
+            }
+            replicationControllerBuilder = replicationControllerBuilder.endHttpGetAction()
+          }
+
+          switch (k) {
+            case 'liveness':
+              replicationControllerBuilder = replicationControllerBuilder.endLivenessProbe()
+              break
+            case 'readiness':
+              replicationControllerBuilder = replicationControllerBuilder.endReadinessProbe()
+              break
+          }
         }
       }
 

@@ -29,6 +29,8 @@ class StandardKubernetesAttributeValidator {
   static final protocolList = ['TCP', 'UDP']
   static final serviceTypeList = ['ClusterIP', 'NodePort', 'LoadBalancer']
   static final sessionAffinityList = ['None', 'ClientIP']
+  static final restartPolicyList = ['Always', 'OnFailure', 'Never']
+  static final uriSchemeList = ['HTTP', 'HTTPS']
   static final maxPort = (1 << 16) - 1
 
   String context
@@ -89,6 +91,10 @@ class StandardKubernetesAttributeValidator {
 
   def validateSessionAffinity(String value, String attribute) {
     value ? validateByContainment(value, attribute, sessionAffinityList) : null
+  }
+
+  def validateUriScheme(String value, String attribute) {
+    value ? validateByContainment(value, attribute, uriSchemeList) : null
   }
 
   def validateIpv4(String value, String attribute) {
@@ -199,6 +205,21 @@ class StandardKubernetesAttributeValidator {
       result = false
     }
     result
+  }
+
+  def validatePositive(int value, String attribute) {
+    def result
+    if (value > 0) {
+      result = true
+    } else {
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.notPositive")
+      result = false
+    }
+    result
+  }
+
+  def validateRestartPolicy(String value, String attribute) {
+    value ? validateByContainment(value, attribute, restartPolicyList) : null
   }
 
   def validateCloneSource(Object value, String attribute) {

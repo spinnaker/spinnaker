@@ -20,11 +20,12 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
+import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.CloneKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerPort
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesImageDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesProbe
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesResourceDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
@@ -91,52 +92,10 @@ class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult
     newDescription.namespace = description.namespace ?: description.source.namespace
     newDescription.loadBalancers = description.loadBalancers != null ? description.loadBalancers : KubernetesUtil.getDescriptionLoadBalancers(ancestorServerGroup)
     newDescription.securityGroups = description.securityGroups != null ? description.securityGroups : KubernetesUtil.getDescriptionSecurityGroups(ancestorServerGroup)
+    newDescription.restartPolicy = description.restartPolicy ?: ancestorServerGroup.spec?.template?.spec?.restartPolicy
     if (!description.containers) {
-      newDescription.containers = []
-      ancestorServerGroup.spec?.template?.spec?.containers?.each { it ->
-        KubernetesResourceDescription newLimits = null
-        KubernetesResourceDescription newRequests = null
-        List<KubernetesContainerPort> newPorts
-        if (it.resources?.limits) {
-          newLimits = new KubernetesResourceDescription()
-          if (it.resources.limits.memory) {
-            newLimits.memory = it.resources.limits.memory.amount
-          }
-
-          if (it.resources.limits.cpu) {
-            newLimits.cpu = it.resources.limits.cpu.amount
-          }
-        }
-        if (it.resources?.requests) {
-          newRequests = new KubernetesResourceDescription()
-          if (it.resources.requests.memory) {
-            newRequests.memory = it.resources.requests.memory.amount
-          }
-
-          if (it.resources.requests.cpu) {
-            newRequests.cpu = it.resources.requests.cpu.amount
-          }
-        }
-
-        newPorts = it.ports?.collect {
-          new KubernetesContainerPort([
-            name: it.name,
-            containerPort: it.containerPort,
-            hostPort: it.hostPort,
-            protocol: it.protocol,
-            hostIp: it.hostIP,
-          ])
-        }
-
-        def newContainer = new KubernetesContainerDescription([
-          name: it.name,
-          imageDescription: KubernetesUtil.buildImageDescription(it.image),
-          requests: newRequests,
-          limits: newLimits,
-          ports: newPorts,
-        ])
-
-        newDescription.containers.push(newContainer)
+      newDescription.containers = ancestorServerGroup.spec?.template?.spec?.containers?.collect { it ->
+        KubernetesApiAdaptor.fromContainer(it)
       }
     }
 

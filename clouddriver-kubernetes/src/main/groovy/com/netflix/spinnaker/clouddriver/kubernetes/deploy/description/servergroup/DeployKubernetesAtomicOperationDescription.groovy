@@ -28,6 +28,7 @@ class DeployKubernetesAtomicOperationDescription extends KubernetesAtomicOperati
   String stack
   String freeFormDetails
   String namespace
+  String restartPolicy
   Integer targetSize
   List<String> loadBalancers
   List<String> securityGroups
@@ -60,6 +61,49 @@ class KubernetesContainerDescription {
   KubernetesResourceDescription requests
   KubernetesResourceDescription limits
   List<KubernetesContainerPort> ports
+  KubernetesProbe livenessProbe
+  KubernetesProbe readinessProbe
+}
+
+@AutoClone
+@Canonical
+class KubernetesProbe {
+  KubernetesHandler handler
+  int initialDelaySeconds
+  int timeoutSeconds
+  int periodSeconds
+  int successThreshold
+  int failureThreshold
+}
+
+@AutoClone
+@Canonical
+class KubernetesHandler {
+  KubernetesExecAction execAction
+  KubernetesHttpGetAction httpGetAction
+  KubernetesTcpSocketAction tcpSocketAction
+}
+
+@AutoClone
+@Canonical
+class KubernetesExecAction {
+  List<String> commands
+}
+
+@AutoClone
+@Canonical
+class KubernetesHttpGetAction {
+  String path
+  int port
+  String host
+  String uriScheme
+  List<KeyValuePair> httpHeaders
+}
+
+@AutoClone
+@Canonical
+class KubernetesTcpSocketAction {
+  int port
 }
 
 @AutoClone
@@ -67,4 +111,11 @@ class KubernetesContainerDescription {
 class KubernetesResourceDescription {
   String memory
   String cpu
+}
+
+@AutoClone
+@Canonical
+class KeyValuePair {
+  String name
+  String value
 }
