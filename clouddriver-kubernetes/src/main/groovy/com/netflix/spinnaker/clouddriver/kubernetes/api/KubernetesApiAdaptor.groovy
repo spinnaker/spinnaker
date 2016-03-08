@@ -22,12 +22,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergro
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerPort
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesResourceDescription
-import io.fabric8.kubernetes.api.model.Container
-import io.fabric8.kubernetes.api.model.Namespace
-import io.fabric8.kubernetes.api.model.Pod
-import io.fabric8.kubernetes.api.model.ReplicationController
-import io.fabric8.kubernetes.api.model.Secret
-import io.fabric8.kubernetes.api.model.Service
+import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.client.KubernetesClient
 
 class KubernetesApiAdaptor {
@@ -58,6 +53,58 @@ class KubernetesApiAdaptor {
 
   ReplicationController resizeReplicationController(String namespace, String name, int size) {
     client.replicationControllers().inNamespace(namespace).withName(name).scale(size)
+  }
+
+  void removePodLabels(String namespace, String name, List<String> keys) {
+    def edit = client.pods().inNamespace(namespace).withName(name).edit().editMetadata()
+
+    keys.each {
+      edit.removeFromLabels(it)
+    }
+
+    edit.endMetadata().done()
+  }
+
+  void addPodLabels(String namespace, String name, List<String> keys, String value) {
+    def edit = client.pods().inNamespace(namespace).withName(name).edit().editMetadata()
+
+    keys.each {
+      edit.addToLabels(it, value)
+    }
+
+    edit.endMetadata().done()
+  }
+
+  void removeReplicationControllerSpecLabels(String namespace, String name, List<String> keys) {
+    def edit = client.replicationControllers().inNamespace(namespace).withName(name).edit().editSpec().editTemplate().editMetadata()
+
+    keys.each {
+      edit.removeFromLabels(it)
+    }
+
+    edit = edit.endMetadata().endTemplate()
+
+    keys.each {
+      edit.removeFromSelector(it)
+    }
+
+    edit.endSpec().done()
+  }
+
+  void addReplicationControllerSpecLabels(String namespace, String name, List<String> keys, String value) {
+    def edit = client.replicationControllers().inNamespace(namespace).withName(name).edit().editSpec().editTemplate().editMetadata()
+
+    keys.each {
+      edit.addToLabels(it, value)
+    }
+
+    edit = edit.endMetadata().endTemplate()
+
+    keys.each {
+      edit.addToSelector(it, value)
+    }
+
+    edit.endSpec().done()
   }
 
   Service getService(String namespace, String service) {
