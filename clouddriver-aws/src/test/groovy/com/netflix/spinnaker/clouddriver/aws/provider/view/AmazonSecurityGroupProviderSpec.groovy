@@ -47,16 +47,21 @@ class AmazonSecurityGroupProviderSpec extends Specification {
   WriteableCache cache = new InMemoryCache()
   ObjectMapper mapper = new ObjectMapper()
 
-  final credential = Stub(NetflixAmazonCredentials) {
+  final credential1 = Stub(NetflixAmazonCredentials) {
     getName() >> "accountName1"
     getAccountId() >> "accountId1"
+  }
+
+  final credential2 = Stub(NetflixAmazonCredentials) {
+    getName() >> "accountName2"
+    getAccountId() >> "accountId2"
   }
 
   final accountCredentialsProvider = new AccountCredentialsProvider() {
 
     @Override
     Set<? extends AccountCredentials> getAll() {
-      [credential]
+      [credential1, credential2]
     }
 
     @Override
@@ -324,6 +329,38 @@ class AmazonSecurityGroupProviderSpec extends Specification {
     then:
     sg.inboundRules.size() == 1
     sg.inboundRules[0].securityGroup.name == 'name-b'
+    0 * _
+  }
+
+  void "should fetch vpcId from cache if group is in a different account"() {
+    given:
+    String vpcId1 = 'vpc-1234'
+    String vpcId2 = 'vpc-2345'
+    String account1 = 'accountName1'
+    String account2 = 'accountName2'
+    String region = 'us-east-1'
+    SecurityGroup securityGroupA = new SecurityGroup(ownerId: account1, groupId: 'id-a', groupName: 'name-a', description: 'a', vpcId: vpcId1)
+    SecurityGroup securityGroupB = new SecurityGroup(ownerId: account2, groupId: 'id-b', groupName: 'name-b', description: 'b', vpcId: vpcId2)
+    securityGroupA.ipPermissions = [
+        new IpPermission(ipProtocol: "TCP", fromPort: 7001, toPort: 7001, userIdGroupPairs: [
+            new UserIdGroupPair(userId: "accountId2", groupId: securityGroupB.groupId)
+        ])
+    ]
+    def keyA = Keys.getSecurityGroupKey(amazonCloudProvider, 'name-a', 'id-a', region, account1, vpcId1)
+    def keyB = Keys.getSecurityGroupKey(amazonCloudProvider, 'name-b', 'id-b', region, account2, vpcId2)
+    Map<String, Object> attributesA = mapper.convertValue(securityGroupA, AwsInfrastructureProvider.ATTRIBUTES)
+    Map<String, Object> attributesB = mapper.convertValue(securityGroupB, AwsInfrastructureProvider.ATTRIBUTES)
+    def cacheDataA = new DefaultCacheData(keyA, attributesA, [:])
+    def cacheDataB = new DefaultCacheData(keyB, attributesB, [:])
+    cache.mergeAll(Keys.Namespace.SECURITY_GROUPS.ns, [cacheDataA, cacheDataB])
+
+    when:
+    def sg = provider.get(account1, region, 'name-a', vpcId1)
+
+    then:
+    sg.inboundRules.size() == 1
+    sg.inboundRules[0].securityGroup.name == 'name-b'
+    sg.inboundRules[0].securityGroup.vpcId == vpcId2
     0 * _
   }
 
