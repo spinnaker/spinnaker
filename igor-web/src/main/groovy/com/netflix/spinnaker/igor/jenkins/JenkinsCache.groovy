@@ -57,6 +57,7 @@ class JenkinsCache {
     Map getLastBuild(String master, String job) {
         Jedis resource = jedisPool.resource
         if (!resource.exists(makeKey(master, job))) {
+            jedisPool.returnResource(resource)
             return [:]
         }
         Map result = resource.hgetAll(makeKey(master, job))
