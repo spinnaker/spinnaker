@@ -236,7 +236,9 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.transfo
               deployment.commits = foundTask.commits;
             }
 
-            if (deployedClusterPair) {
+            // verify the server groups are present - if this is a project-level pipeline, the application will be an
+            // empty object
+            if (deployedClusterPair && application.serverGroups) {
               var canaryServerGroup = _.find(application.serverGroups.data, {
                 name: deployedClusterPair.canaryCluster.serverGroup,
                 account: deployedClusterPair.canaryCluster.accountName,
