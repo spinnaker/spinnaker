@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.igor.health
 
-import com.netflix.spinnaker.igor.jenkins.BuildMonitor
 import com.netflix.spinnaker.igor.polling.PollingMonitor
 import org.joda.time.DateTimeConstants
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,8 +31,8 @@ import org.springframework.stereotype.Component
 @Component
 public class PollingMonitorHealth implements HealthIndicator {
 
-    @Autowired
-    List<PollingMonitor> pollers
+    @Autowired(required = false)
+    List<PollingMonitor> pollers = new ArrayList<PollingMonitor>()
 
     @Override
     public Health health() {
@@ -56,16 +55,18 @@ public class PollingMonitorHealth implements HealthIndicator {
 
         }
 
-        def health = healths.find { it.status == Status.DOWN } ? Health.down() :
+        def health = healths.empty ? Health.down() :
+            healths.find { it.status == Status.DOWN } ? Health.down() :
                 healths.find { it.status == Status.UNKNOWN } ? Health.unknown() :
-                Health.up()
+                    Health.up()
 
 
-        healths.forEach {
-            it.details.forEach { k, v ->
-                health = health.withDetail(k, v)
+        healths.empty ? health.withDetail('status', 'No polling agents running') :
+            healths.forEach {
+                it.details.forEach { k, v ->
+                    health = health.withDetail(k, v)
+                }
             }
-        }
 
         return health.build()
     }
