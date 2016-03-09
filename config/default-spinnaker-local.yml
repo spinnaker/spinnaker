@@ -107,7 +107,7 @@ services:
     #
     # Note that jenkins is not installed with Spinnaker so you must obtain this
     # on your own if you are interested.
-    enabled: false
+    enabled: ${services.igor.enabled:false}
     defaultMaster:
       name: Jenkins # The display name for this server
       baseUrl:
