@@ -102,7 +102,7 @@ module.exports = angular.module('spinnaker.core.account.service', [
               .values()
               .map(acct => acct[attribute])
               .flatten()
-              .map(reg => reg.name)
+              .map(reg => reg.name || reg)
               .uniq()
               .value();
 
