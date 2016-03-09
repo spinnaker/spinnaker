@@ -17,19 +17,23 @@
 package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client
 
 import com.google.gson.GsonBuilder
-import com.netflix.spinnaker.clouddriver.docker.registry.DockerRegistryConfiguration
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerToken
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerTokenService
+import com.squareup.okhttp.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
-import retrofit.Callback
+import org.springframework.beans.factory.annotation.Value
 import retrofit.RestAdapter
 import retrofit.RetrofitError
+import retrofit.client.OkClient
 import retrofit.client.Response
 import retrofit.converter.GsonConverter
 import retrofit.http.GET
+import retrofit.http.HEAD
 import retrofit.http.Header
 import retrofit.http.Headers
 import retrofit.http.Path
+
+import java.util.concurrent.TimeUnit
 
 class DockerRegistryClient {
   private DockerBearerTokenService tokenService
@@ -42,14 +46,24 @@ class DockerRegistryClient {
   @Autowired
   String dockerApplicationName
 
+  @Value('${dockerRegistry.client.timeout:60000}')
+  int clientTimeout
+
   public getBasicAuth() {
     return basicAuth
   }
 
   DockerRegistryClient(String address, String email, String username, String password) {
     this.tokenService = new DockerBearerTokenService(username, password)
-    this.basicAuth = this.tokenService.basicAuth;
-    this.registryService = new RestAdapter.Builder().setEndpoint(address).setLogLevel(RestAdapter.LogLevel.NONE).build().create(DockerRegistryService)
+    this.basicAuth = this.tokenService.basicAuth
+    OkHttpClient client = new OkHttpClient()
+    client.setReadTimeout(clientTimeout, TimeUnit.MILLISECONDS)
+    this.registryService = new RestAdapter.Builder()
+      .setEndpoint(address)
+      .setClient(new OkClient(client))
+      .setLogLevel(RestAdapter.LogLevel.NONE)
+      .build()
+      .create(DockerRegistryService)
     this.converter = new GsonConverter(new GsonBuilder().create())
     this.address = address
   }
@@ -73,7 +87,7 @@ class DockerRegistryClient {
     ])
     Response getManifest(@Path(value="name", encode=false) String name, @Path(value="reference", encode=false) String reference, @Header("Authorization") String token, @Header("User-Agent") String agent)
 
-    @GET("/v2/{name}/manifests/{reference}")
+    @HEAD("/v2/{name}/manifests/{reference}")
     @Headers([
       "Docker-Distribution-API-Version: registry/2.0"
     ])

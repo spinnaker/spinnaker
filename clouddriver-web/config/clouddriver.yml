@@ -33,6 +33,7 @@ swagger:
     - .*kubernetes.*
     - .*instances.*
     - .*reports.*
+    - .*docker.*
 
 default:
   # legacyServerPort is a non-ssl listener, if ssl is enabled. -1 to disable
