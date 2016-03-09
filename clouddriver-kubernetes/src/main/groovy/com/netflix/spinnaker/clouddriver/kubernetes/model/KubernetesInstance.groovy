@@ -44,17 +44,18 @@ class KubernetesInstance implements Instance, Serializable {
     this.name = pod.metadata?.name
     this.launchTime = KubernetesModelUtil.translateTime(pod.status?.startTime)
     this.zone = pod.metadata?.namespace
-    this.health = []
     this.pod = pod
     this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(pod)
-    pod.status?.containerStatuses?.forEach {
-      this.health << [name: it.name,
-                      state: convertContainerState(it.state).toString(),
-                      image: it.image,
-                      ready: it.ready.toString(),
-                      running: it.state?.running?.toString(),
-                      waiting: it.state?.waiting?.toString(),
-                      terminated: it.state?.terminated?.toString()]
+    this.health = pod.status?.containerStatuses?.collect {
+      [
+        name      : it.name,
+        state     : convertContainerState(it.state).toString(),
+        image     : it.image,
+        ready     : it.ready.toString(),
+        running   : it.state?.running?.toString(),
+        waiting   : it.state?.waiting?.toString(),
+        terminated: it.state?.terminated?.toString()
+      ]
     }
 
     def phase = pod.status?.phase

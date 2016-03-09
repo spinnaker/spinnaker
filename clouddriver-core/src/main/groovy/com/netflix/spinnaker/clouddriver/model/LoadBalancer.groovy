@@ -45,5 +45,5 @@ interface LoadBalancer {
    * @return set of names or an empty set if none exist
    */
   @Empty
-  Set<Map<String, Object>> getServerGroups()
+  Set<LoadBalancerServerGroup> getServerGroups()
 }

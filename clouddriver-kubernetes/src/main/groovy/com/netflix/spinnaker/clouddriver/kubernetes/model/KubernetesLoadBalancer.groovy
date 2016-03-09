@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.model
 
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import io.fabric8.kubernetes.api.model.Service
@@ -34,7 +36,7 @@ class KubernetesLoadBalancer implements LoadBalancer, Serializable {
   Service service
   String yaml
   // Set of server groups represented as maps of strings -> objects.
-  Set<Map<String, Object>> serverGroups
+  Set<LoadBalancerServerGroup> serverGroups
 
   KubernetesLoadBalancer(String name, String namespace, String accountName) {
     this.name = name
@@ -51,8 +53,17 @@ class KubernetesLoadBalancer implements LoadBalancer, Serializable {
     this.account = accountName
     this.createdTime = KubernetesModelUtil.translateTime(service.metadata?.creationTimestamp)
     this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(service)
-    this.serverGroups = serverGroupList?.collect {
-      [name: it?.name, serverGroup: it]
+    this.serverGroups = serverGroupList?.collect { serverGroup ->
+      // TODO(lwander): Add isDisabled and detachedInstances fields below.
+      new LoadBalancerServerGroup(
+        name: serverGroup?.name,
+        instances: serverGroup.instances?.collect { instance ->
+          new LoadBalancerInstance(
+            id: instance.name,
+            zone: instance.zone,
+            health: instance.health?.get(0)
+          )
+        } as Set)
     } as Set
   }
 }

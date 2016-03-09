@@ -116,7 +116,7 @@ class CloudFoundryLoadBalancerProviderSpec extends Specification {
 		loadBalancerByAppName[0].serverGroups[0].name == 'testapp-production-v001'
 		loadBalancerByAppName[0].serverGroups[0].isDisabled == true
 		loadBalancerByAppName[0].serverGroups[0].instances.size() == 1
-		loadBalancerByAppName[0].serverGroups[0].instances[0].name == 'testapp-production-v001(0)'
+		loadBalancerByAppName[0].serverGroups[0].instances[0].id == 'testapp-production-v001(0)'
 		loadBalancerByAppName[0].serverGroups[0].detachedInstances.size() == 0
 
 		1 * client.spaces >> {

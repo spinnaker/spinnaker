@@ -18,6 +18,8 @@ package com.netflix.spinnaker.clouddriver.google.model
 
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.model.HealthState
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -294,29 +296,29 @@ class GoogleResourceRetrieverSpec extends Specification {
             region: "us-central1",
             account: "some-account-name",
             serverGroups: [
-              [
+              new LoadBalancerServerGroup(
                 name: "roscoapp1-dev-v001",
                 isDisabled: false,
+                detachedInstances: ["roscoapp1-dev-v001-efgh"] as Set,
                 instances: [
-                  [
+                  new LoadBalancerInstance(
                     id: "roscoapp1-dev-v001-abcd",
                     zone: "us-central1-a",
                     health: [
                       state: "InService",
                       description: null
                     ]
-                  ],
-                  [
+                  ),
+                  new LoadBalancerInstance(
                     id: "roscoapp1-dev-v001-ijkl",
                     zone: "us-central1-a",
                     health: [
                       state: "InService",
                       description: null
                     ]
-                  ]
-                ] as Set,
-                detachedInstances: ["roscoapp1-dev-v001-efgh"] as Set
-              ]
+                  ),
+                ] as Set
+              )
             ],
             instanceNames: ["roscoapp1-dev-v001-abcd", "roscoapp1-dev-v001-ijkl"]
           ],

@@ -20,12 +20,14 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonInstance
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonLoadBalancer
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonServerGroup
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -41,17 +43,6 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
   public CatsLoadBalancerProvider(Cache cacheView, AwsProvider awsProvider) {
     this.cacheView = cacheView
     this.awsProvider = awsProvider
-  }
-
-  AmazonLoadBalancer translate(CacheData cacheData) {
-    Map<String, String> keyParts = Keys.parse(cacheData.id)
-    def lb = new AmazonLoadBalancer(name: keyParts.loadBalancer, account: keyParts.account, region: keyParts.region)
-    lb.account = keyParts.account
-    lb.elb = cacheData.attributes
-    lb.serverGroups = cacheData.relationships[SERVER_GROUPS.ns]?.collect {
-      Map<String, String> sgParts = Keys.parse(it)
-      sgParts.cluster
-    } ?: []
   }
 
   Collection<CacheData> resolveRelationshipData(CacheData source, String relationship) {
@@ -107,12 +98,12 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
       loadBalancer.account = loadBalancerKey.account
       def lbServerGroups = loadBalancerEntry.relationships[SERVER_GROUPS.ns]?.findResults { serverGroups.get(it) } ?: []
       lbServerGroups.each { serverGroup ->
-        loadBalancer.serverGroups << [
+        loadBalancer.serverGroups << new LoadBalancerServerGroup(
           name: serverGroup.name,
           isDisabled: serverGroup.isDisabled(),
           instances: serverGroup.instances ? serverGroup.instances.collect { instance ->
             def health = instance.health.find { it.loadBalancerName == loadBalancer.name } ?: [:]
-            [
+            new LoadBalancerInstance(
               id: instance.name,
               zone: instance.zone,
               health:
@@ -121,11 +112,10 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
                   reasonCode: health.reasonCode,
                   description: health.description
                 ]
-            ]
+            )
           } : [],
           detachedInstances: serverGroup.any().detachedInstances
-
-        ]
+        )
       }
       loadBalancer
     }
