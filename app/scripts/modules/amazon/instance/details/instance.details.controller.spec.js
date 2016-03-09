@@ -60,6 +60,11 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
         })
       );
       var application = {};
+
+      applicationReader.addSectionToApplication({key: 'loadBalancers', lazy: true}, application);
+      application.loadBalancers.data = [];
+      application.loadBalancers.loaded = true;
+
       applicationReader.addSectionToApplication({key: 'serverGroups', lazy: true}, application);
       application.serverGroups.data = [
         {
@@ -75,6 +80,7 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
           ]
         }
       ];
+      application.serverGroups.loaded = true;
 
       this.createController(application, params);
       scope.$digest();
@@ -102,6 +108,11 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
       );
 
       var application = {};
+
+      applicationReader.addSectionToApplication({key: 'loadBalancers', lazy: true}, application);
+      application.loadBalancers.data = [];
+      application.loadBalancers.loaded = true;
+
       applicationReader.addSectionToApplication({key: 'serverGroups', lazy: true}, application);
       application.serverGroups.data = [
         {
@@ -117,6 +128,7 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
           ]
         }
       ];
+      application.serverGroups.loaded = true;
 
       this.createController(application, params);
       scope.$digest();

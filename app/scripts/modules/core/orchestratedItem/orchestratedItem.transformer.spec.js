@@ -2,23 +2,23 @@
 
 describe('orchestratedItem transformer', function () {
   var transformer;
-  
+
   beforeEach(window.module(
     require('./orchestratedItem.transformer')
   ));
-  
+
   beforeEach(window.inject(function(orchestratedItemTransformer) {
     transformer = orchestratedItemTransformer;
   }));
-  
+
   describe('failure message extraction', function () {
 
     let getMessage = (obj) => {
       transformer.defineProperties(obj);
       return obj.failureMessage;
     };
-    
-    
+
+
     it('returns null when no stage context', function() {
       expect(getMessage({})).toBe(null);
     });
