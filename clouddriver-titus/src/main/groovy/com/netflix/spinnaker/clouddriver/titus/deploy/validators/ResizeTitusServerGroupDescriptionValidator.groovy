@@ -53,17 +53,21 @@ class ResizeTitusServerGroupDescriptionValidator extends AbstractTitusDescriptio
       errors.rejectValue "serverGroupName", "resizeTitusServerGroupDescription.serverGroupName.empty"
     }
 
-    if (!description.capacity.min) {
+    if (!valid(description.capacity.min)) {
       errors.rejectValue "serverGroupName", "resizeTitusServerGroupDescription.min.empty"
     }
 
-    if (!description.capacity.max) {
+    if (!valid(description.capacity.max)) {
       errors.rejectValue "serverGroupName", "resizeTitusServerGroupDescription.max.empty"
     }
 
-    if (!description.capacity.desired) {
+    if (!valid(description.capacity.desired)) {
       errors.rejectValue "serverGroupName", "resizeTitusServerGroupDescription.desired.empty"
     }
+  }
+
+  def valid(Object value) {
+    value || value instanceof Number
   }
 
 }
