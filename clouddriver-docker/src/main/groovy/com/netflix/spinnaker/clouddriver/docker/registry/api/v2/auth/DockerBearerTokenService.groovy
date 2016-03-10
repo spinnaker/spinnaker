@@ -152,7 +152,7 @@ class DockerBearerTokenService {
     String authenticate = null
 
     headers.forEach { header ->
-      if (header.name == "Www-Authenticate") {
+      if (header.name.equalsIgnoreCase("www-authenticate")) {
         authenticate = header.value
       }
     }
