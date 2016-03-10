@@ -126,7 +126,7 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
       Map<String, Map> ipRangeRules = [:]
       amznSecurityGroup.ipPermissions.each { permission ->
         addIpRangeRules(permission, ipRangeRules)
-        addSecurityGroupRules(permission, rules, securityGroup.vpcId, region)
+        addSecurityGroupRules(permission, rules, account, region, securityGroup.vpcId)
       }
       inboundRules.addAll buildSecurityGroupRules(rules)
       inboundRules.addAll buildIpRangeRules(ipRangeRules)
@@ -167,31 +167,44 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
     securityGroupRules
   }
 
-  private String getIngressGroupName(UserIdGroupPair sg, String accountName, String region, String vpcId) {
-    if (sg.groupName) {
-      return sg.groupName
+  private Map<String, String> getIngressGroupNameAndVpcId(UserIdGroupPair sg, String baseAccount, String ingressAccount, String region, String vpcId) {
+    String ingressGroupName = sg.groupName
+    String ingressGroupVpcId = vpcId
+    // need to query if there's no name, or if the security groups are in different accounts, since they will have
+    // different vpcIds.
+    if (!ingressGroupName || baseAccount != ingressAccount) {
+      def vpcPattern = vpcId ?: '*'
+      if (baseAccount != ingressAccount) {
+        vpcPattern = '*'
+      }
+      def keyPattern = Keys.getSecurityGroupKey(amazonCloudProvider, '*', sg.groupId, region, ingressAccount ?: '*', vpcPattern)
+      def matches = cacheView.filterIdentifiers(SECURITY_GROUPS.ns, keyPattern)
+      if (matches) {
+        def parts = Keys.parse(amazonCloudProvider, matches[0])
+        ingressGroupName = parts.name
+        ingressGroupVpcId = parts.vpcId
+      }
     }
-    def keyPattern = Keys.getSecurityGroupKey(amazonCloudProvider, '*', sg.groupId, region, accountName ?: '*', vpcId)
-    def matches = cacheView.filterIdentifiers(SECURITY_GROUPS.ns, keyPattern)
-    return matches ? Keys.parse(amazonCloudProvider, matches[0]).name : null
+    return [ name: ingressGroupName, vpcId: ingressGroupVpcId ]
   }
 
-  private void addSecurityGroupRules(IpPermission permission, Map<GroupAndProtocol, Map> rules, String vpcId, String region) {
+  private void addSecurityGroupRules(IpPermission permission, Map<GroupAndProtocol, Map> rules, String account, String region, String vpcId) {
     permission.userIdGroupPairs.each { sg ->
       def groupAndProtocol = new GroupAndProtocol(sg.groupId, permission.ipProtocol)
       if (!rules.containsKey(groupAndProtocol)) {
         final ingressAccount = accounts.find { it.accountId == sg.userId }
+        Map<String, String> ingressGroupSummary = getIngressGroupNameAndVpcId(sg, account, ingressAccount?.name, region, vpcId)
         rules.put(groupAndProtocol, [
           protocol     : permission.ipProtocol,
           securityGroup:
             new AmazonSecurityGroup(
               type: amazonCloudProvider.id,
               id: sg.groupId,
-              name: getIngressGroupName(sg, ingressAccount?.name, region, vpcId),
+              name: ingressGroupSummary.name,
               accountId: sg.userId,
               accountName: ingressAccount?.name,
               region: region,
-              vpcId: vpcId
+              vpcId: ingressGroupSummary.vpcId
             ),
           portRanges   : [] as SortedSet
         ])
