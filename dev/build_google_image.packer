@@ -6,7 +6,8 @@
     "update_os": "false",
     "json_credentials":  "",
     "zone": "us-central1-f",
-    "source_image": "ubuntu-1404-trusty-v20160114e",
+    "source_image": null,
+    "base_srcdir": null,
     "target_image": "{{env `USER`}}-spinnaker-{{timestamp}}"
  },
 
@@ -26,10 +27,28 @@
     "destination": "/tmp/install_spinnaker.sh"
   },
   {
+    "type": "file",
+    "source": "{{user `base_srcdir`}}/google/google_cloud_logging/spinnaker.conf",
+    "destination": "/tmp/spinnaker_cloud_logging.conf"
+  },
+  {
+    "type": "shell",
+    "inline": [
+      "cd /tmp",
+      "mkdir -p /etc/google-fluentd/config.d",
+      "mv spinnaker_cloud_logging.conf /etc/google-fluentd/config.d/spinnaker.conf",
+      "curl -s -O https://dl.google.com/cloudagents/install-logging-agent.sh",
+      "bash ./install-logging-agent.sh",
+      "rm ./install-logging-agent.sh",
+      "service google-fluentd stop"
+    ]
+  },
+  {
     "type": "shell",
     "inline": [
         "chmod +x /tmp/install_spinnaker.sh",
-        "/tmp/install_spinnaker.sh --repository {{user `debian_repo`}} --cloud_provider google --google_region us-central1 --quiet"
+        "/tmp/install_spinnaker.sh --repository {{user `debian_repo`}} --cloud_provider google --google_region us-central1 --quiet",
+        "service spinnaker stop"
      ]
   },
 
