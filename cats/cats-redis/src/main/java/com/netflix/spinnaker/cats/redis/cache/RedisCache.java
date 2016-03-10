@@ -133,6 +133,7 @@ public class RedisCache implements WriteableCache {
             try (Jedis jedis = source.getJedis()) {
                 Pipeline pipeline = jedis.pipelined();
                 pipeline.sadd(allOfTypeId(type), ids);
+                pipeline.sadd(allOfTypeReindex(type), ids);
 
                 for (List<String> keys : Iterables.partition(keysToSet, maxMsetSize)) {
                     pipeline.mset(keys.toArray(new String[keys.size()]));
@@ -165,13 +166,14 @@ public class RedisCache implements WriteableCache {
         if (identifiers.isEmpty()) {
             return;
         }
-        Collection<String> ids = new HashSet<>(identifiers);
+        identifiers = new HashSet<>(identifiers);
+        final String[] ids = identifiers.toArray(new String[identifiers.size()]);
         final Collection<String> allRelationships;
         try (Jedis jedis = source.getJedis()) {
             allRelationships = jedis.smembers(allRelationshipsId(type));
         }
 
-        Collection<String> delKeys = new ArrayList<>((allRelationships.size() + 1) * ids.size());
+        Collection<String> delKeys = new ArrayList<>((allRelationships.size() + 1) * ids.length);
         for (String id : ids) {
             for (String relationship : allRelationships) {
                 delKeys.add(relationshipId(type, id, relationship));
@@ -181,7 +183,8 @@ public class RedisCache implements WriteableCache {
 
         try (Jedis jedis = source.getJedis()) {
             jedis.del(delKeys.toArray(new String[delKeys.size()]));
-            jedis.srem(allOfTypeId(type), ids.toArray(new String[ids.size()]));
+            jedis.srem(allOfTypeId(type), ids);
+            jedis.srem(allOfTypeReindex(type), ids);
             jedis.hdel(hashesId(type), stringsToBytes(delKeys));
         }
     }
@@ -474,5 +477,9 @@ public class RedisCache implements WriteableCache {
 
     private String allOfTypeId(String type) {
         return String.format("%s:%s:members", prefix, type);
+    }
+
+    private String allOfTypeReindex(String type) {
+        return String.format("%s:%s:members.2", prefix, type);
     }
 }
