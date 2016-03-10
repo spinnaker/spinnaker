@@ -26,6 +26,11 @@ window.spinnakerSettings = {
         region: 'us-east-1'
       },
       defaultSecurityGroups: ['nf-datacenter-vpc', 'nf-infrastructure-vpc', 'nf-datacenter', 'nf-infrastructure'],
+      loadBalancers: {
+        // if true, VPC load balancers will be created as internal load balancers iff the selected subnet has a purpose
+        // tag that starts with "internal"
+        inferInternalFlagFromSubnet: false,
+      },
     },
     gce: {
       defaults: {

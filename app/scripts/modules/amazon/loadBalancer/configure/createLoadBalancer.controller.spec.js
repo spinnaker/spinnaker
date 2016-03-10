@@ -11,18 +11,23 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
 
   // Initialize the controller and a mock scope
   beforeEach(window.inject(function ($controller, $rootScope) {
+    this.settings = {};
     this.$scope = $rootScope.$new();
-    this.ctrl = $controller('awsCreateLoadBalancerCtrl', {
-      $scope: this.$scope,
-      $modalInstance: { dismiss: angular.noop, result: { then: angular.noop } },
-      application: {name: 'app', defaultCredentials: {}, defaultRegions: {}},
-      loadBalancer: null,
-      isNew: true,
-      forPipelineConfig: false
-    });
+    this.initialize = () => {
+      this.ctrl = $controller('awsCreateLoadBalancerCtrl', {
+        $scope: this.$scope,
+        $modalInstance: {dismiss: angular.noop, result: {then: angular.noop}},
+        application: {name: 'app', defaultCredentials: {}, defaultRegions: {}},
+        loadBalancer: null,
+        isNew: true,
+        forPipelineConfig: false,
+        settings: this.settings,
+      });
+    };
   }));
 
   it('requires health check path for HTTP/S', function () {
+    this.initialize();
     var loadBalancer = {
       healthCheckProtocol: 'HTTP'
     };
@@ -43,6 +48,7 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
   });
 
   it('includes SSL Certificate field when any listener is HTTPS or SSL', function() {
+    this.initialize();
     var loadBalancer = {
       listeners: [],
     };
@@ -69,6 +75,7 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
   });
 
   describe('prependForwardSlash', function () {
+    beforeEach(this.initialize);
     it('should add the leading slash if it is NOT present', function () {
       let result = this.ctrl.prependForwardSlash('foo');
       expect(result).toEqual('/foo');
@@ -87,6 +94,57 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
     it('should not add the leading slash the input is empty string', function () {
       let result = this.ctrl.prependForwardSlash('');
       expect(result).toEqual('');
+    });
+  });
+
+  describe('isInternal flag', function () {
+    it('should remove the flag and set a state value if inferInternalFlagFromSubnet is true', function () {
+      this.settings.providers = {
+        aws: { loadBalancers: { inferInternalFlagFromSubnet: true }}
+      };
+      this.initialize();
+
+      expect(this.$scope.loadBalancer.isInternal).toBe(undefined);
+      expect(this.$scope.state.hideInternalFlag).toBe(true);
+    });
+
+    it('should leave the flag and not set a state value if inferInternalFlagFromSubnet is false or not defined', function () {
+      this.settings.providers = {
+        aws: { loadBalancers: { inferInternalFlagFromSubnet: true }}
+      };
+
+      this.initialize();
+      expect(this.$scope.loadBalancer.isInternal).toBe(undefined);
+      expect(this.$scope.state.hideInternalFlag).toBe(true);
+
+      this.settings.providers.aws.loadBalancers.inferInternalFlagFromSubnet = false;
+      this.initialize();
+      expect(this.$scope.loadBalancer.isInternal).toBe(false);
+      expect(this.$scope.state.hideInternalFlag).toBeUndefined();
+
+      delete this.settings.providers.aws.loadBalancers.inferInternalFlagFromSubnet;
+      this.initialize();
+
+      expect(this.$scope.loadBalancer.isInternal).toBe(false);
+      expect(this.$scope.state.hideInternalFlag).toBeUndefined();
+
+      delete this.settings.providers.aws.loadBalancers;
+      this.initialize();
+
+      expect(this.$scope.loadBalancer.isInternal).toBe(false);
+      expect(this.$scope.state.hideInternalFlag).toBeUndefined();
+
+      delete this.settings.providers.aws;
+      this.initialize();
+
+      expect(this.$scope.loadBalancer.isInternal).toBe(false);
+      expect(this.$scope.state.hideInternalFlag).toBeUndefined();
+
+      delete this.settings.providers;
+      this.initialize();
+
+      expect(this.$scope.loadBalancer.isInternal).toBe(false);
+      expect(this.$scope.state.hideInternalFlag).toBeUndefined();
     });
   });
 
