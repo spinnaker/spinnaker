@@ -98,9 +98,8 @@ module.exports = angular.module('spinnaker.core.account.service', [
       return _.memoize((provider) => {
         return getCredentialsKeyedByAccount(provider)
           .then(function(credentialsByAccount) {
-            let attributes = _.chain(credentialsByAccount)
-              .values()
-              .map(acct => acct[attribute])
+            let attributes = _(credentialsByAccount)
+              .pluck(attribute)
               .flatten()
               .map(reg => reg.name || reg)
               .uniq()
@@ -114,9 +113,8 @@ module.exports = angular.module('spinnaker.core.account.service', [
     let getUniqueGceZonesForAllAccounts = _.memoize((provider) => {
       return getCredentialsKeyedByAccount(provider)
         .then(function(regionsByAccount) {
-          return _.chain(regionsByAccount)
-            .values()
-            .map(acct => acct.regions)
+          return _(regionsByAccount)
+            .pluck('regions')
             .flatten()
             .reduce((acc, obj) => {
               Object.keys(obj).forEach((key) => {

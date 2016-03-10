@@ -4,16 +4,16 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.bake.service', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
+  require('../../../../account/account.service.js'),
+  require('../../../../config/settings.js'),
 ])
-  .factory('bakeryService', function($q, _, Restangular) {
+  .factory('bakeryService', function($q, _, Restangular, accountService, settings) {
 
     function getRegions(provider) {
-      if (!provider || provider === 'aws') {
-        return $q.when(['us-east-1', 'us-west-1', 'us-west-2', 'eu-west-1']);
+      if (_.has(settings, `providers.${provider}.bakeryRegions`)) {
+        return $q.when(_.get(settings, `providers.${provider}.bakeryRegions`));
       }
-      if (provider === 'gce') {
-        return $q.when(['asia-east1', 'us-central1', 'europe-west1']);
-      }
+      return accountService.getUniqueAttributeForAllAccounts('regions')(provider).then(regions => regions.sort());
     }
 
     function getBaseOsOptions(provider) {
