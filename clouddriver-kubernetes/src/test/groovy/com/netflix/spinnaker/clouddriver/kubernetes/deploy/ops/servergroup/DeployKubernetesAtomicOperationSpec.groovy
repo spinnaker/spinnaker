@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesHandler
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesHandlerType
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesProbe
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesResourceDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesTcpSocketAction
@@ -101,6 +102,7 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
     def livenessProbe = new KubernetesProbe([
       periodSeconds: PERIOD_SECONDS,
       handler: new KubernetesHandler([
+        type: KubernetesHandlerType.TCP,
         tcpSocketAction: new KubernetesTcpSocketAction([
           port: PORT
         ])

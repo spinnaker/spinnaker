@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesHandlerType
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.IntOrString
 import io.fabric8.kubernetes.api.model.ReplicationController
@@ -42,7 +43,7 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
   /*
    * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "securityGroups": [], "loadBalancers":  [],  "containers": [ { "name": "nginx", "imageDescription": { "repository": "nginx" } } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
    * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "loadBalancers":  ["frontend-lb"],  "containers": [ { "name": "nginx", "imageDescription": { "repository": "nginx", "tag": "latest", "registry": "gcr.io" }, "ports": [ { "containerPort": "80", "hostPort": "80", "name": "http", "protocol": "TCP", "hostIp": "10.239.18.11" } ] } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
-   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "loadBalancers":  [],  "containers": [ { "name": "nginx", "imageDescription": { "repository": "nginx", "tag": "latest", "registry": "gcr.io" }, "livenessProbe": { "handler": { "execAction": { "commands": [ "ls" ] } } } } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "loadBalancers":  [],  "containers": [ { "name": "nginx", "imageDescription": { "repository": "nginx", "tag": "latest", "registry": "gcr.io" }, "livenessProbe": { "handler": { "type": "EXEC", "execAction": { "commands": [ "ls" ] } } } } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
   */
   @Override
   DeploymentResult operate(List priorOutputs) {
@@ -164,9 +165,7 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
               break
           }
 
-          if (probe.initialDelaySeconds) {
-            replicationControllerBuilder = replicationControllerBuilder.withInitialDelaySeconds(probe.initialDelaySeconds)
-          }
+          replicationControllerBuilder = replicationControllerBuilder.withInitialDelaySeconds(probe.initialDelaySeconds)
 
           if (probe.timeoutSeconds) {
             replicationControllerBuilder = replicationControllerBuilder.withTimeoutSeconds(probe.timeoutSeconds)
@@ -185,34 +184,35 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
           }
 
           task.updateStatus BASE_PHASE, 'Adding probe handler..'
-          if (probe.handler?.execAction) {
-            replicationControllerBuilder = replicationControllerBuilder.withNewExec().withCommand(probe.handler.execAction.commands).endExec()
-          }
+          switch (probe.handler.type) {
+            case KubernetesHandlerType.EXEC:
+              replicationControllerBuilder = replicationControllerBuilder.withNewExec().withCommand(probe.handler.execAction.commands).endExec()
+              break
 
-          if (probe.handler?.tcpSocketAction) {
-            replicationControllerBuilder = replicationControllerBuilder.withNewTcpSocket().withNewPort(probe.handler.tcpSocketAction.port).endTcpSocket()
-          }
+            case KubernetesHandlerType.TCP:
+              replicationControllerBuilder = replicationControllerBuilder.withNewTcpSocket().withNewPort(probe.handler.tcpSocketAction.port).endTcpSocket()
+              break
 
-          if (probe.handler?.httpGetAction) {
-            replicationControllerBuilder = replicationControllerBuilder.withNewHttpGet()
-            def get = probe.handler.httpGetAction
+            case KubernetesHandlerType.HTTP:
+              replicationControllerBuilder = replicationControllerBuilder.withNewHttpGet()
+              def get = probe.handler.httpGetAction
 
-            if (get.host) {
-              replicationControllerBuilder = replicationControllerBuilder.withHost(get.host)
-            }
+              if (get.host) {
+                replicationControllerBuilder = replicationControllerBuilder.withHost(get.host)
+              }
 
-            if (get.path) {
-              replicationControllerBuilder = replicationControllerBuilder.withPath(get.path)
-            }
+              if (get.path) {
+                replicationControllerBuilder = replicationControllerBuilder.withPath(get.path)
+              }
 
-            if (get.port) {
               replicationControllerBuilder = replicationControllerBuilder.withPort(new IntOrString(get.port))
-            }
 
-            if (get.uriScheme) {
-              replicationControllerBuilder = replicationControllerBuilder.withScheme(get.uriScheme)
-            }
-            replicationControllerBuilder = replicationControllerBuilder.endHttpGetAction()
+              if (get.uriScheme) {
+                replicationControllerBuilder = replicationControllerBuilder.withScheme(get.uriScheme)
+              }
+
+              replicationControllerBuilder = replicationControllerBuilder.endHttpGetAction()
+              break
           }
 
           switch (k) {
