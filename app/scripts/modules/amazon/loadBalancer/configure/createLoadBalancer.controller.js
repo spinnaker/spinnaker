@@ -103,6 +103,12 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
       if (_.has(settings, 'providers.aws.defaultSecurityGroups')) {
         defaultSecurityGroups = settings.providers.aws.defaultSecurityGroups;
       }
+      if (_.has(settings, 'providers.aws.loadBalancers.inferInternalFlagFromSubnet')) {
+        if (settings.providers.aws.loadBalancers.inferInternalFlagFromSubnet) {
+          delete $scope.loadBalancer.isInternal;
+          $scope.state.hideInternalFlag = true;
+        }
+      }
       accountService.listAccounts('aws').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
