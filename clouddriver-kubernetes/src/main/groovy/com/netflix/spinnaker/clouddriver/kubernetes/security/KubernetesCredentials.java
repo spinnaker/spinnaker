@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 public class KubernetesCredentials {
@@ -71,7 +72,11 @@ public class KubernetesCredentials {
 
         HashMap<String, String> secretData = new HashMap<>(1);
         String dockerCfg = String.format("{ \"%s\": { \"auth\": \"%s\", \"email\": \"%s\" } }", account.getV2Endpoint(), account.getBasicAuth(), account.getEmail());
-        dockerCfg = new String(Base64.getEncoder().encode(dockerCfg.getBytes()));
+        try {
+          dockerCfg = new String(Base64.getEncoder().encode(dockerCfg.getBytes("UTF-8")), "UTF-8");
+        } catch (UnsupportedEncodingException uee) {
+          throw new IllegalStateException("Unable to encode docker config ", uee);
+        }
         secretData.put(".dockercfg", dockerCfg);
 
         secretBuilder = secretBuilder.withData(secretData).withType("kubernetes.io/dockercfg");

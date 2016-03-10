@@ -34,6 +34,7 @@ import groovy.transform.CompileStatic
 import org.apache.commons.codec.binary.Base64
 import org.joda.time.LocalDateTime
 
+import java.nio.charset.Charset
 import java.util.regex.Pattern
 
 @CompileStatic
@@ -208,12 +209,12 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
     String data = userDataProviders?.collect { udp ->
       udp.getUserData(asgName, launchConfigName, region, account, environment, accountType)
     }?.join("\n")
-    String userDataDecoded = new String(base64UserData.decodeBase64())
+    String userDataDecoded = new String(base64UserData.decodeBase64(), Charset.forName("UTF-8"))
     data = [data, userDataDecoded].findResults { it }.join("\n")
     if (data && data.startsWith("\n")) {
       data = data.substring(1)
     }
-    data ? new String(Base64.encodeBase64(data.bytes)) : null
+    data ? new String(Base64.encodeBase64(data.bytes),  Charset.forName("UTF-8")) : null
   }
 
   private String createLaunchConfiguration(String name, String userData, LaunchConfigurationSettings settings) {
