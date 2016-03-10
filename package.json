@@ -2,6 +2,11 @@
   "main": "./dist/bundle.js",
   "name": "deck",
   "version": "0.0.0",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/spinnaker/deck.git"
+  },
   "publishConfig": {
     "registry": "http://artifacts.netflix.com/api/npm/npm-local"
   },
