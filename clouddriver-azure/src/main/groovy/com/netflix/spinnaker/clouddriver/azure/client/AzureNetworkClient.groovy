@@ -243,9 +243,13 @@ class AzureNetworkClient extends AzureBaseClient {
    * @throws RuntimeException Throws RuntimeException if operation response indicates failure
    * @returns Resource ID of subnet created
    */
-  String createSubnet(String resourceGroupName, String virtualNetworkName, String subnetName, String addressPrefix = '10.0.0.0/24') {
+  String createSubnet(String resourceGroupName, String virtualNetworkName, String subnetName, String addressPrefix, String securityGroupName) {
     Subnet subnet = new Subnet()
     subnet.setAddressPrefix(addressPrefix)
+
+    if (securityGroupName) {
+      addSecurityGroupToSubnet(resourceGroupName, securityGroupName, subnet)
+    }
 
     //This will throw an exception if the it fails. If it returns then the call was successful
     //Log the error Let it bubble up to the caller to handle as they see fit
@@ -262,6 +266,11 @@ class AzureNetworkClient extends AzureBaseClient {
       log.error("Unable to create subnet ${subnetName} in Resource Group ${resourceGroupName}")
       throw e
     }
+  }
+
+  private void addSecurityGroupToSubnet(String resourceGroupName, String securityGroupName, Subnet subnet) {
+    def securityGroup = this.client.getNetworkSecurityGroupsOperations().get(resourceGroupName, securityGroupName, null).body
+    subnet.setNetworkSecurityGroup securityGroup
   }
 
   /**
