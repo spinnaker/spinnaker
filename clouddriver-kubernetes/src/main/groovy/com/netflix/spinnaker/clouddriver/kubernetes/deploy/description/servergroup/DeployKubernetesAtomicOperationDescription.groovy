@@ -76,9 +76,14 @@ class KubernetesProbe {
   int failureThreshold
 }
 
+enum KubernetesHandlerType {
+  EXEC, TCP, HTTP
+}
+
 @AutoClone
 @Canonical
 class KubernetesHandler {
+  KubernetesHandlerType type
   KubernetesExecAction execAction
   KubernetesHttpGetAction httpGetAction
   KubernetesTcpSocketAction tcpSocketAction

@@ -139,6 +139,7 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
         successThreshold: POSITIVE_NUMBER,
         failureThreshold: POSITIVE_NUMBER,
         handler: new KubernetesHandler(
+            type: KubernetesHandlerType.HTTP,
             httpGetAction: fullValidHttpGetAction
         )
     )
@@ -180,6 +181,7 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
         successThreshold: NEGATIVE_NUMBER,
         failureThreshold: NEGATIVE_NUMBER,
         handler: new KubernetesHandler(
+            type: KubernetesHandlerType.HTTP,
             httpGetAction:  partialInvalidHttpGetAction
         )
     )
@@ -387,7 +389,7 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
       1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].livenessProbe.successThreshold", "${DESCRIPTION}.container[0].livenessProbe.successThreshold.notPositive")
       1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].livenessProbe.failureThreshold", "${DESCRIPTION}.container[0].livenessProbe.failureThreshold.notPositive")
       1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].livenessProbe.handler.httpGetAction.uriScheme", "${DESCRIPTION}.container[0].livenessProbe.handler.httpGetAction.uriScheme.invalid (Must be one of ${StandardKubernetesAttributeValidator.uriSchemeList})")
-      1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].readinessProbe.handler.size", "${DESCRIPTION}.container[0].readinessProbe.handler.size.notPositive")
+      1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].readinessProbe.handler.type", "${DESCRIPTION}.container[0].readinessProbe.handler.type.empty")
       0 * errorsMock._
   }
 

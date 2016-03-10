@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.servergroup
 
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesHandlerType
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesProbe
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
 
@@ -84,29 +85,23 @@ class KubernetesContainerValidator {
       helper.validatePositive(probe.failureThreshold, "${prefix}.failureThreshold")
     }
 
-    int handlers = 0;
-
     helper.validateNotEmpty(probe.handler, "${prefix}.handler")
+    helper.validateNotEmpty(probe.handler?.type, "${prefix}.handler.type")
 
-    if (probe.handler?.execAction) {
-      helper.validateNotEmpty(probe.handler.execAction.commands, "${prefix}.handler.execAction.commands")
-      handlers++
+    if (probe.handler?.type == KubernetesHandlerType.EXEC) {
+      helper.validateNotEmpty(probe.handler?.execAction?.commands, "${prefix}.handler.execAction.commands")
     }
 
-    if (probe.handler?.tcpSocketAction) {
-      helper.validatePort(probe.handler.tcpSocketAction.port, "${prefix}.handler.tcpSocketAction.port")
-      handlers++
+    if (probe.handler?.type == KubernetesHandlerType.TCP) {
+      helper.validatePort(probe.handler?.tcpSocketAction?.port, "${prefix}.handler.tcpSocketAction.port")
     }
 
-    if (probe.handler?.httpGetAction) {
-      helper.validatePort(probe.handler.httpGetAction.port, "${prefix}.handler.httpGetAction.port")
+    if (probe.handler?.type == KubernetesHandlerType.HTTP) {
+      helper.validatePort(probe.handler?.httpGetAction?.port, "${prefix}.handler.httpGetAction.port")
 
-      if (probe.handler.httpGetAction.uriScheme) {
-        helper.validateUriScheme(probe.handler.httpGetAction.uriScheme, "${prefix}.handler.httpGetAction.uriScheme")
+      if (probe.handler?.httpGetAction?.uriScheme) {
+        helper.validateUriScheme(probe.handler?.httpGetAction?.uriScheme, "${prefix}.handler.httpGetAction.uriScheme")
       }
-      handlers++
     }
-
-    helper.validatePositive(handlers, "${prefix}.handler.size")
   }
 }

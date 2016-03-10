@@ -217,9 +217,22 @@ class KubernetesApiAdaptor {
     kubernetesProbe.periodSeconds = probe.periodSeconds ?: 0
     kubernetesProbe.initialDelaySeconds = probe.initialDelaySeconds ?: 0
     kubernetesProbe.handler = new KubernetesHandler()
-    kubernetesProbe.handler.execAction = fromExecAction(probe.exec)
-    kubernetesProbe.handler.tcpSocketAction = fromTcpSocketAction(probe.tcpSocket)
-    kubernetesProbe.handler.httpGetAction = fromHttpGetAction(probe.httpGet)
+
+    if (probe.exec) {
+      kubernetesProbe.handler.execAction = fromExecAction(probe.exec)
+      kubernetesProbe.handler.type = KubernetesHandlerType.EXEC
+    }
+
+    if (probe.tcpSocket) {
+      kubernetesProbe.handler.tcpSocketAction = fromTcpSocketAction(probe.tcpSocket)
+      kubernetesProbe.handler.type = KubernetesHandlerType.TCP
+    }
+
+    if (probe.httpGet) {
+      kubernetesProbe.handler.httpGetAction = fromHttpGetAction(probe.httpGet)
+      kubernetesProbe.handler.type = KubernetesHandlerType.HTTP
+    }
+
     return kubernetesProbe
   }
 
