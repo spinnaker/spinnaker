@@ -8,4 +8,8 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.securityG
   .controller('azureServerGroupSecurityGroupsCtrl', function(v2modalWizardService) {
     v2modalWizardService.markClean('security-groups');
     v2modalWizardService.markComplete('security-groups');
+
+    this.securityGroupChanged = () => {
+      v2modalWizardService.markComplete('security-groups');
+    };
   });
