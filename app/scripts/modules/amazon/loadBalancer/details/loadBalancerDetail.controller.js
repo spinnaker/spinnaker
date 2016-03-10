@@ -90,7 +90,8 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
         resolve: {
           application: function() { return app; },
           loadBalancer: function() { return angular.copy($scope.loadBalancer); },
-          isNew: function() { return false; }
+          isNew: function() { return false; },
+          forPipelineConfig: function() { return false; }
         }
       });
     };
@@ -103,7 +104,8 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
         resolve: {
           application: function() { return app; },
           loadBalancer: function() { return angular.copy($scope.loadBalancer); },
-          isNew: function() { return true; }
+          isNew: function() { return true; },
+          forPipelineConfig: function() { return false; }
         }
       });
     };
