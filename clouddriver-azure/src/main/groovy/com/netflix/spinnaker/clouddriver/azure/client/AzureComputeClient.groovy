@@ -20,8 +20,8 @@ import com.microsoft.azure.credentials.ApplicationTokenCredentials
 import com.microsoft.azure.management.compute.ComputeManagementClient
 import com.microsoft.azure.management.compute.ComputeManagementClientImpl
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
-import groovy.util.logging.Slf4j
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import okhttp3.logging.HttpLoggingInterceptor
 
 
@@ -30,10 +30,14 @@ import okhttp3.logging.HttpLoggingInterceptor
 public class AzureComputeClient extends AzureBaseClient {
   private final ComputeManagementClient client
 
+  AzureComputeClient(String subscriptionId, ComputeManagementClient client) {
+    super(subscriptionId)
+    this.client = client
+  }
+
   AzureComputeClient(String subscriptionId, ApplicationTokenCredentials credentials) {
     super(subscriptionId)
     this.client = this.initialize(credentials)
-
   }
 
   /**
@@ -57,24 +61,47 @@ public class AzureComputeClient extends AzureBaseClient {
     def result = [] as List<AzureVMImage>
 
     try {
-      def vmImagesOps = client.getVirtualMachineImagesOperations()
-      vmImagesOps?.listPublishers(location)?.body?.each { itemVMPublisher ->
-        vmImagesOps?.listOffers(location, itemVMPublisher.name)?.body?.each { itemVMOffers ->
-          vmImagesOps?.listSkus(location, itemVMPublisher.name, itemVMOffers.name)?.body?.each { itemVMSku ->
-            vmImagesOps?.list(location, itemVMPublisher.name, itemVMOffers.name,
-              itemVMSku.name, null, 100, "")?.body?.each { itemVMImage ->
+      // Usage of local variables to ease with debugging the code; keeping the content retrieved from Azure JSDK call to help with stepping through the code and inspect the values
+      List<String> publishers = client.getVirtualMachineImagesOperations()?.listPublishers(location)?.body?.collect { it.name }
+      log.info("getVMImagesAll-> Found ${publishers.size()} publisher items in azure/${location}/${ComputeManagementClient.simpleName}")
+
+      publishers?.each { publisher ->
+        List<String> offers = client.getVirtualMachineImagesOperations()?.listOffers(location, publisher)?.body?.collect {
+          it.name
+        }
+        log.info("getVMImagesAll-> Found ${offers.size()} offer items for ${publisher} in azure/${location}/${ComputeManagementClient.simpleName}")
+
+        offers?.each { offer ->
+          List<String> skus = client.getVirtualMachineImagesOperations()?.listSkus(location, publisher, offer)?.body?.collect {
+            it.name
+          }
+          log.info("getVMImagesAll-> Found ${skus.size()} SKU items for ${publisher}/${offer} in azure/${location}/${ComputeManagementClient.simpleName}")
+
+          skus?.each { sku ->
+            // Add a try/catch here in order to avoid an all-or-nothing return
+            try {
+              List<String> versions = client.getVirtualMachineImagesOperations()?.list(location, publisher, offer, sku, null, 100, "name")?.body?.collect {
+                it.name
+              }
+              log.info("getVMImagesAll-> Found ${skus.size()} version items for ${publisher}/${offer}/${sku} in azure/${location}/${ComputeManagementClient.simpleName}")
+
+              versions?.each { version ->
                 result += new AzureVMImage(
-                  publisher: itemVMPublisher.name,
-                  offer: itemVMOffers.name,
-                  sku: itemVMSku.name,
-                  version: itemVMImage.name)
+                  publisher: publisher,
+                  offer: offer,
+                  sku: sku,
+                  version: version)
+              }
+            }
+            catch (Exception e) {
+              log.info("getVMImagesAll -> Unexpected exception " + e.toString())
             }
           }
         }
       }
     }
     catch (Exception e) {
-      log.info("getVMImagesAll -> Unexpected exception " + e.toString())
+      log.error("getVMImagesAll -> Unexpected exception ", e)
     }
 
     result

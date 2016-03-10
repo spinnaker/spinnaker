@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.azure.security
 
+import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureCustomImageStorage
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import groovy.transform.CompileStatic
@@ -32,6 +33,7 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
   private final String appKey
   final List<AzureRegion> regions
   final List<AzureVMImage> vmImages
+  final List<AzureCustomImageStorage> vmCustomImages
   final String applicationName
   final List<String> requiredGroupMembership
   final AzureCredentials credentials
@@ -46,6 +48,7 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
                                String subscriptionId,
                                List<String> regions,
                                List<AzureVMImage> vmImages,
+                               List<AzureCustomImageStorage> vmCustomImages,
                                String applicationName,
                                List<String> requiredGroupMembership = null) {
     this.accountName = accountName
@@ -57,6 +60,7 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
     this.subscriptionId = subscriptionId
     this.regions = buildRegions(regions)
     this.vmImages = vmImages ?: [] as List<AzureVMImage>
+    this.vmCustomImages = vmCustomImages ?: [] as List<AzureCustomImageStorage>
     this.applicationName = applicationName
     this.requiredGroupMembership = requiredGroupMembership ?: [] as List<String>
     this.credentials = appKey.isEmpty() ? null : buildCredentials()
@@ -69,21 +73,20 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
 
   @Override
   String getName() {
-    return accountName
+    accountName
   }
 
   @Override
   public String getProvider() {
-    return getCloudProvider()
+    getCloudProvider()
   }
 
   private AzureCredentials buildCredentials() {
-
-    return new AzureCredentials(this.tenantId, this.clientId, this.appKey, this.subscriptionId)
+    new AzureCredentials(this.tenantId, this.clientId, this.appKey, this.subscriptionId)
   }
 
   private static List<AzureRegion> buildRegions(List<String> regions) {
-    return regions?.collect {new AzureRegion(it)}
+    regions?.collect {new AzureRegion(it)}
   }
 
   public static class AzureRegion {
@@ -91,7 +94,7 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
 
     public AzureRegion(String name) {
       if (name == null) {
-        throw new NullPointerException("name");
+        throw new NullPointerException("name")
       }
       this.name = name
     }
@@ -100,17 +103,17 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
+      if (this == o) return true
+      if (o == null || getClass() != o.getClass()) return false
 
-      AzureRegion awsRegion = (AzureRegion) o;
+      AzureRegion awsRegion = (AzureRegion) o
 
-      return name.equals(awsRegion.name)
+      name.equals(awsRegion.name)
     }
 
     @Override
     public int hashCode() {
-      return name.hashCode();
+      name.hashCode()
     }
   }
 

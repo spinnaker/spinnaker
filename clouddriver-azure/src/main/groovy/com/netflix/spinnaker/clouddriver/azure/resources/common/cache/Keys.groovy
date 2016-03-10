@@ -30,6 +30,7 @@ class Keys {
     AZURE_SERVER_GROUPS,
     AZURE_INSTANCES,
     AZURE_VMIMAGES,
+    AZURE_CUSTOMVMIMAGES,
     AZURE_ON_DEMAND
 
     final String ns
@@ -79,6 +80,9 @@ class Keys {
       case Namespace.AZURE_VMIMAGES.ns:
         result << [account: parts[2], region: parts[3], name: parts[4], vmversion: parts[5]]
         break
+      case Namespace.AZURE_CUSTOMVMIMAGES.ns:
+        result << [account: parts[2], region: parts[3], name: parts[4]]
+        break
       default:
         return null
         break
@@ -116,6 +120,13 @@ class Keys {
                               String vmImageVersion
                               ) {
     "$azureCloudProvider.id:${Namespace.AZURE_VMIMAGES}:${account}:${region}:${vmImageName}:${vmImageVersion}"
+  }
+
+  static String getCustomVMImageKey(AzureCloudProvider azureCloudProvider,
+                                    String account,
+                                    String region,
+                                    String vmImageName) {
+    "$azureCloudProvider.id:${Namespace.AZURE_CUSTOMVMIMAGES}:${account}:${region}:${vmImageName}"
   }
 
   static String getLoadBalancerKey(AzureCloudProvider azureCloudProvider,

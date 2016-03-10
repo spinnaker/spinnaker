@@ -22,6 +22,7 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys
+import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureCustomVMImage
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
 import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -61,15 +62,31 @@ class AzureVMImageLookupController {
   List<AzureNamedImage> getVMImage(@PathVariable String account, @PathVariable String region, @PathVariable String imageId) {
     def result = new ArrayList<AzureNamedImage>()
 
+    /// First search for any matches in the custom image cache
+    result.addAll(
+      getAllMatchingKeyPattern(
+        imageId,
+        Keys.Namespace.AZURE_CUSTOMVMIMAGES.ns,
+        Keys.getCustomVMImageKey(azureCloudProvider,
+          account,
+          region,
+          "*"),
+        true))
+
+    if (!result.isEmpty()) {
+      // found at least one match
+      return result
+    }
+
     // return a list of virtual machine images as read from the config.yml file
-    // TODO: retrieve the list of virtual machine images from the azure respective cache
     accountCredentialsProvider.getAll().each { creds ->
       if(creds instanceof AzureNamedAccountCredentials && creds.accountName == account) {
         creds.vmImages.each { vmImage ->
-          def imageName = vmImage.offer + " " + vmImage.sku + " (${vmImage.publisher})"
+          def imageName = vmImage.offer + "-" + vmImage.sku + "(Recommended)"
           if (imageName == imageId) {
             result += new AzureNamedImage(
-              imageName : vmImage.offer + " " + vmImage.sku + " (${vmImage.publisher})",
+              account: account,
+              imageName : imageName,
               publisher: vmImage.publisher,
               offer: vmImage.offer,
               sku: vmImage.sku,
@@ -79,6 +96,24 @@ class AzureVMImageLookupController {
         }
       }
     }
+
+    if (!result.isEmpty()) {
+      return result
+    }
+
+
+    /// Search for any matches in the market store VM image cache
+    result.addAll(
+      getAllMatchingKeyPattern(
+        imageId,
+        Keys.Namespace.AZURE_VMIMAGES.ns,
+        Keys.getVMImageKey(azureCloudProvider,
+          account,
+          region,
+          "*",
+          "*"),
+        false))
+
     if (result.isEmpty()) {
       throw new ImageNotFoundException("${imageId} not found in ${account}/${region}")
     }
@@ -90,50 +125,67 @@ class AzureVMImageLookupController {
   List<AzureNamedImage> list(LookupOptions lookupOptions) {
     def result = new ArrayList<AzureNamedImage>()
 
-    // return a list of virtual machine images as read from the config.yml file
-    accountCredentialsProvider.getAll().each { creds ->
-      if(creds instanceof AzureNamedAccountCredentials) {
-        creds.vmImages.each { vmImage ->
-          def imageName = vmImage.offer + "-" + vmImage.sku + " (Recommended)"
-          if (lookupOptions.q == null || imageName.toLowerCase().startsWith(lookupOptions.q.toLowerCase())) {
-            result += new AzureNamedImage(
-              imageName: imageName,
-              publisher: vmImage.publisher,
-              offer: vmImage.offer,
-              sku: vmImage.sku,
-              version: vmImage.version
-            )
-            if (result.size() >= MAX_SEARCH_RESULTS)
-              return result
+    // retrieve the list of custom vm images from the SCS specified in the config.yml file and stored in the cache
+    result.addAll(
+      getAllMatchingKeyPattern(
+        lookupOptions.q,
+        Keys.Namespace.AZURE_CUSTOMVMIMAGES.ns,
+        Keys.getCustomVMImageKey(azureCloudProvider,
+          lookupOptions.account ?: '*',
+          lookupOptions.region ?: '*',
+          "*"),
+        true))
+
+
+    if (!lookupOptions.customOnly) {
+      // return a list of virtual machine images as read from the config.yml file
+      accountCredentialsProvider.getAll().each { creds ->
+        if (creds instanceof AzureNamedAccountCredentials && (!lookupOptions.account || lookupOptions.account.isEmpty() || lookupOptions.account == creds.accountName)) {
+          creds.vmImages.each { vmImage ->
+            def imageName = vmImage.offer + "-" + vmImage.sku + "(Recommended)"
+            if (lookupOptions.q == null || imageName.toLowerCase().contains(lookupOptions.q.toLowerCase())) {
+              result += new AzureNamedImage(
+                account: creds.accountName,
+                imageName: imageName,
+                publisher: vmImage.publisher,
+                offer: vmImage.offer,
+                sku: vmImage.sku,
+                version: vmImage.version
+              )
+              if (result.size() >= MAX_SEARCH_RESULTS)
+                return result
+            }
           }
         }
       }
-    }
 
-    if (!lookupOptions.configOnly && lookupOptions.q != null && lookupOptions.q.length() >= MIN_NAME_FILTER) {
-      // TODO: retrieve the list of virtual machine images from the azure respective cache
-      result.addAll(getAllMatchingKeyPattern(lookupOptions.q,
-                              Keys.getVMImageKey( azureCloudProvider,
-                                                  lookupOptions.account?:'*',
-                                                  lookupOptions.region?:'*',
-                                                  "*",
-                                                  "*"
-                              )))
-      //result.addAll(cachedVMImages.subList(0, Math.min(MAX_SEARCH_RESULTS, cachedVMImages.size())))
+      if (!lookupOptions.configOnly && lookupOptions.q != null && lookupOptions.q.length() >= MIN_NAME_FILTER) {
+        // retrieve the list of virtual machine images from the azure respective cache
+        result.addAll(
+          getAllMatchingKeyPattern(
+            lookupOptions.q,
+            Keys.Namespace.AZURE_VMIMAGES.ns,
+            Keys.getVMImageKey(azureCloudProvider,
+              lookupOptions.account ?: '*',
+              lookupOptions.region ?: '*',
+              "*",
+              "*"),
+            false))
+      }
     }
 
     result
   }
 
-  List<AzureNamedImage> getAllMatchingKeyPattern(String vmImagePartName, String pattern) {
-    loadResults(vmImagePartName, cacheView.filterIdentifiers(Keys.Namespace.AZURE_VMIMAGES.ns, pattern))
+  List<AzureNamedImage> getAllMatchingKeyPattern(String vmImagePartName, String type, String pattern, Boolean customImage) {
+    loadResults(vmImagePartName, type, cacheView.filterIdentifiers(type, pattern), customImage)
   }
 
-  List<AzureNamedImage> loadResults(String vmImagePartName, Collection<String> identifiers) {
+  List<AzureNamedImage> loadResults(String vmImagePartName, String type, Collection<String> identifiers, Boolean customImage) {
     def results = [] as List<AzureNamedImage>
-    def data = cacheView.getAll(Keys.Namespace.AZURE_VMIMAGES.ns, identifiers, RelationshipCacheFilter.none())
+    def data = cacheView.getAll(type, identifiers, RelationshipCacheFilter.none())
     data.each {cacheData ->
-      def item = fromCacheData(vmImagePartName, cacheData)
+      def item = customImage? fromCustomImageCacheData(vmImagePartName, cacheData) : fromVMImageCacheData(vmImagePartName, cacheData)
 
       if (item)
         results += item
@@ -145,22 +197,54 @@ class AzureVMImageLookupController {
     results
   }
 
-  AzureNamedImage fromCacheData(String vmImagePartName, CacheData cacheData) {
-    AzureVMImage vmImage = objectMapper.convertValue(cacheData.attributes['vmimage'], AzureVMImage)
-    def imageName = vmImage.offer + "-" + vmImage.sku + " (${vmImage.publisher} ${vmImage.version})"
-    def parts = Keys.parse(azureCloudProvider, cacheData.id)
+  AzureNamedImage fromVMImageCacheData(String vmImagePartName, CacheData cacheData) {
+    try {
+      AzureVMImage vmImage = objectMapper.convertValue(cacheData.attributes['vmimage'], AzureVMImage)
+      def imageName = vmImage.offer + "-" + vmImage.sku + "(${vmImage.publisher}_${vmImage.version})"
+      def parts = Keys.parse(azureCloudProvider, cacheData.id)
 
-    if (imageName.toLowerCase().startsWith(vmImagePartName.toLowerCase())) {
+      if (imageName.toLowerCase().contains(vmImagePartName.toLowerCase())) {
+        return new AzureNamedImage(
+          imageName: imageName,
+          iscustom: false,
+          publisher: vmImage.publisher,
+          offer: vmImage.offer,
+          sku: vmImage.sku,
+          version: vmImage.version,
+          uri: "na",
+          ostype: "na",
+          account: parts.account,
+          region: parts.region
+        )
+      }
+    } catch (Exception e) {
+      log.error("fromVMImageCacheData -> Unexpected exception", e)
+    }
 
-      return new AzureNamedImage(
-                  imageName: imageName,
-                  publisher: vmImage.publisher,
-                  offer: vmImage.offer,
-                  sku: vmImage.sku,
-                  version: vmImage.version,
-                  account: parts.account,
-                  region: parts.region
-                )
+    null
+  }
+
+  AzureNamedImage fromCustomImageCacheData(String vmImagePartName, CacheData cacheData) {
+    try {
+      AzureCustomVMImage vmImage = objectMapper.convertValue(cacheData.attributes['vmimage'], AzureCustomVMImage)
+      def parts = Keys.parse(azureCloudProvider, cacheData.id)
+
+      if ((vmImage.region == parts.region) && (vmImagePartName == null || vmImage.name.toLowerCase().contains(vmImagePartName.toLowerCase()))) {
+        return new AzureNamedImage(
+          imageName: vmImage.name,
+          iscustom: true,
+          publisher: "na",
+          offer: "na",
+          sku: "na",
+          version: "na",
+          uri: vmImage.uri,
+          ostype: vmImage.osType,
+          account: parts.account,
+          region: parts.region
+        )
+      }
+    } catch (Exception e) {
+      log.error("fromCustomImageCacheData -> Unexpected exception", e)
     }
 
     null
@@ -172,18 +256,22 @@ class AzureVMImageLookupController {
 
   private static class AzureNamedImage {
     String imageName
+    Boolean iscustom = false
     String publisher
     String offer
     String sku
     String version
     String account
     String region
- }
+    String uri
+    String ostype
+  }
 
   private static class LookupOptions {
     String q
     String account
     String region
     Boolean configOnly = true
+    Boolean customOnly = false
   }
 }
