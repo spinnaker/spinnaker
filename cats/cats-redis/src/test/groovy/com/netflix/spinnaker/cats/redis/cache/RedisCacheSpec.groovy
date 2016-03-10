@@ -33,10 +33,11 @@ class RedisCacheSpec extends WriteableCacheSpec {
     static int MAX_MSET_SIZE = 2
 
     RedisCache.CacheMetrics cacheMetrics = Mock(RedisCache.CacheMetrics)
+    JedisPool pool
 
     @Override
     Cache getSubject() {
-        def pool = new JedisPool("localhost", 6379)
+        pool = new JedisPool("localhost", 6379)
         def source = new JedisPoolSource(pool)
         Jedis jedis
         try {
@@ -117,6 +118,30 @@ class RedisCacheSpec extends WriteableCacheSpec {
 
         then:
         thrown(IllegalArgumentException)
+    }
+
+    def 'should ignore hashes if hashes disabled'() {
+      setup:
+      def data = createData('blerp', [a: 'b'])
+
+      when: //initial write
+      ((WriteableCache) cache).merge('foo', data)
+
+      then:
+      1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1)
+
+      when: //second write, hash matches
+      ((WriteableCache) cache).merge('foo', data)
+
+      then:
+      1 * cacheMetrics.merge('test', 'foo', 1, 0, 0, 1, 0)
+
+      when: //third write, disable hashing
+      pool.resource.withCloseable { Jedis j -> j.set('test:foo:hashes.disabled', 'true')}
+      ((WriteableCache) cache).merge('foo', data)
+
+      then:
+      1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1)
     }
 
     def 'should not write an item if it is unchanged'() {
