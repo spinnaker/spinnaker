@@ -18,6 +18,14 @@ packages=`echo $packages | sed 's/^"\(.*\)"$/\1/' | sed 's/,/ /g'`
 
 
 function provision_deb() {
+  # https://www.packer.io/docs/builders/amazon-chroot.html look at gotchas at the end.
+  if [[ "$disable_services" == "true" ]]; then
+    echo "creating /usr/sbin/policy-rc.d to prevent services from being started"
+    echo '#!/bin/sh' > /usr/sbin/policy-rc.d
+    echo 'exit 101' >> /usr/sbin/policy-rc.d
+    chmod a+x /usr/sbin/policy-rc.d
+  fi
+
   if [[ "$repository" != "" ]]; then
     echo "deb $repository" | sudo tee /etc/apt/sources.list.d/spinnaker.list > /dev/null
   fi
@@ -29,6 +37,12 @@ function provision_deb() {
 
   # Enforce the package installation order.
   for package in $packages; do sudo apt-get install --force-yes -y $package; done
+
+  # https://www.packer.io/docs/builders/amazon-chroot.html look at gotchas at the end.
+  if [[ "$disable_services" == "true" ]]; then
+    echo "removing /usr/sbin/policy-rc.d"
+    rm -f /usr/sbin/policy-rc.d
+  fi
 }
 
 function provision_rpm() {

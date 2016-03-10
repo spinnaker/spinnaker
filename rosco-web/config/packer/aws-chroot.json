@@ -35,7 +35,8 @@
       "repository={{user `repository`}}",
       "package_type={{user `package_type`}}",
       "packages={{user `packages`}}",
-      "upgrade={{user `upgrade`}}"
+      "upgrade={{user `upgrade`}}",
+      "disable_services=true"
     ]
   }]
 }
