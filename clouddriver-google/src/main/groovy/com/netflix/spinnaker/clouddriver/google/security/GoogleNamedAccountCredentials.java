@@ -102,7 +102,7 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
 
       try {
         if (jsonKey != null) {
-          try (InputStream credentialStream = new ByteArrayInputStream(jsonKey.getBytes())) {
+          try (InputStream credentialStream = new ByteArrayInputStream(jsonKey.getBytes("UTF-8"))) {
             // JSON key was specified in matching config on key server.
             GoogleCredential credential = GoogleCredential.fromStream(credentialStream, httpTransport, jsonFactory).createScoped(Collections.singleton(ComputeScopes.COMPUTE));
             Compute compute = new Compute.Builder(httpTransport, jsonFactory, null).setApplicationName(applicationName).setHttpRequestInitializer(setHttpTimeout(credential)).build();
