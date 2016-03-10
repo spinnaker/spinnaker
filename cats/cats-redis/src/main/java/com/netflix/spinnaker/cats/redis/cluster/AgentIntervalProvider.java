@@ -18,6 +18,9 @@ package com.netflix.spinnaker.cats.redis.cluster;
 
 import com.netflix.spinnaker.cats.agent.Agent;
 
+/**
+ * Provides a poll interval and timeout for an Agent.
+ */
 public interface AgentIntervalProvider {
     public static class Interval {
         final long interval;
@@ -28,10 +31,16 @@ public interface AgentIntervalProvider {
             this.timeout = timeout;
         }
 
+        /**
+         * @return how frequently the Agent should run in milliseconds
+         */
         public long getInterval() {
             return interval;
         }
 
+        /**
+         * @return the maximum amount of time in milliseconds for an Agent to complete its run before the run is rescheduled
+         */
         public long getTimeout() {
             return timeout;
         }

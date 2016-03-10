@@ -58,11 +58,18 @@ class AmazonInstanceTypeCachingAgent implements CachingAgent, CustomScheduledAge
     AUTHORITATIVE.forType(INSTANCE_TYPES.ns)
   ] as Set)
 
+  private static long getDefaultIfNonEdda(NetflixAmazonCredentials account, long defaultIfNonEdda) {
+    if (account.eddaEnabled) {
+      return -1
+    }
+    return defaultIfNonEdda
+  }
+
   AmazonInstanceTypeCachingAgent(AmazonCloudProvider amazonCloudProvider,
                                  AmazonClientProvider amazonClientProvider,
                                  NetflixAmazonCredentials account,
                                  String region) {
-    this(amazonCloudProvider, amazonClientProvider, account, region, DEFAULT_POLL_INTERVAL_MILLIS, DEFAULT_TIMEOUT_MILLIS)
+    this(amazonCloudProvider, amazonClientProvider, account, region, getDefaultIfNonEdda(account, DEFAULT_POLL_INTERVAL_MILLIS), getDefaultIfNonEdda(account, DEFAULT_TIMEOUT_MILLIS))
   }
 
   AmazonInstanceTypeCachingAgent(AmazonCloudProvider amazonCloudProvider,
