@@ -21,9 +21,7 @@ import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesResourceDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.*
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
@@ -56,6 +54,10 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   private static final VALID_SECURITY_GROUPS = ["a-1", "b-2"]
   private static final VALID_NAMESPACE = NAMESPACES[0]
   private static final VALID_SECRET = DOCKER_REGISTRY_ACCOUNTS[0].accountName
+  private static final VALID_PATH = "a/b/c"
+  private static final VALID_PORT = 80
+  private static final VALID_SCHEME = "HTTPS"
+  private static final POSITIVE_NUMBER = 100
 
   private static final INVALID_APPLICATION = "-app-"
   private static final INVALID_STACK = " stack"
@@ -69,6 +71,8 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   private static final INVALID_LOAD_BALANCERS = [" ", "--"]
   private static final INVALID_SECURITY_GROUPS = [" ", "--"]
   private static final INVALID_NAMESPACE = "!default"
+  private static final INVALID_SCHEME = "tcp"
+  private static final NEGATIVE_NUMBER = -100
 
   @Shared
   DeployKubernetesAtomicOperationValidator validator
@@ -105,23 +109,90 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
   KubernetesResourceDescription fullValidResourceDescription1
   KubernetesResourceDescription fullValidResourceDescription2
   KubernetesResourceDescription partialValidResourceDescription
+  KubernetesProbe fullValidProbe
+  KubernetesHttpGetAction fullValidHttpGetAction
 
   KubernetesContainerDescription fullInvalidContainerDescription
   KubernetesContainerDescription partialInvalidContainerDescription
   KubernetesResourceDescription fullInvalidResourceDescription
+  KubernetesProbe partialInvalidProbe
+  KubernetesProbe fullInvalidProbe
+  KubernetesHttpGetAction partialInvalidHttpGetAction
 
   void setup() {
     def imageDescription = KubernetesUtil.buildImageDescription(VALID_IMAGE)
 
     fullValidResourceDescription1 = new KubernetesResourceDescription(memory: VALID_MEMORY1, cpu: VALID_CPU1)
+
     fullValidResourceDescription2 = new KubernetesResourceDescription(memory: VALID_MEMORY2, cpu: VALID_CPU2)
+
+    fullValidHttpGetAction = new KubernetesHttpGetAction(
+        path: VALID_PATH,
+        uriScheme: VALID_SCHEME,
+        port: VALID_PORT,
+    )
+
+    fullValidProbe = new KubernetesProbe(
+        periodSeconds: POSITIVE_NUMBER,
+        timeoutSeconds: POSITIVE_NUMBER,
+        initialDelaySeconds: POSITIVE_NUMBER,
+        successThreshold: POSITIVE_NUMBER,
+        failureThreshold: POSITIVE_NUMBER,
+        handler: new KubernetesHandler(
+            httpGetAction: fullValidHttpGetAction
+        )
+    )
+
     partialValidResourceDescription = new KubernetesResourceDescription(memory: VALID_MEMORY1)
-    fullValidContainerDescription1 = new KubernetesContainerDescription(name: VALID_NAME, imageDescription: imageDescription, limits: fullValidResourceDescription1, requests: fullValidResourceDescription1)
-    fullValidContainerDescription2 = new KubernetesContainerDescription(name: VALID_NAME, imageDescription: imageDescription, limits: fullValidResourceDescription2, requests: fullValidResourceDescription2)
-    partialValidContainerDescription = new KubernetesContainerDescription(name: VALID_NAME, imageDescription: imageDescription, limits: partialValidResourceDescription)
+
+    fullValidContainerDescription1 = new KubernetesContainerDescription(name: VALID_NAME,
+        imageDescription: imageDescription,
+        limits: fullValidResourceDescription1,
+        requests: fullValidResourceDescription1,
+        livenessProbe: fullValidProbe
+    )
+
+    fullValidContainerDescription2 = new KubernetesContainerDescription(name: VALID_NAME,
+        imageDescription: imageDescription,
+        limits: fullValidResourceDescription2,
+        requests: fullValidResourceDescription2,
+        readinessProbe: fullValidProbe
+    )
+
+    partialValidContainerDescription = new KubernetesContainerDescription(name: VALID_NAME,
+        imageDescription: imageDescription,
+        limits: partialValidResourceDescription
+    )
+
+    partialInvalidHttpGetAction = new KubernetesHttpGetAction(
+        port: VALID_PORT,
+        uriScheme: INVALID_SCHEME
+    )
+
+    partialInvalidProbe = new KubernetesProbe(
+        handler: new KubernetesHandler()
+    )
+
+    fullInvalidProbe = new KubernetesProbe(
+        periodSeconds: NEGATIVE_NUMBER,
+        timeoutSeconds: NEGATIVE_NUMBER,
+        initialDelaySeconds: NEGATIVE_NUMBER,
+        successThreshold: NEGATIVE_NUMBER,
+        failureThreshold: NEGATIVE_NUMBER,
+        handler: new KubernetesHandler(
+            httpGetAction:  partialInvalidHttpGetAction
+        )
+    )
 
     fullInvalidResourceDescription = new KubernetesResourceDescription(memory: INVALID_MEMORY, cpu: INVALID_CPU)
-    fullInvalidContainerDescription = new KubernetesContainerDescription(name: INVALID_NAME, limits: fullInvalidResourceDescription, requests: fullInvalidResourceDescription)
+
+    fullInvalidContainerDescription = new KubernetesContainerDescription(name: INVALID_NAME,
+        limits: fullInvalidResourceDescription,
+        requests: fullInvalidResourceDescription,
+        readinessProbe: partialInvalidProbe,
+        livenessProbe: fullInvalidProbe,
+    )
+
     partialInvalidContainerDescription = new KubernetesContainerDescription(name: INVALID_NAME)
   }
 
@@ -310,6 +381,13 @@ class DeployKubernetesAtomicOperationValidatorSpec extends Specification {
       1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].limits.memory", "${DESCRIPTION}.container[0].limits.memory.invalid (Must match ${StandardKubernetesAttributeValidator.quantityPattern})")
       1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].requests.cpu", "${DESCRIPTION}.container[0].requests.cpu.invalid (Must match ${StandardKubernetesAttributeValidator.quantityPattern})")
       1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].limits.cpu", "${DESCRIPTION}.container[0].limits.cpu.invalid (Must match ${StandardKubernetesAttributeValidator.quantityPattern})")
+      1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].livenessProbe.periodSeconds", "${DESCRIPTION}.container[0].livenessProbe.periodSeconds.notPositive")
+      1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].livenessProbe.timeoutSeconds", "${DESCRIPTION}.container[0].livenessProbe.timeoutSeconds.notPositive")
+      1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].livenessProbe.initialDelaySeconds", "${DESCRIPTION}.container[0].livenessProbe.initialDelaySeconds.negative")
+      1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].livenessProbe.successThreshold", "${DESCRIPTION}.container[0].livenessProbe.successThreshold.notPositive")
+      1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].livenessProbe.failureThreshold", "${DESCRIPTION}.container[0].livenessProbe.failureThreshold.notPositive")
+      1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].livenessProbe.handler.httpGetAction.uriScheme", "${DESCRIPTION}.container[0].livenessProbe.handler.httpGetAction.uriScheme.invalid (Must be one of ${StandardKubernetesAttributeValidator.uriSchemeList})")
+      1 * errorsMock.rejectValue("${DESCRIPTION}.container[0].readinessProbe.handler.size", "${DESCRIPTION}.container[0].readinessProbe.handler.size.notPositive")
       0 * errorsMock._
   }
 

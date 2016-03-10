@@ -24,7 +24,10 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryC
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesHandler
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesProbe
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesResourceDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesTcpSocketAction
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import io.fabric8.kubernetes.api.model.*
@@ -51,6 +54,8 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
   private static final LIMIT_CPU = ["120m", "200m"]
   private static final LIMIT_MEMORY = ["200Mi", "300Mi"]
   private static final DOCKER_REGISTRY_ACCOUNTS = [new LinkedDockerRegistryConfiguration(accountName: "my-docker-account")]
+  private static final PORT = 80
+  private static final PERIOD_SECONDS = 20
 
   def apiMock
   def credentials
@@ -93,6 +98,15 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
     intOrStringMock = Mock(IntOrString)
     accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
 
+    def livenessProbe = new KubernetesProbe([
+      periodSeconds: PERIOD_SECONDS,
+      handler: new KubernetesHandler([
+        tcpSocketAction: new KubernetesTcpSocketAction([
+          port: PORT
+        ])
+      ])
+    ])
+
     imageId = KubernetesUtil.getImageId(REGISTRY, REPOSITORY, TAG)
     def imageDescription = KubernetesUtil.buildImageDescription(imageId)
 
@@ -112,7 +126,12 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
     CONTAINER_NAMES.eachWithIndex { name, idx ->
       def requests = new KubernetesResourceDescription(cpu: REQUEST_CPU[idx], memory: REQUEST_MEMORY[idx])
       def limits = new KubernetesResourceDescription(cpu: LIMIT_CPU[idx], memory: LIMIT_MEMORY[idx])
-      containers = containers << new KubernetesContainerDescription(name: name, imageDescription: imageDescription, requests: requests, limits: limits)
+      containers = containers << new KubernetesContainerDescription(name: name,
+        imageDescription: imageDescription,
+        requests: requests,
+        limits: limits,
+        livenessProbe: livenessProbe
+      )
     }
   }
 
@@ -165,6 +184,8 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
           assert(rc.spec.template.spec.containers[idx].resources.requests.memory == REQUEST_MEMORY[idx])
           assert(rc.spec.template.spec.containers[idx].resources.limits.cpu == LIMIT_CPU[idx])
           assert(rc.spec.template.spec.containers[idx].resources.limits.memory == LIMIT_MEMORY[idx])
+          assert(rc.spec.template.spec.containers[idx].livenessProbe.periodSeconds == PERIOD_SECONDS)
+          assert(rc.spec.template.spec.containers[idx].livenessProbe.tcpSocket.port.intVal == PORT)
         }
       }) >> replicationControllerMock
   }

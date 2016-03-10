@@ -17,11 +17,13 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.servergroup
 
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesProbe
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
 
 class KubernetesContainerValidator {
   static void validate(KubernetesContainerDescription description, StandardKubernetesAttributeValidator helper, String prefix) {
     helper.validateName(description.name, "${prefix}.name")
+
     helper.validateNotEmpty(description.imageDescription, "${prefix}.imageDescription")
 
     if (description.limits) {
@@ -51,5 +53,60 @@ class KubernetesContainerValidator {
         helper.validateProtocol(port.protocol, "${prefix}.ports[$i].protocol")
       }
     }
+
+    if (description.livenessProbe) {
+      validateProbe(description.livenessProbe, helper, "${prefix}.livenessProbe")
+    }
+
+    if (description.readinessProbe) {
+      validateProbe(description.readinessProbe, helper, "${prefix}.readinessProbe")
+    }
+  }
+
+  static void validateProbe(KubernetesProbe probe, StandardKubernetesAttributeValidator helper, String prefix) {
+    if (probe.initialDelaySeconds) {
+      helper.validateNonNegative(probe.initialDelaySeconds, "${prefix}.initialDelaySeconds")
+    }
+
+    if (probe.timeoutSeconds) {
+      helper.validatePositive(probe.timeoutSeconds, "${prefix}.timeoutSeconds")
+    }
+
+    if (probe.periodSeconds) {
+      helper.validatePositive(probe.periodSeconds, "${prefix}.periodSeconds")
+    }
+
+    if (probe.successThreshold) {
+      helper.validatePositive(probe.successThreshold, "${prefix}.successThreshold")
+    }
+
+    if (probe.failureThreshold) {
+      helper.validatePositive(probe.failureThreshold, "${prefix}.failureThreshold")
+    }
+
+    int handlers = 0;
+
+    helper.validateNotEmpty(probe.handler, "${prefix}.handler")
+
+    if (probe.handler?.execAction) {
+      helper.validateNotEmpty(probe.handler.execAction.commands, "${prefix}.handler.execAction.commands")
+      handlers++
+    }
+
+    if (probe.handler?.tcpSocketAction) {
+      helper.validatePort(probe.handler.tcpSocketAction.port, "${prefix}.handler.tcpSocketAction.port")
+      handlers++
+    }
+
+    if (probe.handler?.httpGetAction) {
+      helper.validatePort(probe.handler.httpGetAction.port, "${prefix}.handler.httpGetAction.port")
+
+      if (probe.handler.httpGetAction.uriScheme) {
+        helper.validateUriScheme(probe.handler.httpGetAction.uriScheme, "${prefix}.handler.httpGetAction.uriScheme")
+      }
+      handlers++
+    }
+
+    helper.validatePositive(handlers, "${prefix}.handler.size")
   }
 }

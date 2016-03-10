@@ -18,10 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.api
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerPort
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesResourceDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.*
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.client.KubernetesClient
 
@@ -148,23 +145,27 @@ class KubernetesApiAdaptor {
   }
 
   static KubernetesContainerDescription fromContainer(Container container) {
-    def containerDescription = new KubernetesContainerDescription()
-    containerDescription.name = container?.name
-    containerDescription.imageDescription = KubernetesUtil.buildImageDescription(container?.image)
+    if (!container) {
+      return null
+    }
 
-    container?.resources?.with {
-      containerDescription.limits = new  KubernetesResourceDescription(
+    def containerDescription = new KubernetesContainerDescription()
+    containerDescription.name = container.name
+    containerDescription.imageDescription = KubernetesUtil.buildImageDescription(container.image)
+
+    container.resources?.with {
+      containerDescription.limits = new KubernetesResourceDescription(
         cpu: limits?.cpu?.amount,
         memory: limits?.memory?.amount
       )
 
-      containerDescription.requests = new  KubernetesResourceDescription(
+      containerDescription.requests = new KubernetesResourceDescription(
         cpu: requests?.cpu?.amount,
         memory: requests?.memory?.amount
       )
     }
 
-    containerDescription.ports = container?.ports?.collect {
+    containerDescription.ports = container.ports?.collect {
       def port = new KubernetesContainerPort()
       port.hostIp = it?.hostIP
       if (it?.hostPort) {
@@ -178,6 +179,9 @@ class KubernetesApiAdaptor {
 
       return port
     }
+
+    containerDescription.livenessProbe = fromProbe(container?.livenessProbe)
+    containerDescription.readinessProbe = fromProbe(container?.readinessProbe)
 
     return containerDescription
   }
@@ -199,5 +203,56 @@ class KubernetesApiAdaptor {
     }
 
     return deployDescription
+  }
+
+  static KubernetesProbe fromProbe(Probe probe) {
+    if (!probe) {
+      return null
+    }
+
+    def kubernetesProbe = new KubernetesProbe()
+    kubernetesProbe.failureThreshold = probe.failureThreshold ?: 0
+    kubernetesProbe.successThreshold = probe.successThreshold ?: 0
+    kubernetesProbe.timeoutSeconds = probe.timeoutSeconds ?: 0
+    kubernetesProbe.periodSeconds = probe.periodSeconds ?: 0
+    kubernetesProbe.initialDelaySeconds = probe.initialDelaySeconds ?: 0
+    kubernetesProbe.handler = new KubernetesHandler()
+    kubernetesProbe.handler.execAction = fromExecAction(probe.exec)
+    kubernetesProbe.handler.tcpSocketAction = fromTcpSocketAction(probe.tcpSocket)
+    kubernetesProbe.handler.httpGetAction = fromHttpGetAction(probe.httpGet)
+    return kubernetesProbe
+  }
+
+  static KubernetesExecAction fromExecAction(ExecAction exec) {
+    if (!exec) {
+      return null
+    }
+
+    def kubernetesExecAction = new KubernetesExecAction()
+    kubernetesExecAction.commands = exec.command
+    return kubernetesExecAction
+  }
+
+  static KubernetesTcpSocketAction fromTcpSocketAction(TCPSocketAction tcpSocket) {
+    if (!tcpSocket) {
+      return null
+    }
+
+    def kubernetesTcpSocketAction = new KubernetesTcpSocketAction()
+    kubernetesTcpSocketAction.port = tcpSocket.port?.intVal
+    return kubernetesTcpSocketAction
+  }
+
+  static KubernetesHttpGetAction fromHttpGetAction(HTTPGetAction httpGet) {
+    if (!httpGet) {
+      return null
+    }
+
+    def kubernetesHttpGetAction = new KubernetesHttpGetAction()
+    kubernetesHttpGetAction.host = httpGet.host
+    kubernetesHttpGetAction.path = httpGet.path
+    kubernetesHttpGetAction.port = httpGet.port?.intVal
+    kubernetesHttpGetAction.uriScheme = httpGet.scheme
+    return kubernetesHttpGetAction
   }
 }

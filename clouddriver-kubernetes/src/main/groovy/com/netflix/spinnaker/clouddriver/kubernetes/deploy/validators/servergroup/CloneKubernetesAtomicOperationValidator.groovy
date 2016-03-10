@@ -63,6 +63,10 @@ class CloneKubernetesAtomicOperationValidator extends DescriptionValidator<Clone
       helper.validateNamespace(credentials, description.namespace, "namespace")
     }
 
+    if (description.restartPolicy) {
+      helper.validateRestartPolicy(description.restartPolicy, "restartPolicy")
+    }
+
     if (description.loadBalancers) {
       description.loadBalancers.eachWithIndex { name, idx ->
         helper.validateName(name, "loadBalancers[${idx}]")
