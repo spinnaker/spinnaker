@@ -15,7 +15,10 @@
 # limitations under the License.
 
 # Given an existing GCE image, create a tarball for it.
-# PYTHONPATH=. python dev/build_gce_tarball.py --image=$IMAGE_NAME --tarball_uri=gs://$RELEASE_URI/$(basename $RELEASE_URI).tar.gz
+# PYTHONPATH=pylib python google/dev/build_google_tarball.py --image=$IMAGE_NAME --tarball_uri=gs://$RELEASE_URI/$(basename $RELEASE_URI).tar.gz
+#
+# For more information, see
+# https://cloud.google.com/compute/docs/creating-custom-image#export_an_image_to_google_cloud_storage
 
 import argparse
 import os
@@ -44,6 +47,10 @@ class Builder(object):
     self.__project = options.project or get_default_project()
     self.__instance = options.instance
 
+    # Override gcloud account argument, but only if we specified an explicit account.
+    self.__gcloud_account_arg = ('' if not options.service_account
+                                 else '--account={0}'.format(options.service_account))
+
   def deploy_instance(self):
     """Deploy an instance (from an image) so we can get at its disks.
 
@@ -61,17 +68,41 @@ class Builder(object):
         unique=time.strftime('%Y%m%d%H%M%S'))
 
     print 'Deploying temporary instance {name}'.format(name=instance)
-    check_run_quick('gcloud compute instances create {name}'
+    check_run_quick('gcloud {account} compute instances create {name}'
                     ' --zone={zone} --project={project}'
                     ' --image={image} --image-project={image_project}'
                     ' --scopes compute-rw,storage-rw'
-                    .format(name=instance,
+                    .format(account=self.__gcloud_account_arg,
+                            name=instance,
                             zone=self.__zone,
                             project=self.__project,
                             image=self.options.image,
                             image_project=self.options.image_project),
                     echo=False)
     self.__instance = instance
+
+    print 'Making snapshot {name}-snapshot'.format(name=self.__instance)
+    print '  Stopping (to snapshot)'
+    check_run_quick('gcloud {account} compute instances stop {name}'
+                    ' --zone={zone} --project={project}'
+                    .format(account=self.__gcloud_account_arg, name=instance,
+                            zone=self.__zone, project=self.__project),
+                    echo=True)
+    print '  Making snapshot'
+    check_run_quick('gcloud {account} compute disks snapshot {name}'
+                    ' --zone {zone} --project={project}'
+                    ' --snapshot-names {name}-snapshot'
+                    .format(account=self.__gcloud_account_arg, name=instance,
+                            zone=self.__zone, project=self.__project),
+                    echo=True)
+    print '  Restarting'
+    check_run_quick('gcloud {account} compute instances start {name}'
+                    ' --zone={zone} --project={project}'
+                    .format(account=self.__gcloud_account_arg, name=instance,
+                            zone=self.__zone, project=self.__project),
+                    echo=True)
+    print 'Finished snapshot'
+
 
   def cleanup_instance(self):
     """If we deployed an instance, tear it down."""
@@ -80,10 +111,16 @@ class Builder(object):
           self.options.instance)
       return
 
+    print 'Deleting snapshot {name}-snapshot'.format(name=self.__instance)
+    check_run_quick('gcloud {account} compute snapshots delete -q {name}-snapshot'
+                    .format(account=self.__gcloud_account_arg, name=self.__instance),
+                    echo=False)
+
     print 'Deleting instance {name}'.format(name=self.__instance)
-    run_quick('gcloud compute instances delete {name}'
+    run_quick('gcloud {account} compute instances delete -q {name}'
               '  --zone={zone} --project={project}'
-              .format(name=self.__instance,
+              .format(account=self.__gcloud_account_arg,
+                      name=self.__instance,
                       zone=self.__zone,
                       project=self.__project),
               echo=False)
@@ -109,27 +146,35 @@ class Builder(object):
     builds a remote command that it then executes on the prototype instance.
     """
     print 'Creating image tarball.'
-    set_excludes_bash_command = (
-        'EXCLUDES=`python -c'
-        ' "import glob; print \',\'.join(glob.glob(\'/home/*\'))"`')
 
     tar_path = self.options.tarball_uri
     tar_name = os.path.basename(tar_path)
     remote_script = [
-      'sudo mkdir /mnt/tmp',
-      'sudo /usr/share/google/safe_format_and_mount -m'
-          ' "mkfs.ext4 -F" /dev/sdb /mnt/tmp',
-      set_excludes_bash_command,
-      'sudo gcimagebundle -d /dev/sda -o /mnt/tmp'
-          ' --log_file=/tmp/export.log --output_file_name={tar_name}'
-          ' --excludes=/tmp,\\$EXCLUDES'.format(tar_name=tar_name),
-      'gsutil -q cp /mnt/tmp/{tar_name} {output_path}'.format(
-          tar_name=tar_name, output_path=tar_path)]
+      'sudo mkdir /mnt/exportdisk',
+      'sudo mkfs.ext4 -F /dev/disk/by-id/google-export-disk',
+      'sudo mount -t ext4 -o discard,defaults'
+          ' /dev/disk/by-id/google-export-disk /mnt/exportdisk',
+
+      'sudo mkdir /mnt/snapshotdisk',
+      'sudo mount /dev/disk/by-id/google-snapshot-disk /mnt/snapshotdisk',
+      'cd /mnt/snapshotdisk',
+      'sudo rm -rf home/*',
+
+      'sudo dd if=/dev/disk/by-id/google-snapshot-disk'
+          ' of=/mnt/exportdisk/disk.raw bs=4096',
+      'cd /mnt/exportdisk',
+
+      'sudo tar czvf {tar_name} disk.raw'.format(tar_name=tar_name),
+      'gsutil -q cp /mnt/exportdisk/{tar_name} {output_path}'.format(
+          tar_name=tar_name, output_path=tar_path)
+    ]
 
     command = '; '.join(remote_script)
-    check_run_quick('gcloud compute ssh --command="{command}"'
+    print 'Running: {0}'.format(command)
+    check_run_quick('gcloud {account} compute ssh --command="{command}"'
                     ' --project {project} --zone {zone} {instance}'
-                    .format(command=command.replace('"', r'\"'),
+                    .format(account=self.__gcloud_account_arg,
+                            command=command.replace('"', r'\"'),
                             project=self.__project,
                             zone=self.__zone,
                             instance=self.__instance))
@@ -146,47 +191,65 @@ class Builder(object):
     first_dot = basename.find('.')
     if first_dot:
         basename = basename[0:first_dot]
+
     disk_name = '{name}-export'.format(name=basename)
     print 'Attaching external disk "{disk}" to extract image tarball.'.format(
         disk=disk_name)
 
-    # TODO(ewiseblatt): 20151002
-    # Add an option to reuse an existing disk to reduce the cycle time.
-    # Then guard the create/format/destroy around this option.
-    # Still may want/need to attach/detach it here to reduce race conditions
-    # on its use since it can only be bound to once instance at a time.
-    check_run_quick('gcloud compute disks create '
-                    ' {disk_name} --project {project} --zone {zone} --size=10'
-                    .format(disk_name=disk_name,
-                            project=self.__project,
-                            zone=self.__zone),
-                    echo=False)
-
-    check_run_quick('gcloud compute instances attach-disk {instance}'
-                    ' --disk={disk_name} --device-name=export-disk'
-                    ' --project={project} --zone={zone}'
-                    .format(instance=self.__instance,
+    check_run_quick('gcloud {account} compute disks create '
+                    ' {disk_name} --project {project} --zone {zone}'
+                    .format(account=self.__gcloud_account_arg,
                             disk_name=disk_name,
                             project=self.__project,
                             zone=self.__zone),
                     echo=False)
+
+    check_run_quick('gcloud {account} compute instances attach-disk {instance}'
+                    ' --disk={disk_name} --device-name=export-disk'
+                    ' --project={project} --zone={zone}'
+                    .format(account=self.__gcloud_account_arg,
+                            instance=self.__instance,
+                            disk_name=disk_name,
+                            project=self.__project,
+                            zone=self.__zone),
+                    echo=False)
+
+    print 'Attaching snapshot "{name}-snapshot".'.format(name=self.__instance)
+    check_run_quick('gcloud {account} compute disks create '
+                    ' {name}-snapshot --source-snapshot {name}-snapshot'
+                    ' --project {project} --zone {zone}'
+                    .format(account=self.__gcloud_account_arg,
+                            name=self.__instance,
+                            project=self.__project,
+                            zone=self.__zone),
+                    echo=False)
+
+    check_run_quick('gcloud {account} compute instances attach-disk {instance}'
+                    ' --disk={instance}-snapshot --device-name=snapshot-disk'
+                    ' --project={project} --zone={zone}'
+                    .format(account=self.__gcloud_account_arg, instance=self.__instance,
+                            project=self.__project, zone=self.__zone),
+                    echo=False)
     try:
       self.__extract_image_tarball_helper()
     finally:
-      print 'Detaching and deleting external disk.'
-      run_quick('gcloud compute instances detach-disk -q {instance}'
-                ' --disk={disk_name} --project={project} --zone={zone}'
-                .format(instance=self.__instance,
-                        disk_name=disk_name,
-                        project=self.__project,
-                        zone=self.__zone),
-                echo=False)
-      run_quick('gcloud compute disks delete -q {disk_name}'
-                ' --project={project} --zone={zone}'
-                .format(disk_name=disk_name,
-                        project=self.__project,
-                        zone=self.__zone),
-                echo=False)
+      print 'Detaching and deleting external disks.'
+      for name in [disk_name, '{name}-snapshot'.format(name=self.__instance)]:
+        run_quick('gcloud {account} compute instances detach-disk -q {instance}'
+                  ' --disk={name} --project={project} --zone={zone}'
+                  .format(account=self.__gcloud_account_arg,
+                          instance=self.__instance,
+                          name=name,
+                          project=self.__project,
+                          zone=self.__zone),
+                  echo=False)
+        run_quick('gcloud {account} compute disks delete -q {name}'
+                  ' --project={project} --zone={zone}'
+                  .format(account=self.__gcloud_account_arg,
+                          name=name,
+                          project=self.__project,
+                          zone=self.__zone),
+                  echo=False)
 
 
 def init_argument_parser(parser):
@@ -194,6 +257,10 @@ def init_argument_parser(parser):
         '--tarball_uri', required=True,
         help='A path to a Google Cloud Storage bucket or path within one.')
 
+    parser.add_argument(
+      '--service_account', default='',
+      help='If specified, use this gcloud account rather than the default. To add'
+           ' new accounts, use gcloud auth activate-service-account.')
     parser.add_argument(
         '--instance', default='',
         help='If specified use this instance, otherwise use deploy a new one.')
