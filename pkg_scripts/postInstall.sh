@@ -32,15 +32,10 @@ cqlsh -f "/opt/spinnaker/cassandra/create_echo_keyspace.cql"
 cqlsh -f "/opt/spinnaker/cassandra/create_front50_keyspace.cql"
 cqlsh -f "/opt/spinnaker/cassandra/create_rush_keyspace.cql"
 
-# Start all the services
-
-# start 'clouddriver'
-# start 'orca'
-# start 'front50'
-# start 'rush'
-# start 'rosco'
-# start 'echo'
-# start 'gate'
-# start 'igor'
+# Disable auto upstart of the services.
+# We'll have spinnaker auto start, and start them as it does.
+for s in clouddriver orca front50 rush rosco echo gate igor; do
+    echo manual | sudo tee /etc/init/$s.override
+done
 
 
