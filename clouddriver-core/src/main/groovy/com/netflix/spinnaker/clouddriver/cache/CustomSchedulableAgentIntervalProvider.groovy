@@ -31,8 +31,14 @@ class CustomSchedulableAgentIntervalProvider extends DefaultAgentIntervalProvide
   @Override
   AgentIntervalProvider.Interval getInterval(Agent agent) {
     if (agent instanceof CustomScheduledAgent) {
-      return new AgentIntervalProvider.Interval(agent.pollIntervalMillis, agent.timeoutMillis)
+      return getCustomInterval(agent)
     }
     return super.getInterval(agent)
+  }
+
+  AgentIntervalProvider.Interval getCustomInterval(CustomScheduledAgent agent) {
+    final long pollInterval = agent.pollIntervalMillis == -1 ? super.interval : agent.pollIntervalMillis
+    final long timeoutMillis = agent.timeoutMillis == -1 ? super.timeout : agent.timeoutMillis
+    return new AgentIntervalProvider.Interval(pollInterval, timeoutMillis)
   }
 }

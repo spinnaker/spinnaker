@@ -35,4 +35,12 @@ public class DefaultAgentIntervalProvider implements AgentIntervalProvider {
     public Interval getInterval(Agent agent) {
         return new Interval(interval, timeout);
     }
+
+    public long getInterval() {
+        return interval;
+    }
+
+    public long getTimeout() {
+        return timeout;
+    }
 }
