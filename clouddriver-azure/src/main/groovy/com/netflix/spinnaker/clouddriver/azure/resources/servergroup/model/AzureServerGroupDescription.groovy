@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model
 
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
+import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.model.AzureSecurityGroup
 
 class AzureServerGroupDescription extends AzureResourceOpsDescription {
   enum UpgradePolicy {
@@ -25,6 +26,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription {
 
   UpgradePolicy upgradePolicy
   String loadBalancerName
+  AzureSecurityGroup securityGroup
   AzureImage image
   AzureScaleSetSku sku
   AzureOperatingSystemConfig osConfig
