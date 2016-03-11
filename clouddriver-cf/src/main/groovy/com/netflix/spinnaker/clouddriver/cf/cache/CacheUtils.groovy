@@ -26,6 +26,8 @@ import com.netflix.spinnaker.clouddriver.cf.model.CloudFoundryLoadBalancer
 import com.netflix.spinnaker.clouddriver.cf.model.CloudFoundryServerGroup
 import com.netflix.spinnaker.clouddriver.cf.model.CloudFoundryService
 import com.netflix.spinnaker.clouddriver.cf.provider.ProviderUtils
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import org.cloudfoundry.client.lib.domain.CloudApplication
 import org.cloudfoundry.client.lib.domain.CloudDomain
 import org.cloudfoundry.client.lib.domain.CloudRoute
@@ -136,12 +138,18 @@ class CacheUtils {
     }
 
     serverGroup.nativeLoadBalancers.each {
-      it.serverGroups.add([
+      it.serverGroups.add(new LoadBalancerServerGroup(
           name      :        serverGroup.name,
           isDisabled:        serverGroup.isDisabled(),
-          instances :        serverGroup.instances,
-          detachedInstances: [] as Set
-      ])
+          detachedInstances: [] as Set,
+          instances :        serverGroup.instances.collect {
+            new LoadBalancerInstance(
+                id: it.name,
+                zone: it.zone,
+                health: it.health?.get(0)
+            )
+          },
+      ))
     }
 
     serverGroup

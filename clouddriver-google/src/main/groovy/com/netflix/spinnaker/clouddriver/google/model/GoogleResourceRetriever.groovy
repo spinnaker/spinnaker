@@ -35,6 +35,8 @@ import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
@@ -274,24 +276,22 @@ class GoogleResourceRetriever {
                                description: "Unable to determine load balancer health."
                              ]
 
-                instances << [
+                instances << new LoadBalancerInstance(
                   id    : instance.name,
                   zone  : Utils.getLocalName(instance.getZone()),
                   health: health
-                ]
+                )
               } else {
                 detachedInstances << instance.name
               }
             }
 
-            def serverGroupSummary = [
-              name      :        serverGroup.name,
-              isDisabled:        serverGroup.isDisabled(),
-              instances :        instances,
-              detachedInstances: detachedInstances
-            ]
-
-            loadBalancer.serverGroups << serverGroupSummary
+            loadBalancer.serverGroups << new LoadBalancerServerGroup(
+                name      :        serverGroup.name,
+                isDisabled:        serverGroup.isDisabled(),
+                instances :        instances,
+                detachedInstances: detachedInstances
+            )
           }
         }
       }

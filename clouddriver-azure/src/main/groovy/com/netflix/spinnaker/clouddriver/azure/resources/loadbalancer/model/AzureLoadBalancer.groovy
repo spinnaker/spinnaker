@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 
 class AzureLoadBalancer implements LoadBalancer {
 
@@ -27,7 +28,7 @@ class AzureLoadBalancer implements LoadBalancer {
   String region
   String vnet
   String type = AZURE_LOAD_BALANCER_TYPE
-  Set<Map<String, Object>> serverGroups = new HashSet<>()
+  Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
 
   private static final AZURE_LOAD_BALANCER_TYPE = "azure"
 

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 
 @Deprecated
 class GoogleLoadBalancer implements LoadBalancer {
@@ -30,7 +31,7 @@ class GoogleLoadBalancer implements LoadBalancer {
   String account
   String name
   String region
-  Set<Map<String, Object>> serverGroups = new HashSet<>()
+  Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
 
   Long createdTime
   String ipAddress
