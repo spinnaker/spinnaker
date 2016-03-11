@@ -13,6 +13,7 @@ You can obtain a jenkins api token by navigating to `http://your.jenkins.server/
 
 ```
 jenkins:
+  enabled: true
   masters:
     -
       address: "https://spinnaker.cloudbees.com/"
