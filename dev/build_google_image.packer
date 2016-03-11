@@ -46,6 +46,17 @@
   {
     "type": "shell",
     "inline": [
+      "cd /tmp",
+      "CODENAME=$(lsb_release -sc)",
+      "curl -s -S -f -o /etc/apt/sources.list.d/stackdriver.list https://repo.stackdriver.com/$CODENAME.list",
+      "curl -s -f https://app.stackdriver.com/RPM-GPG-KEY-stackdriver | apt-key add -",
+      "apt-get -q update",
+      "DEBIAN_FRONTEND=noninteractive apt-get -y -q install stackdriver-agent"
+    ]
+  },
+  {
+    "type": "shell",
+    "inline": [
         "chmod +x /tmp/install_spinnaker.sh",
         "/tmp/install_spinnaker.sh --repository {{user `debian_repo`}} --cloud_provider google --google_region us-central1 --quiet",
         "service spinnaker stop"
