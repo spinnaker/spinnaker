@@ -27,32 +27,6 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
 
     $scope.InsightFilterStateModel = InsightFilterStateModel;
 
-    function extractHealthMetrics(instance, latest) {
-      // do not backfill on standalone instances
-      if (app.isStandalone) {
-        instance.health = latest.health;
-      }
-
-      instance.health = instance.health || [];
-      var displayableMetrics = instance.health.filter(
-        function(metric) {
-          return metric.type !== 'Kubernetes' || metric.state !== 'Unknown';
-        });
-
-      // backfill details where applicable
-      if (latest.health) {
-        displayableMetrics.forEach(function (metric) {
-          var detailsMatch = latest.health.filter(function (latestHealth) {
-            return latestHealth.type === metric.type;
-          });
-          if (detailsMatch.length) {
-            _.defaults(metric, detailsMatch[0]);
-          }
-        });
-      }
-      $scope.healthMetrics = displayableMetrics;
-    }
-
     this.showYaml = function showYaml() {
       $scope.userDataModalTitle = 'Pod YAML';
       $scope.userData = $scope.instance.yaml;
@@ -86,7 +60,6 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
         return instanceReader.getInstanceDetails(account, namespace, instance.instanceId).then(function(details) {
           details = details.plain();
           $scope.state.loading = false;
-          extractHealthMetrics(instanceSummary, details);
           $scope.instance = _.defaults(details, instanceSummary);
           $scope.instance.account = account;
           $scope.instance.namespace = namespace;
