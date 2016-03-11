@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.google.serverGroup.details.resize.controller', [
+module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.resize.controller', [
   require('../../../../core/application/modal/platformHealthOverride.directive.js'),
   require('../../../../core/task/modal/reason.directive.js'),
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
