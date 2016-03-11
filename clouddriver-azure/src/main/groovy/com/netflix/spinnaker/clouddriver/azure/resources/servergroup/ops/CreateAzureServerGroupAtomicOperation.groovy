@@ -82,7 +82,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
         virtualNetworkName,
         subnetName,
         nextSubnet,
-        description.securityGroup.name)
+        description.securityGroup?.name)
 
       task.updateStatus(BASE_PHASE, "Deploying server group")
       DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(description.credentials,
