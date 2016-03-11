@@ -132,8 +132,8 @@ public class RedisCache implements WriteableCache {
         if (keysToSet.size() > 0) {
             try (Jedis jedis = source.getJedis()) {
                 Pipeline pipeline = jedis.pipelined();
-                pipeline.sadd(allOfTypeId(type), ids);
                 pipeline.sadd(allOfTypeReindex(type), ids);
+                pipeline.sadd(allOfTypeId(type), ids);
 
                 for (List<String> keys : Iterables.partition(keysToSet, maxMsetSize)) {
                     pipeline.mset(keys.toArray(new String[keys.size()]));
@@ -182,10 +182,12 @@ public class RedisCache implements WriteableCache {
         }
 
         try (Jedis jedis = source.getJedis()) {
-            jedis.del(delKeys.toArray(new String[delKeys.size()]));
-            jedis.srem(allOfTypeId(type), ids);
-            jedis.srem(allOfTypeReindex(type), ids);
-            jedis.hdel(hashesId(type), stringsToBytes(delKeys));
+            Pipeline pipe = jedis.pipelined();
+            pipe.del(delKeys.toArray(new String[delKeys.size()]));
+            pipe.srem(allOfTypeId(type), ids);
+            pipe.srem(allOfTypeReindex(type), ids);
+            pipe.hdel(hashesId(type), stringsToBytes(delKeys));
+            pipe.sync();
         }
     }
 
@@ -410,7 +412,17 @@ public class RedisCache implements WriteableCache {
         return new ArrayList<>(keys);
     }
 
+    private boolean isHashingDisabled(String type) {
+        try (Jedis jedis = source.getJedis()) {
+            return jedis.exists(hashesDisabled(type));
+        }
+    }
+
     private Map<String, byte[]> getHashes(String type, Collection<CacheData> items) {
+        if (isHashingDisabled(type)) {
+            return Collections.emptyMap();
+        }
+
         final List<String> hashKeys = getKeys(type, items);
         if (hashKeys.isEmpty()) {
             return Collections.emptyMap();
@@ -432,7 +444,8 @@ public class RedisCache implements WriteableCache {
                 hashes.put(hashKeys.get(i), hashValue);
             }
         }
-        return hashes;
+
+        return isHashingDisabled(type) ? Collections.emptyMap() : hashes;
     }
 
     private CacheData extractItem(String id, List<String> keyResult, List<String> knownRels) {
@@ -469,6 +482,10 @@ public class RedisCache implements WriteableCache {
 
     private byte[] hashesId(String type) {
         return stringToBytes(String.format("%s:%s:hashes", prefix, type));
+    }
+
+    private String hashesDisabled(String type) {
+        return String.format("%s:%s:hashes.disabled", prefix, type);
     }
 
     private String allRelationshipsId(String type) {
