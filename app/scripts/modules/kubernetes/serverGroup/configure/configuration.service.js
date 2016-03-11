@@ -70,6 +70,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
             hostIp: null,
           }
           ],
+          livenessProbe: null,
+          readinessProbe: null,
         };
       };
     }
