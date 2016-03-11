@@ -101,7 +101,7 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
       DockerRegistryClient client = new DockerRegistryClient(address, email, username, password)
       return new DockerRegistryCredentials(client, repositories)
     } catch (RetrofitError e) {
-      if (e.response.status == 404) {
+      if (e.response?.status == 404) {
         throw new DockerRegistryConfigException("No repositories specified for ${name}, and the provided endpoint ${address} does not support /_catalog.")
       } else {
         throw e
