@@ -49,9 +49,9 @@ novalidate>
           <help-field key="azure.serverGroup.imageName"></help-field>
         </div>
         <div class="col-md-9">
-          <ui-select class="form-control input-sm" required ng-model="command.imageName" on-select="basicSettingsCtrl.imageChanged($item)">
+          <ui-select class="form-control input-sm" required ng-model="command.selectedImage" on-select="basicSettingsCtrl.imageChanged($item)">
             <ui-select-match placeholder="Pick an image">{{$select.selected.imageName}}</ui-select-match>
-            <ui-select-choices repeat="image.imageName as image in command.images | regional:command.region | filter:$select.search">
+            <ui-select-choices repeat="image in command.images | regional:command.region | filter:$select.search">
               <span ng-bind-html="image.imageName"></span>
             </ui-select-choices>
           </ui-select>
