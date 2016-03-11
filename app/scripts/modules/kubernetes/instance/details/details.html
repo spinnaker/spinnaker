@@ -87,14 +87,6 @@
               <span class="glyphicon glyphicon-{{metric.state}}-triangle"></span>
               {{metric.state | robotToHuman}}
             </span>
-            <span class="pad-left small">
-              <a ng-if="metric.healthCheckUrl" target="_blank" href="{{metric.healthCheckUrl}}">Health Check</a>
-              <span ng-if="metric.healthCheckUrl && metric.statusPageUrl"> | </span>
-              <a ng-if="metric.statusPageUrl" target="_blank" href="{{metric.statusPageUrl}}">Status</a>
-            </span>
-          </div>
-          <div ng-if="metric.type === 'LoadBalancer' && metric.loadBalancers.length" ng-repeat="loadBalancer in metric.loadBalancers">
-            <instance-load-balancer-health load-balancer="loadBalancer"></instance-load-balancer-health>
           </div>
         </dd>
         {{instance.phase}}
@@ -131,13 +123,13 @@
       </dl>
     </collapsible-section>
     <collapsible-section ng-if="!instance.notFound" heading="Labels">
-      <dl ng-repeat="(key, value) in instance.metadata.labels" class="dl-horizontal"
+      <div ng-repeat="(key, value) in instance.metadata.labels" class="dl-horizontal"
           ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
         {{key}}: {{value}}
-      </dl>
+      </div>
     </collapsible-section>
-    <dl ng-repeat="container in instance.containers" ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal'">
-      <collapsible-section heading="Container {{container.image}}">
+    <div ng-repeat="container in instance.containers" ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal'">
+      <collapsible-section heading="Container {{container.name}}">
         <dt>Name</dt>
         <dd>{{container.name}}</dd>
         <dt>Image</dt>
@@ -206,8 +198,6 @@
           </dd>
         </div>
       </collapsible-section>
-    </dl>
-    <collapsible-section heading="Logs">
-    </collapsible-section>
+    </div>
   </div>
 </div>

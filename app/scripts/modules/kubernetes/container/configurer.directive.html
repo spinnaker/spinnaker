@@ -124,10 +124,8 @@
           <help-field key="kubernetes.containers.ports.protocol"></help-field>
         </div>
         <div class="col-md-2">
-          <select class="form-control input-sm"
-                  ng-model="port.protocol">
-            <option ng-repeat="protocol in containerController.protocols"
-                    value="{{protocol}}"
+          <select class="form-control input-sm" ng-model="port.protocol">
+            <option ng-repeat="protocol in containerController.protocols" value="{{protocol}}"
                     ng-selected="port.protocol === protocol">{{protocol}}</option>
           </select>
         </div>
@@ -137,4 +135,9 @@
       class="glyphicon glyphicon-plus-sign"></span> Add New Port
     </button>
   </collapsible-section>
+  <collapsible-section heading="Probes" expanded="false">
+    <kubernetes-container-probe container="container" command="command" probetype="'readinessProbe'" heading="'Readiness'"></kubernetes-container-probe>
+    <hr>
+    <kubernetes-container-probe container="container" command="command" probetype="'livenessProbe'" heading="'Liveness'"></kubernetes-container-probe>
+  </collabsible-section>
 </div>

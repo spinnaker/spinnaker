@@ -123,34 +123,69 @@
         </dd>
       </dl>
     </collapsible-section>
-    <dl ng-repeat="container in serverGroup.containers" class="dl-horizontal"
+    <dl ng-repeat="container in serverGroup.deployDescription.containers" class="dl-horizontal"
         ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'" >
-      <collapsible-section heading="Container {{container.name}}">
+      <collapsible-section heading="{{container.name}}">
         <dt>Name</dt> 
         <dd>{{container.name}}</dd>
+        <dt>Registry</dt>
+        <dd>{{container.imageDescription.registry}}</dd>
         <dt>Image</dt>
-        <dd>{{container.image}}</dd>
-        <div ng-if="container.resources">
-          <div ng-if="container.resources.limits">
-            <div ng-if="container.resources.limits.cpu">
-              <dt>CPU Limit</dt>
-              <dd>{{container.resources.limits.cpu}}</dd>
-            </div>
-            <div ng-if="container.resources.limits.memory">
-              <dt>Memory Limit</dt>
-              <dd>{{container.resources.limits.memory}}</dd>
-            </div>
+        <dd>{{container.imageDescription.repository}}</dd>
+        <dt>Tag</dt>
+        <dd>{{container.imageDescription.tag}}</dd>
+        <hr>
+        <div ng-if="container.limits">
+          <b>Limits</b>
+          <hr>
+          <div ng-if="container.limits.cpu">
+            <dt>CPU Limit</dt>
+            <dd>{{container.limits.cpu}}</dd>
           </div>
-          <div ng-if="container.resources.requests">
-            <div ng-if="container.resources.requests.cpu">
-              <dt>CPU Request</dt>
-              <dd>{{container.resources.requests.cpu}}</dd>
-            </div>
-            <div ng-if="container.resources.requests.memory">
-              <dt>Memory Request</dt>
-              <dd>{{container.resources.requests.memory}}</dd>
-            </div>
+          <div ng-if="container.limits.memory">
+            <dt>Memory Limit</dt>
+            <dd>{{container.limits.memory}}</dd>
           </div>
+        </div>
+        <div ng-if="container.requests">
+          <b>Requests</b>
+          <hr>
+          <div ng-if="container.requests.cpu">
+            <dt>CPU Request</dt>
+            <dd>{{container.requests.cpu}}</dd>
+          </div>
+          <div ng-if="container.requests.memory">
+            <dt>Memory Request</dt>
+            <dd>{{container.requests.memory}}</dd>
+          </div>
+        </div>
+        <div ng-if="container.readinessProbe">
+          <b>Readiness Probe</b>
+          <hr>
+          <dt>Success Threshold</dt>
+          <dd>{{container.readinessProbe.successThreshold}}</dd>
+          <dt>Failure Threshold</dt>
+          <dd>{{container.readinessProbe.failureThreshold}}</dd>
+          <dt>Period</dt>
+          <dd>{{container.readinessProbe.periodSeconds}}</dd>
+          <dt>Initial Delay</dt>
+          <dd>{{container.readinessProbe.initialDelaySeconds}}</dd>
+          <dt>Timeout</dt>
+          <dd>{{container.readinessProbe.timeoutSeconds}}</dd>
+        </div>
+        <div ng-if="container.livenessProbe">
+          <b>Liveness Probe</b>
+          <hr>
+          <dt>Success Threshold</dt>
+          <dd>{{container.livenessProbe.successThreshold}}</dd>
+          <dt>Failure Threshold</dt>
+          <dd>{{container.livenessProbe.failureThreshold}}</dd>
+          <dt>Period</dt>
+          <dd>{{container.livenessProbe.periodSeconds}}</dd>
+          <dt>Initial Delay</dt>
+          <dd>{{container.livenessProbe.initialDelaySeconds}}</dd>
+          <dt>Timeout</dt>
+          <dd>{{container.livenessProbe.timeoutSeconds}}</dd>
         </div>
       </collapsible-section>
     </dl>

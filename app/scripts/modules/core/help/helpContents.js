@@ -283,6 +283,14 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'kubernetes.containers.ports.hostIp': '(Optional) The IP to bind the external port to. Most containers do not need this.',
     'kubernetes.containers.ports.protocol': '(Required) The protocol for this port.',
     'kubernetes.containers.limits': '(Optional) This provides a hard limit on this resource for the given container.',
+    'kubernetes.containers.probes.type': '<p><b>HTTP</b> Hit the probe at the specified port and path.</p>' +
+      '<p><b>EXEC</b> Execute the specified commands on the container.</p>' +
+      '<p><b>TCP</b> Connect to the container at the specified port.</p>',
+    'kubernetes.containers.probes.initialDelay': 'How long to wait after startup before running this probe.',
+    'kubernetes.containers.probes.timeout': 'How long to wait on the result of this probe.',
+    'kubernetes.containers.probes.period': 'How long between probe executions.',
+    'kubernetes.containers.probes.successThreshold': 'How many executions need to succeed before the probe is declared healthy.',
+    'kubernetes.containers.probes.failureThreshold': 'How many executions need to fail before the probe is declared unhealthy.',
     'kubernetes.namespace': 'The namespace you have configured with the above selected account. This will often be referred to as <b>Region</b> in Spinnaker.',
     'kubernetes.loadBalancer.detail': '(Optional) A string of free-form alphanumeric characters; by convention, we recommend using "frontend".',
     'kubernetes.loadBalancer.stack': '(Optional) One of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.' ,
