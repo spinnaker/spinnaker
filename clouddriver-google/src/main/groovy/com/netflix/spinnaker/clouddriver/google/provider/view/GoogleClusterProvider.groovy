@@ -148,7 +148,10 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster2.View> {
     if (instanceKeys) {
       serverGroup.instances = instanceProvider.getInstances(instanceKeys as List, securityGroups) as Set
       serverGroup.instances.each { GoogleInstance2 instance ->
-        instance.loadBalancerHealths = getLoadBalancerHealths(instance.name, loadBalancers)
+        def foundHealths = getLoadBalancerHealths(instance.name, loadBalancers)
+        if (foundHealths) {
+          instance.loadBalancerHealths = foundHealths
+        }
       }
     }
 

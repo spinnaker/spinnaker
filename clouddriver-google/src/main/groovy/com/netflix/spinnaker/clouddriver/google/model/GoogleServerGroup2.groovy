@@ -34,9 +34,9 @@ class GoogleServerGroup2 {
   Set<String> zones = []
   Set<GoogleInstance2> instances = []
   Set health = []
-  Map<String, Object> launchConfig
-  Map<String, Object> asg
-  Set<String> securityGroups
+  Map<String, Object> launchConfig = [:]
+  Map<String, Object> asg = [:]
+  Set<String> securityGroups = []
   Map buildInfo
   Boolean disabled = false
   String networkName
