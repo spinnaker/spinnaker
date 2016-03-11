@@ -107,22 +107,24 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2.View> {
     GoogleInstance2 instance = objectMapper.convertValue(cacheData.attributes, GoogleInstance2)
 
     def loadBalancerKeys = cacheData.relationships[LOAD_BALANCERS.ns]
-    cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys).each { CacheData loadBalancerCacheData ->
-      GoogleLoadBalancer2 loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleLoadBalancer2)
-      def foundHealths = loadBalancer.healths.findAll { GoogleLoadBalancerHealth health ->
-        health.instanceName == instance.name
-      }
-      if (foundHealths) {
-        // TODO(ttomsu): Instances attached to a load balancer without a health check will be marked as HEALTHY,
-        // but this ignores the platform health state (RUNNING, STARTING, STOPPING, etc). According to the docs,
-        // (https://cloud.google.com/compute/docs/load-balancing/health-checks#overview):
-        //   "Health checks ensure that Compute Engine forwards new connections only to instances that are up and ready
-        //   to receive them."
-        // This implies that the load balancer state should be UNHEALTHY in cases where the platform health state is
-        // not RUNNING.
-        //
-        // See com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleLoadBalancerCachingAgent.TargetPoolInstanceHealthCallback.onSuccess
-        instance.loadBalancerHealths.addAll(foundHealths)
+    if (loadBalancerKeys) {
+      cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys).each { CacheData loadBalancerCacheData ->
+        GoogleLoadBalancer2 loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleLoadBalancer2)
+        def foundHealths = loadBalancer.healths.findAll { GoogleLoadBalancerHealth health ->
+          health.instanceName == instance.name
+        }
+        if (foundHealths) {
+          // TODO(ttomsu): Instances attached to a load balancer without a health check will be marked as HEALTHY,
+          // but this ignores the platform health state (RUNNING, STARTING, STOPPING, etc). According to the docs,
+          // (https://cloud.google.com/compute/docs/load-balancing/health-checks#overview):
+          //   "Health checks ensure that Compute Engine forwards new connections only to instances that are up and ready
+          //   to receive them."
+          // This implies that the load balancer state should be UNHEALTHY in cases where the platform health state is
+          // not RUNNING.
+          //
+          // See com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleLoadBalancerCachingAgent.TargetPoolInstanceHealthCallback.onSuccess
+          instance.loadBalancerHealths.addAll(foundHealths)
+        }
       }
     }
 

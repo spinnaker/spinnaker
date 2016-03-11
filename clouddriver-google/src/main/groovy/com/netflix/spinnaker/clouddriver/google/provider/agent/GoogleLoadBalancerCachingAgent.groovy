@@ -232,7 +232,8 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
       targetPool?.instances?.each { String instanceUrl ->
         def instanceReference = new InstanceReference(instance: instanceUrl)
         def instanceHealthCallback = new TargetPoolInstanceHealthCallback(googleLoadBalancer: googleLoadBalancer,
-                                                                          instanceName: Utils.getLocalName(instanceUrl))
+                                                                          instanceName: Utils.getLocalName(instanceUrl),
+                                                                          instanceZone: Utils.getZoneFromInstanceUrl(instanceUrl))
 
         compute.targetPools().getHealth(project,
                                         region,
@@ -247,6 +248,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
 
     GoogleLoadBalancer2 googleLoadBalancer
     String instanceName
+    String instanceZone
 
 
     @Override
@@ -263,6 +265,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
 
         googleLoadBalancer.healths << new GoogleLoadBalancerHealth(
             instanceName: instanceName,
+            instanceZone: instanceZone,
             status: googleLBHealthStatus,
             lbHealthSummaries: [
                 new GoogleLoadBalancerHealth.LBHealthSummary(

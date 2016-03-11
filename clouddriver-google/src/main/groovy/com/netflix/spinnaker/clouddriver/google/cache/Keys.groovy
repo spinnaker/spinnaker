@@ -73,13 +73,9 @@ class Keys {
         ]
         break
       case Namespace.INSTANCES.ns:
-        def names = Names.parseName(parts[4])
         result << [
-            application: names.app,
             account    : parts[2],
-            serverGroup: parts[4],
-            namespace  : parts[3],
-            name       : parts[5]
+            name       : parts[3]
         ]
         break
       case Namespace.LOAD_BALANCERS.ns:
