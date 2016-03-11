@@ -30,6 +30,7 @@ class DockerBearerTokenService {
   private Map<String, TokenService> realmToService
   private Map<String, DockerBearerToken> cachedTokens
   public String basicAuth
+  public String basicAuthHeader
 
   @Autowired
   String dockerApplicationName
@@ -37,11 +38,12 @@ class DockerBearerTokenService {
   DockerBearerTokenService(String username, String password) {
     realmToService = new HashMap<String, TokenService>()
     cachedTokens = new HashMap<String, DockerBearerToken>()
-    if (username) {
+    if (username || password) {
       basicAuth = new String(Base64.encoder.encode(("${username}:${password}").bytes))
-      basicAuth = "$basicAuth"
+      basicAuthHeader = "Basic $basicAuth"
     } else {
       basicAuth = null
+      basicAuthHeader = null
     }
   }
 
@@ -158,20 +160,20 @@ class DockerBearerTokenService {
     }
 
     if (!authenticate) {
-      throw new DockerRegistryAuthenticationException("Www-Authenticate header must be supplied for Docker v2 registry token authentication.")
+      return null
     }
 
     def authenticateDetails
     try {
       authenticateDetails = parseBearerAuthenticateHeader(authenticate)
     } catch (Exception e) {
-      throw new DockerRegistryAuthenticationException("Failed to retrieve token: ${e.message}")
+      throw new DockerRegistryAuthenticationException("Failed to parse www-authenticate header: ${e.message}")
     }
 
     def tokenService = getTokenService(authenticateDetails.realm)
     def token
     if (basicAuth) {
-      token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, "Basic $basicAuth", dockerApplicationName)
+      token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, basicAuthHeader, dockerApplicationName)
     }
     else {
       token = tokenService.getToken(authenticateDetails.path, authenticateDetails.service, authenticateDetails.scope, dockerApplicationName)
@@ -186,7 +188,7 @@ class DockerBearerTokenService {
     @Headers([
       "Docker-Distribution-API-Version: registry/2.0"
     ])
-    DockerBearerToken getToken(@Path(value="path", encode=false) String path,
+    DockerBearerToken getToken(@Path(value="path") String path,
                                @Query(value="service") String service, @Query(value="scope") String scope,
                                @retrofit.http.Header("User-Agent") String agent)
 
@@ -194,8 +196,8 @@ class DockerBearerTokenService {
     @Headers([
       "Docker-Distribution-API-Version: registry/2.0"
     ])
-    DockerBearerToken getToken(@Path(value="path", encode=false) String path, @Query(value="service") String service,
-                               @Query(value="scope") String scope, @retrofit.http.Header("Authentication") String basic,
+    DockerBearerToken getToken(@Path(value="path") String path, @Query(value="service") String service,
+                               @Query(value="scope") String scope, @retrofit.http.Header("Authorization") String basic,
                                @retrofit.http.Header("User-Agent") String agent)
   }
 

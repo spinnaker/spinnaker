@@ -75,29 +75,11 @@ class DockerRegistryClient {
     ])
     Response getTags(@Path(value="repository", encode=false) String repository, @Header("Authorization") String token, @Header("User-Agent") String agent)
 
-    @GET("/v2/{repository}/tags/list")
-    @Headers([
-      "Docker-Distribution-API-Version: registry/2.0"
-    ])
-    Response getTags(@Path(value="repository", encode=false) String repository, @Header("User-Agent") String agent)
-
     @GET("/v2/{name}/manifests/{reference}")
     @Headers([
       "Docker-Distribution-API-Version: registry/2.0"
     ])
     Response getManifest(@Path(value="name", encode=false) String name, @Path(value="reference", encode=false) String reference, @Header("Authorization") String token, @Header("User-Agent") String agent)
-
-    @HEAD("/v2/{name}/manifests/{reference}")
-    @Headers([
-      "Docker-Distribution-API-Version: registry/2.0"
-    ])
-    Response getManifest(@Path(value="name", encode=false) String name, @Path(value="reference", encode=false) String reference, @Header("User-Agent") String agent)
-
-    @GET("/v2/_catalog")
-    @Headers([
-        "Docker-Distribution-API-Version: registry/2.0"
-    ])
-    Response getCatalog(@Header("User-Agent") String agent)
 
     @GET("/v2/_catalog")
     @Headers([
@@ -110,19 +92,12 @@ class DockerRegistryClient {
       "User-Agent: Spinnaker-Clouddriver",
       "Docker-Distribution-API-Version: registry/2.0"
     ])
-    Response checkVersion(@Header("User-Agent") String agent)
-
-    @GET("/v2/")
-    @Headers([
-      "User-Agent: Spinnaker-Clouddriver",
-      "Docker-Distribution-API-Version: registry/2.0"
-    ])
     Response checkVersion(@Header("Authorization") String token, @Header("User-Agent") String agent)
   }
 
   public DockerRegistryTags getTags(String repository) {
     def response = request({
-      registryService.getTags(repository, dockerApplicationName)
+      registryService.getTags(repository, tokenService.basicAuthHeader, dockerApplicationName)
     }, { token ->
       registryService.getTags(repository, token, dockerApplicationName)
     }, repository)
@@ -132,7 +107,7 @@ class DockerRegistryClient {
 
   public String getDigest(String name, String tag) {
     def response = request({
-      registryService.getManifest(name, tag, dockerApplicationName)
+      registryService.getManifest(name, tag, tokenService.basicAuthHeader, dockerApplicationName)
     }, { token ->
       registryService.getManifest(name, tag, token, dockerApplicationName)
     }, name)
@@ -152,7 +127,7 @@ class DockerRegistryClient {
    */
   public DockerRegistryCatalog getCatalog() {
     def response = request({
-      registryService.getCatalog(dockerApplicationName)
+      registryService.getCatalog(tokenService.basicAuthHeader, dockerApplicationName)
     }, { token ->
       registryService.getCatalog(token, dockerApplicationName)
     }, "_catalog")
@@ -197,7 +172,7 @@ class DockerRegistryClient {
    */
   public void checkV2Availability() {
     request({
-      registryService.checkVersion(dockerApplicationName)
+      registryService.checkVersion(tokenService.basicAuthHeader, dockerApplicationName)
     }, { token ->
       registryService.checkVersion(token, dockerApplicationName)
     }, "v2 version check")
