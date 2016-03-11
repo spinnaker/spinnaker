@@ -130,6 +130,16 @@ class KubernetesUtil {
     return loadBalancers
   }
 
+  static Map<String, String> getPodLoadBalancerStates(Pod pod) {
+    pod.metadata?.labels?.collectEntries { key, val ->
+      if (isLoadBalancerLabel(key)) {
+        return [key: val]
+      } else {
+        return [:]
+      }
+    }
+  }
+
   static List<String> getDescriptionLoadBalancers(ReplicationController rc) {
     def loadBalancers = []
     rc.spec?.template?.metadata?.labels?.each { key, val ->

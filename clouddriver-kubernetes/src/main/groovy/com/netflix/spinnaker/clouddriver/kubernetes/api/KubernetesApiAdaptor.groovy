@@ -20,6 +20,7 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.*
 import io.fabric8.kubernetes.api.model.*
+import io.fabric8.kubernetes.api.model.extensions.Ingress
 import io.fabric8.kubernetes.client.KubernetesClient
 
 class KubernetesApiAdaptor {
@@ -60,56 +61,26 @@ class KubernetesApiAdaptor {
     client.replicationControllers().inNamespace(namespace).withName(name).scale(size)
   }
 
-  void removePodLabels(String namespace, String name, List<String> keys) {
+  void togglePodLabels(String namespace, String name, List<String> keys, String value) {
     def edit = client.pods().inNamespace(namespace).withName(name).edit().editMetadata()
 
     keys.each {
       edit.removeFromLabels(it)
-    }
-
-    edit.endMetadata().done()
-  }
-
-  void addPodLabels(String namespace, String name, List<String> keys, String value) {
-    def edit = client.pods().inNamespace(namespace).withName(name).edit().editMetadata()
-
-    keys.each {
       edit.addToLabels(it, value)
     }
 
     edit.endMetadata().done()
   }
 
-  void removeReplicationControllerSpecLabels(String namespace, String name, List<String> keys) {
-    def edit = client.replicationControllers().inNamespace(namespace).withName(name).edit().editSpec().editTemplate().editMetadata()
+  void toggleReplicationControllerSpecLabels(String namespace, String name, List<String> keys, String value) {
+    def edit = client.replicationControllers().inNamespace(namespace).withName(name).cascading(false).edit().editSpec().editTemplate().editMetadata()
 
     keys.each {
       edit.removeFromLabels(it)
-    }
-
-    edit = edit.endMetadata().endTemplate()
-
-    keys.each {
-      edit.removeFromSelector(it)
-    }
-
-    edit.endSpec().done()
-  }
-
-  void addReplicationControllerSpecLabels(String namespace, String name, List<String> keys, String value) {
-    def edit = client.replicationControllers().inNamespace(namespace).withName(name).edit().editSpec().editTemplate().editMetadata()
-
-    keys.each {
       edit.addToLabels(it, value)
     }
 
-    edit = edit.endMetadata().endTemplate()
-
-    keys.each {
-      edit.addToSelector(it, value)
-    }
-
-    edit.endSpec().done()
+    edit = edit.endMetadata().endTemplate().endSpec().done()
   }
 
   Service getService(String namespace, String service) {
@@ -122,10 +93,6 @@ class KubernetesApiAdaptor {
 
   List<Service> getServices(String namespace) {
     client.services().inNamespace(namespace).list().items
-  }
-
-  Service getSecurityGroup(String namespace, String securityGroup) {
-    getService(namespace, securityGroup)
   }
 
   Service replaceService(String namespace, String name, Service service) {

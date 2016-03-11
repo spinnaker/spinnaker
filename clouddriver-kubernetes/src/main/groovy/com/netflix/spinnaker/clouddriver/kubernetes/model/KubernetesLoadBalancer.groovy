@@ -57,7 +57,7 @@ class KubernetesLoadBalancer implements LoadBalancer, Serializable {
       // TODO(lwander): Add isDisabled and detachedInstances fields below.
       new LoadBalancerServerGroup(
         name: serverGroup?.name,
-        instances: serverGroup.instances?.collect { instance ->
+        instances: serverGroup?.instances?.collect { instance ->
           new LoadBalancerInstance(
             id: instance.name,
             zone: instance.zone,
