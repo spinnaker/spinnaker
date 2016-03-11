@@ -26,6 +26,7 @@ import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.HealthStatus
 import com.google.api.services.compute.model.InstanceReference
+import com.google.api.services.compute.model.TargetPool
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -174,7 +175,58 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
 
     @Override
     void onSuccess(TargetPool targetPool, HttpHeaders responseHeaders) throws IOException {
-      def region = Utils.getLocalName(targetPool.region)
+      boolean hasHealthChecks = targetPool?.healthChecks
+      targetPool?.healthChecks?.each { def healthCheckUrl ->
+        def localHealthCheckName = Utils.getLocalName(healthCheckUrl)
+        def httpHealthCheckCallback = new HttpHealthCheckCallback(googleLoadBalancer: googleLoadBalancer,
+                                                                  targetPool: targetPool,
+                                                                  instanceHealthRequest: instanceHealthRequest)
+
+        compute.httpHealthChecks().get(project, localHealthCheckName).queue(httpHealthChecksRequest, httpHealthCheckCallback)
+      }
+      if (!hasHealthChecks) {
+        new TargetPoolInstanceHealthCallInvoker(googleLoadBalancer: googleLoadBalancer,
+                                                targetPool: targetPool,
+                                                instanceHealthRequest: instanceHealthRequest).doCall()
+      }
+    }
+  }
+
+  class HttpHealthCheckCallback<HttpHealthCheck> extends JsonBatchCallback<HttpHealthCheck> implements FailureLogger {
+
+    GoogleLoadBalancer2 googleLoadBalancer
+    TargetPool targetPool
+
+    BatchRequest instanceHealthRequest
+
+    @Override
+    void onSuccess(HttpHealthCheck httpHealthCheck, HttpHeaders responseHeaders) throws IOException {
+      if (httpHealthCheck) {
+        googleLoadBalancer.healthCheck = new GoogleHealthCheck(
+            port: httpHealthCheck.port,
+            requestPath: httpHealthCheck.requestPath,
+            checkIntervalSec: httpHealthCheck.checkIntervalSec,
+            timeoutSec: httpHealthCheck.timeoutSec,
+            unhealthyThreshold: httpHealthCheck.unhealthyThreshold,
+            healthyThreshold: httpHealthCheck.healthyThreshold)
+      }
+
+      new TargetPoolInstanceHealthCallInvoker(googleLoadBalancer: googleLoadBalancer,
+                                              targetPool: targetPool,
+                                              instanceHealthRequest: instanceHealthRequest).doCall()
+
+    }
+  }
+
+  class TargetPoolInstanceHealthCallInvoker {
+
+    GoogleLoadBalancer2 googleLoadBalancer
+    TargetPool targetPool
+
+    BatchRequest instanceHealthRequest
+
+    def doCall() {
+      def region = Utils.getLocalName(targetPool.region as String)
       def targetPoolName = targetPool.name as String
 
       targetPool?.instances?.each { String instanceUrl ->
@@ -187,15 +239,9 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
                                         targetPoolName,
                                         instanceReference).queue(instanceHealthRequest, instanceHealthCallback)
       }
-
-      targetPool?.healthChecks?.each { def healthCheckUrl ->
-        def localHealthCheckName = Utils.getLocalName(healthCheckUrl)
-        def httpHealthCheckCallback = new HttpHealthCheckCallback(googleLoadBalancer: googleLoadBalancer)
-
-        compute.httpHealthChecks().get(project, localHealthCheckName).queue(httpHealthChecksRequest, httpHealthCheckCallback)
-      }
     }
   }
+
 
   class TargetPoolInstanceHealthCallback<TargetPoolInstanceHealth> extends JsonBatchCallback<TargetPoolInstanceHealth> implements FailureLogger {
 
@@ -208,6 +254,13 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
       targetPoolInstanceHealth?.healthStatus?.each { HealthStatus healthStatus ->
         def googleLBHealthStatus = GoogleLoadBalancerHealth.PlatformStatus.valueOf(healthStatus.healthState)
 
+        // Google APIs return instances as UNHEALTHY if an instance is associated with a target pool (load balancer)
+        // but that target pool does not have a health check. This is the wrong behavior, because the instance may still
+        // receive traffic if it is in the RUNNING state.
+        if (!googleLoadBalancer.healthCheck) {
+          googleLBHealthStatus = GoogleLoadBalancerHealth.PlatformStatus.HEALTHY
+        }
+
         googleLoadBalancer.healths << new GoogleLoadBalancerHealth(
             instanceName: instanceName,
             status: googleLBHealthStatus,
@@ -217,24 +270,6 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
                     instanceId: instanceName,
                     state: googleLBHealthStatus.toServiceStatus())
             ])
-      }
-    }
-  }
-
-  class HttpHealthCheckCallback<HttpHealthCheck> extends JsonBatchCallback<HttpHealthCheck> implements FailureLogger {
-
-    GoogleLoadBalancer2 googleLoadBalancer
-
-    @Override
-    void onSuccess(HttpHealthCheck httpHealthCheck, HttpHeaders responseHeaders) throws IOException {
-      if (httpHealthCheck) {
-        googleLoadBalancer.healthCheck = new GoogleHealthCheck(
-            port: httpHealthCheck.port,
-            requestPath: httpHealthCheck.requestPath,
-            checkIntervalSec: httpHealthCheck.checkIntervalSec,
-            timeoutSec: httpHealthCheck.timeoutSec,
-            unhealthyThreshold: httpHealthCheck.unhealthyThreshold,
-            healthyThreshold: httpHealthCheck.healthyThreshold)
       }
     }
   }
