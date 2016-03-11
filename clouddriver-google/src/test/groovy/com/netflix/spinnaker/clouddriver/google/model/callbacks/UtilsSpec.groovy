@@ -21,7 +21,6 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleCluster
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
 import com.netflix.spinnaker.clouddriver.google.model.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
-import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import spock.lang.Specification
 
 class UtilsSpec extends Specification {
@@ -223,5 +222,15 @@ class UtilsSpec extends Specification {
 
     then:
       !(retrievedCopyClusterDev.serverGroups.find { it.name == SERVER_GROUP_NAME }.isDisabled())
+  }
+
+  def "should get zone from instance URL"() {
+    expect:
+      expected == Utils.getZoneFromInstanceUrl(input)
+
+    where:
+      input                                                                                                                        || expected
+      "https://content.googleapis.com/compute/v1/projects/ttomsu-dev-spinnaker/zones/us-central1-c/instances/sekret-gce-v070-z8mh" || "us-central1-c"
+      "projects/ttomsu-dev-spinnaker/zones/us-central1-c/instances/sekret-gce-v070-z8mh"                                           || "us-central1-c"
   }
 }

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import groovy.transform.Canonical
 
 @Canonical
@@ -53,6 +54,6 @@ class GoogleLoadBalancer2 {
     String portRange = GoogleLoadBalancer2.this.portRange
     GoogleHealthCheck.View healthCheck = GoogleLoadBalancer2.this.healthCheck?.view
 
-    Set<Map<String, Object>> serverGroups = new HashSet<>()
+    Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
   }
 }

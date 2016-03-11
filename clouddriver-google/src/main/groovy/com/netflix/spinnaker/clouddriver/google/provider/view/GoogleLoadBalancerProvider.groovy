@@ -18,35 +18,93 @@ package com.netflix.spinnaker.clouddriver.google.provider.view
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
+import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance2
 import com.netflix.spinnaker.clouddriver.google.model.GoogleLoadBalancer2
+import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
+import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup2
+import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.LOAD_BALANCERS
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
 @ConditionalOnProperty(value = "google.providerImpl", havingValue = "new")
 @Component
 class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalancer2.View> {
 
   @Autowired
-  final GoogleCloudProvider googleCloudProvider
+  GoogleCloudProvider googleCloudProvider
   @Autowired
-  final Cache cacheView
+  Cache cacheView
   @Autowired
-  final ObjectMapper objectMapper
+  ObjectMapper objectMapper
+  @Autowired
+  GoogleSecurityGroupProvider googleSecurityGroupProvider
+  @Autowired
+  GoogleInstanceProvider googleInstanceProvider
 
   @Override
   Set<GoogleLoadBalancer2.View> getApplicationLoadBalancers(String application) {
     def pattern = Keys.getLoadBalancerKey(googleCloudProvider, "*", "*", "${application}*")
     def identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, pattern)
 
-    cacheView.getAll(LOAD_BALANCERS.ns, identifiers, RelationshipCacheFilter.none()).collect {
-      objectMapper.convertValue(it.attributes, GoogleLoadBalancer2).view
+    cacheView.getAll(LOAD_BALANCERS.ns,
+                     identifiers,
+                     RelationshipCacheFilter.include(SERVER_GROUPS.ns)).collect { CacheData loadBalancerCacheData ->
+      loadBalancersFromCacheData(loadBalancerCacheData)
+    } as Set
+  }
+
+  GoogleLoadBalancer2.View loadBalancersFromCacheData(CacheData loadBalancerCacheData) {
+    GoogleLoadBalancer2 loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleLoadBalancer2)
+    GoogleLoadBalancer2.View loadBalancerView = loadBalancer?.view
+
+    def serverGroupKeys = loadBalancerCacheData.relationships[SERVER_GROUPS.ns]
+    if (!serverGroupKeys) {
+      return loadBalancerView
     }
+    cacheView.getAll(SERVER_GROUPS.ns,
+                     serverGroupKeys,
+                     RelationshipCacheFilter.include(INSTANCES.ns))?.each { CacheData serverGroupCacheData ->
+      GoogleServerGroup2 serverGroup = objectMapper.convertValue(serverGroupCacheData.attributes, GoogleServerGroup2)
+
+      def loadBalancerServerGroup = new LoadBalancerServerGroup(
+          name: serverGroup.name,
+          isDisabled: false, // Given this relationship started from a load balancer, it's inherently enabled.
+          detachedInstances: [],
+          instances: [])
+
+      def instanceNames = serverGroupCacheData.relationships[INSTANCES.ns]?.collect {
+        Keys.parse(googleCloudProvider, it)?.name
+      }
+
+      loadBalancer.healths.each { GoogleLoadBalancerHealth googleLoadBalancerHealth ->
+        if (!instanceNames.remove(googleLoadBalancerHealth.instanceName)) {
+          return
+        }
+
+        loadBalancerServerGroup.instances << new LoadBalancerInstance(
+            id: googleLoadBalancerHealth.instanceName,
+            zone: googleLoadBalancerHealth.instanceZone,
+            health: [
+                "state"      : googleLoadBalancerHealth.lbHealthSummaries[0].state as String,
+                "description": googleLoadBalancerHealth.lbHealthSummaries[0].description
+            ]
+        )
+      }
+
+      loadBalancerServerGroup.detachedInstances = instanceNames // Any remaining instances are considered detached.
+      loadBalancerView.serverGroups << loadBalancerServerGroup
+    }
+
+    loadBalancerView
   }
 }

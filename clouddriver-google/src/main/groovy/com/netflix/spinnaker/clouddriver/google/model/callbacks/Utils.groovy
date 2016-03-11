@@ -43,6 +43,12 @@ class Utils {
     return lastIndex != -1 ? fullUrl.substring(lastIndex + 1) : fullUrl
   }
 
+  static String getZoneFromInstanceUrl(String fullUrl) {
+    def zones = "zones/"
+    fullUrl.substring(fullUrl.indexOf(zones) + zones.length(),
+                      fullUrl.indexOf("instances/") - 1)
+  }
+
   // TODO(duftler): Consolidate this method with the same one from kato/GCEUtil and move to a common library.
   static Map<String, String> buildMapFromMetadata(Metadata metadata) {
     metadata.items?.collectEntries { Metadata.Items metadataItems ->

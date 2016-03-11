@@ -25,6 +25,7 @@ import groovy.transform.Canonical
 class GoogleLoadBalancerHealth {
 
   String instanceName
+  String instanceZone
 
   List<LBHealthSummary> lbHealthSummaries
 
