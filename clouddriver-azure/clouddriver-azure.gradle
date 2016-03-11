@@ -1,3 +1,7 @@
+repositories {
+  maven { url "http://adxsnapshots.azurewebsites.net" }
+}
+
 dependencies {
   compile project(":clouddriver-core")
   compile spinnaker.dependency('frigga')
@@ -11,4 +15,11 @@ dependencies {
   compile 'com.microsoft.azure:azure-mgmt-resources:1.0.0-beta1'
   compile 'com.microsoft.azure:azure-client-authentication:1.0.0-beta1'
   compile 'com.microsoft.azure:azure-storage:3.1.0'
+  compile 'com.microsoft.rest:client-runtime:1.0.0-20160309.002843-19'
 }
+
+configurations.all {
+  resolutionStrategy.force 'com.microsoft.rest:client-runtime:1.0.0-20160309.002843-19'
+}
+
+
