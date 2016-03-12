@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
+import com.google.common.hash.Hashing;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.CacheFilter;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
@@ -34,8 +35,6 @@ import redis.clients.jedis.ScanResult;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -61,7 +60,6 @@ public class RedisCache implements WriteableCache {
         }
     }
 
-    private static final String DIGEST_ALGORITHM = "SHA1";
     private static final String HASH_CHARSET = "UTF8";
 
     private static final int DEFAULT_SCAN_SIZE = 50000;
@@ -101,18 +99,11 @@ public class RedisCache implements WriteableCache {
         final Map<String, Integer> ttlSecondsByKey = new HashMap<>();
         int skippedWrites = 0;
 
-        final MessageDigest digest;
-        try {
-            digest = MessageDigest.getInstance(DIGEST_ALGORITHM);
-        } catch (NoSuchAlgorithmException nsae) {
-            throw new RuntimeException(nsae);
-        }
-
         final Map<String, byte[]> hashes = getHashes(type, items);
         final Map<byte[], byte[]> updatedHashes = new HashMap<>();
 
         for (CacheData item : items) {
-            MergeOp op = buildMergeOp(type, item, hashes, digest);
+            MergeOp op = buildMergeOp(type, item, hashes);
             relationshipNames.addAll(op.relNames);
             keysToSet.addAll(op.keysToSet);
             idSet.add(item.getId());
@@ -342,13 +333,12 @@ public class RedisCache implements WriteableCache {
      * @param hashes the existing hash values
      * @param id the id of the item
      * @param serializedValue the serialized value
-     * @param digest the digest for hash computation
      * @param keys values to persist - if the hash does not match id and serializedValue are appended
      * @param updatedHashes hashes to persist - if the hash does not match adds an entry of id -> computed hash
      * @return true if the hash matched, false otherwise
      */
-    private boolean hashCheck(Map<String, byte[]> hashes, String id, String serializedValue, MessageDigest digest, List<String> keys, Map<byte[], byte[]> updatedHashes) {
-        final byte[] hash = digest.digest(stringToBytes(serializedValue));
+    private boolean hashCheck(Map<String, byte[]> hashes, String id, String serializedValue, List<String> keys, Map<byte[], byte[]> updatedHashes) {
+        final byte[] hash = Hashing.sha1().newHasher().putBytes(stringToBytes(serializedValue)).hash().asBytes();
         final byte[] existingHash = hashes.get(id);
         if (Arrays.equals(hash, existingHash)) {
            return true;
@@ -360,7 +350,7 @@ public class RedisCache implements WriteableCache {
         return false;
     }
 
-    private MergeOp buildMergeOp(String type, CacheData cacheData, Map<String, byte[]> hashes, MessageDigest digest) {
+    private MergeOp buildMergeOp(String type, CacheData cacheData, Map<String, byte[]> hashes) {
         int skippedWrites = 0;
         final String serializedAttributes;
         try {
@@ -376,7 +366,7 @@ public class RedisCache implements WriteableCache {
         final Map<byte[], byte[]> hashesToSet = new HashMap<>();
         final List<String> keysToSet = new ArrayList<>((cacheData.getRelationships().size() + 1) * 2);
         if (serializedAttributes != null &&
-            hashCheck(hashes, attributesId(type, cacheData.getId()), serializedAttributes, digest, keysToSet, hashesToSet)) {
+            hashCheck(hashes, attributesId(type, cacheData.getId()), serializedAttributes, keysToSet, hashesToSet)) {
             skippedWrites++;
         }
 
@@ -388,7 +378,7 @@ public class RedisCache implements WriteableCache {
                 } catch (JsonProcessingException serializationException) {
                     throw new RuntimeException("Relationship serialization failed", serializationException);
                 }
-                if (hashCheck(hashes, relationshipId(type, cacheData.getId(), relationship.getKey()), relationshipValue, digest, keysToSet, hashesToSet)) {
+                if (hashCheck(hashes, relationshipId(type, cacheData.getId(), relationship.getKey()), relationshipValue, keysToSet, hashesToSet)) {
                     skippedWrites++;
                 }
             }
