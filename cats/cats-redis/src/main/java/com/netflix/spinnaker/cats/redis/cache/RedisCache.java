@@ -74,8 +74,9 @@ public class RedisCache implements WriteableCache {
     private final ObjectMapper objectMapper;
     private final int maxMsetSize;
     private final CacheMetrics cacheMetrics;
+    private final boolean enableHashing;
 
-    public RedisCache(String prefix, JedisSource source, ObjectMapper objectMapper, int maxMsetSize, CacheMetrics cacheMetrics) {
+    public RedisCache(String prefix, JedisSource source, ObjectMapper objectMapper, int maxMsetSize, boolean enableHashing, CacheMetrics cacheMetrics) {
         Preconditions.checkArgument(
           maxMsetSize % 2 == 0, String.format("maxMsetSize must be even (%s)", maxMsetSize)
         );
@@ -84,6 +85,7 @@ public class RedisCache implements WriteableCache {
         this.source = source;
         this.objectMapper = objectMapper.disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
         this.maxMsetSize = maxMsetSize;
+        this.enableHashing = enableHashing;
         this.cacheMetrics = cacheMetrics == null ? new CacheMetrics.NOOP() : cacheMetrics;
     }
 
@@ -338,15 +340,17 @@ public class RedisCache implements WriteableCache {
      * @return true if the hash matched, false otherwise
      */
     private boolean hashCheck(Map<String, byte[]> hashes, String id, String serializedValue, List<String> keys, Map<byte[], byte[]> updatedHashes) {
-        final byte[] hash = Hashing.sha1().newHasher().putBytes(stringToBytes(serializedValue)).hash().asBytes();
-        final byte[] existingHash = hashes.get(id);
-        if (Arrays.equals(hash, existingHash)) {
-           return true;
+        if (enableHashing) {
+            final byte[] hash = Hashing.sha1().newHasher().putBytes(stringToBytes(serializedValue)).hash().asBytes();
+            final byte[] existingHash = hashes.get(id);
+            if (Arrays.equals(hash, existingHash)) {
+                return true;
+            }
+            updatedHashes.put(stringToBytes(id), hash);
         }
 
         keys.add(id);
         keys.add(serializedValue);
-        updatedHashes.put(stringToBytes(id), hash);
         return false;
     }
 
@@ -403,6 +407,9 @@ public class RedisCache implements WriteableCache {
     }
 
     private boolean isHashingDisabled(String type) {
+        if (!enableHashing) {
+            return false;
+        }
         try (Jedis jedis = source.getJedis()) {
             return jedis.exists(hashesDisabled(type));
         }

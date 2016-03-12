@@ -46,8 +46,9 @@ class RedisCacheConfig {
   NamedCacheFactory cacheFactory(
     JedisSource jedisSource,
     ObjectMapper objectMapper,
-    @Value('${redis.maxMsetSize:250000}') int maxMsetSize) {
-    new RedisNamedCacheFactory(jedisSource, objectMapper, maxMsetSize, null)
+    @Value('${redis.maxMsetSize:250000}') int maxMsetSize,
+    @Value('${caching.hashing.enabled:true}') boolean enableHashing) {
+    new RedisNamedCacheFactory(jedisSource, objectMapper, maxMsetSize, enableHashing, null)
   }
 
   @Bean
