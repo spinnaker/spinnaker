@@ -51,7 +51,7 @@ import java.util.concurrent.*;
 
 @Configuration
 @EnableConfigurationProperties
-@ConditionalOnClass(AstyanaxConfiguration.class)
+@ConditionalOnExpression("${cassandra.enabled:true}")
 public class AstyanaxComponents {
 
     @Value("${cassandra.host:127.0.0.1}")
