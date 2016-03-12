@@ -408,7 +408,7 @@ public class RedisCache implements WriteableCache {
 
     private boolean isHashingDisabled(String type) {
         if (!enableHashing) {
-            return false;
+            return true;
         }
         try (Jedis jedis = source.getJedis()) {
             return jedis.exists(hashesDisabled(type));
