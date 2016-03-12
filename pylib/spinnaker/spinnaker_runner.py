@@ -512,7 +512,7 @@ Proceeding anyway.
 
 
   def stop_deck(self):
-    print 'Stopping apache server while starting Spinnaker.'
+    print 'Stopping apache server while stopping Spinnaker.'
     run_quick('service apache2 stop', echo=True)
 
   def start_deck(self):
