@@ -48,7 +48,7 @@ class RedisCacheSpec extends WriteableCacheSpec {
         }
 
         def mapper = new ObjectMapper();
-        return new RedisCache('test', source, mapper, MAX_MSET_SIZE, cacheMetrics)
+        return new RedisCache('test', source, mapper, MAX_MSET_SIZE, true, cacheMetrics)
     }
 
     @Unroll
@@ -114,7 +114,7 @@ class RedisCacheSpec extends WriteableCacheSpec {
 
     def 'should fail if maxMsetSize is not even'() {
         when:
-        new RedisCache('test', null, null, 7, null)
+        new RedisCache('test', null, null, 7, true, null)
 
         then:
         thrown(IllegalArgumentException)
