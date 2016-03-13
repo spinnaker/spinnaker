@@ -42,8 +42,6 @@ class Keys {
     }
   }
 
-  static final String DETACHED_POD = '__DETACHED__'
-
   static Map<String, String> parse(String key) {
     def parts = key.split(':')
 
@@ -75,7 +73,7 @@ class Keys {
         break
       case Namespace.INSTANCES.ns:
         def names = Names.parseName(parts[4])
-        result << [application: names.app, account: parts[2], serverGroup: parts[4], namespace: parts[3], name: parts[5], instanceId: parts[5]]
+        result << [application: names.app, account: parts[2], serverGroup: parts[4], namespace: parts[3], name: parts[5], instanceId: parts[5], region: parts[3]]
         break
       default:
         return null
