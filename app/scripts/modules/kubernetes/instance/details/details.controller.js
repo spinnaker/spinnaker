@@ -40,18 +40,59 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
     function retrieveInstance() {
       var extraData = {};
       var instanceSummary, loadBalancers, account, namespace;
-      app.serverGroups.data.some(function (serverGroup) {
-        return serverGroup.instances.some(function (possibleInstance) {
-          if (possibleInstance.id === instance.instanceId) {
-            instanceSummary = possibleInstance;
-            loadBalancers = serverGroup.loadBalancers;
-            account = serverGroup.account;
-            namespace = serverGroup.region;
-            extraData.serverGroup = serverGroup.name;
-            return true;
-          }
+      if (!app.serverGroups) {
+        // standalone instance
+        instanceSummary = {};
+        loadBalancers = [];
+        account = instance.account;
+        namespace = instance.region;
+      } else {
+        app.serverGroups.data.some(function (serverGroup) {
+          return serverGroup.instances.some(function (possibleInstance) {
+            if (possibleInstance.id === instance.instanceId) {
+              instanceSummary = possibleInstance;
+              loadBalancers = serverGroup.loadBalancers;
+              account = serverGroup.account;
+              namespace = serverGroup.region;
+              extraData.serverGroup = serverGroup.name;
+              return true;
+            }
+          });
         });
-      });
+        if (!instanceSummary) {
+          // perhaps it is in a server group that is part of another application
+          app.loadBalancers.data.some(function (loadBalancer) {
+            return loadBalancer.instances.some(function (possibleInstance) {
+              if (possibleInstance.id === instance.instanceId) {
+                instanceSummary = possibleInstance;
+                loadBalancers = [loadBalancer.name];
+                account = loadBalancer.account;
+                namespace = loadBalancer.region;
+                return true;
+              }
+            });
+          });
+          if (!instanceSummary) {
+            // perhaps it is in a disabled server group via a load balancer
+            app.loadBalancers.data.some(function (loadBalancer) {
+              return loadBalancer.serverGroups.some(function (serverGroup) {
+                if (!serverGroup.isDisabled) {
+                  return false;
+                }
+                return serverGroup.instances.some(function (possibleInstance) {
+                  if (possibleInstance.id === instance.instanceId) {
+                    instanceSummary = possibleInstance;
+                    loadBalancers = [loadBalancer.name];
+                    account = loadBalancer.account;
+                    namespace = loadBalancer.region;
+                    return true;
+                  }
+                });
+              });
+            });
+          }
+        }
+      }
 
       if (instanceSummary && account && namespace) {
         extraData.account = account;
@@ -124,12 +165,6 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
     this.deregisterInstanceFromLoadBalancer = function deregisterInstanceFromLoadBalancer() {
     };
 
-    this.enableInstanceInDiscovery = function enableInstanceInDiscovery() {
-    };
-
-    this.disableInstanceInDiscovery = function disableInstanceInDiscovery() {
-    };
-
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
       var instance = $scope.instance;
       return (instance.health.some(function (health) {
@@ -138,7 +173,11 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
       );
     };
 
-    retrieveInstance().then(() => {
+    let initialize = app.isStandalone ?
+      retrieveInstance() :
+      $q.all([app.serverGroups.ready(), app.loadBalancers.ready()]).then(retrieveInstance);
+
+    initialize.then(() => {
       // Two things to look out for here:
       //  1. If the retrieveInstance call completes *after* the user has navigated away from the view, there
       //     is no point in subscribing to the refresh
@@ -149,6 +188,5 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
     });
 
     $scope.account = instance.account;
-
   }
 );
