@@ -144,6 +144,7 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
         ($scope.command.application !== null) &&
         ($scope.command.credentials !== null) &&
         ($scope.command.region !== null) &&
+        $scope.serverGroupWizardForm.$valid &&
         v2modalWizardService.isComplete();
     };
 
