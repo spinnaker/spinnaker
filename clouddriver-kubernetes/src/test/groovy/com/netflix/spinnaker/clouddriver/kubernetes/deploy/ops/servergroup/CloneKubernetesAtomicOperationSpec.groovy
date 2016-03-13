@@ -163,10 +163,10 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
         c.imageDescription.tag == expectedResultDescription.containers[idx].imageDescription.tag
         c.imageDescription.repository == expectedResultDescription.containers[idx].imageDescription.repository
         c.name == expectedResultDescription.containers[idx].name
-        c.requests.cpu == expectedResultDescription.containers[idx].requests.cpu
-        c.requests.memory == expectedResultDescription.containers[idx].requests.memory
-        c.limits.cpu == expectedResultDescription.containers[idx].limits.cpu
-        c.limits.memory == expectedResultDescription.containers[idx].limits.memory
+        c.requests?.cpu == expectedResultDescription.containers[idx].requests?.cpu
+        c.requests?.memory == expectedResultDescription.containers[idx].requests?.memory
+        c.limits?.cpu == expectedResultDescription.containers[idx].limits?.cpu
+        c.limits?.memory == expectedResultDescription.containers[idx].limits?.memory
       }
   }
 
