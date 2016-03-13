@@ -126,9 +126,9 @@
         </dd>
       </dl>
     </collapsible-section>
-    <dl ng-repeat="container in serverGroup.deployDescription.containers" class="dl-horizontal"
+    <collapsible-section ng-repeat="container in serverGroup.deployDescription.containers" heading="{{container.name}}">
+    <dl class="dl-horizontal"
         ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'" >
-      <collapsible-section heading="{{container.name}}">
         <dt>Name</dt> 
         <dd>{{container.name}}</dd>
         <dt>Registry</dt>
@@ -190,8 +190,8 @@
           <dt>Timeout</dt>
           <dd>{{container.livenessProbe.timeoutSeconds}}</dd>
         </div>
-      </collapsible-section>
     </dl>
+      </collapsible-section>
     <collapsible-section heading="Labels">
       <div ng-if="!serverGroup.labels">No labels associated with this replication controller</div>
       <dl ng-repeat="(key, value) in serverGroup.labels" class="dl-horizontal"
