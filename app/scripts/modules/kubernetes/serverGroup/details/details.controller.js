@@ -6,10 +6,11 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.controller', [
   require('angular-ui-router'),
   require('../configure/configure.kubernetes.module.js'),
-  require('../../../core/serverGroup/serverGroup.read.service.js'),
-  require('../../../core/serverGroup/details/serverGroupWarningMessage.service.js'),
-  require('../../../core/serverGroup/serverGroup.write.service.js'),
+  require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/serverGroup/configure/common/runningExecutions.service.js'),
+  require('../../../core/serverGroup/details/serverGroupWarningMessage.service.js'),
+  require('../../../core/serverGroup/serverGroup.read.service.js'),
+  require('../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../core/utils/lodash.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
@@ -17,7 +18,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
   .controller('kubernetesServerGroupDetailsController', function ($scope, $state, app, serverGroup, InsightFilterStateModel,
                                                                   serverGroupReader, $uibModal, serverGroupWriter,
                                                                   runningExecutionsService, serverGroupWarningMessageService,
-                                                                  kubernetesServerGroupCommandBuilder) {
+                                                                  kubernetesServerGroupCommandBuilder, confirmationModalService) {
     let application = app;
 
     $scope.state = {
@@ -111,12 +112,73 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
     };
 
     this.disableServerGroup = function disableServerGroup() {
+      var serverGroup = $scope.serverGroup;
+
+      var taskMonitor = {
+        application: application,
+        title: 'Disabling ' + serverGroup.name
+      };
+
+      var submitMethod = (params) => {
+        return serverGroupWriter.disableServerGroup(serverGroup, application, angular.extend(params, {
+          namespace: serverGroup.region,
+        }));
+      };
+
+      var confirmationModalParams = {
+        header: 'Really disable ' + serverGroup.name + '?',
+        buttonText: 'Disable ' + serverGroup.name,
+        provider: 'kubernetes',
+        account: serverGroup.account,
+        taskMonitorConfig: taskMonitor,
+        submitMethod: submitMethod,
+        askForReason: true,
+      };
+
+      confirmationModalService.confirm(confirmationModalParams);
     };
 
     this.enableServerGroup = function enableServerGroup() {
+      var serverGroup = $scope.serverGroup;
+
+      var taskMonitor = {
+        application: application,
+        title: 'Enabling ' + serverGroup.name,
+        forceRefreshMessage: 'Refreshing application...',
+      };
+
+      var submitMethod = (params) => {
+        return serverGroupWriter.enableServerGroup(serverGroup, app, angular.extend(params, {
+          namespace: serverGroup.region,
+        }));
+      };
+
+      var confirmationModalParams = {
+        header: 'Really enable ' + serverGroup.name + '?',
+        buttonText: 'Enable ' + serverGroup.name,
+        provider: 'kubernetes',
+        account: serverGroup.account,
+        taskMonitorConfig: taskMonitor,
+        submitMethod: submitMethod,
+        askForReason: true,
+      };
+
+      confirmationModalService.confirm(confirmationModalParams);
     };
 
     this.rollbackServerGroup = function rollbackServerGroup() {
+      $uibModal.open({
+        templateUrl: require('./rollback/rollback.html'),
+        controller: 'kubernetesRollbackServerGroupController as ctrl',
+        resolve: {
+          serverGroup: function() { return $scope.serverGroup; },
+          disabledServerGroups: function() {
+            var cluster = _.find(app.clusters, {name: $scope.serverGroup.cluster, account: $scope.serverGroup.account});
+            return _.filter(cluster.serverGroups, {isDisabled: true, region: $scope.serverGroup.namespace});
+          },
+          application: function() { return app; }
+        }
+      });
     };
 
     this.resizeServerGroup = function resizeServerGroup() {
