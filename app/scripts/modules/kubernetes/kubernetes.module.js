@@ -25,6 +25,7 @@ module.exports = angular.module('spinnaker.kubernetes', [
   require('./loadBalancer/transformer.js'),
   require('./namespace/multiSelectField.component.js'),
   require('./namespace/selectField.directive.js'),
+  require('./search/resultFormatter.js'),
   require('./serverGroup/configure/CommandBuilder.js'),
   require('./serverGroup/configure/configure.kubernetes.module.js'),
   require('./serverGroup/details/details.kubernetes.module.js'),
@@ -36,6 +37,9 @@ module.exports = angular.module('spinnaker.kubernetes', [
       name: 'Kubernetes',
       cache: {
         configurer: 'kubernetesCacheConfigurer',
+      },
+      search: {
+        resultFormatter: 'kubernetesSearchResultFormatter',
       },
       logo: {
         path: require('./logo/kubernetes.logo.png'),
