@@ -109,7 +109,6 @@ class KubernetesServerGroupCachingAgentSpec extends Specification {
       result.cacheResults.serverGroups.relationships.applications[0][0] == applicationKey
       result.cacheResults.serverGroups.relationships.instances[0][0] == instanceKey
 
-      result.cacheResults.instances.attributes.name == [POD]
       result.cacheResults.instances.relationships.clusters[0][0] == clusterKey
       result.cacheResults.instances.relationships.applications[0][0] == applicationKey
       result.cacheResults.instances.relationships.serverGroups[0][0] == serverGroupKey

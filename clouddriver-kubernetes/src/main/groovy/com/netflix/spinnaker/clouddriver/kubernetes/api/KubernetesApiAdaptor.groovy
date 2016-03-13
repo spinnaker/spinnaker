@@ -40,6 +40,10 @@ class KubernetesApiAdaptor {
     client.pods().inNamespace(namespace).withLabel(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicationControllerName).list().items
   }
 
+  List<Pod> getPods(String namespace) {
+    client.pods().inNamespace(namespace).list().items
+  }
+
   ReplicationController getReplicationController(String namespace, String serverGroupName) {
     client.replicationControllers().inNamespace(namespace).withName(serverGroupName).get()
   }

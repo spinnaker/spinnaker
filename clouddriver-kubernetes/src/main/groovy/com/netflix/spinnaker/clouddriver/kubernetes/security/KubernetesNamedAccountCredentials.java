@@ -21,14 +21,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryC
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.internal.KubeConfigUtils;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 

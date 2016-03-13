@@ -18,13 +18,8 @@ package com.netflix.spinnaker.clouddriver.kubernetes.provider.agent
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.frigga.Names
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.cats.agent.AccountAware
-import com.netflix.spinnaker.cats.agent.AgentDataType
-import com.netflix.spinnaker.cats.agent.CacheResult
-import com.netflix.spinnaker.cats.agent.CachingAgent
-import com.netflix.spinnaker.cats.agent.DefaultCacheResult
+import com.netflix.spinnaker.cats.agent.*
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -90,6 +85,7 @@ class KubernetesLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent,
   String getAccountName() {
     accountName
   }
+
   @Override
   Collection<AgentDataType> getProvidedDataTypes() {
     return types

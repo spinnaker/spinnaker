@@ -60,7 +60,7 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
     INFORMATIVE.forType(Keys.Namespace.CLUSTERS.ns),
     INFORMATIVE.forType(Keys.Namespace.LOAD_BALANCERS.ns),
     AUTHORITATIVE.forType(Keys.Namespace.SERVER_GROUPS.ns),
-    AUTHORITATIVE.forType(Keys.Namespace.INSTANCES.ns),
+    INFORMATIVE.forType(Keys.Namespace.INSTANCES.ns),
   ] as Set)
 
   KubernetesServerGroupCachingAgent(KubernetesCloudProvider kubernetesCloudProvider,
@@ -303,8 +303,6 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
           def key = Keys.getInstanceKey(accountName, namespace, replicationControllerName, pod.metadata.name)
           instanceKeys << key
           cachedInstances[key].with {
-            attributes.name = pod.metadata.name
-            attributes.pod = pod
             relationships[Keys.Namespace.APPLICATIONS.ns].add(applicationKey)
             relationships[Keys.Namespace.CLUSTERS.ns].add(clusterKey)
             relationships[Keys.Namespace.SERVER_GROUPS.ns].add(serverGroupKey)
