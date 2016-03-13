@@ -118,8 +118,8 @@
         {{key}}: {{value}}
       </div>
     </collapsible-section>
-    <div ng-repeat="container in instance.containers" ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal'">
-      <collapsible-section heading="Container {{container.name}}">
+    <collapsible-section ng-repeat="container in instance.containers" heading="Container {{container.name}}">
+      <div ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal'">
         <dt>Name</dt>
         <dd>{{container.name}}</dd>
         <dt>Image</dt>
@@ -186,8 +186,8 @@
           <p>Exit Code: {{instance.containerStatuses[$index].state.terminated.exitCode}}</p>
           <p>Signal: {{instance.containerStatuses[$index].state.terminated.signal}}</p>
           </dd>
-        </div>
-      </collapsible-section>
+        </collapsible-section>
+      </div>
     </div>
   </div>
 </div>
