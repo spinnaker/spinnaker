@@ -561,6 +561,74 @@ describe('pipelineConfigValidator', function () {
         expect(messages[0]).toBe('mismatch detected');
       });
     });
+
+    describe('skipValidation', function () {
+      beforeEach(function () {
+        spyOn(this.pipelineConfig, 'getStageConfig').and.returnValue({
+          validators: [
+            {
+              type: 'custom',
+              validator: function(pipeline, stage, validator, config, messages) {
+                pipeline.validationCalled = true;
+                messages.push('did not skip');
+              },
+              skipValidation: function(pipeline, stage) {
+                return stage.name === 'skip';
+              }
+            },
+          ]
+        });
+      });
+
+      it('skips validation if skipValidation method returns true', function () {
+        var pipeline = { validationCalled: false, stages: [ { name: 'skip' }]};
+        let messages = this.validator.validatePipeline(pipeline);
+        expect(messages).toEqual([]);
+        expect(pipeline.validationCalled).toBe(false);
+      });
+
+      it('calls validation if skipValidation method returns false', function () {
+        var pipeline = { validationCalled: false, stages: [ { name: 'not skip' }]};
+        let messages = this.validator.validatePipeline(pipeline);
+        expect(messages).toEqual(['did not skip']);
+        expect(pipeline.validationCalled).toBe(true);
+      });
+    });
+
+    describe('custom validator', function () {
+      beforeEach(function () {
+        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (stage) {
+          if (stage.type === 'targetCheck') {
+            return {
+              validators: [
+                {
+                  type: 'custom',
+                  validator: function(pipeline, stage, validator, config, messages) {
+                    if (stage.name.indexOf(' ') > -1) {
+                      messages.push('No spaces in targetCheck stage names');
+                    }
+                  }
+                },
+              ]
+            };
+          }
+          return {};
+        });
+      });
+
+      it('calls custom validator', function () {
+        var pipeline = { stages: [
+          { type: 'targetCheck', name: 'goodName' }
+        ]};
+        var messages = this.validator.validatePipeline(pipeline);
+        expect(messages.length).toBe(0);
+
+        pipeline.stages[0].name = 'bad name';
+        messages = this.validator.validatePipeline(pipeline);
+        expect(messages).toEqual(['No spaces in targetCheck stage names']);
+
+      });
+    });
   });
 
 });
