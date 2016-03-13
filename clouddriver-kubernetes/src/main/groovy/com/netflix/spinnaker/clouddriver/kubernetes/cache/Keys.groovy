@@ -42,6 +42,8 @@ class Keys {
     }
   }
 
+  static final String DETACHED_POD = '__DETACHED__'
+
   static Map<String, String> parse(String key) {
     def parts = key.split(':')
 
