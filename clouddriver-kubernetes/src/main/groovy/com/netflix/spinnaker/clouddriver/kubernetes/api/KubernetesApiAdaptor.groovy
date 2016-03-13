@@ -158,15 +158,17 @@ class KubernetesApiAdaptor {
     containerDescription.imageDescription = KubernetesUtil.buildImageDescription(container.image)
 
     container.resources?.with {
-      containerDescription.limits = new KubernetesResourceDescription(
-        cpu: limits?.cpu?.amount,
-        memory: limits?.memory?.amount
-      )
+      containerDescription.limits = limits?.cpu?.amount || limits?.memory?.amount ?
+        new KubernetesResourceDescription(
+          cpu: limits?.cpu?.amount,
+          memory: limits?.memory?.amount
+        ) : null
 
-      containerDescription.requests = new KubernetesResourceDescription(
-        cpu: requests?.cpu?.amount,
-        memory: requests?.memory?.amount
-      )
+      containerDescription.requests = requests?.cpu?.amount || requests?.memory?.amount ?
+        new KubernetesResourceDescription(
+           cpu: requests?.cpu?.amount,
+           memory: requests?.memory?.amount
+        ) : null
     }
 
     containerDescription.ports = container.ports?.collect {

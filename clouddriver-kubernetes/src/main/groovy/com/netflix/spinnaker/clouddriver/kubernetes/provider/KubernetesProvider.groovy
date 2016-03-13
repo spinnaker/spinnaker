@@ -25,8 +25,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
 class KubernetesProvider extends AgentSchedulerAware implements SearchableProvider {
   public static final String PROVIDER_NAME = KubernetesProvider.name
 
-  final Set<String> defaultCaches = Collections.emptySet()
-
   final Map<String, String> urlMappingTemplates = Collections.emptyMap()
 
   final Collection<Agent> agents
@@ -36,6 +34,13 @@ class KubernetesProvider extends AgentSchedulerAware implements SearchableProvid
     this.cloudProvider = cloudProvider
     this.agents = agents
   }
+
+  final Set<String> defaultCaches = [
+      Keys.Namespace.LOAD_BALANCERS.ns,
+      Keys.Namespace.CLUSTERS.ns,
+      Keys.Namespace.SERVER_GROUPS.ns,
+      Keys.Namespace.INSTANCES.ns
+  ].asImmutable()
 
   @Override
   String getProviderName() {
