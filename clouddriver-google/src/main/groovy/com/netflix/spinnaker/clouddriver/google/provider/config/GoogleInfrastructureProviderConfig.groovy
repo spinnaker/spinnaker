@@ -118,9 +118,11 @@ class GoogleInfrastructureProviderConfig {
 
         credentials.regions.keySet().each { String region ->
           newlyAddedAgents << new GoogleSubnetCachingAgent(googleCloudProvider,
+                                                           googleConfiguration.googleApplicationName(),
                                                            credentials.accountName,
                                                            region,
-                                                           credentials.credentials,
+                                                           credentials.credentials.project,
+                                                           credentials.credentials.compute,
                                                            objectMapper)
         }
 
