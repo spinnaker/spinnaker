@@ -104,6 +104,18 @@ azure:
         offer: "SLES"
         sku: "12-SP1"
         version: "2015.12.15"
+  # Example how to set the Azure storage connection string related entries for retrieving the list of available custom VM images,
+  #  where "scs" represents the Azure Storage connection string and "blobDir" is the relative path to the custom images container
+  #
+  #    customImages:
+  #    - scs: ${AZURE_SCS1}
+  #      blobDir: "system/Microsoft.Compute/Images/vhds"
+  #      osType: "Windows"
+  #      region: "westus"
+  #    - scs: ${AZURE_SCS2}
+  #      blobDir: "vhds"
+  #      osType: "Linux"
+  #      region: "westus"
 
 google:
   enabled: false

@@ -39,43 +39,47 @@ class AzureStorageClient {
   static List<AzureCustomVMImage> getCustomImages(List<AzureCustomImageStorage> imageStorageList) {
     def vmImages = new ArrayList<AzureCustomVMImage>()
 
-    imageStorageList.each {AzureCustomImageStorage storage ->
-      try {
-        ArrayList<String> blobDirectoryList = new ArrayList<String>()
+    imageStorageList?.each {AzureCustomImageStorage storage ->
+      if (storage && storage.scs && storage.blobDir && storage.osType) {
+        try {
+          ArrayList<String> blobDirectoryList = []
 
-        // Retrieve storage account from connection-string.
-        CloudStorageAccount storageAccount = CloudStorageAccount.parse(storage.scs)
+          // Retrieve storage account from connection-string.
+          CloudStorageAccount storageAccount = CloudStorageAccount.parse(storage.scs)
 
-        // retrieve the blob client.
-        CloudBlobClient blobClient = storageAccount.createCloudBlobClient()
-        String dirDelimiter = blobClient.getDirectoryDelimiter()
-        blobDirectoryList.addAll(storage.blobDir.split(dirDelimiter))
-        def container = blobClient.getContainerReference(blobDirectoryList.remove(0))
+          // retrieve the blob client.
+          CloudBlobClient blobClient = storageAccount.createCloudBlobClient()
+          String dirDelimiter = blobClient.getDirectoryDelimiter()
+          blobDirectoryList.addAll(storage.blobDir.split(dirDelimiter))
+          def container = blobClient.getContainerReference(blobDirectoryList.remove(0))
 
-        if (container) {
-          if (blobDirectoryList.size() > 0) {
-            def dir = blobDirectoryList.remove(0)
-            def blob = container.getDirectoryReference(dir)
+          if (container) {
+            if (blobDirectoryList.size()) {
+              def dir = blobDirectoryList.remove(0)
+              def blob = container.getDirectoryReference(dir)
 
-            while (blobDirectoryList.size() > 0) {
-              dir = blobDirectoryList.remove(0)
-              blob = blob.getDirectoryReference(dir)
-            }
+              while (blobDirectoryList.size()) {
+                dir = blobDirectoryList.remove(0)
+                blob = blob.getDirectoryReference(dir)
+              }
 
-            if (blob) {
-              getBlobsContent(blob, AZURE_IMAGE_FILE_EXT).each { String uri ->
+              if (blob) {
+                getBlobsContent(blob, AZURE_IMAGE_FILE_EXT).each { String uri ->
+                  vmImages.add(getAzureCustomVMImage(uri, dirDelimiter, storage.osType, storage.region))
+                }
+              }
+            } else {
+              getBlobsContent(container, AZURE_IMAGE_FILE_EXT).each { String uri ->
                 vmImages.add(getAzureCustomVMImage(uri, dirDelimiter, storage.osType, storage.region))
               }
             }
-          } else {
-            getBlobsContent(container, AZURE_IMAGE_FILE_EXT).each { String uri ->
-              vmImages.add(getAzureCustomVMImage(uri, dirDelimiter, storage.osType, storage.region))
-            }
           }
         }
-      }
-      catch (Exception e) {
-        log.error("getCustomImages -> Unexpected exception ", e)
+        catch (Exception e) {
+          // Most likely reason we got here was an invalid storage connection string
+          //  log an error but without the full exception stack
+          log.error("getCustomImages -> Unexpected exception: ${e.message}")
+        }
       }
     }
 
