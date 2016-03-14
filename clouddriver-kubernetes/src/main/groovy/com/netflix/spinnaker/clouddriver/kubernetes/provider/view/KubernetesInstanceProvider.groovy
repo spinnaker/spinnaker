@@ -52,9 +52,13 @@ class KubernetesInstanceProvider implements InstanceProvider<KubernetesInstance>
 
     CacheData instanceData = instances.toArray()[0]
 
+    def loadBalancers = instanceData.relationships[Keys.Namespace.LOAD_BALANCERS.ns].collect {
+      Keys.parse(it).name
+    }
+
     def pod = objectMapper.convertValue(instanceData.attributes.pod, Pod)
 
-    return new KubernetesInstance(pod)
+    return new KubernetesInstance(pod, loadBalancers)
   }
 
   @Override

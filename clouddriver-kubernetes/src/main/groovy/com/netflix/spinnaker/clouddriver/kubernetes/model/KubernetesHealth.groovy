@@ -37,11 +37,12 @@ class KubernetesHealth implements Health {
           phase == "Failed" ? HealthState.Failed : HealthState.Unknown
   }
 
-  KubernetesHealth(String name, ContainerStatus containerStatus) {
+  KubernetesHealth(String name, ContainerStatus containerStatus, KubernetesHealth podHealth) {
     source = "Container $name"
-    state = containerStatus.state.running && containerStatus.ready ? HealthState.Unknown :
-      containerStatus.state.terminated ? HealthState.Down :
-        containerStatus.state.waiting || !containerStatus.ready ? HealthState.OutOfService :
-          HealthState.Unknown
+    state = containerStatus.state.running && containerStatus.ready && podHealth.state == HealthState.Up ? HealthState.Up :
+      containerStatus.state.running && containerStatus.ready ? HealthState.Unknown :
+        containerStatus.state.terminated ? HealthState.Down :
+          containerStatus.state.waiting || !containerStatus.ready ? HealthState.OutOfService :
+            HealthState.Unknown
   }
 }

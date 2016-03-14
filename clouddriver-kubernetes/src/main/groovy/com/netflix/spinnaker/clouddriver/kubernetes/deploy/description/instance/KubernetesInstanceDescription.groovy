@@ -19,6 +19,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.instance
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesAtomicOperationDescription
 
 class KubernetesInstanceDescription extends KubernetesAtomicOperationDescription {
-  List<String> instances
+  List<String> instanceIds
   String namespace
 }

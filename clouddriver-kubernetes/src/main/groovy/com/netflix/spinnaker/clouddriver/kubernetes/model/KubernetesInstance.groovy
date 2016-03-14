@@ -26,26 +26,33 @@ import io.fabric8.kubernetes.client.internal.SerializationUtils
 
 class KubernetesInstance implements Instance, Serializable {
   String name
+  String instanceId
   Long launchTime
   String zone
   List<Map<String, String>> health
   String serverGroupName
   Pod pod
+  List<String> loadBalancers
+  String providerType = "kubernetes"
   String yaml
 
-  KubernetesInstance(Pod pod) {
+  KubernetesInstance(Pod pod, List<String> loadBalancers) {
     this.name = pod.metadata?.name
+    this.instanceId = this.name
     this.launchTime = KubernetesModelUtil.translateTime(pod.status?.startTime)
     this.zone = pod.metadata?.namespace
     this.pod = pod
     this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(pod)
+    this.loadBalancers = loadBalancers
 
     def mapper = new ObjectMapper()
+    def podHealth = new KubernetesHealth(pod)
+
     this.health = pod.status?.containerStatuses?.collect {
-      (Map<String, String>) mapper.convertValue(new KubernetesHealth(it.image, it), new TypeReference<Map<String, String>>() {})
+      (Map<String, String>) mapper.convertValue(new KubernetesHealth(it.image, it, podHealth), new TypeReference<Map<String, String>>() {})
     } ?: []
 
-    this.health << (Map<String, String>) mapper.convertValue(new KubernetesHealth(pod), new TypeReference<Map<String, String>>() {})
+    this.health << (Map<String, String>) mapper.convertValue(podHealth, new TypeReference<Map<String, String>>() {})
 
     this.serverGroupName = pod.metadata?.labels?.get(KubernetesUtil.REPLICATION_CONTROLLER_LABEL)
   }

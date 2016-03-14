@@ -93,7 +93,7 @@ class KubernetesInstanceSpec extends Specification {
 
   void "Should report state as Down"() {
     when:
-      def state = (new KubernetesHealth('', containerStatusAsTerminatedMock)).state
+      def state = (new KubernetesHealth('', containerStatusAsTerminatedMock, new KubernetesHealth(podMock))).state
 
     then:
       state == HealthState.Down
@@ -101,13 +101,13 @@ class KubernetesInstanceSpec extends Specification {
 
   void "Should report state as OOS"() {
     when:
-      def state = (new KubernetesHealth('', containerStatusAsWaitingMock)).state
+      def state = (new KubernetesHealth('', containerStatusAsWaitingMock, new KubernetesHealth(podMock))).state
 
     then:
       state == HealthState.OutOfService
 
     when:
-      state = (new KubernetesHealth('', containerStatusAsNoneMock)).state
+      state = (new KubernetesHealth('', containerStatusAsNoneMock, new KubernetesHealth(podMock))).state
 
     then:
       state == HealthState.OutOfService
@@ -115,7 +115,7 @@ class KubernetesInstanceSpec extends Specification {
 
   void "Should report state as Unknown"() {
     when:
-      def state = (new KubernetesHealth('', containerStatusAsRunningMock)).state
+      def state = (new KubernetesHealth('', containerStatusAsRunningMock, new KubernetesHealth(podMock))).state
 
     then:
       state == HealthState.Unknown
@@ -126,7 +126,7 @@ class KubernetesInstanceSpec extends Specification {
       podStatusMock.getPhase() >> "Running"
 
     when:
-      def instance = new KubernetesInstance(podMock)
+      def instance = new KubernetesInstance(podMock, [])
 
     then:
       instance.healthState == HealthState.Up
@@ -135,7 +135,7 @@ class KubernetesInstanceSpec extends Specification {
   void "Should report pod state as OOS"() {
     when:
       podStatusMock.getPhase() >> "Pending"
-      def instance = new KubernetesInstance(podMock)
+      def instance = new KubernetesInstance(podMock, [])
 
     then:
       instance.healthState == HealthState.OutOfService
@@ -146,14 +146,14 @@ class KubernetesInstanceSpec extends Specification {
       podStatusMock.getPhase() >> "floof"
 
     when:
-      def instance = new KubernetesInstance(podMock)
+      def instance = new KubernetesInstance(podMock, [])
 
     then:
       instance.healthState == HealthState.Unknown
 
     when:
       podStatusMock.getPhase() >> "Failed"
-      instance = new KubernetesInstance(podMock)
+      instance = new KubernetesInstance(podMock, [])
 
     then:
       instance.healthState == HealthState.Unknown
@@ -165,7 +165,7 @@ class KubernetesInstanceSpec extends Specification {
       metadataMock.getLabels() >> ["foo": "bar", (KubernetesUtil.REPLICATION_CONTROLLER_LABEL): REPLICATION_CONTROLLER]
 
     when:
-      def instance = new KubernetesInstance(podMock)
+      def instance = new KubernetesInstance(podMock, [])
 
     then:
       instance.serverGroupName == REPLICATION_CONTROLLER

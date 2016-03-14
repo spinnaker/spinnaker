@@ -17,5 +17,5 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.instance
 
 class AbstractRegistrationKubernetesAtomicOperationDescription extends KubernetesInstanceDescription {
-  List<String> loadBalancers
+  List<String> loadBalancerNames
 }

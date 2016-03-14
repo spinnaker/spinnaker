@@ -26,7 +26,7 @@ class AbstractRegistrationKubernetesAtomicOperationValidator {
       return
     }
 
-    helper.validateNotEmpty(description.instances, "instances")
-    helper.validateNotEmpty(description.loadBalancers, "loadBalancers")
+    helper.validateNotEmpty(description.instanceIds, "instanceIds")
+    helper.validateNotEmpty(description.loadBalancerNames, "loadBalancerNames")
   }
 }
