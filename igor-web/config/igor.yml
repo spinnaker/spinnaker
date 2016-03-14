@@ -2,19 +2,6 @@ netflix:
   appinfo:
     name: 'igor'
 
-jenkins:
-  enabled: true
-  masters:
-    -
-      name: 'jenkins1'
-      address: 'http://jenkins.example.com/'
-      username: 'username'
-      password: 'password'
-
-services:
-  clouddriver:
-    baseUrl: 'http://localhost:7002'
-
 spinnaker:
   build:
     pollInterval: 30
