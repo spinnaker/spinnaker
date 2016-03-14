@@ -82,8 +82,8 @@ class KubernetesInstanceCachingAgent implements  CachingAgent, AccountAware {
 
     Map<String, MutableCacheData> cachedInstances = MutableCacheData.mutableCacheMap()
 
-    pods.each { pod ->
-      def rc = pod.metadata.labels[KubernetesUtil.REPLICATION_CONTROLLER_LABEL] ?: Keys.DETACHED_POD
+    for (Pod pod : pods) {
+      def rc = pod.metadata.labels[KubernetesUtil.REPLICATION_CONTROLLER_LABEL] ?: ''
 
       def key = Keys.getInstanceKey(accountName, namespace, rc, pod.metadata.name)
 
