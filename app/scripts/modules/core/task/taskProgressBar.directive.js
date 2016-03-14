@@ -34,7 +34,7 @@ module.exports = angular.module('spinnaker.core.task.progressBar.directive', [])
             return step.isFailed || step.isSuspended;
           });
 
-          if (failedStep.length) {
+          if (failedStep.length && task.failureMessage) {
             var failedStepIndex = task.steps.indexOf(failedStep[0]) + 1;
             var clipped = task.failureMessage.length > 400 ? task.failureMessage.substring(0, 400) + '&hellip;' : task.failureMessage;
             scope.tooltip = $sce.trustAsHtml('Failed on Step ' + failedStepIndex + ' of ' + task.steps.length + ':<br>' + $filter('robotToHuman')(failedStep[0].name) +
