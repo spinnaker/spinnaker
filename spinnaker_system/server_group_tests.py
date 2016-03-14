@@ -342,7 +342,11 @@ class ServerGroupTest(st.AgentTestCase):
     self.run_test_case(self.scenario.resize_server_group())
 
   def test_d_clone_server_group(self):
-    self.run_test_case(self.scenario.clone_server_group())
+    self.run_test_case(self.scenario.clone_server_group(),
+                       # TODO(ewiseblatt): 20160314
+                       # There is a lock contention race condition
+                       # in clouddriver that causes intermittent failure.
+                       max_retries=5)
 
   def test_e_disable_server_group(self):
     self.run_test_case(self.scenario.disable_server_group())
