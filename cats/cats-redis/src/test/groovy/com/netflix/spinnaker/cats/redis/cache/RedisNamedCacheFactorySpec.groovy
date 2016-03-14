@@ -44,7 +44,7 @@ class RedisNamedCacheFactorySpec extends Specification {
         }
 
         def mapper = new ObjectMapper();
-        factory = new RedisNamedCacheFactory(source, mapper, 2, true, null)
+        factory = new RedisNamedCacheFactory(source, mapper, 2, 2, true, null)
     }
 
     def 'caches with the same name share content'() {

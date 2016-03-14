@@ -73,10 +73,11 @@ public class RedisCache implements WriteableCache {
     private final JedisSource source;
     private final ObjectMapper objectMapper;
     private final int maxMsetSize;
+    private final int maxMergeCount;
     private final CacheMetrics cacheMetrics;
     private final boolean enableHashing;
 
-    public RedisCache(String prefix, JedisSource source, ObjectMapper objectMapper, int maxMsetSize, boolean enableHashing, CacheMetrics cacheMetrics) {
+    public RedisCache(String prefix, JedisSource source, ObjectMapper objectMapper, int maxMsetSize, int maxMergeCount, boolean enableHashing, CacheMetrics cacheMetrics) {
         Preconditions.checkArgument(
           maxMsetSize % 2 == 0, String.format("maxMsetSize must be even (%s)", maxMsetSize)
         );
@@ -85,12 +86,19 @@ public class RedisCache implements WriteableCache {
         this.source = source;
         this.objectMapper = objectMapper.disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
         this.maxMsetSize = maxMsetSize;
+        this.maxMergeCount = maxMergeCount;
         this.enableHashing = enableHashing;
         this.cacheMetrics = cacheMetrics == null ? new CacheMetrics.NOOP() : cacheMetrics;
     }
 
     @Override
     public void mergeAll(String type, Collection<CacheData> items) {
+        for (List<CacheData> partition : Iterables.partition(items, maxMergeCount)) {
+            mergeItems(type, partition);
+        }
+    }
+
+    private void mergeItems(String type, Collection<CacheData> items) {
         if (items.isEmpty()) {
             return;
         }
