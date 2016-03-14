@@ -83,14 +83,14 @@ class TargetServerGroup {
         return Location.namespace(namespace)
       } else if (region) {
         return Location.region(region)
-      } else{
+      } else {
         throw new IllegalArgumentException("No known location type provided. Must be `region` or `namespace`.")
       }
     }
 
     static Location locationFromServerGroup(Map<String, Object> serverGroup) {
       try {
-        return resolveLocation(serverGroup.type, serverGroup.zones?.get(0), serverGroup.namespace, serverGroup.region)
+        return resolveLocation(serverGroup.type, serverGroup.zones?.getAt(0), serverGroup.namespace, serverGroup.region)
       } catch (e) {
         throw new IllegalArgumentException("Incorrect location specified for ${serverGroup.serverGroupName ?: serverGroup.name}: ${e.message}")
       }
