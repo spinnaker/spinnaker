@@ -166,6 +166,7 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
         ($scope.command.region) && ($scope.command.availabilityZones) &&
         ($scope.command.capacity.min >= 0) && ($scope.command.capacity.max >= 0) &&
         ($scope.command.capacity.desired >= 0) &&
+        $scope.form.$valid &&
         v2modalWizardService.isComplete();
     };
 
