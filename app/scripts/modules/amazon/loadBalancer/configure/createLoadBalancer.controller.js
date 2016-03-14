@@ -125,8 +125,13 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
 
     function initializeController() {
       if (loadBalancer) {
-        $scope.loadBalancer = awsLoadBalancerTransformer.convertLoadBalancerForEditing(loadBalancer);
-        initializeEditMode();
+        if (forPipelineConfig) {
+          $scope.loadBalancer = loadBalancer;
+          initializeCreateMode();
+        } else {
+          $scope.loadBalancer = awsLoadBalancerTransformer.convertLoadBalancerForEditing(loadBalancer);
+          initializeEditMode();
+        }
         if (isNew) {
           var nameParts = namingService.parseLoadBalancerName($scope.loadBalancer.name);
           $scope.loadBalancer.stack = nameParts.stack;
@@ -371,7 +376,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     this.submit = function () {
       var descriptor = isNew ? 'Create' : 'Update';
 
-      if ($scope.forPipelineConfig == true) {
+      if ($scope.forPipelineConfig) {
         // don't submit to backend for creation. Just return the loadBalancer object
         formatListeners().then(function () {
           $modalInstance.close($scope.loadBalancer);

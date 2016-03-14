@@ -78,6 +78,7 @@ module.exports = angular.module('spinnaker.aws', [
         detailsController: 'awsLoadBalancerDetailsCtrl',
         createLoadBalancerTemplateUrl: require('./loadBalancer/configure/createLoadBalancer.html'),
         createLoadBalancerController: 'awsCreateLoadBalancerCtrl',
+        editLoadBalancerTemplateUrl: require('./loadBalancer/configure/editLoadBalancer.html'),
       },
       securityGroup: {
         transformer: 'awsSecurityGroupTransformer',
