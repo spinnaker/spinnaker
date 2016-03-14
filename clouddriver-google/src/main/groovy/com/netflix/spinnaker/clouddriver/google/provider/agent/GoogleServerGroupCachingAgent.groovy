@@ -100,7 +100,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
 
   CacheResult buildCacheResult(ProviderCache _, List<GoogleServerGroup2> serverGroups) {
 
-    def cacheResultBuilder = new CacheResultBuilder();
+    def cacheResultBuilder = new CacheResultBuilder()
 
     serverGroups.each { GoogleServerGroup2 serverGroup ->
       def names = Names.parseName(serverGroup.name)

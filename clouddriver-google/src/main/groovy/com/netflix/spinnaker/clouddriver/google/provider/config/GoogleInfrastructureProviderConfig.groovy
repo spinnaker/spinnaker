@@ -110,8 +110,10 @@ class GoogleInfrastructureProviderConfig {
                                                                 objectMapper,
                                                                 registry)
         newlyAddedAgents << new GoogleNetworkCachingAgent(googleCloudProvider,
+                                                          googleConfiguration.googleApplicationName(),
                                                           credentials.accountName,
-                                                          credentials.credentials,
+                                                          credentials.credentials.project,
+                                                          credentials.credentials.compute,
                                                           objectMapper)
 
         credentials.regions.keySet().each { String region ->

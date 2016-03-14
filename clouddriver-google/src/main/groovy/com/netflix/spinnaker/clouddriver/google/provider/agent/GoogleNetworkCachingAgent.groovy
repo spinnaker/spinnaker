@@ -17,92 +17,68 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Network
-import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
-import com.netflix.spinnaker.cats.agent.CachingAgent
-import com.netflix.spinnaker.cats.agent.DefaultCacheResult
-import com.netflix.spinnaker.cats.cache.CacheData
-import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
-import com.netflix.spinnaker.clouddriver.google.provider.GoogleInfrastructureProvider
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.NETWORKS
 
 @Slf4j
-class GoogleNetworkCachingAgent implements CachingAgent, AccountAware {
+class GoogleNetworkCachingAgent extends AbstractGoogleCachingAgent {
 
-  final GoogleCloudProvider googleCloudProvider
-  final String accountName
-  final GoogleCredentials credentials
-  final ObjectMapper objectMapper
+  final Set<AgentDataType> providedDataTypes = [
+      AUTHORITATIVE.forType(NETWORKS.ns)
+  ] as Set
 
-  static final Set<AgentDataType> types = Collections.unmodifiableSet([
-    AUTHORITATIVE.forType(Keys.Namespace.NETWORKS.ns)
-  ] as Set)
+  String agentType = "${accountName}/global/${GoogleNetworkCachingAgent.simpleName}"
 
   GoogleNetworkCachingAgent(GoogleCloudProvider googleCloudProvider,
+                            String googleApplicationName,
                             String accountName,
-                            GoogleCredentials credentials,
+                            String project,
+                            Compute compute,
                             ObjectMapper objectMapper) {
     this.googleCloudProvider = googleCloudProvider
+    this.googleApplicationName = googleApplicationName
     this.accountName = accountName
-    this.credentials = credentials
-    this.objectMapper = objectMapper
-  }
-
-  @Override
-  String getProviderName() {
-    GoogleInfrastructureProvider.PROVIDER_NAME
-  }
-
-  @Override
-  String getAgentType() {
-    "${accountName}/global/${GoogleNetworkCachingAgent.simpleName}"
-  }
-
-  @Override
-  String getAccountName() {
-    accountName
-  }
-
-  @Override
-  Collection<AgentDataType> getProvidedDataTypes() {
-    return types
+    this.project = project
+    this.compute = compute
+    this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
   }
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
     List<Network> networkList = loadNetworks()
-
     buildCacheResult(providerCache, networkList)
   }
 
   List<Network> loadNetworks() {
-    def compute = credentials.compute
-    def project = credentials.project
-
-    compute.networks().list(project).execute().items
+    compute.networks().list(project).execute().items as List
   }
 
-  private CacheResult buildCacheResult(ProviderCache providerCache, List<Network> networkList) {
+  private CacheResult buildCacheResult(ProviderCache _, List<Network> networkList) {
     log.info("Describing items in ${agentType}")
 
-    List<CacheData> data = networkList.collect { Network network ->
-      Map<String, Object> attributes = [network: network]
+    def cacheResultBuilder = new CacheResultBuilder()
 
-      new DefaultCacheData(Keys.getNetworkKey(googleCloudProvider, network.getName(), "global", accountName),
-                           attributes,
-                           [:])
+    networkList.each { Network network ->
+      def networkKey = Keys.getNetworkKey(googleCloudProvider, network.getName(), "global", accountName)
+
+      cacheResultBuilder.namespace(NETWORKS.ns).get(networkKey).with {
+        attributes.network = network
+      }
     }
 
-    log.info("Caching ${data.size()} items in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(NETWORKS.ns).size()} items in ${agentType}")
 
-    new DefaultCacheResult([(Keys.Namespace.NETWORKS.ns): data])
+    cacheResultBuilder.build()
   }
 }
