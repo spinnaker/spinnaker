@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Subnetwork
 import com.netflix.spinnaker.cats.agent.AgentDataType
@@ -55,7 +54,7 @@ class GoogleSubnetCachingAgent extends AbstractGoogleCachingAgent {
     this.region = region
     this.project = project
     this.compute = compute
-    this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    this.objectMapper = objectMapper
   }
 
   @Override

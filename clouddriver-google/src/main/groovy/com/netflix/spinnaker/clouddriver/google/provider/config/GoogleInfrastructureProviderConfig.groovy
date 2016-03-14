@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.provider.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
@@ -98,6 +99,8 @@ class GoogleInfrastructureProviderConfig {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(googleInfrastructureProvider)
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository,
                                                                  GoogleNamedAccountCredentials)
+
+    objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
 
     allAccounts.each { GoogleNamedAccountCredentials credentials ->
       if (!scheduledAccounts.contains(credentials.accountName)) {
