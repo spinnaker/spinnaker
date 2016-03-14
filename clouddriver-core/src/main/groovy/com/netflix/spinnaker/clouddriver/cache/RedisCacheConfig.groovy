@@ -47,8 +47,9 @@ class RedisCacheConfig {
     JedisSource jedisSource,
     ObjectMapper objectMapper,
     @Value('${redis.maxMsetSize:250000}') int maxMsetSize,
+    @Value('${caching.maxMergeCount:2500}') int maxMergeCount,
     @Value('${caching.hashing.enabled:true}') boolean enableHashing) {
-    new RedisNamedCacheFactory(jedisSource, objectMapper, maxMsetSize, enableHashing, null)
+    new RedisNamedCacheFactory(jedisSource, objectMapper, maxMsetSize, maxMergeCount, enableHashing, null)
   }
 
   @Bean

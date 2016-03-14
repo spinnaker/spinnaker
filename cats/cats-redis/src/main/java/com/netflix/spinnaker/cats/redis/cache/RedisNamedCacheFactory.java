@@ -26,19 +26,21 @@ public class RedisNamedCacheFactory implements NamedCacheFactory {
     private final JedisSource jedisSource;
     private final ObjectMapper objectMapper;
     private final int maxMsetSize;
+    private final int maxMergeCount;
     private final boolean enableHashing;
     private final RedisCache.CacheMetrics cacheMetrics;
 
-    public RedisNamedCacheFactory(JedisSource jedisSource, ObjectMapper objectMapper, int maxMsetSize, boolean enableHashing, RedisCache.CacheMetrics cacheMetrics) {
+    public RedisNamedCacheFactory(JedisSource jedisSource, ObjectMapper objectMapper, int maxMsetSize, int maxMergeCount, boolean enableHashing, RedisCache.CacheMetrics cacheMetrics) {
         this.jedisSource = jedisSource;
         this.objectMapper = objectMapper;
         this.maxMsetSize = maxMsetSize;
+        this.maxMergeCount = maxMergeCount;
         this.enableHashing = enableHashing;
         this.cacheMetrics = cacheMetrics;
     }
 
     @Override
     public WriteableCache getCache(String name) {
-        return new RedisCache(name, jedisSource, objectMapper, maxMsetSize, enableHashing, cacheMetrics);
+        return new RedisCache(name, jedisSource, objectMapper, maxMsetSize, maxMergeCount, enableHashing, cacheMetrics);
     }
 }
