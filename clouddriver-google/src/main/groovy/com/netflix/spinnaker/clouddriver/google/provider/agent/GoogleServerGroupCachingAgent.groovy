@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
@@ -70,7 +69,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
     this.region = region
     this.project = project
     this.compute = compute
-    this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    this.objectMapper = objectMapper
   }
 
   @Override
@@ -100,7 +99,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
 
   CacheResult buildCacheResult(ProviderCache _, List<GoogleServerGroup2> serverGroups) {
 
-    def cacheResultBuilder = new CacheResultBuilder();
+    def cacheResultBuilder = new CacheResultBuilder()
 
     serverGroups.each { GoogleServerGroup2 serverGroup ->
       def names = Names.parseName(serverGroup.name)

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.provider.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
@@ -99,6 +100,8 @@ class GoogleInfrastructureProviderConfig {
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository,
                                                                  GoogleNamedAccountCredentials)
 
+    objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+
     allAccounts.each { GoogleNamedAccountCredentials credentials ->
       if (!scheduledAccounts.contains(credentials.accountName)) {
         def newlyAddedAgents = []
@@ -110,15 +113,19 @@ class GoogleInfrastructureProviderConfig {
                                                                 objectMapper,
                                                                 registry)
         newlyAddedAgents << new GoogleNetworkCachingAgent(googleCloudProvider,
+                                                          googleConfiguration.googleApplicationName(),
                                                           credentials.accountName,
-                                                          credentials.credentials,
+                                                          credentials.credentials.project,
+                                                          credentials.credentials.compute,
                                                           objectMapper)
 
         credentials.regions.keySet().each { String region ->
           newlyAddedAgents << new GoogleSubnetCachingAgent(googleCloudProvider,
+                                                           googleConfiguration.googleApplicationName(),
                                                            credentials.accountName,
                                                            region,
-                                                           credentials.credentials,
+                                                           credentials.credentials.project,
+                                                           credentials.credentials.compute,
                                                            objectMapper)
         }
 

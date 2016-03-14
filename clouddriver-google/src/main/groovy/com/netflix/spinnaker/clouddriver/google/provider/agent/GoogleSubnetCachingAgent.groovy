@@ -17,92 +17,71 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Subnetwork
-import com.netflix.spinnaker.cats.agent.*
-import com.netflix.spinnaker.cats.cache.CacheData
-import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.cats.agent.AgentDataType
+import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
-import com.netflix.spinnaker.clouddriver.google.provider.GoogleInfrastructureProvider
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.SUBNETS
 
 @Slf4j
-class GoogleSubnetCachingAgent implements CachingAgent, AccountAware {
+class GoogleSubnetCachingAgent extends AbstractGoogleCachingAgent {
 
   final String region
 
-  final GoogleCloudProvider googleCloudProvider
-  final String accountName
-  final GoogleCredentials credentials
-  final ObjectMapper objectMapper
+  final Set<AgentDataType> providedDataTypes = [
+      AUTHORITATIVE.forType(SUBNETS.ns)
+  ] as Set
 
-  static final Set<AgentDataType> types = Collections.unmodifiableSet([
-    AUTHORITATIVE.forType(Keys.Namespace.SUBNETS.ns)
-  ] as Set)
+  String agentType = "$accountName/$region/$GoogleSubnetCachingAgent.simpleName"
 
   GoogleSubnetCachingAgent(GoogleCloudProvider googleCloudProvider,
+                           String googleApplicationName,
                            String accountName,
                            String region,
-                           GoogleCredentials credentials,
+                           String project,
+                           Compute compute,
                            ObjectMapper objectMapper) {
     this.googleCloudProvider = googleCloudProvider
+    this.googleApplicationName = googleApplicationName
     this.accountName = accountName
     this.region = region
-    this.credentials = credentials
+    this.project = project
+    this.compute = compute
     this.objectMapper = objectMapper
-  }
-
-  @Override
-  String getProviderName() {
-    GoogleInfrastructureProvider.PROVIDER_NAME
-  }
-
-  @Override
-  String getAgentType() {
-    "$accountName/$region/$GoogleSubnetCachingAgent.simpleName"
-  }
-
-  @Override
-  String getAccountName() {
-    accountName
-  }
-
-  @Override
-  Collection<AgentDataType> getProvidedDataTypes() {
-    return types
   }
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
     List<Subnetwork> subnetList = loadSubnets()
-
     buildCacheResult(providerCache, subnetList)
   }
 
   List<Subnetwork> loadSubnets() {
-    def compute = credentials.compute
-    def project = credentials.project
-
-    compute.subnetworks().list(project, region).execute().items
+    compute.subnetworks().list(project, region).execute().items as List
   }
 
-  private CacheResult buildCacheResult(ProviderCache providerCache, List<Subnetwork> subnetList) {
+  private CacheResult buildCacheResult(ProviderCache _, List<Subnetwork> subnetList) {
     log.info("Describing items in ${agentType}")
 
-    List<CacheData> data = subnetList.collect { Subnetwork subnet ->
-      Map<String, Object> attributes = [subnet: subnet]
+    def cacheResultBuilder = new CacheResultBuilder()
 
-      new DefaultCacheData(Keys.getSubnetKey(googleCloudProvider, subnet.getName(), region, accountName),
-                           attributes,
-                           [:])
+    subnetList.each { Subnetwork subnet ->
+      def subnetKey = Keys.getSubnetKey(googleCloudProvider, subnet.getName(), region, accountName)
+
+      cacheResultBuilder.namespace(SUBNETS.ns).get(subnetKey).with {
+        attributes.subnet = subnet
+      }
     }
 
-    log.info("Caching ${data.size()} items in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(SUBNETS.ns).size()} items in ${agentType}")
 
-    new DefaultCacheResult([(Keys.Namespace.SUBNETS.ns): data])
+    cacheResultBuilder.build()
   }
 }
