@@ -154,8 +154,9 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
      .contains_pred_list([
          jc.PathContainsPredicate(
              'LoadBalancerDescriptions/HealthCheck', health_check),
-         jc.PathEqPredicate(
-             'LoadBalancerDescriptions/AvailabilityZones', avail_zones),
+         jc.PathPredicate(
+             'LoadBalancerDescriptions/AvailabilityZones',
+             jc.LIST_SIMILAR(avail_zones)),
          jc.PathElementsContainPredicate(
              'LoadBalancerDescriptions/ListenerDescriptions', listener)
          ])
