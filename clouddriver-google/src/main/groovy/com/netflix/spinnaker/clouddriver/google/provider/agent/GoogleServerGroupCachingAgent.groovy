@@ -22,6 +22,8 @@ import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.Compute
+import com.google.api.services.compute.model.Autoscaler
+import com.google.api.services.compute.model.AutoscalersScopedList
 import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceGroupsListInstancesRequest
 import com.google.api.services.compute.model.InstanceWithNamedPorts
@@ -83,16 +85,19 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
 
     BatchRequest migsRequest = buildBatchRequest()
     BatchRequest instanceGroupsRequest = buildBatchRequest()
+    BatchRequest autoscalerRequest = buildBatchRequest()
 
     List<String> zones = compute.regions().get(project, region).execute().getZones().collect { Utils.getLocalName(it) }
     zones?.each { String zone ->
       MIGSCallback migsCallback = new MIGSCallback(serverGroups: serverGroups,
                                                    zone: zone,
-                                                   instanceGroupsRequest: instanceGroupsRequest)
+                                                   instanceGroupsRequest: instanceGroupsRequest,
+                                                   autoscalerRequest: autoscalerRequest)
       compute.instanceGroupManagers().list(project, zone).queue(migsRequest, migsCallback)
     }
     executeIfRequestsAreQueued(migsRequest)
     executeIfRequestsAreQueued(instanceGroupsRequest)
+    executeIfRequestsAreQueued(autoscalerRequest)
 
     serverGroups
   }
@@ -177,6 +182,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
     List<GoogleServerGroup2> serverGroups
     String zone
     BatchRequest instanceGroupsRequest
+    BatchRequest autoscalerRequest
 
     @Override
     void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
@@ -218,6 +224,9 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
                                                                                instanceTemplatesCallback)
         }
       }
+
+      def autoscalerCallback = new AutoscalerAggregatedListCallback(serverGroups: serverGroups)
+      compute.autoscalers().aggregatedList(project).queue(autoscalerRequest, autoscalerCallback)
     }
   }
 
@@ -278,6 +287,37 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
         def loadBalancerNameList = metadataMap?.get(LOAD_BALANCER_NAMES)?.split(",")
         if (loadBalancerNameList) {
           serverGroup.asg.loadBalancerNames = loadBalancerNameList
+        }
+      }
+    }
+  }
+
+  class AutoscalerAggregatedListCallback<AutoscalerAggregatedList> extends JsonBatchCallback<AutoscalerAggregatedList> {
+
+    List<GoogleServerGroup2> serverGroups
+
+    @Override
+    void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
+      log.error e.getMessage()
+    }
+
+    @Override
+    void onSuccess(AutoscalerAggregatedList autoscalerAggregatedList, HttpHeaders responseHeaders) throws IOException {
+      autoscalerAggregatedList?.items?.each { String location, AutoscalersScopedList autoscalersScopedList ->
+        if (location.startsWith("zones/")) {
+          def localZoneName = Utils.getLocalName(location)
+          def region = localZoneName.substring(0, localZoneName.lastIndexOf('-'))
+
+          autoscalersScopedList.autoscalers.each { Autoscaler autoscaler ->
+            def migName = Utils.getLocalName(autoscaler.target as String)
+            def serverGroup = serverGroups.find {
+              it.name == migName && it.region == region
+            }
+
+            if (serverGroup) {
+              serverGroup.autoscalingPolicy = autoscaler.getAutoscalingPolicy()
+            }
+          }
         }
       }
     }

@@ -19,6 +19,10 @@ package com.netflix.spinnaker.clouddriver.google.model
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonTypeId
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.google.api.services.compute.model.AutoscalingPolicy
 import com.google.api.services.compute.model.InstanceGroupManagerActionsSummary
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.model.HealthState
@@ -44,6 +48,9 @@ class GoogleServerGroup2 {
   String selfLink
   InstanceGroupManagerActionsSummary currentActions
 
+  @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="class")
+  AutoscalingPolicy autoscalingPolicy
+
   // Non-serialized values built up by providers
   @JsonIgnore
   Set<GoogleLoadBalancer2> loadBalancers = []
@@ -53,6 +60,7 @@ class GoogleServerGroup2 {
     new View()
   }
 
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   @Canonical
   class View implements ServerGroup {
     final String type = GoogleCloudProvider.GCE
@@ -68,6 +76,7 @@ class GoogleServerGroup2 {
     Set<String> instanceTemplateTags = GoogleServerGroup2.this.instanceTemplateTags
     String selfLink = GoogleServerGroup2.this.selfLink
     InstanceGroupManagerActionsSummary currentActions = GoogleServerGroup2.this.currentActions
+    AutoscalingPolicy autoscalingPolicy = GoogleServerGroup2.this.autoscalingPolicy
 
     @Override
     Boolean isDisabled() { // Because groovy isn't smart enough to generate this method :-(
