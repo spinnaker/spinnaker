@@ -69,36 +69,19 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     def replicationControllerName = String.format("%s-v%s", clusterName, sequenceIndex)
     task.updateStatus BASE_PHASE, "Replication controller name chosen to be ${replicationControllerName}."
 
-    def replicationControllerBuilder = new ReplicationControllerBuilder()
-                        .withNewMetadata().withName(replicationControllerName)
+    def replicationControllerBuilder = new ReplicationControllerBuilder().withNewMetadata().withName(replicationControllerName).endMetadata()
 
-    task.updateStatus BASE_PHASE, "Setting replication controller metadata labels..."
-
-    replicationControllerBuilder = replicationControllerBuilder.addToLabels(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicationControllerName)
-
-    for (def securityGroup : description.securityGroups) {
-      replicationControllerBuilder = replicationControllerBuilder.addToLabels(KubernetesUtil.securityGroupKey(securityGroup), "true")
-    }
-
-    for (def loadBalancer : description.loadBalancers) {
-      replicationControllerBuilder = replicationControllerBuilder.addToLabels(KubernetesUtil.loadBalancerKey(loadBalancer), "true")
-    }
-
-    replicationControllerBuilder = replicationControllerBuilder.endMetadata()
+    replicationControllerBuilder = replicationControllerBuilder.withNewSpec().addToSelector(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicationControllerName)
 
     task.updateStatus BASE_PHASE, "Setting target size to ${description.targetSize}..."
 
-    replicationControllerBuilder = replicationControllerBuilder.withNewSpec().withReplicas(description.targetSize)
+    replicationControllerBuilder = replicationControllerBuilder.withReplicas(description.targetSize)
         .withNewTemplate()
         .withNewMetadata()
 
     task.updateStatus BASE_PHASE, "Setting replication controller spec labels..."
-    // Metadata in spec and replication controller need to match, hence the apparent duplication
-    replicationControllerBuilder = replicationControllerBuilder.addToLabels(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicationControllerName)
 
-    for (def securityGroup : description.securityGroups) {
-      replicationControllerBuilder = replicationControllerBuilder.addToLabels(KubernetesUtil.securityGroupKey(securityGroup), "true")
-    }
+    replicationControllerBuilder = replicationControllerBuilder.addToLabels(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicationControllerName)
 
     for (def loadBalancer : description.loadBalancers) {
       replicationControllerBuilder = replicationControllerBuilder.addToLabels(KubernetesUtil.loadBalancerKey(loadBalancer), "true")

@@ -162,19 +162,7 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
       3 * metadataMock.getName() >> replicationControllerName
       1 * apiMock.createReplicationController(NAMESPACE, { ReplicationController rc ->
         LOAD_BALANCER_NAMES.each { name ->
-          assert(rc.metadata.labels[KubernetesUtil.loadBalancerKey(name)])
-        }
-
-        SECURITY_GROUP_NAMES.each { name ->
-          assert(rc.metadata.labels[KubernetesUtil.securityGroupKey(name)])
-        }
-
-        LOAD_BALANCER_NAMES.each { name ->
           assert(rc.spec.template.metadata.labels[KubernetesUtil.loadBalancerKey(name)])
-        }
-
-        SECURITY_GROUP_NAMES.each { name ->
-          assert(rc.spec.template.metadata.labels[KubernetesUtil.securityGroupKey(name)])
         }
 
         assert(rc.spec.replicas == TARGET_SIZE)

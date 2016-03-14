@@ -2,5 +2,5 @@
 package com.netflix.spinnaker.clouddriver.model
 
 enum HealthState {
-  Up, Down, Unknown, Starting, OutOfService
+  Up, Down, Unknown, Starting, OutOfService, Succeeded, Failed
 }

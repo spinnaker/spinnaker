@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.api.model.ContainerState
 import io.fabric8.kubernetes.api.model.ContainerStateRunning
 import io.fabric8.kubernetes.api.model.ContainerStateTerminated
 import io.fabric8.kubernetes.api.model.ContainerStateWaiting
+import io.fabric8.kubernetes.api.model.ContainerStatus
 import io.fabric8.kubernetes.api.model.ObjectMeta
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.PodStatus
@@ -35,6 +36,11 @@ class KubernetesInstanceSpec extends Specification {
   ContainerState containerStateAsWaitingMock
   ContainerState containerStateAsNoneMock
 
+  ContainerStatus containerStatusAsRunningMock
+  ContainerStatus containerStatusAsTerminatedMock
+  ContainerStatus containerStatusAsWaitingMock
+  ContainerStatus containerStatusAsNoneMock
+
   PodStatus podStatusMock
   ObjectMeta metadataMock
   Pod podMock
@@ -45,21 +51,33 @@ class KubernetesInstanceSpec extends Specification {
     containerStateAsRunningMock.getRunning() >> new ContainerStateRunning()
     containerStateAsRunningMock.getTerminated() >> null
     containerStateAsRunningMock.getWaiting() >> null
+    containerStatusAsRunningMock = Mock(ContainerStatus)
+    containerStatusAsRunningMock.getReady() >> true
+    containerStatusAsRunningMock.getState() >> containerStateAsRunningMock
 
     containerStateAsTerminatedMock = Mock(ContainerState)
     containerStateAsTerminatedMock.getRunning() >> null
     containerStateAsTerminatedMock.getTerminated() >> new ContainerStateTerminated()
     containerStateAsTerminatedMock.getWaiting() >> null
+    containerStatusAsTerminatedMock = Mock(ContainerStatus)
+    containerStatusAsTerminatedMock.getReady() >> false
+    containerStatusAsTerminatedMock.getState() >> containerStateAsTerminatedMock
 
     containerStateAsWaitingMock = Mock(ContainerState)
     containerStateAsWaitingMock.getRunning() >> null
     containerStateAsWaitingMock.getTerminated() >> null
     containerStateAsWaitingMock.getWaiting() >> new ContainerStateWaiting()
+    containerStatusAsWaitingMock = Mock(ContainerStatus)
+    containerStatusAsWaitingMock.getReady() >> false
+    containerStatusAsWaitingMock.getState() >> containerStateAsWaitingMock
 
     containerStateAsNoneMock = Mock(ContainerState)
     containerStateAsNoneMock.getRunning() >> null
     containerStateAsNoneMock.getTerminated() >> null
     containerStateAsNoneMock.getWaiting() >> null
+    containerStatusAsNoneMock = Mock(ContainerStatus)
+    containerStatusAsNoneMock.getReady() >> false
+    containerStatusAsNoneMock.getState() >> containerStateAsNoneMock
 
     podStatusMock = Mock(PodStatus)
     metadataMock = Mock(ObjectMeta)
@@ -73,39 +91,31 @@ class KubernetesInstanceSpec extends Specification {
     podStatusMock.getContainerStatuses() >> []
   }
 
-  void "Should report state as Up"() {
-    when:
-      def state = KubernetesInstance.convertContainerState(containerStateAsRunningMock)
-
-    then:
-      state == HealthState.Up
-  }
-
   void "Should report state as Down"() {
     when:
-      def state = KubernetesInstance.convertContainerState(containerStateAsTerminatedMock)
+      def state = (new KubernetesHealth('', containerStatusAsTerminatedMock)).state
 
     then:
       state == HealthState.Down
   }
 
-  void "Should report state as Starting"() {
+  void "Should report state as OOS"() {
     when:
-      def state = KubernetesInstance.convertContainerState(containerStateAsWaitingMock)
+      def state = (new KubernetesHealth('', containerStatusAsWaitingMock)).state
 
     then:
-      state == HealthState.Starting
+      state == HealthState.OutOfService
+
+    when:
+      state = (new KubernetesHealth('', containerStatusAsNoneMock)).state
+
+    then:
+      state == HealthState.OutOfService
   }
 
   void "Should report state as Unknown"() {
     when:
-      def state = KubernetesInstance.convertContainerState(containerStateAsNoneMock)
-
-    then:
-      state == HealthState.Unknown
-
-    when:
-      state = KubernetesInstance.convertContainerState(null)
+      def state = (new KubernetesHealth('', containerStatusAsRunningMock)).state
 
     then:
       state == HealthState.Unknown
@@ -122,26 +132,13 @@ class KubernetesInstanceSpec extends Specification {
       instance.healthState == HealthState.Up
   }
 
-  void "Should report pod state as Down"() {
-    setup:
-      podStatusMock.getPhase() >> "Failed"
-
+  void "Should report pod state as OOS"() {
     when:
-      def instance = new KubernetesInstance(podMock)
-
-    then:
-      instance.healthState == HealthState.Down
-  }
-
-  void "Should report pod state as Starting"() {
-    setup:
       podStatusMock.getPhase() >> "Pending"
-
-    when:
       def instance = new KubernetesInstance(podMock)
 
     then:
-      instance.healthState == HealthState.Starting
+      instance.healthState == HealthState.OutOfService
   }
 
   void "Should report pod state as Unknown"() {
@@ -153,6 +150,14 @@ class KubernetesInstanceSpec extends Specification {
 
     then:
       instance.healthState == HealthState.Unknown
+
+    when:
+      podStatusMock.getPhase() >> "Failed"
+      instance = new KubernetesInstance(podMock)
+
+    then:
+      instance.healthState == HealthState.Unknown
+
   }
 
   void "Should report pod controller"() {

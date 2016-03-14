@@ -56,30 +56,23 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
       KubernetesUtil.loadBalancerKey(it)
     }
 
-    task.updateStatus basePhase, "Removing replication controller service template labels and selectors..."
-
-    credentials.apiAdaptor.removeReplicationControllerSpecLabels(namespace, description.serverGroupName, replicationControllerServices)
-
     task.updateStatus basePhase, "Finding affected pods..."
 
     List<Pod> pods = credentials.apiAdaptor.getPods(namespace, description.serverGroupName)
 
     task.updateStatus basePhase, "Resetting service labels for each pod..."
 
-    // It's important that we remove the pod labels before reinserting the replication controller labels, otherwise, if
-    // the replication controller has labels not present on the pod, it will start spinning up new pods to compensate.
     pods.forEach { pod ->
       List<String> podServices = KubernetesUtil.getPodLoadBalancers(pod)
       podServices = podServices.collect {
         KubernetesUtil.loadBalancerKey(it)
       }
-      credentials.apiAdaptor.removePodLabels(namespace, pod.metadata.name, podServices)
-      credentials.apiAdaptor.addPodLabels(namespace, pod.metadata.name, podServices, 'false')
+      credentials.apiAdaptor.togglePodLabels(namespace, pod.metadata.name, podServices, action)
     }
 
-    task.updateStatus basePhase, "Adding new replication controller service template labels and selectors..."
+    task.updateStatus basePhase, "Resetting replication controller service template labels and selectors..."
 
-    credentials.apiAdaptor.addReplicationControllerSpecLabels(namespace, description.serverGroupName, replicationControllerServices, action)
+    credentials.apiAdaptor.toggleReplicationControllerSpecLabels(namespace, description.serverGroupName, replicationControllerServices, action)
 
     task.updateStatus basePhase, "Finished ${verb} replication controller."
 

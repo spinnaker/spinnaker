@@ -16,17 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.model
 
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerPort
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
-import io.fabric8.kubernetes.api.model.Container
 import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.client.internal.SerializationUtils
 
@@ -85,7 +82,8 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
       outOfService: (Integer) instances?.count { it.healthState == HealthState.OutOfService } ?: 0,
       up: (Integer) instances?.count { it.healthState == HealthState.Up } ?: 0,
       starting: (Integer) instances?.count { it.healthState == HealthState.Starting } ?: 0,
-      unknown: (Integer) instances?.count { it.healthState == HealthState.Unknown } ?: 0
+      unknown: (Integer) instances?.count { it.healthState == HealthState.Unknown } ?: 0,
+      total: (Integer) instances?.size(),
     )
   }
 
