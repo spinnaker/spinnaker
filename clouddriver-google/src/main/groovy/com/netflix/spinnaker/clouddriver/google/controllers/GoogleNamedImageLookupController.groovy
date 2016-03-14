@@ -16,14 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.google.controllers
 
+import com.google.api.services.compute.model.Image
 import com.netflix.spinnaker.cats.mem.InMemoryCache
-import com.netflix.spinnaker.clouddriver.google.model.GoogleResourceRetriever
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
+@Slf4j
 @RestController
 @RequestMapping("/gce/images")
 class GoogleNamedImageLookupController {
@@ -32,23 +34,23 @@ class GoogleNamedImageLookupController {
   AccountCredentialsProvider accountCredentialsProvider
 
   @Autowired
-  GoogleResourceRetriever googleResourceRetriever
+  ImageProvider imageProvider
 
   @RequestMapping(value = '/find', method = RequestMethod.GET)
   List<Map> find(LookupOptions lookupOptions) {
-    def imageMap = googleResourceRetriever.imageMap
+    def imageMap = imageProvider.listImagesByAccount()
     def results = []
 
     if (lookupOptions.account) {
       def imageList = imageMap?.get(lookupOptions.account) ?: []
 
       results = imageList.collect {
-        [ imageName: it.name ]
+        [imageName: it.name]
       }
     } else {
-      imageMap?.entrySet().each { Map.Entry<String, List<String>> accountNameToImageNamesEntry ->
-        accountNameToImageNamesEntry.value.each {
-          results << [ account: accountNameToImageNamesEntry.key, imageName: it.name ]
+      imageMap?.entrySet()?.each { Map.Entry<String, List<Image>> accountNameToImagesEntry ->
+        accountNameToImagesEntry.value.each {
+          results << [account: accountNameToImagesEntry.key, imageName: it.name]
         }
       }
     }
@@ -69,5 +71,9 @@ class GoogleNamedImageLookupController {
     String q
     String account
     String region
+  }
+
+  interface ImageProvider {
+    Map<String, List<Image>> listImagesByAccount()
   }
 }
