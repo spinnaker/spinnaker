@@ -151,6 +151,46 @@ describe('Controller: CreateSecurityGroup', function () {
       expect(_.pluck(this.$scope.vpcs, 'label').sort()).toEqual(['vpc 1', 'vpc 2']);
     });
 
+    describe('security group removal', function () {
+      beforeEach(function () {
+        spyOn(this.v2modalWizardService, 'markDirty').and.callFake(angular.noop);
+        this.initializeCtrl();
+        let securityGroup = this.$scope.securityGroup;
+        securityGroup.credentials = 'prod';
+        securityGroup.regions = ['us-east-1'];
+        this.ctrl.accountUpdated();
+        this.$scope.$digest();
+      });
+
+      it('removes rules that are not available when account changes', function () {
+        let securityGroup = this.$scope.securityGroup;
+        this.$scope.availableSecurityGroups.forEach(group => securityGroup.securityGroupIngress.push({name: group}));
+        expect(securityGroup.securityGroupIngress.length).toBe(2);
+
+        securityGroup.credentials = 'test';
+        this.ctrl.accountUpdated();
+        this.$scope.$digest();
+        expect(this.$scope.state.removedRules.length).toBe(1);
+        expect(this.v2modalWizardService.markDirty).toHaveBeenCalledWith('Ingress');
+      });
+
+      it('does not repeatedly add removed rule warnings when multiple rules for the same group are removed', function () {
+        let securityGroup = this.$scope.securityGroup;
+        this.$scope.availableSecurityGroups.forEach(group => {
+          securityGroup.securityGroupIngress.push({name: group, startPort: 7001, endPort: 7001, protocol: 'HTTPS'});
+          securityGroup.securityGroupIngress.push({name: group, startPort: 7000, endPort: 7000, protocol: 'HTTP'});
+
+        });
+        expect(securityGroup.securityGroupIngress.length).toBe(4);
+
+        securityGroup.credentials = 'test';
+        this.ctrl.accountUpdated();
+        this.$scope.$digest();
+        expect(this.$scope.state.removedRules).toEqual(['group2']);
+        expect(this.v2modalWizardService.markDirty).toHaveBeenCalledWith('Ingress');
+      });
+
+    });
 
   });
 });
