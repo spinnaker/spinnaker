@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.front50.events.ApplicationEventListener
 import com.netflix.spinnaker.front50.exception.ApplicationAlreadyExistsException
 import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.front50.model.Timestamped
 import com.netflix.spinnaker.front50.validator.ApplicationValidationErrors
 import com.netflix.spinnaker.front50.validator.ApplicationValidator
 import groovy.transform.Canonical
@@ -34,7 +35,7 @@ import org.springframework.validation.Errors
 
 @ToString
 @Slf4j
-class Application {
+class Application implements Timestamped {
   String name
   String description
   String email
@@ -248,9 +249,9 @@ class Application {
         updatedApplication = it.call(copy(copyOfOriginalApplication), copy(updatedApplication)) as Application
         invokedEventListeners << it
       }
-      onSuccess.call(copy(copyOfOriginalApplication), copy(updatedApplication))
+      updatedApplication = onSuccess.call(copy(copyOfOriginalApplication), copy(updatedApplication))
       postApplicationEventListeners.each {
-        it.call(copy(copyOfOriginalApplication), copy(updatedApplication))
+        updatedApplication = it.call(copy(copyOfOriginalApplication), copy(updatedApplication))
         invokedEventListeners << it
       }
 
@@ -272,6 +273,23 @@ class Application {
       log.error("Failed to perform action (name: ${originalApplication.name ?: updatedApplication.name})")
       throw e
     }
+  }
+
+  @Override
+  @JsonIgnore()
+  String getId() {
+    return name.toLowerCase()
+  }
+
+  @Override
+  @JsonIgnore
+  Long getLastModified() {
+    return updateTs ? Long.valueOf(updateTs) : null
+  }
+
+  @Override
+  void setLastModified(Long lastModified) {
+    this.updateTs = lastModified.toString()
   }
 
   private static Application copy(Application source) {

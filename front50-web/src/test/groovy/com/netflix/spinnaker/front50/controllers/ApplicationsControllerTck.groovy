@@ -18,24 +18,37 @@
 
 package com.netflix.spinnaker.front50.controllers
 
+import com.amazonaws.ClientConfiguration
+import com.amazonaws.services.s3.AmazonS3Client
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.front50.model.S3ApplicationDAO
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
+import com.netflix.spinnaker.front50.model.application.CassandraApplicationDAO
+import com.netflix.spinnaker.front50.utils.CassandraTestHelper
+import com.netflix.spinnaker.front50.utils.S3TestHelper
 import com.netflix.spinnaker.front50.validator.HasEmailValidator
 import com.netflix.spinnaker.front50.validator.HasNameValidator
 import org.springframework.context.support.StaticMessageSource
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import rx.schedulers.Schedulers
+import spock.lang.IgnoreIf
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Subject
+
+import java.util.concurrent.Executors
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
-class ApplicationsControllerSpec extends Specification {
+abstract class ApplicationsControllerTck extends Specification {
+  @Shared
+  ObjectMapper objectMapper = new ObjectMapper()
 
   @Shared
   MockMvc mockMvc
@@ -43,11 +56,11 @@ class ApplicationsControllerSpec extends Specification {
   @Shared
   ApplicationsController controller
 
-  @Shared
+  @Subject
   ApplicationDAO dao
 
   void setup() {
-    dao = Mock(ApplicationDAO)
+    this.dao = createApplicationDAO()
     this.controller = new ApplicationsController(
         applicationDAO: dao,
         applicationValidators: [new HasNameValidator(), new HasEmailValidator()],
@@ -56,10 +69,13 @@ class ApplicationsControllerSpec extends Specification {
     this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build()
   }
 
+  abstract ApplicationDAO createApplicationDAO()
+
   void 'a put should update an application'() {
     setup:
     def owner = "Andy McEntee"
     def sampleApp = new Application(name: "SAMPLEAPP", email: "web@netflix.com", owner: owner)
+    dao.create("SAMPLEAPP", new Application())
 
     when:
     def response = mockMvc.perform(put("/default/applications").
@@ -67,9 +83,7 @@ class ApplicationsControllerSpec extends Specification {
 
     then:
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString(sampleApp))
-    1 * dao.findByName(_) >> sampleApp
-    1 * dao.update("SAMPLEAPP", { it.name == sampleApp.name && it.email == sampleApp.email && it.details().owner == owner})
+    toMap(dao.findByName("SAMPLEAPP")) == toMap(sampleApp)
   }
 
   void 'a put should not update an application if no name is provided'() {
@@ -95,6 +109,9 @@ class ApplicationsControllerSpec extends Specification {
     def existingApp = new Application(name: app, email: "old@netflix.com", description: description,
         dynamicPropertyToUpdate: "old dynamic property",
         unchangedDynamicProperty: unchangedDynamicProperty)
+
+    dao.create(app, existingApp)
+
     def updates = new Application(name: app, email: newEmail,
         dynamicPropertyToUpdate: dynamicPropertyToUpdate,
         brandNewDynamicProperty: brandNewDynamicProperty)
@@ -105,24 +122,14 @@ class ApplicationsControllerSpec extends Specification {
 
     then:
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString(
-        new Application(
-            name: app,
-            description: description,
-            email: newEmail,
-            dynamicPropertyToUpdate: dynamicPropertyToUpdate,
-            unchangedDynamicProperty: unchangedDynamicProperty,
-            brandNewDynamicProperty: brandNewDynamicProperty
-        ))
-    )
-    1 * dao.findByName(app) >> existingApp
-    1 * dao.update("SAMPLEAPP", { it.name == app &&
-        it.email == newEmail &&
-        it.description == description &&
-        it.details().dynamicPropertyToUpdate == dynamicPropertyToUpdate &&
-        it.details().unchangedDynamicProperty == unchangedDynamicProperty &&
-        it.details().brandNewDynamicProperty == brandNewDynamicProperty
-    })
+    toMap(dao.findByName(app)) == toMap(new Application(
+        name: app,
+        description: description,
+        email: newEmail,
+        dynamicPropertyToUpdate: dynamicPropertyToUpdate,
+        unchangedDynamicProperty: unchangedDynamicProperty,
+        brandNewDynamicProperty: brandNewDynamicProperty
+    ))
   }
 
   void 'a post w/o a name will throw an error'() {
@@ -141,43 +148,41 @@ class ApplicationsControllerSpec extends Specification {
   void 'a post w/an existing application will throw an error'() {
     setup:
     def sampleApp = new Application(name: "SAMPLEAPP", email: "web@netflix.com", description: "an application")
+    dao.create(sampleApp.name, sampleApp)
 
     when:
     def response = mockMvc.perform(post("/default/applications/name/SAMPLEAPP").
         contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(sampleApp)))
 
     then:
-    1 * dao.findByName("SAMPLEAPP") >> sampleApp
     response.andExpect status().is4xxClientError()
   }
 
   void 'a post w/a new application should yield a success'() {
     setup:
     def sampleApp = new Application(name: "SAMPLEAPP", type: "Standalone App", email: "web@netflix.com")
-    dao.create(_, _) >> sampleApp
 
     when:
     def response = mockMvc.perform(post("/default/applications/name/SAMPLEAPP").
       contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(sampleApp)))
 
     then:
-    1 * dao.findByName(_) >> { throw new NotFoundException() }
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString(sampleApp))
+    toMap(dao.findByName(sampleApp.name)) == toMap(sampleApp)
   }
 
   void 'a get w/a name should return a JSON document for the found app'() {
     setup:
     def sampleApp = new Application(name:"SAMPLEAPP", type: "Standalone App", email: "web@netflix.com",
         createTs: "1265752693581l", updateTs: "1265752693581l")
+    dao.create(sampleApp.name, sampleApp)
 
     when:
     def response = mockMvc.perform(get("/default/applications/name/SAMPLEAPP"))
 
     then:
-    1 * dao.findByName(_) >> sampleApp
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString(sampleApp))
+    toMap(dao.findByName(sampleApp.name)) == toMap(sampleApp)
   }
 
   void 'a get w/a invalid name should return 404'() {
@@ -185,35 +190,43 @@ class ApplicationsControllerSpec extends Specification {
     def response = mockMvc.perform(get("/default/applications/name/blah"))
 
     then:
-    1 * dao.findByName(_) >> { throw new NotFoundException("not found!") }
     response.andExpect status().is(404)
   }
 
   void 'delete should remove an app'() {
+    given:
+    dao.create("SAMPLEAPP", new Application())
+
     when:
     def response = mockMvc.perform(delete("/default/applications/name/SAMPLEAPP"))
 
     then:
-    1 * dao.findByName("SAMPLEAPP") >> new Application(name: "SAMPLEAPP")
-    1 * dao.delete("SAMPLEAPP")
     response.andExpect status().isAccepted()
+
+    when:
+    dao.findByName("SAMPLEAPP")
+
+    then:
+    thrown(NotFoundException)
+
 
   }
 
   void 'index should return a list of applications'() {
     setup:
-    def sampleApps = [new Application(name: "SAMPLEAPP", email: "web@netflix.com", createTs: "1265752693581l",
-      updateTs: "1265752693581l"),
-                      new Application(name: "SAMPLEAPP-2", email: "web@netflix.com", createTs: "1265752693581l",
-      updateTs: "1265752693581l")]
+    [new Application(name: "SAMPLEAPP", email: "web1@netflix.com", createTs: "1265752693581l",
+        updateTs: "1265752693581l"),
+     new Application(name: "SAMPLEAPP-2", email: "web2@netflix.com", createTs:  "1265752693581l",
+         updateTs: "1265752693581l")].each {
+      dao.create(it.name, it)
+    }
 
     when:
     def response = mockMvc.perform(get("/${account}/applications"))
 
     then:
-    1 * dao.all() >> sampleApps
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString(sampleApps))
+    response.andExpect content().string(new ObjectMapper().writeValueAsString(dao.all()))
 
     where:
     account = "default"
@@ -221,21 +234,74 @@ class ApplicationsControllerSpec extends Specification {
 
   void "search hits the dao"() {
     setup:
-    def sampleApps = [new Application(name: "SAMPLEAPP", email: "web@netflix.com", createTs: "1265752693581l",
+    [new Application(name: "SAMPLEAPP", email: "web1@netflix.com", createTs: "1265752693581l",
       updateTs: "1265752693581l"),
-                      new Application(name: "SAMPLEAPP-2", email: "web@netflix.com", createTs:  "1265752693581l",
-      updateTs: "1265752693581l")]
+                      new Application(name: "SAMPLEAPP-2", email: "web2@netflix.com", createTs:  "1265752693581l",
+      updateTs: "1265752693581l")].each {
+      dao.create(it.name, it)
+    }
 
     when:
-    def response = mockMvc.perform(get("/${account}/applications/search?q=p"))
+    def response = mockMvc.perform(get("/${account}/applications/search?email=web1@netflix.com"))
 
     then:
-    1 * dao.search([q:"p"]) >> sampleApps
     response.andExpect status().isOk()
-    response.andExpect content().string(new ObjectMapper().writeValueAsString(sampleApps))
+    response.andExpect content().string(new ObjectMapper().writeValueAsString([dao.findByName("SAMPLEAPP")]))
 
     where:
     account = "default"
   }
 
+  private Map toMap(Application application) {
+    def map = objectMapper.convertValue(application, Map)
+    map.remove("updateTs")
+    map.remove("createTs")
+    return map
+  }
 }
+
+class CassandraApplicationsControllerTck extends ApplicationsControllerTck {
+  @Shared
+  CassandraTestHelper cassandraHelper = new CassandraTestHelper()
+
+  @Shared
+  CassandraApplicationDAO applicationDAO
+
+  @Override
+  ApplicationDAO createApplicationDAO() {
+    applicationDAO = new CassandraApplicationDAO(keyspace: cassandraHelper.keyspace, objectMapper: objectMapper)
+    applicationDAO.init()
+
+    applicationDAO.runQuery('''TRUNCATE application''')
+
+    return applicationDAO
+  }
+}
+
+@IgnoreIf({ S3TestHelper.s3ProxyUnavailable() })
+class S3ApplicationsControllerTck extends ApplicationsControllerTck {
+  @Shared
+  def scheduler = Schedulers.from(Executors.newFixedThreadPool(1))
+
+  @Shared
+  S3ApplicationDAO s3ApplicationDAO
+
+  @Override
+  ApplicationDAO createApplicationDAO() {
+    def amazonS3 = new AmazonS3Client(new ClientConfiguration())
+    amazonS3.setEndpoint("http://127.0.0.1:9999")
+    S3TestHelper.setupBucket(amazonS3, "front50")
+
+    s3ApplicationDAO = new S3ApplicationDAO(new ObjectMapper(), amazonS3, scheduler, 0, "front50", "test")  {
+      @Override
+      Collection<Application> all() {
+        // normally a refresh happens periodically, this forces it before every call to all()
+        refresh()
+        return super.all()
+      }
+    }
+
+    return s3ApplicationDAO
+  }
+}
+

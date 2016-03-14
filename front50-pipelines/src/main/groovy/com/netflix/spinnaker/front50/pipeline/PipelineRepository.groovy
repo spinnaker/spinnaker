@@ -25,8 +25,12 @@ import com.netflix.astyanax.model.ColumnFamily
 import com.netflix.astyanax.retry.RetryNTimes
 import com.netflix.astyanax.serializers.IntegerSerializer
 import com.netflix.astyanax.serializers.StringSerializer
+import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Repository
 
 import javax.annotation.PostConstruct
@@ -34,10 +38,11 @@ import javax.annotation.PostConstruct
 /**
  * Repository for presets
  */
+@Slf4j
 @Repository
 @SuppressWarnings('PropertyName')
-@Slf4j
-class PipelineRepository {
+@ConditionalOnExpression('${cassandra.enabled:true}')
+class PipelineRepository implements PipelineDAO {
 
     @Autowired
     Keyspace keyspace
@@ -70,12 +75,81 @@ class PipelineRepository {
         }
     }
 
-    List<Map> list() {
+    @Override
+    Pipeline findById(String id) throws NotFoundException {
+        def result = runQuery(
+          "SELECT id, name, definition FROM pipeline WHERE id = ${id};"
+        )
+        def pipelines = resolvePipelines(result)
+
+        if (!pipelines) {
+          throw new NotFoundException("No pipeline found with id '${id}'")
+        }
+        return pipelines[0]
+    }
+
+    List<Pipeline> all() {
         def result = runQuery("""SELECT id, name, definition FROM pipeline;""", true)
         resolvePipelines(result)
     }
 
-    List<Map> getPipelinesByApplication(String application) {
+    @Override
+    Pipeline create(String id, Pipeline item) {
+        update(id, item)
+        return findById(getPipelineId(item.getApplication(), item.getName()))
+    }
+
+    @Override
+    void update(String id, Pipeline item) {
+        if (!item.id) {
+            id = getPipelineId(item.getApplication(), item.getName())
+        } else {
+            id = item.id
+        }
+        runQuery(
+            """
+            INSERT INTO pipeline(
+                id,
+                application,
+                name,
+                definition)
+            VALUES(
+                ${id ?: 'now()'},
+                '${sanitize(item.getApplication())}',
+                '${sanitize(item.getName())}',
+                '${sanitize(mapper.writeValueAsString(item))}'
+            );
+            """
+        )
+    }
+
+    @Override
+    void delete(String id) {
+        if (id) {
+            runQuery(
+                "DELETE FROM pipeline WHERE id = ${id};"
+            )
+        }
+    }
+
+    @Override
+    void bulkImport(Collection<Pipeline> items) {
+        items.each {
+            try {
+                log.info "Trying to insert ${it.application} : ${it.name}"
+                update(it.getId(), it)
+            } catch (Exception e) {
+                log.error('could not process {}', it)
+            }
+        }
+    }
+
+    @Override
+    boolean isHealthy() {
+        return true
+    }
+
+    List<Pipeline> getPipelinesByApplication(String application) {
         def result = runQuery(
             """SELECT id, name, definition FROM pipeline where application = '${sanitize(application)}';""",
             true
@@ -83,7 +157,7 @@ class PipelineRepository {
         resolvePipelines(result)
     }
 
-    String get(String application, String name) {
+    String getPipelineId(String application, String name) {
         String id
         def result = runQuery(
             "SELECT id, application FROM pipeline WHERE name = '${sanitize(name)}';",
@@ -99,76 +173,19 @@ class PipelineRepository {
         id
     }
 
-    void rename(String application, String currentName, String newName) {
-        String id = get(application, currentName)
-        if (id) {
-            runQuery(
-                "UPDATE pipeline SET name = '${sanitize(newName)}' WHERE id = ${id};"
-            )
-        }
-    }
-
-    void save(Map pipeline) {
-        String id
-        if (!pipeline.id) {
-            id = get(pipeline.application, pipeline.name)
-        } else {
-            id = pipeline.id
-        }
-        runQuery(
-            """
-            INSERT INTO pipeline(
-                id,
-                application,
-                name,
-                definition)
-            VALUES(
-                ${id ?: 'now()'},
-                '${sanitize(pipeline.application)}',
-                '${sanitize(pipeline.name)}',
-                '${sanitize(mapper.writeValueAsString(pipeline))}'
-            );
-            """
-        )
-    }
-
     private String sanitize(String val) {
         val.replaceAll("'", "''")
     }
 
-    void delete(String application, String name) {
-        String id = get(application, name)
-        deleteById(id)
-    }
-
-    void batchUpdate(List<Map> pipelines) {
-        pipelines.each {
-            try {
-                log.info "Trying to insert ${it.application} : ${it.name}"
-                save(it)
-            } catch (Exception e) {
-                log.error('could not process {}', it)
-            }
-        }
-    }
-
-    void deleteById(String id) {
-        if (id) {
-            runQuery(
-                "DELETE FROM pipeline WHERE id = ${id};"
-            )
-        }
-    }
-
-    private List<Map> resolvePipelines(result) {
-        List<Map> pipelines = []
+    private List<Pipeline> resolvePipelines(result) {
+        List<Pipeline> pipelines = []
         if (result != null && result.result?.rows?.rows) {
             result.result.rows.rows.each { row ->
                 def id
                 try {
                     id = row.columns.getColumnByName('id').UUIDValue.toString()
                     String name = row.columns.getColumnByName('name').stringValue
-                    def pipeline = mapper.readValue(row.columns.getColumnByName('definition').stringValue, Map)
+                    def pipeline = mapper.readValue(row.columns.getColumnByName('definition').stringValue, Pipeline)
                     pipeline.id = id
                     pipeline.name = name
                     pipelines.add(pipeline)

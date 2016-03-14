@@ -18,17 +18,9 @@
 package com.netflix.spinnaker.front50.model.project
 
 import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.front50.model.ItemDAO
 
-interface ProjectDAO {
-  Project findBy(String fieldName, String fieldValue) throws NotFoundException
-
-  Set<Project> all()
-
-  Project create(Project project)
-
-  Project update(String id, Project project)
-
-  void delete(String id)
-
+interface ProjectDAO extends ItemDAO<Project> {
+  Project findByName(String name) throws NotFoundException
   void truncate()
 }

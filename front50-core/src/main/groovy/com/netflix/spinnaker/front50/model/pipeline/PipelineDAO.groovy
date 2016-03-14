@@ -1,10 +1,11 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,17 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.front50.notifications
 
-public enum HierarchicalLevel {
-    STAGE,
-    PIPELINE,
-    APPLICATION,
-    PROJECT,
-    ORGANIZATION,
-    GLOBAL
+package com.netflix.spinnaker.front50.model.pipeline
 
-    static HierarchicalLevel fromString(String level) {
-        values().find { it.name() == level.toUpperCase() }
-    }
+import com.netflix.spinnaker.front50.model.ItemDAO
+
+
+interface PipelineDAO extends ItemDAO<Pipeline> {
+  String getPipelineId(String application, String pipelineName)
+  Collection<Pipeline> getPipelinesByApplication(String application)
 }

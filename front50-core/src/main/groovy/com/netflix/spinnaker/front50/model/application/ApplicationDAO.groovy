@@ -19,20 +19,51 @@
 package com.netflix.spinnaker.front50.model.application
 
 import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.front50.model.ItemDAO
 
-public interface ApplicationDAO {
+public interface ApplicationDAO extends ItemDAO<Application> {
   Application findByName(String name) throws NotFoundException
 
-  Set<Application> all() throws NotFoundException
+  Collection<Application> search(Map<String, String> attributes)
 
-  Application create(String id, Application application)
+  static class Searcher {
+    static Collection<Application> search(Collection<Application> searchableApplications, Map<String, String> attributes) {
+      attributes = attributes.collect { k,v -> [k.toLowerCase(), v] }.collectEntries()
 
-  void update(String id, Application application)
+      if (attributes["accounts"]) {
+        def accounts = attributes["accounts"].split(",").collect { it.trim().toLowerCase() }
+        searchableApplications = searchableApplications.findAll {
+          def applicationAccounts = (it.accounts ?: "").split(",").collect { it.trim().toLowerCase() }
+          return applicationAccounts.containsAll(accounts)
+        }
 
-  void delete(String id)
+        // remove the 'accounts' search attribute so it's not picked up again in the field-level filtering below
+        attributes.remove("accounts")
+      }
 
-  boolean isHealthy()
+      // filtering vs. querying to achieve case-insensitivity without using an additional column (small data set)
+      def items = searchableApplications.findAll { app ->
+        def result = true
+        attributes.each { k, v ->
+          if (!v) {
+            return
+          }
+          if (!app.hasProperty(k) && !app.details().containsKey(k)) {
+            result = false
+          }
+          def appVal = app.hasProperty(k) ? app[k] : app.details()[k] ?: ""
+          if (!appVal.toString().toLowerCase().contains(v.toLowerCase())) {
+            result = false
+          }
+        }
+        return result
+      } as Set
 
-  Set<Application> search(Map<String, String> attributes)
+      if (!items) {
+        throw new NotFoundException("No Application found for search criteria $attributes")
+      }
 
+      return items
+    }
+  }
 }

@@ -19,16 +19,22 @@ package com.netflix.spinnaker.front50.notifications
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.astyanax.Keyspace
 import com.netflix.astyanax.MutationBatch
+import com.netflix.astyanax.connectionpool.OperationResult
 import com.netflix.astyanax.connectionpool.exceptions.ConnectionException
 import com.netflix.astyanax.connectionpool.exceptions.NotFoundException
 import com.netflix.astyanax.model.Column
 import com.netflix.astyanax.model.ColumnFamily
 import com.netflix.astyanax.model.ColumnList
 import com.netflix.astyanax.query.RowQuery
+import com.netflix.astyanax.retry.ExponentialBackoff
 import com.netflix.astyanax.serializers.StringSerializer
 import com.netflix.astyanax.util.RangeBuilder
+import com.netflix.spinnaker.front50.model.notification.HierarchicalLevel
+import com.netflix.spinnaker.front50.model.notification.Notification
+import com.netflix.spinnaker.front50.model.notification.NotificationDAO
 import com.netflix.spinnaker.front50.utils.Zip
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Repository
 
 import javax.annotation.PostConstruct
@@ -38,14 +44,14 @@ import javax.annotation.PostConstruct
  */
 @Repository
 @SuppressWarnings('PropertyName')
-class NotificationRepository {
-
+@ConditionalOnExpression('${cassandra.enabled:true}')
+class NotificationRepository implements NotificationDAO {
     @Autowired
     Keyspace keyspace
 
     static ColumnFamily<String, String> CF_NOTIFICATIONS
     static final String CF_NAME = 'notifications'
-    static final def NOTIFICATION_FORMATS = ['sms', 'email', 'hipchat', 'slack']
+
     ObjectMapper mapper = new ObjectMapper()
 
     @PostConstruct
@@ -57,8 +63,8 @@ class NotificationRepository {
         }
     }
 
-    List<Map> list() {
-        List<Map> notifications = []
+    List<Notification> all() {
+        List<Notification> notifications = []
         ColumnList<String> columns
         try {
             RowQuery<String, String> query = keyspace.prepareQuery(CF_NOTIFICATIONS)
@@ -68,7 +74,7 @@ class NotificationRepository {
 
             while (!(columns = query.execute().getResult()).isEmpty()) {
                 for (Column<String> c : columns) {
-                    notifications << mapper.readValue(Zip.decompress(c.byteArrayValue), Map)
+                    notifications << mapper.readValue(Zip.decompress(c.byteArrayValue), Notification)
                 }
             }
         } catch (ConnectionException e) {
@@ -76,39 +82,27 @@ class NotificationRepository {
         notifications
     }
 
-    Map getGlobal() {
+    Notification getGlobal() {
         get(HierarchicalLevel.GLOBAL, '')
     }
 
-    Map get(HierarchicalLevel level, String name) {
-        Map notification
+    Notification get(HierarchicalLevel level, String name) {
         try {
             Column<String> result = keyspace.prepareQuery(CF_NOTIFICATIONS)
                 .getKey(CF_NAME)
                 .getColumn("$level:$name".toString())
                 .execute().result
-            notification = mapper.readValue(Zip.decompress(result.byteArrayValue), Map)
+            return mapper.readValue(Zip.decompress(result.byteArrayValue), Notification)
         } catch (NotFoundException ignored) {
-            notification = [email: []]
+            return [email: []] as Notification
         }
-        if (level == HierarchicalLevel.APPLICATION) {
-            NOTIFICATION_FORMATS.each {
-                if (getGlobal()."$it") {
-                    if (!notification."${it}") {
-                        notification."${it}" = []
-                    }
-                    notification."$it".addAll(getGlobal()."$it")
-                }
-            }
-        }
-        notification
     }
 
-    void saveGlobal(Map notification) {
+    void saveGlobal(Notification notification) {
         save(HierarchicalLevel.GLOBAL, '', notification)
     }
 
-    void save(HierarchicalLevel level, String name, Map notification) {
+    void save(HierarchicalLevel level, String name, Notification notification) {
         NOTIFICATION_FORMATS.each {
             if (notification."$it"?.size()) {
                 notification."$it".each { it.level = level.toString().toLowerCase() }
@@ -128,5 +122,4 @@ class NotificationRepository {
         m.withRow(CF_NOTIFICATIONS, CF_NAME).deleteColumn("$level:$name".toString())
         m.execute()
     }
-
 }

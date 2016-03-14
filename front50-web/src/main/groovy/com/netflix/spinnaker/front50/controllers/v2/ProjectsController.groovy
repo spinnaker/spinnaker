@@ -89,29 +89,30 @@ public class ProjectsController {
   @RequestMapping(method = RequestMethod.GET, value = "/{projectId}")
   ProjectResource project(@PathVariable String projectId) {
     try {
-      return assembler.toResource(projectDAO.findBy("name", projectId))
+      return assembler.toResource(projectDAO.findByName(projectId))
     } catch (NotFoundException e) {
-      return assembler.toResource(projectDAO.findBy("id", projectId))
+      return assembler.toResource(projectDAO.findById(projectId))
     }
   }
 
   @ApiOperation(value = "", notes = "Update an existing project")
   @RequestMapping(method = RequestMethod.PUT, value = "/{projectId}")
   ProjectResource put(@PathVariable final String projectId, @RequestBody final Project project) {
-    def existingProject = projectDAO.findBy("id", projectId)
+    def existingProject = projectDAO.findById(projectId)
 
     project.id = existingProject.id
     project.createTs = existingProject.createTs
     project.updateTs = System.currentTimeMillis()
 
     try {
-      if (projectDAO.findBy("name", project.name).id != projectId) {
+      if (projectDAO.findByName(project.name).id != projectId) {
         // renamed projects must still be uniquely named
         throw new ProjectAlreadyExistsException()
       }
     } catch (NotFoundException ignored) {}
 
-    return assembler.toResource(projectDAO.update(projectId, project))
+    projectDAO.update(projectId, project)
+    return assembler.toResource(project)
   }
 
   @ApiOperation(value = "", notes = "Create a project")
@@ -121,17 +122,23 @@ public class ProjectsController {
     project.updateTs = System.currentTimeMillis()
 
     try {
-      projectDAO.findBy("name", project.name)
+      projectDAO.findByName(project.name)
       throw new ProjectAlreadyExistsException()
     } catch (NotFoundException ignored) {}
 
-    return assembler.toResource(projectDAO.create(project))
+    return assembler.toResource(projectDAO.create(project.id, project))
   }
 
   @ApiOperation(value = "", notes = "Delete a project")
   @RequestMapping(method = RequestMethod.DELETE, value = "/{projectId}")
   void delete(@PathVariable String projectId, HttpServletResponse response) {
     projectDAO.delete(projectId)
+    response.setStatus(HttpStatus.ACCEPTED.value())
+  }
+
+  @RequestMapping(method = RequestMethod.POST, value = "/batchUpdate")
+  void batchUpdate(@RequestBody final Collection<Project> projects, HttpServletResponse response) {
+    projectDAO.bulkImport(projects)
     response.setStatus(HttpStatus.ACCEPTED.value())
   }
 
