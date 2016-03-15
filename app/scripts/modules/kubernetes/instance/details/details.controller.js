@@ -159,10 +159,68 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
     this.rebootInstance = function rebootInstance() {
     };
 
+
     this.registerInstanceWithLoadBalancer = function registerInstanceWithLoadBalancer() {
+      var instance = $scope.instance;
+      var loadBalancerNames = instance.loadBalancers.join(' and ');
+
+      var taskMonitor = {
+        application: app,
+        title: 'Registering ' + instance.name + ' with ' + loadBalancerNames
+      };
+
+      var submitMethod = function () {
+        return instanceWriter.registerInstanceWithLoadBalancer(instance, app, { interestingHealthProviderNames: ['Kubernetes'] } );
+      };
+
+      confirmationModalService.confirm({
+        header: 'Really register ' + instance.name + ' with ' + loadBalancerNames + '?',
+        buttonText: 'Register ' + instance.name,
+        account: instance.account,
+        taskMonitorConfig: taskMonitor,
+        submitMethod: submitMethod
+      });
     };
 
     this.deregisterInstanceFromLoadBalancer = function deregisterInstanceFromLoadBalancer() {
+      var instance = $scope.instance;
+      var loadBalancerNames = instance.loadBalancers.join(' and ');
+
+      var taskMonitor = {
+        application: app,
+        title: 'Deregistering ' + instance.name + ' from ' + loadBalancerNames
+      };
+
+      var submitMethod = function () {
+        return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app, { interestingHealthProviderNames: ['Kubernetes'] } );
+      };
+
+      confirmationModalService.confirm({
+        header: 'Really deregister ' + instance.name + ' from ' + loadBalancerNames + '?',
+        buttonText: 'Deregister ' + instance.name,
+        provider: 'kubernetes',
+        account: instance.account,
+        taskMonitorConfig: taskMonitor,
+        submitMethod: submitMethod
+      });
+    };
+
+    this.canRegisterWithLoadBalancer = function() {
+      var instance = $scope.instance;
+      if (!instance.loadBalancers || !instance.loadBalancers.length) {
+        return false;
+      }
+      return instance.health.some(function(health) {
+        return health.state === 'OutOfService';
+      });
+    };
+
+    this.canDeregisterFromLoadBalancer = function() {
+      var instance = $scope.instance;
+      if (!instance.loadBalancers || !instance.loadBalancers.length) {
+        return false;
+      }
+      return instance.healthState !== 'OutOfService';
     };
 
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
