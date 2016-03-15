@@ -83,6 +83,7 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
           max: serverGroup.capacity.max,
           desired: serverGroup.capacity.desired
         },
+        imageId: serverGroup.image.dockerImageName + ':' + serverGroup.image.dockerImageVersion,
         cloudProvider: 'titan',
         selectedProvider: 'titan',
         viewState: {
