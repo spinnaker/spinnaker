@@ -62,6 +62,9 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
         $scope.images = images;
         $scope.registryMap = images.reduce((map, image) => {
           let key = image.registry;
+          if (!key) {
+            return map;
+          }
           let all = map[key] || [];
           if (all.indexOf(image.repository) < 0) {
             map[key] = all.concat(image.repository);
