@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.instance
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.instance.AbstractRegistrationKubernetesAtomicOperationDescription
 
 /*
- * curl -X POST -H "Content-Type: application/json" -d '[ { "deregisterInstancesFromLoadBalancer": { "loadBalancers": ["kub-test-lb"], "instances": ["kub-test-v000-beef"], "namespace": "default", "credentials": "my-kubernetes-account" }} ]' localhost:7002/kubernetes/ops
+ * curl -X POST -H "Content-Type: application/json" -d '[ { "deregisterInstancesFromLoadBalancer": { "loadBalancers": ["kub-test-lb"], "instanceIds": ["kub-test-v000-beef"], "namespace": "default", "credentials": "my-kubernetes-account" }} ]' localhost:7002/kubernetes/ops
  */
 class DeregisterKubernetesAtomicOperation extends AbstractRegistrationKubernetesAtomicOperation {
   String basePhase = 'DEREGISTER'
