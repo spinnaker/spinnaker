@@ -37,6 +37,10 @@ class BuildService {
     return igorService.build(master, encode(jobName), queryParams)
   }
 
+  String stop(String master, String jobName, String queuedBuild, Integer buildNumber) {
+    return igorService.stop(master, jobName, queuedBuild, buildNumber)
+  }
+
   Map queuedBuild(String master, String item) {
     return igorService.queuedBuild(master, item)
   }

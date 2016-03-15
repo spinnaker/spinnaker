@@ -27,6 +27,9 @@ interface IgorService {
   @PUT("/masters/{name}/jobs/{jobName}")
   String build(@Path("name") String master, @EncodedPath("jobName") String jobName, @QueryMap Map<String,String> queryParams)
 
+  @PUT("/masters/{name}/jobs/{jobName}/stop/{queuedBuild}/{buildNumber}")
+  String stop(@Path("name") String master, @EncodedPath("jobName") String jobName, @EncodedPath("queuedBuild") String queuedBuild, @EncodedPath("buildNumber") Integer buildNumber)
+
   @GET("/builds/queue/{master}/{item}")
   Map queuedBuild(@Path("master") String master, @Path("item") String item)
 
