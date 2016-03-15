@@ -20,7 +20,9 @@ import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureCust
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
+@Slf4j
 @CompileStatic
 public class AzureNamedAccountCredentials implements AccountCredentials<AzureCredentials> {
   private static final String CLOUD_PROVIDER = "azure"
@@ -59,8 +61,8 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
     this.tenantId = tenantId
     this.subscriptionId = subscriptionId
     this.regions = buildRegions(regions)
-    this.vmImages = vmImages ?: [] as List<AzureVMImage>
-    this.vmCustomImages = vmCustomImages ?: [] as List<AzureCustomImageStorage>
+    this.vmImages = buildPreferredVMImageList(vmImages)
+    this.vmCustomImages = buildCustomImageStorages(vmCustomImages)
     this.applicationName = applicationName
     this.requiredGroupMembership = requiredGroupMembership ?: [] as List<String>
     this.credentials = appKey.isEmpty() ? null : buildCredentials()
@@ -85,8 +87,34 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
     new AzureCredentials(this.tenantId, this.clientId, this.appKey, this.subscriptionId)
   }
 
+  private static List<AzureVMImage> buildPreferredVMImageList(List<AzureVMImage> vmImages) {
+    def result = new ArrayList<AzureVMImage>()
+    vmImages?.each { vmImage ->
+      if (vmImage && vmImage.publisher && vmImage.offer && vmImage.sku && vmImage.version) {
+        result += vmImage
+      } else {
+        log.warn("Invalid preferred VM image entry found in the config file")
+      }
+    }
+
+    result
+  }
+
+  private static List<AzureCustomImageStorage> buildCustomImageStorages(List<AzureCustomImageStorage> vmCustomImages) {
+    def result = new ArrayList<AzureCustomImageStorage>()
+    vmCustomImages?.each { vmImage ->
+      if (vmImage && vmImage.scs && vmImage.blobDir && vmImage.osType) {
+        result += vmImage
+      } else {
+        log.warn("Invalid custom image storage entry found in the config file")
+      }
+    }
+
+    result
+  }
+
   private static List<AzureRegion> buildRegions(List<String> regions) {
-    regions?.collect {new AzureRegion(it)}
+    regions?.collect {new AzureRegion(it)} ?: []
   }
 
   public static class AzureRegion {
@@ -94,7 +122,7 @@ public class AzureNamedAccountCredentials implements AccountCredentials<AzureCre
 
     public AzureRegion(String name) {
       if (name == null) {
-        throw new NullPointerException("name")
+        throw new IllegalArgumentException("name must be specified.")
       }
       this.name = name
     }

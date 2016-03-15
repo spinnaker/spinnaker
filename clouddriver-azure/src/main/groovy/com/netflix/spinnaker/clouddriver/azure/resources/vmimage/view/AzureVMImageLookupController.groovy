@@ -207,7 +207,7 @@ class AzureVMImageLookupController {
       if (imageName.toLowerCase().contains(vmImagePartName.toLowerCase())) {
         return new AzureNamedImage(
           imageName: imageName,
-          custom: false,
+          isCustom: false,
           publisher: vmImage.publisher,
           offer: vmImage.offer,
           sku: vmImage.sku,
@@ -233,7 +233,7 @@ class AzureVMImageLookupController {
       if ((vmImage.region == parts.region) && (vmImagePartName == null || vmImage.name.toLowerCase().contains(vmImagePartName.toLowerCase()))) {
         return new AzureNamedImage(
           imageName: vmImage.name,
-          custom: true,
+          isCustom: true,
           publisher: "na",
           offer: "na",
           sku: "na",
