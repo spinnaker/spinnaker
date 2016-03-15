@@ -45,20 +45,14 @@ abstract class AbstractRegistrationKubernetesAtomicOperation implements AtomicOp
     def credentials = description.credentials
     def namespace = KubernetesUtil.validateNamespace(credentials, description.namespace)
 
-    def services = description.loadBalancers.collect {
+    def services = description.loadBalancerNames.collect {
       KubernetesUtil.loadBalancerKey(it)
     }
 
-    task.updateStatus basePhase, "Removing service labels from each pod..."
+    task.updateStatus basePhase, "Setting new service labels from each pod..."
 
-    description.instances.each {
-      credentials.apiAdaptor.removePodLabels(namespace, it, services)
-    }
-
-    task.updateStatus basePhase, "Attaching new service labels to each pod..."
-
-    description.instances.each {
-      credentials.apiAdaptor.addPodLabels(namespace, it, services, action)
+    description.instanceIds.each {
+      credentials.apiAdaptor.togglePodLabels(namespace, it, services, action)
     }
 
     task.updateStatus basePhase, "Finished $verb all pods."

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.kubernetes.cache.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.model.KubernetesInstance
 import io.fabric8.kubernetes.api.model.Pod
 
@@ -51,7 +52,10 @@ class KubernetesProviderUtils {
     Map<String, Set<KubernetesInstance>> instanceMap = [:].withDefault { _ -> [] as Set }
     instances?.forEach {
       def pod = objectMapper.convertValue(it.attributes.pod, Pod)
-      KubernetesInstance instance = new KubernetesInstance(pod)
+      def loadBalancers = it.relationships[Keys.Namespace.LOAD_BALANCERS.ns].collect {
+        Keys.parse(it).name
+      }
+      KubernetesInstance instance = new KubernetesInstance(pod, loadBalancers)
       instanceMap[instance.serverGroupName].add(instance)
     }
     return instanceMap
