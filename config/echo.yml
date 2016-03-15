@@ -18,6 +18,10 @@ slack:
   enabled: ${services.echo.notifications.slack.enabled:false}
   token: ${services.echo.notifications.slack.token}
 
+spring:
+  mail:
+    host: ${mail.host}
+
 mail:
   enabled: ${services.echo.notifications.mail.enabled:false}
   host: ${services.echo.notifications.mail.host}
