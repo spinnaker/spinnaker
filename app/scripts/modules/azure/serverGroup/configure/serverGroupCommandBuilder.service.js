@@ -4,21 +4,20 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.service', [
   require('../../image/image.reader.js'),
-  require('../../../core/utils/lodash.js'),
 ])
   .factory('azureServerGroupCommandBuilder', function ($q, settings, azureImageReader) {
 
-    function buildNewServerGroupCommand (application, defaults) {
+    function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
 
-      var imageLoader = azureImageReader.findImages({provider: 'azure',});
+      var imageLoader = azureImageReader.findImages({ provider: 'azure', });
 
       var defaultCredentials = defaults.account || application.defaultCredentials || settings.providers.azure.defaults.account;
       var defaultRegion = defaults.region || application.defaultRegion || settings.providers.azure.defaults.region;
 
       return $q.all({
         images: imageLoader,
-      }).then(function(backingData) {
+      }).then(function (backingData) {
         return {
           application: application.name,
           credentials: defaultCredentials,
@@ -46,8 +45,18 @@ module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.servi
       });
     }
 
+    // Only used to prepare view requiring template selecting
+    function buildNewServerGroupCommandForPipeline() {
+      return $q.when({
+        viewState: {
+          requiresTemplateSelection: true,
+        }
+      });
+    }
+
     return {
       buildNewServerGroupCommand: buildNewServerGroupCommand,
+      buildNewServerGroupCommandForPipeline: buildNewServerGroupCommandForPipeline,
     };
-});
+  });
 
