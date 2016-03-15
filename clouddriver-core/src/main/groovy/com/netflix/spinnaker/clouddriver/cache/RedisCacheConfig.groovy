@@ -21,12 +21,14 @@ import com.netflix.spinnaker.cats.agent.AgentScheduler
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory
 import com.netflix.spinnaker.cats.redis.JedisPoolSource
 import com.netflix.spinnaker.cats.redis.JedisSource
+import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions
 import com.netflix.spinnaker.cats.redis.cache.RedisNamedCacheFactory
 import com.netflix.spinnaker.cats.redis.cluster.AgentIntervalProvider
 import com.netflix.spinnaker.cats.redis.cluster.ClusteredAgentScheduler
 import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeIdentity
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.JedisPool
@@ -43,13 +45,22 @@ class RedisCacheConfig {
   }
 
   @Bean
+  @ConfigurationProperties("caching.redis")
+  RedisCacheOptions.Builder redisCacheOptionsBuilder() {
+    return RedisCacheOptions.builder();
+  }
+
+  @Bean
+  RedisCacheOptions redisCacheOptions(RedisCacheOptions.Builder redisCacheOptionsBuilder) {
+    return redisCacheOptionsBuilder.build()
+  }
+
+  @Bean
   NamedCacheFactory cacheFactory(
     JedisSource jedisSource,
     ObjectMapper objectMapper,
-    @Value('${redis.maxMsetSize:250000}') int maxMsetSize,
-    @Value('${caching.maxMergeCount:2500}') int maxMergeCount,
-    @Value('${caching.hashing.enabled:true}') boolean enableHashing) {
-    new RedisNamedCacheFactory(jedisSource, objectMapper, maxMsetSize, maxMergeCount, enableHashing, null)
+    RedisCacheOptions redisCacheOptions) {
+    new RedisNamedCacheFactory(jedisSource, objectMapper, redisCacheOptions, null)
   }
 
   @Bean
