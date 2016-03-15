@@ -16,41 +16,34 @@
 
 package com.netflix.spinnaker.orca.echo.pipeline
 
+import java.util.concurrent.TimeUnit
+import groovy.util.logging.Slf4j
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.orca.AuthenticatedStage
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetryableTask
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.batch.RestartableStage
 import com.netflix.spinnaker.orca.echo.EchoService
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.security.User
-import groovy.util.logging.Slf4j
-import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import java.util.concurrent.TimeUnit
-
 @Component
-class ManualJudgmentStage extends LinearStage implements RestartableStage, AuthenticatedStage {
-  private static final String MAYO_CONFIG_NAME = "manualJudgment"
+class ManualJudgmentStage implements StageDefinitionBuilder, RestartableStage, AuthenticatedStage {
 
-  ManualJudgmentStage() {
-    super(MAYO_CONFIG_NAME)
+  @Override
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("waitForJudgment", WaitForManualJudgmentTask.class)
   }
 
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    [buildStep(stage, "waitForJudgment", WaitForManualJudgmentTask)]
-  }
-
-  @Override
-  Stage prepareStageForRestart(ExecutionRepository executionRepository, Stage stage) {
-    stage = super.prepareStageForRestart(executionRepository, stage)
+  Stage prepareStageForRestart(ExecutionRepository executionRepository, Stage stage, Collection<StageDefinitionBuilder> allStageBuilders) {
+    stage = StageDefinitionBuilder.StageDefinitionBuilderSupport
+      .prepareStageForRestart(executionRepository, stage, this, allStageBuilders)
 
     stage.context.remove("judgmentStatus")
     stage.context.remove("lastModifiedBy")
@@ -154,7 +147,7 @@ class ManualJudgmentStage extends LinearStage implements RestartableStage, Authe
       echoService.create(new EchoService.Notification(
         notificationType: EchoService.Notification.Type.valueOf(type.toUpperCase()),
         to: [address],
-        templateGroup: MAYO_CONFIG_NAME,
+        templateGroup: "manualJudgment",
         severity: EchoService.Notification.Severity.HIGH,
         source: new EchoService.Notification.Source(
           executionType: stage.execution.class.simpleName.toLowerCase(),

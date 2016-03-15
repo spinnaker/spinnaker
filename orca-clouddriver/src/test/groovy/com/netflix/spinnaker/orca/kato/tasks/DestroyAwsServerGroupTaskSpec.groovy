@@ -59,7 +59,7 @@ class DestroyAwsServerGroupTaskSpec extends Specification {
     }
 
     when:
-    task.execute(stage.asImmutable())
+    task.execute(stage)
 
     then:
     operations.size() == 1
@@ -78,7 +78,7 @@ class DestroyAwsServerGroupTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(stage.asImmutable())
+    def result = task.execute(stage)
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
@@ -97,7 +97,7 @@ class DestroyAwsServerGroupTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(stage.asImmutable())
+    def result = task.execute(stage)
 
     then:
     1 == stage.context.destroyAsgDescriptions.size()
@@ -115,7 +115,7 @@ class DestroyAwsServerGroupTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(stage.asImmutable())
+    def result = task.execute(stage)
 
     then:
     1 * task.targetReferenceSupport.isDynamicallyBound(stage) >> true
@@ -141,7 +141,7 @@ class DestroyAwsServerGroupTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(stage.asImmutable())
+    def result = task.execute(stage)
 
     then:
     result.status == ExecutionStatus.SUCCEEDED

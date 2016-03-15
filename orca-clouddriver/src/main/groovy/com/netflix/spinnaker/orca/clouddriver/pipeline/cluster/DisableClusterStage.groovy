@@ -24,12 +24,6 @@ import org.springframework.stereotype.Component
 
 @Component
 class DisableClusterStage extends AbstractClusterWideClouddriverOperationStage {
-  public static final String PIPELINE_CONFIG_TYPE = "disableCluster"
-
-  DisableClusterStage() {
-    super(PIPELINE_CONFIG_TYPE)
-  }
-
   @Override
   Class<? extends AbstractClusterWideClouddriverTask> getClusterOperationTask() {
     DisableClusterTask

@@ -42,7 +42,7 @@ class SecurityGroupForceCacheRefreshTaskSpec extends Specification {
     task.mort = Mock(MortService)
 
     when:
-    task.execute(stage.asImmutable())
+    task.execute(stage)
 
     then:
     1 * task.mort.forceCacheUpdate('aws', SecurityGroupForceCacheRefreshTask.REFRESH_TYPE, _) >> {

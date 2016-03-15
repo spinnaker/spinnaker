@@ -21,20 +21,12 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.loadbalancer.DeleteLoadBa
 import groovy.transform.CompileStatic
 import org.springframework.stereotype.Component
 
-/**
- * Created by aglover on 9/26/14.
- *
- * @deprecated use {@link DeleteLoadBalancerStage} instead.
- */
-
 @Deprecated
 @Component
 @CompileStatic
 class DeleteAmazonLoadBalancerStage extends DeleteLoadBalancerStage {
-
-  public static final String PIPELINE_CONFIG_TYPE = "deleteAmazonLoadBalancer"
-
-  protected DeleteAmazonLoadBalancerStage() {
-    super(PIPELINE_CONFIG_TYPE)
+  @Override
+  String getType() {
+    return "deleteAmazonLoadBalancer"
   }
 }

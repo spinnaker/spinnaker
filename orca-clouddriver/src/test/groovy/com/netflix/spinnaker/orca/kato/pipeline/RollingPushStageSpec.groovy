@@ -16,15 +16,17 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import groovy.transform.CompileStatic
+import com.netflix.spinnaker.config.SpringBatchConfiguration
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.TerminateInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForDownInstanceHealthTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForTerminatedInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstanceHealthTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.config.OrcaPersistenceConfiguration
@@ -34,114 +36,198 @@ import com.netflix.spinnaker.orca.kato.tasks.rollingpush.CheckForRemainingTermin
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.DetermineTerminationCandidatesTask
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.DetermineTerminationPhaseInstancesTask
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.WaitForNewInstanceLaunchTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.test.JobCompletionListener
 import com.netflix.spinnaker.orca.test.TestConfiguration
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
-import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
+import org.spockframework.spring.xml.SpockMockFactoryBean
+import org.springframework.beans.factory.FactoryBean
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.AnnotationConfigApplicationContext
-import spock.lang.AutoCleanup
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.context.annotation.Bean
+import org.springframework.stereotype.Component
+import org.springframework.test.context.ContextConfiguration
 import spock.lang.Shared
 import spock.lang.Specification
-
 import static com.netflix.spinnaker.orca.ExecutionStatus.REDIRECT
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.kato.pipeline.RollingPushStage.PushCompleteTask
 
+@ContextConfiguration(classes = [EmbeddedRedisConfiguration, JesqueConfiguration,
+  BatchTestConfiguration, SpringBatchConfiguration, OrcaConfiguration,
+  OrcaPersistenceConfiguration, JobCompletionListener, TestConfiguration,
+  MockTaskConfig, RollingPushStage, DownstreamStage])
 class RollingPushStageSpec extends Specification {
 
-  private static final DefaultTaskResult SUCCESS = new DefaultTaskResult(SUCCEEDED)
-  private static final DefaultTaskResult REDIR = new DefaultTaskResult(REDIRECT)
-
-  @AutoCleanup("destroy")
-  def applicationContext = new AnnotationConfigApplicationContext()
   @Shared def mapper = new OrcaObjectMapper()
-  @Autowired PipelineStarter pipelineStarter
+  @Autowired PipelineLauncher pipelineLauncher
 
-  def endTask = Mock(Task)
-  def endStage = new AutowiredTestStage("end", endTask)
+  /**
+   * Task that runs before the loop
+   */
+  @Autowired @Qualifier("preLoop") Task preLoopTask
 
-  def preCycleTask = Stub(DetermineTerminationCandidatesTask) {
-    execute(_) >> SUCCESS
-  }
-  def startOfCycleTask = Mock(DetermineTerminationPhaseInstancesTask)
-  def endOfCycleTask = Stub(CheckForRemainingTerminationsTask)
-  def cycleTasks = [DisableInstancesTask, MonitorKatoTask, WaitForDownInstanceHealthTask, TerminateInstancesTask, WaitForTerminatedInstancesTask, ServerGroupCacheForceRefreshTask, WaitForNewInstanceLaunchTask, WaitForUpInstanceHealthTask].collect {
-    if (RetryableTask.isAssignableFrom(it)) {
-      Stub(it) {
-        execute(_) >> SUCCESS
-        getBackoffPeriod() >> 5000L
-        getTimeout() >> 3600000L
-      }
-    } else {
-      Stub(it) {
-        execute(_) >> SUCCESS
-      }
-    }
-  }
+  /**
+   * Task that is the start of the loop
+   */
+  @Autowired @Qualifier("startOfLoop") Task startOfLoopTask
 
-  def setup() {
-    applicationContext.with {
-      register(EmbeddedRedisConfiguration, JesqueConfiguration,
-               BatchTestConfiguration, OrcaConfiguration, OrcaPersistenceConfiguration,
-               JobCompletionListener, TestConfiguration)
-      register(RollingPushStage)
-      beanFactory.registerSingleton("endStage", endStage)
-      ([preCycleTask, startOfCycleTask, endOfCycleTask] + cycleTasks).each { task ->
-        beanFactory.registerSingleton(task.getClass().simpleName, task)
-      }
-      refresh()
+  /**
+   * Tasks inside the loop
+   */
+  @Autowired @Qualifier("inLoop") Collection<Task> loopTasks
 
-      beanFactory.autowireBean(endStage)
-      beanFactory.autowireBean(this)
-    }
-    endStage.applicationContext = applicationContext
-  }
+  /**
+   * Task that is the end of the loop
+   */
+  @Autowired @Qualifier("endOfLoop") Task endOfLoopTask
+
+  /**
+   * Task that is after the end of the loop
+   */
+  @Autowired @Qualifier("postLoop") Task postLoopTask
+
+  /**
+   * Task in the stage downstream from rolling push
+   */
+  @Autowired @Qualifier("downstream") Task downstreamTask
+
+  private static final SUCCESS = new DefaultTaskResult(SUCCEEDED)
+  private static final REDIR = new DefaultTaskResult(REDIRECT)
 
   def "rolling push loops until completion"() {
-    given:
-    endOfCycleTask.execute(_) >> REDIR >> REDIR >> SUCCESS
+    given: "everything in the rolling push loop will succeed"
+    preLoopTask.execute(_) >> SUCCESS
+    startOfLoopTask.execute(_) >> SUCCESS
+    loopTasks.each { task ->
+      task.execute(_) >> SUCCESS
+      if (task instanceof RetryableTask) {
+        task.getBackoffPeriod() >> 5000L
+        task.getTimeout() >> 3600000L
+      }
+    }
+
+    and: "the loop will repeat a couple of times"
+    endOfLoopTask.execute(_) >> REDIR >> REDIR >> SUCCESS
 
     when:
-    pipelineStarter.start(configJson)
+    pipelineLauncher.start(configJson)
 
-    then:
-    3 * startOfCycleTask.execute(_) >> SUCCESS
+    then: "the loop repeats"
+    3 * startOfLoopTask.execute(_) >> SUCCESS
 
-    then:
-    1 * endTask.execute(_) >> SUCCESS
+    then: "the stage completes"
+    1 * postLoopTask.execute(_) >> SUCCESS
+
+    then: "the downstream stage runs afterward"
+    1 * downstreamTask.execute(_) >> SUCCESS
 
     where:
     config = [
       application: "app",
       name       : "my-pipeline",
-      stages     : [[type: RollingPushStage.PIPELINE_CONFIG_TYPE], [type: "end"]],
-      version: 2
+      stages     : [
+        [type: RollingPushStage.PIPELINE_CONFIG_TYPE, refId: "1"],
+        [type: "downstream", refId: "2", requisiteStageRefIds: ["1"]]
+      ],
+      version    : 2
     ]
     configJson = mapper.writeValueAsString(config)
+  }
 
+  static class MockTaskConfig {
+    @Bean
+    @Qualifier("preLoop")
+    FactoryBean<DetermineTerminationCandidatesTask> determineTerminationCandidatesTask() {
+      new SpockMockFactoryBean<>(DetermineTerminationCandidatesTask)
+    }
+
+    @Bean
+    @Qualifier("startOfLoop")
+    FactoryBean<DetermineTerminationPhaseInstancesTask> determineTerminationPhaseInstancesTask() {
+      new SpockMockFactoryBean<>(DetermineTerminationPhaseInstancesTask)
+    }
+
+    @Bean
+    @Qualifier("endOfLoop")
+    FactoryBean<CheckForRemainingTerminationsTask> checkForRemainingTerminationsTask() {
+      new SpockMockFactoryBean<>(CheckForRemainingTerminationsTask)
+    }
+
+    @Bean
+    @Qualifier("postLoop")
+    FactoryBean<PushCompleteTask> pushCompleteTask() {
+      new SpockMockFactoryBean<>(PushCompleteTask)
+    }
+
+    @Bean
+    @Qualifier("downstream")
+    FactoryBean<DownstreamTask> endTask() {
+      new SpockMockFactoryBean<>(DownstreamTask)
+    }
+
+    @Bean
+    @Qualifier("inLoop")
+    FactoryBean<DisableInstancesTask> disableInstancesTask() {
+      new SpockMockFactoryBean<>(DisableInstancesTask)
+    }
+
+    @Bean
+    @Qualifier("inLoop")
+    FactoryBean<MonitorKatoTask> monitorKatoTask() {
+      new SpockMockFactoryBean<>(MonitorKatoTask)
+    }
+
+    @Bean
+    @Qualifier("inLoop")
+    FactoryBean<WaitForDownInstanceHealthTask> waitForDownInstanceHealthTask() {
+      new SpockMockFactoryBean<>(WaitForDownInstanceHealthTask)
+    }
+
+    @Bean
+    @Qualifier("inLoop")
+    FactoryBean<TerminateInstancesTask> terminateInstancesTask() {
+      new SpockMockFactoryBean<>(TerminateInstancesTask)
+    }
+
+    @Bean
+    @Qualifier("inLoop")
+    FactoryBean<WaitForTerminatedInstancesTask> waitForTerminatedInstancesTask() {
+      new SpockMockFactoryBean<>(WaitForTerminatedInstancesTask)
+    }
+
+    @Bean
+    @Qualifier("inLoop")
+    FactoryBean<ServerGroupCacheForceRefreshTask> serverGroupCacheForceRefreshTask() {
+      new SpockMockFactoryBean<>(ServerGroupCacheForceRefreshTask)
+    }
+
+    @Bean
+    @Qualifier("inLoop")
+    FactoryBean<WaitForNewInstanceLaunchTask> waitForNewInstanceLaunchTask() {
+      new SpockMockFactoryBean<>(WaitForNewInstanceLaunchTask)
+    }
+
+    @Bean
+    @Qualifier("inLoop")
+    FactoryBean<WaitForUpInstanceHealthTask> waitForUpInstanceHealthTask() {
+      new SpockMockFactoryBean<>(WaitForUpInstanceHealthTask)
+    }
+  }
+
+  @Component
+  @CompileStatic
+  static class DownstreamStage implements StageDefinitionBuilder {
+    def <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+      builder.withTask("task1", DownstreamTask)
+    }
   }
 
   @CompileStatic
-  static class AutowiredTestStage extends LinearStage {
-
-    private final List<Task> tasks = []
-
-    AutowiredTestStage(String name, Task... tasks) {
-      super(name)
-      this.tasks.addAll tasks
-    }
-
-    @Override
-    public List<Step> buildSteps(Stage stage) {
-      def i = 1
-      tasks.collect { Task task ->
-        buildStep(stage, "task${i++}", task)
-      }
-    }
-  }
+  static interface DownstreamTask extends Task {}
 }

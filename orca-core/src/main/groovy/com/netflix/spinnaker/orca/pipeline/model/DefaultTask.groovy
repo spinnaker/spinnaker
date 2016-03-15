@@ -16,16 +16,19 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.ExecutionStatus
 
+@CompileStatic
 class DefaultTask implements Task, Serializable {
   String id
+  Class<? extends com.netflix.spinnaker.orca.Task> implementingClass
   String name
   Long startTime
   Long endTime
   ExecutionStatus status = ExecutionStatus.NOT_STARTED
-
-  static boolean isBookend(Task task) {
-    return task.name == "stageEnd" || task.name == "stageStart"
-  }
+  boolean stageStart = false
+  boolean stageEnd = false
+  boolean loopStart = false
+  boolean loopEnd = false
 }

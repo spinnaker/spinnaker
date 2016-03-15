@@ -24,12 +24,6 @@ import org.springframework.stereotype.Component
 
 @Component
 class ScaleDownClusterStage extends AbstractClusterWideClouddriverOperationStage {
-  static final String PIPELINE_CONFIG_TYPE = 'scaleDownCluster'
-
-  public ScaleDownClusterStage() {
-    super(PIPELINE_CONFIG_TYPE)
-  }
-
   @Override
   Class<? extends AbstractClusterWideClouddriverTask> getClusterOperationTask() {
     ScaleDownClusterTask

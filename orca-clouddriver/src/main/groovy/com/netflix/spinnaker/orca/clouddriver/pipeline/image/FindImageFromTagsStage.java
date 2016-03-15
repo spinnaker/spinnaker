@@ -18,6 +18,9 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.image;
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.FindImageFromTagsTask;
 import com.netflix.spinnaker.orca.pipeline.LinearStage;
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.pipeline.TaskNode;
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.batch.core.Step;
 import org.springframework.stereotype.Component;
@@ -26,15 +29,9 @@ import java.util.Collections;
 import java.util.List;
 
 @Component
-public class FindImageFromTagsStage extends LinearStage {
-  public FindImageFromTagsStage() {
-    super("findImageFromTags");
-  }
-
+public class FindImageFromTagsStage implements StageDefinitionBuilder {
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    return Collections.singletonList(
-      buildStep(stage, "findImage", FindImageFromTagsTask.class)
-    );
+  public <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder.withTask("findImage", FindImageFromTagsTask.class);
   }
 }

@@ -97,7 +97,7 @@ class RegisterCanaryTaskSpec extends Specification {
                              ]]
     ])
     deployCanaryStage.parentStageId = parentStageId
-    def monitorCanaryStage = new PipelineStage(pipeline, MonitorCanaryStage.PIPELINE_CONFIG_TYPE, [:])
+    def monitorCanaryStage = new PipelineStage(pipeline, "monitorCanary", [:])
 
     pipeline.stages.addAll([deployCanaryStage, monitorCanaryStage])
 
@@ -136,7 +136,7 @@ class RegisterCanaryTaskSpec extends Specification {
     def deployCanaryStage = new PipelineStage(pipeline, DeployCanaryStage.PIPELINE_CONFIG_TYPE, [canary: canary, deployedClusterPairs: [:]])
     def parentStageId = UUID.randomUUID().toString()
     deployCanaryStage.parentStageId = parentStageId
-    def monitorCanaryStage = new PipelineStage(pipeline, MonitorCanaryStage.PIPELINE_CONFIG_TYPE, [:])
+    def monitorCanaryStage = new PipelineStage(pipeline, "monitorCanary", [:])
 
     pipeline.stages.addAll([deployCanaryStage, monitorCanaryStage])
 

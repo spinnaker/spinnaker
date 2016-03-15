@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca
 
-import com.google.common.collect.ImmutableMap
 import groovy.transform.CompileStatic
+import com.google.common.collect.ImmutableMap
 
 @CompileStatic
 final class DefaultTaskResult implements TaskResult {
@@ -29,8 +29,8 @@ final class DefaultTaskResult implements TaskResult {
   final DefaultTaskResult SUCCEEDED = new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
 
   final ExecutionStatus status
-  final ImmutableMap<String, Object> outputs
-  final ImmutableMap<String, Object> globalOutputs
+  final ImmutableMap<String, Serializable> outputs
+  final ImmutableMap<String, Serializable> globalOutputs
 
   DefaultTaskResult(ExecutionStatus status) {
     this(status, [:], [:])
@@ -50,7 +50,7 @@ final class DefaultTaskResult implements TaskResult {
   }
 
   @Override
-  ImmutableMap<String, Object> getStageOutputs() {
+  ImmutableMap<String, Serializable> getStageOutputs() {
     return outputs
   }
 }

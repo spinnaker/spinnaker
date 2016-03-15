@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
+import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import org.springframework.batch.core.Step
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -35,12 +35,14 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
     supportStage.targetReferenceSupport = targetReferenceSupport
 
     when:
-    supportStage.composeTargets(stage)
+    def syntheticStages = supportStage.composeTargets(stage)
+    def beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
+    def afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
 
     then:
-    stage.beforeStages.size() == stageNamesBefore.size()
-    stage.afterStages.size() == 0
-    stage.beforeStages*.name == stageNamesBefore
+    beforeStages.size() == stageNamesBefore.size()
+    afterStages.size() == 0
+    beforeStages*.name == stageNamesBefore
     1 * targetReferenceSupport.isDynamicallyBound(stage) >> true
 
     where:
@@ -57,14 +59,16 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
     supportStage.targetReferenceSupport = targetReferenceSupport
 
     when:
-    supportStage.composeTargets(stage)
+    def syntheticStages = supportStage.composeTargets(stage)
+    def beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
+    def afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
 
     then:
-    stage.beforeStages.size() == 1
-    stage.afterStages.size() == 3
-    stage.afterStages*.name == ["targetReferenceLinearStageSupportStage", "targetReferenceLinearStageSupportStage", "targetReferenceLinearStageSupportStage"]
+    beforeStages.size() == 1
+    afterStages.size() == 3
+    afterStages*.name == ["targetReferenceLinearStageSupport", "targetReferenceLinearStageSupport", "targetReferenceLinearStageSupport"]
     stage.context.region == "us-east-1"
-    stage.afterStages*.context.region.flatten() == ["us-west-1", "us-west-2", "eu-west-2"]
+    afterStages*.context.region.flatten() == ["us-west-1", "us-west-2", "eu-west-2"]
     1 * targetReferenceSupport.isDynamicallyBound(stage) >> true
   }
 
@@ -76,12 +80,14 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
     supportStage.targetReferenceSupport = targetReferenceSupport
 
     when:
-    supportStage.composeTargets(stage)
+    def syntheticStages = supportStage.composeTargets(stage)
+    def beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
+    def afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
 
     then:
-    stage.beforeStages.size() == 0
-    stage.afterStages.size() == 3
-    stage.afterStages*.name == ["targetReferenceLinearStageSupportStage", "targetReferenceLinearStageSupportStage", "targetReferenceLinearStageSupportStage"]
+    beforeStages.size() == 0
+    afterStages.size() == 3
+    afterStages*.name == ["targetReferenceLinearStageSupport", "targetReferenceLinearStageSupport", "targetReferenceLinearStageSupport"]
     1 * targetReferenceSupport.isDynamicallyBound(stage) >> false
     1 * targetReferenceSupport.getTargetAsgReferences(stage) >> [
       new TargetReference(region: "us-east-1", asg: [name: "asg-v001"]),
@@ -132,14 +138,8 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
   }
 
   class TargetReferenceLinearStageSupportStage extends TargetReferenceLinearStageSupport {
-
     TargetReferenceLinearStageSupportStage() {
-      super("targetReferenceLinearStageSupportStage")
-    }
-
-    @Override
-    public List<Step> buildSteps(Stage stage) {
-      []
+      this.determineTargetReferenceStage = new DetermineTargetReferenceStage()
     }
   }
 }

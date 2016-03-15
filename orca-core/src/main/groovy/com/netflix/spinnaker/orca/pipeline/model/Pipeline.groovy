@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
+import java.util.concurrent.atomic.AtomicInteger
 import groovy.transform.CompileStatic
 
 @CompileStatic
@@ -34,6 +35,7 @@ class Pipeline extends Execution<Pipeline> {
   static class Builder {
 
     private final Pipeline pipeline = new Pipeline()
+    private final AtomicInteger nextRefid = new AtomicInteger(1)
 
     Builder withTrigger(Map<String, Object> trigger = [:]) {
       pipeline.trigger.clear()
@@ -83,8 +85,13 @@ class Pipeline extends Execution<Pipeline> {
     }
 
     Builder withStages(String... stageTypes) {
-      stageTypes.each { String it ->
-        withStage(it)
+      withStages stageTypes.collect { String it ->
+        def refId = nextRefid.getAndIncrement()
+        [
+          type                : it,
+          refId               : refId.toString(),
+          requisiteStageRefIds: refId == 1 ? [] : [(refId - 1).toString()]
+        ] as Map<String, Object>
       }
       return this
     }
@@ -123,6 +130,16 @@ class Pipeline extends Execution<Pipeline> {
 
     Builder withExecutingInstance(String instanceId) {
       pipeline.executingInstance = instanceId
+      return this
+    }
+
+    Builder withExecutionEngine(String executionEngine) {
+      pipeline.executionEngine = executionEngine
+      return this
+    }
+
+    Builder withId(id = UUID.randomUUID().toString()) {
+      pipeline.id = id
       return this
     }
 

@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.strategy
 
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 
 interface StrategyFlowComposer {
-  boolean replacesBasicSteps();
-  void composeFlow(DeployStrategyStage builder, Stage stage)
+  public boolean replacesBasicSteps()
+
+  public <T extends Execution<T>> List<Stage<T>> composeFlow(DeployStrategyStage builder, Stage<T> stage)
 }

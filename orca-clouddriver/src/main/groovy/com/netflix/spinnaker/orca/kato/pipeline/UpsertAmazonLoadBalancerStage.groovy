@@ -27,10 +27,10 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class UpsertAmazonLoadBalancerStage extends UpsertLoadBalancerStage {
-
   public static final String PIPELINE_CONFIG_TYPE = "upsertAmazonLoadBalancer"
 
-  UpsertAmazonLoadBalancerStage() {
-    super(PIPELINE_CONFIG_TYPE)
+  @Override
+  String getType() {
+    return PIPELINE_CONFIG_TYPE
   }
 }

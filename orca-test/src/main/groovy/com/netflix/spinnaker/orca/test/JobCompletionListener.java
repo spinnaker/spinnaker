@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.orca.test;
 
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.listener.JobExecutionListenerSupport;
+import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.listeners.ExecutionListener;
+import com.netflix.spinnaker.orca.listeners.Persister;
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
@@ -36,14 +38,17 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * fire. If you need to run the job more than once use `reset()` in between.
  */
 @Component
-public class JobCompletionListener extends JobExecutionListenerSupport implements Ordered {
+public class JobCompletionListener implements ExecutionListener, Ordered {
 
   public static final int DEFAULT_TIMEOUT_SECONDS = 1;
 
   private CountDownLatch latch = new CountDownLatch(1);
 
   @Override
-  public void afterJob(JobExecution jobExecution) {
+  public void afterExecution(Persister persister,
+                             Execution execution,
+                             ExecutionStatus executionStatus,
+                             boolean wasSuccessful) {
     latch.countDown();
   }
 

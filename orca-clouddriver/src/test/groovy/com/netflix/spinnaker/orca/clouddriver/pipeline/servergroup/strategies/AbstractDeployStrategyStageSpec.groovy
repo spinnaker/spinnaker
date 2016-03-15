@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
+import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import org.springframework.batch.core.Step
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -39,38 +39,31 @@ class AbstractDeployStrategyStageSpec extends Specification {
   @Unroll
   def "should compose list of steps"() {
     given:
-      // Step mocks
-      Step mockDSSGStep = Stub(Step) { getName() >> "determineSourceServerGroup" }
-      Step mockDHPStep = Stub(Step) { getName() >> "determineHealthProviders" }
-      Step mockSupportStep = Stub(Step) { getName() >> "testSupportStep" }
+    // Step mocks
+    def determineSourceServerGroupTask = new TaskNode.TaskDefinition("determineSourceServerGroup", null)
+    def determineHealthProvidersTask = new TaskNode.TaskDefinition("determineHealthProviders", null)
+    def basicTask = new TaskNode.TaskDefinition("basic", null)
 
-      AbstractDeployStrategyStage testStage = Spy(AbstractDeployStrategyStage)
-      testStage.with {
-        strategies = [noStrat, aStrat, bStrat, cStrat]
-        noStrategy = noStrat
-      }
+    AbstractDeployStrategyStage testStage = Spy(AbstractDeployStrategyStage)
+    testStage.with {
+      strategies = [noStrat, aStrat, bStrat, cStrat]
+      noStrategy = noStrat
+    }
 
-      Stage stage = new PipelineStage(new Pipeline(), "whatever", [strategy: specifiedStrategy])
+    Stage stage = new PipelineStage(new Pipeline(), "whatever", [strategy: specifiedStrategy])
 
     when:
-      def steps = testStage.buildSteps(stage)
+    def tasks = testStage.buildTaskGraph(stage)
 
     then:
-      // The actual goings on in the buildStep method are not relevant here, so just replace it.
-      1 * testStage.buildStep(*_) >> mockDSSGStep
-      1 * testStage.buildStep(*_) >> mockDHPStep
-      1 * testStage.basicSteps(*_) >> [mockSupportStep]
-      steps
-      steps.size() == 3
-      steps[0] == mockDSSGStep
-      steps[1] == mockDHPStep
-      steps[2] == mockSupportStep
+    1 * testStage.basicTasks(*_) >> [basicTask]
+    tasks*.name == [determineSourceServerGroupTask.name, determineHealthProvidersTask.name, basicTask.name]
 
     where:
-      specifiedStrategy | strategyObject
-      "doesNotExist"    | noStrat
-      "none"            | noStrat
-      "a"               | aStrat
-      "B"               | bStrat
+    specifiedStrategy | strategyObject
+    "doesNotExist"    | noStrat
+    "none"            | noStrat
+    "a"               | aStrat
+    "B"               | bStrat
   }
 }

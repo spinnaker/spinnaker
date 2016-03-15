@@ -30,15 +30,21 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
 
 class PipelineStarterListenerSpec extends Specification {
 
+  def pipelineStarterMock = Mock(PipelineStarter)
+
   @Subject
-  PipelineStarterListener listener = new PipelineStarterListener()
+  PipelineStarterListener listener = new PipelineStarterListener() {
+    @Override
+    PipelineStarter getPipelineStarter() {
+      return pipelineStarterMock
+    }
+  }
 
   def jobExecution = new JobExecution(0L, new JobParameters([pipeline: new JobParameter('something')]))
 
   void setup() {
     listener.executionRepository = Mock(ExecutionRepository)
     listener.startTracker = Mock(PipelineStartTracker)
-    listener.pipelineStarter = Mock(PipelineStarter)
   }
 
   def "should do nothing if there is no started pipelines"() {
@@ -46,11 +52,11 @@ class PipelineStarterListenerSpec extends Specification {
     listener.startTracker.getAllStartedExecutions() >> []
 
     when:
-    listener.afterJob(jobExecution)
+    listener.afterExecution(null, null, null, true)
 
     then:
     0 * listener.executionRepository._
-    0 * listener.pipelineStarter._
+    0 * pipelineStarterMock._
   }
 
   def "should start next pipeline in the queue"() {
@@ -62,13 +68,13 @@ class PipelineStarterListenerSpec extends Specification {
     }
 
     when:
-    listener.afterJob(jobExecution)
+    listener.afterExecution(null, null, null, true)
 
     then:
     1 * listener.startTracker.markAsFinished(pipelineConfigId, completedId)
 
     and:
-    1 * listener.pipelineStarter.startExecution({ it.id == nextId })
+    1 * pipelineStarterMock.startExecution({ it.id == nextId })
     1 * listener.startTracker.removeFromQueue(pipelineConfigId, nextId)
 
     where:
@@ -86,7 +92,7 @@ class PipelineStarterListenerSpec extends Specification {
     }
 
     when:
-    listener.afterJob(jobExecution)
+    listener.afterExecution(null, null, null, true)
 
     then:
     0 * listener.executionRepository.cancel(nextIds[0])
@@ -113,7 +119,7 @@ class PipelineStarterListenerSpec extends Specification {
     }
 
     when:
-    listener.afterJob(jobExecution)
+    listener.afterExecution(null, null, null, true)
 
     then:
     0 * listener.executionRepository.cancel(nextIds[0])
@@ -133,7 +139,7 @@ class PipelineStarterListenerSpec extends Specification {
 
   def "should mark started executions as finished even without a pipelineConfigId"() {
     when:
-    listener.afterJob(jobExecution)
+    listener.afterExecution(null, null, null, true)
 
     then:
     1 * listener.startTracker.getAllStartedExecutions() >> ['123']
@@ -144,7 +150,7 @@ class PipelineStarterListenerSpec extends Specification {
 
   def "should process all pipelines in a completed state"() {
     when:
-    listener.afterJob(jobExecution)
+    listener.afterExecution(null, null, null, true)
 
     then:
     1 * listener.startTracker.getAllStartedExecutions() >> ['123', '124', '125', '126']
@@ -159,7 +165,7 @@ class PipelineStarterListenerSpec extends Specification {
 
   def "should skip pipelines that are not started"() {
     when:
-    listener.afterJob(jobExecution)
+    listener.afterExecution(null, null, null, true)
 
     then:
     1 * listener.startTracker.getAllStartedExecutions() >> ['123']

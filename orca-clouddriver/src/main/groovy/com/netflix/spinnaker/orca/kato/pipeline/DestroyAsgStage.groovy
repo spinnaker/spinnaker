@@ -16,16 +16,16 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DestroyServerGroupStage
-import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForDestroyedServerGroupTask
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceLinearStageSupport
 import com.netflix.spinnaker.orca.kato.tasks.DestroyAwsServerGroupTask
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 /**
@@ -37,27 +37,13 @@ import org.springframework.stereotype.Component
 @Deprecated
 class DestroyAsgStage extends TargetReferenceLinearStageSupport {
   static final String DESTROY_ASG_DESCRIPTIONS_KEY = "destroyAsgDescriptions"
-  static final String PIPELINE_CONFIG_TYPE = "destroyAsg"
-
-  /**
-   * TODO(sthadeshwar): Track usage of deprecated stages.
-   */
-  DestroyAsgStage() {
-    super(PIPELINE_CONFIG_TYPE)
-  }
 
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    try {
-      composeTargets(stage)
-      [
-        buildStep(stage, "destroyServerGroup", DestroyAwsServerGroupTask),
-        buildStep(stage, "monitorServerGroup", MonitorKatoTask),
-        buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
-        buildStep(stage, "waitForDestroyedServerGroup", WaitForDestroyedServerGroupTask),
-      ]
-    } catch (TargetServerGroup.NotFoundException ignored) {
-      [buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)]
-    }
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("destroyServerGroup", DestroyAwsServerGroupTask)
+      .withTask("monitorServerGroup", MonitorKatoTask)
+      .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+      .withTask("waitForDestroyedServerGroup", WaitForDestroyedServerGroupTask)
   }
 }

@@ -20,21 +20,17 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideC
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractWaitForClusterWideClouddriverTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.ShrinkClusterTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.WaitForClusterShrinkTask
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import org.springframework.batch.core.Step
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 class ShrinkClusterStage extends AbstractClusterWideClouddriverOperationStage {
-  public static final String PIPELINE_CONFIG_TYPE = "shrinkCluster"
-
   @Autowired
   DisableClusterStage disableClusterStage
-
-  ShrinkClusterStage() {
-    super(PIPELINE_CONFIG_TYPE)
-  }
 
   @Override
   Class<? extends AbstractClusterWideClouddriverTask> getClusterOperationTask() {
@@ -47,15 +43,20 @@ class ShrinkClusterStage extends AbstractClusterWideClouddriverOperationStage {
   }
 
   @Override
-  List<Step> buildSteps(Stage stage) {
+  def <T extends Execution<T>> List<Stage<T>> aroundStages(Stage<T> stage) {
     if (stage.context.allowDeleteActive == true) {
-      injectBefore(stage, "disableCluster", disableClusterStage, stage.context + [
+      def context = stage.context + [
         remainingEnabledServerGroups  : stage.context.shrinkToSize,
         preferLargerOverNewer         : stage.context.retainLargerOverNewer,
         continueIfClusterNotFound     : stage.context.shrinkToSize == 0,
         interestingHealthProviderNames: stage.context.interestingHealthProviderNames
-      ])
+      ]
+      return [
+        StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage(
+          stage.execution, disableClusterStage.type, "disableCluster", context, stage, SyntheticStageOwner.STAGE_BEFORE
+        )
+      ]
     }
-    return super.buildSteps(stage)
+    return []
   }
 }

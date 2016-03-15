@@ -16,46 +16,44 @@
 
 package com.netflix.spinnaker.orca.mine.pipeline
 
+import java.util.concurrent.TimeUnit
+import groovy.util.logging.Slf4j
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.ShrinkClusterTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.util.logging.Slf4j
-import org.springframework.batch.core.Step
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-
-import java.util.concurrent.TimeUnit
+import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage
 
 @Slf4j
 @Component
-class CanaryStage extends LinearStage implements CancellableStage {
+class CanaryStage implements StageDefinitionBuilder, CancellableStage {
   public static final String PIPELINE_CONFIG_TYPE = "canary"
 
   @Autowired DeployCanaryStage deployCanaryStage
   @Autowired MonitorCanaryStage monitorCanaryStage
   @Autowired ShrinkClusterTask shrinkClusterTask
 
-  CanaryStage() {
-    super(PIPELINE_CONFIG_TYPE)
-  }
-
   @Override
-  List<Step> buildSteps(Stage stage) {
+  def <T extends Execution<T>> List<Stage<T>> aroundStages(Stage<T> stage) {
     Map canaryStageId = [
       canaryStageId: stage.id,
       failPipeline: stage.context.failPipeline,
       continuePipeline: stage.context.continuePipeline
     ]
 
-    Map deployContext = canaryStageId + stage.context
-    Map monitorContext = canaryStageId + [scaleUp: stage.context.scaleUp ?: [:]]
+    Map<String, Object> deployContext = canaryStageId + stage.context
+    Map<String, Object> monitorContext = canaryStageId + [scaleUp: stage.context.scaleUp ?: [:]]
 
-    injectAfter(stage, "Deploy Canary", deployCanaryStage, deployContext)
-    injectAfter(stage, "Monitor Canary", monitorCanaryStage, monitorContext)
-    []
+    return [
+      newStage(stage.execution, deployCanaryStage.type, "Deploy Canary", deployContext, stage, SyntheticStageOwner.STAGE_AFTER),
+      newStage(stage.execution, monitorCanaryStage.type, "Monitor Canary", monitorContext, stage, SyntheticStageOwner.STAGE_AFTER)
+    ]
   }
 
   @Override

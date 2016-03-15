@@ -16,55 +16,59 @@
 
 package com.netflix.spinnaker.orca.bakery.pipeline
 
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.batch.RestartableStage
-import com.netflix.spinnaker.orca.pipeline.ParallelStage
-import com.netflix.spinnaker.orca.pipeline.StepProvider
-import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileDynamic
-import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.bakery.tasks.CompletedBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.CreateBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.MonitorBakeTask
-import groovy.util.logging.Slf4j
-import org.springframework.batch.core.Step
+import com.netflix.spinnaker.orca.batch.RestartableStage
+import com.netflix.spinnaker.orca.pipeline.BranchingStageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
 @CompileStatic
-class BakeStage extends ParallelStage implements StepProvider, RestartableStage {
+class BakeStage implements BranchingStageDefinitionBuilder, RestartableStage {
 
   public static final String PIPELINE_CONFIG_TYPE = "bake"
 
-  BakeStage() {
-    super(PIPELINE_CONFIG_TYPE)
+  @Override
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("createBake", CreateBakeTask)
+      .withTask("monitorBake", MonitorBakeTask)
+      .withTask("completedBake", CompletedBakeTask)
   }
 
   @Override
-  List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "createBake", CreateBakeTask)
-    def step2 = buildStep(stage, "monitorBake", MonitorBakeTask)
-    def step3 = buildStep(stage, "completedBake", CompletedBakeTask)
-    [step1, step2, step3]
+  <T extends Execution<T>> void postBranchGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("completeParallel", CompleteParallelBakeTask)
   }
 
   @Override
-  protected List<Step> buildParallelContextSteps(Stage stage) {
-    buildSteps(stage)
+  Task completeParallelTask() {
+    return new CompleteParallelBakeTask()
   }
 
   @Override
   @CompileDynamic
-  List<Map<String, Object>> parallelContexts(Stage stage) {
+  public <T extends Execution<T>> Collection<Map<String, Object>> parallelContexts(Stage<T> stage) {
     Set<String> deployRegions = stage.context.region ? [stage.context.region] as Set<String> : []
     deployRegions.addAll(stage.context.regions as Set<String> ?: [])
 
     if (!deployRegions.contains("global")) {
-      deployRegions.addAll(stage.execution.stages.findAll { it.type == "deploy" }.collect {
+      deployRegions.addAll(stage.execution.stages.findAll {
+        it.type == "deploy"
+      }.collect {
         Set<String> regions = it.context?.clusters?.inject([] as Set<String>) { Set<String> accum, Map cluster ->
           accum.addAll(cluster.availabilityZones?.keySet() ?: [])
           return accum
@@ -72,7 +76,9 @@ class BakeStage extends ParallelStage implements StepProvider, RestartableStage 
         regions.addAll(it.context?.cluster?.availabilityZones?.keySet() ?: [])
         return regions
       }.flatten())
-      deployRegions.addAll(stage.execution.stages.findAll { it.type == "canary"}.collect {
+      deployRegions.addAll(stage.execution.stages.findAll {
+        it.type == "canary"
+      }.collect {
         Set<String> regions = it.context?.clusterPairs?.inject([] as Set<String>) { Set<String> accum, Map clusterPair ->
           accum.addAll(clusterPair.baseline?.availabilityZones?.keySet() ?: [])
           accum.addAll(clusterPair.canary?.availabilityZones?.keySet() ?: [])
@@ -96,33 +102,32 @@ class BakeStage extends ParallelStage implements StepProvider, RestartableStage 
   }
 
   @Override
-  String parallelStageName(Stage stage, boolean hasParallelFlows) {
+  <T extends Execution<T>> String parallelStageName(Stage<T> stage, boolean hasParallelFlows) {
     return hasParallelFlows ? "Multi-region Bake" : stage.name
   }
 
-  @Override
-  Task completeParallel() {
-    return new Task() {
-      TaskResult execute(Stage stage) {
-        def bakeInitializationStages = stage.execution.stages.findAll {
-          it.parentStageId == stage.parentStageId && it.status == ExecutionStatus.RUNNING
-        }
-
-        def globalContext = [
-          deploymentDetails: stage.execution.stages.findAll {
-            it.type == PIPELINE_CONFIG_TYPE && bakeInitializationStages*.id.contains(it.parentStageId) && (it.context.ami || it.context.imageId)
-          }.collect { Stage bakeStage ->
-            def deploymentDetails = [:]
-            ["ami", "imageId", "amiSuffix", "baseLabel", "baseOs", "storeType", "vmType", "region", "package", "cloudProviderType", "cloudProvider"].each {
-              if (bakeStage.context.containsKey(it)) {
-                deploymentDetails.put(it, bakeStage.context.get(it))
-              }
-            }
-            return deploymentDetails
-          }
-        ]
-        new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [:], globalContext)
+  @Component
+  @CompileStatic
+  static class CompleteParallelBakeTask implements Task {
+    TaskResult execute(Stage stage) {
+      def bakeInitializationStages = stage.execution.stages.findAll {
+        it.parentStageId == stage.parentStageId && it.status == ExecutionStatus.RUNNING
       }
+
+      def globalContext = [
+        deploymentDetails: stage.execution.stages.findAll {
+          it.type == PIPELINE_CONFIG_TYPE && bakeInitializationStages*.id.contains(it.parentStageId) && (it.context.ami || it.context.imageId)
+        }.collect { Stage bakeStage ->
+          def deploymentDetails = [:]
+          ["ami", "imageId", "amiSuffix", "baseLabel", "baseOs", "storeType", "vmType", "region", "package", "cloudProviderType", "cloudProvider"].each {
+            if (bakeStage.context.containsKey(it)) {
+              deploymentDetails.put(it, bakeStage.context.get(it))
+            }
+          }
+          return deploymentDetails
+        }
+      ]
+      new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [:], globalContext)
     }
   }
 

@@ -42,7 +42,7 @@ class StartJenkinsJobTaskSpec extends Specification {
 
     def "should trigger build without parameters"() {
         given:
-        def stage = new PipelineStage(pipeline, "jenkins", [master: "builds", job: "orca"]).asImmutable()
+        def stage = new PipelineStage(pipeline, "jenkins", [master: "builds", job: "orca"])
 
         and:
         task.buildService = Stub(BuildService) {
@@ -58,7 +58,7 @@ class StartJenkinsJobTaskSpec extends Specification {
 
   def "should trigger build with parameters"() {
       given:
-      def stage = new PipelineStage(pipeline, "jenkins", [master: "builds", job: "orca", parameters : [foo : "bar", version : "12345"]]).asImmutable()
+      def stage = new PipelineStage(pipeline, "jenkins", [master: "builds", job: "orca", parameters: [foo: "bar", version: "12345"]])
 
       and:
       task.buildService = Stub(BuildService) {
@@ -74,7 +74,7 @@ class StartJenkinsJobTaskSpec extends Specification {
 
     def "throw exception when you can't trigger a build"() {
         given:
-        def stage = new PipelineStage(pipeline, "jenkins", [master: "builds", job: "orca", parameters : [foo : "bar", version : "12345"]]).asImmutable()
+        def stage = new PipelineStage(pipeline, "jenkins", [master: "builds", job: "orca", parameters: [foo: "bar", version: "12345"]])
 
         and:
         task.buildService = Stub(BuildService) {

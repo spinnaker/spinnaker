@@ -40,7 +40,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     @Override
     protected Map<String, List<String>> getServerGroups(Stage stage) {
       return [
-          'us-west-1': ['front50-v000']
+        'us-west-1': ['front50-v000']
       ]
     }
 
@@ -85,7 +85,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     ])
 
     when:
-    task.execute(stage.asImmutable())
+    task.execute(stage)
 
     then:
     1 * task.oortService.getCluster("front50", "test", "front50", "aws") >> constructResponse(200, '''
@@ -111,7 +111,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 ''')
 
     and:
-    1 * task.hasSucceededSpy.hasSucceeded(_, [['name':'i-12345678']], ['JustTrustMeBroItIsHealthy'])
+    1 * task.hasSucceededSpy.hasSucceeded(_, [['name': 'i-12345678']], ['JustTrustMeBroItIsHealthy'])
   }
 
   @Unroll
@@ -122,19 +122,19 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 
     def pipeline = new Pipeline()
     def stage = new PipelineStage(pipeline, "whatever", [
-        "account.name"                  : "test",
-        "targetop.asg.enableAsg.name"   : "front50-v000",
-        "targetop.asg.enableAsg.regions": ["us-west-1"],
-        zeroDesiredCapacityCount: 2,
-        capacitySnapshot: [
-            minSize: 1,
-            desiredCapacity: 1,
-            maxSize: 1
-        ]
+      "account.name"                  : "test",
+      "targetop.asg.enableAsg.name"   : "front50-v000",
+      "targetop.asg.enableAsg.regions": ["us-west-1"],
+      zeroDesiredCapacityCount        : 2,
+      capacitySnapshot                : [
+        minSize        : 1,
+        desiredCapacity: 1,
+        maxSize        : 1
+      ]
     ])
 
     when:
-    def result = task.execute(stage.asImmutable())
+    def result = task.execute(stage)
 
     then:
     result.stageOutputs.zeroDesiredCapacityCount == expected
@@ -178,13 +178,13 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 
     def pipeline = new Pipeline()
     def stage = new PipelineStage(pipeline, "whatever", [
-        "account.name"                  : "test",
-        "targetop.asg.enableAsg.name"   : "front50-v000",
-        "targetop.asg.enableAsg.regions": ["us-west-1"],
+      "account.name"                  : "test",
+      "targetop.asg.enableAsg.name"   : "front50-v000",
+      "targetop.asg.enableAsg.regions": ["us-west-1"],
     ])
 
     when:
-    def result = task.execute(stage.asImmutable())
+    def result = task.execute(stage)
 
     then:
     result.stageOutputs.zeroDesiredCapacityCount == 1

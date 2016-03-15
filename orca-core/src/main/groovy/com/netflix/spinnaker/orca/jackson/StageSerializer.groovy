@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.jackson
 
+import groovy.transform.CompileStatic
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.JsonSerializer
@@ -23,7 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
 
 /**
  * Unwraps an immutable stage and properly adds type to serialized JSON
@@ -46,7 +46,6 @@ class StageSerializer extends JsonSerializer<Stage> {
   void serialize(Stage value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
     def unwrapped = value.self
     def stageMap = objectMapper.convertValue(unwrapped, Map)
-    stageMap.immutable = value.immutable
     stageMap[TYPE_IDENTIFIER] = unwrapped.class
     jgen.writeString(objectMapper.writeValueAsString(stageMap))
   }

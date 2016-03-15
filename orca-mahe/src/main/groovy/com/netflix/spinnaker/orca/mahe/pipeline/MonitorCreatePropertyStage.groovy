@@ -16,27 +16,29 @@
 
 package com.netflix.spinnaker.orca.mahe.pipeline
 
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.mahe.MaheService
 import com.netflix.spinnaker.orca.mahe.tasks.CreatePropertiesTask
 import com.netflix.spinnaker.orca.mahe.tasks.MonitorPropertiesTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.getType
 
-@Slf4j
 @Component
-class MonitorCreatePropertyStage extends LinearStage implements CancellableStage {
-  public static final String PIPELINE_CONFIG_TYPE = "monitorCreateProperty"
+@CompileStatic
+@Slf4j
+class MonitorCreatePropertyStage implements StageDefinitionBuilder, CancellableStage {
+  public static
+  final String PIPELINE_CONFIG_TYPE = getType(MonitorCreatePropertyStage)
 
-  @Autowired MaheService maheService
-
-  MonitorCreatePropertyStage() {
-    super(PIPELINE_CONFIG_TYPE)
-  }
+  @Autowired
+  MaheService maheService
 
   @Override
   CancellableStage.Result cancel(Stage stage) {
@@ -44,10 +46,9 @@ class MonitorCreatePropertyStage extends LinearStage implements CancellableStage
   }
 
   @Override
-  List<Step> buildSteps(Stage stage) {
-    [
-      buildStep(stage, "createProperties", CreatePropertiesTask),
-      buildStep(stage, "monitorProperties", MonitorPropertiesTask),
-    ]
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("createProperties", CreatePropertiesTask)
+      .withTask("monitorProperties", MonitorPropertiesTask)
   }
 }

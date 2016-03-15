@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.loadbalancer
 
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer.UpsertLoadBalancerForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer.UpsertLoadBalancerResultObjectExtrapolationTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer.UpsertLoadBalancerTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer.UpsertLoadBalancersTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 /*
@@ -33,20 +33,13 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class UpsertLoadBalancersStage extends LinearStage {
-
-  public static final String PIPELINE_CONFIG_TYPE = "upsertLoadBalancers"
-
-  UpsertLoadBalancersStage() {
-    super(PIPELINE_CONFIG_TYPE)
-  }
-
+class UpsertLoadBalancersStage implements StageDefinitionBuilder {
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "upsertLoadBalancers", UpsertLoadBalancersTask)
-    def step2 = buildStep(stage, "monitorUpsert", MonitorKatoTask)
-    def step3 = buildStep(stage, "extrapolateUpsertResult", UpsertLoadBalancerResultObjectExtrapolationTask)
-    def step4 = buildStep(stage, "forceCacheRefresh", UpsertLoadBalancerForceRefreshTask)
-    [step1, step2, step3, step4]
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("upsertLoadBalancers", UpsertLoadBalancersTask)
+      .withTask("monitorUpsert", MonitorKatoTask)
+      .withTask("extrapolateUpsertResult", UpsertLoadBalancerResultObjectExtrapolationTask)
+      .withTask("forceCacheRefresh", UpsertLoadBalancerForceRefreshTask)
   }
 }

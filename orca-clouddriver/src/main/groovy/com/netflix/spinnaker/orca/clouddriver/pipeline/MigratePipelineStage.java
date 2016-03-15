@@ -16,35 +16,27 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline;
 
-import com.netflix.spinnaker.orca.clouddriver.tasks.pipeline.MigratePipelineClustersTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.pipeline.MigratePipelineClustersTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.pipeline.UpdateMigratedPipelineTask;
-import com.netflix.spinnaker.orca.pipeline.LinearStage;
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.pipeline.TaskNode;
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.springframework.batch.core.Step;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
-public class MigratePipelineStage extends LinearStage {
+public class MigratePipelineStage implements StageDefinitionBuilder {
 
   public static final String PIPELINE_CONFIG_TYPE = "migratePipeline";
 
-  MigratePipelineStage() {
-    super(PIPELINE_CONFIG_TYPE);
-  }
-
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    List<Step> steps = new ArrayList<>();
-    steps.add(buildStep(stage, "migratePipelineClusters", MigratePipelineClustersTask.class));
-    steps.add(buildStep(stage, "monitorMigration", MonitorKatoTask.class));
+  public <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("migratePipelineClusters", MigratePipelineClustersTask.class)
+      .withTask("monitorMigration", MonitorKatoTask.class);
     if (!Boolean.TRUE.equals(stage.getContext().get("dryRun"))) {
-      steps.add(buildStep(stage, "updateMigratedPipeline", UpdateMigratedPipelineTask.class));
+      builder.withTask("updateMigratedPipeline", UpdateMigratedPipelineTask.class);
     }
-    return steps;
   }
-
 }

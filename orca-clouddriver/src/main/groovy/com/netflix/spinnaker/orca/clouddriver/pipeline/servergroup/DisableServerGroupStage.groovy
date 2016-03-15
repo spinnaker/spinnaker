@@ -16,34 +16,30 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupLinearStageSupport
 import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.DisableServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForAllInstancesDownTask
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
+@CompileStatic
 class DisableServerGroupStage extends TargetServerGroupLinearStageSupport {
   static final String PIPELINE_CONFIG_TYPE = "disableServerGroup"
 
-  DisableServerGroupStage() {
-    super(PIPELINE_CONFIG_TYPE)
-  }
-
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    composeTargets(stage)
-    [
-      buildStep(stage, "determineHealthProviders", DetermineHealthProvidersTask),
-      buildStep(stage, "disableServerGroup", DisableServerGroupTask),
-      buildStep(stage, "monitorServerGroup", MonitorKatoTask),
-      buildStep(stage, "waitForDownInstances", WaitForAllInstancesDownTask),
-      buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    ]
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("determineHealthProviders", DetermineHealthProvidersTask)
+      .withTask("disableServerGroup", DisableServerGroupTask)
+      .withTask("monitorServerGroup", MonitorKatoTask)
+      .withTask("waitForDownInstances", WaitForAllInstancesDownTask)
+      .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
   }
-
 }

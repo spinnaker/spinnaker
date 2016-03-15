@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
+import groovy.transform.Immutable
+import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.clouddriver.pipeline.AbstractCloudProviderAwareStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
@@ -23,11 +25,12 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.DetermineSourceServerGroupTask
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.kato.tasks.DiffTask
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.Immutable
-import groovy.util.logging.Slf4j
-import org.springframework.batch.core.Step
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import org.springframework.beans.factory.annotation.Autowired
+import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage
 
 @Slf4j
 abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareStage {
@@ -52,21 +55,50 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
    * @return the steps for the stage excluding whatever cleanup steps will be
    * handled by the deployment strategy.
    */
-  protected abstract List<Step> basicSteps(Stage stage)
+  protected
+  abstract List<TaskNode.TaskDefinition> basicTasks(Stage stage)
 
   @Override
-  public List<Step> buildSteps(Stage stage) {
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+    // TODO(ttomsu): This is currently an AWS-only stage. I need to add and support the "useSourceCapacity" option.
+      .withTask("determineSourceServerGroup", DetermineSourceServerGroupTask)
+      .withTask("determineHealthProviders", DetermineHealthProvidersTask)
+
+    deployStagePreProcessors.findAll { it.supports(stage) }.each {
+      it.additionalSteps().each {
+        builder.withTask(it.name, it.taskClass)
+      }
+    }
+
     correctContext(stage)
     Strategy strategy = (Strategy) strategies.findResult(noStrategy, {
       it.name.equalsIgnoreCase(stage.context.strategy) ? it : null
     })
-    strategy.composeFlow(stage)
+    if (!strategy.replacesBasicSteps()) {
+      (basicTasks(stage) ?: []).each {
+        builder.withTask(it.name, it.implementingClass)
+      }
 
-    // TODO(ttomsu): This is currently an AWS-only stage. I need to add and support the "useSourceCapacity" option.
-    List<Step> steps = [
-      buildStep(stage, "determineSourceServerGroup", DetermineSourceServerGroupTask),
-      buildStep(stage, "determineHealthProviders", DetermineHealthProvidersTask)
-    ]
+      if (diffTasks) {
+        diffTasks.each { DiffTask diffTask ->
+          try {
+            builder.withTask(getDiffTaskName(diffTask.class.simpleName), diffTask.class)
+          } catch (Exception e) {
+            log.error("Unable to build diff task (name: ${diffTask.class.simpleName}: executionId: ${stage.execution.id})", e)
+          }
+        }
+      }
+    }
+  }
+
+  @Override
+  def <T extends Execution<T>> List<Stage<T>> aroundStages(Stage<T> stage) {
+    correctContext(stage)
+    Strategy strategy = (Strategy) strategies.findResult(noStrategy, {
+      it.name.equalsIgnoreCase(stage.context.strategy) ? it : null
+    })
+    def stages = strategy.composeFlow(stage)
 
     def stageData = stage.mapTo(StageData)
     deployStagePreProcessors.findAll { it.supports(stage) }.each {
@@ -75,30 +107,28 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
         cloudProvider: stageData.cloudProvider
       ]
       it.beforeStageDefinitions().each {
-        injectBefore(stage, it.name, it.stageBuilder, defaultContext + it.context)
+        stages << newStage(
+          stage.execution,
+          it.stageDefinitionBuilder.type,
+          it.name,
+          defaultContext + it.context,
+          stage,
+          SyntheticStageOwner.STAGE_BEFORE
+        )
       }
       it.afterStageDefinitions().each {
-        injectAfter(stage, it.name, it.stageBuilder, defaultContext + it.context)
-      }
-      it.additionalSteps().each {
-        steps << buildStep(stage, it.name, it.taskClass)
+        stages << newStage(
+          stage.execution,
+          it.stageDefinitionBuilder.type,
+          it.name,
+          defaultContext + it.context,
+          stage,
+          SyntheticStageOwner.STAGE_AFTER
+        )
       }
     }
 
-    if (!strategy.replacesBasicSteps()) {
-      steps.addAll((basicSteps(stage) ?: []) as List<Step>)
-
-      if (diffTasks) {
-        diffTasks.each { DiffTask diffTask ->
-          try {
-            steps << buildStep(stage, getDiffTaskName(diffTask.class.simpleName), diffTask.class)
-          } catch (Exception e) {
-            log.error("Unable to build diff task (name: ${diffTask.class.simpleName}: executionId: ${stage.execution.id})", e)
-          }
-        }
-      }
-    }
-    return steps
+    return stages
   }
 
   /**
@@ -118,7 +148,8 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
     try {
       className = className[0].toLowerCase() + className.substring(1)
       className = className.replaceAll("Task", "")
-    } catch (e) {}
+    } catch (e) {
+    }
     return className
   }
 
@@ -133,10 +164,10 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
       def stageData = stage.mapTo(StageData)
       def loc = TargetServerGroup.Support.locationFromStageData(stageData)
       new CleanupConfig(
-          account: stageData.account,
-          cluster: stageData.cluster,
-          cloudProvider: stageData.cloudProvider,
-          location: loc
+        account: stageData.account,
+        cluster: stageData.cluster,
+        cloudProvider: stageData.cloudProvider,
+        location: loc
       )
     }
   }

@@ -16,36 +16,27 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceLinearStageSupport
-import com.netflix.spinnaker.orca.kato.tasks.*
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
+import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceLinearStageSupport
+import com.netflix.spinnaker.orca.kato.tasks.EnableAsgTask
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
 @Deprecated
 class EnableAsgStage extends TargetReferenceLinearStageSupport {
-
-  public static final String PIPELINE_CONFIG_TYPE = "enableAsg"
-
-  EnableAsgStage() {
-    super(PIPELINE_CONFIG_TYPE)
-  }
-
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    composeTargets(stage)
-
-    def step1 = buildStep(stage, "enableAsg", EnableAsgTask)
-    def step2 = buildStep(stage, "monitorAsg", MonitorKatoTask)
-    def step3 = buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask)
-    def step4 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    [step1, step2, step3, step4]
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("enableAsg", EnableAsgTask)
+      .withTask("monitorAsg", MonitorKatoTask)
+      .withTask("waitForUpInstances", WaitForUpInstancesTask)
+      .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
   }
-
 }

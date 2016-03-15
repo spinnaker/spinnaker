@@ -17,28 +17,21 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.scalingpolicy
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.scalingpolicy.DeleteScalingPolicyTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
-class DeleteScalingPolicyStage extends LinearStage {
-
-  public static final String PIPELINE_CONFIG_TYPE = "deleteScalingPolicy"
-
-  DeleteScalingPolicyStage() {
-    super(PIPELINE_CONFIG_TYPE)
-  }
-
+class DeleteScalingPolicyStage implements StageDefinitionBuilder {
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    [
-        buildStep(stage, "deleteScalingPolicy", DeleteScalingPolicyTask),
-        buildStep(stage, "monitorUpsert", MonitorKatoTask),
-        buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    ]
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("deleteScalingPolicy", DeleteScalingPolicyTask)
+      .withTask("monitorUpsert", MonitorKatoTask)
+      .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
   }
 }

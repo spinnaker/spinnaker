@@ -22,8 +22,9 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.EnableServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
@@ -31,20 +32,13 @@ class EnableServerGroupStage extends TargetServerGroupLinearStageSupport {
 
   public static final String PIPELINE_CONFIG_TYPE = "enableServerGroup"
 
-  EnableServerGroupStage() {
-    super(PIPELINE_CONFIG_TYPE)
-  }
-
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    composeTargets(stage)
-
-    [
-      buildStep(stage, "determineHealthProviders", DetermineHealthProvidersTask),
-      buildStep(stage, "enableServerGroup", EnableServerGroupTask),
-      buildStep(stage, "monitorServerGroup", MonitorKatoTask),
-      buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask),
-      buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    ]
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("determineHealthProviders", DetermineHealthProvidersTask)
+      .withTask("enableServerGroup", EnableServerGroupTask)
+      .withTask("monitorServerGroup", MonitorKatoTask)
+      .withTask("waitForUpInstances", WaitForUpInstancesTask)
+      .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
   }
 }

@@ -16,32 +16,26 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.kato.tasks.securitygroup.CopySecurityGroupTask
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup.SecurityGroupForceCacheRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup.WaitForUpsertedSecurityGroupTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.kato.tasks.securitygroup.CopySecurityGroupTask
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class CopySecurityGroupStage extends LinearStage {
-
-  public static final String PIPELINE_CONFIG_TYPE = "copySecurityGroup"
-
-  CopySecurityGroupStage() {
-    super(PIPELINE_CONFIG_TYPE)
-  }
-
+class CopySecurityGroupStage implements StageDefinitionBuilder {
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "copySecurityGroup", CopySecurityGroupTask)
-    def step2 = buildStep(stage, "monitorUpsert", MonitorKatoTask)
-    def step3 = buildStep(stage, "forceCacheRefresh", SecurityGroupForceCacheRefreshTask)
-    def step4 = buildStep(stage, "waitForUpsertedSecurityGroup", WaitForUpsertedSecurityGroupTask)
-    [step1, step2, step3, step4]
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("copySecurityGroup", CopySecurityGroupTask)
+      .withTask("monitorUpsert", MonitorKatoTask)
+      .withTask("forceCacheRefresh", SecurityGroupForceCacheRefreshTask)
+      .withTask("waitForUpsertedSecurityGroup", WaitForUpsertedSecurityGroupTask)
   }
 }

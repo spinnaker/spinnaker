@@ -110,13 +110,13 @@ class WaitForUpInstancesTaskSpec extends Specification {
     ])
 
     expect:
-    task.execute(stage.asImmutable()).status == ExecutionStatus.RUNNING
+    task.execute(stage).status == ExecutionStatus.RUNNING
 
     when:
     stage.context."targetop.asg.enableAsg.name" = "front50-v001"
 
     then:
-    task.execute(stage.asImmutable()).status == ExecutionStatus.SUCCEEDED
+    task.execute(stage).status == ExecutionStatus.SUCCEEDED
 
   }
 

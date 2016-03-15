@@ -137,10 +137,25 @@ class TargetServerGroup {
      * These are all lower case because we expect them to be defined in the pipeline as lowercase.
      */
     enum Target {
+      /**
+       * "Newest Server Group"
+       */
       current_asg_dynamic,
+      /**
+       * "Previous Server Group"
+       */
       ancestor_asg_dynamic,
+      /**
+       * "Oldest Server Group"
+       */
       oldest_asg_dynamic,
+      /**
+       * "(Deprecated) Current Server Group"
+       */
       @Deprecated current_asg,
+      /**
+       * "(Deprecated) Last Server Group"
+       */
       @Deprecated ancestor_asg,
 
       boolean isDynamic() {

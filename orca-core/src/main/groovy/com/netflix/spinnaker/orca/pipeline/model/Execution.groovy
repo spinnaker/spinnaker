@@ -16,18 +16,22 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
+import groovy.transform.CompileStatic
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.security.AuthenticatedRequest
-import groovy.transform.CompileStatic
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 
 @CompileStatic
-abstract class Execution<T> implements Serializable {
+abstract class Execution<T extends Execution<T>> implements Serializable {
+  public static final String V1_EXECUTION_ENGINE = "v1"
+  public static final String V2_EXECUTION_ENGINE = "v2"
+  public static final String DEFAULT_EXECUTION_ENGINE = V1_EXECUTION_ENGINE
+
   String id
   String application
   String executingInstance
+  String executionEngine = DEFAULT_EXECUTION_ENGINE
 
   Long buildTime
 
@@ -59,49 +63,17 @@ abstract class Execution<T> implements Serializable {
     }
   }
 
-  Execution<T> asImmutable() {
-    def self = this
-
-    new Execution<T>() {
-      @Override
-      String getId() {
-        self.id
-      }
-
-      @Override
-      void setId(String id) {
-
-      }
-
-      @Override
-      List<Stage> getStages() {
-        ImmutableList.copyOf(self.stages)
-      }
-
-      @Override
-      void setStages(List<Stage<T>> stages) {
-
-      }
-
-      @Override
-      Stage namedStage(String type) {
-        self.namedStage(type).asImmutable()
-      }
-
-      @Override
-      Execution asImmutable() {
-        this
-      }
-
-      String getExecutingInstance() {
-        self.executingInstance
-      }
-    }
-  }
-
   @JsonIgnore
   Set<Object> getBuiltPipelineObjects() {
     return builtPipelineObjects
+  }
+
+  void setExecutionEngine(String executionEngine) {
+    this.executionEngine = executionEngine
+  }
+
+  String getExecutionEngine() {
+    return executionEngine ?: DEFAULT_EXECUTION_ENGINE
   }
 
   static class AuthenticationDetails implements Serializable {

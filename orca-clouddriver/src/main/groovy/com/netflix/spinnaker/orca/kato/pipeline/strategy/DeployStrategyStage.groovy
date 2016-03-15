@@ -15,23 +15,27 @@
  */
 
 package com.netflix.spinnaker.orca.kato.pipeline.strategy
+
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
+import groovy.transform.Immutable
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ScaleDownClusterStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.AbstractCloudProviderAwareStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ScaleDownClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
 import com.netflix.spinnaker.orca.deprecation.DeprecationRegistry
-import com.netflix.spinnaker.orca.clouddriver.pipeline.AbstractCloudProviderAwareStage
+import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyAsgLaunchConfigurationStage
 import com.netflix.spinnaker.orca.kato.pipeline.RollingPushStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
-import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileDynamic
-import groovy.transform.CompileStatic
-import groovy.transform.Immutable
-import org.springframework.batch.core.Step
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import org.springframework.beans.factory.annotation.Autowired
+import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage
 
 /**
  * DEPRECATED - Use AbstractDeployStrategyStage instead.
@@ -58,7 +62,8 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
    * @return the steps for the stage excluding whatever cleanup steps will be
    * handled by the deployment strategy.
    */
-  protected abstract List<Step> basicSteps(Stage stage)
+  protected
+  abstract List<TaskNode.TaskDefinition> basicTasks(Stage stage)
 
   /**
    * @param stage the stage configuration.
@@ -79,16 +84,24 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
   }
 
   @Override
-  public List<Step> buildSteps(Stage stage) {
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
     correctContext(stage)
     def strategy = strategy(stage)
-    strategy.composeFlow(this, stage)
 
-    List<Step> steps = [buildStep(stage, "determineSourceServerGroup", DetermineSourceServerGroupTask)]
+    builder
+      .withTask("determineSourceServerGroup", DetermineSourceServerGroupTask)
     if (!strategy.replacesBasicSteps()) {
-      steps.addAll((basicSteps(stage) ?: []) as List<Step>)
+      basicTasks(stage).each {
+        builder.withTask(it.name, it.implementingClass)
+      }
     }
-    return steps
+  }
+
+  @Override
+  <T extends Execution<T>> List<Stage<T>> aroundStages(Stage<T> stage) {
+    correctContext(stage)
+    def strategy = strategy(stage)
+    return strategy.composeFlow(this, stage)
   }
 
   /**
@@ -106,84 +119,117 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
 
   @VisibleForTesting
   @CompileDynamic
-  protected void composeRedBlackFlow(Stage stage) {
+  protected <T extends Execution<T>> List<Stage<T>> composeRedBlackFlow(Stage<T> stage) {
+    def stages = []
     def stageData = stage.mapTo(StageData)
     def cleanupConfig = determineClusterForCleanup(stage)
 
     Map baseContext = [
-      regions: [cleanupConfig.region],
-      cluster: cleanupConfig.cluster,
-      credentials: cleanupConfig.account,
+      regions      : [cleanupConfig.region],
+      cluster      : cleanupConfig.cluster,
+      credentials  : cleanupConfig.account,
       cloudProvider: cleanupConfig.cloudProvider
     ]
 
     if (stageData?.maxRemainingAsgs && (stageData?.maxRemainingAsgs > 0)) {
       Map shrinkContext = baseContext + [
-        shrinkToSize: stageData.maxRemainingAsgs,
-        allowDeleteActive: false,
+        shrinkToSize         : stageData.maxRemainingAsgs,
+        allowDeleteActive    : false,
         retainLargerOverNewer: false
       ]
-      injectAfter(stage, "shrinkCluster", shrinkClusterStage, shrinkContext)
+      stages << newStage(
+        stage.execution,
+        shrinkClusterStage.type,
+        "shrinkCluster",
+        shrinkContext,
+        stage,
+        SyntheticStageOwner.STAGE_AFTER
+      )
     }
 
     injectAfter(stage, "disableCluster", disableClusterStage, baseContext + [
       remainingEnabledServerGroups: 1,
-      preferLargerOverNewer: false
+      preferLargerOverNewer       : false
     ])
 
     if (stageData.scaleDown) {
       def scaleDown = baseContext + [
-        allowScaleDownActive: false,
+        allowScaleDownActive         : false,
         remainingFullSizeServerGroups: 1,
-        preferLargerOverNewer: false
+        preferLargerOverNewer        : false
       ]
-      injectAfter(stage, "scaleDown", scaleDownClusterStage, scaleDown)
+      stages << newStage(
+        stage.execution,
+        scaleDownClusterStage.type,
+        "scaleDown",
+        scaleDown,
+        stage,
+        SyntheticStageOwner.STAGE_AFTER
+      )
     }
 
+    return stages
   }
 
-  protected void composeRollingPushFlow(Stage stage) {
+  protected <T extends Execution<T>> List<Stage<T>> composeRollingPushFlow(Stage<T> stage) {
+    def stages = []
     def source = sourceResolver.getSource(stage)
 
     def modifyCtx = stage.context + [
-      region: source.region,
-      regions: [source.region],
-      asgName: source.asgName,
+      region                : source.region,
+      regions               : [source.region],
+      asgName               : source.asgName,
       'deploy.server.groups': [(source.region): [source.asgName]],
-      useSourceCapacity: true,
-      credentials: source.account,
-      source: [
-        asgName: source.asgName,
-        account: source.account,
-        region: source.region,
+      useSourceCapacity     : true,
+      credentials           : source.account,
+      source                : [
+        asgName          : source.asgName,
+        account          : source.account,
+        region           : source.region,
         useSourceCapacity: true
       ]
     ]
 
-    injectAfter(stage, "modifyLaunchConfiguration", modifyAsgLaunchConfigurationStage, modifyCtx)
+    stages << newStage(
+      stage.execution,
+      modifyAsgLaunchConfigurationStage.type,
+      "modifyLaunchConfiguration",
+      modifyCtx,
+      stage,
+      SyntheticStageOwner.STAGE_AFTER
+    )
 
     def terminationConfig = stage.mapTo("/termination", TerminationConfig)
     if (terminationConfig.relaunchAllInstances || terminationConfig.totalRelaunches > 0) {
-      injectAfter(stage, "rollingPush", rollingPushStage, modifyCtx)
+      stages << newStage(
+        stage.execution,
+        rollingPushStage.type,
+        "rollingPush",
+        modifyCtx,
+        stage,
+        SyntheticStageOwner.STAGE_AFTER
+      )
     }
+
+    return stages
   }
 
-  protected void composeCustomFlow(Stage stage) {
-
+  protected <T extends Execution<T>> List<Stage<T>> composeCustomFlow(Stage stage) {
+    def stages = []
     def cleanupConfig = determineClusterForCleanup(stage)
 
     Map parameters = [
-      application                            : stage.context.application,
-      credentials                            : cleanupConfig.account,
-      cluster                                : cleanupConfig.cluster,
-      region : cleanupConfig.region,
-      cloudProvider                          : cleanupConfig.cloudProvider,
-      strategy                               : true,
-      parentPipelineId                       : stage.execution.id,
-      parentStageId                          : stage.id
+      application     : stage.context.application,
+      credentials     : cleanupConfig.account,
+      cluster         : cleanupConfig.cluster,
+      region          : cleanupConfig.region,
+      cloudProvider   : cleanupConfig.cloudProvider,
+      strategy        : true,
+      parentPipelineId: stage.execution.id,
+      parentStageId   : stage.id
     ]
 
-    if(stage.context.pipelineParameters){
+    if (stage.context.pipelineParameters) {
       parameters.putAll(stage.context.pipelineParameters as Map)
     }
 
@@ -194,22 +240,41 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
       pipelineParameters : parameters
     ]
 
-    injectAfter(stage, "pipeline", pipelineStage, modifyCtx)
+    stages << newStage(
+      stage.execution,
+      pipelineStage.type,
+      "pipeline",
+      modifyCtx,
+      stage,
+      SyntheticStageOwner.STAGE_AFTER
+    )
+
+    return stages
   }
 
   @CompileDynamic
-  protected void composeHighlanderFlow(Stage stage) {
+  protected <T extends Execution<T>> List<Stage<T>> composeHighlanderFlow(Stage stage) {
     def cleanupConfig = determineClusterForCleanup(stage)
     Map shrinkContext = [
-      regions: [cleanupConfig.region],
-      cluster: cleanupConfig.cluster,
-      credentials: cleanupConfig.account,
-      cloudProvider: cleanupConfig.cloudProvider,
-      shrinkToSize: 1,
-      allowDeleteActive: true,
+      regions              : [cleanupConfig.region],
+      cluster              : cleanupConfig.cluster,
+      credentials          : cleanupConfig.account,
+      cloudProvider        : cleanupConfig.cloudProvider,
+      shrinkToSize         : 1,
+      allowDeleteActive    : true,
       retainLargerOverNewer: false
     ]
-    injectAfter(stage, "shrinkCluster", shrinkClusterStage, shrinkContext)
+
+    return [
+      newStage(
+        stage.execution,
+        shrinkClusterStage.type,
+        "shrinkCluster",
+        shrinkContext,
+        stage,
+        SyntheticStageOwner.STAGE_AFTER
+      )
+    ]
   }
 
   @Immutable

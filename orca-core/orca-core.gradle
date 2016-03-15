@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
+apply plugin: "io.franzbecker.gradle-lombok"
+
 dependencies {
   spinnaker.group('jackson')
+
   compile spinnaker.dependency('batch')
   compile spinnaker.dependency('eurekaClient')
   compile ("net.lariverosc:jesque-spring:1.0.1")
@@ -28,6 +31,11 @@ dependencies {
   compile spinnaker.dependency('rxJava')
   compile spinnaker.dependency('spectatorApi')
   compile spinnaker.dependency('kork')
-  testCompile project(":orca-test")
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.6.3"
+
+  testCompile project(":orca-test")
+}
+
+lombok {
+  version = "1.16.8"
 }

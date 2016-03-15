@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
+import groovy.util.logging.Slf4j
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -28,7 +29,6 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCache
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
-import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RetrofitError
 
@@ -101,7 +101,7 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
         }
 
         seenServerGroup[name] = true
-        Collection<String> interestingHealthProviderNames = stage.context.interestingHealthProviderNames as Collection
+        Collection<String> interestingHealthProviderNames = stage.execution.appConfig.interestingHealthProviderNames as Collection
         if (interestingHealthProviderNames == null) {
           interestingHealthProviderNames = stage.context?.appConfig?.interestingHealthProviderNames as Collection
         }

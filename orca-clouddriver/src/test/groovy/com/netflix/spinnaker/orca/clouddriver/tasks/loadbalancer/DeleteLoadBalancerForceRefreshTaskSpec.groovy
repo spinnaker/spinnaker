@@ -41,7 +41,7 @@ class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
     task.oort = Mock(OortService)
 
     when:
-    task.execute(stage.asImmutable())
+    task.execute(stage)
 
     then:
     1 * task.oort.forceCacheUpdate(stage.context.cloudProvider, DeleteLoadBalancerForceRefreshTask.REFRESH_TYPE, _) >> {

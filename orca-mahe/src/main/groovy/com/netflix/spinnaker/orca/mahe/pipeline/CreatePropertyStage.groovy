@@ -20,22 +20,26 @@ import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.mahe.tasks.CreatePropertiesTask
 import com.netflix.spinnaker.orca.mahe.tasks.MonitorPropertiesTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.getType
 
 @Slf4j
 @Component
-class CreatePropertyStage extends LinearStage implements CancellableStage {
-  public static final String PIPELINE_CONFIG_TYPE = "createProperty"
+class CreatePropertyStage implements StageDefinitionBuilder, CancellableStage {
+  public static final String PIPELINE_CONFIG_TYPE = getType(CreatePropertyStage)
 
   @Autowired MonitorCreatePropertyStage monitorCreatePropertyStage
-//  @Autowired DeletePropertyTask deletePropertyTask
 
-  CreatePropertyStage() {
-    super(PIPELINE_CONFIG_TYPE)
+  @Override
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("createProperties", CreatePropertiesTask)
+      .withTask("monitorProperties", MonitorPropertiesTask)
   }
 
   @Override
@@ -48,18 +52,7 @@ class CreatePropertyStage extends LinearStage implements CancellableStage {
 //       deletedPropertyIdList: stage.context.propertyIdList,
 //       deletedPropertiesResults: deletedProperties
 //    ])
-  }
-
-  @Override
-  List<Step> buildSteps(Stage stage) {
-//    Map propertyStageId = [propertyStageId: stage.id]
-//    Map createPropertyContext = propertyStageId + stage.context
-    [
-      buildStep(stage, "createProperties", CreatePropertiesTask),
-      buildStep(stage, "monitorProperties", MonitorPropertiesTask),
-    ]
-//    injectAfter(stage, "Monitor Create Property", monitorCreatePropertyStage, createPropertyContext)
-//    []
+    return null
   }
 }
 

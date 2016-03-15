@@ -16,33 +16,28 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.instance
 
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.RebootInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForDownInstanceHealthTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstanceHealthTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class RebootInstancesStage extends LinearStage {
-  public static final String PIPELINE_CONFIG_TYPE = "rebootInstances"
-
-  RebootInstancesStage() {
-    super(PIPELINE_CONFIG_TYPE)
-  }
-
+class RebootInstancesStage implements StageDefinitionBuilder {
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    def step0 = buildStep(stage, "determineHealthProviders", DetermineHealthProvidersTask)
-    def step1 = buildStep(stage, "rebootInstances", RebootInstancesTask)
-    def step2 = buildStep(stage, "monitorReboot", MonitorKatoTask)
-    def step3 = buildStep(stage, "waitForDownInstances", WaitForDownInstanceHealthTask)
-    def step4 = buildStep(stage, "waitForUpInstances", WaitForUpInstanceHealthTask)
-    [step0, step1, step2, step3, step4]
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("determineHealthProviders", DetermineHealthProvidersTask)
+      .withTask("rebootInstances", RebootInstancesTask)
+      .withTask("monitorReboot", MonitorKatoTask)
+      .withTask("waitForDownInstances", WaitForDownInstanceHealthTask)
+      .withTask("waitForUpInstances", WaitForUpInstanceHealthTask)
   }
 }

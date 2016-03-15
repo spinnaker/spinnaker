@@ -83,7 +83,7 @@ class CreateDeployTaskSpec extends Specification {
     }
 
     when:
-    task.execute(stage.asImmutable())
+    task.execute(stage)
 
     then:
     operations.find {
@@ -105,7 +105,7 @@ class CreateDeployTaskSpec extends Specification {
     }
 
     when:
-    task.execute(stage.asImmutable())
+    task.execute(stage)
 
     then:
     with(operations.findAll {
@@ -133,7 +133,7 @@ class CreateDeployTaskSpec extends Specification {
     }
 
     when:
-    task.execute(stage.asImmutable())
+    task.execute(stage)
 
     then:
     operations.findAll { it.containsKey("allowLaunchDescription") }.empty
@@ -154,7 +154,7 @@ class CreateDeployTaskSpec extends Specification {
     def expected = [:]
 
     when:
-    task.execute(stage.asImmutable())
+    task.execute(stage)
 
     then:
     operations.size() == 2
@@ -195,7 +195,7 @@ class CreateDeployTaskSpec extends Specification {
     ]
 
     when:
-    task.execute(stage.asImmutable())
+    task.execute(stage)
 
     then:
     operations.find {
@@ -222,7 +222,7 @@ class CreateDeployTaskSpec extends Specification {
     ]
 
     when:
-    task.execute(stage.asImmutable())
+    task.execute(stage)
 
     then:
     operations.find {
@@ -240,7 +240,7 @@ class CreateDeployTaskSpec extends Specification {
     }
 
     when:
-    def result = task.execute(stage.asImmutable())
+    def result = task.execute(stage)
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
@@ -295,7 +295,7 @@ class CreateDeployTaskSpec extends Specification {
     stage.requisiteStageRefIds = [intermediateStage.refId]
 
     when:
-    task.execute(stage.asImmutable())
+    task.execute(stage)
 
     then:
     operations.find {
@@ -337,7 +337,7 @@ class CreateDeployTaskSpec extends Specification {
     stage.requisiteStageRefIds = [intermediateStage.refId]
 
     when:
-    task.execute(stage.asImmutable())
+    task.execute(stage)
 
     then:
     operations.find {
@@ -385,7 +385,7 @@ class CreateDeployTaskSpec extends Specification {
     stage.requisiteStageRefIds = [bakeStage2.refId]
 
     when:
-    task.execute(stage.asImmutable())
+    task.execute(stage)
 
     then:
     operations.find {

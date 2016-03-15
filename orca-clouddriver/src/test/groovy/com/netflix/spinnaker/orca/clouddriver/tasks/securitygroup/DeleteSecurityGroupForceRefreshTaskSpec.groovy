@@ -41,7 +41,7 @@ class DeleteSecurityGroupForceRefreshTaskSpec extends Specification {
     task.mort = Mock(MortService)
 
     when:
-    task.execute(stage.asImmutable())
+    task.execute(stage)
 
     then:
     1 * task.mort.forceCacheUpdate(stage.context.cloudProvider, DeleteSecurityGroupForceRefreshTask.REFRESH_TYPE, _) >> {

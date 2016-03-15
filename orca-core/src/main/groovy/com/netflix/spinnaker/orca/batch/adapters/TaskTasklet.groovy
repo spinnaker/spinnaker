@@ -16,13 +16,15 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.batch.BatchStepStatus
 import com.netflix.spinnaker.orca.batch.ExecutionContextManager
-import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.OptionalStageSupport
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -31,8 +33,6 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 import org.slf4j.LoggerFactory
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
@@ -108,21 +108,24 @@ class TaskTasklet implements Tasklet {
           stageOutputs.put('batch.task.id.' + taskName(chunkContext), chunkContext.stepContext.stepExecution.id)
         }
 
-        storeExecutionResults(new DefaultTaskResult(result.status, stageOutputs, result.globalOutputs), stage,
-                              chunkContext)
+        storeExecutionResults(new DefaultTaskResult(result.status, stageOutputs, result.globalOutputs), stage, chunkContext)
 
-        def batchStepStatus = BatchStepStatus.mapResult(result)
-        chunkContext.stepContext.stepExecution.with {
-          executionContext.put("orcaTaskStatus", result.status)
-          status = batchStepStatus.batchStatus
-          jobExecution.status = batchStepStatus.batchStatus
-        }
-        contribution.exitStatus = batchStepStatus.exitStatus
-        return batchStepStatus.repeatStatus
+        return taskToBatchStatus(contribution, chunkContext, result.status)
       }
     } finally {
       save(stage, chunkContext)
     }
+  }
+
+  private RepeatStatus taskToBatchStatus(StepContribution contribution, ChunkContext chunkContext, ExecutionStatus taskStatus) {
+    def batchStepStatus = BatchStepStatus.mapResult(taskStatus)
+    chunkContext.stepContext.stepExecution.with {
+      executionContext.put("orcaTaskStatus", taskStatus)
+      status = batchStepStatus.batchStatus
+      jobExecution.status = batchStepStatus.batchStatus
+    }
+    contribution.exitStatus = batchStepStatus.exitStatus
+    return batchStepStatus.repeatStatus
   }
 
   private static TaskResult applyStageStatusOverrides(Stage stage, TaskResult result) {
@@ -141,10 +144,10 @@ class TaskTasklet implements Tasklet {
   }
 
   private RepeatStatus cancel(Stage stage) {
-    def cancelResults = stage.ancestors({ Stage s, StageBuilder stageBuilder ->
+    def cancelResults = stage.ancestors({ Stage s, StageDefinitionBuilder stageBuilder ->
       !s.status.complete && stageBuilder instanceof CancellableStage
     }).collect {
-      ((CancellableStage)it.stageBuilder).cancel(stage)
+      ((CancellableStage) it.stageBuilder).cancel(stage)
     }
     stage.context.cancelResults = cancelResults
     stage.status = ExecutionStatus.CANCELED
@@ -178,7 +181,7 @@ class TaskTasklet implements Tasklet {
 
     try {
       // An AuthenticatedStage can override the default pipeline authentication credentials
-      def authenticatedUser = stageNavigator.findAll(stage, { Stage ancestorStage, StageBuilder stageBuilder ->
+      def authenticatedUser = stageNavigator.findAll(stage, { Stage ancestorStage, StageDefinitionBuilder stageBuilder ->
         return stageBuilder instanceof AuthenticatedStage
       }).findResult {
         return ((AuthenticatedStage) it.stageBuilder).authenticatedUser(it.stage).orElse(null)
@@ -189,8 +192,8 @@ class TaskTasklet implements Tasklet {
         allowedAccounts: stage.execution?.authentication?.allowedAccounts).asImmutable()
 
       return AuthenticatedRequest.propagate({
-                                              doExecuteTask(stage.asImmutable(), chunkContext)
-                                            }, false, currentUser).call() as TaskResult
+        doExecuteTask(stage, chunkContext)
+      }, false, currentUser).call() as TaskResult
     } catch (Exception e) {
       def exceptionHandler = exceptionHandlers.find { it.handles(e) }
       if (!exceptionHandler) {
@@ -247,11 +250,11 @@ class TaskTasklet implements Tasklet {
 
   private void logResult(TaskResult result, Stage stage, ChunkContext chunkContext) {
     Id id = registry.createId(METRIC_NAME)
-                            .withTag("status", result.status.toString())
-                            .withTag("executionType", stage.execution.class.simpleName)
-                            .withTag("stageType", stage.type)
-                            .withTag("taskName", taskName(chunkContext))
-                            .withTag("isComplete", result.status.complete ? "true" : "false")
+      .withTag("status", result.status.toString())
+      .withTag("executionType", stage.execution.class.simpleName)
+      .withTag("stageType", stage.type)
+      .withTag("taskName", taskName(chunkContext))
+      .withTag("isComplete", result.status.complete ? "true" : "false")
 
     if (stage.execution.application) {
       id = id.withTag("sourceApplication", stage.execution.application)

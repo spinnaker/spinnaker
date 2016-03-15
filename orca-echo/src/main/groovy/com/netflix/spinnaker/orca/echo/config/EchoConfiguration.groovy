@@ -17,9 +17,8 @@
 package com.netflix.spinnaker.orca.echo.config
 
 import com.netflix.spinnaker.orca.echo.EchoService
-import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingPipelineExecutionListener
-import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageExecutionListener
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingExecutionListener
+import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageListener
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
@@ -65,16 +64,12 @@ class EchoConfiguration {
   }
 
   @Bean
-  EchoNotifyingStageExecutionListener echoNotifyingStageExecutionListener(
-    ExecutionRepository executionRepository,
-    EchoService echoService) {
-    new EchoNotifyingStageExecutionListener(executionRepository, echoService)
+  EchoNotifyingStageListener echoNotifyingStageExecutionListener(EchoService echoService) {
+    new EchoNotifyingStageListener(echoService)
   }
 
   @Bean
-  EchoNotifyingPipelineExecutionListener echoNotifyingPipelineExecutionListener(
-    ExecutionRepository executionRepository,
-    EchoService echoService) {
-    new EchoNotifyingPipelineExecutionListener(executionRepository, echoService)
+  EchoNotifyingExecutionListener echoNotifyingPipelineExecutionListener(EchoService echoService) {
+    new EchoNotifyingExecutionListener(echoService)
   }
 }

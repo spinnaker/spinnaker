@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
+import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.AbstractDeployStrategyStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CloneServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.util.logging.Slf4j
-import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Slf4j
@@ -42,13 +42,13 @@ class CloneServerGroupStage extends AbstractDeployStrategyStage {
   }
 
   @Override
-  List<Step> basicSteps(Stage stage) {
-    [
-      buildStep(stage, "cloneServerGroup", CloneServerGroupTask),
-      buildStep(stage, "monitorDeploy", MonitorKatoTask),
-      buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
-      buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask),
-      buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
+  protected List<TaskNode.TaskDefinition> basicTasks(Stage stage) {
+    return [
+      new TaskNode.TaskDefinition("cloneServerGroup", CloneServerGroupTask),
+      new TaskNode.TaskDefinition("monitorDeploy", MonitorKatoTask),
+      new TaskNode.TaskDefinition("forceCacheRefresh", ServerGroupCacheForceRefreshTask),
+      new TaskNode.TaskDefinition("waitForUpInstances", WaitForUpInstancesTask),
+      new TaskNode.TaskDefinition("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     ]
   }
 }

@@ -15,45 +15,52 @@
  */
 
 package com.netflix.spinnaker.orca.pipeline
+
+import java.text.SimpleDateFormat
+import groovy.transform.CompileStatic
+import com.netflix.spinnaker.config.SpringBatchConfiguration
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
-import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.lifecycle.AbstractBatchLifecycleSpec
+import com.netflix.spinnaker.orca.batch.stages.SpringBatchStageBuilderProvider
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.test.TestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
+import org.spockframework.spring.xml.SpockMockFactoryBean
 import org.springframework.batch.core.Job
-import org.springframework.batch.core.Step
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.JobBuilder
+import org.springframework.beans.factory.FactoryBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
+import org.springframework.context.annotation.Bean
+import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.Shared
 import spock.lang.Unroll
-
-import java.text.SimpleDateFormat
-
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 import static com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask
 import static com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask.HourMinute
 import static com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask.TimeWindow
 
 @Unroll
-@ContextConfiguration(classes = [EmbeddedRedisConfiguration, JesqueConfiguration, OrcaConfiguration, TestConfiguration])
+@ContextConfiguration(classes = [
+  EmbeddedRedisConfiguration, JesqueConfiguration, OrcaConfiguration,
+  TestConfiguration, SpringBatchConfiguration, TestConfig
+])
 class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
 
   @Shared
   def stageNavigator = new StageNavigator(Mock(ApplicationContext))
 
-  @Autowired ApplicationContext applicationContext;
-  def listeners = [new StageStatusPropagationListener(executionRepository)]
-  def task = Mock(Task)
+  @Autowired AbstractApplicationContext applicationContext;
+  @Autowired TestTask task
+
+  boolean initialized
 
   def setup() {
     System.properties."pollers.stalePipelines.enabled" = "false"
@@ -74,48 +81,48 @@ class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
     result.equals(expectedTime)
 
     where:
-    scheduledTime           | expectedTime            | timeWindows
+    scheduledTime          | expectedTime           | timeWindows
 
-    date("02/14 01:00:00")  | date("02/14 01:00:00")  | [window(hourMinute("22:00"), hourMinute("05:00"))]
+    date("02/14 01:00:00") | date("02/14 01:00:00") | [window(hourMinute("22:00"), hourMinute("05:00"))]
 
-    date("02/13 21:45:00")  | date("02/14 06:00:00")  | [window(hourMinute("06:00"), hourMinute("10:00"))]
+    date("02/13 21:45:00") | date("02/14 06:00:00") | [window(hourMinute("06:00"), hourMinute("10:00"))]
 
-    date("02/13 13:45:00")  | date("02/13 22:00:00")  | [window(hourMinute("22:00"), hourMinute("05:00"))]
-    date("02/13 06:30:00")  | date("02/13 10:00:00")  | [window(hourMinute("10:00"), hourMinute("13:00"))]
-    date("02/13 09:59:59")  | date("02/13 10:00:00")  | [window(hourMinute("10:00"), hourMinute("13:00"))]
-    date("02/13 10:00:00")  | date("02/13 10:00:00")  | [window(hourMinute("10:00"), hourMinute("13:00"))]
-    date("02/13 10:00:35")  | date("02/13 10:00:35")  | [window(hourMinute("10:00"), hourMinute("13:00"))]
-    date("02/13 10:01:35")  | date("02/13 10:01:35")  | [window(hourMinute("10:00"), hourMinute("13:00"))]
+    date("02/13 13:45:00") | date("02/13 22:00:00") | [window(hourMinute("22:00"), hourMinute("05:00"))]
+    date("02/13 06:30:00") | date("02/13 10:00:00") | [window(hourMinute("10:00"), hourMinute("13:00"))]
+    date("02/13 09:59:59") | date("02/13 10:00:00") | [window(hourMinute("10:00"), hourMinute("13:00"))]
+    date("02/13 10:00:00") | date("02/13 10:00:00") | [window(hourMinute("10:00"), hourMinute("13:00"))]
+    date("02/13 10:00:35") | date("02/13 10:00:35") | [window(hourMinute("10:00"), hourMinute("13:00"))]
+    date("02/13 10:01:35") | date("02/13 10:01:35") | [window(hourMinute("10:00"), hourMinute("13:00"))]
 
-    date("02/13 09:59:59")  | date("02/13 10:00:00")  | [window(hourMinute("10:00"), hourMinute("13:00")), window(hourMinute("16:00"), hourMinute("18:00"))]
-    date("02/13 10:00:00")  | date("02/13 10:00:00")  | [window(hourMinute("10:00"), hourMinute("13:00")), window(hourMinute("16:00"), hourMinute("18:00"))]
-    date("02/13 10:01:35")  | date("02/13 10:01:35")  | [window(hourMinute("10:00"), hourMinute("13:00")), window(hourMinute("16:00"), hourMinute("18:00"))]
-    date("02/13 10:01:35")  | date("02/13 10:01:35")  | [window(hourMinute("16:00"), hourMinute("18:00")), window(hourMinute("10:00"), hourMinute("13:00"))]
+    date("02/13 09:59:59") | date("02/13 10:00:00") | [window(hourMinute("10:00"), hourMinute("13:00")), window(hourMinute("16:00"), hourMinute("18:00"))]
+    date("02/13 10:00:00") | date("02/13 10:00:00") | [window(hourMinute("10:00"), hourMinute("13:00")), window(hourMinute("16:00"), hourMinute("18:00"))]
+    date("02/13 10:01:35") | date("02/13 10:01:35") | [window(hourMinute("10:00"), hourMinute("13:00")), window(hourMinute("16:00"), hourMinute("18:00"))]
+    date("02/13 10:01:35") | date("02/13 10:01:35") | [window(hourMinute("16:00"), hourMinute("18:00")), window(hourMinute("10:00"), hourMinute("13:00"))]
 
-    date("02/13 14:30:00")  | date("02/13 14:30:00")  | [window(hourMinute("13:00"), hourMinute("18:00"))]
+    date("02/13 14:30:00") | date("02/13 14:30:00") | [window(hourMinute("13:00"), hourMinute("18:00"))]
 
-    date("02/13 00:00:00")  | date("02/13 10:00:00")  | [window(hourMinute("10:00"), hourMinute("13:00"))]
-    date("02/13 00:01:00")  | date("02/13 10:00:00")  | [window(hourMinute("10:00"), hourMinute("13:00"))]
+    date("02/13 00:00:00") | date("02/13 10:00:00") | [window(hourMinute("10:00"), hourMinute("13:00"))]
+    date("02/13 00:01:00") | date("02/13 10:00:00") | [window(hourMinute("10:00"), hourMinute("13:00"))]
 
-    date("02/13 00:01:00")  | date("02/13 15:00:00")  | [window(hourMinute("15:00"), hourMinute("18:00"))]
-    date("02/13 11:01:00")  | date("02/13 15:00:00")  | [window(hourMinute("15:00"), hourMinute("18:00"))]
+    date("02/13 00:01:00") | date("02/13 15:00:00") | [window(hourMinute("15:00"), hourMinute("18:00"))]
+    date("02/13 11:01:00") | date("02/13 15:00:00") | [window(hourMinute("15:00"), hourMinute("18:00"))]
 
-    date("02/13 14:01:00")  | date("02/14 13:00:00")  | [window(hourMinute("13:00"), hourMinute("14:00"))]
+    date("02/13 14:01:00") | date("02/14 13:00:00") | [window(hourMinute("13:00"), hourMinute("14:00"))]
 
-    date("02/13 22:00:00")  | date("02/13 22:00:00")  | [window(hourMinute("22:00"), hourMinute("05:00"))]
+    date("02/13 22:00:00") | date("02/13 22:00:00") | [window(hourMinute("22:00"), hourMinute("05:00"))]
 
-    date("02/13 01:00:00")  | date("02/13 01:00:00")  | [window(hourMinute("00:00"), hourMinute("05:00")), window(hourMinute("22:00"), hourMinute("23:59"))]
+    date("02/13 01:00:00") | date("02/13 01:00:00") | [window(hourMinute("00:00"), hourMinute("05:00")), window(hourMinute("22:00"), hourMinute("23:59"))]
 
-    date("02/13 00:59:59")  | date("02/13 10:00:00")  | [window(hourMinute("10:00"), hourMinute("11:00")), window(hourMinute("13:00"), hourMinute("14:00")),
-                                                         window(hourMinute("15:00"), hourMinute("16:00"))]
-    date("02/13 10:30:59")  | date("02/13 10:30:59")  | [window(hourMinute("10:00"), hourMinute("11:00")), window(hourMinute("13:00"), hourMinute("14:00")),
-                                                         window(hourMinute("15:00"), hourMinute("16:00"))]
-    date("02/13 12:30:59")  | date("02/13 13:00:00")  | [window(hourMinute("10:00"), hourMinute("11:00")), window(hourMinute("13:00"), hourMinute("14:00")),
-                                                         window(hourMinute("15:00"), hourMinute("16:00"))]
-    date("02/13 16:00:00")  | date("02/13 16:00:00")  | [window(hourMinute("10:00"), hourMinute("11:00")), window(hourMinute("13:00"), hourMinute("14:00")),
-                                                         window(hourMinute("15:00"), hourMinute("16:00"))]
-    date("02/13 16:01:00")  | date("02/14 10:00:00")  | [window(hourMinute("10:00"), hourMinute("11:00")), window(hourMinute("13:00"), hourMinute("14:00")),
-                                                         window(hourMinute("15:00"), hourMinute("16:00"))]
+    date("02/13 00:59:59") | date("02/13 10:00:00") | [window(hourMinute("10:00"), hourMinute("11:00")), window(hourMinute("13:00"), hourMinute("14:00")),
+                                                       window(hourMinute("15:00"), hourMinute("16:00"))]
+    date("02/13 10:30:59") | date("02/13 10:30:59") | [window(hourMinute("10:00"), hourMinute("11:00")), window(hourMinute("13:00"), hourMinute("14:00")),
+                                                       window(hourMinute("15:00"), hourMinute("16:00"))]
+    date("02/13 12:30:59") | date("02/13 13:00:00") | [window(hourMinute("10:00"), hourMinute("11:00")), window(hourMinute("13:00"), hourMinute("14:00")),
+                                                       window(hourMinute("15:00"), hourMinute("16:00"))]
+    date("02/13 16:00:00") | date("02/13 16:00:00") | [window(hourMinute("10:00"), hourMinute("11:00")), window(hourMinute("13:00"), hourMinute("14:00")),
+                                                       window(hourMinute("15:00"), hourMinute("16:00"))]
+    date("02/13 16:01:00") | date("02/14 10:00:00") | [window(hourMinute("10:00"), hourMinute("11:00")), window(hourMinute("13:00"), hourMinute("14:00")),
+                                                       window(hourMinute("15:00"), hourMinute("16:00"))]
   }
 
   @Unroll
@@ -150,41 +157,41 @@ class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
     result.equals(expectedTime)
 
     where:
-    scheduledTime           | expectedTime            | stage
+    scheduledTime          | expectedTime           | stage
 
-    date("02/13 06:30:00")  | date("02/13 10:00:00")  | stage([window("10:00", "13:00")])
-    date("02/13 09:59:59")  | date("02/13 10:00:00")  | stage([window("10:00", "13:00")])
-    date("02/13 10:00:00")  | date("02/13 10:00:00")  | stage([window("10:00", "13:00")])
-    date("02/13 10:00:35")  | date("02/13 10:00:35")  | stage([window("10:00", "13:00")])
-    date("02/13 10:01:35")  | date("02/13 10:01:35")  | stage([window("10:00", "13:00")])
+    date("02/13 06:30:00") | date("02/13 10:00:00") | stage([window("10:00", "13:00")])
+    date("02/13 09:59:59") | date("02/13 10:00:00") | stage([window("10:00", "13:00")])
+    date("02/13 10:00:00") | date("02/13 10:00:00") | stage([window("10:00", "13:00")])
+    date("02/13 10:00:35") | date("02/13 10:00:35") | stage([window("10:00", "13:00")])
+    date("02/13 10:01:35") | date("02/13 10:01:35") | stage([window("10:00", "13:00")])
 
-    date("02/13 09:59:59")  | date("02/13 10:00:00")  | stage([window("10:00", "13:00"), window("16:00", "18:00")])
-    date("02/13 10:00:00")  | date("02/13 10:00:00")  | stage([window("10:00", "13:00"), window("16:00", "18:00")])
-    date("02/13 10:01:35")  | date("02/13 10:01:35")  | stage([window("10:00", "13:00"), window("16:00", "18:00")])
-    date("02/13 10:01:35")  | date("02/13 10:01:35")  | stage([window("16:00", "18:00"), window("10:00", "13:00")])
+    date("02/13 09:59:59") | date("02/13 10:00:00") | stage([window("10:00", "13:00"), window("16:00", "18:00")])
+    date("02/13 10:00:00") | date("02/13 10:00:00") | stage([window("10:00", "13:00"), window("16:00", "18:00")])
+    date("02/13 10:01:35") | date("02/13 10:01:35") | stage([window("10:00", "13:00"), window("16:00", "18:00")])
+    date("02/13 10:01:35") | date("02/13 10:01:35") | stage([window("16:00", "18:00"), window("10:00", "13:00")])
 
-    date("02/13 14:30:00")  | date("02/13 14:30:00")  | stage([window("13:00", "18:00")])
+    date("02/13 14:30:00") | date("02/13 14:30:00") | stage([window("13:00", "18:00")])
 
-    date("02/13 00:00:00")  | date("02/13 10:00:00")  | stage([window("10:00", "13:00")])
-    date("02/13 00:01:00")  | date("02/13 10:00:00")  | stage([window("10:00", "13:00")])
+    date("02/13 00:00:00") | date("02/13 10:00:00") | stage([window("10:00", "13:00")])
+    date("02/13 00:01:00") | date("02/13 10:00:00") | stage([window("10:00", "13:00")])
 
-    date("02/13 00:01:00")  | date("02/13 15:00:00")  | stage([window("15:00", "18:00")])
-    date("02/13 11:01:00")  | date("02/13 15:00:00")  | stage([window("15:00", "18:00")])
+    date("02/13 00:01:00") | date("02/13 15:00:00") | stage([window("15:00", "18:00")])
+    date("02/13 11:01:00") | date("02/13 15:00:00") | stage([window("15:00", "18:00")])
 
-    date("02/13 14:01:00")  | date("02/14 13:00:00")  | stage([window("13:00", "14:00")])
+    date("02/13 14:01:00") | date("02/14 13:00:00") | stage([window("13:00", "14:00")])
 
-    date("02/13 13:45:00")  | date("02/13 22:00:00")  | stage([window("22:00", "05:00")])
-    date("02/13 22:00:00")  | date("02/13 22:00:00")  | stage([window("22:00", "05:00")])
-    date("02/14 01:00:00")  | date("02/14 01:00:00")  | stage([window("22:00", "05:00")])
+    date("02/13 13:45:00") | date("02/13 22:00:00") | stage([window("22:00", "05:00")])
+    date("02/13 22:00:00") | date("02/13 22:00:00") | stage([window("22:00", "05:00")])
+    date("02/14 01:00:00") | date("02/14 01:00:00") | stage([window("22:00", "05:00")])
 
-    date("02/13 05:01:00")  | date("02/13 22:00:00")  | stage([window("22:00", "05:00")])
-    date("02/13 01:00:00")  | date("02/13 01:00:00")  | stage([window("00:00", "05:00"), window("22:00", "23:59")])
+    date("02/13 05:01:00") | date("02/13 22:00:00") | stage([window("22:00", "05:00")])
+    date("02/13 01:00:00") | date("02/13 01:00:00") | stage([window("00:00", "05:00"), window("22:00", "23:59")])
 
-    date("02/13 00:59:59")  | date("02/13 10:00:00")  | stage([window("10:00", "11:00"), window("13:00", "14:00"), window("15:00", "16:00")])
-    date("02/13 10:30:59")  | date("02/13 10:30:59")  | stage([window("10:00", "11:00"), window("13:00", "14:00"), window("15:00", "16:00")])
-    date("02/13 12:30:59")  | date("02/13 13:00:00")  | stage([window("10:00", "11:00"), window("13:00", "14:00"), window("15:00", "16:00")])  //*
-    date("02/13 16:00:00")  | date("02/13 16:00:00")  | stage([window("10:00", "11:00"), window("13:00", "14:00"), window("15:00", "16:00")])
-    date("02/13 16:01:00")  | date("02/14 10:00:00")  | stage([window("10:00", "11:00"), window("13:00", "14:00"), window("15:00", "16:00")]) //*
+    date("02/13 00:59:59") | date("02/13 10:00:00") | stage([window("10:00", "11:00"), window("13:00", "14:00"), window("15:00", "16:00")])
+    date("02/13 10:30:59") | date("02/13 10:30:59") | stage([window("10:00", "11:00"), window("13:00", "14:00"), window("15:00", "16:00")])
+    date("02/13 12:30:59") | date("02/13 13:00:00") | stage([window("10:00", "11:00"), window("13:00", "14:00"), window("15:00", "16:00")])  //*
+    date("02/13 16:00:00") | date("02/13 16:00:00") | stage([window("10:00", "11:00"), window("13:00", "14:00"), window("15:00", "16:00")])
+    date("02/13 16:01:00") | date("02/14 10:00:00") | stage([window("10:00", "11:00"), window("13:00", "14:00"), window("15:00", "16:00")]) //*
   }
 
 //  def "pipline should be STOPPED if restrictExecutionDuringWindow is set to true and current time is not within window"() {
@@ -196,29 +203,28 @@ class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
 
   @Override
   Pipeline createPipeline() {
-    Pipeline.builder().withStages([[name: "stage2", type:"stage2", restrictExecutionDuringTimeWindow: true]]).build()
+    Pipeline.builder().withStages([[name: "stage2", type: "stage2", restrictExecutionDuringTimeWindow: true]]).build()
   }
 
   @Override
   protected Job configureJob(JobBuilder jobBuilder) {
     def stage = pipeline.namedStage("stage2")
     def builder = jobBuilder.flow(initializationStep(steps, pipeline))
-    def stageBuilder = new InjectStageBuilder(applicationContext, steps, new TaskTaskletAdapter(executionRepository, [], stageNavigator))
+    def stageBuilder = new SpringBatchStageBuilderProvider(applicationContext, [], [], null).wrap(
+      new InjectStageBuilder()
+    )
     stageBuilder.build(builder, stage).build().build()
   }
 
-  private class InjectStageBuilder extends LinearStage {
-    InjectStageBuilder(ApplicationContext applicationContext, StepBuilderFactory steps, TaskTaskletAdapter adapter) {
-      super("stage2")
-      setApplicationContext(applicationContext)
-      setTaskListeners(listeners)
-      setSteps(steps)
-      setTaskTaskletAdapter(adapter)
+  private static class InjectStageBuilder implements StageDefinitionBuilder {
+    @Override
+    <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+      builder.withTask("step", TestTask)
     }
 
     @Override
-    public List<Step> buildSteps(Stage stage) {
-      [buildStep(stage, "step", task)]
+    String getType() {
+      return "stage2"
     }
   }
 
@@ -247,10 +253,17 @@ class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
   }
 
   private Stage stage(List<Map> windows) {
-    Map restrictedExecutionWindow = [whitelist:windows]
+    Map restrictedExecutionWindow = [whitelist: windows]
     Map context = [restrictedExecutionWindow: restrictedExecutionWindow]
     Pipeline pipeline = new Pipeline()
     return new PipelineStage(pipeline, "testRestrictExecution", context)
   }
 
+  static interface TestTask extends Task {}
+
+  @CompileStatic
+  static class TestConfig {
+    @Bean
+    FactoryBean<TestTask> testTask() { new SpockMockFactoryBean<>(TestTask)}
+  }
 }

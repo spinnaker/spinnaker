@@ -45,7 +45,7 @@ interface ExceptionHandler<T extends Exception> {
   }
 
   @Canonical
-  static class ResponseDetails implements Map<String, Object> {
+  static class ResponseDetails {
     @Delegate
     Map<String, Object> delegate = [:]
 

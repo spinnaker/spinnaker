@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.mine.pipeline
 
+import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.batch.RestartableStage
@@ -23,40 +24,32 @@ import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.mine.tasks.CompleteCanaryTask
 import com.netflix.spinnaker.orca.mine.tasks.MonitorAcaTaskTask
 import com.netflix.spinnaker.orca.mine.tasks.RegisterAcaTaskTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import groovy.util.logging.Slf4j
-import org.springframework.batch.core.Step
-import org.springframework.beans.factory.annotation.Autowire
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
-class AcaTaskStage extends LinearStage implements CancellableStage, RestartableStage {
-  public static final String PIPELINE_CONFIG_TYPE = "acaTask"
-
-  AcaTaskStage() {
-    super(PIPELINE_CONFIG_TYPE)
-  }
-
+class AcaTaskStage implements StageDefinitionBuilder, CancellableStage, RestartableStage {
   @Autowired
   MineService mineService
 
-
   @Override
-  List<Step> buildSteps(Stage stage) {
-    [
-      buildStep(stage, "registerGenericCanary", RegisterAcaTaskTask),
-      buildStep(stage, "monitorGenericCanary", MonitorAcaTaskTask),
-      buildStep(stage, "completeCanary", CompleteCanaryTask)
-    ]
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("registerGenericCanary", RegisterAcaTaskTask)
+      .withTask("monitorGenericCanary", MonitorAcaTaskTask)
+      .withTask("completeCanary", CompleteCanaryTask)
   }
 
   @Override
-  Stage prepareStageForRestart(ExecutionRepository executionRepository, Stage stage) {
-    stage = super.prepareStageForRestart(executionRepository, stage)
+  Stage prepareStageForRestart(ExecutionRepository executionRepository, Stage stage, Collection<StageDefinitionBuilder> allStageBuilders) {
+    stage = StageDefinitionBuilder.StageDefinitionBuilderSupport
+      .prepareStageForRestart(executionRepository, stage, this, allStageBuilders)
     stage.startTime = null
     stage.endTime = null
 

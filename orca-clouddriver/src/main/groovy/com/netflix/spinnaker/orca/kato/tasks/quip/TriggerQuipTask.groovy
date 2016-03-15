@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
+import groovy.util.logging.Slf4j
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
@@ -53,7 +53,7 @@ class TriggerQuipTask extends AbstractQuipTask implements RetryableTask {
     Map<String, Map> instances = stage.context.instances
     Map<String, Map> remainingInstances = stage.context.remainingInstances == null ? new HashMap<>(instances) : stage.context.remainingInstances
     String packageName = stage.context?.package
-    String version = stage.ancestors { Stage ancestorStage, StageBuilder ancestorStageBuilder ->
+    String version = stage.ancestors { Stage ancestorStage, StageDefinitionBuilder ancestorStageBuilder ->
       ancestorStage.id == stage.parentStageId
     }.getAt(0)?.stage?.context?.version
     Map<String, Map> skippedInstances = stage.context.skippedInstances ?: [:]

@@ -16,43 +16,30 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.loadbalancer
 
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer.UpsertLoadBalancerForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer.UpsertLoadBalancerResultObjectExtrapolationTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer.UpsertLoadBalancerTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
+import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.getType
 
 @Component
 @CompileStatic
-class UpsertLoadBalancerStage extends LinearStage {
-
-  public static final String PIPELINE_CONFIG_TYPE = "upsertLoadBalancer"
-
-  UpsertLoadBalancerStage() {
-    super(PIPELINE_CONFIG_TYPE)
-  }
-
-  /**
-   * This constructor only exists so we can properly instantiate the deprecated subclass UpsertAmazonLoadBalancerStage.
-   * Once that deprecated subclass goes away, this constructor should be removed as well.
-   *
-   * @deprecated use UpsertLoadBalancerStage() instead.
-   */
-  @Deprecated
-  UpsertLoadBalancerStage(String stageName) {
-    super(stageName)
-  }
+class UpsertLoadBalancerStage implements StageDefinitionBuilder {
+  public static
+  final String PIPELINE_CONFIG_TYPE = getType(UpsertLoadBalancerStage)
 
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "upsertLoadBalancer", UpsertLoadBalancerTask)
-    def step2 = buildStep(stage, "monitorUpsert", MonitorKatoTask)
-    def step3 = buildStep(stage, "extrapolateUpsertResult", UpsertLoadBalancerResultObjectExtrapolationTask)
-    def step4 = buildStep(stage, "forceCacheRefresh", UpsertLoadBalancerForceRefreshTask)
-    [step1, step2, step3, step4]
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+      builder
+        .withTask("upsertLoadBalancer", UpsertLoadBalancerTask)
+        .withTask("monitorUpsert", MonitorKatoTask)
+        .withTask("extrapolateUpsertResult", UpsertLoadBalancerResultObjectExtrapolationTask)
+        .withTask("forceCacheRefresh", UpsertLoadBalancerForceRefreshTask)
   }
 }

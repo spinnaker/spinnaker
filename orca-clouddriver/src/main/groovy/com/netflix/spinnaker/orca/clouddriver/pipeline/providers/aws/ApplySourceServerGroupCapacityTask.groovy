@@ -17,24 +17,25 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 
+import groovy.util.logging.Slf4j
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.AbstractServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.getType
 
 @Slf4j
 @Component
 class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
-  String serverGroupAction = ResizeServerGroupStage.TYPE
+  String serverGroupAction = getType(ResizeServerGroupStage)
 
   @Autowired
   OortHelper oortHelper
@@ -88,7 +89,7 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
    * This can either be in the current pipeline or a dependent child pipeline in the event of a 'custom' deploy strategy.
    */
   static Stage getAncestorDeployStage(ExecutionRepository executionRepository, Stage stage) {
-    def deployStage = stage.ancestors { Stage ancestorStage, StageBuilder stageBuilder ->
+    def deployStage = stage.ancestors { Stage ancestorStage, StageDefinitionBuilder stageBuilder ->
       ancestorStage.context.containsKey("sourceServerGroupCapacitySnapshot")
     }[0].stage
 

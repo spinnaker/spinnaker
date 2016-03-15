@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.batch.pipeline
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.batch.ExecutionListenerProvider
 import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
@@ -53,12 +54,13 @@ class PipelineStarterSpec extends Specification {
     given:
     def executionStarter = getPipelineStarter(status)
     JobExecutionListener listener = Mock(JobExecutionListener)
-    executionStarter.pipelineListeners = [listener]
+    executionStarter.executionListenerProvider = Mock(ExecutionListenerProvider)
 
     when:
     executionStarter.start("{}")
 
     then:
+    launchInvocations * executionStarter.executionListenerProvider.allJobExecutionListeners() >> { [listener] }
     launchInvocations * listener.afterJob(_)
 
     where:
@@ -130,7 +132,7 @@ class PipelineStarterSpec extends Specification {
     1 * executionStarter.startTracker.addToStarted(null, _)
   }
 
-  private def getPipelineStarter(ExecutionStatus executionStatus) {
+  private PipelineStarter getPipelineStarter(ExecutionStatus executionStatus) {
     def executionJobBuilder = Stub(PipelineJobBuilder) {
       jobNameFor(_) >> { Pipeline pipeline -> "Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}" }
       build(_) >> { Pipeline pipeline ->

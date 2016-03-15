@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.orca.batch.ExecutionListenerProvider
+import com.netflix.spinnaker.orca.batch.StageBuilderProvider
+
 import javax.annotation.PostConstruct
 import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.orca.batch.StageBuilder
@@ -37,7 +40,7 @@ abstract class ExecutionJobBuilder<T extends Execution> {
   @Autowired protected ApplicationContext applicationContext
   @Autowired protected JobBuilderFactory jobs
   @Autowired protected StepBuilderFactory steps
-  protected List<JobExecutionListener> pipelineListeners
+  @Autowired protected ExecutionListenerProvider executionListenerProvider
 
   protected final Map<String, StageBuilder> stages = [:]
 
@@ -47,7 +50,7 @@ abstract class ExecutionJobBuilder<T extends Execution> {
 
   @PostConstruct
   void initialize() {
-    applicationContext.getBeansOfType(StageBuilder).values().each {
+    applicationContext.getBean(StageBuilderProvider).all().each {
       stages[it.type] = it
     }
   }
@@ -56,16 +59,9 @@ abstract class ExecutionJobBuilder<T extends Execution> {
 
   abstract String jobNameFor(T subject)
 
-  @Autowired(required = false)
-  void setPipelineListeners(List<JobExecutionListener> pipelineListeners) {
-    this.pipelineListeners = pipelineListeners
-  }
-
   protected List<JobExecutionListener> getPipelineListeners() {
     def listBuilder = ImmutableList.builder()
-    if (pipelineListeners) {
-      listBuilder.addAll(pipelineListeners)
-    }
+    listBuilder.addAll(executionListenerProvider.allJobExecutionListeners() ?: [])
     listBuilder.build()
   }
 }

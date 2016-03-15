@@ -16,26 +16,21 @@
 
 package com.netflix.spinnaker.orca.flex.pipeline
 
-import com.netflix.spinnaker.orca.flex.tasks.AssociateElasticIpTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
+import com.netflix.spinnaker.orca.flex.tasks.AssociateElasticIpTask
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class AssociateElasticIpStage extends LinearStage {
-  public static final String PIPELINE_CONFIG_TYPE = "associateElasticIp"
-
-  AssociateElasticIpStage() {
-    super(PIPELINE_CONFIG_TYPE)
-  }
-
+class AssociateElasticIpStage implements StageDefinitionBuilder {
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "associateElasticIp", AssociateElasticIpTask)
-    [step1]
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("associateElasticIp", AssociateElasticIpTask)
   }
 }
 

@@ -51,7 +51,6 @@ class CompletedBakeTaskSpec extends Specification {
 
     and:
     def stage = new PipelineStage(pipeline, "bake", [region: region, status: new BakeStatus(resourceId: bakeId)])
-      .asImmutable()
 
     when:
     def result = task.execute(stage)
@@ -74,7 +73,6 @@ class CompletedBakeTaskSpec extends Specification {
 
     and:
     def stage = new PipelineStage(pipeline, "bake", [region: region, status: new BakeStatus(resourceId: bakeId)])
-      .asImmutable()
 
     when:
     task.execute(stage)

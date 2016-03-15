@@ -16,24 +16,20 @@
 
 package com.netflix.spinnaker.orca.applications.pipelines
 
-import com.netflix.spinnaker.orca.applications.tasks.UpsertApplicationTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
+import com.netflix.spinnaker.orca.applications.tasks.UpsertApplicationTask
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class CreateApplicationStage extends LinearStage {
-  public static final String PIPELINE_CONFIG_TYPE = "createApplication"
-
-  CreateApplicationStage() {
-    super(PIPELINE_CONFIG_TYPE)
-  }
-
+class CreateApplicationStage implements StageDefinitionBuilder {
   @Override
-  public List<Step> buildSteps(Stage stage) {
-    [buildStep(stage, "createApplication", UpsertApplicationTask)]
+  <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
+    builder
+      .withTask("createApplication", UpsertApplicationTask)
   }
 }

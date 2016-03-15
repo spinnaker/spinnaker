@@ -15,16 +15,17 @@
  */
 
 package com.netflix.spinnaker.orca.kato.pipeline
+
+import groovy.transform.CompileStatic
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.DeployStrategyStage
 import com.netflix.spinnaker.orca.kato.tasks.CreateDeployTask
 import com.netflix.spinnaker.orca.kato.tasks.DiffTask
+import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -43,22 +44,22 @@ class DeployStage extends DeployStrategyStage {
 
   @VisibleForTesting
   @Override
-  protected List<Step> basicSteps(Stage stage) {
-    def steps = []
-
-    steps << buildStep(stage, "createDeploy", CreateDeployTask)
-    steps << buildStep(stage, "monitorDeploy", MonitorKatoTask)
-    steps << buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    steps << buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask)
-    steps << buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+  protected List<TaskNode.TaskDefinition> basicTasks(Stage stage) {
+    def tasks = [
+      new TaskNode.TaskDefinition("createDeploy", CreateDeployTask),
+      new TaskNode.TaskDefinition("monitorDeploy", MonitorKatoTask),
+      new TaskNode.TaskDefinition("forceCacheRefresh", ServerGroupCacheForceRefreshTask),
+      new TaskNode.TaskDefinition("waitForUpInstances", WaitForUpInstancesTask),
+      new TaskNode.TaskDefinition("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    ]
 
     if (diffTasks) {
       diffTasks.each { DiffTask diffTask ->
-        steps << buildStep(stage, getDiffTaskName(diffTask.class.simpleName), diffTask.class)
+        tasks << new TaskNode.TaskDefinition(getDiffTaskName(diffTask.class.simpleName), diffTask.class)
       }
     }
 
-    return steps
+    return tasks
   }
 
   private String getDiffTaskName(String className) {
