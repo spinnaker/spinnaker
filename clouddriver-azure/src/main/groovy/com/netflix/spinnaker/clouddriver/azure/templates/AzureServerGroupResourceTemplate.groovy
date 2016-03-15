@@ -17,12 +17,16 @@ package com.netflix.spinnaker.clouddriver.azure.templates
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 
+@Slf4j
 class AzureServerGroupResourceTemplate {
 
-  protected static ObjectMapper mapper = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true)
+  protected static ObjectMapper mapper = new ObjectMapper()
+    .configure(SerializationFeature.INDENT_OUTPUT, true)
+    .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
 
   /**
    * Build the resource manager template that will create the Azure equivalent (VM Scale Set)
@@ -43,7 +47,7 @@ class AzureServerGroupResourceTemplate {
     String contentVersion = "1.0.0.0"
 
     ServerGroupTemplateParameters parameters
-    ServerGroupTemplateVariables variables
+    TemplateVariables variables
     ArrayList<Resource> resources = []
 
     /**
@@ -52,18 +56,27 @@ class AzureServerGroupResourceTemplate {
      */
     ServerGroupTemplate(AzureServerGroupDescription description) {
       parameters = new ServerGroupTemplateParameters()
-      variables = new ServerGroupTemplateVariables(description)
 
-      resources.add(new StorageAccount(description))
+      if (description.image.isCustom) {
+        variables = new EmptyTemplateVariables()
+      } else {
+        variables = new ServerGroupTemplateVariables(description)
+        resources.add(new StorageAccount(description))
+      }
+
       resources.add(new VirtualMachineScaleSet(description))
     }
 
   }
 
+  interface TemplateVariables {}
+
+  static class EmptyTemplateVariables implements TemplateVariables {}
+
   /**
    *
    */
-  static class ServerGroupTemplateVariables {
+  static class ServerGroupTemplateVariables implements TemplateVariables {
     // The values of these variables need to match the name of the corresponding variables below
     // The reason is that in other sections of the RM template (i.e., Resources) their is a reference by name
     // to the variable defined in Variables section of the template.
@@ -89,11 +102,6 @@ class AzureServerGroupResourceTemplate {
       vhdContainerName = description.getIdentifier().toLowerCase()
       osType = new OsType(description)
       imageReference = "[variables('osType')]"
-
-      // for later use
-      //uniqueStorageNamesArrayVar = uniqueStorageNameArray.class.name
-      //vhdContainerNameVar = vhdContainerName.class.name
-      //newStorageAccountsSuffixVar = newStorageAccountSuffix.class.name
 
       String noDashName = description.name.replaceAll("-", "").toLowerCase()
 
@@ -222,13 +230,15 @@ class AzureServerGroupResourceTemplate {
       location = "[parameters('location')]"
       tags = ["appName":description.application, "stack":description.stack, "detail":description.detail]
 
-      description.getStorageAccountCount().times{ idx ->
-        this.dependsOn.add(
-          String.format("[concat('Microsoft.Storage/storageAccounts/', variables('%s')[%s], variables('%s'))]",
-            ServerGroupTemplateVariables.uniqueStorageNamesArrayVar,
-            idx,
-            ServerGroupTemplateVariables.newStorageAccountsSuffixVar)
-        )
+      if (!description.image.isCustom) {
+        description.getStorageAccountCount().times { idx ->
+          this.dependsOn.add(
+            String.format("[concat('Microsoft.Storage/storageAccounts/', variables('%s')[%s], variables('%s'))]",
+              ServerGroupTemplateVariables.uniqueStorageNamesArrayVar,
+              idx,
+              ServerGroupTemplateVariables.newStorageAccountsSuffixVar)
+          )
+        }
       }
 
       properties = new VirtualMachineScaleSetProperty(description)
@@ -277,7 +287,9 @@ class AzureServerGroupResourceTemplate {
      * @param description
      */
     ScaleSetOsProfileProperty(AzureServerGroupDescription description) {
-      computerNamePrefix = description.getIdentifier()
+      //Max length of 10 characters to allow for an aditional postfix within a max length of 15 characters
+      computerNamePrefix = description.getIdentifier().substring(0, 10)
+      log.info("computerNamePrefix will be truncated to 10 characters to maintain Azure restrictions")
       adminUserName = description.osConfig.adminUserName
       adminPassword = description.osConfig.adminPassword
     }
@@ -390,23 +402,35 @@ class AzureServerGroupResourceTemplate {
    *
    */
   static class ScaleSetVMProfileProperty {
-    ScaleSetStorageProfile storageProfile
+    StorageProfile storageProfile
     ScaleSetOsProfileProperty osProfile
     ScaleSetNetworkProfileProperty networkProfile
 
     ScaleSetVMProfileProperty(AzureServerGroupDescription description) {
-      storageProfile = new ScaleSetStorageProfile(description)
+      storageProfile = description.image.isCustom ?
+        new ScaleSetCustomImageStorageProfile(description) :
+        new ScaleSetStorageProfile(description)
       osProfile = new ScaleSetOsProfileProperty(description)
       networkProfile = new ScaleSetNetworkProfileProperty(description)
     }
   }
 
+  interface OSDisk {
+    String name
+    String caching
+    String createOption
+  }
+
+  interface StorageProfile {
+    OSDisk osDisk
+  }
+
   /**
    *
    */
-  static class ScaleSetStorageProfile {
+  static class ScaleSetStorageProfile implements StorageProfile {
 
-    VirtualMachineOSDisk osDisk
+    OSDisk osDisk
     String imageReference
     /**
      *
@@ -418,7 +442,23 @@ class AzureServerGroupResourceTemplate {
     }
   }
 
-  static class VirtualMachineOSDisk {
+  /**
+   *
+   */
+  static class ScaleSetCustomImageStorageProfile implements StorageProfile {
+
+    OSDisk osDisk
+    /**
+     *
+     * @param serverGroupDescription
+     */
+    ScaleSetCustomImageStorageProfile(AzureServerGroupDescription description) {
+      osDisk = new VirtualMachineCustomImageOSDisk(description)
+    }
+  }
+
+  static class VirtualMachineOSDisk implements OSDisk {
+
     String name
     String caching
     String createOption
@@ -435,6 +475,23 @@ class AzureServerGroupResourceTemplate {
           ServerGroupTemplateVariables.newStorageAccountsSuffixVar,
           ServerGroupTemplateVariables.vhdContainerNameVar))
       }
+    }
+  }
+
+  static class VirtualMachineCustomImageOSDisk implements OSDisk {
+
+    String name
+    String caching
+    String createOption
+    String osType
+    Map<String, String> image = [:]
+
+    VirtualMachineCustomImageOSDisk (AzureServerGroupDescription description) {
+      name = "osdisk-${description.getIdentifier()}"
+      caching = "ReadOnly"
+      createOption = "FromImage"
+      osType = description.image.ostype
+      image.uri = description.image.uri
     }
   }
 }

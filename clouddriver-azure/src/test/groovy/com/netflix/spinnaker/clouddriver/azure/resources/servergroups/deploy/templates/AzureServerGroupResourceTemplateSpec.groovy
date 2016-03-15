@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.servergroups.deploy.templates
 
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
+import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureNamedImage
 import com.netflix.spinnaker.clouddriver.azure.templates.AzureServerGroupResourceTemplate
 import spock.lang.Specification
 
@@ -24,7 +25,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
   AzureServerGroupDescription description
 
   void setup() {
-    description = createDescription()
+    description = createDescription(false)
   }
 
   def 'should generate correct ServerGroup resource template'() {
@@ -33,7 +34,14 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
     expect:    template == expectedFullTemplate
   }
 
-  private static AzureServerGroupDescription createDescription() {
+  def 'should generate correct ServerGroup resource template with custom image'() {
+    description = createDescription(true)
+    String template = AzureServerGroupResourceTemplate.getTemplate(description)
+
+    expect:    template == expectedFullTemplateWithCustomImage
+  }
+
+  private static AzureServerGroupDescription createDescription(boolean withCustomImage) {
     AzureServerGroupDescription description = new AzureServerGroupDescription()
     description.name = 'azureMASM-st1-d11'
     description.cloudProvider = 'azure'
@@ -46,12 +54,19 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
 
     description.upgradePolicy = AzureServerGroupDescription.UpgradePolicy.Manual
 
-    AzureServerGroupDescription.AzureImage azureImage = new AzureServerGroupDescription.AzureImage()
-    azureImage.sku = '15.04'
-    azureImage.offer = 'UbuntuServer'
-    azureImage.publisher = 'Canonical'
-    azureImage.version = 'latest'
-    description.image = azureImage
+    AzureNamedImage image = new AzureNamedImage()
+    if (withCustomImage) {
+      image.isCustom = true
+      image.ostype = 'Linux'
+      image.region = 'westus'
+      image.uri = 'https://storevm112345.blob.core.windows.net/vhds/vm1-1234520161917555.vhd'
+    } else {
+      image.sku = '15.04'
+      image.offer = 'UbuntuServer'
+      image.publisher = 'Canonical'
+      image.version = 'latest'
+    }
+    description.image = image
 
     AzureServerGroupDescription.AzureScaleSetSku scaleSetSku = new AzureServerGroupDescription.AzureScaleSetSku()
     scaleSetSku.name = 'Standard_A1'
@@ -144,7 +159,86 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
           "imageReference" : "[variables('imageReference')]"
         },
         "osProfile" : {
-          "computerNamePrefix" : "azureMASM-st1-d11",
+          "computerNamePrefix" : "azureMASM-",
+          "adminUserName" : "spinnaker_admin",
+          "adminPassword" : "sp!nn*K3r"
+        },
+        "networkProfile" : {
+          "networkInterfaceConfigurations" : [ {
+            "name" : "nic-azureMASM-st1-d11",
+            "properties" : {
+              "primary" : "true",
+              "ipConfigurations" : [ {
+                "name" : "ipc-azureMASM-st1-d11",
+                "properties" : {
+                  "subnet" : {
+                    "id" : "[parameters('subnetId')]"
+                  },
+                  "loadBalancerBackendAddressPools" : [ {
+                    "id" : "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', 'azureMASM-st1-d11', 'be-azureMASM-st1-d11')]"
+                  } ]
+                }
+              } ]
+            }
+          } ]
+        }
+      }
+    }
+  } ]
+}'''
+
+  private static String expectedFullTemplateWithCustomImage = '''{
+  "$schema" : "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion" : "1.0.0.0",
+  "parameters" : {
+    "location" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "Location to deploy"
+      }
+    },
+    "subnetId" : {
+      "type" : "string",
+      "metadata" : {
+        "description" : "Subnet Resource ID"
+      }
+    }
+  },
+  "variables" : { },
+  "resources" : [ {
+    "apiVersion" : "2015-06-15",
+    "name" : "azureMASM-st1-d11",
+    "type" : "Microsoft.Compute/virtualMachineScaleSets",
+    "location" : "[parameters('location')]",
+    "tags" : {
+      "appName" : "azureMASM",
+      "stack" : "st1",
+      "detail" : "d11"
+    },
+    "dependsOn" : [ ],
+    "sku" : {
+      "name" : "Standard_A1",
+      "tier" : "Standard",
+      "capacity" : 2
+    },
+    "properties" : {
+      "upgradePolicy" : {
+        "mode" : "Manual"
+      },
+      "virtualMachineProfile" : {
+        "storageProfile" : {
+          "osDisk" : {
+            "name" : "osdisk-azureMASM-st1-d11",
+            "caching" : "ReadOnly",
+            "createOption" : "FromImage",
+            "osType" : "Linux",
+            "image" : {
+              "uri" : "https://storevm112345.blob.core.windows.net/vhds/vm1-1234520161917555.vhd"
+            }
+          }
+        },
+        "osProfile" : {
+          "computerNamePrefix" : "azureMASM-",
           "adminUserName" : "spinnaker_admin",
           "adminPassword" : "sp!nn*K3r"
         },

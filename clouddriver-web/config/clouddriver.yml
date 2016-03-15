@@ -104,15 +104,6 @@ azure:
         offer: "SLES"
         sku: "12-SP1"
         version: "2015.12.15"
-      customImages:
-      - scs: ${AZURE_SCS1}
-        blobDir: "system/Microsoft.Compute/Images/vhds"
-        osType: "Windows"
-        region: "westus"
-      - scs: ${AZURE_SCS2}
-        blobDir: "vhds"
-        osType: "Linux"
-        region: "westus"
 
 google:
   enabled: false
