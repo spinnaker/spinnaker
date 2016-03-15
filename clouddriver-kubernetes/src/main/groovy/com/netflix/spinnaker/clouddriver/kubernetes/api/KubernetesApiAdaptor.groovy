@@ -45,6 +45,10 @@ class KubernetesApiAdaptor {
     client.pods().inNamespace(namespace).withName(name).get()
   }
 
+  boolean deletePod(String namespace, String name) {
+    client.pods().inNamespace(namespace).withName(name).delete()
+  }
+
   List<Pod> getPods(String namespace) {
     client.pods().inNamespace(namespace).list().items
   }

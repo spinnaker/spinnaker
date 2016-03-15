@@ -17,12 +17,16 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.instance
 
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.instance.AbstractRegistrationKubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.instance.KubernetesInstanceDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 
-class AbstractRegistrationKubernetesAtomicOperationValidator {
-  static void validate(AbstractRegistrationKubernetesAtomicOperationDescription description, StandardKubernetesAttributeValidator helper, AccountCredentialsProvider accountCredentialsProvider) {
-    AbstractKubernetesInstancesAtomicOperationValidator.validate(description, helper, accountCredentialsProvider)
-    helper.validateNotEmpty(description.loadBalancerNames, "loadBalancerNames")
+class AbstractKubernetesInstancesAtomicOperationValidator {
+  static void validate(KubernetesInstanceDescription description, StandardKubernetesAttributeValidator helper, AccountCredentialsProvider accountCredentialsProvider) {
+    if (!helper.validateCredentials(description.account, accountCredentialsProvider)) {
+      return
+    }
+
+    helper.validateNotEmpty(description.instanceIds, "instanceIds")
   }
 }

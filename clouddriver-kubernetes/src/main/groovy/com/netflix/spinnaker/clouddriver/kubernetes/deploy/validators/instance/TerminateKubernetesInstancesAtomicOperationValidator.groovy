@@ -16,13 +16,27 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.instance
 
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.instance.AbstractRegistrationKubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.instance.KubernetesInstanceDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
+import org.springframework.validation.Errors
 
-class AbstractRegistrationKubernetesAtomicOperationValidator {
-  static void validate(AbstractRegistrationKubernetesAtomicOperationDescription description, StandardKubernetesAttributeValidator helper, AccountCredentialsProvider accountCredentialsProvider) {
+@KubernetesOperation(AtomicOperations.TERMINATE_INSTANCES)
+@Component
+class TerminateKubernetesInstancesAtomicOperationValidator extends DescriptionValidator<KubernetesInstanceDescription> {
+  @Autowired
+  AccountCredentialsProvider accountCredentialsProvider
+
+  @Override
+  void validate(List priorDescriptions, KubernetesInstanceDescription description, Errors errors) {
+    def helper = new StandardKubernetesAttributeValidator("terminateKubernetesInstancesAtomicOperationDescription", errors)
+
     AbstractKubernetesInstancesAtomicOperationValidator.validate(description, helper, accountCredentialsProvider)
-    helper.validateNotEmpty(description.loadBalancerNames, "loadBalancerNames")
   }
 }
