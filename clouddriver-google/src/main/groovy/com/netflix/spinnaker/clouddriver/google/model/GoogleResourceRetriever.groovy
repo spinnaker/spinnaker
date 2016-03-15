@@ -21,10 +21,12 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.services.compute.model.HealthStatus
+import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceGroupManagerList
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
+import com.netflix.spinnaker.clouddriver.google.controllers.GoogleNamedImageLookupController
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.AutoscalerAggregatedListCallback
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.ImagesCallback
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.InstanceAggregatedListCallback
@@ -41,6 +43,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
 import java.util.concurrent.Executors
@@ -48,7 +51,9 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
-class GoogleResourceRetriever {
+@Deprecated
+@Component
+class GoogleResourceRetriever implements GoogleNamedImageLookupController.ImageProvider {
   protected final Logger log = Logger.getLogger(GoogleResourceRetriever.class)
 
   @Autowired
@@ -499,6 +504,10 @@ class GoogleResourceRetriever {
 
   Map<String, List<Map>> getImageMap() {
     return imageMap
+  }
+
+  Map<String, List<Image>> listImagesByAccount() {
+    getImageMap()
   }
 
   Map<String, Map<String, List<GoogleLoadBalancer>>> getNetworkLoadBalancerMap() {

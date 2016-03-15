@@ -66,8 +66,18 @@ class ImagesCallback<ImageList> extends JsonBatchCallback<ImageList> {
       debian-7-wheezy-v20141108
 
       Should result in this map:
-      {backports-debian-7-wheezy: [backports-debian-7-wheezy-v20141017, backports-debian-7-wheezy-v20141021, backports-debian-7-wheezy-v20141108],
-       debian-7-wheezy: [debian-7-wheezy-v20141017, debian-7-wheezy-v20141021, debian-7-wheezy-v20141108]}
+      {
+        backports-debian-7-wheezy: [
+          backports-debian-7-wheezy-v20141017,
+          backports-debian-7-wheezy-v20141021,
+          backports-debian-7-wheezy-v20141108
+        ],
+        debian-7-wheezy: [
+          debian-7-wheezy-v20141017,
+          debian-7-wheezy-v20141021,
+          debian-7-wheezy-v20141108
+        ]
+      }
       Each item in the lists above will be a full image representation; just the names are shown here.
      */
     Map<String, Set<String>> map = new HashMap<String, Set<String>>()
