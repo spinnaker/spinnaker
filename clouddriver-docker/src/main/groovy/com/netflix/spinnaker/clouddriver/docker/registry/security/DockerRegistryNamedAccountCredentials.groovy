@@ -21,15 +21,19 @@ import com.netflix.spinnaker.clouddriver.docker.registry.exception.DockerRegistr
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import retrofit.RetrofitError
 
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Paths
+
 public class DockerRegistryNamedAccountCredentials implements AccountCredentials<DockerRegistryCredentials> {
   public DockerRegistryNamedAccountCredentials(String accountName, String environment, String accountType,
-                                               String address, String username, String password, String email,
+                                               String address, String username, String password, String passwordFile, String email,
                                                int cacheThreads, List<String> repositories) {
-    this(accountName, environment, accountType, address, username, password, email, repositories, cacheThreads, null)
+    this(accountName, environment, accountType, address, username, password, passwordFile, email, repositories, cacheThreads, null)
   }
 
   public DockerRegistryNamedAccountCredentials(String accountName, String environment, String accountType,
-                                               String address, String username, String password, String email,
+                                               String address, String username, String password, String passwordFile, String email,
                                                List<String> repositories, int cacheThreads, List<String> requiredGroupMembership) {
     if (!accountName) {
       throw new IllegalArgumentException("Docker Registry account must be provided with a name.")
@@ -62,6 +66,10 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
       this.registry = address
     }
     this.username = username
+    if (!password && passwordFile) {
+      byte[] contents = Files.readAllBytes(Paths.get(passwordFile))
+      password = new String(contents, StandardCharsets.UTF_8)
+    }
     this.password = password
     this.email = email
     this.requiredGroupMembership = requiredGroupMembership == null ? Collections.emptyList() : Collections.unmodifiableList(requiredGroupMembership)
