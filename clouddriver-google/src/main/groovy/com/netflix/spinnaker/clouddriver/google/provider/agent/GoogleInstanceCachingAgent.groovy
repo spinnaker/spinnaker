@@ -95,14 +95,9 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
     cacheResultBuilder.build()
   }
 
-  class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCallback<InstanceAggregatedList> {
+  class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCallback<InstanceAggregatedList> implements FailureLogger {
 
     List<GoogleInstance2> instances
-
-    @Override
-    void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-      log.error e.getMessage()
-    }
 
     @Override
     void onSuccess(InstanceAggregatedList instanceAggregatedList, HttpHeaders responseHeaders) throws IOException {

@@ -249,7 +249,6 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
     String instanceName
     String instanceZone
 
-
     @Override
     void onSuccess(TargetPoolInstanceHealth targetPoolInstanceHealth, HttpHeaders responseHeaders) throws IOException {
       targetPoolInstanceHealth?.healthStatus?.each { HealthStatus healthStatus ->
@@ -273,13 +272,6 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
                     state: googleLBHealthStatus.toServiceStatus())
             ])
       }
-    }
-  }
-
-  @Slf4j
-  trait FailureLogger {
-    void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-      LoggerFactory.getLogger(GoogleLoadBalancerCachingAgent.class).warn e.getMessage()
     }
   }
 }

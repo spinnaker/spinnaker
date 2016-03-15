@@ -177,17 +177,12 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
     cacheResultBuilder.build()
   }
 
-  class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceGroupManagerList> {
+  class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceGroupManagerList> implements FailureLogger {
 
     List<GoogleServerGroup2> serverGroups
     String zone
     BatchRequest instanceGroupsRequest
     BatchRequest autoscalerRequest
-
-    @Override
-    void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-      log.error e.getMessage()
-    }
 
     @Override
     void onSuccess(InstanceGroupManagerList instanceGroupManagerList, HttpHeaders responseHeaders) throws IOException {
@@ -231,14 +226,9 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
   }
 
 
-  class InstanceGroupsCallback<InstanceGroupsListInstances> extends JsonBatchCallback<InstanceGroupsListInstances> {
+  class InstanceGroupsCallback<InstanceGroupsListInstances> extends JsonBatchCallback<InstanceGroupsListInstances> implements FailureLogger {
 
     GoogleServerGroup2 serverGroup
-
-    @Override
-    void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-      log.error e.getMessage()
-    }
 
     @Override
     void onSuccess(InstanceGroupsListInstances instanceGroupsListInstances, HttpHeaders responseHeaders) throws IOException {
@@ -249,16 +239,11 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
   }
 
 
-  class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<InstanceTemplate> {
+  class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<InstanceTemplate> implements FailureLogger {
 
     private static final String LOAD_BALANCER_NAMES = "load-balancer-names"
 
     GoogleServerGroup2 serverGroup
-
-    @Override
-    void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-      log.error e.getMessage()
-    }
 
     @Override
     void onSuccess(InstanceTemplate instanceTemplate, HttpHeaders responseHeaders) throws IOException {
@@ -292,14 +277,9 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
     }
   }
 
-  class AutoscalerAggregatedListCallback<AutoscalerAggregatedList> extends JsonBatchCallback<AutoscalerAggregatedList> {
+  class AutoscalerAggregatedListCallback<AutoscalerAggregatedList> extends JsonBatchCallback<AutoscalerAggregatedList> implements FailureLogger {
 
     List<GoogleServerGroup2> serverGroups
-
-    @Override
-    void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-      log.error e.getMessage()
-    }
 
     @Override
     void onSuccess(AutoscalerAggregatedList autoscalerAggregatedList, HttpHeaders responseHeaders) throws IOException {

@@ -49,7 +49,7 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
   List<String> baseImageProjects
 
   @VisibleForTesting
-  GoogleImageCachingAgent(){}
+  GoogleImageCachingAgent() {}
 
   GoogleImageCachingAgent(GoogleCloudProvider googleCloudProvider,
                           String googleApplicationName,
@@ -116,14 +116,9 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
     } ?: []
   }
 
-  class AllImagesCallback<ImageList> extends JsonBatchCallback<ImageList> {
+  class AllImagesCallback<ImageList> extends JsonBatchCallback<ImageList> implements FailureLogger {
 
     List<Image> imageList
-
-    @Override
-    void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-      log.warn(e.getMessage())
-    }
 
     @Override
     void onSuccess(ImageList imageListResult, HttpHeaders responseHeaders) throws IOException {
@@ -134,14 +129,9 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
     }
   }
 
-  class LatestImagesCallback<ImageList> extends JsonBatchCallback<ImageList> {
+  class LatestImagesCallback<ImageList> extends JsonBatchCallback<ImageList> implements FailureLogger {
 
     List<Image> imageList
-
-    @Override
-    void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-      log.warn(e.getMessage())
-    }
 
     @Override
     void onSuccess(ImageList imageListResult, HttpHeaders responseHeaders) throws IOException {
@@ -163,7 +153,7 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
         images.sort { it.name }.last()
       }
 
-      if (latestImages){
+      if (latestImages) {
         imageList.addAll(latestImages)
       }
     }
