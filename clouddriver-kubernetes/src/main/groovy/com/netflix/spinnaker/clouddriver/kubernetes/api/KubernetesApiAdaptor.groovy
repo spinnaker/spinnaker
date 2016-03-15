@@ -95,6 +95,10 @@ class KubernetesApiAdaptor {
     client.services().inNamespace(namespace).create(service)
   }
 
+  boolean deleteService(String namespace, String name) {
+    client.services().inNamespace(namespace).withName(name).delete()
+  }
+
   List<Service> getServices(String namespace) {
     client.services().inNamespace(namespace).list().items
   }

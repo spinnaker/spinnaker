@@ -39,7 +39,7 @@ class UpsertKubernetesLoadBalancerAtomicOperation implements AtomicOperation<Map
   }
 
   /*
-   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "upsertLoadBalancer": { "name": "service",  "ports": [ { "name": "http", "port": 80, "targetPort": 9376 } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "upsertLoadBalancer": { "name": "kub-lb",  "ports": [ { "name": "http", "port": 80, "targetPort": 9376 } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
   */
   @Override
   Map operate(List priorOutputs) {
