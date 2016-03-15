@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.instance
+package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.servergroup
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.instance.AbstractRegistrationKubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesServerGroupDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -26,16 +26,16 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
-@KubernetesOperation(AtomicOperations.DEREGISTER_INSTANCES_FROM_LOAD_BALANCER)
+@KubernetesOperation(AtomicOperations.DESTROY_SERVER_GROUP)
 @Component
-class DeregisterKubernetesAtomicOperationValidator extends DescriptionValidator<AbstractRegistrationKubernetesAtomicOperationDescription> {
+class DestroyKubernetesAtomicOperationValidator extends DescriptionValidator<KubernetesServerGroupDescription> {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, AbstractRegistrationKubernetesAtomicOperationDescription description, Errors errors) {
-    def helper = new StandardKubernetesAttributeValidator("deregisterKubernetesAtomicOperationDescription", errors)
+  void validate(List priorDescriptions, KubernetesServerGroupDescription description, Errors errors) {
+    def helper = new StandardKubernetesAttributeValidator("destroyKubernetesAtomicOperationDescription", errors)
 
-    AbstractRegistrationKubernetesAtomicOperationValidator.validate(description, helper, accountCredentialsProvider)
+    KubernetesServerGroupDescriptionValidator.validate(description, helper, accountCredentialsProvider)
   }
 }

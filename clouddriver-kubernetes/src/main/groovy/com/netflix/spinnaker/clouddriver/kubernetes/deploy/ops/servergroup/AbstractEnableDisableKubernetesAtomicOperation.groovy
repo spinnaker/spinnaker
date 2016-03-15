@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.servergroup
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.EnableDisableKubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesServerGroupDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.Pod
 
@@ -27,9 +27,9 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
   abstract String getBasePhase() // Either 'ENABLE' or 'DISABLE'.
   abstract String getAction() // Either 'true' or 'false', for Enable or Disable respectively.
   abstract String getVerb() // Either 'enabling' or 'disabling.
-  EnableDisableKubernetesAtomicOperationDescription description
+  KubernetesServerGroupDescription description
 
-  AbstractEnableDisableKubernetesAtomicOperation(EnableDisableKubernetesAtomicOperationDescription description) {
+  AbstractEnableDisableKubernetesAtomicOperation(KubernetesServerGroupDescription description) {
     this.description = description
   }
 
