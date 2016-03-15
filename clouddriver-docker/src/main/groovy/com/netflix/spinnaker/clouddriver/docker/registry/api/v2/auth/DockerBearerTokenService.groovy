@@ -188,7 +188,7 @@ class DockerBearerTokenService {
     @Headers([
       "Docker-Distribution-API-Version: registry/2.0"
     ])
-    DockerBearerToken getToken(@Path(value="path") String path,
+    DockerBearerToken getToken(@Path(value="path", encode=false) String path,
                                @Query(value="service") String service, @Query(value="scope") String scope,
                                @retrofit.http.Header("User-Agent") String agent)
 
@@ -196,7 +196,7 @@ class DockerBearerTokenService {
     @Headers([
       "Docker-Distribution-API-Version: registry/2.0"
     ])
-    DockerBearerToken getToken(@Path(value="path") String path, @Query(value="service") String service,
+    DockerBearerToken getToken(@Path(value="path", encode=false) String path, @Query(value="service") String service,
                                @Query(value="scope") String scope, @retrofit.http.Header("Authorization") String basic,
                                @retrofit.http.Header("User-Agent") String agent)
   }
