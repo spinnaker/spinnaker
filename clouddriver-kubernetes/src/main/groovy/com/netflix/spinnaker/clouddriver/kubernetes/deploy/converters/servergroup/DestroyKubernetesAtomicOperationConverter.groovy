@@ -19,19 +19,21 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.servergro
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.KubernetesAtomicOperationConverterHelper
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesServerGroupDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.servergroup.DisableKubernetesAtomicOperation
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.servergroup.DestroyKubernetesAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
-@KubernetesOperation(AtomicOperations.DISABLE_SERVER_GROUP)
+@KubernetesOperation(AtomicOperations.DESTROY_SERVER_GROUP)
 @Component
-class DisableKubernetesAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+class DestroyKubernetesAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+  @Override
   AtomicOperation convertOperation(Map input) {
-    new DisableKubernetesAtomicOperation(convertDescription(input))
+    new DestroyKubernetesAtomicOperation(convertDescription(input))
   }
 
+  @Override
   KubernetesServerGroupDescription convertDescription(Map input) {
     KubernetesAtomicOperationConverterHelper.convertDescription(input, this, KubernetesServerGroupDescription)
   }

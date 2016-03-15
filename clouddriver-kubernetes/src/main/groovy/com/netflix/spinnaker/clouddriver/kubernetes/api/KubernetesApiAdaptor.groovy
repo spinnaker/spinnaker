@@ -61,6 +61,10 @@ class KubernetesApiAdaptor {
     client.replicationControllers().inNamespace(namespace).withName(name).scale(size)
   }
 
+  boolean hardDestroyReplicationController(String namespace, String name) {
+    client.replicationControllers().inNamespace(namespace).withName(name).delete()
+  }
+
   void togglePodLabels(String namespace, String name, List<String> keys, String value) {
     def edit = client.pods().inNamespace(namespace).withName(name).edit().editMetadata()
 

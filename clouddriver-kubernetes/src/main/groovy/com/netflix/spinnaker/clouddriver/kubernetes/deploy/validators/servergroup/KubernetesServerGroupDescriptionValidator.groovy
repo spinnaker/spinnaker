@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.servergroup
 
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.EnableDisableKubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesServerGroupDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 
-class AbstractEnableDisableKubernetesAtomicOperationValidator {
-  static void validate(EnableDisableKubernetesAtomicOperationDescription description, StandardKubernetesAttributeValidator helper, AccountCredentialsProvider accountCredentialsProvider) {
+class KubernetesServerGroupDescriptionValidator {
+  static void validate(KubernetesServerGroupDescription description, StandardKubernetesAttributeValidator helper, AccountCredentialsProvider accountCredentialsProvider) {
     if (!helper.validateCredentials(description.account, accountCredentialsProvider)) {
       return
     }

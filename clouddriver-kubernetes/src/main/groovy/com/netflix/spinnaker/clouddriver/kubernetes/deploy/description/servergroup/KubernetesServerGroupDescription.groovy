@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergr
 
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.KubernetesAtomicOperationDescription
 
-class EnableDisableKubernetesAtomicOperationDescription extends KubernetesAtomicOperationDescription {
+class KubernetesServerGroupDescription extends KubernetesAtomicOperationDescription {
   String serverGroupName
   String namespace
 }

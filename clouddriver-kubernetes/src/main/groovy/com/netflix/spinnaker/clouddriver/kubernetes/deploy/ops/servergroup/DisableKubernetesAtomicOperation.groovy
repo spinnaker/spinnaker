@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.servergroup
 
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.EnableDisableKubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesServerGroupDescription
 
 class DisableKubernetesAtomicOperation extends AbstractEnableDisableKubernetesAtomicOperation {
   @Override
@@ -34,7 +34,7 @@ class DisableKubernetesAtomicOperation extends AbstractEnableDisableKubernetesAt
     'disabling'
   }
 
-  DisableKubernetesAtomicOperation(EnableDisableKubernetesAtomicOperationDescription description) {
+  DisableKubernetesAtomicOperation(KubernetesServerGroupDescription description) {
     super(description)
   }
 
