@@ -229,7 +229,8 @@ providers:
     enabled: false
     primaryCredentials:
       name: my-kubernetes-account
-      dockerRegistryAccount: my-docker-registry-account
+      dockerRegistryAccount: ${providers.dockerRegistry.primaryCredentials.name}
+
   dockerRegistry:
     # If you want to use a container based provider, you need to configure and
     # enable this provider to cache images.
