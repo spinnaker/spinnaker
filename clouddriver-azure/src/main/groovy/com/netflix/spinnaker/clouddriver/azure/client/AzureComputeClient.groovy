@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.azure.client
 
+import com.microsoft.azure.CloudException
 import com.microsoft.azure.credentials.ApplicationTokenCredentials
 import com.microsoft.azure.management.compute.ComputeManagementClient
 import com.microsoft.azure.management.compute.ComputeManagementClientImpl
+import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -107,4 +109,44 @@ public class AzureComputeClient extends AzureBaseClient {
     result
   }
 
+  /**
+   *
+   * @param Region
+   * @return
+   */
+  Collection<AzureServerGroupDescription> getServerGroupsAll(String region) {
+    def serverGroups = new ArrayList<AzureServerGroupDescription>()
+    def lastReadTime = System.currentTimeMillis()
+
+    try {
+      this.client.virtualMachineScaleSetsOperations?.listAll()?.body?.each { scaleSet ->
+
+        if (scaleSet.location == region) {
+          try {
+            def sg = AzureServerGroupDescription.build(scaleSet)
+            sg.lastReadTime = lastReadTime
+            serverGroups.add(sg)
+          } catch (Exception e) {
+            log.warn("Unable to parse scale set ${scaleSet.name} from Azure: ${e.message}")
+          }
+        }
+      }
+    } catch (Exception e) {
+      log.error("getServerGroupsAll -> Unexpected exception: ${e.message}")
+    }
+
+    serverGroups
+  }
+
+  AzureServerGroupDescription getServerGroup(String resourceGroupName, String serverGroupName) {
+    try {
+      def vmss = this.client.getVirtualMachineScaleSetsOperations()?.get(resourceGroupName, serverGroupName)?.body
+      def sg = AzureServerGroupDescription.build(vmss)
+      sg.lastReadTime = System.currentTimeMillis()
+      return sg
+    } catch (CloudException e) {
+      log.error("Exception encountered retrieving serverGroup: ${serverGroupName}", e)
+    }
+    null
+  }
 }

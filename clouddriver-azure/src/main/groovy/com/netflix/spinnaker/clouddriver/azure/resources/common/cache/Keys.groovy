@@ -83,6 +83,27 @@ class Keys {
       case Namespace.AZURE_CUSTOMVMIMAGES.ns:
         result << [account: parts[2], region: parts[3], name: parts[4]]
         break
+      case Namespace.AZURE_SERVER_GROUPS.ns:
+        def names = Names.parseName(parts[2])
+        result << [
+          application: names.app.toLowerCase(),
+          name: parts[2],
+          region: parts[3],
+          account: parts[4],
+          stack: names.stack,
+          detail: names.detail
+        ]
+        break
+      case Namespace.AZURE_CLUSTERS.ns:
+        def names = Names.parseName(parts[4])
+        result << [
+          application: parts[3],
+          account    : parts[2],
+          name       : parts[4],
+          stack      : names.stack,
+          detail     : names.detail
+        ]
+        break
       default:
         return null
         break
@@ -143,5 +164,19 @@ class Keys {
                                   String application ) {
     //TODO revisit this method when we are ready to store into the cache the Azure server groups
     "$azureCloudProvider.id:${Namespace.AZURE_APPLICATIONS}:${application.toLowerCase()}"
+  }
+
+  static String getServerGroupKey(AzureCloudProvider azureCloudProvider,
+                                  String serverGroupName,
+                                  String region,
+                                  String account) {
+    "${azureCloudProvider.id}:${Namespace.AZURE_SERVER_GROUPS}:${serverGroupName}:${region}:${account}"
+  }
+
+  static String getClusterKey(AzureCloudProvider azureCloudProvider,
+                              String clusterName,
+                              String region,
+                              String account) {
+    "${azureCloudProvider.id}:${Namespace.AZURE_CLUSTERS}:${clusterName}:${region}:${account}"
   }
 }

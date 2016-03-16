@@ -106,6 +106,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
         errors: errList)
     }
 
-    [serverGroups: [(description.region): [name: description.name]]]
+    [serverGroups: [(description.region): [name: description.name]],
+    serverGroupNames: ["${description.region}:${description.name}".toString()]]
   }
 }
