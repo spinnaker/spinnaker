@@ -49,7 +49,7 @@ class RedisCacheSpec extends WriteableCacheSpec {
         }
 
         def mapper = new ObjectMapper();
-        return new RedisCache('test', source, mapper, MAX_MSET_SIZE, MAX_MERGE_COUNT, true, cacheMetrics)
+        return new RedisCache('test', source, mapper, RedisCacheOptions.builder().maxMset(MAX_MSET_SIZE).maxMergeBatch(MAX_MERGE_COUNT).build(), cacheMetrics)
     }
 
     @Unroll
@@ -115,7 +115,7 @@ class RedisCacheSpec extends WriteableCacheSpec {
 
     def 'should fail if maxMsetSize is not even'() {
         when:
-        new RedisCache('test', null, null, 7, MAX_MERGE_COUNT, true, null)
+        RedisCacheOptions.builder().maxMset(7).build()
 
         then:
         thrown(IllegalArgumentException)
@@ -129,20 +129,20 @@ class RedisCacheSpec extends WriteableCacheSpec {
       ((WriteableCache) cache).merge('foo', data)
 
       then:
-      1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1)
+      1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1, 2, 1, 1, 1, 0)
 
       when: //second write, hash matches
       ((WriteableCache) cache).merge('foo', data)
 
       then:
-      1 * cacheMetrics.merge('test', 'foo', 1, 0, 0, 1, 0)
+      1 * cacheMetrics.merge('test', 'foo', 1, 0, 0, 1, 0, 0, 0, 0, 0, 0)
 
       when: //third write, disable hashing
       pool.resource.withCloseable { Jedis j -> j.set('test:foo:hashes.disabled', 'true')}
       ((WriteableCache) cache).merge('foo', data)
 
       then:
-      1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1)
+      1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1, 2, 1, 1, 1, 0)
     }
 
     def 'should not write an item if it is unchanged'() {
@@ -153,26 +153,26 @@ class RedisCacheSpec extends WriteableCacheSpec {
         ((WriteableCache) cache).merge('foo', data)
 
         then:
-        1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1)
+        1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1, 2, 1, 1, 1, 0)
 
         when:
         ((WriteableCache) cache).merge('foo', data)
 
         then:
-        1 * cacheMetrics.merge('test', 'foo', 1, 0, 0, 1, 0)
+        1 * cacheMetrics.merge('test', 'foo', 1, 0, 0, 1, 0, 0, 0, 0, 0, 0)
     }
 
     def 'should merge #mergeCount items at a time'() {
         setup:
-        def cache = new RedisCache('test', new JedisPoolSource(pool), new ObjectMapper(), 1000000, mergeCount, false, cacheMetrics)
+        def cache = new RedisCache('test', new JedisPoolSource(pool), new ObjectMapper(), RedisCacheOptions.builder().maxMergeBatch(mergeCount).hashing(false).build(), cacheMetrics)
 
         when:
         cache.mergeAll('foo', items)
 
         then:
 
-        fullMerges * cacheMetrics.merge('test', 'foo', mergeCount, mergeCount, 0, 0, 0)
-        finalMergeCount * cacheMetrics.merge('test', 'foo', finalMerge, finalMerge, 0, 0, 0)
+        fullMerges * cacheMetrics.merge('test', 'foo', mergeCount, mergeCount, 0, 0, 0, 2, 1, 0, 1, 0)
+        finalMergeCount * cacheMetrics.merge('test', 'foo', finalMerge, finalMerge, 0, 0, 0, 2, 1, 0, 1, 0)
 
         where:
         mergeCount << [ 1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 100, 101, 131 ]
