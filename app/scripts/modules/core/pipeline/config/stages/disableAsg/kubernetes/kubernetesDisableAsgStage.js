@@ -22,7 +22,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.disabl
         },
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'target', },
-        { type: 'requiredField', fieldName: 'namespace', },
+        { type: 'requiredField', fieldName: 'namespaces', },
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
       ],
     });
