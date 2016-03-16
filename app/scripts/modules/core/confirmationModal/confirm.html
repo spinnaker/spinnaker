@@ -1,5 +1,5 @@
 <div modal-page class="confirmation-modal">
-  <form role="form" class="container-fluid" ng-submit="ctrl.confirm()">
+  <form role="form" class="container-fluid no-padding" ng-submit="ctrl.confirm()">
     <task-monitor monitor="taskMonitor"></task-monitor>
     <modal-close></modal-close>
     <div class="modal-header">
@@ -32,7 +32,7 @@
               ng-click="ctrl.cancel()">{{params.cancelButtonText}}</button>
       <button class="btn btn-primary"
               type="submit"
-              ng-disabled="ctrl.formDisabled()"
+              ng-disabled="state.submitting || ctrl.formDisabled()"
               ng-click="ctrl.confirm()">
         <span ng-if="params.glyphicon" class="glyphicon glyphicon-{{params.glyphicon}}"></span>
         <button-busy-indicator ng-if="state.submitting"></button-busy-indicator>
