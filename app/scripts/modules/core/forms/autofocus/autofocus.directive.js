@@ -2,12 +2,22 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.account.accountSelectField.directive', [])
-  .directive('autofocus', function($timeout) {
+/***
+ * Directive to allow optionally setting autofocus behavior of form elements
+ *   <input auto-focus/> will not focus
+ *   <input auto-focus="somethingThatIsTrue"/> will focus
+ *   <input auto-focus="somethingThatIsFalse"/> will not focus
+ *   <input autofocus/> will focus in the vast majority of browsers (not Angular - this is just HTML)
+ *
+ */
+module.exports = angular.module('spinnaker.core.forms.autoFocus.directive', [])
+  .directive('autoFocus', function($timeout) {
     return {
       restrict: 'A',
-      link: function(scope, elem) {
-        $timeout(function() { elem.focus(); });
+      link: function(scope, elem, attrs) {
+        if (scope.$eval(attrs.autoFocus)) {
+          $timeout(() => elem.focus());
+        }
       }
     };
 });
