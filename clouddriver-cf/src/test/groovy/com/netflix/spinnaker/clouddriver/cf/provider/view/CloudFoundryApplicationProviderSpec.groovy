@@ -15,13 +15,11 @@
  */
 
 package com.netflix.spinnaker.clouddriver.cf.provider.view
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.cats.mem.InMemoryNamedCacheFactory
 import com.netflix.spinnaker.cats.provider.DefaultProviderRegistry
 import com.netflix.spinnaker.cats.provider.ProviderRegistry
-import com.netflix.spinnaker.clouddriver.cf.CloudFoundryCloudProvider
 import com.netflix.spinnaker.clouddriver.cf.TestCredential
 import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConstants
 import com.netflix.spinnaker.clouddriver.cf.provider.CloudFoundryProvider
@@ -38,8 +36,6 @@ import static com.netflix.spinnaker.clouddriver.cf.provider.ProviderUtils.mapToM
  */
 class CloudFoundryApplicationProviderSpec extends Specification {
 
-	CloudFoundryCloudProvider cloudProvider
-
 	CloudFoundryApplicationProvider applicationProvider
 
 	CloudFoundryClient client
@@ -54,20 +50,18 @@ class CloudFoundryApplicationProviderSpec extends Specification {
 	final String uuid3 = '78d845c9-900e-4144-be09-63d4f433a2fd'
 
 	def setup() {
-		cloudProvider = new CloudFoundryCloudProvider()
 		client = Mock(CloudFoundryClient)
 		cachingAgent = new ClusterCachingAgent(
-				cloudProvider,
 				new TestCloudFoundryClientFactory(stubClient: client),
 				TestCredential.named('test'),
 				new ObjectMapper(),
 			 	new DefaultRegistry()
 		)
 
-		registry = new DefaultProviderRegistry([new CloudFoundryProvider(cloudProvider, [cachingAgent])],
+		registry = new DefaultProviderRegistry([new CloudFoundryProvider([cachingAgent])],
 				new InMemoryNamedCacheFactory())
 
-		applicationProvider = new CloudFoundryApplicationProvider(cloudProvider, registry.getProviderCache(CloudFoundryProvider.PROVIDER_NAME), new ObjectMapper())
+		applicationProvider = new CloudFoundryApplicationProvider(registry.getProviderCache(CloudFoundryProvider.PROVIDER_NAME), new ObjectMapper())
 	}
 
 	def "should handle an empty cache"() {

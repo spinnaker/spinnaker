@@ -21,7 +21,6 @@ import com.netflix.spinnaker.cats.mem.InMemoryNamedCacheFactory
 import com.netflix.spinnaker.cats.provider.DefaultProviderRegistry
 import com.netflix.spinnaker.cats.provider.ProviderRegistry
 import com.netflix.spinnaker.clouddriver.cache.CatsSearchProvider
-import com.netflix.spinnaker.clouddriver.cf.CloudFoundryCloudProvider
 import com.netflix.spinnaker.clouddriver.cf.TestCredential
 import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConstants
 import com.netflix.spinnaker.clouddriver.cf.provider.agent.ClusterCachingAgent
@@ -51,16 +50,14 @@ class CloudFoundryCatsSearchSpec extends Specification {
   final String uuid3 = '78d845c9-900e-4144-be09-63d4f433a2fd'
 
   def setup() {
-    def cloudProvider = new CloudFoundryCloudProvider()
     client = Mock(CloudFoundryClient)
     cachingAgent = new ClusterCachingAgent(
-        cloudProvider,
         new TestCloudFoundryClientFactory(stubClient: client),
         TestCredential.named('test'),
         new ObjectMapper(),
         new DefaultRegistry()
     )
-    def cloudFoundryProvider = new CloudFoundryProvider(cloudProvider, [cachingAgent])
+    def cloudFoundryProvider = new CloudFoundryProvider([cachingAgent])
     registry = new DefaultProviderRegistry([cloudFoundryProvider],
         new InMemoryNamedCacheFactory())
 

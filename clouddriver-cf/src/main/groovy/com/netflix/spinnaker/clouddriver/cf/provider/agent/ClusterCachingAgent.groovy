@@ -63,7 +63,6 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
       AUTHORITATIVE.forType(LOAD_BALANCERS.ns)
   ] as Set)
 
-  final CloudFoundryCloudProvider cloudFoundryCloudProvider
   final CloudFoundryClientFactory cloudFoundryClientFactory
   final CloudFoundryAccountCredentials account
   final ObjectMapper objectMapper
@@ -71,17 +70,15 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
 
   final OnDemandMetricsSupport metricsSupport
 
-  ClusterCachingAgent(CloudFoundryCloudProvider cloudFoundryCloudProvider,
-                      CloudFoundryClientFactory cloudFoundryClientFactory,
+  ClusterCachingAgent(CloudFoundryClientFactory cloudFoundryClientFactory,
                       CloudFoundryAccountCredentials account,
                       ObjectMapper objectMapper,
                       Registry registry) {
     this.objectMapper = objectMapper
     this.account = account
     this.cloudFoundryClientFactory = cloudFoundryClientFactory
-    this.cloudFoundryCloudProvider = cloudFoundryCloudProvider
     this.registry = registry
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${cloudFoundryCloudProvider.id}:${OnDemandAgent.OnDemandType.ServerGroup}")
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${CloudFoundryCloudProvider.ID}:${OnDemandAgent.OnDemandType.ServerGroup}")
   }
 
   @Override
@@ -132,7 +129,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
 
   @Override
   boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    type == OnDemandAgent.OnDemandType.ServerGroup && cloudProvider == cloudFoundryCloudProvider.id
+    type == OnDemandAgent.OnDemandType.ServerGroup && cloudProvider == CloudFoundryCloudProvider.ID
   }
 
   @Override
