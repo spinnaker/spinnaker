@@ -8,6 +8,7 @@
                class="form-control input-sm highlight-pristine"
                ng-model="vm.userVerification"
                ng-change="vm.verify()"
+               auto-focus="vm.autofocus"
                ng-class="{'ng-invalid': !vm.verification.verified}" />
       </div>
     </div>

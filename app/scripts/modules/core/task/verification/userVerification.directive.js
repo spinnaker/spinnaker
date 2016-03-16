@@ -19,7 +19,8 @@ module.exports = angular
       bindToController: {
         verification: '=',
         account: '=',
-        label: '=?'
+        label: '=?',
+        autofocus: '=?',
       },
       controllerAs: 'vm',
       controller: 'UserVerificationCtrl',
