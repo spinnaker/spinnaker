@@ -73,7 +73,7 @@ azure:
   defaults:
 
   accounts:
-    - name: default
+    - name: my-azure-account
       clientId: ${AZURE_CLIENT_ID}
       appKey: ${AZURE_APPKEY}
       tenantId: ${AZURE_TENANT_ID}
