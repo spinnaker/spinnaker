@@ -12,7 +12,7 @@ import spinnaker_testing as sk
 import spinnaker_testing.gate as gate
 
 
-class ServerGroupTestScenario(sk.SpinnakerTestScenario):
+class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
 
   @classmethod
   def new_agent(cls, bindings):
@@ -32,7 +32,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
     return gate.new_agent(bindings)
 
   def __init__(self, bindings, agent=None):
-    super(ServerGroupTestScenario, self).__init__(bindings, agent)
+    super(GoogleServerGroupTestScenario, self).__init__(bindings, agent)
 
     # Our application name and path to post events to.
     self.TEST_APP = bindings['TEST_APP']
@@ -78,7 +78,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
      .contains_path_value('name', self.__lb_name))
 
     payload = self.agent.make_json_payload_from_kwargs(
-        job=job, description='Server Group Tests - create load balancer',
+        job=job, description='Server Group Test - create load balancer',
         application=self.TEST_APP)
 
     return st.OperationContract(
@@ -122,7 +122,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job,
-        description='Server Group Tests - create initial server group',
+        description='Server Group Test - create initial server group',
         application=self.TEST_APP)
 
     return st.OperationContract(
@@ -159,7 +159,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
      .contains_path_eq('size', 2))
 
     payload = self.agent.make_json_payload_from_kwargs(
-        job=job, description='Server Group Tests - resize to 2 instances',
+        job=job, description='Server Group Test - resize to 2 instances',
         application=self.TEST_APP)
 
     return st.OperationContract(
@@ -206,7 +206,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
      .contains_path_value('baseInstanceName', self.__cloned_server_group_name))
 
     payload = self.agent.make_json_payload_from_kwargs(
-        job=job, description='Server Group Tests - clone server group',
+        job=job, description='Server Group Test - clone server group',
         application=self.TEST_APP)
 
     return st.OperationContract(
@@ -237,7 +237,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
          jc.PathContainsPredicate('targetPools', 'https')]))
 
     payload = self.agent.make_json_payload_from_kwargs(
-        job=job, description='Server Group Tests - disable server group',
+        job=job, description='Server Group Test - disable server group',
         application=self.TEST_APP)
 
     return st.OperationContract(
@@ -267,7 +267,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
          jc.PathContainsPredicate('targetPools', 'https')]))
 
     payload = self.agent.make_json_payload_from_kwargs(
-        job=job, description='Server Group Tests - enable server group',
+        job=job, description='Server Group Test - enable server group',
         application=self.TEST_APP)
 
     return st.OperationContract(
@@ -296,7 +296,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
      .excludes_path_value('baseInstanceName', serverGroupName))
 
     payload = self.agent.make_json_payload_from_kwargs(
-        job=job, description='Server Group Tests - destroy server group',
+        job=job, description='Server Group Test - destroy server group',
         application=self.TEST_APP)
 
     return st.OperationContract(
@@ -322,7 +322,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
      .excludes_path_value('name', self.__lb_name))
 
     payload = self.agent.make_json_payload_from_kwargs(
-        job=job, description='Server Group Tests - delete load balancer',
+        job=job, description='Server Group Test - delete load balancer',
         application=self.TEST_APP)
 
     return st.OperationContract(
@@ -331,7 +331,7 @@ class ServerGroupTestScenario(sk.SpinnakerTestScenario):
       contract=builder.build())
 
 
-class ServerGroupTest(st.AgentTestCase):
+class GoogleServerGroupTest(st.AgentTestCase):
   def test_a_create_load_balancer(self):
     self.run_test_case(self.scenario.create_load_balancer())
 
@@ -367,14 +367,14 @@ class ServerGroupTest(st.AgentTestCase):
 def main():
 
   defaults = {
-    'TEST_STACK': 'svrgrptst' + ServerGroupTestScenario.DEFAULT_TEST_ID,
-    'TEST_APP': 'servergrouptest' + ServerGroupTestScenario.DEFAULT_TEST_ID
+    'TEST_STACK': GoogleServerGroupTestScenario.DEFAULT_TEST_ID,
+    'TEST_APP': 'gcpsvrgrptst' + GoogleServerGroupTestScenario.DEFAULT_TEST_ID
   }
 
   return st.ScenarioTestRunner.main(
-      ServerGroupTestScenario,
+      GoogleServerGroupTestScenario,
       default_binding_overrides=defaults,
-      test_case_list=[ServerGroupTest])
+      test_case_list=[GoogleServerGroupTest])
 
 
 if __name__ == '__main__':

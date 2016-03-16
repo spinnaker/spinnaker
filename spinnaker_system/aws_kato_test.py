@@ -201,7 +201,7 @@ class AwsKatoIntegrationTest(st.AgentTestCase):
   """The test fixture for the SmokeTest.
 
   This is implemented using citest OperationContract instances that are
-  created by the KatoTestScenario.
+  created by the AwsKatoTestScenario.
   """
   # pylint: disable=missing-docstring
 

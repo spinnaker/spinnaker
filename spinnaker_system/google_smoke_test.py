@@ -28,14 +28,14 @@ Sample Usage:
     (which is . if you execute this from the root)
 
   PYTHONPATH=$CITEST_ROOT:$CITEST_ROOT/spinnaker \
-    python $CITEST_ROOT/spinnaker/spinnaker_system/smoke_test.py \
+    python $CITEST_ROOT/spinnaker/spinnaker_system/google_smoke_test.py \
     --gce_ssh_passphrase_file=$PASSPHRASE_FILE \
     --gce_project=$PROJECT \
     --gce_zone=$ZONE \
     --gce_instance=$INSTANCE
 or
   PYTHONPATH=$CITEST_ROOT:$CITEST_ROOT/spinnaker \
-    python $CITEST_ROOT/spinnaker/spinnaker_system/smoke_test.py \
+    python $CITEST_ROOT/spinnaker/spinnaker_system/google_smoke_test.py \
     --native_hostname=host-running-smoke-test
     --managed_gce_project=$PROJECT \
     --test_gce_zone=$ZONE
@@ -54,7 +54,7 @@ import spinnaker_testing as sk
 import spinnaker_testing.gate as gate
 
 
-class SmokeTestScenario(sk.SpinnakerTestScenario):
+class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
   """Defines the scenario for the smoke test.
 
   This scenario defines the different test operations.
@@ -77,7 +77,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
     Args:
       parser: argparse.ArgumentParser
     """
-    super(SmokeTestScenario, cls).initArgumentParser(parser, defaults=defaults)
+    super(GoogleSmokeTestScenario, cls).initArgumentParser(parser, defaults=defaults)
 
     defaults = defaults or {}
     parser.add_argument(
@@ -92,7 +92,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
       bindings: [dict] The data bindings to use to configure the scenario.
       agent: [GateAgent] The agent for invoking the test operations on Gate.
     """
-    super(SmokeTestScenario, self).__init__(bindings, agent)
+    super(GoogleSmokeTestScenario, self).__init__(bindings, agent)
 
     bindings = self.bindings
     bindings['TEST_APP_COMPONENT_NAME'] = (
@@ -328,11 +328,11 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
         contract=builder.build())
 
 
-class SmokeTest(st.AgentTestCase):
+class GoogleSmokeTest(st.AgentTestCase):
   """The test fixture for the SmokeTest.
 
   This is implemented using citest OperationContract instances that are
-  created by the SmokeTestScenario.
+  created by the GoogleSmokeTestScenario.
   """
   # pylint: disable=missing-docstring
 
@@ -367,14 +367,14 @@ def main():
   """Implements the main method running this smoke test."""
 
   defaults = {
-      'TEST_STACK': str(SmokeTestScenario.DEFAULT_TEST_ID),
-      'TEST_APP': 'smoketest' + SmokeTestScenario.DEFAULT_TEST_ID
+      'TEST_STACK': str(GoogleSmokeTestScenario.DEFAULT_TEST_ID),
+      'TEST_APP': 'gcpsmoketest' + GoogleSmokeTestScenario.DEFAULT_TEST_ID
   }
 
   return st.ScenarioTestRunner.main(
-      SmokeTestScenario,
+      GoogleSmokeTestScenario,
       default_binding_overrides=defaults,
-      test_case_list=[SmokeTest])
+      test_case_list=[GoogleSmokeTest])
 
 
 if __name__ == '__main__':
