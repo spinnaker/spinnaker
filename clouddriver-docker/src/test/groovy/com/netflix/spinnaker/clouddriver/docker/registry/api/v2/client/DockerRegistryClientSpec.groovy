@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client
 import spock.lang.Shared
 import spock.lang.Specification
 
+import java.util.concurrent.TimeUnit
+
 /*
  * These tests all communicate with dockerhub (index.docker.io), and will either fail
  * with an exception indicating a network or HTTP error, or will fail to load data
@@ -31,7 +33,7 @@ class DockerRegistryClientSpec extends Specification {
   DockerRegistryClient client
 
   def setupSpec() {
-    client = new DockerRegistryClient("https://index.docker.io", "", "", "")
+    client = new DockerRegistryClient("https://index.docker.io", "", "", "", TimeUnit.MINUTES.toMillis(1), 100)
   }
 
   void "DockerRegistryClient should request a real set of tags."() {

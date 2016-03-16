@@ -19,19 +19,15 @@ package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client
 import com.google.gson.GsonBuilder
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerToken
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerTokenService
+import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.exception.DockerRegistryOperationException
 import com.squareup.okhttp.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import retrofit.RestAdapter
 import retrofit.RetrofitError
 import retrofit.client.OkClient
 import retrofit.client.Response
 import retrofit.converter.GsonConverter
-import retrofit.http.GET
-import retrofit.http.HEAD
-import retrofit.http.Header
-import retrofit.http.Headers
-import retrofit.http.Path
+import retrofit.http.*
 
 import java.util.concurrent.TimeUnit
 
@@ -46,18 +42,18 @@ class DockerRegistryClient {
   @Autowired
   String dockerApplicationName
 
-  @Value('${dockerRegistry.client.timeout:60000}')
-  int clientTimeout
+  final int paginateSize
 
   public getBasicAuth() {
     return basicAuth
   }
 
-  DockerRegistryClient(String address, String email, String username, String password) {
+  DockerRegistryClient(String address, String email, String username, String password, long clientTimeoutMillis, int paginateSize) {
+    this.paginateSize = paginateSize
     this.tokenService = new DockerBearerTokenService(username, password)
     this.basicAuth = this.tokenService.basicAuth
     OkHttpClient client = new OkHttpClient()
-    client.setReadTimeout(clientTimeout, TimeUnit.MILLISECONDS)
+    client.setReadTimeout(clientTimeoutMillis, TimeUnit.MILLISECONDS)
     this.registryService = new RestAdapter.Builder()
       .setEndpoint(address)
       .setClient(new OkClient(client))
@@ -85,7 +81,14 @@ class DockerRegistryClient {
     @Headers([
         "Docker-Distribution-API-Version: registry/2.0"
     ])
-    Response getCatalog(@Header("Authorization") String token, @Header("User-Agent") String agent)
+    Response getCatalog(@Query(value="n") int paginateSize, @Header("Authorization") String token, @Header("User-Agent") String agent)
+
+    @GET("/{path}")
+    @Headers([
+        "Docker-Distribution-API-Version: registry/2.0"
+    ])
+    Response get(@Path(value="path", encode=false) String path, @Header("Authorization") String token, @Header("User-Agent") String agent)
+
 
     @GET("/v2/")
     @Headers([
@@ -121,18 +124,82 @@ class DockerRegistryClient {
     return digest?.value
   }
 
+  private static String parseLink(retrofit.client.Header header) {
+    if (!header.name.equalsIgnoreCase("link")) {
+      return null
+    }
+
+    def links = header.value.split(";").collect { it.trim() }
+
+    if (!(links.findAll { String tok ->
+      tok.replace(" ", "").equalsIgnoreCase("rel=\"next\"")
+    })) {
+      return null
+    }
+
+    def path = links.find { String tok ->
+      tok && tok.getAt(0) == "<" && tok.getAt(tok.length() - 1) == ">"
+    }
+
+    return path?.substring(1, path.length() - 1)
+  }
+
+  private static String findNextLink(List<retrofit.client.Header> headers) {
+    if (!headers) {
+      return null
+    }
+
+    def paths = headers.collect { header ->
+      parseLink(header)
+    }.findAll { it }
+
+    // We are at the end of the pagination.
+    if (!paths || paths.size() == 0) {
+      return null
+    } else if (paths.size() > 1) {
+      throw new DockerRegistryOperationException("Ambiguous number of Link headers provided, the following paths were identified: $paths")
+    }
+
+    return paths[0]
+  }
+
   /*
    * This method will get all repositories available on this registry. It may fail, as some registries
    * don't want you to download their whole catalog (it's potentially a lot of data).
    */
-  public DockerRegistryCatalog getCatalog() {
+  public DockerRegistryCatalog getCatalog(String path = null) {
     def response = request({
-      registryService.getCatalog(tokenService.basicAuthHeader, dockerApplicationName)
+      path ? registryService.get(path, tokenService.basicAuthHeader, dockerApplicationName) :
+          registryService.getCatalog(paginateSize, tokenService.basicAuthHeader, dockerApplicationName)
     }, { token ->
-      registryService.getCatalog(token, dockerApplicationName)
+      path ? registryService.get(path, token, dockerApplicationName) :
+          registryService.getCatalog(paginateSize, token, dockerApplicationName)
     }, "_catalog")
 
-    return (DockerRegistryCatalog) converter.fromBody(response.body, DockerRegistryCatalog)
+    def nextPath = findNextLink(response?.headers)
+    def catalog = (DockerRegistryCatalog) converter.fromBody(response.body, DockerRegistryCatalog)
+
+    if (nextPath) {
+      def nextCatalog = getCatalog(nextPath)
+      catalog.repositories.addAll(nextCatalog.repositories)
+    }
+
+    return catalog
+  }
+
+  /*
+   * This method will hit the /v2/ endpoint of the configured docker registry. If it this endpoint is up,
+   * it will return silently. Otherwise, an exception is thrown detailing why the endpoint isn't available.
+   */
+  public void checkV2Availability() {
+    request({
+      registryService.checkVersion(tokenService.basicAuthHeader, dockerApplicationName)
+    }, { token ->
+      registryService.checkVersion(token, dockerApplicationName)
+    }, "v2 version check")
+
+    // Placate the linter (otherwise it expects to return the result of `request()`)
+    null
   }
 
   /*
@@ -164,20 +231,5 @@ class DockerRegistryClient {
     }
 
     return response
-  }
-
-  /*
-   * This method will hit the /v2/ endpoint of the configured docker registry. If it this endpoint is up,
-   * it will return silently. Otherwise, an exception is thrown detailing why the endpoint isn't available.
-   */
-  public void checkV2Availability() {
-    request({
-      registryService.checkVersion(tokenService.basicAuthHeader, dockerApplicationName)
-    }, { token ->
-      registryService.checkVersion(token, dockerApplicationName)
-    }, "v2 version check")
-
-    // Placate the linter (otherwise it expects to return the result of `request()`)
-    null
   }
 }
