@@ -20,11 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
-import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
-import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance2
 import com.netflix.spinnaker.clouddriver.google.model.GoogleLoadBalancer2
-import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup2
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
@@ -41,8 +38,6 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalancer2.View> {
 
   @Autowired
-  GoogleCloudProvider googleCloudProvider
-  @Autowired
   Cache cacheView
   @Autowired
   ObjectMapper objectMapper
@@ -53,7 +48,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
 
   @Override
   Set<GoogleLoadBalancer2.View> getApplicationLoadBalancers(String application) {
-    def pattern = Keys.getLoadBalancerKey(googleCloudProvider, "*", "*", "${application}*")
+    def pattern = Keys.getLoadBalancerKey("*", "*", "${application}*")
     def identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, pattern)
 
     cacheView.getAll(LOAD_BALANCERS.ns,
@@ -83,7 +78,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
           instances: [])
 
       def instanceNames = serverGroupCacheData.relationships[INSTANCES.ns]?.collect {
-        Keys.parse(googleCloudProvider, it)?.name
+        Keys.parse(it)?.name
       }
 
       loadBalancer.healths.each { GoogleLoadBalancerHealth googleLoadBalancerHealth ->

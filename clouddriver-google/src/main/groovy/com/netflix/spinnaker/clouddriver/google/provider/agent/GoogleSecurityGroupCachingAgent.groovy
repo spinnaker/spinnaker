@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Firewall
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
@@ -50,16 +49,14 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
 
   String agentType = "${accountName}/global/${GoogleSecurityGroupCachingAgent.simpleName}"
 
-  GoogleSecurityGroupCachingAgent(GoogleCloudProvider googleCloudProvider,
-                                  String googleApplicationName,
+  GoogleSecurityGroupCachingAgent(String googleApplicationName,
                                   GoogleNamedAccountCredentials credentials,
                                   ObjectMapper objectMapper,
                                   Registry registry) {
-    super(googleCloudProvider,
-          googleApplicationName,
+    super(googleApplicationName,
           credentials,
           objectMapper)
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, googleCloudProvider.id + ":" + ON_DEMAND_TYPE)
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${GoogleCloudProvider.GCE}:${ON_DEMAND_TYPE}")
   }
 
   @Override
@@ -104,7 +101,7 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
 
   @Override
   boolean handles(String type, String cloudProvider) {
-    type == ON_DEMAND_TYPE && cloudProvider == googleCloudProvider.id
+    type == ON_DEMAND_TYPE && cloudProvider == GoogleCloudProvider.GCE
   }
 
   @Override
@@ -123,8 +120,7 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
     CacheResultBuilder cacheResultBuilder = new CacheResultBuilder()
 
     firewallList.collect { Firewall firewall ->
-      def securityGroupKey = Keys.getSecurityGroupKey(googleCloudProvider,
-                                                      firewall.getName(),
+      def securityGroupKey = Keys.getSecurityGroupKey(firewall.getName(),
                                                       firewall.getName(),
                                                       "global",
                                                       accountName)

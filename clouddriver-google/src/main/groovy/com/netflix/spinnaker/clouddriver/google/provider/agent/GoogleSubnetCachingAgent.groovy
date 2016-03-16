@@ -17,12 +17,10 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Subnetwork
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
@@ -42,13 +40,11 @@ class GoogleSubnetCachingAgent extends AbstractGoogleCachingAgent {
 
   String agentType = "$accountName/$region/$GoogleSubnetCachingAgent.simpleName"
 
-  GoogleSubnetCachingAgent(GoogleCloudProvider googleCloudProvider,
-                           String googleApplicationName,
+  GoogleSubnetCachingAgent(String googleApplicationName,
                            GoogleNamedAccountCredentials credentials,
                            ObjectMapper objectMapper,
                            String region) {
-    super(googleCloudProvider,
-          googleApplicationName,
+    super(googleApplicationName,
           credentials,
           objectMapper)
     this.region = region
@@ -70,7 +66,7 @@ class GoogleSubnetCachingAgent extends AbstractGoogleCachingAgent {
     def cacheResultBuilder = new CacheResultBuilder()
 
     subnetList.each { Subnetwork subnet ->
-      def subnetKey = Keys.getSubnetKey(googleCloudProvider, subnet.getName(), region, accountName)
+      def subnetKey = Keys.getSubnetKey(subnet.getName(), region, accountName)
 
       cacheResultBuilder.namespace(SUBNETS.ns).get(subnetKey).with {
         attributes.subnet = subnet

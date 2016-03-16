@@ -29,7 +29,6 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance2
@@ -57,13 +56,11 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
 
   String agentType = "${accountName}/${region}/${GoogleServerGroupCachingAgent.simpleName}"
 
-  GoogleServerGroupCachingAgent(GoogleCloudProvider googleCloudProvider,
-                                String googleApplicationName,
+  GoogleServerGroupCachingAgent(String googleApplicationName,
                                 GoogleNamedAccountCredentials credentials,
                                 ObjectMapper objectMapper,
                                 String region) {
-    super(googleCloudProvider,
-          googleApplicationName,
+    super(googleApplicationName,
           credentials,
           objectMapper)
     this.region = region
@@ -106,15 +103,13 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
       def applicationName = names.app
       def clusterName = names.cluster
 
-      def serverGroupKey = Keys.getServerGroupKey(googleCloudProvider,
-                                                  serverGroup.name,
+      def serverGroupKey = Keys.getServerGroupKey(serverGroup.name,
                                                   accountName,
                                                   serverGroup.region)
-      def clusterKey = Keys.getClusterKey(googleCloudProvider,
-                                          accountName,
+      def clusterKey = Keys.getClusterKey(accountName,
                                           applicationName,
                                           clusterName)
-      def appKey = Keys.getApplicationKey(googleCloudProvider, applicationName)
+      def appKey = Keys.getApplicationKey(applicationName)
       def instanceKeys = []
       def loadBalancerKeys = []
 
@@ -131,8 +126,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
       }
 
       serverGroup.instances.each { GoogleInstance2 partialInstance ->
-        def instanceKey = Keys.getInstanceKey(googleCloudProvider,
-                                              accountName,
+        def instanceKey = Keys.getInstanceKey(accountName,
                                               serverGroup.region,
                                               partialInstance.name)
         instanceKeys << instanceKey
@@ -143,8 +137,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
       serverGroup.instances.clear()
 
       serverGroup.asg.loadBalancerNames.each { String loadBalancerName ->
-        loadBalancerKeys << Keys.getLoadBalancerKey(googleCloudProvider,
-                                                    region,
+        loadBalancerKeys << Keys.getLoadBalancerKey(region,
                                                     accountName,
                                                     loadBalancerName)
       }

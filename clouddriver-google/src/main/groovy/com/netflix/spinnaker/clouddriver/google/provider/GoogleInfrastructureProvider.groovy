@@ -20,14 +20,12 @@ import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
-import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
 class GoogleInfrastructureProvider extends AgentSchedulerAware implements SearchableProvider {
 
-  final GoogleCloudProvider googleCloudProvider
   final Collection<Agent> agents
   final String providerName = GoogleInfrastructureProvider.name
 
@@ -40,8 +38,7 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
       SERVER_GROUPS.ns,
   ].asImmutable()
 
-  GoogleInfrastructureProvider(GoogleCloudProvider googleCloudProvider, Collection<Agent> agents) {
-    this.googleCloudProvider = googleCloudProvider
+  GoogleInfrastructureProvider(Collection<Agent> agents) {
     this.agents = agents
   }
 
@@ -52,17 +49,15 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
   final Map<String, SearchableProvider.IdentifierExtractor> identifierExtractors = Collections.emptyMap()
 
   final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators = [
-      (INSTANCES.ns): new InstanceSearchResultHydrator(googleCloudProvider: googleCloudProvider)
+      (INSTANCES.ns): new InstanceSearchResultHydrator()
   ]
 
   @Override
   Map<String, String> parseKey(String key) {
-    return Keys.parse(googleCloudProvider, key)
+    return Keys.parse(key)
   }
 
   private static class InstanceSearchResultHydrator implements SearchableProvider.SearchResultHydrator {
-
-    GoogleCloudProvider googleCloudProvider
 
     @Override
     Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id) {
@@ -71,7 +66,7 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
         return result
       }
 
-      def serverGroup = Keys.parse(googleCloudProvider, item.relationships[SERVER_GROUPS.ns].first())
+      def serverGroup = Keys.parse(item.relationships[SERVER_GROUPS.ns].first())
       return result + [
           application: serverGroup.application as String,
           cluster: serverGroup.cluster as String,

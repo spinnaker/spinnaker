@@ -39,15 +39,12 @@ class GoogleImageProvider implements ImageProvider {
   @Autowired
   Cache cacheView
 
-  @Autowired
-  GoogleCloudProvider googleCloudProvider
-
   Map<String, List<Image>> listImagesByAccount() {
     def filter = cacheView.filterIdentifiers(IMAGES.ns, "$GoogleCloudProvider.GCE:*")
     def result = [:].withDefault { _ -> []}
 
     cacheView.getAll(IMAGES.ns, filter).each { CacheData cacheData ->
-      def account = Keys.parse(googleCloudProvider, cacheData.id).account
+      def account = Keys.parse(cacheData.id).account
       result[account] << (cacheData.attributes.image as Image)
     }
 

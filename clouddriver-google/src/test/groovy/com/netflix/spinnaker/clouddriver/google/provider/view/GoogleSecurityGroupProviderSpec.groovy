@@ -38,12 +38,11 @@ class GoogleSecurityGroupProviderSpec extends Specification {
   @Subject
   GoogleSecurityGroupProvider provider
 
-  GoogleCloudProvider googleCloudProvider = new GoogleCloudProvider()
   WriteableCache cache = new InMemoryCache()
   ObjectMapper mapper = new ObjectMapper()
 
   def setup() {
-    provider = new GoogleSecurityGroupProvider(googleCloudProvider, cache, mapper)
+    provider = new GoogleSecurityGroupProvider(cache, mapper)
     cache.mergeAll(Keys.Namespace.SECURITY_GROUPS.ns, getAllGroups())
   }
 
@@ -306,7 +305,7 @@ class GoogleSecurityGroupProviderSpec extends Specification {
       regions.collect { String region, List<Firewall> firewalls ->
         firewalls.collect { Firewall firewall ->
           Map<String, Object> attributes = [firewall: firewall]
-          new DefaultCacheData(Keys.getSecurityGroupKey(googleCloudProvider, firewall.getName(), firewall.getName(), "global", account), attributes, [:])
+          new DefaultCacheData(Keys.getSecurityGroupKey(firewall.getName(), firewall.getName(), "global", account), attributes, [:])
         }
       }.flatten()
     }.flatten()

@@ -34,25 +34,20 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.SUBN
 @Component
 class GoogleSubnetProvider implements SubnetProvider<GoogleSubnet> {
 
-  private final GoogleCloudProvider googleCloudProvider
   private final Cache cacheView
   final ObjectMapper objectMapper
 
+  final String type = GoogleCloudProvider.GCE
+
   @Autowired
-  GoogleSubnetProvider(GoogleCloudProvider googleCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
-    this.googleCloudProvider = googleCloudProvider
+  GoogleSubnetProvider(Cache cacheView, ObjectMapper objectMapper) {
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }
 
   @Override
-  String getType() {
-    return googleCloudProvider.id
-  }
-
-  @Override
   Set<GoogleSubnet> getAll() {
-    getAllMatchingKeyPattern(Keys.getSubnetKey(googleCloudProvider, '*', '*', '*'))
+    getAllMatchingKeyPattern(Keys.getSubnetKey('*', '*', '*'))
   }
 
   Set<GoogleSubnet> getAllMatchingKeyPattern(String pattern) {
@@ -72,10 +67,10 @@ class GoogleSubnetProvider implements SubnetProvider<GoogleSubnet> {
     }
 
     Subnetwork subnet = objectMapper.convertValue(cacheData.attributes.subnet, Subnetwork)
-    Map<String, String> parts = Keys.parse(googleCloudProvider, cacheData.id)
+    Map<String, String> parts = Keys.parse(cacheData.id)
 
     new GoogleSubnet(
-      type: googleCloudProvider.id,
+      type: this.type,
       id: subnet.name,
       name: subnet.name,
       gatewayAddress: subnet.gatewayAddress,

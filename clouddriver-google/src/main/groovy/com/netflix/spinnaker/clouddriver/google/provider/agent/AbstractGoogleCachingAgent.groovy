@@ -25,7 +25,6 @@ import com.google.api.services.compute.Compute
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.CachingAgent
-import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.provider.GoogleInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 
@@ -35,7 +34,6 @@ abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware 
 
   final String providerName = GoogleInfrastructureProvider.name
 
-  GoogleCloudProvider googleCloudProvider
   String googleApplicationName // "Spinnaker/${version}" HTTP header string
   GoogleNamedAccountCredentials credentials
   ObjectMapper objectMapper
@@ -43,11 +41,9 @@ abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware 
   @VisibleForTesting
   AbstractGoogleCachingAgent() {}
 
-  AbstractGoogleCachingAgent(GoogleCloudProvider googleCloudProvider,
-                             String googleApplicationName,
+  AbstractGoogleCachingAgent(String googleApplicationName,
                              GoogleNamedAccountCredentials credentials,
                              ObjectMapper objectMapper) {
-    this.googleCloudProvider = googleCloudProvider
     this.googleApplicationName = googleApplicationName
     this.credentials = credentials
     this.objectMapper = objectMapper

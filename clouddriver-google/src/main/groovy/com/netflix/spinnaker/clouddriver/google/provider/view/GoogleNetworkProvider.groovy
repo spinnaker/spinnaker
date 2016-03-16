@@ -33,25 +33,20 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.NETW
 @Component
 class GoogleNetworkProvider implements NetworkProvider<GoogleNetwork> {
 
-  private final GoogleCloudProvider googleCloudProvider
   private final Cache cacheView
   final ObjectMapper objectMapper
 
+  final String cloudProvider = GoogleCloudProvider.GCE
+
   @Autowired
-  GoogleNetworkProvider(GoogleCloudProvider googleCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
-    this.googleCloudProvider = googleCloudProvider
+  GoogleNetworkProvider(Cache cacheView, ObjectMapper objectMapper) {
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }
 
   @Override
-  String getCloudProvider() {
-    return googleCloudProvider.id
-  }
-
-  @Override
   Set<GoogleNetwork> getAll() {
-    getAllMatchingKeyPattern(Keys.getNetworkKey(googleCloudProvider, '*', '*', '*'))
+    getAllMatchingKeyPattern(Keys.getNetworkKey('*', '*', '*'))
   }
 
   Set<GoogleNetwork> getAllMatchingKeyPattern(String pattern) {
@@ -71,10 +66,10 @@ class GoogleNetworkProvider implements NetworkProvider<GoogleNetwork> {
     }
 
     Network network = objectMapper.convertValue(cacheData.attributes.network, Network)
-    Map<String, String> parts = Keys.parse(googleCloudProvider, cacheData.id)
+    Map<String, String> parts = Keys.parse(cacheData.id)
 
     new GoogleNetwork(
-      cloudProvider: googleCloudProvider.id,
+      cloudProvider: this.cloudProvider,
       id: network.name,
       name: network.name,
       account: parts.account,
