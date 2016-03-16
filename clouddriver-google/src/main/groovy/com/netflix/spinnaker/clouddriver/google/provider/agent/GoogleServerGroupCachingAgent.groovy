@@ -138,6 +138,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
       serverGroup.instances.each { GoogleInstance2 partialInstance ->
         def instanceKey = Keys.getInstanceKey(googleCloudProvider,
                                               accountName,
+                                              serverGroup.region,
                                               partialInstance.name)
         instanceKeys << instanceKey
         cacheResultBuilder.namespace(INSTANCES.ns).get(instanceKey).with {

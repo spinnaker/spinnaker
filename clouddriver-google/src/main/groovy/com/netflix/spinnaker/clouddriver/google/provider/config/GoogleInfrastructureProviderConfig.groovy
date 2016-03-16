@@ -134,6 +134,7 @@ class GoogleInfrastructureProviderConfig {
           newlyAddedAgents << new GoogleInstanceCachingAgent(googleCloudProvider,
                                                              googleConfiguration.googleApplicationName(),
                                                              credentials.accountName,
+                                                             credentials,
                                                              credentials.credentials.project,
                                                              credentials.credentials.compute,
                                                              objectMapper)

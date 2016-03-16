@@ -18,45 +18,65 @@ package com.netflix.spinnaker.clouddriver.google.provider
 
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
+import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.SECURITY_GROUPS
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
 class GoogleInfrastructureProvider extends AgentSchedulerAware implements SearchableProvider {
-  public static final String PROVIDER_NAME = GoogleInfrastructureProvider.name
 
-  private final GoogleCloudProvider googleCloudProvider
-  private final Collection<Agent> agents
+  final GoogleCloudProvider googleCloudProvider
+  final Collection<Agent> agents
+  final String providerName = GoogleInfrastructureProvider.name
+
+  final Set<String> defaultCaches = [
+      APPLICATIONS.ns,
+      LOAD_BALANCERS.ns,
+      CLUSTERS.ns,
+      INSTANCES.ns,
+      SECURITY_GROUPS.ns,
+      SERVER_GROUPS.ns,
+  ].asImmutable()
 
   GoogleInfrastructureProvider(GoogleCloudProvider googleCloudProvider, Collection<Agent> agents) {
     this.googleCloudProvider = googleCloudProvider
     this.agents = agents
   }
 
-  @Override
-  String getProviderName() {
-    return PROVIDER_NAME
-  }
-
-  @Override
-  Collection<Agent> getAgents() {
-    agents
-  }
-
-  final Set<String> defaultCaches = [SECURITY_GROUPS.ns].asImmutable()
-
   final Map<String, String> urlMappingTemplates = [
-    (SECURITY_GROUPS.ns): '/securityGroups/$account/$provider/$name?region=$region'
+      (SECURITY_GROUPS.ns): '/securityGroups/$account/$provider/$name?region=$region'
   ]
 
-  final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators = Collections.emptyMap()
-
   final Map<String, SearchableProvider.IdentifierExtractor> identifierExtractors = Collections.emptyMap()
+
+  final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators = [
+      (INSTANCES.ns): new InstanceSearchResultHydrator(googleCloudProvider: googleCloudProvider)
+  ]
 
   @Override
   Map<String, String> parseKey(String key) {
     return Keys.parse(googleCloudProvider, key)
+  }
+
+  private static class InstanceSearchResultHydrator implements SearchableProvider.SearchResultHydrator {
+
+    GoogleCloudProvider googleCloudProvider
+
+    @Override
+    Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id) {
+      def item = cacheView.get(INSTANCES.ns, id)
+      if (!item?.relationships["serverGroups"]) {
+        return result
+      }
+
+      def serverGroup = Keys.parse(googleCloudProvider, item.relationships[SERVER_GROUPS.ns].first())
+      return result + [
+          application: serverGroup.application as String,
+          cluster: serverGroup.cluster as String,
+          serverGroup: serverGroup.serverGroup as String
+      ]
+    }
   }
 }

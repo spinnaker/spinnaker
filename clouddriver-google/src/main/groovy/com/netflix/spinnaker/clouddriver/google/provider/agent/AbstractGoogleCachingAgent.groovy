@@ -26,16 +26,20 @@ import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.provider.GoogleInfrastructureProvider
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 
 abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware {
 
   final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
-  final String providerName = GoogleInfrastructureProvider.PROVIDER_NAME
+  final String providerName = GoogleInfrastructureProvider.name
 
   GoogleCloudProvider googleCloudProvider
   String googleApplicationName // "Spinnaker/${version}" HTTP header string
   String accountName
+  GoogleNamedAccountCredentials credentials
+  // TODO(ttomsu): Make project and compute dynamic getters from credentials object.
   String project
   Compute compute
   ObjectMapper objectMapper

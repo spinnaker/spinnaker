@@ -41,6 +41,7 @@ class GoogleInstance2 {
   String instanceType
   Long launchTime
   String zone
+  String region
   GoogleInstanceHealth instanceHealth
   List<GoogleLoadBalancerHealth> loadBalancerHealths = []
   List<NetworkInterface> networkInterfaces
@@ -76,6 +77,7 @@ class GoogleInstance2 {
     String instanceType = GoogleInstance2.this.instanceType
     Long launchTime = GoogleInstance2.this.launchTime
     String zone = GoogleInstance2.this.zone
+    String region = GoogleInstance2.this.region
     Map placement = ["availabilityZone": GoogleInstance2.this.zone]
     List<NetworkInterface> networkInterfaces = GoogleInstance2.this.networkInterfaces
     Metadata metadata = GoogleInstance2.this.metadata

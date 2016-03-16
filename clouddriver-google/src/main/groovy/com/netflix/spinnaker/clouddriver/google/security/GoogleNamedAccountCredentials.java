@@ -81,6 +81,18 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
       return regionToZonesMap;
     }
 
+    public String regionFromZone(String zone) {
+      if (zone == null || regionToZonesMap == null) {
+        return null;
+      }
+      for (String region : regionToZonesMap.keySet()) {
+        if (regionToZonesMap.get(region).contains(zone)) {
+          return region;
+        }
+      }
+      return null;
+    }
+
     public GoogleCredentials getCredentials() {
       return credentials;
     }
