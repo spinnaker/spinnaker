@@ -94,6 +94,46 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
     });
 
     this.destroyServerGroup = () => {
+      var serverGroup = $scope.serverGroup;
+
+      var taskMonitor = {
+        application: application,
+        title: 'Destroying ' + serverGroup.name,
+        forceRefreshMessage: 'Refreshing application...',
+        forceRefreshEnabled: true,
+        katoPhaseToMonitor: 'DESTROY_ASG'
+      };
+
+      var submitMethod = (params) => serverGroupWriter.destroyServerGroup(serverGroup, application, angular.extend(params, {
+        namespace: serverGroup.namespace,
+      }));
+
+      var stateParams = {
+        name: serverGroup.name,
+        accountId: serverGroup.account,
+        namespace: serverGroup.namespace
+      };
+
+      confirmationModalService.confirm({
+        header: 'Really destroy ' + serverGroup.name + '?',
+        buttonText: 'Destroy ' + serverGroup.name,
+        provider: 'kubernetes',
+        account: serverGroup.account,
+        taskMonitorConfig: taskMonitor,
+        submitMethod: submitMethod,
+        askForReason: true,
+        body: this.getBodyTemplate(serverGroup, application),
+        onTaskComplete: () => {
+          if ($state.includes('**.serverGroup', stateParams)) {
+            $state.go('^');
+          }
+        },
+        onApplicationRefresh: () => {
+          if ($state.includes('**.serverGroup', stateParams)) {
+            $state.go('^');
+          }
+        }
+      });
     };
 
     this.getBodyTemplate = (serverGroup, application) => {

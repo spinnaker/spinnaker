@@ -68,7 +68,34 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
     };
 
     this.deleteLoadBalancer = function deleteLoadBalancer() {
-    };
+      if ($scope.loadBalancer.instances && $scope.loadBalancer.instances.length) {
+        return;
+      }
 
+      var taskMonitor = {
+        application: application,
+        title: 'Deleting ' + loadBalancer.name,
+        forceRefreshMessage: 'Refreshing application...',
+        forceRefreshEnabled: true
+      };
+
+      var submitMethod = function () {
+        loadBalancer.providerType = $scope.loadBalancer.provider;
+        return loadBalancerWriter.deleteLoadBalancer(loadBalancer, application, {
+          loadBalancerName: loadBalancer.name,
+          namespace: loadBalancer.region,
+        });
+      };
+
+      confirmationModalService.confirm({
+        header: 'Really delete ' + loadBalancer.name + '?',
+        buttonText: 'Delete ' + loadBalancer.name,
+        provider: 'kubernetes',
+        account: loadBalancer.accountId,
+        applicationName: application.name,
+        taskMonitorConfig: taskMonitor,
+        submitMethod: submitMethod
+      });
+    };
   }
 );

@@ -141,24 +141,43 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
       $state.go('^', null, {location: 'replace'});
     }
 
-    this.canRegisterWithLoadBalancer = function() {
-    };
-
-    this.canDeregisterFromLoadBalancer = function() {
-    };
-
-    this.canRegisterWithDiscovery = function() {
-    };
-
     this.terminateInstance = function terminateInstance() {
-    };
+      var instance = $scope.instance;
 
-    this.terminateInstanceAndShrinkServerGroup = function terminateInstanceAndShrinkServerGroup() {
-    };
+      var taskMonitor = {
+        application: app,
+        title: 'Terminating ' + instance.instanceId,
+        forceRefreshMessage: 'Refreshing application...',
+        forceRefreshEnabled: true,
+        onApplicationRefresh: function() {
+          if ($state.includes('**.instanceDetails', {instanceId: instance.instanceId})) {
+            $state.go('^');
+          }
+        }
+      };
 
-    this.rebootInstance = function rebootInstance() {
-    };
+      var submitMethod = function () {
+        let params = {cloudProvider: 'kubernetes'};
 
+        if (instance.serverGroup) {
+          params.managedInstanceGroupName = instance.serverGroup;
+        }
+
+        params.namespace = instance.namespace;
+        instance.placement = {};
+
+        return instanceWriter.terminateInstance(instance, app, params);
+      };
+
+      confirmationModalService.confirm({
+        header: 'Really terminate ' + instance.instanceId + '?',
+        buttonText: 'Terminate ' + instance.instanceId,
+        account: instance.account,
+        provider: 'kubernetes',
+        taskMonitorConfig: taskMonitor,
+        submitMethod: submitMethod
+      });
+    };
 
     this.registerInstanceWithLoadBalancer = function registerInstanceWithLoadBalancer() {
       var instance = $scope.instance;
