@@ -16,25 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
-import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
-import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Instance
 import com.google.api.services.compute.model.InstancesScopedList
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance2
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleInstanceHealth
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
-import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 
@@ -74,7 +68,7 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
     CacheResultBuilder cacheResultBuilder = new CacheResultBuilder()
 
     googleInstances.each { GoogleInstance2 instance ->
-      def instanceKey = Keys.getInstanceKey(googleCloudProvider, accountName, instance.region, instance.name)
+      def instanceKey = Keys.getInstanceKey(accountName, instance.region, instance.name)
       cacheResultBuilder.namespace(INSTANCES.ns).get(instanceKey).with {
         attributes = objectMapper.convertValue(instance, ATTRIBUTES)
       }

@@ -16,15 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.model.Network
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
-import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 
@@ -57,7 +54,7 @@ class GoogleNetworkCachingAgent extends AbstractGoogleCachingAgent {
     def cacheResultBuilder = new CacheResultBuilder()
 
     networkList.each { Network network ->
-      def networkKey = Keys.getNetworkKey(googleCloudProvider, network.getName(), "global", accountName)
+      def networkKey = Keys.getNetworkKey(network.getName(), "global", accountName)
 
       cacheResultBuilder.namespace(NETWORKS.ns).get(networkKey).with {
         attributes.network = network

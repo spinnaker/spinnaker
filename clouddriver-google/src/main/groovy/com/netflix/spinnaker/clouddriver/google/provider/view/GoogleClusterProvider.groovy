@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
-import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleApplication2
 import com.netflix.spinnaker.clouddriver.google.model.GoogleCluster2
@@ -40,8 +39,6 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 @Component
 class GoogleClusterProvider implements ClusterProvider<GoogleCluster2.View> {
 
-  @Autowired
-  GoogleCloudProvider googleCloudProvider
   @Autowired
   Cache cacheView
   @Autowired
@@ -74,7 +71,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster2.View> {
     def clusterKeys = []
     application.clusterNames.each { String accountName, Set<String> clusterNames ->
       clusterNames.each { String clusterName ->
-        clusterKeys << Keys.getClusterKey(googleCloudProvider, accountName, applicationName, clusterName)
+        clusterKeys << Keys.getClusterKey(accountName, applicationName, clusterName)
       }
     }
 
@@ -101,7 +98,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster2.View> {
   @Override
   GoogleServerGroup2.View getServerGroup(String account, String region, String name) {
     def cacheData = cacheView.get(SERVER_GROUPS.ns,
-                                  Keys.getServerGroupKey(googleCloudProvider, name, account, region),
+                                  Keys.getServerGroupKey(name, account, region),
                                   RelationshipCacheFilter.include(INSTANCES.ns, LOAD_BALANCERS.ns))
     if (cacheData) {
       return serverGroupFromCacheData(cacheData)?.view

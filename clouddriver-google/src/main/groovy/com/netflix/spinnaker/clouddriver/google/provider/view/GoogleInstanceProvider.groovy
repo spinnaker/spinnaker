@@ -45,9 +45,6 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2.View> {
   final Cache cacheView
 
   @Autowired
-  GoogleCloudProvider googleCloudProvider
-
-  @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
   @Autowired
@@ -61,7 +58,7 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2.View> {
   @Override
   GoogleInstance2.View getInstance(String account, String region, String id) {
     Set<GoogleSecurityGroup> securityGroups = securityGroupProvider.getAll(false)
-    def key = Keys.getInstanceKey(googleCloudProvider, account, region, id)
+    def key = Keys.getInstanceKey(account, region, id)
     getInstanceCacheDatas([key])?.findResult { CacheData cacheData ->
       instanceFromCacheData(cacheData, securityGroups)?.view
     }
@@ -130,7 +127,7 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2.View> {
 
     def serverGroupKey = cacheData.relationships[SERVER_GROUPS.ns]?.first()
     if (serverGroupKey) {
-      instance.serverGroup = Keys.parse(googleCloudProvider, serverGroupKey).serverGroup
+      instance.serverGroup = Keys.parse(serverGroupKey).serverGroup
     }
 
     instance.securityGroups = GoogleSecurityGroupProvider.getMatchingServerGroupNames(

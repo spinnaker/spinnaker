@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
-import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.provider.GoogleInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.google.provider.agent.GoogleImageCachingAgent
@@ -59,15 +58,13 @@ class GoogleInfrastructureProviderConfig {
 
   @Bean
   @DependsOn('googleNamedAccountCredentials')
-  GoogleInfrastructureProvider googleInfrastructureProvider(GoogleCloudProvider googleCloudProvider,
-                                                            AccountCredentialsRepository accountCredentialsRepository,
+  GoogleInfrastructureProvider googleInfrastructureProvider(AccountCredentialsRepository accountCredentialsRepository,
                                                             ObjectMapper objectMapper,
                                                             Registry registry) {
     def googleInfrastructureProvider =
-        new GoogleInfrastructureProvider(googleCloudProvider, Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
+        new GoogleInfrastructureProvider(Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
 
     synchronizeGoogleInfrastructureProvider(googleInfrastructureProvider,
-                                            googleCloudProvider,
                                             accountCredentialsRepository,
                                             objectMapper,
                                             registry)
@@ -93,7 +90,6 @@ class GoogleInfrastructureProviderConfig {
   @Bean
   GoogleInfrastructureProviderSynchronizer synchronizeGoogleInfrastructureProvider(
       GoogleInfrastructureProvider googleInfrastructureProvider,
-      GoogleCloudProvider googleCloudProvider,
       AccountCredentialsRepository accountCredentialsRepository,
       ObjectMapper objectMapper,
       Registry registry) {
@@ -107,43 +103,36 @@ class GoogleInfrastructureProviderConfig {
       if (!scheduledAccounts.contains(credentials.accountName)) {
         def newlyAddedAgents = []
 
-        newlyAddedAgents << new GoogleSecurityGroupCachingAgent(googleCloudProvider,
-                                                                googleConfiguration.googleApplicationName(),
+        newlyAddedAgents << new GoogleSecurityGroupCachingAgent(googleConfiguration.googleApplicationName(),
                                                                 credentials,
                                                                 objectMapper,
                                                                 registry)
-        newlyAddedAgents << new GoogleNetworkCachingAgent(googleCloudProvider,
-                                                          googleConfiguration.googleApplicationName(),
+        newlyAddedAgents << new GoogleNetworkCachingAgent(googleConfiguration.googleApplicationName(),
                                                           credentials,
                                                           objectMapper)
 
         credentials.regions.keySet().each { String region ->
-          newlyAddedAgents << new GoogleSubnetCachingAgent(googleCloudProvider,
-                                                           googleConfiguration.googleApplicationName(),
+          newlyAddedAgents << new GoogleSubnetCachingAgent(googleConfiguration.googleApplicationName(),
                                                            credentials,
                                                            objectMapper,
                                                            region)
         }
 
         if (providerImpl == "new") {
-          newlyAddedAgents << new GoogleInstanceCachingAgent(googleCloudProvider,
-                                                             googleConfiguration.googleApplicationName(),
+          newlyAddedAgents << new GoogleInstanceCachingAgent(googleConfiguration.googleApplicationName(),
                                                              credentials,
                                                              objectMapper)
-          newlyAddedAgents << new GoogleImageCachingAgent(googleCloudProvider,
-                                                          googleConfiguration.googleApplicationName(),
+          newlyAddedAgents << new GoogleImageCachingAgent(googleConfiguration.googleApplicationName(),
                                                           credentials,
                                                           objectMapper,
                                                           credentials.imageProjects,
                                                           googleConfiguration.googleConfigurationProperties().baseImageProjects)
           credentials.regions.keySet().each { String region ->
-            newlyAddedAgents << new GoogleLoadBalancerCachingAgent(googleCloudProvider,
-                                                                   googleConfiguration.googleApplicationName(),
+            newlyAddedAgents << new GoogleLoadBalancerCachingAgent(googleConfiguration.googleApplicationName(),
                                                                    credentials,
                                                                    objectMapper,
                                                                    region)
-            newlyAddedAgents << new GoogleServerGroupCachingAgent(googleCloudProvider,
-                                                                  googleConfiguration.googleApplicationName(),
+            newlyAddedAgents << new GoogleServerGroupCachingAgent(googleConfiguration.googleApplicationName(),
                                                                   credentials,
                                                                   objectMapper,
                                                                   region)

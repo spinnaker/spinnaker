@@ -46,8 +46,7 @@ class Keys {
     }
   }
 
-  // TODO(ttomsu): Remove GoogleCloudProvider from most if not all of the method signatures in this class.
-  static Map<String, String> parse(GoogleCloudProvider googleCloudProvider, String key) {
+  static Map<String, String> parse(String key) {
     def parts = key.split(':')
 
     if (parts.length < 2) {
@@ -55,10 +54,6 @@ class Keys {
     }
 
     def result = [provider: parts[0], type: parts[1]]
-
-    if (result.provider != googleCloudProvider.id) {
-      return null
-    }
 
     switch (result.type) {
       case Namespace.APPLICATIONS.ns:
@@ -146,65 +141,56 @@ class Keys {
     result
   }
 
-  static String getApplicationKey(GoogleCloudProvider googleCloudProvider,
-                                  String application) {
-    "$googleCloudProvider.id:${Namespace.APPLICATIONS}:${application}"
+  static String getApplicationKey(String application) {
+    "$GoogleCloudProvider.GCE:${Namespace.APPLICATIONS}:${application}"
   }
 
-  static String getClusterKey(GoogleCloudProvider googleCloudProvider,
-                              String account,
+  static String getClusterKey(String account,
                               String application,
                               String clusterName) {
-    "$googleCloudProvider.id:${Namespace.CLUSTERS}:${account}:${application}:${clusterName}"
+    "$GoogleCloudProvider.GCE:${Namespace.CLUSTERS}:${account}:${application}:${clusterName}"
   }
 
-  static String getImageKey(GoogleCloudProvider googleCloudProvider,
-                            String account,
+  static String getImageKey(String account,
                             String imageId) {
-    "$googleCloudProvider.id:${Namespace.IMAGES}:${account}:${imageId}"
+    "$GoogleCloudProvider.GCE:${Namespace.IMAGES}:${account}:${imageId}"
   }
 
-  static String getInstanceKey(GoogleCloudProvider googleCloudProvider,
-                               String account,
+  static String getInstanceKey(String account,
                                String region,
                                String name) {
-    "$googleCloudProvider.id:${Namespace.INSTANCES}:${account}:${region}:${name}"
+    "$GoogleCloudProvider.GCE:${Namespace.INSTANCES}:${account}:${region}:${name}"
   }
 
-  static String getLoadBalancerKey(GoogleCloudProvider googleCloudProvider,
-                                   String region,
+  static String getLoadBalancerKey(String region,
                                    String account,
                                    String loadBalancerName) {
-    "$googleCloudProvider.id:${Namespace.LOAD_BALANCERS}:${account}:${region}:${loadBalancerName}"
+    "$GoogleCloudProvider.GCE:${Namespace.LOAD_BALANCERS}:${account}:${region}:${loadBalancerName}"
   }
 
-  static String getNetworkKey(GoogleCloudProvider googleCloudProvider,
-                              String networkName,
+  static String getNetworkKey(String networkName,
                               String region,
                               String account) {
-    "$googleCloudProvider.id:${Namespace.NETWORKS}:${networkName}:${account}:${region}"
+    "$GoogleCloudProvider.GCE:${Namespace.NETWORKS}:${networkName}:${account}:${region}"
   }
 
-  static String getSecurityGroupKey(GoogleCloudProvider googleCloudProvider,
-                                    String securityGroupName,
+  static String getSecurityGroupKey(String securityGroupName,
                                     String securityGroupId,
                                     String region,
                                     String account) {
-    "$googleCloudProvider.id:${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}"
+    "$GoogleCloudProvider.GCE:${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}"
   }
 
-  static String getServerGroupKey(GoogleCloudProvider googleCloudProvider,
-                                  String managedInstanceGroupName,
+  static String getServerGroupKey(String managedInstanceGroupName,
                                   String account,
                                   String zone) {
     Names names = Names.parseName(managedInstanceGroupName)
-    "$googleCloudProvider.id:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${zone}:${names.group}"
+    "$GoogleCloudProvider.GCE:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${zone}:${names.group}"
   }
 
-  static String getSubnetKey(GoogleCloudProvider googleCloudProvider,
-                             String subnetName,
+  static String getSubnetKey(String subnetName,
                              String region,
                              String account) {
-    "$googleCloudProvider.id:${Namespace.SUBNETS}:${subnetName}:${account}:${region}"
+    "$GoogleCloudProvider.GCE:${Namespace.SUBNETS}:${subnetName}:${account}:${region}"
   }
 }

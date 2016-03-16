@@ -19,16 +19,13 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
-import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
-import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.ImageList
 import com.netflix.servo.util.VisibleForTesting
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
@@ -52,14 +49,12 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
   @VisibleForTesting
   GoogleImageCachingAgent() {}
 
-  GoogleImageCachingAgent(GoogleCloudProvider googleCloudProvider,
-                          String googleApplicationName,
+  GoogleImageCachingAgent(String googleApplicationName,
                           GoogleNamedAccountCredentials credentials,
                           ObjectMapper objectMapper,
                           List<String> imageProjects,
                           List<String> baseImageProjects) {
-    super(googleCloudProvider,
-          googleApplicationName,
+    super(googleApplicationName,
           credentials,
           objectMapper)
     this.imageProjects = imageProjects
@@ -95,7 +90,7 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
     def cacheResultBuilder = new CacheResultBuilder()
 
     imageList.each { Image image ->
-      def imageKey = Keys.getImageKey(googleCloudProvider, accountName, image.getName())
+      def imageKey = Keys.getImageKey(accountName, image.getName())
 
       cacheResultBuilder.namespace(IMAGES.ns).get(imageKey).with {
         attributes.image = image

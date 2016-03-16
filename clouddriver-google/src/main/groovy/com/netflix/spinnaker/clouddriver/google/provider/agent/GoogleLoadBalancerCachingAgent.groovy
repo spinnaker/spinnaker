@@ -27,7 +27,6 @@ import com.google.api.services.compute.model.TargetPool
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
@@ -54,13 +53,11 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
 
   String agentType = "${accountName}/${region}/${GoogleLoadBalancerCachingAgent.simpleName}"
 
-  GoogleLoadBalancerCachingAgent(GoogleCloudProvider googleCloudProvider,
-                                 String googleApplicationName,
+  GoogleLoadBalancerCachingAgent(String googleApplicationName,
                                  GoogleNamedAccountCredentials credentials,
                                  ObjectMapper objectMapper,
                                  String region) {
-    super(googleCloudProvider,
-          googleApplicationName,
+    super(googleApplicationName,
           credentials,
           objectMapper)
     this.region = region
@@ -100,12 +97,11 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
     def cacheResultBuilder = new CacheResultBuilder()
 
     googleLoadBalancers.each { GoogleLoadBalancer2 loadBalancer ->
-      def loadBalancerKey = Keys.getLoadBalancerKey(googleCloudProvider,
-                                                    loadBalancer.region,
+      def loadBalancerKey = Keys.getLoadBalancerKey(loadBalancer.region,
                                                     loadBalancer.account,
                                                     loadBalancer.name)
       def instanceKeys = loadBalancer.healths.collect { GoogleLoadBalancerHealth health ->
-        Keys.getInstanceKey(googleCloudProvider, accountName, loadBalancer.region, health.instanceName)
+        Keys.getInstanceKey(accountName, loadBalancer.region, health.instanceName)
       }
 
       cacheResultBuilder.namespace(LOAD_BALANCERS.ns).get(loadBalancerKey).with {

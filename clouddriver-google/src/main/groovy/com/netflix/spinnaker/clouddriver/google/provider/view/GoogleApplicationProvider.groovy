@@ -43,9 +43,6 @@ class GoogleApplicationProvider implements ApplicationProvider {
   AccountCredentialsProvider accountCredentialsProvider
 
   @Autowired
-  GoogleCloudProvider googleCloudProvider
-
-  @Autowired
   Cache cacheView
 
   @Autowired
@@ -62,7 +59,7 @@ class GoogleApplicationProvider implements ApplicationProvider {
   @Override
   GoogleApplication2.View getApplication(String name) {
     CacheData cacheData = cacheView.get(APPLICATIONS.ns,
-                                        Keys.getApplicationKey(googleCloudProvider, name),
+                                        Keys.getApplicationKey(name),
                                         RelationshipCacheFilter.include(CLUSTERS.ns))
     if (cacheData) {
       return applicationFromCacheData(cacheData)
@@ -73,7 +70,7 @@ class GoogleApplicationProvider implements ApplicationProvider {
     GoogleApplication2.View applicationView = objectMapper.convertValue(cacheData.attributes, GoogleApplication2)?.view
 
     cacheData.relationships[CLUSTERS.ns].each { String clusterKey ->
-      def clusterKeyParsed = Keys.parse(googleCloudProvider, clusterKey)
+      def clusterKeyParsed = Keys.parse(clusterKey)
       applicationView.clusterNames[clusterKeyParsed.account] << clusterKeyParsed.name
     }
 

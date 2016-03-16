@@ -38,7 +38,6 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
 
   void "should add security groups on initial run"() {
     setup:
-      def googleCloudProvider = new GoogleCloudProvider()
       def computeMock = Mock(Compute)
       def credentials = new GoogleNamedAccountCredentials(ACCOUNT_NAME, null, null, null, null, null, "testApplicationName")
       credentials.metaClass.credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
@@ -46,13 +45,11 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
       def firewallsListMock = Mock(Compute.Firewalls.List)
       def securityGroupA = new Firewall(name: 'name-a')
       def securityGroupB = new Firewall(name: 'name-b')
-      def keyGroupA = Keys.getSecurityGroupKey(googleCloudProvider,
-                                               securityGroupA.name as String,
+      def keyGroupA = Keys.getSecurityGroupKey(securityGroupA.name as String,
                                                securityGroupA.name as String,
                                                REGION,
                                                ACCOUNT_NAME)
-      def keyGroupB = Keys.getSecurityGroupKey(googleCloudProvider,
-                                               securityGroupB.name as String,
+      def keyGroupB = Keys.getSecurityGroupKey(securityGroupB.name as String,
                                                securityGroupB.name as String,
                                                REGION,
                                                ACCOUNT_NAME)
@@ -61,9 +58,9 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
           securityGroupB
       ])
       def ProviderCache providerCache = Mock(ProviderCache)
-      @Subject GoogleSecurityGroupCachingAgent agent = new GoogleSecurityGroupCachingAgent(googleCloudProvider,
-                                                                                           "testApplicationName",
-                                                                                           credentials, new ObjectMapper(),
+      @Subject GoogleSecurityGroupCachingAgent agent = new GoogleSecurityGroupCachingAgent("testApplicationName",
+                                                                                           credentials,
+                                                                                           new ObjectMapper(),
                                                                                            Spectator.registry())
 
     when:
