@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Network
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -25,12 +24,15 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.NETWORKS
 
 @Slf4j
+@InheritConstructors
 class GoogleNetworkCachingAgent extends AbstractGoogleCachingAgent {
 
   final Set<AgentDataType> providedDataTypes = [
@@ -38,20 +40,6 @@ class GoogleNetworkCachingAgent extends AbstractGoogleCachingAgent {
   ] as Set
 
   String agentType = "${accountName}/global/${GoogleNetworkCachingAgent.simpleName}"
-
-  GoogleNetworkCachingAgent(GoogleCloudProvider googleCloudProvider,
-                            String googleApplicationName,
-                            String accountName,
-                            String project,
-                            Compute compute,
-                            ObjectMapper objectMapper) {
-    this.googleCloudProvider = googleCloudProvider
-    this.googleApplicationName = googleApplicationName
-    this.accountName = accountName
-    this.project = project
-    this.compute = compute
-    this.objectMapper = objectMapper
-  }
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {

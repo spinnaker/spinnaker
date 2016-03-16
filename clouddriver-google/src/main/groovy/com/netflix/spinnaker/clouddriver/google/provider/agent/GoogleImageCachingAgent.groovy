@@ -31,6 +31,7 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
@@ -53,20 +54,16 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
 
   GoogleImageCachingAgent(GoogleCloudProvider googleCloudProvider,
                           String googleApplicationName,
-                          String accountName,
+                          GoogleNamedAccountCredentials credentials,
+                          ObjectMapper objectMapper,
                           List<String> imageProjects,
-                          List<String> baseImageProjects,
-                          String project,
-                          Compute compute,
-                          ObjectMapper objectMapper) {
-    this.googleCloudProvider = googleCloudProvider
-    this.googleApplicationName = googleApplicationName
-    this.accountName = accountName
+                          List<String> baseImageProjects) {
+    super(googleCloudProvider,
+          googleApplicationName,
+          credentials,
+          objectMapper)
     this.imageProjects = imageProjects
     this.baseImageProjects = baseImageProjects
-    this.project = project
-    this.compute = compute
-    this.objectMapper = objectMapper
   }
 
   @Override
