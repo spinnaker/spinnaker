@@ -66,6 +66,15 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
             container.imageDescription.repository = matchingImage.repository;
             result.push(container);
           }
+        } else if (container.imageDescription.fromTrigger) {
+          let [matchingImage] = upstreamImages.filter((image) => {
+            return container.imageDescription.registry === image.registry
+              && container.imageDescription.repository === image.repository
+              && container.imageDescription.tag === image.tag;
+          });
+          if (matchingImage) {
+            result.push(container);
+          }
         } else {
           result.push(container);
         }
@@ -100,10 +109,25 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
       return result;
     }
 
+    function findTriggerImages(triggers) {
+      return triggers.filter((trigger) => {
+        return trigger.type === 'docker';
+      }).map((trigger) => {
+        return {
+          fromTrigger: true,
+          repository: trigger.repository,
+          registry: trigger.registry,
+          tag: trigger.tag,
+        };
+      });
+    }
+
     function buildNewServerGroupCommandForPipeline(current, pipeline) {
+      let contextImages = findUpstreamImages(current, pipeline.stages) || [];
+      contextImages = contextImages.concat(findTriggerImages(pipeline.triggers));
       return $q.when({
         viewState: {
-          contextImages: findUpstreamImages(current, pipeline.stages),
+          contextImages: contextImages,
           mode: 'editPipeline',
           submitButtonLabel: 'Done',
           requiresTemplateSelection: true,
@@ -112,7 +136,8 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
     }
 
     function buildServerGroupCommandFromPipeline(app, command, current, pipeline) {
-      let contextImages = findUpstreamImages(current, pipeline.stages);
+      let contextImages = findUpstreamImages(current, pipeline.stages) || [];
+      contextImages = contextImages.concat(findTriggerImages(pipeline.triggers));
       command.containers = reconcileUpstreamImages(command.containers, contextImages);
       command.containers.map((container) => {
         container.imageDescription.imageId = buildImageId(container.imageDescription);
@@ -130,6 +155,8 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
     function groupByRegistry(container) {
       if (container.imageDescription.fromContext) {
         return 'Find Image Result(s)';
+      } else if (container.imageDescription.fromTrigger) {
+        return 'Images from Trigger(s)';
       } else {
         return container.imageDescription.registry;
       }
@@ -138,6 +165,8 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
     function buildImageId(image) {
       if (image.fromContext) {
         return `${image.cluster} ${image.pattern}`;
+      } else if (image.fromTrigger && !image.tag) {
+        return `${image.registry}/${image.repository} (Tag resolved at runtime)`;
       } else {
         return `${image.registry}/${image.repository}:${image.tag}`;
       }

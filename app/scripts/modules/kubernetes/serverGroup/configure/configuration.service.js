@@ -48,6 +48,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
             imageId: command.buildImageId(image),
             registry: image.registry,
             fromContext: image.fromContext,
+            fromTrigger: image.fromTrigger,
             cluster: image.cluster,
             pattern: image.pattern,
             stageId: image.stageId,
@@ -109,7 +110,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
       command.backingData.filtered.containers = _.map(command.backingData.filtered.images, mapImageToContainer(command));
       var validContainers = [];
       command.containers.forEach(function(container) {
-        if (container.imageDescription.fromContext || _.find(command.backingData.filtered.containers, { imageDescription: { imageId: container.imageDescription.imageId } })) {
+        if (container.imageDescription.fromContext
+            || container.imageDescription.fromTrigger
+            || _.find(command.backingData.filtered.containers, { imageDescription: { imageId: container.imageDescription.imageId } })) {
           validContainers.push(container);
         } else {
           result.dirty.containers = result.dirty.containers || [];
@@ -189,7 +192,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
           return registry.accountName;
         });
         command.backingData.filtered.images = _.filter(command.backingData.allImages, function(image) {
-          return image.fromContext || _.contains(accounts, image.account);
+          return image.fromContext || image.fromTrigger || _.contains(accounts, image.account);
         });
       }
       return result;
