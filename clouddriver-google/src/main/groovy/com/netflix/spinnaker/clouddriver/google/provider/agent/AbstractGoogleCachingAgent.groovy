@@ -22,11 +22,11 @@ import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.services.compute.Compute
+import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.cats.agent.AccountAware
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.provider.GoogleInfrastructureProvider
-import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 
 abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware {
@@ -37,12 +37,33 @@ abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware 
 
   GoogleCloudProvider googleCloudProvider
   String googleApplicationName // "Spinnaker/${version}" HTTP header string
-  String accountName
   GoogleNamedAccountCredentials credentials
-  // TODO(ttomsu): Make project and compute dynamic getters from credentials object.
-  String project
-  Compute compute
   ObjectMapper objectMapper
+
+  @VisibleForTesting
+  AbstractGoogleCachingAgent() {}
+
+  AbstractGoogleCachingAgent(GoogleCloudProvider googleCloudProvider,
+                             String googleApplicationName,
+                             GoogleNamedAccountCredentials credentials,
+                             ObjectMapper objectMapper) {
+    this.googleCloudProvider = googleCloudProvider
+    this.googleApplicationName = googleApplicationName
+    this.credentials = credentials
+    this.objectMapper = objectMapper
+  }
+
+  String getProject() {
+    credentials?.credentials?.project
+  }
+
+  Compute getCompute() {
+    credentials?.credentials?.compute
+  }
+
+  String getAccountName() {
+    credentials?.accountName
+  }
 
   def executeIfRequestsAreQueued(BatchRequest batch) {
     if (batch.size()) {

@@ -108,59 +108,45 @@ class GoogleInfrastructureProviderConfig {
         def newlyAddedAgents = []
 
         newlyAddedAgents << new GoogleSecurityGroupCachingAgent(googleCloudProvider,
-                                                                credentials.accountName,
-                                                                credentials.credentials.project,
-                                                                credentials.credentials.compute,
+                                                                googleConfiguration.googleApplicationName(),
+                                                                credentials,
                                                                 objectMapper,
                                                                 registry)
         newlyAddedAgents << new GoogleNetworkCachingAgent(googleCloudProvider,
                                                           googleConfiguration.googleApplicationName(),
-                                                          credentials.accountName,
-                                                          credentials.credentials.project,
-                                                          credentials.credentials.compute,
+                                                          credentials,
                                                           objectMapper)
 
         credentials.regions.keySet().each { String region ->
           newlyAddedAgents << new GoogleSubnetCachingAgent(googleCloudProvider,
                                                            googleConfiguration.googleApplicationName(),
-                                                           credentials.accountName,
-                                                           region,
-                                                           credentials.credentials.project,
-                                                           credentials.credentials.compute,
-                                                           objectMapper)
+                                                           credentials,
+                                                           objectMapper,
+                                                           region)
         }
 
         if (providerImpl == "new") {
           newlyAddedAgents << new GoogleInstanceCachingAgent(googleCloudProvider,
                                                              googleConfiguration.googleApplicationName(),
-                                                             credentials.accountName,
                                                              credentials,
-                                                             credentials.credentials.project,
-                                                             credentials.credentials.compute,
                                                              objectMapper)
           newlyAddedAgents << new GoogleImageCachingAgent(googleCloudProvider,
                                                           googleConfiguration.googleApplicationName(),
-                                                          credentials.accountName,
+                                                          credentials,
+                                                          objectMapper,
                                                           credentials.imageProjects,
-                                                          googleConfiguration.googleConfigurationProperties().baseImageProjects,
-                                                          credentials.credentials.project,
-                                                          credentials.credentials.compute,
-                                                          objectMapper)
+                                                          googleConfiguration.googleConfigurationProperties().baseImageProjects)
           credentials.regions.keySet().each { String region ->
             newlyAddedAgents << new GoogleLoadBalancerCachingAgent(googleCloudProvider,
                                                                    googleConfiguration.googleApplicationName(),
-                                                                   credentials.accountName,
-                                                                   region,
-                                                                   credentials.credentials.project,
-                                                                   credentials.credentials.compute,
-                                                                   objectMapper)
+                                                                   credentials,
+                                                                   objectMapper,
+                                                                   region)
             newlyAddedAgents << new GoogleServerGroupCachingAgent(googleCloudProvider,
                                                                   googleConfiguration.googleApplicationName(),
-                                                                  credentials.accountName,
-                                                                  region,
-                                                                  credentials.credentials.project,
-                                                                  credentials.credentials.compute,
-                                                                  objectMapper)
+                                                                  credentials,
+                                                                  objectMapper,
+                                                                  region)
           }
         }
 

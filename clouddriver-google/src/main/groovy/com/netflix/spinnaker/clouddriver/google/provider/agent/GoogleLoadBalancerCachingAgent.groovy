@@ -19,9 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
-import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
-import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.HealthStatus
 import com.google.api.services.compute.model.InstanceReference
@@ -36,8 +34,8 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.GoogleLoadBalancer2
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
-import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
@@ -58,18 +56,14 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
 
   GoogleLoadBalancerCachingAgent(GoogleCloudProvider googleCloudProvider,
                                  String googleApplicationName,
-                                 String accountName,
-                                 String region,
-                                 String project,
-                                 Compute compute,
-                                 ObjectMapper objectMapper) {
-    this.googleCloudProvider = googleCloudProvider
-    this.googleApplicationName = googleApplicationName
-    this.accountName = accountName
+                                 GoogleNamedAccountCredentials credentials,
+                                 ObjectMapper objectMapper,
+                                 String region) {
+    super(googleCloudProvider,
+          googleApplicationName,
+          credentials,
+          objectMapper)
     this.region = region
-    this.project = project
-    this.compute = compute
-    this.objectMapper = objectMapper
   }
 
   @Override

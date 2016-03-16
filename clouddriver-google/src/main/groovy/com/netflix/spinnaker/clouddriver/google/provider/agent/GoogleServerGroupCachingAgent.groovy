@@ -19,9 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
-import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
-import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Autoscaler
 import com.google.api.services.compute.model.AutoscalersScopedList
 import com.google.api.services.compute.model.InstanceGroupManager
@@ -37,6 +35,7 @@ import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance2
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup2
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
@@ -60,18 +59,14 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent {
 
   GoogleServerGroupCachingAgent(GoogleCloudProvider googleCloudProvider,
                                 String googleApplicationName,
-                                String accountName,
-                                String region,
-                                String project,
-                                Compute compute,
-                                ObjectMapper objectMapper) {
-    this.googleCloudProvider = googleCloudProvider
-    this.googleApplicationName = googleApplicationName
-    this.accountName = accountName
+                                GoogleNamedAccountCredentials credentials,
+                                ObjectMapper objectMapper,
+                                String region) {
+    super(googleCloudProvider,
+          googleApplicationName,
+          credentials,
+          objectMapper)
     this.region = region
-    this.project = project
-    this.compute = compute
-    this.objectMapper = objectMapper
   }
 
   @Override

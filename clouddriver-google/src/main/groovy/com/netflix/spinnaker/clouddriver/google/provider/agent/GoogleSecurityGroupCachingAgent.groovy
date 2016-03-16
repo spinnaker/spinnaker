@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
@@ -50,16 +51,14 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
   String agentType = "${accountName}/global/${GoogleSecurityGroupCachingAgent.simpleName}"
 
   GoogleSecurityGroupCachingAgent(GoogleCloudProvider googleCloudProvider,
-                                  String accountName,
-                                  String project,
-                                  Compute compute,
+                                  String googleApplicationName,
+                                  GoogleNamedAccountCredentials credentials,
                                   ObjectMapper objectMapper,
                                   Registry registry) {
-    this.googleCloudProvider = googleCloudProvider
-    this.accountName = accountName
-    this.project = project
-    this.compute = compute
-    this.objectMapper = objectMapper
+    super(googleCloudProvider,
+          googleApplicationName,
+          credentials,
+          objectMapper)
     this.metricsSupport = new OnDemandMetricsSupport(registry, this, googleCloudProvider.id + ":" + ON_DEMAND_TYPE)
   }
 

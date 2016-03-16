@@ -26,6 +26,7 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -39,7 +40,8 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
     setup:
       def googleCloudProvider = new GoogleCloudProvider()
       def computeMock = Mock(Compute)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleNamedAccountCredentials(ACCOUNT_NAME, null, null, null, null, null, "testApplicationName")
+      credentials.metaClass.credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsListMock = Mock(Compute.Firewalls.List)
       def securityGroupA = new Firewall(name: 'name-a')
@@ -55,15 +57,13 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
                                                REGION,
                                                ACCOUNT_NAME)
       def firewallListReal = new FirewallList(items: [
-        securityGroupA,
-        securityGroupB
+          securityGroupA,
+          securityGroupB
       ])
       def ProviderCache providerCache = Mock(ProviderCache)
       @Subject GoogleSecurityGroupCachingAgent agent = new GoogleSecurityGroupCachingAgent(googleCloudProvider,
-                                                                                           ACCOUNT_NAME,
-                                                                                           credentials.project,
-                                                                                           credentials.compute,
-                                                                                           new ObjectMapper(),
+                                                                                           "testApplicationName",
+                                                                                           credentials, new ObjectMapper(),
                                                                                            Spectator.registry())
 
     when:
@@ -73,7 +73,7 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
       1 * computeMock.firewalls() >> firewallsMock
       1 * firewallsMock.list(PROJECT_NAME) >> firewallsListMock
       1 * firewallsListMock.execute() >> firewallListReal
-      with (cache.cacheResults.get(Keys.Namespace.SECURITY_GROUPS.ns)) { List<CacheData> cd ->
+      with(cache.cacheResults.get(Keys.Namespace.SECURITY_GROUPS.ns)) { List<CacheData> cd ->
         cd.size() == 2
         cd.id.containsAll([keyGroupA, keyGroupB])
       }
