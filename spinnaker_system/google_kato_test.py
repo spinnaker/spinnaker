@@ -26,14 +26,14 @@
 #     (which is . if you execute this from the root)
 #
 #   PYTHONPATH=$CITEST_ROOT:$CITEST_ROOT/spinnaker \
-#     python $CITEST_ROOT/spinnaker/spinnaker_system/kato_test.py \
+#     python $CITEST_ROOT/spinnaker/spinnaker_system/google_kato_test.py \
 #     --gce_ssh_passphrase_file=$PASSPHRASE_FILE \
 #     --gce_project=$PROJECT \
 #     --gce_zone=$ZONE \
 #     --gce_instance=$INSTANCE
 # or
 #   PYTHONPATH=$CITEST_ROOT:$CITEST_ROOT/spinnaker \
-#     python $CITEST_ROOT/spinnaker/spinnaker_system/kato_test.py \
+#     python $CITEST_ROOT/spinnaker/spinnaker_system/google_kato_test.py \
 #     --native_hostname=host-running-kato
 #     --managed_gce_project=$PROJECT \
 #     --test_gce_zone=$ZONE
@@ -56,7 +56,7 @@ import spinnaker_testing as sk
 import spinnaker_testing.kato as kato
 
 
-class KatoTestScenario(sk.SpinnakerTestScenario):
+class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
   # _instance_names and _instance_zones will be set in create_instances_.
   # We're breaking them out so that they can be shared by other methods,
   # especially terminate.
@@ -571,7 +571,7 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
         contract=builder.build())
 
 
-class KatoIntegrationTest(st.AgentTestCase):
+class GoogleKatoIntegrationTest(st.AgentTestCase):
   def Xtest_a_upsert_server_group_tags(self):
     self.run_test_case(self.scenario.upsert_google_server_group_tags())
 
@@ -628,8 +628,8 @@ class KatoIntegrationTest(st.AgentTestCase):
 
 def main():
   return st.ScenarioTestRunner.main(
-      KatoTestScenario,
-      test_case_list=[KatoIntegrationTest])
+      GoogleKatoTestScenario,
+      test_case_list=[GoogleKatoIntegrationTest])
 
 
 if __name__ == '__main__':
