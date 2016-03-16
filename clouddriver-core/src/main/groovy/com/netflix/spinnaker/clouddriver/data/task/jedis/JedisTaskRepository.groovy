@@ -30,9 +30,13 @@ import org.springframework.beans.factory.annotation.Autowired
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 
+import java.util.concurrent.TimeUnit
+
 class JedisTaskRepository implements TaskRepository {
   private static final String RUNNING_TASK_KEY = "kato:tasks"
   private static final TypeReference<Map<String, String>> HISTORY_TYPE = new TypeReference<Map<String, String>>() {}
+
+  private static final int TASK_TTL = (int) TimeUnit.HOURS.toSeconds(12);
 
   @Autowired
   JedisPool jedisPool
@@ -67,16 +71,24 @@ class JedisTaskRepository implements TaskRepository {
   void set(String id, JedisTask task) {
     String taskId = "task:${task.id}"
     jedis {
-      it.hset(taskId, 'id', task.id)
-      it.hset(taskId, 'startTimeMs', task.startTimeMs as String)
-      it.sadd(RUNNING_TASK_KEY, id)
+      def pipe = it.pipelined()
+      pipe.hset(taskId, 'id', task.id)
+      pipe.hset(taskId, 'startTimeMs', task.startTimeMs as String)
+      pipe.sadd(RUNNING_TASK_KEY, id)
+      pipe.expire(taskId, TASK_TTL)
+      pipe.sync()
     }
   }
 
   void addResultObjects(List<Object> objects, JedisTask task) {
     String resultId = "taskResult:${task.id}"
     String[] values = objects.collect { mapper.writeValueAsString(it) }
-    jedis { it.rpush(resultId, values) }
+    jedis {
+      def pipe = it.pipelined()
+      pipe.rpush(resultId, values)
+      pipe.expire(resultId, TASK_TTL)
+      pipe.sync()
+    }
   }
 
   List<Object> getResultObjects(JedisTask task) {
@@ -94,10 +106,13 @@ class JedisTaskRepository implements TaskRepository {
     String historyId = "taskHistory:${task.id}"
     def hist = mapper.writeValueAsString([phase: status.phase, status: status.status, state: status.state.toString()])
     jedis {
-      it.rpush(historyId, hist)
+      def pipe = it.pipelined()
+      pipe.rpush(historyId, hist)
       if (status.isCompleted()) {
-        it.srem(RUNNING_TASK_KEY, task.id)
+        pipe.srem(RUNNING_TASK_KEY, task.id)
       }
+      pipe.expire(historyId, TASK_TTL)
+      pipe.sync()
     }
   }
 
