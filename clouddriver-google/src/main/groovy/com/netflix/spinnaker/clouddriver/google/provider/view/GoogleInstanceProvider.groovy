@@ -59,9 +59,9 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance2.View> {
   final String platform = GoogleCloudProvider.GCE
 
   @Override
-  GoogleInstance2.View getInstance(String account, String _ /*region*/, String id) {
+  GoogleInstance2.View getInstance(String account, String region, String id) {
     Set<GoogleSecurityGroup> securityGroups = securityGroupProvider.getAll(false)
-    def key = Keys.getInstanceKey(googleCloudProvider, account, id)
+    def key = Keys.getInstanceKey(googleCloudProvider, account, region, id)
     getInstanceCacheDatas([key])?.findResult { CacheData cacheData ->
       instanceFromCacheData(cacheData, securityGroups)?.view
     }

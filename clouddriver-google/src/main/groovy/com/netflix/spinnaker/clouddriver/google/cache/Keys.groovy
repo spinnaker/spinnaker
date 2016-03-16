@@ -18,7 +18,9 @@ package com.netflix.spinnaker.clouddriver.google.cache
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import groovy.util.logging.Slf4j
 
+@Slf4j
 class Keys {
   static enum Namespace {
     APPLICATIONS,
@@ -68,6 +70,7 @@ class Keys {
             application: parts[3],
             account    : parts[2],
             name       : parts[4],
+            cluster    : parts[4],
             stack      : names.stack,
             detail     : names.detail
         ]
@@ -80,15 +83,22 @@ class Keys {
         break
       case Namespace.INSTANCES.ns:
         result << [
-            account: parts[2],
-            name   : parts[3]
+            account   : parts[2],
+            region    : parts[3],
+            name      : parts[4],
+            instanceId: parts[4],
         ]
         break
       case Namespace.LOAD_BALANCERS.ns:
+        def names = Names.parseName(parts[4])
         result << [
-            account: parts[2],
-            region : parts[3],
-            name   : parts[4]
+            account     : parts[2],
+            region      : parts[3],
+            name        : parts[4],
+            loadBalancer: parts[4],
+            application : names.app,
+            stack       : names.stack,
+            detail      : names.detail,
         ]
         break
       case Namespace.NETWORKS.ns:
@@ -156,8 +166,9 @@ class Keys {
 
   static String getInstanceKey(GoogleCloudProvider googleCloudProvider,
                                String account,
+                               String region,
                                String name) {
-    "$googleCloudProvider.id:${Namespace.INSTANCES}:${account}:${name}"
+    "$googleCloudProvider.id:${Namespace.INSTANCES}:${account}:${region}:${name}"
   }
 
   static String getLoadBalancerKey(GoogleCloudProvider googleCloudProvider,

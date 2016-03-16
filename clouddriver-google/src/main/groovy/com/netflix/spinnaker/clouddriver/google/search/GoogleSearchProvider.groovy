@@ -28,8 +28,10 @@ import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
+@ConditionalOnProperty(value = "google.providerImpl", havingValue = "old", matchIfMissing = true)
 @Component
 class GoogleSearchProvider implements SearchProvider {
   protected static final Logger log = Logger.getLogger(this)

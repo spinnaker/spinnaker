@@ -111,7 +111,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
                                                     loadBalancer.account,
                                                     loadBalancer.name)
       def instanceKeys = loadBalancer.healths.collect { GoogleLoadBalancerHealth health ->
-        Keys.getInstanceKey(googleCloudProvider, accountName, health.instanceName)
+        Keys.getInstanceKey(googleCloudProvider, accountName, loadBalancer.region, health.instanceName)
       }
 
       cacheResultBuilder.namespace(LOAD_BALANCERS.ns).get(loadBalancerKey).with {
