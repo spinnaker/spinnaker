@@ -126,6 +126,10 @@ class OperationsController {
           trigger.job as String
         )
       }
+    } else if (trigger?.registry && trigger?.repository && trigger?.tag) {
+      trigger.buildInfo = [
+        taggedImages: [[registry: trigger.registry, repository: trigger.repository, tag: trigger.tag]]
+      ]
     }
   }
 
