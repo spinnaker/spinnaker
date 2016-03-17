@@ -33,6 +33,18 @@ class KubernetesApiAdaptor {
     this.client = client
   }
 
+  Ingress createIngress(String namespace, Ingress ingress) {
+    client.extensions().ingress().inNamespace(namespace).create(ingress)
+  }
+
+  Ingress replaceIngress(String namespace, String name, Ingress ingress) {
+    client.extensions().ingress().inNamespace(namespace).withName(name).replace(ingress)
+  }
+
+  Ingress getIngress(String namespace, String name) {
+    client.extensions().ingress().inNamespace(namespace).withName(name).get()
+  }
+
   List<ReplicationController> getReplicationControllers(String namespace) {
     client.replicationControllers().inNamespace(namespace).list().items
   }

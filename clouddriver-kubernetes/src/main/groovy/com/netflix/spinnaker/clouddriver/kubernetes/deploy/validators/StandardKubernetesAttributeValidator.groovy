@@ -81,6 +81,19 @@ class StandardKubernetesAttributeValidator {
     }
   }
 
+  def validatePath(String value, String attribute) {
+    if (validateNotEmpty(value, attribute)) {
+      if (value[0] != "/") {
+        errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid (Must start with '/')")
+        return false
+      } else {
+        return true
+      }
+    } else {
+      return false
+    }
+  }
+
   def validateProtocol(String value, String attribute) {
     if (validateNotEmpty(value, attribute)) {
       return validateByContainment(value, attribute, protocolList)
