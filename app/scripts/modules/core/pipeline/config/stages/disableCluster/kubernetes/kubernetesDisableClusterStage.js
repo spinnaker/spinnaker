@@ -40,6 +40,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.disabl
 
     stage.namespaces = stage.namespaces || [];
     stage.cloudProvider = 'kubernetes';
+    stage.interestingHealthProviderNames = ['KubernetesService'];
 
     if (!stage.credentials && $scope.application.defaultCredentials.kubernetes) {
       stage.credentials = $scope.application.defaultCredentials.kubernetes;
