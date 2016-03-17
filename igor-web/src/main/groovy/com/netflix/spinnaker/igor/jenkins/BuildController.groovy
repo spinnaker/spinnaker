@@ -115,7 +115,7 @@ class BuildController {
         def jenkinsService = masters.map[master]
 
         // Jobs that haven't been started yet won't have a buildNumber
-        // (They're still in the queue. We use 0 to denote that case
+        // (They're still in the queue). We use 0 to denote that case
         if (buildNumber != 0) {
             jenkinsService.stopRunningBuild(jobName, buildNumber)
         }
@@ -125,7 +125,10 @@ class BuildController {
         // of being handled by the handleOtherException handler and returning a 500 to orca
         try {
             jenkinsService.stopQueuedBuild(queuedBuild)
-        } catch (RuntimeException e) {
+        } catch (RetrofitError e) {
+            if (e.response?.status != HttpStatus.NOT_FOUND.value()) {
+                throw e
+            }
         }
 
         "true"
