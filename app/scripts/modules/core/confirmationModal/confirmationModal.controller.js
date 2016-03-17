@@ -26,7 +26,9 @@ module.exports = angular
       toVerify: params.textToVerify,
     };
 
-    this.formDisabled = () => $scope.verification.required && !$scope.verification.verified;
+    this.formDisabled = () => {
+      return $scope.state.submitting || ($scope.verification.required && !$scope.verification.verified);
+    };
 
     function showError(exception) {
       $scope.state.error = true;
