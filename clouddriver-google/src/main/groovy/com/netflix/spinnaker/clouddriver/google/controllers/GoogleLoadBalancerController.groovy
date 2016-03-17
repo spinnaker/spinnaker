@@ -21,11 +21,14 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.GoogleResourceRetriever
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
+@Deprecated
+@ConditionalOnProperty(value = "google.providerImpl", havingValue = "old", matchIfMissing = true)
 @RestController
 @RequestMapping("/gce/loadBalancers")
 class GoogleLoadBalancerController {
