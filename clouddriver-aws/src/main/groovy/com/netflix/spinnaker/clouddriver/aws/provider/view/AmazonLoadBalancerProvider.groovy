@@ -34,13 +34,13 @@ import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.*
 
 @Component
-class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalancer> {
+class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalancer> {
 
   private final Cache cacheView
   private final AwsProvider awsProvider
 
   @Autowired
-  public CatsLoadBalancerProvider(Cache cacheView, AwsProvider awsProvider) {
+  public AmazonLoadBalancerProvider(Cache cacheView, AwsProvider awsProvider) {
     this.cacheView = cacheView
     this.awsProvider = awsProvider
   }

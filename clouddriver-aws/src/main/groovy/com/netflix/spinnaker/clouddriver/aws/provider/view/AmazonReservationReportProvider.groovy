@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.RESERVATION_REPORTS
 
 @Component
-class CatsReservationReportProvider implements ReservationReportProvider {
+class AmazonReservationReportProvider implements ReservationReportProvider {
   @Autowired
   Cache cacheView
 

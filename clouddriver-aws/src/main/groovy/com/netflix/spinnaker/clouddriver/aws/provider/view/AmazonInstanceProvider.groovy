@@ -32,12 +32,12 @@ import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.HEALTH
 import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.INSTANCES
 
 @Component
-class CatsInstanceProvider implements InstanceProvider<AmazonInstance> {
+class AmazonInstanceProvider implements InstanceProvider<AmazonInstance> {
 
   private final Cache cacheView
 
   @Autowired
-  CatsInstanceProvider(Cache cacheView) {
+  AmazonInstanceProvider(Cache cacheView) {
     this.cacheView = cacheView
   }
 

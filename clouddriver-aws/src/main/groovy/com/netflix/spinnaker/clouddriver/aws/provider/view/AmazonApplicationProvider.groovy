@@ -32,13 +32,13 @@ import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.*
 
 @Component
-class CatsApplicationProvider implements ApplicationProvider {
+class AmazonApplicationProvider implements ApplicationProvider {
   private final AmazonCloudProvider amazonCloudProvider
   private final Cache cacheView
   private final ObjectMapper objectMapper
 
   @Autowired
-  CatsApplicationProvider(AmazonCloudProvider amazonCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
+  AmazonApplicationProvider(AmazonCloudProvider amazonCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
     this.amazonCloudProvider = amazonCloudProvider
     this.cacheView = cacheView
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
