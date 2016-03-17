@@ -21,8 +21,10 @@ import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
+@ConditionalOnProperty(value = "google.providerImpl", havingValue = "old", matchIfMissing = true)
 @Component
 class GoogleOnDemandCacheUpdater implements OnDemandCacheUpdater {
   protected final Logger log = Logger.getLogger(GoogleOnDemandCacheUpdater.class)

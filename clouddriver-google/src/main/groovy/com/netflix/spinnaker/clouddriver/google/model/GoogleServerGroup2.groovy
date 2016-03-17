@@ -69,6 +69,7 @@ class GoogleServerGroup2 {
     String region = GoogleServerGroup2.this.region
     Set<String> zones = GoogleServerGroup2.this.zones
     Set<GoogleInstance2.View> instances = GoogleServerGroup2.this.instances.collect { it?.view }
+    Map<String, Object> asg = GoogleServerGroup2.this.asg
     Map<String, Object> launchConfig = GoogleServerGroup2.this.launchConfig
     Set<String> securityGroups = GoogleServerGroup2.this.securityGroups
     Boolean disabled = GoogleServerGroup2.this.disabled
