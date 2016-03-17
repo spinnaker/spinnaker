@@ -31,6 +31,10 @@ class SecurityGroupLookupFactory {
     new SecurityGroupLookup(amazonClientProvider, region, accounts)
   }
 
+  /**
+   * Allows look up for account names and security groups from a cache that lives as long as the instance.
+   * Can also be used to create a security group from a description.
+   */
   static class SecurityGroupLookup {
     private final AmazonClientProvider amazonClientProvider
     private final String region
