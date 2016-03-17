@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.model
 
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.model.Health
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import io.fabric8.kubernetes.api.model.ContainerStatus
@@ -24,28 +23,33 @@ import io.fabric8.kubernetes.api.model.Pod
 
 class KubernetesHealth implements Health {
   HealthState state
-  String source
-  String type = "Kubernetes" // All healths are reported by Kubernetes
+  final String source
+  final String type
+  final String healthClass = "platform"
 
   KubernetesHealth(Pod pod) {
     source = "Pod"
+    type = "KubernetesPod"
     def phase = pod.status.phase
-    def loadBalancers = KubernetesUtil.getPodLoadBalancerStates(pod)
-    def disabled = loadBalancers?.every { _, v -> v == 'false' }
-    def attached = loadBalancers?.size() > 0
-    state = phase == "Pending" || (disabled && attached) ? HealthState.OutOfService :
-      disabled ? HealthState.Unknown :
-        phase == "Running" ? HealthState.Up :
-          phase == "Succeeded" ? HealthState.Succeeded :
-            phase == "Failed" ? HealthState.Failed : HealthState.Unknown
+    state = phase == "Pending" ? HealthState.OutOfService :
+      phase == "Running" ? HealthState.Up :
+        phase == "Succeeded" ? HealthState.Succeeded :
+          phase == "Failed" ? HealthState.Failed : HealthState.Unknown
   }
 
-  KubernetesHealth(String name, ContainerStatus containerStatus, KubernetesHealth podHealth) {
+  KubernetesHealth(String service, String enabled) {
+    source = "Service $service"
+    type = "KubernetesService"
+    state = enabled == "true" ? HealthState.Up :
+      enabled == "false" ? HealthState.OutOfService : HealthState.Unknown
+  }
+
+  KubernetesHealth(String name, ContainerStatus containerStatus) {
     source = "Container $name"
-    state = containerStatus.state.running && containerStatus.ready && podHealth.state == HealthState.Up ? HealthState.Up :
-      containerStatus.state.running && containerStatus.ready ? HealthState.Unknown :
-        containerStatus.state.terminated ? HealthState.Down :
-          containerStatus.state.waiting || !containerStatus.ready ? HealthState.OutOfService :
-            HealthState.Unknown
+    type = "KubernetesContainer"
+    state = containerStatus.state.running && containerStatus.ready ? HealthState.Up :
+      containerStatus.state.terminated ? HealthState.Down :
+        containerStatus.state.waiting || !containerStatus.ready ? HealthState.Starting :
+          HealthState.Unknown
   }
 }
