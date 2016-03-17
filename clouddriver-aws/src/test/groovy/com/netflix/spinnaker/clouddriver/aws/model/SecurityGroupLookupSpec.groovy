@@ -19,7 +19,7 @@ class SecurityGroupLookupSpec extends Specification {
 
   final amazonEC2 = Mock(AmazonEC2)
   final amazonClientProvider = Stub(AmazonClientProvider) {
-    getAmazonEC2(_, "us-east-1", true) >> amazonEC2
+    getAmazonEC2(_, "us-east-1") >> amazonEC2
   }
   final accountCredentialsRepository = Stub(AccountCredentialsRepository) {
     getAll() >> [
