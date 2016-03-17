@@ -30,6 +30,7 @@ module.exports = angular.module('spinnaker.kubernetes', [
   require('./serverGroup/configure/configure.kubernetes.module.js'),
   require('./serverGroup/details/details.kubernetes.module.js'),
   require('./serverGroup/transformer.js'),
+  require('./validation/applicationName.validator.js'),
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('kubernetes', {
