@@ -43,6 +43,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
@@ -52,6 +53,7 @@ import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
 @Deprecated
+@ConditionalOnProperty(value = "google.providerImpl", havingValue = "old", matchIfMissing = true)
 @Component
 class GoogleResourceRetriever implements GoogleNamedImageLookupController.ImageProvider {
   protected final Logger log = Logger.getLogger(GoogleResourceRetriever.class)
