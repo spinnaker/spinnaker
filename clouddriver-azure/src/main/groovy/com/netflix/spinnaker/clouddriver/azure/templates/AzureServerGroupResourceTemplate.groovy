@@ -99,7 +99,7 @@ class AzureServerGroupResourceTemplate {
     ServerGroupTemplateVariables(AzureServerGroupDescription description) {
 
       newStorageAccountSuffix = "sa"
-      vhdContainerName = description.getIdentifier().toLowerCase()
+      vhdContainerName = description.name.toLowerCase()
       osType = new OsType(description)
       imageReference = "[variables('osType')]"
 
@@ -227,7 +227,7 @@ class AzureServerGroupResourceTemplate {
      */
     VirtualMachineScaleSet(AzureServerGroupDescription description) {
       apiVersion = "2015-06-15"
-      name = description.getIdentifier()
+      name = description.name
       type = "Microsoft.Compute/virtualMachineScaleSets"
       location = "[parameters('location')]"
       tags = ["appName" : description.application,
@@ -470,7 +470,7 @@ class AzureServerGroupResourceTemplate {
     ArrayList<String> vhdContainers = []
 
     VirtualMachineOSDisk(AzureServerGroupDescription description) {
-      name = "osdisk-" + description.getIdentifier()
+      name = "osdisk-" + description.name
       caching = "ReadOnly"
       createOption = "FromImage"
       description.getStorageAccountCount().times { idx ->
@@ -492,7 +492,7 @@ class AzureServerGroupResourceTemplate {
     Map<String, String> image = [:]
 
     VirtualMachineCustomImageOSDisk (AzureServerGroupDescription description) {
-      name = "osdisk-${description.getIdentifier()}"
+      name = "osdisk-${description.name}"
       caching = "ReadOnly"
       createOption = "FromImage"
       osType = description.image.ostype

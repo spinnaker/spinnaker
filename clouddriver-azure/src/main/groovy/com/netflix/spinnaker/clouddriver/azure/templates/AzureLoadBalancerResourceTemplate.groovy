@@ -20,13 +20,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.UpsertAzureLoadBalancerDescription
 
 class AzureLoadBalancerResourceTemplate {
 
   static ObjectMapper mapper = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true)
 
-  static String getTemplate(UpsertAzureLoadBalancerDescription description) {
+  static String getTemplate(AzureLoadBalancerDescription description) {
     LoadBalancerTemplate template = new LoadBalancerTemplate(description)
     mapper.writeValueAsString(template)
   }
@@ -39,7 +38,7 @@ class AzureLoadBalancerResourceTemplate {
     LoadBalancerTemplateVariables variables
     ArrayList<Resource> resources = []
 
-    LoadBalancerTemplate(UpsertAzureLoadBalancerDescription description){
+    LoadBalancerTemplate(AzureLoadBalancerDescription description){
       parameters = new LoadBalancerParameters()
       variables = new LoadBalancerTemplateVariables(description)
 
@@ -64,7 +63,7 @@ class AzureLoadBalancerResourceTemplate {
     String publicIPAddressID = "[resourceID('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
     String frontEndIPConfig = "[concat(variables('loadBalancerID'),'/frontendIPConfigurations/',variables('loadBalancerFrontEnd'))]"
 
-    LoadBalancerTemplateVariables(UpsertAzureLoadBalancerDescription description){
+    LoadBalancerTemplateVariables(AzureLoadBalancerDescription description){
       String regionName = description.region.replace(' ', '').toLowerCase()
       String resourceGroupName = AzureUtilities.getResourceGroupName(description)
 
@@ -90,7 +89,7 @@ class AzureLoadBalancerResourceTemplate {
   static class LoadBalancer extends DependingResource{
     LoadBalancerProperties properties
 
-    LoadBalancer(UpsertAzureLoadBalancerDescription description) {
+    LoadBalancer(AzureLoadBalancerDescription description) {
       apiVersion = "2015-05-01-preview"
       name = "[variables('loadBalancerName')]"
       type = "Microsoft.Network/loadBalancers"
@@ -133,7 +132,7 @@ class AzureLoadBalancerResourceTemplate {
     ArrayList<LoadBalancingRule> loadBalancingRules = []
     ArrayList<AzureProbe> probes = []
 
-    LoadBalancerProperties(UpsertAzureLoadBalancerDescription description){
+    LoadBalancerProperties(AzureLoadBalancerDescription description){
       frontEndIPConfigurations.add(new FrontEndIpConfiguration())
       backendAddressPools.add(new BackEndAddressPool())
       description.loadBalancingRules?.each{loadBalancingRules.add(new LoadBalancingRule(it))}

@@ -20,6 +20,7 @@ import com.microsoft.azure.CloudException
 import com.microsoft.azure.credentials.ApplicationTokenCredentials
 import com.microsoft.azure.management.compute.ComputeManagementClient
 import com.microsoft.azure.management.compute.ComputeManagementClientImpl
+import com.microsoft.azure.management.compute.models.VirtualMachineScaleSet
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
 import groovy.transform.CompileStatic
@@ -114,12 +115,14 @@ public class AzureComputeClient extends AzureBaseClient {
    * @param Region
    * @return
    */
-  Collection<AzureServerGroupDescription> getServerGroupsAll(String region) {
+  Collection<AzureServerGroupDescription> getServerGroupsAll(String region, String resourceGroup = null) {
     def serverGroups = new ArrayList<AzureServerGroupDescription>()
     def lastReadTime = System.currentTimeMillis()
 
     try {
-      this.client.virtualMachineScaleSetsOperations?.listAll()?.body?.each { scaleSet ->
+      List<VirtualMachineScaleSet> vmssList = resourceGroup ? this.client.virtualMachineScaleSetsOperations?.list(resourceGroup)?.body
+                                                            : this.client.virtualMachineScaleSetsOperations?.listAll()?.body
+      vmssList?.each { scaleSet ->
 
         if (scaleSet.location == region) {
           try {
@@ -145,7 +148,8 @@ public class AzureComputeClient extends AzureBaseClient {
       sg.lastReadTime = System.currentTimeMillis()
       return sg
     } catch (CloudException e) {
-      log.error("Exception encountered retrieving serverGroup: ${serverGroupName}", e)
+      // treat exception as a http 404 return (resource not found)
+      log.warn("ServerGroup: ${e.message} (${serverGroupName} was not found?)")
     }
     null
   }

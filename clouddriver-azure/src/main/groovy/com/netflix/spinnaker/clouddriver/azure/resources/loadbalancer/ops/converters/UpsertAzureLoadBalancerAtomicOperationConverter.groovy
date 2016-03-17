@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops.conve
 
 import com.netflix.spinnaker.clouddriver.azure.AzureOperation
 import com.netflix.spinnaker.clouddriver.azure.common.AzureAtomicOperationConverterHelper
-import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.UpsertAzureLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops.UpsertAzureLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
@@ -38,9 +38,9 @@ class UpsertAzureLoadBalancerAtomicOperationConverter extends AbstractAtomicOper
     new UpsertAzureLoadBalancerAtomicOperation(convertDescription(input))
   }
 
-  UpsertAzureLoadBalancerDescription convertDescription(Map input) {
+  AzureLoadBalancerDescription convertDescription(Map input) {
     AzureAtomicOperationConverterHelper.
-      convertDescription(input, this, UpsertAzureLoadBalancerDescription) as UpsertAzureLoadBalancerDescription
+      convertDescription(input, this, AzureLoadBalancerDescription) as AzureLoadBalancerDescription
   }
 }
 

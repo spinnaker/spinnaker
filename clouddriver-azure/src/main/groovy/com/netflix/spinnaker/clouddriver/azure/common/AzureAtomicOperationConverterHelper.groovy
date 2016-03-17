@@ -27,7 +27,7 @@ class AzureAtomicOperationConverterHelper {
       input.accountName = input.credentials
     }
     // The value returned by getCredentialsObject() is of type AzureNamedAccountCredentials. The credentials property
-    // of UpsertAzureLoadBalancerDescription, one of which we are about to construct below, is of type AzureCredentials.
+    // of AzureLoadBalancerDescription, one of which we are about to construct below, is of type AzureCredentials.
     // Since AzureNamedAccountCredentials exposes a property named 'credentials', of the desired type
     // AzureCredentials, we just need to dereference it. If we don't, GroovyCastExceptions ensue.
 
