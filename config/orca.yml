@@ -37,4 +37,10 @@ default:
 redis:
   connection: ${services.redis.connection}
 
+pipeline:
+  # By default, when a pipeline is configured to disallow parallel execution,
+  # waiting pipelines will be automatically cancelled from the same pipeline   
+  # queue. If you wish for all the pipelines in the serialized queue to be 
+  # processed, then set this flag to false.
+  optimizeWaitingQueue: true 
 
