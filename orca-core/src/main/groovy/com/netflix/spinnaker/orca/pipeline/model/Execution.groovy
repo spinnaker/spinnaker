@@ -35,6 +35,7 @@ abstract class Execution<T> implements Serializable {
   String canceledBy
   boolean parallel
   boolean limitConcurrent = false
+  boolean keepWaitingPipelines = false
 
   final Map<String, Object> appConfig = [:]
   final Map<String, Object> context = [:]

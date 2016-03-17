@@ -76,11 +76,13 @@ class PipelineStarterListener implements JobExecutionListener {
             def queuedExecution = executionRepository.retrievePipeline(id)
             log.info("starting pipeline ${nextPipelineId} due to ${execution.id} ending")
             pipelineStarter.startExecution(queuedExecution)
-          } else {
+            startTracker.removeFromQueue(execution.pipelineConfigId, id)
+          } else if (!execution.keepWaitingPipelines) {
             log.info("marking pipeline ${nextPipelineId} as canceled due to ${execution.id} ending")
             executionRepository.cancel(id)
-          }
-          startTracker.removeFromQueue(execution.pipelineConfigId, id)
+            startTracker.removeFromQueue(execution.pipelineConfigId, id)
+          } // else we want to keep the pipeline in the queue
+
         }
       }
     }
