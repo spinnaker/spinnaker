@@ -1,0 +1,57 @@
+<div class="canary-details" ng-controller="PropertyExecutionDetailsCtrl as propertyDetailsCtrl">
+  <execution-details-section-nav sections="configSections"></execution-details-section-nav>
+
+  <div class="step-section-details" ng-if="detailsSection === 'propertiesConfig'">
+    <div class="row">
+      <div class="col-md-12">
+        <table class="table">
+          <thead>
+            <td><strong>Key</strong></td>
+            <td><strong>Value</strong></td>
+          </thead>
+          <tbody>
+          <tr ng-repeat="prop in properties">
+            <td>
+              <strong ng-if="!prop.propertyId">{{ prop.key }}</strong>
+              <strong ng-if="prop.propertyId"><a target="_blank" ng-href="http://persistedproperties.us-east-1.dyn{{prop.env}}.netflix.net:7001/fastproperty/show?propId={{prop.propertyId}}" >{{prop.key}}</a></strong>
+            </td>
+            <td>
+              <strong>{{ prop.value }}</strong>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="col-md-12">
+
+        <div >
+          <h5>Scope</h5>
+          <dl class="dl-horizontal dl-narrow">
+            <div ng-repeat="(key, value) in propertyDetailsCtrl.propertyScopeForDisplay()" ng-if="value !== ''">
+              <dt>{{key}}</dt>
+              <dd>{{value}}</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="row" ng-if="stage.context.exception">
+      <div class="col-md-12">
+        <div class="well alert alert-danger">
+          <!--{{stage.context.exception}}-->
+          {{propertyDetailsCtrl.getErrorMessage()}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+    <div class="row">
+      <execution-step-details item="stage"></execution-step-details>
+    </div>
+  </div>
+
+</div>

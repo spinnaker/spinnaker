@@ -16,6 +16,7 @@ module.exports = angular
       bindToController: {
         model: '=',
         regions: '=',
+        showIf: '=',
         onChange: '&',
       },
       controllerAs: 'fp',

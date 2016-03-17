@@ -15,25 +15,27 @@ module.exports = angular
       bindToController:{
         model: '='
       },
-      controller: function(_, $log) {
+      controller: function($scope, _, $log) {
         let vm = this;
+
+        vm.model = vm.model || 'none';
 
         let getConstraintByName = (name) => {
           return _.find(vm.constraints, {'name': name});
         };
 
-        let extractConstraint = (fullConstraint) => {
+        let extractConstraint = (fullConstraint = '') => {
           const split = fullConstraint.split(':');
           return split.length > 1 ? `${split[0]}` : fullConstraint;
         };
 
-        let extractInput = (fullConstraint) => {
+        let extractInput = (fullConstraint = '') => {
           const split = fullConstraint.split(':');
           return split.length > 1 ? split[1] : '';
         };
 
-        vm.constraint = extractConstraint(vm.model);
-        vm.inputValue = extractInput(vm.model);
+        vm.constraint = extractConstraint(vm.model.trim());
+        vm.inputValue = extractInput(vm.model.trim());
 
         vm.constraints = [
           {name:'none'},
@@ -49,11 +51,17 @@ module.exports = angular
           {name:'email'}
         ];
 
+        vm.isSelected = (constraintName) => {
+          let s = constraintName === vm.constraint.trim();
+          console.log('isSelected', constraintName, vm.constraint, s);
+          return s;
+        };
+
         vm.onChange = () => {
           $log.debug('constraint change:', vm.constraint);
           vm.placeholder = getConstraintByName(vm.constraint).placeholder;
           vm.inputValue = '';
-          vm.model = `${vm.constraint} ${vm.inputValue}`;
+          vm.model = `${vm.constraint} ${vm.inputValue}`.trim();
         };
 
         vm.inputChanged = () => {
@@ -64,6 +72,12 @@ module.exports = angular
           return _.has(getConstraintByName(vm.constraint), 'placeholder');
         };
 
+        $scope.$watch(() => vm.model, () => {
+          if(vm.model) {
+            vm.constraint = extractConstraint(vm.model.trim());
+            vm.inputValue = extractInput(vm.model.trim());
+          }
+        });
 
         return vm;
       },

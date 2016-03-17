@@ -4,12 +4,13 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.fastProperty.scopeBuilder.service', [
+    require('../fastProperty.read.service'),
     require('../../../core/utils/lodash.js'),
     require('../../../core/application/listExtractor/listExtractor.service'),
     require('../../../core/application/service/applications.read.service.js'),
     require('../../../core/config/settings.js'),
   ])
-  .factory('fastPropertyScopeBuilderService', (_, appListExtractorService, applicationReader, settings) => {
+  .factory('fastPropertyScopeBuilderService', (_, appListExtractorService, applicationReader, settings, fastPropertyReader) => {
 
     let isSkip = (prop) => prop && prop === 'none';
 
@@ -71,13 +72,16 @@ module.exports = angular
      * Function factories
      */
 
-    let createApplicationSelectedFn = (ctrl, applicationChangeFn) => {
+    let createApplicationSelectedFn = (ctrl, applicationChangeFn, isSingleApp = false) => {
       return (appName) => {
         applicationReader
           .getApplication(appName)
           .then( (application) => {
             return application.ready()
               .then(() => {
+                if(isSingleApp) {
+                  ctrl.chosenApps = {};
+                }
                 ctrl.chosenApps[appName] = application;
                 return ctrl.chosenApps;
               });
@@ -144,6 +148,21 @@ module.exports = angular
       };
     };
 
+    let createStackChangeWithoutDeleteFn = (ctrl, scopeHolder, listHolder, clusterChangeFn) => {
+      return (stack = '') => {
+        scopeHolder.stack = stack;
+        const valueList = objectValuesToList(ctrl.chosenApps);
+
+        let clusterHasStackFilter = createClusterHasStackFilter(scopeHolder);
+        listHolder.cluster = appListExtractorService.getClusters(valueList, clusterHasStackFilter);
+
+        //let deleteCluster = getDeleter(scopeHolder, 'cluster');
+        //ifNotInListDo(listHolder.cluster, scopeHolder.cluster, deleteCluster);
+
+        clusterChangeFn(scopeHolder.cluster);
+      };
+    };
+
     let createClusterChangeFn = (ctrl, scopeHolder, listHolder, asgChangeFn) => {
       return (cluster = '') => {
         scopeHolder.cluster = cluster;
@@ -154,6 +173,18 @@ module.exports = angular
 
         let deleteAsg = getDeleter(scopeHolder, 'asg');
         ifNotInListDo(listHolder.asg, scopeHolder.asg, deleteAsg);
+
+        asgChangeFn(scopeHolder.asg);
+      };
+    };
+
+    let createClusterChangeWithoutDeleteFn = (ctrl, scopeHolder, listHolder, asgChangeFn) => {
+      return (cluster = '') => {
+        scopeHolder.cluster = cluster;
+        const valueList = objectValuesToList(ctrl.chosenApps);
+
+        let clusterFilter = createClusterFilter(scopeHolder);
+        listHolder.asg = appListExtractorService.getAsgs(valueList, clusterFilter);
 
         asgChangeFn(scopeHolder.asg);
       };
@@ -200,15 +231,61 @@ module.exports = angular
       };
     };
 
+    let prepareScopeForEnvironment = (propertyScope, env) => {
+      let selectedScope = _(propertyScope)
+        .omit(isSkip)
+        .transform((result, value, key) => {
+          if(key === 'appIdList') {
+            result.appId = angular.isArray(value) ? value.join(',') : value;
+          } else {
+            result[key] = value;
+          }
+          result.env = env;
+        })
+        .value();
+
+      return selectedScope;
+    };
+
+    let transformScope = (fpScope, env) => {
+      return _(fpScope)
+        .omit(isSkip)
+        .transform( (result, value, key) => {
+          if(key === 'appIdList') {
+            result.appId = value.join(',');
+            result[key] = value;
+          } else {
+            result[key] = value;
+          }
+          result.env = env;
+        })
+        .value();
+
+    };
+
+    let getImpact = (targetScope, env) => {
+      let fastPropertyScope = prepareScopeForEnvironment(targetScope, env);
+      return fastPropertyReader.fetchImpactCountForScope(fastPropertyScope)
+        .then((impact) => {
+          return impact.count;
+        });
+    };
+
     return {
       createApplicationSelectedFn: createApplicationSelectedFn,
+      createStackChangeWithoutDeleteFn: createStackChangeWithoutDeleteFn,
       createGetRegionsFn: createGetRegionsFn,
       createApplicationChangeFn: createApplicationChangeFn,
       createRegionChangeFn: createRegionChangeFn,
       createStackChangeFn: createStackChangeFn,
       createClusterChangeFn: createClusterChangeFn,
+      createClusterChangeWithoutDeleteFn: createClusterChangeWithoutDeleteFn,
       createAsgChangeFn: createAsgChangeFn,
       createAvailabilityZoneChangeFn: createAvailabilityZoneChangeFn,
       createInstanceChangeFn: createInstanceChangeFn,
+      objectValuesToList: objectValuesToList,
+      isSkip: isSkip,
+      transformScope: transformScope,
+      getImpact: getImpact,
     };
   });
