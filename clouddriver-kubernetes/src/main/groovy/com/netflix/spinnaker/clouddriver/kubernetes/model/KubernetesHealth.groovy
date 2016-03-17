@@ -30,11 +30,14 @@ class KubernetesHealth implements Health {
   KubernetesHealth(Pod pod) {
     source = "Pod"
     def phase = pod.status.phase
-    def disabled = KubernetesUtil.getPodLoadBalancerStates(pod)?.every { _, v -> v == 'false' } && KubernetesUtil.getPodLoadBalancerStates(pod)?.size() != 0
-    state = phase == "Pending" || disabled ? HealthState.OutOfService :
-      phase == "Running" ? HealthState.Up :
-        phase == "Succeeded" ? HealthState.Succeeded :
-          phase == "Failed" ? HealthState.Failed : HealthState.Unknown
+    def loadBalancers = KubernetesUtil.getPodLoadBalancerStates(pod)
+    def disabled = loadBalancers?.every { _, v -> v == 'false' }
+    def attached = loadBalancers?.size() > 0
+    state = phase == "Pending" || (disabled && attached) ? HealthState.OutOfService :
+      disabled ? HealthState.Unknown :
+        phase == "Running" ? HealthState.Up :
+          phase == "Succeeded" ? HealthState.Succeeded :
+            phase == "Failed" ? HealthState.Failed : HealthState.Unknown
   }
 
   KubernetesHealth(String name, ContainerStatus containerStatus, KubernetesHealth podHealth) {
