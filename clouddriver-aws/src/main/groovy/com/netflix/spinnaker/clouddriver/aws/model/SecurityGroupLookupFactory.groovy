@@ -31,6 +31,10 @@ class SecurityGroupLookupFactory {
     new SecurityGroupLookup(amazonClientProvider, region, accounts)
   }
 
+  /**
+   * Allows look up for account names and security groups from a cache that lives as long as the instance.
+   * Can also be used to create a security group from a description.
+   */
   static class SecurityGroupLookup {
     private final AmazonClientProvider amazonClientProvider
     private final String region
@@ -59,7 +63,7 @@ class SecurityGroupLookupFactory {
       if (description.vpcId) {
         request.withVpcId(description.vpcId)
       }
-      final amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region, true)
+      final amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region)
       final result = amazonEC2.createSecurityGroup(request)
       final newSecurityGroup = new SecurityGroup(ownerId: credentials.accountId, groupId: result.groupId,
         groupName: description.name, description: description.description, vpcId: description.vpcId)
@@ -69,7 +73,7 @@ class SecurityGroupLookupFactory {
     SecurityGroupUpdater getSecurityGroupByName(String accountName, String name, String vpcId) {
       final credentials = getCredentialsForName(accountName)
       if (!credentials) { return null }
-      final amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region, true)
+      final amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region)
       final securityGroup = getSecurityGroups(accountName, amazonEC2).find {
         it.groupName == name && it.vpcId == vpcId
       }
@@ -81,7 +85,7 @@ class SecurityGroupLookupFactory {
 
     private List<SecurityGroup> getSecurityGroups(String accountName, AmazonEC2 amazonEC2) {
       List<SecurityGroup> securityGroupsForAccount = securityGroupsByAccount[accountName]
-      if (!securityGroupsForAccount) {
+      if (securityGroupsForAccount == null) {
         securityGroupsForAccount = amazonEC2.describeSecurityGroups().securityGroups
         securityGroupsByAccount[accountName] = securityGroupsForAccount
       }
