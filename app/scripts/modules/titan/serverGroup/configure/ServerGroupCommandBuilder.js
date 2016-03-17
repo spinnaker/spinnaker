@@ -6,12 +6,10 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
   require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../../../core/cache/deckCacheFactory.js'),
   require('../../../core/account/account.service.js'),
-  require('../../../core/naming/naming.service.js'),
-  require('../../../core/utils/dataConverter.service.js'),
-  require('../../../core/utils/lodash.js'),
+  require('../../../core/naming/naming.service.js')
 ])
   .factory('titanServerGroupCommandBuilder', function (settings, Restangular, $q,
-                                                     accountService, namingService, _, dataConverterService) {
+                                                     accountService, namingService) {
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
 
@@ -31,7 +29,7 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
           max: 1,
           desired: 1
         },
-        tags: [],
+        env: {},
         cloudProvider: 'titan',
         selectedProvider: 'titan',
         viewState: {
@@ -66,7 +64,7 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
         account: serverGroup.account,
         credentials: serverGroup.account,
         region: serverGroup.region,
-        env: dataConverterService.keyValueToEqualList(serverGroup.env),
+        env: serverGroup.env,
         source: {
           account: serverGroup.account,
           region: serverGroup.region,
@@ -119,8 +117,6 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
 
         pipelineCluster.strategy = pipelineCluster.strategy || '';
         var extendedCommand = angular.extend({}, command, pipelineCluster, viewOverrides);
-        extendedCommand.env = dataConverterService.keyValueToEqualList(extendedCommand.env);
-
         return extendedCommand;
       });
 

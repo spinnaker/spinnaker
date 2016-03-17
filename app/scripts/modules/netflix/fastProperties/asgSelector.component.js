@@ -12,7 +12,7 @@ module.exports = angular
     },
     templateUrl: require('./asgSelector.component.html'),
     controllerAs: 'fp',
-    controller: function controller($scope, _) {
+    controller: function controller() {
       var vm = this;
       vm.freeFormAsgField = true;
 

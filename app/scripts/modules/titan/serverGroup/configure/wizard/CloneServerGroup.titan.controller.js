@@ -4,11 +4,10 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titan.cloneServerGroup', [
   require('angular-ui-router'),
-  require('../../../../core/utils/dataConverter.service.js')
 ])
   .controller('titanCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $state,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorService,
-                                                  titanServerGroupConfigurationService, dataConverterService,
+                                                  titanServerGroupConfigurationService,
                                                   serverGroupCommand, application, title) {
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
@@ -102,7 +101,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.cloneServ
 
     this.clone = function () {
       let command = angular.copy($scope.command);
-      command.env = dataConverterService.equalListToKeyValue(command.env);
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
         return $modalInstance.close(command);
       }
