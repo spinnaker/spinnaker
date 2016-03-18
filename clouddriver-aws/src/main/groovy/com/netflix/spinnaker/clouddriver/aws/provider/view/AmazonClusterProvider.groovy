@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.*
 
 @Component
-class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
+class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
 
   private final Cache cacheView
   private final AwsProvider awsProvider
@@ -41,7 +41,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
   String defaultBuildHost
 
   @Autowired
-  CatsClusterProvider(Cache cacheView, AwsProvider awsProvider) {
+  AmazonClusterProvider(Cache cacheView, AwsProvider awsProvider) {
     this.cacheView = cacheView
     this.awsProvider = awsProvider
   }
