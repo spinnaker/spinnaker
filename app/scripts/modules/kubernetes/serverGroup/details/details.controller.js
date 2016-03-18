@@ -106,6 +106,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
 
       var submitMethod = (params) => serverGroupWriter.destroyServerGroup(serverGroup, application, angular.extend(params, {
         namespace: serverGroup.namespace,
+        interestingHealthProviderNames: ['KubernetesService']
       }));
 
       var stateParams = {
@@ -162,6 +163,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
       var submitMethod = (params) => {
         return serverGroupWriter.disableServerGroup(serverGroup, application, angular.extend(params, {
           namespace: serverGroup.region,
+          interestingHealthProviderNames: ['KubernetesService']
         }));
       };
 
@@ -190,6 +192,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
       var submitMethod = (params) => {
         return serverGroupWriter.enableServerGroup(serverGroup, app, angular.extend(params, {
           namespace: serverGroup.region,
+          interestingHealthProviderNames: ['KubernetesService']
         }));
       };
 

@@ -40,7 +40,7 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.resize
           serverGroupName: serverGroup.name,
           account: serverGroup.account,
           namespace: serverGroup.region,
-          interestingHealthProviderNames: $scope.command.interestingHealthProviderNames,
+          interestingHealthProviderNames: ['KubernetesPod'],
           reason: $scope.command.reason,
         });
       };
