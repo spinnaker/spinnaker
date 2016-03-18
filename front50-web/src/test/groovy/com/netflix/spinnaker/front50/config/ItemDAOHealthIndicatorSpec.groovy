@@ -22,16 +22,16 @@ import org.springframework.boot.actuate.health.Status
 import spock.lang.Shared
 import spock.lang.Specification
 
-class ApplicationDAOProviderHealthIndicatorSpec extends Specification {
+class ItemDAOHealthIndicatorSpec extends Specification {
   @Shared
-  ApplicationDAOProviderHealthIndicator healthCheck
+  ItemDAOHealthIndicator healthCheck
 
   @Shared
   ApplicationDAO dao
 
   void setup() {
     dao = Mock(ApplicationDAO)
-    healthCheck = new ApplicationDAOProviderHealthIndicator(applicationDAO: dao)
+    healthCheck = new ItemDAOHealthIndicator(itemDAO: dao)
   }
 
   void 'health check should return 5xx error if dao is not working'() {

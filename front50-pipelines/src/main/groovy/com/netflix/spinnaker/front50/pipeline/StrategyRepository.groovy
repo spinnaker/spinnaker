@@ -144,7 +144,7 @@ class StrategyRepository implements PipelineStrategyDAO {
 
     @Override
     boolean isHealthy() {
-        return false
+        return true
     }
 
     List<Pipeline> getPipelinesByApplication(String application) {

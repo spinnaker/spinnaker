@@ -17,8 +17,13 @@
 package com.netflix.spinnaker.front50.config
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.front50.model.application.ApplicationDAO
+import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
+import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
+import com.netflix.spinnaker.front50.model.project.ProjectDAO
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
@@ -37,5 +42,25 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
             this.registry, "controller.invocations", ["account", "application"], ["BasicErrorController"]
         )
     )
+  }
+
+  @Bean
+  ItemDAOHealthIndicator applicationDAOHealthIndicator(ApplicationDAO applicationDAO) {
+    return new ItemDAOHealthIndicator(itemDAO: applicationDAO)
+  }
+
+  @Bean
+  ItemDAOHealthIndicator projectDAOHealthIndicator(ProjectDAO projectDAO) {
+    return new ItemDAOHealthIndicator(itemDAO: projectDAO)
+  }
+
+  @Bean
+  ItemDAOHealthIndicator pipelineDAOHealthIndicator(PipelineDAO pipelineDAO) {
+    return new ItemDAOHealthIndicator(itemDAO: pipelineDAO)
+  }
+
+  @Bean
+  ItemDAOHealthIndicator pipelineStrategyDAOHealthIndicator(PipelineStrategyDAO pipelineStrategyDAO) {
+    return new ItemDAOHealthIndicator(itemDAO: pipelineStrategyDAO)
   }
 }

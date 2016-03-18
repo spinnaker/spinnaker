@@ -21,7 +21,7 @@ package com.netflix.spinnaker.front50.model.application
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.ItemDAO
 
-public interface ApplicationDAO extends ItemDAO<Application> {
+public interface ApplicationDAO extends com.netflix.spinnaker.front50.model.ItemDAO<Application> {
   Application findByName(String name) throws NotFoundException
 
   Collection<Application> search(Map<String, String> attributes)

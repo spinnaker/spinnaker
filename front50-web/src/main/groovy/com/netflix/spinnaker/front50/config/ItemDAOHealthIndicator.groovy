@@ -17,20 +17,16 @@
 
 package com.netflix.spinnaker.front50.config
 
-import com.netflix.spinnaker.front50.model.application.ApplicationDAO
-import org.springframework.beans.factory.annotation.Autowired
+import com.netflix.spinnaker.front50.model.ItemDAO
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.scheduling.annotation.Scheduled
-import org.springframework.stereotype.Component
 
 import java.util.concurrent.atomic.AtomicReference
 
-@Component
-public class ApplicationDAOProviderHealthIndicator implements HealthIndicator {
+public class ItemDAOHealthIndicator implements HealthIndicator {
 
-  @Autowired
-  ApplicationDAO applicationDAO
+  ItemDAO itemDAO
 
   private final AtomicReference<Health> lastHealth = new AtomicReference<>(null)
 
@@ -47,13 +43,13 @@ public class ApplicationDAOProviderHealthIndicator implements HealthIndicator {
     def healthBuilder = new Health.Builder().up()
 
     try {
-      if (applicationDAO.healthy) {
-        healthBuilder.withDetail(applicationDAO.class.simpleName, "Healthy")
+      if (itemDAO.healthy) {
+        healthBuilder.withDetail(itemDAO.class.simpleName, "Healthy")
       } else {
-        healthBuilder.down().withDetail(applicationDAO.class.simpleName, "Unhealthy")
+        healthBuilder.down().withDetail(itemDAO.class.simpleName, "Unhealthy")
       }
     } catch (RuntimeException e) {
-      healthBuilder.down().withDetail(applicationDAO.class.simpleName, "Unhealthy: `${e.message}`" as String)
+      healthBuilder.down().withDetail(itemDAO.class.simpleName, "Unhealthy: `${e.message}`" as String)
     }
 
     lastHealth.set(healthBuilder.build())
