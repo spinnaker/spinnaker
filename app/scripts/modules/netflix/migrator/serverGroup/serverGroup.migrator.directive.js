@@ -96,7 +96,9 @@ module.exports = angular
       taskReader.waitUntilTaskCompletes(application.name, task).then(migrationComplete, errorMode);
     };
 
-
+    this.migrationOptions = {
+      allowIngressFromClassic: true
+    };
 
     this.source = {
       region: serverGroup.region,
@@ -118,7 +120,8 @@ module.exports = angular
       name: serverGroup.name,
       source: this.source,
       target: target,
-      dryRun: true,
+      allowIngressFromClassic: true,
+      dryRun: true
     };
 
     // Generate preview
@@ -130,6 +133,7 @@ module.exports = angular
     this.submit = () => {
       this.viewState.executing = true;
       migrationConfig.dryRun = false;
+      migrationConfig.dryRun = this.migrationOptions.allowIngressFromClassic;
       let executor = migratorService.executeMigration(migrationConfig);
       executor.then(migrationStarted, errorMode);
     };
