@@ -2,18 +2,18 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.gce.basicSettings', [
+module.exports = angular.module('spinnaker.google.serverGroup.configure.wizard.basicSettings.controller', [
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
-  require('../../../../core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
-  require('../../../../core/modal/wizard/v2modalWizard.service.js'),
-  require('../../../../core/utils/rx.js'),
-  require('../../../../core/image/image.reader.js'),
-  require('../../../../core/naming/naming.service.js'),
-  require('../../../gceRegionSelectField.directive.js'),
-  require('../../../gceZoneSelectField.directive.js'),
-  require('../../../gceNetworkSelectField.directive.js'),
-  require('../../../subnet/subnetSelectField.directive.js'),
+  require('../../../../../core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
+  require('../../../../../core/modal/wizard/v2modalWizard.service.js'),
+  require('../../../../../core/utils/rx.js'),
+  require('../../../../../core/image/image.reader.js'),
+  require('../../../../../core/naming/naming.service.js'),
+  require('../../../../gceRegionSelectField.directive.js'),
+  require('../../../../gceZoneSelectField.directive.js'),
+  require('../../../../gceNetworkSelectField.directive.js'),
+  require('../../../../subnet/subnetSelectField.directive.js'),
 ])
   .controller('gceServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state,
                                                           v2modalWizardService, rx, imageReader, namingService) {
@@ -37,7 +37,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.basicSettin
     imageSearchResultsStream
       .throttle(250)
       .flatMapLatest(searchImages)
-      .subscribe(function(data) {
+      .subscribe(function (data) {
         $scope.command.backingData.filtered.images = data.map(function(image) {
           if (image.message && !image.imageName) {
             return image;
@@ -48,7 +48,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.basicSettin
           };
         });
         $scope.command.backingData.packageImages = $scope.command.backingData.filtered.images;
-     });
+      });
 
     this.searchImages = function(q) {
       imageSearchResultsStream.onNext(q);

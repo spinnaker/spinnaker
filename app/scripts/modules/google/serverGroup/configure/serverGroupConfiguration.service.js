@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
   require('../../../core/network/network.read.service.js'),
   require('../../../core/subnet/subnet.read.service.js'),
   require('../../image/image.reader.js'),
-  require('../../instance/gceInstanceTypeService.js'),
+  require('../../instance/gceInstanceType.service.js'),
 ])
   .factory('gceServerGroupConfigurationService', function(gceImageReader, accountService, securityGroupReader,
                                                           gceInstanceTypeService, cacheInitializer,

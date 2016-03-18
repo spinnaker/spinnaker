@@ -1,11 +1,13 @@
 'use strict';
 /* jshint camelcase:false */
 
+require('../configure/serverGroup.configure.gce.module.js');
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', [
   require('angular-ui-router'),
-  require('../configure/ServerGroupCommandBuilder.js'),
+  require('../configure/serverGroupCommandBuilder.service.js'),
   require('../../../core/application/modal/platformHealthOverride.directive.js'),
   require('../../../core/serverGroup/serverGroup.read.service.js'),
   require('../../../core/serverGroup/details/serverGroupWarningMessage.service.js'),
@@ -24,22 +26,21 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
                                                      gceServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, _, serverGroupWriter,
                                                      runningExecutionsService, serverGroupWarningMessageService, networkReader) {
 
-    let application = app;
-
-    $scope.state = {
+    this.state = {
       loading: true
     };
 
-    $scope.InsightFilterStateModel = InsightFilterStateModel;
+    this.InsightFilterStateModel = InsightFilterStateModel;
+    this.application = app;
 
-    function extractServerGroupSummary() {
-      var summary = _.find(application.serverGroups.data, function (toCheck) {
+    let extractServerGroupSummary = () => {
+      var summary = _.find(app.serverGroups.data, (toCheck) => {
         return toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region;
       });
       if (!summary) {
-        application.loadBalancers.data.some(function (loadBalancer) {
+        app.loadBalancers.data.some((loadBalancer) => {
           if (loadBalancer.account === serverGroup.accountId && loadBalancer.region === serverGroup.region) {
-            return loadBalancer.serverGroups.some(function (possibleServerGroup) {
+            return loadBalancer.serverGroups.some((possibleServerGroup) => {
               if (possibleServerGroup.name === serverGroup.name) {
                 summary = possibleServerGroup;
                 return true;
@@ -49,38 +50,50 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         });
       }
       return summary;
-    }
+    };
 
-    function retrieveServerGroup() {
+    let autoClose = () => {
+      if ($scope.$$destroyed) {
+        return;
+      }
+      $state.params.allowModalToStayOpen = true;
+      $state.go('^', null, {location: 'replace'});
+    };
+
+    let cancelLoader = () => {
+      this.state.loading = false;
+    };
+
+    let retrieveServerGroup = () => {
       var summary = extractServerGroupSummary();
-      return serverGroupReader.getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
+      return serverGroupReader.getServerGroup(app.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then((details) => {
         cancelLoader();
 
-        var restangularlessDetails = details.plain();
+        var plainDetails = details.plain();
+        angular.extend(plainDetails, summary);
         // it's possible the summary was not found because the clusters are still loading
-        restangularlessDetails.account = serverGroup.accountId;
-        angular.extend(restangularlessDetails, summary);
+        plainDetails.account = serverGroup.accountId;
 
-        $scope.serverGroup = restangularlessDetails;
-        $scope.runningExecutions = function() {
-          return runningExecutionsService.filterRunningExecutions($scope.serverGroup.executions);
+        this.serverGroup = plainDetails;
+        this.runningExecutions = () => {
+          return runningExecutionsService.filterRunningExecutions(this.serverGroup.executions);
         };
 
-        if (!_.isEmpty($scope.serverGroup)) {
+        if (!_.isEmpty(this.serverGroup)) {
           if (details.securityGroups) {
-            $scope.securityGroups = _(details.securityGroups).map(function(id) {
-              return _.find(application.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': 'global', 'id': id }) ||
-                _.find(application.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': 'global', 'name': id });
+            this.securityGroups = _(details.securityGroups).map((id) => {
+              return _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': 'global', 'id': id }) ||
+                _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': 'global', 'name': id });
             }).compact().value();
           }
 
-          $scope.serverGroup.network = getNetwork();
+          this.serverGroup.network = getNetwork();
           retrieveSubnet();
 
-          var pathSegments = $scope.serverGroup.launchConfig.instanceTemplate.selfLink.split('/');
+          var pathSegments = this.serverGroup.launchConfig.instanceTemplate.selfLink.split('/');
           var projectId = pathSegments[pathSegments.indexOf('projects') + 1];
-          $scope.serverGroup.logsLink =
-            'https://console.developers.google.com/project/' + projectId + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + $scope.serverGroup.name;
+          this.serverGroup.logsLink =
+            'https://console.developers.google.com/project/' + projectId + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + this.serverGroup.name;
 
           findStartupScript();
           prepareDiskDescriptions();
@@ -93,38 +106,26 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       },
         autoClose
       );
-    }
+    };
 
-    function autoClose() {
-      if ($scope.$$destroyed) {
-        return;
-      }
-      $state.params.allowModalToStayOpen = true;
-      $state.go('^', null, {location: 'replace'});
-    }
-
-    function cancelLoader() {
-      $scope.state.loading = false;
-    }
-
-    function findStartupScript() {
-      if (_.has($scope.serverGroup, 'launchConfig.instanceTemplate.properties.metadata.items')) {
-        let metadataItems = $scope.serverGroup.launchConfig.instanceTemplate.properties.metadata.items;
+    let findStartupScript = () => {
+      if (_.has(this.serverGroup, 'launchConfig.instanceTemplate.properties.metadata.items')) {
+        let metadataItems = this.serverGroup.launchConfig.instanceTemplate.properties.metadata.items;
         let startupScriptItem = _.find(metadataItems, metadataItem => {
           return metadataItem.key === 'startup-script';
         });
 
         if (startupScriptItem) {
-          $scope.serverGroup.startupScript = startupScriptItem.value;
+          this.serverGroup.startupScript = startupScriptItem.value;
         }
       }
-    }
+    };
 
-    function prepareDiskDescriptions() {
-      if (_.has($scope.serverGroup, 'launchConfig.instanceTemplate.properties.disks')) {
+    let prepareDiskDescriptions = () => {
+      if (_.has(this.serverGroup, 'launchConfig.instanceTemplate.properties.disks')) {
         let diskDescriptions = [];
 
-        $scope.serverGroup.launchConfig.instanceTemplate.properties.disks.forEach(disk => {
+        this.serverGroup.launchConfig.instanceTemplate.properties.disks.forEach(disk => {
           let diskLabel = disk.initializeParams.diskType + ':' + disk.initializeParams.diskSizeGb;
           let existingDiskDescription = _.find(diskDescriptions, description => {
             return description.bareLabel === diskLabel;
@@ -143,38 +144,38 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
           }
         });
 
-        $scope.serverGroup.diskDescriptions = diskDescriptions;
+        this.serverGroup.diskDescriptions = diskDescriptions;
       }
-    }
+    };
 
-    function prepareAvailabilityPolicies() {
-      if (_.has($scope.serverGroup, 'launchConfig.instanceTemplate.properties.scheduling')) {
-        let scheduling = $scope.serverGroup.launchConfig.instanceTemplate.properties.scheduling;
+    let prepareAvailabilityPolicies = () => {
+      if (_.has(this.serverGroup, 'launchConfig.instanceTemplate.properties.scheduling')) {
+        let scheduling = this.serverGroup.launchConfig.instanceTemplate.properties.scheduling;
 
-        $scope.serverGroup.availabilityPolicies = {
+        this.serverGroup.availabilityPolicies = {
           preemptibility: scheduling.preemptible ? 'On' : 'Off',
           automaticRestart: scheduling.automaticRestart ? 'On' : 'Off',
           onHostMaintenance: scheduling.onHostMaintenance === 'MIGRATE' ? 'Migrate' : 'Terminate',
         };
       }
-    }
+    };
 
-    function prepareAuthScopes() {
-      if (_.has($scope.serverGroup, 'launchConfig.instanceTemplate.properties.serviceAccounts')) {
-        let serviceAccounts = $scope.serverGroup.launchConfig.instanceTemplate.properties.serviceAccounts;
+    let prepareAuthScopes = () => {
+      if (_.has(this.serverGroup, 'launchConfig.instanceTemplate.properties.serviceAccounts')) {
+        let serviceAccounts = this.serverGroup.launchConfig.instanceTemplate.properties.serviceAccounts;
         let defaultServiceAccount = _.find(serviceAccounts, serviceAccount => {
           return serviceAccount.email === 'default';
         });
 
         if (defaultServiceAccount) {
-          $scope.serverGroup.authScopes = _.map(defaultServiceAccount.scopes, authScope => {
+          this.serverGroup.authScopes = _.map(defaultServiceAccount.scopes, authScope => {
             return authScope.replace('https://www.googleapis.com/auth/', '');
           });
         }
       }
-    }
+    };
 
-    function translateDiskType(diskType) {
+    let translateDiskType = (diskType) => {
       if (diskType === 'pd-ssd') {
         return 'Persistent SSD';
       } else if (diskType === 'local-ssd') {
@@ -182,14 +183,14 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       } else {
         return 'Persistent Std';
       }
-    }
+    };
 
-    function augmentTagsWithHelp() {
-      if (_.has($scope.serverGroup, 'launchConfig.instanceTemplate.properties.tags.items') && $scope.securityGroups) {
+    let augmentTagsWithHelp = () => {
+      if (_.has(this.serverGroup, 'launchConfig.instanceTemplate.properties.tags.items') && this.securityGroups) {
         let helpMap = {};
 
-        $scope.serverGroup.launchConfig.instanceTemplate.properties.tags.items.forEach(tag => {
-          let securityGroupsMatches = _.filter($scope.securityGroups, securityGroup => _.includes(securityGroup.targetTags, tag));
+        this.serverGroup.launchConfig.instanceTemplate.properties.tags.items.forEach(tag => {
+          let securityGroupsMatches = _.filter(this.securityGroups, securityGroup => _.includes(securityGroup.targetTags, tag));
           let securityGroupMatchNames = _.pluck(securityGroupsMatches, 'name');
 
           if (!_.isEmpty(securityGroupMatchNames)) {
@@ -199,30 +200,30 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
           }
         });
 
-        $scope.serverGroup.launchConfig.instanceTemplate.properties.tags.helpMap = helpMap;
+        this.serverGroup.launchConfig.instanceTemplate.properties.tags.helpMap = helpMap;
       }
-    }
+    };
 
-    function getNetwork() {
-      let networkUrl = _.get($scope.serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces[0].network');
+    let getNetwork = () => {
+      let networkUrl = _.get(this.serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces[0].network');
       return networkUrl ? _.last(networkUrl.split('/')) : null;
-    }
+    };
 
-    function retrieveSubnet() {
-      networkReader.listNetworksByProvider('gce').then(function(networks) {
+    let retrieveSubnet = () => {
+      networkReader.listNetworksByProvider('gce').then((networks) => {
         let autoCreateSubnets = _(networks)
-          .filter({ account: $scope.serverGroup.account, name: $scope.serverGroup.network })
+          .filter({ account: this.serverGroup.account, name: this.serverGroup.network })
           .pluck('autoCreateSubnets')
           .head();
 
         if (autoCreateSubnets) {
-          $scope.serverGroup.subnet = '(Auto-select)';
+          this.serverGroup.subnet = '(Auto-select)';
         } else {
-          let subnetUrl = _.get($scope.serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces[0].subnetwork');
-          $scope.serverGroup.subnet = subnetUrl ? _.last(subnetUrl.split('/')) : null;
+          let subnetUrl = _.get(this.serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces[0].subnetwork');
+          this.serverGroup.subnet = subnetUrl ? _.last(subnetUrl.split('/')) : null;
         }
       });
-    }
+    };
 
     retrieveServerGroup().then(() => {
       // If the user navigates away from the view before the initial retrieveServerGroup call completes,
@@ -233,17 +234,17 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
     });
 
     this.destroyServerGroup = () => {
-      var serverGroup = $scope.serverGroup;
+      var serverGroup = this.serverGroup;
 
       var taskMonitor = {
-        application: application,
+        application: app,
         title: 'Destroying ' + serverGroup.name,
         forceRefreshMessage: 'Refreshing application...',
         forceRefreshEnabled: true,
         katoPhaseToMonitor: 'DESTROY_ASG'
       };
 
-      var submitMethod = (params) => serverGroupWriter.destroyServerGroup(serverGroup, application, angular.extend(params, {
+      var submitMethod = (params) => serverGroupWriter.destroyServerGroup(serverGroup, app, angular.extend(params, {
         zone: serverGroup.zones[0],
       }));
 
@@ -256,12 +257,12 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       confirmationModalService.confirm({
         header: 'Really destroy ' + serverGroup.name + '?',
         buttonText: 'Destroy ' + serverGroup.name,
-        provider: 'gce',
         account: serverGroup.account,
+        provider: 'gce',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
         askForReason: true,
-        body: this.getBodyTemplate(serverGroup, application),
+        body: this.getBodyTemplate(serverGroup, app),
         onTaskComplete: () => {
           if ($state.includes('**.serverGroup', stateParams)) {
             $state.go('^');
@@ -275,31 +276,31 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       });
     };
 
-    this.getBodyTemplate = (serverGroup, application) => {
-      if (this.isLastServerGroupInRegion(serverGroup, application)) {
+    this.getBodyTemplate = (serverGroup, app) => {
+      if (this.isLastServerGroupInRegion(serverGroup, app)) {
         return serverGroupWarningMessageService.getMessage(serverGroup);
       }
     };
 
-    this.isLastServerGroupInRegion = function (serverGroup, application ) {
+    this.isLastServerGroupInRegion = (serverGroup, app) => {
       try {
-        var cluster = _.find(application.clusters, {name: serverGroup.cluster, account:serverGroup.account});
+        var cluster = _.find(app.clusters, {name: serverGroup.cluster, account: serverGroup.account});
         return _.filter(cluster.serverGroups, {region: serverGroup.region}).length === 1;
       } catch (error) {
         return false;
       }
     };
 
-    this.disableServerGroup = function disableServerGroup() {
-      var serverGroup = $scope.serverGroup;
+    this.disableServerGroup = () => {
+      var serverGroup = this.serverGroup;
 
       var taskMonitor = {
-        application: application,
+        application: app,
         title: 'Disabling ' + serverGroup.name
       };
 
       var submitMethod = (params) => {
-        return serverGroupWriter.disableServerGroup(serverGroup, application, angular.extend(params, {
+        return serverGroupWriter.disableServerGroup(serverGroup, app, angular.extend(params, {
           zone: serverGroup.zones[0],
         }));
       };
@@ -310,26 +311,25 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         provider: 'gce',
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
-        platformHealthOnlyShowOverride: application.attributes.platformHealthOnlyShowOverride,
+        platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
         platformHealthType: 'Google',
         submitMethod: submitMethod,
         askForReason: true,
       };
 
-      if (application.attributes.platformHealthOnly) {
+      if (app.attributes.platformHealthOnly) {
         confirmationModalParams.interestingHealthProviderNames = ['Google'];
       }
 
       confirmationModalService.confirm(confirmationModalParams);
     };
 
-    this.enableServerGroup = function enableServerGroup() {
-      var serverGroup = $scope.serverGroup;
+    this.enableServerGroup = () => {
+      var serverGroup = this.serverGroup;
 
       var taskMonitor = {
-        application: application,
+        application: app,
         title: 'Enabling ' + serverGroup.name,
-        forceRefreshMessage: 'Refreshing application...',
       };
 
       var submitMethod = (params) => {
@@ -343,62 +343,62 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         buttonText: 'Enable ' + serverGroup.name,
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
-        platformHealthOnlyShowOverride: application.attributes.platformHealthOnlyShowOverride,
+        platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
         platformHealthType: 'Google',
         submitMethod: submitMethod,
         askForReason: true,
       };
 
-      if (application.attributes.platformHealthOnly) {
+      if (app.attributes.platformHealthOnly) {
         confirmationModalParams.interestingHealthProviderNames = ['Google'];
       }
 
       confirmationModalService.confirm(confirmationModalParams);
     };
 
-    this.rollbackServerGroup = function rollbackServerGroup() {
+    this.rollbackServerGroup = () => {
       $uibModal.open({
         templateUrl: require('./rollback/rollbackServerGroup.html'),
         controller: 'gceRollbackServerGroupCtrl as ctrl',
         resolve: {
-          serverGroup: function() { return $scope.serverGroup; },
-          disabledServerGroups: function() {
-            var cluster = _.find(app.clusters, {name: $scope.serverGroup.cluster, account: $scope.serverGroup.account});
-            return _.filter(cluster.serverGroups, {isDisabled: true, region: $scope.serverGroup.region});
+          serverGroup: () => this.serverGroup,
+          disabledServerGroups: () => {
+            var cluster = _.find(app.clusters, {name: this.serverGroup.cluster, account: this.serverGroup.account});
+            return _.filter(cluster.serverGroups, {isDisabled: true, region: this.serverGroup.region});
           },
-          application: function() { return app; }
+          application: () => app
         }
       });
     };
 
-    this.resizeServerGroup = function resizeServerGroup() {
+    this.resizeServerGroup = () => {
       $uibModal.open({
         templateUrl: require('./resize/resizeServerGroup.html'),
         controller: 'gceResizeServerGroupCtrl as ctrl',
         resolve: {
-          serverGroup: function() { return $scope.serverGroup; },
-          application: function() { return application; }
+          serverGroup: () => { return this.serverGroup; },
+          application: () => { return app; }
         }
       });
     };
 
-    this.cloneServerGroup = function cloneServerGroup(serverGroup) {
+    this.cloneServerGroup = (serverGroup) => {
       $uibModal.open({
         templateUrl: require('../configure/wizard/serverGroupWizard.html'),
         controller: 'gceCloneServerGroupCtrl as ctrl',
         size: 'lg',
         resolve: {
-          title: function() { return 'Clone ' + serverGroup.name; },
-          application: function() { return application; },
-          serverGroup: function() { return serverGroup; },
-          serverGroupCommand: function() { return gceServerGroupCommandBuilder.buildServerGroupCommandFromExisting(application, serverGroup); },
+          title: () => { return 'Clone ' + serverGroup.name; },
+          application: () => { return app; },
+          serverGroup: () => { return serverGroup; },
+          serverGroupCommand: () => { return gceServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup); },
         }
       });
     };
 
-    this.showStartupScript = function showScalingActivities() {
-      $scope.userDataModalTitle = 'Startup Script';
-      $scope.userData = $scope.serverGroup.startupScript;
+    this.showStartupScript = () => {
+      this.userDataModalTitle = 'Startup Script';
+      this.userData = this.serverGroup.startupScript;
       $uibModal.open({
         templateUrl: require('../../../core/serverGroup/details/userData.html'),
         controller: 'CloseableModalCtrl',
@@ -406,17 +406,17 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       });
     };
 
-    this.buildJenkinsLink = function() {
-      if ($scope.serverGroup && $scope.serverGroup.buildInfo && $scope.serverGroup.buildInfo.jenkins) {
-        var jenkins = $scope.serverGroup.buildInfo.jenkins;
+    this.buildJenkinsLink = () => {
+      if (this.serverGroup && this.serverGroup.buildInfo && this.serverGroup.buildInfo.jenkins) {
+        var jenkins = this.serverGroup.buildInfo.jenkins;
         return jenkins.host + 'job/' + jenkins.name + '/' + jenkins.number;
       }
       return null;
     };
 
-    this.truncateCommitHash = function() {
-      if ($scope.serverGroup && $scope.serverGroup.buildInfo && $scope.serverGroup.buildInfo.commit) {
-        return $scope.serverGroup.buildInfo.commit.substring(0, 8);
+    this.truncateCommitHash = () => {
+      if (this.serverGroup && this.serverGroup.buildInfo && this.serverGroup.buildInfo.commit) {
+        return this.serverGroup.buildInfo.commit.substring(0, 8);
       }
       return null;
     };

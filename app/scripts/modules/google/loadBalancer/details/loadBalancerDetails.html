@@ -62,7 +62,14 @@
         <dt ng-if="loadBalancer.serverGroups">Server Groups</dt>
         <dd ng-if="loadBalancer.serverGroups">
           <ul ng-style="{'margin-left': InsightFilterStateModel.filtersExpanded ? '30px' : 0}">
-            <li ng-repeat="serverGroup in loadBalancer.serverGroups">{{serverGroup.name}}</li>
+            <li ng-repeat="serverGroup in loadBalancer.serverGroups | orderBy: ['isDisabled', '-name']">
+              <a ui-sref="^.serverGroup({region: serverGroup.region,
+                                          accountId: serverGroup.account,
+                                          serverGroup: serverGroup.name,
+                                          provider: 'gce'})">
+              {{serverGroup.name}}
+              </a>
+            </li>
           </ul>
         </dd>
       </dl>
@@ -95,14 +102,14 @@
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
         <dt>Target</dt>
         <dd>{{loadBalancer.elb.healthCheck.target}}</dd>
-        <dt>Interval</dt>
-        <dd>{{loadBalancer.elb.healthCheck.interval}} seconds</dd>
         <dt>Timeout</dt>
         <dd>{{loadBalancer.elb.healthCheck.timeout}} seconds</dd>
-        <dt>Unhealthy Threshold</dt>
-        <dd>{{loadBalancer.elb.healthCheck.unhealthyThreshold}}</dd>
+        <dt>Interval</dt>
+        <dd>{{loadBalancer.elb.healthCheck.interval}} seconds</dd>
         <dt>Healthy Threshold</dt>
         <dd>{{loadBalancer.elb.healthCheck.healthyThreshold}}</dd>
+        <dt>Unhealthy Threshold</dt>
+        <dd>{{loadBalancer.elb.healthCheck.unhealthyThreshold}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Logs">

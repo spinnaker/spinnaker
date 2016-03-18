@@ -1,25 +1,25 @@
 'use strict';
 
 let angular = require('angular');
-require('./serverGroupLoadBalancersDirective.html');
+require('./loadBalancerSelector.directive.html');
 
 describe('Directive: GCE Load Balancers Selector', function() {
 
   beforeEach(
     window.module(
-      require('./serverGroupLoadBalancersSelector.directive.js'),
-      require('./serverGroupConfiguration.service.js'),
+      require('./loadBalancerSelector.directive.js'),
+      require('./../../serverGroupConfiguration.service.js'),
       require('exports?"ui.select"!ui-select'),
-      require('../../../core/forms/uiSelect.decorator'),
-      require('../../../core/utils/timeFormatters.js'),
-      require('../../../core/utils/moment.js')
+      require('../../../../../core/forms/uiSelect.decorator.js'),
+      require('../../../../../core/utils/timeFormatters.js'),
+      require('../../../../../core/utils/moment.js')
     )
   );
 
   var selector, element, gceServerGroupConfigurationService, expectedTime;
 
   beforeEach(window.inject(function(_gceServerGroupConfigurationService_, _infrastructureCaches_, _momentService_,
-                               settings) {
+                                    settings) {
     gceServerGroupConfigurationService = _gceServerGroupConfigurationService_;
 
 
@@ -32,7 +32,7 @@ describe('Directive: GCE Load Balancers Selector', function() {
     var m = _momentService_.tz(t, settings.defaultTimeZone);
     expectedTime = m.format('YYYY-MM-DD HH:mm:ss z');
 
-    selector = angular.element('<gce-server-group-load-balancers-selector command="command" />');
+    selector = angular.element('<gce-server-group-load-balancer-selector command="command" />');
   }));
 
   beforeEach(window.inject(function($rootScope, $compile) {

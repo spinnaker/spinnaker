@@ -8,7 +8,7 @@ describe('Controller: gceCreateLoadBalancerCtrl', function () {
   // load the controller's module
   beforeEach(function() {
       window.module(
-        require('./CreateLoadBalancerCtrl.js')
+        require('./createLoadBalancer.controller.js')
       );
     });
 
@@ -65,11 +65,11 @@ describe('Controller: gceCreateLoadBalancerCtrl', function () {
     spyOn(this.wizardService, 'markComplete');
     this.$scope.loadBalancer.listeners[0].healthCheck = false;
     this.ctrl.setVisibilityHealthCheckTab();
-    expect(this.wizardService.excludePage.calls.count()).toEqual(1);
+    expect(this.wizardService.excludePage.calls.count()).toEqual(2);
 
     this.$scope.loadBalancer.listeners[0].healthCheck = true;
     this.ctrl.setVisibilityHealthCheckTab();
-    expect(this.wizardService.includePage.calls.count()).toEqual(1);
+    expect(this.wizardService.includePage.calls.count()).toEqual(2);
   });
 
 });
