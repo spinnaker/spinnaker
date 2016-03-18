@@ -17,11 +17,10 @@ package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.deploy.te
 
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.azure.templates.AzureLoadBalancerResourceTemplate
-import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.UpsertAzureLoadBalancerDescription
 import spock.lang.Specification
 
 class AzureLoadBalancerResourceTemplateSpec extends Specification {
-  UpsertAzureLoadBalancerDescription description
+  AzureLoadBalancerDescription description
 
   void setup(){
     description = createDescription()
@@ -33,12 +32,8 @@ class AzureLoadBalancerResourceTemplateSpec extends Specification {
     expect: template == expectedFullTemplate
   }
 
-  UpsertAzureLoadBalancerDescription createNoRulesDescription(){
-    new UpsertAzureLoadBalancerDescription()
-  }
-
-  UpsertAzureLoadBalancerDescription createDescription(){
-    UpsertAzureLoadBalancerDescription description = new UpsertAzureLoadBalancerDescription()
+  AzureLoadBalancerDescription createDescription(){
+    AzureLoadBalancerDescription description = new AzureLoadBalancerDescription()
     description.cloudProvider = 'azure'
     description.appName = 'azureMASM'
     description.loadBalancerName = 'azureMASM-st1-d11'

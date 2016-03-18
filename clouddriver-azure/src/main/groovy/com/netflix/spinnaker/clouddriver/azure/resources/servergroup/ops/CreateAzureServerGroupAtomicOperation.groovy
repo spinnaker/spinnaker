@@ -19,7 +19,9 @@ package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops
 import com.microsoft.azure.management.resources.models.DeploymentExtended
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.common.model.AzureDeploymentOperation
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
+import com.netflix.spinnaker.clouddriver.azure.templates.AzureLoadBalancerResourceTemplate
 import com.netflix.spinnaker.clouddriver.azure.templates.AzureServerGroupResourceTemplate
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -84,15 +86,41 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
         nextSubnet,
         description.securityGroup?.name)
 
-      task.updateStatus(BASE_PHASE, "Deploying server group")
+      AzureServerGroupNameResolver nameResolver = new AzureServerGroupNameResolver(description.accountName, description.region, description.credentials)
+      description.clusterName = description.name
+      description.name = nameResolver.resolveNextServerGroupName(description.application, description.stack, description.detail, false)
+      description.appName = description.application
+
+      task.updateStatus(BASE_PHASE, "Deploying new load balancer from ${description.loadBalancerName ?: 'new'}")
+      AzureLoadBalancerDescription lbDescription = description.loadBalancerName ?
+        description.credentials.networkClient.getLoadBalancer(resourceGroupName, description.loadBalancerName) : new AzureLoadBalancerDescription()
+      lbDescription.loadBalancerName = description.name
+      lbDescription.region = description.region
+      lbDescription.accountName = description.accountName
+      lbDescription.credentials = description.credentials
+      lbDescription.appName = description.application
+      lbDescription.cluster = description.clusterName
+      lbDescription.stack = description.stack
+      lbDescription.detail = description.detail
+
+      task.updateStatus(BASE_PHASE, "Create new load balancer ${description.loadBalancerName} in ${description.region}...")
       DeploymentExtended deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(description.credentials,
+        AzureLoadBalancerResourceTemplate.getTemplate(lbDescription),
+        resourceGroupName,
+        description.region,
+        description.loadBalancerName)
+      errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name)
+
+      description.loadBalancerName = lbDescription.loadBalancerName
+      task.updateStatus(BASE_PHASE, "Deploying server group")
+      deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(description.credentials,
         AzureServerGroupResourceTemplate.getTemplate(description),
         resourceGroupName,
         description.region,
         description.name,
         [subnetId: subnetId])
 
-      errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task,BASE_PHASE, description.credentials, resourceGroupName, deployment.name)
+      errList.addAll(AzureDeploymentOperation.checkDeploymentOperationStatus(task,BASE_PHASE, description.credentials, resourceGroupName, deployment.name))
     } catch (Exception e) {
       task.updateStatus(BASE_PHASE, "Deployment of server group ${description.name} failed: ${e.message}")
       errList.add(e.message)

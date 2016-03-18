@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.deploy.co
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.UpsertAzureLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops.UpsertAzureLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops.converters.UpsertAzureLoadBalancerAtomicOperationConverter
 import spock.lang.Shared
@@ -73,7 +73,7 @@ class UpsertAzureLoadBalancerAtomicOperationConverterUnitSpec extends Specificat
     converter.accountCredentialsProvider = accountCredentialsProvider
   }
 
-  void "upsertAzureLoadBalancerDescription type returns UpsertAzureLoadBalancerDescription and UpsertAzureLoadBalancerAtomicOperation"() {
+  void "upsertAzureLoadBalancerDescription type returns AzureLoadBalancerDescription and UpsertAzureLoadBalancerAtomicOperation"() {
     setup:
       def input = [
           loadBalancerName: LOAD_BALANCER_NAME,
@@ -126,7 +126,7 @@ class UpsertAzureLoadBalancerAtomicOperationConverterUnitSpec extends Specificat
       def description = converter.convertDescription(input)
 
     then:
-      description instanceof UpsertAzureLoadBalancerDescription
+      description instanceof AzureLoadBalancerDescription
       description.loadBalancerName == LOAD_BALANCER_NAME
     // TODO add rest of the checks
 

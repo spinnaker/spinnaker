@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 class AzureResourceOpsDescription {
   String name
   String cloudProvider
+  String accountName
   String appName
   String stack
   String detail

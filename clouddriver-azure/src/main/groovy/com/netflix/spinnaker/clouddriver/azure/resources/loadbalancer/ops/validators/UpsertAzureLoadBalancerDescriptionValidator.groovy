@@ -16,24 +16,24 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.ops.validators
 
+import com.netflix.spinnaker.clouddriver.azure.common.StandardAzureAttributeValidator
+import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.UpsertAzureLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.azure.common.StandardAzureAttributeValidator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 @Component("upsertAzureLoadBalancerDescriptionValidator")
 class UpsertAzureLoadBalancerDescriptionValidator extends
-  DescriptionValidator<UpsertAzureLoadBalancerDescription> {
+  DescriptionValidator<AzureLoadBalancerDescription> {
   private static final List<String> SUPPORTED_IP_PROTOCOLS = ["TCP", "UDP"]
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, UpsertAzureLoadBalancerDescription description, Errors errors) {
+  void validate(List priorDescriptions, AzureLoadBalancerDescription description, Errors errors) {
     def helper = new StandardAzureAttributeValidator("upsertAzureLoadBalancerDescription", errors)
 
     helper.validateCredentials(description.credentials, accountCredentialsProvider)
