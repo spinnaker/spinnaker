@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.front50.controllers
 
-import com.netflix.spinnaker.front50.notifications.HierarchicalLevel
-import com.netflix.spinnaker.front50.notifications.NotificationRepository
+import com.netflix.spinnaker.front50.model.notification.HierarchicalLevel
+import com.netflix.spinnaker.front50.model.notification.Notification
+import com.netflix.spinnaker.front50.model.notification.NotificationDAO
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
@@ -40,34 +41,47 @@ import org.springframework.web.bind.annotation.RestController
 class NotificationController {
 
     @Autowired
-    NotificationRepository notificationRepository
+    NotificationDAO notificationDAO
 
     @Autowired
     MessageSource messageSource
 
     @RequestMapping(value = '', method = RequestMethod.GET)
-    List<Map> list() {
-        notificationRepository.list()
+    List<Notification> list() {
+        notificationDAO.all()
     }
 
     @RequestMapping(value = 'global', method = RequestMethod.GET)
-    Map getGlobal() {
-        notificationRepository.getGlobal()
+    Notification getGlobal() {
+        notificationDAO.getGlobal()
     }
 
     @RequestMapping(value = 'global', method = RequestMethod.POST)
-    void saveGlobal(@RequestBody Map notification) {
-        notificationRepository.saveGlobal(notification)
+    void saveGlobal(@RequestBody Notification notification) {
+        notificationDAO.saveGlobal(notification)
     }
 
     @RequestMapping(value = '{type}/{name}', method = RequestMethod.GET)
-    Map listByApplication(@PathVariable(value = 'type') String type, @PathVariable(value = 'name') String name) {
+    Notification listByApplication(@PathVariable(value = 'type') String type, @PathVariable(value = 'name') String name) {
         HierarchicalLevel level = getLevel(type)
-        notificationRepository.get(level, name)
+        def notification = notificationDAO.get(level, name)
+
+        if (level == HierarchicalLevel.APPLICATION) {
+            NotificationDAO.NOTIFICATION_FORMATS.each {
+                if (getGlobal()."$it") {
+                    if (!notification."${it}") {
+                        notification."${it}" = []
+                    }
+                    notification."$it".addAll(getGlobal()."$it")
+                }
+            }
+        }
+
+        return notification
     }
 
     @RequestMapping(value = 'batchUpdate', method = RequestMethod.POST)
-    void batchUpdate(@RequestBody List<Map> notifications) {
+    void batchUpdate(@RequestBody List<Notification> notifications) {
         notifications.each { it ->
             try {
                 boolean isGlobal = false
@@ -76,7 +90,7 @@ class NotificationController {
                     isGlobal = it.hipchat.first().level == 'global'
 
                 if (isGlobal) {
-                    notificationRepository.saveGlobal(it)
+                    notificationDAO.saveGlobal(it)
                 } else {
                     save('application', it.application, it)
                 }
@@ -90,17 +104,17 @@ class NotificationController {
     @RequestMapping(value = '{type}/{name}', method = RequestMethod.POST)
     void save(
             @PathVariable(value = 'type') String type,
-            @PathVariable(value = 'name') String name, @RequestBody Map notification) {
+            @PathVariable(value = 'name') String name, @RequestBody Notification notification) {
         HierarchicalLevel level = getLevel(type)
         if (name) {
-            notificationRepository.save(level, name, notification)
+            notificationDAO.save(level, name, notification)
         }
     }
 
     @RequestMapping(value = '{type}/{name}', method = RequestMethod.DELETE)
     void delete(@PathVariable(value = 'type') String type, @PathVariable(value = 'name') String name) {
         HierarchicalLevel level = getLevel(type)
-        notificationRepository.delete(level, name)
+        notificationDAO.delete(level, name)
     }
 
     private static HierarchicalLevel getLevel(String type) {

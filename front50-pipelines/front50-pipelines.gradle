@@ -21,4 +21,6 @@ configurations.all {
 dependencies {
     compile project(":front50-core")
     compile project(":front50-cassandra")
+
+    testCompile project(":front50-test")
 }

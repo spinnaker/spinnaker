@@ -15,26 +15,31 @@
 
 package com.netflix.spinnaker.front50.notifications
 
-import com.netflix.spinnaker.front50.utils.AbstractCassandraBackedSpec
+import com.netflix.spinnaker.front50.model.notification.Notification
+import com.netflix.spinnaker.front50.utils.CassandraTestHelper
 import spock.lang.Shared
+import spock.lang.Specification
 
-class NotificationsRepositorySpec extends AbstractCassandraBackedSpec {
+class NotificationsRepositorySpec extends Specification{
+
+    @Shared
+    CassandraTestHelper cassandraTestHelper = new CassandraTestHelper()
 
     @Shared
     NotificationRepository repo
 
     void setupSpec() {
         repo = new NotificationRepository()
-        repo.keyspace = keyspace
+        repo.keyspace = cassandraTestHelper.keyspace
         repo.init()
     }
 
     void cleanup() {
-        keyspace.truncateColumnFamily(NotificationRepository.CF_NOTIFICATIONS)
+        cassandraTestHelper.keyspace.truncateColumnFamily(NotificationRepository.CF_NOTIFICATIONS)
     }
 
     void setup() {
-        keyspace.truncateColumnFamily(NotificationRepository.CF_NOTIFICATIONS)
+        cassandraTestHelper.keyspace.truncateColumnFamily(NotificationRepository.CF_NOTIFICATIONS)
     }
 
     void 'globals can be saved, retrieved, and overwritten'() {
@@ -43,7 +48,7 @@ class NotificationsRepositorySpec extends AbstractCassandraBackedSpec {
                 [email: [
                         [address: 'tyrionl@netflix.com', when: ['pipeline.failed']]
                 ]
-                ]
+                ] as Notification
         )
 
         and:
@@ -59,7 +64,7 @@ class NotificationsRepositorySpec extends AbstractCassandraBackedSpec {
                 [email: [
                         [address: 'tywinl@netflix.com', when: ['tasks.failed']]
                 ]
-                ]
+                ] as Notification
         )
 
         and:
@@ -71,52 +76,4 @@ class NotificationsRepositorySpec extends AbstractCassandraBackedSpec {
         global.email[0].level == 'global'
 
     }
-
-    void 'globals are folded into application notifications'() {
-        when:
-        repo.saveGlobal(
-                [email: [
-                        [address: 'tyrionl@netflix.com', when: ['pipeline.failed']]
-                ]
-                ]
-        )
-        repo.save(HierarchicalLevel.APPLICATION, 'front50',
-                [email: [
-                        [address: 'orca@netflix.com', when: ['tasks.failed']]
-                ]
-                ]
-        )
-
-        and:
-        Map notifications = repo.get(HierarchicalLevel.APPLICATION, 'front50')
-
-        then:
-        notifications.email.size() == 2
-
-        notifications.email[0].address == 'orca@netflix.com'
-        notifications.email[0].when == ['tasks.failed']
-        notifications.email[0].level == 'application'
-
-        notifications.email[1].address == 'tyrionl@netflix.com'
-        notifications.email[1].when == ['pipeline.failed']
-        notifications.email[1].level == 'global'
-    }
-
-    void 'globals are folded in when application does not exist'() {
-        when:
-        repo.saveGlobal(
-                [email: [
-                        [address: 'tyrionl@netflix.com', when: ['pipeline.failed']]
-                ]
-                ]
-        )
-
-        and:
-        Map nonexistentApp = repo.get(HierarchicalLevel.APPLICATION, 'does-not-exist')
-
-        then:
-        nonexistentApp == repo.getGlobal()
-
-    }
-
 }

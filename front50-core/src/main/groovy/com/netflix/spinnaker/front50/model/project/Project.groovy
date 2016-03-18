@@ -17,7 +17,10 @@
 
 package com.netflix.spinnaker.front50.model.project
 
-class Project {
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.front50.model.Timestamped
+
+class Project implements Timestamped {
   String id
   String name
   String email
@@ -26,6 +29,17 @@ class Project {
 
   Long updateTs
   Long createTs
+
+  @Override
+  @JsonIgnore
+  Long getLastModified() {
+    return updateTs
+  }
+
+  @Override
+  void setLastModified(Long lastModified) {
+    this.updateTs = lastModified
+  }
 
   static class ProjectConfig {
     Collection<PipelineConfig> pipelineConfigs

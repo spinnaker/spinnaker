@@ -31,12 +31,14 @@ import com.netflix.spinnaker.front50.exception.NotFoundException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
 
 @Slf4j
 @Component
+@ConditionalOnExpression('${cassandra.enabled:true}')
 class CassandraProjectDAO implements ProjectDAO {
   private static final String CF_NAME = 'project'
   private static final String TEST_QUERY = '''select * from project;'''
@@ -91,22 +93,41 @@ class CassandraProjectDAO implements ProjectDAO {
     return project
   }
 
+  @Override
+  Project findByName(String name) throws NotFoundException {
+    return findBy("name", name)
+  }
+
+  @Override
+  Project findById(String id) throws NotFoundException {
+    return findBy("id", id)
+  }
+
   Set<Project> all() {
     return unmarshallResults(runQuery('SELECT * FROM project;'))
   }
 
-  Project create(Project project) {
+  Project create(String id, Project project) {
     runQuery(buildInsertQuery(objectMapper, project))
     return findBy("name", project.name)
   }
 
-  Project update(String id, Project project) {
+  void update(String id, Project project) {
     runQuery(buildInsertQuery(objectMapper, project))
-    return findBy("id", id)
   }
 
   void delete(String id) {
     runQuery("DELETE FROM project WHERE id = ${id};")
+  }
+
+  @Override
+  void bulkImport(Collection<Project> projects) {
+    throw new UnsupportedOperationException()
+  }
+
+  @Override
+  boolean isHealthy() {
+    return true
   }
 
   void truncate() {

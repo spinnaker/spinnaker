@@ -99,6 +99,11 @@ public class ApplicationsController {
     return getApplication().findByName(application)
   }
 
+  @RequestMapping(method = RequestMethod.POST, value = "/batchUpdate")
+  void batchUpdate(@RequestBody final Collection<Application> applications) {
+    applicationDAO.bulkImport(applications)
+  }
+
   @ExceptionHandler(Application.ValidationException)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   Map handleValidationException(Application.ValidationException ex) {

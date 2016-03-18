@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.front50.controllers
 
-import com.netflix.spinnaker.front50.pipeline.StrategyRepository
+import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
@@ -32,20 +33,20 @@ import org.springframework.web.bind.annotation.RestController
 class StrategyController {
 
     @Autowired
-    StrategyRepository strategyRepository
+    PipelineStrategyDAO pipelineStrategyDAO
 
     @RequestMapping(value = '', method = RequestMethod.GET)
-    List<Map> list() {
-        strategyRepository.list()
+    List<Pipeline> list() {
+        pipelineStrategyDAO.all()
     }
 
     @RequestMapping(value = '{application:.+}', method = RequestMethod.GET)
-    List<Map> listByApplication(@PathVariable(value = 'application') String application) {
-        strategyRepository.getPipelinesByApplication(application)
+    List<Pipeline> listByApplication(@PathVariable(value = 'application') String application) {
+        pipelineStrategyDAO.getPipelinesByApplication(application)
     }
 
     @RequestMapping(value = '', method = RequestMethod.POST)
-    void save(@RequestBody Map strategy) {
+    void save(@RequestBody Pipeline strategy) {
         if (!strategy.id) {
             // ensure that cron triggers are assigned a unique identifier for new strategies
             def triggers = (strategy.triggers ?: []) as List<Map>
@@ -54,27 +55,33 @@ class StrategyController {
             }
         }
 
-        strategyRepository.save(strategy)
+        pipelineStrategyDAO.create(strategy.getId(), strategy)
     }
 
     @RequestMapping(value = 'batchUpdate', method = RequestMethod.POST)
-    void batchUpdate(@RequestBody List<Map> strategies) {
-        strategyRepository.batchUpdate(strategies)
+    void batchUpdate(@RequestBody List<Pipeline> strategies) {
+        pipelineStrategyDAO.bulkImport(strategies)
     }
 
     @RequestMapping(value = '{application}/{strategy:.+}', method = RequestMethod.DELETE)
     void delete(@PathVariable String application, @PathVariable String strategy) {
-        strategyRepository.delete(application, strategy)
+        pipelineStrategyDAO.delete(
+            pipelineStrategyDAO.getPipelineId(application, strategy)
+        )
     }
 
     @RequestMapping(value = 'deleteById/{id:.+}', method = RequestMethod.DELETE)
     void delete(@PathVariable String id) {
-        strategyRepository.deleteById(id)
+        pipelineStrategyDAO.delete(id)
     }
 
     @RequestMapping(value = 'move', method = RequestMethod.POST)
     void rename(@RequestBody RenameCommand command) {
-        strategyRepository.rename(command.application, command.from, command.to)
+        def pipelineId = pipelineStrategyDAO.getPipelineId(command.application, command.from)
+        def pipeline = pipelineStrategyDAO.findById(pipelineId)
+        pipeline.setName(command.to)
+
+        pipelineStrategyDAO.update(pipelineId, pipeline)
     }
 
     static class RenameCommand {
@@ -82,5 +89,4 @@ class StrategyController {
         String from
         String to
     }
-
 }

@@ -41,7 +41,7 @@ import javax.annotation.PostConstruct
 
 @Slf4j
 @Component
-@ConditionalOnExpression('${spinnaker.cassandra.enabled:false}')
+@ConditionalOnExpression('${cassandra.enabled:true}')
 class CassandraApplicationDAO implements ApplicationDAO {
   private static final MapSerializer<String, String> mapSerializer = new MapSerializer<String, String>(UTF8Type.instance, UTF8Type.instance)
   private static final ListSerializer<String> listSerializer = new ListSerializer(UTF8Type.instance)
@@ -85,18 +85,6 @@ class CassandraApplicationDAO implements ApplicationDAO {
              ) with compression={};''').execute()
     }
 
-    try {
-      // TODO: migrate schema on the fly, remove any time after 2/1/16.
-      runQuery("select details_json from application")
-    } catch (BadRequestException ignored) {
-      runQuery("ALTER TABLE application ADD details_json varchar")
-      runQuery("ALTER TABLE application ADD version int")
-      all().each { Application application ->
-        application.platformHealthOnly = new Boolean(application.details().platformHealthOnly)
-        application.platformHealthOnlyShowOverride = new Boolean(application.details().platformHealthOnlyShowOverride)
-        update(application.name, application)
-      }
-    }
   }
 
   @Override
@@ -108,6 +96,11 @@ class CassandraApplicationDAO implements ApplicationDAO {
     }
 
     return applications[0]
+  }
+
+  @Override
+  Application findById(String id) throws NotFoundException {
+    return findByName(id)
   }
 
   @Override
@@ -156,44 +149,12 @@ class CassandraApplicationDAO implements ApplicationDAO {
 
   @Override
   Set<Application> search(Map<String, String> attributes) {
-    def searchableApplications = all()
-    attributes = attributes.collect { k,v -> [k.toLowerCase(), v] }.collectEntries()
+    return ApplicationDAO.Searcher.search(all(), attributes);
+  }
 
-    if (attributes["accounts"]) {
-      // CQL 3.0/Cassandra 1.2 doesn't support the filtering of collections (3.1/2.0+ do)
-      def accounts = attributes["accounts"].split(",").collect { it.trim().toLowerCase() }
-      searchableApplications = searchableApplications.findAll {
-        def applicationAccounts = (it.accounts ?: "").split(",").collect { it.trim().toLowerCase() }
-        return applicationAccounts.containsAll(accounts)
-      }
-
-      // remove the 'accounts' search attribute so it's not picked up again in the field-level filtering below
-      attributes.remove("accounts")
-    }
-
-    // filtering vs. querying to achieve case-insensitivity without using an additional column (small data set)
-    def items = searchableApplications.findAll { app ->
-      def result = true
-      attributes.each { k, v ->
-        if (!v) {
-          return
-        }
-        if (!app.hasProperty(k) && !app.details().containsKey(k)) {
-          result = false
-        }
-        def appVal = app.hasProperty(k) ? app[k] : app.details()[k] ?: ""
-        if (!appVal.toString().toLowerCase().contains(v.toLowerCase())) {
-          result = false
-        }
-      }
-      return result
-    } as Set
-
-    if (!items) {
-      throw new NotFoundException("No Application found for search criteria $attributes")
-    }
-
-    return items
+  @Override
+  void bulkImport(Collection<Application> applications) {
+    throw new UnsupportedOperationException()
   }
 
   void truncate() {

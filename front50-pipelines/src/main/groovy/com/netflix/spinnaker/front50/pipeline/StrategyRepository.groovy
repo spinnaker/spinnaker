@@ -25,8 +25,12 @@ import com.netflix.astyanax.model.ColumnFamily
 import com.netflix.astyanax.retry.RetryNTimes
 import com.netflix.astyanax.serializers.IntegerSerializer
 import com.netflix.astyanax.serializers.StringSerializer
+import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Repository
 
 import javax.annotation.PostConstruct
@@ -34,10 +38,11 @@ import javax.annotation.PostConstruct
 /**
  * Repository for presets
  */
+@Slf4j
 @Repository
 @SuppressWarnings('PropertyName')
-@Slf4j
-class StrategyRepository {
+@ConditionalOnExpression('${cassandra.enabled:true}')
+class StrategyRepository implements PipelineStrategyDAO {
 
     @Autowired
     Keyspace keyspace
@@ -70,12 +75,79 @@ class StrategyRepository {
         }
     }
 
-    List<Map> list() {
+    @Override
+    Pipeline findById(String id) throws NotFoundException {
+        def result = runQuery(
+            "SELECT id, name, definition FROM strategy WHERE id = ${id};"
+        )
+        def strategies = resolvePipelines(result)
+
+        if (!strategies) {
+            throw new NotFoundException("No strategy found with id '${id}'")
+        }
+        return strategies[0]
+    }
+
+    List<Pipeline> all() {
         def result = runQuery("""SELECT id, name, definition FROM strategy;""", true)
         resolvePipelines(result)
     }
 
-    List<Map> getPipelinesByApplication(String application) {
+    @Override
+    Pipeline create(String id, Pipeline item) {
+        update(id, item)
+        return findById(getPipelineId(item.getApplication(), item.getName()))
+    }
+
+    @Override
+    void update(String id, Pipeline item) {
+        if (!item.id) {
+            id = getPipelineId(item.application as String, item.name as String)
+        } else {
+            id = item.id
+        }
+        runQuery(
+            """
+            INSERT INTO strategy(
+                id,
+                application,
+                name,
+                definition)
+            VALUES(
+                ${id ?: 'now()'},
+                '${sanitize(item.application as String)}',
+                '${sanitize(item.name as String)}',
+                '${sanitize(mapper.writeValueAsString(item))}'
+            );
+            """
+        )
+    }
+
+    @Override
+    void delete(String id) {
+        runQuery(
+            "DELETE FROM strategy WHERE id = ${id};"
+        )
+    }
+
+    @Override
+    void bulkImport(Collection<Pipeline> items) {
+        items.each {
+            try {
+                log.info "Trying to insert ${it.application} : ${it.name}"
+                update(it.getId(), it)
+            } catch (Exception e) {
+                log.error('could not process {}', it)
+            }
+        }
+    }
+
+    @Override
+    boolean isHealthy() {
+        return false
+    }
+
+    List<Pipeline> getPipelinesByApplication(String application) {
         def result = runQuery(
             """SELECT id, name, definition FROM strategy where application = '${sanitize(application)}';""",
             true
@@ -83,7 +155,7 @@ class StrategyRepository {
         resolvePipelines(result)
     }
 
-    String get(String application, String name) {
+    String getPipelineId(String application, String name) {
         String id
         def result = runQuery(
             "SELECT id, application FROM strategy WHERE name = '${sanitize(name)}';",
@@ -99,76 +171,19 @@ class StrategyRepository {
         id
     }
 
-    void rename(String application, String currentName, String newName) {
-        String id = get(application, currentName)
-        if (id) {
-            runQuery(
-                "UPDATE strategy SET name = '${sanitize(newName)}' WHERE id = ${id};"
-            )
-        }
-    }
-
-    void save(Map strategy) {
-        String id
-        if (!strategy.id) {
-            id = get(strategy.application, strategy.name)
-        } else {
-            id = strategy.id
-        }
-        runQuery(
-            """
-            INSERT INTO strategy(
-                id,
-                application,
-                name,
-                definition)
-            VALUES(
-                ${id ?: 'now()'},
-                '${sanitize(strategy.application)}',
-                '${sanitize(strategy.name)}',
-                '${sanitize(mapper.writeValueAsString(strategy))}'
-            );
-            """
-        )
-    }
-
     private String sanitize(String val) {
         val.replaceAll("'", "''")
     }
 
-    void delete(String application, String name) {
-        String id = get(application, name)
-        deleteById(id)
-    }
-
-    void batchUpdate(List<Map> strategies) {
-        strategies.each {
-            try {
-                log.info "Trying to insert ${it.application} : ${it.name}"
-                save(it)
-            } catch (Exception e) {
-                log.error('could not process {}', it)
-            }
-        }
-    }
-
-    void deleteById(String id) {
-        if (id) {
-            runQuery(
-                "DELETE FROM strategy WHERE id = ${id};"
-            )
-        }
-    }
-
-    private List<Map> resolvePipelines(result) {
-        List<Map> strategies = []
+    private List<Pipeline> resolvePipelines(result) {
+        List<Pipeline> strategies = []
         if (result != null && result.result?.rows?.rows) {
             result.result.rows.rows.each { row ->
                 def id
                 try {
                     id = row.columns.getColumnByName('id').UUIDValue.toString()
                     String name = row.columns.getColumnByName('name').stringValue
-                    def strategy = mapper.readValue(row.columns.getColumnByName('definition').stringValue, Map)
+                    def strategy = mapper.readValue(row.columns.getColumnByName('definition').stringValue, Pipeline)
                     strategy.id = id
                     strategy.name = name
                     strategies.add(strategy)

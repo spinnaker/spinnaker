@@ -24,7 +24,7 @@ buildscript {
   }
   dependencies {
     classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.5.0'
-    classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}" 
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
   }
 }
 
@@ -35,7 +35,7 @@ allprojects { project ->
   group = "com.netflix.spinnaker.front50"
 
   spinnaker {
-    dependenciesVersion = "0.25.0"
+    dependenciesVersion = "0.30.0"
   }
   test {
     testLogging {

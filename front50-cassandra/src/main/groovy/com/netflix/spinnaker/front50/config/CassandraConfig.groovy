@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
 
 @Configuration
+@ConditionalOnExpression('${cassandra.enabled:true}')
 class CassandraConfig {
   @Value('${spinnaker.cassandra.name:global}')
   String name

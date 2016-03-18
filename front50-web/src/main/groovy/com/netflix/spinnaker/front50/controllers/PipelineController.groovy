@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.front50.controllers
 
-import com.netflix.spinnaker.front50.pipeline.PipelineRepository
+import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
@@ -32,20 +33,20 @@ import org.springframework.web.bind.annotation.RestController
 class PipelineController {
 
     @Autowired
-    PipelineRepository pipelineRepository
+    PipelineDAO pipelineDAO
 
     @RequestMapping(value = '', method = RequestMethod.GET)
-    List<Map> list() {
-        pipelineRepository.list()
+    List<Pipeline> list() {
+        pipelineDAO.all()
     }
 
     @RequestMapping(value = '{application:.+}', method = RequestMethod.GET)
-    List<Map> listByApplication(@PathVariable(value = 'application') String application) {
-        pipelineRepository.getPipelinesByApplication(application)
+    List<Pipeline> listByApplication(@PathVariable(value = 'application') String application) {
+        pipelineDAO.getPipelinesByApplication(application)
     }
 
     @RequestMapping(value = '', method = RequestMethod.POST)
-    void save(@RequestBody Map pipeline) {
+    void save(@RequestBody Pipeline pipeline) {
         if (!pipeline.id) {
             // ensure that cron triggers are assigned a unique identifier for new pipelines
             def triggers = (pipeline.triggers ?: []) as List<Map>
@@ -54,27 +55,33 @@ class PipelineController {
             }
         }
 
-        pipelineRepository.save(pipeline)
+        pipelineDAO.create(pipeline.id as String, pipeline)
     }
 
     @RequestMapping(value = 'batchUpdate', method = RequestMethod.POST)
-    void batchUpdate(@RequestBody List<Map> pipelines) {
-        pipelineRepository.batchUpdate(pipelines)
+    void batchUpdate(@RequestBody List<Pipeline> pipelines) {
+        pipelineDAO.bulkImport(pipelines)
     }
 
     @RequestMapping(value = '{application}/{pipeline:.+}', method = RequestMethod.DELETE)
     void delete(@PathVariable String application, @PathVariable String pipeline) {
-        pipelineRepository.delete(application, pipeline)
+        pipelineDAO.delete(
+            pipelineDAO.getPipelineId(application, pipeline)
+        )
     }
 
     @RequestMapping(value = 'deleteById/{id:.+}', method = RequestMethod.DELETE)
     void delete(@PathVariable String id) {
-        pipelineRepository.deleteById(id)
+        pipelineDAO.delete(id)
     }
 
     @RequestMapping(value = 'move', method = RequestMethod.POST)
     void rename(@RequestBody RenameCommand command) {
-        pipelineRepository.rename(command.application, command.from, command.to)
+        def pipelineId = pipelineDAO.getPipelineId(command.application, command.from)
+        def pipeline = pipelineDAO.findById(pipelineId)
+        pipeline.setName(command.to)
+
+        pipelineDAO.update(pipelineId, pipeline)
     }
 
     static class RenameCommand {

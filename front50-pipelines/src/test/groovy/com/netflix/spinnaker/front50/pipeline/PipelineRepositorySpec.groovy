@@ -15,23 +15,28 @@
 
 package com.netflix.spinnaker.front50.pipeline
 
-import com.netflix.spinnaker.front50.utils.AbstractCassandraBackedSpec
+import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+import com.netflix.spinnaker.front50.utils.CassandraTestHelper
 import spock.lang.Shared
+import spock.lang.Specification
 
-class PipelineRepositorySpec extends AbstractCassandraBackedSpec {
+class PipelineRepositorySpec extends Specification {
+
+    @Shared
+    CassandraTestHelper cassandraTestHelper = new CassandraTestHelper()
 
     @Shared
     PipelineRepository repo
 
     @Shared
-    Map pipeline = [
+    Pipeline pipeline = [
         application: 'myapp',
         name       : 'my pipeline',
         randomField: '42'
-    ]
+    ] as Pipeline
 
     void setupSpec() {
-        repo = new PipelineRepository(keyspace: keyspace)
+        repo = new PipelineRepository(keyspace: cassandraTestHelper.keyspace)
         repo.init()
     }
 
@@ -45,7 +50,7 @@ class PipelineRepositorySpec extends AbstractCassandraBackedSpec {
 
     void 'can save and retrieve a pipeline'() {
         given:
-        repo.save(pipeline)
+        repo.create(pipeline.getId(), pipeline)
 
         when:
         List<Map> retrieved = repo.getPipelinesByApplication('myapp')
@@ -60,16 +65,16 @@ class PipelineRepositorySpec extends AbstractCassandraBackedSpec {
 
     void 'can get list of pipelines'() {
         given:
-        repo.save(pipeline)
+        repo.create(pipeline.getId(), pipeline)
         def pipeline2 = pipeline.clone()
         pipeline2.name = 'new pipeline'
-        repo.save(pipeline2)
+        repo.create(pipeline2.id, pipeline2)
         def pipeline3 = pipeline.clone()
         pipeline3.application = 'new pipeline name'
-        repo.save(pipeline3)
+        repo.create(pipeline3.id, pipeline3)
 
         when:
-        List<Map> retrieved = repo.list()
+        List<Map> retrieved = repo.all()
 
         then:
         retrieved.size() == 3
@@ -77,14 +82,14 @@ class PipelineRepositorySpec extends AbstractCassandraBackedSpec {
 
     void 'saving the same pipeline again preserves id'() {
         given:
-        repo.save(pipeline)
+        repo.create(pipeline.getId(), pipeline)
 
         when:
         Map retrievedPipeline = repo.getPipelinesByApplication('myapp').first()
         String pipelineId = retrievedPipeline.id
 
         and:
-        repo.save(retrievedPipeline)
+        repo.update(retrievedPipeline.getId(), retrievedPipeline)
 
         then:
         pipelineId == repo.getPipelinesByApplication('myapp').first().id
@@ -92,108 +97,56 @@ class PipelineRepositorySpec extends AbstractCassandraBackedSpec {
 
     void 'can get the id of a pipeline via name and application'() {
         given:
-        repo.save(pipeline)
+        repo.create(pipeline.getId(), pipeline)
         Map retrievedPipeline = repo.getPipelinesByApplication('myapp').first()
         String pipelineId = retrievedPipeline.id
 
         expect:
-        repo.get(pipeline.application, pipeline.name) == pipelineId
-        repo.get(pipeline.application, 'invalidName') == null
-        repo.get('badApp', pipeline.name) == null
+        repo.getPipelineId(pipeline.application, pipeline.name) == pipelineId
+        repo.getPipelineId(pipeline.application, 'invalidName') == null
+        repo.getPipelineId('badApp', pipeline.name) == null
     }
 
     void 'can batch insert pipelines'() {
         given:
         def pipeline2 = pipeline.clone()
         pipeline2.name = 'new pipeline'
-        repo.batchUpdate([pipeline, pipeline2])
+        repo.bulkImport([pipeline, pipeline2])
 
         expect:
-        repo.list().size() == 2
-    }
-
-    void 'can delete pipelines by name'() {
-        given:
-        repo.save(pipeline)
-
-        expect:
-        repo.list().size() == 1
-
-        when:
-        repo.delete(pipeline.application, pipeline.name)
-
-        then:
-        repo.list().empty
-    }
-
-    void "renaming a pipeline preserves its id"() {
-        given:
-        repo.save(pipeline)
-        String pipelineId = repo.get(pipeline.application, pipeline.name)
-
-        expect:
-        pipelineId != null
-
-        when:
-        repo.rename(pipeline.application, pipeline.name, 'new name')
-
-        then:
-        pipelineId == repo.get(pipeline.application, 'new name')
-    }
-
-    void "renaming a pipeline returns the new name in the pipeline definition"(){
-        given:
-        repo.save(pipeline)
-
-        when:
-        repo.rename(pipeline.application, pipeline.name, 'new name')
-
-        then:
-        repo.getPipelinesByApplication(pipeline.application).first().name == 'new name'
-    }
-
-    void "rename pipeline does nothing if pipeline does not exist"() {
-        given:
-        repo.save(pipeline)
-
-        when:
-        repo.rename(pipeline.application, 'nothing', 'nothing more')
-
-        then:
-        repo.get(pipeline.application, 'nothing more') == null
-        repo.get(pipeline.application, 'nothing') == null
+        repo.all().size() == 2
     }
 
     void "can delete a pipeline by id"() {
         given:
-        repo.save(pipeline)
-        String pipelineId = repo.get(pipeline.application, pipeline.name)
+        def pipeline = repo.create(pipeline.getId(), pipeline)
+        String pipelineId = pipeline.id
 
         expect:
-        repo.list().size() == 1
+        repo.all().size() == 1
 
         when:
-        repo.deleteById(pipelineId)
+        repo.delete(pipelineId)
 
         then:
-        repo.list().empty
+        repo.all().empty
     }
 
     void "looks up pipeline by name if an id is not provided"(){
         given:
-        repo.save(pipeline)
+        repo.create(pipeline.getId(), pipeline)
 
         expect:
-        repo.list().size() == 1
+        repo.all().size() == 1
 
         when:
-        repo.save([
+        repo.create(null, [
             application: pipeline.application,
             name       : pipeline.name
-        ])
+        ] as Pipeline)
 
         then:
-        repo.list().size() == 1
+        repo.all().size() == 1
     }
 
 }
