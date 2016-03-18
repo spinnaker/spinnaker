@@ -42,11 +42,6 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATI
 @Slf4j
 class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
 
-  @Deprecated
-  private static final String LEGACY_ON_DEMAND_TYPE = 'KubernetesServerGroup'
-
-  private static final String ON_DEMAND_TYPE = 'ServerGroup'
-
   final KubernetesCloudProvider kubernetesCloudProvider
   final String accountName
   final String namespace
@@ -74,7 +69,7 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
     this.credentials = credentials
     this.objectMapper = objectMapper
     this.namespace = namespace
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "$kubernetesCloudProvider.id:$ON_DEMAND_TYPE")
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "$kubernetesCloudProvider.id:$OnDemandAgent.OnDemandType.ServerGroup")
   }
 
   @Override
@@ -187,13 +182,8 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
   }
 
   @Override
-  boolean handles(String type) {
-    type == LEGACY_ON_DEMAND_TYPE
-  }
-
-  @Override
-  boolean handles(String type, String cloudProvider) {
-    ON_DEMAND_TYPE == type && cloudProvider == kubernetesCloudProvider.id
+  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
+    OnDemandAgent.OnDemandType.ServerGroup == type && cloudProvider == kubernetesCloudProvider.id
   }
 
   List<ReplicationController> loadReplicationControllers() {

@@ -21,6 +21,7 @@ import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.cats.mem.InMemoryCache
 import com.netflix.spinnaker.cats.provider.DefaultProviderCache
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cf.CloudFoundryCloudProvider
 import com.netflix.spinnaker.clouddriver.cf.TestCredential
 import com.netflix.spinnaker.clouddriver.cf.cache.Keys
@@ -72,8 +73,7 @@ class ClusterCachingAgentSpec extends Specification {
 
   def "handles CF caching"() {
     expect:
-    cachingAgent.handles('CloudFoundry')
-    cachingAgent.handles('ServerGroup', 'cf')
+    cachingAgent.handles(OnDemandAgent.OnDemandType.ServerGroup, 'cf')
   }
 
   def "should report standard info"() {

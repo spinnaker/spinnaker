@@ -34,10 +34,26 @@ interface OnDemandAgent {
     Map<String, Collection<String>> evictions = [:]
   }
 
-  @Deprecated
-  boolean handles(String type)
+  enum OnDemandType {
+    ServerGroup,
+    SecurityGroup,
+    LoadBalancer,
 
-  boolean handles(String type, String cloudProvider)
+    static OnDemandType fromString(String s) {
+      if (s) {
+        String mod = s.toLowerCase().trim()
+        for (OnDemandType type : values()) {
+          String typeMod = type.toString().toLowerCase()
+          if (typeMod == mod) {
+            return type
+          }
+        }
+      }
+      throw new IllegalArgumentException("Cannot create OnDemandType from String '${s}'")
+    }
+  }
+
+  boolean handles(OnDemandType type, String cloudProvider)
 
   OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data)
 

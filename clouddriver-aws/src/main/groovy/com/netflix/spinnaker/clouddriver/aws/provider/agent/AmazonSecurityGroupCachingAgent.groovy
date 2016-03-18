@@ -43,11 +43,6 @@ import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.SECURIT
 @Slf4j
 class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
 
-  @Deprecated
-  private static final String LEGACY_ON_DEMAND_TYPE = 'AmazonSecurityGroup'
-
-  private static final String ON_DEMAND_TYPE = 'SecurityGroup'
-
   final AmazonCloudProvider amazonCloudProvider
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
@@ -73,7 +68,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
     this.region = region
     this.objectMapper = objectMapper
     this.registry = registry
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, amazonCloudProvider.id + ":" + ON_DEMAND_TYPE)
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${amazonCloudProvider.id}:${OnDemandAgent.OnDemandType.SecurityGroup}")
   }
 
   @Override
@@ -122,13 +117,8 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
   }
 
   @Override
-  boolean handles(String type) {
-    type == LEGACY_ON_DEMAND_TYPE
-  }
-
-  @Override
-  boolean handles(String type, String cloudProvider) {
-    type == ON_DEMAND_TYPE && cloudProvider == amazonCloudProvider.id
+  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
+    type == OnDemandAgent.OnDemandType.SecurityGroup && cloudProvider == amazonCloudProvider.id
   }
 
   @Override

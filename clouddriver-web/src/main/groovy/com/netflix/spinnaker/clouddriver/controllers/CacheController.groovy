@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
+import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -29,22 +30,12 @@ class CacheController {
   @Autowired
   List<OnDemandCacheUpdater> onDemandCacheUpdaters
 
-  @Deprecated
-  @RequestMapping(method = RequestMethod.POST, value = "/{type}")
-  ResponseEntity handleOnDemand(@PathVariable String type, @RequestBody Map<String, ? extends Object> data) {
-    for (updater in onDemandCacheUpdaters) {
-      if (updater.handles(type)) {
-        updater.handle(type, data)
-      }
-    }
-    new ResponseEntity(HttpStatus.ACCEPTED)
-  }
-
   @RequestMapping(method = RequestMethod.POST, value = "/{cloudProvider}/{type}")
   ResponseEntity handleOnDemand(@PathVariable String cloudProvider,
                                 @PathVariable String type,
                                 @RequestBody Map<String, ? extends Object> data) {
-    def cacheStatus = onDemandCacheUpdaters.find { it.handles(type, cloudProvider) }?.handle(type, cloudProvider, data)
+    OnDemandAgent.OnDemandType onDemandType = OnDemandAgent.OnDemandType.fromString(type)
+    def cacheStatus = onDemandCacheUpdaters.find { it.handles(onDemandType, cloudProvider) }?.handle(onDemandType, cloudProvider, data)
     def httpStatus = (cacheStatus == OnDemandCacheUpdater.OnDemandCacheStatus.PENDING) ? HttpStatus.ACCEPTED : HttpStatus.OK
     return new ResponseEntity(httpStatus)
   }
@@ -52,10 +43,11 @@ class CacheController {
   @RequestMapping(method = RequestMethod.GET, value = "/{cloudProvider}/{type}")
   Collection<Map>  pendingOnDemands(@PathVariable String cloudProvider,
                                     @PathVariable String type) {
+    OnDemandAgent.OnDemandType onDemandType = OnDemandAgent.OnDemandType.fromString(type)
     onDemandCacheUpdaters.findAll {
-      it.handles(type, cloudProvider)
+      it.handles(onDemandType, cloudProvider)
     }.collect {
-      it.pendingOnDemandRequests(type, cloudProvider)
+      it.pendingOnDemandRequests(onDemandType, cloudProvider)
     }.flatten()
   }
 }

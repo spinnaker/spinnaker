@@ -84,12 +84,7 @@ abstract class AzureCachingAgent implements CachingAgent, OnDemandAgent, Account
   }
 
   @Override
-  boolean handles(String type) {
-    type == getLegacyType()
-  }
-
-  @Override
-  boolean handles(String type, String cloudProvider) {
+  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
     type == getOnDemandType() && cloudProvider == azureCloudProvider.id
   }
 
@@ -106,9 +101,7 @@ abstract class AzureCachingAgent implements CachingAgent, OnDemandAgent, Account
 
   abstract Boolean validKeys(Map<String, ? extends Object> data)
 
-  abstract protected String getLegacyType()
-
-  abstract protected String getOnDemandType()
+  abstract protected OnDemandAgent.OnDemandType getOnDemandType()
 
   def static parseOnDemandCache(Collection<CacheData> results, long lastReadTime) {
     List<String> evictions = new ArrayList<String>()

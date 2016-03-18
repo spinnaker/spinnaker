@@ -36,11 +36,6 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.SECU
 @Slf4j
 class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent implements OnDemandAgent {
 
-  @Deprecated
-  private static final String LEGACY_ON_DEMAND_TYPE = 'GoogleSecurityGroup'
-
-  private static final String ON_DEMAND_TYPE = 'SecurityGroup'
-
   final OnDemandMetricsSupport metricsSupport
 
   final Set<AgentDataType> providedDataTypes = [
@@ -56,7 +51,7 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
     super(googleApplicationName,
           credentials,
           objectMapper)
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${GoogleCloudProvider.GCE}:${ON_DEMAND_TYPE}")
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${GoogleCloudProvider.GCE}:${OnDemandAgent.OnDemandType.SecurityGroup}")
   }
 
   @Override
@@ -95,13 +90,8 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
   }
 
   @Override
-  boolean handles(String type) {
-    type == LEGACY_ON_DEMAND_TYPE
-  }
-
-  @Override
-  boolean handles(String type, String cloudProvider) {
-    type == ON_DEMAND_TYPE && cloudProvider == GoogleCloudProvider.GCE
+  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
+    type == OnDemandAgent.OnDemandType.SecurityGroup && cloudProvider == GoogleCloudProvider.GCE
   }
 
   @Override

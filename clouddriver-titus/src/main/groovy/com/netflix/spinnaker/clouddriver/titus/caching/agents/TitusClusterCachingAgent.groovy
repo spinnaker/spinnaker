@@ -49,8 +49,6 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATI
 
 class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
 
-  private static final String ON_DEMAND_TYPE = 'ServerGroup'
-
   private static final Logger log = LoggerFactory.getLogger(TitusClusterCachingAgent)
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
@@ -80,7 +78,7 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
     this.objectMapper = objectMapper
     this.titusClient = titusClientProvider.getTitusClient(account, region)
     this.registry = registry
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, titusCloudProvider.id + ":" + ON_DEMAND_TYPE)
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${titusCloudProvider.id}:${OnDemandAgent.OnDemandType.ServerGroup}")
   }
 
   @Override
@@ -109,13 +107,8 @@ class TitusClusterCachingAgent implements CachingAgent, OnDemandAgent {
   }
 
   @Override
-  boolean handles(String type) {
-    return false
-  }
-
-  @Override
-  boolean handles(String type, String cloudProvider) {
-    return type == ON_DEMAND_TYPE && cloudProvider == titusCloudProvider.id
+  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
+    return type == OnDemandAgent.OnDemandType.ServerGroup && cloudProvider == titusCloudProvider.id
   }
 
   @Override

@@ -61,10 +61,6 @@ import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
 
 class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, DriftMetric {
   final Logger log = LoggerFactory.getLogger(getClass())
-  @Deprecated
-  private static final String LEGACY_ON_DEMAND_TYPE = 'AmazonServerGroup'
-
-  private static final String ON_DEMAND_TYPE = 'ServerGroup'
 
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
@@ -98,7 +94,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     this.region = region
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     this.registry = registry
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, amazonCloudProvider.id + ":" + ON_DEMAND_TYPE)
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${amazonCloudProvider.id}:${OnDemandAgent.OnDemandType.ServerGroup}")
   }
 
   @Override
@@ -159,13 +155,8 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   }
 
   @Override
-  boolean handles(String type) {
-    type == LEGACY_ON_DEMAND_TYPE
-  }
-
-  @Override
-  boolean handles(String type, String cloudProvider) {
-    type == ON_DEMAND_TYPE && cloudProvider == amazonCloudProvider.id
+  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
+    type == OnDemandAgent.OnDemandType.ServerGroup && cloudProvider == amazonCloudProvider.id
   }
 
   @Override

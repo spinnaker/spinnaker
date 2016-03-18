@@ -53,11 +53,6 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
 
   final static Logger log = LoggerFactory.getLogger(ClusterCachingAgent)
 
-  @Deprecated
-  private static final String LEGACY_ON_DEMAND_TYPE = 'CloudFoundry' // not relevant for CF
-
-  private static final String ON_DEMAND_TYPE = 'ServerGroup'
-
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
@@ -86,7 +81,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
     this.cloudFoundryClientFactory = cloudFoundryClientFactory
     this.cloudFoundryCloudProvider = cloudFoundryCloudProvider
     this.registry = registry
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, cloudFoundryCloudProvider.id + ":" + ON_DEMAND_TYPE)
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${cloudFoundryCloudProvider.id}:${OnDemandAgent.OnDemandType.ServerGroup}")
   }
 
   @Override
@@ -136,13 +131,8 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
   }
 
   @Override
-  boolean handles(String type) {
-    type == LEGACY_ON_DEMAND_TYPE
-  }
-
-  @Override
-  boolean handles(String type, String cloudProvider) {
-    type == ON_DEMAND_TYPE && cloudProvider == cloudFoundryCloudProvider.id
+  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
+    type == OnDemandAgent.OnDemandType.ServerGroup && cloudProvider == cloudFoundryCloudProvider.id
   }
 
   @Override

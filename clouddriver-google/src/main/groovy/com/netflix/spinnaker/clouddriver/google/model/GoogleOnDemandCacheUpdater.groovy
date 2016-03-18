@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.model
 
+import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -24,15 +25,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
+@Deprecated
 @ConditionalOnProperty(value = "google.providerImpl", havingValue = "old", matchIfMissing = true)
 @Component
 class GoogleOnDemandCacheUpdater implements OnDemandCacheUpdater {
   protected final Logger log = Logger.getLogger(GoogleOnDemandCacheUpdater.class)
-
-  @Deprecated
-  private static final String LEGACY_TYPE = "GoogleServerGroup"
-
-  private static final String TYPE = "ServerGroup"
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
@@ -44,29 +41,18 @@ class GoogleOnDemandCacheUpdater implements OnDemandCacheUpdater {
   GoogleCloudProvider googleCloudProvider
 
   @Override
-  boolean handles(String type) {
-    type == LEGACY_TYPE
+  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
+    type == OnDemandAgent.OnDemandType.ServerGroup && cloudProvider == googleCloudProvider.id
   }
 
   @Override
-  OnDemandCacheUpdater.OnDemandCacheStatus handle(String type, Map<String, ? extends Object> data) {
+  OnDemandCacheUpdater.OnDemandCacheStatus handle(OnDemandAgent.OnDemandType type, String cloudProvider, Map<String, ? extends Object> data) {
     googleResourceRetriever.handleCacheUpdate(data)
     return OnDemandCacheUpdater.OnDemandCacheStatus.SUCCESSFUL
   }
 
   @Override
-  boolean handles(String type, String cloudProvider) {
-    type == TYPE && cloudProvider == googleCloudProvider.id
-  }
-
-  @Override
-  OnDemandCacheUpdater.OnDemandCacheStatus handle(String type, String cloudProvider, Map<String, ? extends Object> data) {
-    handle(type, data)
-    return OnDemandCacheUpdater.OnDemandCacheStatus.SUCCESSFUL
-  }
-
-  @Override
-  Collection<Map> pendingOnDemandRequests(String type, String cloudProvider) {
+  Collection<Map> pendingOnDemandRequests(OnDemandAgent.OnDemandType type, String cloudProvider) {
     return []
   }
 }
