@@ -7,9 +7,6 @@ redis:
 
 aws:
   enabled: ${providers.aws.enabled:false}
-  bakeryDefaults:
-    awsAccessKey: ${providers.aws.primaryCredentials.access_key_id}
-    awsSecretKey: ${providers.aws.primaryCredentials.secret_key}
 
 docker:
   enabled: ${services.docker.enabled:false}
