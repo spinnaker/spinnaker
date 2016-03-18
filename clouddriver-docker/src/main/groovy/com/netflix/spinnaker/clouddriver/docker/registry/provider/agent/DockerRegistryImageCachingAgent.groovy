@@ -105,7 +105,7 @@ class DockerRegistryImageCachingAgent implements CachingAgent, AccountAware {
           def digest = credentials.client.getDigest(repository, tag)
           if (!digest) {
             throw new DockerRegistryConfigException("The selected docker registry ${credentials.client.address} " +
-                "does provide a 'Docker-Content-Digest' header, needed for image verification and build triggers.")
+                "does not provide a 'Docker-Content-Digest' header, needed for image verification and build triggers.")
           }
           attributes.digest = digest
         }
