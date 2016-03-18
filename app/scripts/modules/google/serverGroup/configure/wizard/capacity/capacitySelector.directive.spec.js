@@ -1,13 +1,13 @@
 'use strict';
 
 let angular = require('angular');
-require('./serverGroupCapacityDirective.html');
+require('./capacitySelector.directive.html');
 
-describe('Directive: GCE Group Capacity Selector', function() {
+describe('Directive: GCE Server Group Capacity Selector', function() {
 
   beforeEach(
     window.module(
-      require('./serverGroupCapacitySelector.directive.js')
+      require('./capacitySelector.directive.js')
     )
   );
 

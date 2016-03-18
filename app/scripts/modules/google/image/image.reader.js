@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.image.reader', [
-  require('exports?"restangular"!imports?_=lodash!restangular')
+  require('exports?"restangular"!imports?_=lodash!restangular'),
 ])
   .factory('gceImageReader', function ($q, Restangular) {
 

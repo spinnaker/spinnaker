@@ -13,5 +13,4 @@ module.exports = angular.module('spinnaker.gce.securityGroup.transformer', [
     return {
       normalizeSecurityGroup: normalizeSecurityGroup,
     };
-
   });

@@ -1,0 +1,41 @@
+<div class="form-group">
+  <div class="col-md-8 nest">
+
+    <div class="form-group">
+      <div class="col-md-6 sm-label-right">
+        <b>Timeout</b><help-field key="loadBalancer.advancedSettings.healthTimeout"/>
+      </div>
+      <div class="col-md-4">
+        <input class="form-control input-sm" type="number" min="0" ng-model="loadBalancer.healthTimeout"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-md-6 sm-label-right">
+        <b>Interval</b><help-field key="gce.loadBalancer.advancedSettings.healthInterval"/>
+      </div>
+      <div class="col-md-4">
+        <input class="form-control input-sm" type="number" min="0" ng-model="loadBalancer.healthInterval"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-md-6 sm-label-right">
+        <b>Healthy Threshold</b><help-field key="gce.loadBalancer.advancedSettings.healthyThreshold"/>
+      </div>
+      <div class="col-md-4">
+        <input class="form-control input-sm" type="number" min="0" ng-model="loadBalancer.healthyThreshold"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-md-6 sm-label-right">
+        <b>Unhealthy Threshold</b><help-field key="gce.loadBalancer.advancedSettings.unhealthyThreshold"/>
+      </div>
+      <div class="col-md-4">
+        <input class="form-control input-sm" type="number" min="0" ng-model="loadBalancer.unhealthyThreshold"/>
+      </div>
+    </div>
+
+  </div>
+</div>

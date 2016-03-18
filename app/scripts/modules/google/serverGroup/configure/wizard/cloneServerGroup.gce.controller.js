@@ -11,13 +11,13 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
                                                   gceServerGroupConfigurationService,
                                                   serverGroupCommand, application, title) {
     $scope.pages = {
-      templateSelection: require('./templateSelection.html'),
-      basicSettings: require('./basicSettings.html'),
-      loadBalancers: require('./loadBalancers.html'),
-      securityGroups: require('./securityGroups.html'),
-      instanceType: require('./instanceType.html'),
-      capacity: require('./capacity.html'),
-      advancedSettings: require('./advancedSettings.html'),
+      templateSelection: require('./templateSelection/templateSelection.html'),
+      basicSettings: require('./location/basicSettings.html'),
+      loadBalancers: require('./loadBalancers/loadBalancers.html'),
+      securityGroups: require('./securityGroups/securityGroups.html'),
+      instanceType: require('./instanceType/instanceType.html'),
+      capacity: require('./capacity/capacity.html'),
+      advancedSettings: require('./advancedSettings/advancedSettings.html'),
     };
 
     $scope.title = title;
@@ -139,10 +139,13 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
     }
 
     this.isValid = function () {
-      return $scope.command && ($scope.command.viewState.disableImageSelection || $scope.command.image !== null) &&
-        ($scope.command.credentials !== null) && ($scope.command.instanceType !== null) &&
-        ($scope.command.region !== null) && ($scope.command.zone !== null) &&
+      return $scope.command &&
+        ($scope.command.viewState.disableImageSelection || $scope.command.image) &&
+        ($scope.command.application) &&
+        ($scope.command.credentials) && ($scope.command.instanceType) &&
+        ($scope.command.region) && ($scope.command.zone) &&
         ($scope.command.capacity.desired !== null) &&
+        $scope.form.$valid &&
         v2modalWizardService.isComplete();
     };
 
@@ -166,7 +169,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       _.fill($scope.command.disks, localSSDDiskDescriptor, 1);
     }
 
-    this.clone = function () {
+    this.submit = function () {
       generateDiskDescriptors();
 
       // We use this list of load balancer names when 'Enabling' a server group.

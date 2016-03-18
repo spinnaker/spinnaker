@@ -13,10 +13,10 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
   require('../../gceRegionSelectField.directive.js'),
   require('../../../core/search/search.service.js'),
 ])
-  .controller('gceCreateLoadBalancerCtrl', function($scope, $modalInstance, $state,
-                                                 application, loadBalancer, isNew, loadBalancerReader,
-                                                 accountService, gceLoadBalancerTransformer,
-                                                 _, searchService, v2modalWizardService, loadBalancerWriter, taskMonitorService) {
+  .controller('gceCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, _,
+                                                    accountService, gceLoadBalancerTransformer,
+                                                    application, loadBalancer, isNew, loadBalancerReader,
+                                                    searchService, v2modalWizardService, loadBalancerWriter, taskMonitorService) {
 
     var ctrl = this;
 
@@ -26,6 +26,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
       location: require('./createLoadBalancerProperties.html'),
       listeners: require('./listeners.html'),
       healthCheck: require('./healthCheck.html'),
+      advancedSettings: require('./advancedSettings.html'),
     };
 
     $scope.state = {
@@ -132,6 +133,10 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
       return $scope.loadBalancer.healthCheckProtocol && $scope.loadBalancer.healthCheckProtocol.indexOf('HTTP') === 0;
     };
 
+    this.prependForwardSlash = (text) => {
+      return text && text.indexOf('/') !== 0 ? `/${text}` : text;
+    };
+
     this.updateName = function() {
       $scope.loadBalancer.name = this.getName();
     };
@@ -160,9 +165,13 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
       if ($scope.loadBalancer.listeners[0].healthCheck) {
         wizard.includePage('Health Check');
         wizard.markIncomplete('Health Check');
+        wizard.includePage('Advanced Settings');
+        wizard.markIncomplete('Advanced Settings');
       } else {
         wizard.excludePage('Health Check');
         wizard.markComplete('Health Check');
+        wizard.excludePage('Advanced Settings');
+        wizard.markComplete('Advanced Settings');
         wizard.markComplete('Listener');
       }
     };

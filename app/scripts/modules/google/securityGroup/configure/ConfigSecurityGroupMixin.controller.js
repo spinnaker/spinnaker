@@ -8,8 +8,8 @@ module.exports = angular
     require('../../../core/task/monitor/taskMonitorService.js'),
     require('../../../core/securityGroup/securityGroup.write.service.js'),
     require('../../../core/account/account.service.js'),
-    require('../../../core/modal/wizard/v2modalWizard.service.js'),
     require('../../../core/network/network.read.service.js'),
+    require('../../../core/modal/wizard/v2modalWizard.service.js'),
     require('../../../core/utils/lodash.js'),
   ])
   .controller('gceConfigSecurityGroupMixin', function ($scope,
@@ -197,6 +197,12 @@ module.exports = angular
 
     ctrl.removeRule = function(ruleset, index) {
       ruleset.splice(index, 1);
+    };
+
+    ctrl.dismissRemovedRules = function() {
+      $scope.state.removedRules = [];
+      v2modalWizardService.markClean('Ingress');
+      v2modalWizardService.markComplete('Ingress');
     };
 
   });
