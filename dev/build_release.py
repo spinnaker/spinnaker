@@ -548,9 +548,11 @@ if __name__ == '__main__':
 
      print 'Adding tests...'
      self.add_python_test_zip('aws_kato_test')
-     self.add_python_test_zip('kato_test')
-     self.add_python_test_zip('smoke_test')
-     self.add_python_test_zip('server_group_tests')
+     self.add_python_test_zip('google_kato_test')
+     self.add_python_test_zip('aws_smoke_test')
+     self.add_python_test_zip('google_smoke_test')
+     self.add_python_test_zip('google_server_group_test')
+     self.add_python_test_zip('bake_and_deploy_test')
 
   @classmethod
   def init_argument_parser(cls, parser):
