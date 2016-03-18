@@ -40,16 +40,11 @@ interface OnDemandAgent {
     LoadBalancer,
 
     static OnDemandType fromString(String s) {
-      if (s) {
-        String mod = s.toLowerCase().trim()
-        for (OnDemandType type : values()) {
-          String typeMod = type.toString().toLowerCase()
-          if (typeMod == mod) {
-            return type
-          }
-        }
+      OnDemandType t = values().find { it.toString().equalsIgnoreCase(s) }
+      if (!t) {
+        throw new IllegalArgumentException("Cannot create OnDemandType from String '${s}'")
       }
-      throw new IllegalArgumentException("Cannot create OnDemandType from String '${s}'")
+      return t
     }
   }
 

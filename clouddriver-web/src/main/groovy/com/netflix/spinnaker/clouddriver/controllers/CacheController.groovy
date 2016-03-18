@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.controllers
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -49,5 +50,11 @@ class CacheController {
     }.collect {
       it.pendingOnDemandRequests(onDemandType, cloudProvider)
     }.flatten()
+  }
+
+  @ExceptionHandler
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  Map handleOnDemandTypeNotFound(IllegalArgumentException ex) {
+    [error: "cache.type.not.found", message: "Cache update type not found. Exception: ${ex.getMessage()}", status: HttpStatus.NOT_FOUND]
   }
 }
