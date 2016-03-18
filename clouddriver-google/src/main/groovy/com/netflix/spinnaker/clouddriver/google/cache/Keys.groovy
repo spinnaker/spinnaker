@@ -53,6 +53,10 @@ class Keys {
       return null
     }
 
+    if (parts[0] != GoogleCloudProvider.GCE) {
+      return null
+    }
+
     def result = [provider: parts[0], type: parts[1]]
 
     switch (result.type) {

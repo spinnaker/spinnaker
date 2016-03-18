@@ -45,6 +45,10 @@ class KubernetesApiAdaptor {
     client.extensions().ingress().inNamespace(namespace).withName(name).get()
   }
 
+  List<Ingress> getIngresses(String namespace) {
+    client.extensions().ingress().inNamespace(namespace).list().items
+  }
+
   List<ReplicationController> getReplicationControllers(String namespace) {
     client.replicationControllers().inNamespace(namespace).list().items
   }

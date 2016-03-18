@@ -39,8 +39,8 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
   Integer replicas = 0
   Set<String> zones
   Set<KubernetesInstance> instances
-  Set<String> loadBalancers
-  Set<String> securityGroups
+  Set<String> loadBalancers = [] as Set
+  Set<String> securityGroups = [] as Set
   Map<String, Object> launchConfig
   Map<String, String> labels = [:]
   DeployKubernetesAtomicOperationDescription deployDescription

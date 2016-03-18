@@ -19,7 +19,11 @@ package com.netflix.spinnaker.clouddriver.kubernetes.provider.agent
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.cats.agent.*
+import com.netflix.spinnaker.cats.agent.AccountAware
+import com.netflix.spinnaker.cats.agent.AgentDataType
+import com.netflix.spinnaker.cats.agent.CacheResult
+import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -31,13 +35,15 @@ import com.netflix.spinnaker.clouddriver.kubernetes.provider.KubernetesProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.provider.view.MutableCacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import groovy.util.logging.Slf4j
-import io.fabric8.kubernetes.api.model.Service
+import io.fabric8.kubernetes.api.model.extensions.Ingress
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 
 @Slf4j
-class KubernetesLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
+class KubernetesSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
+
+  private static final OnDemandAgent.OnDemandType ON_DEMAND_TYPE = OnDemandAgent.OnDemandType.SecurityGroup
 
   final KubernetesCloudProvider kubernetesCloudProvider
   final String accountName
@@ -48,22 +54,22 @@ class KubernetesLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent,
   final OnDemandMetricsSupport metricsSupport
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
-    AUTHORITATIVE.forType(Keys.Namespace.LOAD_BALANCERS.ns),
-    INFORMATIVE.forType(Keys.Namespace.INSTANCES.ns),
+      INFORMATIVE.forType(Keys.Namespace.LOAD_BALANCERS.ns),
+      AUTHORITATIVE.forType(Keys.Namespace.SECURITY_GROUPS.ns),
   ] as Set)
 
-  KubernetesLoadBalancerCachingAgent(KubernetesCloudProvider kubernetesCloudProvider,
-                                     String accountName,
-                                     KubernetesCredentials credentials,
-                                     String namespace,
-                                     ObjectMapper objectMapper,
-                                     Registry registry) {
+  KubernetesSecurityGroupCachingAgent(KubernetesCloudProvider kubernetesCloudProvider,
+                                      String accountName,
+                                      KubernetesCredentials credentials,
+                                      String namespace,
+                                      ObjectMapper objectMapper,
+                                      Registry registry) {
     this.kubernetesCloudProvider = kubernetesCloudProvider
     this.accountName = accountName
     this.credentials = credentials
     this.objectMapper = objectMapper
     this.namespace = namespace
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "$kubernetesCloudProvider.id:$OnDemandAgent.OnDemandType.LoadBalancer")
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "$kubernetesCloudProvider.id:$ON_DEMAND_TYPE")
   }
 
   @Override
@@ -73,7 +79,7 @@ class KubernetesLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent,
 
   @Override
   String getAgentType() {
-    "${accountName}/${namespace}/${KubernetesLoadBalancerCachingAgent.simpleName}"
+    "${accountName}/${namespace}/${KubernetesSecurityGroupCachingAgent.simpleName}"
   }
 
   @Override
@@ -93,7 +99,7 @@ class KubernetesLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent,
 
   @Override
   OnDemandAgent.OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data) {
-    if (!data.containsKey("loadBalancerName")) {
+    if (!data.containsKey("securityGroupName")) {
       return null
     }
 
@@ -105,52 +111,52 @@ class KubernetesLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent,
       return null
     }
 
-    def loadBalancerName = data.loadBalancerName.toString()
+    def securityGroupName = data.securityGroupName.toString()
 
-    Service service = metricsSupport.readData {
-      loadReplicationController(loadBalancerName)
+    Ingress ingress = metricsSupport.readData {
+      credentials.apiAdaptor.getIngress(namespace, securityGroupName)
     }
 
     CacheResult result = metricsSupport.transformData {
-      buildCacheResult([service], [:], [], Long.MAX_VALUE)
+      buildCacheResult([ingress], [:], [], Long.MAX_VALUE)
     }
 
     def jsonResult = objectMapper.writeValueAsString(result.cacheResults)
 
     if (result.cacheResults.values().flatten().isEmpty()) {
       // Avoid writing an empty onDemand cache record (instead delete any that may have previously existed).
-      providerCache.evictDeletedItems(Keys.Namespace.ON_DEMAND.ns, [Keys.getLoadBalancerKey(accountName, namespace, loadBalancerName)])
+      providerCache.evictDeletedItems(Keys.Namespace.ON_DEMAND.ns, [Keys.getSecurityGroupKey(accountName, namespace, securityGroupName)])
     } else {
       metricsSupport.onDemandStore {
         def cacheData = new DefaultCacheData(
-          Keys.getLoadBalancerKey(accountName, namespace, loadBalancerName),
-          10 * 60, // ttl is 10 minutes
-          [
-            cacheTime: System.currentTimeMillis(),
-            cacheResults: jsonResult,
-            processedCount: 0,
-            processedTime: null
-          ],
-          [:]
+            Keys.getSecurityGroupKey(accountName, namespace, securityGroupName),
+            10 * 60, // ttl is 10 minutes
+            [
+                cacheTime: System.currentTimeMillis(),
+                cacheResults: jsonResult,
+                processedCount: 0,
+                processedTime: null
+            ],
+            [:]
         )
 
         providerCache.putCacheData(Keys.Namespace.ON_DEMAND.ns, cacheData)
       }
     }
 
-    // Evict this load balancer if it no longer exists.
-    Map<String, Collection<String>> evictions = service ? [:] : [
-      (Keys.Namespace.LOAD_BALANCERS.ns): [
-        Keys.getLoadBalancerKey(accountName, namespace, loadBalancerName)
-      ]
+    // Evict this security group if it no longer exists.
+    Map<String, Collection<String>> evictions = ingress ? [:] : [
+        (Keys.Namespace.SECURITY_GROUPS.ns): [
+            Keys.getSecurityGroupKey(accountName, namespace, securityGroupName)
+        ]
     ]
 
     log.info("On demand cache refresh (data: ${data}) succeeded.")
 
     return new OnDemandAgent.OnDemandResult(
-      sourceAgentType: getOnDemandAgentType(),
-      cacheResult: result,
-      evictions: evictions
+        sourceAgentType: getOnDemandAgentType(),
+        cacheResult: result,
+        evictions: evictions
     )
   }
 
@@ -168,37 +174,29 @@ class KubernetesLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent,
 
     providerCache.getAll(Keys.Namespace.ON_DEMAND.ns, keys).collect {
       [
-        details  : Keys.parse(it.id),
-        cacheTime: it.attributes.cacheTime,
-        processedCount: it.attributes.processedCount,
-        processedTime: it.attributes.processedTime
+          details  : Keys.parse(it.id),
+          cacheTime: it.attributes.cacheTime,
+          processedCount: it.attributes.processedCount,
+          processedTime: it.attributes.processedTime
       ]
     }
   }
 
   @Override
   boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    OnDemandAgent.OnDemandType.LoadBalancer == type && cloudProvider == kubernetesCloudProvider.id
-  }
-
-  List<Service> loadServices() {
-    credentials.apiAdaptor.getServices(namespace)
-  }
-
-  Service loadReplicationController(String name) {
-    credentials.apiAdaptor.getService(namespace, name)
+    ON_DEMAND_TYPE == type && cloudProvider == kubernetesCloudProvider.id
   }
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
     Long start = System.currentTimeMillis()
-    List<Service> services = loadServices()
+    List<Ingress> ingresses = credentials.apiAdaptor.getIngresses(namespace)
 
     def evictFromOnDemand = []
     def keepInOnDemand = []
 
     providerCache.getAll(Keys.Namespace.ON_DEMAND.ns,
-      services.collect { Keys.getLoadBalancerKey(accountName, namespace, it.metadata.name) }).each {
+        ingresses.collect { Keys.getSecurityGroupKey(accountName, namespace, it.metadata.name) }).each {
       // Ensure that we don't overwrite data that was inserted by the `handle` method while we retrieved the
       // replication controllers. Furthermore, cache data that hasn't been processed needs to be updated in the ON_DEMAND
       // cache, so don't evict data without a processedCount > 0.
@@ -209,7 +207,7 @@ class KubernetesLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent,
       }
     }
 
-    def result = buildCacheResult(services, keepInOnDemand.collectEntries { [(it.id): it] }, evictFromOnDemand*.id, start)
+    def result = buildCacheResult(ingresses, keepInOnDemand.collectEntries { [(it.id): it] }, evictFromOnDemand*.id, start)
 
     result.cacheResults[Keys.Namespace.ON_DEMAND.ns].each {
       it.attributes.processedTime = System.currentTimeMillis()
@@ -233,36 +231,54 @@ class KubernetesLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent,
     }
   }
 
-  private CacheResult buildCacheResult(List<Service> services, Map<String, CacheData> onDemandKeep, List<String> onDemandEvict, Long start) {
+  private CacheResult buildCacheResult(List<Ingress> ingresses, Map<String, CacheData> onDemandKeep, List<String> onDemandEvict, Long start) {
     log.info("Describing items in ${agentType}")
 
+    Map<String, MutableCacheData> cachedSecurityGroups = MutableCacheData.mutableCacheMap()
     Map<String, MutableCacheData> cachedLoadBalancers = MutableCacheData.mutableCacheMap()
 
-    for (Service service : services) {
-      def onDemandData = onDemandKeep ? onDemandKeep[Keys.getLoadBalancerKey(accountName, namespace, service.metadata.name)] : null
+    for (Ingress ingress: ingresses) {
+      def onDemandData = onDemandKeep ? onDemandKeep[Keys.getSecurityGroupKey(accountName, namespace, ingress.metadata.name)] : null
 
       if (onDemandData && onDemandData.attributes.cachetime >= start) {
-        Map<String, List<CacheData>> cacheResults = objectMapper.readValue(onDemandData.attributes.cacheResults as String, new TypeReference<Map<String, List<MutableCacheData>>>() { })
-        cache(cacheResults, Keys.Namespace.LOAD_BALANCERS.ns, cachedLoadBalancers)
+        Map<String, List<CacheData>> cacheResults = objectMapper.readValue(onDemandData.attributes.cacheResults as String,
+                                                                           new TypeReference<Map<String, List<MutableCacheData>>>() { })
+        cache(cacheResults, Keys.Namespace.SECURITY_GROUPS.ns, cachedSecurityGroups)
       } else {
-        def serviceName = service.metadata.name
-        def loadBalancerKey = Keys.getLoadBalancerKey(accountName, namespace, serviceName)
+        def ingressName = ingress.metadata.name
+        def securityGroupKey = Keys.getSecurityGroupKey(accountName, namespace, ingressName)
 
-        cachedLoadBalancers[loadBalancerKey].with {
-          attributes.name = serviceName
-          attributes.service = service
-          // Relationships are stored in KubernetesServerGroupCachingAgent.
+        List<String> loadBalancerKeys = ingress.spec.backend?.serviceName ?
+            [Keys.getLoadBalancerKey(accountName, namespace, ingress.spec.backend.serviceName)] : []
+
+        loadBalancerKeys.addAll(ingress.spec.rules?.findResults { rule ->
+          rule.http?.paths?.findResults { path ->
+            path?.backend?.serviceName ? Keys.getLoadBalancerKey(accountName, namespace, path.backend.serviceName) : null
+          }
+        }?.flatten() ?: [])
+
+        cachedSecurityGroups[securityGroupKey].with {
+          attributes.name = ingressName
+          attributes.ingress = ingress
+          relationships[Keys.Namespace.LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
         }
+
+         loadBalancerKeys.each {
+            cachedLoadBalancers[it].with {
+              relationships[Keys.Namespace.SECURITY_GROUPS.ns].add(securityGroupKey)
+            }
+         }
       }
     }
 
-    log.info("Caching ${cachedLoadBalancers.size()} load balancers in ${agentType}")
+    log.info("Caching ${cachedSecurityGroups.size()} security groups in ${agentType}")
 
     new DefaultCacheResult([
-      (Keys.Namespace.LOAD_BALANCERS.ns): cachedLoadBalancers.values(),
-      (Keys.Namespace.ON_DEMAND.ns): onDemandKeep.values()
+        (Keys.Namespace.SECURITY_GROUPS.ns): cachedSecurityGroups.values(),
+        (Keys.Namespace.LOAD_BALANCERS.ns): cachedLoadBalancers.values(),
+        (Keys.Namespace.ON_DEMAND.ns): onDemandKeep.values()
     ],[
-      (Keys.Namespace.ON_DEMAND.ns): onDemandEvict,
+        (Keys.Namespace.ON_DEMAND.ns): onDemandEvict,
     ])
 
   }
