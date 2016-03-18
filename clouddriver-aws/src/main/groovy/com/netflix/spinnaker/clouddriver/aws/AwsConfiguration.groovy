@@ -121,6 +121,8 @@ class AwsConfiguration {
   static class DeployDefaults {
     String iamRole
     String classicLinkSecurityGroupName
+    boolean addAppGroupsToClassicLink = false
+    int maxClassicLinkSecurityGroups = 5
   }
 
   @Bean
