@@ -93,32 +93,32 @@ class KubernetesInstanceSpec extends Specification {
 
   void "Should report state as Down"() {
     when:
-      def state = (new KubernetesHealth('', containerStatusAsTerminatedMock, new KubernetesHealth(podMock))).state
+      def state = (new KubernetesHealth('', containerStatusAsTerminatedMock)).state
 
     then:
       state == HealthState.Down
   }
 
-  void "Should report state as OOS"() {
+  void "Should report state as Starting"() {
     when:
-      def state = (new KubernetesHealth('', containerStatusAsWaitingMock, new KubernetesHealth(podMock))).state
+      def state = (new KubernetesHealth('', containerStatusAsWaitingMock)).state
 
     then:
-      state == HealthState.OutOfService
+      state == HealthState.Starting
 
     when:
-      state = (new KubernetesHealth('', containerStatusAsNoneMock, new KubernetesHealth(podMock))).state
+      state = (new KubernetesHealth('', containerStatusAsNoneMock)).state
 
     then:
-      state == HealthState.OutOfService
+      state == HealthState.Starting
   }
 
-  void "Should report state as Unknown"() {
+  void "Should report state as Up"() {
     when:
-      def state = (new KubernetesHealth('', containerStatusAsRunningMock, new KubernetesHealth(podMock))).state
+      def state = (new KubernetesHealth('', containerStatusAsRunningMock)).state
 
     then:
-      state == HealthState.Unknown
+      state == HealthState.Up
   }
 
   void "Should report pod state as Up"() {

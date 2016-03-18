@@ -46,13 +46,15 @@ class KubernetesInstance implements Instance, Serializable {
     this.loadBalancers = loadBalancers
 
     def mapper = new ObjectMapper()
-    def podHealth = new KubernetesHealth(pod)
-
     this.health = pod.status?.containerStatuses?.collect {
-      (Map<String, String>) mapper.convertValue(new KubernetesHealth(it.image, it, podHealth), new TypeReference<Map<String, String>>() {})
+      (Map<String, String>) mapper.convertValue(new KubernetesHealth(it.image, it), new TypeReference<Map<String, String>>() {})
     } ?: []
 
-    this.health << (Map<String, String>) mapper.convertValue(podHealth, new TypeReference<Map<String, String>>() {})
+    this.health.addAll(KubernetesUtil.getPodLoadBalancerStates(pod).collect { key, value ->
+      (Map<String, String>) mapper.convertValue(new KubernetesHealth(key, value), new TypeReference<Map<String, String>>() {})
+    } ?: [])
+
+    this.health << (Map<String, String>) mapper.convertValue(new KubernetesHealth(pod), new TypeReference<Map<String, String>>() {})
 
     this.serverGroupName = pod.metadata?.labels?.get(KubernetesUtil.REPLICATION_CONTROLLER_LABEL)
   }

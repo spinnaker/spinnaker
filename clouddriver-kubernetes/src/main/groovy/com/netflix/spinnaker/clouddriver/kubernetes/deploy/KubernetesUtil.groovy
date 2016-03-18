@@ -133,7 +133,7 @@ class KubernetesUtil {
   static Map<String, String> getPodLoadBalancerStates(Pod pod) {
     pod.metadata?.labels?.collectEntries { key, val ->
       if (isLoadBalancerLabel(key)) {
-        return [key: val]
+        return [(key): val]
       } else {
         return [:]
       }
