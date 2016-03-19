@@ -43,6 +43,8 @@ public abstract class S3Support<T extends Timestamped> {
   private final int refreshIntervalMs;
   private final String bucket;
 
+  private long lastRefreshedTime;
+
   protected final String rootFolder;
 
   protected final AtomicReference<Set<T>> allItemsCache = new AtomicReference<>();
@@ -81,8 +83,11 @@ public abstract class S3Support<T extends Timestamped> {
     return allItemsCache.get().stream().collect(Collectors.toList());
   }
 
+  /**
+   * @return Healthy if refreshed in the past 45s
+   */
   public boolean isHealthy() {
-    return allItemsCache.get() != null;
+    return (System.currentTimeMillis() - lastRefreshedTime) < 45000 && allItemsCache.get() != null;
   }
 
   public T findById(String id) throws NotFoundException {
@@ -95,6 +100,7 @@ public abstract class S3Support<T extends Timestamped> {
       throw new IllegalStateException(e);
     } catch (AmazonS3Exception e) {
       if (e.getStatusCode() == 404) {
+        log.warn(String.format("No item found with id of %s", id.toLowerCase()));
         throw new NotFoundException(String.format("No item found with id of %s", id.toLowerCase()));
       }
 
@@ -214,6 +220,7 @@ public abstract class S3Support<T extends Timestamped> {
           existingItemsByName.put(item.getId().toLowerCase(), item);
         });
 
+    lastRefreshedTime = System.currentTimeMillis();
     return existingItemsByName.values().stream().collect(Collectors.toSet());
   }
 
