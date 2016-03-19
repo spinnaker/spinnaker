@@ -36,6 +36,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Scope
+import org.springframework.core.convert.ConversionService
+import org.springframework.core.convert.support.DefaultConversionService
 import redis.clients.jedis.JedisPool
 
 import java.time.Clock
@@ -63,6 +65,12 @@ class RoscoConfiguration {
   @Bean
   CloudProviderBakeHandlerRegistry cloudProviderBakeHandlerRegistry() {
     return new DefaultCloudProviderBakeHandlerRegistry()
+  }
+
+  // Allows @Value annotation to tokenize a list of strings.
+  @Bean
+  ConversionService conversionService() {
+    return new DefaultConversionService()
   }
 
   @Bean

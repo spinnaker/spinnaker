@@ -39,6 +39,20 @@ executionStatusToBakeResults:
 
 defaultCloudProviderType: aws
 
+# When the bakery is configured to use a templateFile in this list,
+# /usr/bin/packer will be run as root using 'sudo'.
+# By default, spinnaker does not have sudo permissions so these scripts will
+# fail.
+# In order to give sudo permissions, create and add the following line (without
+# leading '#') to /etc/sudoers.d/spinnaker
+# spinnaker ALL=(ALL) NOPASSWD: /usr/bin/packer
+#
+# WARNING: Giving sudo access for spinnaker to execute packer may create an
+# opportunity for malicious actors to take control of your machine and data it
+# has access to.
+
+templatesNeedingRoot: aws-chroot.json
+
 aws:
   enabled: ${AWS_ENABLED:false}
   bakeryDefaults:
