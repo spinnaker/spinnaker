@@ -709,4 +709,40 @@ class StandardKubernetesAttributeValidatorSpec extends Specification {
       1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must be one of $StandardKubernetesAttributeValidator.protocolList)")
       0 * errorsMock._
   }
+
+  void "path accept"() {
+    setup:
+      def errorsMock = Mock(Errors)
+      def validator = new StandardKubernetesAttributeValidator(DECORATOR, errorsMock)
+      def label = "label"
+
+    when:
+      validator.validatePath('/', label)
+    then:
+      0 * errorsMock._
+
+    when:
+      validator.validatePath('/path-to/dir12\\ 3/4', label)
+    then:
+      0 * errorsMock._
+  }
+
+  void "path reject"() {
+    setup:
+      def errorsMock = Mock(Errors)
+      def validator = new StandardKubernetesAttributeValidator(DECORATOR, errorsMock)
+      def label = "label"
+
+    when:
+      validator.validatePath('', label)
+    then:
+      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.empty")
+      0 * errorsMock._
+
+    when:
+      validator.validatePath('path-to/dir12\\ 3/4', label)
+    then:
+      1 * errorsMock.rejectValue("${DECORATOR}.${label}", "${DECORATOR}.${label}.invalid (Must match ${StandardKubernetesAttributeValidator.pathPattern})")
+      0 * errorsMock._
+  }
 }

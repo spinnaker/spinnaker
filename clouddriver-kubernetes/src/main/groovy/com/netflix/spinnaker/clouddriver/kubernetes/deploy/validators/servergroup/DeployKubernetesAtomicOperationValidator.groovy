@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.servergro
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesVolumeSourceType
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
@@ -49,6 +50,35 @@ class DeployKubernetesAtomicOperationValidator extends DescriptionValidator<Depl
     helper.validateNonNegative(description.targetSize, "targetSize")
     helper.validateNamespace(credentials, description.namespace, "namespace")
     helper.validateRestartPolicy(description.restartPolicy, "restartPolicy")
+
+    description.volumeSources.eachWithIndex { source, idx ->
+      helper.validateName(source.name, "volumeSources[$idx].name")
+      switch (source.type) {
+        case KubernetesVolumeSourceType.EMPTYDIR:
+          helper.validateNotEmpty(source.emptyDir, "volumueSources[$idx].emptyDir")
+
+          break // Nothing else to validate, only property is an enum which is implicitly validated during deserialization
+
+        case KubernetesVolumeSourceType.HOSTPATH:
+          if (!helper.validateNotEmpty(source.hostPath, "volumueSources[$idx].hostPath")) {
+            break
+          }
+          helper.validatePath(source.hostPath.path, "volumeSources[$idx].hostPath.path")
+
+          break
+
+        case KubernetesVolumeSourceType.PERSISTENTVOLUMECLAIM:
+          if (!helper.validateNotEmpty(source.persistentVolumeClaim, "volumueSources[$idx].persistentVolumeClaim")) {
+            break
+          }
+          helper.validateName(source.persistentVolumeClaim.claimName, "volumeSources[$idx].persistentVolumeClaim.claimName")
+
+          break
+
+        default:
+          helper.reject("volumeSources[$idx].type", "$source.type not supported")
+      }
+    }
 
     description.loadBalancers.eachWithIndex { name, idx ->
       helper.validateName(name, "loadBalancers[${idx}]")
