@@ -18,6 +18,9 @@
     <v2-wizard-page key="replicas" label="Replicas" done="true">
       <ng-include src="pages.replicas"></ng-include>
     </v2-wizard-page>
+    <v2-wizard-page key="volumes" label="Volume Sources" done="true">
+      <ng-include src="pages.volumes"></ng-include>
+    </v2-wizard-page>
     <div ng-repeat="container in command.containers">
       <v2-wizard-page key="container-{{$index}}" label="Container {{container.image}}" done="true">
         <kubernetes-container-configurer command="command" index="$index" container="container"></kubernetes-container-configurer>

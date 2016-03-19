@@ -26,6 +26,22 @@ module.exports = angular.module('spinnaker.kubernetes.container.configurer.direc
       $scope.container.ports.push({ protocol: 'TCP' });
     };
 
+    this.removeMount = function(index) {
+      $scope.container.volumeMounts.splice(index, 1);
+    };
+
+    this.addMount = function() {
+      $scope.container.volumeMounts.push({ name: '', readOnly: false, mountPath: '/', });
+    };
+
+    this.removeEnvVar = function(index) {
+      $scope.container.envVars.splice(index, 1);
+    };
+
+    this.addEnvVar = function() {
+      $scope.container.envVars.push({ name: '', value: '', });
+    };
+
     this.protocols = ['TCP', 'UDP'];
     this.maxPort = 65535;
   });

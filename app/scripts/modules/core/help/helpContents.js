@@ -292,6 +292,8 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'kubernetes.containers.probes.period': 'How long between probe executions.',
     'kubernetes.containers.probes.successThreshold': 'How many executions need to succeed before the probe is declared healthy.',
     'kubernetes.containers.probes.failureThreshold': 'How many executions need to fail before the probe is declared unhealthy.',
+    'kubernetes.containers.volumemounts.name': 'The <b>Volume Source</b> configured above to claim.',
+    'kubernetes.containers.volumemounts.mountPath': 'The directory to mount the specified <b>Volume Source</b> to.',
     'kubernetes.namespace': 'The namespace you have configured with the above selected account. This will often be referred to as <b>Region</b> in Spinnaker.',
     'kubernetes.loadBalancer.detail': '(Optional) A string of free-form alphanumeric characters; by convention, we recommend using "frontend".',
     'kubernetes.loadBalancer.stack': '(Optional) One of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.' ,
@@ -311,6 +313,15 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
       'when <b>Type</b> is set to <b>LoadBalancer</b>.',
     'kubernetes.service.externalIps': 'IP addresses for which nodes in the cluster also accept traffic. This is not managed by Kubernetes and the ' +
       'responsibility of the user to configure.',
+    'kubernetes.pod.volume': 'A storage volume to be mounted and shared containers in this pod. The lifecycle depends on the volume type selected' +
+      '<p><b>EMPTYDIR</b>: A transient volume tied to the lifecycle of this pod.</p>' +
+      '<p><b>HOSTPATH</b>: A directory on the host node. Most pods do not need this.</p>' +
+      '<p><b>PERSISTENTVOLUMECLAIM</b>: An already created persistent volume claim to be bound by this pod.</p>',
+    'kubernetes.pod.emptydir.medium': 'The type of storage medium used by this volume type.' +
+      '<p><b>DEFAULT</b>: Depends on the storage mechanism backing this pod\'s Kubernetes installation.</p>' +
+      '<p><b>MEMORY</b>: A tmpfs (RAM-backed filesystem). Very fast, but usage counts against the memory resource limit, and contents are lost on reboot.</p>',
+    'kubernetes.pod.persistentvolumeclaim.claim': 'The name of the underlying persistent volume claim to request.',
+    'kubernetes.pod.hostpath.path': 'The path on the host node\'s filesystem to mount.',
     'user.verification': 'Typing into this verification field is annoying! But it serves as a reminder that you are ' +
     'changing something in an account deemed important, and prevents you from accidentally changing something ' +
     'when you meant to click on the "Cancel" button.',
