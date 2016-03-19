@@ -1,0 +1,2 @@
+# User rules for spinnaker
+spinnaker ALL=(ALL) NOPASSWD: /usr/bin/packer
