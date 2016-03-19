@@ -30,6 +30,9 @@ describe('azureServerGroupTransformer', function () {
           offer: 'Windows',
           sku: 'Server2016',
           version: '12.0.0.1',
+        },
+        viewState: {
+          mode: 'create',
         }
       };
 
@@ -51,6 +54,9 @@ describe('azureServerGroupTransformer', function () {
           offer: 'Windows',
           sku: 'Server2016',
           version: '12.0.0.1',
+        },
+        viewState: {
+          mode: 'create',
         }
       };
 
@@ -71,6 +77,9 @@ describe('azureServerGroupTransformer', function () {
           offer: 'Windows',
           sku: 'Server2016',
           version: '12.0.0.1',
+        },
+        viewState: {
+          mode: 'create',
         }
       };
 
@@ -92,6 +101,9 @@ describe('azureServerGroupTransformer', function () {
           offer: 'Windows',
           sku: 'Server2016',
           version: '12.0.0.1',
+        },
+        viewState: {
+          mode: 'create',
         }
       };
 

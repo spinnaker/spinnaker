@@ -6,13 +6,15 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
   require('angular-ui-router'),
   require('../../../../core/utils/lodash.js'),
   require('../serverGroupConfiguration.service.js'),
+  require('../../serverGroup.transformer.js'),
   require('../../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../../core/task/monitor/taskMonitorService.js'),
   require('../../../../core/modal/wizard/v2modalWizard.service.js'),
 ])
   .controller('azureCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorService,
-                                                  azureServerGroupConfigurationService, serverGroupCommand, application, title) {
+                                                  azureServerGroupConfigurationService, serverGroupCommand,
+                                                  azureServerGroupTransformer, application, title) {
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
       basicSettings: require('./basicSettings/basicSettings.html'),

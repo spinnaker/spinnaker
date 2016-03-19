@@ -33,7 +33,7 @@
           <help-field key="azure.serverGroup.detail"></help-field>
         </div>
         <div class="col-md-7">
-          <input required type="text" class="form-control input-sm" ng-pattern="basicSettingsCtrl.detailPattern" name="details" ng-model="command.details"
+          <input required type="text" class="form-control input-sm" ng-pattern="basicSettingsCtrl.detailPattern" name="details" ng-model="command.freeFormDetails"
           />
         </div>
       </div>
@@ -42,7 +42,7 @@
           <span>Only dot(.), underscore(_), and dash(-) special characters are allowed in the Detail field.</span>
         </div>
       </div>
-      <div class="form-group">
+      <div class="form-group" ng-if="!command.viewState.disableImageSelection">
         <div class="col-md-3 sm-label-right">
           Image
           <help-field key="azure.serverGroup.imageName"></help-field>
