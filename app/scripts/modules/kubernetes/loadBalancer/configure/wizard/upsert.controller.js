@@ -153,7 +153,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
         function() {
           var zones = {};
           // TODO(lwander) make generic Q2 2016
-          zones[$scope.loadBalancer.namespace] = [$scope.loadBalancer.namespace]; 
+          zones[$scope.loadBalancer.namespace] = [$scope.loadBalancer.namespace];
           let params = {
             cloudProvider: 'kubernetes',
             availabilityZones: zones
