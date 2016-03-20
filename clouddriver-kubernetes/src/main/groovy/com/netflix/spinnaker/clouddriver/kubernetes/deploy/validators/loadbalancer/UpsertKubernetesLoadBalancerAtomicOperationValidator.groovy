@@ -29,7 +29,7 @@ import org.springframework.validation.Errors
 
 @KubernetesOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component
-class UpsertKubernetesLoadBalancerAtomicOperationValidator extends DescriptionValidator<UpsertKubernetesLoadBalancerAtomicOperationDescription>{
+class UpsertKubernetesLoadBalancerAtomicOperationValidator extends DescriptionValidator<UpsertKubernetesLoadBalancerAtomicOperationDescription> {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
