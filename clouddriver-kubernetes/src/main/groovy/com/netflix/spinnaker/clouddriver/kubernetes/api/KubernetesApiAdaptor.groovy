@@ -184,6 +184,14 @@ class KubernetesApiAdaptor {
     containerDescription.livenessProbe = fromProbe(container?.livenessProbe)
     containerDescription.readinessProbe = fromProbe(container?.readinessProbe)
 
+    containerDescription.envVars = container?.env?.collect { envVar ->
+      new KubernetesEnvVar(name: envVar.name, value: envVar.value)
+    }
+
+    containerDescription.volumeMounts = container?.volumeMounts?.collect { volumeMount ->
+      new KubernetesVolumeMount(name: volumeMount.name, readOnly: volumeMount.readOnly, mountPath: volumeMount.mountPath)
+    }
+
     return containerDescription
   }
 
@@ -198,6 +206,35 @@ class KubernetesApiAdaptor {
     deployDescription.namespace = replicationController?.metadata?.namespace
     deployDescription.targetSize = replicationController?.spec?.replicas
     deployDescription.securityGroups = []
+
+    deployDescription.volumeSources = replicationController?.spec?.template?.spec?.volumes?.collect { volume ->
+      def res = new KubernetesVolumeSource(name: volume.name)
+
+      if (volume.emptyDir) {
+        res.type = KubernetesVolumeSourceType.EMPTYDIR
+        def medium = volume.emptyDir.medium
+        def mediumType
+
+        if (medium == "Memory") {
+          mediumType = KubernetesStorageMediumType.MEMORY
+        } else {
+          mediumType = KubernetesStorageMediumType.DEFAULT
+        }
+
+        res.emptyDir = new KubernetesEmptyDir(medium: mediumType)
+      } else if (volume.hostPath) {
+        res.type = KubernetesVolumeSourceType.HOSTPATH
+        res.hostPath = new KubernetesHostPath(path: volume.hostPath.path)
+      } else if (volume.persistentVolumeClaim) {
+        res.type = KubernetesVolumeSourceType.PERSISTENTVOLUMECLAIM
+        res.persistentVolumeClaim = new KubernetesPersistentVolumeClaim(claimName: volume.persistentVolumeClaim.claimName,
+                                                                        readOnly: volume.persistentVolumeClaim.readOnly)
+      } else {
+        res.type = KubernetesVolumeSourceType.UNSUPPORTED
+      }
+
+      return res
+    } ?: []
 
     deployDescription.containers = replicationController?.spec?.template?.spec?.containers?.collect {
       fromContainer(it)

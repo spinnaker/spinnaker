@@ -33,6 +33,7 @@ class DeployKubernetesAtomicOperationDescription extends KubernetesAtomicOperati
   List<String> loadBalancers
   List<String> securityGroups
   List<KubernetesContainerDescription> containers
+  List<KubernetesVolumeSource> volumeSources
 }
 
 @AutoClone
@@ -63,6 +64,61 @@ class KubernetesContainerDescription {
   List<KubernetesContainerPort> ports
   KubernetesProbe livenessProbe
   KubernetesProbe readinessProbe
+  List<KubernetesVolumeMount> volumeMounts
+  List<KubernetesEnvVar> envVars
+}
+
+@AutoClone
+@Canonical
+class KubernetesEnvVar {
+  String name
+  String value
+  // TODO(lwander) Q2 2016 add EnvVarSource for selecting secrets.
+}
+
+@AutoClone
+@Canonical
+class KubernetesVolumeMount {
+  String name
+  Boolean readOnly
+  String mountPath
+}
+
+enum KubernetesVolumeSourceType {
+  HOSTPATH, EMPTYDIR, PERSISTENTVOLUMECLAIM, UNSUPPORTED
+}
+
+enum KubernetesStorageMediumType {
+  DEFAULT, MEMORY
+}
+
+@AutoClone
+@Canonical
+class KubernetesVolumeSource {
+  String name
+  KubernetesVolumeSourceType type
+  KubernetesHostPath hostPath
+  KubernetesEmptyDir emptyDir
+  KubernetesPersistentVolumeClaim persistentVolumeClaim
+}
+
+@AutoClone
+@Canonical
+class KubernetesHostPath {
+  String path
+}
+
+@AutoClone
+@Canonical
+class KubernetesEmptyDir {
+  KubernetesStorageMediumType medium
+}
+
+@AutoClone
+@Canonical
+class KubernetesPersistentVolumeClaim {
+  String claimName
+  Boolean readOnly
 }
 
 @AutoClone

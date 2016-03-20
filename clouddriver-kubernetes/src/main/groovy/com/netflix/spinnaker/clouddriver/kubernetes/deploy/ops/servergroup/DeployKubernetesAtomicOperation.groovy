@@ -22,10 +22,10 @@ import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesHandlerType
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesStorageMediumType
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesVolumeSourceType
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import io.fabric8.kubernetes.api.model.IntOrString
-import io.fabric8.kubernetes.api.model.ReplicationController
-import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder
+import io.fabric8.kubernetes.api.model.*
 
 class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResult> {
   private static final String BASE_PHASE = "DEPLOY"
@@ -41,9 +41,10 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
   DeployKubernetesAtomicOperationDescription description
 
   /*
-   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "securityGroups": [], "loadBalancers":  [],  "containers": [ { "name": "nginx", "imageDescription": { "repository": "nginx" } } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
-   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "loadBalancers":  ["frontend-lb"],  "containers": [ { "name": "nginx", "imageDescription": { "repository": "nginx", "tag": "latest", "registry": "gcr.io" }, "ports": [ { "containerPort": "80", "hostPort": "80", "name": "http", "protocol": "TCP", "hostIp": "10.239.18.11" } ] } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
-   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "loadBalancers":  [],  "containers": [ { "name": "nginx", "imageDescription": { "repository": "nginx", "tag": "latest", "registry": "gcr.io" }, "livenessProbe": { "handler": { "type": "EXEC", "execAction": { "commands": [ "ls" ] } } } } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "securityGroups": [], "loadBalancers":  [],  "containers": [ { "name": "librarynginx", "imageDescription": { "repository": "library/nginx" } } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "loadBalancers":  ["frontend-lb"],  "containers": [ { "name": "librarynginx", "imageDescription": { "repository": "library/nginx", "tag": "latest", "registry": "index.docker.io" }, "ports": [ { "containerPort": "80", "hostPort": "80", "name": "http", "protocol": "TCP", "hostIp": "10.239.18.11" } ] } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "loadBalancers":  [],  "containers": [ { "name": "librarynginx", "imageDescription": { "repository": "library/nginx", "tag": "latest", "registry": "index.docker.io" }, "livenessProbe": { "handler": { "type": "EXEC", "execAction": { "commands": [ "ls" ] } } } } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
+   * curl -X POST -H "Content-Type: application/json" -d  '[ {  "createServerGroup": { "application": "kub", "stack": "test",  "targetSize": "3", "loadBalancers":  [],  "volumeSources": [ { "name": "storage", "type": "EMPTYDIR", "emptyDir": {} } ], "containers": [ { "name": "librarynginx", "imageDescription": { "repository": "library/nginx", "tag": "latest", "registry": "index.docker.io" }, "volumeMounts": [ { "name": "storage", "mountPath": "/storage", "readOnly": false } ] } ], "account":  "my-kubernetes-account" } } ]' localhost:7002/kubernetes/ops
   */
   @Override
   DeploymentResult operate(List priorOutputs) {
@@ -98,6 +99,50 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
 
     for (def imagePullSecret : credentials.imagePullSecrets[namespace]) {
       replicationControllerBuilder = replicationControllerBuilder.addNewImagePullSecret(imagePullSecret)
+    }
+
+
+    if (description.volumeSources) {
+      task.updateStatus BASE_PHASE, "Adding pod volume sources... "
+      def volumeSources = description.volumeSources.findResults { volumeSource ->
+        Volume volume = new Volume(name: volumeSource.name)
+
+        switch (volumeSource.type) {
+          case KubernetesVolumeSourceType.EMPTYDIR:
+            def res = new EmptyDirVolumeSourceBuilder()
+
+            switch (volumeSource.emptyDir.medium) {
+              case KubernetesStorageMediumType.MEMORY:
+                res = res.withMedium("Memory")
+                break
+
+              default:
+                res = res.withMedium("") // Empty string is default...
+            }
+
+            volume.emptyDir = res.build()
+            break
+
+          case KubernetesVolumeSourceType.HOSTPATH:
+            def res = new HostPathVolumeSourceBuilder().withPath(volume.hostPath.path)
+            volume.hostPath = res.build()
+            break
+
+          case KubernetesVolumeSourceType.PERSISTENTVOLUMECLAIM:
+            def res = new PersistentVolumeClaimVolumeSourceBuilder()
+                .withClaimName(volumeSource.persistentVolumeClaim.claimName)
+                .withReadOnly(volumeSource.persistentVolumeClaim.readOnly)
+            volume.persistentVolumeClaim = res.build()
+            break
+
+          default:
+            return null
+        }
+
+        return volume
+      }
+
+      replicationControllerBuilder = replicationControllerBuilder.withVolumes(volumeSources)
     }
 
     for (def container : description.containers) {
@@ -240,6 +285,35 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
       }
 
       replicationControllerBuilder = replicationControllerBuilder.endResources()
+
+      if (container.volumeMounts) {
+        task.updateStatus BASE_PHASE, "Adding container volume mounts..."
+
+        def volumeMounts = container.volumeMounts.collect { mount ->
+          def res = new VolumeMountBuilder()
+
+          return res.withMountPath(mount.mountPath)
+              .withName(mount.name)
+              .withReadOnly(mount.readOnly)
+              .build()
+        }
+
+        replicationControllerBuilder = replicationControllerBuilder.withVolumeMounts(volumeMounts)
+      }
+
+      if (container.envVars) {
+        task.updateStatus BASE_PHASE, "Setting container env vars..."
+
+        def envVars = container.envVars.collect { envVar ->
+          def res = new EnvVarBuilder()
+
+          return res.withName(envVar.name)
+              .withValue(envVar.value)
+              .build()
+        }
+
+        replicationControllerBuilder = replicationControllerBuilder.withEnv(envVars)
+      }
 
       replicationControllerBuilder = replicationControllerBuilder.endContainer()
       task.updateStatus BASE_PHASE, "Finished adding container ${container.name}."

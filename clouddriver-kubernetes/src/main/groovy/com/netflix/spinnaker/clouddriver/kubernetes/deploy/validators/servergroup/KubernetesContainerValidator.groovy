@@ -55,6 +55,15 @@ class KubernetesContainerValidator {
       }
     }
 
+    description.envVars?.eachWithIndex { envVar, i ->
+      helper.validateNotEmpty(envVar.name, "${prefix}.envVars[$i].name")
+    }
+
+    description.volumeMounts?.eachWithIndex { mount, i ->
+      helper.validateName(mount.name, "${prefix}.mounts[$i].name")
+      helper.validatePath(mount.mountPath, "${prefix}.mounts[$i].mountPath")
+    }
+
     if (description.livenessProbe) {
       validateProbe(description.livenessProbe, helper, "${prefix}.livenessProbe")
     }

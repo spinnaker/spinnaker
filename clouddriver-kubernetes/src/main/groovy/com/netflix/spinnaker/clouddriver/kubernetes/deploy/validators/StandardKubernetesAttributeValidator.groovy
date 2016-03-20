@@ -25,6 +25,7 @@ class StandardKubernetesAttributeValidator {
   static final namePattern = /^[a-z0-9]+([-a-z0-9]*[a-z0-9])?$/
   static final credentialsPattern = /^[a-z0-9]+([-a-z0-9_]*[a-z0-9])?$/
   static final prefixPattern = /^[a-z0-9]+$/
+  static final pathPattern = /^\/.*$/
   static final quantityPattern = /^([+-]?[0-9.]+)([eEimkKMGTP]*[-+]?[0-9]*)$/
   static final protocolList = ['TCP', 'UDP']
   static final serviceTypeList = ['ClusterIP', 'NodePort', 'LoadBalancer']
@@ -64,6 +65,10 @@ class StandardKubernetesAttributeValidator {
     result
   }
 
+  def reject(String attribute, String reason) {
+    errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid ($reason)")
+  }
+
   def validateDetails(String value, String attribute) {
     // Details are optional.
     if (!value) {
@@ -83,12 +88,7 @@ class StandardKubernetesAttributeValidator {
 
   def validatePath(String value, String attribute) {
     if (validateNotEmpty(value, attribute)) {
-      if (value[0] != "/") {
-        errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid (Must start with '/')")
-        return false
-      } else {
-        return true
-      }
+      return validateByRegex(value, attribute, pathPattern)
     } else {
       return false
     }
