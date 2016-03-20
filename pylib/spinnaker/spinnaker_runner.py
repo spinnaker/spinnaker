@@ -26,6 +26,8 @@ import sys
 import time
 import yaml
 
+import yaml_util
+
 from configurator import Configurator
 
 from fetch import check_fetch
