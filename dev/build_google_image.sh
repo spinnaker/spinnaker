@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-CURRENT_IMAGE=$(gcloud compute images list 2>1 | grep ubuntu-1404 | tail -1 | awk '{print $1}')
+CURRENT_IMAGE=$(gcloud compute images list 2>&1 | grep ubuntu-1404 | tail -1 | awk '{print $1}')
 
 VARS="-var 'install_path=$(dirname $0)/../InstallSpinnaker.sh'"
 VARS="$VARS -var 'source_image=$CURRENT_IMAGE'"

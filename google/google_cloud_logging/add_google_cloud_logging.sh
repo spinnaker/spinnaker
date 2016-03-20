@@ -22,15 +22,17 @@ GOOGLE_METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
 
 scopes=$(curl -s -L -H "Metadata-Flavor:Google" "$GOOGLE_METADATA_URL/instance/service-accounts/default/scopes")
 if [[ $? -eq 0 ]] && [[ $scopes != *"logging.write"* ]]; then
-  echo "ERROR - missing scope 'https://www.googleapis.com/auth/logging.write'"
+  echo "WARNING - missing scope 'https://www.googleapis.com/auth/logging.write'"
   echo "---------------------------------------------------------------------"
   echo "Have scopes:"
   echo "$scopes"
   echo ""
-  echo "You will need to create a new VM that adds the scope for"
-  echo "   https://www.googleapis.com/auth/logging.write"
-  echo "then try this script again (in the new instance!)."
-  exit -1
+  echo "You will not be able to upload logging data to Google Cloud Logging"
+  echo "unless you add https://www.googleapis.com/auth/logging.write"
+  echo "as an Authorization Scope when creating your VM."
+  echo ""
+  # Proceed anyway. Note that packer will not have this scope, but that is
+  # ok since only the instance from the image packer creates needs it.
 fi
 
 sudo mkdir -p /etc/google-fluentd/config.d
@@ -42,7 +44,7 @@ else
   # Otherwise, download the config file from github.
   SPINNAKER_CONF_URL="https://raw.githubusercontent.com/spinnaker/spinnaker/master/google/google_cloud_logging/spinnaker.conf"
   cd /etc/google-fluentd/config.d
-  sudo sudo curl -s -O "$SPINNAKER_CONF_URL"
+  sudo curl -s -O "$SPINNAKER_CONF_URL"
 fi
 
 cd /tmp

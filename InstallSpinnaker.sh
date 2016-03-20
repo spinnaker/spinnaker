@@ -53,6 +53,7 @@ function print_usage() {
 usage: $0 [--cloud_provider <aws|google|none|both>]
     [--aws_region <region>] [--google_region <region>]
     [--quiet] [--dependencies_only]
+    [--google_cloud_logging] [--google_cloud_monitoring]
     [--repository <debian repository url>]
     [--local-install] [--home_dir <path>]
 
@@ -79,6 +80,16 @@ usage: $0 [--cloud_provider <aws|google|none|both>]
     --dependencies_only         Do not install any Spinnaker services.
                                 Only install the dependencies. This is intended
                                 for development scenarios only
+
+    --google_cloud_logging      Install Google Cloud Logging support. This
+                                is independent of installing on Google Cloud
+                                Platform, but you may require additional
+                                authorization. See https://cloud.google.com/logging/docs/agent/authorization#install_private-key_authorization
+
+    --google_cloud_monitoring   Install Google Cloud Monitoring support. This
+                                is independent of installing on Google Cloud
+                                Platform, but you may require additional
+                                authorization. See https://cloud.google.com/monitoring/api/authentication
 
     --local-install             For Spinnaker and Java packages, download
                                 packages and install using dpkg instead of
@@ -123,6 +134,12 @@ function process_args() {
       --repository)
           REPOSITORY_URL="$1"
           shift
+          ;;
+      --google_cloud_logging)
+          GOOGLE_CLOUD_LOGGING="true"
+          ;;
+      --google_cloud_monitoring)
+          GOOGLE_CLOUD_MONITORING="true"
           ;;
       --dependencies_only)
           CLOUD_PROVIDER="none"
@@ -253,7 +270,7 @@ function set_aws_defaults_from_environ() {
 
 function set_defaults_from_environ() {
   local on_platform=""
-  local google_project_id=$(get_google_metadata_value "/project/project-id")
+  local google_project_id=$(get_google_metadata_value "project/project-id")
 
   if [[ -n "$google_project_id" ]]; then
       on_platform="google"
@@ -280,7 +297,7 @@ function add_apt_repositories() {
   add-apt-repository -y ppa:chris-lea/redis-server
   # Cassandra
   # http://docs.datastax.com/en/cassandra/2.1/cassandra/install/installDeb_t.html
-  curl -L http://debian.datastax.com/debian/repo_key | apt-key add -
+  curl -s -L http://debian.datastax.com/debian/repo_key | apt-key add -
   echo "deb http://debian.datastax.com/community/ stable main" | tee /etc/apt/sources.list.d/datastax.list > /dev/null
 
   # Spinnaker
@@ -290,7 +307,7 @@ function add_apt_repositories() {
     REPOSITORY_ORG=$(echo $REPOSITORY_URL | cut -d/ -f4)
     # Personal repositories might not be signed, so conditionally check.
     gpg=""
-    gpg=$(curl -f "https://bintray.com/user/downloadSubjectPublicKey?username=$REPOSITORY_ORG") || true
+    gpg=$(curl -s -f "https://bintray.com/user/downloadSubjectPublicKey?username=$REPOSITORY_ORG") || true
     if [ ! -z "$gpg" ]; then
         echo "$gpg" | apt-key add -
     fi   
@@ -308,6 +325,43 @@ function install_java() {
   elif [[ "x`java -version 2>&1|head -1`" != *"1.8.0"* ]];then
     echo "you must manually install java 8 and then rerun this script; exiting"
     exit 13
+  fi
+}
+
+function install_platform_dependencies() {
+  local google_scopes=$(get_google_metadata_value "instance/service-accounts/default/scopes")
+
+  if [[ -z "$google_scopes" ]]; then
+     # Not on GCP
+     if [[ "$GOOGLE_CLOUD_LOGGING" == "true" ]] \
+        || [[ "$GOOGLE_CLOUD_MONITORING" == "true" ]]; then
+          if [[ ! -f /etc/google/auth/application_default_credentials.json ]];
+          then
+            echo "You may need to add Google Project Credentials."
+            echo "See https://developers.google.com/identity/protocols/application-default-credentials"
+          fi
+     fi
+  fi
+
+  if [[ "$GOOGLE_CLOUD_LOGGING" == "true" ]]; then
+    # This can be installed on any platform, so dont scope to google.
+    # However, if on google, then certain scopes are required.
+    # The add_google_cloud_logging script checks the scope and warns.
+#    curl -s -L https://raw.githubusercontent.com/spinnaker/spinnaker/master/google/google_cloud_logging/add_google_cloud_logging.sh | sudo bash
+    curl -s -L https://raw.githubusercontent.com/ewiseblatt/spinnaker/install_platform_deps/google/google_cloud_logging/add_google_cloud_logging.sh | sudo bash
+  fi
+
+  if [[ "$GOOGLE_CLOUD_MONITORING" == "true" ]]; then
+    # This can be installed on any platform, so dont scope to google.
+    # However, if on google, then certain scopes are required.
+    curl -s https://repo.stackdriver.com/stack-install.sh | sudo bash
+    if [[ ! -z "$google_scopes" ]] && [[ $scopes != *"monitoring.write"* ]]; then
+      # This is not necessarily bad because we might be using this instance
+      # to create an image (e.g. packer). Only the runtime instances need
+      # this scope.
+      echo "Missing scope 'https://www.googleapis.com/auth/monitoring.write'"
+      echo "Google Cloud Monitoring will not be able to send data upstream."
+    fi
   fi
 }
 
@@ -506,13 +560,14 @@ fi
 
 install_java
 install_apache2
+install_platform_dependencies
 install_dependencies
 install_redis_server
 install_cassandra
 
 ## Packer
 mkdir /tmp/packer && pushd /tmp/packer
-curl -L -O https://releases.hashicorp.com/packer/0.8.6/packer_0.8.6_linux_amd64.zip
+curl -s -L -O https://releases.hashicorp.com/packer/0.8.6/packer_0.8.6_linux_amd64.zip
 unzip -u -o -q packer_0.8.6_linux_amd64.zip -d /usr/bin
 popd
 rm -rf /tmp/packer
