@@ -40,7 +40,6 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
-import groovy.util.logging.Slf4j
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -52,10 +51,6 @@ import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.ON_DEMAN
 
 class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, DriftMetric {
   final Logger log = LoggerFactory.getLogger(getClass())
-  @Deprecated
-  private static final String LEGACY_ON_DEMAND_TYPE = 'AmazonLoadBalancer'
-
-  private static final String ON_DEMAND_TYPE = 'LoadBalancer'
 
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
@@ -109,7 +104,7 @@ class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAw
     this.region = region
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     this.registry = registry
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, amazonCloudProvider.id + ":" + ON_DEMAND_TYPE)
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, amazonCloudProvider.id + ":" + "${amazonCloudProvider.id}:${OnDemandAgent.OnDemandType.LoadBalancer}")
   }
 
   static class MutableCacheData implements CacheData {
@@ -132,13 +127,8 @@ class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAw
   }
 
   @Override
-  boolean handles(String type) {
-    type == LEGACY_ON_DEMAND_TYPE
-  }
-
-  @Override
-  boolean handles(String type, String cloudProvider) {
-    type == ON_DEMAND_TYPE && cloudProvider == amazonCloudProvider.id
+  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
+    type == OnDemandAgent.OnDemandType.LoadBalancer && cloudProvider == amazonCloudProvider.id
   }
 
   @Override

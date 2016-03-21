@@ -50,7 +50,7 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
     super(azureCloudProvider, accountName, creds, region, objectMapper)
 
     this.registry = registry
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, azureCloudProvider.id + ":" + getOnDemandType())
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${azureCloudProvider.id}:${onDemandType}")
 
   }
 
@@ -294,13 +294,8 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
   }
 
   @Override
-  String getLegacyType() {
-    "AzureServerGroup"
-  }
-
-  @Override
-  String getOnDemandType() {
-    "ServerGroup"
+  OnDemandAgent.OnDemandType getOnDemandType() {
+    OnDemandAgent.OnDemandType.ServerGroup
   }
 
   private String getServerGroupKey(AzureServerGroupDescription serverGroup) {

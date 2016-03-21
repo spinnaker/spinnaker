@@ -43,10 +43,6 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 
 @Slf4j
 class AzureSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, AccountAware {
-  @Deprecated
-  private static final String LEGACY_ON_DEMAND_TYPE = 'AzureSecurityGroup'
-
-  private static final String ON_DEMAND_TYPE = 'SecurityGroup'
 
   final AzureCloudProvider azureCloudProvider
   final String accountName
@@ -72,7 +68,7 @@ class AzureSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Acc
     this.region = region
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     this.registry = registry
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, azureCloudProvider.id + ":" + ON_DEMAND_TYPE)
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${azureCloudProvider.id}:${OnDemandAgent.OnDemandType.SecurityGroup}")
   }
 
   @Override
@@ -101,13 +97,8 @@ class AzureSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Acc
   }
 
   @Override
-  boolean handles(String type) {
-    type == LEGACY_ON_DEMAND_TYPE
-  }
-
-  @Override
-  boolean handles(String type, String cloudProvider) {
-    type == ON_DEMAND_TYPE && cloudProvider == azureCloudProvider.id
+  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
+    type == OnDemandAgent.OnDemandType.SecurityGroup && cloudProvider == azureCloudProvider.id
   }
 
   @Override

@@ -44,28 +44,17 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
   }
 
   @Override
-  boolean handles(String type) {
-    onDemandAgents.any { it.handles(type) }
-  }
-
-  @Override
-  boolean handles(String type, String cloudProvider) {
+  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
     onDemandAgents.any { it.handles(type, cloudProvider) }
   }
 
   @Override
-  OnDemandCacheUpdater.OnDemandCacheStatus handle(String type, Map<String, ? extends Object> data) {
-    Collection<OnDemandAgent> onDemandAgents = onDemandAgents.findAll { it.handles(type) }
-    return handle(type, onDemandAgents, data)
-  }
-
-  @Override
-  OnDemandCacheUpdater.OnDemandCacheStatus handle(String type, String cloudProvider, Map<String, ? extends Object> data) {
+  OnDemandCacheUpdater.OnDemandCacheStatus handle(OnDemandAgent.OnDemandType type, String cloudProvider, Map<String, ? extends Object> data) {
     Collection<OnDemandAgent> onDemandAgents = onDemandAgents.findAll { it.handles(type, cloudProvider) }
     return handle(type, onDemandAgents, data)
   }
 
-  OnDemandCacheUpdater.OnDemandCacheStatus handle(String type, Collection<OnDemandAgent> onDemandAgents, Map<String, ? extends Object> data) {
+  OnDemandCacheUpdater.OnDemandCacheStatus handle(OnDemandAgent.OnDemandType type, Collection<OnDemandAgent> onDemandAgents, Map<String, ? extends Object> data) {
     boolean hasOnDemandResults = false
     for (OnDemandAgent agent : onDemandAgents) {
       try {
@@ -100,7 +89,7 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
   }
 
   @Override
-  Collection<Map> pendingOnDemandRequests(String type, String cloudProvider) {
+  Collection<Map> pendingOnDemandRequests(OnDemandAgent.OnDemandType type, String cloudProvider) {
     Collection<OnDemandAgent> onDemandAgents = onDemandAgents.findAll { it.handles(type, cloudProvider) }
     return onDemandAgents.collect {
       def providerCache = catsModule.getProviderRegistry().getProviderCache(it.providerName)
