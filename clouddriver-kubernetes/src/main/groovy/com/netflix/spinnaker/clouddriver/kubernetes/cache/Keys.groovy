@@ -25,6 +25,7 @@ class Keys {
     SERVER_GROUPS,
     INSTANCES,
     LOAD_BALANCERS,
+    SECURITY_GROUPS,
     ON_DEMAND,
 
     static String provider = "kubernetes"
@@ -57,23 +58,70 @@ class Keys {
 
     switch (result.type) {
       case Namespace.APPLICATIONS.ns:
-        result << [application: parts[2]]
+        result << [
+            application: parts[2]
+        ]
         break
       case Namespace.CLUSTERS.ns:
         def names = Names.parseName(parts[4])
-        result << [application: parts[3], account: parts[2], name: parts[4], cluster: parts[4], stack: names.stack, detail: names.detail]
+        result << [
+            application: parts[3],
+            account: parts[2],
+            name: parts[4],
+            cluster: parts[4],
+            stack: names.stack,
+            detail: names.detail
+        ]
         break
       case Namespace.SERVER_GROUPS.ns:
         def names = Names.parseName(parts[4])
-        result << [application: names.app, account: parts[2], name: parts[4], namespace: parts[3], stack: names.stack, cluster: names.cluster, detail: names.detail, sequence: names.sequence?.toString(), serverGroup: parts[4], region: parts[3]]
+        result << [
+            application: names.app,
+            account: parts[2],
+            name: parts[4],
+            namespace: parts[3],
+            stack: names.stack,
+            cluster: names.cluster,
+            detail: names.detail,
+            sequence: names.sequence?.toString(),
+            serverGroup: parts[4],
+            region: parts[3]
+        ]
         break
       case Namespace.LOAD_BALANCERS.ns:
         def names = Names.parseName(parts[4])
-        result << [application: names.app, account: parts[2], name: parts[4], loadBalancer: parts[4], namespace: parts[3], stack: names.stack, detail: names.detail]
+        result << [
+            application: names.app,
+            account: parts[2],
+            name: parts[4],
+            loadBalancer: parts[4],
+            namespace: parts[3],
+            stack: names.stack,
+            detail: names.detail
+        ]
         break
       case Namespace.INSTANCES.ns:
         def names = Names.parseName(parts[4])
-        result << [application: names.app, account: parts[2], serverGroup: parts[4], namespace: parts[3], name: parts[5], instanceId: parts[5], region: parts[3]]
+        result << [
+            application: names.app,
+            account: parts[2],
+            serverGroup: parts[4],
+            namespace: parts[3],
+            name: parts[5],
+            instanceId: parts[5],
+            region: parts[3]
+        ]
+        break
+      case Namespace.SECURITY_GROUPS.ns:
+        def names = Names.parseName(parts[4])
+        result << [
+            application: names.app,
+            account: parts[2],
+            namespace: parts[3],
+            region: parts[3],
+            name: parts[4],
+            id: parts[4]
+        ]
         break
       default:
         return null
@@ -101,5 +149,9 @@ class Keys {
 
   static String getInstanceKey(String account, String namespace, String replicationControllerName, String name) {
     "${Namespace.provider}:${Namespace.INSTANCES}:${account}:${namespace}:${replicationControllerName}:${name}"
+  }
+
+  static String getSecurityGroupKey(String account, String namespace, String ingressName) {
+    "${Namespace.provider}:${Namespace.SECURITY_GROUPS}:${account}:${namespace}:${ingressName}"
   }
 }

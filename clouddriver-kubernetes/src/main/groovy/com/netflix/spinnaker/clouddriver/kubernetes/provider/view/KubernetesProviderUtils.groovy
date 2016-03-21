@@ -55,6 +55,7 @@ class KubernetesProviderUtils {
       def loadBalancers = it.relationships[Keys.Namespace.LOAD_BALANCERS.ns].collect {
         Keys.parse(it).name
       }
+
       KubernetesInstance instance = new KubernetesInstance(pod, loadBalancers)
       instanceMap[instance.serverGroupName].add(instance)
     }

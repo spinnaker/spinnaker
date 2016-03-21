@@ -39,7 +39,8 @@ class KubernetesProvider extends AgentSchedulerAware implements SearchableProvid
       Keys.Namespace.LOAD_BALANCERS.ns,
       Keys.Namespace.CLUSTERS.ns,
       Keys.Namespace.SERVER_GROUPS.ns,
-      Keys.Namespace.INSTANCES.ns
+      Keys.Namespace.INSTANCES.ns,
+      Keys.Namespace.SECURITY_GROUPS.ns
   ].asImmutable()
 
   @Override
