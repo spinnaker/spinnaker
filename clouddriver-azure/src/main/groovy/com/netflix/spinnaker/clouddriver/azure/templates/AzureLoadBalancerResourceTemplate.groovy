@@ -62,6 +62,7 @@ class AzureLoadBalancerResourceTemplate {
     String loadBalancerID = "[resourceID('Microsoft.Network/loadBalancers',variables('loadBalancerName'))]"
     String publicIPAddressID = "[resourceID('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
     String frontEndIPConfig = "[concat(variables('loadBalancerID'),'/frontendIPConfigurations/',variables('loadBalancerFrontEnd'))]"
+    String backendPoolID = "[concat(variables('loadBalancerID'),'/backendAddressPools/',variables('loadBalancerBackEnd'))]"
 
     LoadBalancerTemplateVariables(AzureLoadBalancerDescription description){
       String regionName = description.region.replace(' ', '').toLowerCase()
@@ -243,6 +244,7 @@ class AzureLoadBalancerResourceTemplate {
 
   static class LoadBalancingRuleProperties{
     IdRef frontendIPConfiguration
+    IdRef backendAddressPool
     String protocol
     Integer frontendPort
     Integer backendPort
@@ -250,6 +252,7 @@ class AzureLoadBalancerResourceTemplate {
 
     LoadBalancingRuleProperties(AzureLoadBalancerDescription.AzureLoadBalancingRule rule){
       frontendIPConfiguration = new IdRef("[variables('frontEndIPConfig')]")
+      backendAddressPool = new IdRef("[variables('backendPoolID')]")
       protocol = rule.protocol.toString().toLowerCase()
       frontendPort = rule.externalPort
       backendPort = rule.backendPort
