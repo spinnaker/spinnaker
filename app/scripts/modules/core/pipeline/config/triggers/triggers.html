@@ -9,6 +9,13 @@
          <strong>Disable concurrent pipeline executions (only run one at a time). </strong>
         </label>
       </div>
+      <div ng-if="pipeline.limitConcurrent"class="checkbox">
+        <label>
+          <input type="checkbox" ng-model="pipeline.limitWaiting" ng-true-value="false" ng-false-value="true">
+          <strong>Do not automatically cancel pipelines waiting in queue. </strong>
+          <help-field key="pipeline.config.parallel.cancel.queue"/>
+        </label>
+      </div>
     </div>
   </div>
 
