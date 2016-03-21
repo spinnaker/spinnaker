@@ -67,12 +67,13 @@ class NotificationController {
         def notification = notificationDAO.get(level, name)
 
         if (level == HierarchicalLevel.APPLICATION) {
+            def global = getGlobal()
             NotificationDAO.NOTIFICATION_FORMATS.each {
-                if (getGlobal()."$it") {
+                if (global."$it") {
                     if (!notification."${it}") {
                         notification."${it}" = []
                     }
-                    notification."$it".addAll(getGlobal()."$it")
+                    notification."$it".addAll(global."$it")
                 }
             }
         }
