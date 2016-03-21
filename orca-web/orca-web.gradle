@@ -39,6 +39,7 @@ dependencies {
   compile project(":orca-flex")
   compile project(":orca-echo")
   compile project(":orca-mine")
+  compile project(":orca-mahe")
   compile project(":orca-rush")
   compile project(":orca-igor")
   compile project(":orca-eureka")

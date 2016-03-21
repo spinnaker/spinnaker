@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.kubernetes
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
@@ -57,6 +58,25 @@ class KubernetesServerGroupCreator implements ServerGroupCreator {
           throw new IllegalStateException("No image found in context for pattern $container.imageDescription.pattern.")
         } else {
           container.imageDescription = [registry: image.registry, tag: image.tag, repository: image.repository]
+        }
+      }
+
+      if (container.imageDescription.fromTrigger) {
+        if (stage.execution instanceof Pipeline) {
+          Map trigger = ((Pipeline) stage.execution).trigger
+
+          def matchingTag = trigger?.buildInfo?.taggedImages?.findResult { info ->
+            if (container.imageDescription.registry == info.getAt("registry") &&
+                container.imageDescription.repository == info.getAt("repository")) {
+              return info.tag
+            }
+          }
+
+          container.imageDescription.tag = matchingTag
+        }
+
+        if (!container.imageDescription.tag) {
+          throw new IllegalStateException("No tag found for image ${container.imageDescription.registry}/${container.imageDescription.repository} in trigger context.")
         }
       }
     }
