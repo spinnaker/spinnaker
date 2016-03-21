@@ -38,6 +38,7 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
         selectedProvider: 'kubernetes',
         namespace: 'default',
         containers: [],
+        volumeSources: [],
         buildImageId: buildImageId,
         groupByRegistry: groupByRegistry,
         viewState: {
@@ -194,8 +195,9 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroupCommandBuilder.
         region: serverGroup.region,
         namespace: serverGroup.region,
       };
+
       command.viewState = {
-          mode: mode,
+        mode: mode,
       };
 
       if (application && application.attributes && application.attributes.platformHealthOnly) {

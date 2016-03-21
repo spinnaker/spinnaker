@@ -32,6 +32,46 @@
     </div>
   </div>
 
+  <collapsible-section heading="Basic Settings" expanded="false">
+    <div class="form-group">
+      <div class="sm-label-left">
+        <b>Environment Variables</b>
+      </div>
+      <table class="table table-condensed">
+        <thead>
+        <tr>
+          <th>Name</th>
+          <th>Value</th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="pair in container.envVars">
+          <td><input class="form-control input input-sm" type="text" ng-model="pair.name"></td>
+          <td><input class="form-control input input-sm" type="text" ng-model="pair.value"></td>
+          <td>
+            <div class="form-control-static">
+              <a href ng-click="containerController.removeEnvVar($index)">
+                <span class="glyphicon glyphicon-trash"></span>
+              </a>
+            </div>
+          </td>
+        </tr>
+        </tbody>
+        <tfoot>
+        <tr>
+          <td colspan="3">
+            <button class="btn btn-block btn-sm add-new" ng-click="containerController.addEnvVar()">
+              <span class="glyphicon glyphicon-plus-sign"></span>
+              Add Environment Variable
+            </button>
+          </td>
+        </tr>
+        </tfoot>
+      </table>
+    </div>
+  </collapsible-section>
+
   <collapsible-section heading="Resources" expanded="false">
     <div class="form-group">
       <div class="col-md-3">
@@ -88,9 +128,11 @@
         <div class="col-md-4">
           <input type="text" class="form-control input-sm" name="details" ng-model="port.name"/>
         </div>
-        <div class="col-md-1">
-          <a class="btn btn-link sm-label" ng-click="containerController.removePort($index)">
-            <span class="glyphicon glyphicon-trash"></span>  Remove Port</a>
+        <div class="col-md-2">
+          <button class="btn btn-sm btn-default" ng-click="containerController.removePort($index)">
+            <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
+            <span class="visible-lg-inline"> Remove Port</span>
+          </button>
         </div>
       </div>
       <div class="form-group">
@@ -123,7 +165,7 @@
           Protocol
           <help-field key="kubernetes.containers.ports.protocol"></help-field>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-3">
           <select class="form-control input-sm" ng-model="port.protocol">
             <option ng-repeat="protocol in containerController.protocols" value="{{protocol}}"
                     ng-selected="port.protocol === protocol">{{protocol}}</option>
@@ -133,6 +175,49 @@
     </div>
     <button class="add-new col-md-12" ng-click="containerController.addPort()"><span
       class="glyphicon glyphicon-plus-sign"></span> Add New Port
+    </button>
+  </collapsible-section>
+  <collapsible-section heading="Volume Mounts" expanded="false">
+    <div ng-repeat="mount in container.volumeMounts">
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">
+          Source Name
+          <help-field key="kubernetes.containers.volumemounts.name"></help-field>
+        </div>
+        <div class="col-md-4">
+          <select class="form-control input-sm" ng-model="mount.name">
+            <option ng-repeat="source in command.volumeSources" value="{{source.name}}"
+                    ng-selected="mount.name === source.name">{{source.name}}</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-sm btn-default" ng-click="containerController.removeMount($index)">
+            <span class="glyphicon glyphicon-trash visible-lg-inline"></span>
+            <span class="visible-lg-inline"> Remove Mount</span>
+          </button>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">
+          Mount Path
+          <help-field key="kubernetes.containers.volumemounts.mountPath"></help-field>
+        </div>
+        <div class="col-md-4">
+          <input type="text" class="form-control input-sm" name="details" ng-model="mount.mountPath"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">
+          Read Only
+        </div>
+        <div class="col-md-2">
+          <input type="checkbox" ng-model="mount.readOnly"/>
+        </div>
+      </div>
+      <hr ng-if="container.volumeMounts.length > 1">
+    </div>
+    <button class="add-new col-md-12" ng-click="containerController.addMount()"><span
+      class="glyphicon glyphicon-plus-sign"></span> Add New Volume Mount
     </button>
   </collapsible-section>
   <collapsible-section heading="Probes" expanded="false">
