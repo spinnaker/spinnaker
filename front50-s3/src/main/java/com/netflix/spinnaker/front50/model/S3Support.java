@@ -105,7 +105,6 @@ public abstract class S3Support<T extends Timestamped> {
       throw new IllegalStateException(e);
     } catch (AmazonS3Exception e) {
       if (e.getStatusCode() == 404) {
-        log.warn(String.format("No item found with id of %s", id.toLowerCase()));
         throw new NotFoundException(String.format("No item found with id of %s", id.toLowerCase()));
       }
 
