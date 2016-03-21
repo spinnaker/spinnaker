@@ -29,6 +29,7 @@ import retrofit.http.EncodedPath
 import retrofit.http.GET
 import retrofit.http.POST
 import retrofit.http.Path
+import retrofit.http.Query
 import retrofit.http.QueryMap
 import retrofit.http.Streaming
 
@@ -71,6 +72,12 @@ interface JenkinsClient {
 
     @POST('/job/{jobName}/buildWithParameters')
     Response buildWithParameters(@EncodedPath('jobName') String jobName, @QueryMap Map<String, String> queryParams)
+
+    @POST('/job/{jobName}/{buildNumber}/stop')
+    Response stopRunningBuild(@EncodedPath('jobName') String jobName, @Path('buildNumber') Integer buildNumber)
+
+    @POST('/queue/cancelItem')
+    Response stopQueuedBuild(@Query('id') String queuedBuild)
 
     @GET('/job/{jobName}/api/xml?exclude=/*/action&exclude=/*/build&exclude=/*/property[not(parameterDefinition)]')
     JobConfig getJobConfig(@EncodedPath('jobName') String jobName)

@@ -128,6 +128,14 @@ class JenkinsService {
         return jenkinsClient.getPropertyFile(encode(jobName), buildNumber, fileName)
     }
 
+    Response stopRunningBuild (String jobName, Integer buildNumber){
+        return jenkinsClient.stopRunningBuild(encode(jobName), buildNumber)
+    }
+
+    Response stopQueuedBuild (String queuedBuild) {
+        return jenkinsClient.stopQueuedBuild(queuedBuild)
+    }
+
   /**
    * A CommandKey should be unique per group (to ensure broken circuits do not span Jenkins masters)
    */

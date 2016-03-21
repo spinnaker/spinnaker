@@ -101,6 +101,39 @@ class BuildController {
         masters.map[master].getBuilds(job).list
     }
 
+    @RequestMapping(value = "/masters/{name}/jobs/{jobName}/stop/{queuedBuild}/{buildNumber}", method = RequestMethod.PUT)
+    String stop(
+        @PathVariable("name") String master,
+        @PathVariable String jobName,
+        @PathVariable String queuedBuild,
+        @PathVariable Integer buildNumber) {
+
+        if (!masters.map.containsKey(master)) {
+            throw new MasterNotFoundException("Master '${master}' not found")
+        }
+
+        def jenkinsService = masters.map[master]
+
+        // Jobs that haven't been started yet won't have a buildNumber
+        // (They're still in the queue). We use 0 to denote that case
+        if (buildNumber != 0) {
+            jenkinsService.stopRunningBuild(jobName, buildNumber)
+        }
+
+        // The jenkins api for removing a job from the queue (http://<Jenkins_URL>/queue/cancelItem?id=<queuedBuild>)
+        // always returns a 404. This try catch block insures that the exception is eaten instead
+        // of being handled by the handleOtherException handler and returning a 500 to orca
+        try {
+            jenkinsService.stopQueuedBuild(queuedBuild)
+        } catch (RetrofitError e) {
+            if (e.response?.status != HttpStatus.NOT_FOUND.value()) {
+                throw e
+            }
+        }
+
+        "true"
+    }
+
     @RequestMapping(value = '/masters/{name}/jobs/**', method = RequestMethod.PUT)
     String build(
         @PathVariable("name") String master,
