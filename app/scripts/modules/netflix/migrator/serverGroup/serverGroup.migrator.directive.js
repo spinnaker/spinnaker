@@ -133,7 +133,7 @@ module.exports = angular
     this.submit = () => {
       this.viewState.executing = true;
       migrationConfig.dryRun = false;
-      migrationConfig.dryRun = this.migrationOptions.allowIngressFromClassic;
+      migrationConfig.allowIngressFromClassic = this.migrationOptions.allowIngressFromClassic;
       let executor = migratorService.executeMigration(migrationConfig);
       executor.then(migrationStarted, errorMode);
     };

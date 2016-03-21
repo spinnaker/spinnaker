@@ -159,6 +159,9 @@ module.exports = angular
     var source = { pipelineId: pipeline.id },
         target = { vpcName: 'vpc0', };
 
+    this.migrationOptions = {
+      allowIngressFromClassic: true
+    };
 
     var migrationConfig = {
       application: application,
@@ -166,7 +169,8 @@ module.exports = angular
       name: pipeline.name,
       source: source,
       target: target,
-      dryRun: true,
+      allowIngressFromClassic: true,
+      dryRun: true
     };
 
     // Generate preview
@@ -182,6 +186,7 @@ module.exports = angular
     this.submit = () => {
       this.viewState.executing = true;
       migrationConfig.dryRun = false;
+      migrationConfig.allowIngressFromClassic = this.migrationOptions.allowIngressFromClassic;
       let executor = migratorService.executeMigration(migrationConfig);
       executor.then(migrationStarted, errorMode);
     };
