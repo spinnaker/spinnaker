@@ -17,7 +17,6 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
                                                                  application, loadBalancer, isNew, loadBalancerReader,
                                                                  accountService, kubernetesLoadBalancerTransformer,
                                                                  _, searchService, v2modalWizardService, loadBalancerWriter, taskMonitorService) {
-
     var ctrl = this;
     $scope.isNew = isNew;
 

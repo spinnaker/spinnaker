@@ -26,6 +26,8 @@ module.exports = angular.module('spinnaker.kubernetes', [
   require('./namespace/multiSelectField.component.js'),
   require('./namespace/selectField.directive.js'),
   require('./search/resultFormatter.js'),
+  require('./securityGroup/configure/configure.kubernetes.module.js'),
+  require('./securityGroup/transformer.js'),
   require('./serverGroup/configure/CommandBuilder.js'),
   require('./serverGroup/configure/configure.kubernetes.module.js'),
   require('./serverGroup/details/details.kubernetes.module.js'),
@@ -58,6 +60,11 @@ module.exports = angular.module('spinnaker.kubernetes', [
         detailsController: 'kubernetesLoadBalancerDetailsController',
         createLoadBalancerTemplateUrl: require('./loadBalancer/configure/wizard/wizard.html'),
         createLoadBalancerController: 'kubernetesUpsertLoadBalancerController',
+      },
+      securityGroup: {
+        transformer: 'kubernetesSecurityGroupTransformer',
+        createSecurityGroupTemplateUrl: require('./securityGroup/configure/wizard/wizard.html'),
+        createSecurityGroupController: 'kubernetesUpsertSecurityGroupController',
       },
       serverGroup: {
         transformer: 'kubernetesServerGroupTransformer',

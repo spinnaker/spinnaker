@@ -322,6 +322,12 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
       '<p><b>MEMORY</b>: A tmpfs (RAM-backed filesystem). Very fast, but usage counts against the memory resource limit, and contents are lost on reboot.</p>',
     'kubernetes.pod.persistentvolumeclaim.claim': 'The name of the underlying persistent volume claim to request.',
     'kubernetes.pod.hostpath.path': 'The path on the host node\'s filesystem to mount.',
+    'kubernetes.ingress.backend.port': 'The port for the specified load balancer.',
+    'kubernetes.ingress.backend.service': 'The load balancer (service) traffic not matching the below rules will be routed to.',
+    'kubernetes.ingress.rules.service': 'The load balancer (service) traffic matching this rule will be routed to.',
+    'kubernetes.ingress.rules.host': 'The fully qualified domain name of a network host. Any traffic routed to this host matches this rule. May not be an IP address, or contain port information.',
+    'kubernetes.ingress.rules.path': 'POSIX regex (IEE Std 1003.1) matched against the path of an incoming request.',
+    'kubernetes.ingress.rules.port': 'The port on the specifed load balancer to route traffic to.',
     'user.verification': 'Typing into this verification field is annoying! But it serves as a reminder that you are ' +
     'changing something in an account deemed important, and prevents you from accidentally changing something ' +
     'when you meant to click on the "Cancel" button.',
