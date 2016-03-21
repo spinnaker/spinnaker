@@ -159,6 +159,13 @@
           </li>
         </ul>
     </collapsible-section>
+    <collapsible-section ng-if="!instance.notFound" heading="Tags">
+      <div ng-if=" !instance.tags.length">No tags associated with this server</div>
+      <dl ng-if="instance.tags.length">
+        <dt ng-repeat-start="tag in instance.tags | orderBy: 'key.toLowerCase()'">{{tag.key}}</dt>
+        <dd ng-repeat-end>{{tag.value}}</dd>
+      </dl>
+    </collapsible-section>
     <collapsible-section heading="Logs" ng-if="baseIpAddress">
       <ul>
         <li>
