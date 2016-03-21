@@ -17,6 +17,11 @@
       </div>
 
       <div class="row preview" ng-if="vm.preview && !vm.viewState.computing && !vm.viewState.executing && !vm.viewState.error">
+        <div class="form-group">
+          <div class="col-md-6 col-md-offset-1 checkbox">
+            <label><input type="checkbox" ng-model="vm.migrationOptions.allowIngressFromClassic"/> Allow Access From EC2 Classic </label>
+          </div>
+        </div>
         <div class="col-md-10 col-md-offset-1">
           <div ng-if="!vm.viewState.migrationComplete">
             <p>This will create new pipeline named
