@@ -6,6 +6,10 @@ module.exports = angular.module('spinnaker.azure.serverGroup.transformer', [
   ])
   .factory('azureServerGroupTransformer', function () {
 
+    function normalizeServerGroup(serverGroup) {
+      return serverGroup;
+    }
+
     function convertServerGroupCommandToDeployConfiguration(command) {
       var tempImage;
 
@@ -70,6 +74,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.transformer', [
 
     return {
       convertServerGroupCommandToDeployConfiguration: convertServerGroupCommandToDeployConfiguration,
+      normalizeServerGroup: normalizeServerGroup,
     };
 
   });
