@@ -52,7 +52,6 @@ public class S3PipelineDAO extends S3Support<Pipeline> implements PipelineDAO {
 
   @Override
   public Collection<Pipeline> getPipelinesByApplication(String application) {
-    refresh();
     return all()
         .stream()
         .filter(pipelineStrategy -> pipelineStrategy.getApplication().equalsIgnoreCase(application))

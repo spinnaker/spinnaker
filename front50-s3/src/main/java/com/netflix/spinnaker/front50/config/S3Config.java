@@ -70,12 +70,12 @@ public class S3Config {
   @Bean
   @ConditionalOnExpression("${spinnaker.s3.enabled:false}")
   public S3PipelineStrategyDAO s3PipelineStrategyDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
-    return new S3PipelineStrategyDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(5)), 5000, bucket, rootFolder);
+    return new S3PipelineStrategyDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(5)), 20000, bucket, rootFolder);
   }
 
   @Bean
   @ConditionalOnExpression("${spinnaker.s3.enabled:false}")
   public S3PipelineDAO s3PipelineDAO(ObjectMapper objectMapper, AmazonS3 amazonS3) {
-    return new S3PipelineDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(25)), 5000, bucket, rootFolder);
+    return new S3PipelineDAO(objectMapper, amazonS3, Schedulers.from(Executors.newFixedThreadPool(25)), 10000, bucket, rootFolder);
   }
 }

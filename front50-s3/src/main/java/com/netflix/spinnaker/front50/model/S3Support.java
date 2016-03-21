@@ -80,6 +80,11 @@ public abstract class S3Support<T extends Timestamped> {
   }
 
   public Collection<T> all() {
+    if (readLastModified() > lastRefreshedTime || allItemsCache.get() == null) {
+      // only refresh if there was a modification since our last refresh cycle
+      refresh();
+    }
+
     return allItemsCache.get().stream().collect(Collectors.toList());
   }
 
@@ -116,6 +121,7 @@ public abstract class S3Support<T extends Timestamped> {
           new ByteArrayInputStream(objectMapper.writeValueAsBytes(item)),
           new ObjectMetadata()
       );
+      writeLastModified();
     } catch (JsonProcessingException e) {
       throw new IllegalStateException(e);
     }
@@ -123,6 +129,7 @@ public abstract class S3Support<T extends Timestamped> {
 
   public void delete(String id) {
     amazonS3.deleteObject(bucket, buildS3Key(id));
+    writeLastModified();
   }
 
   public void bulkImport(Collection<T> items) {
@@ -230,6 +237,31 @@ public abstract class S3Support<T extends Timestamped> {
 
   protected String buildS3Key(String id) {
     return rootFolder + id.toLowerCase() + "/" + getMetadataFilename();
+  }
+
+  private void writeLastModified() {
+    try {
+      amazonS3.putObject(
+          bucket,
+          rootFolder + "last-modified.json",
+          new ByteArrayInputStream(objectMapper.writeValueAsBytes(Collections.singletonMap("lastModified", System.currentTimeMillis()))),
+          new ObjectMetadata()
+      );
+    } catch (JsonProcessingException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  private Long readLastModified() {
+    try {
+      Map<String, Long> lastModified = objectMapper.readValue(
+          amazonS3.getObject(bucket, rootFolder + "last-modified.json").getObjectContent(),
+          Map.class
+      );
+      return lastModified.get("lastModified");
+    } catch (Exception e) {
+      return 0L;
+    }
   }
 
   private T deserialize(S3Object s3Object) throws IOException {

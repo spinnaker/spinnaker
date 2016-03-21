@@ -196,15 +196,7 @@ class S3NotificationControllerTck extends NotificationControllerTck {
     amazonS3.setEndpoint("http://127.0.0.1:9999")
     S3TestHelper.setupBucket(amazonS3, "front50")
 
-    s3NotificationDAO = new S3NotificationDAO(new ObjectMapper(), amazonS3, scheduler, 0, "front50", "test") {
-      @Override
-      Collection<Notification> all() {
-        // normally a refresh happens periodically, this forces it before every call to all()
-        refresh()
-        return super.all()
-      }
-    }
-
+    s3NotificationDAO = new S3NotificationDAO(new ObjectMapper(), amazonS3, scheduler, 0, "front50", "test")
     return s3NotificationDAO
   }
 }

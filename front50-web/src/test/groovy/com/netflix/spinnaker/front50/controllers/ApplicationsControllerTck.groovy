@@ -292,15 +292,7 @@ class S3ApplicationsControllerTck extends ApplicationsControllerTck {
     amazonS3.setEndpoint("http://127.0.0.1:9999")
     S3TestHelper.setupBucket(amazonS3, "front50")
 
-    s3ApplicationDAO = new S3ApplicationDAO(new ObjectMapper(), amazonS3, scheduler, 0, "front50", "test")  {
-      @Override
-      Collection<Application> all() {
-        // normally a refresh happens periodically, this forces it before every call to all()
-        refresh()
-        return super.all()
-      }
-    }
-
+    s3ApplicationDAO = new S3ApplicationDAO(new ObjectMapper(), amazonS3, scheduler, 0, "front50", "test")
     return s3ApplicationDAO
   }
 }
