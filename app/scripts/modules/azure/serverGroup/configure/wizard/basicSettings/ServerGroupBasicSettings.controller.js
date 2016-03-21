@@ -27,6 +27,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.basicSett
     this.imageChanged = (image) => {
       $scope.command.imageName = image.imageName;
       $scope.command.selectedImage = image;
+      v2modalWizardService.markClean('basic-settings');
     };
 
     angular.extend(this, $controller('BasicSettingsMixin', {
