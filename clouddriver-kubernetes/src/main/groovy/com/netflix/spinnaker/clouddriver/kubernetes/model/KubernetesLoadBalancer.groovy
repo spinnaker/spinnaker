@@ -54,15 +54,28 @@ class KubernetesLoadBalancer implements LoadBalancer, Serializable {
     this.createdTime = KubernetesModelUtil.translateTime(service.metadata?.creationTimestamp)
     this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(service)
     this.serverGroups = serverGroupList?.collect { serverGroup ->
-      // TODO(lwander): Add isDisabled and detachedInstances fields below.
       new LoadBalancerServerGroup(
         name: serverGroup?.name,
-        instances: serverGroup?.instances?.collect { instance ->
-          new LoadBalancerInstance(
-            id: instance.name,
-            zone: instance.zone,
-            health: instance.health?.get(0)
-          )
+        isDisabled: serverGroup?.isDisabled(),
+        instances: serverGroup?.instances?.findResults { instance ->
+          if (instance.isAttached(this.name)) {
+            return new LoadBalancerInstance(
+                id: instance.name,
+                zone: region,
+                health: [
+                    state: instance.healthState.toString()
+                ]
+            )
+          } else {
+            return (LoadBalancerInstance) null // Groovy generics need to be convinced all control flow paths return the same object type
+          }
+        } as Set,
+        detachedInstances: serverGroup?.instances?.findResults { instance ->
+          if (!instance.isAttached(this.name)) {
+            return instance.name
+          } else {
+            return (String) null
+          }
         } as Set)
     } as Set
   }
