@@ -53,9 +53,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   BasicAmazonDeployHandler handler
 
   @Shared
-  NetflixAmazonCredentials testCredentials = new NetflixAmazonCredentials(
-    "test", "test", "test", "test", null, null, null, null, null, null, null, null, null, null, null
-  )
+  NetflixAmazonCredentials testCredentials = TestCredential.named('test')
 
   @Shared
   Task task = Mock(Task)

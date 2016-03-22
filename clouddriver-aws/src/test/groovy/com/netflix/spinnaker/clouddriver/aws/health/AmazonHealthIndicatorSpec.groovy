@@ -19,9 +19,8 @@ package com.netflix.spinnaker.clouddriver.aws.health
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeAccountAttributesResult
+import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
-import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.boot.actuate.health.Status
 import spock.lang.Specification
@@ -30,7 +29,7 @@ class AmazonHealthIndicatorSpec extends Specification {
 
   def "health fails when amazon appears unreachable"() {
     setup:
-    def creds = [credential('foo')]
+    def creds = [TestCredential.named('foo')]
     def holder = Stub(AccountCredentialsProvider) {
       getAll() >> creds
       getCredentials("foo") >> creds[0]
@@ -53,7 +52,7 @@ class AmazonHealthIndicatorSpec extends Specification {
 
   def "health succeeds when amazon is reachable"() {
     setup:
-    def creds = [credential('foo')]
+    def creds = [TestCredential.named('foo')]
     def holder = Stub(AccountCredentialsProvider) {
       getAll() >> creds
       getCredentials("foo") >> creds[0]
@@ -72,9 +71,5 @@ class AmazonHealthIndicatorSpec extends Specification {
 
     then:
     health.status == Status.UP
-  }
-
-  NetflixAmazonCredentials credential(String name = 'foo') {
-    new NetflixAmazonCredentials(name, name, name, '12345', 'key', [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1c', 'us-east-1d'])], null, null, false, null, false, null, false, null, false)
   }
 }

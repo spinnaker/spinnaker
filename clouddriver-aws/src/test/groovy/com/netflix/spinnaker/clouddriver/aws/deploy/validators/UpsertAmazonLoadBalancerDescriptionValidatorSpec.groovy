@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.validators
 
-import com.netflix.spinnaker.clouddriver.aws.deploy.validators.CreateAmazonLoadBalancerDescriptionValidator
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
-import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
@@ -36,8 +34,7 @@ class UpsertAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
   }
 
   void setup() {
-    description = new UpsertAmazonLoadBalancerDescription(credentials:
-            new NetflixAmazonCredentials('test', 'test', 'test', '12345', 'kp', [new AmazonCredentials.AWSRegion("us-west-1", ["us-west-1a"])], null, null, null, null, null, null, null, null, null))
+    description = new UpsertAmazonLoadBalancerDescription(credentials: TestCredential.named('test'))
   }
 
   void "empty parameters fails validation"() {
@@ -67,7 +64,7 @@ class UpsertAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
 
   void "availability zone not configured for account is rejected"() {
     setup:
-    description.availabilityZones = ["us-west-1": ["us-west-1b"]]
+    description.availabilityZones = ["us-west-1": ["us-west-1c"]]
     def errors = Mock(Errors)
 
     when:

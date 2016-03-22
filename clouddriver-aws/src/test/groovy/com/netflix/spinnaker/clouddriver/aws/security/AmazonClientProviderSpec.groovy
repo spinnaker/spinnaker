@@ -21,6 +21,7 @@ import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.ec2.AmazonEC2
+import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import org.apache.http.Header
 import org.apache.http.HttpEntity
 import org.apache.http.HttpResponse
@@ -28,7 +29,6 @@ import org.apache.http.StatusLine
 import org.apache.http.client.HttpClient
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.entity.ContentType
-import org.apache.http.message.BasicHeader
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -38,8 +38,8 @@ class AmazonClientProviderSpec extends Specification {
       getCredentials() >> new BasicAWSCredentials('foo', 'bar')
   }
 
-  @Shared NetflixAmazonCredentials credentialsWithEdda = new NetflixAmazonCredentials("test", "test", "test", "1", null, [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1e'])], null, credentialsProvider, 'foo', true, null, null, null, null, null, null)
-  @Shared NetflixAmazonCredentials credentialsNoEdda = new NetflixAmazonCredentials("test", "test", "test", "1", null, [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1e'])], null, credentialsProvider, null, null, null, null, null, null, null, null)
+  @Shared NetflixAmazonCredentials credentialsWithEdda = TestCredential.named('test', [edda: 'foo'])
+  @Shared NetflixAmazonCredentials credentialsNoEdda = TestCredential.named('test')
 
   void "client proxies to edda when available"() {
     setup:
