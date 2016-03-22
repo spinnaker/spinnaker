@@ -21,9 +21,9 @@ function provision_deb() {
   # https://www.packer.io/docs/builders/amazon-chroot.html look at gotchas at the end.
   if [[ "$disable_services" == "true" ]]; then
     echo "creating /usr/sbin/policy-rc.d to prevent services from being started"
-    echo '#!/bin/sh' > /usr/sbin/policy-rc.d
-    echo 'exit 101' >> /usr/sbin/policy-rc.d
-    chmod a+x /usr/sbin/policy-rc.d
+    echo '#!/bin/sh' | sudo tee /usr/sbin/policy-rc.d > /dev/null
+    echo 'exit 101' | sudo tee -a /usr/sbin/policy-rc.d > /dev/null
+    sudo chmod a+x /usr/sbin/policy-rc.d
   fi
 
   if [[ "$repository" != "" ]]; then
@@ -41,19 +41,20 @@ function provision_deb() {
   # https://www.packer.io/docs/builders/amazon-chroot.html look at gotchas at the end.
   if [[ "$disable_services" == "true" ]]; then
     echo "removing /usr/sbin/policy-rc.d"
-    rm -f /usr/sbin/policy-rc.d
+    sudo rm -f /usr/sbin/policy-rc.d
   fi
 }
 
 function provision_rpm() {
   if [[ "$repository" != "" ]]; then
-    cat > /etc/yum.repos.d/spinnaker.repo <<EOF
+    cat > /tmp/spinnaker.repo <<EOF
 [spinnaker]
 name=spinnaker
 baseurl=$repository
 gpgcheck=0
 enabled=1
 EOF
+    sudo mv /tmp/spinnaker.repo /etc/yum.repos.d/
   fi
 
   if [[ "$upgrade" == "true" ]]; then
