@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.model
 
+import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
@@ -37,6 +39,7 @@ class KubernetesLoadBalancer implements LoadBalancer, Serializable {
   String yaml
   // Set of server groups represented as maps of strings -> objects.
   Set<LoadBalancerServerGroup> serverGroups
+  KubernetesLoadBalancerDescription description
 
   KubernetesLoadBalancer(String name, String namespace, String accountName) {
     this.name = name
@@ -50,6 +53,7 @@ class KubernetesLoadBalancer implements LoadBalancer, Serializable {
     this.name = service.metadata.name
     this.namespace = service.metadata.namespace
     this.region = this.namespace
+    this.description = KubernetesApiAdaptor.fromService(service)
     this.account = accountName
     this.createdTime = KubernetesModelUtil.translateTime(service.metadata?.creationTimestamp)
     this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(service)

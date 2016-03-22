@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.loadbalan
 
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.KubernetesAtomicOperationConverterHelper
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.UpsertKubernetesLoadBalancerAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.loadbalancer.UpsertKubernetesLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
@@ -32,8 +32,8 @@ class UpsertKubernetesLoadBalancerAtomicOperationConverter extends AbstractAtomi
     new UpsertKubernetesLoadBalancerAtomicOperation(convertDescription(input))
   }
 
-  UpsertKubernetesLoadBalancerAtomicOperationDescription convertDescription(Map input) {
-    KubernetesAtomicOperationConverterHelper.convertDescription(input, this, UpsertKubernetesLoadBalancerAtomicOperationDescription)
+  KubernetesLoadBalancerDescription convertDescription(Map input) {
+    KubernetesAtomicOperationConverterHelper.convertDescription(input, this, KubernetesLoadBalancerDescription)
   }
 }
 

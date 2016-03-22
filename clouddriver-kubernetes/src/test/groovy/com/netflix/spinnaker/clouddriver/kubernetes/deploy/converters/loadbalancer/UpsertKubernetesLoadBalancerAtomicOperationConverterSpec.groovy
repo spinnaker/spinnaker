@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.loadbalancer
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.UpsertKubernetesLoadBalancerAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.loadbalancer.UpsertKubernetesLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -54,7 +54,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationConverterSpec extends Specifica
 
     then:
       1 * converter.accountCredentialsProvider.getCredentials(_) >> mockCredentials
-      description instanceof UpsertKubernetesLoadBalancerAtomicOperationDescription
+      description instanceof KubernetesLoadBalancerDescription
 
     when:
       def operation = converter.convertOperation(input)
