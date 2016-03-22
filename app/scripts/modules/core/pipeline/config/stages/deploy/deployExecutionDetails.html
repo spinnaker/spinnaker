@@ -9,7 +9,12 @@
             <account-tag account="stage.context.account"></account-tag>
           </dd>
           <dt>Region</dt>
-          <dd ng-repeat="(region, zones) in stage.context.availabilityZones">{{region}}<br/>({{zones.join(', ')}})</dd>
+          <div ng-if="stage.context.availabilityZones">
+            <dd ng-repeat="(region, zones) in stage.context.availabilityZones">{{region}}<br/>({{zones.join(', ')}})</dd>
+          </div>
+          <div ng-if="stage.context.namespace">
+            <dd>{{stage.context.namespace}}</dd>
+          </div>
           <dt>Cluster</dt>
           <dd>{{stage.context | clusterName }}</dd>
         </dl>
@@ -21,6 +26,9 @@
           <dt>Strategy</dt>
           <dd>{{stage.context.strategy || '[none]'}}</dd>
           <dt>Capacity</dt>
+          <dd ng-if="!stage.context.capacity">
+            {{stage.context.targetSize}}
+          </dd>
           <dd ng-if="stage.context.useSourceCapacity">Current Server Group</dd>
           <dd ng-if="!stage.context.useSourceCapacity && stage.context.capacity.min === stage.context.capacity.max">{{stage.context.capacity.max}}</dd>
           <dd ng-if="stage.context.useSourceCapacity && stage.context.capacity.min !== stage.context.capacity.max">
