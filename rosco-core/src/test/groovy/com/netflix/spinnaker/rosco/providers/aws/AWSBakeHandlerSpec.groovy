@@ -19,6 +19,7 @@ package com.netflix.spinnaker.rosco.providers.aws
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
+import com.netflix.spinnaker.rosco.config.RoscoConfiguration
 import com.netflix.spinnaker.rosco.providers.aws.config.RoscoAWSConfiguration
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
@@ -43,10 +44,11 @@ class AWSBakeHandlerSpec extends Specification {
   @Shared
   RoscoAWSConfiguration.AWSBakeryDefaults awsBakeryDefaults
 
+  @Shared
+  RoscoConfiguration roscoConfiguration
+
   void setupSpec() {
     def awsBakeryDefaultsJson = [
-      awsAccessKey: "FOO",
-      awsSecretKey: "BAR",
       templateFile: "aws_template.json",
       defaultVirtualizationType: "hvm",
       baseImages: [
@@ -287,8 +289,6 @@ class AWSBakeHandlerSpec extends Specification {
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
       def targetImageName = "kato-x8664-timestamp-ubuntu"
       def parameterMap = [
-        aws_access_key: awsBakeryDefaults.awsAccessKey,
-        aws_secret_key: awsBakeryDefaults.awsSecretKey,
         aws_region: REGION,
         aws_ssh_username: "ubuntu",
         aws_instance_type: "t2.micro",
@@ -326,8 +326,6 @@ class AWSBakeHandlerSpec extends Specification {
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
       def targetImageName = "kato-x8664-timestamp-amzn"
       def parameterMap = [
-        aws_access_key: awsBakeryDefaults.awsAccessKey,
-        aws_secret_key: awsBakeryDefaults.awsSecretKey,
         aws_region: REGION,
         aws_ssh_username: "ec2-user",
         aws_instance_type: "t2.micro",
@@ -354,6 +352,67 @@ class AWSBakeHandlerSpec extends Specification {
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, "$configDir/$awsBakeryDefaults.templateFile")
   }
 
+  void 'produces packer command with all required parameters for amzn, with sudo'() {
+    setup:
+      def awsBakeryDefaultsJson = [
+        templateFile: "aws-chroot.json",
+        defaultVirtualizationType: "hvm",
+        baseImages: [
+          [
+            baseImage: [
+              id: "amzn",
+              packageType: "RPM",
+            ],
+            virtualizationSettings: [
+              [
+                region: REGION,
+                virtualizationType: "hvm",
+                instanceType: "t2.micro",
+                sourceAmi: SOURCE_AMZN_HVM_IMAGE_NAME,
+                sshUserName: "ec2-user"
+              ]
+            ]
+          ]
+        ]
+      ]
+      RoscoAWSConfiguration.AWSBakeryDefaults localAwsBakeryDefaults = new ObjectMapper().convertValue(awsBakeryDefaultsJson, RoscoAWSConfiguration.AWSBakeryDefaults)
+
+      def imageNameFactoryMock = Mock(ImageNameFactory)
+      def packerCommandFactoryMock = Mock(PackerCommandFactory)
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+        package_name: PACKAGE_NAME,
+        base_os: "amzn",
+        vm_type: BakeRequest.VmType.hvm,
+        cloud_provider_type: BakeRequest.CloudProviderType.aws)
+      def targetImageName = "kato-x8664-timestamp-amzn"
+      def parameterMap = [
+        aws_region: REGION,
+        aws_ssh_username: "ec2-user",
+        aws_instance_type: "t2.micro",
+        aws_source_ami: SOURCE_AMZN_HVM_IMAGE_NAME,
+        aws_target_ami: targetImageName,
+        repository: YUM_REPOSITORY,
+        package_type: BakeRequest.PackageType.RPM.packageType,
+        packages: PACKAGE_NAME,
+        configDir: configDir
+      ]
+
+      @Subject
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(configDir: configDir,
+        awsBakeryDefaults: localAwsBakeryDefaults,
+        imageNameFactory: imageNameFactoryMock,
+        packerCommandFactory: packerCommandFactoryMock,
+        templatesNeedingRoot: [ "aws-chroot.json" ],
+        yumRepository: YUM_REPOSITORY)
+
+    when:
+      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+
+    then:
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest, _) >> [targetImageName, null, PACKAGE_NAME]
+      1 * packerCommandFactoryMock.buildPackerCommand("sudo", parameterMap, "$configDir/aws-chroot.json")
+  }
+
   void 'produces packer command with all required parameters for ubuntu, using default vm type, and overriding base ami'() {
     setup:
       def imageNameFactoryMock = Mock(ImageNameFactory)
@@ -366,8 +425,6 @@ class AWSBakeHandlerSpec extends Specification {
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
       def targetImageName = "kato-x8664-timestamp-ubuntu"
       def parameterMap = [
-        aws_access_key: awsBakeryDefaults.awsAccessKey,
-        aws_secret_key: awsBakeryDefaults.awsSecretKey,
         aws_region: REGION,
         aws_ssh_username: "ubuntu",
         aws_instance_type: "t2.micro",
@@ -405,8 +462,6 @@ class AWSBakeHandlerSpec extends Specification {
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
       def targetImageName = "kato-x8664-timestamp-ubuntu"
       def parameterMap = [
-        aws_access_key: awsBakeryDefaults.awsAccessKey,
-        aws_secret_key: awsBakeryDefaults.awsSecretKey,
         aws_region: REGION,
         aws_ssh_username: "ubuntu",
         aws_instance_type: "m3.medium",
@@ -445,8 +500,6 @@ class AWSBakeHandlerSpec extends Specification {
                                         template_file_name: "somePackerTemplate.json")
       def targetImageName = "kato-x8664-timestamp-ubuntu"
       def parameterMap = [
-        aws_access_key: awsBakeryDefaults.awsAccessKey,
-        aws_secret_key: awsBakeryDefaults.awsSecretKey,
         aws_region: REGION,
         aws_ssh_username: "ubuntu",
         aws_instance_type: "m3.medium",
@@ -485,8 +538,6 @@ class AWSBakeHandlerSpec extends Specification {
                                         extended_attributes: [someAttr1: "someValue1", someAttr2: "someValue2"])
       def targetImageName = "kato-x8664-timestamp-ubuntu"
       def parameterMap = [
-        aws_access_key: awsBakeryDefaults.awsAccessKey,
-        aws_secret_key: awsBakeryDefaults.awsSecretKey,
         aws_region: REGION,
         aws_ssh_username: "ubuntu",
         aws_instance_type: "m3.medium",
@@ -526,8 +577,6 @@ class AWSBakeHandlerSpec extends Specification {
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
       def targetImageName = "kato-x8664-timestamp-trusty"
       def parameterMap = [
-        aws_access_key: awsBakeryDefaults.awsAccessKey,
-        aws_secret_key: awsBakeryDefaults.awsSecretKey,
         aws_region: REGION,
         aws_ssh_username: "ubuntu",
         aws_instance_type: "t2.micro",
@@ -569,8 +618,6 @@ class AWSBakeHandlerSpec extends Specification {
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
       def targetImageName = "kato-x8664-timestamp-trusty"
       def parameterMap = [
-        aws_access_key: awsBakeryDefaults.awsAccessKey,
-        aws_secret_key: awsBakeryDefaults.awsSecretKey,
         aws_region: REGION,
         aws_ssh_username: "ubuntu",
         aws_instance_type: "t2.micro",
@@ -612,8 +659,6 @@ class AWSBakeHandlerSpec extends Specification {
                                         upgrade: true)
       def targetImageName = "kato-x8664-timestamp-ubuntu"
       def parameterMap = [
-        aws_access_key: awsBakeryDefaults.awsAccessKey,
-        aws_secret_key: awsBakeryDefaults.awsSecretKey,
         aws_region: REGION,
         aws_ssh_username: "ubuntu",
         aws_instance_type: "t2.micro",

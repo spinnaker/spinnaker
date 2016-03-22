@@ -42,6 +42,9 @@ abstract class CloudProviderBakeHandler {
   @Value('${yumRepository:}')
   String yumRepository
 
+  @Value('${templatesNeedingRoot:}')
+  List<String> templatesNeedingRoot
+
   /**
    * @return A cloud provider-specific set of defaults.
    */
@@ -120,7 +123,11 @@ abstract class CloudProviderBakeHandler {
    * Returns the command that should be prepended to the shell command passed to the container.
    */
   String getBaseCommand() {
-    return ""
+    if (templatesNeedingRoot) {
+      return templatesNeedingRoot.contains(getBakeryDefaults().templateFile) ? "sudo" : ""
+    } else {
+      return ""
+    }
   }
 
   /**
