@@ -213,8 +213,19 @@ public abstract class S3Support<T extends Timestamped> {
         .buffer(10)
         .flatMap(ids -> Observable
             .from(ids)
-            .flatMap(s3ObjectSummary ->
-                Observable.just(amazonS3.getObject(s3ObjectSummary.getBucketName(), s3ObjectSummary.getKey()))
+            .flatMap(s3ObjectSummary -> {
+                  try {
+                    return Observable.just(amazonS3.getObject(s3ObjectSummary.getBucketName(), s3ObjectSummary.getKey()));
+                  } catch (AmazonS3Exception e) {
+                    if (e.getStatusCode() == 404) {
+                      // an item has been removed between the time that object summaries were fetched and now
+                      existingItemsByName.remove(extractItemName(s3ObjectSummary));
+                      return Observable.empty();
+                    }
+
+                    throw e;
+                  }
+                }
             )
             .subscribeOn(scheduler)
         )
@@ -292,5 +303,6 @@ public abstract class S3Support<T extends Timestamped> {
   }
 
   abstract Class<T> getSerializedClass();
+
   abstract String getMetadataFilename();
 }
