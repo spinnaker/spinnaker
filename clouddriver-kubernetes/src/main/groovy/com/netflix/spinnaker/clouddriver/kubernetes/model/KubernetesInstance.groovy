@@ -36,6 +36,10 @@ class KubernetesInstance implements Instance, Serializable {
   String providerType = "kubernetes"
   String yaml
 
+  boolean isAttached(String serviceName) {
+    KubernetesUtil.getPodLoadBalancerStates(pod)?.get(KubernetesUtil.loadBalancerKey(serviceName)) == "true"
+  }
+
   KubernetesInstance(Pod pod, List<String> loadBalancers) {
     this.name = pod.metadata?.name
     this.instanceId = this.name
