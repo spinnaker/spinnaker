@@ -21,6 +21,8 @@
     "account_file": "{{user `gce_account_file`}}",
     "zone": "{{user `gce_zone`}}",
     "network": "{{user `gce_network`}}",
+    "ssh_username": "packerio",
+    "ssh_pty": true,
     "source_image": "{{user `gce_source_image`}}",
     "image_name": "{{user `gce_target_image`}}",
     "use_internal_ip": "{{user `gce_use_internal_ip`}}",

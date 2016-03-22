@@ -57,10 +57,10 @@ EOF
   fi
 
   if [[ "$upgrade" == "true" ]]; then
-    yum -y update
+    sudo yum -y update
   fi
 
-  yum -y install $packages
+  sudo yum -y install $packages
 }
 
 function main() {
