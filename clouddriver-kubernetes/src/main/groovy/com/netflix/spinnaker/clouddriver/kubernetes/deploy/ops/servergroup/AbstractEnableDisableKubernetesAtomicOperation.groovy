@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesServerGroupDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesOperationException
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.Pod
 
@@ -56,6 +57,14 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
       KubernetesUtil.loadBalancerKey(it)
     }
 
+    task.updateStatus basePhase, "Resetting replication controller service template labels and selectors..."
+
+    def desired = credentials.apiAdaptor.toggleReplicationControllerSpecLabels(namespace, description.serverGroupName, replicationControllerServices, action)
+
+    if (!credentials.apiAdaptor.blockUntilReplicationControllerConsistent(desired)) {
+      throw new KubernetesOperationException("Replication controller failed to reach a consistent state. This is likely a bug with Kubernetes itself.")
+    }
+
     task.updateStatus basePhase, "Finding affected pods..."
 
     List<Pod> pods = credentials.apiAdaptor.getPods(namespace, description.serverGroupName)
@@ -69,10 +78,6 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
       }
       credentials.apiAdaptor.togglePodLabels(namespace, pod.metadata.name, podServices, action)
     }
-
-    task.updateStatus basePhase, "Resetting replication controller service template labels and selectors..."
-
-    credentials.apiAdaptor.toggleReplicationControllerSpecLabels(namespace, description.serverGroupName, replicationControllerServices, action)
 
     task.updateStatus basePhase, "Finished ${verb} replication controller."
 

@@ -23,14 +23,44 @@ import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.extensions.Ingress
 import io.fabric8.kubernetes.client.KubernetesClient
 
+import java.awt.image.ReplicateScaleFilter
+import java.util.concurrent.TimeUnit
+
 class KubernetesApiAdaptor {
   KubernetesClient client
+
+  static final int RETRY_COUNT = 20
+  static final long RETRY_MAX_WAIT_MILLIS = TimeUnit.SECONDS.toMillis(10)
+  static final long RETRY_INITIAL_WAIT_MILLIS = 100
 
   KubernetesApiAdaptor(KubernetesClient client) {
     if (!client) {
       throw new IllegalArgumentException("Client may not be null.")
     }
     this.client = client
+  }
+
+  /*
+   * Exponential backoff strategy for waiting on changes to replication controllers
+   */
+  Boolean blockUntilReplicationControllerConsistent(ReplicationController desired) {
+    def current = getReplicationController(desired.metadata.namespace, desired.metadata.name)
+
+    def wait = RETRY_INITIAL_WAIT_MILLIS
+    def attempts = 0
+    while (current.status.observedGeneration < desired.status.observedGeneration) {
+      attempts += 1
+      if (attempts > RETRY_COUNT) {
+        return false
+      }
+
+      sleep(wait)
+      wait = [wait * 2, RETRY_MAX_WAIT_MILLIS].min()
+
+      current = getReplicationController(desired.metadata.namespace, desired.metadata.name)
+    }
+
+    return true
   }
 
   Ingress createIngress(String namespace, Ingress ingress) {
@@ -96,7 +126,7 @@ class KubernetesApiAdaptor {
     edit.endMetadata().done()
   }
 
-  void toggleReplicationControllerSpecLabels(String namespace, String name, List<String> keys, String value) {
+  ReplicationController toggleReplicationControllerSpecLabels(String namespace, String name, List<String> keys, String value) {
     def edit = client.replicationControllers().inNamespace(namespace).withName(name).cascading(false).edit().editSpec().editTemplate().editMetadata()
 
     keys.each {
@@ -104,7 +134,7 @@ class KubernetesApiAdaptor {
       edit.addToLabels(it, value)
     }
 
-    edit = edit.endMetadata().endTemplate().endSpec().done()
+    edit.endMetadata().endTemplate().endSpec().done()
   }
 
   Service getService(String namespace, String service) {
