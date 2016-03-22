@@ -11,7 +11,7 @@
       </div>
       <div ng-if="pipeline.limitConcurrent"class="checkbox">
         <label>
-          <input type="checkbox" ng-model="pipeline.limitWaiting" ng-true-value="false" ng-false-value="true">
+          <input type="checkbox" ng-model="pipeline.keepWaitingPipelines">
           <strong>Do not automatically cancel pipelines waiting in queue. </strong>
           <help-field key="pipeline.config.parallel.cancel.queue"/>
         </label>

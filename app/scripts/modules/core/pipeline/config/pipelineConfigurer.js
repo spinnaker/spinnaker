@@ -272,7 +272,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
         parallel: copy.parallel,
         appConfig: copy.appConfig || {},
         limitConcurrent: copy.limitConcurrent,
-        limitWaiting: copy.limitWaiting,
+        keepWaitingPipelines: copy.keepWaitingPipelines,
         stageCounter: copy.stageCounter,
         parameterConfig: copy.parameterConfig,
         notifications: copy.notifications,
