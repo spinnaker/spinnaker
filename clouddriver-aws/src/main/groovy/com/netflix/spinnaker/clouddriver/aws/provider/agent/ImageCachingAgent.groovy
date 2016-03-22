@@ -56,13 +56,15 @@ class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric {
   final String region
   final ObjectMapper objectMapper
   final Registry registry
+  final boolean includePublicImages
 
-  ImageCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper, Registry registry) {
+  ImageCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper, Registry registry, boolean includePublicImages) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     this.registry = registry
+    this.includePublicImages = includePublicImages
   }
 
   @Override
@@ -100,14 +102,16 @@ class ImageCachingAgent implements CachingAgent, AccountAware, DriftMetric {
     Collection<CacheData> namedImageCacheData = new ArrayList<>(images.size())
 
     for (Image image : images) {
-      Map<String, Object> attributes = objectMapper.convertValue(image, ATTRIBUTES)
-      def imageId = Keys.getImageKey(image.imageId, account.name, region)
-      def namedImageId = Keys.getNamedImageKey(account.name, image.name)
-      imageCacheData.add(new DefaultCacheData(imageId, attributes, [(NAMED_IMAGES.ns):[namedImageId]]))
-      namedImageCacheData.add(new DefaultCacheData(namedImageId, [
-        name: image.name,
-        virtualizationType: image.virtualizationType
-      ], [(IMAGES.ns):[imageId]]))
+      if (includePublicImages || !image.public) {
+        Map<String, Object> attributes = objectMapper.convertValue(image, ATTRIBUTES)
+        def imageId = Keys.getImageKey(image.imageId, account.name, region)
+        def namedImageId = Keys.getNamedImageKey(account.name, image.name)
+        imageCacheData.add(new DefaultCacheData(imageId, attributes, [(NAMED_IMAGES.ns): [namedImageId]]))
+        namedImageCacheData.add(new DefaultCacheData(namedImageId, [
+          name              : image.name,
+          virtualizationType: image.virtualizationType
+        ], [(IMAGES.ns): [imageId]]))
+      }
     }
 
     recordDrift(start)

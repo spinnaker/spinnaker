@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.clouddriver.aws.security
 
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonAllowedAccountsValidator
-import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AllowLaunchDescription
 import org.springframework.validation.Errors
@@ -9,9 +8,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class AmazonAllowedAccountsValidatorSpec extends Specification {
-  NetflixAmazonCredentials credentialsWithRequiredGroup = new NetflixAmazonCredentials(
-    "TestAccount", "test", "test", "1", null, null, ["targetAccount1"], null, null, null, null, null, null, null, null
-  )
+  NetflixAmazonCredentials credentialsWithRequiredGroup = TestCredential.named('TestAccount', [requiredGroupMembership: ['targetAccount1']])
 
   @Unroll
   void "should reject if allowed accounts does not intersect with required group memberships"() {

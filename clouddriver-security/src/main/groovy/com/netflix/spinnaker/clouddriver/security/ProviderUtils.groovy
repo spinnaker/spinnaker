@@ -46,10 +46,9 @@ public class ProviderUtils {
    * Build a thread-safe set containing each account in the accountCredentialsRepository that is of type
    * credentialsType.
    */
-  public static Set buildThreadSafeSetOfAccounts(AccountCredentialsRepository accountCredentialsRepository, def credentialsType) {
-    def allAccounts = Collections.newSetFromMap(new ConcurrentHashMap<Object, Boolean>())
-
-    allAccounts.addAll(accountCredentialsRepository.all.findAll { credentialsType.isInstance(it) })
+  public static <T extends AccountCredentials> Set<T> buildThreadSafeSetOfAccounts(AccountCredentialsRepository accountCredentialsRepository, Class<T> credentialsType) {
+    def allAccounts = Collections.newSetFromMap(new ConcurrentHashMap<T, Boolean>())
+    allAccounts.addAll(accountCredentialsRepository.all.findResults { credentialsType.isInstance(it) ? credentialsType.cast(it) : null })
 
     allAccounts
   }

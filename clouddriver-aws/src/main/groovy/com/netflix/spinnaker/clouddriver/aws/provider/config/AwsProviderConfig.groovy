@@ -103,17 +103,22 @@ class AwsProviderConfig {
                                                  ApplicationContext ctx,
                                                  Registry registry) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(awsProvider)
-    def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials)
+    Set<NetflixAmazonCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials)
 
     Map<String, Map<String, Set<NetflixAmazonCredentials>>> discoveryAccounts = [:].withDefault { [:].withDefault { [] as Set } }
     List<CachingAgent> newlyAddedAgents = []
 
-    allAccounts.each { NetflixAmazonCredentials credentials ->
+    //only index public images once per region
+    Set<String> publicRegions = []
+
+    //sort the accounts in case of a reconfigure, we are more likely to re-index the public images in the same caching agent
+    //TODO(cfieber)-rework this is after rework of AWS Image/NamedImage keys
+    allAccounts.sort { it.name }.each { NetflixAmazonCredentials credentials ->
       for (AmazonCredentials.AWSRegion region : credentials.regions) {
         if (!scheduledAccounts.contains(credentials.name)) {
           newlyAddedAgents << new ClusterCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, objectMapper, registry)
           newlyAddedAgents << new LaunchConfigCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
-          newlyAddedAgents << new ImageCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
+          newlyAddedAgents << new ImageCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry, publicRegions.add(region.name))
           newlyAddedAgents << new InstanceCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
           newlyAddedAgents << new LoadBalancerCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, objectMapper, registry)
           if (credentials.eddaEnabled) {
