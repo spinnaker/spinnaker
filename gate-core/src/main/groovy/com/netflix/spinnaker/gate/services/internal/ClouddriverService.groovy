@@ -21,6 +21,7 @@ import retrofit.http.GET
 import retrofit.http.Headers
 import retrofit.http.Path
 import retrofit.http.Query
+import retrofit.http.QueryMap
 
 interface ClouddriverService {
 
@@ -211,4 +212,19 @@ interface ClouddriverService {
 
   @GET('/networks/{cloudProvider}')
   List<Map> getNetworks(@Path("cloudProvider") String cloudProvider)
+
+  @GET('/cloudMetrics/{cloudProvider}/{account}/{region}')
+  List<Map> findAllCloudMetrics(@Path("cloudProvider") String cloudProvider,
+                    @Path("account") String account,
+                    @Path("region") String region,
+                    @QueryMap Map<String, String> filters)
+
+  @GET('/cloudMetrics/{cloudProvider}/{account}/{region}/{metricName}/statistics')
+  Map getCloudMetricStatistics(@Path("cloudProvider") String cloudProvider,
+                               @Path("account") String account,
+                               @Path("region") String region,
+                               @Path("metricName") String metricName,
+                               @Query("startTime") Long startTime,
+                               @Query("endTime") Long endTime,
+                               @QueryMap Map<String, String> filters)
 }
