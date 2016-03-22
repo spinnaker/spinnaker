@@ -27,7 +27,7 @@ window.spinnakerSettings = {
       },
       defaultSecurityGroups: ['nf-datacenter-vpc', 'nf-infrastructure-vpc', 'nf-datacenter', 'nf-infrastructure'],
       loadBalancers: {
-        // if true, VPC load balancers will be created as internal load balancers iff the selected subnet has a purpose
+        // if true, VPC load balancers will be created as internal load balancers if the selected subnet has a purpose
         // tag that starts with "internal"
         inferInternalFlagFromSubnet: false,
       },
@@ -66,5 +66,7 @@ window.spinnakerSettings = {
     clusterDiff: true,
     roscoMode: false,
     netflixMode: false,
+    // whether stages affecting infrastructure (like "Create Load Balancer") should be enabled or not
+    infrastructureStages: process.env.INFRA_STAGES === 'enabled',
   },
 };
