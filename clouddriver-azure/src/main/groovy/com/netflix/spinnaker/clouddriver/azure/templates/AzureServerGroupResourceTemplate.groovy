@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.Azure
 
 @Slf4j
 class AzureServerGroupResourceTemplate {
+  static final String STORAGE_ACCOUNT_SUFFIX = "sa"
 
   protected static ObjectMapper mapper = new ObjectMapper()
     .configure(SerializationFeature.INDENT_OUTPUT, true)
@@ -98,18 +99,20 @@ class AzureServerGroupResourceTemplate {
      */
     ServerGroupTemplateVariables(AzureServerGroupDescription description) {
 
-      newStorageAccountSuffix = "sa"
+      newStorageAccountSuffix = STORAGE_ACCOUNT_SUFFIX
       vhdContainerName = description.name.toLowerCase()
       osType = new OsType(description)
       imageReference = "[variables('osType')]"
 
-      String noDashName = description.name.replaceAll("-", "").toLowerCase()
-
       for (int i = 0; i < description.getStorageAccountCount(); i++) {
-        String uniqueName = "[concat(uniqueString(concat(resourceGroup().id, subscription().id, '$noDashName', variables('$newStorageAccountsSuffixVar'), '$i')))]"
-        uniqueStorageNameArray.add(uniqueName)
+        uniqueStorageNameArray.add(getUniqueStorageName(description.name, i))
       }
     }
+  }
+
+  static String getUniqueStorageName(String name, long idx) {
+    String noDashName = name.replaceAll("-", "").toLowerCase()
+    "[concat(uniqueString(concat(resourceGroup().id, subscription().id, '$noDashName', '$idx')), variables('$ServerGroupTemplateVariables.newStorageAccountsSuffixVar'))]"
   }
 
   /**
@@ -167,16 +170,18 @@ class AzureServerGroupResourceTemplate {
      */
     StorageAccount(AzureServerGroupDescription description) {
       apiVersion = "2015-06-15"
-      name = String.format("[concat(variables('%s')[copyIndex()], variables('%s'))]",
-        ServerGroupTemplateVariables.uniqueStorageNamesArrayVar,
-        ServerGroupTemplateVariables.newStorageAccountsSuffixVar)
+      name = String.format("[concat(variables('%s')[copyIndex()])]", ServerGroupTemplateVariables.uniqueStorageNamesArrayVar)
       type = "Microsoft.Storage/storageAccounts"
       location = "[parameters('location')]"
 
       copy = new CopyOperation("storageLoop", description.getStorageAccountCount())
-      tags = ["appName":description.application,
-              "stack":description.stack,
-              "detail":description.detail]
+      tags = [:]
+      tags.appName = description.application
+      tags.stack = description.stack
+      tags.detail = description.detail
+      tags.cluster = description.clusterName
+      tags.serverGroupName = description.name
+
       properties = new StorageAccountProperties()
     }
   }
@@ -230,19 +235,27 @@ class AzureServerGroupResourceTemplate {
       name = description.name
       type = "Microsoft.Compute/virtualMachineScaleSets"
       location = "[parameters('location')]"
-      tags = ["appName" : description.application,
-              "stack" : description.stack,
-              "detail" : description.detail,
-              "cluster" : description.getClusterName()]
+      tags = [:]
+      tags.appName = description.application
+      tags.stack = description.stack
+      tags.detail = description.detail
+      tags.cluster = description.clusterName
+      if (description.loadBalancerName) tags.loadBalancerName = description.loadBalancerName
+      if (description.securityGroupName) tags.securityGroupName = description.securityGroupName
+      if (description.subnetId) tags.subnetId = description.subnetId
+      tags.imageIsCustom = description.image.isCustom.toString()
+      // will need this when cloning a server group
+      if (description.image.imageName) tags.imageName = description.image.imageName
 
       if (!description.image.isCustom) {
         description.getStorageAccountCount().times { idx ->
           this.dependsOn.add(
-            String.format("[concat('Microsoft.Storage/storageAccounts/', variables('%s')[%s], variables('%s'))]",
+            String.format("[concat('Microsoft.Storage/storageAccounts/', variables('%s')[%s])]",
               ServerGroupTemplateVariables.uniqueStorageNamesArrayVar,
-              idx,
-              ServerGroupTemplateVariables.newStorageAccountsSuffixVar)
+              idx)
           )
+          String uniqueName = getUniqueStorageName(description.name, idx)
+          tags.storageAccountNames = tags.storageAccountNames ? "${tags.storageAccountNames},${uniqueName}" : uniqueName
         }
       }
 
@@ -474,10 +487,9 @@ class AzureServerGroupResourceTemplate {
       caching = "ReadOnly"
       createOption = "FromImage"
       description.getStorageAccountCount().times { idx ->
-        vhdContainers.add(String.format("[concat('https://', variables('%s')[%s], variables('%s'), '.blob.core.windows.net/', variables('%s'))]",
+        vhdContainers.add(String.format("[concat('https://', variables('%s')[%s], '.blob.core.windows.net/', variables('%s'))]",
           ServerGroupTemplateVariables.uniqueStorageNamesArrayVar,
           idx,
-          ServerGroupTemplateVariables.newStorageAccountsSuffixVar,
           ServerGroupTemplateVariables.vhdContainerNameVar))
       }
     }

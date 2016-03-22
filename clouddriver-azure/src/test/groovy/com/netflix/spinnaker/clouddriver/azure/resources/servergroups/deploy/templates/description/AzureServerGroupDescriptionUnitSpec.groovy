@@ -74,12 +74,12 @@ class AzureServerGroupDescriptionUnitSpec extends Specification {
 
   private static Boolean descriptionIsValid(AzureServerGroupDescription description, VirtualMachineScaleSet scaleSet) {
     (description.name == scaleSet.name
-      && description.appName == AzureUtilities.getAppNameFromResourceId(scaleSet.id)
+      && description.appName == scaleSet.tags.appName
       && description.tags == scaleSet.tags
-      && description.stack == scaleSet.tags["stack"]
-      && description.detail == scaleSet.tags["detail"]
-      && description.application == scaleSet.tags["appName"]
-      && description.clusterName == scaleSet.tags["cluster"]
+      && description.stack == scaleSet.tags.stack
+      && description.detail == scaleSet.tags.detail
+      && description.application == scaleSet.tags.appName
+      && description.clusterName == scaleSet.tags.cluster
       && description.region == scaleSet.location
       && description.upgradePolicy == getPolicy(scaleSet.upgradePolicy.mode)
       && isValidImage(description.image, scaleSet)

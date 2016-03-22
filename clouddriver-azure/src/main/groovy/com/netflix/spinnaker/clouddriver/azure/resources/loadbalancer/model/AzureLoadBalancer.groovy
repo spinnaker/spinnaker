@@ -58,14 +58,14 @@ class AzureLoadBalancer implements LoadBalancer {
       return false
     }
     AzureLoadBalancer a = (AzureLoadBalancer)o;
-    a.getAccount() == this.getAccount() && a.getName() == this.getName() && a.getType() == this.getType();
+    a.getAccount() == this.getAccount() && a.getName() == this.getName() && a.getType() == this.getType() && a.region == this.region;
 
     // TODO Implement logic to compare server groups and regions(?)
   }
 
   @Override
   int hashCode() {
-    getAccount().hashCode() + getName().hashCode() + getType().hashCode();
+    getAccount().hashCode() + getName().hashCode() + getType().hashCode() + region.hashCode();
     // TODO Implement logic to add hash code for server groups and regions(?)
   }
 }

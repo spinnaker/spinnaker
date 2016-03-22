@@ -29,7 +29,7 @@ import com.microsoft.azure.management.network.models.Subnet
 import com.microsoft.azure.management.network.models.VirtualNetwork
 
 import com.microsoft.rest.ServiceResponse
-
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.network.model.AzureVirtualNetworkDescription
@@ -125,8 +125,13 @@ class AzureNetworkClient extends AzureBaseClient {
 
   private static AzureLoadBalancerDescription getDescriptionForLoadBalancer(LoadBalancer azureLoadBalancer) {
     AzureLoadBalancerDescription description = new AzureLoadBalancerDescription(loadBalancerName: azureLoadBalancer.name)
-    description.stack = azureLoadBalancer.tags ? ["stack"] : ""
-    description.detail = azureLoadBalancer.tags ? ["detail"] : ""
+    def parsedName = Names.parseName(azureLoadBalancer.name)
+    description.stack = azureLoadBalancer.tags?.stack ?: parsedName.stack
+    description.detail = azureLoadBalancer.tags?.detail ?: parsedName.detail
+    description.appName = azureLoadBalancer.tags?.appName ?: parsedName.app
+    description.cluster = azureLoadBalancer.tags?.cluster
+    description.serverGroup = azureLoadBalancer.tags?.serverGroup
+    description.vnet = azureLoadBalancer.tags?.vnet
     description.region = azureLoadBalancer.location
 
     for (def rule : azureLoadBalancer.loadBalancingRules) {
@@ -192,7 +197,7 @@ class AzureNetworkClient extends AzureBaseClient {
    * Delete a network security group in Azure
    * @param resourceGroupName name of the resource group where the security group was created (see application name and region/location)
    * @param securityGroupName name of the Azure network security group to delete
-   * @return an OperationResponse object
+   * @return a ServiceResponse object
    */
   ServiceResponse deleteSecurityGroup(String resourceGroupName, String securityGroupName) {
     client.getNetworkSecurityGroupsOperations().delete(resourceGroupName, securityGroupName)
