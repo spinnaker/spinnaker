@@ -31,7 +31,11 @@ class CloudFoundryCloudProvider implements CloudProvider {
 
 	static final String ID = 'cf'
 
-	final String id = ID
 	final String displayName = "Cloud Foundry"
 	final Class<Annotation> operationAnnotationType = CloudFoundryOperation.class
+
+	@Override
+	String getId() {
+		ID
+	}
 }

@@ -37,13 +37,11 @@ import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.CLUSTERS
 @Component
 class CloudFoundryApplicationProvider implements ApplicationProvider {
 
-  private final CloudFoundryCloudProvider cloudFoundryCloudProvider
   private final Cache cacheView
   private final ObjectMapper objectMapper
 
   @Autowired
-  CloudFoundryApplicationProvider(CloudFoundryCloudProvider cloudFoundryCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
-    this.cloudFoundryCloudProvider = cloudFoundryCloudProvider
+  CloudFoundryApplicationProvider(Cache cacheView, ObjectMapper objectMapper) {
     this.cacheView = cacheView
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
   }
@@ -52,7 +50,7 @@ class CloudFoundryApplicationProvider implements ApplicationProvider {
   Set<? extends Application> getApplications(boolean expand) {
     def relationships = expand ? RelationshipCacheFilter.include(CLUSTERS.ns) : RelationshipCacheFilter.none()
     Collection<CacheData> applications = cacheView.getAll(
-        APPLICATIONS.ns, cacheView.filterIdentifiers(APPLICATIONS.ns, "${cloudFoundryCloudProvider.id}:*"), relationships
+        APPLICATIONS.ns, cacheView.filterIdentifiers(APPLICATIONS.ns, "${CloudFoundryCloudProvider.ID}:*"), relationships
     )
     applications.collect this.&translateApplication
   }

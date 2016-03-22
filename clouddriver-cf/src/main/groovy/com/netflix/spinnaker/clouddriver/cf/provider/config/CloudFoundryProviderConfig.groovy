@@ -15,13 +15,11 @@
  */
 
 package com.netflix.spinnaker.clouddriver.cf.provider.config
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
-import com.netflix.spinnaker.clouddriver.cf.CloudFoundryCloudProvider
 import com.netflix.spinnaker.clouddriver.cf.provider.CloudFoundryProvider
 import com.netflix.spinnaker.clouddriver.cf.provider.agent.ClusterCachingAgent
 import com.netflix.spinnaker.clouddriver.cf.security.CloudFoundryAccountCredentials
@@ -36,7 +34,6 @@ import org.springframework.context.annotation.DependsOn
 import org.springframework.context.annotation.Scope
 
 import java.util.concurrent.ConcurrentHashMap
-
 /**
  * @author Greg Turnquist
  */
@@ -45,18 +42,16 @@ class CloudFoundryProviderConfig {
 
   @Bean
   @DependsOn('cloudFoundryAccountCredentials')
-  CloudFoundryProvider cloudFoundryProvider(CloudFoundryCloudProvider cloudFoundryCloudProvider,
-                                            AccountCredentialsRepository accountCredentialsRepository,
+  CloudFoundryProvider cloudFoundryProvider(AccountCredentialsRepository accountCredentialsRepository,
                                             CloudFoundryClientFactory cloudFoundryClientFactory,
                                             ObjectMapper objectMapper,
                                             ApplicationContext ctx,
                                             Registry registry) {
     def cloudFoundryProvider =
-        new CloudFoundryProvider(cloudFoundryCloudProvider, Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
+        new CloudFoundryProvider(Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
 
     synchronizeCloudFoundryProvider(
         cloudFoundryProvider,
-        cloudFoundryCloudProvider,
         accountCredentialsRepository,
         cloudFoundryClientFactory,
         objectMapper,
@@ -83,7 +78,6 @@ class CloudFoundryProviderConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
   CloudFoundryProviderSynchronizer synchronizeCloudFoundryProvider(CloudFoundryProvider cloudFoundryProvider,
-                                                                   CloudFoundryCloudProvider cloudFoundryCloudProvider,
                                                                    AccountCredentialsRepository accountCredentialsRepository,
                                                                    CloudFoundryClientFactory cloudFoundryClientFactory,
                                                                    ObjectMapper objectMapper,
@@ -96,7 +90,7 @@ class CloudFoundryProviderConfig {
 
     allAccounts.each { CloudFoundryAccountCredentials credentials ->
       if (!scheduledAccounts.contains(credentials.name)) {
-        newlyAddedAgents << new ClusterCachingAgent(cloudFoundryCloudProvider, cloudFoundryClientFactory, credentials, objectMapper, registry)
+        newlyAddedAgents << new ClusterCachingAgent(cloudFoundryClientFactory, credentials, objectMapper, registry)
       }
     }
 

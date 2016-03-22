@@ -15,7 +15,6 @@
  */
 
 package com.netflix.spinnaker.clouddriver.cf.provider.agent
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.cats.mem.InMemoryCache
@@ -37,7 +36,6 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.*
 import static com.netflix.spinnaker.clouddriver.cf.provider.ProviderUtils.buildNativeApplication
 import static com.netflix.spinnaker.clouddriver.cf.provider.ProviderUtils.mapToMeta
-
 /**
  * @author Greg Turnquist
  */
@@ -61,7 +59,6 @@ class ClusterCachingAgentSpec extends Specification {
 
     account = TestCredential.named('test')
     cachingAgent = new ClusterCachingAgent(
-        new CloudFoundryCloudProvider(),
         new TestCloudFoundryClientFactory(stubClient: client),
         this.account,
         new ObjectMapper(),

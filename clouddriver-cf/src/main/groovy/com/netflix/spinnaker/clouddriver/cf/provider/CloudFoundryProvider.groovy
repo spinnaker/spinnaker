@@ -15,14 +15,13 @@
  */
 
 package com.netflix.spinnaker.clouddriver.cf.provider
-
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
-import com.netflix.spinnaker.clouddriver.cf.CloudFoundryCloudProvider
 import com.netflix.spinnaker.clouddriver.cf.cache.Keys
 
-import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.*
+import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.CLUSTERS
+import static com.netflix.spinnaker.clouddriver.cf.cache.Keys.Namespace.SERVER_GROUPS
 
 /**
  * @author Greg Turnquist
@@ -31,11 +30,9 @@ class CloudFoundryProvider extends AgentSchedulerAware implements SearchableProv
 
   static final String PROVIDER_NAME = CloudFoundryProvider.name
 
-  private final CloudFoundryCloudProvider cloudFoundryCloudProvider
   private final Collection<Agent> agents
 
-  CloudFoundryProvider(CloudFoundryCloudProvider cloudFoundryCloudProvider, Collection<Agent> agents) {
-    this.cloudFoundryCloudProvider = cloudFoundryCloudProvider
+  CloudFoundryProvider(Collection<Agent> agents) {
     this.agents = agents
   }
 
