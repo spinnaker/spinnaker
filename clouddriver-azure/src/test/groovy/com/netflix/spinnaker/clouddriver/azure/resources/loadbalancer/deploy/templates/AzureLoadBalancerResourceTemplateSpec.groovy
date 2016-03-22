@@ -102,7 +102,8 @@ class AzureLoadBalancerResourceTemplateSpec extends Specification {
     "ipConfigName" : "ipc-azuremasm-st1-d11",
     "loadBalancerID" : "[resourceID('Microsoft.Network/loadBalancers',variables('loadBalancerName'))]",
     "publicIPAddressID" : "[resourceID('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]",
-    "frontEndIPConfig" : "[concat(variables('loadBalancerID'),'/frontendIPConfigurations/',variables('loadBalancerFrontEnd'))]"
+    "frontEndIPConfig" : "[concat(variables('loadBalancerID'),'/frontendIPConfigurations/',variables('loadBalancerFrontEnd'))]",
+    "backendPoolID" : "[concat(variables('loadBalancerID'),'/backendAddressPools/',variables('loadBalancerBackEnd'))]"
   },
   "resources" : [ {
     "apiVersion" : "2015-05-01-preview",
@@ -144,6 +145,9 @@ class AzureLoadBalancerResourceTemplateSpec extends Specification {
         "properties" : {
           "frontendIPConfiguration" : {
             "id" : "[variables('frontEndIPConfig')]"
+          },
+          "backendAddressPool" : {
+            "id" : "[variables('backendPoolID')]"
           },
           "protocol" : "tcp",
           "frontendPort" : 80,
