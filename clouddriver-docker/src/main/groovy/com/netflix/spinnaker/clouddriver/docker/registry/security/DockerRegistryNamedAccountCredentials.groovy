@@ -24,24 +24,28 @@ import retrofit.RetrofitError
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
 
 public class DockerRegistryNamedAccountCredentials implements AccountCredentials<DockerRegistryCredentials> {
   public DockerRegistryNamedAccountCredentials(String accountName, String environment, String accountType,
                                                String address, String username, String password, String passwordFile, String email,
-                                               int cacheThreads, List<String> repositories) {
-    this(accountName, environment, accountType, address, username, password, passwordFile, email, repositories, cacheThreads, null)
+                                               int cacheThreads, long clientTimeoutMillis, int paginateSize, List<String> repositories) {
+    this(accountName, environment, accountType, address, username, password, passwordFile, email, repositories, cacheThreads, clientTimeoutMillis, paginateSize, null)
   }
 
   public DockerRegistryNamedAccountCredentials(String accountName, String environment, String accountType,
                                                String address, String username, String password, String passwordFile, String email,
-                                               List<String> repositories, int cacheThreads, List<String> requiredGroupMembership) {
+                                               List<String> repositories, int cacheThreads, long clientTimeoutMillis,
+                                               int paginateSize, List<String> requiredGroupMembership) {
     if (!accountName) {
       throw new IllegalArgumentException("Docker Registry account must be provided with a name.")
     }
     this.accountName = accountName
     this.environment = environment
     this.accountType = accountType
-    this.cacheThreads = cacheThreads ?: 1;
+    this.cacheThreads = cacheThreads ?: 1
+    this.paginateSize = paginateSize ?: 100
+    this.clientTimeoutMillis = clientTimeoutMillis ?: TimeUnit.MINUTES.toMillis(1)
 
     if (!address) {
       throw new IllegalArgumentException("Docker Registry account $accountName must provide an endpoint address.");
@@ -106,7 +110,7 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
 
   private DockerRegistryCredentials buildCredentials(List<String> repositories) {
     try {
-      DockerRegistryClient client = new DockerRegistryClient(address, email, username, password)
+      DockerRegistryClient client = new DockerRegistryClient(address, email, username, password, clientTimeoutMillis, paginateSize)
       return new DockerRegistryCredentials(client, repositories)
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
@@ -132,6 +136,8 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
   final String password
   final String email
   final int cacheThreads
+  final long clientTimeoutMillis
+  final int paginateSize
   final List<String> repositories
   final DockerRegistryCredentials credentials
   final List<String> requiredGroupMembership

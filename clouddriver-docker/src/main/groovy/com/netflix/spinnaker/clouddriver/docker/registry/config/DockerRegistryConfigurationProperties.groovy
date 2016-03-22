@@ -37,6 +37,10 @@ class DockerRegistryConfigurationProperties {
     String address
     // How many threads to cache all provided repos on. Really only useful if you have a ton of repos.
     int cacheThreads
+    // Timeout time in milliseconds for this repository. Default is 60,000 (1 minute).
+    long clientTimeoutMillis
+    // Paginate size for the docker repository /_catalog endpoint. Default is 100
+    int paginateSize
     // List of all repositories to index. Can be of the form <user>/<repo>,
     // or <library> for repositories like 'ubuntu'.
     List<String> repositories
