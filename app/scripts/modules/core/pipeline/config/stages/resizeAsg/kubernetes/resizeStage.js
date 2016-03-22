@@ -42,8 +42,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.resize
       $scope.viewState.accountsLoaded = true;
     });
 
-    $scope.namespaces = ['default'];
-
     $scope.resizeTargets = stageConstants.targetList;
 
     $scope.scaleActions = [

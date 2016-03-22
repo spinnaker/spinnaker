@@ -115,6 +115,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
     if (loadBalancer) {
       $scope.loadBalancer = kubernetesLoadBalancerTransformer.convertLoadBalancerForEditing(loadBalancer);
       initializeEditMode();
+      initializeCreateMode();
     } else {
       $scope.loadBalancer = kubernetesLoadBalancerTransformer.constructNewLoadBalancerTemplate();
       initializeLoadBalancerNames();

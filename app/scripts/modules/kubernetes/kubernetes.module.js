@@ -59,7 +59,7 @@ module.exports = angular.module('spinnaker.kubernetes', [
         transformer: 'kubernetesLoadBalancerTransformer',
         detailsTemplateUrl: require('./loadBalancer/details/details.html'),
         detailsController: 'kubernetesLoadBalancerDetailsController',
-        createLoadBalancerTemplateUrl: require('./loadBalancer/configure/wizard/wizard.html'),
+        createLoadBalancerTemplateUrl: require('./loadBalancer/configure/wizard/createWizard.html'),
         createLoadBalancerController: 'kubernetesUpsertLoadBalancerController',
       },
       securityGroup: {
