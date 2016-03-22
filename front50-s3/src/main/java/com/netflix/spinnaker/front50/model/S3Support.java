@@ -21,6 +21,7 @@ import com.amazonaws.services.s3.model.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
@@ -114,11 +115,17 @@ public abstract class S3Support<T extends Timestamped> {
 
   public void update(String id, T item) {
     try {
+      byte[] bytes = objectMapper.writeValueAsBytes(item);
+
+      ObjectMetadata objectMetadata = new ObjectMetadata();
+      objectMetadata.setContentLength(bytes.length);
+      objectMetadata.setContentMD5(new String(org.apache.commons.codec.binary.Base64.encodeBase64(DigestUtils.md5(bytes))));
+
       amazonS3.putObject(
           bucket,
           buildS3Key(id),
-          new ByteArrayInputStream(objectMapper.writeValueAsBytes(item)),
-          new ObjectMetadata()
+          new ByteArrayInputStream(bytes),
+          objectMetadata
       );
       writeLastModified();
     } catch (JsonProcessingException e) {
@@ -165,6 +172,8 @@ public abstract class S3Support<T extends Timestamped> {
     if (existingItems == null) {
       existingItems = new HashSet<>();
     }
+
+    Long refreshTime = System.currentTimeMillis();
 
     ObjectListing bucketListing = amazonS3.listObjects(
         new ListObjectsRequest(bucket, rootFolder, null, null, 10000)
@@ -226,8 +235,9 @@ public abstract class S3Support<T extends Timestamped> {
           existingItemsByName.put(item.getId().toLowerCase(), item);
         });
 
-    lastRefreshedTime = System.currentTimeMillis();
-    return existingItemsByName.values().stream().collect(Collectors.toSet());
+    existingItems = existingItemsByName.values().stream().collect(Collectors.toSet());
+    this.lastRefreshedTime = refreshTime;
+    return existingItems;
   }
 
   protected String buildS3Key(T item) {
@@ -240,11 +250,17 @@ public abstract class S3Support<T extends Timestamped> {
 
   private void writeLastModified() {
     try {
+      byte[] bytes = objectMapper.writeValueAsBytes(Collections.singletonMap("lastModified", System.currentTimeMillis()));
+
+      ObjectMetadata objectMetadata = new ObjectMetadata();
+      objectMetadata.setContentLength(bytes.length);
+      objectMetadata.setContentMD5(new String(org.apache.commons.codec.binary.Base64.encodeBase64(DigestUtils.md5(bytes))));
+
       amazonS3.putObject(
           bucket,
           rootFolder + "last-modified.json",
-          new ByteArrayInputStream(objectMapper.writeValueAsBytes(Collections.singletonMap("lastModified", System.currentTimeMillis()))),
-          new ObjectMetadata()
+          new ByteArrayInputStream(bytes),
+          objectMetadata
       );
     } catch (JsonProcessingException e) {
       throw new IllegalStateException(e);

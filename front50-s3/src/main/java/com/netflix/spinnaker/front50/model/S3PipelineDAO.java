@@ -54,7 +54,7 @@ public class S3PipelineDAO extends S3Support<Pipeline> implements PipelineDAO {
   public Collection<Pipeline> getPipelinesByApplication(String application) {
     return all()
         .stream()
-        .filter(pipelineStrategy -> pipelineStrategy.getApplication().equalsIgnoreCase(application))
+        .filter(pipeline -> pipeline.getApplication().equalsIgnoreCase(application))
         .collect(Collectors.toList());
   }
 
