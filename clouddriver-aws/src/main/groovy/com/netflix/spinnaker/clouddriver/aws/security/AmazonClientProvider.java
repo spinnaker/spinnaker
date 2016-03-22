@@ -65,6 +65,7 @@ public class AmazonClientProvider {
   private final RetryPolicy retryPolicy;
   private final List<RequestHandler2> requestHandlers;
   private final AWSProxy proxy;
+  private final EddaTimeoutConfig eddaTimeoutConfig;
 
   public static class Builder {
     private HttpClient httpClient;
@@ -75,6 +76,7 @@ public class AmazonClientProvider {
     private Integer maxErrorRetry;
     private List<RequestHandler2> requestHandlers = new ArrayList<>();
     private AWSProxy proxy;
+    private EddaTimeoutConfig eddaTimeoutConfig;
 
     public Builder httpClient(HttpClient httpClient) {
       this.httpClient = httpClient;
@@ -116,14 +118,20 @@ public class AmazonClientProvider {
       return this;
     }
 
+    public Builder eddaTimeoutConfig(EddaTimeoutConfig eddaTimeoutConfig) {
+      this.eddaTimeoutConfig = eddaTimeoutConfig;
+      return this;
+    }
+
     public AmazonClientProvider build() {
       HttpClient client = this.httpClient == null ? HttpClients.createDefault() : this.httpClient;
       ObjectMapper mapper = this.objectMapper == null ? new AmazonObjectMapper() : this.objectMapper;
       EddaTemplater templater = this.eddaTemplater == null ? EddaTemplater.defaultTemplater() : this.eddaTemplater;
       RetryPolicy policy = buildPolicy();
       AWSProxy proxy = this.proxy;
-      
-      return new AmazonClientProvider(client, mapper, templater, policy, requestHandlers, proxy);
+      EddaTimeoutConfig eddaTimeoutConfig = this.eddaTimeoutConfig == null ? EddaTimeoutConfig.DEFAULT : this.eddaTimeoutConfig;
+
+      return new AmazonClientProvider(client, mapper, templater, policy, requestHandlers, proxy, eddaTimeoutConfig);
     }
 
     private RetryPolicy buildPolicy() {
@@ -154,7 +162,13 @@ public class AmazonClientProvider {
   }
 
   public AmazonClientProvider(HttpClient httpClient, ObjectMapper objectMapper) {
-    this(httpClient == null ? HttpClients.createDefault() : httpClient, objectMapper == null ? new AmazonObjectMapper() : objectMapper, EddaTemplater.defaultTemplater(), PredefinedRetryPolicies.getDefaultRetryPolicy(), Collections.emptyList(), null);
+    this(httpClient == null ? HttpClients.createDefault() : httpClient,
+      objectMapper == null ? new AmazonObjectMapper() : objectMapper,
+      EddaTemplater.defaultTemplater(),
+      PredefinedRetryPolicies.getDefaultRetryPolicy(),
+      Collections.emptyList(),
+      null,
+      EddaTimeoutConfig.DEFAULT);
   }
 
   public static <T> T notNull(T obj, String name) {
@@ -164,13 +178,20 @@ public class AmazonClientProvider {
     return obj;
   }
 
-  public AmazonClientProvider(HttpClient httpClient, ObjectMapper objectMapper, EddaTemplater eddaTemplater, RetryPolicy retryPolicy, List<RequestHandler2> requestHandlers, AWSProxy proxy) {
+  public AmazonClientProvider(HttpClient httpClient,
+                              ObjectMapper objectMapper,
+                              EddaTemplater eddaTemplater,
+                              RetryPolicy retryPolicy,
+                              List<RequestHandler2> requestHandlers,
+                              AWSProxy proxy,
+                              EddaTimeoutConfig eddaTimeoutConfig) {
     this.httpClient = notNull(httpClient, "httpClient");
     this.objectMapper = notNull(objectMapper, "objectMapper");
     this.eddaTemplater = notNull(eddaTemplater, "eddaTemplater");
     this.retryPolicy = notNull(retryPolicy, "retryPolicy");
     this.requestHandlers = requestHandlers == null ? Collections.emptyList() : Collections.unmodifiableList(new ArrayList<>(requestHandlers));
     this.proxy = proxy;
+    this.eddaTimeoutConfig = eddaTimeoutConfig;
   }
 
   /**
@@ -307,7 +328,7 @@ public class AmazonClientProvider {
 
   protected AmazonClientInvocationHandler getInvocationHandler(Object client, String serviceName, String region, NetflixAmazonCredentials amazonCredentials) {
     return new AmazonClientInvocationHandler(client, serviceName, eddaTemplater.getUrl(amazonCredentials.getEdda(), region),
-      this.httpClient, objectMapper);
+      this.httpClient, objectMapper, eddaTimeoutConfig);
   }
 
   private static void checkCredentials(NetflixAmazonCredentials amazonCredentials) {

@@ -35,8 +35,11 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -47,6 +50,9 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 class AmazonClientInvocationHandler implements InvocationHandler {
+
+  private static final Logger log = LoggerFactory.getLogger(AmazonClientInvocationHandler.class);
+
   static final ThreadLocal<Long> lastModified = new ThreadLocal<>();
 
   private final String edda;
@@ -54,17 +60,20 @@ class AmazonClientInvocationHandler implements InvocationHandler {
   private final Object delegate;
   private final String serviceName;
   private final ObjectMapper objectMapper;
+  private final EddaTimeoutConfig eddaTimeoutConfig;
 
   public AmazonClientInvocationHandler(Object delegate,
                                        String serviceName,
                                        String edda,
                                        HttpClient httpClient,
-                                       ObjectMapper objectMapper) {
+                                       ObjectMapper objectMapper,
+                                       EddaTimeoutConfig eddaTimeoutConfig) {
     this.edda = edda;
     this.httpClient = httpClient;
     this.objectMapper = objectMapper;
     this.delegate = delegate;
     this.serviceName = serviceName;
+    this.eddaTimeoutConfig = eddaTimeoutConfig == null ? EddaTimeoutConfig.DEFAULT : eddaTimeoutConfig;
   }
 
   @Override
@@ -298,19 +307,47 @@ class AmazonClientInvocationHandler implements InvocationHandler {
   }
 
   private byte[] getJson(String objectName, String key) throws IOException {
-    String url = edda + "/REST/v2/aws/" + objectName + (key == null ? ";_expand" : "/" + key) + ";_meta";
+    final String url = edda + "/REST/v2/aws/" + objectName + (key == null ? ";_expand" : "/" + key) + ";_meta";
     HttpGet get = new HttpGet(url);
-    HttpResponse response = httpClient.execute(get);
-    HttpEntity entity = response.getEntity();
-    try {
-      if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-        throw new IOException(response.getProtocolVersion().toString() + " " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
-      } else {
-        return getBytesFromInputStream(entity.getContent(), entity.getContentLength());
+    get.setConfig(RequestConfig.custom().setConnectTimeout(eddaTimeoutConfig.getConnectTimeout()).setSocketTimeout(eddaTimeoutConfig.getSocketTimeout()).build());
+
+    long retryDelay = eddaTimeoutConfig.getRetryBase();
+    int retryAttempts = 0;
+    String lastException = "";
+    Random r = new Random();
+    Exception ex;
+    while (retryAttempts < eddaTimeoutConfig.getMaxAttempts()) {
+      ex = null;
+      HttpEntity entity = null;
+      try {
+        HttpResponse response = httpClient.execute(get);
+        entity = response.getEntity();
+        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+          lastException = response.getProtocolVersion().toString() + " " + response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase();
+        } else {
+          return getBytesFromInputStream(entity.getContent(), entity.getContentLength());
+        }
+      } catch (IOException ioe) {
+        lastException = ioe.getClass().getSimpleName() + ": " + ioe.getMessage();
+        ex = ioe;
+      } finally {
+        EntityUtils.consume(entity);
       }
-    } finally {
-      EntityUtils.consume(entity);
+      final String exceptionFormat = "Edda request {} failed with {}";
+      if (ex == null) {
+        log.warn(exceptionFormat, url, lastException);
+      } else {
+        log.warn(exceptionFormat, url, lastException, ex);
+      }
+      try {
+        Thread.sleep(retryDelay);
+      } catch (InterruptedException inter) {
+        break;
+      }
+      retryAttempts++;
+      retryDelay += r.nextInt(eddaTimeoutConfig.getBackoffMillis());
     }
+    throw new IOException(lastException);
   }
 
   private static byte[] getBytesFromInputStream(InputStream is, long contentLength) throws IOException {
