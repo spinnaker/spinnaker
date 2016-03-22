@@ -17,21 +17,24 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
+import com.amazonaws.services.autoscaling.model.Alarm
 import com.amazonaws.services.autoscaling.model.DeletePolicyRequest
-import com.amazonaws.services.autoscaling.model.PutScalingPolicyRequest
-import com.amazonaws.services.autoscaling.model.PutScalingPolicyResult
-import com.amazonaws.services.autoscaling.model.StepAdjustment
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.AdjustmentType
+import com.amazonaws.services.autoscaling.model.DescribePoliciesRequest
+import com.amazonaws.services.autoscaling.model.DescribePoliciesResult
+import com.amazonaws.services.autoscaling.model.ScalingPolicy
+import com.amazonaws.services.cloudwatch.AmazonCloudWatch
+import com.amazonaws.services.cloudwatch.model.DeleteAlarmsRequest
+import com.amazonaws.services.cloudwatch.model.DescribeAlarmsRequest
+import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult
+import com.amazonaws.services.cloudwatch.model.MetricAlarm
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteScalingPolicyDescription
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.MetricAggregationType
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertScalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
-import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class DeleteScalingPolicyAtomicOperationUnitSpec extends Specification {
   private static final String ACCOUNT = "test"
@@ -45,15 +48,17 @@ class DeleteScalingPolicyAtomicOperationUnitSpec extends Specification {
   }
 
   final description = new DeleteScalingPolicyDescription(
-    asgName: "kato-main-v000",
-    name: "scalingPolicy1",
+    serverGroupName: "kato-main-v000",
+    policyName: "scalingPolicy1",
     region: "us-west-1",
     credentials: credz
   )
 
   final autoScaling = Mock(AmazonAutoScaling)
+  final cloudWatch = Mock(AmazonCloudWatch)
   final amazonClientProvider = Stub(AmazonClientProvider) {
     getAutoScaling(credz, "us-west-1", true) >> autoScaling
+    getCloudWatch(credz, "us-west-1", true) >> cloudWatch
   }
 
   @Subject final op = new DeleteScalingPolicyAtomicOperation(description)
@@ -72,6 +77,66 @@ class DeleteScalingPolicyAtomicOperationUnitSpec extends Specification {
       policyName: "scalingPolicy1",
       autoScalingGroupName: "kato-main-v000"
     ))
+    1 * autoScaling.describePolicies(new DescribePoliciesRequest()
+        .withPolicyNames(description.policyName)
+        .withAutoScalingGroupName(description.serverGroupName)) >> new DescribePoliciesResult()
+  }
+
+  @Unroll
+  void "deletes alarm if no actions or just the policy we deleted are assigned to it"() {
+
+    given:
+    def alarm = new Alarm().withAlarmARN("alarm:arn").withAlarmName("the-alarm")
+    def policy = new ScalingPolicy().withAlarms(alarm).withPolicyARN("policy:arn")
+    def policyResponse = new DescribePoliciesResult().withScalingPolicies(policy)
+    def metricAlarm = new MetricAlarm().withAlarmActions(arns)
+    def alarmsResponse = new DescribeAlarmsResult().withMetricAlarms(metricAlarm)
+
+    when:
+    op.operate([])
+
+    then:
+    1 * autoScaling.deletePolicy(new DeletePolicyRequest(
+        policyName: "scalingPolicy1",
+        autoScalingGroupName: "kato-main-v000"
+    ))
+    1 * autoScaling.describePolicies(new DescribePoliciesRequest()
+        .withPolicyNames(description.policyName)
+        .withAutoScalingGroupName(description.serverGroupName)) >> policyResponse
+    1 * cloudWatch.describeAlarms(new DescribeAlarmsRequest().withAlarmNames("the-alarm")) >> alarmsResponse
+    1 * cloudWatch.deleteAlarms(new DeleteAlarmsRequest().withAlarmNames("the-alarm"))
+    0 * _
+
+    where:
+    arns << [ [], ["policy:arn"]]
+  }
+
+  @Unroll
+  void "does not delete the alarm if other actions are assigned to it"() {
+
+    given:
+    def alarm = new Alarm().withAlarmARN("alarm:arn").withAlarmName("the-alarm")
+    def policy = new ScalingPolicy().withAlarms(alarm).withPolicyARN("policy:arn")
+    def policyResponse = new DescribePoliciesResult().withScalingPolicies(policy)
+    def metricAlarm = new MetricAlarm().withAlarmActions(arns)
+    def alarmsResponse = new DescribeAlarmsResult().withMetricAlarms(metricAlarm)
+
+    when:
+    op.operate([])
+
+    then:
+    1 * autoScaling.deletePolicy(new DeletePolicyRequest(
+        policyName: "scalingPolicy1",
+        autoScalingGroupName: "kato-main-v000"
+    ))
+    1 * autoScaling.describePolicies(new DescribePoliciesRequest()
+        .withPolicyNames(description.policyName)
+        .withAutoScalingGroupName(description.serverGroupName)) >> policyResponse
+    1 * cloudWatch.describeAlarms(new DescribeAlarmsRequest().withAlarmNames("the-alarm")) >> alarmsResponse
+    0 * _
+
+    where:
+    arns << [ ["policy:arn", "otherpolicy:arn"], ["otherpolicy:arn"]]
   }
 
 }

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
 import com.amazonaws.services.cloudwatch.model.ComparisonOperator
 import com.amazonaws.services.cloudwatch.model.Dimension
+import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest
 import com.amazonaws.services.cloudwatch.model.StandardUnit
 import com.amazonaws.services.cloudwatch.model.Statistic
 
@@ -47,4 +48,24 @@ class UpsertAlarmDescription extends AbstractAmazonCredentialsDescription {
   Collection<String> alarmActionArns
   Collection<String> insufficientDataActionArns
   Collection<String> okActionArns
+
+  PutMetricAlarmRequest buildRequest() {
+    new PutMetricAlarmRequest(
+        alarmName: name,
+        actionsEnabled: actionsEnabled,
+        alarmDescription: alarmDescription,
+        comparisonOperator: comparisonOperator,
+        evaluationPeriods: evaluationPeriods,
+        period: period,
+        threshold: threshold,
+        namespace: namespace,
+        metricName: metricName,
+        statistic: statistic,
+        unit: unit,
+        dimensions: dimensions,
+        alarmActions: alarmActionArns,
+        insufficientDataActions: insufficientDataActionArns,
+        oKActions: okActionArns
+    )
+  }
 }

@@ -20,8 +20,10 @@ import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.PutScalingPolicyRequest
 import com.amazonaws.services.autoscaling.model.PutScalingPolicyResult
 import com.amazonaws.services.autoscaling.model.StepAdjustment
+import com.amazonaws.services.cloudwatch.AmazonCloudWatch
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AdjustmentType
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.MetricAggregationType
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAlarmDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -36,7 +38,7 @@ class UpsertScalingPolicyAtomicOperationUnitSpec extends Specification {
   }
 
   final description = new UpsertScalingPolicyDescription(
-    asgName: "kato-main-v000",
+    serverGroupName: "kato-main-v000",
     region: "us-west-1",
     adjustmentType: AdjustmentType.PercentChangeInCapacity,
     minAdjustmentMagnitude: 3,
@@ -47,8 +49,10 @@ class UpsertScalingPolicyAtomicOperationUnitSpec extends Specification {
   )
 
   final autoScaling = Mock(AmazonAutoScaling)
+  final cloudWatch = Mock(AmazonCloudWatch)
   final amazonClientProvider = Stub(AmazonClientProvider) {
     getAutoScaling(_, _, true) >> autoScaling
+    getCloudWatch(_, _, true) >> cloudWatch
   }
 
   @Subject final op = new UpsertScalingPolicyAtomicOperation(description)
@@ -85,6 +89,7 @@ class UpsertScalingPolicyAtomicOperationUnitSpec extends Specification {
   }
 
   void "creates unnamed step scaling policy"() {
+    given:
     description.step = new UpsertScalingPolicyDescription.Step(
       estimatedInstanceWarmup: 2,
       metricAggregationType: MetricAggregationType.Average,
@@ -117,6 +122,7 @@ class UpsertScalingPolicyAtomicOperationUnitSpec extends Specification {
 
 
   void "updates named scaling policy"() {
+    given:
     description.name = "existingPolicy"
 
     when:
@@ -136,6 +142,92 @@ class UpsertScalingPolicyAtomicOperationUnitSpec extends Specification {
     }
 
     result == new UpsertScalingPolicyResult(policyArn: "arn", policyName: "existingPolicy")
+  }
+
+  void "updates alarm if included"() {
+    given:
+    def alarm = new UpsertAlarmDescription(name: "existing-alarm", namespace: "amazon/ec2", alarmActionArns: ["arn"])
+    description.alarm = alarm
+    description.name = "existingPolicy"
+
+    when:
+    final result = op.operate([])
+
+    then:
+    1 * autoScaling.putScalingPolicy(new PutScalingPolicyRequest(
+        policyName: "existingPolicy",
+        autoScalingGroupName: "kato-main-v000",
+        adjustmentType: "PercentChangeInCapacity",
+        cooldown: 1,
+        minAdjustmentMagnitude: 3,
+        scalingAdjustment: 5,
+        policyType: "SimpleScaling",
+    )) >> {
+      new PutScalingPolicyResult(policyARN: "arn")
+    }
+
+    1 * cloudWatch.putMetricAlarm(alarm.buildRequest())
+
+    result == new UpsertScalingPolicyResult(
+        policyArn: "arn", policyName: "existingPolicy", alarmName: "existing-alarm")
+
+  }
+
+  void "adds policy to alarm actions if not already present"() {
+    given:
+    def alarm = new UpsertAlarmDescription(name: "existing-alarm", namespace: "amazon/ec2", alarmActionArns: ["barn"])
+    description.alarm = alarm
+    description.name = "existingPolicy"
+
+    when:
+    final result = op.operate([])
+
+    then:
+    1 * autoScaling.putScalingPolicy(new PutScalingPolicyRequest(
+        policyName: "existingPolicy",
+        autoScalingGroupName: "kato-main-v000",
+        adjustmentType: "PercentChangeInCapacity",
+        cooldown: 1,
+        minAdjustmentMagnitude: 3,
+        scalingAdjustment: 5,
+        policyType: "SimpleScaling",
+    )) >> {
+      new PutScalingPolicyResult(policyARN: "arn")
+    }
+
+    1 * cloudWatch.putMetricAlarm(_)
+    alarm.alarmActionArns.sort() == ["arn", "barn"]
+
+    result == new UpsertScalingPolicyResult(
+        policyArn: "arn", policyName: "existingPolicy", alarmName: "existing-alarm")
+
+  }
+
+  void "falls back to asgName when creating alarms and policies if serverGroupName not present"() {
+    given:
+    def alarm = new UpsertAlarmDescription(namespace: "amazon/ec2", metricName: "CPUUtilization")
+    description.alarm = alarm
+    description.serverGroupName = null
+    description.asgName = "theAsgName"
+
+    when:
+    final result = op.operate([])
+
+    then:
+    1 * autoScaling.putScalingPolicy(new PutScalingPolicyRequest(
+        policyName: "theAsgName-policy-1",
+        autoScalingGroupName: "theAsgName",
+        adjustmentType: "PercentChangeInCapacity",
+        cooldown: 1,
+        minAdjustmentMagnitude: 3,
+        scalingAdjustment: 5,
+        policyType: "SimpleScaling",
+    )) >> {
+      new PutScalingPolicyResult(policyARN: "arn")
+    }
+
+    result == new UpsertScalingPolicyResult(
+        policyArn: "arn", policyName: "theAsgName-policy-1", alarmName: "theAsgName-alarm-CPUUtilization-2")
   }
 
 }

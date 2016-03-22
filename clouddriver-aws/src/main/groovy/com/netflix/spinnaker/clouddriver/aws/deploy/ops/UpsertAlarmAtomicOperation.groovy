@@ -40,7 +40,7 @@ class UpsertAlarmAtomicOperation implements AtomicOperation<Map<String, String>>
   @Override
   Map<String, String> operate(List priorOutputs) {
 
-    final alarmName = description.name ?: "${description.asgName ?: ""}${description.asgName ? "-" : ""}alarm-${idGenerator.nextId()}"
+    description.name = description.name ?: "${description.asgName ?: ""}${description.asgName ? "-" : ""}alarm-${idGenerator.nextId()}"
 
     if (description.asgName) {
       description.dimensions = description.dimensions ?: []
@@ -55,28 +55,11 @@ class UpsertAlarmAtomicOperation implements AtomicOperation<Map<String, String>>
       description.alarmActionArns.add(previousUpsertScalingPolicyResult.policyArn)
     }
 
-    def request = new PutMetricAlarmRequest(
-      alarmName: alarmName,
-      actionsEnabled: description.actionsEnabled,
-      alarmDescription: description.alarmDescription,
-      comparisonOperator: description.comparisonOperator,
-      evaluationPeriods: description.evaluationPeriods,
-      period: description.period,
-      threshold: description.threshold,
-      namespace: description.namespace,
-      metricName: description.metricName,
-      statistic: description.statistic,
-      unit: description.unit,
-      dimensions: description.dimensions,
-      alarmActions: description.alarmActionArns,
-      insufficientDataActions: description.insufficientDataActionArns,
-      oKActions: description.okActionArns
-    )
-
+    def request = description.buildRequest()
     def cloudWatch = amazonClientProvider.getCloudWatch(description.credentials, description.region, true)
     cloudWatch.putMetricAlarm(request)
 
-    [alarmName: alarmName.toString()]
+    [alarmName: description.name.toString()]
   }
 
 }

@@ -22,4 +22,5 @@ import groovy.transform.Immutable
 class UpsertScalingPolicyResult {
   String policyName
   String policyArn
+  String alarmName
 }

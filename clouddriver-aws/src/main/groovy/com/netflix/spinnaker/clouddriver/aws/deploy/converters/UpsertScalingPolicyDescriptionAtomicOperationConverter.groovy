@@ -18,6 +18,8 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertScalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.UpsertScalingPolicyAtomicOperation
@@ -25,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component('upsertScalingPolicyDescription')
+@AmazonOperation(AtomicOperations.UPSERT_SCALING_POLICY)
 class UpsertScalingPolicyDescriptionAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
   @Autowired
@@ -37,7 +40,9 @@ class UpsertScalingPolicyDescriptionAtomicOperationConverter extends AbstractAto
 
   @Override
   UpsertScalingPolicyDescription convertDescription(Map input) {
-    def converted = objectMapper.copy().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).convertValue(input, UpsertScalingPolicyDescription)
+    def converted = objectMapper.copy()
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        .convertValue(input, UpsertScalingPolicyDescription)
     converted.credentials = getCredentialsObject(input.credentials as String)
     converted
   }

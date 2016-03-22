@@ -15,7 +15,11 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
+import com.amazonaws.services.autoscaling.model.Alarm
 import com.amazonaws.services.autoscaling.model.DeletePolicyRequest
+import com.amazonaws.services.autoscaling.model.DescribePoliciesRequest
+import com.amazonaws.services.cloudwatch.model.DeleteAlarmsRequest
+import com.amazonaws.services.cloudwatch.model.DescribeAlarmsRequest
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteScalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -44,13 +48,36 @@ class DeleteScalingPolicyAtomicOperation implements AtomicOperation<Void> {
     Void operate(List priorOutputs) {
       task.updateStatus BASE_PHASE, "Initializing Delete Scaling Policy Operation..."
       def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, description.region, true)
-      String policyDescription = "${description.name} in ${description.region} for ${description.credentials.name}"
+      String policyDescription = "${description.policyName} in ${description.region} for ${description.credentials.name}"
+      task.updateStatus BASE_PHASE, "Looking up policy..."
+      def policyMatches = autoScaling.describePolicies(new DescribePoliciesRequest()
+          .withPolicyNames(description.policyName)
+          .withAutoScalingGroupName(description.serverGroupName)
+      ).scalingPolicies
+
       task.updateStatus BASE_PHASE, "Deleting ${policyDescription}."
       autoScaling.deletePolicy(new DeletePolicyRequest(
-        autoScalingGroupName: description.asgName,
-        policyName: description.name
+        autoScalingGroupName: description.serverGroupName,
+        policyName: description.policyName
       ))
       task.updateStatus BASE_PHASE, "Done deleting ${policyDescription}."
+      if (policyMatches.size() == 1) {
+        def cloudWatch = amazonClientProvider.getCloudWatch(description.credentials, description.region, true)
+        policyMatches[0].alarms.each { Alarm alarm ->
+          def metricAlarms = cloudWatch.describeAlarms(new DescribeAlarmsRequest()
+              .withAlarmNames(alarm.alarmName)).metricAlarms
+          metricAlarms.each {
+            if (it.alarmActions.isEmpty() ||
+                (it.alarmActions.size() == 1 && it.alarmActions[0] == policyMatches[0].policyARN)) {
+              task.updateStatus BASE_PHASE, "Deleting orphaned alarm ${alarm.alarmName}"
+              cloudWatch.deleteAlarms(new DeleteAlarmsRequest()
+                  .withAlarmNames(alarm.alarmName))
+              task.updateStatus BASE_PHASE, "Done deleting orphaned alarm ${alarm.alarmName}"
+            }
+          }
+        }
+      }
+
       null
     }
 }

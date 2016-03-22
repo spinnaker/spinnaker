@@ -27,8 +27,8 @@ class UpsertScalingPolicyDescriptionValidator extends AmazonDescriptionValidatio
   void validate(List priorDescriptions, UpsertScalingPolicyDescription description, Errors errors) {
     validateRegions(description, [description.region], "upsertScalingPolicyDescription", errors)
 
-    if (!description.asgName) {
-      rejectNull "asgName", errors
+    if (!description.serverGroupName && !description.asgName) {
+      rejectNull "serverGroupName", errors
     }
 
     if (description.minAdjustmentMagnitude && !(description.adjustmentType == AdjustmentType.PercentChangeInCapacity)) {

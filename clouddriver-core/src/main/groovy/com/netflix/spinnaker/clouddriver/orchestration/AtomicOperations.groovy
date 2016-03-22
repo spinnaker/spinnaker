@@ -31,6 +31,8 @@ final class AtomicOperations {
   public static final String RESIZE_SERVER_GROUP = "resizeServerGroup"
   public static final String UPSERT_SERVER_GROUP_TAGS = "upsertServerGroupTags"
   public static final String UPDATE_LAUNCH_CONFIG = "updateLaunchConfig"
+  public static final String UPSERT_SCALING_POLICY = "upsertScalingPolicy"
+  public static final String DELETE_SCALING_POLICY = "deleteScalingPolicy"
 
   // Instance operations
   public static final String REBOOT_INSTANCES = "rebootInstances"

@@ -20,17 +20,25 @@ import com.amazonaws.services.autoscaling.model.StepAdjustment
 
 class UpsertScalingPolicyDescription extends AbstractAmazonCredentialsDescription {
 
-  // required
+  @Deprecated
+  /**
+   * Use serverGroupName instead
+   */
   String asgName
+
+  // required
   String region
   AdjustmentType adjustmentType = AdjustmentType.ChangeInCapacity
 
   // optional
+  String serverGroupName
   String name
   Integer minAdjustmentMagnitude
 
   Simple simple
   Step step
+
+  UpsertAlarmDescription alarm
 
   static class Simple {
     Integer cooldown = 600
