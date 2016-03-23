@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
+import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
@@ -106,6 +107,49 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * createdSecurityGroup.addIngress([
+      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
+        new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
+      ])
+    ])
+    0 * _
+  }
+
+  void "non-existent security group that is found on create should be updated"() {
+    final existingSecurityGroup = Mock(SecurityGroupLookupFactory.SecurityGroupUpdater)
+    description.securityGroupIngress = [
+      new SecurityGroupIngress(name: "bar", startPort: 111, endPort: 112, ipProtocol: "tcp"),
+      new SecurityGroupIngress(name: "bar", startPort: 211, endPort: 212, ipProtocol: "tcp")
+    ]
+
+    when:
+    op.operate([])
+
+    then:
+    2 * securityGroupLookup.getAccountIdForName("test") >> "accountId1"
+    2 * securityGroupLookup.getSecurityGroupByName("test", "bar", "vpc-123") >> new SecurityGroupLookupFactory.SecurityGroupUpdater(
+      new SecurityGroup(groupId: "id-bar"),
+      null
+    )
+
+    then:
+    1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> null
+
+    then:
+    1 * securityGroupLookup.createSecurityGroup(description) >> {
+      throw new AmazonServiceException("").with {
+        it.errorCode = "InvalidGroup.Duplicate"
+        it
+      }
+    }
+    1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123", true) >> existingSecurityGroup
+    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(ipPermissions: [
+            new IpPermission(fromPort: 211, toPort: 212, ipProtocol: "tcp", userIdGroupPairs: [
+                    new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
+            ])
+    ])
+
+    then:
+    1 * existingSecurityGroup.addIngress([
       new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
         new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
       ])
@@ -296,7 +340,6 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
   }
 
   void "should fail for missing ingress security group in vpc"() {
-    final existingSecurityGroup = Mock(SecurityGroupLookupFactory.SecurityGroupUpdater)
     description.securityGroupIngress = [
       new SecurityGroupIngress(name: "bar", startPort: 111, endPort: 112, ipProtocol: "tcp")
     ]
