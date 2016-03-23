@@ -65,8 +65,8 @@ module.exports = angular.module('spinnaker.azure.serverGroup.transformer', [
       if (typeof command.stack !== 'undefined') {
         configuration.name = configuration.name + '-' + command.stack;
       }
-      if (typeof command.details !== 'undefined') {
-        configuration.name = configuration.name + '-' + command.details;
+      if (typeof command.freeFormDetails !== 'undefined') {
+        configuration.name = configuration.name + '-' + command.freeFormDetails;
       }
 
       return configuration;
