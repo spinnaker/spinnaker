@@ -26,11 +26,11 @@ class DeleteScalingPolicyDescriptionValidator extends AmazonDescriptionValidatio
   void validate(List priorDescriptions, DeleteScalingPolicyDescription description, Errors errors) {
     validateRegions(description, [description.region], "deleteScalingPolicyDescription", errors)
 
-    if (!description.asgName) {
-      rejectNull "asgName", errors
+    if (!description.serverGroupName && !description.asgName) {
+      rejectNull "serverGroupName", errors
     }
 
-    if (!description.name) {
+    if (!description.policyName) {
       rejectNull "policyName", errors
     }
 

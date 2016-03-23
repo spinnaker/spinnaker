@@ -18,12 +18,6 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import com.amazonaws.services.autoscaling.model.PutScalingPolicyRequest
 import com.amazonaws.services.autoscaling.model.PutScalingPolicyResult
-import com.amazonaws.services.cloudwatch.model.ComparisonOperator
-import com.amazonaws.services.cloudwatch.model.Dimension
-import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest
-import com.amazonaws.services.cloudwatch.model.Statistic
-import com.amazonaws.services.sns.model.ListTopicsRequest
-import com.amazonaws.services.sns.model.Topic
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
@@ -45,10 +39,10 @@ class UpsertScalingPolicyAtomicOperation implements AtomicOperation<UpsertScalin
 
   @Override
   UpsertScalingPolicyResult operate(List priorOutputs) {
-    final policyName = description.name ?: "${description.asgName}-policy-${idGenerator.nextId()}"
+    final policyName = description.name ?: "${description.serverGroupName ?: description.asgName}-policy-${idGenerator.nextId()}"
     final request = new PutScalingPolicyRequest(
       policyName: policyName,
-      autoScalingGroupName: description.asgName,
+      autoScalingGroupName: description.serverGroupName ?: description.asgName,
       adjustmentType: description.adjustmentType.toString(),
       minAdjustmentMagnitude: description.minAdjustmentMagnitude
     )
@@ -66,10 +60,31 @@ class UpsertScalingPolicyAtomicOperation implements AtomicOperation<UpsertScalin
     final autoScaling = amazonClientProvider.getAutoScaling(description.credentials, description.region, true)
     PutScalingPolicyResult scalingPolicyResult = autoScaling.putScalingPolicy(request)
 
-    new UpsertScalingPolicyResult(
-      policyName: policyName.toString(),
-      policyArn: scalingPolicyResult?.policyARN
-    )
+    if (description.alarm) {
+      addAlarm(scalingPolicyResult)
+      new UpsertScalingPolicyResult(
+          policyName: policyName.toString(),
+          policyArn: scalingPolicyResult?.policyARN,
+          alarmName: description.alarm.name
+      )
+    } else {
+      new UpsertScalingPolicyResult(
+          policyName: policyName.toString(),
+          policyArn: scalingPolicyResult?.policyARN
+      )
+    }
+  }
+
+  private void addAlarm(PutScalingPolicyResult scalingPolicyResult) {
+    def alarm = description.alarm
+    alarm.name = alarm.name ?: "${description.serverGroupName ?: description.asgName}-alarm-${description.alarm.metricName}-${idGenerator.nextId()}"
+    alarm.alarmActionArns = alarm.alarmActionArns ?: []
+    if (!alarm.alarmActionArns.contains(scalingPolicyResult.policyARN)) {
+      alarm.alarmActionArns.add(scalingPolicyResult.policyARN)
+    }
+    def request = description.alarm.buildRequest()
+    def cloudWatch = amazonClientProvider.getCloudWatch(description.credentials, description.region, true)
+    cloudWatch.putMetricAlarm(request)
   }
 
   enum PolicyType {
