@@ -23,8 +23,11 @@ import groovy.transform.Canonical
 
 @AutoClone
 @Canonical
-class UpsertKubernetesLoadBalancerAtomicOperationDescription extends KubernetesAtomicOperationDescription implements DeployDescription {
+class KubernetesLoadBalancerDescription extends KubernetesAtomicOperationDescription implements DeployDescription {
   String name
+  String app
+  String stack
+  String detail
   String namespace
 
   List<KubernetesNamedServicePort> ports

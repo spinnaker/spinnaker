@@ -18,6 +18,8 @@ package com.netflix.spinnaker.clouddriver.kubernetes.api
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesNamedServicePort
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.*
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.extensions.Ingress
@@ -179,6 +181,39 @@ class KubernetesApiAdaptor {
 
   Namespace createNamespace(Namespace namespace) {
     client.namespaces().create(namespace)
+  }
+
+  static KubernetesLoadBalancerDescription fromService(Service service) {
+    if (!service) {
+      return null
+    }
+
+    def loadBalancerDescription = new KubernetesLoadBalancerDescription()
+
+    loadBalancerDescription.name = service.metadata.name
+    def parse = Names.parseName(loadBalancerDescription.name)
+    loadBalancerDescription.app = parse.app
+    loadBalancerDescription.stack = parse.stack
+    loadBalancerDescription.detail = parse.detail
+    loadBalancerDescription.namespace = service.metadata.namespace
+
+    loadBalancerDescription.clusterIp = service.spec.clusterIP
+    loadBalancerDescription.loadBalancerIp = service.spec.loadBalancerIP
+    loadBalancerDescription.sessionAffinity = service.spec.sessionAffinity
+    loadBalancerDescription.serviceType = service.spec.type
+
+    loadBalancerDescription.externalIps = service.spec.externalIPs ?: []
+    loadBalancerDescription.ports = service.spec.ports?.collect { port ->
+      new KubernetesNamedServicePort(
+          name: port.name,
+          protocol: port.protocol,
+          port: port.port ?: 0,
+          targetPort: port.targetPort?.intVal ?: 0,
+          nodePort: port.nodePort ?: 0
+      )
+    }
+
+    return loadBalancerDescription
   }
 
   static KubernetesContainerDescription fromContainer(Container container) {

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.loadbalan
 
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesNamedServicePort
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.UpsertKubernetesLoadBalancerAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
@@ -73,7 +73,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidatorSpec extends Specifica
 
   void "validation accept (all fields filled)"() {
     setup:
-      def description = new UpsertKubernetesLoadBalancerAtomicOperationDescription(name: VALID_NAME,
+      def description = new KubernetesLoadBalancerDescription(name: VALID_NAME,
         externalIps: [VALID_IP],
         ports: [validPort],
         account: VALID_ACCOUNT,
@@ -89,7 +89,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidatorSpec extends Specifica
 
   void "validation accept (some fields filled)"() {
     setup:
-      def description = new UpsertKubernetesLoadBalancerAtomicOperationDescription(name: VALID_NAME,
+      def description = new KubernetesLoadBalancerDescription(name: VALID_NAME,
         ports: [validPort],
         account: VALID_ACCOUNT)
       def errorsMock = Mock(Errors)
@@ -102,7 +102,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidatorSpec extends Specifica
   }
   void "validation reject (bad protocol)"() {
     setup:
-      def description = new UpsertKubernetesLoadBalancerAtomicOperationDescription(name: VALID_NAME,
+      def description = new KubernetesLoadBalancerDescription(name: VALID_NAME,
         ports: [invalidProtocolPort],
         account: VALID_ACCOUNT)
       def errorsMock = Mock(Errors)
@@ -116,7 +116,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidatorSpec extends Specifica
 
   void "validation reject (bad port name)"() {
     setup:
-      def description = new UpsertKubernetesLoadBalancerAtomicOperationDescription(name: VALID_NAME,
+      def description = new KubernetesLoadBalancerDescription(name: VALID_NAME,
         ports: [invalidNamePort],
         account: VALID_ACCOUNT)
       def errorsMock = Mock(Errors)
@@ -130,7 +130,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidatorSpec extends Specifica
 
   void "validation reject (bad port value)"() {
     setup:
-      def description = new UpsertKubernetesLoadBalancerAtomicOperationDescription(name: VALID_NAME,
+      def description = new KubernetesLoadBalancerDescription(name: VALID_NAME,
         ports: [invalidPortPort],
         account: VALID_ACCOUNT)
       def errorsMock = Mock(Errors)
@@ -144,7 +144,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidatorSpec extends Specifica
 
   void "validation reject (bad ip value)"() {
     setup:
-      def description = new UpsertKubernetesLoadBalancerAtomicOperationDescription(name: VALID_NAME,
+      def description = new KubernetesLoadBalancerDescription(name: VALID_NAME,
         ports: [validPort],
         externalIps: [INVALID_IP],
         account: VALID_ACCOUNT)

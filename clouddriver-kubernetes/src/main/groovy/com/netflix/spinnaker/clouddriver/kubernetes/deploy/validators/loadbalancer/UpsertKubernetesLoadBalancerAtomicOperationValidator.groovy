@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.loadbalan
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.UpsertKubernetesLoadBalancerAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
@@ -29,12 +29,12 @@ import org.springframework.validation.Errors
 
 @KubernetesOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component
-class UpsertKubernetesLoadBalancerAtomicOperationValidator extends DescriptionValidator<UpsertKubernetesLoadBalancerAtomicOperationDescription> {
+class UpsertKubernetesLoadBalancerAtomicOperationValidator extends DescriptionValidator<KubernetesLoadBalancerDescription> {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, UpsertKubernetesLoadBalancerAtomicOperationDescription description, Errors errors) {
+  void validate(List priorDescriptions, KubernetesLoadBalancerDescription description, Errors errors) {
     def helper = new StandardKubernetesAttributeValidator("upsertKubernetesLoadBalancerAtomicOperationDescription", errors)
 
     if (!helper.validateCredentials(description.account, accountCredentialsProvider)) {

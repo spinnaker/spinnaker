@@ -20,7 +20,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesNamedServicePort
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.UpsertKubernetesLoadBalancerAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.ServiceBuilder
 import io.fabric8.kubernetes.api.model.ServicePort
@@ -28,9 +28,9 @@ import io.fabric8.kubernetes.api.model.ServicePort
 class UpsertKubernetesLoadBalancerAtomicOperation implements AtomicOperation<Map> {
   private static final String BASE_PHASE = "UPSERT_LOAD_BALANCER"
 
-  UpsertKubernetesLoadBalancerAtomicOperationDescription description
+  KubernetesLoadBalancerDescription description
 
-  UpsertKubernetesLoadBalancerAtomicOperation(UpsertKubernetesLoadBalancerAtomicOperationDescription description) {
+  UpsertKubernetesLoadBalancerAtomicOperation(KubernetesLoadBalancerDescription description) {
     this.description = description
   }
 
