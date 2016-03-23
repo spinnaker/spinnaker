@@ -75,6 +75,10 @@ class KubernetesApiAdaptor {
     client.extensions().ingress().inNamespace(namespace).withName(name).get()
   }
 
+  boolean deleteIngress(String namespace, String name) {
+    client.extensions().ingress().inNamespace(namespace).withName(name).delete()
+  }
+
   List<Ingress> getIngresses(String namespace) {
     client.extensions().ingress().inNamespace(namespace).list().items
   }
