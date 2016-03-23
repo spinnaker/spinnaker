@@ -40,9 +40,14 @@ module.exports = angular.module('spinnaker.kubernetes.loadBalancer.transformer',
       };
     }
 
+    function convertLoadBalancerForEditing(loadBalancer) {
+      return loadBalancer.description;
+    }
+
     return {
       normalizeLoadBalancer: normalizeLoadBalancer,
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
       serverGroupIsInLoadBalancer: serverGroupIsInLoadBalancer,
+      convertLoadBalancerForEditing: convertLoadBalancerForEditing
     };
   });

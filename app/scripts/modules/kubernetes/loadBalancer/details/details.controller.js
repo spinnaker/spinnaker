@@ -26,7 +26,9 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
 
     function extractLoadBalancer() {
       $scope.loadBalancer = application.loadBalancers.data.filter(function (test) {
-        return test.name === loadBalancer.name && test.namespace === loadBalancer.region && test.account === loadBalancer.accountId;
+        return test.name === loadBalancer.name &&
+          (test.namespace === loadBalancer.region || test.namespace === loadBalancer.namespace) &&
+          test.account === loadBalancer.accountId;
       })[0];
 
       if ($scope.loadBalancer) {
@@ -65,6 +67,16 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
     });
 
     this.editLoadBalancer = function editLoadBalancer() {
+      $uibModal.open({
+        templateUrl: require('../configure/wizard/editWizard.html'),
+        controller: 'kubernetesUpsertLoadBalancerController as ctrl',
+        size: 'lg',
+        resolve: {
+          application: function() { return application; },
+          loadBalancer: function() { return angular.copy($scope.loadBalancer); },
+          isNew: function() { return false; }
+        }
+      });
     };
 
     this.deleteLoadBalancer = function deleteLoadBalancer() {
