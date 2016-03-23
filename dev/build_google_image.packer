@@ -8,7 +8,9 @@
     "zone": "us-central1-f",
     "source_image": null,
     "base_srcdir": null,
-    "target_image": "{{env `USER`}}-spinnaker-{{timestamp}}"
+    "target_image": "{{env `USER`}}-spinnaker-{{timestamp}}",
+    "google_cloud_logging": "true",
+    "google_cloud_monitoring": "true"
  },
 
  "builders": [{
@@ -27,38 +29,13 @@
     "destination": "/tmp/install_spinnaker.sh"
   },
   {
-    "type": "file",
-    "source": "{{user `base_srcdir`}}/google/google_cloud_logging/spinnaker.conf",
-    "destination": "/tmp/spinnaker_cloud_logging.conf"
-  },
-  {
     "type": "shell",
     "inline": [
-      "cd /tmp",
-      "mkdir -p /etc/google-fluentd/config.d",
-      "mv spinnaker_cloud_logging.conf /etc/google-fluentd/config.d/spinnaker.conf",
-      "curl -s -O https://dl.google.com/cloudagents/install-logging-agent.sh",
-      "bash ./install-logging-agent.sh",
-      "rm ./install-logging-agent.sh",
-      "service google-fluentd stop"
-    ]
-  },
-  {
-    "type": "shell",
-    "inline": [
-      "cd /tmp",
-      "CODENAME=$(lsb_release -sc)",
-      "curl -s -S -f -o /etc/apt/sources.list.d/stackdriver.list https://repo.stackdriver.com/$CODENAME.list",
-      "curl -s -f https://app.stackdriver.com/RPM-GPG-KEY-stackdriver | apt-key add -",
-      "apt-get -q update",
-      "DEBIAN_FRONTEND=noninteractive apt-get -y -q install stackdriver-agent"
-    ]
-  },
-  {
-    "type": "shell",
-    "inline": [
+        "flags=\"--cloud_provider google --google_region us-central1 --quiet\"",
+        "if \"{{ user `google_cloud_logging` }}\" == \"true\"; then flags=\"$flags --google_cloud_logging\"; fi",
+        "if \"{{ user `google_cloud_monitoring` }}\" == \"true\"; then flags=\"$flags --google_cloud_monitoring\"; fi",
         "chmod +x /tmp/install_spinnaker.sh",
-        "/tmp/install_spinnaker.sh --repository {{user `debian_repo`}} --cloud_provider google --google_region us-central1 --quiet",
+        "/tmp/install_spinnaker.sh --repository {{user `debian_repo`}} $flags",
         "service spinnaker stop"
      ]
   },
