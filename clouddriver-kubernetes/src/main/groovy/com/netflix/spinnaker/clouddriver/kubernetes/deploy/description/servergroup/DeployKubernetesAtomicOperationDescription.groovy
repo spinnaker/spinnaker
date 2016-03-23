@@ -59,13 +59,20 @@ class KubernetesImageDescription {
 class KubernetesContainerDescription {
   String name
   KubernetesImageDescription imageDescription
+
   KubernetesResourceDescription requests
   KubernetesResourceDescription limits
+
   List<KubernetesContainerPort> ports
+
   KubernetesProbe livenessProbe
   KubernetesProbe readinessProbe
+
   List<KubernetesVolumeMount> volumeMounts
   List<KubernetesEnvVar> envVars
+
+  List<String> command
+  List<String> args
 }
 
 @AutoClone
@@ -85,7 +92,7 @@ class KubernetesVolumeMount {
 }
 
 enum KubernetesVolumeSourceType {
-  HOSTPATH, EMPTYDIR, PERSISTENTVOLUMECLAIM, UNSUPPORTED
+  HOSTPATH, EMPTYDIR, PERSISTENTVOLUMECLAIM, SECRET, UNSUPPORTED
 }
 
 enum KubernetesStorageMediumType {
@@ -100,6 +107,13 @@ class KubernetesVolumeSource {
   KubernetesHostPath hostPath
   KubernetesEmptyDir emptyDir
   KubernetesPersistentVolumeClaim persistentVolumeClaim
+  KubernetesSecretVolumeSource secret
+}
+
+@AutoClone
+@Canonical
+class KubernetesSecretVolumeSource {
+  String secretName
 }
 
 @AutoClone

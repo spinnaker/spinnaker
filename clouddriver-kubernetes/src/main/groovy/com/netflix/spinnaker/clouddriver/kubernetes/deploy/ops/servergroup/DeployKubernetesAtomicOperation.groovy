@@ -135,6 +135,12 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
             volume.persistentVolumeClaim = res.build()
             break
 
+          case KubernetesVolumeSourceType.SECRET:
+            def res = new SecretVolumeSourceBuilder()
+                .withSecretName(volumeSource.secret.secretName)
+            volume.secret = res.build()
+            break
+
           default:
             return null
         }
@@ -313,6 +319,18 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
         }
 
         replicationControllerBuilder = replicationControllerBuilder.withEnv(envVars)
+      }
+
+      if (container.command) {
+        task.updateStatus BASE_PHASE, "Setting container command..."
+
+        replicationControllerBuilder = replicationControllerBuilder.withCommand(container.command)
+      }
+
+      if (container.args) {
+        task.updateStatus BASE_PHASE, "Setting container args..."
+
+        replicationControllerBuilder = replicationControllerBuilder.withArgs(container.args)
       }
 
       replicationControllerBuilder = replicationControllerBuilder.endContainer()

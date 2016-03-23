@@ -68,10 +68,18 @@ class DeployKubernetesAtomicOperationValidator extends DescriptionValidator<Depl
           break
 
         case KubernetesVolumeSourceType.PERSISTENTVOLUMECLAIM:
-          if (!helper.validateNotEmpty(source.persistentVolumeClaim, "volumueSources[$idx].persistentVolumeClaim")) {
+          if (!helper.validateNotEmpty(source.persistentVolumeClaim, "volumeSources[$idx].persistentVolumeClaim")) {
             break
           }
           helper.validateName(source.persistentVolumeClaim.claimName, "volumeSources[$idx].persistentVolumeClaim.claimName")
+
+          break
+
+        case KubernetesVolumeSourceType.SECRET:
+          if (!helper.validateNotEmpty(source.secret, "volumeSources[$idx].secret")) {
+            break
+          }
+          helper.validateName(source.secret.secretName, "volumeSources[$idx].secret.secretName")
 
           break
 
