@@ -334,18 +334,19 @@ class JedisExecutionRepository implements ExecutionRepository {
     String key = "${prefix}:$execution.id"
 
     Map<String, String> map = [
-      application      : execution.application,
-      appConfig        : mapper.writeValueAsString(execution.appConfig),
-      canceled         : String.valueOf(execution.canceled),
-      parallel         : String.valueOf(execution.parallel),
-      limitConcurrent  : String.valueOf(execution.limitConcurrent),
-      buildTime        : Long.toString(execution.buildTime ?: 0L),
-      startTime        : execution.startTime?.toString(),
-      endTime          : execution.endTime?.toString(),
-      executingInstance: execution.executingInstance,
-      status           : execution.status?.name(),
-      authentication   : mapper.writeValueAsString(execution.authentication),
-      paused           : mapper.writeValueAsString(execution.paused)
+      application         : execution.application,
+      appConfig           : mapper.writeValueAsString(execution.appConfig),
+      canceled            : String.valueOf(execution.canceled),
+      parallel            : String.valueOf(execution.parallel),
+      limitConcurrent     : String.valueOf(execution.limitConcurrent),
+      buildTime           : Long.toString(execution.buildTime ?: 0L),
+      startTime           : execution.startTime?.toString(),
+      endTime             : execution.endTime?.toString(),
+      executingInstance   : execution.executingInstance,
+      status              : execution.status?.name(),
+      authentication      : mapper.writeValueAsString(execution.authentication),
+      paused              : mapper.writeValueAsString(execution.paused),
+      keepWaitingPipelines: String.valueOf(execution.keepWaitingPipelines)
     ]
     // TODO: store separately? Seems crazy to be using a hash rather than a set
     map.stageIndex = execution.stages.id.join(",")
@@ -412,6 +413,7 @@ class JedisExecutionRepository implements ExecutionRepository {
       execution.status = map.status ? ExecutionStatus.valueOf(map.status) : null
       execution.authentication = mapper.readValue(map.authentication, Execution.AuthenticationDetails)
       execution.paused = map.paused ? mapper.readValue(map.paused, Execution.PausedDetails) : null
+      execution.keepWaitingPipelines = Boolean.parseBoolean(map.keepWaitingPipelines)
 
       def stageIds = map.stageIndex.tokenize(",")
       stageIds.each { stageId ->

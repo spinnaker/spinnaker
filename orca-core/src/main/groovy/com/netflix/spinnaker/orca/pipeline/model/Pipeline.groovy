@@ -117,6 +117,11 @@ class Pipeline extends Execution<Pipeline> {
       return this
     }
 
+    Builder withKeepWaitingPipelines(boolean waiting) {
+      pipeline.keepWaitingPipelines = waiting
+      return this
+    }
+
     Builder withExecutingInstance(InstanceInfo instance) {
       pipeline.executingInstance = instance.id
       return this

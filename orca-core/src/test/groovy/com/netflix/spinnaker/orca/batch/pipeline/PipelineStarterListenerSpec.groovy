@@ -88,6 +88,33 @@ class PipelineStarterListenerSpec extends Specification {
     pipelineConfigId = "abc"
   }
 
+  def "if configured to not limit waiting pipelines, then should keep the waiting pipelines in queue"() {
+    given:
+    listener.startTracker.getAllStartedExecutions() >> [completedId]
+    listener.startTracker.getQueuedPipelines(_) >> nextIds
+    listener.executionRepository.retrievePipeline(_) >> { String id ->
+      new Pipeline(id: id, pipelineConfigId: pipelineConfigId, canceled: true, status: CANCELED, keepWaitingPipelines: true)
+    }
+
+    when:
+    listener.afterJob(jobExecution)
+
+    then:
+    0 * listener.executionRepository.cancel(nextIds[0])
+    0 * listener.executionRepository.cancel(nextIds[1])
+    0 * listener.executionRepository.cancel(nextIds[2])
+
+    and:
+    1 * listener.startTracker.removeFromQueue(pipelineConfigId, nextIds[0])
+    0 * listener.startTracker.removeFromQueue(pipelineConfigId, nextIds[1])
+    0 * listener.startTracker.removeFromQueue(pipelineConfigId, nextIds[2])
+
+    where:
+    completedId = "123"
+    nextIds = ["124", "125", "126"]
+    pipelineConfigId = "abc"
+  }
+
   def "should mark started executions as finished even without a pipelineConfigId"() {
     when:
     listener.afterJob(jobExecution)
