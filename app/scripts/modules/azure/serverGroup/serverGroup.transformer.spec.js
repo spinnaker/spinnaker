@@ -67,7 +67,7 @@ describe('azureServerGroupTransformer', function () {
 
     it('it sets name correctly with only detail', function () {
       var command = {
-        details: 'd1',
+        freeFormDetails: 'd1',
         application: 'theApp',
         sku:{
           capacity: 1,
@@ -91,7 +91,7 @@ describe('azureServerGroupTransformer', function () {
     it('it sets name correctly with both stack and detail', function () {
       var command = {
         stack: 's1',
-        details: 'd1',
+        freeFormDetails: 'd1',
         application: 'theApp',
         sku:{
           capacity: 1,
