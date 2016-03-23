@@ -69,6 +69,9 @@ module.exports = angular.module('spinnaker.azure.serverGroup.transformer', [
         configuration.name = configuration.name + '-' + command.freeFormDetails;
       }
 
+      // Default to an empty list of health provider names for now.
+      configuration.interestingHealthProviderNames = [];
+
       return configuration;
     }
 
