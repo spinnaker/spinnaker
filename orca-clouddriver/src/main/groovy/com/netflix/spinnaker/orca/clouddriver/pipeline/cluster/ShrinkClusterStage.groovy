@@ -49,11 +49,14 @@ class ShrinkClusterStage extends AbstractClusterWideClouddriverOperationStage {
   @Override
   List<Step> buildSteps(Stage stage) {
     if (stage.context.allowDeleteActive == true) {
-      injectBefore(stage, "disableCluster", disableClusterStage, stage.context + [
-        remainingEnabledServerGroups: stage.context.shrinkToSize,
-        preferLargerOverNewer       : stage.context.retainLargerOverNewer,
-        continueIfClusterNotFound   : stage.context.shrinkToSize == 0
-      ])
+      //TODO(cfieber) Remvove the stage.context.cloudProvider check once proper discovery has been added to titus
+      if (!stage.context.cloudProvider || stage.context.cloudProvider != 'titan') {
+        injectBefore(stage, "disableCluster", disableClusterStage, stage.context + [
+          remainingEnabledServerGroups: stage.context.shrinkToSize,
+          preferLargerOverNewer       : stage.context.retainLargerOverNewer,
+          continueIfClusterNotFound   : stage.context.shrinkToSize == 0
+        ])
+      }
     }
     return super.buildSteps(stage)
   }
