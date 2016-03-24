@@ -42,6 +42,22 @@ module.exports = angular.module('spinnaker.kubernetes.container.configurer.direc
       $scope.container.envVars.push({ name: '', value: '', });
     };
 
+    this.removeCommand = function(index) {
+      $scope.container.command.splice(index, 1);
+    };
+
+    this.addCommand = function() {
+      $scope.container.command.push('');
+    };
+
+    this.removeArg = function(index) {
+      $scope.container.args.splice(index, 1);
+    };
+
+    this.addArg = function() {
+      $scope.container.args.push('');
+    };
+
     this.protocols = ['TCP', 'UDP'];
     this.maxPort = 65535;
   });

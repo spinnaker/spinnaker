@@ -272,6 +272,7 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
       'If multiple images are selected, they will be colocated and replicated equally.',
     'kubernetes.containers.image': 'The image selected under Basic Settings whose container is to be configured.',
     'kubernetes.containers.registry': 'The registry the selected image will be pulled from.',
+    'kubernetes.containers.command': 'The list of commands which to overwrite the docker ENTRYPOINT array.',
     'kubernetes.containers.name': '(Required) The name of the container associated with the above image. Used for resource identification',
     'kubernetes.containers.cpu': '(Optional) The relative CPU shares to allocate this container. If set, it is multiplied by 1024, then ' +
       'passed to Docker as the --cpu-shares flag. Otherwise the default of 1 (1024) is used',
@@ -321,8 +322,9 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'kubernetes.pod.emptydir.medium': 'The type of storage medium used by this volume type.' +
       '<p><b>DEFAULT</b>: Depends on the storage mechanism backing this pod\'s Kubernetes installation.</p>' +
       '<p><b>MEMORY</b>: A tmpfs (RAM-backed filesystem). Very fast, but usage counts against the memory resource limit, and contents are lost on reboot.</p>',
-    'kubernetes.pod.persistentvolumeclaim.claim': 'The name of the underlying persistent volume claim to request.',
-    'kubernetes.pod.hostpath.path': 'The path on the host node\'s filesystem to mount.',
+    'kubernetes.pod.volume.persistentvolumeclaim.claim': 'The name of the underlying persistent volume claim to request.',
+    'kubernetes.pod.volume.hostpath.path': 'The path on the host node\'s filesystem to mount.',
+    'kubernetes.pod.volume.secret.secretName': 'The name of the secret to mount.',
     'kubernetes.ingress.backend.port': 'The port for the specified load balancer.',
     'kubernetes.ingress.backend.service': 'The load balancer (service) traffic not matching the below rules will be routed to.',
     'kubernetes.ingress.rules.service': 'The load balancer (service) traffic matching this rule will be routed to.',
