@@ -7,7 +7,7 @@
     <div class="col-md-9">
       <ui-select ng-model="container.imageDescription" class="form-control input-sm">
         <ui-select-match>{{container.imageDescription.imageId}}</ui-select-match>
-        <ui-select-choices repeat="container.imageDescription as container in command.backingData.filtered.containers | filter: { imageDescription: { imageId: $select.search } }" group-by="command.groupByRegistry">
+        <ui-select-choices repeat="container.imageDescription as container in command.backingData.filtered.containers | filter: { imageDescription: { imageId: $select.search } } | orderBy:'imageDescription.imageId'" group-by="command.groupByRegistry">
           <span ng-bind-html="container.imageDescription.imageId | highlight: $select.search"></span>
         </ui-select-choices>
       </ui-select>
