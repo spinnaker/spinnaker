@@ -71,6 +71,14 @@ class KubernetesContainerValidator {
     if (description.readinessProbe) {
       validateProbe(description.readinessProbe, helper, "${prefix}.readinessProbe")
     }
+
+    description.command?.eachWithIndex { command, i ->
+      helper.validateNotEmpty(command, "${prefix}.command[$i]")
+    }
+
+    description.args?.eachWithIndex { arg, i ->
+      helper.validateNotEmpty(arg, "${prefix}.args[$i]")
+    }
   }
 
   static void validateProbe(KubernetesProbe probe, StandardKubernetesAttributeValidator helper, String prefix) {

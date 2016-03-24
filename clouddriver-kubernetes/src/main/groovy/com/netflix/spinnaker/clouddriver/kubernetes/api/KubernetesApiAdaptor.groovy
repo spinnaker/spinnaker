@@ -265,6 +265,9 @@ class KubernetesApiAdaptor {
       new KubernetesVolumeMount(name: volumeMount.name, readOnly: volumeMount.readOnly, mountPath: volumeMount.mountPath)
     }
 
+    containerDescription.args = container?.args ?: []
+    containerDescription.command = container?.command ?: []
+
     return containerDescription
   }
 
@@ -302,6 +305,9 @@ class KubernetesApiAdaptor {
         res.type = KubernetesVolumeSourceType.PERSISTENTVOLUMECLAIM
         res.persistentVolumeClaim = new KubernetesPersistentVolumeClaim(claimName: volume.persistentVolumeClaim.claimName,
                                                                         readOnly: volume.persistentVolumeClaim.readOnly)
+      } else if (volume.secret) {
+        res.type = KubernetesVolumeSourceType.SECRET
+        res.secret = new KubernetesSecretVolumeSource(secretName: volume.secret.secretName)
       } else {
         res.type = KubernetesVolumeSourceType.UNSUPPORTED
       }
