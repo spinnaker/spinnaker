@@ -242,7 +242,7 @@ class KubernetesSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent
 
       if (onDemandData && onDemandData.attributes.cachetime >= start) {
         Map<String, List<CacheData>> cacheResults = objectMapper.readValue(onDemandData.attributes.cacheResults as String,
-                                                                           new TypeReference<Map<String, List<MutableCacheData>>>() { })
+            new TypeReference<Map<String, List<MutableCacheData>>>() { })
         cache(cacheResults, Keys.Namespace.SECURITY_GROUPS.ns, cachedSecurityGroups)
       } else {
         def ingressName = ingress.metadata.name
@@ -263,11 +263,11 @@ class KubernetesSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent
           relationships[Keys.Namespace.LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
         }
 
-         loadBalancerKeys.each {
-            cachedLoadBalancers[it].with {
-              relationships[Keys.Namespace.SECURITY_GROUPS.ns].add(securityGroupKey)
-            }
-         }
+        loadBalancerKeys.each {
+          cachedLoadBalancers[it].with {
+            relationships[Keys.Namespace.SECURITY_GROUPS.ns].add(securityGroupKey)
+          }
+        }
       }
     }
 
