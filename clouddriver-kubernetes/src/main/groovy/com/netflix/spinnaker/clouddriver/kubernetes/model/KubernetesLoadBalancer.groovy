@@ -38,7 +38,8 @@ class KubernetesLoadBalancer implements LoadBalancer, Serializable {
   Service service
   String yaml
   // Set of server groups represented as maps of strings -> objects.
-  Set<LoadBalancerServerGroup> serverGroups
+  Set<LoadBalancerServerGroup> serverGroups = [] as Set
+  List<String> securityGroups = []
   KubernetesLoadBalancerDescription description
 
   KubernetesLoadBalancer(String name, String namespace, String accountName) {
@@ -48,10 +49,11 @@ class KubernetesLoadBalancer implements LoadBalancer, Serializable {
     this.account = accountName
   }
 
-  KubernetesLoadBalancer(Service service, List<KubernetesServerGroup> serverGroupList, String accountName) {
+  KubernetesLoadBalancer(Service service, List<KubernetesServerGroup> serverGroupList, String accountName, List<String> securityGroups) {
     this.service = service
     this.name = service.metadata.name
     this.namespace = service.metadata.namespace
+    this.securityGroups = securityGroups
     this.region = this.namespace
     this.description = KubernetesApiAdaptor.fromService(service)
     this.account = accountName
