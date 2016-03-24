@@ -218,9 +218,12 @@
         </li>
       </ul>
     </collapsible-section>
-    <collapsible-section heading="Scaling Policies" ng-if="ctrl.serverGroup.scalingPolicies.length">
+    <collapsible-section heading="Scaling Policies">
       <p>Scaling Policies can be modified via the AWS Console.</p>
-      <scaling-policy ng-repeat="policy in ctrl.serverGroup.scalingPolicies" policy="policy"></scaling-policy>
+      <scaling-policy-summary ng-repeat="policy in ctrl.scalingPolicies track by policy.policyARN"
+                      policy="policy"
+                      server-group="ctrl.serverGroup"
+                      application="ctrl.application"></scaling-policy-summary>
     </collapsible-section>
     <collapsible-section heading="Scheduled Actions">
       <scheduled-action ng-repeat="action in ctrl.serverGroup.scheduledActions" action="action"></scheduled-action>

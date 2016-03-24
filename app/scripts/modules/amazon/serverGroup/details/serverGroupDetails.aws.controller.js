@@ -19,18 +19,20 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('../configure/serverGroupCommandBuilder.service.js'),
   require('../../../core/serverGroup/configure/common/runningExecutions.service.js'),
   require('../../../netflix/migrator/serverGroup/serverGroup.migrator.directive.js'), // TODO: make actions pluggable
-  require('./scalingPolicy/scalingPolicy.directive.js'),
+  require('./scalingPolicy/scalingPolicySummary.component.js'),
   require('./scheduledAction/scheduledAction.directive.js'),
   require('../../../core/insight/insightFilterState.model.js'),
   require('./scalingActivities/scalingActivities.controller.js'),
   require('./resize/resizeServerGroup.controller'),
   require('./rollback/rollbackServerGroup.controller'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
+  require('../serverGroup.transformer.js'),
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, app, serverGroup, InsightFilterStateModel,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $uibModal,
                                                      confirmationModalService, _, serverGroupWriter, subnetReader,
                                                      autoScalingProcessService, runningExecutionsService,
+                                                     awsServerGroupTransformer,
                                                      serverGroupWarningMessageService, overrideRegistry) {
 
     this.state = {
@@ -119,6 +121,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
 
           this.autoScalingProcesses = autoScalingProcessService.normalizeScalingProcesses(this.serverGroup);
           this.disabledDate = autoScalingProcessService.getDisabledDate(this.serverGroup);
+          awsServerGroupTransformer.normalizeServerGroupDetails(this.serverGroup);
+          this.scalingPolicies = this.serverGroup.scalingPolicies;
 
         } else {
           autoClose();

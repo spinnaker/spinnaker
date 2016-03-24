@@ -1,0 +1,42 @@
+metric-alarm-chart {
+  position: relative;
+  display: block;
+  &.no-y-axis {
+    .y-axis {
+      .tick {
+        display: none;
+      }
+    }
+  }
+  .chart {
+    .line-series {
+      path {
+        stroke-width: 2px;
+      }
+    }
+    .axis {
+      font-family: 'Source Sans Pro', sans-serif;
+    }
+  }
+  .chart-legend {
+    display: none;
+  }
+  .no-data-overlay {
+    position: absolute;
+    top: 0;
+    z-index: 2;
+    opacity: 0.8;
+    text-align: center;
+    width: calc(~"100% - 30px");
+    height: 100%;
+    padding-top: 15px;
+    font-weight: 600;
+    font-size: 120%;
+    background: #ffffff;
+  }
+  .no-data {
+    .alarmData {
+      display: none;
+    }
+  }
+}

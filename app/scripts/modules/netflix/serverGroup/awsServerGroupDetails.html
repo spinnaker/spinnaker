@@ -221,9 +221,11 @@
     <collapsible-section heading="Networking">
       <nflx-server-group-networking server-group="ctrl.serverGroup" application="ctrl.application"></nflx-server-group-networking>
     </collapsible-section>
-    <collapsible-section heading="Scaling Policies" ng-if="ctrl.serverGroup.scalingPolicies.length">
-      <p>Scaling Policies can be modified via the AWS Console.</p>
-      <scaling-policy ng-repeat="policy in ctrl.serverGroup.scalingPolicies" policy="policy"></scaling-policy>
+    <collapsible-section heading="Scaling Policies">
+      <scaling-policy ng-repeat="policy in ctrl.serverGroup.scalingPolicies"
+                      policy="policy"
+                      server-group="ctrl.serverGroup"
+                      application="ctrl.application"></scaling-policy>
     </collapsible-section>
     <collapsible-section heading="Scheduled Actions">
       <scheduled-action ng-repeat="action in ctrl.serverGroup.scheduledActions" action="action"></scheduled-action>

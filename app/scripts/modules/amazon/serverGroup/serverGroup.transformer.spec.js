@@ -72,4 +72,55 @@ describe('awsServerGroupTransformer', function () {
     });
 
   });
+
+  describe('normalize server group details', function () {
+
+    it('adds appropriate comparator to alarm', function () {
+      var serverGroup = {
+        scalingPolicies: [{
+            alarms: [
+              { comparisonOperator: 'LessThanThreshold' },
+              { comparisonOperator: 'GreaterThanThreshold' },
+              { comparisonOperator: 'LessThanOrEqualToThreshold' },
+              { comparisonOperator: 'GreaterThanOrEqualToThreshold' },
+              { comparisonOperator: 'WhatIsThis' },
+            ]
+          }]
+      };
+      transformer.normalizeServerGroupDetails(serverGroup);
+      var alarms = serverGroup.scalingPolicies[0].alarms;
+      expect(alarms.map(a => a.comparator)).toEqual(['&lt;', '&gt;', '&le;', '&ge;', undefined]);
+    });
+
+    it('adds operator, absAdjustment to simple policies', function () {
+      var serverGroup = {
+        scalingPolicies: [
+            { scalingAdjustment: 10 },
+            { scalingAdjustment: 0 },
+            { scalingAdjustment: -5 }
+          ]
+      };
+      transformer.normalizeServerGroupDetails(serverGroup);
+      var policies = serverGroup.scalingPolicies;
+      expect(policies.map(a => a.absAdjustment)).toEqual([10, 0, 5]);
+      expect(policies.map(a => a.operator)).toEqual(['increase', 'increase', 'decrease']);
+    });
+
+    it('adds operator, absAdjustment to step policies', function () {
+      var serverGroup = {
+        scalingPolicies: [
+          {
+            stepAdjustments: [
+              { scalingAdjustment: 10 },
+              { scalingAdjustment: 0 },
+              { scalingAdjustment: -5 }
+          ]}
+        ]
+      };
+      transformer.normalizeServerGroupDetails(serverGroup);
+      var steps = serverGroup.scalingPolicies[0].stepAdjustments;
+      expect(steps.map(a => a.absAdjustment)).toEqual([10, 0, 5]);
+      expect(steps.map(a => a.operator)).toEqual(['increase', 'increase', 'decrease']);
+    });
+  });
 });
