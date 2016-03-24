@@ -20,8 +20,7 @@ import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
-import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.fabric8.kubernetes.api.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,8 +56,14 @@ public class KubernetesCredentials {
         throw new IllegalArgumentException("The account " + registry.getAccountName() + " was not configured inside Clouddriver.");
       }
 
-      for (int j = 0; j < affectedNamespaces.size(); j++) {
-        String inNamespace = affectedNamespaces.get(j);
+      for (String inNamespace : affectedNamespaces) {
+        Namespace res = apiAdaptor.getNamespace(inNamespace);
+        if (res == null) {
+          NamespaceBuilder namespaceBuilder = new NamespaceBuilder();
+          EditableNamespace newNamespace = namespaceBuilder.withNewMetadata().withName(inNamespace).endMetadata().build();
+          apiAdaptor.createNamespace(newNamespace);
+        }
+
         SecretBuilder secretBuilder = new SecretBuilder();
         String secretName = registry.getAccountName();
 
