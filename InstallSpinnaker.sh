@@ -347,8 +347,7 @@ function install_platform_dependencies() {
     # This can be installed on any platform, so dont scope to google.
     # However, if on google, then certain scopes are required.
     # The add_google_cloud_logging script checks the scope and warns.
-#    curl -s -L https://raw.githubusercontent.com/spinnaker/spinnaker/master/google/google_cloud_logging/add_google_cloud_logging.sh | sudo bash
-    curl -s -L https://raw.githubusercontent.com/ewiseblatt/spinnaker/install_platform_deps/google/google_cloud_logging/add_google_cloud_logging.sh | sudo bash
+    curl -s -L https://raw.githubusercontent.com/spinnaker/spinnaker/master/google/google_cloud_logging/add_google_cloud_logging.sh | sudo bash
   fi
 
   if [[ "$GOOGLE_CLOUD_MONITORING" == "true" ]]; then
