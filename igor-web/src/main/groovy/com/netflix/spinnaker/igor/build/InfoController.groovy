@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.igor.jenkins
+package com.netflix.spinnaker.igor.build
 
 import com.netflix.spinnaker.igor.config.JenkinsProperties
-import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
-import com.netflix.spinnaker.igor.jenkins.client.model.Build
+import com.netflix.spinnaker.igor.config.TravisProperties
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
+import com.netflix.spinnaker.igor.model.BuildServiceProvider
+import com.netflix.spinnaker.igor.service.BuildMasters
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 
 import javax.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Autowired
@@ -35,37 +35,47 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.HandlerMapping
 
-import javax.ws.rs.QueryParam
-
 /**
  * A controller that provides jenkins information
  */
 @RestController
 @Slf4j
-@ConditionalOnProperty('jenkins.enabled')
 class InfoController {
 
     @Autowired
-    JenkinsCache cache
-
-    @Autowired
-    JenkinsMasters masters
+    BuildCache buildCache
 
     @Autowired
     JenkinsProperties jenkinsProperties
+
+    @Autowired
+    BuildMasters buildMasters
+
+    @Autowired
+    TravisProperties travisProperties
 
     @RequestMapping(value = '/masters', method = RequestMethod.GET)
     List<Object> listMasters(@RequestParam(value = "showUrl", defaultValue = "false") String showUrl) {
         log.info('Getting list of masters')
         if (showUrl == 'true') {
-            jenkinsProperties.masters.collect {
+            List<Object> masterList = jenkinsProperties.masters.collect {
                 [
                     "name"   : it.name,
                     "address": it.address
                 ]
             }
+            masterList.addAll(
+                travisProperties.masters.collect {
+                    [
+                        "name": it.name,
+                        "address": it.address
+                    ]
+                }
+            )
+            return masterList
         } else {
-            masters.map.keySet().sort()
+            List<Object> masterList = buildMasters.map.keySet().sort()
+            masterList //TODO: return raw?
         }
     }
 
@@ -73,44 +83,45 @@ class InfoController {
     List<String> getJobs(@PathVariable String master) {
         log.info('Getting list of jobs for master: {}', master)
 
-        def jenkinsService = masters.map[master]
-        if (!jenkinsService) {
-            throw new MasterNotFoundException("Master '${master}' does not exist")
-        }
+        def jenkinsService = buildMasters.filteredMap(BuildServiceProvider.JENKINS)[master]
+        def otherService = buildMasters.map[master]
+        if (jenkinsService){
+            def jobList = []
+            def recursiveGetJobs
 
-        def jobList = []
-        def recursiveGetJobs
-
-        recursiveGetJobs = { list, prefix="" ->
-            if (prefix) {
-                prefix = prefix + "/job/"
-            }
-            list.each {
-                if (it.list == null || it.list.empty) {
-                    jobList << prefix + it.name
-                } else {
-                    recursiveGetJobs(it.list, prefix + it.name)
+            recursiveGetJobs = { list, prefix="" ->
+                if (prefix) {
+                    prefix = prefix + "/job/"
+                }
+                list.each {
+                    if (it.list == null || it.list.empty) {
+                        jobList << prefix + it.name
+                    } else {
+                        recursiveGetJobs(it.list, prefix + it.name)
+                    }
                 }
             }
-        }
-        recursiveGetJobs(jenkinsService.jobs.list)
+            recursiveGetJobs(jenkinsService.jobs.list)
 
-        return jobList
+            return jobList
+        } else if (otherService) {
+            return buildCache.getJobNames(master)
+        } else {
+            throw new MasterNotFoundException("Master '${master}' does not exist")
+        }
     }
 
     @RequestMapping(value = '/jobs/{master}/**')
-    JobConfig getJobConfig(@PathVariable String master, HttpServletRequest request) {
+    Object getJobConfig(@PathVariable String master, HttpServletRequest request) {
         def job = (String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(3).join('/')
 
         log.info('Getting the job config for {} at {}', job, master)
-
-        def jenkinsService = masters.map[master]
-        if (!jenkinsService) {
+        def service = buildMasters.map[master]
+        if (!service) {
             throw new MasterNotFoundException("Master '${master}' does not exist")
         }
-
-        jenkinsService.getJobConfig(job)
+        return service.getJobConfig(job)
     }
 
     static class MasterResults {

@@ -28,10 +28,12 @@ import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
 import com.netflix.spinnaker.igor.jenkins.client.model.ScmDetails
+import com.netflix.spinnaker.igor.model.BuildServiceProvider
+import com.netflix.spinnaker.igor.service.BuildService
 import org.springframework.web.util.UriUtils
 import retrofit.client.Response
 
-class JenkinsService {
+class JenkinsService implements BuildService{
     final String groupKey
     final JenkinsClient jenkinsClient
 
@@ -141,5 +143,10 @@ class JenkinsService {
    */
     private String buildCommandKey(String id) {
         return "${groupKey}-${id}"
+    }
+
+    @Override
+    BuildServiceProvider buildServiceProvider() {
+        return BuildServiceProvider.JENKINS
     }
 }

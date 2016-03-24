@@ -18,8 +18,10 @@ package com.netflix.spinnaker.igor.config
 
 import com.netflix.hystrix.exception.HystrixRuntimeException
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.igor.service.BuildMasters
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ControllerAdvice
@@ -40,6 +42,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
  */
 @Configuration
 @CompileStatic
+@Slf4j
 class IgorConfig extends WebMvcConfigurerAdapter {
     @Autowired
     Registry registry
@@ -51,6 +54,12 @@ class IgorConfig extends WebMvcConfigurerAdapter {
                 this.registry, "controller.invocations", ["master"], ["BasicErrorController"]
             )
         )
+    }
+
+    @Bean
+    BuildMasters buildMasters() {
+        log.info "creating buildMaster"
+        new BuildMasters()
     }
 
     @Bean

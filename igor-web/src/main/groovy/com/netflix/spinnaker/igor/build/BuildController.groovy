@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.igor.jenkins
+package com.netflix.spinnaker.igor.build
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
-import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
+import com.netflix.spinnaker.igor.model.BuildServiceProvider
+import com.netflix.spinnaker.igor.service.BuildMasters
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.web.bind.annotation.ExceptionHandler
 import retrofit.RetrofitError
 import javax.servlet.http.HttpServletRequest
@@ -41,13 +40,13 @@ import java.util.concurrent.ExecutorService
 
 @Slf4j
 @RestController
-@ConditionalOnProperty('jenkins.enabled')
 class BuildController {
-    @Autowired
-    JenkinsMasters masters
 
     @Autowired
     ExecutorService executor
+
+    @Autowired
+    BuildMasters buildMasters
 
     @Autowired
     ObjectMapper objectMapper
@@ -56,49 +55,55 @@ class BuildController {
     Map getJobStatus(@PathVariable String master, @PathVariable Integer buildNumber, HttpServletRequest request) {
         def job = (String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(5).join('/')
-        if (!masters.map.containsKey(master)) {
+        if (buildMasters.filteredMap(BuildServiceProvider.JENKINS).containsKey(master)) {
+            Map result = objectMapper.convertValue(buildMasters.map[master].getBuild(job, buildNumber), Map)
+            try {
+                Map scm = objectMapper.convertValue(buildMasters.map[master].getGitDetails(job, buildNumber), Map)
+                if (scm?.action?.lastBuiltRevision?.branch?.name) {
+                    result.scm = scm?.action.lastBuiltRevision
+                    result.scm = result.scm.branch.collect {
+                        it.branch = it.name.split('/').last()
+                        it
+                    }
+                }
+            } catch (Exception e) {
+                log.error("could not get scm results for $master / $job / $buildNumber")
+            }
+            result
+        } else if (buildMasters.filteredMap(BuildServiceProvider.TRAVIS).containsKey(master)) {
+            Map result = objectMapper.convertValue(buildMasters.map[master].getGenericBuild(job, buildNumber), Map)
+            result
+        } else {
             throw new MasterNotFoundException("Master '${master}' not found")
         }
-        Map result = objectMapper.convertValue(masters.map[master].getBuild(job, buildNumber), Map)
-        try {
-            Map scm = objectMapper.convertValue(masters.map[master].getGitDetails(job, buildNumber), Map)
-            if (scm?.action?.lastBuiltRevision?.branch?.name) {
-                result.scm = scm?.action.lastBuiltRevision
-                result.scm = result.scm.branch.collect {
-                    it.branch = it.name.split('/').last()
-                    it
-                }
-
-            }
-        } catch (Exception e) {
-            log.error("could not get scm results for $master / $job / $buildNumber")
-        }
-        result
     }
 
     @RequestMapping(value = '/builds/queue/{master}/{item}')
     QueuedJob getQueueLocation(@PathVariable String master, @PathVariable int item){
-        if (!masters.map.containsKey(master)) {
+        if (!buildMasters.filteredMap(BuildServiceProvider.JENKINS).containsKey(master)) {
             throw new MasterNotFoundException("Master '${master}' not found")
         }
         try {
-            return masters.map[master].getQueuedItem(item)
+            return buildMasters.map[master].getQueuedItem(item)
         } catch (RetrofitError e) {
             if (e.response?.status == HttpStatus.NOT_FOUND.value()) {
-              throw new QueuedJobNotFoundException("Queued job '${item}' not found for master '${master}'.")
+                throw new QueuedJobNotFoundException("Queued job '${item}' not found for master '${master}'.")
             }
             throw e
         }
     }
 
     @RequestMapping(value = '/builds/all/{master}/**')
-    List<Build> getBuilds(@PathVariable String master, HttpServletRequest request) {
+    List<Object> getBuilds(@PathVariable String master, HttpServletRequest request) {
         def job = (String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(4).join('/')
-        if (!masters.map.containsKey(master)) {
+        if (buildMasters.filteredMap(BuildServiceProvider.JENKINS).containsKey(master)) {
+            buildMasters.map[master].getBuilds(job).list
+        } else if (buildMasters.filteredMap(BuildServiceProvider.TRAVIS).containsKey(master)) {
+            buildMasters.map[master].getBuilds(job)
+        } else {
             throw new MasterNotFoundException("Master '${master}' not found")
         }
-        masters.map[master].getBuilds(job).list
     }
 
     @RequestMapping(value = "/masters/{name}/jobs/{jobName}/stop/{queuedBuild}/{buildNumber}", method = RequestMethod.PUT)
@@ -140,12 +145,12 @@ class BuildController {
         @RequestParam Map<String, String> requestParams, HttpServletRequest request) {
         def job = (String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(4).join('/')
-        if (!masters.map.containsKey(master)) {
+        if (!buildMasters.filteredMap(BuildServiceProvider.JENKINS).containsKey(master)) {
             throw new MasterNotFoundException("Master '${master}' not found")
         }
 
         def response
-        def jenkinsService = masters.map[master]
+        def jenkinsService = buildMasters.map[master]
         JobConfig jobConfig = jenkinsService.getJobConfig(job)
 
         if (jobConfig.parameterDefinitionList?.size() > 0) {
@@ -193,32 +198,37 @@ class BuildController {
         @PathVariable Integer buildNumber, @PathVariable String fileName, HttpServletRequest request) {
         def job = (String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(6).join('/')
-        if (!masters.map.containsKey(master)) {
-            throw new MasterNotFoundException("Could not find master '${master}' to get properties")
-        }
-        Map<String, Object> map = [:]
-        try {
-            def jenkinsService = masters.map[master]
-            String path = jenkinsService.getBuild(job, buildNumber).artifacts.find {
-                it.fileName == fileName
-            }?.relativePath
+        if (buildMasters.filteredMap(BuildServiceProvider.JENKINS).containsKey(master)) {
+            Map<String, Object> map = [:]
+            try {
+                def jenkinsService = buildMasters.map[master]
+                String path = jenkinsService.getBuild(job, buildNumber).artifacts.find {
+                    it.fileName == fileName
+                }?.relativePath
 
-            def propertyStream = jenkinsService.getPropertyFile(job, buildNumber, path).body.in()
+                def propertyStream = jenkinsService.getPropertyFile(job, buildNumber, path).body.in()
 
-            if (fileName.endsWith('.yml') || fileName.endsWith('.yaml')) {
-                Yaml yml = new Yaml()
-                map = yml.load(propertyStream)
-            } else if (fileName.endsWith('.json')) {
-                map = objectMapper.readValue(propertyStream, Map)
-            } else {
-                Properties properties = new Properties()
-                properties.load(propertyStream)
-                map = map << properties
+                if (fileName.endsWith('.yml') || fileName.endsWith('.yaml')) {
+                    Yaml yml = new Yaml()
+                    map = yml.load(propertyStream)
+                } else if (fileName.endsWith('.json')) {
+                    map = objectMapper.readValue(propertyStream, Map)
+                } else {
+                    Properties properties = new Properties()
+                    properties.load(propertyStream)
+                    map = map << properties
+                }
+            } catch (e) {
+                log.error("Unable to get properties `${job}`", e)
             }
-        } catch (e) {
-            log.error("Unable to get properties `${job}`", e)
+            map
+        } else if (travisMasters.map.containsKey(master)) {
+            travisMasters.map[master].getBuildProperties(job, buildNumber)
+        } else {
+            throw new MasterNotFoundException("Could not find master '${master}' to get properties")
+
         }
-        map
+
     }
 
     @ExceptionHandler(BuildJobError.class)

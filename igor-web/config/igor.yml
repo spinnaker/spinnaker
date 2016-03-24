@@ -7,3 +7,12 @@ spinnaker:
     pollInterval: 30
     
 endpoints.health.sensitive: false
+
+#travis:
+#  enabled: true
+#  Travis names are prefixed with travis- inside igor.
+#  masters:
+#    - name: ci # This will show as travis-ci inside spinnaker.
+#      baseUrl: https://travis-ci.org
+#      address: https://api.travis-ci.org
+#      githubToken: XXXXXX
