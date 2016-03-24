@@ -47,6 +47,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.volu
     };
 
     this.prepVolumes = function() {
+      $scope.command.volumeSources = $scope.command.volumeSources || [];
       $scope.command.volumeSources.map((source) => {
         if (!source.hostPath) {
           source.hostPath = this.defaultHostPath();
