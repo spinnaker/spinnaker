@@ -1,0 +1,113 @@
+<div class="row" ng-if="$ctrl.modalViewState.multipleAlarms">
+  <div class="col-md-12">
+    <div class="alert alert-warning">
+      <p><span class="glyphicon glyphicon-warning-sign"></span>
+        This scaling policy is configured with multiple alarms. You are only editing the first alarm.</p>
+      <p>To edit or remove the additional alarms, you will need to use the AWS console.</p>
+    </div>
+  </div>
+</div>
+<div class="row" ng-if="$ctrl.alarm.alarmActionArns.length > 1">
+  <div class="col-md-12">
+    <div class="alert alert-warning">
+      <p><span class="glyphicon glyphicon-warning-sign"></span>
+        This alarm is used in multiple scaling policies. Any changes here will affect those other scaling policies.</p>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-2 sm-label-right">Whenever </div>
+  <div class="col-md-10 content-fields">
+    <select class="form-control input-sm"
+            style="vertical-align: top;"
+            required
+            ng-model="$ctrl.alarm.statistic"
+            ng-change="$ctrl.metricChanged()"
+            ng-options="stat for stat in $ctrl.statistics">
+    </select>
+    <span class="input-label"> of </span>
+    <div style="display: inline-block; width: 500px" ng-if="$ctrl.viewState.metricsLoaded">
+      <select class="form-control input-sm"
+              required
+              ng-model="$ctrl.viewState.selectedMetric"
+              ng-change="$ctrl.metricChanged()"
+              ng-if="!$ctrl.viewState.advancedMode"
+              ng-options="metric as metric.label for metric in $ctrl.metrics">
+      </select>
+      <select class="form-control input-sm"
+              required
+              ng-model="$ctrl.alarm.namespace"
+              ng-change="$ctrl.namespaceChanged()"
+              ng-if="$ctrl.viewState.advancedMode"
+              ng-options="namespace for namespace in $ctrl.namespaces">
+      </select>
+      <select class="form-control input-sm"
+              required
+              ng-model="$ctrl.viewState.selectedMetric"
+              ng-change="$ctrl.metricChanged()"
+              ng-if="$ctrl.viewState.advancedMode"
+              ng-options="metric as metric.advancedLabel for metric in $ctrl.metrics">
+      </select>
+      <a href class="small"
+         ng-if="!$ctrl.viewState.advancedMode"
+         ng-click="$ctrl.advancedMode()">
+        Search all metrics
+      </a>
+      <div ng-if="$ctrl.viewState.advancedMode">
+        <dimensions-editor alarm="$ctrl.alarm"
+                           server-group="$ctrl.serverGroup"
+                           namespace-updated="$ctrl.namespaceUpdated"
+                           update-available-metrics="$ctrl.updateAvailableMetrics()"></dimensions-editor>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-2 sm-label-right">is </div>
+  <div class="col-md-10 content-fields">
+    <select class="form-control input-sm"
+            style="width: 50px"
+            ng-model="$ctrl.alarm.comparisonOperator"
+            ng-change="$ctrl.alarmComparatorChanged()"
+            ng-options="comparator.value as comparator.label for comparator in $ctrl.comparators">
+    </select>
+    <input type="number"
+           class="form-control input-sm"
+           style="width: 100px"
+           ng-change="$ctrl.thresholdChanged()"
+           ng-model="$ctrl.alarm.threshold" />
+    <span class="input-label" ng-bind="$ctrl.viewState.unit"></span>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-2 sm-label-right">for at least </div>
+  <div class="col-md-10 content-fields">
+    <input type="number"
+           class="form-control input-sm"
+           style="width: 50px"
+           ng-model="$ctrl.alarm.evaluationPeriods" />
+    <span class="input-label"> consecutive period(s) of </span>
+    <select class="form-control input-sm"
+            ng-change="$ctrl.periodChanged()"
+            ng-model="$ctrl.alarm.period"
+            ng-options="period.value as period.label for period in $ctrl.periods"></select>
+  </div>
+</div>
+
+<div class="row" ng-if="$ctrl.alarm.metricName">
+  <div class="col-md-10 col-md-offset-1">
+    <div style="height: 150px">
+      <metric-alarm-chart alarm="$ctrl.alarm"
+                          ng-if="$ctrl.alarm"
+                          style="height: 150px;"
+                          alarm-updated="$ctrl.alarmUpdated"
+                          ticks="{x: 12, y: 5}"
+                          margins="{top: 10, left: 50}"
+                          stats="$ctrl.viewState"
+                          server-group="$ctrl.serverGroup"></metric-alarm-chart>
+    </div>
+  </div>
+</div>

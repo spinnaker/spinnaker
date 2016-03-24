@@ -19,9 +19,11 @@ module.exports = angular
       alarmUpdated: '=?', // rx.Observable - onNext will update the graph
       ticks: '=?', // object - sets number of x/y ticks on graph; defaults to { x: 6, y: 3 }
       margins: '=?', // object - defaults to { top: 5, left: 5 }
+      stats: '=?', // object - this is gross - used to backfill units when statistics calls return, since AWS API does
+                   // not provide a unit of measurement for an alarm or a metric, only statistics
     },
     templateUrl: require('./metricAlarmChart.component.html'),
-    controller: function(cloudMetricsReader, _, rx) {
+    controller: function(cloudMetricsReader, _, rx, $filter) {
 
       // converts alarm into parameters used to retrieve statistic data
       let getFilterParameters = () => {
@@ -70,9 +72,30 @@ module.exports = angular
         };
       };
 
+      // forces tooltips to render with the same time format we use throughout the application
+      let tooltipHook = (rows) => {
+        if (!rows) {
+          return null;
+        }
+        return {
+          abscissas: $filter('timestamp')(rows[0].row.x.getTime()),
+          rows: rows.map(function (row) {
+            return {
+              label: row.series.label,
+              value: _.round(row.row.y1, 2),
+              color: row.series.color,
+              id: row.series.id
+            };
+          })
+        };
+      };
+
       let updateChartData = () => {
         cloudMetricsReader.getMetricStatistics(this.serverGroup.type, this.serverGroup.account, this.serverGroup.region, this.alarm.metricName, getFilterParameters())
           .then((stats) => {
+            if (this.stats) {
+              this.stats.unit = stats.unit;
+            }
             this.chartData.loading = false;
             this.chartData.noData = false;
             if (stats.datapoints && stats.datapoints.length) {
@@ -98,6 +121,7 @@ module.exports = angular
 
         this.chartOptions = {
           margin: this.margins || {top: 5, left: 5},
+          tooltipHook: tooltipHook,
           drawLegend: false,
           series: [
             {
