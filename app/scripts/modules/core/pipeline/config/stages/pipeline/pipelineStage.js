@@ -8,6 +8,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.pipelineStage', [
       label: 'Pipeline',
       description: 'Runs a pipeline',
       key: 'pipeline',
+      restartable: true,
       controller: 'pipelineStageCtrl',
       controllerAs: 'pipelineStageCtrl',
       templateUrl: require('./pipelineStage.html'),
