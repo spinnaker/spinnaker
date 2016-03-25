@@ -1,4 +1,4 @@
-<form class="container-fluid form-horizontal" name="form" novalidate>
+<div>
   <div ng-if="!state.accountsLoaded" style="height: 200px">
     <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
   </div>
@@ -22,14 +22,15 @@
     <div class="form-group">
       <div class="col-md-3 sm-label-right">Account</div>
       <div class="col-md-7">
-        <account-select-field component="loadBalancer" field="credentials" accounts="accounts" provider="'azure'" on-change="ctrl.accountUpdated()"></account-select-field>
+        <account-select-field required component="loadBalancer" field="credentials" accounts="accounts" provider="'azure'" on-change="ctrl.accountUpdated()"></account-select-field>
       </div>
     </div>
-    <region-select-field label-columns="3" component="loadBalancer" field="region" account="loadBalancer.credentials" provider="'azure'" on-change="ctrl.regionUpdated()" regions="regions"></region-select-field>
+    <region-select-field required label-columns="3" component="loadBalancer" field="region" account="loadBalancer.credentials" provider="'azure'" on-change="ctrl.regionUpdated()" regions="regions"></region-select-field>
     <div class="form-group">
       <div class="col-md-3 sm-label-right">Stack <help-field key="azure.loadBalancer.stack"></help-field></div>
       <div class="col-md-3">
-        <input type="text"
+        <input required
+               type="text"
                class="form-control input-sm"
                ng-model="loadBalancer.stack"
                name="stackName"
@@ -40,7 +41,8 @@
         <label class="sm-label-right">
           Detail <help-field key="azure.loadBalancer.detail"></help-field>
         </label>
-        <input type="text"
+        <input required
+               type="text"
                class="form-control input-sm"
                ng-model="loadBalancer.detail"
                name="detailName"
@@ -60,15 +62,4 @@
       </div>
     </div>
   </div>
-  <div class="modal-footer">
-    <button ng-disabled="taskMonitor.submitting" class="btn btn-default pull-left"
-            ng-click="ctrl.cancel()">Cancel
-    </button>
-    <submit-button is-disabled="form.$invalid || !state.accountsLoaded || taskMonitor.submitting"
-             submitting="taskMonitor.submitting" on-click="ctrl.submit()" is-new="isNew"></submit-button>
-    <button class="btn btn-primary"
-            ng-click="wizard.markComplete('Location'); wizard.nextPage()">
-      Next <span class="glyphicon glyphicon-chevron-right"></span>
-    </button>
-  </div>
-</form>
+</div>

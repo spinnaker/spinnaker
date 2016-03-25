@@ -1,9 +1,8 @@
-<form class="container-fluid form-horizontal" name="form" novalidate>
-  <div class="modal-body">
-    <div class="form-group">
-      <div class="col-md-12">
-        <table class="table table-condensed packed">
-          <thead>
+<div class="container-fluid form-horizontal">
+  <div class="form-group">
+    <div class="col-md-12">
+      <table class="table table-condensed packed">
+        <thead>
           <tr>
             <th>Protocol</th>
             <th>External Port</th>
@@ -11,48 +10,33 @@
             <th>Internal Port</th>
             <th></th>
           </tr>
-          </thead>
-          <tbody>
+        </thead>
+        <tbody>
           <tr ng-repeat="rule in loadBalancer.loadBalancingRules">
-            <td><select class="form-control input-sm" ng-model="rule.protocol"
-                        ng-options="protocol for protocol in ['UDP','TCP']"></select></td>
-            <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.externalPort"
-                       required/></td>
+            <td>
+              <select class="form-control input-sm" ng-model="rule.protocol" ng-options="protocol for protocol in ['UDP','TCP']"></select>
+            </td>
+            <td>
+              <input class="form-control input-sm" type="number" min="0" ng-model="rule.externalPort" required/>
+            </td>
             <td class="small" style="padding-top: 10px;">&rarr;</td>
-            <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.backendPort"
-                       required/></td>
+            <td>
+              <input class="form-control input-sm" type="number" min="0" ng-model="rule.backendPort" required/>
+            </td>
             <td><a href class="sm-label" ng-click="ctrl.removeListener($index)"><span
               class="glyphicon glyphicon-trash"></span></a></td>
           </tr>
-          </tbody>
-          <tfoot>
+        </tbody>
+        <tfoot>
           <tr>
             <td colspan="5">
-              <button class="add-new col-md-12" ng-click="ctrl.addListener()"><span
-                class="glyphicon glyphicon-plus-sign"></span> Add new port mapping
+              <button class="add-new col-md-12" ng-click="ctrl.addListener()"><span class="glyphicon glyphicon-plus-sign"></span> Add new port mapping
               </button>
             </td>
           </tr>
-          </tfoot>
-        </table>
+        </tfoot>
+      </table>
 
-      </div>
     </div>
   </div>
-  <div class="modal-footer">
-    <button ng-disabled="taskMonitor.submitting" class="btn btn-default pull-left"
-            ng-click="ctrl.cancel()">Cancel
-    </button>
-    <button class="btn btn-default"
-            ng-click="wizard.previousPage()">
-      <span class="glyphicon glyphicon-chevron-left"></span> Back
-    </button>
-    <submit-button is-disabled="form.$invalid || !wizard.isComplete() || taskMonitor.submitting"
-                   submitting="state.submitting" on-click="ctrl.submit()" is-new="isNew"></submit-button>
-    <button class="btn btn-primary"
-            ng-disabled="form.$invalid"
-            ng-click="wizard.markComplete('Listeners'); wizard.nextPage()">
-      Next <span class="glyphicon glyphicon-chevron-right"></span>
-    </button>
-  </div>
-</form>
+</div>

@@ -8,29 +8,24 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
   require('../../../core/loadBalancer/loadBalancer.read.service.js'),
   require('../../../core/account/account.service.js'),
   require('../loadBalancer.transformer.js'),
-  require('../../../core/securityGroup/securityGroup.read.service.js'),
-  require('../../../core/modal/wizard/modalWizard.service.js'),
+  require('../../../core/modal/wizard/v2modalWizard.service.js'),
   require('../../../core/task/monitor/taskMonitorService.js'),
-  require('../../subnet/subnet.read.service.js'),
   require('../../../core/cache/cacheInitializer.js'),
   require('../../../core/cache/infrastructureCaches.js'),
   require('../../../core/naming/naming.service.js'),
   require('../../../core/region/regionSelectField.directive.js'),
   require('../../../core/account/accountSelectField.directive.js'),
-  require('../../subnet/subnetSelectField.directive.js'),
 ])
   .controller('azureCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, _,
-                                                    accountService, azureLoadBalancerTransformer, securityGroupReader,
+                                                    accountService, azureLoadBalancerTransformer,
                                                     cacheInitializer, infrastructureCaches, loadBalancerReader,
-                                                    modalWizardService, azureLoadBalancerWriter, taskMonitorService,
-                                                    azureSubnetReader, namingService,
-                                                    application, loadBalancer, isNew) {
+                                                    v2modalWizardService, azureLoadBalancerWriter, taskMonitorService,
+                                                    namingService, application, loadBalancer, isNew) {
 
     var ctrl = this;
 
     $scope.pages = {
       location: require('./createLoadBalancerProperties.html'),
-      securityGroups: require('./securityGroups.html'),
       listeners: require('./listeners.html'),
       healthCheck: require('./healthCheck.html'),
     };
@@ -38,11 +33,9 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
     $scope.isNew = isNew;
 
     $scope.state = {
-      securityGroupsLoaded: false,
       accountsLoaded: false,
       loadBalancerNamesLoaded: false,
       submitting: false,
-      removedSecurityGroups: [],
     };
 
     function onApplicationRefresh() {
@@ -55,7 +48,6 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
         name: $scope.loadBalancer.name,
         accountId: $scope.loadBalancer.credentials,
         region: $scope.loadBalancer.region,
-        vpcId: $scope.loadBalancer.vnet,
         provider: 'azure',
       };
 
@@ -79,19 +71,9 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
       onTaskComplete: onTaskComplete,
     });
 
-    var allSecurityGroups = {},
-        allLoadBalancerNames = {};
-
-    function initializeEditMode() {
-      if ($scope.loadBalancer.vnet) {
-        preloadSecurityGroups().then(function() {
-          updateAvailableSecurityGroups([$scope.loadBalancer.vnet]);
-        });
-      }
-    }
+    var allLoadBalancerNames = {};
 
     function initializeCreateMode() {
-      preloadSecurityGroups();
       accountService.listAccounts('azure').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
@@ -99,17 +81,9 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
       });
     }
 
-    function preloadSecurityGroups() {
-      return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
-        allSecurityGroups = securityGroups;
-        $scope.state.securityGroupsLoaded = true;
-      });
-    }
-
     function initializeController() {
       if (loadBalancer) {
         $scope.loadBalancer = azureLoadBalancerTransformer.convertLoadBalancerForEditing(loadBalancer);
-        initializeEditMode();
         if (isNew) {
           var nameParts = namingService.parseLoadBalancerName($scope.loadBalancer.name);
           $scope.loadBalancer.stack = nameParts.stack;
@@ -147,43 +121,6 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
       });
     }
 
-    function updateAvailableSecurityGroups(availableVpcIds) {
-      var account = $scope.loadBalancer.credentials,
-        region = $scope.loadBalancer.region;
-
-      if (account && region && allSecurityGroups[account] && allSecurityGroups[account].azure[region]) {
-        $scope.availableSecurityGroups = _.filter(allSecurityGroups[account].azure[region], function(securityGroup) {
-          return availableVpcIds.indexOf(securityGroup.vpcId) !== -1;
-        });
-        $scope.existingSecurityGroupNames = _.collect($scope.availableSecurityGroups, 'name');
-        // TODO: Move to settings
-        var defaultSecurityGroups = ['nf-datacenter-vpc', 'nf-infrastructure-vpc', 'nf-datacenter', 'nf-infrastructure'];
-        var existingNames = defaultSecurityGroups.filter(function(defaultName) {
-          return $scope.existingSecurityGroupNames.indexOf(defaultName) !== -1;
-        });
-        $scope.loadBalancer.securityGroups.forEach(function(securityGroup) {
-          if ($scope.existingSecurityGroupNames.indexOf(securityGroup) === -1) {
-            var matches = _.filter($scope.availableSecurityGroups, {id: securityGroup});
-            if (matches.length) {
-              existingNames.push(matches[0].name);
-            } else {
-              if (defaultSecurityGroups.indexOf(securityGroup) === -1) {
-                $scope.state.removedSecurityGroups.push(securityGroup);
-              }
-            }
-          } else {
-            existingNames.push(securityGroup);
-          }
-        });
-        $scope.loadBalancer.securityGroups = _.unique(existingNames);
-        if ($scope.state.removedSecurityGroups.length) {
-          modalWizardService.getWizard().markDirty('Security Groups');
-        }
-      } else {
-        clearSecurityGroups();
-      }
-    }
-
     function updateLoadBalancerNames() {
       var account = $scope.loadBalancer.credentials,
         region = $scope.loadBalancer.region;
@@ -195,74 +132,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
       }
     }
 
-    function getAvailableSubnets() {
-      var account = $scope.loadBalancer.credentials,
-          region = $scope.loadBalancer.region;
-      return azureSubnetReader.listSubnets().then(function(subnets) {
-        return _(subnets)
-          .filter({account: account, region: region})
-          .reject({'target': 'ec2'})
-          .valueOf();
-      });
-    }
-
-    function updateSubnets() {
-      getAvailableSubnets().then(function(subnets) {
-        var subnetOptions = subnets.reduce(function(accumulator, subnet) {
-          if (!accumulator[subnet.purpose]) {
-            accumulator[subnet.purpose] = { purpose: subnet.purpose, label: subnet.label, deprecated: subnet.deprecated, vpcIds: [] };
-          }
-          var vpcIds = accumulator[subnet.purpose].vpcIds;
-          if (vpcIds.indexOf(subnet.vpcId) === -1) {
-            vpcIds.push(subnet.vpcId);
-          }
-          return accumulator;
-        }, {});
-
-        setSubnetTypeFromVpc(subnetOptions);
-
-        if (_.findIndex(subnetOptions, {purpose: $scope.loadBalancer.subnetType}).length === 0) {
-          $scope.loadBalancer.subnetType = '';
-        }
-        $scope.subnets = _.values(subnetOptions);
-        ctrl.subnetUpdated();
-      });
-    }
-
-    function setSubnetTypeFromVpc(subnetOptions) {
-      if ($scope.loadBalancer.vnet) {
-        var currentSelection = _.find(subnetOptions, function(option) {
-          return option.vpcIds.indexOf($scope.loadBalancer.vnet) !== -1;
-        });
-        if (currentSelection) {
-          $scope.loadBalancer.subnetType = currentSelection.purpose;
-        }
-        delete $scope.loadBalancer.vnet;
-      }
-    }
-
-    function clearSecurityGroups() {
-      $scope.availableSecurityGroups = [];
-      $scope.existingSecurityGroupNames = [];
-    }
-
     initializeController();
-
-    // Controller API
-
-    this.refreshSecurityGroups = function () {
-      $scope.state.refreshingSecurityGroups = true;
-      cacheInitializer.refreshCache('securityGroups').then(function() {
-        $scope.state.refreshingSecurityGroups = false;
-        preloadSecurityGroups().then(function() {
-          updateAvailableSecurityGroups($scope.loadBalancer.vpcId);
-        });
-      });
-    };
-
-    this.getSecurityGroupRefreshTime = function() {
-      return infrastructureCaches.securityGroups.getStats().ageMax;
-    };
 
     this.requiresHealthCheckPath = function () {
       return $scope.loadBalancer.probes[0].probeProtocol && $scope.loadBalancer.probes[0].probeProtocol.indexOf('HTTP') === 0;
@@ -281,29 +151,13 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
     this.accountUpdated = function() {
       accountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function(regions) {
         $scope.regions = regions;
-        clearSecurityGroups();
         ctrl.regionUpdated();
       });
     };
 
     this.regionUpdated = function() {
       updateLoadBalancerNames();
-      updateSubnets();
       ctrl.updateName();
-    };
-
-    this.subnetUpdated = function() {
-      var subnetPurpose = $scope.loadBalancer.subnetType || null,
-          subnet = $scope.subnets.filter(function(test) { return test.purpose === subnetPurpose; }),
-          availableVpcIds = subnet.length ? subnet[0].vpcIds : [];
-        updateAvailableSecurityGroups(availableVpcIds);
-      if (subnetPurpose) {
-        $scope.loadBalancer.vpcId = availableVpcIds.length ? availableVpcIds[0] : null;
-        modalWizardService.getWizard().includePage('Security Groups');
-      } else {
-        $scope.loadBalancer.vpcId = null;
-        modalWizardService.getWizard().excludePage('Security Groups');
-      }
     };
 
     this.removeListener = function(index) {
