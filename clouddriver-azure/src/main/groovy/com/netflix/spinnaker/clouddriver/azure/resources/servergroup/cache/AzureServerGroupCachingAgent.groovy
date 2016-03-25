@@ -30,7 +30,7 @@ import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.common.cache.AzureCachingAgent
 import com.netflix.spinnaker.clouddriver.azure.common.cache.MutableCacheData
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys
-import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys.Namespace
+import static com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys.Namespace.*
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
@@ -59,7 +59,7 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
     def currentTime = System.currentTimeMillis()
     def result = buildCacheResult(providerCache, creds.computeClient.getServerGroupsAll(region), currentTime, null, null)
 
-    result.cacheResults[Namespace.AZURE_ON_DEMAND.ns].each {
+    result.cacheResults[AZURE_ON_DEMAND.ns].each {
       it.attributes.processedTime = System.currentTimeMillis()
       it.attributes.processedCount = (it.attributes.processedCount ?: 0) + 1
     }
@@ -80,9 +80,10 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
       Map<String, MutableCacheData> cachedApplications = MutableCacheData.mutableCacheMap()
       Map<String, MutableCacheData> cachedClusters = MutableCacheData.mutableCacheMap()
       Map<String, MutableCacheData> cachedServerGroups = MutableCacheData.mutableCacheMap()
+      Map<String, MutableCacheData> cachedInstances = MutableCacheData.mutableCacheMap()
 
-      Collection<String> identifiers = providerCache.filterIdentifiers(Namespace.AZURE_ON_DEMAND.ns, Keys.getServerGroupKey(azureCloudProvider, "*", region, accountName))
-      def onDemandCacheResults = providerCache.getAll(Namespace.AZURE_ON_DEMAND.ns, identifiers, RelationshipCacheFilter.none())
+      Collection<String> identifiers = providerCache.filterIdentifiers(AZURE_ON_DEMAND.ns, Keys.getServerGroupKey(azureCloudProvider, "*", region, accountName))
+      def onDemandCacheResults = providerCache.getAll(AZURE_ON_DEMAND.ns, identifiers, RelationshipCacheFilter.none())
 
       // Add any outdated OnDemand cache entries to the evicted list
       def (evictions, usableOnDemandCacheData) = parseOnDemandCache(onDemandCacheResults, lastReadTime)
@@ -107,29 +108,43 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
         if (sg) {
 
           def clusterKey = Keys.getClusterKey(azureCloudProvider,
+            sg.appName,
             sg.clusterName,
-            region,
             accountName)
-
           def appKey = Keys.getApplicationKey(azureCloudProvider, sg.appName)
+
+          def loadBalancerKey = Keys.getLoadBalancerKey(azureCloudProvider, sg.loadBalancerName,
+            sg.loadBalancerName, sg.application, sg.clusterName, region, accountName)
 
           cachedApplications[appKey].with {
             attributes.name = sg.appName
-            relationships[Namespace.AZURE_CLUSTERS.ns].add(clusterKey)
+            relationships[AZURE_CLUSTERS.ns].add(clusterKey)
+            relationships[AZURE_SERVER_GROUPS.ns].add(serverGroupKey)
+            relationships[AZURE_LOAD_BALANCERS.ns].add(loadBalancerKey)
           }
 
           cachedClusters[clusterKey].with {
             attributes.name = sg.clusterName
             attributes.accountName = accountName
-            attributes.region = region
-            relationships[Namespace.AZURE_APPLICATIONS.ns].add(appKey)
-            relationships[Namespace.AZURE_SERVER_GROUPS.ns].add(serverGroupKey)
+            relationships[AZURE_APPLICATIONS.ns].add(appKey)
+            relationships[AZURE_SERVER_GROUPS.ns].add(serverGroupKey)
+            relationships[AZURE_LOAD_BALANCERS.ns].add(loadBalancerKey)
           }
 
           cachedServerGroups[serverGroupKey].with {
             attributes.serverGroup = sg
-            relationships[Namespace.AZURE_APPLICATIONS.ns].add(appKey)
-            relationships[Namespace.AZURE_CLUSTERS.ns].add(clusterKey)
+            relationships[AZURE_APPLICATIONS.ns].add(appKey)
+            relationships[AZURE_CLUSTERS.ns].add(clusterKey)
+            relationships[AZURE_LOAD_BALANCERS.ns].add(loadBalancerKey)
+          }
+
+          creds.computeClient.getServerGroupInstances(AzureUtilities.getResourceGroupName(sg), sg.name).each { instance ->
+            def instanceKey = Keys.getInstanceKey(azureCloudProvider, sg.name, instance.name, region, accountName)
+            cachedInstances[instanceKey].with {
+              attributes.instance = instance
+              relationships[AZURE_SERVER_GROUPS.ns].add(serverGroupKey)
+            }
+            cachedServerGroups[serverGroupKey].relationships[AZURE_INSTANCES.ns].add(instanceKey)
           }
         }
       }
@@ -137,21 +152,38 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
       log.info("Caching ${cachedApplications.size()} applications in ${agentType}")
       log.info("Caching ${cachedClusters.size()} clusters in ${agentType}")
       log.info("Caching ${cachedServerGroups.size()} server groups in ${agentType}")
+      log.info("Caching ${cachedInstances.size()} instances in ${agentType}")
 
       return new DefaultCacheResult([
-        (Namespace.AZURE_APPLICATIONS.ns) : cachedApplications.values(),
-        (Namespace.AZURE_CLUSTERS.ns) : cachedClusters.values(),
-        (Namespace.AZURE_SERVER_GROUPS.ns) : cachedServerGroups.values(),
-        (Namespace.AZURE_ON_DEMAND.ns) : usableOnDemandCacheData.values()
-      ], [(Namespace.AZURE_ON_DEMAND.ns): evictions as List<String>])
+        (AZURE_APPLICATIONS.ns) : cachedApplications.values(),
+        (AZURE_CLUSTERS.ns) : cachedClusters.values(),
+        (AZURE_SERVER_GROUPS.ns) : cachedServerGroups.values(),
+        (AZURE_INSTANCES.ns) : cachedInstances.values(),
+        (AZURE_ON_DEMAND.ns) : onDemandCacheResults
+      ], [(AZURE_ON_DEMAND.ns): evictions as List<String>])
 
     } else {
       if (updatedServerGroup) {
         if (updateCache(providerCache, updatedServerGroup, ON_DEMAND_UPDATED)) {
           log.info("Caching 1 OnDemand updated item in ${agentType}")
-          MutableCacheData cachedServerGroup = new MutableCacheData(getServerGroupKey(updatedServerGroup))
+          def serverGroupKey = getServerGroupKey(updatedServerGroup)
+          MutableCacheData cachedServerGroup = new MutableCacheData(serverGroupKey)
           cachedServerGroup.attributes.serverGroup = updatedServerGroup
-          return new DefaultCacheResult([(Namespace.AZURE_SERVER_GROUPS.ns): [cachedServerGroup]])
+
+          Map<String, MutableCacheData> cachedInstances = MutableCacheData.mutableCacheMap()
+          creds.
+            computeClient.
+            getServerGroupInstances(AzureUtilities.getResourceGroupName(updatedServerGroup),
+              updatedServerGroup.name).each {
+            def instanceKey = Keys.getInstanceKey(azureCloudProvider, updatedServerGroup.name, it.name, region, accountName)
+            cachedInstances[instanceKey].with {
+              attributes.instance = it
+              relationships[AZURE_SERVER_GROUPS.ns].add(serverGroupKey)
+            }
+          }
+          return new DefaultCacheResult([
+            (AZURE_SERVER_GROUPS.ns): [cachedServerGroup],
+            (AZURE_INSTANCES.ns): [cachedInstances]])
         } else {
           return null
         }
@@ -160,33 +192,34 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
       if (evictedServerGroup) {
         if (updateCache(providerCache, evictedServerGroup, ON_DEMAND_EVICTED)) {
           log.info("Caching 1 OnDemand evicted item in ${agentType}")
-          return new DefaultCacheResult([(Namespace.AZURE_SERVER_GROUPS.ns): []])
+          return new DefaultCacheResult([(AZURE_SERVER_GROUPS.ns): []])
         }
         else {
           return null
         }
       }
     }
-    new DefaultCacheResult([(Namespace.AZURE_SERVER_GROUPS.ns): []])
+    new DefaultCacheResult([(AZURE_SERVER_GROUPS.ns): []])
   }
 
   @Override
   Set<AgentDataType> initializeTypes() {
     Collections.unmodifiableSet([
-      AUTHORITATIVE.forType(Namespace.AZURE_SERVER_GROUPS.ns),
-      INFORMATIVE.forType(Namespace.AZURE_APPLICATIONS.ns),
-      INFORMATIVE.forType(Namespace.AZURE_CLUSTERS.ns)
+      AUTHORITATIVE.forType(AZURE_SERVER_GROUPS.ns),
+      INFORMATIVE.forType(AZURE_APPLICATIONS.ns),
+      INFORMATIVE.forType(AZURE_CLUSTERS.ns),
+      INFORMATIVE.forType(AZURE_INSTANCES.ns)
     ] as Set)
   }
 
   @Override
   Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
-    def keys = providerCache.getIdentifiers(Namespace.AZURE_ON_DEMAND.ns)
+    def keys = providerCache.getIdentifiers(AZURE_ON_DEMAND.ns)
     keys = keys.findAll {
       def key = Keys.parse(azureCloudProvider, it)
-      key.type == Namespace.AZURE_SERVER_GROUPS.ns && key.account == accountName && key.region == region
+      key.type == AZURE_SERVER_GROUPS.ns && key.account == accountName && key.region == region
     }
-    return providerCache.getAll(Namespace.AZURE_ON_DEMAND.ns, keys, RelationshipCacheFilter.none()).collect {
+    return providerCache.getAll(AZURE_ON_DEMAND.ns, keys, RelationshipCacheFilter.none()).collect {
       [
         id: it.id,
         details  : Keys.parse(azureCloudProvider, it.id),
@@ -237,7 +270,7 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
         return buildCacheResult(providerCache, null, 0, null, evictedServerGroup)
       }
     }
-    Map<String, Collection<String>> evictions = evictedServerGroup ? [(Namespace.AZURE_SERVER_GROUPS.ns): [getServerGroupKey(evictedServerGroup)]] : [:]
+    Map<String, Collection<String>> evictions = evictedServerGroup ? [(AZURE_SERVER_GROUPS.ns): [getServerGroupKey(evictedServerGroup)]] : [:]
 
     log.info("onDemand cache refresh (data: ${data}, evictions: ${evictions})")
     return new OnDemandAgent.OnDemandResult(
@@ -251,7 +284,7 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
 
     if (serverGroup) {
       // Get the current list of all OnDemand requests from the cache
-      def cacheResults = providerCache.getAll(Namespace.AZURE_ON_DEMAND.ns, [getServerGroupKey(serverGroup)])
+      def cacheResults = providerCache.getAll(AZURE_ON_DEMAND.ns, [getServerGroupKey(serverGroup)])
 
       if (cacheResults && !cacheResults.isEmpty()) {
         cacheResults.each {
@@ -270,11 +303,13 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
           [
             azureResourceDescription: objectMapper.writeValueAsString(serverGroup),
             cachedTime: serverGroup.lastReadTime,
-            onDemandCacheType : onDemandCacheType
+            onDemandCacheType : onDemandCacheType,
+            processedCount: 0,
+            processedTime: null
           ],
           [:]
         )
-        providerCache.putCacheData(Namespace.AZURE_ON_DEMAND.ns, cacheData)
+        providerCache.putCacheData(AZURE_ON_DEMAND.ns, cacheData)
 
         return true
       }
@@ -300,8 +335,9 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
 
   private String getServerGroupKey(AzureServerGroupDescription serverGroup) {
     Keys.getServerGroupKey(azureCloudProvider,
-    serverGroup.name,
-    serverGroup.region,
-    accountName)
+      serverGroup.name,
+      serverGroup.region,
+      accountName)
   }
+
 }

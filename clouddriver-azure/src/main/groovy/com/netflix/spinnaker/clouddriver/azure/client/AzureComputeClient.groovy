@@ -21,6 +21,7 @@ import com.microsoft.azure.credentials.ApplicationTokenCredentials
 import com.microsoft.azure.management.compute.ComputeManagementClient
 import com.microsoft.azure.management.compute.ComputeManagementClientImpl
 import com.microsoft.azure.management.compute.models.VirtualMachineScaleSet
+import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureInstance
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
 import groovy.transform.CompileStatic
@@ -123,7 +124,6 @@ public class AzureComputeClient extends AzureBaseClient {
       List<VirtualMachineScaleSet> vmssList = resourceGroup ? this.client.virtualMachineScaleSetsOperations?.list(resourceGroup)?.body
                                                             : this.client.virtualMachineScaleSetsOperations?.listAll()?.body
       vmssList?.each { scaleSet ->
-
         if (scaleSet.location == region) {
           try {
             def sg = AzureServerGroupDescription.build(scaleSet)
@@ -149,8 +149,21 @@ public class AzureComputeClient extends AzureBaseClient {
       return sg
     } catch (CloudException e) {
       // treat exception as a http 404 return (resource not found)
-      log.warn("ServerGroup: ${e.message} (${serverGroupName} was not found?)")
+      log.warn("ServerGroup: ${e.message} (${serverGroupName} was not found)")
     }
     null
+  }
+
+  Collection<AzureInstance> getServerGroupInstances(String resourceGroupName, String serverGroupName) {
+    def vmOps = this.client.virtualMachineScaleSetVMsOperations
+    def instances = new ArrayList<AzureInstance>()
+    try {
+      vmOps.list(resourceGroupName, serverGroupName, null, null, "instanceView")?.body?.each {
+        instances.add(AzureInstance.build(it))
+      }
+    } catch (Exception e) {
+      log.error("getServerGroupInstances -> Unexpected exception", e)
+    }
+    instances
   }
 }

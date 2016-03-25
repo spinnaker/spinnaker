@@ -46,7 +46,12 @@ class Keys {
     }
   }
 
+
   static Map<String, String> parse(AzureCloudProvider azureCloudProvider, String key) {
+    parse(azureCloudProvider.id, key)
+  }
+
+  static Map<String, String> parse(String providerId, String key){
     def parts = key.split(':')
 
     if (parts.length < 2) {
@@ -55,7 +60,7 @@ class Keys {
 
     def result = [provider: parts[0], type: parts[1]]
 
-    if (result.provider != azureCloudProvider.id) {
+    if (result.provider != providerId) {
       return null
     }
 
@@ -86,24 +91,33 @@ class Keys {
       case Namespace.AZURE_SERVER_GROUPS.ns:
         def names = Names.parseName(parts[2])
         result << [
-          application: names.app.toLowerCase(),
-          name: parts[2],
-          region: parts[3],
-          account: parts[4],
-          stack: names.stack,
-          detail: names.detail
+          application : names.app.toLowerCase(),
+          serverGroup : parts[2],
+          region      : parts[3],
+          account     : parts[4],
+          stack       : names.stack,
+          detail      : names.detail
         ]
         break
       case Namespace.AZURE_CLUSTERS.ns:
-        def names = Names.parseName(parts[4])
+        def names = Names.parseName(parts[3])
         result << [
-          application: parts[3],
-          account    : parts[2],
-          name       : parts[4],
+          application: parts[2],
+          name       : parts[3],
+          account    : parts[4],
           stack      : names.stack,
           detail     : names.detail
         ]
         break
+      case Namespace.AZURE_INSTANCES.ns:
+        def names = Names.parseName(parts[2])
+        result << [
+          application: names.app,
+          serverGroup: parts[2],
+          name       : parts[3],
+          region     : parts[4],
+          account    : parts[5]]
+          break
       default:
         return null
         break
@@ -112,42 +126,88 @@ class Keys {
     result
   }
 
+  //TODO (scotm) remove all references to the methods that take azureCloudProvider as paramter
+  //TODO (scotm) use the AzureCloudProvider.AZURE static string for the id instead
+  //These changes are a stop-gap to enable testing without major refactoring (coming).
+  // Long-term we will remove the method that takes the cloud provider and default the other version
+  // to use the static member of the cloud provider
   static String getSecurityGroupKey(AzureCloudProvider azureCloudProvider,
                                     String securityGroupName,
                                     String securityGroupId,
                                     String region,
                                     String account) {
-    "$azureCloudProvider.id:${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}"
+    //"$azureCloudProvider.id:${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}"
+    getSecurityGroupKey(azureCloudProvider.id, securityGroupName, securityGroupId, region, account)
+  }
+
+  static String getSecurityGroupKey(String azureCloudProviderId,
+                                    String securityGroupName,
+                                    String securityGroupId,
+                                    String region,
+                                    String account) {
+    "${azureCloudProviderId}:${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}"
   }
 
   static String getSubnetKey(AzureCloudProvider azureCloudProvider,
                              String subnetId,
                              String region,
                              String account) {
-    "$azureCloudProvider.id:${Namespace.AZURE_SUBNETS}:${subnetId}:${account}:${region}"
+    //"$azureCloudProvider.id:${Namespace.AZURE_SUBNETS}:${subnetId}:${account}:${region}"
+    getSubnetKey(azureCloudProvider.id, subnetId, region, account)
+  }
+
+  static String getSubnetKey(String azureCloudProviderId,
+                             String subnetId,
+                             String region,
+                             String account) {
+    "${azureCloudProviderId}:${Namespace.AZURE_SUBNETS}:${subnetId}:${account}:${region}"
   }
 
   static String getNetworkKey(AzureCloudProvider azureCloudProvider,
                               String networkId,
                               String region,
                               String account) {
-    "$azureCloudProvider.id:${Namespace.AZURE_NETWORKS}:${networkId}:${account}:${region}"
+    //"$azureCloudProvider.id:${Namespace.AZURE_NETWORKS}:${networkId}:${account}:${region}"
+    getNetworkKey(azureCloudProvider.id, networkId, region, account)
+  }
+
+  static String getNetworkKey(String azureCloudProviderId,
+                              String networkId,
+                              String region,
+                              String account) {
+    "${azureCloudProviderId}:${Namespace.AZURE_NETWORKS}:${networkId}:${account}:${region}"
   }
 
   static String getVMImageKey(AzureCloudProvider azureCloudProvider,
                               String account,
                               String region,
                               String vmImageName,
-                              String vmImageVersion
-                              ) {
-    "$azureCloudProvider.id:${Namespace.AZURE_VMIMAGES}:${account}:${region}:${vmImageName}:${vmImageVersion}"
+                              String vmImageVersion)  {
+    //"$azureCloudProvider.id:${Namespace.AZURE_VMIMAGES}:${account}:${region}:${vmImageName}:${vmImageVersion}"
+    getVMImageKey(azureCloudProvider.id, account, region, vmImageName, vmImageVersion)
+  }
+
+  static String getVMImageKey(String azureCloudProviderId,
+                              String account,
+                              String region,
+                              String vmImageName,
+                              String vmImageVersion)  {
+    "${azureCloudProviderId}:${Namespace.AZURE_VMIMAGES}:${account}:${region}:${vmImageName}:${vmImageVersion}"
   }
 
   static String getCustomVMImageKey(AzureCloudProvider azureCloudProvider,
                                     String account,
                                     String region,
                                     String vmImageName) {
-    "$azureCloudProvider.id:${Namespace.AZURE_CUSTOMVMIMAGES}:${account}:${region}:${vmImageName}"
+    //"$azureCloudProvider.id:${Namespace.AZURE_CUSTOMVMIMAGES}:${account}:${region}:${vmImageName}"
+    getCustomVMImageKey(azureCloudProvider.id, account, region, vmImageName)
+  }
+
+  static String getCustomVMImageKey(String azureCloudProviderId,
+                                    String account,
+                                    String region,
+                                    String vmImageName) {
+    "${azureCloudProviderId}:${Namespace.AZURE_CUSTOMVMIMAGES}:${account}:${region}:${vmImageName}"
   }
 
   static String getLoadBalancerKey(AzureCloudProvider azureCloudProvider,
@@ -157,26 +217,77 @@ class Keys {
                                    String cluster,
                                    String region,
                                    String account) {
-    "$azureCloudProvider.id:${Namespace.AZURE_LOAD_BALANCERS}:${loadBalancerName}:${loadBalancerId}:${cluster}:${application}:${region}:${account}"
+    //"$azureCloudProvider.id:${Namespace.AZURE_LOAD_BALANCERS}:${loadBalancerName}:${loadBalancerId}:${cluster}:${application}:${region}:${account}"
+    getLoadBalancerKey(azureCloudProvider.id, loadBalancerName, loadBalancerId, application, cluster, region, account)
+  }
+
+  static String getLoadBalancerKey(String azureCloudProviderId,
+                                   String loadBalancerName,
+                                   String loadBalancerId,
+                                   String application,
+                                   String cluster,
+                                   String region,
+                                   String account) {
+    "${azureCloudProviderId}:${Namespace.AZURE_LOAD_BALANCERS}:${loadBalancerName}:${loadBalancerId}:${cluster}:${application}:${region}:${account}"
   }
 
   static String getApplicationKey(AzureCloudProvider azureCloudProvider,
-                                  String application ) {
-    //TODO revisit this method when we are ready to store into the cache the Azure server groups
-    "$azureCloudProvider.id:${Namespace.AZURE_APPLICATIONS}:${application.toLowerCase()}"
+                                  String application) {
+    //"$azureCloudProvider.id:${Namespace.AZURE_APPLICATIONS}:${application.toLowerCase()}"
+    getApplicationKey(azureCloudProvider.id, application)
+  }
+
+  static String getApplicationKey(String azureCloudProviderId,
+                                  String application) {
+    "${azureCloudProviderId}:${Namespace.AZURE_APPLICATIONS}:${application.toLowerCase()}"
   }
 
   static String getServerGroupKey(AzureCloudProvider azureCloudProvider,
                                   String serverGroupName,
                                   String region,
                                   String account) {
-    "${azureCloudProvider.id}:${Namespace.AZURE_SERVER_GROUPS}:${serverGroupName}:${region}:${account}"
+    //"${azureCloudProvider.id}:${Namespace.AZURE_SERVER_GROUPS}:${serverGroupName}:${region}:${account}"
+    getServerGroupKey(azureCloudProvider.id, serverGroupName, region, account)
+
+  }
+
+  static String getServerGroupKey(String azureCloudProviderId,
+                                  String serverGroupName,
+                                  String region,
+                                  String account) {
+    "${azureCloudProviderId}:${Namespace.AZURE_SERVER_GROUPS}:${serverGroupName}:${region}:${account}"
   }
 
   static String getClusterKey(AzureCloudProvider azureCloudProvider,
+                              String application,
                               String clusterName,
-                              String region,
                               String account) {
-    "${azureCloudProvider.id}:${Namespace.AZURE_CLUSTERS}:${clusterName}:${region}:${account}"
+    //"${azureCloudProvider.id}:${Namespace.AZURE_CLUSTERS}:${application}:${clusterName}:${account}"
+    getClusterKey(azureCloudProvider.id, application, clusterName, account)
   }
+
+  static String getClusterKey(String azureCloudProviderId,
+                              String application,
+                              String clusterName,
+                              String account) {
+    "${azureCloudProviderId}:${Namespace.AZURE_CLUSTERS}:${application}:${clusterName}:${account}"
+  }
+
+  static String getInstanceKey(AzureCloudProvider azureCloudProvider,
+                               String serverGroupName,
+                               String name,
+                               String region,
+                               String account) {
+    //"${azureCloudProvider.id}:${Namespace.AZURE_INSTANCES.ns}:${serverGroupName}:${name}:${region}:${account}"
+    getInstanceKey(azureCloudProvider.id, serverGroupName, name, region, account)
+  }
+
+  static String getInstanceKey(String azureCloudProviderId,
+                               String serverGroupName,
+                               String name,
+                               String region,
+                               String account) {
+    "${azureCloudProviderId}:${Namespace.AZURE_INSTANCES.ns}:${serverGroupName}:${name}:${region}:${account}"
+  }
+
 }

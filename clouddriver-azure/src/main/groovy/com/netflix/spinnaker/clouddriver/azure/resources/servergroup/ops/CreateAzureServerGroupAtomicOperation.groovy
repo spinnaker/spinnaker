@@ -87,8 +87,8 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
         description.securityGroup?.name)
 
       AzureServerGroupNameResolver nameResolver = new AzureServerGroupNameResolver(description.accountName, description.region, description.credentials)
-      description.clusterName = description.name
       description.name = nameResolver.resolveNextServerGroupName(description.application, description.stack, description.detail, false)
+      description.clusterName = description.getClusterName()
       description.appName = description.application
 
       task.updateStatus(BASE_PHASE, "Deploying new load balancer from ${description.loadBalancerName ?: 'new'}")
@@ -99,6 +99,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
       lbDescription.accountName = description.accountName
       lbDescription.credentials = description.credentials
       lbDescription.appName = description.application
+      lbDescription.serverGroup = description.name
       lbDescription.cluster = description.clusterName
       lbDescription.serverGroup = description.name
       lbDescription.stack = description.stack
