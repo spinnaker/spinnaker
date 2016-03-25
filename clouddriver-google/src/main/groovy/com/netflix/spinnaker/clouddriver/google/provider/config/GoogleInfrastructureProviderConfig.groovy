@@ -135,7 +135,8 @@ class GoogleInfrastructureProviderConfig {
             newlyAddedAgents << new GoogleServerGroupCachingAgent(googleConfiguration.googleApplicationName(),
                                                                   credentials,
                                                                   objectMapper,
-                                                                  region)
+                                                                  region,
+                                                                  registry)
           }
         }
 

@@ -17,9 +17,18 @@
 package com.netflix.spinnaker.clouddriver.google.cache
 
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
+import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import groovy.util.logging.Slf4j
 
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.ON_DEMAND
+
+@Slf4j
 class CacheResultBuilder {
+
+  Long startTime
+
+  CacheMutation onDemand = new CacheMutation()
 
   Map<String, NamespaceBuilder> namespaceBuilders = [:].withDefault {
     String ns -> new NamespaceBuilder(namespace: ns)
@@ -30,29 +39,57 @@ class CacheResultBuilder {
   }
 
   DefaultCacheResult build() {
-    new DefaultCacheResult(namespaceBuilders.collectEntries(new HashMap<String, List<DefaultCacheData>>()) {
-      [(it.key): it.value.build()]
-    })
+    Map<String, Collection<CacheData>> keep = [:]
+    Map<String, Collection<String>> evict = [:]
+
+    if (!onDemand.toKeep.empty) {
+      keep += [(ON_DEMAND.ns): onDemand.toKeep.values()]
+    }
+    if (!onDemand.toEvict.empty) {
+      evict += [(ON_DEMAND.ns): onDemand.toEvict]
+    }
+    namespaceBuilders.each { String namespace, NamespaceBuilder nsBuilder ->
+      def buildResult = nsBuilder.build()
+      if (!buildResult.toKeep.empty) {
+        keep += [(namespace): buildResult.toKeep.values()]
+      }
+      if (!buildResult.toEvict.empty) {
+        evict += [(namespace): buildResult.toEvict]
+      }
+    }
+
+    new DefaultCacheResult(keep, evict)
   }
 
   class NamespaceBuilder {
     String namespace
-    Map<String, CacheDataBuilder> cacheDataBuilders = [:].withDefault {
+
+    private Map<String, CacheDataBuilder> toKeep = [:].withDefault {
       String id -> new CacheDataBuilder(id: id)
     }
 
+    private List<String> toEvict = []
+
+    // TODO(ttomsu): Rename to "keep"
     CacheDataBuilder get(String key) {
-      cacheDataBuilders.get(key)
+      toKeep.get(key)
     }
 
+    // TODO(ttomsu): Rename to "keepSize", add "evictSize"
     int size() {
-      cacheDataBuilders.size()
+      toKeep.size()
     }
 
-    List<DefaultCacheData> build() {
-      cacheDataBuilders.values().collect { b -> b.build() }
+    CacheMutation build() {
+      def keepers = toKeep.collectEntries { k, b -> [(k): b.build()] }
+      new CacheMutation(toKeep: keepers, toEvict: toEvict)
     }
+  }
 
+  class CacheMutation {
+    // CacheData.id -> CacheData
+    Map<String, CacheData> toKeep = [:]
+    List<String> toEvict = []
   }
 
   class CacheDataBuilder {

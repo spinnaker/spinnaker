@@ -33,6 +33,8 @@ class Keys {
     SERVER_GROUPS,
     SUBNETS,
 
+    ON_DEMAND,
+
     final String ns
 
     private Namespace() {
@@ -49,7 +51,7 @@ class Keys {
   static Map<String, String> parse(String key) {
     def parts = key.split(':')
 
-    if (parts.length < 2) {
+    if (parts.length < 2 || parts[0] != GoogleCloudProvider.GCE) {
       return null
     }
 
@@ -123,7 +125,7 @@ class Keys {
             application: names.app.toLowerCase(),
             cluster    : parts[2],
             account    : parts[3],
-            region     : parts[4],
+            zone       : parts[4],
             serverGroup: parts[5],
             stack      : names.stack,
             detail     : names.detail,
