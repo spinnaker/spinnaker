@@ -78,6 +78,34 @@ describe('Service: securityGroupReader', function () {
     expect(group.usages.loadBalancers[0]).toEqual({name: application.loadBalancers.data[0].name});
   });
 
+  it('adds security group names across accounts, falling back to the ID if none found', function () {
+    var details = null;
+    var application = {
+      securityGroupsIndex: {
+        test: { 'us-east-1': { 'sg-2': { name: 'matched' } } },
+        prod: { 'us-east-1': { 'sg-2': { name: 'matched-prod' } } }
+      },
+    };
+
+    $http.expectGET('/securityGroups/test/us-east-1/sg-123?provider=aws&vpcId=vpc-1').respond(200, {
+      inboundRules: [
+        { securityGroup: { accountName: 'test', id: 'sg-345' }},
+        { securityGroup: { accountName: 'test', id: 'sg-2' }},
+        { securityGroup: { accountName: 'prod', id: 'sg-2' }},
+      ],
+      region: 'us-east-1',
+    });
+
+    securityGroupReader.getSecurityGroupDetails(application, 'test', 'aws', 'us-east-1', 'vpc-1', 'sg-123').then(
+      (result) => details = result);
+    $http.flush();
+
+    expect(details.securityGroupRules.length).toBe(3);
+    expect(details.securityGroupRules[0].securityGroup.name).toBe('sg-345');
+    expect(details.securityGroupRules[1].securityGroup.name).toBe('matched');
+    expect(details.securityGroupRules[2].securityGroup.name).toBe('matched-prod');
+  });
+
   it('should clear cache, then reload security groups and try again if a security group is not found', function () {
     var application = {
       accounts: [ 'test' ],

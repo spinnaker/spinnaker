@@ -189,8 +189,10 @@ module.exports = angular.module('spinnaker.core.securityGroup.read.service', [
             return rule.securityGroup;
           });
           details.securityGroupRules.forEach(function(inboundRule) {
-            if (!inboundRule.securityGroup.name) {
-              inboundRule.securityGroup.name = getApplicationSecurityGroup(application, details.accountName, details.region, inboundRule.securityGroup.id).name;
+            let inboundGroup = inboundRule.securityGroup;
+            if (!inboundGroup.name) {
+              let applicationSecurityGroup = getApplicationSecurityGroup(application, inboundGroup.accountName, details.region, inboundGroup.id);
+              inboundGroup.name = applicationSecurityGroup ? applicationSecurityGroup.name : inboundGroup.id;
             }
           });
         }
