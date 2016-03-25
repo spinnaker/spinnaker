@@ -24,9 +24,13 @@ import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.HealthStatus
 import com.google.api.services.compute.model.InstanceReference
 import com.google.api.services.compute.model.TargetPool
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
+import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
@@ -42,7 +46,7 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.INST
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.LOAD_BALANCERS
 
 @Slf4j
-class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
+class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implements OnDemandAgent {
 
   final String region
 
@@ -52,15 +56,22 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
   ] as Set
 
   String agentType = "${accountName}/${region}/${GoogleLoadBalancerCachingAgent.simpleName}"
+  String onDemandAgentType = "${agentType}-OnDemand"
+  final OnDemandMetricsSupport metricsSupport
 
   GoogleLoadBalancerCachingAgent(String googleApplicationName,
                                  GoogleNamedAccountCredentials credentials,
                                  ObjectMapper objectMapper,
-                                 String region) {
+                                 String region,
+                                 Registry registry) {
     super(googleApplicationName,
           credentials,
           objectMapper)
     this.region = region
+    this.metricsSupport = new OnDemandMetricsSupport(
+        registry,
+        this,
+        "${GoogleCloudProvider.GCE}:${OnDemandAgent.OnDemandType.LoadBalancer}")
   }
 
   @Override
@@ -91,7 +102,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
     return loadBalancers
   }
 
-  CacheResult buildCacheResult(ProviderCache providerCache, List<GoogleLoadBalancer2> googleLoadBalancers) {
+  CacheResult buildCacheResult(ProviderCache _, List<GoogleLoadBalancer2> googleLoadBalancers) {
     log.info "Describing items in ${agentType}"
 
     def cacheResultBuilder = new CacheResultBuilder()
@@ -118,6 +129,45 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
     log.info "Caching ${cacheResultBuilder.namespace(INSTANCES.ns).keepSize()} instance relationsihps in ${agentType}"
 
     cacheResultBuilder.build()
+  }
+
+  @Override
+  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
+    type == OnDemandAgent.OnDemandType.LoadBalancer && cloudProvider == GoogleCloudProvider.GCE
+  }
+
+  @Override
+  Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
+    return []
+  }
+
+  /**
+   * This is a "simpleton" way of handling on-demand cache requests. Load Balancer mutation (and thus the need for
+   * cache refreshing) is not as common or complex as server group cache refreshes.
+   *
+   * This implementation has the potential for race condition between handle() and loadData(), which may
+   * cause "flapping" in the UI. lwander@ has plans to make an abstract solution for this race condition, so this impl
+   * will do until that is ready.
+   */
+  @Override
+  OnDemandAgent.OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data) {
+    if (data.account != accountName || data.region != region) {
+      return null
+    }
+
+    List<GoogleLoadBalancer2> loadBalancers = metricsSupport.readData {
+      getLoadBalancers()
+    }
+
+    CacheResult result = metricsSupport.transformData {
+      buildCacheResult(providerCache, loadBalancers)
+    }
+
+    new OnDemandAgent.OnDemandResult(
+        sourceAgentType: getAgentType(),
+        authoritativeTypes: [LOAD_BALANCERS.ns],
+        cacheResult: result
+    )
   }
 
   class ForwardingRulesCallback<ForwardingRuleList> extends JsonBatchCallback<ForwardingRuleList> implements FailureLogger {

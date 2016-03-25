@@ -131,7 +131,8 @@ class GoogleInfrastructureProviderConfig {
             newlyAddedAgents << new GoogleLoadBalancerCachingAgent(googleConfiguration.googleApplicationName(),
                                                                    credentials,
                                                                    objectMapper,
-                                                                   region)
+                                                                   region,
+                                                                   registry)
             newlyAddedAgents << new GoogleServerGroupCachingAgent(googleConfiguration.googleApplicationName(),
                                                                   credentials,
                                                                   objectMapper,

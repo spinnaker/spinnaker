@@ -201,7 +201,8 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
     return new OnDemandAgent.OnDemandResult(
         sourceAgentType: getOnDemandAgentType(),
         cacheResult: result,
-        evictions: evictions
+        evictions: evictions,
+        authoritativeTypes: [SERVER_GROUPS.ns]
     )
   }
 

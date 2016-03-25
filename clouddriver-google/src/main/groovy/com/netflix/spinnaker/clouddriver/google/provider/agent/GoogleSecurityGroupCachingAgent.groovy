@@ -36,13 +36,13 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.SECU
 @Slf4j
 class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent implements OnDemandAgent {
 
-  final OnDemandMetricsSupport metricsSupport
-
   final Set<AgentDataType> providedDataTypes = [
-    AUTHORITATIVE.forType(SECURITY_GROUPS.ns)
+      AUTHORITATIVE.forType(SECURITY_GROUPS.ns)
   ] as Set
 
   String agentType = "${accountName}/global/${GoogleSecurityGroupCachingAgent.simpleName}"
+  String onDemandAgentType = "${agentType}-OnDemand"
+  final OnDemandMetricsSupport metricsSupport
 
   GoogleSecurityGroupCachingAgent(String googleApplicationName,
                                   GoogleNamedAccountCredentials credentials,
@@ -51,21 +51,15 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
     super(googleApplicationName,
           credentials,
           objectMapper)
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${GoogleCloudProvider.GCE}:${OnDemandAgent.OnDemandType.SecurityGroup}")
-  }
-
-  @Override
-  String getOnDemandAgentType() {
-    getAgentType()
+    this.metricsSupport = new OnDemandMetricsSupport(
+        registry,
+        this,
+        "${GoogleCloudProvider.GCE}:${OnDemandAgent.OnDemandType.SecurityGroup}")
   }
 
   @Override
   OnDemandAgent.OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data) {
-    if (data.account != accountName) {
-      return null
-    }
-
-    if (data.region != "global") {
+    if (data.account != accountName || data.region != "global") {
       return null
     }
 
@@ -78,9 +72,9 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
     }
 
     new OnDemandAgent.OnDemandResult(
-      sourceAgentType: getAgentType(),
-      authoritativeTypes: [SECURITY_GROUPS.ns],
-      cacheResult: result
+        sourceAgentType: getAgentType(),
+        authoritativeTypes: [SECURITY_GROUPS.ns],
+        cacheResult: result
     )
   }
 
