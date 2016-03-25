@@ -808,40 +808,29 @@ class AWSBakeHandlerSpec extends Specification {
       bakeKey == "bake:aws:centos:kato-app:us-east-1:hvm:enhancedNWDisabled"
   }
 
-  void 'produce a default AWS bakeKey with ami suffix'() {
+  void 'do not consider ami suffix when composing bake key'() {
     setup:
-      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                        package_name: PACKAGE_NAME,
-                                        base_os: "centos",
-                                        vm_type: BakeRequest.VmType.hvm,
-                                        cloud_provider_type: BakeRequest.CloudProviderType.aws,
-                                        ami_suffix: "1.0")
+      def bakeRequest1 = new BakeRequest(user: "someuser@gmail.com",
+                                         package_name: PACKAGE_NAME,
+                                         base_os: "centos",
+                                         vm_type: BakeRequest.VmType.hvm,
+                                         cloud_provider_type: BakeRequest.CloudProviderType.aws,
+                                         ami_suffix: "1.0")
+      def bakeRequest2 = new BakeRequest(user: "someuser@gmail.com",
+                                         package_name: PACKAGE_NAME,
+                                         base_os: "centos",
+                                         vm_type: BakeRequest.VmType.hvm,
+                                         cloud_provider_type: BakeRequest.CloudProviderType.aws,
+                                         ami_suffix: "2.0")
       @Subject
       AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
 
     when:
-      String bakeKey = awsBakeHandler.produceBakeKey(REGION, bakeRequest)
+      String bakeKey1 = awsBakeHandler.produceBakeKey(REGION, bakeRequest1)
+      String bakeKey2 = awsBakeHandler.produceBakeKey(REGION, bakeRequest2)
 
     then:
-      bakeKey == "bake:aws:centos:kato:1.0:us-east-1:hvm:enhancedNWDisabled"
-  }
-
-  void 'produce a default AWS bakeKey with ami name and suffix'() {
-    setup:
-      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                        package_name: PACKAGE_NAME,
-                                        base_os: "centos",
-                                        vm_type: BakeRequest.VmType.hvm,
-                                        cloud_provider_type: BakeRequest.CloudProviderType.aws,
-                                        ami_name: "kato-app",
-                                        ami_suffix: "1.0")
-      @Subject
-      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
-
-    when:
-      String bakeKey = awsBakeHandler.produceBakeKey(REGION, bakeRequest)
-
-    then:
-      bakeKey == "bake:aws:centos:kato-app:1.0:us-east-1:hvm:enhancedNWDisabled"
+      bakeKey1 == "bake:aws:centos:kato:us-east-1:hvm:enhancedNWDisabled"
+      bakeKey2 == bakeKey1
   }
 }

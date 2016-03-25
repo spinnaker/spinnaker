@@ -81,10 +81,6 @@ abstract class CloudProviderBakeHandler {
         bakeKey += ":$package_name"
       }
 
-      if (ami_suffix) {
-        bakeKey += ":$ami_suffix"
-      }
-
       def providerSpecificBakeKeyComponent = produceProviderSpecificBakeKeyComponent(region, bakeRequest)
 
       if (providerSpecificBakeKeyComponent) {
