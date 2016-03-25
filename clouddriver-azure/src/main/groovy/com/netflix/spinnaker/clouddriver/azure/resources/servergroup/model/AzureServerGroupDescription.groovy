@@ -114,6 +114,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   static AzureServerGroupDescription build(VirtualMachineScaleSet scaleSet) {
     def azureSG = new AzureServerGroupDescription()
     azureSG.name = scaleSet.name
+    azureSG.cloudProvider = "azure"
     def parsedName = Names.parseName(scaleSet.name)
     // Get the values from the tags if they exist
     azureSG.tags = scaleSet.tags ? scaleSet.tags : [:]

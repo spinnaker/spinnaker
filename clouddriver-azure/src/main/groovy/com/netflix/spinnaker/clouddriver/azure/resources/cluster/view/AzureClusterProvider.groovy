@@ -26,12 +26,11 @@ import com.netflix.spinnaker.clouddriver.azure.resources.application.model.Azure
 import com.netflix.spinnaker.clouddriver.azure.resources.application.view.AzureApplicationProvider
 import com.netflix.spinnaker.clouddriver.azure.resources.cluster.model.AzureCluster
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys
-import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import static com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys.Namespace.*
+import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureInstance
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
-import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -107,8 +106,15 @@ class AzureClusterProvider implements ClusterProvider<AzureCluster> {
   }
 
   @Override
-  ServerGroup getServerGroup(String account, String region, String name) {
-    null
+  AzureServerGroupDescription getServerGroup(String account, String region, String name) {
+    String serverGroupKey = Keys.getServerGroupKey(AzureCloudProvider.AZURE, name, region, account)
+    CacheData serverGroupData = cacheView.get(AZURE_SERVER_GROUPS.ns, serverGroupKey)
+
+    if (!serverGroupData) {
+      return null
+    }
+
+    translateServerGroup(serverGroupData)
   }
 
   private Collection<AzureCluster> translateClusters(Collection<CacheData> clusterData, boolean includeDetails) {
@@ -163,11 +169,16 @@ class AzureClusterProvider implements ClusterProvider<AzureCluster> {
 
   private Map<String, AzureServerGroupDescription> translateServerGroups(Collection<CacheData> serverGroupData) {
     serverGroupData.collectEntries { serverGroupEntry ->
-      def serverGroup = objectMapper.convertValue(serverGroupEntry.attributes.serverGroup, AzureServerGroupDescription)
-      def instances = resolveRelationshipData(serverGroupEntry, AZURE_INSTANCES.ns)
-      serverGroup.instances = translateInstances(instances)
+      def serverGroup = translateServerGroup(serverGroupEntry)
       [(serverGroupEntry.id): serverGroup]
     }
+  }
+
+  private AzureServerGroupDescription translateServerGroup(CacheData serverGroupData) {
+    def serverGroup = objectMapper.convertValue(serverGroupData.attributes.serverGroup, AzureServerGroupDescription)
+    def instances = resolveRelationshipData(serverGroupData, AZURE_INSTANCES.ns)
+    serverGroup.instances = translateInstances(instances)
+    serverGroup
   }
 
   private static Set<AzureInstance> translateInstances(Collection<CacheData> instanceData) {
