@@ -1,6 +1,6 @@
 'use strict';
 
-fdescribe('Component: metricAlarmChart', function () {
+describe('Component: metricAlarmChart', function () {
 
   var $ctrl, $scope, cloudMetricsReader, rx, $q;
 

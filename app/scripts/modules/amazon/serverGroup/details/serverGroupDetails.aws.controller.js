@@ -27,6 +27,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('./rollback/rollbackServerGroup.controller'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
   require('../serverGroup.transformer.js'),
+  require('./scalingPolicy/addScalingPolicyButton.component.js'),
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, app, serverGroup, InsightFilterStateModel,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $uibModal,
