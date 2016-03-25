@@ -71,20 +71,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titan.cloneServ
     function configureCommand() {
       titanServerGroupConfigurationService.configureCommand(serverGroupCommand).then(function () {
         $scope.state.loaded = true;
-        initializeWizardState();
       });
-    }
-
-    function initializeWizardState() {
-      var mode = serverGroupCommand.viewState.mode;
-      if (mode === 'clone' || mode === 'editPipeline') {
-        if ($scope.command.image || $scope.command.viewState.disableImageSelection) {
-          v2modalWizardService.markComplete('location');
-        }
-        v2modalWizardService.markComplete('resources');
-        v2modalWizardService.markComplete('capacity');
-        v2modalWizardService.markComplete('parameters');
-      }
     }
 
     this.isValid = function () {
