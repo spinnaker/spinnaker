@@ -48,10 +48,6 @@ describe('Controller: azureCreateLoadBalancerCtrl', function () {
     $http.when('GET', '/subnets').respond([]);
 
     $http.expectGET('/loadBalancers?provider=azure');
-    $http.expectGET('/securityGroups');
-    $http.expectGET('/credentials');
-    $http.expectGET('/credentials/azure-test');
-    $http.expectGET('/subnets');
     $http.flush();
   });
 
