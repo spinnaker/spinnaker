@@ -24,6 +24,8 @@ class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
   String securityGroups
   String dnsName
   String cluster
+  String serverGroup
+  String appName
   List<AzureLoadBalancerProbe> probes = []
   List<AzureLoadBalancingRule> loadBalancingRules = []
   List<AzureLoadBalancerInboundNATRule> inboundNATRules = []

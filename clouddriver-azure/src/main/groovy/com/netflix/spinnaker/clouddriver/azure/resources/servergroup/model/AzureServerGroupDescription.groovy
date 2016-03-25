@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model
 
 import com.microsoft.azure.management.compute.models.VirtualMachineScaleSet
-import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.azure.resources.common.AzureResourceOpsDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.securitygroup.model.AzureSecurityGroup
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureNamedImage
@@ -36,13 +36,9 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription {
   String provisioningState
   String application // TODO standardize between this and appName
   String clusterName
-
-  static class AzureImage {
-    String publisher
-    String offer
-    String sku
-    String version
-  }
+  String securityGroupName
+  String subnetId
+  List<String> storageAccountNames
 
   static class AzureScaleSetSku {
     String name
@@ -66,7 +62,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription {
 
   // For now, same thing as identifier
   String getClusterName() {
-    getIdentifier()
+    clusterName ?: Names.parseName(name).cluster
   }
 
   String getIdentifier() {
@@ -76,14 +72,28 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription {
   static AzureServerGroupDescription build(VirtualMachineScaleSet scaleSet) {
     def azureSG = new AzureServerGroupDescription()
     azureSG.name = scaleSet.name
-    azureSG.appName = AzureUtilities.getAppNameFromResourceId(scaleSet.id)
+    def parsedName = Names.parseName(scaleSet.name)
     // Get the values from the tags if they exist
     azureSG.tags = scaleSet.tags ? scaleSet.tags : [:]
-    azureSG.stack = scaleSet.tags["stack"] ? scaleSet.tags["stack"] : ""
-    azureSG.detail = scaleSet.tags["detail"] ? scaleSet.tags["detail"] : ""
-    azureSG.application = scaleSet.tags["appName"] ? scaleSet.tags["appName"] : azureSG.appName
-    azureSG.clusterName = scaleSet.tags["cluster"] ?
-      scaleSet.tags["cluster"] : azureSG.getClusterName()
+    // favor tag settings then Frigga name parser
+    azureSG.appName = scaleSet.tags?.appName ?: parsedName.app
+    azureSG.stack = scaleSet.tags?.stack ?: parsedName.stack
+    azureSG.detail = scaleSet.tags?.detail ?: parsedName.detail
+    azureSG.application = azureSG.appName
+    azureSG.clusterName = scaleSet.tags?.cluster ?: parsedName.cluster
+    azureSG.securityGroupName = scaleSet.tags?.securityGroupName
+    azureSG.loadBalancerName = scaleSet.tags?.loadBalancerName
+    azureSG.subnetId = scaleSet.tags?.subnetId
+    azureSG.image = new AzureNamedImage( isCustom:  scaleSet.tags?.customImage)
+    if (!azureSG.image.isCustom) {
+      // Azure server group which was created using Azure Market Store images will have a number of storage accounts
+      //   that were created at the time the server group was created; these storage account should be in saved in the
+      //   tags map under storrageAccountNames key as a comma separated list of strings
+      azureSG.storageAccountNames = new ArrayList<String>()
+      String storageNames = scaleSet.tags?.storageAccountNames
+
+      if (storageNames) azureSG.storageAccountNames.addAll(storageNames.split(","))
+    }
 
     azureSG.region = scaleSet.location
 

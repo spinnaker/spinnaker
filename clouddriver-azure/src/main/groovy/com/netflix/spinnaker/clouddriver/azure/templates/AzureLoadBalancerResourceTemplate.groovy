@@ -95,7 +95,13 @@ class AzureLoadBalancerResourceTemplate {
       name = "[variables('loadBalancerName')]"
       type = "Microsoft.Network/loadBalancers"
       location = "[parameters('location')]"
-      tags = ["appName":description.appName, "stack":description.stack, "detail":description.detail]
+      tags = [:]
+      tags.appName = description.appName
+      tags.stack = description.stack
+      tags.detail = description.detail
+      if (description.cluster) tags.cluster = description.cluster
+      if (description.serverGroup) tags.serverGroup = description.serverGroup
+      if (description.vnet) tags.vnet = description.vnet
 
       properties = new LoadBalancerProperties(description)
     }

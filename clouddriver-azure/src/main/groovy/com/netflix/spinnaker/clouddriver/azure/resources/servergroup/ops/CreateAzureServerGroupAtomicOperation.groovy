@@ -100,6 +100,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
       lbDescription.credentials = description.credentials
       lbDescription.appName = description.application
       lbDescription.cluster = description.clusterName
+      lbDescription.serverGroup = description.name
       lbDescription.stack = description.stack
       lbDescription.detail = description.detail
 
@@ -112,6 +113,8 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
       errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name)
 
       description.loadBalancerName = lbDescription.loadBalancerName
+      description.securityGroupName = description.securityGroup?.name
+      description.subnetId = subnetId
       task.updateStatus(BASE_PHASE, "Deploying server group")
       deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(description.credentials,
         AzureServerGroupResourceTemplate.getTemplate(description),

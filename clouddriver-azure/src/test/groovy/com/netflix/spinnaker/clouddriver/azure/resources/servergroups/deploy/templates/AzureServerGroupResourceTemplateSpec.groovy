@@ -110,17 +110,19 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "version" : "latest"
     },
     "imageReference" : "[variables('osType')]",
-    "uniqueStorageNameArray" : [ "[concat(uniqueString(concat(resourceGroup().id, subscription().id, 'azuremasmst1d11', variables('newStorageAccountSuffix'), '0')))]" ]
+    "uniqueStorageNameArray" : [ "[concat(uniqueString(concat(resourceGroup().id, subscription().id, 'azuremasmst1d11', '0')), variables('newStorageAccountSuffix'))]" ]
   },
   "resources" : [ {
     "apiVersion" : "2015-06-15",
-    "name" : "[concat(variables('uniqueStorageNameArray')[copyIndex()], variables('newStorageAccountSuffix'))]",
+    "name" : "[concat(variables('uniqueStorageNameArray')[copyIndex()])]",
     "type" : "Microsoft.Storage/storageAccounts",
     "location" : "[parameters('location')]",
     "tags" : {
       "appName" : "azureMASM",
       "stack" : "st1",
-      "detail" : "d11"
+      "detail" : "d11",
+      "cluster" : "azureMASM-st1-d11",
+      "serverGroupName" : "azureMASM-st1-d11"
     },
     "copy" : {
       "name" : "storageLoop",
@@ -138,9 +140,12 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "appName" : "azureMASM",
       "stack" : "st1",
       "detail" : "d11",
-      "cluster" : "azureMASM-st1-d11"
+      "cluster" : "azureMASM-st1-d11",
+      "loadBalancerName" : "azureMASM-st1-d11",
+      "imageIsCustom" : "false",
+      "storageAccountNames" : "[concat(uniqueString(concat(resourceGroup().id, subscription().id, 'azuremasmst1d11', '0')), variables('newStorageAccountSuffix'))]"
     },
-    "dependsOn" : [ "[concat('Microsoft.Storage/storageAccounts/', variables('uniqueStorageNameArray')[0], variables('newStorageAccountSuffix'))]" ],
+    "dependsOn" : [ "[concat('Microsoft.Storage/storageAccounts/', variables('uniqueStorageNameArray')[0])]" ],
     "sku" : {
       "name" : "Standard_A1",
       "tier" : "Standard",
@@ -156,7 +161,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
             "name" : "osdisk-azureMASM-st1-d11",
             "caching" : "ReadOnly",
             "createOption" : "FromImage",
-            "vhdContainers" : [ "[concat('https://', variables('uniqueStorageNameArray')[0], variables('newStorageAccountSuffix'), '.blob.core.windows.net/', variables('vhdContainerName'))]" ]
+            "vhdContainers" : [ "[concat('https://', variables('uniqueStorageNameArray')[0], '.blob.core.windows.net/', variables('vhdContainerName'))]" ]
           },
           "imageReference" : "[variables('imageReference')]"
         },
@@ -216,7 +221,9 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "appName" : "azureMASM",
       "stack" : "st1",
       "detail" : "d11",
-      "cluster" : "azureMASM-st1-d11"
+      "cluster" : "azureMASM-st1-d11",
+      "loadBalancerName" : "azureMASM-st1-d11",
+      "imageIsCustom" : "true"
     },
     "dependsOn" : [ ],
     "sku" : {

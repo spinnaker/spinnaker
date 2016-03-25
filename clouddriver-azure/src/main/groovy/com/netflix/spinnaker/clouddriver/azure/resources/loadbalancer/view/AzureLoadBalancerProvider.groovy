@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancer
 import com.netflix.spinnaker.clouddriver.azure.resources.loadbalancer.model.AzureLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -76,7 +77,8 @@ class AzureLoadBalancerProvider implements LoadBalancerProvider<AzureLoadBalance
       account: parts.account?: "none",
       name: loadBalancerDescription.loadBalancerName,
       region: loadBalancerDescription.region,
-      vnet: loadBalancerDescription.vnet?: "none"
+      vnet: loadBalancerDescription.vnet?: "vnet-unassigned",
+      serverGroups: [new LoadBalancerServerGroup(name: loadBalancerDescription.serverGroup, isDisabled: false, detachedInstances: [], instances: [])]
     )
   }
 
