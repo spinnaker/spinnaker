@@ -165,7 +165,8 @@ class FindImageFromClusterTaskSpec extends Specification {
     ['foo-120.2-h180.ffea4c7-x86_64-20160218235358-trusty-pv-ebs']  | ['foo-120.2-h180.ffea4c7-x86_64-20160218235358-trusty-pv-ebs'] as Set
     ['foo-120.2-h180.ffea4c7-x86_64-20160218235358-trusty-pv-ebs1'] | ['foo-120.2-h180.ffea4c7-x86_64-20160218235358-trusty-pv-ebs'] as Set
     ['foo-120.2-h180.ffea4c7-x86_64-20160218235358-trusty-pv-s3']   | ['foo-120.2-h180.ffea4c7-x86_64-20160218235358-trusty-pv-s3'] as Set
-    ['foo-120.2-h180.ffea4c7-x86_64-20160218235358-trusty-pv-s4']   | [] as Set
+    ['foo-120.2-h180.ffea4c7-x86_64-20160218235358-trusty-pv-s4']   | ['foo-120.2-h180.ffea4c7-x86_64-20160218235358-trusty-pv-s4'] as Set
+    ['foo-x86_64-201603232351']                                     | ['foo-x86_64-201603232351'] as Set
   }
 
   def "should resolve images via find if not all regions exist in source server group"() {

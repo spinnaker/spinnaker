@@ -241,7 +241,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     def nameCleaner = ~/(.*(?:-ebs|-s3)){1}.*/
     imageNames.findResults {
       def matcher = nameCleaner.matcher(it)
-      matcher.matches() ? matcher.group(1) : null
+      matcher.matches() ? matcher.group(1) : it
     }.toSet()
   }
 }
