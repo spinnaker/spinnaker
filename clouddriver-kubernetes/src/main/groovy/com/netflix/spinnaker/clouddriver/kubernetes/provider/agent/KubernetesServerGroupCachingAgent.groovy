@@ -231,13 +231,13 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
   private static void cache(Map<String, List<CacheData>> cacheResults, String namespace, Map<String, CacheData> cacheDataById) {
     cacheResults[namespace].each {
       def existingCacheData = cacheDataById[it.id]
-      if (!existingCacheData) {
-        cacheDataById[it.id] = it
-      } else {
+      if (existingCacheData) {
         existingCacheData.attributes.putAll(it.attributes)
         it.relationships.each { String relationshipName, Collection<String> relationships ->
           existingCacheData.relationships[relationshipName].addAll(relationships)
         }
+      } else {
+        cacheDataById[it.id] = it
       }
     }
   }

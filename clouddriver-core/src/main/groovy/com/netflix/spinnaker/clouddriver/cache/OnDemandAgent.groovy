@@ -25,14 +25,8 @@ interface OnDemandAgent {
 
   String getOnDemandAgentType()
 
+  // TODO(ttomsu): This seems like it should go in a different interface.
   OnDemandMetricsSupport getMetricsSupport()
-
-  static class OnDemandResult {
-    String sourceAgentType
-    Collection<String> authoritativeTypes = []
-    CacheResult cacheResult
-    Map<String, Collection<String>> evictions = [:]
-  }
 
   enum OnDemandType {
     ServerGroup,
@@ -49,6 +43,13 @@ interface OnDemandAgent {
   }
 
   boolean handles(OnDemandType type, String cloudProvider)
+
+  static class OnDemandResult {
+    String sourceAgentType
+    Collection<String> authoritativeTypes = []
+    CacheResult cacheResult
+    Map<String, Collection<String>> evictions = [:]
+  }
 
   OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data)
 

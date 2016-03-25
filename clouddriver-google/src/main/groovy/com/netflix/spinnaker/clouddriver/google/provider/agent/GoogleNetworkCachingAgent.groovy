@@ -56,12 +56,12 @@ class GoogleNetworkCachingAgent extends AbstractGoogleCachingAgent {
     networkList.each { Network network ->
       def networkKey = Keys.getNetworkKey(network.getName(), "global", accountName)
 
-      cacheResultBuilder.namespace(NETWORKS.ns).get(networkKey).with {
+      cacheResultBuilder.namespace(NETWORKS.ns).keep(networkKey).with {
         attributes.network = network
       }
     }
 
-    log.info("Caching ${cacheResultBuilder.namespace(NETWORKS.ns).size()} items in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(NETWORKS.ns).keepSize()} items in ${agentType}")
 
     cacheResultBuilder.build()
   }

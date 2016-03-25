@@ -104,18 +104,18 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent {
         Keys.getInstanceKey(accountName, loadBalancer.region, health.instanceName)
       }
 
-      cacheResultBuilder.namespace(LOAD_BALANCERS.ns).get(loadBalancerKey).with {
+      cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keep(loadBalancerKey).with {
         attributes = objectMapper.convertValue(loadBalancer, ATTRIBUTES)
       }
       instanceKeys.each { String instanceKey ->
-        cacheResultBuilder.namespace(INSTANCES.ns).get(instanceKey).with {
+        cacheResultBuilder.namespace(INSTANCES.ns).keep(instanceKey).with {
           relationships[LOAD_BALANCERS.ns].add(loadBalancerKey)
         }
       }
     }
 
-    log.info "Caching ${cacheResultBuilder.namespace(LOAD_BALANCERS.ns).size()} load balancers in ${agentType}"
-    log.info "Caching ${cacheResultBuilder.namespace(INSTANCES.ns).size()} instance relationsihps in ${agentType}"
+    log.info "Caching ${cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keepSize()} load balancers in ${agentType}"
+    log.info "Caching ${cacheResultBuilder.namespace(INSTANCES.ns).keepSize()} instance relationsihps in ${agentType}"
 
     cacheResultBuilder.build()
   }

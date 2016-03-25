@@ -24,11 +24,11 @@ class CacheResultBuilderSpec extends Specification {
     given:
       CacheResultBuilder crb = new CacheResultBuilder()
 
-      crb.namespace("applications").get("appKey").with {
+      crb.namespace("applications").keep("appKey").with {
         attributes.santa = "clause"
         relationships["clusters"].add("clusterKey")
       }
-      crb.namespace("clusters").get("clusterKey").with {
+      crb.namespace("clusters").keep("clusterKey").with {
         attributes.xmen = "wolverine"
         relationships["foo"].add("bar")
       }

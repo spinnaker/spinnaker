@@ -70,7 +70,7 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
       1 * computeMock.firewalls() >> firewallsMock
       1 * firewallsMock.list(PROJECT_NAME) >> firewallsListMock
       1 * firewallsListMock.execute() >> firewallListReal
-      with(cache.cacheResults.get(Keys.Namespace.SECURITY_GROUPS.ns)) { List<CacheData> cd ->
+      with(cache.cacheResults.get(Keys.Namespace.SECURITY_GROUPS.ns)) { Collection<CacheData> cd ->
         cd.size() == 2
         cd.id.containsAll([keyGroupA, keyGroupB])
       }

@@ -28,15 +28,15 @@ import com.google.api.services.compute.ComputeScopes;
 import com.google.api.services.compute.model.Region;
 import com.google.api.services.compute.model.RegionList;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredentials> {
@@ -54,6 +54,7 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
       this.requiredGroupMembership = requiredGroupMembership == null ? Collections.emptyList() : Collections.unmodifiableList(requiredGroupMembership);
       this.applicationName = applicationName;
       this.credentials = (projectName != null) ? buildCredentials() : null;
+      // TODO(ttomsu): Add support for specifying specific regions, to reduce API calls and making debugging easier.
       this.regionToZonesMap = (credentials != null && credentials.getCompute() != null) ? queryRegions(credentials.getCompute(), projectName) : Collections.emptyMap();
     }
 

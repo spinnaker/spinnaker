@@ -16,11 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.google.model
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter
-import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.annotation.JsonTypeId
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.google.api.services.compute.model.AutoscalingPolicy
 import com.google.api.services.compute.model.InstanceGroupManagerActionsSummary
@@ -35,7 +32,7 @@ class GoogleServerGroup2 {
 
   String name
   String region
-  Set<String> zones = []
+  String zone
   Set<GoogleInstance2> instances = []
   Set health = []
   Map<String, Object> launchConfig = [:]
@@ -67,7 +64,7 @@ class GoogleServerGroup2 {
 
     String name = GoogleServerGroup2.this.name
     String region = GoogleServerGroup2.this.region
-    Set<String> zones = GoogleServerGroup2.this.zones
+    Set<String> zones = [GoogleServerGroup2.this.zone]
     Set<GoogleInstance2.View> instances = GoogleServerGroup2.this.instances.collect { it?.view }
     Map<String, Object> asg = GoogleServerGroup2.this.asg
     Map<String, Object> launchConfig = GoogleServerGroup2.this.launchConfig
