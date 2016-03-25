@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spkr-redis-sentinel
+  namespace: spinnaker
+spec:
+  ports:
+    - port: 26379
+      targetPort: 26379
+  selector:
+    load-balancer-spkr-redis-sentinel: "true"
