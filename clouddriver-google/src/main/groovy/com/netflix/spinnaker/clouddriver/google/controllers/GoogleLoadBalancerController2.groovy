@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.controllers
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.GoogleLoadBalancer2
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -77,6 +78,7 @@ class GoogleLoadBalancerController2 {
                                    createdTime: view.createdTime,
                                    dnsname: view.ipAddress,
                                    ipAddress: view.ipAddress,
+                                   healthCheck: view.healthCheck,
                                    listenerDescriptions: [[
                                        listener: new ListenerDescription(instancePort: view.portRange,
                                                                          loadBalancerPort: view.portRange,
@@ -132,6 +134,7 @@ class GoogleLoadBalancerController2 {
     String dnsname
     String ipAddress
     String loadBalancerName
+    GoogleHealthCheck.View healthCheck
     // TODO(ttomsu): Bizarre nesting of data. Necessary?
     List<Map<String, ListenerDescription>> listenerDescriptions = []
   }

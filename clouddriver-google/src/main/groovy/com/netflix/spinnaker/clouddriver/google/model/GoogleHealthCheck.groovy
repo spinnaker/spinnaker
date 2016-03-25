@@ -37,13 +37,15 @@ class GoogleHealthCheck {
 
   @Canonical
   class View implements Serializable {
-    int checkIntervalSec = checkIntervalSec
-    int timeoutSec = timeoutSec
-    int unhealthyThreshold = unhealthyThreshold
-    int healthyThreshold = healthyThreshold
+    int interval = GoogleHealthCheck.this.checkIntervalSec
+    int timeout = GoogleHealthCheck.this.timeoutSec
+    int unhealthyThreshold = GoogleHealthCheck.this.unhealthyThreshold
+    int healthyThreshold = GoogleHealthCheck.this.healthyThreshold
 
     String getTarget() {
-      port ? "HTTP:${port}${requestPath ?: '/'}" : null
+      GoogleHealthCheck.this.port ?
+          "HTTP:${GoogleHealthCheck.this.port}${GoogleHealthCheck.this.requestPath ?: '/'}" :
+          null
     }
 
   }
