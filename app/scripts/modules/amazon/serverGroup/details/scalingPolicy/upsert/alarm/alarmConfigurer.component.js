@@ -103,7 +103,7 @@ module.exports = angular
         return dimensions.map(d => [d.name, d.value].join(':')).join(',');
       }
 
-      this.metricChanged = () => {
+      this.metricChanged = (forceUpdateStatistics) => {
         if (!this.viewState.metricsLoaded) {
           return;
         }
@@ -119,7 +119,7 @@ module.exports = angular
             alarm.dimensions = selected.dimensions;
             this.updateAvailableMetrics();
           }
-          if (alarmUpdated) {
+          if (alarmUpdated || forceUpdateStatistics) {
             this.alarmUpdated.onNext();
           }
         } else {
@@ -140,6 +140,12 @@ module.exports = angular
 
       this.advancedMode = () => {
         this.viewState.advancedMode = true;
+      };
+
+      this.simpleMode = () => {
+        this.alarm.dimensions = [ { name: 'AutoScalingGroupName', value: this.serverGroup.name }];
+        this.viewState.advancedMode = false;
+        this.updateAvailableMetrics();
       };
 
       function dimensionSorter(a, b) {
@@ -185,7 +191,12 @@ module.exports = angular
       };
 
       this.alarmComparatorChanged = () => {
+        let previousComparatorBound = this.modalViewState.comparatorBound;
         this.modalViewState.comparatorBound = this.alarm.comparisonOperator.indexOf('Greater') === 0 ? 'max' : 'min';
+        if (this.modalViewState.comparatorBound !== previousComparatorBound && this.command.step) {
+          this.command.step.stepAdjustments = [ {scalingAdjustment: 1} ];
+          this.thresholdChanged();
+        }
         this.metricChanged();
       };
 

@@ -22,12 +22,14 @@
         <div ng-if="ctrl.command.simple">
           <div class="row">
             <div class="col-md-10 col-md-offset-1">
-              <p>This is a simple scaling policy. To declare different actions based on the magnitude of the alarm,
-                convert it to a <a href ng-click="ctrl.switchMode()">step policy</a>.</p>
+              <p>
+                This is a simple scaling policy. To declare different actions based on the magnitude of the alarm,
+                <strong>switch to a <a href ng-click="ctrl.switchMode()">step policy</a>.</strong>
+              </p>
             </div>
           </div>
 
-          <aws-simple-policy-action policy="ctrl.command.simple"
+          <aws-simple-policy-action command="ctrl.command"
                                     view-state="ctrl.viewState"></aws-simple-policy-action>
         </div>
         <div ng-if="ctrl.command.step">

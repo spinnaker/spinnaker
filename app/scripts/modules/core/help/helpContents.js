@@ -46,6 +46,10 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'aws.securityGroup.vpc': '<p>The VPC to which this security group will apply.</p>' +
       '<p>If you wish to use VPC but are unsure which VPC to use, the most common one is "Main".</p>' +
       '<p>If you do not wish to use VPC, select "None".</p>',
+    'aws.scalingPolicy.search.restricted': '<p>Resets dimensions to "AutoScalingGroupName: {name of the ASG}" and provides' +
+    ' a simpler, combined input for the namespace and metric name fields.</p>',
+    'aws.scalingPolicy.search.all': '<p>Allows you to edit the dimensions and namespace to find a specific metric for' +
+    ' this alarm.</p>',
     'cf.artifact.repository.options': '<p>You may include {job} and {buildNumber} to dynamically build a path to your artifact.</p>',
     'cluster.search': 'Quickly filter the displayed server groups by the following fields:' +
       '<ul>' +

@@ -23,10 +23,10 @@
             style="vertical-align: top;"
             required
             ng-model="$ctrl.alarm.statistic"
-            ng-change="$ctrl.metricChanged()"
+            ng-change="$ctrl.metricChanged(true)"
             ng-options="stat for stat in $ctrl.statistics">
     </select>
-    <span class="input-label"> of </span>
+    <span class="input-label" style="vertical-align: top; margin-top: 7px"> of </span>
     <div style="display: inline-block; width: 500px" ng-if="$ctrl.viewState.metricsLoaded">
       <select class="form-control input-sm"
               required
@@ -52,8 +52,18 @@
       <a href class="small"
          ng-if="!$ctrl.viewState.advancedMode"
          ng-click="$ctrl.advancedMode()">
-        Search all metrics
+        Search all metrics <help-field key="aws.scalingPolicy.search.all"></help-field>
       </a>
+      <span class="input-label" ng-if="$ctrl.viewState.advancedMode && $ctrl.metrics.length === 0">
+        No metrics found for selected namespace + dimensions
+      </span>
+      <div style="padding-left: 5px;">
+        <a href class="small"
+           ng-if="$ctrl.viewState.advancedMode"
+           ng-click="$ctrl.simpleMode()">
+          Only show metrics for this auto scaling group <help-field key="aws.scalingPolicy.search.restricted"></help-field>
+        </a>
+      </div>
       <div ng-if="$ctrl.viewState.advancedMode">
         <dimensions-editor alarm="$ctrl.alarm"
                            server-group="$ctrl.serverGroup"

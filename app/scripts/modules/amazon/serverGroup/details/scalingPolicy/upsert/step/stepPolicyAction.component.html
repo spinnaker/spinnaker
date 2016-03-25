@@ -7,12 +7,12 @@
             ng-model="$ctrl.viewState.operator"
             ng-change="$ctrl.operatorChanged()"
             ng-options="adjustment for adjustment in $ctrl.availableActions"></select>
-              <span style="width: 75px; text-transform: capitalize"
-                    class="form-control-static select-placeholder"
-                    ng-bind="$ctrl.viewState.operator"
-                    ng-if="!$first"></span>
+    <span style="width: 75px; text-transform: capitalize"
+          class="form-control-static select-placeholder"
+          ng-bind="$ctrl.viewState.operator"
+          ng-if="!$first"></span>
 
-    <input type="number" min="0"
+    <input type="number" min="1"
            class="form-control input-sm"
            required
            style="width: 65px"
@@ -28,16 +28,19 @@
     <span style="width: 120px" class="form-control-static select-placeholder"
           ng-if="!$first" ng-bind="$ctrl.viewState.adjustmentType"></span>
     <span class="input-label">
-    when
+      when <strong ng-bind="$ctrl.command.alarm.metricName"></strong>
     </span>
-    <span ng-if="$ctrl.viewState.comparatorBound === 'max'">
 
-      <span class="input-label text-right"
-            ng-bind="step.metricIntervalLowerBound"
-            style="width: 65px"></span>
-      <span class="input-label">&le;</span>
-      <span class="input-label" ng-bind="$ctrl.command.alarm.metricName"></span>
-      <span is-visible="!$last" class="input-label">&lt;</span>
+    <span ng-if="$ctrl.viewState.comparatorBound === 'max'">
+      <span class="input-label" ng-if="!$last">
+        is between
+      </span>
+      <span class="input-label" ng-bind="step.metricIntervalLowerBound"></span>
+      <span class="input-label" ng-if="!$last">and</span>
+      <span class="input-label" ng-if="$last">
+        is greater than
+      </span>
+
       <input type="number"
              ng-if="!$last"
              class="form-control input-sm"
@@ -46,18 +49,12 @@
              required
              ng-min="step.metricIntervalLowerBound"
              style="width: 85px"/>
-      <span style="width: 65px"
-            class="select-placeholder"
-            ng-if="$last"></span>
     </span>
 
     <span ng-if="$ctrl.viewState.comparatorBound === 'min'">
-      <span class="input-label text-right"
-            ng-bind="step.metricIntervalUpperBound"
-            style="width: 65px"></span>
-      <span class="input-label">&ge;</span>
-      <span class="input-label" ng-bind="$ctrl.command.alarm.metricName"></span>
-      <span is-visible="!$last" class="input-label">&gt;</span>
+      <span class="input-label" ng-if="!$last">
+        is between
+      </span>
       <input type="number"
              ng-if="!$last"
              class="form-control input-sm"
@@ -66,7 +63,14 @@
              ng-max="step.metricIntervalUpperBound"
              ng-change="$ctrl.boundsChanged()"
              style="width: 85px"/>
+      <span class="input-label" ng-if="!$last">and</span>
+      <span class="input-label" ng-if="$last">
+        is less than
+      </span>
+
+      <span class="input-label text-right" ng-bind="step.metricIntervalUpperBound"></span>
     </span>
+
     <span ng-if="!$first" class="pull-right" style="padding: 5px 0;">
       <a href ng-click="$ctrl.removeStep($index)">
         <span class="glyphicon glyphicon-trash"></span>
@@ -78,7 +82,7 @@
   <div class="col-md-10 col-md-offset-1">
     <button class="btn btn-block btn-sm add-new" ng-click="$ctrl.addStep(step)">
       <span class="glyphicon glyphicon-plus-sign"></span>
-      Add action
+      Add step
     </button>
   </div>
 </div>
