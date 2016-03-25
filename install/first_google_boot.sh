@@ -81,7 +81,7 @@ function clear_metadata_to_file() {
   local path="$2"
   local value=$(get_instance_metadata_attribute "$key")
 
-  if [[ "$value" != "" ]]; then
+  if [[ $value = *[![:space:]]* ]]; then
      echo "$value" > $path
      chown spinnaker:spinnaker $path
      clear_instance_metadata "$key"
@@ -89,6 +89,9 @@ function clear_metadata_to_file() {
        die "Could not clear metadata from $key"
      fi
      return 0
+  elif [[ $value != "" ]]; then
+     # Clear key anyway, but act as if it werent there.
+     clear_instance_metadata "$key"
   fi
 
   return 1
