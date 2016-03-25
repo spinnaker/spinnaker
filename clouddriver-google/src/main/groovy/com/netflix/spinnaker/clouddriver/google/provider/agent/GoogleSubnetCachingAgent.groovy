@@ -68,12 +68,12 @@ class GoogleSubnetCachingAgent extends AbstractGoogleCachingAgent {
     subnetList.each { Subnetwork subnet ->
       def subnetKey = Keys.getSubnetKey(subnet.getName(), region, accountName)
 
-      cacheResultBuilder.namespace(SUBNETS.ns).get(subnetKey).with {
+      cacheResultBuilder.namespace(SUBNETS.ns).keep(subnetKey).with {
         attributes.subnet = subnet
       }
     }
 
-    log.info("Caching ${cacheResultBuilder.namespace(SUBNETS.ns).size()} items in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(SUBNETS.ns).keepSize()} items in ${agentType}")
 
     cacheResultBuilder.build()
   }

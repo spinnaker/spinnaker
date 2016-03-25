@@ -70,13 +70,11 @@ class CacheResultBuilder {
 
     private List<String> toEvict = []
 
-    // TODO(ttomsu): Rename to "keep"
-    CacheDataBuilder get(String key) {
+    CacheDataBuilder keep(String key) {
       toKeep.get(key)
     }
 
-    // TODO(ttomsu): Rename to "keepSize", add "evictSize"
-    int size() {
+    int keepSize() {
       toKeep.size()
     }
 

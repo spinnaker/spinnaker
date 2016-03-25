@@ -115,12 +115,12 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
                                                       "global",
                                                       accountName)
 
-      cacheResultBuilder.namespace(SECURITY_GROUPS.ns).get(securityGroupKey).with {
+      cacheResultBuilder.namespace(SECURITY_GROUPS.ns).keep(securityGroupKey).with {
         attributes = [firewall: firewall]
       }
     }
 
-    log.info("Caching ${cacheResultBuilder.namespace(SECURITY_GROUPS.ns).size()} security groups in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(SECURITY_GROUPS.ns).keepSize()} security groups in ${agentType}")
 
     cacheResultBuilder.build()
   }

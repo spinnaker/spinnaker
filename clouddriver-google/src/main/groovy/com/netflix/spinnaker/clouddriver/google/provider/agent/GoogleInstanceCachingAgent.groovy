@@ -69,12 +69,12 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
 
     googleInstances.each { GoogleInstance2 instance ->
       def instanceKey = Keys.getInstanceKey(accountName, instance.region, instance.name)
-      cacheResultBuilder.namespace(INSTANCES.ns).get(instanceKey).with {
+      cacheResultBuilder.namespace(INSTANCES.ns).keep(instanceKey).with {
         attributes = objectMapper.convertValue(instance, ATTRIBUTES)
       }
     }
 
-    log.info("Caching ${cacheResultBuilder.namespace(INSTANCES.ns).size()} instances in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(INSTANCES.ns).keepSize()} instances in ${agentType}")
 
     cacheResultBuilder.build()
   }

@@ -247,12 +247,12 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
         return
       }
 
-      cacheResultBuilder.namespace(APPLICATIONS.ns).get(appKey).with {
+      cacheResultBuilder.namespace(APPLICATIONS.ns).keep(appKey).with {
         attributes.name = applicationName
         relationships[CLUSTERS.ns].add(clusterKey)
       }
 
-      cacheResultBuilder.namespace(CLUSTERS.ns).get(clusterKey).with {
+      cacheResultBuilder.namespace(CLUSTERS.ns).keep(clusterKey).with {
         attributes.name = clusterName
         attributes.accountName = accountName
         relationships[APPLICATIONS.ns].add(appKey)
@@ -262,7 +262,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
       serverGroup.instances.each { GoogleInstance2 partialInstance ->
         def instanceKey = Keys.getInstanceKey(accountName, serverGroup.region, partialInstance.name)
         instanceKeys << instanceKey
-        cacheResultBuilder.namespace(INSTANCES.ns).get(instanceKey).relationships[SERVER_GROUPS.ns].add(serverGroupKey)
+        cacheResultBuilder.namespace(INSTANCES.ns).keep(instanceKey).relationships[SERVER_GROUPS.ns].add(serverGroupKey)
       }
       serverGroup.instances.clear()
 
@@ -272,7 +272,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
                                                     loadBalancerName)
       }
 
-      cacheResultBuilder.namespace(SERVER_GROUPS.ns).get(serverGroupKey).with {
+      cacheResultBuilder.namespace(SERVER_GROUPS.ns).keep(serverGroupKey).with {
         attributes = objectMapper.convertValue(serverGroup, ATTRIBUTES)
         relationships[APPLICATIONS.ns].add(appKey)
         relationships[CLUSTERS.ns].add(clusterKey)
@@ -281,17 +281,17 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
       }
 
       loadBalancerKeys.each { String loadBalancerKey ->
-        cacheResultBuilder.namespace(LOAD_BALANCERS.ns).get(loadBalancerKey).with {
+        cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keep(loadBalancerKey).with {
           relationships[SERVER_GROUPS.ns].add(serverGroupKey)
         }
       }
     }
 
-    log.info("Caching ${cacheResultBuilder.namespace(APPLICATIONS.ns).size()} applications in ${agentType}")
-    log.info("Caching ${cacheResultBuilder.namespace(CLUSTERS.ns).size()} clusters in ${agentType}")
-    log.info("Caching ${cacheResultBuilder.namespace(SERVER_GROUPS.ns).size()} server groups in ${agentType}")
-    log.info("Caching ${cacheResultBuilder.namespace(INSTANCES.ns).size()} instance relationships in ${agentType}")
-    log.info("Caching ${cacheResultBuilder.namespace(LOAD_BALANCERS.ns).size()} load balancer relationships in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(APPLICATIONS.ns).keepSize()} applications in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(CLUSTERS.ns).keepSize()} clusters in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(SERVER_GROUPS.ns).keepSize()} server groups in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(INSTANCES.ns).keepSize()} instance relationships in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keepSize()} load balancer relationships in ${agentType}")
     log.info("Caching ${cacheResultBuilder.onDemand.toKeep.size()} onDemand entries in ${agentType}")
 
     cacheResultBuilder.build()
@@ -310,7 +310,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
 
     onDemandData.each { String namespace, List<CacheData> cacheDatas ->
       cacheDatas.each { CacheData cacheData ->
-        cacheResultBuilder.namespace(namespace).get(cacheData.id).with {
+        cacheResultBuilder.namespace(namespace).keep(cacheData.id).with {
           attributes = cacheData.attributes
           relationships = cacheData.relationships
         }

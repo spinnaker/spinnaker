@@ -92,12 +92,12 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
     imageList.each { Image image ->
       def imageKey = Keys.getImageKey(accountName, image.getName())
 
-      cacheResultBuilder.namespace(IMAGES.ns).get(imageKey).with {
+      cacheResultBuilder.namespace(IMAGES.ns).keep(imageKey).with {
         attributes.image = image
       }
     }
 
-    log.info("Caching ${cacheResultBuilder.namespace(IMAGES.ns).size()} items in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(IMAGES.ns).keepSize()} items in ${agentType}")
 
     cacheResultBuilder.build()
   }
