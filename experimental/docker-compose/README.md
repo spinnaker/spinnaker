@@ -25,6 +25,8 @@ This is an experimental integration of Spinnaker and Docker Compose using docker
 3. Run ```DOCKER_IP=`docker-machine ip default` docker-compose up -d```, this will pull all the images needed to run Spinnaker from Docker Hub.
 4. You should see all the containers for your microservice come up, one by one in Kitematic.
 
+Note ( if you're running the docker app, you can replace any instance of DOCKER_IP in this document with DOCKER_IP=docker.local ) 
+
 ## Using Spinnaker locally
 
 Under Kitematic, click on **'deck' -> settings -> ports**. Click on the link to see Spinnaker in action.
