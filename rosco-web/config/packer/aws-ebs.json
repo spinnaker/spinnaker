@@ -27,6 +27,7 @@
     "vpc_id": "{{user `aws_vpc_id`}}",
     "region": "{{user `aws_region`}}",
     "ssh_username": "{{user `aws_ssh_username`}}",
+    "ssh_pty": true,
     "instance_type": "{{user `aws_instance_type`}}",
     "source_ami": "{{user `aws_source_ami`}}",
     "ami_name": "{{user `aws_target_ami`}}",
