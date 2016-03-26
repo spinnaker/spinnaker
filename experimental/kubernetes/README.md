@@ -1,193 +1,108 @@
 # Spinnaker on Kubernetes
 
-This is an experimental example of how to run Spinnaker on a Kubernetes cluster using docker images
-of Spinnaker components.
+> *NOTE:* This is not intended for production use, as both Redis and Cassandra
+> are backed by memory currently, and are so far only stable in single node
+> configurations. Both of these issues should be fixed soon, however.
 
-It requires you to have the [Google Cloud SDK](https://cloud.google.com/sdk/#Quick_Start) installed with the `kubectl` component
+This guide will walk you through deploying Spinnaker to a running Kubernetes 
+cluster. The steps below assume that you will be using that Spinnaker installation 
+to manage and deploy other applications to that same Kubernetes cluster. 
+If you want to run Spinnaker on Kubernetes but deploy to another platform, 
+read [how to configure](http://www.spinnaker.io/docs/target-deployment-configuration) 
+it first.
 
-  ```
-  $ gcloud components install kubectl
-  ```
+## If You're Feeling Paranoid...
 
-## Warning
-This setup exposes the Spinnaker UI (and therefore, control over your GCE VM environments) to the world, unprotected, on a public IP address. It is not recommended to leave this exposed without other restrictions, such as authentication and/or source IP address filtering.
+This setup relies on a few Docker images that you can build yourself if you
+don't trust the ones I provide. 
 
-## Limitations
+1. `gcr.io/google-samples/cassandra:v8` can be rebuilt from
+   [here](https://github.com/kubernetes/kubernetes/tree/master/examples/cassandra/image).
 
-Both storage mechanisms (Cassandra and Redis) are mostly out-of-the-box, which is likely nowhere
-near production grade.
+2. `gcr.io/kubernetes-spinnaker/cassandra-keys:v2` can be rebuilt from
+   `./images/cassandra`.
 
-## TODOs
+3. `gcr.io/kubernetes-spinnaker/redis-cluster:v2` can be rebuilt from
+   `./images/redis`.
 
-1. Cassandra deployment options:
-    1. Create own Dockerfile that executes the keyspace creation scripts (how?).
-    1. Use embedded/in-memory Cassandra (like docker-compose deployment)
-    1. Remove Cassandra dependency altogether
-1. Add instructions for making a persistent disk (PD) for the configuration. This makes >1 node much
- easier to configure.
+4. `quay.io/spinnaker/PROJECT_NAME:latest` can be rebuilt at head of
+   https://github.com/spinnaker/PROJECT_NAME
 
+## Prerequisites
 
-# Instructions
+Make sure you have a running Kubernetes cluster, which is explained in more
+detail [here](http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-kubernetes-cluster-setup).
+The key takeaway is having a kubeconfig file sitting in `~/.kube/config` that
+can authenticate with the cluster you want to deploy Spinnaker to. 
+Once that is all squared away, make sure that running `$ kubectl config
+current-context` refers to the cluster you want to have Spinnaker running in.
 
-1. (Optional) Set the default zone and project. All `gcloud` commands below will require the `--zone`
-parameter if you skip this step.
+Next, in the editor of your choice, open up `./config/clouddriver.yml`, and
+examine the `dockerRegistry` subsection. You'll find each Spinnaker image
+listed here, which will act as your available list of deployable images. Feel
+free to make any changes to this section, but if you want to deploy these
+listed images, you'll need to first make sure you have a [quay.io](https://quay.io)
+account, and that its authentication details are filled in the 
+respective `username`, `password`, and `email` fields. If you want to use an
+entirely different provider or set of images, update the `address` and
+`repositories` fields accordingly.
 
-  ```
-  $ gcloud config set compute/zone us-central1-f
-  ```
+If you feel like changing the value of `kubernetes.accounts[0].name`, make sure it's reflected in
+`./config/settings.js` under `providers.kubernetes.defaults.account` (this way
+your account name is always prepopulated).
 
-
-## Cluster Creation
-
-1. Create a new Kubernetes cluster running on Google Container Engine. This tutorial does a lot of
-copying files to the node, so for simplicity, we will only use 1 host.
-
-  ```
-  $ gcloud container clusters create my-spinnaker-on-kubernetes --num-nodes 1 --scopes storage-rw,compute-rw --machine-type n1-standard-4
-  ```
-
-1. Get the name of the node in a variable for convenience.
-  ```
-  $ MY_GKE_NODE=`kubectl get nodes -o go-template='{{ (index .items 0).metadata.name }}'`
-  ```
-
-
-## Spinnaker Configuration
-
-Spinnaker needs the set of [configuration files](../../config) to be available to each component. We will use the [hostPath](http://kubernetes.io/v1.1/docs/user-guide/volumes.html#hostpath) method to expose a local directory on the node to each container. We must first get these files onto the node. 
-
-1. Create a directory on your cluster node to store the configuration.
-
-  ```
-  $ gcloud compute ssh root@$MY_GKE_NODE 'mkdir -p /root/.spinnaker'
-  ```
-
-1. Copy the contents of the `../../config` directory to the node.
-
-  ```
-  $ gcloud compute copy-files ../../config root@$MY_GKE_NODE:/root/.spinnaker
-  ```
-
-1. Edit the [spinnaker-local.yml](spinnaker-local.yml) file in this directory to include your GCP project name.
-
-  > **Note**: This file is mostly the same as [the default](../../config/default-spinnaker-local.yml)
-  spinnaker-local.yml file, but uses hostnames that will be assigned when the Kubernetes Services are created.
-
-1. Copy the edited `spinnaker-local.yml` file to the config directory on the node.
-
-  ```
-  $ gcloud compute copy-files ./spinnaker-local.yml root@$MY_GKE_NODE:/root/.spinnaker/config
-  ```
-
-1. Create and download your JSON credentials for this project in the [Google Developers Console](https://console.developers.google.com/).
-
-1. Create a `.gce` directory and copy this file to the config directory on the node. Name the file `gce.json`.
-
-  ```
-  $ gcloud compute ssh root@$MY_GKE_NODE 'mkdir -p /root/.spinnaker/.gce'
-  $ gcloud compute copy-files /PATH/TO/MY/CREDENTIALS.json root@$MY_GKE_NODE:/root/.spinnaker/.gce/gce.json
-  ```
-
-## Deploy Spinnaker Dependencies
-
-1. Copy the Cassandra keyspace scripts to a new directory.
-
-  ```
-  $ gcloud compute ssh root@$MY_GKE_NODE 'mkdir -p /root/cassandra'
-  $ gcloud compute copy-files ../../cassandra/* root@$MY_GKE_NODE:/root/cassandra
-  ```
-
-1. Deploy the storage mechanisms to the cluster.
-
-  ```
-  $ kubectl create -f 0-dependencies.yml
-  ```
-
-1. Execute each cassandra keyspace script on the cassandra pod.
-
-  ```
-  $ CASS_NAME=`kubectl get pods -l component=cassandra -o go-template='{{ (index .items 0).metadata.name }}'`
-  $ FILES=`ls -1 ../../cassandra/`
-  $ for f in $FILES; do \
-      kubectl exec $CASS_NAME -- cqlsh -f /root/cassandra/$f; \
-    done;
-  ```
-
-1. Enable the Thrift server so that the other Java components can connect to Cassandra
-
-  ```
-  $ kubectl exec $CASS_NAME -- nodetool enablethrift
-  ```
-
-## Deploy Component `Services`
-
-1. Deploy the `Service` representation of each Spinnaker component.
-
-  ```
-  $ kubectl create -f 1-services.yml
-  ```
-
-1. After some time, the `deck` and the `gate` services should have external IP addresses. Make note of each of these.
-
-Gate:
-  ```
-  $ kubectl get svc -l component=gate -o go-template='{{ (index (index .items 0).status.loadBalancer.ingress 0).ip }}'
-  ```
-
-Deck:
-  ```
-  $ kubectl get svc -l component=deck -o go-template='{{ (index (index .items 0).status.loadBalancer.ingress 0).ip }}'
-  ```
-
-1. Modify [2-repControllers.yml](2-repControllers.yml) to make `gate`'s IP address the value of `deck`'s `API_HOST`
-environmental variable. Look for
+## Initial Startup
 
 ```
-- name: API_HOST
-  value: http://GATE_IP_ADDRESS_GOES_HERE:8084
+$ bash scripts/startup-all.sh  # this takes a little while...
+$ bash scripts/connect.sh deck 9000 # leave this running, open a new terminal, and run
+$ bash scripts/connect.sh gate 8084 # leave this running too...
+``` 
+
+Note, deck and gate may not be up immediately, wait until 
+
+```
+$ kubectl get pods --namespace=spinnaker
 ```
 
-in the configuration.
+shows that each container is ready before opening the connections above.
 
-## Deploy Component `ReplicationController`s
+Now point your browser at [localhost:9000](http://localhost:9000), and you're all set!
 
-1. Bring up the the actual containers of each component
+## What Just Happened?
 
-  ```
-  $ kubectl create -f 2-repControllers.yml
-  ```
+The scripts created a namespace `spinnaker`, and deployed a `data` application
+containing Redis and Cassandra, and a `spkr` application, containing all of the
+Spinnaker components. All the yaml files in `./config/` were placed into a
+secret called `spinnaker-config`, and your kubeconfig was placed into a secret
+called `kube-config`. These were mounted at `/opt/spinnaker/config/` and
+`/root/.kube` respectively in each application container.
 
-1. Monitor that each pod as it comes online
+## I Want to Update My Config...
 
-  ```
-  $ kubectl get pods
-  NAME                READY     STATUS    RESTARTS   AGE
-cassandra-szyz9     1/1       Running   0          2d
-clouddriver-8u4i1   1/1       Running   0          27s
-deck-iwkpb          1/1       Running   0          26s
-echo-n7umh          1/1       Running   0          27s
-front50-i4dhl       1/1       Running   0          26s
-gate-dxsti          1/1       Running   0          27s
-orca-7roar          1/1       Running   0          27s
-redis-qqbkq         1/1       Running   0          2d
-rosco-hi2lk         1/1       Running   0          27s
-rush-oy0gx          1/1       Running   0          27s
+Any time you want changes that you made to the config files to show up in
+Spinnaker, you need to run
+
+```
+$ bash scripts/update-config.sh # this recreates the secrets described above
+$ bash scripts/update-component.sh <component name> # for each component whose config you touched
 ```
 
-1. `deck` is one of the slower components to start up. Ensure you see `webpack: bundle is now VALID` at the end of the output log. Check the output with:
+The only files you should change are the `-local.yml` files, the rest are
+pulled in by the `update-config.sh` script, and will overwrite any local
+changes you have.
 
-  ```
-  $ DECK=`kubectl get pods -l component=deck -o go-template='{{ (index .items 0).metadata.name }}'` && kubectl logs -f $DECK
-  ```
+## Cleanup
 
-1. Access the Spinnaker UI with the Deck external load balancer IP address you acquired earlier: `http://1.2.3.4:9000`
+If you want to delete everything, run
 
-  > **WARNING**: This IP address is _public_ and can now be accessed by _anyone_. Don't forget to tear it down after you're done experimenting!
+```
+$ bash scripts/cleanup-all.sh # This deletes everything in the spinnaker namespace
+```
 
-1. You now have a successful Spinnaker deployment running Kubernetes! Congratulations!
+If you just want to delete the Spinnaker components, but leave the persistence
+mechanisms (Redis & Cassandra), run
 
-1. Tear down your service with the following
-
-  ```
-  $ kubectl delete -f 2-repControllers.yml
-  ```
+```
+$ bash scripts/cleanup-spinnaker.sh # This deletes everything with application name spkr
+```
