@@ -28,12 +28,10 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
-import com.netflix.spinnaker.clouddriver.aws.discovery.DiscoveryApiFactory
 import com.netflix.spinnaker.clouddriver.aws.edda.EddaApiFactory
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonLoadBalancerInstanceStateCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.ClusterCachingAgent
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.DiscoveryCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.EddaLoadBalancerCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.ImageCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.InstanceCachingAgent
@@ -52,7 +50,6 @@ import rx.schedulers.Schedulers
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
-import java.util.regex.Pattern
 
 @Configuration
 class AwsProviderConfig {
@@ -62,7 +59,6 @@ class AwsProviderConfig {
                           AmazonClientProvider amazonClientProvider,
                           AccountCredentialsRepository accountCredentialsRepository,
                           ObjectMapper objectMapper,
-                          DiscoveryApiFactory discoveryApiFactory,
                           EddaApiFactory eddaApiFactory,
                           ApplicationContext ctx,
                           Registry registry,
@@ -75,7 +71,6 @@ class AwsProviderConfig {
                            amazonClientProvider,
                            accountCredentialsRepository,
                            objectMapper,
-                           discoveryApiFactory,
                            eddaApiFactory,
                            ctx,
                            registry,
@@ -110,7 +105,6 @@ class AwsProviderConfig {
                                                  AmazonClientProvider amazonClientProvider,
                                                  AccountCredentialsRepository accountCredentialsRepository,
                                                  ObjectMapper objectMapper,
-                                                 DiscoveryApiFactory discoveryApiFactory,
                                                  EddaApiFactory eddaApiFactory,
                                                  ApplicationContext ctx,
                                                  Registry registry,
@@ -118,7 +112,6 @@ class AwsProviderConfig {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(awsProvider)
     Set<NetflixAmazonCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials)
 
-    Map<String, Map<String, Set<NetflixAmazonCredentials>>> discoveryAccounts = [:].withDefault { [:].withDefault { [] as Set } }
     List<CachingAgent> newlyAddedAgents = []
 
     //only index public images once per region
@@ -144,33 +137,17 @@ class AwsProviderConfig {
             )
           }
         }
-
-        if (credentials.discoveryEnabled) {
-          discoveryAccounts[credentials.discovery][region.name].add(credentials)
-        }
       }
     }
 
     // If there is an agent scheduler, then this provider has been through the AgentController in the past.
     if (awsProvider.agentScheduler) {
       synchronizeReservationReportCachingAgentAccounts(awsProvider, allAccounts)
-      synchronizeDiscoveryCachingAgentsAccounts(allAccounts,
-                                                awsProvider,
-                                                discoveryAccounts,
-                                                newlyAddedAgents,
-                                                discoveryApiFactory,
-                                                objectMapper)
     } else {
       // This caching agent runs across all accounts in one iteration (to maintain consistency).
       newlyAddedAgents << new ReservationReportCachingAgent(
         amazonClientProvider, allAccounts, objectMapper, reservationReportScheduler, ctx
       )
-
-      discoveryAccounts.each { disco, actMap ->
-        actMap.each { region, accounts ->
-          newlyAddedAgents << new DiscoveryCachingAgent(discoveryApiFactory.createApi(disco, region), accounts, region, objectMapper)
-        }
-      }
     }
 
     awsProvider.agents.addAll(newlyAddedAgents)
@@ -207,73 +184,5 @@ class AwsProviderConfig {
         }
       }
     }
-  }
-
-  private void synchronizeDiscoveryCachingAgentsAccounts(Collection<NetflixAmazonCredentials> allAccounts,
-                                                         AwsProvider awsProvider,
-                                                         Map<String, Map<String, Set<NetflixAmazonCredentials>>> discoveryAccounts,
-                                                         List<CachingAgent> newlyAddedAgents,
-                                                         discoveryApiFactory,
-                                                         ObjectMapper objectMapper) {
-    // First, delete all non-specified accounts across all discovery caching agents.
-    def allNewAccountNames = allAccounts.collect { it.name }
-
-    awsProvider.agents.findAll { agent ->
-      agent instanceof DiscoveryCachingAgent
-    }.each { DiscoveryCachingAgent discoveryCachingAgent ->
-      def accountsToDelete = [] as Set
-
-      discoveryCachingAgent.accounts.each { account ->
-        if (!allNewAccountNames.contains(account.name)) {
-          accountsToDelete << account
-        }
-      }
-
-      discoveryCachingAgent.accounts.removeAll(accountsToDelete)
-    }
-
-    // Next, add any specified account which is not already registered with a discovery caching agent.
-    discoveryAccounts.each { disco, actMap ->
-      actMap.each { region, accounts ->
-        def discoveryEndpoint = disco.replaceAll(Pattern.quote('{{region}}'), region)
-
-        DiscoveryCachingAgent discoveryCachingAgent = awsProvider.agents.find { agent ->
-          agent instanceof DiscoveryCachingAgent && agent.agentType.startsWith(discoveryEndpoint)
-        }
-
-        if (discoveryCachingAgent) {
-          // If the agent exists, add any accounts that are not already registered.
-          def discoveryCachingAgentAccounts = discoveryCachingAgent.accounts
-          def oldAccountNames = discoveryCachingAgentAccounts.collect { it.name }
-          def newAccountNames = accounts.collect { it.name }
-          def accountNamesToAdd = newAccountNames - oldAccountNames
-          def accountsToAdd = accounts.findAll { account ->
-            accountNamesToAdd.contains(account.name)
-          }
-
-          discoveryCachingAgentAccounts.addAll(accountsToAdd)
-        } else {
-          // If the agent doesn't exist yet, create a new one with all of the accounts.
-          newlyAddedAgents << new DiscoveryCachingAgent(discoveryApiFactory.createApi(disco, region), accounts, region, objectMapper)
-        }
-      }
-    }
-
-    // Unschedule any discovery caching agents that are left with zero registered accounts.
-    List<Agent> agentsToDelete = []
-
-    awsProvider.agents.findAll { agent ->
-      agent instanceof DiscoveryCachingAgent
-    }.each { DiscoveryCachingAgent discoveryCachingAgent ->
-      if (discoveryCachingAgent.accounts.size() == 0) {
-        discoveryCachingAgent.agentScheduler.unschedule(discoveryCachingAgent)
-        agentsToDelete << discoveryCachingAgent
-      }
-    }
-
-    awsProvider.agents.removeAll(agentsToDelete)
-
-    // We need to do the scheduling here (because accounts have been added to a running system).
-    ProviderUtils.rescheduleAgents(awsProvider, newlyAddedAgents)
   }
 }

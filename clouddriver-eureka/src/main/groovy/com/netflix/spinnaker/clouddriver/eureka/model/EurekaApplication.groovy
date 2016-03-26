@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-rootProject.name="clouddriver"
+package com.netflix.spinnaker.clouddriver.eureka.model
 
-include 'clouddriver-core', 'clouddriver-security', 'clouddriver-web', 'clouddriver-aws', 'clouddriver-titus', 'clouddriver-google', 'clouddriver-cf', 'clouddriver-azure', 'clouddriver-kubernetes', 'clouddriver-docker', 'clouddriver-eureka', 'cats:cats-core', 'cats:cats-redis', 'cats:cats-test'
+import com.fasterxml.jackson.annotation.JsonProperty
+import groovy.transform.EqualsAndHashCode
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
+@EqualsAndHashCode
+class EurekaApplication {
+  String name
 
-rootProject.children.each {
-  setBuildFile(it)
+  @JsonProperty('instance')
+  List<EurekaInstance> instances
 }
 

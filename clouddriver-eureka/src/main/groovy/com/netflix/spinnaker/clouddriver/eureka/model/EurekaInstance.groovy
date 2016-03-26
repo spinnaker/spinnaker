@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.aws.model.discovery
+package com.netflix.spinnaker.clouddriver.eureka.model
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -27,7 +27,7 @@ import groovy.transform.Immutable
 @CompileStatic
 @Immutable
 @EqualsAndHashCode(cache = true)
-class DiscoveryInstance implements Health {
+class EurekaInstance implements Health {
   public static final String HEALTH_TYPE = 'Discovery'
   public String getType() {
     HEALTH_TYPE
@@ -38,7 +38,7 @@ class DiscoveryInstance implements Health {
   String status
   String overriddenStatus
   HealthState state
-  String discoveryStatus
+  String eurekaStatus
 
   String accountId
   String availabilityZone
@@ -52,20 +52,22 @@ class DiscoveryInstance implements Health {
   String secureVipAddress
   Long lastUpdatedTimestamp
   String asgName
+  String titusTaskId
 
   @JsonCreator
-  public static DiscoveryInstance buildInstance(@JsonProperty('hostName') String hostName,
-                    @JsonProperty('app') String app,
-                    @JsonProperty('ipAddr') String ipAddr,
-                    @JsonProperty('status') String status,
-                    @JsonProperty('overriddenstatus') String overriddenstatus,
-                    @JsonProperty('dataCenterInfo') DataCenterInfo dataCenterInfo,
-                    @JsonProperty('statusPageUrl') String statusPageUrl,
-                    @JsonProperty('healthCheckUrl') String healthCheckUrl,
-                    @JsonProperty('vipAddress') String vipAddress,
-                    @JsonProperty('secureVipAddress') String secureVipAddress,
-                    @JsonProperty('lastUpdatedTimestamp') long lastUpdatedTimestamp,
-                    @JsonProperty('asgName') String asgName) {
+  public static EurekaInstance buildInstance(@JsonProperty('hostName') String hostName,
+                                             @JsonProperty('app') String app,
+                                             @JsonProperty('ipAddr') String ipAddr,
+                                             @JsonProperty('status') String status,
+                                             @JsonProperty('overriddenstatus') String overriddenstatus,
+                                             @JsonProperty('dataCenterInfo') DataCenterInfo dataCenterInfo,
+                                             @JsonProperty('statusPageUrl') String statusPageUrl,
+                                             @JsonProperty('healthCheckUrl') String healthCheckUrl,
+                                             @JsonProperty('vipAddress') String vipAddress,
+                                             @JsonProperty('secureVipAddress') String secureVipAddress,
+                                             @JsonProperty('lastUpdatedTimestamp') long lastUpdatedTimestamp,
+                                             @JsonProperty('asgName') String asgName,
+                                             @JsonProperty('metadata') Metadata metadata) {
     def meta = dataCenterInfo.metadata
     final HealthState healthState
     if ('UP' == status) {
@@ -79,7 +81,7 @@ class DiscoveryInstance implements Health {
     } else {
       healthState = HealthState.Down
     }
-    new DiscoveryInstance(
+    new EurekaInstance(
       hostName,
       app,
       ipAddr,
@@ -97,7 +99,8 @@ class DiscoveryInstance implements Health {
       vipAddress,
       secureVipAddress,
       lastUpdatedTimestamp,
-      asgName)
+      asgName,
+      metadata?.titusTaskId)
   }
 }
 

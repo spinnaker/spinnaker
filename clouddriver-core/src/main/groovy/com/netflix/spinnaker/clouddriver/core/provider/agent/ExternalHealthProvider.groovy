@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.aws.model.discovery
+package com.netflix.spinnaker.clouddriver.core.provider.agent
 
-import com.fasterxml.jackson.annotation.JsonProperty
-import groovy.transform.EqualsAndHashCode
+import com.netflix.spinnaker.cats.provider.Provider
 
-@EqualsAndHashCode
-class DiscoveryApplication {
-  String name
+interface ExternalHealthProvider extends Provider {
 
-  @JsonProperty('instance')
-  List<DiscoveryInstance> instances
 }
-

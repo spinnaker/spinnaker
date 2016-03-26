@@ -15,6 +15,7 @@
  */
 
 package com.netflix.spinnaker.clouddriver.titus.caching
+
 import com.netflix.frigga.Names
 
 class Keys {
@@ -64,7 +65,7 @@ class Keys {
         result << [application: names.app.toLowerCase(), cluster: parts[2], account: parts[3], region: parts[4], serverGroup: parts[5], stack: names.stack, detail: names.detail, sequence: names.sequence?.toString()]
         break
       case Namespace.INSTANCES.ns:
-        result << [account: parts[2], region: parts[3], instanceId: parts[4]]
+        result << [id: parts[2]]
         break
       case Namespace.CLUSTERS.ns:
         def names = Names.parseName(parts[4])
@@ -74,7 +75,7 @@ class Keys {
         result << [application: parts[2].toLowerCase()]
         break
       case Namespace.HEALTH.ns:
-        result << [instanceId: parts[2], account: parts[3], region: parts[4], provider: parts[5]]
+        result << [id: parts[2], account: parts[3], region: parts[4], provider: parts[5]]
         break
       default:
         return null
@@ -93,8 +94,8 @@ class Keys {
     "${PROVIDER}:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
   }
 
-  static String getInstanceKey(String instanceId, String account, String region) {
-    "${PROVIDER}:${Namespace.INSTANCES}:${account}:${region}:${instanceId}"
+  static String getInstanceKey(String id) {
+    "${PROVIDER}:${Namespace.INSTANCES}:${id}"
   }
 
   static String getClusterKey(String clusterName, String application, String account) {
@@ -105,7 +106,7 @@ class Keys {
     "${PROVIDER}:${Namespace.APPLICATIONS}:${application.toLowerCase()}"
   }
 
-  static String getInstanceHealthKey(String instanceId, String account, String region, String healthProvider) {
-    "${PROVIDER}:${Namespace.HEALTH}:${instanceId}:${account}:${region}:${healthProvider}"
+  static String getInstanceHealthKey(String id, String healthProvider) {
+    "${PROVIDER}:${Namespace.HEALTH}:${id}:${healthProvider}"
   }
 }

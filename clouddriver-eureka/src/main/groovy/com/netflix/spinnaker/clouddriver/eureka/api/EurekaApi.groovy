@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.aws.model.discovery
+package com.netflix.spinnaker.clouddriver.eureka.api
 
-import groovy.transform.EqualsAndHashCode
+import com.netflix.spinnaker.clouddriver.eureka.model.EurekaApplications
+import retrofit.http.GET
+import retrofit.http.Headers
 
-@EqualsAndHashCode
-class DataCenterInfo {
-  String name
-  DataCenterMetadata metadata
+interface EurekaApi {
+
+  @GET('/v2/apps')
+  @Headers(['Accept: application/json'])
+  EurekaApplications loadEurekaApplications()
 }

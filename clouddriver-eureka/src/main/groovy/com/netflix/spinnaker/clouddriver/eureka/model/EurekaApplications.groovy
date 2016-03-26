@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.aws.discovery
+package com.netflix.spinnaker.clouddriver.eureka.model
 
-import com.netflix.spinnaker.clouddriver.aws.model.discovery.DiscoveryApplications
-import retrofit.http.GET
-import retrofit.http.Headers
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonRootName
+import groovy.transform.EqualsAndHashCode
 
-interface DiscoveryApi {
+@EqualsAndHashCode
+@JsonRootName('applications')
+class EurekaApplications {
+  @JsonProperty('versions__delta')
+  Long versionsDelta
 
-  @GET('/v2/apps')
-  @Headers(['Accept: application/json'])
-  DiscoveryApplications loadDiscoveryApplications()
+  @JsonProperty('apps__hashcode')
+  String appsHashCode
+
+  @JsonProperty('application')
+  List<EurekaApplication> applications
 }

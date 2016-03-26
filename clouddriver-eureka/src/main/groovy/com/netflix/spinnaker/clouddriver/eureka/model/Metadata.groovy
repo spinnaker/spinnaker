@@ -14,26 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.aws.model.discovery
+package com.netflix.spinnaker.clouddriver.eureka.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import groovy.transform.EqualsAndHashCode
 
-@EqualsAndHashCode
-class DataCenterMetadata {
-  @JsonProperty('accountId')
-  String accountId
+class Metadata {
 
-  @JsonProperty('availability-zone')
-  String availabilityZone
+  @JsonProperty('titusTaskId')
+  String titusTaskId
 
-  @JsonProperty('instance-id')
-  String instanceId
-
-  @JsonProperty('ami-id')
-  String amiId
-
-  @JsonProperty('instance-type')
-  String instanceType
 }
-

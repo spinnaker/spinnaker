@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.aws.model.discovery
+package com.netflix.spinnaker.clouddriver.eureka.provider.agent
 
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.annotation.JsonRootName
-import groovy.transform.EqualsAndHashCode
+interface EurekaAwareProvider {
 
-@EqualsAndHashCode
-@JsonRootName('applications')
-class DiscoveryApplications {
-  @JsonProperty('versions__delta')
-  Long versionsDelta
+  Boolean isProviderForEurekaRecord(Map<String, Object> attributes)
 
-  @JsonProperty('apps__hashcode')
-  String appsHashCode
+  String getInstanceKey(Map<String, Object> attributes, String region)
 
-  @JsonProperty('application')
-  List<DiscoveryApplication> applications
+  String getInstanceHealthKey(Map<String, Object> attributes,  String region, String healthId)
+
 }

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.core.provider.agent.ExternalHealthProvider
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.aws.model.*
@@ -36,6 +37,9 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
 
   private final Cache cacheView
   private final AwsProvider awsProvider
+
+  @Autowired(required = false)
+  List<ExternalHealthProvider> externalHealthProviders
 
   @Value('${default.build.host:http://builds.netflix.com/}')
   String defaultBuildHost
@@ -246,6 +250,12 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
       awsProvider.healthAgents.each {
         def key = Keys.getInstanceHealthKey(instanceKey.instanceId, instanceKey.account, instanceKey.region, it.healthId)
         healthKeysToInstance.put(key, instanceEntry.id)
+      }
+      externalHealthProviders.each { externalHealthProvider ->
+        externalHealthProvider.agents.each { externalHealthAgent ->
+          def key = Keys.getInstanceHealthKey(instanceKey.instanceId, instanceKey.account, instanceKey.region, externalHealthAgent.healthId)
+          healthKeysToInstance.put(key, instanceEntry.id)
+        }
       }
     }
 

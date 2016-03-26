@@ -46,7 +46,7 @@ class TitusInstanceProvider implements InstanceProvider<TitusInstance> {
 
   @Override
   TitusInstance getInstance(String account, String region, String id) {
-    CacheData instanceEntry = cacheView.get(INSTANCES.ns, Keys.getInstanceKey(id, account, region))
+    CacheData instanceEntry = cacheView.get(INSTANCES.ns, Keys.getInstanceKey(id))
     if (!instanceEntry) {
       return null
     }

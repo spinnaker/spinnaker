@@ -147,6 +147,7 @@ public class Job {
         public void setSnapshots(String snapshots) {
             this.snapshots = snapshots;
         }
+
     }
 
     private String id;

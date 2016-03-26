@@ -22,16 +22,18 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
+import com.netflix.spinnaker.clouddriver.eureka.provider.agent.EurekaAwareProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.core.provider.agent.HealthProvidingCachingAgent
 import java.util.regex.Pattern
-import org.springframework.beans.factory.annotation.Autowired
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 
-class AwsProvider extends AgentSchedulerAware implements SearchableProvider {
+class AwsProvider extends AgentSchedulerAware implements SearchableProvider, EurekaAwareProvider {
 
   public static final String PROVIDER_NAME = AwsProvider.name
+
+  final AccountCredentialsRepository accountCredentialsRepository
 
   final Set<String> defaultCaches = [
     LOAD_BALANCERS.ns,
@@ -41,9 +43,9 @@ class AwsProvider extends AgentSchedulerAware implements SearchableProvider {
   ].asImmutable()
 
   final Map<String, String> urlMappingTemplates = [
-    (SERVER_GROUPS.ns): '/applications/${application.toLowerCase()}/clusters/$account/$cluster/$provider/serverGroups/$serverGroup?region=$region',
+    (SERVER_GROUPS.ns) : '/applications/${application.toLowerCase()}/clusters/$account/$cluster/$provider/serverGroups/$serverGroup?region=$region',
     (LOAD_BALANCERS.ns): '/$provider/loadBalancers/$loadBalancer',
-    (CLUSTERS.ns): '/applications/${application.toLowerCase()}/clusters/$account/$cluster'
+    (CLUSTERS.ns)      : '/applications/${application.toLowerCase()}/clusters/$account/$cluster'
   ].asImmutable()
 
   final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators = [
@@ -55,11 +57,9 @@ class AwsProvider extends AgentSchedulerAware implements SearchableProvider {
   final Collection<Agent> agents
   private Collection<HealthProvidingCachingAgent> healthAgents
 
-  @Autowired(required = false)
-  List<HealthProvidingCachingAgent> externalHealthProvidingCachingAgents = []
-
   AwsProvider(AccountCredentialsRepository accountCredentialsRepository, Collection<Agent> agents) {
     this.agents = agents
+    this.accountCredentialsRepository = accountCredentialsRepository
     synchronizeHealthAgents()
     identifierExtractors = [
       (INSTANCES.ns): new InstanceIdentifierExtractor(accountCredentialsRepository)
@@ -80,7 +80,6 @@ class AwsProvider extends AgentSchedulerAware implements SearchableProvider {
   Collection<HealthProvidingCachingAgent> getHealthAgents() {
     def allHealthAgents = []
     allHealthAgents.addAll(this.healthAgents)
-    allHealthAgents.addAll(this.externalHealthProvidingCachingAgents)
     Collections.unmodifiableCollection(allHealthAgents)
   }
 
@@ -100,7 +99,7 @@ class AwsProvider extends AgentSchedulerAware implements SearchableProvider {
       def serverGroup = Keys.parse(item.relationships["serverGroups"][0])
       return result + [
         application: serverGroup.application as String,
-        cluster: serverGroup.cluster as String,
+        cluster    : serverGroup.cluster as String,
         serverGroup: serverGroup.serverGroup as String
       ]
     }
@@ -134,4 +133,28 @@ class AwsProvider extends AgentSchedulerAware implements SearchableProvider {
       return cacheView.getAll(INSTANCES.ns, possibleInstanceIdentifiers)*.id
     }
   }
+
+  // Eureka provider support
+  @Override
+  Boolean isProviderForEurekaRecord(Map<String, Object> attributes) {
+    attributes.containsKey('accountId')
+  }
+
+  @Override
+  String getInstanceKey(Map<String, Object> attributes, String region) {
+    if (getCredentialName(attributes.accountId) == null) {
+      return null
+    }
+    Keys.getInstanceKey(attributes.instanceId, getCredentialName(attributes.accountId), region)
+  }
+
+  @Override
+  String getInstanceHealthKey(Map<String, Object> attributes, String region, String healthId) {
+    Keys.getInstanceHealthKey(attributes.instanceId, getCredentialName(attributes.accountId), region, healthId)
+  }
+
+  private String getCredentialName(String accountId) {
+    accountCredentialsRepository.all.find { it instanceof NetflixAmazonCredentials && it.accountId == accountId }?.name
+  }
+
 }

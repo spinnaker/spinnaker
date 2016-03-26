@@ -18,18 +18,16 @@ package com.netflix.spinnaker.clouddriver.titus.caching
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.provider.Provider
-import com.netflix.spinnaker.clouddriver.core.provider.agent.HealthProvidingCachingAgent
+import com.netflix.spinnaker.clouddriver.eureka.provider.agent.EurekaAwareProvider
 
-class TitusCachingProvider implements Provider {
+class TitusCachingProvider implements Provider, EurekaAwareProvider {
 
   public static final String PROVIDER_NAME = TitusCachingProvider.simpleName
 
   private final Collection<CachingAgent> agents
-  private final Collection<HealthProvidingCachingAgent> healthAgents
 
   TitusCachingProvider(Collection<CachingAgent> agents) {
     this.agents = Collections.unmodifiableCollection(agents)
-    this.healthAgents = Collections.unmodifiableCollection(agents.findAll { it instanceof HealthProvidingCachingAgent } as List<HealthProvidingCachingAgent>)
   }
 
   @Override
@@ -37,14 +35,24 @@ class TitusCachingProvider implements Provider {
     PROVIDER_NAME
   }
 
-  Collection<HealthProvidingCachingAgent> getHealthAgents() {
-    def allHealthAgents = []
-    allHealthAgents.addAll(this.healthAgents)
-    Collections.unmodifiableCollection(allHealthAgents)
-  }
-
   @Override
   Collection<Agent> getAgents() {
     agents
   }
+
+  @Override
+  Boolean isProviderForEurekaRecord(Map<String, Object> attributes) {
+    attributes.containsKey('titusTaskId') && attributes.get('titusTaskId') != null
+  }
+
+  @Override
+  String getInstanceKey(Map<String, Object> attributes,  String region) {
+    Keys.getInstanceKey(attributes.titusTaskId)
+  }
+
+  @Override
+  String getInstanceHealthKey(Map<String, Object> attributes,  String region, String healthId) {
+    Keys.getInstanceHealthKey(attributes.titusTaskId, healthId)
+  }
+
 }

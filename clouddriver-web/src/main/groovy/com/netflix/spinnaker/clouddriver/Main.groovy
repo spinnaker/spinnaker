@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.core.CloudDriverConfig
 import com.netflix.spinnaker.clouddriver.core.RetrofitConfig
 import com.netflix.spinnaker.clouddriver.deploy.config.DeployConfiguration
 import com.netflix.spinnaker.clouddriver.docker.registry.DockerRegistryConfiguration
+import com.netflix.spinnaker.clouddriver.eureka.EurekaProviderConfiguration
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesConfiguration
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
@@ -55,13 +56,14 @@ import java.security.Security
   DockerRegistryConfiguration,
   CloudFoundryConfig,
   AzureConfiguration,
-  SecurityConfig
+  SecurityConfig,
+  EurekaProviderConfiguration
 ])
 @ComponentScan([
   'com.netflix.spinnaker.config',
 ])
 @EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration, SecurityAutoConfiguration,
-ManagementSecurityAutoConfiguration])
+  ManagementSecurityAutoConfiguration])
 @EnableScheduling
 class Main extends SpringBootServletInitializer {
 

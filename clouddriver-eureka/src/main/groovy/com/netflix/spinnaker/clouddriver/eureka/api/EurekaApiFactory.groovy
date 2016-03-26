@@ -14,18 +14,26 @@
  * limitations under the License.
  */
 
-rootProject.name="clouddriver"
+package com.netflix.spinnaker.clouddriver.eureka.api
 
-include 'clouddriver-core', 'clouddriver-security', 'clouddriver-web', 'clouddriver-aws', 'clouddriver-titus', 'clouddriver-google', 'clouddriver-cf', 'clouddriver-azure', 'clouddriver-kubernetes', 'clouddriver-docker', 'clouddriver-eureka', 'cats:cats-core', 'cats:cats-redis', 'cats:cats-test'
+import retrofit.RestAdapter
+import retrofit.converter.Converter
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
+import java.util.regex.Pattern
+
+class EurekaApiFactory {
+
+  private Converter eurekaConverter
+
+  EurekaApiFactory(Converter eurekaConverter) {
+    this.eurekaConverter = eurekaConverter
+  }
+
+  public EurekaApi createApi(String endpoint) {
+    new RestAdapter.Builder()
+      .setConverter(eurekaConverter)
+      .setEndpoint(endpoint)
+      .build()
+      .create(EurekaApi)
   }
 }
-
-rootProject.children.each {
-  setBuildFile(it)
-}
-

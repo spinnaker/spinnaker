@@ -176,7 +176,7 @@ class TitusInstanceCachingAgent implements CachingAgent {
     public InstanceData(Job job, Job.TaskSummary task, String account, String region) {
       this.job = job
       this.task = task
-      this.instanceId = Keys.getInstanceKey(task.id, account, region)
+      this.instanceId = Keys.getInstanceKey(task.id)
       this.serverGroup = job.name
       this.imageId = "${job.applicationName}:${job.version}"
     }
