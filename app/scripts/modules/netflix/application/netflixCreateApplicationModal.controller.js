@@ -32,7 +32,7 @@ module.exports = angular
     if (this.chaosEnabled) {
       this.application.chaosMonkey = {
         enabled: true,
-        meanTimeBetweenKillsInWorkDays: 5,
+        meanTimeBetweenKillsInWorkDays: 2,
         minTimeBetweenKillsInWorkDays: 1,
         grouping: 'cluster',
         regionsAreIndependent: true,

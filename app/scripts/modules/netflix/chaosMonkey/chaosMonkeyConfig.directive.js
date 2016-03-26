@@ -30,7 +30,7 @@ module.exports = angular
     }
     let config = this.application.attributes.chaosMonkey || {
         enabled: false,
-        meanTimeBetweenKillsInWorkDays: 5,
+        meanTimeBetweenKillsInWorkDays: 2,
         minTimeBetweenKillsInWorkDays: 1,
         grouping: 'cluster',
         regionsAreIndependent: true,
