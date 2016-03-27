@@ -1,0 +1,86 @@
+<div class="details-panel">
+  <div class="header">
+    <div class="close-button" ng-if="!state.standalone">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div ng-if="state.loading">
+      <h4 class="text-center">
+        <span us-spinner="{radius:20, width:6, length: 12}"></span>
+      </h4>
+    </div>
+    <div class="header-text" ng-if="!state.loading">
+      <span class="glyphicon glyphicon-transfer"></span>
+      <h3 select-on-dbl-click>
+        {{securityGroup.name || '(not found)'}}
+      </h3>
+    </div>
+    <div class="actions">
+      <div class="dropdown" uib-dropdown dropdown-append-to-body>
+        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" ng-disabled="disabled" uib-dropdown-toggle>
+          Security Group Actions <span class="caret"></span>
+        </button>
+        <ul class="uib-dropdown-menu" role="menu">
+          <li><a href ng-click="ctrl.deleteSecurityGroup()">Delete Security Group</a></li>
+          <li><a href ng-click="ctrl.editSecurityGroup()">Edit Security Group</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="content" ng-if="!state.loading">
+    <collapsible-section heading="Security Group Details" expanded="true">
+      <dl class="dl-horizontal dl-medium">
+        <dt>ID</dt>
+        <dd>{{securityGroup.id}}</dd>
+        <dt>Account</dt>
+        <dd><account-tag account="securityGroup.accountName"></account-tag></dd>
+        <dt>Namespace</dt>
+        <dd>{{securityGroup.namespace}}</dd>
+        <dt>Kind</dt>
+        <dd>{{securityGroup.ingress.kind}}</dd>
+        <dt>YAML</dt>
+        <dd><a href ng-click="ctrl.showYaml()">Show YAML</a></dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Backend">
+      <dl class="dl-horizontal dl-medium" ng-if="securityGroup.ingress.spec.backend">
+        <dt>Service Name</dt>
+        <dd>{{securityGroup.ingress.spec.backend.serviceName}}</dd>
+        <dt>Service Port</dt>
+        <dd>{{securityGroup.ingress.spec.backend.servicePort}}</dd>
+      </dl>
+      <dl class="dl-horizontal dl-medium" ng-if="!securityGroup.ingress.spec.backend">
+        No default backend selected
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Rules">
+      <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
+          ng-repeat="rule in securityGroup.ingress.spec.rules"
+          ng-if="securityGroup.ingress.spec.rules && securityGroup.ingress.spec.rules.length > 0">
+        <dt ng-if="rule.host">Host</dt>
+        <dd ng-if="rule.host">{{rule.host}}</dd>
+        <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
+            ng-repeat="path in rule.http.paths">
+          <dt>Path</dt>
+          <dd>{{path.path}}</dd>
+          <dt>Service Name</dt>
+          <dd>{{path.backend.serviceName}}</dd>
+          <dt>Service Port</dt>
+          <dd>{{path.backend.servicePort}}</dd>
+        </dl>
+      </dl>
+      <dl ng-if="!securityGroup.ingress.spec.rules || securityGroup.ingress.spec.rules.length == 0">
+        No rules created
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Status">
+      <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
+          ng-repeat="ingress in securityGroup.ingress.status.loadBalancer.ingress">
+        <dt>IP</dt>
+        <dd>{{ingress.ip}}</dd>
+      </dl>
+    </collapsible-section>
+  </div>
+</div>
