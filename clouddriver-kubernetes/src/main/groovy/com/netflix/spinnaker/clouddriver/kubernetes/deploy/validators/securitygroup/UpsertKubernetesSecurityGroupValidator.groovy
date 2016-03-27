@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.securityg
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.KubernetesHttpIngressPath
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.KubernetesIngressRule
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.UpsertKubernetesSecurityGroupDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.KubernetesSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.validators.StandardKubernetesAttributeValidator
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -27,12 +27,12 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.validation.Errors
 
 class UpsertKubernetesSecurityGroupValidator {
-  class UpsertKubernetesLoadBalancerAtomicOperationValidator extends DescriptionValidator<UpsertKubernetesSecurityGroupDescription> {
+  class UpsertKubernetesLoadBalancerAtomicOperationValidator extends DescriptionValidator<KubernetesSecurityGroupDescription> {
     @Autowired
     AccountCredentialsProvider accountCredentialsProvider
 
     @Override
-    void validate(List priorDescriptions, UpsertKubernetesSecurityGroupDescription description, Errors errors) {
+    void validate(List priorDescriptions, KubernetesSecurityGroupDescription description, Errors errors) {
       def helper = new StandardKubernetesAttributeValidator("upsertKubernetesSecurityGroupDescription", errors)
 
       if (!helper.validateCredentials(description.account, accountCredentialsProvider)) {

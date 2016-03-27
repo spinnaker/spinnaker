@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
+import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.CloneKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
@@ -95,7 +96,7 @@ class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult
     newDescription.restartPolicy = description.restartPolicy ?: ancestorServerGroup.spec?.template?.spec?.restartPolicy
     if (!description.containers) {
       newDescription.containers = ancestorServerGroup.spec?.template?.spec?.containers?.collect { it ->
-        KubernetesApiAdaptor.fromContainer(it)
+        KubernetesApiConverter.fromContainer(it)
       }
     }
 

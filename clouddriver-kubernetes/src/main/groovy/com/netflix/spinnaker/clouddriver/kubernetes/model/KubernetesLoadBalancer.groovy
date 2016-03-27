@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.model
 
-import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
+import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
@@ -55,7 +55,7 @@ class KubernetesLoadBalancer implements LoadBalancer, Serializable {
     this.namespace = service.metadata.namespace
     this.securityGroups = securityGroups
     this.region = this.namespace
-    this.description = KubernetesApiAdaptor.fromService(service)
+    this.description = KubernetesApiConverter.fromService(service)
     this.account = accountName
     this.createdTime = KubernetesModelUtil.translateTime(service.metadata?.creationTimestamp)
     this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(service)

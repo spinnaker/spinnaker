@@ -22,8 +22,11 @@ import groovy.transform.Canonical
 
 @AutoClone
 @Canonical
-class UpsertKubernetesSecurityGroupDescription extends KubernetesAtomicOperationDescription {
+class KubernetesSecurityGroupDescription extends KubernetesAtomicOperationDescription {
   String securityGroupName
+  String app
+  String stack
+  String detail
   String namespace
 
   KubernetesIngressBackend ingress

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.model
 
+import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.KubernetesSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.clouddriver.model.securitygroups.HttpRule
@@ -41,6 +43,7 @@ class KubernetesSecurityGroup implements SecurityGroup, Serializable {
   Set<String> loadBalancers = [] as Set
 
   Ingress ingress
+  KubernetesSecurityGroupDescription description
 
   KubernetesSecurityGroup(String application, String account, Ingress ingress, boolean includeRules) {
     this.ingress = ingress
@@ -51,6 +54,7 @@ class KubernetesSecurityGroup implements SecurityGroup, Serializable {
     this.namespace = this.region
     this.name = ingress.metadata.name
     this.id = this.name
+    this.description = KubernetesApiConverter.fromIngress(ingress)
 
     if (ingress.spec?.backend?.serviceName) {
       loadBalancers.add(ingress.spec.backend.serviceName)

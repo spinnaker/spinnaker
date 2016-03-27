@@ -21,7 +21,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.KubernetesHttpIngressPath
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.KubernetesIngressRule
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.UpsertKubernetesSecurityGroupDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.KubernetesSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.extensions.HTTPIngressPathBuilder
 import io.fabric8.kubernetes.api.model.extensions.IngressBuilder
@@ -30,7 +30,7 @@ import io.fabric8.kubernetes.api.model.extensions.IngressRuleBuilder
 class UpsertKubernetesSecurityGroupAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "UPSERT_SECURITY_GROUP"
 
-  UpsertKubernetesSecurityGroupAtomicOperation(UpsertKubernetesSecurityGroupDescription description) {
+  UpsertKubernetesSecurityGroupAtomicOperation(KubernetesSecurityGroupDescription description) {
     this.description = description
   }
 
@@ -38,7 +38,7 @@ class UpsertKubernetesSecurityGroupAtomicOperation implements AtomicOperation<Vo
     TaskRepository.threadLocalTask.get()
   }
 
-  UpsertKubernetesSecurityGroupDescription description
+  KubernetesSecurityGroupDescription description
 
   /*
    * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertSecurityGroup": { "securityGroupName": "kub-sg", "namespace": "default", "credentials": "my-kubernetes-account", "ingress": { "serviceName": "kub-nginx", "port": 80 } } } ]' localhost:7002/kubernetes/ops
