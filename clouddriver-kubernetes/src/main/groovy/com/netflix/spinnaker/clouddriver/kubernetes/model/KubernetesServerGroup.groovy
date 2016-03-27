@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.model
 
-import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
+import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription
@@ -70,7 +70,7 @@ class KubernetesServerGroup implements ServerGroup, Serializable {
     this.loadBalancers = KubernetesUtil.getDescriptionLoadBalancers(replicationController) as Set
     this.launchConfig = [:]
     this.labels = replicationController.spec?.template?.metadata?.labels
-    this.deployDescription = KubernetesApiAdaptor.fromReplicationController(replicationController)
+    this.deployDescription = KubernetesApiConverter.fromReplicationController(replicationController)
     this.replicationController = replicationController
     this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(replicationController)
   }

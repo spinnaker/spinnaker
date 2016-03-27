@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.securityg
 
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.KubernetesAtomicOperationConverterHelper
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.UpsertKubernetesSecurityGroupDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.securitygroup.KubernetesSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.securitygroup.UpsertKubernetesSecurityGroupAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
@@ -34,7 +34,7 @@ class UpsertKubernetesSecurityGroupConverter extends AbstractAtomicOperationsCre
   }
 
   @Override
-  UpsertKubernetesSecurityGroupDescription convertDescription(Map input) {
-    KubernetesAtomicOperationConverterHelper.convertDescription(input, this, UpsertKubernetesSecurityGroupDescription)
+  KubernetesSecurityGroupDescription convertDescription(Map input) {
+    KubernetesAtomicOperationConverterHelper.convertDescription(input, this, KubernetesSecurityGroupDescription)
   }
 }
