@@ -245,7 +245,7 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
                 replicationControllerBuilder = replicationControllerBuilder.withScheme(get.uriScheme)
               }
 
-              replicationControllerBuilder = replicationControllerBuilder.endHttpGetAction()
+              replicationControllerBuilder = replicationControllerBuilder.endHttpGet()
               break
           }
 

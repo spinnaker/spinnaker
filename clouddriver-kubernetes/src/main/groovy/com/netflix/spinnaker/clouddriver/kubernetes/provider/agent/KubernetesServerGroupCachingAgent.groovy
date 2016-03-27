@@ -252,6 +252,10 @@ class KubernetesServerGroupCachingAgent implements CachingAgent, OnDemandAgent, 
     Map<String, MutableCacheData> cachedLoadBalancers = MutableCacheData.mutableCacheMap()
 
     for (ReplicationController replicationController : replicationControllers) {
+      if (!replicationController) {
+        continue
+      }
+
       def onDemandData = onDemandKeep ? onDemandKeep[Keys.getServerGroupKey(accountName, namespace, replicationController.metadata.name)] : null
 
       if (onDemandData && onDemandData.attributes.cacheTime >= start) {

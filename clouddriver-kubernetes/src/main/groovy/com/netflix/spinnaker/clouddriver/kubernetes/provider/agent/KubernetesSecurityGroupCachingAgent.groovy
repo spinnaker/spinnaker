@@ -237,7 +237,11 @@ class KubernetesSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent
     Map<String, MutableCacheData> cachedSecurityGroups = MutableCacheData.mutableCacheMap()
     Map<String, MutableCacheData> cachedLoadBalancers = MutableCacheData.mutableCacheMap()
 
-    for (Ingress ingress: ingresses) {
+    for (Ingress ingress : ingresses) {
+      if (!ingress) {
+        continue
+      }
+
       def onDemandData = onDemandKeep ? onDemandKeep[Keys.getSecurityGroupKey(accountName, namespace, ingress.metadata.name)] : null
 
       if (onDemandData && onDemandData.attributes.cachetime >= start) {

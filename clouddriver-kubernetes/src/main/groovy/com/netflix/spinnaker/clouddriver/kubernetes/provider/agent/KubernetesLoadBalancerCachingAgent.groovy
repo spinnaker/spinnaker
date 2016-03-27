@@ -239,6 +239,10 @@ class KubernetesLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent,
     Map<String, MutableCacheData> cachedLoadBalancers = MutableCacheData.mutableCacheMap()
 
     for (Service service : services) {
+      if (!service) {
+        continue
+      }
+
       def onDemandData = onDemandKeep ? onDemandKeep[Keys.getLoadBalancerKey(accountName, namespace, service.metadata.name)] : null
 
       if (onDemandData && onDemandData.attributes.cachetime >= start) {

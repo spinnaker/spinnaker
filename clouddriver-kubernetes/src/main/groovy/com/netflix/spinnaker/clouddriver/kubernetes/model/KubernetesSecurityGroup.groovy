@@ -71,7 +71,7 @@ class KubernetesSecurityGroup implements SecurityGroup, Serializable {
 
       def host = rule.host
 
-      return new HttpRule(portRanges: [defaultPort, tlsPort] as Set,
+      return new HttpRule(portRanges: ([defaultPort, tlsPort] as SortedSet),
                           paths: paths,
                           host: host)
     }) : []) as Set

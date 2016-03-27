@@ -55,10 +55,12 @@ class UpsertKubernetesSecurityGroupAtomicOperation implements AtomicOperation<Vo
 
     def oldIngress = credentials.apiAdaptor.getIngress(namespace, description.securityGroupName)
 
-    def ingress = new IngressBuilder().withNewMetadata().withName(description.securityGroupName).withNamespace(namespace).endMetadata()
+    def ingress = new IngressBuilder().withNewMetadata().withName(description.securityGroupName).withNamespace(namespace).endMetadata().withNewSpec()
 
     task.updateStatus BASE_PHASE, "Attaching requested service..."
-    ingress = ingress.withNewSpec().withNewBackend().withServiceName(description.ingress.serviceName).withNewServicePort(description.ingress.port).endBackend()
+    if (description.ingress?.serviceName) {
+      ingress = ingress.withNewBackend().withServiceName(description.ingress.serviceName).withNewServicePort(description.ingress.port).endBackend()
+    }
 
     task.updateStatus BASE_PHASE, "Setting requested rules..."
 
