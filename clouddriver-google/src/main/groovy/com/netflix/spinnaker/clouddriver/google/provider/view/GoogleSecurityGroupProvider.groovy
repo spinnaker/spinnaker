@@ -28,11 +28,13 @@ import com.netflix.spinnaker.clouddriver.model.AddressableRange
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.SECURITY_GROUPS
 
+@Slf4j
 @Component
 class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurityGroup> {
 
@@ -191,6 +193,7 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
   static List<String> getMatchingServerGroupNames(Set<GoogleSecurityGroup> securityGroups,
                                                   Set<String> tags,
                                                   String networkName) {
+    tags = tags ?: [] as Set
     securityGroups?.findResults { GoogleSecurityGroup securityGroup ->
       def networkNameMatches = securityGroup.network == networkName
       boolean targetTagsEmpty = !securityGroup.targetTags

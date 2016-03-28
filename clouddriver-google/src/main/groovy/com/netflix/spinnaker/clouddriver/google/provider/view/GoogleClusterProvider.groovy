@@ -69,7 +69,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster2.View> {
     GoogleApplication2.View application = applicationProvider.getApplication(applicationName)
 
     def clusterKeys = []
-    application.clusterNames.each { String accountName, Set<String> clusterNames ->
+    application?.clusterNames?.each { String accountName, Set<String> clusterNames ->
       clusterNames.each { String clusterName ->
         clusterKeys << Keys.getClusterKey(accountName, applicationName, clusterName)
       }
@@ -82,7 +82,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster2.View> {
       clusterFromCacheData(cacheData, includeInstanceDetails)
     }
 
-    clusters.groupBy { it.accountName } as Map<String, Set<GoogleCluster2.View>>
+    clusters?.groupBy { it.accountName } as Map<String, Set<GoogleCluster2.View>>
   }
 
   @Override
