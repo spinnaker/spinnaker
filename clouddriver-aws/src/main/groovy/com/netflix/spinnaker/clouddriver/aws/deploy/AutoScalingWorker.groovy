@@ -53,6 +53,7 @@ class AutoScalingWorker {
   private String iamRole
   private String keyPair
   private String base64UserData
+  private Integer sequence
   private Boolean ignoreSequence
   private Boolean startDisabled
   private Boolean associatePublicIpAddress
@@ -106,7 +107,12 @@ class AutoScalingWorker {
     task.updateStatus AWS_PHASE, "Beginning ASG deployment."
 
     AWSServerGroupNameResolver awsServerGroupNameResolver = regionScopedProvider.AWSServerGroupNameResolver
-    String asgName = awsServerGroupNameResolver.resolveNextServerGroupName(application, stack, freeFormDetails, ignoreSequence)
+    String asgName
+    if (sequence != null) {
+      asgName = awsServerGroupNameResolver.generateServerGroupName(application, stack, freeFormDetails, sequence, false)
+    }  else {
+      asgName = awsServerGroupNameResolver.resolveNextServerGroupName(application, stack, freeFormDetails, ignoreSequence)
+    }
 
     def settings = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
       account: credentials.name,

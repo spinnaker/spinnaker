@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class AutoScalingWorkerUnitSpec extends Specification {
 
@@ -50,9 +51,9 @@ class AutoScalingWorkerUnitSpec extends Specification {
     TaskRepository.threadLocalTask.set(task)
   }
 
+  @Unroll
   void "deploy workflow is create launch config, create asg"() {
     setup:
-    def asgName = "myasg-stack-details-v000"
     def launchConfigName = "launchConfig"
     def mockAutoScalingWorker = Spy(AutoScalingWorker)
     mockAutoScalingWorker.application = "myasg"
@@ -60,15 +61,24 @@ class AutoScalingWorkerUnitSpec extends Specification {
     mockAutoScalingWorker.freeFormDetails = "details"
     mockAutoScalingWorker.credentials = credential
     mockAutoScalingWorker.regionScopedProvider = regionScopedProvider
+    mockAutoScalingWorker.sequence = sequence
 
     when:
     mockAutoScalingWorker.deploy()
 
     then:
     1 * lcBuilder.buildLaunchConfiguration('myasg', null, _) >> launchConfigName
-    1 * mockAutoScalingWorker.createAutoScalingGroup(asgName, launchConfigName) >> {}
-    1 * clusterProvider.getCluster('myasg', 'test', 'myasg-stack-details') >> { null }
+    1 * mockAutoScalingWorker.createAutoScalingGroup(expectedAsgName, launchConfigName) >> {}
+    (sequence == null ? 1 : 0) * clusterProvider.getCluster('myasg', 'test', 'myasg-stack-details') >> { null }
     0 * clusterProvider._
+
+    where:
+    sequence || expectedAsgName
+    null     || "myasg-stack-details-v000"
+    0        || "myasg-stack-details-v000"
+    1        || "myasg-stack-details-v001"
+    11       || "myasg-stack-details-v011"
+    111      || "myasg-stack-details-v111"
   }
 
   void "deploy derives name from ancestor asg and sets the ancestor asg name in the task result"() {

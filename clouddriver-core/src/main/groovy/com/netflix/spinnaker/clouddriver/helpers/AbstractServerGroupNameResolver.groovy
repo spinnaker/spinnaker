@@ -95,6 +95,10 @@ abstract class AbstractServerGroupNameResolver extends NameBuilder {
   }
 
   static String generateServerGroupName(String application, String stack, String details, Integer sequence, Boolean ignoreSequence) {
+    if (sequence < 0 || sequence >= 1000) {
+      throw new IllegalArgumentException("Sequence '${sequence}' is invalid")
+    }
+
     def builder = new AutoScalingGroupNameBuilder(appName: application, stack: stack, detail: details)
     def groupName = builder.buildGroupName(true)
     if (ignoreSequence) {

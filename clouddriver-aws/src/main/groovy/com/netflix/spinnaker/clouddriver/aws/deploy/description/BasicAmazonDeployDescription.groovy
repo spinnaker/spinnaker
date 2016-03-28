@@ -48,6 +48,13 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   String classicLinkVpcId
   List<String> classicLinkVpcSecurityGroups
 
+  /**
+   * If specified, this sequence number will be used when generating the server group name.
+   *
+   * Expectation is on the caller to ensure that an explicitly provided sequence number is not already in use.
+   */
+  Integer sequence
+
   boolean ignoreSequence
   boolean startDisabled
 
