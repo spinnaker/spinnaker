@@ -100,7 +100,7 @@ class GoogleInstance2 {
       loadBalancerHealths.each { GoogleLoadBalancerHealth h ->
         healths << mapper.convertValue(h.view, new TypeReference<Map<String, Object>>() {})
       }
-      healths << mapper.convertValue(instanceHealth, new TypeReference<Map<String, Object>>() {})
+      healths << mapper.convertValue(instanceHealth?.view, new TypeReference<Map<String, Object>>() {})
       healths
     }
 
@@ -111,7 +111,7 @@ class GoogleInstance2 {
         allHealths << it.view
       }
       if (instanceHealth) {
-        allHealths << instanceHealth
+        allHealths << instanceHealth.view
       }
       allHealths
     }

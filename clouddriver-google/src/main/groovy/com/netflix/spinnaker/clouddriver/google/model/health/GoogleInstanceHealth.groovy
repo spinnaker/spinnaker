@@ -22,10 +22,7 @@ import com.netflix.spinnaker.clouddriver.model.HealthState
 import groovy.transform.Canonical
 
 @Canonical
-class GoogleInstanceHealth extends GoogleHealth implements Health, Serializable {
-
-  final Type type = Type.Google
-  final HealthClass healthClass = HealthClass.platform
+class GoogleInstanceHealth {
 
   Status status
 
@@ -53,7 +50,17 @@ class GoogleInstanceHealth extends GoogleHealth implements Health, Serializable 
   }
 
   @JsonIgnore
-  HealthState getState() {
-    status?.toHealthState()
+  View getView() {
+    new View()
+  }
+
+  class View extends GoogleHealth implements Health {
+
+    final Type type = Type.Google
+    final HealthClass healthClass = HealthClass.platform
+
+    HealthState getState() {
+      GoogleInstanceHealth.this.status?.toHealthState()
+    }
   }
 }

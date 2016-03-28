@@ -53,6 +53,7 @@ class GoogleNamedImageLookupController {
           results << [account: accountNameToImagesEntry.key, imageName: it.name]
         }
       }
+      results.sort { a, b -> a.imageName <=> b.imageName }
     }
 
     def glob = lookupOptions.q?.trim() ?: "*"
