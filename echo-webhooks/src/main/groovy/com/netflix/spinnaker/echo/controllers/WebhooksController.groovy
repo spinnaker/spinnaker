@@ -37,6 +37,7 @@ class WebhooksController {
   @RequestMapping(value = '/webhooks/{type}/{source}', method = RequestMethod.POST)
   void forwardEvent(@PathVariable String type, @PathVariable String source, @RequestBody Map postedEvent) {
     Event event = new Event()
+    boolean sendEvent = true
     event.details = new Metadata()
     event.details.source = source
     event.details.type = type
@@ -48,6 +49,9 @@ class WebhooksController {
         event.content.branch = postedEvent.refChanges?.first().refId.replace('refs/heads/', '')
         event.content.repoProject = postedEvent.repository.project.key
         event.content.slug = postedEvent.repository.slug
+        if (event.content.hash.toString().startsWith('000000000')) {
+          sendEvent = false
+        }
       }
       if (source == 'github') {
         event.content.hash = postedEvent.after
@@ -59,7 +63,9 @@ class WebhooksController {
 
     log.info("Webhook ${source}:${type}:${event.content}")
 
-    propagator.processEvent(event)
+    if (sendEvent) {
+      propagator.processEvent(event)
+    }
   }
 
 }
