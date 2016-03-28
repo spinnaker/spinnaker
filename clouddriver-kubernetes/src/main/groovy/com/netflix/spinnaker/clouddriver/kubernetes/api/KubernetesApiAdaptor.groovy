@@ -17,12 +17,16 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.api
 
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesOperationException
+import groovy.util.logging.Slf4j
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.extensions.Ingress
 import io.fabric8.kubernetes.client.KubernetesClient
+import io.fabric8.kubernetes.client.KubernetesClientException
 
 import java.util.concurrent.TimeUnit
 
+@Slf4j
 class KubernetesApiAdaptor {
   KubernetesClient client
 
@@ -61,120 +65,224 @@ class KubernetesApiAdaptor {
   }
 
   Ingress createIngress(String namespace, Ingress ingress) {
-    client.extensions().ingress().inNamespace(namespace).create(ingress)
+    try {
+      client.extensions().ingress().inNamespace(namespace).create(ingress)
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Create Ingress", e)
+    }
   }
 
   Ingress replaceIngress(String namespace, String name, Ingress ingress) {
-    client.extensions().ingress().inNamespace(namespace).withName(name).replace(ingress)
+    try {
+      client.extensions().ingress().inNamespace(namespace).withName(name).replace(ingress)
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Replace Ingress", e)
+    }
   }
 
   Ingress getIngress(String namespace, String name) {
-    client.extensions().ingress().inNamespace(namespace).withName(name).get()
+    try {
+      client.extensions().ingress().inNamespace(namespace).withName(name).get()
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Get Ingress", e)
+    }
   }
 
   boolean deleteIngress(String namespace, String name) {
-    client.extensions().ingress().inNamespace(namespace).withName(name).delete()
+    try {
+      client.extensions().ingress().inNamespace(namespace).withName(name).delete()
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Delete Ingress", e)
+    }
   }
 
   List<Ingress> getIngresses(String namespace) {
-    client.extensions().ingress().inNamespace(namespace).list().items
+    try {
+      client.extensions().ingress().inNamespace(namespace).list().items
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Get Ingresses", e)
+    }
   }
 
   List<ReplicationController> getReplicationControllers(String namespace) {
-    client.replicationControllers().inNamespace(namespace).list().items
+    try {
+      client.replicationControllers().inNamespace(namespace).list().items
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Get Replication Controllers", e)
+    }
   }
 
   List<Pod> getPods(String namespace, String replicationControllerName) {
-    client.pods().inNamespace(namespace).withLabel(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicationControllerName).list().items
+    try {
+      client.pods().inNamespace(namespace).withLabel(KubernetesUtil.REPLICATION_CONTROLLER_LABEL, replicationControllerName).list().items
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Get Pods", e)
+    }
   }
 
   Pod getPod(String namespace, String name) {
-    client.pods().inNamespace(namespace).withName(name).get()
+    try {
+      client.pods().inNamespace(namespace).withName(name).get()
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Get Pod", e)
+    }
   }
 
   boolean deletePod(String namespace, String name) {
-    client.pods().inNamespace(namespace).withName(name).delete()
+    try {
+      client.pods().inNamespace(namespace).withName(name).delete()
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Delete Pod", e)
+    }
   }
 
   List<Pod> getPods(String namespace) {
-    client.pods().inNamespace(namespace).list().items
+    try {
+      client.pods().inNamespace(namespace).list().items
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Get Pods", e)
+    }
   }
 
   ReplicationController getReplicationController(String namespace, String serverGroupName) {
-    client.replicationControllers().inNamespace(namespace).withName(serverGroupName).get()
+    try {
+      client.replicationControllers().inNamespace(namespace).withName(serverGroupName).get()
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Get Replication Controller", e)
+    }
   }
 
   ReplicationController createReplicationController(String namespace, ReplicationController replicationController) {
-    client.replicationControllers().inNamespace(namespace).create(replicationController)
+    try {
+      client.replicationControllers().inNamespace(namespace).create(replicationController)
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Create Replication Controller", e)
+    }
   }
 
   ReplicationController resizeReplicationController(String namespace, String name, int size) {
-    client.replicationControllers().inNamespace(namespace).withName(name).scale(size)
+    try {
+      client.replicationControllers().inNamespace(namespace).withName(name).scale(size)
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Resize Replication Controller", e)
+    }
   }
 
   boolean hardDestroyReplicationController(String namespace, String name) {
-    client.replicationControllers().inNamespace(namespace).withName(name).delete()
+    try {
+      client.replicationControllers().inNamespace(namespace).withName(name).delete()
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Hard Destroy Replication Controller", e)
+    }
   }
 
   void togglePodLabels(String namespace, String name, List<String> keys, String value) {
-    def edit = client.pods().inNamespace(namespace).withName(name).edit().editMetadata()
+    try {
+      def edit = client.pods().inNamespace(namespace).withName(name).edit().editMetadata()
 
-    keys.each {
-      edit.removeFromLabels(it)
-      edit.addToLabels(it, value)
+      keys.each {
+        edit.removeFromLabels(it)
+        edit.addToLabels(it, value)
+      }
+
+      edit.endMetadata().done()
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Toggle Pod Labels", e)
     }
-
-    edit.endMetadata().done()
   }
 
   ReplicationController toggleReplicationControllerSpecLabels(String namespace, String name, List<String> keys, String value) {
-    def edit = client.replicationControllers().inNamespace(namespace).withName(name).cascading(false).edit().editSpec().editTemplate().editMetadata()
+    try {
+      def edit = client.replicationControllers().inNamespace(namespace).withName(name).cascading(false).edit().editSpec().editTemplate().editMetadata()
 
-    keys.each {
-      edit.removeFromLabels(it)
-      edit.addToLabels(it, value)
+      keys.each {
+        edit.removeFromLabels(it)
+        edit.addToLabels(it, value)
+      }
+
+      edit.endMetadata().endTemplate().endSpec().done()
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Toggle Replication Controller Labels", e)
     }
-
-    edit.endMetadata().endTemplate().endSpec().done()
   }
 
   Service getService(String namespace, String service) {
-    client.services().inNamespace(namespace).withName(service).get()
+    try {
+      client.services().inNamespace(namespace).withName(service).get()
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Get Service", e)
+    }
   }
 
   Service createService(String namespace, Service service) {
-    client.services().inNamespace(namespace).create(service)
+    try {
+      client.services().inNamespace(namespace).create(service)
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Create Service", e)
+    }
   }
 
   boolean deleteService(String namespace, String name) {
-    client.services().inNamespace(namespace).withName(name).delete()
+    try {
+      client.services().inNamespace(namespace).withName(name).delete()
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Delete Service", e)
+    }
   }
 
   List<Service> getServices(String namespace) {
-    client.services().inNamespace(namespace).list().items
+    try {
+      client.services().inNamespace(namespace).list().items
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Get Services", e)
+    }
   }
 
   Service replaceService(String namespace, String name, Service service) {
-    client.services().inNamespace(namespace).withName(name).replace(service)
+    try {
+      client.services().inNamespace(namespace).withName(name).replace(service)
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Replace Service", e)
+    }
   }
 
   Secret getSecret(String namespace, String secret) {
-    client.secrets().inNamespace(namespace).withName(secret).get()
+    try {
+      client.secrets().inNamespace(namespace).withName(secret).get()
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Get Secret", e)
+    }
   }
 
   Boolean deleteSecret(String namespace, String secret) {
-    client.secrets().inNamespace(namespace).withName(secret).delete()
+    try {
+      client.secrets().inNamespace(namespace).withName(secret).delete()
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Delete Secret", e)
+    }
   }
 
   Secret createSecret(String namespace, Secret secret) {
-    client.secrets().inNamespace(namespace).create(secret)
+    try {
+      client.secrets().inNamespace(namespace).create(secret)
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Create Secret", e)
+    }
   }
 
   Namespace getNamespace(String namespace) {
-    client.namespaces().withName(namespace).get()
+    try {
+      client.namespaces().withName(namespace).get()
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Get Namespace", e)
+    }
   }
 
   Namespace createNamespace(Namespace namespace) {
-    client.namespaces().create(namespace)
+    try {
+      client.namespaces().create(namespace)
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Create Namespace", e)
+    }
   }
 }
