@@ -79,7 +79,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.resizeAsgStag
     stage.target = stage.target || $scope.resizeTargets[0].val;
     stage.action = stage.action || $scope.scaleActions[0].val;
     stage.resizeType = stage.resizeType || $scope.resizeTypes[0].val;
-    if (stage.resizeType === 'exact') {
+    if (!stage.action && stage.resizeType === 'exact') {
       stage.action = 'scale_exact';
     }
     stage.cloudProvider = 'aws';
@@ -104,8 +104,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.resizeAsgStag
         stage.capacity = {};
         if (stage.resizeType === 'pct') {
           delete stage.scaleNum;
-        } else if (stage.resizeType === 'incr') {
+        } else {
+          stage.resizeType = 'incr';
           delete stage.scalePct;
+          stage.scaleNum = stage.scaleNum || 0;
         }
       }
     };
