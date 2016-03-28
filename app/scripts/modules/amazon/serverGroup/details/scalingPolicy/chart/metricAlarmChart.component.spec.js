@@ -182,20 +182,20 @@ describe('Component: metricAlarmChart', function () {
       expect($ctrl.chartData.threshold.map(d => d.val)).toEqual([3.1, 3.1]);
     });
 
-    it('sets topline to 0 when alarm comparator is >=', function () {
-      alarm.threshold = 3.1;
+    it('sets topline to 1.02x threshold when alarm comparator is >=', function () {
+      alarm.threshold = 10;
       alarm.comparisonOperator = 'GreaterThanOrEqualToThreshold';
       this.initialize({ alarm: alarm, serverGroup: {}});
       $ctrl.$onInit();
-      expect($ctrl.chartData.topline.map(d => d.val)).toEqual([0, 0]);
+      expect($ctrl.chartData.topline.map(d => d.val)).toEqual([10.2, 10.2]);
     });
 
-    it('sets topline to 0 when alarm comparator is >', function () {
-      alarm.threshold = 3.1;
+    it('sets topline to 1.02x threshold when alarm comparator is >', function () {
+      alarm.threshold = 100;
       alarm.comparisonOperator = 'GreaterThanThreshold';
       this.initialize({ alarm: alarm, serverGroup: {}});
       $ctrl.$onInit();
-      expect($ctrl.chartData.topline.map(d => d.val)).toEqual([0, 0]);
+      expect($ctrl.chartData.topline.map(d => d.val)).toEqual([102, 102]);
     });
 
     it('sets topline to 3 * threshold when alarm comparator is <', function () {

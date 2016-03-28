@@ -7,7 +7,7 @@ module.exports = angular
   ])
   .component('awsSimplePolicyAction', {
     bindings: {
-      policy: '<',
+      command: '<',
       viewState: '=',
     },
     templateUrl: require('./simplePolicyAction.component.html'),

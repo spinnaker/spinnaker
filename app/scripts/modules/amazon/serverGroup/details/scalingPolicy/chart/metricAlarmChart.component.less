@@ -1,13 +1,7 @@
 metric-alarm-chart {
   position: relative;
   display: block;
-  &.no-y-axis {
-    .y-axis {
-      .tick {
-        display: none;
-      }
-    }
-  }
+  margin-bottom: 50px;
   .chart {
     .line-series {
       path {
@@ -19,7 +13,12 @@ metric-alarm-chart {
     }
   }
   .chart-legend {
-    display: none;
+    margin-top: -10px;
+    margin-left: 48px;
+    .item > .icon {
+      width: 14px;
+      height: 14px;
+    }
   }
   .no-data-overlay {
     position: absolute;

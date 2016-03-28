@@ -2,6 +2,8 @@
 
 const angular = require('angular');
 
+require('./dimensionsEditor.component.less');
+
 module.exports = angular
   .module('spinnaker.aws.serverGroup.details.scalingPolicy.dimensionEditor', [
     require('../../../../../../core/utils/lodash.js'),

@@ -43,7 +43,7 @@ module.exports = angular
         let start = new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
             end = new Date(),
             threshold = this.alarm.threshold || 0,
-            topline = this.alarm.comparisonOperator.indexOf('Less') === 0 ? threshold * 3 : 0;
+            topline = this.alarm.comparisonOperator.indexOf('Less') === 0 ? threshold * 3 : threshold * 1.02;
 
         /**
          * Draw four lines:
@@ -137,7 +137,7 @@ module.exports = angular
               axis: 'y',
               dataset: 'threshold',
               key: 'val',
-              label: 'alarm threshold',
+              label: `alarm threshold (${this.alarm.threshold})`,
               color: 'hsl(343, 79%, 32%)',
               type: ['line'],
               id: 'threshold',
@@ -146,7 +146,7 @@ module.exports = angular
               axis: 'y',
               dataset: 'baseline',
               key: 'val',
-              label: '',
+              label: ' ',
               color: 'transparent',
               type: ['line'],
               id: 'baseline'
@@ -155,7 +155,7 @@ module.exports = angular
               axis: 'y',
               dataset: 'topline',
               key: 'val',
-              label: '',
+              label: ' ',
               color: 'transparent',
               type: ['line'],
               id: 'topline'

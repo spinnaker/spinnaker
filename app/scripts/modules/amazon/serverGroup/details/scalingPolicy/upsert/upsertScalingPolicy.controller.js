@@ -34,7 +34,7 @@ module.exports = angular
         region: serverGroup.region,
         provider: serverGroup.type,
         adjustmentType: policy.adjustmentType,
-        minAdjustmentMagnitude: policy.minAdjustmentMagnitude,
+        minAdjustmentMagnitude: policy.minAdjustmentMagnitude || 1,
       };
     }
 
@@ -132,8 +132,9 @@ module.exports = angular
 
     this.switchMode = () => {
       let command = this.command;
+      let cooldownOrWarmup = command.step ? command.step.estimatedInstanceWarmup : command.simple.cooldown;
       if (command.step) {
-        let policy = { cooldown: command.step.estimatedInstanceWarmup };
+        let policy = { cooldown: cooldownOrWarmup };
         delete command.step;
         initializeSimplePolicy(command, policy);
       } else {
@@ -146,7 +147,10 @@ module.exports = angular
           stepAdjustments[0].metricIntervalLowerBound = 0;
         }
         delete command.simple;
-        initializeStepPolicy(command, { stepAdjustments: stepAdjustments });
+        initializeStepPolicy(command, {
+          estimatedInstanceWarmup: cooldownOrWarmup,
+          stepAdjustments: stepAdjustments,
+        });
         this.boundsChanged();
       }
     };
@@ -155,6 +159,10 @@ module.exports = angular
 
     let prepareCommandForSubmit = () => {
       let command = _.cloneDeep(this.command);
+
+      if (command.adjustmentType === 'PercentChangeInCapacity') {
+        delete command.minAdjustmentMagnitude;
+      }
 
       if (command.step) {
         // adjust metricIntervalLowerBound/UpperBound for each step based on alarm threshold
@@ -169,6 +177,10 @@ module.exports = angular
             step.metricIntervalUpperBound -= command.alarm.threshold;
           }
         });
+      } else {
+        if (this.viewState.operator === 'Remove') {
+          command.simple.scalingAdjustment = 0 - command.simple.scalingAdjustment;
+        }
       }
       return command;
     };

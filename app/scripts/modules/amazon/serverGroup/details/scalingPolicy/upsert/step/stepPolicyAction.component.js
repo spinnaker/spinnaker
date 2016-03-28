@@ -32,7 +32,7 @@ module.exports = angular
       };
 
       this.addStep = () => {
-        this.command.step.stepAdjustments.push({});
+        this.command.step.stepAdjustments.push({ scalingAdjustment: 1 });
       };
 
       this.removeStep = (index) => {
