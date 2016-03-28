@@ -19,7 +19,7 @@ class SecurityGroupLookupSpec extends Specification {
 
   final amazonEC2 = Mock(AmazonEC2)
   final amazonClientProvider = Stub(AmazonClientProvider) {
-    getAmazonEC2(_, "us-east-1") >> amazonEC2
+    getAmazonEC2(_, "us-east-1", _) >> amazonEC2
   }
   final accountCredentialsRepository = Stub(AccountCredentialsRepository) {
     getAll() >> [
@@ -100,6 +100,31 @@ class SecurityGroupLookupSpec extends Specification {
 
     then:
     result.securityGroup == new SecurityGroup(ownerId: "id-test", groupId: "sg-123", groupName: "wideOpen", vpcId: "vpc-1")
+    0 * _
+  }
+
+  void "should look up security group and call AWS every time when skipping cache"() {
+    when:
+    final result = securityGroupLookup.getSecurityGroupByName("test", "wideOpen", "vpc-1")
+
+    then:
+    1 * amazonEC2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
+      securityGroups: [
+        new SecurityGroup(ownerId: "id-test", groupId: "sg-123", groupName: "wideOpen", vpcId: "vpc-1")
+      ]
+    )
+    result.securityGroup == new SecurityGroup(ownerId: "id-test", groupId: "sg-123", groupName: "wideOpen", vpcId: "vpc-1")
+
+    when:
+    result = securityGroupLookup.getSecurityGroupByName("test", "wideOpen", "vpc-1", true)
+
+    then:
+    1 * amazonEC2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
+      securityGroups: [
+        new SecurityGroup(ownerId: "id-test", groupId: "sg-456", groupName: "wideOpen", vpcId: "vpc-1")
+      ]
+    )
+    result.securityGroup == new SecurityGroup(ownerId: "id-test", groupId: "sg-456", groupName: "wideOpen", vpcId: "vpc-1")
     0 * _
   }
 

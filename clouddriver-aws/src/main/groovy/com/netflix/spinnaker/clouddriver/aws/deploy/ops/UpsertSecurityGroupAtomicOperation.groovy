@@ -60,25 +60,32 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
 
     def securityGroupUpdater = securityGroupLookup.getSecurityGroupByName(description.credentialAccount,
       description.name, description.vpcId)
-    List<IpPermission> ipPermissionsToAdd
-    List<IpPermission> ipPermissionsToRemove
+
+    List<IpPermission> existingIpPermissions
     if (securityGroupUpdater) {
-      ArrayList<IpPermission> existingIpPermissions = SecurityGroupIngressConverter.
+      existingIpPermissions = SecurityGroupIngressConverter.
         flattenPermissions(securityGroupUpdater.securityGroup.ipPermissions)
-      ipPermissionsToAdd = ipPermissionsFromDescription.converted - existingIpPermissions
-      ipPermissionsToRemove = existingIpPermissions - ipPermissionsFromDescription.converted
     } else {
       try {
         securityGroupUpdater = securityGroupLookup.createSecurityGroup(description)
         task.updateStatus BASE_PHASE, "Security group created: ${securityGroupUpdater.securityGroup}."
+        existingIpPermissions = []
       } catch (AmazonServiceException e) {
-        task.updateStatus BASE_PHASE, "Failed to create security group '${description.name} in ${description.credentialAccount}: ${e.errorMessage}"
-        throw e
+        if (e.errorCode == "InvalidGroup.Duplicate") {
+          final skipCache = true
+          securityGroupUpdater = securityGroupLookup.getSecurityGroupByName(description.credentialAccount,
+            description.name, description.vpcId, skipCache)
+          existingIpPermissions = SecurityGroupIngressConverter.
+            flattenPermissions(securityGroupUpdater.securityGroup.ipPermissions)
+        } else {
+          task.updateStatus BASE_PHASE, "Failed to create security group '${description.name} in ${description.credentialAccount}: ${e.errorMessage}"
+          throw e
+        }
       }
-
-      ipPermissionsToAdd = ipPermissionsFromDescription.converted
-      ipPermissionsToRemove = []
     }
+
+    List<IpPermission> ipPermissionsToAdd = ipPermissionsFromDescription.converted - existingIpPermissions
+    List<IpPermission> ipPermissionsToRemove = existingIpPermissions - ipPermissionsFromDescription.converted
 
     if (ipPermissionsToAdd) {
       try {

@@ -63,18 +63,18 @@ class SecurityGroupLookupFactory {
       if (description.vpcId) {
         request.withVpcId(description.vpcId)
       }
-      final amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region)
+      final amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region, true)
       final result = amazonEC2.createSecurityGroup(request)
       final newSecurityGroup = new SecurityGroup(ownerId: credentials.accountId, groupId: result.groupId,
         groupName: description.name, description: description.description, vpcId: description.vpcId)
       new SecurityGroupUpdater(newSecurityGroup, amazonEC2)
     }
 
-    SecurityGroupUpdater getSecurityGroupByName(String accountName, String name, String vpcId) {
+    SecurityGroupUpdater getSecurityGroupByName(String accountName, String name, String vpcId, boolean skipCache = false) {
       final credentials = getCredentialsForName(accountName)
       if (!credentials) { return null }
-      final amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region)
-      final securityGroup = getSecurityGroups(accountName, amazonEC2).find {
+      final amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region, skipCache)
+      final securityGroup = getSecurityGroups(accountName, amazonEC2, skipCache).find {
         it.groupName == name && it.vpcId == vpcId
       }
       if (securityGroup) {
@@ -83,9 +83,9 @@ class SecurityGroupLookupFactory {
       null
     }
 
-    private List<SecurityGroup> getSecurityGroups(String accountName, AmazonEC2 amazonEC2) {
+    private List<SecurityGroup> getSecurityGroups(String accountName, AmazonEC2 amazonEC2, boolean skipCache) {
       List<SecurityGroup> securityGroupsForAccount = securityGroupsByAccount[accountName]
-      if (securityGroupsForAccount == null) {
+      if (securityGroupsForAccount == null || skipCache) {
         securityGroupsForAccount = amazonEC2.describeSecurityGroups().securityGroups
         securityGroupsByAccount[accountName] = securityGroupsForAccount
       }
