@@ -221,6 +221,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         securityGroups: description.securityGroups,
         iamRole: description.iamRole ?: deployDefaults.iamRole,
         keyPair: description.keyPair ?: account?.defaultKeyPair,
+        sequence: description.sequence,
         ignoreSequence: description.ignoreSequence,
         startDisabled: description.startDisabled,
         associatePublicIpAddress: description.associatePublicIpAddress,

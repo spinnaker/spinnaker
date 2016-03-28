@@ -105,6 +105,27 @@ class AbstractServerGroupNameResolverSpec extends Specification {
     exc.message == "All server group names for cluster app-dev in test-region are taken."
   }
 
+  @Unroll
+  void "generateServerGroupName should throw exception if sequence is invalid"() {
+    setup:
+    def serverGroupNameResolver = new TestServerGroupNameResolver([])
+
+    expect:
+    try {
+      serverGroupNameResolver.generateServerGroupName("application", "stack", "details", sequence, false)
+      assert !expectedException
+    } catch (IllegalArgumentException ignored) {
+      assert expectedException
+    }
+
+    where:
+    sequence || expectedException
+    -1       || true
+    1000     || true
+    0        || false
+    999      || false
+  }
+
   void "resolveNextServerGroupName should yield v001 when most recent server group does not define sequence number"() {
     setup:
     def takenSlots = [
