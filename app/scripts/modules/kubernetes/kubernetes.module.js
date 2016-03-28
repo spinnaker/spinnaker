@@ -27,6 +27,7 @@ module.exports = angular.module('spinnaker.kubernetes', [
   require('./namespace/selectField.directive.js'),
   require('./search/resultFormatter.js'),
   require('./securityGroup/configure/configure.kubernetes.module.js'),
+  require('./securityGroup/details/details.kubernetes.module.js'),
   require('./securityGroup/reader.js'),
   require('./securityGroup/transformer.js'),
   require('./serverGroup/configure/CommandBuilder.js'),
@@ -65,7 +66,9 @@ module.exports = angular.module('spinnaker.kubernetes', [
       securityGroup: {
         reader: 'kubernetesSecurityGroupReader',
         transformer: 'kubernetesSecurityGroupTransformer',
-        createSecurityGroupTemplateUrl: require('./securityGroup/configure/wizard/wizard.html'),
+        detailsTemplateUrl: require('./securityGroup/details/details.html'),
+        detailsController: 'kubernetesSecurityGroupDetailsController',
+        createSecurityGroupTemplateUrl: require('./securityGroup/configure/wizard/createWizard.html'),
         createSecurityGroupController: 'kubernetesUpsertSecurityGroupController',
       },
       serverGroup: {
