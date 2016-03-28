@@ -115,7 +115,8 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
   }
 
   private GoogleServerGroup2 getServerGroup(String onDemandServerGroupName, String zone) {
-    constructServerGroups(onDemandServerGroupName, [zone])?.first()
+    def serverGroups = constructServerGroups(onDemandServerGroupName, [zone])
+    serverGroups ? serverGroups.first() : null
   }
 
   private List<GoogleServerGroup2> constructServerGroups(String onDemandServerGroupName, List<String> zones) {
@@ -163,14 +164,14 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
 
     def cacheResultBuilder = new CacheResultBuilder(startTime: Long.MAX_VALUE)
     CacheResult result = metricsSupport.transformData {
-      buildCacheResult(cacheResultBuilder, [serverGroup])
+      buildCacheResult(cacheResultBuilder, serverGroup ? [serverGroup] : [])
     }
 
     if (result.cacheResults.values().flatten().empty) {
       // Avoid writing an empty onDemand cache record (instead delete any that may have previously existed).
-      providerCache.evictDeletedItems(ON_DEMAND.ns, [Keys.getServerGroupKey(serverGroup.name,
+      providerCache.evictDeletedItems(ON_DEMAND.ns, [Keys.getServerGroupKey(data.serverGroupName as String,
                                                                             accountName,
-                                                                            serverGroup.zone)])
+                                                                            data.zone as String)])
     } else {
       metricsSupport.onDemandStore {
         def cacheData = new DefaultCacheData(
@@ -189,7 +190,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
       }
     }
 
-    Map<String, Collection<String>> evictions = [:]
+    Map<String, Collection<String>> evictions = [:].withDefault {_ -> []}
     if (!serverGroup) {
       evictions[SERVER_GROUPS.ns].add(Keys.getServerGroupKey(data.serverGroupName as String,
                                                              accountName,
