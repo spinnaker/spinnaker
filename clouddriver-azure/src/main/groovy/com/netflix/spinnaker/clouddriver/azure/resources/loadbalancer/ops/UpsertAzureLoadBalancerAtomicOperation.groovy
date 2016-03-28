@@ -62,7 +62,8 @@ class UpsertAzureLoadBalancerAtomicOperation implements AtomicOperation<Map> {
         AzureLoadBalancerResourceTemplate.getTemplate(description),
         resourceGroupName,
         description.region,
-        description.loadBalancerName)
+        description.loadBalancerName,
+        "loadBalancer")
 
       errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name)
     } catch (CloudException ce) {

@@ -19,16 +19,18 @@ package com.netflix.spinnaker.clouddriver.azure.client
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.microsoft.azure.CloudException
 import com.microsoft.azure.credentials.ApplicationTokenCredentials
 import com.microsoft.azure.credentials.AzureEnvironment
+import com.microsoft.rest.ServiceResponse
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-
 
 @Slf4j
 @CompileStatic
 public abstract class AzureBaseClient {
   final String subscriptionId
+  final static long AZURE_ATOMICOPERATION_RETRY = 5
 
   static ObjectMapper mapper
 
@@ -53,4 +55,66 @@ public abstract class AzureBaseClient {
     new ApplicationTokenCredentials(clientId, tenantId, secret, AzureEnvironment.AZURE)
   }
 
+  static Object getAzureOps(Closure getOps, String msgRetry, String msgFail, long count = AZURE_ATOMICOPERATION_RETRY) {
+    // The API call might return a timeout exception or some other Azure CloudException that is not the direct result of the operation
+    //   we are trying to execute; retry and if the final retry fails then throw
+    Object result = null
+    long operationRetry = 0
+    while (operationRetry < count) {
+      try {
+        operationRetry ++
+        result = getOps()
+        operationRetry = count
+      }
+      catch (Exception e) {
+        sleep(200)
+        log.warn("${msgRetry}: ${e.message}")
+        if (operationRetry >= count) {
+          log.error(msgFail)
+          throw e
+        }
+      }
+    }
+
+    result
+  }
+
+  static ServiceResponse<Void> deleteAzureResource( Closure azureOps, String resourceGroup, String resourceName, String parentResourceName, String msgRetry, String msgFail, long count = AZURE_ATOMICOPERATION_RETRY) {
+    // The API call might return a timeout exception or some other Azure CloudException that is not the direct result of the operation
+    //   we are trying to execute; retry and if the final retry fails then throw
+    ServiceResponse<Void> result = null
+    long operationRetry = 0
+    while (operationRetry < count) {
+      try {
+        operationRetry ++
+        if (parentResourceName) {
+          azureOps(resourceGroup, parentResourceName, resourceName)
+        } else {
+          azureOps(resourceGroup, resourceName)
+        }
+        operationRetry = count
+      }
+      catch (CloudException e) {
+        if (e.body.code == "404") {
+          // resource was not found; must have been deleted already
+          operationRetry = count
+        } else {
+          if (operationRetry >= count) {
+            throw e
+          }
+        }
+      }
+      catch (Exception e) {
+        sleep(200)
+        log.warn("${msgRetry}: ${e.message}")
+        if (operationRetry >= count) {
+          // Add something to the log to show that the resource deletion failed then rethrow the exception
+          log.error(msgFail)
+          throw e
+        }
+      }
+    }
+
+    result
+  }
 }

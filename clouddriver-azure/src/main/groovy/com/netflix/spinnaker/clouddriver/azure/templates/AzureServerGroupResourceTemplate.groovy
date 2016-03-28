@@ -84,10 +84,8 @@ class AzureServerGroupResourceTemplate {
     // These *Var variables are meant to help keep that reference from breaking IF the name of the actual variable
     // changes
     static transient String uniqueStorageNamesArrayVar = 'uniqueStorageNameArray'
-    static transient String newStorageAccountsSuffixVar = 'newStorageAccountSuffix'
     static transient String vhdContainerNameVar = 'vhdContainerName'
 
-    String newStorageAccountSuffix
     String vhdContainerName
     OsType osType
     String imageReference
@@ -99,7 +97,6 @@ class AzureServerGroupResourceTemplate {
      */
     ServerGroupTemplateVariables(AzureServerGroupDescription description) {
 
-      newStorageAccountSuffix = STORAGE_ACCOUNT_SUFFIX
       vhdContainerName = description.name.toLowerCase()
       osType = new OsType(description)
       imageReference = "[variables('osType')]"
@@ -112,7 +109,7 @@ class AzureServerGroupResourceTemplate {
 
   static String getUniqueStorageName(String name, long idx) {
     String noDashName = name.replaceAll("-", "").toLowerCase()
-    "[concat(uniqueString(concat(resourceGroup().id, subscription().id, '$noDashName', '$idx')), variables('$ServerGroupTemplateVariables.newStorageAccountsSuffixVar'))]"
+    "[concat(uniqueString(concat(resourceGroup().id, subscription().id, '$noDashName', '$idx')), '$STORAGE_ACCOUNT_SUFFIX')]"
   }
 
   /**
