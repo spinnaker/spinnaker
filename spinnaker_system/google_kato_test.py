@@ -559,6 +559,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     logger.debug('Configured with Spinnaker account "%s"', spinnaker_account)
     expect_images = [{'account': spinnaker_account, 'imageName': image['name']}
                      for image in json_doc]
+    expect_images = sorted(expect_images, key=lambda k: k['imageName'])
 
     # pylint: disable=bad-continuation
     builder = HttpContractBuilder(self.agent)
