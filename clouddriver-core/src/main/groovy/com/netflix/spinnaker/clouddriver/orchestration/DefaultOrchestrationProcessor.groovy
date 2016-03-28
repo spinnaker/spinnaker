@@ -20,6 +20,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.metrics.TimedCallable
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 
@@ -27,6 +28,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeoutException
 
+@Slf4j
 class DefaultOrchestrationProcessor implements OrchestrationProcessor {
   private static final String TASK_PHASE = "ORCHESTRATION"
 
@@ -69,15 +71,17 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
             task.fail()
           } catch (e) {
             def message = e.message
-            e.printStackTrace()
+            def stringWriter = new StringWriter()
+            def printWriter = new PrintWriter(stringWriter)
+            e.printStackTrace(printWriter)
+            def stackTrace = stringWriter.toString()
             if (!message) {
-              def stringWriter = new StringWriter()
-              def printWriter = new PrintWriter(stringWriter)
-              e.printStackTrace(printWriter)
-              message = stringWriter.toString()
+              message = stackTrace
             }
             task.updateStatus TASK_PHASE, "Orchestration failed: ${atomicOperation.class.simpleName} | ${e.class.simpleName}: [${message}]"
             task.addResultObjects([[type: "EXCEPTION", operation: atomicOperation.class.simpleName, cause: e.class.simpleName, message: message]])
+
+            log.error(stackTrace)
             task.fail()
           }
         }

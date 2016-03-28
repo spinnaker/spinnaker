@@ -103,7 +103,7 @@ class KubernetesUtil {
   }
 
   static String getImageId(String registry, String repository, String tag) {
-    "$registry/$repository:$tag"
+    "$registry/$repository:$tag".toString()
   }
 
   static String validateNamespace(KubernetesCredentials credentials, String namespace) {
@@ -164,12 +164,8 @@ class KubernetesUtil {
     return securityGroups
   }
 
-  static String securityGroupKey(String securityGroup) {
-    return String.format("$SECURITY_GROUP_LABEL_PREFIX%s", securityGroup)
-  }
-
   static String loadBalancerKey(String loadBalancer) {
-    return String.format("$LOAD_BALANCER_LABEL_PREFIX%s", loadBalancer)
+    return String.format("$LOAD_BALANCER_LABEL_PREFIX%s".toString(), loadBalancer)
   }
 
   static String combineAppStackDetail(String appName, String stack, String detail) {
