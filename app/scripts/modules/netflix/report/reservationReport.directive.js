@@ -7,6 +7,7 @@ require('./reservationReport.directive.less');
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.report.reservationReport.directive', [
     require('./reservationReport.read.service.js'),
+    require('../../core/account/accountTag.directive')
   ])
   .directive('reservationReport', function() {
     return {
@@ -18,6 +19,7 @@ module.exports = angular
         region: '=',
         instanceType: '=',
         zones: '=',
+        isVpc: '=',
       },
       controller: 'ReservationReportCtrl',
       controllerAs: 'vm',
@@ -29,15 +31,32 @@ module.exports = angular
       error: false,
     };
 
-    let initialize = () => {
-      if (!this.instanceType) {
+    let setVpc = () => {
+      this.reportData.forEach((row) => {
+        row.display = {
+          reserved: this.isVpc ? row.reservations.reservedVpc : row.reservations.reserved,
+          used: this.isVpc ? row.reservations.usedVpc : row.reservations.used,
+          surplus: this.isVpc ? row.reservations.surplusVpc : row.reservations.surplus,
+        };
+      });
+    };
+
+    let setReportData = () => {
+      if (this.viewState.loading || !this.account || !this.region || !this.instanceType || !this.zones) {
         return;
       }
-      reservationReportReader.getReservationsFor(this.account, this.region, this.instanceType)
+      let reportData = reservationReportReader.extractReservations(this.report.reservations, this.account, this.region, this.instanceType);
+      this.reportData = reportData.filter((row) => this.zones.indexOf(row.availabilityZone) > -1);
+      setVpc();
+    };
+
+    let initialize = () => {
+      reservationReportReader.getReservations()
         .then(
         (report) => {
-          this.report = report.filter((row) => this.zones.indexOf(row.availabilityZone) > -1);
+          this.report = report;
           this.viewState.loading = false;
+          setReportData();
         },
         () => {
           this.viewState.loading = false;
@@ -46,5 +65,6 @@ module.exports = angular
       );
     };
 
-    $scope.$watch(() => this.instanceType, initialize);
+    initialize();
+    $scope.$watchCollection(() => [this.instanceType, this.account, this.region, this.isVpc, this.zones], setReportData);
   });
