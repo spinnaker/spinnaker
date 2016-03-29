@@ -21,8 +21,10 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import com.netflix.spinnaker.clouddriver.model.ReservationReport
 
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
+@JsonPropertyOrder(["reservations", "start", "end", "accounts", "type"])
 class AmazonReservationReport implements ReservationReport {
   Date start
   Date end
@@ -49,7 +51,7 @@ class AmazonReservationReport implements ReservationReport {
     }
   }
 
-  @JsonPropertyOrder(["availabilityZone", "region", "availabilityZoneId", "instanceType", "os", "totalReserved", "totalUsed", "totalSurplus", "details"])
+  @JsonPropertyOrder(["availabilityZone", "region", "availabilityZoneId", "instanceType", "os", "totalReserved", "totalUsed", "totalSurplus", "details", "accounts"])
   static class OverallReservationDetail {
     String availabilityZone
     String instanceType
@@ -57,9 +59,7 @@ class AmazonReservationReport implements ReservationReport {
     AtomicInteger totalReserved = new AtomicInteger(0)
     AtomicInteger totalUsed = new AtomicInteger(0)
 
-    Map<String, AccountReservationDetail> accounts = [:].withDefault { String accountName ->
-      new AccountReservationDetail()
-    }
+    Map<String, AccountReservationDetail> accounts = new ConcurrentHashMap<>()
 
     @JsonProperty
     int totalSurplus() {
@@ -74,6 +74,17 @@ class AmazonReservationReport implements ReservationReport {
     @JsonProperty
     String availabilityZoneId() {
       return availabilityZone[-1..-1]
+    }
+
+    AccountReservationDetail getAccount(String accountName) {
+      def newAccountReservationDetail = new AccountReservationDetail()
+      def existingAccountReservationDetail = accounts.putIfAbsent(accountName, newAccountReservationDetail)
+
+      if (existingAccountReservationDetail) {
+        return existingAccountReservationDetail
+      }
+
+      return newAccountReservationDetail
     }
   }
 
