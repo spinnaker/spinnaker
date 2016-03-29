@@ -11,6 +11,7 @@
           <reservation-report account="serverGroup.account"
                               region="serverGroup.region"
                               zones="serverGroup.asg.availabilityZones"
+                              is-vpc="!!serverGroup.vpcId"
                               instance-type="serverGroup.launchConfig.instanceType"></reservation-report>
         </div>
       </div>
