@@ -160,7 +160,7 @@ module.exports = angular
     let prepareCommandForSubmit = () => {
       let command = _.cloneDeep(this.command);
 
-      if (command.adjustmentType === 'PercentChangeInCapacity') {
+      if (command.adjustmentType !== 'PercentChangeInCapacity') {
         delete command.minAdjustmentMagnitude;
       }
 
