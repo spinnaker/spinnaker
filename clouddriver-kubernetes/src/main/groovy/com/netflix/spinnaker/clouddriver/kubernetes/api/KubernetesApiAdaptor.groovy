@@ -181,8 +181,8 @@ class KubernetesApiAdaptor {
       def edit = client.pods().inNamespace(namespace).withName(name).edit().editMetadata()
 
       keys.each {
-        edit.removeFromLabels(it)
-        edit.addToLabels(it, value)
+        edit.removeFromLabels(it.toString())
+        edit.addToLabels(it.toString(), value.toString())
       }
 
       edit.endMetadata().done()
@@ -196,8 +196,8 @@ class KubernetesApiAdaptor {
       def edit = client.replicationControllers().inNamespace(namespace).withName(name).cascading(false).edit().editSpec().editTemplate().editMetadata()
 
       keys.each {
-        edit.removeFromLabels(it)
-        edit.addToLabels(it, value)
+        edit.removeFromLabels(it.toString())
+        edit.addToLabels(it.toString(), value.toString())
       }
 
       edit.endMetadata().endTemplate().endSpec().done()
