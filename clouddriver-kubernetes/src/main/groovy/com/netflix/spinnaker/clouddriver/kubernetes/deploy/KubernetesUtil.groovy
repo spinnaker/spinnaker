@@ -124,7 +124,7 @@ class KubernetesUtil {
     def loadBalancers = []
     pod.metadata?.labels?.each { key, val ->
       if (isLoadBalancerLabel(key)) {
-        loadBalancers.push(key.substring(LOAD_BALANCER_LABEL_PREFIX_LENGTH, key.length()))
+        loadBalancers.push(key.substring(LOAD_BALANCER_LABEL_PREFIX_LENGTH, key.length()).toString())
       }
     }
     return loadBalancers
