@@ -54,6 +54,7 @@ module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
           template.limitConcurrent = false;
       }
 
+      $scope.viewState.submitting = true;
       return pipelineConfigService.savePipeline(template).then(
         function() {
           template.isNew = true;
@@ -63,6 +64,7 @@ module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
               $log.warn('Could not find new pipeline after save succeeded.');
               $scope.viewState.saveError = true;
               $scope.viewState.errorMessage = 'Sorry, there was an error retrieving your new pipeline. Please refresh the browser.';
+              $scope.viewState.submitting = false;
             } else {
               $modalInstance.close(newPipeline.id);
             }
@@ -70,6 +72,7 @@ module.exports = angular.module('spinnaker.core.pipeline.create.controller', [
         },
         function(response) {
           $log.warn(response);
+          $scope.viewState.submitting = false;
           $scope.viewState.saveError = true;
           var message = response && response.data && response.data.message ? response.data.message : 'No message provided';
           $scope.viewState.errorMessage = message;

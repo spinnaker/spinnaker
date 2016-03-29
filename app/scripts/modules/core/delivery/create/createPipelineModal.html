@@ -81,7 +81,7 @@
   <div class="modal-footer">
     <button class="btn btn-default" ng-click="createPipelineModalCtrl.cancel()">Cancel</button>
     <button class="btn btn-primary"
-            ng-disabled="form.$invalid"
+            ng-disabled="form.$invalid || viewState.submitting"
             ng-click="createPipelineModalCtrl.createPipeline()">
       <span class="glyphicon glyphicon-ok-circle"></span> Create {{command.strategy === true ?'Strategy':'Pipeline'}}
     </button>
