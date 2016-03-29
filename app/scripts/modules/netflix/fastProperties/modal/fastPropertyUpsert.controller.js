@@ -148,6 +148,10 @@ module.exports = angular
       vm.clusterSizeNotBigEngough = vm.affectedInstancesForACA.length < 4;
     };
 
+    vm.getValueRowCount = (inputValue) => {
+      return inputValue ? inputValue.split(/\n/).length : 1;
+    };
+
     vm.acaTargetClusterChange = fastPropertyScopeBuilderService.createClusterChangeFn(vm, vm.property.startScope, vm.startLists, angular.noop);
     vm.acaTargetStackChange = fastPropertyScopeBuilderService.createStackChangeFn(vm, vm.property.startScope, vm.startLists, vm.acaTargetClusterChange);
     vm.acaTargetRegionChange = (region) => {
