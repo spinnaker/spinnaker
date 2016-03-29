@@ -4,15 +4,22 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.configProvider', [
   require('../../utils/lodash'),
+  require('../../config/settings.js'),
 ])
-  .provider('pipelineConfig', function(_) {
+  .provider('pipelineConfig', function(_, settings) {
 
     var triggerTypes = [],
         stageTypes = [],
         transformers = [];
 
     function registerTrigger(triggerConfig) {
-      triggerTypes.push(triggerConfig);
+      if (settings && settings.triggerTypes) {
+        if (settings.triggerTypes.indexOf(triggerConfig.key) >= 0) {
+          triggerTypes.push(triggerConfig);
+        }
+      } else {
+        triggerTypes.push(triggerConfig);
+      }
     }
 
     function registerTransformer(transformer) {

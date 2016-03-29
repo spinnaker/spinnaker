@@ -20,8 +20,8 @@ describe('pipelineConfigProvider: API', function() {
   describe('registration', function() {
     it('registers triggers', window.inject(function() {
       expect(service.getTriggerTypes().length).toBe(0);
-      configurer.registerTrigger({key: 'a'});
-      configurer.registerTrigger({key: 'b'});
+      configurer.registerTrigger({key: 'cron'});
+      configurer.registerTrigger({key: 'pipeline'});
       expect(service.getTriggerTypes().length).toBe(2);
     }));
 
@@ -106,8 +106,8 @@ describe('pipelineConfigProvider: API', function() {
     });
 
     it('hasManualExecutionHandlerForTriggerType returns true if declared and available', function () {
-      configurer.registerTrigger({key: 'a', manualExecutionHandler: 'pipelineConfig'});
-      expect(service.hasManualExecutionHandlerForTriggerType('a')).toBe(true);
+      configurer.registerTrigger({key: 'cron', manualExecutionHandler: 'pipelineConfig'});
+      expect(service.hasManualExecutionHandlerForTriggerType('cron')).toBe(true);
     });
 
     it('getManualExecutionHandlerForTriggerType returns null if nothing configured', function () {
@@ -123,9 +123,9 @@ describe('pipelineConfigProvider: API', function() {
     });
 
     it('hasManualExecutionHandlerForTriggerType returns handler if declared and available', function () {
-      configurer.registerTrigger({key: 'a', manualExecutionHandler: 'pipelineConfig'});
-      expect(service.getManualExecutionHandlerForTriggerType('a')).not.toBe(null);
-      expect(Object.keys(service.getManualExecutionHandlerForTriggerType('a'))).toEqual(Object.keys(service));
+      configurer.registerTrigger({key: 'cron', manualExecutionHandler: 'pipelineConfig'});
+      expect(service.getManualExecutionHandlerForTriggerType('cron')).not.toBe(null);
+      expect(Object.keys(service.getManualExecutionHandlerForTriggerType('cron'))).toEqual(Object.keys(service));
     });
   });
 });
