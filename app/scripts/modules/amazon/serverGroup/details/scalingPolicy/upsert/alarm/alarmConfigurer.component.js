@@ -193,7 +193,7 @@ module.exports = angular
       this.alarmComparatorChanged = () => {
         let previousComparatorBound = this.modalViewState.comparatorBound;
         this.modalViewState.comparatorBound = this.alarm.comparisonOperator.indexOf('Greater') === 0 ? 'max' : 'min';
-        if (this.modalViewState.comparatorBound !== previousComparatorBound && this.command.step) {
+        if (previousComparatorBound && this.modalViewState.comparatorBound !== previousComparatorBound && this.command.step) {
           this.command.step.stepAdjustments = [ {scalingAdjustment: 1} ];
           this.thresholdChanged();
         }

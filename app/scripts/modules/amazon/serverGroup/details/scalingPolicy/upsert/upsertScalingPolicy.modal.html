@@ -51,7 +51,8 @@
           <div class="col-md-2 sm-label-right">Adjustment Step</div>
           <div class="col-md-10 content-fields">
             <span class="form-control-static select-placeholder">
-              Add instances in increments of at least
+              <span ng-bind="ctrl.viewState.operator"></span>
+              instances in increments of at least
             </span>
             <input type="number"
                    style="width: 60px"
@@ -63,7 +64,7 @@
             </span>
           </div>
         </div>
-        <div class="row" ng-if="ctrl.command.simple">
+        <div class="row" ng-if="ctrl.command.simple && ctrl.viewState.operator === 'Add'">
           <div class="col-md-2 sm-label-right">Cooldown</div>
           <div class="col-md-10 content-fields">
             <span class="form-control-static select-placeholder">
@@ -79,7 +80,7 @@
             </span>
           </div>
         </div>
-        <div class="row" ng-if="ctrl.command.step">
+        <div class="row" ng-if="ctrl.command.step && ctrl.viewState.operator === 'Add'">
           <div class="col-md-2 sm-label-right">Warmup</div>
           <div class="col-md-10 content-fields">
             <span class="form-control-static select-placeholder">Instances need</span>
