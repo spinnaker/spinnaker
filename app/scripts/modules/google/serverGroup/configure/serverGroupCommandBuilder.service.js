@@ -157,6 +157,8 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         command.authScopes = _.map(defaultServiceAccount.scopes, authScope => {
           return authScope.replace('https://www.googleapis.com/auth/', '');
         });
+      } else {
+        command.authScopes = [];
       }
     }
 
