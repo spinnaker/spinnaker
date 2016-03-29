@@ -7,13 +7,14 @@ require('../../netflix/canary/canary.less');
 module.exports = angular
   .module('spinnaker.netflix.fastProperties', [
     require('./states.js'),
-    require('./fastProperties.controller.js'),
+    require('./fastPropertyDetails.controller.js'),
+    require('./dataNav/fastProperties.controller.js'),
     require('./modal/fastPropertyUpsert.controller.js'),
     require('./applicationProperties.controller.js'),
     require('./scopeSelect.directive.js'),
     require('./modal/deleteFastProperty.controller.js'),
-    require('./fastPropertyRollouts.controller.js'),
-    require('./fastProperties.data.controller.js'),
+    require('./dataNav/fastPropertyRollouts.controller.js'),
+    require('./dataNav/fastProperties.data.controller.js'),
     require('./fastPropertyProgressBar.directive.js'),
     require('./modal/fastPropertyConstraint.directive.js'),
     require('./modal/fastPropertyStrategySelector.directive.js'),
@@ -25,4 +26,5 @@ module.exports = angular
     require('./stackSelector.component'),
     require('./clusterSelector.component'),
     require('./asgSelector.component'),
+    require('./fastPropertyPod.component')
   ]);

@@ -18,6 +18,7 @@ module.exports = angular
         filteredPromotions: '=',
         application: '=',
         readOnly: '=',
+        promotionPaneOpen: '=',
       },
       templateUrl: require('./fastPropertyPromotion.directive.html'),
       controller: 'fastPropertyPromotionController',
@@ -31,7 +32,6 @@ module.exports = angular
       vm.application.refresh(true);
     };
 
-    vm.promotionPaneOpen = true;
     vm.openRolloutDetailsList = [];
 
     vm.isRolloutDetailsOpen = function(id) {

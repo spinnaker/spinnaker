@@ -4,11 +4,11 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.fastProperties.rollouts.controller', [
-    require('./fastProperty.read.service.js'),
-    require('./fastProperty.write.service.js'),
-    require('./fastPropertyTransformer.service.js'),
-    require('../../core/utils/lodash.js'),
-    require('./fastPropertyScope.service.js'),
+    require('./../fastProperty.read.service.js'),
+    require('./../fastProperty.write.service.js'),
+    require('./../fastPropertyTransformer.service.js'),
+    require('../../../core/utils/lodash.js'),
+    require('./../fastPropertyScope.service.js'),
   ])
   .controller('FastPropertyRolloutController', function ($scope, $log, fastPropertyReader, fastPropertyWriter,
                                                          fastPropertyTransformer, _, FastPropertyScopeService) {

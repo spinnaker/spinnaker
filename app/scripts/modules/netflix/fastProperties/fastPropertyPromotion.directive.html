@@ -1,5 +1,5 @@
 
-<div class="row" ng-show="fp.promotionPaneOpen && fp.promotions.length === 0">
+<div class="row" ng-show="fpPromotion.promotionPaneOpen && fpPromotion.promotions.length === 0">
   <div class="col-md-4 col-md-offset-4">
     <h4>
       No promotions have been created.
@@ -14,7 +14,6 @@
       <tr>
         <th width="2%"><!-- arrow --></th>
         <th width="10%" key="property" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Property</th>
-        <th width="10%" key="property"  sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Strategy</th>
         <th width="10%" key="property"  sort-model="fp.sortModel" on-change="ctrl.filterApplications()">User</th>
         <th width="8%" key="rolloutStarted" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Rollout Started</th>
         <th width="50%" key="status" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Status</th>
@@ -29,9 +28,6 @@
         </td>
         <td>
           {{ promotion.key }}
-        </td>
-        <td>
-          {{ promotion.strategy.name }}
         </td>
         <td>
           {{ promotion.email }}
@@ -88,7 +84,6 @@
       <tr class="history"
           ng-repeat="history in promotion.history"
           ng-if="fpPromotion.isRolloutDetailsOpen(promotion.id)" >
-        <td></td>
         <td></td>
         <td></td>
         <td></td>
