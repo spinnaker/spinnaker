@@ -32,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.clouddriver.aws.model.SecurityGroupLookupFactory
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AWSProxy
+import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentialsInitializer
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -83,13 +84,25 @@ class AwsConfiguration {
   }
 
   @Bean
-  AmazonClientProvider amazonClientProvider(RetryPolicy.RetryCondition instrumentedRetryCondition, RetryPolicy.BackoffStrategy instrumentedBackoffStrategy, AWSProxy proxy) {
+  @ConfigurationProperties('aws.edda')
+  EddaTimeoutConfig.Builder eddaTimeoutConfigBuilder() {
+    new EddaTimeoutConfig.Builder()
+  }
+
+  @Bean
+  EddaTimeoutConfig eddaTimeoutConfig(EddaTimeoutConfig.Builder eddaTimeoutConfigBuilder) {
+    eddaTimeoutConfigBuilder.build()
+  }
+
+  @Bean
+  AmazonClientProvider amazonClientProvider(RetryPolicy.RetryCondition instrumentedRetryCondition, RetryPolicy.BackoffStrategy instrumentedBackoffStrategy, AWSProxy proxy, EddaTimeoutConfig eddaTimeoutConfig) {
     new AmazonClientProvider.Builder()
       .backoffStrategy(instrumentedBackoffStrategy)
       .retryCondition(instrumentedRetryCondition)
       .objectMapper(amazonObjectMapper())
       .maxErrorRetry(maxErrorRetry)
       .proxy(proxy)
+      .eddaTimeoutConfig(eddaTimeoutConfig)
       .build()
   }
 
