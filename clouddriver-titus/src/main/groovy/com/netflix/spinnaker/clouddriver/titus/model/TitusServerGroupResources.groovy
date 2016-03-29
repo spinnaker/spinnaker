@@ -18,4 +18,5 @@ package com.netflix.spinnaker.clouddriver.titus.model
 
 class TitusServerGroupResources extends Resources {
   List<Integer> ports
+  boolean allocateIpAddress
 }

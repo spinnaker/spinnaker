@@ -28,6 +28,8 @@ class TitusInstance implements Instance {
   String id
   String jobId
   String jobName
+  String stdoutLive
+  String logs
   Map image = [:]
   TaskState state
   Map env
@@ -61,6 +63,8 @@ class TitusInstance implements Instance {
     env = job.environment
     submittedAt = task.submittedAt ? task.submittedAt.time : null
     finishedAt = task.finishedAt ? task.finishedAt.time : null
+    stdoutLive = task.stdoutLive
+    logs = task.logs
   }
 
   @Override
