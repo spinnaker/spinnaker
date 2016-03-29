@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: data-redis-sentinel
+  namespace: spinnaker
+  labels:
+    app: data
+    stack: redis
+    detail: sentinel
+spec:
+  ports:
+    - port: 26379
+      targetPort: 26379
+  selector:
+    load-balancer-data-redis-sentinel: "true"
