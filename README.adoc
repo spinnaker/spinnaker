@@ -5,17 +5,17 @@ image:http://join.spinnaker.io/badge.svg[Slack Status,link=http://join.spinnaker
 = Using Spinnaker
 
 If you are only interested in using Spinnaker, please refer to the main
-Spinnaker site and http://spinnaker.io/documentation/getting_started.html[Getting Started] guide.
+Spinnaker site and http://www.spinnaker.io/docs/target-deployment-setup[Installation] guide.
 
-If you want more more information on how Spinnaker is designed, see the http://spinnaker.io/documentation/developer_guide.html[Developer Guide].
+If you want more more information on how Spinnaker is designed, see the http://www.spinnaker.io/docs/overview[Documentation Overview].
 
 = Setting Up Spinnaker For Development
 
 These instructions cover pulling Spinnaker from source and setting up to run locally against Amazon Web Services and/or Google Cloud Platform accounts. 
 
-Please ensure you have set up your target environment correctly by following step 1 of the http://spinnaker.io/documentation/getting_started.html[Getting Started Documentation].
+Please ensure you have set up your target environment correctly by following step 1 of the http://www.spinnaker.io/docs/target-deployment-setup[Getting Started Documentation].
 
-If you do not wish to build from source, please follow the http://spinnaker.io/documentation/getting_started.html#step-3-install-and-run-spinnaker[Install and Run Spinnaker] section of the getting started guide for a one line deployment in Ubuntu.
+If you do not wish to build from source, please follow the http://www.spinnaker.io/docs/creating-a-spinnaker-instance#section-localhost[Localhost] section of the Creating a Spinnaker Instance guide.
 
 If you would prefer to try a container based solution, see https://github.com/spinnaker/spinnaker/tree/master/experimental/docker-compose[docker-compose installation].
 
