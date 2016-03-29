@@ -125,8 +125,7 @@ module.exports = angular.module('spinnaker.core.account.service', [
                 }
               });
               return acc;
-            }, {})
-            .value();
+            }, {});
         });
     });
 
