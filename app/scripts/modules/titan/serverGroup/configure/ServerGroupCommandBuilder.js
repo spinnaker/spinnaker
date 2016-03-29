@@ -75,6 +75,7 @@ module.exports = angular.module('spinnaker.titan.serverGroupCommandBuilder.servi
           memory: serverGroup.resources.memory,
           disk: serverGroup.resources.disk,
           ports: serverGroup.resources.ports,
+          allocateIpAddress: serverGroup.resources.allocateIpAddress,
         },
         capacity: {
           min: serverGroup.capacity.min,
