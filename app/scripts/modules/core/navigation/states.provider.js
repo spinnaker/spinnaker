@@ -93,6 +93,23 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
         }
       };
 
+      var multipleServerGroups = {
+        name: 'multipleServerGroups',
+        url: '/multipleServerGroups',
+        views: {
+          'detail@../insight': {
+            templateUrl: require('../serverGroup/details/multipleServerGroups.view.html'),
+            controller: 'MultipleServerGroupsCtrl',
+            controllerAs: 'vm'
+          }
+        },
+        data: {
+          pageTitleDetails: {
+            title: 'Multiple Server Groups',
+          },
+        }
+      };
+
       var serverGroupDetails = {
         name: 'serverGroup',
         url: '/serverGroupDetails/:provider/:accountId/:region/:serverGroup',
@@ -262,6 +279,7 @@ module.exports = angular.module('spinnaker.core.navigation.states.provider', [
             instanceDetails,
             securityGroupDetails,
             multipleInstances,
+            multipleServerGroups,
           ],
         },
         {

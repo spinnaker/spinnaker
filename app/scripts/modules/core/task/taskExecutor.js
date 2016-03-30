@@ -3,12 +3,11 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.taskExecutor', [
-  require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../authentication/authentication.service.js'),
   require('./task.read.service.js'),
   require('./task.write.service.js'),
 ])
-  .factory('taskExecutor', function(Restangular, $q, authenticationService, taskReader, taskWriter) {
+  .factory('taskExecutor', function($q, authenticationService, taskReader, taskWriter) {
 
 
     function executeTask(taskCommand) {
@@ -51,7 +50,6 @@ module.exports = angular.module('spinnaker.core.taskExecutor', [
         }
       );
     }
-
 
     return {
       executeTask: executeTask,

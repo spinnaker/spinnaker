@@ -21,6 +21,12 @@ module.exports = angular
       $scope.taskMonitor = taskMonitorService.buildTaskMonitor(params.taskMonitorConfig);
     }
 
+    if (params.taskMonitors) {
+      params.taskMonitors.forEach(monitor => monitor.modalInstance = $modalInstance);
+      $scope.taskMonitors = params.taskMonitors.map(taskMonitorService.buildTaskMonitor);
+    }
+
+
     $scope.verification = {
       required: !!params.account || (params.verificationLabel && params.textToVerify !== undefined),
       toVerify: params.textToVerify,
@@ -39,7 +45,9 @@ module.exports = angular
     this.confirm = function () {
       if (!this.formDisabled()) {
         $scope.state.submitting = true;
-        if ($scope.taskMonitor) {
+        if ($scope.taskMonitors) {
+          $scope.taskMonitors.forEach(monitor => monitor.callPreconfiguredSubmit({reason: params.reason}));
+        } else if ($scope.taskMonitor) {
           $scope.taskMonitor.submit(() => { return params.submitMethod({interestingHealthProviderNames: params.interestingHealthProviderNames, reason: params.reason}); });
         } else {
           if (params.submitMethod) {

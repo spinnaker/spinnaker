@@ -5,20 +5,21 @@ let angular = require('angular');
 require('./rollups.less');
 
 module.exports = angular.module('spinnaker.core.cluster.allClusters.controller', [
-  require('../cluster/filter/clusterFilter.service.js'),
-  require('../cluster/filter/clusterFilter.model.js'),
-  require('./filter/clusterFilter.controller.js'),
-  require('./clusterPod.directive.js'),
-  require('../account/account.module.js'),
-  require('../cloudProvider/providerSelection/providerSelection.service.js'),
-  require('../serverGroup/configure/common/serverGroupCommandBuilder.js'),
-  require('../filterModel/filter.tags.directive.js'),
-  require('../utils/waypoints/waypointContainer.directive.js'),
+  require('../cluster/filter/clusterFilter.service'),
+  require('../cluster/filter/clusterFilter.model'),
+  require('../cluster/filter/multiselect.model'),
+  require('./filter/clusterFilter.controller'),
+  require('./clusterPod.directive'),
+  require('../account/account.module'),
+  require('../cloudProvider/providerSelection/providerSelection.service'),
+  require('../serverGroup/configure/common/serverGroupCommandBuilder'),
+  require('../filterModel/filter.tags.directive'),
+  require('../utils/waypoints/waypointContainer.directive'),
   require('angular-ui-bootstrap'),
-  require('../cloudProvider/cloudProvider.registry.js'),
+  require('../cloudProvider/cloudProvider.registry'),
 ])
   .controller('AllClustersCtrl', function($scope, app, $uibModal, $timeout, providerSelectionService, _, clusterFilterService,
-                                          ClusterFilterModel, serverGroupCommandBuilder, cloudProviderRegistry) {
+                                          ClusterFilterModel, MultiselectModel, serverGroupCommandBuilder, cloudProviderRegistry) {
 
     ClusterFilterModel.activate();
     this.initialized = false;
@@ -37,6 +38,12 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
           $timeout(() => { this.initialized = true; }, 50);
         }
       );
+    };
+
+    this.toggleMultiselect = () => {
+      ClusterFilterModel.sortFilter.multiselect = !ClusterFilterModel.sortFilter.multiselect;
+      MultiselectModel.syncNavigation();
+      updateClusterGroups();
     };
 
     this.clearFilters = function() {
@@ -72,6 +79,7 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
     app.serverGroups.onRefresh($scope, updateClusterGroups);
     $scope.$on('$destroy', () => {
       app.activeState = app;
+      MultiselectModel.clearAll();
     });
 
   });

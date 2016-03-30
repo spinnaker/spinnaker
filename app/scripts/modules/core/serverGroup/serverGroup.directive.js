@@ -3,13 +3,15 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.serverGroup.serverGroup.directive', [
-  require('../cluster/filter/clusterFilter.service.js'),
-  require('../cluster/filter/clusterFilter.model.js'),
-  require('../instance/instances.directive.js'),
-  require('../instance/instanceList.directive.js'),
-  require('./serverGroup.transformer.js'),
+  require('../cluster/filter/clusterFilter.service'),
+  require('../cluster/filter/clusterFilter.model'),
+  require('../cluster/filter/multiselect.model'),
+  require('../instance/instances.directive'),
+  require('../instance/instanceList.directive'),
+  require('./serverGroup.transformer'),
 ])
-  .directive('serverGroup', function ($rootScope, $timeout, $filter, _, clusterFilterService, ClusterFilterModel, serverGroupTransformer) {
+  .directive('serverGroup', function ($rootScope, $timeout, $filter, _, clusterFilterService,
+                                      MultiselectModel, ClusterFilterModel, serverGroupTransformer) {
     return {
       restrict: 'E',
       templateUrl: require('./serverGroup.directive.html'),
@@ -21,12 +23,11 @@ module.exports = angular.module('spinnaker.core.serverGroup.serverGroup.directiv
         hasLoadBalancers: '=',
         hasDiscovery: '=',
       },
-      link: function (scope, el) {
+      link: function (scope) {
 
         let lastStringVal = null;
         scope.sortFilter = ClusterFilterModel.sortFilter;
-        // stolen from uiSref directive
-        var base = el.parent().inheritedData('$uiView').state;
+        scope.multiselectModel = MultiselectModel;
 
         scope.$state = $rootScope.$state;
 
@@ -72,26 +73,13 @@ module.exports = angular.module('spinnaker.core.serverGroup.serverGroup.directiv
 
         }
 
-        scope.loadDetails = function(e) {
-          $timeout(function() {
-            var serverGroup = scope.serverGroup;
-            // anything handled by ui-sref or actual links should be ignored
-            if (e.isDefaultPrevented() || (e.originalEvent && (e.originalEvent.defaultPrevented || e.originalEvent.target.href))) {
+        scope.loadDetails = function(event) {
+          $timeout(() => {
+            if (event.isDefaultPrevented() || (event.originalEvent && (event.originalEvent.defaultPrevented || event.originalEvent.target.href))) {
               return;
             }
-            var params = {
-              application: scope.application.name,
-              region: serverGroup.region,
-              accountId: serverGroup.account,
-              serverGroup: serverGroup.name,
-              provider: serverGroup.type,
-            };
-            if (angular.equals(scope.$state.params, params)) {
-              // already there
-              return;
-            }
-            // also stolen from uiSref directive
-            scope.$state.go('.serverGroup', params, {relative: base, inherit: true});
+            MultiselectModel.toggleServerGroup(scope.serverGroup);
+            event.preventDefault();
           });
         };
 

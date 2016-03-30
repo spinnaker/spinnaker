@@ -5,49 +5,18 @@
   <div class="modal-body clearfix">
     <div class="clearfix" auto-scroll="[taskMonitor.task.getValueFor('kato.tasks'), taskMonitor.task.error]">
       <div class="col-md-8 col-md-offset-2 overlay-modal-status" ng-if="taskMonitor.task">
-        <ul class="task task-progress">
-          <li ng-repeat="step in taskMonitor.task.steps | displayableTasks" ng-class="{'not-started': step.hasNotStarted}">
-            <status-glyph item="step"></status-glyph>
-            {{step.name | robotToHuman}}
-            <span ng-if="step.startTime">({{step.runningTimeInMs | duration}})</span>
-          </li>
-        </ul>
-        <ul class="task task-progress task-progress-running" ng-if="taskMonitor.task.isActive">
-          <li><span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span></li>
-        </ul>
-        <ul class="task task-progress task-progress-refresh" ng-if="taskMonitor.task.isCompleted">
-          <li>
-            <span class="glyphicon glyphicon-ok-circle"></span> <strong>Operation succeeded!</strong>
-          </li>
-        </ul>
-        <p ng-if="taskMonitor.task.id && !taskMonitor.error">
-            You can
-            <a ui-sref="home.applications.application.tasks.taskDetails({application: taskMonitor.application.name, taskId: taskMonitor.task.id})">monitor
-              this task from the Tasks view</a>.
-        </p>
+        <task-monitor-status monitor="taskMonitor"></task-monitor-status>
       </div>
-      <div class="col-md-12 overlay-modal-error" ng-if="taskMonitor.error">
-        <alert type="danger">
-          <h4><span class="glyphicon glyphicon-warning-sign"></span> Error:</h4>
-
-          <p>{{taskMonitor.errorMessage}}</p>
-        </alert>
-        <p ng-if="taskMonitor.task.id">
-          <a
-            ui-sref="home.applications.application.tasks.taskDetails({application: taskMonitor.application.name, taskId: taskMonitor.task.id})">
-            View this failed task in the tasks pane.
-          </a>
-        </p>
-      </div>
+      <task-monitor-error monitor="taskMonitor"></task-monitor-error>
     </div>
   </div>
   <div class="modal-footer" ng-if="!taskMonitor.error">
     <button class="btn btn-primary" ng-click="taskMonitor.closeModal()" autofocus>Close</button>
   </div>
   <div class="modal-footer" ng-if="taskMonitor.error">
-    <button class="btn btn-primary" ng-if="taskMonitor.error" ng-click="taskMonitor.error = null">Go back and try to fix
+    <button class="btn btn-primary" ng-click="taskMonitor.error = null">Go back and try to fix
       this
     </button>
-    <button class="btn btn-default" ng-if="taskMonitor.error" ng-click="taskMonitor.closeModal()">Cancel</button>
+    <button class="btn btn-default" ng-click="taskMonitor.closeModal()">Cancel</button>
   </div>
 </div>

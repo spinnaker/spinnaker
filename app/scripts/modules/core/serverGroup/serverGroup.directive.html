@@ -11,6 +11,8 @@
       <div class="container-fluid no-padding">
         <div class="row">
           <div class="col-md-8 col-sm-6 section-title">
+            <input type="checkbox" ng-if="sortFilter.multiselect"
+                   ng-checked="multiselectModel.serverGroupIsSelected(serverGroup)"/>
             <cloud-provider-logo provider="viewModel.serverGroup.type" height="16px" width="16px"></cloud-provider-logo>
             <span class="server-group-sequence">{{ viewModel.serverGroupSequence }}</span><span ng-if="viewModel.jenkins">:</span>
             <a ng-if="viewModel.jenkins"

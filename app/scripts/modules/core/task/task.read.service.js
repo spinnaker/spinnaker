@@ -47,7 +47,7 @@ module.exports = angular
       original.history = updated.history;
     }
 
-    function waitUntilTaskMatches(application, task, closure, failureClosure) {
+    function waitUntilTaskMatches(application, task, closure, failureClosure, interval = 1000) {
       let deferred = $q.defer();
       if (!task) {
         deferred.reject();
@@ -59,16 +59,16 @@ module.exports = angular
         task.poller = $timeout(() => {
           getTask(application, task.id).then((updated) => {
             updateTask(task, updated);
-            waitUntilTaskMatches(application, task, closure, failureClosure)
+            waitUntilTaskMatches(application, task, closure, failureClosure, interval)
               .then(deferred.resolve, deferred.reject);
           });
-        }, 1000);
+        }, interval);
       }
       return deferred.promise;
     }
 
-    function waitUntilTaskCompletes(application, task) {
-      return waitUntilTaskMatches(application, task, (task) => task.isCompleted, (task) => task.isFailed);
+    function waitUntilTaskCompletes(application, task, interval = 1000) {
+      return waitUntilTaskMatches(application, task, (task) => task.isCompleted, (task) => task.isFailed, interval);
     }
 
     function getTask(applicationName, taskId) {

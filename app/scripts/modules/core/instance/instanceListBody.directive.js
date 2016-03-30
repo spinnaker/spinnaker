@@ -3,10 +3,12 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.instance.instanceListBody.directive', [
-  require('../cluster/filter/clusterFilter.service.js'),
-  require('../cluster/filter/clusterFilter.model.js'),
+  require('../cluster/filter/clusterFilter.service'),
+  require('../cluster/filter/multiselect.model'),
+  require('../cluster/filter/clusterFilter.model')
 ])
-  .directive('instanceListBody', function ($timeout, $filter, $rootScope, $state, $, _, clusterFilterService, ClusterFilterModel) {
+  .directive('instanceListBody', function ($timeout, $filter, $rootScope, $state, $, clusterFilterService,
+                                           ClusterFilterModel, MultiselectModel) {
     return {
       restrict: 'C',
       scope: {
@@ -20,11 +22,11 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
       link: function (scope, elem) {
         var tooltipEnabled = false,
             renderedMultiselectInstances = [],
-            instanceGroup = ClusterFilterModel.getOrCreateMultiselectInstanceGroup(scope.serverGroup),
+            instanceGroup = MultiselectModel.getOrCreateInstanceGroup(scope.serverGroup),
             activeInstance = null;
 
         function toggleSelection(instanceId) {
-          ClusterFilterModel.toggleMultiselectInstance(scope.serverGroup, instanceId);
+          MultiselectModel.toggleInstance(scope.serverGroup, instanceId);
         }
 
         function buildTableRowOpenTag(instance, activeClass) {
@@ -32,7 +34,10 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
         }
 
         function buildInstanceCheckboxCell(instance) {
-          let isChecked = ClusterFilterModel.instanceIsMultiselected(scope.serverGroup, instance.id);
+          if (!ClusterFilterModel.sortFilter.multiselect) {
+            return '';
+          }
+          let isChecked = MultiselectModel.instanceIsSelected(scope.serverGroup, instance.id);
           return `<td class="no-hover"><input type="checkbox" ${isChecked ? 'checked' : ''}/></td>`;
         }
 
@@ -201,6 +206,8 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
           }
         });
 
+        scope.$watch('sortFilter.multiselect', renderInstances);
+
         renderInstances();
 
         elem.click(function(event) {
@@ -231,13 +238,13 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
         }
 
         let renderIfMultiselectChanges = () => {
-          if (!_.isEqual(renderedMultiselectInstances.sort(), instanceGroup.instanceIds.sort())) {
+          if (renderedMultiselectInstances.sort().join(' ') !== instanceGroup.instanceIds.sort().join(' ')) {
             renderInstances();
           }
         };
 
         scope.$on('$locationChangeSuccess', clearActiveState);
-        let multiselectWatcher = ClusterFilterModel.multiselectInstancesStream.subscribe(renderIfMultiselectChanges);
+        let multiselectWatcher = MultiselectModel.instancesStream.subscribe(renderIfMultiselectChanges);
 
         scope.$on('$destroy', function() {
           multiselectWatcher.dispose();

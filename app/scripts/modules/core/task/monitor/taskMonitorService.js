@@ -19,6 +19,8 @@ module.exports = angular.module('spinnaker.tasks.monitor.service', [
         application: params.application,
         onTaskComplete: params.onTaskComplete || angular.noop,
         modalInstance: params.modalInstance,
+        monitorInterval: params.monitorInterval || 1000,
+        submitMethod: params.submitMethod,
       };
 
       monitor.onModalClose = function() {
@@ -59,13 +61,19 @@ module.exports = angular.module('spinnaker.tasks.monitor.service', [
       monitor.handleTaskSuccess = function (task) {
         let applicationName = monitor.application ? monitor.application.name : 'ad-hoc';
         monitor.task = task;
-        taskReader.waitUntilTaskCompletes(applicationName, task)
+        taskReader.waitUntilTaskCompletes(applicationName, task, monitor.monitorInterval)
           .then(monitor.onTaskComplete, monitor.setError);
       };
 
       monitor.submit = function(method) {
         monitor.startSubmit();
-        method.call().then(monitor.handleTaskSuccess, monitor.setError);
+        let submit = monitor.submitMethod || method;
+        submit().then(monitor.handleTaskSuccess, monitor.setError);
+      };
+
+      monitor.callPreconfiguredSubmit = (params) => {
+        monitor.startSubmit();
+        monitor.submitMethod(params).then(monitor.handleTaskSuccess, monitor.setError);
       };
 
       return monitor;
