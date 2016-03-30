@@ -37,15 +37,11 @@ can authenticate with the cluster you want to deploy Spinnaker to.
 Once that is all squared away, make sure that running `$ kubectl config
 current-context` refers to the cluster you want to have Spinnaker running in.
 
+You should also update `gcloud` to at least version 102.0.0.
+
 Next, in the editor of your choice, open up `./config/clouddriver.yml`, and
-examine the `dockerRegistry` subsection. You'll find each Spinnaker image
-listed here, which will act as your available list of deployable images. Feel
-free to make any changes to this section, but if you want to deploy these
-listed images, you'll need to first make sure you have a [quay.io](https://quay.io)
-account, and that its authentication details are filled in the 
-respective `username`, `password`, and `email` fields. If you want to use an
-entirely different provider or set of images, update the `address` and
-`repositories` fields accordingly.
+examine the `dockerRegistry` subsection. If you would like to add your own registry,
+update the address and `repositories` fields accordingly.
 
 If you feel like changing the value of `kubernetes.accounts[0].name`, make sure it's reflected in
 `./config/settings.js` under `providers.kubernetes.defaults.account` (this way

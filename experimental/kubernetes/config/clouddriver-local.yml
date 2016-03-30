@@ -67,17 +67,21 @@ kubernetes:
         - default
         - spinnaker
       dockerRegistries:
-        - accountName: my-quay-account
+        - accountName: my-docker-account
 
 dockerRegistry:
   enabled: true
   accounts:
+    - name: my-docker-account
+      address: https://index.docker.io
+      repositories:
+        - library/nginx
     - name: my-quay-account
-      address: # fill me in
-      username: # me too
-      password: # me three
-      email: lars.wander@gmail.com
-      repositories: 
+      address: https://quay.io
+      username: # fill me in
+      password: # me too
+      email: # me three
+      repositories:
         - spinnaker/clouddriver
         - spinnaker/deck
         - spinnaker/echo
