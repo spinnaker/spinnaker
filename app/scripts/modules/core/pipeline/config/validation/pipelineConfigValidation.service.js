@@ -121,6 +121,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.servic
         let config = pipelineConfig.getStageConfig(stage);
         if (config && config.validators) {
           config.validators.forEach(function(validator) {
+            if (validator.skipValidation && validator.skipValidation(pipeline, stage)) {
+              return;
+            }
             switch(validator.type) {
               case 'stageOrTriggerBeforeType':
                 validators.stageOrTriggerBeforeType(pipeline, index, validator, messages);
@@ -133,6 +136,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.validator.servic
                 break;
               case 'requiredField':
                 validators.checkRequiredField(pipeline, stage, validator, config, messages);
+                break;
+              case 'custom':
+                validator.validator(pipeline, stage, validator, config, messages);
                 break;
               default:
                 $log.warn('No validator of type "' + validator.type + '" found, ignoring validation on stage "' + stage.name + '" (' + stage.type + ')');
