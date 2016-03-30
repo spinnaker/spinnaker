@@ -44,13 +44,13 @@
     <div class="form-group row">
       <div class="col-sm-3 sm-label-right">Value</div>
       <div class="col-sm-9">
-        <input type="text"
-               name="value"
-               class="form-control input-sm "
-               data-purpose="fastProperty-value"
-               ng-model="newFP.property.value"
-               placeholder="Enter a fast property value"
-               required/>
+        <textarea
+              style="resize: vertical;"
+              rows="{{newFP.getValueRowCount(newFP.property.value)}}"
+              required
+              ng-model="newFP.property.value"
+              class="form-control input-sm">
+        </textarea>
       </div>
     </div>
 
