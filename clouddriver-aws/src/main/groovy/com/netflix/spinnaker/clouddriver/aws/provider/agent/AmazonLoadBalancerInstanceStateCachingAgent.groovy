@@ -50,20 +50,21 @@ class AmazonLoadBalancerInstanceStateCachingAgent implements CachingAgent,Health
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
+  final ApplicationContext ctx
 
   private Cache cacheView
   final static String healthId = "aws-load-balancer-instance-health"
 
-  @Autowired
-  ApplicationContext ctx
 
   AmazonLoadBalancerInstanceStateCachingAgent(AmazonClientProvider amazonClientProvider,
                                               NetflixAmazonCredentials account, String region,
-                                              ObjectMapper objectMapper) {
+                                              ObjectMapper objectMapper,
+                                              ApplicationContext ctx) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    this.ctx = ctx
   }
 
   @Override

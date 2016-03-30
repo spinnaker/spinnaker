@@ -22,6 +22,7 @@ import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservedInstancesCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -133,12 +134,14 @@ class AwsProviderConfig {
           newlyAddedAgents << new ImageCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry, publicRegions.add(region.name))
           newlyAddedAgents << new InstanceCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
           newlyAddedAgents << new LoadBalancerCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, objectMapper, registry)
+          newlyAddedAgents << new ReservedInstancesCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
+
           if (credentials.eddaEnabled) {
             newlyAddedAgents << new EddaLoadBalancerCachingAgent(eddaApiFactory.createApi(credentials.edda, region.name), credentials, region.name, objectMapper)
           } else {
-            def agent = new AmazonLoadBalancerInstanceStateCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
-            ctx.autowireCapableBeanFactory.autowireBean(agent)
-            newlyAddedAgents << agent
+            newlyAddedAgents << new AmazonLoadBalancerInstanceStateCachingAgent(
+              amazonClientProvider, credentials, region.name, objectMapper, ctx
+            )
           }
         }
 
@@ -159,7 +162,9 @@ class AwsProviderConfig {
                                                 objectMapper)
     } else {
       // This caching agent runs across all accounts in one iteration (to maintain consistency).
-      newlyAddedAgents << new ReservationReportCachingAgent(amazonClientProvider, allAccounts, objectMapper, reservationReportScheduler)
+      newlyAddedAgents << new ReservationReportCachingAgent(
+        amazonClientProvider, allAccounts, objectMapper, reservationReportScheduler, ctx
+      )
 
       discoveryAccounts.each { disco, actMap ->
         actMap.each { region, accounts ->

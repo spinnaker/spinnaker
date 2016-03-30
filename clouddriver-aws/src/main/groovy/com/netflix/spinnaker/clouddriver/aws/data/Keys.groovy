@@ -35,7 +35,8 @@ class Keys {
     APPLICATIONS,
     HEALTH,
     ON_DEMAND,
-    RESERVATION_REPORTS
+    RESERVATION_REPORTS,
+    RESERVED_INSTANCES
 
     final String ns
 
@@ -138,5 +139,9 @@ class Keys {
 
   static String getInstanceHealthKey(String instanceId, String account, String region, String provider) {
     "${PROVIDER}:${Namespace.HEALTH}:${instanceId}:${account}:${region}:${provider}"
+  }
+
+  static String getReservedInstancesKey(String reservedInstancesId, String account, String region) {
+    "${PROVIDER}:${Namespace.RESERVED_INSTANCES}:${account}:${region}:${reservedInstancesId}"
   }
 }
