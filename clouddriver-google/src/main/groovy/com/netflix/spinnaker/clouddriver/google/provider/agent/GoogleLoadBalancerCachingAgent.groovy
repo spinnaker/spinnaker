@@ -85,19 +85,19 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
 
     BatchRequest forwardingRulesRequest = buildBatchRequest()
     BatchRequest targetPoolsRequest = buildBatchRequest()
-    BatchRequest instanceHealthRequest = buildBatchRequest()
     BatchRequest httpHealthChecksRequest = buildBatchRequest()
+    BatchRequest instanceHealthRequest = buildBatchRequest()
 
     ForwardingRulesCallback callback = new ForwardingRulesCallback(loadBalancers: loadBalancers,
                                                                    targetPoolsRequest: targetPoolsRequest,
-                                                                   instanceHealthRequest: instanceHealthRequest,
-                                                                   httpHealthChecksRequest: httpHealthChecksRequest)
+                                                                   httpHealthChecksRequest: httpHealthChecksRequest,
+                                                                   instanceHealthRequest: instanceHealthRequest)
     compute.forwardingRules().list(project, region).queue(forwardingRulesRequest, callback)
 
     executeIfRequestsAreQueued(forwardingRulesRequest)
     executeIfRequestsAreQueued(targetPoolsRequest)
-    executeIfRequestsAreQueued(instanceHealthRequest)
     executeIfRequestsAreQueued(httpHealthChecksRequest)
+    executeIfRequestsAreQueued(instanceHealthRequest)
 
     return loadBalancers
   }
@@ -176,8 +176,8 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
     BatchRequest targetPoolsRequest
 
     // Pass through objects
-    BatchRequest instanceHealthRequest
     BatchRequest httpHealthChecksRequest
+    BatchRequest instanceHealthRequest
 
     @Override
     void onSuccess(ForwardingRuleList forwardingRuleList, HttpHeaders responseHeaders) throws IOException {
@@ -196,8 +196,8 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
         if (forwardingRule.target) {
           def targetPoolName = Utils.getLocalName(forwardingRule.target)
           def targetPoolsCallback = new TargetPoolCallback(googleLoadBalancer: newLoadBalancer,
-                                                           instanceHealthRequest: instanceHealthRequest,
-                                                           httpHealthChecksRequest: httpHealthChecksRequest)
+                                                           httpHealthChecksRequest: httpHealthChecksRequest,
+                                                           instanceHealthRequest: instanceHealthRequest)
 
           compute.targetPools().get(project, region, targetPoolName).queue(targetPoolsRequest, targetPoolsCallback)
         }
@@ -209,8 +209,8 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
 
     GoogleLoadBalancer2 googleLoadBalancer
 
-    BatchRequest instanceHealthRequest
     BatchRequest httpHealthChecksRequest
+    BatchRequest instanceHealthRequest
 
     @Override
     void onSuccess(TargetPool targetPool, HttpHeaders responseHeaders) throws IOException {
