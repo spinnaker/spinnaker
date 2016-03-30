@@ -139,9 +139,9 @@ class AwsProviderConfig {
           if (credentials.eddaEnabled) {
             newlyAddedAgents << new EddaLoadBalancerCachingAgent(eddaApiFactory.createApi(credentials.edda, region.name), credentials, region.name, objectMapper)
           } else {
-            def agent = new AmazonLoadBalancerInstanceStateCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
-            ctx.autowireCapableBeanFactory.autowireBean(agent)
-            newlyAddedAgents << agent
+            newlyAddedAgents << new AmazonLoadBalancerInstanceStateCachingAgent(
+              amazonClientProvider, credentials, region.name, objectMapper, ctx
+            )
           }
         }
 
@@ -162,11 +162,9 @@ class AwsProviderConfig {
                                                 objectMapper)
     } else {
       // This caching agent runs across all accounts in one iteration (to maintain consistency).
-      def reservationReportCachingAgent = new ReservationReportCachingAgent(
-        amazonClientProvider, allAccounts, objectMapper, reservationReportScheduler
+      newlyAddedAgents << new ReservationReportCachingAgent(
+        amazonClientProvider, allAccounts, objectMapper, reservationReportScheduler, ctx
       )
-      ctx.autowireCapableBeanFactory.autowireBean(reservationReportCachingAgent)
-      newlyAddedAgents << reservationReportCachingAgent
 
       discoveryAccounts.each { disco, actMap ->
         actMap.each { region, accounts ->

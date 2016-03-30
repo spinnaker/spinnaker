@@ -66,6 +66,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
   ])
 
   private final Scheduler scheduler
+  private final ApplicationContext ctx
   private Cache cacheView
 
 
@@ -74,13 +75,12 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
   final ObjectMapper objectMapper
   final AccountReservationDetailSerializer accountReservationDetailSerializer
 
-  @Autowired
-  ApplicationContext ctx
 
   ReservationReportCachingAgent(AmazonClientProvider amazonClientProvider,
                                 Collection<NetflixAmazonCredentials> accounts,
                                 ObjectMapper objectMapper,
-                                Scheduler scheduler) {
+                                Scheduler scheduler,
+                                ApplicationContext ctx) {
     this.amazonClientProvider = amazonClientProvider
     this.accounts = accounts
 
@@ -90,6 +90,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
 
     this.objectMapper = objectMapper.copy().enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).registerModule(module)
     this.scheduler = scheduler
+    this.ctx = ctx
   }
 
   @Override
