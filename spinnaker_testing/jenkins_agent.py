@@ -109,7 +109,7 @@ class JenkinsAgent(base_agent.BaseAgent):
                      os.environ.get('JENKINS_PASSWORD', None)]
         if auth_info[0] is None or auth_info[1] is None:
           raise ValueError(
-              'You must either supply --jenins_auth_path'
+              'You must either supply --jenkins_auth_path'
               ' or JENKINS_USER and JENKINS_PASSWORD environment variables.')
     else:
         with open(auth_path, 'r') as f:
