@@ -6,47 +6,23 @@ require('../configure/serverGroup.configure.azure.module.js');
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.serverGroup.details.controller', [
+  require('../configure/serverGroupCommandBuilder.service.js'),
+  require('../../../core/serverGroup/serverGroup.read.service.js'),
+  require('../../../core/utils/selectOnDblClick.directive.js'),
   require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../core/utils/lodash.js'),
-  require('./scalingProcesses/autoScalingProcess.service.js'),
-  require('../../../core/serverGroup/serverGroup.read.service.js'),
-  require('../configure/serverGroupCommandBuilder.service.js'),
-  require('../../../core/serverGroup/configure/common/runningExecutions.service.js'),
-  require('../../../netflix/migrator/serverGroup/serverGroup.migrator.directive.js'), // TODO: make actions pluggable
-  require('./scalingPolicy/scalingPolicy.directive.js'),
-  require('./scheduledAction/scheduledAction.directive.js'),
   require('../../../core/insight/insightFilterState.model.js'),
-  require('./scalingActivities/scalingActivities.controller.js'),
-  require('./networking/networking.module.js'),
-  require('./resize/resizeServerGroup.controller'),
-  require('../../../core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('azureServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
                                                      serverGroupReader, azureServerGroupCommandBuilder, $modal, confirmationModalService, _, serverGroupWriter,
-                                                     subnetReader, autoScalingProcessService, executionFilterService) {
+                                                     subnetReader) {
 
     $scope.state = {
       loading: true
     };
 
     $scope.InsightFilterStateModel = InsightFilterStateModel;
-
-    function applyAutoScalingProcesses() {
-      $scope.autoScalingProcesses = [];
-      if (!$scope.serverGroup.asg || !$scope.serverGroup.asg.suspendedProcesses) {
-        return;
-      }
-      var disabled = _.pluck($scope.serverGroup.asg.suspendedProcesses, 'processName');
-      var allProcesses = autoScalingProcessService.listProcesses();
-      allProcesses.forEach(function(process) {
-        $scope.autoScalingProcesses.push({
-          name: process.name,
-          enabled: disabled.indexOf(process.name) === -1,
-          description: process.description,
-        });
-      });
-    }
 
     function extractServerGroupSummary() {
       var summary = _.find(app.serverGroups.data, function (toCheck) {
@@ -77,9 +53,6 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
         restangularlessDetails.account = serverGroup.accountId; // it's possible the summary was not found because the clusters are still loading
 
         $scope.serverGroup = restangularlessDetails;
-        $scope.runningExecutions = function() {
-          return executionFilterService.filterRunningExecutions($scope.serverGroup.executions);
-        };
 
         if (!_.isEmpty($scope.serverGroup)) {
 
@@ -111,8 +84,6 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
                 _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
             }).compact().value();
           }
-
-          applyAutoScalingProcesses();
 
         } else {
           $state.go('^');
@@ -237,18 +208,6 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
 
     };
 
-    this.toggleScalingProcesses = function toggleScalingProcesses() {
-      $modal.open({
-        templateUrl: require('./scalingProcesses/modifyScalingProcesses.html'),
-        controller: 'ModifyScalingProcessesCtrl as ctrl',
-        resolve: {
-          serverGroup: function() { return $scope.serverGroup; },
-          application: function() { return app; },
-          processes: function() { return $scope.autoScalingProcesses; },
-        }
-      });
-    };
-
     this.resizeServerGroup = function resizeServerGroup() {
       $modal.open({
         templateUrl: require('./resize/resizeServerGroup.html'),
@@ -268,59 +227,6 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
           title: function() { return 'Clone ' + serverGroup.name; },
           application: function() { return app; },
           serverGroupCommand: function() { return azureServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup); },
-        }
-      });
-    };
-
-    this.showScalingActivities = function showScalingActivities() {
-      $scope.activities = [];
-      $modal.open({
-        templateUrl: require('./scalingActivities/scalingActivities.html'),
-        controller: 'ScalingActivitiesCtrl as ctrl',
-        resolve: {
-          applicationName: function() { return app.name; },
-          account: function() { return $scope.serverGroup.account; },
-          clusterName: function() { return $scope.serverGroup.cluster; },
-          serverGroup: function() { return $scope.serverGroup; }
-        }
-      });
-    };
-
-    this.showUserData = function showScalingActivities() {
-      $scope.userData = window.atob($scope.serverGroup.launchConfig.userData);
-      $modal.open({
-        templateUrl: require('../../../core/serverGroup/details/userData.html'),
-        controller: 'CloseableModalCtrl',
-        scope: $scope
-      });
-    };
-
-    this.buildJenkinsLink = function() {
-      if ($scope.serverGroup && $scope.serverGroup.buildInfo && $scope.serverGroup.buildInfo.jenkins) {
-        var jenkins = $scope.serverGroup.buildInfo.jenkins;
-        return jenkins.host + 'job/' + jenkins.name + '/' + jenkins.number;
-      }
-      return null;
-    };
-
-    this.editScheduledActions = function () {
-      $modal.open({
-        templateUrl: require('./scheduledAction/editScheduledActions.modal.html'),
-        controller: 'EditScheduledActionsCtrl as ctrl',
-        resolve: {
-          application: function() { return app; },
-          serverGroup: function() { return $scope.serverGroup; }
-        }
-      });
-    };
-
-    this.editAdvancedSettings = function () {
-      $modal.open({
-        templateUrl: require('./advancedSettings/editAsgAdvancedSettings.modal.html'),
-        controller: 'EditAsgAdvancedSettingsCtrl as ctrl',
-        resolve: {
-          application: function() { return app; },
-          serverGroup: function() { return $scope.serverGroup; }
         }
       });
     };
