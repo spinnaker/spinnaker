@@ -39,7 +39,10 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonReservationReport
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
 import groovy.util.logging.Slf4j
+import rx.Observable
+import rx.Scheduler
 
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
@@ -50,6 +53,8 @@ class ReservationReportCachingAgent implements CachingAgent {
   private static final Collection<AgentDataType> types = Collections.unmodifiableCollection([
     AUTHORITATIVE.forType(RESERVATION_REPORTS.ns)
   ])
+
+  private final Scheduler scheduler
 
   @Override
   String getProviderName() {
@@ -73,7 +78,8 @@ class ReservationReportCachingAgent implements CachingAgent {
 
   ReservationReportCachingAgent(AmazonClientProvider amazonClientProvider,
                                 Collection<NetflixAmazonCredentials> accounts,
-                                ObjectMapper objectMapper) {
+                                ObjectMapper objectMapper,
+                                Scheduler scheduler) {
     this.amazonClientProvider = amazonClientProvider
     this.accounts = accounts
 
@@ -82,6 +88,7 @@ class ReservationReportCachingAgent implements CachingAgent {
     module.addSerializer(AmazonReservationReport.AccountReservationDetail.class, accountReservationDetailSerializer)
 
     this.objectMapper = objectMapper.copy().enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).registerModule(module)
+    this.scheduler = scheduler
   }
 
   static class MutableCacheData implements CacheData {
@@ -110,90 +117,33 @@ class ReservationReportCachingAgent implements CachingAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
+    long startTime = System.currentTimeMillis()
     log.info("Describing items in ${agentType}")
-    Map<String, AmazonReservationReport.OverallReservationDetail> reservations = [:].withDefault { String key ->
-      def (availabilityZone, operatingSystemType, instanceType) = key.split(":")
-      new AmazonReservationReport.OverallReservationDetail(
-        availabilityZone: availabilityZone,
-        os: AmazonReservationReport.OperatingSystemType.valueOf(operatingSystemType as String).name,
-        instanceType: instanceType,
-      )
-    }
 
-    def amazonReservationReport = new AmazonReservationReport(start: new Date())
+    ConcurrentHashMap<String, AmazonReservationReport.OverallReservationDetail> reservations = new ConcurrentHashMap<>()
+    Observable
+      .from(accounts.sort { it.name })
+      .flatMap({ credential ->
+        extractReservations(reservations, credential).subscribeOn(scheduler)
+    })
+      .observeOn(scheduler)
+      .toList()
+      .toBlocking()
+      .single()
+
+    def amazonReservationReport = new AmazonReservationReport(start: new Date(startTime), end: new Date())
     accounts.each { NetflixAmazonCredentials credentials ->
       amazonReservationReport.accounts << [
         accountId: credentials.accountId,
-        name: credentials.name,
-        regions: credentials.regions*.name
+        name     : credentials.name,
+        regions  : credentials.regions*.name
       ]
     }
 
-    Set<String> processedAccountIds = []
-    accounts.sort { it.name }.each { NetflixAmazonCredentials credentials ->
-      if (processedAccountIds.contains(credentials.accountId)) {
-        log.info("Already processed account (accountId: ${credentials.accountId} / ${credentials.name})")
-        return
-      }
-
-      credentials.regions.each { AmazonCredentials.AWSRegion region ->
-        log.info("Fetching reservation report for ${credentials.name}:${region.name}")
-
-        def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region.name)
-        def reservedInstancesResult = amazonEC2.describeReservedInstances(new DescribeReservedInstancesRequest())
-        reservedInstancesResult.reservedInstances.findAll {
-          it.state.equalsIgnoreCase("active") &&
-          ["Heavy Utilization", "Partial Upfront", "All Upfront", "No Upfront"].contains(it.offeringType)
-        }.each {
-          def osType = operatingSystemType(it.productDescription)
-          def reservation = reservations["${it.availabilityZone}:${osType.name}:${it.instanceType}"]
-          reservation.totalReserved.addAndGet(it.instanceCount)
-
-          if (osType.isVpc) {
-            reservation.accounts[credentials.name].reservedVpc.addAndGet(it.instanceCount)
-          } else {
-            reservation.accounts[credentials.name].reserved.addAndGet(it.instanceCount)
-          }
-        }
-
-        def describeInstancesRequest = new DescribeInstancesRequest()
-        def allowedStates = ["pending", "running", "shutting-down", "stopping", "stopped"] as Set<String>
-        while (true) {
-          def result = amazonEC2.describeInstances(describeInstancesRequest)
-          result.reservations.each {
-            it.getInstances().each {
-              if (!allowedStates.contains(it.state.name.toLowerCase())) {
-                return
-              }
-
-              def osTypeName = operatingSystemType(it.platform ? "Windows" : "Linux/UNIX").name
-              def reservation = reservations["${it.placement.availabilityZone}:${osTypeName}:${it.instanceType}"]
-              reservation.totalUsed.incrementAndGet()
-
-              if (it.vpcId) {
-                reservation.accounts[credentials.name].usedVpc.incrementAndGet()
-              } else {
-                reservation.accounts[credentials.name].used.incrementAndGet()
-              }
-            }
-          }
-
-          if (result.nextToken) {
-            describeInstancesRequest.withNextToken(result.nextToken)
-          } else {
-            break
-          }
-        }
-      }
-
-      processedAccountIds << credentials.accountId
-    }
-
-    amazonReservationReport.end = new Date()
     amazonReservationReport.reservations = reservations.values().sort {
-      a,b -> a.availabilityZone <=> b.availabilityZone ?: a.instanceType <=> b.instanceType ?: a.os <=> b.os
+      a, b -> a.availabilityZone <=> b.availabilityZone ?: a.instanceType <=> b.instanceType ?: a.os <=> b.os
     }
-    log.info("Caching ${reservations.size()} items in ${agentType}")
+    log.info("Caching ${reservations.size()} items in ${agentType} took ${System.currentTimeMillis() - startTime}ms")
 
     // v1 is a legacy report that does not differentiate between vpc and non-vpc reserved instances
     accountReservationDetailSerializer.mergeVpcReservations = true
@@ -208,6 +158,79 @@ class ReservationReportCachingAgent implements CachingAgent {
         new MutableCacheData("v2", ["report": v2], [:])
       ]
     )
+  }
+
+  Observable extractReservations(ConcurrentHashMap<String, AmazonReservationReport.OverallReservationDetail> reservations,
+                                 NetflixAmazonCredentials credentials) {
+    def getReservation = { String availabilityZone, String operatingSystemType, String instanceType ->
+      def key = [availabilityZone, operatingSystemType, instanceType].join(":")
+      def newOverallReservationDetail = new AmazonReservationReport.OverallReservationDetail(
+        availabilityZone: availabilityZone,
+        os: AmazonReservationReport.OperatingSystemType.valueOf(operatingSystemType as String).name,
+        instanceType: instanceType
+      )
+
+      def existingOverallReservationDetail = reservations.putIfAbsent(key, newOverallReservationDetail)
+      if (existingOverallReservationDetail) {
+        return existingOverallReservationDetail
+      }
+
+      return newOverallReservationDetail
+    }
+
+    Observable
+      .from(credentials.regions)
+      .flatMap({ AmazonCredentials.AWSRegion region ->
+        log.info("Fetching reservation report for ${credentials.name}:${region.name}")
+
+        def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region.name)
+        def reservedInstancesResult = amazonEC2.describeReservedInstances(new DescribeReservedInstancesRequest())
+        reservedInstancesResult.reservedInstances.findAll {
+          it.state.equalsIgnoreCase("active") &&
+            ["Heavy Utilization", "Partial Upfront", "All Upfront", "No Upfront"].contains(it.offeringType)
+        }.each {
+          def osType = operatingSystemType(it.productDescription)
+          def reservation = getReservation(it.availabilityZone, osType.name, it.instanceType)
+          reservation.totalReserved.addAndGet(it.instanceCount)
+
+          if (osType.isVpc) {
+            reservation.getAccount(credentials.name).reservedVpc.addAndGet(it.instanceCount)
+          } else {
+            reservation.getAccount(credentials.name).reserved.addAndGet(it.instanceCount)
+          }
+        }
+
+        def describeInstancesRequest = new DescribeInstancesRequest()
+        def allowedStates = ["pending", "running", "shutting-down", "stopping", "stopped"] as Set<String>
+        while (true) {
+          def result = amazonEC2.describeInstances(describeInstancesRequest)
+          result.reservations.each {
+            it.getInstances().each {
+              if (!allowedStates.contains(it.state.name.toLowerCase())) {
+                return
+              }
+
+              def osTypeName = operatingSystemType(it.platform ? "Windows" : "Linux/UNIX").name
+              def reservation = getReservation(it.placement.availabilityZone, osTypeName, it.instanceType)
+              reservation.totalUsed.incrementAndGet()
+
+              if (it.vpcId) {
+                reservation.getAccount(credentials.name).usedVpc.incrementAndGet()
+              } else {
+                reservation.getAccount(credentials.name).used.incrementAndGet()
+              }
+            }
+          }
+
+          if (result.nextToken) {
+            describeInstancesRequest.withNextToken(result.nextToken)
+          } else {
+            break
+          }
+        }
+
+      return Observable.empty()
+    })
   }
 
   static AmazonReservationReport.OperatingSystemType operatingSystemType(String productDescription) {

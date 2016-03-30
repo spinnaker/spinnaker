@@ -39,14 +39,18 @@ import com.netflix.spinnaker.clouddriver.aws.provider.agent.InstanceCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.LaunchConfigCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.LoadBalancerCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservationReportCachingAgent
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
 import org.springframework.context.annotation.Scope
+import rx.Scheduler
+import rx.schedulers.Schedulers
 
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
 import java.util.regex.Pattern
 
 @Configuration
@@ -60,7 +64,8 @@ class AwsProviderConfig {
                           DiscoveryApiFactory discoveryApiFactory,
                           EddaApiFactory eddaApiFactory,
                           ApplicationContext ctx,
-                          Registry registry) {
+                          Registry registry,
+                          Scheduler reservationReportScheduler) {
     def awsProvider =
       new AwsProvider(accountCredentialsRepository, Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
 
@@ -72,9 +77,15 @@ class AwsProviderConfig {
                            discoveryApiFactory,
                            eddaApiFactory,
                            ctx,
-                           registry)
+                           registry,
+                           reservationReportScheduler)
 
     awsProvider
+  }
+
+  @Bean
+  Scheduler reservationReportScheduler(@Value('${reports.reservation.threadPoolSize:5}') int reservationReportThreadPoolSize) {
+    return Schedulers.from(Executors.newFixedThreadPool(reservationReportThreadPoolSize))
   }
 
   @Bean
@@ -101,7 +112,8 @@ class AwsProviderConfig {
                                                  DiscoveryApiFactory discoveryApiFactory,
                                                  EddaApiFactory eddaApiFactory,
                                                  ApplicationContext ctx,
-                                                 Registry registry) {
+                                                 Registry registry,
+                                                 Scheduler reservationReportScheduler) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(awsProvider)
     Set<NetflixAmazonCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials)
 
@@ -147,7 +159,7 @@ class AwsProviderConfig {
                                                 objectMapper)
     } else {
       // This caching agent runs across all accounts in one iteration (to maintain consistency).
-      newlyAddedAgents << new ReservationReportCachingAgent(amazonClientProvider, allAccounts, objectMapper)
+      newlyAddedAgents << new ReservationReportCachingAgent(amazonClientProvider, allAccounts, objectMapper, reservationReportScheduler)
 
       discoveryAccounts.each { disco, actMap ->
         actMap.each { region, accounts ->
