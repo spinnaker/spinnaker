@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesO
 import groovy.util.logging.Slf4j
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.extensions.Ingress
+import io.fabric8.kubernetes.api.model.extensions.Job
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClientException
 
@@ -285,6 +286,22 @@ class KubernetesApiAdaptor {
       client.namespaces().create(namespace)
     } catch (KubernetesClientException e) {
       throw new KubernetesOperationException("Create Namespace", e)
+    }
+  }
+
+  Job createJob(String namespace, Job job) {
+    try {
+      client.extensions().jobs().inNamespace(namespace).create(job)
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Create Job", e)
+    }
+  }
+
+  List<Job> getJobs(String namespace) {
+    try {
+      client.extensions().jobs().inNamespace(namespace).list().items
+    } catch (KubernetesClientException e) {
+      throw new KubernetesOperationException("Get Jobs", e)
     }
   }
 }
