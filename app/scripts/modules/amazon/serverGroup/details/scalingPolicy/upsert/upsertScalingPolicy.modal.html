@@ -64,7 +64,7 @@
             </span>
           </div>
         </div>
-        <div class="row" ng-if="ctrl.command.simple && ctrl.viewState.operator === 'Add'">
+        <div class="row" ng-if="ctrl.command.simple && ctrl.viewState.operator !== 'Remove'">
           <div class="col-md-2 sm-label-right">Cooldown</div>
           <div class="col-md-10 content-fields">
             <span class="form-control-static select-placeholder">
@@ -80,7 +80,7 @@
             </span>
           </div>
         </div>
-        <div class="row" ng-if="ctrl.command.step && ctrl.viewState.operator === 'Add'">
+        <div class="row" ng-if="ctrl.command.step && ctrl.viewState.operator !== 'Remove'">
           <div class="col-md-2 sm-label-right">Warmup</div>
           <div class="col-md-10 content-fields">
             <span class="form-control-static select-placeholder">Instances need</span>
