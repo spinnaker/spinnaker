@@ -19,18 +19,18 @@
       </div>
     </div>
     <div class="form-group">
+      <div class="col-md-3 sm-label-right"><b>Allocate IP?</b></div>
+      <div class="col-md-5">
+        <input type="checkbox" class="form-control input-sm" name="allocateIpAddress" ng-model="command.resources.allocateIpAddress" />
+      </div>
+    </div>
+    <div class="form-group" ng-if="!command.resources.allocateIpAddress">
       <div class="col-md-3 sm-label-right"><b>Ports</b></div>
       <div class="col-md-5">
         <input type="text" class="form-control input-sm" name="cpu" ng-model="command.resources.ports" />
       </div>
       <div class="col-md-4">
         (Comma separated)
-      </div>
-    </div>
-    <div class="form-group">
-      <div class="col-md-3 sm-label-right"><b>Allocate IP?</b></div>
-      <div class="col-md-5">
-        <input type="checkbox" class="form-control input-sm" name="allocateIpAddress" ng-model="command.resources.allocateIpAddress" />
       </div>
     </div>
   </div>
