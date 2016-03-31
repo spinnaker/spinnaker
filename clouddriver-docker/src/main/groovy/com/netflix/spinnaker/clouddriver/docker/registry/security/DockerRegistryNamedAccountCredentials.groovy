@@ -78,10 +78,7 @@ public class DockerRegistryNamedAccountCredentials implements AccountCredentials
     this.email = email
     this.requiredGroupMembership = requiredGroupMembership == null ? Collections.emptyList() : Collections.unmodifiableList(requiredGroupMembership)
     this.credentials = buildCredentials(repositories)
-    this.repositories = this.credentials.repositories
-    if (!this.repositories) {
-      throw new DockerRegistryConfigException("No existing repositories found at for ${this.name} at ${this.address}.")
-    }
+    this.repositories = this.credentials.repositories ?: []
   }
 
   @Override
