@@ -60,9 +60,13 @@ class RetrofitExceptionHandler implements ExceptionHandler<RetrofitError> {
       response.details.kind = e.kind
       response.details.status = properties.status ?: null
       response.details.url = properties.url ?: null
-      response.shouldRetry = (e.kind == NETWORK && findHttpMethodAnnotation(e) in ["GET", "HEAD"])
+      response.shouldRetry = (e.kind == NETWORK && isIdempotentRequest(e))
       return response
     }
+  }
+
+  private static boolean isIdempotentRequest(RetrofitError e) {
+    findHttpMethodAnnotation(e) in ["GET", "HEAD", "DELETE", "PUT"]
   }
 
   private static String findHttpMethodAnnotation(RetrofitError exception) {

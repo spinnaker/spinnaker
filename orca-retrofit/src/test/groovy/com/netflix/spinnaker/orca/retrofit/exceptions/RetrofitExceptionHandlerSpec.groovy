@@ -118,13 +118,13 @@ class RetrofitExceptionHandlerSpec extends Specification {
     Response post(@Body String data)
 
     @PUT("/whatever")
-    Response put(@Body String data)
+    Response put()
 
     @PATCH("/whatever")
     Response patch(@Body String data)
 
-    @DELETE("/{whatever}")
-    Response delete(@Path("whatever") String data)
+    @DELETE("/whatever")
+    Response delete()
   }
 
   @Unroll
@@ -153,7 +153,7 @@ class RetrofitExceptionHandlerSpec extends Specification {
     }
 
     where:
-    httpMethod << ["POST", "PUT", "PATCH", "DELETE"]
+    httpMethod << ["POST", "PATCH"]
     methodName = httpMethod.toLowerCase()
   }
 
@@ -183,7 +183,7 @@ class RetrofitExceptionHandlerSpec extends Specification {
     }
 
     where:
-    httpMethod << ["GET", "HEAD"]
+    httpMethod << ["GET", "HEAD", "DELETE", "PUT"]
     methodName = httpMethod.toLowerCase()
   }
 
