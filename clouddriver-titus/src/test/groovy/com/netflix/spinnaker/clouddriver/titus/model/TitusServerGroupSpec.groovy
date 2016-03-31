@@ -22,32 +22,32 @@ import spock.lang.Specification
 
 class TitusServerGroupSpec extends Specification {
 
-  void 'valid server group instance is created from a titus job'() {
-    given:
-    Date launchDate = new Date()
-    Job job = new Job(
-      id: '1234',
-      name: 'api-test-v000',
-      applicationName: 'api.server',
-      version: 'v4321',
-      cpu: 1,
-      memory: 2000,
-      disk: 5000,
-      ports: [8080],
-      instances: 2,
-      instancesMin: 1,
-      instancesMax: 10,
-      instancesDesired: 5,
-      environment: [account: 'test'],
+  Date launchDate = new Date()
+  Job job = new Job(
+    id: '1234',
+    name: 'api-test-v000',
+    applicationName: 'api.server',
+    version: 'v4321',
+    cpu: 1,
+    memory: 2000,
+    disk: 5000,
+    ports: [8080],
+    instances: 2,
+    instancesMin: 1,
+    instancesMax: 10,
+    instancesDesired: 5,
+    environment: [account: 'test'],
+    submittedAt: launchDate,
+    tasks: [new Job.TaskSummary(
+      id: '5678',
+      region: 'us-east-1',
+      state: TaskState.RUNNING,
       submittedAt: launchDate,
-      tasks: [new Job.TaskSummary(
-        id: '5678',
-        region: 'us-east-1',
-        state: TaskState.RUNNING,
-        submittedAt: launchDate,
-        host: 'ec2-1-2-3-4.compute-1.amazonaws.com'
-      )]
-    )
+      host: 'ec2-1-2-3-4.compute-1.amazonaws.com'
+    )]
+  )
+
+  void 'valid server group instance is created from a titus job'() {
 
     when:
     TitusServerGroup titusServerGroup = new TitusServerGroup(job)
@@ -74,5 +74,14 @@ class TitusServerGroupSpec extends Specification {
     titusServerGroup.capacity?.min == job.instancesMin
     titusServerGroup.capacity?.max == job.instancesMax
     titusServerGroup.capacity?.desired == job.instancesDesired
+  }
+
+  void 'can handle empty ports'(){
+    when:
+    job.setPorts(null)
+    TitusServerGroup titusServerGroup = new TitusServerGroup(job)
+
+    then:
+    titusServerGroup.resources.ports == []
   }
 }
