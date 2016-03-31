@@ -4,7 +4,7 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.fastProperties.scope.appSelector.directive', [])
+  .module('spinnaker.fastProperties.scope.singleAppSelector.directive', [])
   .directive('scopeSingleAppSelector', function() {
     return {
       restrict: 'E',
