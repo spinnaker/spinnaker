@@ -99,7 +99,7 @@ module.exports = angular
       instance: [],
     };
 
-    vm.applicationList = [];
+    vm.applicationList = applicationList || [];
 
     vm.isEditing = isEditing || false;
     vm.heading = vm.isEditing ? 'Update Fast Property' : 'Create Fast Property';

@@ -115,7 +115,7 @@ module.exports = angular
         resolve: {
           clusters: function() {return application.clusters; },
           appName: function() {return application.name; },
-          isEditing: function() {return true; },
+          isEditing: function() { return true; },
           applicationList: function(applicationReader) {
             return applicationReader.listApplications();
           },
