@@ -17,9 +17,13 @@
 
 package com.netflix.spinnaker.orca.retrofit.exceptions
 
+import java.lang.annotation.Annotation
+import java.lang.reflect.Method
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import retrofit.RetrofitError
+import retrofit.http.RestMethod
 import retrofit.mime.TypedByteArray
+import static retrofit.RetrofitError.Kind.NETWORK
 
 class RetrofitExceptionHandler implements ExceptionHandler<RetrofitError> {
   @Override
@@ -56,8 +60,35 @@ class RetrofitExceptionHandler implements ExceptionHandler<RetrofitError> {
       response.details.kind = e.kind
       response.details.status = properties.status ?: null
       response.details.url = properties.url ?: null
-      response.shouldRetry = (e.kind == RetrofitError.Kind.NETWORK)
+      response.shouldRetry = (e.kind == NETWORK && isIdempotentRequest(e))
       return response
+    }
+  }
+
+  private static boolean isIdempotentRequest(RetrofitError e) {
+    findHttpMethodAnnotation(e) in ["GET", "HEAD", "DELETE", "PUT"]
+  }
+
+  private static String findHttpMethodAnnotation(RetrofitError exception) {
+    exception.stackTrace.findResult { StackTraceElement frame ->
+      try {
+        Class.forName(frame.className)
+          .interfaces
+          .findResult { Class<?> iface ->
+          iface.declaredMethods.findAll { Method m ->
+            m.name == frame.methodName
+          }.findResult { Method m ->
+            m.declaredAnnotations.findResult { Annotation annotation ->
+              annotation
+                .annotationType()
+                .getAnnotation(RestMethod)?.value()
+            }
+          }
+        }
+      } catch (ClassNotFoundException e) {
+        // inner class or something non-accessible
+        return null
+      }
     }
   }
 }

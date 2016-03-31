@@ -17,13 +17,17 @@
 package com.netflix.spinnaker.orca.retrofit.exceptions
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import retrofit.RestAdapter
 import retrofit.RetrofitError
+import retrofit.client.Client
 import retrofit.client.Response
 import retrofit.converter.JacksonConverter
+import retrofit.http.*
 import retrofit.mime.TypedByteArray
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import static retrofit.RetrofitError.Kind.NETWORK
 
 class RetrofitExceptionHandlerSpec extends Specification {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
@@ -52,7 +56,7 @@ class RetrofitExceptionHandlerSpec extends Specification {
 
     expect:
     with(handler.handle(stepName, retrofitError)) {
-      shouldRetry == false
+      !shouldRetry
       exceptionType == "RetrofitError"
       operation == stepName
       details.url == url
@@ -83,7 +87,7 @@ class RetrofitExceptionHandlerSpec extends Specification {
 
     expect:
     with(handler.handle(stepName, retrofitError)) {
-      shouldRetry == false
+      !shouldRetry
       exceptionType == "RetrofitError"
       operation == stepName
       details.url == url
@@ -103,19 +107,93 @@ class RetrofitExceptionHandlerSpec extends Specification {
     message = "Something bad happened"
   }
 
-  def "should retry on NETWORK errors"() {
-    given:
-    def retrofitError = RetrofitError.networkError(
-      url, new IOException()
-    )
+  private interface DummyRetrofitApi {
+    @GET("/whatever")
+    Response get()
 
-    expect:
-    with(handler.handle(stepName, retrofitError)) {
-      shouldRetry == true
+    @HEAD("/whatever")
+    Response head()
+
+    @POST("/whatever")
+    Response post(@Body String data)
+
+    @PUT("/whatever")
+    Response put()
+
+    @PATCH("/whatever")
+    Response patch(@Body String data)
+
+    @DELETE("/whatever")
+    Response delete()
+  }
+
+  @Unroll
+  def "should not retry a network error on a #httpMethod request"() {
+    given:
+    def client = Stub(Client) {
+      execute(_) >> { throw new IOException("network error") }
+    }
+
+    and:
+    def api = new RestAdapter.Builder()
+      .setEndpoint("http://localhost:1337")
+      .setClient(client)
+      .build()
+      .create(DummyRetrofitApi)
+
+    when:
+    def ex = expectingException {
+      api."$methodName"("whatever")
+    }
+
+    then:
+    with(handler.handle("whatever", ex)) {
+      details.kind == NETWORK
+      !shouldRetry
     }
 
     where:
-    stepName = "Step"
-    url = "http://www.google.com"
+    httpMethod << ["POST", "PATCH"]
+    methodName = httpMethod.toLowerCase()
   }
+
+  @Unroll
+  def "should retry a network error on a #httpMethod request"() {
+    given:
+    def client = Stub(Client) {
+      execute(_) >> { throw new IOException("network error") }
+    }
+
+    and:
+    def api = new RestAdapter.Builder()
+      .setEndpoint("http://localhost:1337")
+      .setClient(client)
+      .build()
+      .create(DummyRetrofitApi)
+
+    when:
+    def ex = expectingException {
+      api."$methodName"()
+    }
+
+    then:
+    with(handler.handle("whatever", ex)) {
+      details.kind == NETWORK
+      shouldRetry
+    }
+
+    where:
+    httpMethod << ["GET", "HEAD", "DELETE", "PUT"]
+    methodName = httpMethod.toLowerCase()
+  }
+
+  private static RetrofitError expectingException(Closure action) {
+    try {
+      action()
+      throw new IllegalStateException("Closure did not throw an exception")
+    } catch (RetrofitError e) {
+      return e
+    }
+  }
+
 }
