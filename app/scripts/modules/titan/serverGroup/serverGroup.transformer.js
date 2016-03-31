@@ -19,8 +19,10 @@ module.exports = angular
         delete command.source;
       }
       command.account = command.credentials;
-      var ports = '' + command.resources.ports;
-      command.resources.ports = ports.split(/\s*,\s*/);
+      if (command.resources.ports) {
+        var ports = '' + command.resources.ports;
+        command.resources.ports = ports.split(/\s*,\s*/);
+      }
       delete command.viewState;
       delete command.backingData;
       delete command.selectedProvider;
