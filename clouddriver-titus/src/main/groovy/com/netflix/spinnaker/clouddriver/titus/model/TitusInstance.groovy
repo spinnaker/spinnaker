@@ -58,7 +58,7 @@ class TitusInstance implements Instance {
     resources.cpu = job.cpu
     resources.memory = job.memory
     resources.disk = job.disk
-    resources.ports = job.ports.toList().collectEntries { [(it): it] }
+    resources.ports = job.ports ? job.ports.toList().collectEntries { [(it): it] } : [:]
 
     env = job.environment
     submittedAt = task.submittedAt ? task.submittedAt.time : null

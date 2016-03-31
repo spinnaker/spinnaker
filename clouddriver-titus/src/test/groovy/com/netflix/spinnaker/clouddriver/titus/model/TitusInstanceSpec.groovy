@@ -23,28 +23,28 @@ import spock.lang.Specification
 
 class TitusInstanceSpec extends Specification {
 
+  Date launchDate = new Date()
+  Job job = new Job(
+    id: '1234',
+    name: 'api-test-v001',
+    applicationName: 'api.server',
+    version: 'v4321',
+    cpu: 1,
+    memory: 2000,
+    disk: 5000,
+    ports: [7150] as int[],
+    environment: [account: 'test', region: 'us-east-1'],
+  )
+  Job.TaskSummary task = new Job.TaskSummary(
+    id: '5678',
+    state: TaskState.RUNNING,
+    submittedAt: launchDate,
+    region: 'us-east-1',
+    host: 'ec2-1-2-3-4.compute-1.amazonaws.com',
+    data: [ipAddresses: [nfvpc: '4.5.6.7']]
+  )
+
   void 'valid titus instance is created from a titus task'() {
-    given:
-    Date launchDate = new Date()
-    Job job = new Job(
-      id: '1234',
-      name: 'api-test-v001',
-      applicationName: 'api.server',
-      version: 'v4321',
-      cpu: 1,
-      memory: 2000,
-      disk: 5000,
-      ports: [7150] as int[],
-      environment: [account: 'test', region: 'us-east-1'],
-    )
-    Job.TaskSummary task = new Job.TaskSummary(
-      id: '5678',
-      state: TaskState.RUNNING,
-      submittedAt: launchDate,
-      region: 'us-east-1',
-      host: 'ec2-1-2-3-4.compute-1.amazonaws.com',
-      data: [ ipAddresses : [ nfvpc : '4.5.6.7'] ]
-    )
 
     when:
     TitusInstance titusInstance = new TitusInstance(job, task)
@@ -66,8 +66,18 @@ class TitusInstanceSpec extends Specification {
     titusInstance.resources?.cpu == job.cpu
     titusInstance.resources?.memory == job.memory
     titusInstance.resources?.disk == job.disk
+    titusInstance.resources?.ports == [7150: 7150]
     titusInstance.env?.account == 'test'
     titusInstance.submittedAt == task.submittedAt.time
     titusInstance.finishedAt == null
   }
+
+  void 'can handle null ports'() {
+    when:
+    job.setPorts(null)
+    TitusInstance titusInstance = new TitusInstance(job, task)
+    then:
+    titusInstance.resources.ports == [:]
+  }
+
 }
