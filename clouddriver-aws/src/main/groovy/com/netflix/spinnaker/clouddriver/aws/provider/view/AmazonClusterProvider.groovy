@@ -91,7 +91,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
     Closure<Boolean> instanceFilter = { rel ->
       return (asgInstances == null || asgInstances.contains(rel))
     }
-    serverGroup.instances = translateInstances(resolveRelationshipData(serverGroupData, INSTANCES.ns, instanceFilter)).values()
+    serverGroup.instances = translateInstances(resolveRelationshipData(serverGroupData, INSTANCES.ns, instanceFilter, RelationshipCacheFilter.none())).values()
 
     serverGroup
   }
@@ -269,9 +269,9 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
     resolveRelationshipData(source, relationship) { true }
   }
 
-  private Collection<CacheData> resolveRelationshipData(CacheData source, String relationship, Closure<Boolean> relFilter) {
+  private Collection<CacheData> resolveRelationshipData(CacheData source, String relationship, Closure<Boolean> relFilter, CacheFilter cacheFilter = null) {
     Collection<String> filteredRelationships = source.relationships[relationship]?.findAll(relFilter)
-    filteredRelationships ? cacheView.getAll(relationship, filteredRelationships) : []
+    filteredRelationships ? cacheView.getAll(relationship, filteredRelationships, cacheFilter) : []
   }
 
   @Override
