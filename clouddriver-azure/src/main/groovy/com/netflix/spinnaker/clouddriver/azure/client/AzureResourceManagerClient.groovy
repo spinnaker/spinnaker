@@ -62,12 +62,13 @@ class AzureResourceManagerClient extends AzureBaseClient {
                                                 String resourceGroupName,
                                                 String region,
                                                 String resourceName,
+                                                String resourceType,
                                                 Map<String, String> templateParams = [:]) {
 
     // TODO validate that all callers invoke this themselves, then remove this call
     initializeResourceGroupAndVNet(credentials, resourceGroupName, null, region)
 
-    String deploymentName = resourceName + AzureUtilities.NAME_SEPARATOR +"deployment"
+    String deploymentName = [resourceName, resourceType, "deployment"].join(AzureUtilities.NAME_SEPARATOR)
     if (!templateParams['location']) {
       templateParams['location'] = region
     }

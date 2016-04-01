@@ -53,13 +53,18 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
       "in ${description.region}...")
 
     def errList = new ArrayList<String>()
+    String resourceGroupName = null
+    String virtualNetworkName = null
+    String subnetName = null
+    String loadBalancerName = null
+    String serverGroupName = null
 
     try {
 
       task.updateStatus(BASE_PHASE, "Beginning server group deployment")
 
-      String resourceGroupName = AzureUtilities.getResourceGroupName(description.application, description.region)
-      String virtualNetworkName = AzureUtilities.getVirtualNetworkName(resourceGroupName)
+      resourceGroupName = AzureUtilities.getResourceGroupName(description.application, description.region)
+      virtualNetworkName = AzureUtilities.getVirtualNetworkName(resourceGroupName)
 
       description.credentials.resourceManagerClient.initializeResourceGroupAndVNet(description.credentials, resourceGroupName, virtualNetworkName, description.region)
 
@@ -79,7 +84,7 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
       }
 
       String nextSubnet = AzureUtilities.getNextSubnet(vnetPrefix, subnetPrefix)
-      String subnetName = AzureUtilities.getSubnetName(virtualNetworkName, nextSubnet)
+      subnetName = AzureUtilities.getSubnetName(virtualNetworkName, nextSubnet)
       String subnetId = description.credentials.networkClient.createSubnet(resourceGroupName,
         virtualNetworkName,
         subnetName,
@@ -99,7 +104,6 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
       lbDescription.accountName = description.accountName
       lbDescription.credentials = description.credentials
       lbDescription.appName = description.application
-      lbDescription.serverGroup = description.name
       lbDescription.cluster = description.clusterName
       lbDescription.serverGroup = description.name
       lbDescription.stack = description.stack
@@ -110,21 +114,26 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
         AzureLoadBalancerResourceTemplate.getTemplate(lbDescription),
         resourceGroupName,
         description.region,
-        description.loadBalancerName)
+        description.loadBalancerName,
+        "loadBalancer")
       errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name)
 
-      description.loadBalancerName = lbDescription.loadBalancerName
-      description.securityGroupName = description.securityGroup?.name
-      description.subnetId = subnetId
-      task.updateStatus(BASE_PHASE, "Deploying server group")
-      deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(description.credentials,
-        AzureServerGroupResourceTemplate.getTemplate(description),
-        resourceGroupName,
-        description.region,
-        description.name,
-        [subnetId: subnetId])
+      if (errList.isEmpty()) {
+        description.loadBalancerName = lbDescription.loadBalancerName
+        description.securityGroupName = description.securityGroup?.name
+        description.subnetId = subnetId
+        task.updateStatus(BASE_PHASE, "Deploying server group")
+        deployment = description.credentials.resourceManagerClient.createResourceFromTemplate(description.credentials,
+          AzureServerGroupResourceTemplate.getTemplate(description),
+          resourceGroupName,
+          description.region,
+          description.name,
+          "serverGroup",
+          [subnetId: subnetId])
 
-      errList.addAll(AzureDeploymentOperation.checkDeploymentOperationStatus(task,BASE_PHASE, description.credentials, resourceGroupName, deployment.name))
+        errList.addAll(AzureDeploymentOperation.checkDeploymentOperationStatus(task, BASE_PHASE, description.credentials, resourceGroupName, deployment.name))
+        serverGroupName = errList.isEmpty() ? description.name : null
+      }
     } catch (Exception e) {
       task.updateStatus(BASE_PHASE, "Deployment of server group ${description.name} failed: ${e.message}")
       errList.add(e.message)
@@ -133,6 +142,23 @@ class CreateAzureServerGroupAtomicOperation implements AtomicOperation<Map> {
       task.updateStatus(BASE_PHASE, "Deployment for server group ${description.name} in ${description.region} has succeeded.")
     }
     else {
+      if (description.image?.imageName) {
+        // cleanup any resources that might have been created prior to server group failing to deploy
+        task.updateStatus(BASE_PHASE, "Cleanup any resources created as part of server group upsert")
+        try {
+          if (serverGroupName) description.credentials.computeClient.destroyServerGroup(resourceGroupName, serverGroupName)
+          if (loadBalancerName) description.credentials.networkClient.deleteLoadBalancer(resourceGroupName, loadBalancerName)
+          if (subnetName) description.credentials.networkClient.deleteSubnet(resourceGroupName, virtualNetworkName, subnetName)
+        } catch (Exception e) {
+          def errMessage = "Unexpected exception: ${e.message}; please log in into the Azure Portal and manually remove the following resources: ${subnetName} ${loadBalancerName} ${AzureUtilities.PUBLICIP_NAME_PREFIX + loadBalancerName}"
+          task.updateStatus(BASE_PHASE, errMessage)
+          errList.add(errMessage)
+        }
+      } else {
+        // can not automatically delete a server group
+        errList.add("Please log in into Azure Portal and manualy delete any resource associated with the ${description.name} server group such as storage accounts, load balancer (${loadBalancerName}), publicIp (${AzureUtilities.PUBLICIP_NAME_PREFIX + loadBalancerName}) and subnets (${subnetName})")
+      }
+
       throw new AtomicOperationException(
         error: "${description.name} deployment failed",
         errors: errList)

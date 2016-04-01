@@ -57,6 +57,7 @@ class DeleteAzureLoadBalancerAtomicOperation implements AtomicOperation<Void> {
           .networkClient
           .deleteLoadBalancer(resourceGroupName, description.loadBalancerName)
 
+        // TODO: check response to ensure operation succeeded
         task.updateStatus(BASE_PHASE, "Deletion of Azure load balancer ${description.loadBalancerName} in ${region} has succeeded.")
       } catch (Exception e) {
         task.updateStatus(BASE_PHASE, "Deletion of load balancer ${description.loadBalancerName} failed: e.message")

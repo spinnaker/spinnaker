@@ -16,20 +16,66 @@
 
 package com.netflix.spinnaker.clouddriver.azure.client
 
+import com.microsoft.azure.credentials.ApplicationTokenCredentials
+import com.microsoft.azure.management.storage.StorageAccountsOperations
+import com.microsoft.azure.management.storage.StorageManagementClient
+import com.microsoft.azure.management.storage.StorageManagementClientImpl
 import com.microsoft.azure.storage.blob.CloudBlobClient
 import com.microsoft.azure.storage.blob.CloudBlobContainer
 import com.microsoft.azure.storage.blob.CloudBlobDirectory
 import com.microsoft.azure.storage.blob.ListBlobItem
 import com.microsoft.azure.storage.CloudStorageAccount
+import com.microsoft.rest.ServiceResponse
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureCustomImageStorage
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureCustomVMImage
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import okhttp3.logging.HttpLoggingInterceptor
 
 @Slf4j
 @CompileStatic
-class AzureStorageClient {
+class AzureStorageClient extends AzureBaseClient {
   static final String AZURE_IMAGE_FILE_EXT = ".vhd"
+
+  private final StorageManagementClient client
+
+  AzureStorageClient(String subscriptionId, ApplicationTokenCredentials credentials) {
+    super(subscriptionId)
+    this.client = this.initialize(credentials)
+  }
+
+  /**
+   * get the StorageManagementClient which will be used for all interaction related to compute resources in Azure
+   * @param creds the credentials to use when communicating to the Azure subscription(s)
+   * @return an instance of the Azure StorageManagementClient
+   */
+  private StorageManagementClient initialize(ApplicationTokenCredentials tokenCredentials) {
+    StorageManagementClient storageClient = new StorageManagementClientImpl(tokenCredentials)
+    storageClient.setSubscriptionId(this.subscriptionId)
+    storageClient.setLogLevel(HttpLoggingInterceptor.Level.NONE)
+    storageClient
+  }
+
+  /**
+   * Delete a storage account in the resource group specified
+   * @param resourceGroupName Resource Group in Azure where the storage account will exist
+   * @param storageName Name of the storage account to delete
+   * @throws RuntimeException Throws RuntimeException if operation response indicates failure
+   * @return a ServiceResponse object
+   */
+  ServiceResponse<Void> deleteStorageAccount(String resourceGroupName, String storageName) {
+    StorageAccountsOperations ops = getAzureOps(
+      client.&getStorageAccountsOperations, "Get operations object", "Failed to get operation object") as StorageAccountsOperations
+
+    deleteAzureResource(
+      ops.&delete,
+      resourceGroupName,
+      storageName,
+      null,
+      "Delete Storage Account ${storageName}",
+      "Failed to delete Storage Account ${storageName} in ${resourceGroupName}"
+    )
+  }
 
   /**
    * Return list of available .VHD files from a list of connection strings

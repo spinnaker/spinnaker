@@ -52,7 +52,7 @@ class AzureApplicationProvider implements ApplicationProvider {
 
   @Override
   AzureApplication getApplication(String name) {
-    translate(cacheView.get(Keys.Namespace.AZURE_APPLICATIONS.ns, Keys.getApplicationKey(azureCloudProvider, name)))
+    translate(cacheView.get(Keys.Namespace.AZURE_APPLICATIONS.ns, Keys.getApplicationKey(azureCloudProvider, name))) ?: new AzureApplication(name, [:], [:])
   }
 
   AzureApplication translate(CacheData cacheData) {

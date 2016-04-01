@@ -20,7 +20,9 @@ import com.microsoft.azure.CloudException
 import com.microsoft.azure.credentials.ApplicationTokenCredentials
 import com.microsoft.azure.management.compute.ComputeManagementClient
 import com.microsoft.azure.management.compute.ComputeManagementClientImpl
+import com.microsoft.azure.management.compute.VirtualMachineScaleSetsOperations
 import com.microsoft.azure.management.compute.models.VirtualMachineScaleSet
+import com.microsoft.rest.ServiceResponse
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureInstance
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
@@ -152,6 +154,20 @@ public class AzureComputeClient extends AzureBaseClient {
       log.warn("ServerGroup: ${e.message} (${serverGroupName} was not found)")
     }
     null
+  }
+
+  ServiceResponse<Void> destroyServerGroup(String resourceGroupName, String serverGroupName) {
+    VirtualMachineScaleSetsOperations ops = getAzureOps(
+      client.&getVirtualMachineScaleSetsOperations, "Get operations object", "Failed to get operation object") as VirtualMachineScaleSetsOperations
+
+    deleteAzureResource(
+      ops.&delete,
+      resourceGroupName,
+      serverGroupName,
+      null,
+      "Delete Server Group ${serverGroupName}",
+      "Failed to delete Server Group ${serverGroupName} in ${resourceGroupName}"
+    )
   }
 
   Collection<AzureInstance> getServerGroupInstances(String resourceGroupName, String serverGroupName) {

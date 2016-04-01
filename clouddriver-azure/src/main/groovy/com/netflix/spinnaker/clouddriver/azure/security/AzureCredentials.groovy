@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.azure.client.AzureBaseClient
 import com.netflix.spinnaker.clouddriver.azure.client.AzureComputeClient
 import com.netflix.spinnaker.clouddriver.azure.client.AzureNetworkClient
 import com.netflix.spinnaker.clouddriver.azure.client.AzureResourceManagerClient
+import com.netflix.spinnaker.clouddriver.azure.client.AzureStorageClient
 
 class AzureCredentials {
 
@@ -32,6 +33,7 @@ class AzureCredentials {
   final AzureResourceManagerClient resourceManagerClient
   final AzureNetworkClient networkClient
   final AzureComputeClient computeClient
+  final AzureStorageClient storageClient
 
   AzureCredentials(String tenantId, String clientId, String appKey, String subscriptionId) {
     this.tenantId = tenantId
@@ -40,13 +42,14 @@ class AzureCredentials {
     this.subscriptionId = subscriptionId
     this.project = "AzureProject"
 
-    resourceManagerClient = new AzureResourceManagerClient(this.subscriptionId,
-      AzureBaseClient.getTokenCredentials(this.clientId, this.tenantId, this.appKey))
+    def token = AzureBaseClient.getTokenCredentials(this.clientId, this.tenantId, this.appKey)
 
-    networkClient = new AzureNetworkClient(this.subscriptionId,
-      AzureBaseClient.getTokenCredentials(this.clientId, this.tenantId, this.appKey))
+    resourceManagerClient = new AzureResourceManagerClient(this.subscriptionId, token)
 
-    computeClient = new AzureComputeClient(this.subscriptionId,
-      AzureBaseClient.getTokenCredentials(this.clientId, this.tenantId, this.appKey))
+    networkClient = new AzureNetworkClient(this.subscriptionId, token)
+
+    computeClient = new AzureComputeClient(this.subscriptionId, token)
+
+    storageClient = new AzureStorageClient(this.subscriptionId, token)
   }
 }

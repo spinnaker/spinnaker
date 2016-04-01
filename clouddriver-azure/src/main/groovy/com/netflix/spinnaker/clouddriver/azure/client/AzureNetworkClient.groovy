@@ -18,8 +18,12 @@ package com.netflix.spinnaker.clouddriver.azure.client
 
 import com.microsoft.azure.CloudException
 import com.microsoft.azure.credentials.ApplicationTokenCredentials
+import com.microsoft.azure.management.network.LoadBalancersOperations
 import com.microsoft.azure.management.network.NetworkManagementClient
 import com.microsoft.azure.management.network.NetworkManagementClientImpl
+import com.microsoft.azure.management.network.NetworkSecurityGroupsOperations
+import com.microsoft.azure.management.network.PublicIPAddressesOperations
+import com.microsoft.azure.management.network.SubnetsOperations
 import com.microsoft.azure.management.network.models.AddressSpace
 import com.microsoft.azure.management.network.models.DhcpOptions
 import com.microsoft.azure.management.network.models.LoadBalancer
@@ -184,13 +188,45 @@ class AzureNetworkClient extends AzureBaseClient {
     def loadBalancer = client.getLoadBalancersOperations().get(resourceGroupName, loadBalancerName, null).body
 
     if (loadBalancer.frontendIPConfigurations.size() != 1) {
-      throw new RuntimeException("Unexpected number of public IP addresses associated with the load balancer (should be only one)!")
+      throw new RuntimeException("Unexpected number of public IP addresses associated with the load balancer (should always be only one)!")
     }
 
     def publicIpAddressName = AzureUtilities.getResourceNameFromID(loadBalancer.frontendIPConfigurations.first().getPublicIPAddress().id)
-    client.getLoadBalancersOperations().delete(resourceGroupName, loadBalancerName)
 
-    client.getPublicIPAddressesOperations().delete(resourceGroupName, publicIpAddressName)
+    LoadBalancersOperations ops = getAzureOps(
+      client.&getLoadBalancersOperations, "Get operations object", "Failed to get operation object") as LoadBalancersOperations
+
+    deleteAzureResource(
+      ops.&delete,
+      resourceGroupName,
+      loadBalancerName,
+      null,
+      "Delete Load Balancer ${loadBalancerName}",
+      "Failed to delete Load Balancer ${loadBalancerName} in ${resourceGroupName}"
+    )
+
+    // delete the public IP resource that was created and associated with the deleted load balancer
+    deletePublicIp(resourceGroupName, publicIpAddressName)
+  }
+
+  /**
+   * Delete a public IP resource in Azure
+   * @param resourceGroupName name of the resource group where the public IP resource was created (see application name and region/location)
+   * @param publicIpName name of the publicIp resource to delete
+   * @return a ServiceResponse object
+   */
+  ServiceResponse deletePublicIp(String resourceGroupName, String publicIpName) {
+    PublicIPAddressesOperations ops = getAzureOps(
+      client.&getPublicIPAddressesOperations, "Get operations object", "Failed to get operation object") as PublicIPAddressesOperations
+
+    deleteAzureResource(
+      ops.&delete,
+      resourceGroupName,
+      publicIpName,
+      null,
+      "Delete PublicIp ${publicIpName}",
+      "Failed to delete PublicIp ${publicIpName} in ${resourceGroupName}"
+    )
   }
 
   /**
@@ -200,7 +236,17 @@ class AzureNetworkClient extends AzureBaseClient {
    * @return a ServiceResponse object
    */
   ServiceResponse deleteSecurityGroup(String resourceGroupName, String securityGroupName) {
-    client.getNetworkSecurityGroupsOperations().delete(resourceGroupName, securityGroupName)
+    NetworkSecurityGroupsOperations ops = getAzureOps(
+      client.&getNetworkSecurityGroupsOperations, "Get operations object", "Failed to get operation object") as NetworkSecurityGroupsOperations
+
+    deleteAzureResource(
+      ops.&delete,
+      resourceGroupName,
+      securityGroupName,
+      null,
+      "Delete Security Group ${securityGroupName}",
+      "Failed to delete Security Group ${securityGroupName} in ${resourceGroupName}"
+    )
   }
 
   /**
@@ -271,6 +317,28 @@ class AzureNetworkClient extends AzureBaseClient {
       log.error("Unable to create subnet ${subnetName} in Resource Group ${resourceGroupName}")
       throw e
     }
+  }
+
+  /**
+   * Delete a subnet in the virtual network specified
+   * @param resourceGroupName Resource Group in Azure where vNet and Subnet will exist
+   * @param virtualNetworkName Virtual Network to create the subnet in
+   * @param subnetName Name of subnet to create
+   * @throws RuntimeException Throws RuntimeException if operation response indicates failure
+   * @return a ServiceResponse object
+   */
+  ServiceResponse<Void> deleteSubnet(String resourceGroupName, String virtualNetworkName, String subnetName) {
+    SubnetsOperations ops = getAzureOps(
+      client.&getSubnetsOperations, "Get operations object", "Failed to get operation object") as SubnetsOperations
+
+    deleteAzureResource(
+      ops.&delete,
+      resourceGroupName,
+      subnetName,
+      virtualNetworkName,
+      "Delete subnet ${subnetName}",
+      "Failed to delete subnet ${subnetName} in ${resourceGroupName}"
+    )
   }
 
   private void addSecurityGroupToSubnet(String resourceGroupName, String securityGroupName, Subnet subnet) {

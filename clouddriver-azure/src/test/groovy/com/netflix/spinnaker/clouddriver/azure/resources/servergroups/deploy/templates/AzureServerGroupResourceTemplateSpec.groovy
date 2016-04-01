@@ -101,7 +101,6 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
     }
   },
   "variables" : {
-    "newStorageAccountSuffix" : "sa",
     "vhdContainerName" : "azuremasm-st1-d11",
     "osType" : {
       "publisher" : "Canonical",
@@ -110,7 +109,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "version" : "latest"
     },
     "imageReference" : "[variables('osType')]",
-    "uniqueStorageNameArray" : [ "[concat(uniqueString(concat(resourceGroup().id, subscription().id, 'azuremasmst1d11', '0')), variables('newStorageAccountSuffix'))]" ]
+    "uniqueStorageNameArray" : [ "[concat(uniqueString(concat(resourceGroup().id, subscription().id, 'azuremasmst1d11', '0')), 'sa')]" ]
   },
   "resources" : [ {
     "apiVersion" : "2015-06-15",
@@ -143,7 +142,7 @@ class AzureServerGroupResourceTemplateSpec extends Specification {
       "cluster" : "azureMASM-st1-d11",
       "loadBalancerName" : "azureMASM-st1-d11",
       "imageIsCustom" : "false",
-      "storageAccountNames" : "[concat(uniqueString(concat(resourceGroup().id, subscription().id, 'azuremasmst1d11', '0')), variables('newStorageAccountSuffix'))]"
+      "storageAccountNames" : "[concat(uniqueString(concat(resourceGroup().id, subscription().id, 'azuremasmst1d11', '0')), 'sa')]"
     },
     "dependsOn" : [ "[concat('Microsoft.Storage/storageAccounts/', variables('uniqueStorageNameArray')[0])]" ],
     "sku" : {

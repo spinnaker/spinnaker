@@ -61,7 +61,8 @@ class UpsertAzureSecurityGroupAtomicOperation implements AtomicOperation<Map> {
         AzureSecurityGroupResourceTemplate.getTemplate(description),
         resourceGroupName,
         description.region,
-        description.securityGroupName)
+        description.securityGroupName,
+        "securityGroup")
 
       errList = AzureDeploymentOperation.checkDeploymentOperationStatus(task,BASE_PHASE, description.credentials, resourceGroupName, deployment.name)
     } catch (Exception e) {

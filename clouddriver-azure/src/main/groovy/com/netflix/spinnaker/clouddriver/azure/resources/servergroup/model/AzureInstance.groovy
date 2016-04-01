@@ -22,6 +22,8 @@ class AzureInstance implements Instance, Serializable {
         case "ProvisioningState":
           if (codes[1].toLowerCase() == AzureUtilities.ProvisioningState.SUCCEEDED.toLowerCase()) {
             instance.launchTime = status.time?.millis
+          } else {
+            instance.healthState = HealthState.Failed
           }
           break
         case "PowerState":
