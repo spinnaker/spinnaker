@@ -355,10 +355,6 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
                     desiredCapacity: instanceGroupManager.targetSize])
           serverGroups << serverGroup
 
-          // The isDisabled property of a server group is set based on whether there are associated target pools.
-          def loadBalancerNames = Utils.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(instanceGroupManager.getTargetPools())
-          serverGroup.setDisabled(loadBalancerNames.empty)
-
           InstanceGroupsCallback instanceGroupsCallback = new InstanceGroupsCallback(serverGroup: serverGroup)
           compute.instanceGroups().listInstances(project,
                                                  zone,
@@ -367,7 +363,10 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
                                                                                                  instanceGroupsCallback)
 
           String instanceTemplateName = Utils.getLocalName(instanceGroupManager.instanceTemplate)
-          InstanceTemplatesCallback instanceTemplatesCallback = new InstanceTemplatesCallback(serverGroup: serverGroup)
+          List<String> loadBalancerNames =
+            Utils.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(instanceGroupManager.getTargetPools())
+          InstanceTemplatesCallback instanceTemplatesCallback = new InstanceTemplatesCallback(serverGroup: serverGroup,
+                                                                                              loadBalancerNames: loadBalancerNames)
           compute.instanceTemplates().get(project, instanceTemplateName).queue(instanceGroupsRequest,
                                                                                instanceTemplatesCallback)
         }
@@ -397,6 +396,7 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
     private static final String LOAD_BALANCER_NAMES = "load-balancer-names"
 
     GoogleServerGroup2 serverGroup
+    List<String> loadBalancerNames
 
     @Override
     void onSuccess(InstanceTemplate instanceTemplate, HttpHeaders responseHeaders) throws IOException {
@@ -425,6 +425,11 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
         def loadBalancerNameList = metadataMap?.get(LOAD_BALANCER_NAMES)?.split(",")
         if (loadBalancerNameList) {
           serverGroup.asg.loadBalancerNames = loadBalancerNameList
+
+          // The isDisabled property of a server group is set based on whether there are associated target pools,
+          // and whether the metadata of the server group contains a list of load balancers to actually associate
+          // the server group with.
+          serverGroup.setDisabled(loadBalancerNames.empty)
         }
       }
     }
