@@ -20,11 +20,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.clouddriver.model.ReservationReport
 import com.netflix.spinnaker.clouddriver.model.ReservationReportProvider
-import com.netflix.spinnaker.clouddriver.aws.model.AmazonReservationReport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.RESERVATION_REPORTS
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVATION_REPORTS
 
 @Component
 class AmazonReservationReportProvider implements ReservationReportProvider {

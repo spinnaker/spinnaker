@@ -34,13 +34,12 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
-import groovy.util.logging.Slf4j
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.IMAGES
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.LAUNCH_CONFIGS
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.IMAGES
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LAUNCH_CONFIGS
 
 class LaunchConfigCachingAgent implements CachingAgent, AccountAware, DriftMetric {
   final Logger log = LoggerFactory.getLogger(getClass())

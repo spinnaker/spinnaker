@@ -29,7 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.*
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 
 @Component
 class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {

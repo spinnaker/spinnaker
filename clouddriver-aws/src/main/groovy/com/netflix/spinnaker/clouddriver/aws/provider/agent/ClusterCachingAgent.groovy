@@ -53,7 +53,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.*
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.*
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData

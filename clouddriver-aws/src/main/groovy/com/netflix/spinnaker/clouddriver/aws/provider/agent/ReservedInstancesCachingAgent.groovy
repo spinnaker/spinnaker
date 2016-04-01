@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.RESERVED_INSTANCES
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVED_INSTANCES
 
 class ReservedInstancesCachingAgent implements CachingAgent, CustomScheduledAgent, AccountAware {
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}

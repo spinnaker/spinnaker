@@ -24,10 +24,10 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.HealthProvidingCachingAgent
+import com.netflix.spinnaker.clouddriver.core.provider.agent.HealthProvidingCachingAgent
 import java.util.regex.Pattern
 import org.springframework.beans.factory.annotation.Autowired
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.*
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 
 class AwsProvider extends AgentSchedulerAware implements SearchableProvider {
 

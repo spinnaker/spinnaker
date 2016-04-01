@@ -28,8 +28,8 @@ import com.netflix.spinnaker.clouddriver.aws.model.AmazonInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.HEALTH
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
 
 @Component
 class AmazonInstanceProvider implements InstanceProvider<AmazonInstance> {

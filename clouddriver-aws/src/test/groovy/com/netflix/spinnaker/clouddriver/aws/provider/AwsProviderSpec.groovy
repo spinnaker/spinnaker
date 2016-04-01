@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider
 
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
 
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 

@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest
-import com.amazonaws.services.ec2.model.DescribeReservedInstancesRequest
-import com.amazonaws.services.ec2.model.ReservedInstances
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonGenerator
@@ -43,7 +41,6 @@ import com.netflix.spinnaker.clouddriver.aws.model.AmazonReservationReport
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import rx.Observable
 import rx.Scheduler
@@ -53,8 +50,8 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.RESERVATION_REPORTS
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.RESERVED_INSTANCES
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVATION_REPORTS
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.RESERVED_INSTANCES
 
 @Slf4j
 class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgent {

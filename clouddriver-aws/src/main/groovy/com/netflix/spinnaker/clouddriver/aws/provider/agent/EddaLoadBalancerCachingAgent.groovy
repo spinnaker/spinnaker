@@ -33,9 +33,10 @@ import com.netflix.spinnaker.clouddriver.aws.model.edda.InstanceLoadBalancers
 import com.netflix.spinnaker.clouddriver.aws.model.edda.LoadBalancerInstanceState
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
 
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.HEALTH
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
 
+import com.netflix.spinnaker.clouddriver.core.provider.agent.HealthProvidingCachingAgent
 import groovy.util.logging.Slf4j
 
 @Slf4j

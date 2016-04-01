@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.titus.caching
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.provider.Provider
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.HealthProvidingCachingAgent //TODO-Move health agent to common module
+import com.netflix.spinnaker.clouddriver.core.provider.agent.HealthProvidingCachingAgent
 
 class TitusCachingProvider implements Provider {
 

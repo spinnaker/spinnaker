@@ -31,7 +31,7 @@ import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.*
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 
 @Component
 class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalancer> {
