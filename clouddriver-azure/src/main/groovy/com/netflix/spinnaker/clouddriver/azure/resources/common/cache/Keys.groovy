@@ -31,7 +31,8 @@ class Keys {
     AZURE_INSTANCES,
     AZURE_VMIMAGES,
     AZURE_CUSTOMVMIMAGES,
-    AZURE_ON_DEMAND
+    AZURE_ON_DEMAND,
+    AZURE_EVICTIONS
 
     final String ns
 
