@@ -36,7 +36,7 @@ fi
 # If not Ubuntu 14.xx.x or higher
 
 if [ "$DISTRO" = "Ubuntu" ]; then
-  if [ "${DISTRIB_RELEASE%%.*}" -ne 14 ]; then
+  if [ "${DISTRIB_RELEASE%%.*}" -lt 14 ]; then
   echo "Not a supported version of Ubuntu"
   echo "Version is $DISTRIB_RELEASE we require 14.04 or higher"
   exit 1
