@@ -202,7 +202,7 @@ class DefaultImageNameFactorySpec extends Specification {
       def clockMock = Mock(Clock)
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
       def selectedOptions = new BakeOptions.Selected(baseImage: new BakeOptions.BaseImage(id: "centos", packageType: "RPM"))
-      def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced-0.1-3-all",
+      def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced-0.1-3.all",
                                         build_number: "12",
                                         commit_hash: "170cdbd",
                                         base_os: "centos")
@@ -222,7 +222,7 @@ class DefaultImageNameFactorySpec extends Specification {
       def clockMock = Mock(Clock)
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
       def selectedOptions = new BakeOptions.Selected(baseImage: new BakeOptions.BaseImage(id: "centos", packageType: "RPM"))
-      def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced-0.1-3-all",
+      def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced-0.1-3.all",
                                         build_number: "12",
                                         base_os: "centos")
 
@@ -241,7 +241,7 @@ class DefaultImageNameFactorySpec extends Specification {
       def clockMock = Mock(Clock)
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
       def selectedOptions = new BakeOptions.Selected(baseImage: new BakeOptions.BaseImage(id: "centos", packageType: "RPM"))
-      def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced-0.1-3-all kato redis-server",
+      def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced-0.1-3.all kato redis-server",
                                         build_number: "12",
                                         commit_hash: "170cdbd",
                                         base_os: "centos")
@@ -261,7 +261,7 @@ class DefaultImageNameFactorySpec extends Specification {
       def clockMock = Mock(Clock)
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
       def selectedOptions = new BakeOptions.Selected(baseImage: new BakeOptions.BaseImage(id: "centos", packageType: "RPM"))
-      def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced-0.1-3-all kato redis-server",
+      def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced-0.1-3.all kato redis-server",
                                         base_os: "centos")
 
     when:

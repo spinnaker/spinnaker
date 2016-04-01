@@ -61,19 +61,27 @@ class PackageNameConverter {
     osPackageName
   }
 
-  // Naming-convention for rpms is name-version-release-arch.
-  // For example: nflx-djangobase-enhanced-0.1-h12.170cdbd-all
+  // Naming-convention for rpms is name-version-release.arch.
+  // For example: nflx-djangobase-enhanced-0.1-h12.170cdbd.all
   public static OsPackageName parseRpmPackageName(String fullyQualifiedPackageName) {
     OsPackageName osPackageName = new OsPackageName()
 
     osPackageName.with {
-      List<String> parts = fullyQualifiedPackageName?.tokenize("-")
+      if (fullyQualifiedPackageName) {
+        int startOfArch = fullyQualifiedPackageName.lastIndexOf('.')
 
-      if (parts?.size >= 4) {
-        arch = parts.pop()
-        release = parts.pop()
-        version = parts.pop()
-        name = parts.join("-")
+        if (startOfArch != -1) {
+          arch = fullyQualifiedPackageName.substring(startOfArch + 1)
+          fullyQualifiedPackageName = fullyQualifiedPackageName.substring(0, startOfArch)
+        }
+
+        List<String> parts = fullyQualifiedPackageName.tokenize("-")
+
+        if (parts.size >= 3) {
+          release = parts.pop()
+          version = parts.pop()
+          name = parts.join("-")
+        }
       }
     }
 

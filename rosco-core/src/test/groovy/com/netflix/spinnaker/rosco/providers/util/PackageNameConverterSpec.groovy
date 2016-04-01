@@ -64,20 +64,24 @@ class PackageNameConverterSpec extends Specification {
       packageName                                    | expectedOsPackageName
       null                                           | new PackageNameConverter.OsPackageName()
       ""                                             | new PackageNameConverter.OsPackageName()
-      "billinggateway-1.0-h2385.e0a09ce-all"         | new PackageNameConverter.OsPackageName(name: "billinggateway",
+      "billinggateway-1.0-h2385.e0a09ce.all"         | new PackageNameConverter.OsPackageName(name: "billinggateway",
                                                                                               version: "1.0",
                                                                                               release: "h2385.e0a09ce",
                                                                                               arch: "all")
-      "nflx-djangobase-enhanced-0.1-h12.170cdbd-all" | new PackageNameConverter.OsPackageName(name: "nflx-djangobase-enhanced",
+      "nflx-djangobase-enhanced-0.1-h12.170cdbd.all" | new PackageNameConverter.OsPackageName(name: "nflx-djangobase-enhanced",
                                                                                               version: "0.1",
                                                                                               release: "h12.170cdbd",
                                                                                               arch: "all")
+      "sf-lucifer-0.0.10-1.noarch"                   | new PackageNameConverter.OsPackageName(name: "sf-lucifer",
+                                                                                              version: "0.0.10",
+                                                                                              release: "1",
+                                                                                              arch: "noarch")
   }
 
   void "package type is respected when building app version string"() {
     setup:
       def debPackageName = "nflx-djangobase-enhanced_0.1-h12.170cdbd_all"
-      def rpmPackageName = "nflx-djangobase-enhanced-0.1-h12.170cdbd-all"
+      def rpmPackageName = "nflx-djangobase-enhanced-0.1-h12.170cdbd.all"
       def appVersionStr = "nflx-djangobase-enhanced-0.1-h12.170cdbd"
 
     when:
