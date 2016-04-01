@@ -186,8 +186,9 @@ public class ClusteredAgentScheduler extends CatsModuleAware implements AgentSch
         public void execute() {
             try {
                 executionInstrumentation.executionStarted(agent);
+                long startTime = System.nanoTime();
                 agentExecution.executeAgent(agent);
-                executionInstrumentation.executionCompleted(agent);
+                executionInstrumentation.executionCompleted(agent, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
             } catch (Throwable cause) {
                 executionInstrumentation.executionFailed(agent, cause);
             }

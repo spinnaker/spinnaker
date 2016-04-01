@@ -73,7 +73,7 @@ class ClusteredAgentSchedulerSpec extends Specification {
         1 * jedis.set(_ as String, _ as String, 'NX', 'PX', _ as Long) >> 'OK'
         1 * inst.executionStarted(agent)
         1 * exec.executeAgent(agent)
-        1 * inst.executionCompleted(agent)
+        1 * inst.executionCompleted(agent, _)
         1 * jedis.eval(_ as String, _ as List, _ as List)
         2 * jedis.close()
         0 * _

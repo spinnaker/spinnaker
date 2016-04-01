@@ -31,15 +31,6 @@ import java.util.concurrent.TimeUnit
 
 @Component
 class MetricInstrumentation implements ExecutionInstrumentation {
-
-  private final Logger logger = LoggerFactory.getLogger(MetricInstrumentation)
-  private static final ThreadLocal<ConcurrentMap<String, Long>> timingsMap = new InheritableThreadLocal<ConcurrentMap<String, Long>>() {
-    @Override
-    protected ConcurrentMap<String, Long> initialValue() {
-      new ConcurrentHashMap<String, Long>();
-    }
-  }
-
   private final Registry registry
 
   private final Id timingId
@@ -58,30 +49,18 @@ class MetricInstrumentation implements ExecutionInstrumentation {
 
   @Override
   void executionStarted(Agent agent) {
-    Long previous = timingsMap.get().put(agentName(agent), System.nanoTime())
-    if (previous != null) {
-      logger.warn("Metric value not cleared for ${agentName(agent)}")
-    }
+    // do nothing
   }
 
   @Override
-  void executionCompleted(Agent agent) {
-    Long startTime = timingsMap.get().remove(agentName(agent))
-    if (startTime != null) {
-      registry.timer(timingId.withTag('agent', agentName(agent))).record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS)
-    }
+  void executionCompleted(Agent agent, long elapsedMs) {
+    registry.timer(timingId.withTag('agent', agentName(agent))).record(elapsedMs, TimeUnit.MILLISECONDS)
     registry.counter(counterId.withTag('agent', agentName(agent)).withTag('status', 'success')).increment()
   }
 
   @Override
   void executionFailed(Agent agent, Throwable cause) {
-    timingsMap.get().remove(agentName(agent))
     registry.counter(counterId.withTag('agent', agentName(agent)).withTag('status', 'failure')).increment()
-  }
-
-
-  static Long getAgentStartTimeNs(Agent agent) {
-    return timingsMap.get().get(agentName(agent))
   }
 }
 

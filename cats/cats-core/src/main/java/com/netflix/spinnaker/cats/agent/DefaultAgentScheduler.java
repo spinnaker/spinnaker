@@ -89,8 +89,9 @@ public class DefaultAgentScheduler extends CatsModuleAware implements AgentSched
         public void run() {
             try {
                 executionInstrumentation.executionStarted(agent);
+                long startTime = System.nanoTime();
                 execution.executeAgent(agent);
-                executionInstrumentation.executionCompleted(agent);
+                executionInstrumentation.executionCompleted(agent, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
             } catch (Throwable t) {
                 executionInstrumentation.executionFailed(agent, t);
             }

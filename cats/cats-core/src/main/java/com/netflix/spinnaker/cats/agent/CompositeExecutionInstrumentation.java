@@ -33,9 +33,9 @@ public class CompositeExecutionInstrumentation implements ExecutionInstrumentati
     }
 
     @Override
-    public void executionCompleted(Agent agent) {
+    public void executionCompleted(Agent agent, long elapsedMs) {
         for (ExecutionInstrumentation exec : instrumentations) {
-            exec.executionCompleted(agent);
+            exec.executionCompleted(agent, elapsedMs);
         }
     }
 

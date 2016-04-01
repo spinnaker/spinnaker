@@ -22,8 +22,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
-import java.util.concurrent.TimeUnit
-
 @Component
 class LoggingInstrumentation implements ExecutionInstrumentation {
   private final Logger logger = LoggerFactory.getLogger(LoggingInstrumentation)
@@ -34,8 +32,7 @@ class LoggingInstrumentation implements ExecutionInstrumentation {
   }
 
   @Override
-  void executionCompleted(Agent agent) {
-    def durationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - MetricInstrumentation.getAgentStartTimeNs(agent))
+  void executionCompleted(Agent agent, long durationMs) {
     logger.info("${agent.providerName}:${agent.agentType} completed in ${durationMs / 1000}s")
   }
 
