@@ -12,6 +12,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('../../../core/serverGroup/serverGroup.write.service.js'),
   require('../../../core/serverGroup/details/serverGroupWarningMessage.service.js'),
   require('../../../core/overrideRegistry/override.registry.js'),
+  require('../../../core/account/account.service.js'),
   require('../../../core/utils/lodash.js'),
   require('../../vpc/vpcTag.directive.js'),
   require('./scalingProcesses/autoScalingProcess.service.js'),
@@ -33,7 +34,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
                                                      serverGroupReader, awsServerGroupCommandBuilder, $uibModal,
                                                      confirmationModalService, _, serverGroupWriter, subnetReader,
                                                      autoScalingProcessService, runningExecutionsService,
-                                                     awsServerGroupTransformer,
+                                                     awsServerGroupTransformer, accountService,
                                                      serverGroupWarningMessageService, overrideRegistry) {
 
     this.state = {
@@ -85,7 +86,9 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         plainDetails.account = serverGroup.accountId;
 
         this.serverGroup = plainDetails;
-          this.runningExecutions = () => {
+        this.applyAccountDetails(this.serverGroup);
+
+        this.runningExecutions = () => {
           return runningExecutionsService.filterRunningExecutions(this.serverGroup.executions);
         };
 
@@ -369,6 +372,12 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         return this.serverGroup.buildInfo.commit.substring(0, 8);
       }
       return null;
+    };
+
+    this.applyAccountDetails = (serverGroup) => {
+      return accountService.getAccountDetails(serverGroup.account).then((details) => {
+        serverGroup.accountDetails = details;
+      });
     };
   }
 );

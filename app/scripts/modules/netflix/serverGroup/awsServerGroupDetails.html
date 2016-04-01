@@ -282,13 +282,23 @@
     <collapsible-section heading="Edda Links">
       <ul>
         <li>
-          <a target="_blank" ng-href="http://edda-main.{{ctrl.serverGroup.region}}.{{ctrl.serverGroup.account}}.netflix.net:7001/REST/v2/aws/autoScalingGroups/{{ctrl.serverGroup.name}}">
+          <a target="_blank" ng-href="http://edda-{{ctrl.serverGroup.accountDetails.accountId}}.{{ctrl.serverGroup.region}}.{{ctrl.serverGroup.accountDetails.environment}}.netflix.net:7001/REST/v2/aws/autoScalingGroups/{{ctrl.serverGroup.name}}">
             ASG ({{ctrl.serverGroup.name}})
           </a>
         </li>
         <li>
-          <a target="_blank" ng-href="http://edda-main.{{ctrl.serverGroup.region}}.{{ctrl.serverGroup.account}}.netflix.net:7001/REST/v2/group/clusters/{{ctrl.serverGroup.cluster}}">
+          <a target="_blank" ng-href="http://edda-{{ctrl.serverGroup.accountDetails.accountId}}.{{ctrl.serverGroup.region}}.{{ctrl.serverGroup.accountDetails.environment}}.netflix.net:7001/REST/v2/group/clusters/{{ctrl.serverGroup.cluster}}">
             Cluster ({{ctrl.serverGroup.cluster}})
+          </a>
+        </li>
+        <li>
+          <a target="_blank" ng-href="http://edda-{{ctrl.serverGroup.accountDetails.accountId}}.{{ctrl.serverGroup.region}}.{{ctrl.serverGroup.accountDetails.environment}}.netflix.net:7001/REST/v2/aws/launchConfigurations/{{ctrl.serverGroup.launchConfig.launchConfigurationName}}">
+            Launch Configuration ({{ctrl.serverGroup.launchConfig.launchConfigurationName}})
+          </a>
+        </li>
+        <li>
+          <a target="_blank" ng-href="http://edda-{{ctrl.serverGroup.accountDetails.accountId}}.{{ctrl.serverGroup.region}}.{{ctrl.serverGroup.accountDetails.environment}}.netflix.net:7001/REST/v2/aws/images/{{ctrl.serverGroup.launchConfig.imageId}}">
+            AMI ({{ctrl.serverGroup.launchConfig.imageId}})
           </a>
         </li>
       </ul>
