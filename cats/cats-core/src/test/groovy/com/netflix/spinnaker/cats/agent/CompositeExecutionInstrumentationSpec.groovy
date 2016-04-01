@@ -36,11 +36,11 @@ class CompositeExecutionInstrumentationSpec extends Specification {
         1 * e2.executionStarted(agent)
 
         when:
-        subj.executionCompleted(agent)
+        subj.executionCompleted(agent, 100)
 
         then:
-        1 * e1.executionCompleted(agent)
-        1 * e2.executionCompleted(agent)
+        1 * e1.executionCompleted(agent, 100)
+        1 * e2.executionCompleted(agent, 100)
 
         when:
         subj.executionFailed(agent, cause)

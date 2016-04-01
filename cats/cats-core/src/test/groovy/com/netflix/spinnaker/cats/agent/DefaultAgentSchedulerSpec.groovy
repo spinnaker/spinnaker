@@ -43,7 +43,7 @@ class DefaultAgentSchedulerSpec extends Specification {
         then:
         1 * instr.executionStarted(agent)
         1 * exec.executeAgent(agent)
-        1 * instr.executionCompleted(agent)
+        1 * instr.executionCompleted(agent, _ )
         0 * _
     }
 

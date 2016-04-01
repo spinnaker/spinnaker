@@ -23,7 +23,7 @@ public class NoopExecutionInstrumentation implements ExecutionInstrumentation {
     }
 
     @Override
-    public void executionCompleted(Agent agent) {
+    public void executionCompleted(Agent agent, long elapsedMs) {
         //noop
     }
 

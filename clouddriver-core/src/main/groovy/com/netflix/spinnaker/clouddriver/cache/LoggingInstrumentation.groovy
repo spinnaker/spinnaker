@@ -32,8 +32,8 @@ class LoggingInstrumentation implements ExecutionInstrumentation {
   }
 
   @Override
-  void executionCompleted(Agent agent) {
-    logger.info("${agent.providerName}:${agent.agentType} completed")
+  void executionCompleted(Agent agent, long durationMs) {
+    logger.info("${agent.providerName}:${agent.agentType} completed in ${durationMs / 1000}s")
   }
 
   @Override
