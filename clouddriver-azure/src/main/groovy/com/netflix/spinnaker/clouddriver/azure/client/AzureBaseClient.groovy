@@ -117,4 +117,9 @@ public abstract class AzureBaseClient {
 
     result
   }
+
+  static Boolean resourceNotFound(int responseStatusCode) {
+    responseStatusCode == HttpURLConnection.HTTP_NO_CONTENT || responseStatusCode == HttpURLConnection.HTTP_NOT_FOUND
+  }
+
 }
