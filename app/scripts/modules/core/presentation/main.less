@@ -561,7 +561,20 @@ body > .container {
   overflow-x: hidden;
   overflow-y: hidden;
   border-radius: 3px;
+  ::-webkit-scrollbar {
+    background: transparent;
+    width: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: transparent;
+  }
+  :hover {
+    ::-webkit-scrollbar-thumb {
+      background: #bdbdbd;
+    }
+  }
 }
+
 
 .modal-pages {
   width:1200px;
@@ -1076,7 +1089,7 @@ body, html {
 
 .ui-select-multiple {
   .select2-drop {
-    width: calc(~"100% - 30px");
+    width: calc(~"100% - 40px");
     margin-left: 1px;
   }
 }
