@@ -18,10 +18,12 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.handlers
 
 import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
+import com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -31,7 +33,6 @@ import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.aws.deploy.AmiIdResolver
 import com.netflix.spinnaker.clouddriver.aws.deploy.AutoScalingWorker
-import com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.ResolvedAmiResult
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerResult
@@ -294,7 +295,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       sourceAsg.launchConfigurationName
     )
 
-    description.blockDevices = description.blockDevices != null ? description.blockDevices : convertBlockDevices(sourceLaunchConfiguration.blockDeviceMappings)
+    description.blockDevices = buildBlockDeviceMappings(description, sourceLaunchConfiguration)
     description.spotPrice = description.spotPrice ?: sourceLaunchConfiguration.spotPrice
 
     return description
@@ -363,6 +364,45 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       throw new IllegalArgumentException("Instance type ${instanceType} does not support " +
           "virtualization type ${ami.virtualizationType}. Please select a different image or instance type.")
     }
+  }
 
+  /**
+   * Determine block devices
+   *
+   * If:
+   * - The source launch configuration is using default block device mappings
+   * - The instance type has changed
+   *
+   * Then:
+   * - Re-generate block device mappings based on the new instance type
+   *
+   * Otherwise:
+   * - Continue to use any custom block device mappings (if set)
+   */
+  private static Collection<AmazonBlockDevice> buildBlockDeviceMappings(
+    BasicAmazonDeployDescription description,
+    LaunchConfiguration sourceLaunchConfiguration
+  ) {
+    if (description.blockDevices != null) {
+      // block device mappings have been explicitly specified and should be used regardless of instance type
+      return description.blockDevices
+    }
+
+    if (sourceLaunchConfiguration.instanceType != description.instanceType) {
+      // instance type has changed, verify that the block device mappings are still legitimate (ebs vs. ephemeral)
+      def blockDevicesForSourceAsg = sourceLaunchConfiguration.blockDeviceMappings.collect {
+        [deviceName: it.deviceName, virtualName: it.virtualName, size: it.ebs?.volumeSize]
+      }.sort { it.deviceName }
+      def blockDevicesForSourceInstanceType = BlockDeviceConfig.blockDevicesByInstanceType[sourceLaunchConfiguration.instanceType].collect {
+        [deviceName: it.deviceName, virtualName: it.virtualName, size: it.size]
+      }.sort { it.deviceName }
+
+      if (blockDevicesForSourceAsg == blockDevicesForSourceInstanceType) {
+        // use default block mappings for the new instance type (since default block mappings were used on the previous instance type)
+        return BlockDeviceConfig.blockDevicesByInstanceType[description.instanceType]
+      }
+    }
+
+    return convertBlockDevices(sourceLaunchConfiguration.blockDeviceMappings)
   }
 }

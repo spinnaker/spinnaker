@@ -47,6 +47,8 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import static com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig.*
+
 class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
   @Subject
@@ -149,7 +151,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
       new VpcClassicLink(vpcId: "vpc-123", classicLinkEnabled: false),
       new VpcClassicLink(vpcId: "vpc-456", classicLinkEnabled: true),
       new VpcClassicLink(vpcId: "vpc-789", classicLinkEnabled: false)
-      ])
+    ])
   }
 
   void "should not populate classic link VPC Id when there is a subnetType"() {
@@ -194,7 +196,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     setBlockDevices == this.blockDevices
     2 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
     2 * amazonEC2.describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId('ami-12345')
-        .withVirtualizationType('hvm'))
+      .withVirtualizationType('hvm'))
   }
 
   void "should favour explicit description block devices over default config"() {
@@ -221,7 +223,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     setBlockDevices == description.blockDevices
     2 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
     2 * amazonEC2.describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId('ami-12345')
-        .withVirtualizationType('hvm'))
+      .withVirtualizationType('hvm'))
   }
 
   @Unroll
@@ -249,12 +251,12 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     2 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
     2 * amazonEC2.describeImages(_) >>
       new DescribeImagesResult()
-          .withImages(new Image()
-                          .withImageId('ami-12345')
-                          .withBlockDeviceMappings([new BlockDeviceMapping()
-                                                        .withDeviceName("/dev/sdh")
-                                                        .withEbs(new Ebs().withVolumeSize(500))])
-                          .withVirtualizationType('hvm'))
+        .withImages(new Image()
+        .withImageId('ami-12345')
+        .withBlockDeviceMappings([new BlockDeviceMapping()
+                                    .withDeviceName("/dev/sdh")
+                                    .withEbs(new Ebs().withVolumeSize(500))])
+        .withVirtualizationType('hvm'))
     setBlockDevices == expectedBlockDevices
 
     where:
@@ -456,14 +458,14 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
     then:
     1 * amazonEC2.describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId('ami-12345')
-        .withVirtualizationType(virtualizationType))
+      .withVirtualizationType(virtualizationType))
     1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
     thrown IllegalArgumentException
 
     where:
-    instanceType  | virtualizationType
-    'c1.large'    | 'hvm'
-    'r3.xlarge'   | 'paravirtual'
+    instanceType | virtualizationType
+    'c1.large'   | 'hvm'
+    'r3.xlarge'  | 'paravirtual'
   }
 
   @Unroll
@@ -478,7 +480,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
     then:
     1 * amazonEC2.describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId('ami-12345')
-        .withVirtualizationType(virtualizationType))
+      .withVirtualizationType(virtualizationType))
     1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
 
     where:
@@ -490,5 +492,42 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     'mystery.big' | 'hvm'
     'mystery.big' | 'paravirtual'
     'what.the'    | 'heck'
+  }
+
+  @Unroll
+  void "should regenerate block device mappings if instance type changes"() {
+    setup:
+    def description = new BasicAmazonDeployDescription(
+      instanceType: targetInstanceType,
+      blockDevices: descriptionBlockDevices
+    )
+    def launchConfiguration = new LaunchConfiguration()
+      .withInstanceType(sourceInstanceType)
+      .withBlockDeviceMappings(sourceBlockDevices?.collect {
+      new BlockDeviceMapping().withVirtualName(it.virtualName).withDeviceName(it.deviceName)
+    })
+
+    when:
+    def blockDeviceMappings = BasicAmazonDeployHandler.buildBlockDeviceMappings(description, launchConfiguration)
+
+    then:
+    convertBlockDeviceMappings(blockDeviceMappings) == convertBlockDeviceMappings(expectedTargetBlockDevices)
+
+    where:
+    sourceInstanceType | targetInstanceType | sourceBlockDevices                              | descriptionBlockDevices || expectedTargetBlockDevices
+    "c3.xlarge"        | "c4.xlarge"        | bD("c3.xlarge")                                 | bD("c3.xlarge")         || bD("c3.xlarge")                                 // use the explicitly provided block devices even if instance type has changed
+    "c3.xlarge"        | "c4.xlarge"        | bD("c3.xlarge")                                 | []                      || []                                              // use the explicitly provided block devices even if an empty list
+    "c3.xlarge"        | "c4.xlarge"        | bD("c3.xlarge")                                 | null                    || bD("c4.xlarge")                                 // was using default block devices, continue to use default block devices for targetInstanceType
+    "c3.xlarge"        | "c4.xlarge"        | [new AmazonBlockDevice(deviceName: "/dev/xxx")] | null                    || [new AmazonBlockDevice(deviceName: "/dev/xxx")] // custom block devices should be preserved
+  }
+
+  private Collection<AmazonBlockDevice> bD(String instanceType) {
+    return blockDevicesByInstanceType[instanceType]
+  }
+
+  private Collection<Map> convertBlockDeviceMappings(Collection<AmazonBlockDevice> blockDevices) {
+    return blockDevices.collect {
+      [deviceName: it.deviceName, virtualName: it.virtualName]
+    }.sort { it.deviceName }
   }
 }

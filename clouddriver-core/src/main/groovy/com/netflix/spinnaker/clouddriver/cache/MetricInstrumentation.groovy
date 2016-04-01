@@ -78,5 +78,10 @@ class MetricInstrumentation implements ExecutionInstrumentation {
     timingsMap.get().remove(agentName(agent))
     registry.counter(counterId.withTag('agent', agentName(agent)).withTag('status', 'failure')).increment()
   }
+
+
+  static Long getAgentStartTimeNs(Agent agent) {
+    return timingsMap.get().get(agentName(agent))
+  }
 }
 
