@@ -62,6 +62,7 @@ public class SubmitJobRequest {
     private String stack;
     private String detail;
     private String user;
+    private String entryPoint;
     private int instancesMin;
     private int instancesMax;
     private int instancesDesired;
@@ -159,6 +160,12 @@ public class SubmitJobRequest {
         return this;
     }
 
+
+    public SubmitJobRequest withEntryPoint(String entryPoint) {
+      this.entryPoint = entryPoint;
+      return this;
+    }
+
     public SubmitJobRequest withConstraint(Constraint constraint) {
         this.constraints.add(constraint);
         return this;
@@ -243,6 +250,8 @@ public class SubmitJobRequest {
     public List<Constraint> getConstraints() {
         return constraints;
     }
+
+    public String getEntryPoint() { return entryPoint; }
 
     public Map<String, String> getLabels() {
         return labels;
