@@ -35,6 +35,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
   String id
   String name
   String type = TYPE
+  String entryPoint
   Map env
   Long submittedAt
   String application
@@ -52,6 +53,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
     name = job.name
     image << [dockerImageName: job.applicationName]
     image << [dockerImageVersion: job.version]
+    entryPoint = job.entryPoint
     resources.cpu = job.cpu
     resources.memory = job.memory
     resources.disk = job.disk

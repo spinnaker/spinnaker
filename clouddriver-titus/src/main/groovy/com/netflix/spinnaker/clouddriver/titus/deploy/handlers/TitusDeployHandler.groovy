@@ -82,6 +82,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         .withStack(description.stack)
         .withDetail(description.freeFormDetails)
         .withConstraint(SubmitJobRequest.Constraint.soft(SubmitJobRequest.Constraint.ZONE_BALANCE))
+        .withEntryPoint(description.entryPoint)
 
       task.updateStatus BASE_PHASE, "Submitting job request to Titus..."
       String jobUri = titusClient.submitJob(submitJobRequest)

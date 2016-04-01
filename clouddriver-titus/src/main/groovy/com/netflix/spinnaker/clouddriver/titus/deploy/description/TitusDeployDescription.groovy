@@ -31,6 +31,7 @@ class TitusDeployDescription extends AbstractTitusCredentialsDescription impleme
   Capacity capacity = new Capacity()
   Resources resources = new Resources()
   Map env
+  String entryPoint
 
   @Canonical
   static class Capacity {

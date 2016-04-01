@@ -46,6 +46,8 @@ public class JobDescription {
     private List<String> hardConstraints;
     private Map<String, String> labels;
 
+    private String entryPoint;
+
     //Soft/Hard constraints
 
     JobDescription() {}
@@ -77,6 +79,7 @@ public class JobDescription {
         user = request.getUser();
         env = request.getEnv() != null ? request.getEnv() : new HashMap<>();
         labels = request.getLabels() != null ? request.getLabels() : new HashMap<>();
+        entryPoint = request.getEntryPoint();
     }
 
     public String getName() {
@@ -243,4 +246,9 @@ public class JobDescription {
     public void setLabels(Map<String, String> labels) {
         this.labels = labels;
     }
+
+    public String getEntryPoint() { return entryPoint; }
+
+    public void setEntryPoint(String entryPoint) { this.entryPoint = entryPoint; }
+
 }

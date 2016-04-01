@@ -58,6 +58,7 @@ class RegionScopedTitusClientSpec extends Specification {
       .withCpu(1)
       .withMemory(4096)
       .withDisk(2000)
+      .withEntryPoint("ls -la")
       .withPorts([7001] as int[])
       .withEnv(env)
       .withAllocateIpAddress(true);
