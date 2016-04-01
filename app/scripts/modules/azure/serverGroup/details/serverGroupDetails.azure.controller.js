@@ -208,17 +208,6 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
 
     };
 
-    this.resizeServerGroup = function resizeServerGroup() {
-      $modal.open({
-        templateUrl: require('./resize/resizeServerGroup.html'),
-        controller: 'azureResizeServerGroupCtrl as ctrl',
-        resolve: {
-          serverGroup: function() { return $scope.serverGroup; },
-          application: function() { return app; }
-        }
-      });
-    };
-
     this.cloneServerGroup = function cloneServerGroup(serverGroup) {
       $modal.open({
         templateUrl: require('../configure/wizard/serverGroupWizard.html'),
