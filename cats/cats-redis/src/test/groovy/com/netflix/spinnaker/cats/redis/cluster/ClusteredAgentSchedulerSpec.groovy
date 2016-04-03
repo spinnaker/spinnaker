@@ -47,7 +47,7 @@ class ClusteredAgentSchedulerSpec extends Specification {
         }
         lockPollingScheduler = new ManualRunnableScheduler()
         agentExecutionScheduler = new ManualRunnableScheduler()
-        scheduler = new ClusteredAgentScheduler(source, new DefaultNodeIdentity(), interval, lockPollingScheduler, agentExecutionScheduler)
+        scheduler = new ClusteredAgentScheduler(source, new DefaultNodeIdentity(), interval, new DefaultNodeStatusProvider(), lockPollingScheduler, agentExecutionScheduler)
     }
 
     def 'cache run aborted if agent doesnt acquire execution token'() {
