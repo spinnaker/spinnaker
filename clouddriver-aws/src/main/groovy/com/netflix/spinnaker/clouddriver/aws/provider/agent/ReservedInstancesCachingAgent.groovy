@@ -102,7 +102,9 @@ class ReservedInstancesCachingAgent implements CachingAgent, CustomScheduledAgen
     def result = amazonEC2.describeReservedInstances(new DescribeReservedInstancesRequest())
     List<ReservedInstances> allReservedInstances = result.reservedInstances
 
-    Collection<CacheData> reservedInstancesData = allReservedInstances.collect { ReservedInstances reservedInstances ->
+    Collection<CacheData> reservedInstancesData = allReservedInstances
+      .findAll { it.state.equalsIgnoreCase("active") }
+      .collect { ReservedInstances reservedInstances ->
       Map<String, Object> attributes = objectMapper.convertValue(reservedInstances, ATTRIBUTES);
       new DefaultCacheData(Keys.getReservedInstancesKey(reservedInstances.reservedInstancesId, account.name, region), attributes, [:])
     }

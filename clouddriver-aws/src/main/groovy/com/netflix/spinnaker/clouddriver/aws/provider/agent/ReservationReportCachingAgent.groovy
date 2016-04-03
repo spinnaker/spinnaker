@@ -212,6 +212,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
 
         def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region.name)
 
+        long startTime = System.currentTimeMillis()
         def cacheView = getCacheView()
         def reservedInstances = cacheView.getAll(
           RESERVED_INSTANCES.ns,
@@ -219,6 +220,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
         ).collect {
           objectMapper.convertValue(it.attributes, ReservedInstanceDetails)
         }
+        log.debug("Took ${System.currentTimeMillis() - startTime}ms to describe reserved instances for ${credentials.name}/${region.name}")
 
         reservedInstances.findAll {
           it.state.equalsIgnoreCase("active") &&
@@ -235,6 +237,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
           }
         }
 
+        startTime = System.currentTimeMillis()
         def describeInstancesRequest = new DescribeInstancesRequest()
         def allowedStates = ["pending", "running", "shutting-down", "stopping", "stopped"] as Set<String>
         while (true) {
@@ -263,6 +266,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
             break
           }
         }
+        log.debug("Took ${System.currentTimeMillis() - startTime}ms to describe instances for ${credentials.name}/${region.name}")
 
       return Observable.empty()
     })
