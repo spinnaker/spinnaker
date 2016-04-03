@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cache
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.discovery.DiscoveryClient
 import com.netflix.spinnaker.cats.agent.AgentScheduler
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory
 import com.netflix.spinnaker.cats.redis.JedisPoolSource
@@ -26,7 +27,11 @@ import com.netflix.spinnaker.cats.redis.cache.RedisNamedCacheFactory
 import com.netflix.spinnaker.cats.redis.cluster.AgentIntervalProvider
 import com.netflix.spinnaker.cats.redis.cluster.ClusteredAgentScheduler
 import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeIdentity
+import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeStatusProvider
+import com.netflix.spinnaker.cats.redis.cluster.NodeStatusProvider
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -69,14 +74,26 @@ class RedisCacheConfig {
   }
 
   @Bean
+  @ConditionalOnBean(DiscoveryClient)
+  EurekaStatusNodeStatusProvider discoveryStatusNodeStatusProvider(DiscoveryClient discoveryClient) {
+    new EurekaStatusNodeStatusProvider(discoveryClient)
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(NodeStatusProvider)
+  DefaultNodeStatusProvider nodeStatusProvider() {
+    new DefaultNodeStatusProvider()
+  }
+
+  @Bean
   @ConditionalOnProperty(value = 'caching.writeEnabled', matchIfMissing = true)
-  AgentScheduler agentScheduler(JedisSource jedisSource, @Value('${redis.connection:redis://localhost:6379}') String redisConnection, AgentIntervalProvider agentIntervalProvider) {
+  AgentScheduler agentScheduler(JedisSource jedisSource, @Value('${redis.connection:redis://localhost:6379}') String redisConnection, AgentIntervalProvider agentIntervalProvider, NodeStatusProvider nodeStatusProvider) {
     URI redisUri = URI.create(redisConnection)
     String redisHost = redisUri.getHost()
     int redisPort = redisUri.getPort()
     if (redisPort == -1) {
       redisPort = 6379
     }
-    new ClusteredAgentScheduler(jedisSource, new DefaultNodeIdentity(redisHost, redisPort), agentIntervalProvider)
+    new ClusteredAgentScheduler(jedisSource, new DefaultNodeIdentity(redisHost, redisPort), agentIntervalProvider, nodeStatusProvider)
   }
 }
