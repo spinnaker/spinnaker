@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.aws.security;
 
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.ClientConfiguration;
-import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.handlers.RequestHandler2;
 import com.amazonaws.regions.Region;
@@ -44,6 +43,7 @@ import com.amazonaws.services.sns.AmazonSNSClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.awsobjectmapper.AmazonObjectMapper;
 import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 
 import java.lang.reflect.Constructor;
@@ -77,6 +77,8 @@ public class AmazonClientProvider {
     private List<RequestHandler2> requestHandlers = new ArrayList<>();
     private AWSProxy proxy;
     private EddaTimeoutConfig eddaTimeoutConfig;
+    private int maxConnections = 200;
+    private int maxConnectionsPerRoute = 20;
 
     public Builder httpClient(HttpClient httpClient) {
       this.httpClient = httpClient;
@@ -123,8 +125,25 @@ public class AmazonClientProvider {
       return this;
     }
 
+    public Builder maxConnections(int maxConnections) {
+      this.maxConnections = maxConnections;
+      return this;
+    }
+
+    public Builder maxConnectionsPerRoute(int maxConnectionsPerRoute) {
+      this.maxConnectionsPerRoute = maxConnectionsPerRoute;
+      return this;
+    }
+
     public AmazonClientProvider build() {
-      HttpClient client = this.httpClient == null ? HttpClients.createDefault() : this.httpClient;
+      HttpClient client = this.httpClient;
+      if (client == null) {
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        builder.setMaxConnTotal(this.maxConnections);
+        builder.setMaxConnPerRoute(this.maxConnectionsPerRoute);
+        client = builder.build();
+      }
+
       ObjectMapper mapper = this.objectMapper == null ? new AmazonObjectMapper() : this.objectMapper;
       EddaTemplater templater = this.eddaTemplater == null ? EddaTemplater.defaultTemplater() : this.eddaTemplater;
       RetryPolicy policy = buildPolicy();
