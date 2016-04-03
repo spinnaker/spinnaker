@@ -73,6 +73,12 @@ class AwsConfiguration {
   @Value('${aws.client.maxErrorRetry:3}')
   int maxErrorRetry
 
+  @Value('${aws.client.maxConnections:200}')
+  int maxConnections
+
+  @Value('${aws.client.maxConnectionsPerRoute:20}')
+  int maxConnectionsPerRoute
+
   @Autowired
   SpectatorMetricsCollector spectatorMetricsCollector
 
@@ -101,12 +107,12 @@ class AwsConfiguration {
       .retryCondition(instrumentedRetryCondition)
       .objectMapper(amazonObjectMapper())
       .maxErrorRetry(maxErrorRetry)
+      .maxConnections(maxConnections)
+      .maxConnectionsPerRoute(maxConnectionsPerRoute)
       .proxy(proxy)
       .eddaTimeoutConfig(eddaTimeoutConfig)
       .build()
   }
-
-
 
   @Bean
   ObjectMapper amazonObjectMapper() {
