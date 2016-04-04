@@ -812,6 +812,44 @@ tfoot .add-new {
   }
 }
 
+.collapsible-subsection {
+  a.section-subheading {
+    color: #000000;
+  }
+  h4.collapsible-subheading {
+    padding: 10px 15px;
+    background-color: @lightest_grey;
+    margin: 0;
+    .glyphicon {
+      font-size: 70%;
+      opacity: 0.7;
+      margin-right: 4px;
+      font-weight: 200;
+    }
+    font-size: 115%;
+    font-weight: 200;
+  }
+  .content-body {
+    .fade-in(0.15);
+    .clearfix;
+    padding-left: 17px;
+    margin: 10px 0 20px 0;
+    ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+  }
+  padding: 0;
+
+  &:last-child {
+    border-bottom-width: 0;
+  }
+
+  &:first-child {
+    padding-top: 0;
+  }
+}
+
 .collapsible-section {
   a.section-heading {
     color: #000000;

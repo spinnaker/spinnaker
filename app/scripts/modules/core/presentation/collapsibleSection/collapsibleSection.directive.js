@@ -14,7 +14,8 @@ module.exports = angular.module('spinnaker.core.presentation.collapsibleSection.
         heading: '@',
         expanded: '@?',
         bodyClass: '@?',
-        helpKey: '@'
+        helpKey: '@',
+        subsection: '=',
       },
       templateUrl: require('./collapsibleSection.directive.html'),
       link: function(scope) {
@@ -24,6 +25,10 @@ module.exports = angular.module('spinnaker.core.presentation.collapsibleSection.
         scope.state = {expanded: expanded};
         scope.getIcon = function() {
           return scope.state.expanded ? 'down' : 'up';
+        };
+
+        scope.getClassType = function() {
+          return scope.subsection ? 'sub' : '';
         };
 
         scope.toggle = function() {
