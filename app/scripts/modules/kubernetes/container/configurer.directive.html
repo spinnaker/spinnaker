@@ -32,7 +32,7 @@
     </div>
   </div>
 
-  <collapsible-section heading="Basic Settings" expanded="false">
+  <collapsible-section heading="Basic Settings" expanded="false" subsection="true">
     <div class="form-group">
       <div class="sm-label-left">
         <b>Commands</b>
@@ -121,7 +121,7 @@
     </div>
   </collapsible-section>
 
-  <collapsible-section heading="Resources" expanded="false">
+  <collapsible-section heading="Resources" expanded="false" subsection="true">
     <div class="form-group">
       <div class="col-md-3">
       </div>
@@ -166,7 +166,7 @@
     </div>
   </collapsible-section>
 
-  <collapsible-section heading="Ports" expanded="false">
+  <collapsible-section heading="Ports" expanded="false" subsection="true">
     <div ng-repeat="port in container.ports">
       <hr ng-if="$index > 0">
       <div class="form-group">
@@ -226,7 +226,7 @@
       class="glyphicon glyphicon-plus-sign"></span> Add New Port
     </button>
   </collapsible-section>
-  <collapsible-section heading="Volume Mounts" expanded="false">
+  <collapsible-section heading="Volume Mounts" expanded="false" subsection="true">
     <div ng-repeat="mount in container.volumeMounts">
       <div class="form-group">
         <div class="col-md-3 sm-label-right">
@@ -269,7 +269,7 @@
       class="glyphicon glyphicon-plus-sign"></span> Add New Volume Mount
     </button>
   </collapsible-section>
-  <collapsible-section heading="Probes" expanded="false">
+  <collapsible-section heading="Probes" expanded="false" subsection="true">
     <kubernetes-container-probe container="container" command="command" probetype="'readinessProbe'" heading="'Readiness'"></kubernetes-container-probe>
     <hr>
     <kubernetes-container-probe container="container" command="command" probetype="'livenessProbe'" heading="'Liveness'"></kubernetes-container-probe>
