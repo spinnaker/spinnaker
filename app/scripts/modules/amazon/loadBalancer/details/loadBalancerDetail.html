@@ -110,6 +110,24 @@
         </li>
       </ul>
     </collapsible-section>
+    <collapsible-section heading="Subnets">
+      <div ng-if="loadBalancer.subnetDetails.length === 0">
+        <h5>No subnets</h5>
+      </div>
+      <div ng-repeat="subnet in loadBalancer.subnetDetails" ng-class="{'bottom-border': !$last}">
+        <h5><strong>{{subnet.id}}</strong></h5>
+        <dl class="dl-horizontal dl-wide">
+          <dt>Purpose</dt>
+          <dd>{{subnet.purpose}}</dt>
+
+          <dt>State</dt>
+          <dd>{{subnet.state}}</dd>
+
+          <dt>Cidr Block</dt>
+          <dd>{{subnet.cidrBlock}}</dd>
+        </dl>
+      </div>
+    </collapsible-section>
     <collapsible-section heading="Health Checks">
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
         <dt>Target</dt>
