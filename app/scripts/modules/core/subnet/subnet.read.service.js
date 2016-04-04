@@ -5,9 +5,10 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.subnet.read.service', [
     require('exports?"restangular"!imports?_=lodash!restangular'),
-    require('../cache/infrastructureCaches.js')
+    require('../cache/infrastructureCaches.js'),
+    require('../utils/lodash')
   ])
-  .factory('subnetReader', function (Restangular, infrastructureCaches) {
+  .factory('subnetReader', function (_, Restangular, infrastructureCaches) {
 
     function listSubnets() {
       return Restangular.all('subnets')
@@ -31,9 +32,17 @@ module.exports = angular
         .getList();
     }
 
+    function getSubnetByIdAndProvider(subnetId, cloudProvider = 'aws') {
+      return listSubnetsByProvider(cloudProvider)
+        .then((results) => {
+          return _.first(_.filter(results.plain(), subnet => subnet.id === subnetId));
+        });
+    }
+
     return {
       listSubnets: listSubnets,
       listSubnetsByProvider: listSubnetsByProvider,
+      getSubnetByIdAndProvider: getSubnetByIdAndProvider,
     };
 
   });

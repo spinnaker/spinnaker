@@ -12,9 +12,11 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
   require('../../../core/insight/insightFilterState.model.js'),
   require('../../../core/presentation/collapsibleSection/collapsibleSection.directive.js'),
   require('../../../core/utils/selectOnDblClick.directive.js'),
+  require('../../../core/subnet/subnet.read.service'),
 ])
-  .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, loadBalancer, app, InsightFilterStateModel,
-                                                   securityGroupReader, _, confirmationModalService, loadBalancerWriter, loadBalancerReader, $q) {
+  .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, $q, loadBalancer, app, InsightFilterStateModel,
+                                                   securityGroupReader, _, confirmationModalService, loadBalancerWriter,
+                                                      loadBalancerReader, subnetReader) {
 
     $scope.state = {
       loading: true
@@ -54,6 +56,17 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
               }
             });
             $scope.securityGroups = _.sortBy(securityGroups, 'name');
+
+            if ($scope.loadBalancer.subnets) {
+              $scope.loadBalancer.subnetDetails = $scope.loadBalancer.subnets.reduce( (detailList, subnetId) => {
+                subnetReader.getSubnetByIdAndProvider(subnetId, $scope.loadBalancer.provider)
+                  .then( (subnetDetail) => {
+                    detailList.push(subnetDetail);
+                  });
+
+                return detailList;
+              }, []);
+            }
           }
         },
           autoClose
