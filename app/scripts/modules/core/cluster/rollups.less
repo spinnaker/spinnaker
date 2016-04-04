@@ -16,6 +16,18 @@
 
 @import "../presentation/less/imports/commonImports.less";
 
+server-group {
+  input[type="checkbox"] {
+    font-size: 200%;
+    margin: 0;
+  }
+  .server-group-title {
+    input {
+      margin-right: 3px;
+    }
+  }
+}
+
 .rollup {
   h4 {
     text-transform: uppercase;
@@ -72,9 +84,8 @@
   line-height: 10px;
   border-radius: 2px;
   padding-bottom: 5px;
-  input[type="checkbox"] {
-    font-size: 200%;
-    margin: 0;
+  td:first-child, th:first-child {
+    padding-left: 0;
   }
   a.instance {
     margin: 0;
@@ -348,6 +359,10 @@ load-balancers-tag {
   border-top: 1px solid #c4c4c4;
   border-bottom-left-radius: 2px;
   border-bottom-right-radius: 2px;
+
+  .section-title {
+    min-height: 24px;
+  }
 
   .clickable-row {
     background-color: #ffffff;

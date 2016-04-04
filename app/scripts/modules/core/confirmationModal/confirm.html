@@ -1,6 +1,7 @@
 <div modal-page class="confirmation-modal">
   <form role="form" class="container-fluid no-padding" ng-submit="ctrl.confirm()">
     <task-monitor monitor="taskMonitor"></task-monitor>
+    <multi-task-monitor ng-if="taskMonitors.length" monitors="taskMonitors" title="params.multiTaskTitle" close-modal="ctrl.cancel()"></multi-task-monitor>
     <modal-close></modal-close>
     <div class="modal-header">
       <h3>{{params.header}}</h3>
@@ -23,7 +24,7 @@
           </p>
         </div>
       </div>
-      <task-reason ng-if="taskMonitor && params.askForReason" command="params"></task-reason>
+      <task-reason ng-if="(taskMonitor || taskMonitors) && params.askForReason" command="params"></task-reason>
     </div>
     <div class="modal-footer">
       <user-verification verification="verification" account="params.account" label="params.verificationLabel" autofocus="true"></user-verification>

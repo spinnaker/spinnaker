@@ -6,12 +6,13 @@ module.exports = angular
   .module('cluster.filter.service', [
     require('angular-ui-router'),
     require('exports?"debounce"!angular-debounce'),
-    require('./clusterFilter.model.js'),
-    require('../../utils/lodash.js'),
-    require('../../utils/waypoints/waypoint.service.js'),
-    require('../../filterModel/filter.model.service.js'),
+    require('./clusterFilter.model'),
+    require('./multiselect.model'),
+    require('../../utils/lodash'),
+    require('../../utils/waypoints/waypoint.service'),
+    require('../../filterModel/filter.model.service'),
   ])
-  .factory('clusterFilterService', function (ClusterFilterModel, _, waypointService, $log, $stateParams, $state,
+  .factory('clusterFilterService', function (ClusterFilterModel, MultiselectModel, _, waypointService, $log, $stateParams, $state,
                                              filterModelService, debounce) {
 
     var lastApplication = null;
@@ -111,15 +112,16 @@ module.exports = angular
         .value();
 
       updateMultiselectInstanceGroups(result);
+      updateMultiselectServerGroups(result);
       return result;
     }
 
     function updateMultiselectInstanceGroups(serverGroups) {
       // removes instance groups, selection of instances that are no longer visible;
       // adds new instance ids if selectAll is enabled for an instance group
-      if (ClusterFilterModel.sortFilter.listInstances) {
+      if (ClusterFilterModel.sortFilter.listInstances && ClusterFilterModel.sortFilter.multiselect) {
         let instancesSelected = 0;
-        ClusterFilterModel.multiselectInstanceGroups.forEach((instanceGroup) => {
+        MultiselectModel.instanceGroups.forEach((instanceGroup) => {
           let [match] = serverGroups.filter((serverGroup) => {
             return serverGroup.name === instanceGroup.serverGroup &&
               serverGroup.region === instanceGroup.region &&
@@ -143,10 +145,27 @@ module.exports = angular
             instancesSelected += instanceGroup.instanceIds.length;
           }
         });
-        ClusterFilterModel.multiselectInstancesStream.onNext();
-        ClusterFilterModel.syncNavigation();
+        MultiselectModel.instancesStream.onNext();
+        MultiselectModel.syncNavigation();
       } else {
-        ClusterFilterModel.multiselectInstanceGroups.length = 0;
+        MultiselectModel.instanceGroups.length = 0;
+      }
+    }
+
+    function updateMultiselectServerGroups(serverGroups) {
+      if (ClusterFilterModel.sortFilter.multiselect) {
+        if (MultiselectModel.serverGroups.length) {
+          let remainingKeys = serverGroups.map(MultiselectModel.makeServerGroupKey);
+          let toRemove = [];
+          MultiselectModel.serverGroups.forEach((group, index) => {
+            if (remainingKeys.indexOf(group.key) < 0) {
+              toRemove.push(index);
+            }
+          });
+          toRemove.reverse().forEach((index) => MultiselectModel.serverGroups.splice(index, 1));
+        }
+        MultiselectModel.serverGroupsStream.onNext();
+        MultiselectModel.syncNavigation();
       }
     }
 

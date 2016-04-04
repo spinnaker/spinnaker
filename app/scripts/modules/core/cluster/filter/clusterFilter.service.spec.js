@@ -6,6 +6,7 @@ describe('Service: clusterFilterService', function () {
 
   var service;
   var ClusterFilterModel;
+  var MultiselectModel;
   var applicationJSON;
   var groupedJSON;
   var _;
@@ -21,10 +22,11 @@ describe('Service: clusterFilterService', function () {
 
   beforeEach(
     window.inject(
-      function (clusterFilterService, _ClusterFilterModel_, ___, _$timeout_) {
+      function (clusterFilterService, _ClusterFilterModel_, _MultiselectModel_, ___, _$timeout_) {
         _ = ___;
         service = clusterFilterService;
         ClusterFilterModel = _ClusterFilterModel_;
+        MultiselectModel = _MultiselectModel_;
         $timeout = _$timeout_;
         ClusterFilterModel.groups = [];
       }
@@ -474,16 +476,17 @@ describe('Service: clusterFilterService', function () {
   describe('multiInstance filtering', function () {
     beforeEach(function() {
       this.navigationSynced = false;
-      spyOn(ClusterFilterModel, 'syncNavigation').and.callFake(() => this.navigationSynced = true);
+      ClusterFilterModel.sortFilter.multiselect = true;
+      spyOn(MultiselectModel, 'syncNavigation').and.callFake(() => this.navigationSynced = true);
     });
 
     it('should remove all instanceIds if server group is no longer visible, and add back when visible again', function () {
       ClusterFilterModel.sortFilter.listInstances = true;
       let serverGroup = applicationJSON.serverGroups.data[0],
-          multiselectGroup = ClusterFilterModel.getOrCreateMultiselectInstanceGroup(serverGroup);
+          multiselectGroup = MultiselectModel.getOrCreateInstanceGroup(serverGroup);
 
       serverGroup.instances.push({id: 'i-1234'});
-      ClusterFilterModel.toggleSelectAll(serverGroup, ['i-1234']);
+      MultiselectModel.toggleSelectAll(serverGroup, ['i-1234']);
       expect(multiselectGroup.instanceIds).toEqual(['i-1234']);
 
       ClusterFilterModel.sortFilter.region['us-east-3'] = true;
@@ -504,17 +507,17 @@ describe('Service: clusterFilterService', function () {
       ClusterFilterModel.sortFilter.listInstances = true;
       let serverGroup = applicationJSON.serverGroups.data[0];
 
-      ClusterFilterModel.toggleMultiselectInstance(serverGroup, 'i-1234');
-      ClusterFilterModel.toggleMultiselectInstance(serverGroup, 'i-2345');
+      MultiselectModel.toggleInstance(serverGroup, 'i-1234');
+      MultiselectModel.toggleInstance(serverGroup, 'i-2345');
       serverGroup.instances.push({id: 'i-1234'});
 
-      expect(ClusterFilterModel.instanceIsMultiselected(serverGroup, 'i-1234')).toBe(true);
-      expect(ClusterFilterModel.instanceIsMultiselected(serverGroup, 'i-2345')).toBe(true);
+      expect(MultiselectModel.instanceIsSelected(serverGroup, 'i-1234')).toBe(true);
+      expect(MultiselectModel.instanceIsSelected(serverGroup, 'i-2345')).toBe(true);
 
       service.updateClusterGroups(applicationJSON);
       $timeout.flush();
-      expect(ClusterFilterModel.instanceIsMultiselected(serverGroup, 'i-1234')).toBe(true);
-      expect(ClusterFilterModel.instanceIsMultiselected(serverGroup, 'i-2345')).toBe(false);
+      expect(MultiselectModel.instanceIsSelected(serverGroup, 'i-1234')).toBe(true);
+      expect(MultiselectModel.instanceIsSelected(serverGroup, 'i-2345')).toBe(false);
 
       expect(this.navigationSynced).toBe(true);
 
@@ -524,15 +527,15 @@ describe('Service: clusterFilterService', function () {
       ClusterFilterModel.sortFilter.listInstances = true;
       let serverGroup = applicationJSON.serverGroups.data[0];
 
-      ClusterFilterModel.getOrCreateMultiselectInstanceGroup(serverGroup).selectAll = true;
-      ClusterFilterModel.toggleMultiselectInstance(serverGroup, 'i-1234');
+      MultiselectModel.getOrCreateInstanceGroup(serverGroup).selectAll = true;
+      MultiselectModel.toggleInstance(serverGroup, 'i-1234');
       serverGroup.instances.push({id: 'i-1234'});
       serverGroup.instances.push({id: 'i-2345'});
 
       service.updateClusterGroups(applicationJSON);
       $timeout.flush();
-      expect(ClusterFilterModel.instanceIsMultiselected(serverGroup, 'i-1234')).toBe(true);
-      expect(ClusterFilterModel.instanceIsMultiselected(serverGroup, 'i-2345')).toBe(true);
+      expect(MultiselectModel.instanceIsSelected(serverGroup, 'i-1234')).toBe(true);
+      expect(MultiselectModel.instanceIsSelected(serverGroup, 'i-2345')).toBe(true);
 
       expect(this.navigationSynced).toBe(true);
     });
@@ -541,13 +544,13 @@ describe('Service: clusterFilterService', function () {
       ClusterFilterModel.sortFilter.listInstances = false;
       let serverGroup = applicationJSON.serverGroups.data[0];
 
-      ClusterFilterModel.toggleMultiselectInstance(serverGroup, 'i-1234');
+      MultiselectModel.toggleInstance(serverGroup, 'i-1234');
 
-      expect(ClusterFilterModel.multiselectInstanceGroups.length).toBe(1);
+      expect(MultiselectModel.instanceGroups.length).toBe(1);
       service.updateClusterGroups(applicationJSON);
       $timeout.flush();
 
-      expect(ClusterFilterModel.multiselectInstanceGroups.length).toBe(0);
+      expect(MultiselectModel.instanceGroups.length).toBe(0);
       expect(this.navigationSynced).toBe(true);
     });
   });

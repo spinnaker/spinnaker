@@ -5,6 +5,14 @@
     </h3>
     <div class="form-inline clearfix filters">
       <div class="form-group">
+        <button class="btn btn-xs btn-default" style="margin: 0 20px"
+                ng-class="{active: sortFilter.multiselect}"
+                ng-click="allClusters.toggleMultiselect()">
+          <span class="glyphicon glyphicon-list"></span>
+          Edit multiple
+        </button>
+      </div>
+      <div class="form-group">
         <label class="checkbox">Show </label>
         <div class="checkbox">
           <label>

@@ -4,14 +4,14 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.instance.details.multipleInstances.controller', [
   require('angular-ui-router'),
-  require('../instance.write.service.js'),
-  require('../../confirmationModal/confirmationModal.service.js'),
-  require('../../insight/insightFilterState.model.js'),
-  require('../../cluster/filter/clusterFilter.model.js'),
-  require('./multipleInstanceServerGroup.directive.js'),
+  require('../instance.write.service'),
+  require('../../confirmationModal/confirmationModal.service'),
+  require('../../insight/insightFilterState.model'),
+  require('../../cluster/filter/multiselect.model'),
+  require('./multipleInstanceServerGroup.directive'),
 ])
   .controller('MultipleInstancesCtrl', function ($scope, $state, InsightFilterStateModel,
-                                                 confirmationModalService, ClusterFilterModel,
+                                                 confirmationModalService, MultiselectModel,
                                                  instanceWriter, app) {
 
     this.InsightFilterStateModel = InsightFilterStateModel;
@@ -201,27 +201,23 @@ module.exports = angular.module('spinnaker.core.instance.details.multipleInstanc
     };
 
     let countInstances = () => {
-      return ClusterFilterModel.multiselectInstanceGroups.reduce((acc, group) => acc + group.instanceIds.length, 0);
+      return MultiselectModel.instanceGroups.reduce((acc, group) => acc + group.instanceIds.length, 0);
     };
 
     let retrieveInstances = () => {
       this.instancesCount = countInstances();
-      this.selectedGroups = ClusterFilterModel.multiselectInstanceGroups
+      this.selectedGroups = MultiselectModel.instanceGroups
         .filter((group) => group.instanceIds.length)
         .map(makeServerGroupModel);
     };
 
-    let multiselectWatcher = ClusterFilterModel.multiselectInstancesStream.subscribe(retrieveInstances);
+    let multiselectWatcher = MultiselectModel.instancesStream.subscribe(retrieveInstances);
     app.serverGroups.onRefresh($scope, retrieveInstances);
 
     retrieveInstances();
 
     $scope.$on('$destroy', () => {
-      // if there's just one instance selected, this is being destroyed because we're moving to the instanceDetails
-      // view; otherwise, deselect any instances because the user is closing the panel explicitly
-      if (countInstances() !== 1) {
-        ClusterFilterModel.clearAllMultiselectGroups();
-      }
+      MultiselectModel.deselectAllInstances();
       multiselectWatcher.dispose();
     });
 

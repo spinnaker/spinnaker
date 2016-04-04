@@ -3,10 +3,11 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.instance.instanceList.directive', [
-  require('../cluster/filter/clusterFilter.model.js'),
-  require('./instanceListBody.directive.js'),
+  require('../cluster/filter/clusterFilter.model'),
+  require('../cluster/filter/multiselect.model'),
+  require('./instanceListBody.directive'),
 ])
-  .directive('instanceList', function (ClusterFilterModel) {
+  .directive('instanceList', function (ClusterFilterModel, MultiselectModel) {
     return {
       restrict: 'E',
       templateUrl: require('./instanceList.directive.html'),
@@ -22,7 +23,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceList.directive'
         let serverGroup = scope.serverGroup;
 
         let setInstanceGroup = () => {
-          scope.instanceGroup = ClusterFilterModel.getOrCreateMultiselectInstanceGroup(serverGroup);
+          scope.instanceGroup = MultiselectModel.getOrCreateInstanceGroup(serverGroup);
         };
 
         scope.selectAllClicked = (event) => {
@@ -31,7 +32,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceList.directive'
         };
 
         scope.toggleSelectAll = () => {
-          ClusterFilterModel.toggleSelectAll(serverGroup, scope.instances.map((instance) => instance.id));
+          MultiselectModel.toggleSelectAll(serverGroup, scope.instances.map((instance) => instance.id));
         };
 
         scope.applyParamsToUrl = ClusterFilterModel.applyParamsToUrl;
@@ -55,7 +56,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceList.directive'
 
         setInstanceGroup();
 
-        let multiselectWatcher = ClusterFilterModel.multiselectInstancesStream.subscribe(setInstanceGroup);
+        let multiselectWatcher = MultiselectModel.instancesStream.subscribe(setInstanceGroup);
 
         scope.$on('$destroy', () => {
           multiselectWatcher.dispose();

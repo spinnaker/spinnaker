@@ -1,23 +1,23 @@
 'use strict';
 
 describe('Service: instance writer', function () {
-  var service, serverGroupReader, taskExecutor, $q, $scope, ClusterFilterModel;
+  var service, serverGroupReader, taskExecutor, $q, $scope, MultiselectModel;
 
   beforeEach(
     window.module(
       require('./instance.write.service'),
-      require('../cluster/filter/clusterFilter.model')
+      require('../cluster/filter/multiselect.model')
     )
   );
 
   beforeEach(
-    window.inject(function(instanceWriter, _taskExecutor_, _serverGroupReader_, _$q_, $rootScope, _ClusterFilterModel_) {
+    window.inject(function(instanceWriter, _taskExecutor_, _serverGroupReader_, _$q_, $rootScope, _MultiselectModel_) {
       service = instanceWriter;
       taskExecutor = _taskExecutor_;
       serverGroupReader = _serverGroupReader_;
       $q = _$q_;
       $scope = $rootScope.$new();
-      ClusterFilterModel = _ClusterFilterModel_;
+      MultiselectModel = _MultiselectModel_;
     })
   );
 
@@ -62,7 +62,7 @@ describe('Service: instance writer', function () {
       this.serverGroupB = { type: 'gce', name: 'asg-v002', account: 'test', region: 'us-west-1' };
 
       this.getInstanceGroup = (serverGroup) => {
-        return ClusterFilterModel.getOrCreateMultiselectInstanceGroup(serverGroup);
+        return MultiselectModel.getOrCreateInstanceGroup(serverGroup);
       };
 
       this.addInstance = (serverGroup, instance) => {

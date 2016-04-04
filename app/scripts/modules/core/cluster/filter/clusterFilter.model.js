@@ -28,12 +28,10 @@ module.exports = angular
       { model: 'showAllInstances', param: 'hideInstances', displayOption: true, type: 'inverse-boolean', },
       { model: 'listInstances', displayOption: true, type: 'boolean', },
       { model: 'instanceSort', displayOption: true, type: 'sortKey', defaultValue: 'launchTime' },
+      { model: 'multiselect', displayOption: true, type: 'boolean', }
     ];
 
     filterModelService.configureFilterModel(this, filterModelConfig);
-
-    this.multiselectInstanceGroups = [];
-    this.multiselectInstancesStream = new rx.Subject();
 
     this.getSelectedRegions = () => Object.keys(this.sortFilter.region || {}).filter((key) => this.sortFilter.region[key]);
     this.getSelectedAvailabilityZones = () => Object.keys(this.sortFilter.availabilityZone || {}).filter((key) => this.sortFilter.availabilityZone[key]);
@@ -51,111 +49,6 @@ module.exports = angular
 
     this.reconcileDependentFilters = () => {
       this.removeCheckedAvailabilityZoneIfRegionIsNotChecked();
-    };
-
-    this.syncNavigation = () => {
-      // this method gets called on page initialization, so if we're deep linked to an instance details view, leave it
-      if (!this.multiselectInstanceGroups.length && $state.params.instanceId) {
-        return;
-      }
-
-      let instancesSelected = this.multiselectInstanceGroups.reduce((acc, group) => acc + group.instanceIds.length, 0);
-
-      if (instancesSelected === 1) {
-        // if there's just one instance selected and we're not showing instance details, do so
-        if (!$state.includes('**.instanceDetails')) {
-          let [match] = this.multiselectInstanceGroups.filter((group) => group.instanceIds.length),
-              params = {provider: match.cloudProvider, instanceId: match.instanceIds[0]};
-          if ($state.includes('**.clusters.*')) {
-            $state.go('^.instanceDetails', params);
-          } else {
-            $state.go('.instanceDetails', params);
-          }
-        }
-        return;
-      }
-
-      // if the user just de-selected the one instance, close the details view
-      if (this.sortFilter.listInstances && $state.includes('**.instanceDetails') && instancesSelected === 0) {
-        $state.go('^');
-      }
-
-      if ($state.includes('**.multipleInstances') && !instancesSelected) {
-        $state.go('^');
-      }
-      if (!$state.includes('**.multipleInstances') && instancesSelected > 1) {
-        // user selected multiple instances
-        if ($state.includes('**.clusters.*')) {
-          // from a child state, e.g. instanceDetails
-          $state.go('^.multipleInstances');
-        } else {
-          $state.go('.multipleInstances');
-        }
-      }
-    };
-
-    this.clearAllMultiselectGroups = () => {
-      this.multiselectInstanceGroups.forEach((instanceGroup) => {
-        instanceGroup.instanceIds.length = 0;
-        instanceGroup.selectAll = false;
-      });
-      this.multiselectInstancesStream.onNext();
-    };
-
-    this.getOrCreateMultiselectInstanceGroup = (serverGroup) => {
-      let serverGroupName = serverGroup.name,
-          account = serverGroup.account,
-          region = serverGroup.region,
-          cloudProvider = serverGroup.type;
-      let [result] = this.multiselectInstanceGroups.filter((instanceGroup) => {
-        return instanceGroup.serverGroup === serverGroupName &&
-          instanceGroup.account === account &&
-          instanceGroup.region === region &&
-          instanceGroup.cloudProvider === cloudProvider;
-      });
-      if (!result) {
-        // when creating a new group, include an instance ID if we're deep-linked into the details view
-        let params = $state.params;
-        let instanceIds = (serverGroup.instances || [])
-          .filter((instance) => instance.provider === params.provider && instance.id === params.instanceId)
-          .map((instance) => instance.id);
-        result = {
-          serverGroup: serverGroupName,
-          account: account,
-          region: region,
-          cloudProvider: cloudProvider,
-          instanceIds: instanceIds,
-          instances: [], // populated by details controller
-          selectAll: false,
-        };
-        this.multiselectInstanceGroups.push(result);
-      }
-      return result;
-    };
-
-    this.toggleMultiselectInstance = (serverGroup, instanceId) => {
-      let group = this.getOrCreateMultiselectInstanceGroup(serverGroup);
-      if (group.instanceIds.indexOf(instanceId) > -1) {
-        group.instanceIds.splice(group.instanceIds.indexOf(instanceId), 1);
-        group.selectAll = false;
-      } else {
-        group.instanceIds.push(instanceId);
-      }
-      this.multiselectInstancesStream.onNext();
-      this.syncNavigation();
-    };
-
-    this.toggleSelectAll = (serverGroup, allInstanceIds) => {
-      let group = this.getOrCreateMultiselectInstanceGroup(serverGroup);
-      group.selectAll = !group.selectAll;
-      group.instanceIds = group.selectAll ? allInstanceIds : [];
-      this.multiselectInstancesStream.onNext();
-      this.syncNavigation();
-    };
-
-    this.instanceIsMultiselected = (serverGroup, instanceId) => {
-      let group = this.getOrCreateMultiselectInstanceGroup(serverGroup);
-      return group.instanceIds.indexOf(instanceId) > -1;
     };
 
     function isClusterState(stateName) {
@@ -187,10 +80,6 @@ module.exports = angular
       return filterModel.hasSavedState(toParams) && !isClusterStateOrChild(fromState.name);
     }
 
-    function changingApplications(toParams, fromParams) {
-      return toParams.application !== fromParams.application;
-    }
-
     // WHY??? Because, when the stateChangeStart event fires, the $location.search() will return whatever the query
     // params are on the route we are going to, so if the user is using the back button, for example, to go to the
     // Infrastructure page with a search already entered, we'll pick up whatever search was entered there, and if we
@@ -207,15 +96,8 @@ module.exports = angular
     });
 
     this.handleStateChangeStart = (event, toState, toParams, fromState, fromParams) => {
-      if (movingFromClusterState(toState, fromState) || changingApplications(toParams, fromParams)) {
-        this.multiselectInstanceGroups.length = 0;
-        this.multiselectInstancesStream.onNext();
-      }
       if (movingFromClusterState(toState, fromState)) {
         this.saveState(fromState, fromParams, mostRecentParams);
-      }
-      if ($state.includes('**.instanceDetails') && this.sortFilter.listInstances && isClusterState(toState.name)) {
-        this.clearAllMultiselectGroups();
       }
     };
 
