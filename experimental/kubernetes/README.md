@@ -36,8 +36,7 @@ The key takeaway is having a kubeconfig file sitting in `~/.kube/config` that
 can authenticate with the cluster you want to deploy Spinnaker to. 
 Once that is all squared away, make sure that running `$ kubectl config
 current-context` refers to the cluster you want to have Spinnaker running in.
-
-You should also update `gcloud` to at least version 102.0.0.
+(You may need to update `kubectl` for the previous command to work).
 
 Next, in the editor of your choice, open up `./config/clouddriver.yml`, and
 examine the `dockerRegistry` subsection. If you would like to add your own registry,
