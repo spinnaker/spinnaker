@@ -214,7 +214,7 @@ class DefaultImageNameFactorySpec extends Specification {
       1 * clockMock.millis() >> 123456
       imageName == "nflx-djangobase-enhanced-all-123456-centos"
       appVersionStr == "nflx-djangobase-enhanced-0.1-h12.170cdbd"
-      packagesParameter == "nflx-djangobase-enhanced=0.1-3"
+      packagesParameter == "nflx-djangobase-enhanced-0.1-3"
   }
 
   void "should build appversion tag from centos package name even without commit hash"() {
@@ -233,7 +233,7 @@ class DefaultImageNameFactorySpec extends Specification {
       1 * clockMock.millis() >> 123456
       imageName == "nflx-djangobase-enhanced-all-123456-centos"
       appVersionStr == "nflx-djangobase-enhanced-0.1-h12"
-      packagesParameter == "nflx-djangobase-enhanced=0.1-3"
+      packagesParameter == "nflx-djangobase-enhanced-0.1-3"
   }
 
   void "should recognize fully-qualified centos package name plus extra packages"() {
@@ -253,7 +253,7 @@ class DefaultImageNameFactorySpec extends Specification {
       1 * clockMock.millis() >> 123456
       imageName == "nflx-djangobase-enhanced-all-123456-centos"
       appVersionStr == "nflx-djangobase-enhanced-0.1-h12.170cdbd"
-      packagesParameter == "nflx-djangobase-enhanced=0.1-3 kato redis-server"
+      packagesParameter == "nflx-djangobase-enhanced-0.1-3 kato redis-server"
   }
 
   void "should identify version on fully-qualified centos package name without build number and commit hash"() {
@@ -271,6 +271,6 @@ class DefaultImageNameFactorySpec extends Specification {
       1 * clockMock.millis() >> 123456
       imageName == "nflx-djangobase-enhanced-all-123456-centos"
       appVersionStr == "nflx-djangobase-enhanced-0.1"
-      packagesParameter == "nflx-djangobase-enhanced=0.1-3 kato redis-server"
+      packagesParameter == "nflx-djangobase-enhanced-0.1-3 kato redis-server"
   }
 }

@@ -67,7 +67,7 @@ public class DefaultImageNameFactory implements ImageNameFactory {
 
         // If a version/release was specified, we need to include that when installing the package.
         if (osPackageName?.version && osPackageName?.release) {
-          packageNameList[0] += "=$osPackageName.version-$osPackageName.release"
+          packageNameList[0] += "$selectedOptions.baseImage.packageType.versionDelimiter$osPackageName.version-$osPackageName.release"
         }
       }
     }
