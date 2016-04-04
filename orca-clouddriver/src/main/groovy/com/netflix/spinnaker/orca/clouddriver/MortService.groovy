@@ -54,6 +54,9 @@ interface MortService {
                             @Path("type") String type,
                             @Body Map<String, ? extends Object> data)
 
+  @GET("/credentials/{account}")
+  Map getAccountDetails(@Path("account") String account)
+
   static class SearchResult {
     int totalMatches
     int pageNumber
