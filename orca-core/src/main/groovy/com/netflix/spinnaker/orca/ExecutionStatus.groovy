@@ -51,6 +51,12 @@ enum ExecutionStatus {
     SUCCEEDED(true, false, ExitStatus.COMPLETED),
 
   /**
+   * The task execution failed,  but the pipeline may proceed to the next
+   * task.
+   */
+    FAILED_CONTINUE(true, false, ExitStatus.COMPLETED),
+
+  /**
    * The task failed and the failure was terminal. The pipeline will not
    * progress any further.
    */

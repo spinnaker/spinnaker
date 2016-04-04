@@ -124,7 +124,12 @@ class TaskTasklet implements Tasklet {
     if (result.status == ExecutionStatus.TERMINAL) {
       def shouldFailPipeline = (stage.context.failPipeline == null ? true : stage.context.failPipeline) as String
       def terminalStatus = Boolean.valueOf(shouldFailPipeline) ? ExecutionStatus.TERMINAL : ExecutionStatus.STOPPED
+      def shouldContinuePipeline = stage.context.continuePipeline == null ? false : stage.context.continuePipeline
       result = new DefaultTaskResult(terminalStatus, result.stageOutputs, result.globalOutputs)
+      if (shouldContinuePipeline) {
+        // ignore failure is selected
+        result = new DefaultTaskResult(ExecutionStatus.FAILED_CONTINUE, result.stageOutputs, result.globalOutputs)
+      }
     }
 
     return result
