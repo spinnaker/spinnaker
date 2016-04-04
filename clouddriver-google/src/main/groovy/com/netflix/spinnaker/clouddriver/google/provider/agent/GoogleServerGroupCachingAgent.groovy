@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.provider.agent
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
@@ -308,7 +309,9 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
 
   void moveOnDemandDataToNamespace(CacheResultBuilder cacheResultBuilder, GoogleServerGroup2 googleServerGroup) {
     def serverGroupKey = Keys.getServerGroupKey(googleServerGroup.name, accountName, googleServerGroup.zone)
-    Map<String, List<CacheData>> onDemandData = cacheResultBuilder.onDemand.toKeep[serverGroupKey].attributes.cacheResults
+    Map<String, List<CacheData>> onDemandData = objectMapper.readValue(
+        cacheResultBuilder.onDemand.toKeep[serverGroupKey].attributes.cacheResults,
+        new TypeReference<Map<String, List<CacheData>>>() {})
 
     onDemandData.each { String namespace, List<CacheData> cacheDatas ->
       cacheDatas.each { CacheData cacheData ->
