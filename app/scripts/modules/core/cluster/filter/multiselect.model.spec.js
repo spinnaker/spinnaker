@@ -1,6 +1,6 @@
 'use strict';
 
-fdescribe('Multiselect Model', function () {
+describe('Multiselect Model', function () {
 
   var MultiselectModel, ClusterFilterModel, $state;
 
