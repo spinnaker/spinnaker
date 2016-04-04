@@ -463,16 +463,4 @@ class GoogleServerGroupCachingAgent extends AbstractGoogleCachingAgent implement
       }
     }
   }
-
-  class AutoscalerCallback<Autoscaler> extends JsonBatchCallback<Autoscaler> implements FailureLogger {
-
-    GoogleServerGroup2 googleServerGroup
-
-    @Override
-    void onSuccess(Autoscaler autoscaler, HttpHeaders responseHeaders) throws IOException {
-      if (autoscaler) {
-        googleServerGroup.autoscalingPolicy = autoscaler.getAutoscalingPolicy()
-      }
-    }
-  }
 }
