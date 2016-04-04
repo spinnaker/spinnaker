@@ -17,39 +17,13 @@
 package com.netflix.spinnaker.clouddriver.aws.data
 
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace
 import groovy.transform.CompileStatic
 
 @CompileStatic
 class Keys {
 
   public static final PROVIDER = "aws"
-
-  static enum Namespace {
-    IMAGES,
-    NAMED_IMAGES,
-    SERVER_GROUPS,
-    INSTANCES,
-    LAUNCH_CONFIGS,
-    LOAD_BALANCERS,
-    CLUSTERS,
-    APPLICATIONS,
-    HEALTH,
-    ON_DEMAND,
-    RESERVATION_REPORTS,
-    RESERVED_INSTANCES
-
-    final String ns
-
-    private Namespace() {
-      def parts = name().split('_')
-
-      ns = parts.tail().inject(new StringBuilder(parts.head().toLowerCase())) { val, next -> val.append(next.charAt(0)).append(next.substring(1).toLowerCase()) }
-    }
-
-    String toString() {
-      ns
-    }
-  }
 
   static Map<String, String> parse(String key) {
     def parts = key.split(':')

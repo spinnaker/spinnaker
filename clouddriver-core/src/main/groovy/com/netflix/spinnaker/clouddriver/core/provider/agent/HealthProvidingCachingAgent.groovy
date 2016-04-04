@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.aws.provider.agent
+package com.netflix.spinnaker.clouddriver.core.provider.agent
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.netflix.spinnaker.cats.agent.AgentDataType
@@ -22,8 +22,8 @@ import com.netflix.spinnaker.cats.agent.CachingAgent
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.HEALTH
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
 
 interface HealthProvidingCachingAgent extends CachingAgent {
   static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}

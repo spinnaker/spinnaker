@@ -41,10 +41,10 @@ import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.HEALTH
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.IMAGES
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.INSTANCES
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.SERVER_GROUPS
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.IMAGES
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.SERVER_GROUPS
 
 class InstanceCachingAgent implements CachingAgent, AccountAware, DriftMetric {
   final Logger log = LoggerFactory.getLogger(getClass())

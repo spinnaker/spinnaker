@@ -36,13 +36,13 @@ import com.netflix.spinnaker.clouddriver.aws.model.edda.InstanceLoadBalancers
 import com.netflix.spinnaker.clouddriver.aws.model.edda.LoadBalancerInstance
 import com.netflix.spinnaker.clouddriver.aws.model.edda.LoadBalancerInstanceState
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
+import com.netflix.spinnaker.clouddriver.core.provider.agent.HealthProvidingCachingAgent
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.HEALTH
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.INSTANCES
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.LOAD_BALANCERS
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LOAD_BALANCERS
 
 @Slf4j
 class AmazonLoadBalancerInstanceStateCachingAgent implements CachingAgent,HealthProvidingCachingAgent, AccountAware {

@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.LOAD_BALANCERS
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LOAD_BALANCERS
 
 @RestController
 @RequestMapping("/aws/loadBalancers")

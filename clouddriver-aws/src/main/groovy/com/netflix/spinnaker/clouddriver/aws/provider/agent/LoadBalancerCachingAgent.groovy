@@ -45,9 +45,9 @@ import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.INSTANCES
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.LOAD_BALANCERS
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.ON_DEMAND
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LOAD_BALANCERS
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND
 
 class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, DriftMetric {
   final Logger log = LoggerFactory.getLogger(getClass())

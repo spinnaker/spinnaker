@@ -33,11 +33,12 @@ import com.netflix.spinnaker.clouddriver.aws.model.discovery.DiscoveryApplicatio
 import com.netflix.spinnaker.clouddriver.aws.model.discovery.DiscoveryApplications
 import com.netflix.spinnaker.clouddriver.aws.model.discovery.DiscoveryInstance
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
+import com.netflix.spinnaker.clouddriver.core.provider.agent.HealthProvidingCachingAgent
 import groovy.util.logging.Slf4j
 import java.util.regex.Pattern
 
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.HEALTH
-import static com.netflix.spinnaker.clouddriver.aws.data.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
 
 @Slf4j
 class DiscoveryCachingAgent extends AgentSchedulerAware implements CachingAgent, HealthProvidingCachingAgent {
